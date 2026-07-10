@@ -195,6 +195,46 @@ Available when `advanced_checklists_visible` is enabled globally. Checklists are
 |-----------|------|-------------|
 | `checklist` | list[string] | Ordered list of step descriptions (max 100 items, 500 chars/item) |
 
+### Spare parts & consumables (2.23+)
+
+A per-object parts list, managed in the panel's object detail (**Parts &
+consumables** section) and via the `part/create|update|delete|restock` WS
+commands. Static definitions live in the config entry; the mutable stock count
+is dynamic state (Store). Parts round-trip through JSON export/import
+(regenerated ids, task links remapped, stock restored).
+
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `name` | string | — | ≤100 | Part name (required) |
+| `vendor` | string | `""` | ≤64 | Manufacturer — also feeds the shopping-search query |
+| `mpn` | string | `""` | ≤64 | Manufacturer part number — spares often have no retail barcode, so this is usually the sharpest identifier |
+| `gtin` | string | *(none)* | 8/12/13/14 digits | Barcode number, validated against the GS1 **GTIN** family check digit — covers **EAN-13** (worldwide), **UPC-A** (North America), EAN-8 and GTIN-14 |
+| `storage_location` | string | `""` | ≤120 | Where the part physically lives ("basement shelf B, box 3") — shown before the job (task detail / work sheet) and on the buy task |
+| `product_url` | string | `""` | http(s), ≤500 | Direct link to buy the part — wins over the shopping search |
+| `unit` | string | `""` | ≤16 | Display unit for the stock ("pcs", "kg", "L") |
+| `cost` | number | *(none)* | 0–100000 | Unit price; completing a buy task prefills cost = quantity × price |
+| `stock` | int | *(none)* | 0–9999 | Tracked on-hand count. **Unset = catalog-only part** (identifiers/links only, no tracking, sensor unavailable) |
+| `reorder_threshold` | int | *(none)* | 0–9999 | Stock at/below this is *low*: fires the edge-triggered low/out events and (with auto-buy) creates the reminder |
+| `restock_quantity` | int | 1 | 1–9999 | How many completing the buy task adds back — editable in the complete dialog |
+| `auto_buy_task` | bool | `false` | — | Auto-create a one-off **"Buy {part}"** task while the part is low; it clears itself once restocked above the threshold. A *completed* reminder keeps its cost history and blocks duplicates while the part stays low |
+| `doc_id` | string | *(none)* | — | Receipt/datasheet attached via the documents engine |
+
+**Task link:** `task.consumes_parts = [{"part_id", "quantity"}]` (≤10 parts per
+task, quantity 1–999; edited via the task dialog's *Consumes parts*
+checkboxes) — completing the task decrements each linked part's tracked stock.
+
+**Shopping search:** parts without a `product_url` link to a search — the
+global setting `part_search_url_template` (a URL with a `{q}` placeholder;
+default: Amazon for the HA UI language) with query precedence **GTIN →
+"vendor MPN" → name**.
+
+**Entities:** one stock sensor per part on the object device
+(`sensor.<object>_<part>_stock`, attributes: threshold, storage location,
+`is_low`) and a global `sensor.maintenance_supporter_parts_to_reorder`
+counter. Events: `maintenance_supporter_part_stock_low` / `_part_stock_out` /
+`_part_restocked` — edge-triggered (one event per crossing, no re-nagging
+while low).
+
 ### Time-of-day Scheduling
 
 Available when `advanced_schedule_time_visible` is enabled globally. Applies to `time_based` tasks only. Editable in the **panel task dialog** (HH:MM picker directly under "Interval anchor") and in the **Integration Options** per-task Edit Task step.

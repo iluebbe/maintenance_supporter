@@ -271,6 +271,8 @@ async def test_ws_part_crud_and_restock(hass: HomeAssistant, global_entry: MockC
     )
     assert not conn.send_error.called, conn.send_error.call_args
     new_pid = conn.send_result.call_args[0][1]["part_id"]
+    # The WS envelope id must never leak into the part id (uuid4 hex).
+    assert isinstance(new_pid, str) and len(new_pid) == 32, new_pid
     await hass.async_block_till_done()
 
     entry = hass.config_entries.async_get_entry(entry.entry_id)

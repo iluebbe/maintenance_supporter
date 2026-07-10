@@ -56,6 +56,11 @@ _PANEL_SIBLING_WS = {
 PANEL_ONLY = {
     "on_complete_action",  # service call fired on completion (v1.3.0)
     "quick_complete_defaults",  # prefilled notes/cost/duration/feedback
+    # Spare-parts consumption links (2.23): parts themselves are managed in the
+    # panel's object-detail section only (the documents precedent), so the
+    # task-side link selector lives panel-only too — a config-flow multi-select
+    # of parts+quantities without the parts CRUD around it would be a stub.
+    "consumes_parts",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by
