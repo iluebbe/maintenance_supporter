@@ -706,5 +706,20 @@
   "series_end_after_count": "Po liczbie razy",
   "series_end_until": "W dniu",
   "series_end_count_label": "Liczba razy",
-  "series_end_until_label": "Data końcowa"
+  "series_end_until_label": "Data końcowa",
+  "parts_section": "Części i materiały",
+  "part_add": "Dodaj część",
+  "part_name": "Nazwa",
+  "part_vendor": "Producent",
+  "part_storage_location": "Miejsce przechowywania",
+  "part_product_url": "Adres URL produktu",
+  "part_unit": "Jednostka",
+  "part_cost": "Cena jednostkowa",
+  "part_stock": "Stan",
+  "part_reorder_threshold": "Próg zamówienia",
+  "part_restock_quantity": "Ilość uzupełnienia",
+  "part_auto_buy": "Zadanie zakupu przy niskim stanie",
+  "part_restock": "Koryguj stan",
+  "restock_quantity_label": "Kupiona ilość",
+  "consumes_parts_label": "Zużywa części"
 }

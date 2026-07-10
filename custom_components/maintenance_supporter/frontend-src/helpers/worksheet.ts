@@ -25,6 +25,7 @@ export interface WorksheetLabels {
   priority: string;
   checklist: string;
   notes: string;
+  parts: string;         // "Required parts"
   scanView: string;       // "Scan to open the task"
   scanComplete: string;   // "Scan to complete"
   manualExcerpt: string;  // "Manual excerpt"
@@ -59,6 +60,7 @@ export function buildTaskWorksheetHtml(
   qrCompleteDataUri: string | null,
   excerpt: WorksheetExcerpt | null,
   nowIso: string,
+  partsLines: string[] = [],
 ): string {
   const meta: Array<[string, string]> = [
     [L.object, esc(objectName)],
@@ -127,6 +129,7 @@ export function buildTaskWorksheetHtml(
     ${meta.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}
   </table>
   ${checklist ? `<h2>${esc(L.checklist)}</h2><ul class="check">${checklist}</ul>` : ""}
+  ${partsLines.length ? `<h2>${esc(L.parts)}</h2><ul class="check">${partsLines.map((line) => `<li><span class="box"></span>${esc(line)}</li>`).join("")}</ul>` : ""}
   ${task.notes ? `<h2>${esc(L.notes)}</h2><div class="notes">${esc(task.notes)}</div>` : ""}
   ${excerpt ? `<h2>${esc(L.manualExcerpt)}</h2>
     <div class="excerpt">${esc(excerpt.title)} — ${esc(L.pages)} ${excerpt.startPage}–${excerpt.endPage}:

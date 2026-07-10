@@ -706,5 +706,20 @@
   "series_end_after_count": "Após um número de vezes",
   "series_end_until": "Numa data",
   "series_end_count_label": "Número de vezes",
-  "series_end_until_label": "Data final"
+  "series_end_until_label": "Data final",
+  "parts_section": "Peças e consumíveis",
+  "part_add": "Adicionar peça",
+  "part_name": "Nome",
+  "part_vendor": "Fabricante",
+  "part_storage_location": "Local de armazenamento",
+  "part_product_url": "URL do produto",
+  "part_unit": "Unidade",
+  "part_cost": "Preço unitário",
+  "part_stock": "Estoque",
+  "part_reorder_threshold": "Limite de reposição",
+  "part_restock_quantity": "Quantidade de reposição",
+  "part_auto_buy": "Tarefa de compra se baixo",
+  "part_restock": "Ajustar estoque",
+  "restock_quantity_label": "Quantidade comprada",
+  "consumes_parts_label": "Consome peças"
 }

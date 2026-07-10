@@ -706,5 +706,20 @@
   "series_end_after_count": "Po počtu opakování",
   "series_end_until": "K datu",
   "series_end_count_label": "Počet opakování",
-  "series_end_until_label": "Datum konce"
+  "series_end_until_label": "Datum konce",
+  "parts_section": "Díly a spotřební materiál",
+  "part_add": "Přidat díl",
+  "part_name": "Název",
+  "part_vendor": "Výrobce",
+  "part_storage_location": "Místo uložení",
+  "part_product_url": "URL produktu",
+  "part_unit": "Jednotka",
+  "part_cost": "Cena za kus",
+  "part_stock": "Zásoba",
+  "part_reorder_threshold": "Práh doobjednání",
+  "part_restock_quantity": "Množství doplnění",
+  "part_auto_buy": "Úkol nákupu při nízké zásobě",
+  "part_restock": "Upravit zásobu",
+  "restock_quantity_label": "Zakoupené množství",
+  "consumes_parts_label": "Spotřebovává díly"
 }

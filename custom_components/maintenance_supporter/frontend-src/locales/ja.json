@@ -706,5 +706,20 @@
   "series_end_after_count": "回数の後",
   "series_end_until": "日付で",
   "series_end_count_label": "回数",
-  "series_end_until_label": "終了日"
+  "series_end_until_label": "終了日",
+  "parts_section": "部品・消耗品",
+  "part_add": "部品を追加",
+  "part_name": "名前",
+  "part_vendor": "メーカー",
+  "part_storage_location": "保管場所",
+  "part_product_url": "製品URL",
+  "part_unit": "単位",
+  "part_cost": "単価",
+  "part_stock": "在庫",
+  "part_reorder_threshold": "再注文しきい値",
+  "part_restock_quantity": "補充数量",
+  "part_auto_buy": "在庫少で購入タスク",
+  "part_restock": "在庫を調整",
+  "restock_quantity_label": "購入数量",
+  "consumes_parts_label": "部品を消費"
 }

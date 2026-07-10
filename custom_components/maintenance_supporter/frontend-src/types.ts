@@ -226,12 +226,41 @@ export interface MaintenanceTask {
   // Auto-derived sensor + binary_sensor entity_ids (since 1.0.45)
   sensor_entity_id?: string | null;
   binary_sensor_entity_id?: string | null;
+  /** Spare parts consumed by completing this task. */
+  consumes_parts?: Array<{ part_id: string; quantity: number }> | null;
+  /** Present on an auto-created "buy" reminder: the owning part. */
+  part_ref?: { part_id: string } | null;
+}
+
+/** A spare part / consumable on an object (full definition + derived state). */
+export interface MaintenancePart {
+  id: string;
+  name: string;
+  mpn?: string;
+  gtin?: string | null;
+  vendor?: string;
+  storage_location?: string;
+  product_url?: string;
+  notes?: string;
+  unit?: string;
+  cost?: number | null;
+  reorder_threshold?: number | null;
+  restock_quantity?: number | null;
+  auto_buy_task?: boolean;
+  doc_id?: string | null;
+  /** Tracked on-hand count; null = catalog-only (not tracked). */
+  stock?: number | null;
+  /** Derived: tracked stock at/below the reorder threshold. */
+  is_low?: boolean;
+  /** Derived: product_url or the configured shopping-search link. */
+  shopping_url?: string;
 }
 
 export interface MaintenanceObjectResponse {
   entry_id: string;
   object: MaintenanceObject;
   tasks: MaintenanceTask[];
+  parts?: MaintenancePart[];
 }
 
 export interface StatisticsResponse {

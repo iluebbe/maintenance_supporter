@@ -706,5 +706,20 @@
   "series_end_after_count": "达到次数后",
   "series_end_until": "在某日期",
   "series_end_count_label": "次数",
-  "series_end_until_label": "结束日期"
+  "series_end_until_label": "结束日期",
+  "parts_section": "配件与耗材",
+  "part_add": "添加配件",
+  "part_name": "名称",
+  "part_vendor": "制造商",
+  "part_storage_location": "存放位置",
+  "part_product_url": "商品链接",
+  "part_unit": "单位",
+  "part_cost": "单价",
+  "part_stock": "库存",
+  "part_reorder_threshold": "补货阈值",
+  "part_restock_quantity": "补货数量",
+  "part_auto_buy": "库存低时自动建购买任务",
+  "part_restock": "调整库存",
+  "restock_quantity_label": "购买数量",
+  "consumes_parts_label": "消耗配件"
 }

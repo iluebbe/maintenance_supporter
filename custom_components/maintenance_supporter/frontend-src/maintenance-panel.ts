@@ -29,6 +29,7 @@ import { UserService } from "./user-service";
 import "./components/object-dialog";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
 import "./components/documents-section";
+import "./components/parts-section";
 import "./components/task-documents";
 import "./components/task-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
@@ -1545,7 +1546,19 @@ export class MaintenanceSupporterPanel extends LitElement {
         never: t("worksheet_never", L),
         typeLabel: (ty: string) => t(ty, L),
         statusLabel: (st: string) => t(st, L),
+        parts: t("consumes_parts_label", L),
       };
+      // Required parts as checkable lines: qty × name (stock unit) — location.
+      const wsParts = obj.parts || [];
+      const partsLines = (task.consumes_parts || [])
+        .map((link) => {
+          const pt = wsParts.find((x) => x.id === link.part_id);
+          if (!pt) return "";
+          const stock = pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : "";
+          const loc = pt.storage_location ? ` — ${pt.storage_location}` : "";
+          return `${link.quantity}× ${pt.name}${stock}${loc}`;
+        })
+        .filter(Boolean);
       const html = buildTaskWorksheetHtml(
         task, obj.object.name, labels,
         (iso) => formatDate(iso, L),
@@ -1554,6 +1567,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         qrComplete?.svg_data_uri || null,
         excerpt,
         new Date().toISOString(),
+        partsLines,
       );
       const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
       window.open(url, "_blank");
@@ -1579,6 +1593,21 @@ export class MaintenanceSupporterPanel extends LitElement {
       ?.tasks.find((tsk) => tsk.id === taskId);
     dlg.taskType = tk?.type || "";
     dlg.readingUnit = tk?.reading_unit || "";
+    // Spare parts: a buy task gets an editable restock-qty field; a consuming
+    // task shows what it will decrement (incl. the storage location).
+    const objParts = this._objects.find((o) => o.entry_id === entryId)?.parts || [];
+    const partById = new Map(objParts.map((pt) => [pt.id, pt]));
+    const refPart = tk?.part_ref ? partById.get(tk.part_ref.part_id) : undefined;
+    dlg.restockDefault = tk?.part_ref ? (refPart?.restock_quantity ?? 1) : null;
+    dlg.consumesInfo = (tk?.consumes_parts || [])
+      .map((link) => {
+        const pt = partById.get(link.part_id);
+        if (!pt) return "";
+        const loc = pt.storage_location ? ` — ${pt.storage_location}` : "";
+        const stock = pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : "";
+        return `${link.quantity}× ${pt.name}${stock}${loc}`;
+      })
+      .filter(Boolean);
     dlg.open();
   }
 
@@ -2735,6 +2764,14 @@ export class MaintenanceSupporterPanel extends LitElement {
           .entryId=${obj.entry_id}
           .canWrite=${!isOperator}
         ></maintenance-documents-section>
+
+        <maintenance-parts-section
+          .hass=${this.hass}
+          .entryId=${obj.entry_id}
+          .parts=${obj.parts || []}
+          .canWrite=${!isOperator}
+          @parts-changed=${() => this._loadData()}
+        ></maintenance-parts-section>
 
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
           <ha-button

@@ -706,5 +706,20 @@
   "series_end_after_count": "После числа раз",
   "series_end_until": "В дату",
   "series_end_count_label": "Число раз",
-  "series_end_until_label": "Дата окончания"
+  "series_end_until_label": "Дата окончания",
+  "parts_section": "Детали и расходники",
+  "part_add": "Добавить деталь",
+  "part_name": "Название",
+  "part_vendor": "Производитель",
+  "part_storage_location": "Место хранения",
+  "part_product_url": "Ссылка на товар",
+  "part_unit": "Ед. изм.",
+  "part_cost": "Цена за шт.",
+  "part_stock": "Запас",
+  "part_reorder_threshold": "Порог дозаказа",
+  "part_restock_quantity": "Количество пополнения",
+  "part_auto_buy": "Задача покупки при малом запасе",
+  "part_restock": "Изменить запас",
+  "restock_quantity_label": "Куплено, шт.",
+  "consumes_parts_label": "Расходует детали"
 }

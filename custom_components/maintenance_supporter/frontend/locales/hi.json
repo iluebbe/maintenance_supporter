@@ -706,5 +706,20 @@
   "series_end_after_count": "कुछ बार के बाद",
   "series_end_until": "एक तिथि पर",
   "series_end_count_label": "कितनी बार",
-  "series_end_until_label": "समाप्ति तिथि"
+  "series_end_until_label": "समाप्ति तिथि",
+  "parts_section": "पुर्ज़े और उपभोग्य",
+  "part_add": "पुर्ज़ा जोड़ें",
+  "part_name": "नाम",
+  "part_vendor": "निर्माता",
+  "part_storage_location": "भंडारण स्थान",
+  "part_product_url": "उत्पाद URL",
+  "part_unit": "इकाई",
+  "part_cost": "इकाई मूल्य",
+  "part_stock": "स्टॉक",
+  "part_reorder_threshold": "पुनः ऑर्डर सीमा",
+  "part_restock_quantity": "पुनःपूर्ति मात्रा",
+  "part_auto_buy": "कम होने पर खरीद कार्य",
+  "part_restock": "स्टॉक समायोजित करें",
+  "restock_quantity_label": "खरीदी गई मात्रा",
+  "consumes_parts_label": "पुर्ज़े खपत"
 }

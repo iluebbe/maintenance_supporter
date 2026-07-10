@@ -706,5 +706,20 @@
   "series_end_after_count": "After a number of times",
   "series_end_until": "On a date",
   "series_end_count_label": "Number of times",
-  "series_end_until_label": "End date"
+  "series_end_until_label": "End date",
+  "parts_section": "Parts & consumables",
+  "part_add": "Add part",
+  "part_name": "Name",
+  "part_vendor": "Manufacturer",
+  "part_storage_location": "Storage location",
+  "part_product_url": "Product URL",
+  "part_unit": "Unit",
+  "part_cost": "Unit price",
+  "part_stock": "Stock",
+  "part_reorder_threshold": "Reorder at",
+  "part_restock_quantity": "Restock quantity",
+  "part_auto_buy": "Auto-create buy task when low",
+  "part_restock": "Adjust stock",
+  "restock_quantity_label": "Quantity bought",
+  "consumes_parts_label": "Consumes parts"
 }

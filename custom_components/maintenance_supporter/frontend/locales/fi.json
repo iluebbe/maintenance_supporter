@@ -706,5 +706,20 @@
   "series_end_after_count": "Tietyn kertamäärän jälkeen",
   "series_end_until": "Päivämääränä",
   "series_end_count_label": "Kertojen määrä",
-  "series_end_until_label": "Päättymispäivä"
+  "series_end_until_label": "Päättymispäivä",
+  "parts_section": "Osat ja tarvikkeet",
+  "part_add": "Lisää osa",
+  "part_name": "Nimi",
+  "part_vendor": "Valmistaja",
+  "part_storage_location": "Säilytyspaikka",
+  "part_product_url": "Tuotteen URL",
+  "part_unit": "Yksikkö",
+  "part_cost": "Yksikköhinta",
+  "part_stock": "Varasto",
+  "part_reorder_threshold": "Tilausraja",
+  "part_restock_quantity": "Täydennysmäärä",
+  "part_auto_buy": "Ostotehtävä kun vähissä",
+  "part_restock": "Muuta varastoa",
+  "restock_quantity_label": "Ostettu määrä",
+  "consumes_parts_label": "Kuluttaa osia"
 }

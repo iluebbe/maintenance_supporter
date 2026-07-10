@@ -100,6 +100,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @property({ type: Boolean, attribute: "schedule-time-enabled" }) public scheduleTimeEnabled = false;
   @property({ type: Boolean, attribute: "completion-actions-enabled" }) public completionActionsEnabled = false;
   @property({ type: Number, attribute: "default-warning-days" }) public defaultWarningDays = 7;
+  /** The object's spare parts — offered as "consumes parts" checkboxes. */
+  @state() private parts: Array<{ id: string; name: string; unit?: string }> = [];
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
@@ -171,6 +173,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _nfcTagId = "";
   // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
   @state() private _readingUnit = "";
+  @state() private _consumesParts: Record<string, number> = {};
   @state() private _availableTags: Array<{id: string; name: string}> = [];
 
   // User assignment
@@ -230,7 +233,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._objectChoices = [];
     }
     this._resetFields();
-    await Promise.all([this._loadUsers(), this._loadTags()]);
+    await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts()]);
     this._open = true;
   }
 
@@ -280,6 +283,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
     this._readingUnit = task.reading_unit || "";
+    this._consumesParts = Object.fromEntries((task.consumes_parts || []).map((l) => [l.part_id, l.quantity]));
     this._responsibleUserId = task.responsible_user_id || null;
     this._assigneePool = [...(task.assignee_pool || [])];
     this._rotationStrategy = task.rotation_strategy || "";
@@ -346,7 +350,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._fetchEntityAttributes(this._triggerEntityId);
     }
 
-    await Promise.all([this._loadUsers(), this._loadTags()]);
+    await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts()]);
     this._open = true;
   }
 
@@ -380,6 +384,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = "";
     this._nfcTagId = "";
     this._readingUnit = "";
+    this._consumesParts = {};
     this._responsibleUserId = null;
     this._assigneePool = [];
     this._rotationStrategy = "";
@@ -662,6 +667,23 @@ export class MaintenanceTaskDialog extends LitElement {
     `;
   }
 
+  private async _loadParts(): Promise<void> {
+    // The object's parts back the "consumes parts" checkboxes. Self-loaded so
+    // every dialog opener (panel, card, task detail) gets them without
+    // threading props through.
+    this.parts = [];
+    if (!this._entryId) return;
+    try {
+      const result = (await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/object",
+        entry_id: this._entryId,
+      })) as { parts?: Array<{ id: string; name: string; unit?: string }> };
+      this.parts = result.parts || [];
+    } catch {
+      this.parts = [];
+    }
+  }
+
   private async _loadTags(): Promise<void> {
     try {
       const result = await this.hass.connection.sendMessagePromise({
@@ -762,6 +784,12 @@ export class MaintenanceTaskDialog extends LitElement {
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
       data.reading_unit = this._readingUnit.trim() || null;
+      if (this.parts.length) {
+        data.consumes_parts = Object.entries(this._consumesParts).map(([part_id, quantity]) => ({
+          part_id,
+          quantity,
+        }));
+      }
       data.responsible_user_id = this._responsibleUserId;
       data.assignee_pool = this._assigneePool;
       data.rotation_strategy =
@@ -1407,7 +1435,11 @@ export class MaintenanceTaskDialog extends LitElement {
               <label>${t("object", L)}</label>
               <select
                 .value=${this._entryId}
-                @change=${(e: Event) => (this._entryId = (e.target as HTMLSelectElement).value)}
+                @change=${(e: Event) => {
+                  this._entryId = (e.target as HTMLSelectElement).value;
+                  this._consumesParts = {};
+                  this._loadParts();
+                }}
               >
                 ${this._objectChoices.map(
                   (o) => html`<option value=${o.entry_id} ?selected=${o.entry_id === this._entryId}>${o.name}</option>`
@@ -1440,6 +1472,46 @@ export class MaintenanceTaskDialog extends LitElement {
                   @input=${(e: Event) => (this._readingUnit = (e.target as HTMLInputElement).value)}
                 ></ms-textfield>
                 <div class="field-help">${t("reading_unit_help", L)}</div>
+              `
+            : nothing}
+          ${this.parts.length
+            ? html`
+                <div class="field">
+                  <label>${t("consumes_parts_label", L)}</label>
+                  ${this.parts.map((part) => {
+                    const qty = this._consumesParts[part.id];
+                    return html`
+                      <div class="consumes-row">
+                        <label class="consumes-check">
+                          <input
+                            type="checkbox"
+                            .checked=${qty !== undefined}
+                            @change=${(e: Event) => {
+                              const next = { ...this._consumesParts };
+                              if ((e.target as HTMLInputElement).checked) next[part.id] = next[part.id] || 1;
+                              else delete next[part.id];
+                              this._consumesParts = next;
+                            }}
+                          />
+                          <span>${part.name}${part.unit ? ` (${part.unit})` : ""}</span>
+                        </label>
+                        ${qty !== undefined
+                          ? html`<input
+                              class="consumes-qty"
+                              type="number"
+                              min="1"
+                              max="999"
+                              .value=${String(qty)}
+                              @input=${(e: Event) => {
+                                const v = parseInt((e.target as HTMLInputElement).value, 10);
+                                this._consumesParts = { ...this._consumesParts, [part.id]: Number.isFinite(v) && v >= 1 ? v : 1 };
+                              }}
+                            />`
+                          : nothing}
+                      </div>
+                    `;
+                  })}
+                </div>
               `
             : nothing}
           <div class="select-row">
@@ -1768,6 +1840,26 @@ export class MaintenanceTaskDialog extends LitElement {
       color: var(--primary-text-color);
       resize: vertical;
       box-sizing: border-box;
+    }
+    .consumes-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 0;
+    }
+    .consumes-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+    .consumes-qty {
+      width: 64px;
+      padding: 4px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
     }
     .field-help {
       font-size: 12px;
