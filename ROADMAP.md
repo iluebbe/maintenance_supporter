@@ -53,7 +53,7 @@ instead of the user clicking through the config flow object-by-object. The skill
 
 Ships as a documented skill/playbook (prompt + the WS command contract +
 discovery heuristics) rather than integration code — the backend already
-exposes everything it needs (56+ WS commands, entity introspection, documents).
+exposes everything it needs (67 WS commands, entity introspection, documents).
 Guardrails: confirm before every write, never invent intervals silently, keep
 the token handling safe, and prefer proposing over auto-applying.
 

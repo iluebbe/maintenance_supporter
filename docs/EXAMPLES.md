@@ -22,6 +22,30 @@ Combine a time-based schedule (7-day interval for manual pressure checks) with a
 
 Use a **state change trigger** monitoring a binary sensor that tracks wash cycles (on → off transitions). Set the target to 50 changes. Each completion resets the counter. A parallel time-based interval of 180 days ensures descaling happens even if the machine is used less frequently than expected.
 
+### Spare parts (2.23+) — the filter is already on the shelf
+
+Give the coffee machine a *Descaling tablets* part (stock 6, reorder at 1,
+storage "utility cabinet") and link it to the descaling task via **Consumes
+parts** in the task dialog. Every completion decrements the stock; when it
+hits the threshold, a one-off **"Buy Descaling tablets"** task appears with
+the part number, price and shopping link in its notes — complete it after the
+delivery and the stock is topped back up. No automations to write, but the
+edge-triggered events are there if you want them:
+
+```yaml
+automation:
+  - alias: "Shopping list: spare part running low"
+    triggers:
+      - trigger: event
+        event_type: maintenance_supporter_part_stock_low
+    actions:
+      - action: todo.add_item
+        target:
+          entity_id: todo.shopping_list
+        data:
+          item: "{{ trigger.event.data.part_name }} ({{ trigger.event.data.object_name }})"
+```
+
 ### On-Complete Actions (1.3.0+) — close the loop with the device
 
 When you complete a maintenance task in HA, your *device* often still thinks it's overdue: the Roborock app keeps nagging that the filter needs replacing, the HVAC controller still has the "filter dirty" flag set, the printer's hour counter keeps climbing. With an **on-complete action** the integration can call the device-side reset for you the moment you mark the task done.

@@ -274,7 +274,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 18 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 59 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 67 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -291,6 +291,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Button** — one-press complete/skip/reset per task (`button.<object>_<task>_complete` / `_skip` / `_reset`)
 - **Calendar** — one global entity showing upcoming maintenance events for all tasks
 - **Document storage sensor** (2.11.0+) — one global entity `sensor.<config>_document_storage` (`device_class: data_size`) reporting the physical footprint of attached documents, with `dedup_savings_bytes`, `document_count`, and per-object / per-category breakdowns as attributes
+- **Part stock sensors** (2.23+) — one per spare part on the object's device (`sensor.<object>_<part>_stock`): state is the tracked on-hand count (`unavailable` for catalog-only parts), attributes carry the reorder threshold, storage location and `is_low`. Plus one global `sensor.maintenance_supporter_parts_to_reorder` counting parts at/below their threshold across all objects
 - **Next-due timestamp sensor** (2.19+) — one per task (`device_class: timestamp`), **disabled by default**; enable it for relative-time displays ("in 2 days") on tile/entities cards and plain timestamp automations. Honours the task's time-of-day when that feature is on
 
 ### Sensor Attributes
@@ -315,6 +316,7 @@ activity timeline (logbook) — *"Oil Change (Family Car) was completed —
 - `maintenance_supporter_task_completed` — fired on every completion path (panel, complete-QR, quick-complete, mobile action). Payload: `entry_id`, `task_id`, `task_name`, `object_name`, plus optional `notes`, `cost`, `duration`, `feedback`, `completed_by`
 - `maintenance_supporter_task_skipped` — fired when a task is skipped. Payload includes the optional `reason`
 - `maintenance_supporter_task_reset` — fired when a task's `last_performed` is reset to a specific date. Payload includes that `date`
+- `maintenance_supporter_part_stock_low` / `_part_stock_out` / `_part_restocked` (2.23+) — spare-part stock **crossings**. Edge-triggered: one event per transition (a further decrease while already low never re-fires), so automations can reorder / notify without debouncing. Payload: `entry_id`, `object_id`, `object_name`, `part_id`, `part_name`, `stock`, `reorder_threshold`
 
 ### Automation triggers & conditions (HA 2026.7+)
 

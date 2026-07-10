@@ -165,8 +165,9 @@ A task's recurrence is one value object — `helpers/schedule.py::Schedule`, a f
 custom_components/maintenance_supporter/
 ├── __init__.py                    (540 lines)  Integration setup, services, lifecycle
 ├── const.py                       (297 lines)  Constants, enums, defaults
-├── coordinator.py               (1,078 lines)  DataUpdateCoordinator per object
-├── storage.py                     (344 lines)  Per-entry Store (dynamic state, migration)
+├── coordinator.py               (1,308 lines)  DataUpdateCoordinator per object
+├── storage.py                     (434 lines)  Per-entry Store (dynamic state, migration, part stock)
+├── parts_runtime.py               (291 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
 │
 ├── config_flow.py                 (905 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py          (62 lines)  Shared config flow utilities
@@ -226,6 +227,7 @@ custom_components/maintenance_supporter/
 │
 ├── helpers/                     (~5,450 lines)
 │   ├── schedule.py                (371 lines)  Schedule value object (discriminated-union recurrence) + flat/nested adapters
+│   ├── parts.py                   (429 lines)  Spare-parts rules: GTIN validation, stock transitions, buy-task reconciler, shopping-search resolver
 │   ├── dates.py                   (156 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
 │   ├── interval_analyzer.py       (730 lines)  EWA + Weibull + seasonal analysis
 │   ├── sensor_predictor.py        (640 lines)  Degradation + environmental correlation
@@ -594,7 +596,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,205 tests** across **92 test files** with **98% code coverage**.
+**2,668 tests** across **153 test files** with **98% code coverage** (plus a 235+ test frontend suite in real Chromium, the journey suite A–S, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

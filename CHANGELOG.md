@@ -19,7 +19,25 @@ All notable changes to Maintenance Supporter are documented in this file.
   restocking any other way clears it automatically. Per-part stock sensors on
   the object device + a global *Parts to reorder* counter, edge-triggered
   low/out/restocked events for automations, a required-parts block on the
-  printable work sheet, and full JSON export/import round-trip.
+  printable work sheet, and full JSON export/import round-trip. The shelf
+  follows the object through its whole lifecycle: **Replace…** carries the
+  parts (fresh ids, remapped links, stock included) to the successor, a
+  **paused or archived** object stops nagging (open buy reminders retire and
+  come back on resume), and orphaned stock state from a crash is reconciled
+  at boot.
+- **Dev/CI containers now run Home Assistant 2026.7.1** (matching current
+  user installs), and `scripts/seed_new_features.mjs` seeds ready-to-click
+  demo data for the parts loop and the 2.22 scheduling features into a fresh
+  dev instance.
+
+### 🐛 Fixed
+
+- **Lost updates when a write raced a reload** — the store migration at entry
+  setup compared its early-return against the live entry data after an await;
+  a WebSocket write landing in that window (e.g. creating parts in quick
+  succession) was silently reverted to the pre-await snapshot. Both the
+  migration and the buy-task reconcile now apply diffs against captured
+  snapshots / fresh reads, with a per-entry lock.
 
 ## [2.22.3] - 2026-07-09
 
