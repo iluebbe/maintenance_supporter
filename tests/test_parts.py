@@ -344,3 +344,182 @@ async def test_setup_migration_does_not_clobber_concurrent_writes(
     assert "race" in (current.data.get(CONF_PARTS) or {}), (
         "concurrent write during the migration await was clobbered by the setup snapshot"
     )
+
+
+# ─── Coverage: WS error paths + update handler + pure-rule edges ─────────────
+
+
+async def test_ws_update_part_edits_fields_stock_and_untrack(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.websocket.parts import ws_update_part
+
+    entry = _object_with_part(hass, auto_buy=False)
+    await setup_integration(hass, global_entry, entry)
+
+    # Edit fields + set stock in the same call.
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_part, hass, conn,
+        {
+            "id": 1, "type": "maintenance_supporter/part/update",
+            "entry_id": entry.entry_id, "part_id": "p1",
+            "name": "HEPA-Filter H14", "storage_location": "Attic", "stock": 7,
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+    part = entry.data[CONF_PARTS]["p1"]
+    assert part["name"] == "HEPA-Filter H14"
+    assert part["storage_location"] == "Attic"
+    assert part["reorder_threshold"] == 1, "unset fields must keep their stored values"
+    assert entry.runtime_data.store.get_part_stock("p1") == 7
+    await hass.async_block_till_done()
+
+    # stock: None untracks (catalog-only).
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_part, hass, conn,
+        {
+            "id": 2, "type": "maintenance_supporter/task/update".replace("task", "part"),
+            "entry_id": entry.entry_id, "part_id": "p1", "name": "HEPA-Filter H14", "stock": None,
+        },
+    )
+    assert not conn.send_error.called
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+    assert entry.runtime_data.store.get_part_stock("p1") is None
+    await hass.async_block_till_done()
+
+    # Validation error + unknown part id.
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_part, hass, conn,
+        {"id": 3, "type": "maintenance_supporter/part/update", "entry_id": entry.entry_id, "part_id": "p1", "name": "x", "gtin": "123"},
+    )
+    assert conn.send_error.call_args[0][1] == "invalid_input"
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_part, hass, conn,
+        {"id": 4, "type": "maintenance_supporter/part/update", "entry_id": entry.entry_id, "part_id": "ghost", "name": "x"},
+    )
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+async def test_ws_part_error_paths(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    from unittest.mock import patch as mock_patch
+
+    from custom_components.maintenance_supporter.websocket import parts as ws_parts
+
+    entry = _object_with_part(hass, auto_buy=False)
+    await setup_integration(hass, global_entry, entry)
+
+    # create: invalid gtin
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_parts.ws_create_part, hass, conn,
+        {"id": 1, "type": "maintenance_supporter/part/create", "entry_id": entry.entry_id, "name": "X", "gtin": "999"},
+    )
+    assert conn.send_error.call_args[0][1] == "invalid_input"
+
+    # create: per-object limit
+    with mock_patch.object(ws_parts, "MAX_PARTS_PER_OBJECT", 1):
+        conn = make_ws_connection()
+        await call_ws_handler(
+            ws_parts.ws_create_part, hass, conn,
+            {"id": 2, "type": "maintenance_supporter/part/create", "entry_id": entry.entry_id, "name": "Over"},
+        )
+        assert conn.send_error.call_args[0][1] == "limit_reached"
+
+    # delete: unknown part
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_parts.ws_delete_part, hass, conn,
+        {"id": 3, "type": "maintenance_supporter/part/delete", "entry_id": entry.entry_id, "part_id": "ghost"},
+    )
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+    # restock: neither/both of delta & absolute, and unknown part
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_parts.ws_restock_part, hass, conn,
+        {"id": 4, "type": "maintenance_supporter/part/restock", "entry_id": entry.entry_id, "part_id": "p1"},
+    )
+    assert conn.send_error.call_args[0][1] == "invalid_input"
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_parts.ws_restock_part, hass, conn,
+        {"id": 5, "type": "maintenance_supporter/part/restock", "entry_id": entry.entry_id, "part_id": "p1", "delta": 1, "absolute": 2},
+    )
+    assert conn.send_error.call_args[0][1] == "invalid_input"
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_parts.ws_restock_part, hass, conn,
+        {"id": 6, "type": "maintenance_supporter/part/restock", "entry_id": entry.entry_id, "part_id": "ghost", "delta": 1},
+    )
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+def test_pure_rule_edges_for_coverage() -> None:
+    from custom_components.maintenance_supporter.helpers.parts import (
+        buy_task_notes,
+        default_search_template,
+        normalize_part as np,
+    )
+
+    # String/URL/cost/stock validation edges.
+    with pytest.raises(PartValidationError):
+        np({"name": "x" * 101})
+    with pytest.raises(PartValidationError):
+        np({"name": "x", "cost": "abc"})
+    with pytest.raises(PartValidationError):
+        np({"name": "x", "cost": -1})
+    with pytest.raises(PartValidationError):
+        np({"name": "x", "reorder_threshold": "abc"})
+    with pytest.raises(PartValidationError):
+        np(["not-a-mapping"])  # type: ignore[arg-type]
+    with pytest.raises(PartValidationError):
+        np({"name": "x", "product_url": "https://" + "y" * 600})
+
+    # consumes sanitization: non-list input.
+    assert sanitize_consumes_parts("junk") == []
+    assert sanitize_consumes_parts(None) == []
+
+    # transitions: untracked never transitions; equal stock is no crossing.
+    part = {"reorder_threshold": 1}
+    assert stock_transition(part, 5, None) is None
+    assert stock_transition(part, 3, 3) is None
+
+    # search template fallback + template without {q} placeholder.
+    assert default_search_template("xx").startswith("https://www.amazon.com")
+    assert "q=" in resolve_shopping_url({"name": "a b"}, "https://shop.example/search", "en")
+
+    # buy-task notes: minimal part (no unit/cost/gtin/location) still renders.
+    minimal = np({"name": "Plain"})
+    notes = buy_task_notes(minimal, None)
+    assert "Plain" in notes
+
+
+async def test_runtime_guards_for_coverage(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """parts_runtime guard branches: unknown part, missing store, skip paths."""
+    from custom_components.maintenance_supporter.parts_runtime import (
+        async_change_part_stock,
+        async_handle_completion_parts,
+    )
+
+    entry = _object_with_part(hass, auto_buy=False)
+    await setup_integration(hass, global_entry, entry)
+
+    # Unknown part id → None, no crash.
+    assert await async_change_part_stock(hass, entry, "ghost", delta=1) is None
+
+    # Completion effects: malformed link entries + link to a catalog-only part
+    # (no tracked stock) are skipped silently.
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+    entry.runtime_data.store.set_part_stock("p1", None)  # untrack
+    await async_handle_completion_parts(
+        hass,
+        entry,
+        {"consumes_parts": ["junk", {"part_id": "ghost"}, {"part_id": "p1", "quantity": 1}]},
+    )
+    assert entry.runtime_data.store.get_part_stock("p1") is None  # untouched
+    await hass.async_block_till_done()
