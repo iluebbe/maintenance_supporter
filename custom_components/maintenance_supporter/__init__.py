@@ -1072,9 +1072,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # Maintenance object entry: create Store + coordinator
         store = MaintenanceStore(hass, entry.entry_id)
 
-        # Migrate dynamic state from ConfigEntry.data → Store (one-time)
-        cleaned_data = await async_migrate_to_store(hass, entry.entry_id, entry.data, store)
-        if cleaned_data is not entry.data:
+        # Migrate dynamic state from ConfigEntry.data → Store (one-time).
+        # Compare against the CAPTURED snapshot, not the live entry.data: the
+        # migration awaits store I/O, and a concurrent WS write during that
+        # window replaces entry.data — an identity check against the live
+        # attribute then fails spuriously and this write clobbers the
+        # concurrent update with the pre-await snapshot (lost update, seen
+        # live when rapid part creates raced a reload's setup).
+        data_before_migration = entry.data
+        cleaned_data = await async_migrate_to_store(hass, entry.entry_id, data_before_migration, store)
+        if cleaned_data is not data_before_migration:
             hass.config_entries.async_update_entry(entry, data=dict(cleaned_data))
 
         # Reconcile the entry.data <-> Store split (journey I1): drop store
