@@ -60,6 +60,19 @@ by admins.
 
 ![Settings tab](images/settings-view.png)
 
+### Spare Parts & Consumables (2.23+)
+The object's parts shelf: a stocked descaler (6 pcs), the water filter **at its
+reorder threshold** (orange low badge + cart icon — its auto-created *Buy…*
+task is already in the task list below), and a catalog-only seal with just
+identifiers. Stock adjust, edit and delete per row.
+
+![Parts & consumables section](images/parts-section.png)
+
+Completing the auto-created *Buy…* reminder asks for the **quantity bought**
+(prefilled with the part's restock quantity) and restocks the shelf.
+
+![Buy-task complete dialog](images/parts-buy-dialog.png)
+
 ### Task Dialog — Reading Type + End-of-Month Scheduling (2.18+)
 The *Reading* task type for recording meter values, scheduled for the *last
 business day of the month* with an optional ±N-day offset.

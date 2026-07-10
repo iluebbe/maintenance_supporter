@@ -292,9 +292,12 @@ await ensureIntegration(token);
 log("INTEGRATION READY");
 
 // Seed via node-side WS (browser-free — see wsClient above).
-log("SEED START");
 const api = await wsClient("ws://localhost:8131/api/websocket", token);
-const seed = await (async () => {
+// Retry-friendly: a wedged browser step aborts the run AFTER seeding — a
+// rerun must not seed on top of the existing dataset.
+const preSeeded = ((await api.send({ type: "maintenance_supporter/objects" })).objects || []).length > 0;
+log(preSeeded ? "SEED SKIPPED — instance already seeded" : "SEED START");
+const seed = preSeeded ? null : await (async () => {
   const importPayload = IMPORT, patches = PATCHES;
   const send = api.send;
 
@@ -384,12 +387,48 @@ const seed = await (async () => {
     }
   } catch (e) { log("v2.22 marking seed skipped:", String(e && e.message || e)); }
 
+  // (2.23) Spare parts on the Espresso Machine: a stocked descaler wired to
+  // the descaling task, a water filter AT its threshold (the auto "Buy ..."
+  // reminder shows up on the dashboard), and a catalog-only seal.
+  try {
+    const em = objs.objects.find((x) => x.object.name === "Espresso Machine");
+    if (em) {
+      const desc = await send({
+        type: "maintenance_supporter/part/create", entry_id: em.entry_id,
+        name: "Descaling tablets", vendor: "Jura", mpn: "62535",
+        gtin: "7610917625352", storage_location: "Utility cabinet, box 2",
+        unit: "pcs", cost: 8.9, stock: 6, reorder_threshold: 1,
+        restock_quantity: 6, auto_buy_task: true,
+      });
+      await send({
+        type: "maintenance_supporter/part/create", entry_id: em.entry_id,
+        name: "Water filter cartridge", vendor: "Jura", mpn: "71794",
+        storage_location: "Utility cabinet, box 2", unit: "pcs", cost: 15.5,
+        stock: 1, reorder_threshold: 1, restock_quantity: 3, auto_buy_task: true,
+      });
+      await send({
+        type: "maintenance_supporter/part/create", entry_id: em.entry_id,
+        name: "Brew group seal", vendor: "Jura", mpn: "63308",
+        product_url: "https://www.jura.com/en/customer-care",
+      });
+      const descTask = em.tasks.find((x) => x.name === "Descaling");
+      if (descTask) {
+        await send({
+          type: "maintenance_supporter/task/update", entry_id: em.entry_id,
+          task_id: descTask.id, name: descTask.name, task_type: descTask.type,
+          consumes_parts: [{ part_id: desc.part_id, quantity: 1 }],
+        });
+      }
+    }
+  } catch (e) { log("parts seed skipped:", String(e && e.message || e)); }
+
   return { patched, objects: objs.objects.length, carEntry: car && car.entry_id, oilTaskId: oil && oil.id };
 })();
 log("SEED OK", JSON.stringify(seed));
 
 // Documents: upload a PDF manual to the Family Car + add a web link, and
 // link the manual to the Oil Change task (page 12).
+if (seed) {
 log("DOCUMENTS");
 const fd = new FormData();
 fd.append("entry_id", seed.carEntry);
@@ -410,6 +449,7 @@ log("DOC UPLOADED", JSON.stringify(up).slice(0, 200));
   }
   api.close();
 }
+} else { api.close(); }
 
 // Browser only from here on — everything above is REST/WS from node. The
 // page never visits /lovelace (a fresh 2026.6 instance redirects it to the
@@ -448,7 +488,17 @@ async function step(name, fn) {
 
 async function openPanel(tab) {
   await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
-  await p.waitForTimeout(5000);
+  // Poll until the panel component is actually mounted — the faketime dev
+  // image boots/renders slower than the plain one; a fixed wait was flaky.
+  let mounted = false;
+  for (let i = 0; i < 30 && !mounted; i++) {
+    await p.waitForTimeout(1000);
+    mounted = await p.evaluate(({ finder }) => {
+      eval(finder);
+      return !!window.__panel && Array.isArray(window.__panel._objects) && window.__panel._objects.length > 0;
+    }, { finder: deepFindPanel }).catch(() => false);
+  }
+  await p.waitForTimeout(1500);
   if (tab) {
     await p.evaluate(({ finder, t2 }) => {
       eval(finder);
@@ -538,6 +588,43 @@ await step("documents-section.png", async () => {
   }, { finder: deepFindPanel });
   await p.waitForTimeout(800);
   await shot("documents-section.png");
+});
+
+// Spare parts section on the object detail (2.23) — the Espresso Machine's
+// shelf: stocked descaler, LOW water filter, catalog-only seal.
+await step("parts-section.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Espresso Machine");
+    panel._showObject(o.entry_id);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const root = window.__panel.shadowRoot;
+    const parts = root.querySelector("maintenance-parts-section");
+    if (parts) parts.scrollIntoView({ block: "center" });
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(800);
+  await shot("parts-section.png");
+});
+
+// The auto-created "Buy ..." reminder's complete dialog with the editable
+// "Quantity bought" field (2.23).
+await step("parts-buy-dialog.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Espresso Machine");
+    const buy = o.tasks.find((x) => x.part_ref);
+    panel._openCompleteDialog(o.entry_id, buy.id, buy.name, buy.checklist, false);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await shot("parts-buy-dialog.png");
+  await closeDialogs();
 });
 
 // 5. Task detail (HVAC Filter Replacement — TRIGGERED, sparkline, checklist)
