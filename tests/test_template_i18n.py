@@ -29,7 +29,7 @@ from custom_components.maintenance_supporter.websocket.objects import (
     ws_create_from_template,
 )
 
-from .conftest import build_global_entry_data, call_ws_handler, setup_integration
+from .conftest import make_ws_connection as _conn, build_global_entry_data, call_ws_handler, setup_integration
 
 _LANGS = ("de", "es", "fr", "it", "nl", "pt", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh")
 
@@ -49,10 +49,6 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 def test_every_catalog_string_is_translated_into_all_languages() -> None:

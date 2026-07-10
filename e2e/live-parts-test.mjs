@@ -5,31 +5,15 @@
  *  shopping link) → complete the buy task with a qty override → restocked,
  *  reminder detached, stock sensor reflects it.
  */
-import fs from "fs";
-const REST = "http://127.0.0.1:8125", WS = "ws://127.0.0.1:8125/api/websocket";
-const token = fs.readFileSync(new URL("../docker/.env", import.meta.url), "utf-8").match(/HA_TOKEN=(\S+)/)[1];
+import { loadToken, wsClient, watchdog } from "./ws-client.mjs";
+const REST = "http://127.0.0.1:8125";
+const token = loadToken();
 const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
 const log = (...a) => console.log(...a);
-setTimeout(() => { console.error("WATCHDOG"); process.exit(3); }, 120e3);
+watchdog(120e3, "parts test");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function wsClient() {
-  const ws = new WebSocket(WS);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws")); });
-  let id = 1; const pend = new Map();
-  await new Promise((res, rej) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("auth"));
-      else if (m.type === "result") { const p = pend.get(m.id); if (p) { pend.delete(m.id); m.success ? p.res(m.result) : p.rej(new Error(JSON.stringify(m.error))); } }
-    };
-  });
-  return { send: (msg) => new Promise((res, rej) => { const i = id++; pend.set(i, { res, rej }); ws.send(JSON.stringify({ ...msg, id: i })); }) };
-}
-
-const api = await wsClient();
+const api = await wsClient(REST, token);
 const svc = await fetch(REST + "/api/services/maintenance_supporter/add_object?return_response", {
   method: "POST", headers: auth, body: JSON.stringify({ name: "PartsLoop " + (Date.now() % 100000) }),
 }).then((r) => r.json());
@@ -95,10 +79,22 @@ log("stock sensor:", stockSensor && stockSensor.entity_id, "=", stockSensor && s
 if (!stockSensor) throw new Error("stock sensor never reached 0");
 
 // 3. Complete the buy task with qty override 3 → stock 3, reminder detached.
-await api.send({
-  type: "maintenance_supporter/task/complete", entry_id: entryId, task_id: buyTask.id,
-  cost: 74.7, restock_quantity: 3,
-});
+// The reminder appears via a reconcile that RELOADS the entry — a complete
+// landing inside that window gets a clean "Coordinator not found"; retry like
+// a user's second tap would.
+for (let attempt = 1; ; attempt++) {
+  try {
+    await api.send({
+      type: "maintenance_supporter/task/complete", entry_id: entryId, task_id: buyTask.id,
+      cost: 74.7, restock_quantity: 3,
+    });
+    break;
+  } catch (e) {
+    if (attempt >= 5 || !String(e).includes("not_found")) throw e;
+    log("complete hit the reload window, retrying...");
+    await sleep(2000);
+  }
+}
 const { o: o2 } = await pollBuyTask(false);
 const part2 = o2.parts.find((p) => p.id === partId);
 log("after restock — stock:", part2.stock, "is_low:", part2.is_low);

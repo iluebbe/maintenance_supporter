@@ -26,6 +26,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    make_ws_connection as _mock_connection,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -272,12 +273,6 @@ async def test_nfc_tag_empty_tag_id_ignored(
 # ─── WebSocket: custom_icon + nfc_tag_id in create/update ────────────────
 
 
-def _mock_connection() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 async def test_ws_create_task_with_icon_and_nfc(

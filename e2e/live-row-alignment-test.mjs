@@ -11,34 +11,14 @@
  */
 import { chromium } from "@playwright/test";
 import fs from "fs";
+import { loadToken, wsClient, watchdog, hassTokensInit } from "./ws-client.mjs";
 const HA = "http://ha-maint:8123", REST = "http://127.0.0.1:8125", PW_WS = "ws://127.0.0.1:3000/";
 const OUT = new URL("./live-shots/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 fs.mkdirSync(OUT, { recursive: true });
-const token = fs.readFileSync(new URL("../docker/.env", import.meta.url), "utf-8").match(/HA_TOKEN=(\S+)/)[1];
+const token = loadToken();
 const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
 const log = (...a) => console.log(...a);
-setTimeout(() => { console.error("WATCHDOG"); process.exit(3); }, 6 * 60e3);
-
-// Node-side WS client — in-page evaluate seeding wedges the dockered
-// playwright-server (documented gotcha); the browser is only used to measure.
-async function wsClient() {
-  const ws = new WebSocket(REST.replace(/^http/, "ws") + "/api/websocket");
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws connect failed")); });
-  let id = 1; const pend = new Map();
-  await new Promise((res, rej) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("auth invalid"));
-      else if (m.type === "result") { const p2 = pend.get(m.id); if (p2) { pend.delete(m.id); m.success ? p2.res(m.result) : p2.rej(new Error(JSON.stringify(m.error))); } }
-    };
-  });
-  return {
-    send: (msg) => new Promise((res, rej) => { const i = id++; pend.set(i, { res, rej }); ws.send(JSON.stringify({ ...msg, id: i })); }),
-    close: () => ws.close(),
-  };
-}
+watchdog(6 * 60e3, "row-alignment test");
 
 const suffix = Date.now() % 100000;
 const svc = await fetch(REST + "/api/services/maintenance_supporter/add_object?return_response", {
@@ -49,7 +29,9 @@ log("object", entryId);
 
 // Seed: helper entity + a priority-high overdue task (days-bar) + a
 // threshold-trigger task (trigger-progress bar, sparkline-eligible row).
-const api = await wsClient();
+// Node-side WS client — in-page evaluate seeding wedges the dockered
+// playwright-server (documented gotcha); the browser is only used to measure.
+const api = await wsClient(REST, token);
 const helper = await api.send({ type: "input_number/create", name: "Align Filter Usage", min: 0, max: 100, step: 0.1 });
 const helperEntity = "input_number." + (helper.id || "align_filter_usage");
 await fetch(REST + "/api/services/input_number/set_value", {
@@ -72,12 +54,7 @@ log("seed ok");
 
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1440, height: 950 } });
-await ctx.addInitScript(({ t, ha }) => {
-  localStorage.setItem("hassTokens", JSON.stringify({
-    access_token: t, token_type: "Bearer", expires_in: 1800,
-    hassUrl: ha, clientId: ha + "/", expires: Date.now() + 9e11, refresh_token: "",
-  }));
-}, { t: token, ha: HA });
+await ctx.addInitScript(hassTokensInit, { t: token, ha: HA });
 const p = await ctx.newPage();
 await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
 await p.waitForTimeout(8000);

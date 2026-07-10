@@ -3,29 +3,13 @@
  *  bare nested {kind:"interval"} (the season/ends carrier). Regression from the
  *  v2.22 season/ends work: the WS create path treated the bare schedule as
  *  authoritative and dropped the flat interval → every:null / next_due:null. */
-import fs from "fs";
-const REST = "http://127.0.0.1:8125", WS = "ws://127.0.0.1:8125/api/websocket";
-const token = fs.readFileSync(new URL("../docker/.env", import.meta.url), "utf-8").match(/HA_TOKEN=(\S+)/)[1];
+import { loadToken, wsClient, watchdog } from "./ws-client.mjs";
+const REST = "http://127.0.0.1:8125";
+const token = loadToken();
 const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
-setTimeout(() => { console.error("WATCHDOG"); process.exit(3); }, 60e3);
+watchdog(60e3, "issue88 time-based test");
 
-async function wsClient() {
-  const ws = new WebSocket(WS);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws")); });
-  let id = 1; const pend = new Map();
-  await new Promise((res, rej) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("auth"));
-      else if (m.type === "result") { const p = pend.get(m.id); if (p) { pend.delete(m.id); m.success ? p.res(m.result) : p.rej(new Error(JSON.stringify(m.error))); } }
-    };
-  });
-  return { send: (msg) => new Promise((res, rej) => { const i = id++; pend.set(i, { res, rej }); ws.send(JSON.stringify({ ...msg, id: i })); }) };
-}
-
-const api = await wsClient();
+const api = await wsClient(REST, token);
 const svc = await fetch(REST + "/api/services/maintenance_supporter/add_object?return_response", {
   method: "POST", headers: auth, body: JSON.stringify({ name: "Issue88 " + (Date.now() % 100000) }),
 }).then((r) => r.json());

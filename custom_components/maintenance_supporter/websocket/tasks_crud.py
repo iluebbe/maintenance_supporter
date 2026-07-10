@@ -37,6 +37,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
+    NOTIFICATION_MANAGER_KEY,
     HistoryEntryType,
 )
 from ..helpers.dates import INTERVAL_UNITS
@@ -625,7 +626,7 @@ async def async_delete_task(
         await store.async_save()
 
     # Clean up notification state for deleted task
-    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if nm is not None:
         nm.clear_task_state(entry.entry_id, task_id)
 

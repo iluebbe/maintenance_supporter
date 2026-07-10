@@ -34,6 +34,7 @@ from custom_components.maintenance_supporter.websocket.documents import (
 )
 
 from .conftest import (
+    make_ws_connection as _conn,
     OBJECT_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -93,12 +94,6 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 def _store(hass: HomeAssistant) -> DocumentStore:

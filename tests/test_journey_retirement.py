@@ -22,7 +22,7 @@ from custom_components.maintenance_supporter.websocket.tasks_lifecycle import (
     ws_unarchive_task,
 )
 
-from .conftest import build_global_entry_data, call_ws_handler, setup_integration
+from .conftest import make_ws_connection as _conn, build_global_entry_data, call_ws_handler, setup_integration
 from .journey import (
     assert_entry_fully_gone,
     assert_no_orphans,
@@ -46,10 +46,6 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 async def _status(hass: HomeAssistant, entry_id: str, task_id: str) -> str:

@@ -9,6 +9,16 @@ from homeassistant.const import Platform
 
 DOMAIN = "maintenance_supporter"
 
+# Keys of the shared runtime singletons inside hass.data[DOMAIN]. Defined here
+# (not in __init__) so any module can import them without a circular import —
+# a DRY audit (2026-07-10) found the notification-manager key duplicated as a
+# string literal in four call sites and the budget/event keys with no constant
+# at all (the #86 panel-flag desync came from exactly this literal-key class).
+NOTIFICATION_MANAGER_KEY = "_notification_manager"
+DOCUMENT_STORE_KEY = "_document_store"
+BUDGET_CACHE_KEY = "_budget_cache"
+EVENT_UNSUBS_KEY = "_event_unsubs"
+
 
 def slugify_object_name(name: str) -> str:
     """Convert an object name to a safe slug for use in unique IDs.

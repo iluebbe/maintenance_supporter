@@ -9,12 +9,12 @@
  *      already-registered crash), summary sensors back, objects untouched, and
  *      the repair issue cleared.
  */
+import { wsClient, watchdog } from "./ws-client.mjs";
 const REST = "http://localhost:8131";
-const WS = "ws://localhost:8131/api/websocket";
 const CID = REST + "/";
 const USER = "demo", PASS = "demo-pass-1";
 const log = (...a) => console.log(...a);
-setTimeout(() => { console.error("WATCHDOG"); process.exit(3); }, 90e3);
+watchdog(90e3, "issue86 repair-flow test");
 const j = (r) => r.json();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -52,18 +52,15 @@ async function state(entityId) {
 }
 
 async function repairIssues() {
-  const ws = new WebSocket(WS);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws fail")); });
-  return await new Promise((resolve, reject) => {
-    let id = 1;
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
-      else if (m.type === "auth_ok") ws.send(JSON.stringify({ id, type: "repairs/list_issues" }));
-      else if (m.type === "result") { ws.close(); resolve(m.success ? m.result.issues : []); }
-      else if (m.type === "auth_invalid") { ws.close(); reject(new Error("auth invalid")); }
-    };
-  });
+  const api = await wsClient(REST, token);
+  try {
+    const result = await api.send({ type: "repairs/list_issues" });
+    return result.issues;
+  } catch {
+    return []; // the inline copy resolved [] on an unsuccessful result
+  } finally {
+    api.close();
+  }
 }
 const hasMissingGlobalIssue = async () =>
   (await repairIssues()).some((i) => i.domain === "maintenance_supporter" && i.issue_id === "missing_global_entry");

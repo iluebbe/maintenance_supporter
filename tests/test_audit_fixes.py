@@ -36,6 +36,7 @@ from custom_components.maintenance_supporter.models.maintenance_task import (
 from custom_components.maintenance_supporter.websocket.io import ws_import_csv, ws_import_json
 
 from .conftest import (
+    make_ws_connection as _mock_connection,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -191,12 +192,6 @@ def test_next_due_math_matches_for_various_inputs() -> None:
 # ─── Fix D: JSON import logging ──────────────────────────────────────
 
 
-def _mock_connection() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 async def test_json_import_exception_logged(

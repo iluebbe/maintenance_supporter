@@ -39,7 +39,7 @@ from custom_components.maintenance_supporter.websocket.tasks_crud import (
     ws_update_task,
 )
 
-from .conftest import build_global_entry_data, call_ws_handler, setup_integration
+from .conftest import make_ws_connection as _conn, build_global_entry_data, call_ws_handler, setup_integration
 from .journey import registry_snapshot, simulate_restart
 
 
@@ -58,10 +58,6 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 def _entry(hass: HomeAssistant, entry_id: str) -> Any:

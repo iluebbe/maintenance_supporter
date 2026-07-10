@@ -17,43 +17,16 @@
  * Usage: node scripts/seed_new_features.mjs   (HA_TOKEN env or docker/.env;
  *        HA_URL env overrides the default http://127.0.0.1:8125)
  */
-import fs from "fs";
+import { loadToken, wsClient, watchdog } from "../e2e/ws-client.mjs";
 
 const REST = process.env.HA_URL || "http://127.0.0.1:8125";
-const WS = REST.replace(/^http/, "ws") + "/api/websocket";
 
-function token() {
-  if (process.env.HA_TOKEN) return process.env.HA_TOKEN;
-  const env = new URL("../docker/.env", import.meta.url);
-  if (fs.existsSync(env)) {
-    const m = fs.readFileSync(env, "utf-8").match(/HA_TOKEN=(\S+)/);
-    if (m) return m[1];
-  }
-  console.error("ERROR: No HA_TOKEN found (env var or docker/.env)");
-  process.exit(1);
-}
-const TOKEN = token();
+const TOKEN = loadToken();
 const auth = { Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" };
 const log = (...a) => console.log(...a);
-setTimeout(() => { console.error("WATCHDOG: seed exceeded 2 minutes"); process.exit(3); }, 120e3);
+watchdog(120e3, "seed");
 
-async function wsClient() {
-  const ws = new WebSocket(WS);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws connect failed")); });
-  let id = 1; const pend = new Map();
-  await new Promise((res, rej) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: TOKEN }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("auth invalid"));
-      else if (m.type === "result") { const p = pend.get(m.id); if (p) { pend.delete(m.id); m.success ? p.res(m.result) : p.rej(new Error(JSON.stringify(m.error))); } }
-    };
-  });
-  return { send: (msg) => new Promise((res, rej) => { const i = id++; pend.set(i, { res, rej }); ws.send(JSON.stringify({ ...msg, id: i })); }) };
-}
-
-const api = await wsClient();
+const api = await wsClient(REST, TOKEN);
 const daysAgo = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
 const daysAhead = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 
