@@ -706,5 +706,20 @@
   "series_end_after_count": "Efter et antal gange",
   "series_end_until": "På en dato",
   "series_end_count_label": "Antal gange",
-  "series_end_until_label": "Slutdato"
+  "series_end_until_label": "Slutdato",
+  "parts_section": "Dele & forbrugsvarer",
+  "part_add": "Tilføj del",
+  "part_name": "Navn",
+  "part_vendor": "Producent",
+  "part_storage_location": "Opbevaringssted",
+  "part_product_url": "Produkt-URL",
+  "part_unit": "Enhed",
+  "part_cost": "Stykpris",
+  "part_stock": "Lager",
+  "part_reorder_threshold": "Genbestillingsgrænse",
+  "part_restock_quantity": "Genopfyldningsmængde",
+  "part_auto_buy": "Købsopgave ved lav beholdning",
+  "part_restock": "Justér lager",
+  "restock_quantity_label": "Købt mængde",
+  "consumes_parts_label": "Forbruger dele"
 }

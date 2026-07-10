@@ -17,6 +17,10 @@ export class MaintenanceCompleteDialog extends LitElement {
   // v2.20 (#83): task type + unit drive the reading-value field below.
   @property() public taskType = "";
   @property() public readingUnit = "";
+  /** Buy task (part_ref): default restock quantity — shows an editable qty field. */
+  @property({ attribute: false }) public restockDefault: number | null = null;
+  /** "Consumes: 1× HEPA-Filter (Shelf B)" hint lines for consuming tasks. */
+  @property({ type: Array }) public consumesInfo: string[] = [];
   @state() private _open = false;
   @state() private _notes = "";
   @state() private _cost = "";
@@ -29,6 +33,7 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _photoPreview = "";
   @state() private _photoUploading = false;
   @state() private _readingValue = "";
+  @state() private _restockQty = "";
 
   public open(): void {
     if (this._open) return;
@@ -43,6 +48,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._photoPreview = "";
     this._photoUploading = false;
     this._readingValue = "";
+    this._restockQty = this.restockDefault !== null ? String(this.restockDefault) : "";
   }
 
   private _toggleCheck(idx: number): void {
@@ -129,6 +135,10 @@ export class MaintenanceCompleteDialog extends LitElement {
         const rv = parseFloat(this._readingValue);
         if (!isNaN(rv)) data.reading_value = rv;
       }
+      if (this.restockDefault !== null && this._restockQty !== "") {
+        const rq = parseInt(this._restockQty, 10);
+        if (!isNaN(rq) && rq >= 1) data.restock_quantity = rq;
+      }
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
@@ -169,6 +179,20 @@ export class MaintenanceCompleteDialog extends LitElement {
                 <input type="number" step="any" class="field-input"
                   .value=${this._readingValue}
                   @input=${(e: Event) => (this._readingValue = (e.target as HTMLInputElement).value)} />
+              </label>`
+            : nothing}
+          ${this.consumesInfo.length
+            ? html`<div class="consumes-hint">
+                ${this.consumesInfo.map((line) => html`<div>${line}</div>`)}
+              </div>`
+            : nothing}
+          ${this.restockDefault !== null
+            ? html`
+              <label class="field">
+                <span class="field-label">${t("restock_quantity_label", L)}</span>
+                <input type="number" step="1" min="1" class="field-input"
+                  .value=${this._restockQty}
+                  @input=${(e: Event) => (this._restockQty = (e.target as HTMLInputElement).value)} />
               </label>`
             : nothing}
           <!-- Native <input>s rather than <ha-textfield>: when this dialog
@@ -265,6 +289,13 @@ export class MaintenanceCompleteDialog extends LitElement {
       justify-content: flex-end;
       gap: 8px;
       padding-top: 16px;
+    }
+    .consumes-hint {
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      border-left: 3px solid var(--primary-color);
+      padding: 4px 8px;
+      margin: 4px 0 8px;
     }
     .error {
       color: var(--error-color, #f44336);

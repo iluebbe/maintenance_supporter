@@ -706,5 +706,20 @@
   "series_end_after_count": "Etter et antall ganger",
   "series_end_until": "På en dato",
   "series_end_count_label": "Antall ganger",
-  "series_end_until_label": "Sluttdato"
+  "series_end_until_label": "Sluttdato",
+  "parts_section": "Deler & forbruksvarer",
+  "part_add": "Legg til del",
+  "part_name": "Navn",
+  "part_vendor": "Produsent",
+  "part_storage_location": "Lagringssted",
+  "part_product_url": "Produkt-URL",
+  "part_unit": "Enhet",
+  "part_cost": "Stykkpris",
+  "part_stock": "Lager",
+  "part_reorder_threshold": "Bestillingsgrense",
+  "part_restock_quantity": "Påfyllingsmengde",
+  "part_auto_buy": "Kjøpsoppgave ved lavt lager",
+  "part_restock": "Juster lager",
+  "restock_quantity_label": "Kjøpt mengde",
+  "consumes_parts_label": "Forbruker deler"
 }

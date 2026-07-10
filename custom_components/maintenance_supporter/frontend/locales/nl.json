@@ -706,5 +706,20 @@
   "series_end_after_count": "Na een aantal keer",
   "series_end_until": "Op een datum",
   "series_end_count_label": "Aantal keer",
-  "series_end_until_label": "Einddatum"
+  "series_end_until_label": "Einddatum",
+  "parts_section": "Onderdelen & verbruiksartikelen",
+  "part_add": "Onderdeel toevoegen",
+  "part_name": "Naam",
+  "part_vendor": "Fabrikant",
+  "part_storage_location": "Opslaglocatie",
+  "part_product_url": "Product-URL",
+  "part_unit": "Eenheid",
+  "part_cost": "Stukprijs",
+  "part_stock": "Voorraad",
+  "part_reorder_threshold": "Bestelgrens",
+  "part_restock_quantity": "Aanvulhoeveelheid",
+  "part_auto_buy": "Kooptaak bij lage voorraad",
+  "part_restock": "Voorraad aanpassen",
+  "restock_quantity_label": "Gekochte hoeveelheid",
+  "consumes_parts_label": "Verbruikt onderdelen"
 }
