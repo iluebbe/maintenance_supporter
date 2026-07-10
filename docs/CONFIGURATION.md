@@ -22,6 +22,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
 | `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately |
 | `panel_title` | string | `""` (→ "Maintenance") | max 50 chars | Override for the sidebar panel title. Trimmed and capped at 50 characters on save. Leave blank to clear the override and fall back to the default title "Maintenance" |
+| `part_search_url_template` (2.23+) | string | *(Amazon by UI language)* | `{q}` placeholder | Shopping-search URL used for spare parts without a `product_url` (buy-task link + panel part rows). Any search engine works — e.g. `https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q={q}`. Query precedence: GTIN → "vendor MPN" → part name |
 | `objects_table_columns` (#67) | list[string] | *(9 defaults)* | known column keys | Ordered columns shown in the panel **Objects table** view (the cards/table toggle in *All objects*). Selectable from known object fields only: `name` (always on), `manufacturer`, `model`, `serial_number`, `installation_date`, `warranty_expiry`, `area_id`, `documentation_url`, `notes`, `task_count`, `actions`. Defaults to all of those except `documentation_url`/`notes`. Unknown keys are dropped server-side. Edited under **Settings tab → Objects table columns** |
 
 ### Advanced Feature Visibility

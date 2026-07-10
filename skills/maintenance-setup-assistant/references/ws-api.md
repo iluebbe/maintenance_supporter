@@ -101,6 +101,22 @@ from it: task configs with fresh ids/counters, documents carried over
 (refcounted), `installation_date` = today, serial/warranty cleared,
 `predecessor_entry_id` set. Error: `archived` (already retired).
 
+### Spare parts (2.23) — `part/*` — `@require_write`
+`part/create` `{entry_id, name (req), vendor?, mpn?, gtin?  (EAN/UPC digits,
+GS1 check-digit validated), storage_location?, product_url?, unit?, cost?,
+stock? (int — omit for a catalog-only part), reorder_threshold?,
+restock_quantity?, auto_buy_task?, notes?}` → `{part_id}`.
+`part/update` `{entry_id, part_id, ...same fields}` (omitted fields keep their
+stored values; `stock: null` untracks). `part/delete` `{entry_id, part_id}`
+(also prunes task links + any open buy reminder). `part/restock`
+`{entry_id, part_id, delta | absolute}` → `{stock}`.
+Link consumption on the task: `task/create|update` accept
+`consumes_parts: [{part_id, quantity}]`. Parts ride the `objects` payload
+(each with merged `stock`, `is_low`, `shopping_url`). While a part with
+`auto_buy_task` is at/below its threshold, a one-off "Buy {part}" task exists
+(marker `part_ref`); completing it restocks (`task/complete` accepts
+`restock_quantity`).
+
 ### `object/from_template` — `@require_write`
 `{template_id (req), name?}` → `{entry_id}`. `object/duplicate` `{entry_id}` → `{entry_id}`.
 

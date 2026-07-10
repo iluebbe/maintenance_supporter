@@ -111,7 +111,8 @@ for you — always previewing before it writes.
 
 Each task is a **sensor** (`ok / due_soon / overdue / triggered`) plus a
 **binary sensor** (`device_class: problem`) and **complete/skip/reset
-buttons**. Global **summary sensors** count what needs attention, a
+buttons**. Global **summary sensors** count what needs attention, spare parts get
+**stock sensors** (plus a global *parts to reorder* counter), a
 **calendar** entity feeds your calendar cards, and a **to-do** entity mirrors
 open work. Lifecycle **events** (`…_task_completed`, `…_trigger_activated`, …)
 fire on every path, and four **services** (`complete`, `skip`, `reset`,
