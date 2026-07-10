@@ -61,10 +61,10 @@ by admins.
 ![Settings tab](images/settings-view.png)
 
 ### Spare Parts & Consumables (2.23+)
-The object's parts shelf: a stocked descaler (6 pcs), the water filter **at its
-reorder threshold** (orange low badge + cart icon — its auto-created *Buy…*
-task is already in the task list below), and a catalog-only seal with just
-identifiers. Stock adjust, edit and delete per row.
+The object's parts shelf (below the task list): a stocked descaler (6 pcs),
+the water filter **at its reorder threshold** (orange low badge + cart icon —
+its auto-created *Buy…* task is already in the task list above), and a
+catalog-only seal with just identifiers. Stock adjust, edit and delete per row.
 
 ![Parts & consumables section](images/parts-section.png)
 
