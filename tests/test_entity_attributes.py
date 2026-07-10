@@ -18,6 +18,7 @@ from custom_components.maintenance_supporter.helpers.entity_attributes import (
 )
 
 from .conftest import (
+    make_ws_connection as _mock_connection,
     build_global_entry_data,
 )
 
@@ -254,11 +255,6 @@ async def test_complex_attribute_value_converted_to_string(hass: HomeAssistant) 
 # ─── WS endpoint ─────────────────────────────────────────────────────────
 
 
-def _mock_connection() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    return conn
 
 
 async def test_ws_entity_attributes_handler(hass: HomeAssistant) -> None:

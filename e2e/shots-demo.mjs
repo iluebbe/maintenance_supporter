@@ -16,6 +16,7 @@
  */
 import { chromium } from "@playwright/test";
 import fs from "fs";
+import { wsClient, watchdog } from "./ws-client.mjs";
 
 const REST = "http://localhost:8131";           // host-side REST
 const HA = "http://ha-shots:8123";              // browser-side (docker net)
@@ -30,7 +31,7 @@ const log = (...a) => { const line = a.map((x) => typeof x === "string" ? x : JS
 process.on("unhandledRejection", (e) => { log("UNHANDLED", String(e && e.stack || e)); process.exit(2); });
 // The docker playwright-server browser can wedge silently (evaluate that
 // never resolves) — a watchdog turns a silent hang into a loggable failure.
-const watchdog = setTimeout(() => { log("WATCHDOG: run exceeded 20 minutes — aborting"); process.exit(3); }, 20 * 60e3);
+const wd = watchdog(20 * 60e3, "shots-demo run");
 
 const j = (r) => r.json();
 const iso = (offsetDays) => { const d = new Date(Date.now() + offsetDays * 864e5); return d.toISOString().slice(0, 10); };
@@ -257,36 +258,6 @@ const PATCHES = [
   { object: "Washing Machine", task: "Door Seal Wipe", set: { priority: "low" } },
 ];
 
-// Node-side HA WebSocket client. The seed used to run as one giant in-page
-// evaluate; the dockered playwright-server wedges on those often enough that
-// the whole run died — plain WS from node has no browser in the loop.
-async function wsClient(url, accessToken) {
-  const ws = new WebSocket(url);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws connect failed")); });
-  let nextId = 1;
-  const pending = new Map();
-  await new Promise((res, rej) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: accessToken }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("ws auth invalid"));
-      else if (m.type === "result") {
-        const pr = pending.get(m.id);
-        if (!pr) return;
-        pending.delete(m.id);
-        m.success ? pr.res(m.result) : pr.rej(new Error(m.error ? JSON.stringify(m.error) : "ws error"));
-      }
-    };
-  });
-  const send = (msg) => new Promise((res, rej) => {
-    const id = nextId++;
-    pending.set(id, { res, rej });
-    ws.send(JSON.stringify({ ...msg, id }));
-  });
-  return { send, close: () => ws.close() };
-}
-
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 log("ONBOARD");
@@ -294,8 +265,10 @@ const token = await onboardOrLogin();
 await ensureIntegration(token);
 log("INTEGRATION READY");
 
-// Seed via node-side WS (browser-free — see wsClient above).
-const api = await wsClient("ws://localhost:8131/api/websocket", token);
+// Seed via node-side WS (browser-free). The seed used to run as one giant
+// in-page evaluate; the dockered playwright-server wedges on those often
+// enough that the whole run died — plain WS from node has no browser in the loop.
+const api = await wsClient(REST, token);
 // Retry-friendly: a wedged browser step aborts the run AFTER seeding — a
 // rerun must not seed on top of the existing dataset.
 const preSeeded = ((await api.send({ type: "maintenance_supporter/objects" })).objects || []).length > 0;
@@ -867,6 +840,6 @@ await step("mobile-task.png", async () => {
 });
 
 log(failures.length ? "DONE WITH FAILURES: " + failures.join(", ") : "DONE ALL OK");
-clearTimeout(watchdog);
+clearTimeout(wd);
 await b.close();
 process.exit(failures.length ? 1 : 0);

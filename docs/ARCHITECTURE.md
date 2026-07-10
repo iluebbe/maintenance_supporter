@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.10.2 | ~46,000 lines across 100+ source files (66 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,205 tests on Python 3.13 + 3.14)
+**Version:** 2.22.3 | 100+ source files (Python + TypeScript) | **98% test coverage** (2,672 backend tests + 233 frontend tests)
 
 ---
 
@@ -596,7 +596,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,670 tests** across **154 test files** with **98% code coverage** (plus a 235+ test frontend suite in real Chromium, the journey suite A–S, and the live e2e scripts under `e2e/`).
+**2,672 tests** across **154 test files** with **98% code coverage** (plus a 235+ test frontend suite in real Chromium, the journey suite A–S, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

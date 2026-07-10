@@ -15,18 +15,13 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.websocket.tags import ws_list_tags
 
 from .conftest import (
+    make_ws_connection as _mock_connection,
     build_global_entry_data,
     call_ws_handler,
     setup_integration,
 )
 
 
-def _mock_connection() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 @pytest.fixture

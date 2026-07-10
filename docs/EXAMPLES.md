@@ -46,6 +46,61 @@ automation:
           item: "{{ trigger.event.data.part_name }} ({{ trigger.event.data.object_name }})"
 ```
 
+The two other stock edges work the same way — `part_stock_out` fires when the
+last piece is used (stock hits 0), `part_restocked` when stock climbs back
+above the threshold:
+
+```yaml
+automation:
+  - alias: "Urgent: spare part used up"
+    triggers:
+      - trigger: event
+        event_type: maintenance_supporter_part_stock_out
+    actions:
+      - action: notify.mobile_app_phone
+        data:
+          title: "Out of stock"
+          message: "No {{ trigger.event.data.part_name }} left for {{ trigger.event.data.object_name }}"
+
+  - alias: "Shopping list: remove restocked part"
+    triggers:
+      - trigger: event
+        event_type: maintenance_supporter_part_restocked
+    actions:
+      - action: todo.remove_item
+        target:
+          entity_id: todo.shopping_list
+        data:
+          item: "{{ trigger.event.data.part_name }} ({{ trigger.event.data.object_name }})"
+```
+
+### React to sensor triggers firing
+
+Condition-based tasks (threshold / runtime / count) fire
+`maintenance_supporter_trigger_activated` the moment the watched entity
+crosses its limit, and `maintenance_supporter_trigger_deactivated` when it
+recovers — independent of the notification settings:
+
+The payload carries the maintenance sensor (`entity_id`), the watched entity
+(`trigger_entity`), the crossing value (`trigger_value`) and the
+`trigger_type`:
+
+```yaml
+automation:
+  - alias: "HVAC filter pressure trigger"
+    triggers:
+      - trigger: event
+        event_type: maintenance_supporter_trigger_activated
+        event_data:
+          entity_id: sensor.hvac_system_filter_replacement
+    actions:
+      - action: notify.mobile_app_phone
+        data:
+          message: >
+            Maintenance trigger fired: {{ trigger.event.data.trigger_entity }}
+            is at {{ trigger.event.data.trigger_value }}
+```
+
 ### On-Complete Actions (1.3.0+) — close the loop with the device
 
 When you complete a maintenance task in HA, your *device* often still thinks it's overdue: the Roborock app keeps nagging that the filter needs replacing, the HVAC controller still has the "filter dirty" flag set, the printer's hour counter keeps climbing. With an **on-complete action** the integration can call the device-side reset for you the moment you mark the task done.

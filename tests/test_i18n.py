@@ -228,3 +228,17 @@ def test_frontend_locale_key_parity(path: Path) -> None:
         "missing": sorted(en_keys - locale_keys),
         "extra": sorted(locale_keys - en_keys),
     }
+
+
+def test_buy_name_templates_cover_every_ui_language() -> None:
+    """The auto buy-task name table (helpers/parts.py) was the only 18-language
+    table WITHOUT a language tripwire (DRY audit 2026-07-10) — a newly added
+    UI language would silently fall back to the English "Buy {part}" there.
+    Its keys are the frontend 2-letter codes (zh, not zh-Hans)."""
+    from custom_components.maintenance_supporter.helpers.parts import _BUY_NAME_TEMPLATES
+
+    assert set(_BUY_NAME_TEMPLATES) == set(_FRONTEND_LANGUAGES), {
+        "missing": sorted(_FRONTEND_LANGUAGES - set(_BUY_NAME_TEMPLATES)),
+        "extra": sorted(set(_BUY_NAME_TEMPLATES) - _FRONTEND_LANGUAGES),
+    }
+    assert all("{name}" in tpl for tpl in _BUY_NAME_TEMPLATES.values()), "every template must keep the {name} placeholder"

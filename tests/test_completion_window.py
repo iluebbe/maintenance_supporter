@@ -30,6 +30,7 @@ from custom_components.maintenance_supporter.websocket.tasks_actions import (
 )
 
 from .conftest import (
+    make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -133,12 +134,6 @@ def test_sanitize_drops_non_int_window() -> None:
 # ─── WS guard + Missed classification ───────────────────────────────────────
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 def _global(hass: HomeAssistant) -> MockConfigEntry:

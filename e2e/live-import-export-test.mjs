@@ -4,40 +4,14 @@
  * (priority, labels, reading_unit, schedule_time, earliest_completion_days,
  * checklist, notes, on_complete_action, quick_complete_defaults) plus history
  * with a reading_value. Pure WebSocket (admin token) — no browser needed. */
-import fs from "fs";
+import { loadToken, wsClient, watchdog } from "./ws-client.mjs";
 const REST = "http://127.0.0.1:8125";
-const WS = "ws://127.0.0.1:8125/api/websocket";
-const token = fs.readFileSync(new URL("../docker/.env", import.meta.url), "utf-8").match(/HA_TOKEN=(\S+)/)[1];
+const token = loadToken();
 const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
 const log = (...a) => console.log(...a);
-setTimeout(() => { console.error("WATCHDOG"); process.exit(3); }, 90e3);
+watchdog(90e3, "import-export test");
 
-// Minimal HA WebSocket client (admin token).
-async function wsClient() {
-  const ws = new WebSocket(WS);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws connect failed")); });
-  let nextId = 1;
-  const pending = new Map();
-  await new Promise((res, rej) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("auth invalid"));
-      else if (m.type === "result") {
-        const p = pending.get(m.id); if (!p) return;
-        pending.delete(m.id);
-        m.success ? p.res(m.result) : p.rej(new Error(JSON.stringify(m.error)));
-      }
-    };
-  });
-  return {
-    send: (msg) => new Promise((res, rej) => { const id = nextId++; pending.set(id, { res, rej }); ws.send(JSON.stringify({ ...msg, id })); }),
-    close: () => ws.close(),
-  };
-}
-
-const api = await wsClient();
+const api = await wsClient(REST, token);
 
 // Two real users so the assignee_pool survives the setup-time user reconcile.
 const users = await api.send({ type: "maintenance_supporter/users/list" }).catch(() => ({ users: [] }));

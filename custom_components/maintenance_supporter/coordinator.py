@@ -20,6 +20,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    BUDGET_CACHE_KEY,
     BUDGET_CURRENCIES,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_BUDGET_ALERT_THRESHOLD,
@@ -39,6 +40,7 @@ from .const import (
     GLOBAL_UNIQUE_ID,
     MANUAL_COMPLETION_DEDUP_SECONDS,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
+    NOTIFICATION_MANAGER_KEY,
     SIGNAL_TASK_RESET,
     STARTUP_GRACE_PERIOD_SECONDS,
     TRIGGER_COMPLETION_COOLDOWN_SECONDS,
@@ -409,7 +411,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not self._previous_statuses:
             from .helpers.notification_manager import NotificationManager
 
-            nm = self.hass.data.get(DOMAIN, {}).get("_notification_manager")
+            nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
             notify_statuses = {
                 MaintenanceStatus.DUE_SOON,
                 MaintenanceStatus.OVERDUE,
@@ -677,7 +679,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         from .helpers.notification_manager import NotificationManager
 
-        nm = self.hass.data.get(DOMAIN, {}).get("_notification_manager")
+        nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if not isinstance(nm, NotificationManager):
             return
 
@@ -756,7 +758,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _recalculate_budget_cache(self) -> None:
         """Recompute global budget totals from all entries' history.
 
-        Stores the result in hass.data[DOMAIN]["_budget_cache"] so that
+        Stores the result in hass.data[DOMAIN][BUDGET_CACHE_KEY] so that
         every coordinator reads from the same cache instead of each one
         re-scanning all entries on every 5-minute refresh.
         """
@@ -802,7 +804,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         if entry_dt.month == now.month:
                             monthly += cost_val
 
-        self.hass.data.setdefault(DOMAIN, {})["_budget_cache"] = {
+        self.hass.data.setdefault(DOMAIN, {})[BUDGET_CACHE_KEY] = {
             "monthly_spent": monthly,
             "yearly_spent": yearly,
             "last_updated": now,
@@ -812,7 +814,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Check budget thresholds using cached totals."""
         from .helpers.notification_manager import NotificationManager
 
-        nm = self.hass.data.get(DOMAIN, {}).get("_notification_manager")
+        nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if not isinstance(nm, NotificationManager) or not nm.enabled:
             return
 
@@ -836,10 +838,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
 
         # Use cached budget totals (recalculate if stale or missing)
-        cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get("_budget_cache")
+        cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get(BUDGET_CACHE_KEY)
         if cache is None or (dt_util.now() - cache["last_updated"]).total_seconds() > 3600:
             self._recalculate_budget_cache()
-            cache = self.hass.data[DOMAIN]["_budget_cache"]
+            cache = self.hass.data[DOMAIN][BUDGET_CACHE_KEY]
 
         monthly_spent: float = cache["monthly_spent"]
         yearly_spent: float = cache["yearly_spent"]

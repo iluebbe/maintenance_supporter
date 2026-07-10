@@ -24,7 +24,7 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
 )
 from custom_components.maintenance_supporter.websocket.io import ws_get_templates
 
-from .conftest import build_global_entry_data, call_ws_handler, setup_integration
+from .conftest import make_ws_connection as _conn, build_global_entry_data, call_ws_handler, setup_integration
 
 
 @pytest.fixture
@@ -42,10 +42,6 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 async def test_disabled_ids_are_sanitized_and_flagged(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

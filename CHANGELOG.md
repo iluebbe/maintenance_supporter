@@ -32,6 +32,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🛠️ Internal (DRY audit follow-up)
 
+- **Round 2** — the shared-runtime keys inside `hass.data` are constants in
+  `const.py` now (the notification-manager key was a string literal in four
+  call sites; the budget/event keys had no constant at all); the auto
+  buy-task name table gained the language tripwire every other 18-language
+  table already had; ~44 test files now import the shared WS-connection mock
+  from `conftest` instead of redefining it; the nine copy-pasted Node
+  WebSocket clients in `e2e/`/`scripts/` (already drifted) are one shared
+  `e2e/ws-client.mjs`; EXAMPLES.md gained automation snippets for
+  `part_stock_out`, `part_restocked` and the trigger events.
+
 - **Auto-generated dashboard now wears the panel's status icons** — the
   dashboard strategy hardcoded its own icon set, so its *Overdue* view showed
   the panel's *due-soon* icon; both now read the shared `STATUS_ICONS`

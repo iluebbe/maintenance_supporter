@@ -31,6 +31,7 @@ from custom_components.maintenance_supporter.websocket.tasks_actions import (
 )
 
 from .conftest import (
+    make_ws_connection as _conn,
     OBJECT_ID_1,
     TASK_ID_1,
     build_global_entry_data,
@@ -62,12 +63,6 @@ def test_complete_without_photo_omits_key() -> None:
 # ─── WS + coordinator ───────────────────────────────────────────────────────
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 def _global(hass: HomeAssistant) -> MockConfigEntry:

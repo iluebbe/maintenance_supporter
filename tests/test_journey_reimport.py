@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_
 from custom_components.maintenance_supporter.websocket.io import ws_import_json
 
 from .conftest import (
+    make_ws_connection as _conn,
     build_global_entry_data,
     call_ws_handler,
     setup_integration,
@@ -46,10 +47,6 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 def _payload(name: str) -> dict[str, Any]:

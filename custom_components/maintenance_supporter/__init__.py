@@ -54,6 +54,7 @@ from .const import (
     DEFAULT_PANEL_ENABLED,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
+    EVENT_UNSUBS_KEY,
     GLOBAL_UNIQUE_ID,
     PLATFORMS,
     SERVICE_ADD_OBJECT,
@@ -67,6 +68,12 @@ from .const import (
     SERVICE_UPDATE_TASK,
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
+)
+from .const import (
+    DOCUMENT_STORE_KEY as _DS_KEY,
+)
+from .const import (
+    NOTIFICATION_MANAGER_KEY as _NM_KEY,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
@@ -82,8 +89,9 @@ from .websocket import async_register_commands
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-NOTIFICATION_MANAGER_KEY = "_notification_manager"
-DOCUMENT_STORE_KEY = "_document_store"
+# Re-exported from const for the existing deferred `from . import ...` users.
+NOTIFICATION_MANAGER_KEY = _NM_KEY
+DOCUMENT_STORE_KEY = _DS_KEY
 
 
 @dataclass
@@ -884,7 +892,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, lambda _e: unsub_digest())
 
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
-    hass.data[DOMAIN]["_event_unsubs"] = [
+    hass.data[DOMAIN][EVENT_UNSUBS_KEY] = [
         unsub_notification,
         unsub_tag,
         unsub_action,
@@ -1405,7 +1413,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is not None:
             await nm.async_unload()
-        for unsub in hass.data.get(DOMAIN, {}).get("_event_unsubs", []):
+        for unsub in hass.data.get(DOMAIN, {}).get(EVENT_UNSUBS_KEY, []):
             unsub()
         hass.data.pop(DOMAIN, None)
 
