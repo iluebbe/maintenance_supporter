@@ -2765,14 +2765,6 @@ export class MaintenanceSupporterPanel extends LitElement {
           .canWrite=${!isOperator}
         ></maintenance-documents-section>
 
-        <maintenance-parts-section
-          .hass=${this.hass}
-          .entryId=${obj.entry_id}
-          .parts=${obj.parts || []}
-          .canWrite=${!isOperator}
-          @parts-changed=${() => this._loadData()}
-        ></maintenance-parts-section>
-
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
           <ha-button
             class="archived-toggle ${this._showArchived ? "active" : ""}"
@@ -2820,6 +2812,14 @@ export class MaintenanceSupporterPanel extends LitElement {
                 </span>
               </div>
             `)}</div>`}
+
+        <maintenance-parts-section
+          .hass=${this.hass}
+          .entryId=${obj.entry_id}
+          .parts=${obj.parts || []}
+          .canWrite=${!isOperator}
+          @parts-changed=${() => this._loadData()}
+        ></maintenance-parts-section>
       </div>
     `;
   }

@@ -600,6 +600,19 @@ export const panelStyles = css`
   .cell-badges .priority-badge {
     margin-left: 0;
   }
+  /* Right-anchor the auxiliary badges (disabled / NFC / priority chevron) to
+     the END of the shared badges track. Status pills vary in width per
+     status AND language (min-width 70px only clamps the short ones — "Due
+     Soon"/"Overdue" overflow it), so left-flowing extras landed at a
+     different x in every row: the low-priority chevron, which typically sits
+     next to the short OK pill, fell visibly out of the column formed by the
+     other rows' chevrons. Anchoring the extras group to the track edge gives
+     ONE clean column in every language; the virt-sizer row keeps the track
+     width stable. In the narrow per-row grids the badges area is
+     content-sized (no free space), so the auto margin is inert there. */
+  .cell-badges > .status-badge + * {
+    margin-left: auto;
+  }
   .priority-badge ha-icon {
     --mdc-icon-size: 16px;
   }

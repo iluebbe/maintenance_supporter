@@ -32,6 +32,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Priority chevrons now form one clean column in the dashboard** — status
+  pills vary in width per status and language (`min-width` only clamps the
+  short ones), so the low-priority chevron beside a short *OK* pill sat
+  visibly out of the column formed by the other rows' chevrons. The auxiliary
+  badges (disabled / NFC / priority) now anchor to the end of the shared
+  badges track, giving one straight column in every language; the live
+  geometry check now measures **both** chevron variants and asserts the
+  cross-row column.
+- **Object detail: tasks now sit above the parts shelf** — the task list is
+  the primary content of an object page; the parts & consumables section
+  moved below it.
 - **Lost updates when a write raced a reload** — the store migration at entry
   setup compared its early-return against the live entry data after an await;
   a WebSocket write landing in that window (e.g. creating parts in quick
