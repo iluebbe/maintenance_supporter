@@ -325,7 +325,7 @@ async def test_setup_migration_does_not_clobber_concurrent_writes(
 
     real_load = MaintenanceStore.async_load
 
-    async def racing_load(self):  # noqa: ANN001, ANN202
+    async def racing_load(self):  # type: ignore[no-untyped-def]
         result = await real_load(self)
         # A concurrent writer lands DURING the migration's await window.
         current = hass.config_entries.async_get_entry(entry.entry_id)
