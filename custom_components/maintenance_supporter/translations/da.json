@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Næste forfald"
+      },
+      "parts_to_reorder": {
+        "name": "Dele til genbestilling"
       }
     },
     "calendar": {

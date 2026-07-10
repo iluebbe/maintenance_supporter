@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Příští termín"
+      },
+      "parts_to_reorder": {
+        "name": "Díly k doobjednání"
       }
     },
     "calendar": {

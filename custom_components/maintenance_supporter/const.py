@@ -259,6 +259,17 @@ CONF_OBJECT_DOCUMENTATION_URL = "documentation_url"
 # v1.4.10 (#46): per-object free-form notes (part numbers, procedures, etc.)
 CONF_OBJECT_NOTES = "notes"
 
+# --- Config Keys: Spare parts & consumables ---
+# Static part definitions live in entry.data["parts"] (like tasks); the
+# mutable stock count lives in the per-entry Store. See helpers/parts.py.
+CONF_PARTS = "parts"
+# Task-side link: task["consumes_parts"] = [{"part_id", "quantity"}] — a
+# completion decrements each linked part's stock.
+CONF_TASK_CONSUMES_PARTS = "consumes_parts"
+# Global setting: shopping-search URL template with a {q} placeholder, used
+# for parts without a product_url (default: Amazon by UI language).
+CONF_PART_SEARCH_URL_TEMPLATE = "part_search_url_template"
+
 # --- Config Keys: Task ---
 CONF_TASKS = "tasks"
 CONF_TASK_NAME = "name"
@@ -425,6 +436,12 @@ EVENT_TRIGGER_DEACTIVATED = f"{DOMAIN}_trigger_deactivated"
 EVENT_TASK_COMPLETED = f"{DOMAIN}_task_completed"
 EVENT_TASK_SKIPPED = f"{DOMAIN}_task_skipped"
 EVENT_TASK_RESET = f"{DOMAIN}_task_reset"
+
+# Spare-part stock crossings — edge-triggered (one event per transition; a
+# further decrease while already low never re-fires). See helpers/parts.py.
+EVENT_PART_STOCK_LOW = f"{DOMAIN}_part_stock_low"
+EVENT_PART_STOCK_OUT = f"{DOMAIN}_part_stock_out"
+EVENT_PART_RESTOCKED = f"{DOMAIN}_part_restocked"
 
 # --- Service Names ---
 SERVICE_COMPLETE = "complete"

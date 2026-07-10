@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} 下次到期"
+      },
+      "parts_to_reorder": {
+        "name": "待补购配件"
       }
     },
     "calendar": {

@@ -78,6 +78,8 @@ async def async_setup_entry(
         # One global storage sensor (total blob bytes = real backup cost).
         doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
         entities.append(DocumentStorageSensor(hass, doc_store))
+        # Spare parts: how many parts across all objects need reordering.
+        entities.append(PartsToReorderSensor(hass))
         async_add_entities(entities)
         return
 
@@ -94,6 +96,11 @@ async def async_setup_entry(
     # next-due instant for tile/entities cards with the relative time-format
     # display options ("in 2 days"), template automations, etc.
     entities.extend(MaintenanceNextDueSensor(coordinator, task_id) for task_id in tasks)
+    # Spare parts: one stock sensor per part on the object device (catalog-only
+    # parts without a tracked count read unavailable).
+    from .const import CONF_PARTS
+
+    entities.extend(PartStockSensor(coordinator, part_id) for part_id in entry.data.get(CONF_PARTS) or {})
 
     async_add_entities(entities)
     _LOGGER.debug(
@@ -527,6 +534,143 @@ class MaintenanceSummarySensor(CoordinatorEntity[MaintenanceSummaryCoordinator],
         """Return the current count for this metric."""
         data = self.coordinator.data or {}
         return int(data.get(self._key, 0))
+
+
+class PartStockSensor(MaintenanceEntity, SensorEntity):
+    """On-hand spare count for one part, on the object's device.
+
+    State = the tracked stock (``unavailable`` for catalog-only parts without a
+    tracked count); threshold/unit/location ride along as attributes. Refreshes
+    off the ``SIGNAL_PARTS_UPDATED`` dispatcher signal fired by parts_runtime
+    after every stock change — no polling, no recorder churn beyond real
+    stock movements.
+    """
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:package-variant-closed"
+
+    def __init__(self, coordinator: MaintenanceCoordinator, part_id: str) -> None:
+        """Initialize the stock sensor for one part."""
+        super().__init__(coordinator, part_id)
+        self._part_id = part_id
+        obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
+        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        self._attr_unique_id = f"maintenance_supporter_{object_slug}_part_{part_id}"
+        part = self._part
+        self._attr_name = f"{part.get('name', 'Part')} stock"
+
+    @property
+    def _part(self) -> dict[str, Any]:
+        from .const import CONF_PARTS
+
+        parts = self.coordinator.entry.data.get(CONF_PARTS) or {}
+        result: dict[str, Any] = parts.get(self._part_id, {})
+        return result
+
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to stock-change notifications."""
+        await super().async_added_to_hass()
+        from .parts_runtime import SIGNAL_PARTS_UPDATED
+
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update)
+        )
+
+    @callback
+    def _handle_parts_update(self, entry_id: str) -> None:
+        if entry_id == self.coordinator.entry.entry_id:
+            self.async_write_ha_state()
+
+    @property
+    def _stock(self) -> int | None:
+        rd = getattr(self.coordinator.entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        return store.get_part_stock(self._part_id) if store else None
+
+    @property
+    def available(self) -> bool:
+        """Catalog-only parts (no tracked stock) read unavailable."""
+        return self._part_id in (self.coordinator.entry.data.get("parts") or {}) and self._stock is not None
+
+    @property
+    def native_value(self) -> int | None:
+        return self._stock
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return self._part.get("unit") or None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        from .helpers.parts import part_is_low
+
+        part = self._part
+        return {
+            "part_name": part.get("name"),
+            "reorder_threshold": part.get("reorder_threshold"),
+            "storage_location": part.get("storage_location") or None,
+            "is_low": part_is_low(part, self._stock),
+        }
+
+
+class PartsToReorderSensor(SensorEntity):
+    """How many spare parts across all objects are at/below their threshold.
+
+    Lives on the global hub device next to the summary sensors; registry-stable
+    unique_id (#86 lesson). Dispatcher-driven off SIGNAL_PARTS_UPDATED.
+    """
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "parts_to_reorder"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:cart-arrow-down"
+    _attr_native_unit_of_measurement = "parts"
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        """Initialize the global reorder-count sensor."""
+        self.hass = hass
+        self._attr_unique_id = f"{GLOBAL_UNIQUE_ID}_parts_to_reorder"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, GLOBAL_UNIQUE_ID)},
+            name="Maintenance Supporter",
+            entry_type=DeviceEntryType.SERVICE,
+        )
+        self.entity_id = async_generate_entity_id(
+            ENTITY_ID_FORMAT,
+            "maintenance_supporter_parts_to_reorder",
+            hass=hass,
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to stock-change notifications (any entry)."""
+        await super().async_added_to_hass()
+        from .parts_runtime import SIGNAL_PARTS_UPDATED
+
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update)
+        )
+
+    @callback
+    def _handle_parts_update(self, _entry_id: str) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> int:
+        from .const import CONF_PARTS
+        from .helpers.parts import part_is_low
+
+        count = 0
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            if entry.unique_id == GLOBAL_UNIQUE_ID:
+                continue
+            rd = getattr(entry, "runtime_data", None)
+            store = getattr(rd, "store", None) if rd else None
+            if store is None:
+                continue
+            for part in (entry.data.get(CONF_PARTS) or {}).values():
+                if part_is_low(part, store.get_part_stock(part["id"])):
+                    count += 1
+        return count
 
 
 class DocumentStorageSensor(SensorEntity):

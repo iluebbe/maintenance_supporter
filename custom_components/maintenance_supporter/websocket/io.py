@@ -347,6 +347,30 @@ async def ws_import_json(
             "task_ids": [],
         }
 
+        # Spare parts: regenerate ids (like tasks) and remember the mapping so
+        # task-side links (consumes_parts / part_ref) can be rewritten below.
+        # Stock is dynamic Store state — collected here, written after setup.
+        from uuid import uuid4 as _uuid4
+
+        part_id_map: dict[str, str] = {}
+        import_parts: dict[str, dict[str, Any]] = {}
+        part_stocks: dict[str, int] = {}
+        parts_list = obj_entry.get("parts", [])
+        if isinstance(parts_list, list):
+            for part_entry in parts_list:
+                if not isinstance(part_entry, dict) or not (part_entry.get("name") or "").strip():
+                    continue
+                old_id = str(part_entry.get("id") or "")
+                new_id = _uuid4().hex
+                pdata = {k: v for k, v in part_entry.items() if k != "stock"}
+                pdata["id"] = new_id
+                import_parts[new_id] = pdata
+                if old_id:
+                    part_id_map[old_id] = new_id
+                stock = part_entry.get("stock")
+                if isinstance(stock, int) and stock >= 0:
+                    part_stocks[new_id] = stock
+
         import_tasks: dict[str, dict[str, Any]] = {}
         tasks_list = obj_entry.get("tasks", [])
         if not isinstance(tasks_list, list):
@@ -400,10 +424,33 @@ async def ws_import_json(
                 "assignee_pool",
                 "rotation_strategy",
                 "reading_unit",
+                # spare parts (ids remapped below)
+                "consumes_parts",
+                "part_ref",
             ):
                 val = task_entry.get(key)
                 if val is not None:
                     task_data[key] = val
+
+            # Remap part links to the regenerated part ids; drop dangling ones.
+            links = task_data.get("consumes_parts")
+            if isinstance(links, list):
+                remapped = [
+                    {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
+                    for link in links
+                    if isinstance(link, dict) and link.get("part_id") in part_id_map
+                ]
+                if remapped:
+                    task_data["consumes_parts"] = remapped
+                else:
+                    task_data.pop("consumes_parts", None)
+            elif links is not None:
+                task_data.pop("consumes_parts", None)
+            ref = task_data.get("part_ref")
+            if isinstance(ref, dict) and ref.get("part_id") in part_id_map:
+                task_data["part_ref"] = {"part_id": part_id_map[ref["part_id"]]}
+            elif ref is not None:
+                task_data.pop("part_ref", None)
 
             # Sanitize critical fields from import data
             iv = task_data.get("interval_days")
@@ -469,6 +516,7 @@ async def ws_import_json(
                 data={
                     CONF_OBJECT: import_obj,
                     CONF_TASKS: import_tasks,
+                    "parts": import_parts,
                 },
             )
         except Exception:
@@ -484,6 +532,16 @@ async def ws_import_json(
             if nfc_warnings:
                 entry_info["warnings"] = nfc_warnings
             created.append(entry_info)
+
+            # Restore tracked part stocks into the new entry's Store.
+            if part_stocks:
+                new_entry = hass.config_entries.async_get_entry(result["result"].entry_id)
+                rd_new = getattr(new_entry, "runtime_data", None) if new_entry else None
+                store_new = getattr(rd_new, "store", None) if rd_new else None
+                if store_new is not None:
+                    for pid, stock_val in part_stocks.items():
+                        store_new.set_part_stock(pid, stock_val)
+                    await store_new.async_save()
 
             # (roadmap P6) recreate document metadata + web-links for the object
             # (blobs travel via the /config backup; a JSON-only import leaves

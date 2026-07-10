@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Prochaine échéance"
+      },
+      "parts_to_reorder": {
+        "name": "Pièces à racheter"
       }
     },
     "calendar": {

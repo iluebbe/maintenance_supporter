@@ -104,6 +104,8 @@ from .tasks_validation import (
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=32)), None),
+        # Spare parts consumed on completion: [{part_id, quantity}].
+        vol.Optional("consumes_parts"): vol.Any(list, None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
         vol.Optional("checklist"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
@@ -263,6 +265,15 @@ async def ws_create_task(
     # v2.20 (#83): unit for `reading`-type tasks.
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
+    if msg.get("consumes_parts") is not None:
+        from ..const import CONF_PARTS
+        from ..helpers.parts import sanitize_consumes_parts
+
+        links = sanitize_consumes_parts(
+            msg["consumes_parts"], set(entry.data.get(CONF_PARTS) or {})
+        )
+        if links:
+            task_data["consumes_parts"] = links
     if msg.get("checklist"):
         task_data["checklist"] = msg["checklist"]
     if msg.get("labels"):
@@ -340,6 +351,8 @@ async def ws_create_task(
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=32)), None),
+        # Spare parts consumed on completion: [{part_id, quantity}].
+        vol.Optional("consumes_parts"): vol.Any(list, None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
         vol.Optional("checklist"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
@@ -456,6 +469,7 @@ async def ws_update_task(
         "custom_icon": "custom_icon",
         "nfc_tag_id": "nfc_tag_id",
         "reading_unit": "reading_unit",
+        "consumes_parts": "consumes_parts",
         "priority": "priority",
         "checklist": "checklist",
         "labels": "labels",

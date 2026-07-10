@@ -131,6 +131,10 @@ def _build_task_summary(
         "nfc_tag_id": task_data.get("nfc_tag_id"),
         # v2.20 (#83): unit for `reading`-type tasks; values live in history.
         "reading_unit": task_data.get("reading_unit"),
+        # Spare parts: consumption links ([{part_id, quantity}]) and, on an
+        # auto-created "buy" reminder, the owning part marker ({part_id}).
+        "consumes_parts": task_data.get("consumes_parts"),
+        "part_ref": task_data.get("part_ref"),
         "priority": task_data.get("priority", "normal"),
         # v2.10.0 archive: archived_at is the persisted timestamp (None = active);
         # `archived` is the convenience bool the frontend filters on; reason is
@@ -236,6 +240,30 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
     object_id = obj_data.get("id", "")
     document_count = len(doc_store.for_object(object_id)) if doc_store is not None and object_id else 0
 
+    # Spare parts: full definition + merged stock + the derived helpers the
+    # panel renders (is_low, resolved shopping URL). EVERY persisted field is
+    # exposed (#50 field-completeness class).
+    from ..const import CONF_PART_SEARCH_URL_TEMPLATE, CONF_PARTS
+    from ..helpers.global_options import get_global_options
+    from ..helpers.i18n import normalize_language
+    from ..helpers.parts import part_is_low, resolve_shopping_url
+
+    rd_parts = getattr(entry, "runtime_data", None)
+    part_store = getattr(rd_parts, "store", None) if rd_parts else None
+    search_template = get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE)
+    lang = normalize_language(hass)
+    parts_payload = []
+    for part in (entry.data.get(CONF_PARTS) or {}).values():
+        stock = part_store.get_part_stock(part["id"]) if part_store else None
+        parts_payload.append(
+            {
+                **part,
+                "stock": stock,
+                "is_low": part_is_low(part, stock),
+                "shopping_url": resolve_shopping_url(part, search_template, lang),
+            }
+        )
+
     return {
         "entry_id": entry.entry_id,
         "object": {
@@ -274,6 +302,7 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             "document_count": document_count,
         },
         "tasks": tasks,
+        "parts": parts_payload,
     }
 
 
@@ -434,6 +463,12 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_unarchive_object,
         ws_update_object,
     )
+    from .parts import (
+        ws_create_part,
+        ws_delete_part,
+        ws_restock_part,
+        ws_update_part,
+    )
     from .tags import ws_list_tags
     from .tasks import (
         ws_archive_task,
@@ -486,6 +521,10 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_reset_task)
     websocket_api.async_register_command(hass, ws_snooze_task)
     websocket_api.async_register_command(hass, ws_postpone_task)
+    websocket_api.async_register_command(hass, ws_create_part)
+    websocket_api.async_register_command(hass, ws_update_part)
+    websocket_api.async_register_command(hass, ws_delete_part)
+    websocket_api.async_register_command(hass, ws_restock_part)
     websocket_api.async_register_command(hass, ws_update_history_entry)
     websocket_api.async_register_command(hass, ws_get_templates)
     websocket_api.async_register_command(hass, ws_export_data)
