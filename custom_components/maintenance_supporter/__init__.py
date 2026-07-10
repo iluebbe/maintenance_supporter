@@ -1086,6 +1086,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
         # Reconcile the entry.data <-> Store split (journey I1): drop store
         # state orphaned by a crash between the two writes of a deletion.
+        # Same reconciliation for spare-part stock state (journey S6): a crash
+        # between the ConfigEntry write and the Store save on a part deletion
+        # leaves its stock orphaned forever otherwise.
+        pruned_parts = store.prune_part_orphans(set(entry.data.get("parts") or {}))
+        if pruned_parts:
+            _LOGGER.info("Pruned %d orphaned part stock state(s) for %s", pruned_parts, entry.title)
+            await store.async_save()
+
         pruned = store.prune_orphans(set(entry.data.get(CONF_TASKS, {})))
         if pruned:
             _LOGGER.info(
@@ -1111,6 +1119,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         from homeassistant.helpers.dispatcher import async_dispatcher_send
 
         async_dispatcher_send(hass, SIGNAL_NEW_OBJECT_ENTRY, entry.entry_id)
+
+        # Buy-task catch-up (spare parts): converge the shopping reminders with
+        # the current stock/pause/archive state — covers import/restore, a
+        # resume/unarchive, and any change made while this entry was unloaded.
+        # Declarative + idempotent, reloads only when something changed.
+        if entry.data.get("parts"):
+            from .parts_runtime import schedule_buy_task_reconcile
+
+            schedule_buy_task_reconcile(hass, entry)
 
         _LOGGER.debug(
             "Maintenance object entry set up: %s (%s)",
