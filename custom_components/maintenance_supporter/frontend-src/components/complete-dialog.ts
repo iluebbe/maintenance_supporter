@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { t } from "../styles";
+import { t, nativeFieldStyles } from "../styles";
 import { describeWsError } from "../ws-errors";
 
 export class MaintenanceCompleteDialog extends LitElement {
@@ -272,7 +272,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [nativeFieldStyles, css`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -301,23 +301,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       color: var(--error-color, #f44336);
       font-size: 13px;
     }
-    .field { display: flex; flex-direction: column; gap: 4px; }
-    .field-label {
-      font-size: 12px;
-      color: var(--secondary-text-color);
-    }
-    .field-input {
-      padding: 8px 10px; font-size: 14px;
-      background: var(--secondary-background-color, rgba(0,0,0,0.06));
-      color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
-      font-family: inherit;
-      width: 100%; box-sizing: border-box;
-    }
-    .field-input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-    }
+    /* .field/.field-label/.field-input come from nativeFieldStyles */
     .photo-pick {
       display: inline-flex;
       align-items: center;
@@ -418,7 +402,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color);
     }
-  `;
+  `];
 }
 
 // Safe registration — avoids duplicate define when both panel and card load

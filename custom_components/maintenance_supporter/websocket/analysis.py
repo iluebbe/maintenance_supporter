@@ -16,6 +16,7 @@ from ..const import (
     MAX_META_LENGTH,
 )
 from ..helpers.permissions import require_write
+from ..helpers.task_fields import INTERVAL_DAYS_RANGE
 from . import _get_merged_tasks, _get_runtime_data, _load_object_entry
 
 
@@ -87,7 +88,7 @@ async def ws_analyze_interval(
         vol.Required("type"): f"{DOMAIN}/task/apply_suggestion",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
+        vol.Required("interval"): vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])),
     }
 )
 @require_write

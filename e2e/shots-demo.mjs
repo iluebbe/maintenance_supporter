@@ -47,7 +47,10 @@ async function exchange(code) {
 
 async function onboardOrLogin() {
   const status = await fetch(REST + "/api/onboarding").then(j).catch(() => null);
-  const done = Array.isArray(status) && status.every((x) => x.done);
+  // A finished instance that has been RESTARTED serves no onboarding API at
+  // all (404 → null) — that's "done", go log in. A genuinely fresh instance
+  // always answers this GET with the steps array.
+  const done = status === null || (Array.isArray(status) && status.every((x) => x.done));
   if (done) {
     const f = await fetch(REST + "/auth/login_flow", {
       method: "POST", headers: { "Content-Type": "application/json" },
