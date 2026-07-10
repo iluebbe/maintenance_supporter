@@ -160,6 +160,16 @@ echo ""
 echo "Creating demo objects..."
 $PYTHON scripts/setup_demo.py
 
+# Newer-feature demo data (2.22 scheduling + 2.23 spare parts) needs the
+# WebSocket API (parts CRUD, nested schedule extras, task/postpone) -- the
+# project's usual Node-WS pattern. Idempotent by object name.
+if command -v node &>/dev/null; then
+    echo "Seeding new-feature demo data (parts, seasonal/finite/postpone)..."
+    node scripts/seed_new_features.mjs || echo "WARN: seed_new_features failed (non-fatal)"
+else
+    echo "WARN: node not found -- skipping new-feature demo data (run 'node scripts/seed_new_features.mjs' later)"
+fi
+
 # ---------------------------------------------------------------------------
 # 7. Stop HA, then seed history + recorder against the quiesced files
 #

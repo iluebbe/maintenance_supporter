@@ -730,6 +730,15 @@ pytest tests/ -v
 
 Usage: `python scripts/setup_demo.py` (requires HA running with valid token)
 
+**`scripts/seed_new_features.mjs`** — Companion Node-WS seeder for the features
+the config-flow API can't express: spare parts (a stocked consumable wired to a
+consuming task, a part already at its reorder threshold so an open "Buy …"
+reminder exists out of the box, and a catalog-only part) plus the 2.22
+scheduling extras (seasonal window, finite series, a postponed occurrence).
+Wired into `init-dev.sh` after `setup_demo.py`; idempotent by object name.
+
+Usage: `node scripts/seed_new_features.mjs` (HA_TOKEN env or docker/.env; HA_URL overrides the default :8125)
+
 **`scripts/seed_history.py`** — Injects realistic historical maintenance data into Store files:
 
 - 70 history entries across all 9 objects (~12 months of data, 69 completed + 1 skipped)

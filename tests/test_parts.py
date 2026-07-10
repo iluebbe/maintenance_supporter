@@ -303,3 +303,44 @@ async def test_ws_part_crud_and_restock(hass: HomeAssistant, global_entry: MockC
     assert "p1" not in (entry.data.get(CONF_PARTS) or {})
     assert "consumes_parts" not in entry.data[CONF_TASKS][TASK_ID_1], "stale link not pruned"
     assert entry.runtime_data.store.get_part_stock("p1") is None
+
+
+async def test_setup_migration_does_not_clobber_concurrent_writes(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Lost-update regression: async_setup_entry's store migration awaits disk
+    I/O; a WS write landing in that window used to be clobbered because the
+    already-migrated early-return was identity-compared against the LIVE
+    entry.data (replaced by the write) instead of the captured snapshot —
+    async_setup_entry then wrote the pre-await snapshot back. Seen live when
+    rapid part creates raced a reload. The race is injected deterministically
+    by mutating entry.data from inside the store-load await.
+    """
+    from unittest.mock import patch
+
+    from custom_components.maintenance_supporter.storage import MaintenanceStore
+
+    entry = _object_with_part(hass, auto_buy=False)
+    await setup_integration(hass, global_entry, entry)  # store now exists (migrated)
+
+    real_load = MaintenanceStore.async_load
+
+    async def racing_load(self):  # noqa: ANN001, ANN202
+        result = await real_load(self)
+        # A concurrent writer lands DURING the migration's await window.
+        current = hass.config_entries.async_get_entry(entry.entry_id)
+        new_data = dict(current.data)
+        parts = dict(new_data.get(CONF_PARTS, {}))
+        parts["race"] = normalize_part({"id": "race", "name": "Written mid-await"})
+        new_data[CONF_PARTS] = parts
+        hass.config_entries.async_update_entry(current, data=new_data)
+        return result
+
+    with patch.object(MaintenanceStore, "async_load", racing_load):
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+
+    current = hass.config_entries.async_get_entry(entry.entry_id)
+    assert "race" in (current.data.get(CONF_PARTS) or {}), (
+        "concurrent write during the migration await was clobbered by the setup snapshot"
+    )

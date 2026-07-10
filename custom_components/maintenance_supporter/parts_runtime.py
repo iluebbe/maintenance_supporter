@@ -186,6 +186,9 @@ def schedule_buy_task_reconcile(hass: HomeAssistant, entry: ConfigEntry) -> None
     hass.async_create_task(_run(), name=f"{DOMAIN}_buy_task_reconcile_{entry_id}")
 
 
+_RECONCILE_LOCKS: dict[str, Any] = {}
+
+
 async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Apply the declarative buy-task reconcile to *entry*.
 
@@ -194,7 +197,21 @@ async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> 
     removals are applied through the same primitives the WS CRUD uses (store
     init / full delete-cleanup), then the entry reloads ONCE so per-task
     entities appear/disappear. Returns True when anything changed.
+
+    Concurrency: serialized per entry (reconciles overlap freely with rapid
+    CRUD), and the ConfigEntry write applies only the computed DIFF onto a
+    fresh read of entry.data — a whole-map write from the pre-await snapshot
+    could clobber a part/task another handler persisted in between (a lost
+    update seen live when three part creates raced the first reconcile).
     """
+    import asyncio
+
+    lock = _RECONCILE_LOCKS.setdefault(entry.entry_id, asyncio.Lock())
+    async with lock:
+        return await _reconcile_buy_tasks_locked(hass, entry)
+
+
+async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     parts = entry.data.get(CONF_PARTS) or {}
     store = _get_store(hass, entry)
     if store is None:
@@ -214,6 +231,14 @@ async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> 
     if not changed:
         return False
 
+    # The diff relative to the snapshot: brand-new buy tasks, and existing
+    # tasks whose part_ref marker was detached. Only these keys are written.
+    detached = [
+        tid
+        for tid in tasks
+        if tid in new_tasks and tasks[tid].get(PART_REF_FIELD) != new_tasks[tid].get(PART_REF_FIELD)
+    ]
+
     # Removals first, via the shared full-cleanup primitive (entity registry,
     # store state, group refs, notification state) — without per-task reloads.
     from .websocket.tasks_crud import async_delete_task
@@ -221,7 +246,7 @@ async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> 
     for tid in removed:
         await async_delete_task(hass, entry, tid)
 
-    # Apply creations + detached part_refs in one ConfigEntry write.
+    # Apply the diff onto a FRESH read (never write back pre-await snapshots).
     current = hass.config_entries.async_get_entry(entry.entry_id)
     if current is None:
         return True
@@ -229,12 +254,15 @@ async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> 
     merged_tasks = dict(new_data.get(CONF_TASKS, {}))
     obj = dict(new_data.get(CONF_OBJECT, {}))
     task_ids = list(obj.get("task_ids", []))
-    for tid, td in new_tasks.items():
-        if tid in removed:
-            continue
-        merged_tasks[tid] = td
+    for tid in created:
+        merged_tasks[tid] = new_tasks[tid]
         if tid not in task_ids:
             task_ids.append(tid)
+    for tid in detached:
+        if tid in merged_tasks:
+            td = dict(merged_tasks[tid])
+            td.pop(PART_REF_FIELD, None)
+            merged_tasks[tid] = td
     obj["task_ids"] = [t for t in task_ids if t in merged_tasks]
     new_data[CONF_TASKS] = merged_tasks
     new_data[CONF_OBJECT] = obj
