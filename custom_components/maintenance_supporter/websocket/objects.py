@@ -851,8 +851,24 @@ async def ws_replace_object(
         new_obj.pop(key, None)
     new_obj["predecessor_entry_id"] = entry.entry_id
 
+    # Carry the parts shelf — the spares don't change when the machine dies.
+    # Fresh ids (like tasks); consumption links are remapped below and the
+    # tracked stock is copied into the successor's store after creation.
+    part_id_map: dict[str, str] = {}
+    new_parts: dict[str, Any] = {}
+    for src_part in (entry.data.get("parts") or {}).values():
+        carried = dict(src_part)
+        new_pid = uuid4().hex
+        part_id_map[str(carried.get("id"))] = new_pid
+        carried["id"] = new_pid
+        new_parts[new_pid] = carried
+
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
+        # Auto "buy" reminders are transient reconciler-owned state — the
+        # successor's own reconcile recreates one if the carried part is low.
+        if src_task.get("part_ref"):
+            continue
         task = deepcopy(dict(src_task))
         task_id = uuid4().hex
         task["id"] = task_id
@@ -870,13 +886,24 @@ async def ws_replace_object(
             task.pop(key, None)
         if isinstance(task.get("trigger_config"), dict):
             task["trigger_config"].pop("_trigger_state", None)
+        links = task.get("consumes_parts")
+        if isinstance(links, list):
+            remapped = [
+                {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
+                for link in links
+                if isinstance(link, dict) and link.get("part_id") in part_id_map
+            ]
+            if remapped:
+                task["consumes_parts"] = remapped
+            else:
+                task.pop("consumes_parts", None)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": "websocket"},
-        data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks},
+        data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks, "parts": new_parts},
     )
     if result["type"] != "create_entry":
         connection.send_error(msg["id"], "replace_failed", result.get("reason", "unknown"))
@@ -893,6 +920,25 @@ async def ws_replace_object(
         src_docs = doc_store.for_object(object_id_for_entry(entry))
         if src_docs:
             await doc_store.async_import_documents(new_obj["id"], src_docs)
+
+    # Copy the tracked stock counts (dynamic store state) onto the carried
+    # parts, then let the successor's reconcile recreate any needed reminder.
+    if part_id_map:
+        src_rd = getattr(entry, "runtime_data", None)
+        src_store = getattr(src_rd, "store", None) if src_rd else None
+        new_entry = hass.config_entries.async_get_entry(new_entry_id)
+        new_rd = getattr(new_entry, "runtime_data", None) if new_entry else None
+        new_store = getattr(new_rd, "store", None) if new_rd else None
+        if src_store is not None and new_store is not None:
+            for old_pid, new_pid in part_id_map.items():
+                stock = src_store.get_part_stock(old_pid)
+                if stock is not None:
+                    new_store.set_part_stock(new_pid, stock)
+            await new_store.async_save()
+        if new_entry is not None:
+            from ..parts_runtime import schedule_buy_task_reconcile
+
+            schedule_buy_task_reconcile(hass, new_entry)
 
     # Retire the predecessor (archive cascade) with the successor pointer.
     now_iso = dt_util.now().isoformat()

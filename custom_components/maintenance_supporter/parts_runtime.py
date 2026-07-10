@@ -213,6 +213,13 @@ async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     parts = entry.data.get(CONF_PARTS) or {}
+    # An archived or paused object must stay quiet (journey S4): no shopping
+    # reminders while it's retired/out of season. Declaratively: an inert
+    # object desires NO buy tasks — open reminders are removed, and the
+    # resume/unarchive setup catch-up recreates them if the part is still low.
+    obj = entry.data.get(CONF_OBJECT, {})
+    if obj.get("archived_at") is not None or obj.get("paused_at") is not None:
+        parts = {}
     store = _get_store(hass, entry)
     if store is None:
         return False

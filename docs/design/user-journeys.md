@@ -176,6 +176,21 @@ especially across reload/restart.
 | P1 | **Read parity**: status/next_due/days_until_due identical in sensor, list_tasks, WS object, to-do, calendar | E, S, W | test_journey_household | ✔ closed 2026-07-06 |
 | P2 | Language switch: HA language change follows through panel/entities/notifications/logbook with no English leaks | (i18n) | per-surface i18n tests, test_journey_interactions (live language switch reaches logbook + notifications without reload) | closed |
 
+### S. Spare parts & consumables (2.23)
+
+The shelf's own biography: stock moves with real work, reminders create and
+retire themselves, and the shelf follows the object through every lifecycle
+event.
+
+| # | Journey | Surfaces | Covered today | Gap |
+|---|---------|----------|---------------|-----|
+| S1 | The loop: consume → low crossing → auto "Buy…" reminder → restart (reminder + stock persist, reconcile doesn't duplicate) → complete with dialog qty → restocked, completed reminder detaches (keeps cost history) → next episode creates a FRESH reminder | P, W | test_journey_parts (restart between rapid completions — double-tap dedup is monotonic) | ✔ closed 2026-07-10 |
+| S2 | Delete a part mid-low-episode: open reminder, task links and stock state all go; nothing resurrects after restart | P, W | test_journey_parts_lifecycle | ✔ closed 2026-07-10 |
+| S3 | Machine dies → **Replace…** carries the shelf: definitions (fresh ids), remapped consumption links, tracked stock; reminders are NOT copied — the successor's reconcile recreates one for a still-low part | P, W | test_journey_parts_lifecycle (found the gap: replace didn't carry parts at all) | ✔ closed 2026-07-10 |
+| S4 | Paused/archived object stays quiet: open reminders removed while inert, none created; resume/unarchive brings them back via the setup catch-up | P, W | test_journey_parts_lifecycle (found the gap: reconcile had no inert guard) | ✔ closed 2026-07-10 |
+| S5 | Backup → restore → restart: definitions, tracked stock and links survive (ids regenerated, links remapped); the restored copy's reconcile creates its own reminder | W | test_journey_parts_lifecycle + test_ws_io roundtrip tripwire | ✔ closed 2026-07-10 |
+| S6 | Crash between ConfigEntry write and Store save on part deletion → orphaned stock state pruned at boot, real stock untouched (journey-I1 twin) | (boot) | test_journey_parts_lifecycle (found the gap: prune_part_orphans was dead code) | ✔ closed 2026-07-10 |
+
 ### Q/R. Situational + meta
 
 | # | Journey | Surfaces | Covered today | Gap |
@@ -238,3 +253,7 @@ Implemented so far (2026-07-05): `tests/journey.py` (harness),
 (E1-partial/E3/E4-partial). Next: repairs+restore file, daily-use file.
 
 Keep this table honest: when a journey gains coverage, flip its Gap column.
+
+2026-07-10: category S added with the spare-parts feature; writing S3/S4/S6
+found three real gaps before any user did (replace didn't carry parts, no
+inert-object guard on the buy-task reconcile, orphan pruning never wired).
