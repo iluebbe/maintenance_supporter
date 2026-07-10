@@ -189,10 +189,13 @@ export const calendarStyles = css`
     letter-spacing: 0.4px;
     color: #fff;
   }
-  .cal-status-overdue   { background: #d32f2f; }
-  .cal-status-triggered { background: #038fc7; }
-  .cal-status-due_soon  { background: #f9a825; color: #000; }
-  .cal-status-ok        { background: #2e7d32; }
+  /* Same tokens as .status-badge (status-constants.ts) — the calendar used
+     to keep its own palette (triggered was even BLUE here) so identical
+     statuses wore different colors per view, and none followed the theme. */
+  .cal-status-overdue   { background: var(--error-color, #f44336); }
+  .cal-status-triggered { background: var(--deep-orange-color, #ff5722); }
+  .cal-status-due_soon  { background: var(--warning-color, #ff9800); color: #000; }
+  .cal-status-ok        { background: var(--success-color, #4caf50); }
 
   @media (max-width: 600px) {
     .cal-controls { padding: 10px 12px; }

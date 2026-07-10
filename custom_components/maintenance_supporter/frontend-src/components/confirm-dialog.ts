@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { t } from "../styles";
+import { t, nativeFieldStyles } from "../styles";
 
 export interface ConfirmOptions {
   title: string;
@@ -126,22 +126,15 @@ export class MaintenanceConfirmDialog extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [nativeFieldStyles, css`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
       padding-bottom: 12px;
     }
-    .field { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; }
-    .field-label { font-size: 12px; color: var(--secondary-text-color); }
-    .field-input {
-      padding: 8px 10px; font-size: 14px;
-      background: var(--secondary-background-color, rgba(0,0,0,0.06));
-      color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
-      font-family: inherit; width: 100%; box-sizing: border-box;
-    }
-    .field-input:focus { outline: none; border-color: var(--primary-color); }
+    /* shared native-field scaffold from nativeFieldStyles; the prompt input
+       follows the message text, hence the extra top margin here */
+    .field { margin-top: 12px; }
     .content {
       padding: 8px 0;
       min-width: 280px;
@@ -162,7 +155,7 @@ export class MaintenanceConfirmDialog extends LitElement {
     ha-button.danger {
       --mdc-theme-primary: var(--error-color, #f44336);
     }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-confirm-dialog")) {

@@ -24,9 +24,15 @@ from .const import (
 from .helpers.schedule import (
     read_legacy_fields,
 )
+from .helpers.task_fields import INTERVAL_DAYS_RANGE
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
+
+# UI-only cap for the adaptive MINIMUM interval (one year). Deliberately not a
+# shared const: the adaptive min has no WS/schema twin to drift from — the
+# engine clamps recommendations to the per-task min/max pair itself.
+_ADAPTIVE_MIN_INTERVAL_CAP_DAYS = 365
 
 
 class AdaptiveMixin:
@@ -144,7 +150,7 @@ class AdaptiveMixin:
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         min=1,
-                        max=365,
+                        max=_ADAPTIVE_MIN_INTERVAL_CAP_DAYS,
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
                         unit_of_measurement="days",
@@ -156,7 +162,7 @@ class AdaptiveMixin:
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         min=1,
-                        max=3650,
+                        max=INTERVAL_DAYS_RANGE[1],
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
                         unit_of_measurement="days",

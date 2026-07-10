@@ -62,7 +62,7 @@ from .const import (
 from .helpers.global_options import get_default_warning_days
 from .helpers.i18n import normalize_language
 from .helpers.schedule import KIND_WEEKDAYS, normalize_task_storage
-from .helpers.task_fields import TASK_PRIORITIES, WARNING_DAYS_RANGE
+from .helpers.task_fields import INTERVAL_DAYS_RANGE, TASK_PRIORITIES, WARNING_DAYS_RANGE
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -149,7 +149,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             data_schema=vol.Schema(
                 {
                     vol.Optional(CONF_DEFAULT_WARNING_DAYS, default=DEFAULT_WARNING_DAYS): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=1, max=365, step=1, mode=selector.NumberSelectorMode.BOX)
+                        selector.NumberSelectorConfig(
+                            min=1, max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                        )
                     ),
                     vol.Optional(CONF_NOTIFICATIONS_ENABLED, default=False): selector.BooleanSelector(),
                     vol.Optional(CONF_NOTIFY_SERVICE, default=""): selector.SelectSelector(
@@ -693,8 +695,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 {
                     vol.Required(CONF_TASK_INTERVAL_DAYS, default=DEFAULT_INTERVAL_DAYS): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=1,
-                            max=3650,
+                            min=INTERVAL_DAYS_RANGE[0],
+                            max=INTERVAL_DAYS_RANGE[1],
                             step=1,
                             mode=selector.NumberSelectorMode.BOX,
                         )
@@ -706,8 +708,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         default=get_default_warning_days(self.hass),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0,
-                            max=365,
+                            min=WARNING_DAYS_RANGE[0],
+                            max=WARNING_DAYS_RANGE[1],
                             step=1,
                             mode=selector.NumberSelectorMode.BOX,
                         )
@@ -781,8 +783,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         default=get_default_warning_days(self.hass),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0,
-                            max=365,
+                            min=WARNING_DAYS_RANGE[0],
+                            max=WARNING_DAYS_RANGE[1],
                             step=1,
                             mode=selector.NumberSelectorMode.BOX,
                         )

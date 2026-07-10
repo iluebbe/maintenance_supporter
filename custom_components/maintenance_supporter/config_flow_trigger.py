@@ -60,7 +60,7 @@ from .const import (
     TriggerType,
 )
 from .helpers.global_options import get_default_warning_days
-from .helpers.task_fields import WARNING_DAYS_RANGE
+from .helpers.task_fields import INTERVAL_DAYS_RANGE, WARNING_DAYS_RANGE
 
 # Domains allowed for trigger entity selection.
 # Includes all domains from entity_attributes.DOMAIN_ATTRIBUTE_MAP plus
@@ -432,8 +432,8 @@ class TriggerConfigMixin:
             {
                 vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=1,
-                        max=3650,
+                        min=INTERVAL_DAYS_RANGE[0],
+                        max=INTERVAL_DAYS_RANGE[1],
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
                     )
@@ -531,8 +531,8 @@ class TriggerConfigMixin:
             {
                 vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=1,
-                        max=3650,
+                        min=INTERVAL_DAYS_RANGE[0],
+                        max=INTERVAL_DAYS_RANGE[1],
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
                     )
@@ -635,8 +635,8 @@ class TriggerConfigMixin:
             {
                 vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=1,
-                        max=3650,
+                        min=INTERVAL_DAYS_RANGE[0],
+                        max=INTERVAL_DAYS_RANGE[1],
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
                     )
@@ -740,8 +740,8 @@ class TriggerConfigMixin:
             {
                 vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=1,
-                        max=3650,
+                        min=INTERVAL_DAYS_RANGE[0],
+                        max=INTERVAL_DAYS_RANGE[1],
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
                     )

@@ -3,6 +3,7 @@
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence } from "./styles";
+import { LS_KEYS } from "./helpers/storage-keys";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -88,14 +89,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _unsub: (() => void) | null = null;
   @state() private _chartRangeDays = (() => {
     try {
-      const v = parseInt(localStorage.getItem("msp-chart-range") || "", 10);
+      const v = parseInt(localStorage.getItem(LS_KEYS.chartRange) || "", 10);
       return [7, 30, 90, 365].includes(v) ? v : 30;
     } catch {
       return 30;
     }
   })();
   @state() private _hideOutliers = (() => {
-    try { return localStorage.getItem("msp-chart-hide-outliers") === "1"; } catch { return false; }
+    try { return localStorage.getItem(LS_KEYS.chartHideOutliers) === "1"; } catch { return false; }
   })();
   @state() private _historyFilter: string | null = null;
   @state() private _budget: BudgetStatus | null = null;
@@ -122,7 +123,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   // Dashboard redesign state
   @state() private _overviewTab: "today" | "dashboard" | "calendar" | "settings" = (() => {
     try {
-      const v = localStorage.getItem("msp-overview-tab");
+      const v = localStorage.getItem(LS_KEYS.overviewTab);
       return v === "today" || v === "calendar" ? v : "dashboard";
     } catch { return "dashboard"; }
   })();
@@ -154,7 +155,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   // v2.15.0: collapsed analysis sections on the task-detail overview tab,
   // remembered per section across visits.
   @state() private _collapsedSections: Set<string> = (() => {
-    try { return new Set(JSON.parse(localStorage.getItem("msp-collapsed-sections") || "[]")); }
+    try { return new Set(JSON.parse(localStorage.getItem(LS_KEYS.collapsedSections) || "[]")); }
     catch { return new Set(); }
   })();
   // v2.15.0: command palette ("/" since 2.18.1 — Ctrl+K clashed with HA's own
@@ -209,19 +210,19 @@ export class MaintenanceSupporterPanel extends LitElement {
     window.addEventListener("popstate", this._popstateHandler);
     window.addEventListener("keydown", this._paletteKeydown);
     window.addEventListener("resize", this._onVirtualScroll, { passive: true });
-    const saved = localStorage.getItem("maintenance_supporter_sort");
+    const saved = localStorage.getItem(LS_KEYS.taskSort);
     if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
       this._sortMode = saved as SortMode;
     }
-    const savedObj = localStorage.getItem("maintenance_supporter_object_sort");
+    const savedObj = localStorage.getItem(LS_KEYS.objectSort);
     if (savedObj && ["alphabetical", "due_soonest", "task_count"].includes(savedObj)) {
       this._objectSortMode = savedObj as ObjectSortMode;
     }
-    const savedGroup = localStorage.getItem("maintenance_supporter_groupby");
+    const savedGroup = localStorage.getItem(LS_KEYS.groupBy);
     if (savedGroup && ["none", "area", "group", "user"].includes(savedGroup)) {
       this._groupByMode = savedGroup as GroupByMode;
     }
-    const savedView = localStorage.getItem("maintenance_supporter_object_view");
+    const savedView = localStorage.getItem(LS_KEYS.objectView);
     if (savedView === "cards" || savedView === "table") {
       this._objectViewMode = savedView;
     }
@@ -480,7 +481,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _setChartRange(days: number): void {
     if (days === this._chartRangeDays) return;
     this._chartRangeDays = days;
-    try { localStorage.setItem("msp-chart-range", String(days)); } catch { /* private mode */ }
+    try { localStorage.setItem(LS_KEYS.chartRange, String(days)); } catch { /* private mode */ }
     const task = this._selectedEntryId && this._selectedTaskId
       ? this._getTask(this._selectedEntryId, this._selectedTaskId)
       : null;
@@ -499,7 +500,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Outlier filtering is client-side on the already-fetched series, so just
     // flip the flag and let renderChart re-filter — no re-fetch needed.
     this._hideOutliers = hide;
-    try { localStorage.setItem("msp-chart-hide-outliers", hide ? "1" : "0"); } catch { /* private mode */ }
+    try { localStorage.setItem(LS_KEYS.chartHideOutliers, hide ? "1" : "0"); } catch { /* private mode */ }
   }
 
   private async _fetchMiniStatsForOverview(): Promise<void> {
@@ -1857,7 +1858,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _setOverviewTab(tab: "today" | "dashboard" | "calendar" | "settings"): void {
     this._overviewTab = tab;
-    try { localStorage.setItem("msp-overview-tab", tab); } catch { /* private mode */ }
+    try { localStorage.setItem(LS_KEYS.overviewTab, tab); } catch { /* private mode */ }
     this._scrollContentToTop();
   }
 
@@ -1962,7 +1963,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._sortMode}
             @change=${(e: Event) => {
               this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
-              localStorage.setItem("maintenance_supporter_sort", this._sortMode);
+              localStorage.setItem(LS_KEYS.taskSort, this._sortMode);
             }}
           >
             <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
@@ -1980,7 +1981,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._groupByMode}
             @change=${(e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
-              localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
+              localStorage.setItem(LS_KEYS.groupBy, this._groupByMode);
             }}
           >
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
@@ -2294,7 +2295,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._objectSortMode}
             @change=${(e: Event) => {
               this._objectSortMode = (e.target as HTMLSelectElement).value as ObjectSortMode;
-              localStorage.setItem("maintenance_supporter_object_sort", this._objectSortMode);
+              localStorage.setItem(LS_KEYS.objectSort, this._objectSortMode);
             }}
           >
             <option value="alphabetical" ?selected=${this._objectSortMode === "alphabetical"}>${t("sort_alphabetical", L)}</option>
@@ -2323,7 +2324,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._groupByMode}
             @change=${(e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
-              localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
+              localStorage.setItem(LS_KEYS.groupBy, this._groupByMode);
             }}
           >
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
@@ -2372,7 +2373,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _setObjectViewMode(mode: "cards" | "table"): void {
     this._objectViewMode = mode;
-    localStorage.setItem("maintenance_supporter_object_view", mode);
+    localStorage.setItem(LS_KEYS.objectView, mode);
   }
 
   // (#67 / Phase 3) Download all objects as a one-row-per-object CSV.
@@ -2857,7 +2858,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const next = new Set(this._collapsedSections);
     if (next.has(key)) next.delete(key); else next.add(key);
     this._collapsedSections = next;
-    try { localStorage.setItem("msp-collapsed-sections", JSON.stringify([...next])); } catch { /* private mode */ }
+    try { localStorage.setItem(LS_KEYS.collapsedSections, JSON.stringify([...next])); } catch { /* private mode */ }
   }
 
   /** Build the context the history renderers need from panel state. */

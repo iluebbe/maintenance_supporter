@@ -37,7 +37,7 @@ from .helpers.global_options import get_default_warning_days
 from .helpers.schedule import (
     KIND_WEEKDAYS,
 )
-from .helpers.task_fields import TASK_PRIORITIES, WARNING_DAYS_RANGE
+from .helpers.task_fields import INTERVAL_DAYS_RANGE, TASK_PRIORITIES, WARNING_DAYS_RANGE
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -174,7 +174,9 @@ class AddTaskMixin:
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_TASK_INTERVAL_DAYS, default=DEFAULT_INTERVAL_DAYS): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX)
+                        selector.NumberSelectorConfig(
+                            min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                        )
                     ),
                     vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
                     vol.Optional(CONF_TASK_INTERVAL_ANCHOR, default="completion"): selector.SelectSelector(

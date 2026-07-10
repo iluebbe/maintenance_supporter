@@ -596,7 +596,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,668 tests** across **153 test files** with **98% code coverage** (plus a 235+ test frontend suite in real Chromium, the journey suite A–S, and the live e2e scripts under `e2e/`).
+**2,670 tests** across **154 test files** with **98% code coverage** (plus a 235+ test frontend suite in real Chromium, the journey suite A–S, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

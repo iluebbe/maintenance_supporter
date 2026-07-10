@@ -30,6 +30,25 @@ All notable changes to Maintenance Supporter are documented in this file.
   demo data for the parts loop and the 2.22 scheduling features into a fresh
   dev instance.
 
+### 🛠️ Internal (DRY audit follow-up)
+
+- **Auto-generated dashboard now wears the panel's status icons** — the
+  dashboard strategy hardcoded its own icon set, so its *Overdue* view showed
+  the panel's *due-soon* icon; both now read the shared `STATUS_ICONS`
+  (extracted to a dependency-free `status-constants.ts`).
+- **Calendar status pills follow the theme** — the calendar kept a private
+  color palette (*Triggered* was even blue there); the pills now use the same
+  theme tokens as the status badges everywhere else.
+- **Form bounds come from the shared constants** — a dozen config-flow
+  selectors and one WS schema had `max=3650`/`max=365` copy-pasted instead of
+  `INTERVAL_DAYS_RANGE`/`WARNING_DAYS_RANGE`; a new source-scan tripwire test
+  fails on any future hardcoded copy.
+- localStorage preference keys and the native-input dialog field styles are
+  now single-sourced (`helpers/storage-keys.ts`, `nativeFieldStyles`); the
+  stored key values are unchanged.
+- Docs: `reading_unit` was missing from the task-field table in
+  CONFIGURATION.md.
+
 ### 🐛 Fixed
 
 - **Priority chevrons now form one clean column in the dashboard** — status

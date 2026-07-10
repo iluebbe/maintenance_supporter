@@ -30,6 +30,8 @@
  * On older HA versions the registration is a silent no-op.
  */
 
+import { STATUS_ICONS } from "./status-constants";
+
 interface MaintenanceObjectResp {
   entry_id: string;
   object: {
@@ -128,10 +130,13 @@ const STATUS_VIEWS: Array<{
   icon: string;
   path: string;
 }> = [
-  { status: "overdue", title: "Overdue", icon: "mdi:alert-circle", path: "overdue" },
-  { status: "triggered", title: "Triggered", icon: "mdi:flash", path: "triggered" },
-  { status: "due_soon", title: "Due Soon", icon: "mdi:clock-alert-outline", path: "due-soon" },
-  { status: "ok", title: "OK", icon: "mdi:check-circle-outline", path: "ok" },
+  // Icons come from the shared STATUS_ICONS so the generated dashboard
+  // matches the panel (this table used to hardcode its own set — "Overdue"
+  // wore the panel's due-soon icon).
+  { status: "overdue", title: "Overdue", icon: STATUS_ICONS.overdue, path: "overdue" },
+  { status: "triggered", title: "Triggered", icon: STATUS_ICONS.triggered, path: "triggered" },
+  { status: "due_soon", title: "Due Soon", icon: STATUS_ICONS.due_soon, path: "due-soon" },
+  { status: "ok", title: "OK", icon: STATUS_ICONS.ok, path: "ok" },
 ];
 
 const DUE_DATE_VIEWS: Array<{

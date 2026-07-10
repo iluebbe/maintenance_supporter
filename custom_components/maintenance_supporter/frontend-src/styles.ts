@@ -7,30 +7,10 @@ import EN from "./locales/en.json";
 // derives the real symbol from const.BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY].
 export const DEFAULT_CURRENCY_SYMBOL = "€";
 
-export const STATUS_COLORS: Record<string, string> = {
-  ok: "var(--success-color, #4caf50)",
-  due_soon: "var(--warning-color, #ff9800)",
-  overdue: "var(--error-color, #f44336)",
-  // Theme-token first so it adapts to dark/custom themes (was a bare #ff5722).
-  triggered: "var(--deep-orange-color, #ff5722)",
-  // v2.10.0: archived is a neutral, greyed-out state (retired but retained).
-  archived: "var(--disabled-color, #9e9e9e)",
-  // v2.20 (N3): paused is frozen-but-present — info blue, clearly not urgent.
-  paused: "var(--info-color, #2196f3)",
-};
-
-export const STATUS_ICONS: Record<string, string> = {
-  ok: "mdi:check-circle",
-  due_soon: "mdi:alert-circle",
-  overdue: "mdi:alert-octagon",
-  triggered: "mdi:bell-alert",
-  archived: "mdi:archive-outline",
-  paused: "mdi:pause-circle-outline",
-  completed: "mdi:check-circle",
-  skipped: "mdi:skip-next",
-  missed: "mdi:calendar-remove",
-  reset: "mdi:refresh",
-};
+// Moved to the dependency-free status-constants.ts so the dashboard strategy
+// bundle can share them without pulling Lit in; re-exported here so every
+// existing `from "./styles"` import keeps working.
+export { STATUS_COLORS, STATUS_ICONS } from "./status-constants";
 
 /* ─── i18n ─── */
 
@@ -264,6 +244,23 @@ export function fireMoreInfo(ev: Event, entityId: string) {
     })
   );
 }
+
+/** Native-input field scaffolding for dialogs rendered in the custom-panel
+ * context, where <ha-textfield> is not registered (the documented
+ * complete-dialog trap). Shared so the twin copies in confirm-dialog and
+ * complete-dialog can't drift — they already had (12px vs 8px margins). */
+export const nativeFieldStyles = css`
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field-label { font-size: 12px; color: var(--secondary-text-color); }
+  .field-input {
+    padding: 8px 10px; font-size: 14px;
+    background: var(--secondary-background-color, rgba(0,0,0,0.06));
+    color: var(--primary-text-color);
+    border: 1px solid var(--divider-color); border-radius: 6px;
+    font-family: inherit; width: 100%; box-sizing: border-box;
+  }
+  .field-input:focus { outline: none; border-color: var(--primary-color); }
+`;
 
 export const sharedStyles = css`
   :host {

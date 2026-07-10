@@ -160,8 +160,10 @@ def test_supported_langs_match_locale_files() -> None:
 def test_status_colors_are_theme_token_based() -> None:
     """Dark-mode tripwire: every STATUS_COLORS value must resolve through an HA
     theme variable (``var(--…)``), never a bare hex/rgb literal. A bare colour
-    ignores the active theme and can render low-contrast in dark mode."""
-    src = _STYLES_TS.read_text(encoding="utf-8")
+    ignores the active theme and can render low-contrast in dark mode.
+    STATUS_COLORS lives in status-constants.ts since the 2026-07-10 DRY pass
+    (dependency-free so the dashboard strategy can share it)."""
+    src = (_FRONTEND / "status-constants.ts").read_text(encoding="utf-8")
     start = src.index("STATUS_COLORS")
     block = src[start : src.index("};", start)]
     # Collect the right-hand side of each `key: "value",` entry.
@@ -169,6 +171,17 @@ def test_status_colors_are_theme_token_based() -> None:
     assert values, "could not parse STATUS_COLORS values"
     offenders = [v for v in values if "var(--" not in v]
     assert not offenders, f"STATUS_COLORS entries must use a theme token (var(--…)); bare colours break dark mode: {offenders}"
+
+
+def test_calendar_status_pills_are_theme_token_based() -> None:
+    """Same dark-mode rule for the calendar's status pills: they used to keep a
+    private hardcoded palette (triggered was even blue there) — every
+    ``.cal-status-*`` background must go through a theme token now."""
+    src = (_FRONTEND / "calendar-styles.ts").read_text(encoding="utf-8")
+    rules = re.findall(r"\.cal-status-\w+\s*\{\s*background:\s*([^;]+);", src)
+    assert rules, "could not parse .cal-status-* rules"
+    offenders = [v for v in rules if "var(--" not in v]
+    assert not offenders, f".cal-status-* pills must use theme tokens: {offenders}"
 
 
 # === Every localized top-level surface must load its locale =================

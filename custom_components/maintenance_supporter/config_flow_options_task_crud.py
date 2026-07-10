@@ -53,6 +53,7 @@ from .helpers.schedule import (
 )
 from .helpers.task_fields import (
     EARLIEST_COMPLETION_RANGE,
+    INTERVAL_DAYS_RANGE,
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
 )
@@ -344,7 +345,12 @@ class TaskCrudMixin:
                                 CONF_TASK_INTERVAL_DAYS,
                                 default=sched["interval_days"] or DEFAULT_INTERVAL_DAYS,
                             ): selector.NumberSelector(
-                                selector.NumberSelectorConfig(min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX)
+                                selector.NumberSelectorConfig(
+                                    min=INTERVAL_DAYS_RANGE[0],
+                                    max=INTERVAL_DAYS_RANGE[1],
+                                    step=1,
+                                    mode=selector.NumberSelectorMode.BOX,
+                                )
                             ),
                             vol.Optional(
                                 CONF_TASK_INTERVAL_UNIT,
