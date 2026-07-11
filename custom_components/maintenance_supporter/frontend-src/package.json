@@ -22,6 +22,12 @@
     "playwright": "1.61"
   },
   "overrides": {
-    "esbuild": "$esbuild"
+    "esbuild": "$esbuild",
+    "@web/dev-server-core": {
+      "ws": "^7.5.11"
+    },
+    "puppeteer-core": {
+      "ws": "^8.21.0"
+    }
   }
 }
