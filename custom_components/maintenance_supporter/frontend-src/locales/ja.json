@@ -721,5 +721,6 @@
   "part_auto_buy": "在庫少で購入タスク",
   "part_restock": "在庫を調整",
   "restock_quantity_label": "購入数量",
-  "consumes_parts_label": "部品を消費"
+  "consumes_parts_label": "部品を消費",
+  "parts_load_failed": "このオブジェクトの部品を読み込めませんでした — 部品消費オプションは現在利用できません。"
 }

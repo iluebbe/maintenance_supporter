@@ -251,9 +251,16 @@ class Schedule:
                 periods = 1 if days_gap < 0 else (days_gap // step) + 1
                 return anchor + timedelta(days=periods * step)
             # Calendar units (months/years): step until past last_performed.
+            # Multiply from the ORIGINAL anchor instead of iterating on the
+            # clamped result — iterative adds let February permanently drag a
+            # day-31 anchor to day 28 (Jan 31 → Feb 28 → Mar 28 …); n×interval
+            # from the anchor recovers the intended day per target month
+            # (Jan 31 + 2 months = Mar 31). The clamp can still stick across
+            # CYCLES when a February due itself becomes the next anchor — the
+            # day_of_month kind is the tool for hard month-end pinning.
             candidate = anchor
-            for _ in range(_MAX_PLANNED_STEPS):
-                candidate = add_interval(candidate, every, self.unit)
+            for n in range(1, _MAX_PLANNED_STEPS + 1):
+                candidate = add_interval(anchor, n * every, self.unit)
                 if candidate > last_performed:
                     return candidate
             return candidate

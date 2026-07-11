@@ -156,3 +156,62 @@ async def test_postpone_defers_one_occurrence_then_clears_on_complete(
         resumed = await _read(hass, obj.entry_id)
         assert resumed["due_override"] is None, "override not cleared on completion"
         assert resumed["next_due"] == "2026-06-02", "cadence not restored after the postponed cycle"
+
+
+async def test_postpone_then_skip_clears_the_override(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Skipping a postponed occurrence must consume the override exactly like
+    completing it does — the model's skip() promises "the cycle restarts
+    either way", but until 2026-07-11 it left due_override standing, so the
+    task snapped back to the postponed date instead of re-anchoring."""
+    from custom_components.maintenance_supporter.websocket.tasks import ws_skip_task
+
+    obj = _object(hass, {"kind": "interval", "every": 1, "unit": "months"})
+    with freeze_time("2026-05-01 09:00:00"):
+        await setup_integration(hass, global_entry, obj)
+        await call_ws_handler(
+            ws_postpone_task,
+            hass,
+            _conn(),
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/postpone",
+                "entry_id": obj.entry_id,
+                "task_id": TASK_ID_1,
+                "until": "2026-06-20",
+            },
+        )
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["next_due"] == "2026-06-20"
+
+    with freeze_time("2026-05-02 09:00:00"):
+        conn = _conn()
+        await call_ws_handler(
+            ws_skip_task,
+            hass,
+            conn,
+            {
+                "id": 2,
+                "type": "maintenance_supporter/task/skip",
+                "entry_id": obj.entry_id,
+                "task_id": TASK_ID_1,
+                "reason": "not this month",
+            },
+        )
+        assert not conn.send_error.called, conn.send_error.call_args
+        await hass.async_block_till_done()
+        # The postpone 1s earlier put the request-refresh debouncer in cooldown;
+        # force the recompute the debounce would deliver a few seconds later.
+        await obj.runtime_data.coordinator.async_refresh()
+        skipped = await _read(hass, obj.entry_id)
+        assert skipped["due_override"] is None, "skip must consume the postponement"
+        assert skipped["next_due"] == "2026-06-02", "cadence not restored after skipping the postponed cycle"
+
+    # Survives a restart (the cleared override must also be cleared in the Store).
+    await simulate_restart(hass, obj)
+    obj = hass.config_entries.async_get_entry(obj.entry_id)
+    with freeze_time("2026-05-03 09:00:00"):
+        after = await _read(hass, obj.entry_id)
+        assert after["due_override"] is None, "override resurrected from the Store after restart"
+        assert after["next_due"] == "2026-06-02"

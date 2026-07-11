@@ -721,5 +721,6 @@
   "part_auto_buy": "Kjøpsoppgave ved lavt lager",
   "part_restock": "Juster lager",
   "restock_quantity_label": "Kjøpt mengde",
-  "consumes_parts_label": "Forbruker deler"
+  "consumes_parts_label": "Forbruker deler",
+  "parts_load_failed": "Kunne ikke laste objektets deler — forbruksvalgene er ikke tilgjengelige nå."
 }

@@ -721,5 +721,6 @@
   "part_auto_buy": "कम होने पर खरीद कार्य",
   "part_restock": "स्टॉक समायोजित करें",
   "restock_quantity_label": "खरीदी गई मात्रा",
-  "consumes_parts_label": "पुर्ज़े खपत"
+  "consumes_parts_label": "पुर्ज़े खपत",
+  "parts_load_failed": "इस ऑब्जेक्ट के पुर्ज़े लोड नहीं हो सके — पुर्ज़ा-खपत विकल्प अभी उपलब्ध नहीं हैं।"
 }

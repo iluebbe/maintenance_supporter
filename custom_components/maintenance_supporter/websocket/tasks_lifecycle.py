@@ -111,24 +111,24 @@ async def ws_unarchive_task(
     if entry is None:
         return
 
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
     task_id = msg["task_id"]
-    if task_id not in tasks_data:
+    td = dict(entry.data.get(CONF_TASKS, {}).get(task_id, {}))
+    if not td:
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
-
-    td = dict(tasks_data[task_id])
     if td.get("archived_at") is None:
         connection.send_error(msg["id"], "not_archived", "Task is not archived")
         return
 
-    td.pop("archived_at", None)
-    td.pop("archived_reason", None)
-
     # Fresh cycle for recurring tasks. last_performed is dynamic state → Store
     # when present, else the static dict (legacy). One-off/manual: no re-anchor.
+    # The store flush is this handler's only await — the ConfigEntry mutation
+    # below re-reads AFTER it, so a concurrent writer landing during the disk
+    # write can't be reverted by a stale whole-map write (the migration-race
+    # class, bug audit 2026-07-11).
     rd = _get_runtime_data(hass, entry.entry_id)
     store = getattr(rd, "store", None) if rd else None
+    legacy_anchor = False
     if _is_recurring_schedule(td):
         today_iso = dt_util.now().date().isoformat()
         if store is not None:
@@ -137,12 +137,24 @@ async def ws_unarchive_task(
             state.pop("last_planned_due", None)
             await store.async_save()
         else:
-            td["last_performed"] = today_iso
-            td.pop("last_planned_due", None)
+            legacy_anchor = True
 
-    tasks_data[task_id] = td
+    # Re-derive the task from a FRESH read and patch only its key.
+    fresh_tasks = entry.data.get(CONF_TASKS, {})
+    if task_id not in fresh_tasks:
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+    td = dict(fresh_tasks[task_id])
+    td.pop("archived_at", None)
+    td.pop("archived_reason", None)
+    if legacy_anchor:
+        td["last_performed"] = dt_util.now().date().isoformat()
+        td.pop("last_planned_due", None)
+
     new_data = dict(entry.data)
-    new_data[CONF_TASKS] = tasks_data
+    new_tasks = dict(new_data.get(CONF_TASKS, {}))
+    new_tasks[task_id] = td
+    new_data[CONF_TASKS] = new_tasks
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     await hass.config_entries.async_reload(entry.entry_id)

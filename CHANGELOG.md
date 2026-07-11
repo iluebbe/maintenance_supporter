@@ -2,6 +2,40 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed (bug audit 2026-07-11)
+
+- **A pending debounced store save could silently erase completions after a
+  reload** — every entry setup created a fresh Store instance, but HA only
+  cancels the 60-second debounced write on HA *stop*, not on entry unload.
+  After any reload (part CRUD, buy-task reconcile, pause/resume, replace,
+  options) the pre-reload instance's timer fired later and wrote its stale
+  full-file snapshot over everything saved since. The store is now **cached
+  per entry and reused across reloads** (single writer, the late timer sees
+  current memory) and **flushed on unload**; A/B-proven regression tests.
+- **Two WebSocket handlers could revert concurrent writes** — `assign_user`
+  and `unarchive` wrote the whole task map from a snapshot taken before an
+  await; a writer landing in that window (e.g. a completing task persisting
+  its rotation) was silently undone. Both now re-read after their await and
+  patch only their own task (the store-migration-race pattern), with
+  injected-race regression tests.
+- **Skipping a postponed task now consumes the postponement** — `skip()`
+  left `due_override` standing (only `complete()` cleared it), so the task
+  snapped back to the postponed date instead of restarting its cycle as the
+  API documents.
+- **Planned-anchor monthly schedules no longer drag a month-end anchor down
+  in February within a catch-up** — the marching loop multiplies from the
+  original anchor (Jan 31 + 2 months = Mar 31) instead of iterating on the
+  clamped result (…Feb 28 → Mar 28).
+- Part stock is clamped to `MAX_PART_STOCK` at the storage chokepoint —
+  additive restocks could push the sum past the documented cap.
+- The task dialog now says when the parts list failed to load instead of
+  silently hiding the consumes-parts options (new string, 18 languages);
+  an invalid stock-adjust amount (0/empty) keeps the input open with an
+  error border instead of silently closing; the per-entry reconcile lock is
+  dropped when an object is deleted.
+
 ## [2.23.0] - 2026-07-11
 
 ### ✨ New

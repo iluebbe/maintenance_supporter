@@ -189,6 +189,11 @@ def schedule_buy_task_reconcile(hass: HomeAssistant, entry: ConfigEntry) -> None
 _RECONCILE_LOCKS: dict[str, Any] = {}
 
 
+def discard_reconcile_lock(entry_id: str) -> None:
+    """Forget a removed entry's reconcile lock (called from async_remove_entry)."""
+    _RECONCILE_LOCKS.pop(entry_id, None)
+
+
 async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Apply the declarative buy-task reconcile to *entry*.
 

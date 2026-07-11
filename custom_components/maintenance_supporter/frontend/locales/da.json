@@ -721,5 +721,6 @@
   "part_auto_buy": "Købsopgave ved lav beholdning",
   "part_restock": "Justér lager",
   "restock_quantity_label": "Købt mængde",
-  "consumes_parts_label": "Forbruger dele"
+  "consumes_parts_label": "Forbruger dele",
+  "parts_load_failed": "Kunne ikke indlæse objektets reservedele — forbrugsindstillingerne er ikke tilgængelige lige nu."
 }

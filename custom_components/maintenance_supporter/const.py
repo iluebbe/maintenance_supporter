@@ -18,6 +18,13 @@ NOTIFICATION_MANAGER_KEY = "_notification_manager"
 DOCUMENT_STORE_KEY = "_document_store"
 BUDGET_CACHE_KEY = "_budget_cache"
 EVENT_UNSUBS_KEY = "_event_unsubs"
+# TOP-LEVEL hass.data key (survives the DOMAIN pop on last-entry unload):
+# one MaintenanceStore per entry_id, REUSED across entry reloads. Two Store
+# instances for the same file would race: a pending 60s debounced save on
+# the pre-reload instance fires AFTER the post-reload instance loaded, and
+# its whole-file write clobbers everything the new instance saved since
+# (silent loss of completions/history — bug audit 2026-07-11).
+STORES_CACHE_KEY = f"{DOMAIN}_stores"
 
 
 def slugify_object_name(name: str) -> str:

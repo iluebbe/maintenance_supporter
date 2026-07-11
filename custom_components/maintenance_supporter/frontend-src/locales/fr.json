@@ -721,5 +721,6 @@
   "part_auto_buy": "Tâche d'achat auto si bas",
   "part_restock": "Ajuster le stock",
   "restock_quantity_label": "Quantité achetée",
-  "consumes_parts_label": "Consomme des pièces"
+  "consumes_parts_label": "Consomme des pièces",
+  "parts_load_failed": "Impossible de charger les pièces de cet objet — les options de consommation de pièces sont indisponibles pour le moment."
 }

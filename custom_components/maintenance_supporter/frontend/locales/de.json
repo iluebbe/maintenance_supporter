@@ -721,5 +721,6 @@
   "part_auto_buy": "Kauf-Task bei Niedrigbestand",
   "part_restock": "Bestand anpassen",
   "restock_quantity_label": "Gekaufte Menge",
-  "consumes_parts_label": "Verbraucht Teile"
+  "consumes_parts_label": "Verbraucht Teile",
+  "parts_load_failed": "Die Teile dieses Objekts konnten nicht geladen werden — die Teileverbrauch-Optionen sind gerade nicht verfügbar."
 }

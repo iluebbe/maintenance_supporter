@@ -721,5 +721,6 @@
   "part_auto_buy": "Úkol nákupu při nízké zásobě",
   "part_restock": "Upravit zásobu",
   "restock_quantity_label": "Zakoupené množství",
-  "consumes_parts_label": "Spotřebovává díly"
+  "consumes_parts_label": "Spotřebovává díly",
+  "parts_load_failed": "Nepodařilo se načíst díly tohoto objektu — možnosti spotřeby dílů nyní nejsou k dispozici."
 }
