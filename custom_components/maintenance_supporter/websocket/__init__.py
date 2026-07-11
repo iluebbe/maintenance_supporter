@@ -477,6 +477,10 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_restock_part,
         ws_update_part,
     )
+    from .problem_sensors import (
+        ws_adopt_problem_sensors,
+        ws_discover_problem_sensors,
+    )
     from .tags import ws_list_tags
     from .tasks import (
         ws_archive_task,
@@ -541,6 +545,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_export_objects_csv)
     websocket_api.async_register_command(hass, ws_import_csv)
     websocket_api.async_register_command(hass, ws_import_json)
+    websocket_api.async_register_command(hass, ws_discover_problem_sensors)
+    websocket_api.async_register_command(hass, ws_adopt_problem_sensors)
     websocket_api.async_register_command(hass, ws_get_groups)
     websocket_api.async_register_command(hass, ws_create_group)
     websocket_api.async_register_command(hass, ws_update_group)

@@ -38,6 +38,8 @@ import "./components/complete-dialog";
 import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
 import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
+import "./components/adopt-problem-sensors-dialog";
+import type { MaintenanceAdoptProblemSensorsDialog } from "./components/adopt-problem-sensors-dialog";
 // v2.0.0: panel uses the extracted Calendar Card instead of its own
 // _renderCalendar() method — single source of truth for the calendar view.
 import "./maintenance-calendar-card";
@@ -882,6 +884,20 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  // --- Adopt problem sensors ---
+
+  private _openAdoptProblemSensors(): void {
+    this.shadowRoot!
+      .querySelector<MaintenanceAdoptProblemSensorsDialog>("maintenance-adopt-problem-sensors-dialog")
+      ?.open();
+  }
+
+  private _onProblemSensorsAdopted(e: CustomEvent): void {
+    const tasks = e.detail?.tasks_created ?? 0;
+    this._showToast(t("adopt_problem_done", this._lang).replace("{tasks}", String(tasks)));
+    this._loadData();
+  }
+
   // --- Template gallery ---
 
   private async _openTemplateGallery(): Promise<void> {
@@ -1679,6 +1695,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         .objects=${this._objects}
         @group-saved=${this._onDialogEvent}
       ></maintenance-group-dialog>
+      <maintenance-adopt-problem-sensors-dialog
+        .hass=${this.hass}
+        @problem-sensors-adopted=${(e: CustomEvent) => this._onProblemSensorsAdopted(e)}
+      ></maintenance-adopt-problem-sensors-dialog>
       ${this._toastMessage ? html`<div class="toast">
         <span>${this._toastMessage}</span>
         ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${t("undo", this._lang)}</button>` : nothing}
@@ -2016,6 +2036,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           </ha-button>
           <ha-button @click=${() => this._openTemplateGallery()}>
             <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
+          </ha-button>
+          <ha-button @click=${() => this._openAdoptProblemSensors()}>
+            <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${t("adopt_problem_button", L)}
           </ha-button>
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}

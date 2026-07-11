@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "De JSON/YAML/CSV-exports bevatten alleen instellingen. Deze ZIP bevat de geüploade bestandsinhoud voor een volledig herstel.",
   "settings_docs_export_btn": "Documenten-ZIP downloaden",
   "settings_docs_import_btn": "Documenten-ZIP herstellen",
-  "settings_docs_import_success": "Hersteld: {blobs} bestanden, {docs} documenten"
+  "settings_docs_import_success": "Hersteld: {blobs} bestanden, {docs} documenten",
+  "adopt_problem_button": "Probleemsensoren overnemen",
+  "adopt_problem_title": "Probleemsensoren overnemen",
+  "adopt_problem_hint": "Zet HA-probleemsensoren (printerfouten, filterwaarschuwingen, lege batterij) om in onderhoudstaken die triggeren zolang het probleem actief is en zichzelf afronden wanneer het is opgelost.",
+  "adopt_problem_none": "Geen probleemsensoren gevonden die nog niet worden gevolgd.",
+  "adopt_problem_active": "actief",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(nieuw)",
+  "adopt_problem_adopt": "Selectie overnemen",
+  "adopt_problem_done": "{tasks} probleemsensor(en) overgenomen"
 }

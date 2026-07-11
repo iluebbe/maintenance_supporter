@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "JSON/YAML/CSV 导出仅包含设置。此 ZIP 包含已上传的文件内容，以便完整恢复。",
   "settings_docs_export_btn": "下载文档 ZIP",
   "settings_docs_import_btn": "恢复文档 ZIP",
-  "settings_docs_import_success": "已恢复：{blobs} 个文件，{docs} 个文档"
+  "settings_docs_import_success": "已恢复：{blobs} 个文件，{docs} 个文档",
+  "adopt_problem_button": "采用问题传感器",
+  "adopt_problem_title": "采用问题传感器",
+  "adopt_problem_hint": "将 HA 问题传感器（打印机错误、滤网警告、电量低）转换为维护任务：问题存在时触发，问题解决后自动完成。",
+  "adopt_problem_none": "未找到尚未跟踪的问题传感器。",
+  "adopt_problem_active": "存在",
+  "adopt_problem_ok": "正常",
+  "adopt_problem_new_object": "（新建）",
+  "adopt_problem_adopt": "采用所选",
+  "adopt_problem_done": "已采用 {tasks} 个问题传感器"
 }

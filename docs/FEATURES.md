@@ -91,6 +91,14 @@ runtime OR when filter pressure exceeds 1.5 bar*.
 
 ![Compound Trigger](images/compound-trigger.png)
 
+### Adopt Problem Sensors
+Discover HA `device_class: problem` binary sensors (printer errors, filter
+warnings, low battery) and adopt selected ones as tasks that trigger while the
+problem is active and clear themselves when it resolves. Each proposes a target
+object and shows its live state; the integration's own sensors are excluded.
+
+![Adopt problem sensors](images/adopt-problem-sensors.png)
+
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.
 Download as PNG/SVG or print; URL modes for LAN, external URL, or the
@@ -292,7 +300,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 18 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 67 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 69 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing

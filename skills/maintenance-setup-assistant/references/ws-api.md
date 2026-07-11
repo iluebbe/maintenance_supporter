@@ -301,3 +301,19 @@ fetch via a signed path (`auth/sign_path`). `POST` the same URL with multipart
 then by name for a cross-instance restore; idempotent). This is the one export
 that carries uploaded file *contents* — pair it with a JSON export for a
 complete, portable backup.
+
+
+## Problem sensors — adopt HA `device_class: problem` binary sensors
+
+### `problem_sensors/discover` — read
+`{}` → `{sensors:[{entity_id,name,state,device_id,device_name,area_name,
+suggested_entry_id,suggested_object_name}]}`. Lists adoptable problem sensors
+NOT already watched by a task (`state:"on"` = problem active now).
+
+### `problem_sensors/adopt` — @require_write
+`{selections:[{entity_id,name,entry_id?,object_name?,device_id?}]}` →
+`{tasks_created,objects_created,total,errors?}`. Each selection becomes a task
+that triggers while the sensor is on and auto-completes on recovery
+(`state_change` → `on` + `auto_complete_on_recovery`). With `entry_id` it
+attaches to that object; otherwise a fresh object (`object_name`, bound to
+`device_id`) is created — two selections sharing a `device_id` reuse one object.

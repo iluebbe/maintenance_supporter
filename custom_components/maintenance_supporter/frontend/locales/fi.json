@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "JSON/YAML/CSV-viennit sisältävät vain asetukset. Tämä ZIP sisältää ladattujen tiedostojen sisällön, joten palautus on täydellinen.",
   "settings_docs_export_btn": "Lataa asiakirjojen ZIP",
   "settings_docs_import_btn": "Palauta asiakirjojen ZIP",
-  "settings_docs_import_success": "Palautettu: {blobs} tiedostoa, {docs} asiakirjaa"
+  "settings_docs_import_success": "Palautettu: {blobs} tiedostoa, {docs} asiakirjaa",
+  "adopt_problem_button": "Ota ongelma-anturit käyttöön",
+  "adopt_problem_title": "Ota ongelma-anturit käyttöön",
+  "adopt_problem_hint": "Muuttaa HA:n ongelma-anturit (tulostinvirheet, suodatinvaroitukset, heikko akku) huoltotehtäviksi, jotka laukeavat ongelman ollessa aktiivinen ja päättyvät itsestään, kun se ratkeaa.",
+  "adopt_problem_none": "Ei löytynyt ongelma-antureita, joita ei jo seurata.",
+  "adopt_problem_active": "aktiivinen",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(uusi)",
+  "adopt_problem_adopt": "Ota valitut käyttöön",
+  "adopt_problem_done": "Otettiin käyttöön {tasks} ongelma-anturia"
 }

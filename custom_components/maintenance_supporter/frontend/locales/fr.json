@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "Les exports JSON/YAML/CSV ne contiennent que les réglages. Ce ZIP inclut le contenu des fichiers téléversés pour une restauration complète.",
   "settings_docs_export_btn": "Télécharger le ZIP des documents",
   "settings_docs_import_btn": "Restaurer le ZIP des documents",
-  "settings_docs_import_success": "Restauré : {blobs} fichiers, {docs} documents"
+  "settings_docs_import_success": "Restauré : {blobs} fichiers, {docs} documents",
+  "adopt_problem_button": "Adopter les capteurs de problème",
+  "adopt_problem_title": "Adopter les capteurs de problème",
+  "adopt_problem_hint": "Transforme les capteurs de problème HA (erreurs d'imprimante, alertes de filtre, batterie faible) en tâches de maintenance qui se déclenchent tant que le problème est actif et se terminent lorsqu'il est résolu.",
+  "adopt_problem_none": "Aucun capteur de problème non encore suivi n'a été trouvé.",
+  "adopt_problem_active": "actif",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(nouveau)",
+  "adopt_problem_adopt": "Adopter la sélection",
+  "adopt_problem_done": "{tasks} capteur(s) de problème adopté(s)"
 }

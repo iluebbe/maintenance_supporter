@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "JSON/YAML/CSV निर्यात केवल सेटिंग्स रखते हैं। इस ZIP में अपलोड की गई फ़ाइल सामग्री शामिल है ताकि पुनर्स्थापना पूर्ण हो।",
   "settings_docs_export_btn": "दस्तावेज़ ZIP डाउनलोड करें",
   "settings_docs_import_btn": "दस्तावेज़ ZIP पुनर्स्थापित करें",
-  "settings_docs_import_success": "पुनर्स्थापित: {blobs} फ़ाइलें, {docs} दस्तावेज़"
+  "settings_docs_import_success": "पुनर्स्थापित: {blobs} फ़ाइलें, {docs} दस्तावेज़",
+  "adopt_problem_button": "समस्या सेंसर अपनाएँ",
+  "adopt_problem_title": "समस्या सेंसर अपनाएँ",
+  "adopt_problem_hint": "HA समस्या सेंसर (प्रिंटर त्रुटियाँ, फ़िल्टर चेतावनियाँ, कम बैटरी) को रखरखाव कार्यों में बदलें जो समस्या सक्रिय रहने तक ट्रिगर होते हैं और हल होने पर स्वयं पूरे हो जाते हैं।",
+  "adopt_problem_none": "ऐसा कोई समस्या सेंसर नहीं मिला जो पहले से ट्रैक न हो।",
+  "adopt_problem_active": "सक्रिय",
+  "adopt_problem_ok": "ठीक",
+  "adopt_problem_new_object": "(नया)",
+  "adopt_problem_adopt": "चयनित अपनाएँ",
+  "adopt_problem_done": "{tasks} समस्या सेंसर अपनाए गए"
 }

@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "Експорти JSON/YAML/CSV містять лише налаштування. Цей ZIP містить вміст завантажених файлів, щоб відновлення було повним.",
   "settings_docs_export_btn": "Завантажити ZIP документів",
   "settings_docs_import_btn": "Відновити ZIP документів",
-  "settings_docs_import_success": "Відновлено: {blobs} файлів, {docs} документів"
+  "settings_docs_import_success": "Відновлено: {blobs} файлів, {docs} документів",
+  "adopt_problem_button": "Прийняти сенсори проблем",
+  "adopt_problem_title": "Прийняти сенсори проблем",
+  "adopt_problem_hint": "Перетворює сенсори проблем HA (помилки принтера, попередження фільтра, низький заряд) на завдання обслуговування, які спрацьовують, поки проблема активна, і завершуються самі після її усунення.",
+  "adopt_problem_none": "Не знайдено сенсорів проблем, які ще не відстежуються.",
+  "adopt_problem_active": "активна",
+  "adopt_problem_ok": "норма",
+  "adopt_problem_new_object": "(новий)",
+  "adopt_problem_adopt": "Прийняти вибрані",
+  "adopt_problem_done": "Прийнято сенсорів проблем: {tasks}"
 }

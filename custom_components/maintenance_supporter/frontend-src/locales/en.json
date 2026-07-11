@@ -728,5 +728,14 @@
   "part_restock": "Adjust stock",
   "restock_quantity_label": "Quantity bought",
   "consumes_parts_label": "Consumes parts",
-  "parts_load_failed": "Couldn't load this object's parts — the consumes-parts options are unavailable right now."
+  "parts_load_failed": "Couldn't load this object's parts — the consumes-parts options are unavailable right now.",
+  "adopt_problem_button": "Adopt problem sensors",
+  "adopt_problem_title": "Adopt problem sensors",
+  "adopt_problem_hint": "Turn HA problem sensors (printer errors, filter warnings, low battery) into maintenance tasks that trigger while the problem is active and clear themselves when it resolves.",
+  "adopt_problem_none": "No problem sensors found that aren't already tracked.",
+  "adopt_problem_active": "active",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(new)",
+  "adopt_problem_adopt": "Adopt selected",
+  "adopt_problem_done": "Adopted {tasks} problem sensor(s)"
 }
