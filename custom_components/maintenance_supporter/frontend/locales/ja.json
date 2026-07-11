@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "JSON/YAML/CSV エクスポートには設定のみが含まれます。この ZIP にはアップロードしたファイルの内容が含まれ、復元が完全になります。",
   "settings_docs_export_btn": "ドキュメント ZIP をダウンロード",
   "settings_docs_import_btn": "ドキュメント ZIP を復元",
-  "settings_docs_import_success": "復元: {blobs} 個のファイル、{docs} 件のドキュメント"
+  "settings_docs_import_success": "復元: {blobs} 個のファイル、{docs} 件のドキュメント",
+  "adopt_problem_button": "問題センサーを取り込む",
+  "adopt_problem_title": "問題センサーを取り込む",
+  "adopt_problem_hint": "HA の問題センサー（プリンターエラー、フィルター警告、バッテリー低下）を、問題が続く間トリガーされ、解消すると自動的に完了するメンテナンスタスクに変換します。",
+  "adopt_problem_none": "まだ追跡されていない問題センサーは見つかりませんでした。",
+  "adopt_problem_active": "発生中",
+  "adopt_problem_ok": "正常",
+  "adopt_problem_new_object": "（新規）",
+  "adopt_problem_adopt": "選択を取り込む",
+  "adopt_problem_done": "{tasks} 件の問題センサーを取り込みました"
 }

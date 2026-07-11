@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "JSON/YAML/CSV-exporterna innehåller bara inställningar. Denna ZIP innehåller de uppladdade filernas innehåll så att en återställning blir fullständig.",
   "settings_docs_export_btn": "Ladda ner dokument-ZIP",
   "settings_docs_import_btn": "Återställ dokument-ZIP",
-  "settings_docs_import_success": "Återställt: {blobs} filer, {docs} dokument"
+  "settings_docs_import_success": "Återställt: {blobs} filer, {docs} dokument",
+  "adopt_problem_button": "Anta problemsensorer",
+  "adopt_problem_title": "Anta problemsensorer",
+  "adopt_problem_hint": "Gör HA:s problemsensorer (skrivarfel, filtervarningar, lågt batteri) till underhållsuppgifter som utlöses medan problemet är aktivt och avslutas själva när det löses.",
+  "adopt_problem_none": "Inga problemsensorer hittades som inte redan spåras.",
+  "adopt_problem_active": "aktiv",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(ny)",
+  "adopt_problem_adopt": "Anta valda",
+  "adopt_problem_done": "Antog {tasks} problemsensor(er)"
 }

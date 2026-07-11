@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "Die JSON/YAML/CSV-Exporte enthalten nur Einstellungen. Dieses ZIP enthält die hochgeladenen Dateiinhalte, sodass eine Wiederherstellung vollständig ist.",
   "settings_docs_export_btn": "Dokumente-ZIP herunterladen",
   "settings_docs_import_btn": "Dokumente-ZIP wiederherstellen",
-  "settings_docs_import_success": "Wiederhergestellt: {blobs} Dateien, {docs} Dokumente"
+  "settings_docs_import_success": "Wiederhergestellt: {blobs} Dateien, {docs} Dokumente",
+  "adopt_problem_button": "Problem-Sensoren übernehmen",
+  "adopt_problem_title": "Problem-Sensoren übernehmen",
+  "adopt_problem_hint": "Verwandelt HA-Problem-Sensoren (Druckerfehler, Filterwarnungen, schwache Batterie) in Wartungsaufgaben, die auslösen, solange das Problem aktiv ist, und sich selbst erledigen, wenn es behoben ist.",
+  "adopt_problem_none": "Keine noch nicht erfassten Problem-Sensoren gefunden.",
+  "adopt_problem_active": "aktiv",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(neu)",
+  "adopt_problem_adopt": "Auswahl übernehmen",
+  "adopt_problem_done": "{tasks} Problem-Sensor(en) übernommen"
 }

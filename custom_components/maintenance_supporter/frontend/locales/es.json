@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "Las exportaciones JSON/YAML/CSV solo contienen la configuración. Este ZIP incluye el contenido de los archivos subidos para una restauración completa.",
   "settings_docs_export_btn": "Descargar ZIP de documentos",
   "settings_docs_import_btn": "Restaurar ZIP de documentos",
-  "settings_docs_import_success": "Restaurado: {blobs} archivos, {docs} documentos"
+  "settings_docs_import_success": "Restaurado: {blobs} archivos, {docs} documentos",
+  "adopt_problem_button": "Adoptar sensores de problema",
+  "adopt_problem_title": "Adoptar sensores de problema",
+  "adopt_problem_hint": "Convierte los sensores de problema de HA (errores de impresora, avisos de filtro, batería baja) en tareas de mantenimiento que se activan mientras el problema está activo y se completan cuando se resuelve.",
+  "adopt_problem_none": "No se encontraron sensores de problema que no estén ya rastreados.",
+  "adopt_problem_active": "activo",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(nuevo)",
+  "adopt_problem_adopt": "Adoptar seleccionados",
+  "adopt_problem_done": "{tasks} sensor(es) de problema adoptado(s)"
 }

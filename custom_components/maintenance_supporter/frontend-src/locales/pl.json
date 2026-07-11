@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "Eksporty JSON/YAML/CSV zawierają tylko ustawienia. To ZIP zawiera treść przesłanych plików, aby przywracanie było kompletne.",
   "settings_docs_export_btn": "Pobierz ZIP dokumentów",
   "settings_docs_import_btn": "Przywróć ZIP dokumentów",
-  "settings_docs_import_success": "Przywrócono: {blobs} plików, {docs} dokumentów"
+  "settings_docs_import_success": "Przywrócono: {blobs} plików, {docs} dokumentów",
+  "adopt_problem_button": "Przejmij czujniki problemów",
+  "adopt_problem_title": "Przejmij czujniki problemów",
+  "adopt_problem_hint": "Zamienia czujniki problemów HA (błędy drukarki, ostrzeżenia filtra, niski poziom baterii) w zadania konserwacji, które uruchamiają się, gdy problem jest aktywny, i kończą się po jego rozwiązaniu.",
+  "adopt_problem_none": "Nie znaleziono czujników problemów, które nie są już śledzone.",
+  "adopt_problem_active": "aktywny",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(nowy)",
+  "adopt_problem_adopt": "Przejmij zaznaczone",
+  "adopt_problem_done": "Przejęto {tasks} czujnik(ów) problemów"
 }

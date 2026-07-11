@@ -728,5 +728,14 @@
   "settings_docs_archive_hint": "JSON/YAML/CSV-eksporter indeholder kun indstillinger. Denne ZIP indeholder de uploadede filers indhold, så en gendannelse er fuldstændig.",
   "settings_docs_export_btn": "Download dokument-ZIP",
   "settings_docs_import_btn": "Gendan dokument-ZIP",
-  "settings_docs_import_success": "Gendannet: {blobs} filer, {docs} dokumenter"
+  "settings_docs_import_success": "Gendannet: {blobs} filer, {docs} dokumenter",
+  "adopt_problem_button": "Adopter problemsensorer",
+  "adopt_problem_title": "Adopter problemsensorer",
+  "adopt_problem_hint": "Gør HA-problemsensorer (printerfejl, filteradvarsler, lavt batteri) til vedligeholdelsesopgaver, der udløses, mens problemet er aktivt, og afsluttes selv, når det er løst.",
+  "adopt_problem_none": "Ingen problemsensorer fundet, der ikke allerede spores.",
+  "adopt_problem_active": "aktiv",
+  "adopt_problem_ok": "ok",
+  "adopt_problem_new_object": "(ny)",
+  "adopt_problem_adopt": "Adopter valgte",
+  "adopt_problem_done": "Adopterede {tasks} problemsensor(er)"
 }

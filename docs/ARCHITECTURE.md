@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.22.3 | 100+ source files (Python + TypeScript) | **98% test coverage** (2,672 backend tests + 233 frontend tests)
+**Version:** 2.23.1 | 100+ source files (Python + TypeScript) | **98% test coverage** (2,695 backend tests + 233 frontend tests)
 
 ---
 
@@ -30,7 +30,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (67 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (69 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -190,7 +190,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               67 WS commands, split by domain
+├── websocket/                               69 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
 │   ├── objects.py                              Object CRUD + archive (8 handlers)
 │   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) + archive (2.10.0+) (11 handlers)
@@ -510,7 +510,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-67 commands organized by function:
+69 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -534,7 +534,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 67 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 69 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
@@ -596,7 +596,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,672 tests** across **154 test files** with **98% code coverage** (plus a 235+ test frontend suite in real Chromium, the journey suite A–S, and the live e2e scripts under `e2e/`).
+**2,695 tests** across **159 test files** with **98% code coverage** (plus a 235+ test frontend suite in real Chromium, the journey suite A–S, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

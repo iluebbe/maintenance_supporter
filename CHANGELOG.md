@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Adopt problem sensors as tasks
+
+- **Turn HA problem sensors into maintenance tasks** — many integrations expose
+  `binary_sensor` entities with `device_class: problem` (printer errors, filter
+  warnings, low-battery alerts). A new **Adopt problem sensors** button on the
+  panel header discovers them, proposes a target object (the one already
+  attached to the sensor's device, or a fresh one named after it), and — on an
+  explicit selection — creates a task per sensor that **triggers while the
+  problem is active and auto-completes when it clears**. So a one-off appliance
+  fault lands in the same inbox, history and reminders as planned maintenance.
+  Opt-in by design: discovery only proposes, adoption acts on your selection,
+  and the integration's own per-task sensors are excluded so it can't adopt
+  itself. Two WS commands (`problem_sensors/discover` read,
+  `problem_sensors/adopt` write).
+
 ## [2.23.1] - 2026-07-11
 
 ### 📎 Documents under tasks
