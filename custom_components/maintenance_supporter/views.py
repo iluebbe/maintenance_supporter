@@ -25,7 +25,7 @@ from aiohttp import hdrs, web
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.http import HomeAssistantView
 
-from .const import DOMAIN, GLOBAL_UNIQUE_ID
+from .const import DOMAIN, GLOBAL_UNIQUE_ID, MAX_DOCS_PER_OBJECT
 from .helpers import documents as docmod
 from .helpers.documents import KIND_FILE
 from .helpers.permissions import user_can_write
@@ -112,7 +112,12 @@ class DocumentUploadView(HomeAssistantView):
                 title=title.strip() if isinstance(title, str) and title.strip() else None,
                 tags=tags,
             )
-        except ValueError:
+        except ValueError as err:
+            if str(err) == "too_many_documents":
+                return self.json_message(
+                    f"At most {MAX_DOCS_PER_OBJECT} documents per object",
+                    HTTPStatus.CONFLICT,
+                )
             return self.json_message("File too large", HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
 
         return self.json(doc)

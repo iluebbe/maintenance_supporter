@@ -26,7 +26,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from ..const import DOMAIN, SIGNAL_DOCUMENTS_UPDATED
+from ..const import DOMAIN, MAX_DOCS_PER_OBJECT, SIGNAL_DOCUMENTS_UPDATED
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -145,6 +145,12 @@ class DocumentStore:
         """
         if len(content) > MAX_DOC_BYTES:
             raise ValueError("file_too_large")
+
+        # Per-object document cap — a runaway upload loop must not be able to
+        # bloat the (single, global) documents store without bound.
+        object_doc_count = sum(1 for d in self.documents.values() if d.get("object_id") == object_id)
+        if object_doc_count >= MAX_DOCS_PER_OBJECT:
+            raise ValueError("too_many_documents")
 
         digest, wrote_new = await self.hass.async_add_executor_job(self._store_blob_sync, content)
 

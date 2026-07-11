@@ -24,6 +24,8 @@ from ..const import (
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_ID_LENGTH,
+    MAX_IMPORT_PAYLOAD_BYTES,
+    MAX_JSON_IMPORT_PAYLOAD_BYTES,
 )
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.qr_generator import (
@@ -173,7 +175,7 @@ async def ws_import_csv(
 
     csv_content = msg["csv_content"]
     # Guard against oversized payloads (max 1MB / 1000 objects)
-    if len(csv_content) > 1_048_576:
+    if len(csv_content) > MAX_IMPORT_PAYLOAD_BYTES:
         connection.send_error(msg["id"], "too_large", "CSV content exceeds 1MB limit")
         return
 
@@ -274,7 +276,7 @@ async def ws_import_json(
 ) -> None:
     """Import maintenance objects from JSON or YAML content (from /export)."""
     raw = msg["json_content"]
-    if len(raw) > 10_485_760:
+    if len(raw) > MAX_JSON_IMPORT_PAYLOAD_BYTES:
         connection.send_error(msg["id"], "too_large", "Content exceeds 10MB limit")
         return
 

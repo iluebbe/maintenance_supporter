@@ -303,13 +303,17 @@ async def ws_create_task(
         connection.send_result(msg["id"], result)
         return
 
-    await async_persist_task(
-        hass,
-        entry,
-        task_data,
-        last_performed=initial_last_performed,
-        history=initial_history,
-    )
+    try:
+        await async_persist_task(
+            hass,
+            entry,
+            task_data,
+            last_performed=initial_last_performed,
+            history=initial_history,
+        )
+    except ValueError as err:
+        connection.send_error(msg["id"], "limit_reached", str(err))
+        return
 
     result = {"task_id": task_id}
     if tc_warnings:
