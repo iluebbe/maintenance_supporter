@@ -607,8 +607,21 @@ MAX_DATE_LENGTH = 20  # ISO 8601 date strings (e.g. 2026-04-21)
 MAX_ENTITY_ID_LENGTH = 255  # HA entity_id max
 MAX_ENTITY_SLUG_LENGTH = 64  # task entity_slug
 MAX_INTERVAL_DAYS = 3650  # 10 years — caps date arithmetic overflow
-MAX_IMPORT_PAYLOAD_BYTES = 1_048_576  # 1 MB for csv_content / json_content
+# Import payload byte caps. CSV is flat (one row per task) so 1 MB is ample;
+# a JSON/YAML backup carries full history + every field, so it needs more head-
+# room — a 1000-object export with history routinely exceeds 1 MB. Both were
+# hardcoded literals at their call sites (bug audit 2026-07-11); named here so
+# the two limits are visible and can't silently drift.
+MAX_IMPORT_PAYLOAD_BYTES = 1_048_576  # 1 MB — csv_content
+MAX_JSON_IMPORT_PAYLOAD_BYTES = 10 * 1_048_576  # 10 MB — json_content (history-heavy)
 MAX_SCHEDULE_TIME_LENGTH = 5  # "HH:MM"
+
+# Per-object fan-out caps — a runaway automation or import loop must not be able
+# to inflate one object's ConfigEntry.data without bound. Deliberately generous
+# (far above any real device): they catch accidents/abuse, not real use. Parts
+# already had MAX_PARTS_PER_OBJECT (50); tasks and documents were unbounded.
+MAX_TASKS_PER_OBJECT = 200  # mirrors MAX_GROUP_TASK_REFS; ~10x any real device
+MAX_DOCS_PER_OBJECT = 100  # manuals + invoices + photos — 100 is very generous
 
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes

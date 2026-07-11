@@ -15,6 +15,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_TASKS_PER_OBJECT,
 )
 from ..helpers.schedule import (
     normalize_task_storage,
@@ -46,6 +47,13 @@ async def async_persist_task(
     # Store recurrence in the canonical nested `schedule` shape (schedule-model v2).
     task_data = normalize_task_storage(task_data)
     task_id = task_data["id"]
+    # Per-object task cap — this is the single create chokepoint for BOTH the
+    # task/create WS command and the add_task service, so one guard covers both.
+    # The ValueError surfaces as a WS error / a service ValidationError at the
+    # callers (a runaway automation can't inflate ConfigEntry.data without bound).
+    existing_tasks = entry.data.get(CONF_TASKS, {})
+    if task_id not in existing_tasks and len(existing_tasks) >= MAX_TASKS_PER_OBJECT:
+        raise ValueError(f"This object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks")
     new_data = dict(entry.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))
     new_tasks[task_id] = task_data

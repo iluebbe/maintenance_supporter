@@ -4,6 +4,22 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🛡️ Hardening (limits audit 2026-07-11)
+
+- **Per-object fan-out caps** — a runaway automation or import loop could
+  previously add tasks or upload documents to a single object without bound,
+  inflating its stored data. Tasks are now capped at **200 per object** (at
+  the shared create chokepoint, covering both the WebSocket command and the
+  `add_task` service) and documents at **100 per object** (at the upload
+  chokepoint). Parts already had a 50-per-object cap; this closes the matching
+  gap for tasks and documents. Both limits sit far above any real device — they
+  catch accidents, not real use.
+- **Import byte limits are now named constants** — the CSV (1 MB) and JSON/YAML
+  (10 MB — a history-heavy backup needs the headroom) payload guards read
+  `MAX_IMPORT_PAYLOAD_BYTES` / `MAX_JSON_IMPORT_PAYLOAD_BYTES` instead of stray
+  literals, so the two limits are visible and can't silently drift. (Existing
+  guards already cap uploads at 25 MB/file and imports at 1000 objects.)
+
 ### 🐛 Fixed (bug audit 2026-07-11)
 
 - **A pending debounced store save could silently erase completions after a
