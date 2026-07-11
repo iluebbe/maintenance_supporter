@@ -722,5 +722,11 @@
   "part_restock": "调整库存",
   "restock_quantity_label": "购买数量",
   "consumes_parts_label": "消耗配件",
-  "parts_load_failed": "无法加载此对象的配件 — 配件消耗选项暂时不可用。"
+  "parts_load_failed": "无法加载此对象的配件 — 配件消耗选项暂时不可用。",
+  "settings_export_selection": "仅限所选对象（可选）",
+  "settings_docs_archive": "文档存档（含文件）",
+  "settings_docs_archive_hint": "JSON/YAML/CSV 导出仅包含设置。此 ZIP 包含已上传的文件内容，以便完整恢复。",
+  "settings_docs_export_btn": "下载文档 ZIP",
+  "settings_docs_import_btn": "恢复文档 ZIP",
+  "settings_docs_import_success": "已恢复：{blobs} 个文件，{docs} 个文档"
 }

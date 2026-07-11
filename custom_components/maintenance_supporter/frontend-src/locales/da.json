@@ -722,5 +722,11 @@
   "part_restock": "Justér lager",
   "restock_quantity_label": "Købt mængde",
   "consumes_parts_label": "Forbruger dele",
-  "parts_load_failed": "Kunne ikke indlæse objektets reservedele — forbrugsindstillingerne er ikke tilgængelige lige nu."
+  "parts_load_failed": "Kunne ikke indlæse objektets reservedele — forbrugsindstillingerne er ikke tilgængelige lige nu.",
+  "settings_export_selection": "Begræns til valgte objekter (valgfrit)",
+  "settings_docs_archive": "Dokumentarkiv (med filer)",
+  "settings_docs_archive_hint": "JSON/YAML/CSV-eksporter indeholder kun indstillinger. Denne ZIP indeholder de uploadede filers indhold, så en gendannelse er fuldstændig.",
+  "settings_docs_export_btn": "Download dokument-ZIP",
+  "settings_docs_import_btn": "Gendan dokument-ZIP",
+  "settings_docs_import_success": "Gendannet: {blobs} filer, {docs} dokumenter"
 }

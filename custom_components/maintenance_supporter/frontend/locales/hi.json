@@ -722,5 +722,11 @@
   "part_restock": "स्टॉक समायोजित करें",
   "restock_quantity_label": "खरीदी गई मात्रा",
   "consumes_parts_label": "पुर्ज़े खपत",
-  "parts_load_failed": "इस ऑब्जेक्ट के पुर्ज़े लोड नहीं हो सके — पुर्ज़ा-खपत विकल्प अभी उपलब्ध नहीं हैं।"
+  "parts_load_failed": "इस ऑब्जेक्ट के पुर्ज़े लोड नहीं हो सके — पुर्ज़ा-खपत विकल्प अभी उपलब्ध नहीं हैं।",
+  "settings_export_selection": "चयनित ऑब्जेक्ट तक सीमित करें (वैकल्पिक)",
+  "settings_docs_archive": "दस्तावेज़ संग्रह (फ़ाइलों सहित)",
+  "settings_docs_archive_hint": "JSON/YAML/CSV निर्यात केवल सेटिंग्स रखते हैं। इस ZIP में अपलोड की गई फ़ाइल सामग्री शामिल है ताकि पुनर्स्थापना पूर्ण हो।",
+  "settings_docs_export_btn": "दस्तावेज़ ZIP डाउनलोड करें",
+  "settings_docs_import_btn": "दस्तावेज़ ZIP पुनर्स्थापित करें",
+  "settings_docs_import_success": "पुनर्स्थापित: {blobs} फ़ाइलें, {docs} दस्तावेज़"
 }

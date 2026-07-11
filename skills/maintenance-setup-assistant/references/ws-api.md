@@ -266,3 +266,38 @@ values dropped. Keys relevant to setup:
 
 Propose settings changes separately and only after the user opts in; they need
 an admin token.
+
+## Backup / migration — export & import
+
+### `export` — admin — JSON/YAML backup
+`{format:"json"|"yaml", include_history:bool, entry_ids?:[...]}` → `{format, data}`
+(serialized string). `entry_ids` (optional) narrows to a selection of object
+entries — a **selective** export to move one asset between installs; omit for
+all. Carries every persisted field incl. parts+stock, consumes_parts, nested
+schedule (season/ends/due_override), archived_at/created_at. Document file
+*contents* are NOT here (see the documents archive below) — only metadata.
+
+### `csv/export` — admin — flat CSV
+`{entry_ids?:[...]}` → `{csv}`. One row per task, object columns repeated. A
+reduced view: no parts / history / nested-schedule extras (tabular by design).
+
+### `objects/csv` — one row per object (#67)
+`{entry_ids?:[...]}` → `{csv}`. Asset table download (no cost/history), so not
+admin-gated.
+
+### `json/import` — admin — restore JSON **or YAML**
+`{json_content:str}` (accepts JSON and YAML) → `{created, errors, ...}`. New ids
+are generated; parts/consumes links are remapped. Selective because it restores
+exactly the objects present in the payload.
+
+### `csv/import` — admin — restore flat CSV
+`{csv_content:str}` → `{created, ...}`.
+
+### Documents archive (ZIP with file contents) — HTTP, admin
+Not WebSocket — the blobs are binary. `GET /api/maintenance_supporter/documents/archive`
+(optional `?entry_ids=a,b`) streams a ZIP (`manifest.json` + `blobs/<sha256>`);
+fetch via a signed path (`auth/sign_path`). `POST` the same URL with multipart
+`file=<zip>` restores blobs and re-attaches metadata (matches objects by id,
+then by name for a cross-instance restore; idempotent). This is the one export
+that carries uploaded file *contents* — pair it with a JSON export for a
+complete, portable backup.

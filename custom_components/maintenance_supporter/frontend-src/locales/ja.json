@@ -722,5 +722,11 @@
   "part_restock": "在庫を調整",
   "restock_quantity_label": "購入数量",
   "consumes_parts_label": "部品を消費",
-  "parts_load_failed": "このオブジェクトの部品を読み込めませんでした — 部品消費オプションは現在利用できません。"
+  "parts_load_failed": "このオブジェクトの部品を読み込めませんでした — 部品消費オプションは現在利用できません。",
+  "settings_export_selection": "選択したオブジェクトに限定（任意）",
+  "settings_docs_archive": "ドキュメントアーカイブ（ファイル付き）",
+  "settings_docs_archive_hint": "JSON/YAML/CSV エクスポートには設定のみが含まれます。この ZIP にはアップロードしたファイルの内容が含まれ、復元が完全になります。",
+  "settings_docs_export_btn": "ドキュメント ZIP をダウンロード",
+  "settings_docs_import_btn": "ドキュメント ZIP を復元",
+  "settings_docs_import_success": "復元: {blobs} 個のファイル、{docs} 件のドキュメント"
 }

@@ -188,17 +188,30 @@ def _build_export_object(
     }
 
 
+def object_entries(hass: HomeAssistant, entry_ids: set[str] | None = None) -> list[ConfigEntry]:
+    """The maintenance OBJECT entries (never the global hub), optionally
+    narrowed to a selection. Shared by every exporter so JSON/YAML/CSV apply
+    the same selective-export filter. ``entry_ids=None`` means all objects."""
+    return [
+        entry
+        for entry in hass.config_entries.async_entries(DOMAIN)
+        if entry.unique_id != GLOBAL_UNIQUE_ID and (entry_ids is None or entry.entry_id in entry_ids)
+    ]
+
+
 def build_export_data(
     hass: HomeAssistant,
     include_history: bool = True,
+    entry_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """Gather all maintenance data into a plain dict.
 
     This must be called from the event loop (accesses HA APIs).
     The returned dict contains no HA objects and is safe to
-    serialize in an executor thread.
+    serialize in an executor thread. ``entry_ids`` narrows the export to a
+    selection of objects (None = all).
     """
-    entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
+    entries = object_entries(hass, entry_ids)
 
     objects = []
     for entry in entries:

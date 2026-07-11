@@ -135,6 +135,12 @@ export class MaintenanceSettingsView extends LitElement {
   }> = [];
   @state() private _qrObjectsLoaded = false;
 
+  // Export/Import selective-object picker state
+  @state() private _exportObjects: Array<{ entry_id: string; name: string; task_count: number }> = [];
+  @state() private _exportSelectedEntries = new Set<string>();
+  @state() private _exportObjectsLoaded = false;
+  @state() private _docArchiveLoading = false;
+
   private _loaded = false;
   private _userService: UserService | null = null;
 
@@ -1251,9 +1257,45 @@ export class MaintenanceSettingsView extends LitElement {
           </label>
         </div>
         <div class="settings-actions">
+          ${!this._exportObjectsLoaded
+            ? html`<button @click=${this._loadExportObjects}>${t("settings_export_selection", L)}</button>`
+            : html`
+              <details class="qr-filter-panel">
+                <summary>${t("settings_export_selection", L)}</summary>
+                <div class="qr-object-list">
+                  ${this._exportObjects.length === 0
+                    ? html`<div class="hint">${t("no_objects", L)}</div>`
+                    : this._exportObjects.map((obj) => html`
+                      <label class="qr-object-row">
+                        <input type="checkbox"
+                          .checked=${this._exportSelectedEntries.size === 0 || this._exportSelectedEntries.has(obj.entry_id)}
+                          @change=${(e: Event) => this._toggleExportObject(obj.entry_id, (e.target as HTMLInputElement).checked)} />
+                        <span>${obj.name}</span>
+                        <span class="qr-task-count">${obj.task_count}</span>
+                      </label>
+                    `)}
+                </div>
+              </details>
+            `}
+        </div>
+        <div class="settings-actions">
           <button @click=${this._exportJson}>${t("settings_export_json", L)}</button>
           <button @click=${this._exportYaml}>${t("settings_export_yaml", L)}</button>
           <button @click=${this._exportCsv}>${t("settings_export_csv", L)}</button>
+        </div>
+        <div class="settings-actions docs-archive-block">
+          <h4>${t("settings_docs_archive", L)}</h4>
+          <p class="section-desc">${t("settings_docs_archive_hint", L)}</p>
+          <div class="settings-actions">
+            <button ?disabled=${this._docArchiveLoading} @click=${this._exportDocsArchive}>
+              ${t("settings_docs_export_btn", L)}
+            </button>
+            <button ?disabled=${this._docArchiveLoading} @click=${this._triggerDocsArchiveImport}>
+              ${this._docArchiveLoading ? "…" : t("settings_docs_import_btn", L)}
+            </button>
+            <input class="docs-archive-file" type="file" accept=".zip" hidden
+              @change=${this._importDocsArchive} />
+          </div>
         </div>
         <div class="import-section">
           <textarea class="import-area" .value=${this._importCsv}
@@ -1273,12 +1315,44 @@ export class MaintenanceSettingsView extends LitElement {
 
   // --- Export / Import actions ---
 
+  private get _selectedEntryIds(): string[] | undefined {
+    return this._exportSelectedEntries.size ? [...this._exportSelectedEntries] : undefined;
+  }
+
+  private async _loadExportObjects(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/objects",
+      }) as { objects: Array<{ entry_id: string; object: { name: string }; tasks: unknown[] }> };
+      this._exportObjects = (result.objects || []).map((o) => ({
+        entry_id: o.entry_id,
+        name: o.object.name,
+        task_count: (o.tasks || []).length,
+      })).sort((a, b) => a.name.localeCompare(b.name));
+      this._exportObjectsLoaded = true;
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private _toggleExportObject(entryId: string, on: boolean): void {
+    const next = new Set(this._exportSelectedEntries);
+    if (next.size === 0) {
+      for (const o of this._exportObjects) next.add(o.entry_id);
+    }
+    if (on) next.add(entryId); else next.delete(entryId);
+    if (next.size === this._exportObjects.length) next.clear();
+    this._exportSelectedEntries = next;
+  }
+
   private async _exportJson(): Promise<void> {
     try {
+      const ids = this._selectedEntryIds;
       const result = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/export",
         format: "json",
         include_history: this._includeHistory,
+        ...(ids ? { entry_ids: ids } : {}),
       }) as { data: string };
       const ts = new Date().toISOString().slice(0, 10);
       this._downloadFile(result.data, `maintenance_export_${ts}.json`, "application/json");
@@ -1290,10 +1364,12 @@ export class MaintenanceSettingsView extends LitElement {
 
   private async _exportYaml(): Promise<void> {
     try {
+      const ids = this._selectedEntryIds;
       const result = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/export",
         format: "yaml",
         include_history: this._includeHistory,
+        ...(ids ? { entry_ids: ids } : {}),
       }) as { data: string };
       const ts = new Date().toISOString().slice(0, 10);
       this._downloadFile(result.data, `maintenance_export_${ts}.yaml`, "application/yaml");
@@ -1305,8 +1381,10 @@ export class MaintenanceSettingsView extends LitElement {
 
   private async _exportCsv(): Promise<void> {
     try {
+      const ids = this._selectedEntryIds;
       const result = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/csv/export",
+        ...(ids ? { entry_ids: ids } : {}),
       }) as { csv: string };
       const ts = new Date().toISOString().slice(0, 10);
       this._downloadFile(result.csv, `maintenance_export_${ts}.csv`, "text/csv");
@@ -1338,6 +1416,66 @@ export class MaintenanceSettingsView extends LitElement {
       this._showToast(t("action_error", this._lang));
     }
     this._importLoading = false;
+  }
+
+  // --- Documents archive (ZIP with file contents) ---
+
+  private async _exportDocsArchive(): Promise<void> {
+    this._docArchiveLoading = true;
+    try {
+      const raw = this._selectedEntryIds;
+      const q = raw ? `?entry_ids=${encodeURIComponent(raw.join(","))}` : "";
+      const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
+        type: "auth/sign_path",
+        path: `/api/maintenance_supporter/documents/archive${q}`,
+        expires: 300,
+      });
+      const a = document.createElement("a");
+      a.href = signed.path;
+      a.download = "maintenance-documents.zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+    this._docArchiveLoading = false;
+  }
+
+  private _triggerDocsArchiveImport(): void {
+    const input = this.renderRoot.querySelector(".docs-archive-file") as HTMLInputElement | null;
+    input?.click();
+  }
+
+  private async _importDocsArchive(e: Event): Promise<void> {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this._docArchiveLoading = true;
+    try {
+      const form = new FormData();
+      form.append("file", file, file.name);
+      const resp = await fetch("/api/maintenance_supporter/documents/archive", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${this.hass.auth?.data?.access_token ?? ""}` },
+        body: form,
+      });
+      if (!resp.ok) {
+        this._showToast(t("action_error", this._lang));
+      } else {
+        const result = (await resp.json()) as { blobs_written: number; documents_created: number };
+        this._showToast(
+          t("settings_docs_import_success", this._lang)
+            .replace("{blobs}", String(result.blobs_written ?? 0))
+            .replace("{docs}", String(result.documents_created ?? 0))
+        );
+        this.dispatchEvent(new CustomEvent("settings-changed"));
+      }
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+    input.value = "";
+    this._docArchiveLoading = false;
   }
 
   // --- Styles ---

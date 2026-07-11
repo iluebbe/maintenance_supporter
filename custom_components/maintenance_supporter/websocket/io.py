@@ -100,6 +100,8 @@ async def ws_get_templates(
         vol.Required("type"): f"{DOMAIN}/export",
         vol.Optional("format", default="json"): vol.In(["json", "yaml"]),
         vol.Optional("include_history", default=True): bool,
+        # Selective export: restrict to these object entry_ids (omit = all).
+        vol.Optional("entry_ids"): [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
     }
 )
 @websocket_api.require_admin
@@ -109,14 +111,15 @@ async def ws_export_data(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Export all maintenance data as JSON or YAML."""
+    """Export all (or a selection of) maintenance data as JSON or YAML."""
     from ..export import build_export_data, serialize_export
 
     fmt = msg.get("format", "json")
     include_history = msg.get("include_history", True)
+    entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
 
     # Phase 1: gather data on the event loop (accesses HA APIs)
-    data = build_export_data(hass, include_history=include_history)
+    data = build_export_data(hass, include_history=include_history, entry_ids=entry_ids)
 
     # Phase 2: serialize in executor (CPU-bound, no HA API calls)
     result = await hass.async_add_executor_job(serialize_export, data, fmt)
@@ -124,7 +127,12 @@ async def ws_export_data(
     connection.send_result(msg["id"], {"format": fmt, "data": result})
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/csv/export"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/csv/export",
+        vol.Optional("entry_ids"): [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+    }
+)
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_export_csv(
@@ -132,28 +140,35 @@ async def ws_export_csv(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Export all maintenance data as CSV."""
+    """Export all (or a selection of) maintenance data as CSV."""
     from ..helpers.csv_handler import export_objects_csv
 
-    csv_data = export_objects_csv(hass)
+    entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
+    csv_data = export_objects_csv(hass, entry_ids=entry_ids)
     connection.send_result(msg["id"], {"csv": csv_data})
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/objects/csv"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/objects/csv",
+        vol.Optional("entry_ids"): [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+    }
+)
 @websocket_api.async_response
 async def ws_export_objects_csv(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Export one row per maintenance object as CSV (#67).
+    """Export one row per maintenance object as CSV (#67), all or a selection.
 
     Not admin-gated: it exposes only the asset fields the panel already sends
     to every user via ``maintenance_supporter/objects`` (no cost/history).
     """
     from ..helpers.csv_handler import export_object_records_csv
 
-    csv_data = export_object_records_csv(hass)
+    entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
+    csv_data = export_object_records_csv(hass, entry_ids=entry_ids)
     connection.send_result(msg["id"], {"csv": csv_data})
 
 

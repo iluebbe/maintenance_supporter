@@ -722,5 +722,11 @@
   "part_restock": "Koryguj stan",
   "restock_quantity_label": "Kupiona ilość",
   "consumes_parts_label": "Zużywa części",
-  "parts_load_failed": "Nie udało się wczytać części tego obiektu — opcje zużycia części są teraz niedostępne."
+  "parts_load_failed": "Nie udało się wczytać części tego obiektu — opcje zużycia części są teraz niedostępne.",
+  "settings_export_selection": "Ogranicz do wybranych obiektów (opcjonalnie)",
+  "settings_docs_archive": "Archiwum dokumentów (z plikami)",
+  "settings_docs_archive_hint": "Eksporty JSON/YAML/CSV zawierają tylko ustawienia. To ZIP zawiera treść przesłanych plików, aby przywracanie było kompletne.",
+  "settings_docs_export_btn": "Pobierz ZIP dokumentów",
+  "settings_docs_import_btn": "Przywróć ZIP dokumentów",
+  "settings_docs_import_success": "Przywrócono: {blobs} plików, {docs} dokumentów"
 }

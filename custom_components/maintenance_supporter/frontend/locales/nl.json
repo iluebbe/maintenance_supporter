@@ -722,5 +722,11 @@
   "part_restock": "Voorraad aanpassen",
   "restock_quantity_label": "Gekochte hoeveelheid",
   "consumes_parts_label": "Verbruikt onderdelen",
-  "parts_load_failed": "Kon de onderdelen van dit object niet laden — de verbruiksopties zijn nu niet beschikbaar."
+  "parts_load_failed": "Kon de onderdelen van dit object niet laden — de verbruiksopties zijn nu niet beschikbaar.",
+  "settings_export_selection": "Beperken tot geselecteerde objecten (optioneel)",
+  "settings_docs_archive": "Documentenarchief (met bestanden)",
+  "settings_docs_archive_hint": "De JSON/YAML/CSV-exports bevatten alleen instellingen. Deze ZIP bevat de geüploade bestandsinhoud voor een volledig herstel.",
+  "settings_docs_export_btn": "Documenten-ZIP downloaden",
+  "settings_docs_import_btn": "Documenten-ZIP herstellen",
+  "settings_docs_import_success": "Hersteld: {blobs} bestanden, {docs} documenten"
 }

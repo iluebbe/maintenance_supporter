@@ -722,5 +722,11 @@
   "part_restock": "Upravit zásobu",
   "restock_quantity_label": "Zakoupené množství",
   "consumes_parts_label": "Spotřebovává díly",
-  "parts_load_failed": "Nepodařilo se načíst díly tohoto objektu — možnosti spotřeby dílů nyní nejsou k dispozici."
+  "parts_load_failed": "Nepodařilo se načíst díly tohoto objektu — možnosti spotřeby dílů nyní nejsou k dispozici.",
+  "settings_export_selection": "Omezit na vybrané objekty (volitelné)",
+  "settings_docs_archive": "Archiv dokumentů (se soubory)",
+  "settings_docs_archive_hint": "Exporty JSON/YAML/CSV obsahují jen nastavení. Tento ZIP obsahuje obsah nahraných souborů, aby obnovení bylo úplné.",
+  "settings_docs_export_btn": "Stáhnout ZIP dokumentů",
+  "settings_docs_import_btn": "Obnovit ZIP dokumentů",
+  "settings_docs_import_success": "Obnoveno: {blobs} souborů, {docs} dokumentů"
 }

@@ -722,5 +722,11 @@
   "part_restock": "Justera lager",
   "restock_quantity_label": "Köpt antal",
   "consumes_parts_label": "Förbrukar delar",
-  "parts_load_failed": "Kunde inte läsa in objektets delar — förbrukningsalternativen är inte tillgängliga just nu."
+  "parts_load_failed": "Kunde inte läsa in objektets delar — förbrukningsalternativen är inte tillgängliga just nu.",
+  "settings_export_selection": "Begränsa till valda objekt (valfritt)",
+  "settings_docs_archive": "Dokumentarkiv (med filer)",
+  "settings_docs_archive_hint": "JSON/YAML/CSV-exporterna innehåller bara inställningar. Denna ZIP innehåller de uppladdade filernas innehåll så att en återställning blir fullständig.",
+  "settings_docs_export_btn": "Ladda ner dokument-ZIP",
+  "settings_docs_import_btn": "Återställ dokument-ZIP",
+  "settings_docs_import_success": "Återställt: {blobs} filer, {docs} dokument"
 }

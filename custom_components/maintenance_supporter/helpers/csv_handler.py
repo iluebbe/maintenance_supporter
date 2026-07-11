@@ -15,8 +15,6 @@ from ..const import (
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_WARNING_DAYS,
-    DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
 )
@@ -69,12 +67,14 @@ def _csv_safe(val: str) -> str:
     return val
 
 
-def export_objects_csv(hass: HomeAssistant) -> str:
-    """Export all maintenance objects and tasks as CSV.
+def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -> str:
+    """Export maintenance objects and tasks as CSV (all, or a selection).
 
     Each row represents one task, with the parent object info repeated.
     """
-    entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
+    from ..export import object_entries
+
+    entries = object_entries(hass, entry_ids)
 
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=_COLUMNS, extrasaction="ignore")
@@ -150,15 +150,18 @@ _OBJECT_RECORD_COLUMNS = [
 ]
 
 
-def export_object_records_csv(hass: HomeAssistant) -> str:
+def export_object_records_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -> str:
     """Export one row per maintenance object (the objects-table download, #67).
 
     Unlike ``export_objects_csv`` (one row per task, object fields repeated),
     this emits exactly one row per object — including objects that have no
     tasks, which the per-task export skips entirely — and carries the full
-    asset field set used by the objects table.
+    asset field set used by the objects table. ``entry_ids`` narrows to a
+    selection (None = all).
     """
-    entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
+    from ..export import object_entries
+
+    entries = object_entries(hass, entry_ids)
 
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=_OBJECT_RECORD_COLUMNS, extrasaction="ignore")
