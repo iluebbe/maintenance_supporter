@@ -309,11 +309,14 @@ Smaller, high-frequency wins first; each ships independently.
   task table, costs; opens in a new tab to print / "Save as PDF".
 
 ### Design system
-- 🟡 **Dark-mode & color-blind audit** — status badges carry a shape icon and the
-  chart danger zone uses a diagonal hatch (v2.15.0). Status colours are now all
-  routed through HA theme tokens (a tripwire test blocks bare colours from
-  reappearing). Remaining: live multi-theme contrast QA in the browser (a manual
-  check that can't be unit-tested).
+- ✅ **Dark-mode & color-blind audit** — status badges carry a shape icon and the
+  chart danger zone uses a diagonal hatch (v2.15.0). Status colours route through
+  HA theme tokens. **Contrast QA done (Unreleased):** the light-background badges
+  (Due Soon / OK / Archived) wore white text below the 3:1 WCAG UI floor — now
+  dark text (7.6–9.7:1); the Triggered badge became a `--deep-orange-color` token
+  so it follows themes. A real-browser **contrast tripwire** (computed-style
+  test) now blocks any badge from dropping below 3:1 — the "tripwire" this line
+  used to claim existed but didn't. Live-verified in dark + light on ha-shots.
 - ✅ **Task-detail information architecture** (v2.15.0) — Weibull/seasonal
   analysis cards are collapsible with per-section remembered state.
 - ✅ **Panel performance as a feature** — code-splitting (strategy chunks),

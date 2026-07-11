@@ -195,7 +195,8 @@ export const calendarStyles = css`
   .cal-status-overdue   { background: var(--error-color, #f44336); }
   .cal-status-triggered { background: var(--deep-orange-color, #ff5722); }
   .cal-status-due_soon  { background: var(--warning-color, #ff9800); color: #000; }
-  .cal-status-ok        { background: var(--success-color, #4caf50); }
+  /* Dark text — white on green is only 2.8:1 (below the 3:1 UI floor). */
+  .cal-status-ok        { background: var(--success-color, #4caf50); color: #000; }
 
   @media (max-width: 600px) {
     .cal-controls { padding: 10px 12px; }
