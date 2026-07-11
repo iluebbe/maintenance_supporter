@@ -39,6 +39,30 @@ from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
 _LOGGER = logging.getLogger(__name__)
 
 
+def _iso_marker(value: Any) -> str | None:
+    """Keep ``value`` only if it parses as an ISO date/datetime, else drop it.
+
+    ``paused_at`` is a *marker* whose mere presence means "paused"; a garbage
+    value imported from a hand-edited/foreign backup would otherwise freeze the
+    object as paused forever (and a malformed ``paused_until`` means auto-resume
+    never fires). Validate on import so only a real timestamp restores the state.
+    """
+    from datetime import date, datetime
+
+    if not isinstance(value, str) or not value.strip():
+        return None
+    s = value.strip()
+    try:
+        datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return s
+    except ValueError:
+        try:
+            date.fromisoformat(s)
+            return s
+        except ValueError:
+            return None
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/templates",
@@ -357,8 +381,8 @@ async def ws_import_json(
             # 2.20: seasonal pause round-trips (a paused pool restored in
             # winter stays paused); replace-flow lineage ids are the same
             # instance-specific story as parent_entry_id above.
-            "paused_at": obj_data.get("paused_at"),
-            "paused_until": obj_data.get("paused_until"),
+            "paused_at": _iso_marker(obj_data.get("paused_at")),
+            "paused_until": _iso_marker(obj_data.get("paused_until")),
             "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
             "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
             "task_ids": [],
@@ -381,6 +405,13 @@ async def ws_import_json(
                 new_id = _uuid4().hex
                 pdata = {k: v for k, v in part_entry.items() if k != "stock"}
                 pdata["id"] = new_id
+                # Drop a non-http(s) product_url — the WS write path validates it
+                # via _clean_url, but import copied it verbatim, so a crafted
+                # backup could persist a javascript: link (the panel now also
+                # guards the href, but keep bad data out of storage).
+                _purl = pdata.get("product_url")
+                if not (isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://"))):
+                    pdata.pop("product_url", None)
                 import_parts[new_id] = pdata
                 if old_id:
                     part_id_map[old_id] = new_id

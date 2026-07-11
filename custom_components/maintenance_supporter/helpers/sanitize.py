@@ -65,6 +65,12 @@ _OBJECT_STR_LIMITS: dict[str, int] = {
     "notes": MAX_TEXT_LENGTH,  # v1.4.10 #46
     "ha_device_id": MAX_ID_LENGTH,  # 2.19: link to an existing HA device
     "parent_entry_id": MAX_ID_LENGTH,  # 2.19: parent object (via_device)
+    # 2.20 pause + replace lineage — capped so an imported backup can't smuggle
+    # oversized strings into these (import copies them verbatim).
+    "paused_at": MAX_META_LENGTH,  # ISO timestamp marker (presence = paused)
+    "paused_until": MAX_DATE_LENGTH,  # auto-resume date
+    "predecessor_entry_id": MAX_ID_LENGTH,
+    "replaced_by_entry_id": MAX_ID_LENGTH,
 }
 
 _GROUP_STR_LIMITS: dict[str, int] = {

@@ -194,7 +194,7 @@ export class MaintenancePartsSection extends LitElement {
         <ha-icon class="part-icon" icon=${part.is_low ? "mdi:cart-arrow-down" : "mdi:package-variant-closed"}></ha-icon>
         <div class="part-main">
           <div class="part-name">
-            ${part.shopping_url
+            ${part.shopping_url && /^https?:\/\//i.test(part.shopping_url)
               ? html`<a href=${part.shopping_url} target="_blank" rel="noopener noreferrer">${part.name}</a>`
               : part.name}
             ${tracked

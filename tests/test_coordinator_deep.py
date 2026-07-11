@@ -223,6 +223,68 @@ async def test_notify_bundled_sends(
     assert data[CONF_TASKS][TASK_ID_2]["_status"] == "overdue"
 
 
+async def test_vacation_active_suppresses_bundled_notifications(hass: HomeAssistant) -> None:
+    """Audit regression: vacation must silence BUNDLED notifications too. The
+    per-task path checks is_silent_for, but the bundled path did not — so tasks
+    vacation was meant to mute still fired in a bundle. The coordinator now
+    filters `notifiable` through is_silent_for before the bundle threshold."""
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATION_BUNDLING_ENABLED,
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_END,
+        CONF_VACATION_START,
+        NOTIFICATION_MANAGER_KEY,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+
+    today = dt_util.now().date()
+    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
+    data[CONF_NOTIFICATION_BUNDLING_ENABLED] = True
+    data[CONF_NOTIFICATION_BUNDLE_THRESHOLD] = 2
+    data[CONF_VACATION_ENABLED] = True  # active window covering today
+    data[CONF_VACATION_START] = (today - timedelta(days=1)).isoformat()
+    data[CONF_VACATION_END] = (today + timedelta(days=7)).isoformat()
+    global_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="MS", data=data,
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+
+    last = (today - timedelta(days=60)).isoformat()
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Two Overdue",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Two Overdue"),
+            tasks={
+                TASK_ID_1: build_task_data(task_id=TASK_ID_1, name="T1", last_performed=last, interval_days=30),
+                TASK_ID_2: build_task_data(task_id=TASK_ID_2, name="T2", last_performed=last, interval_days=30),
+            },
+        ),
+        source="user", unique_id="maintenance_supporter_vac_bundle",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+    nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
+    assert isinstance(nm, NotificationManager) and nm.enabled  # setup sane
+    assert coord.data[CONF_TASKS][TASK_ID_1]["_status"] == "overdue"  # would bundle
+
+    with (
+        patch.object(nm, "async_send_bundled", new_callable=AsyncMock) as bundled,
+        patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task,
+    ):
+        coord._previous_statuses = {}  # treat both as freshly notifiable
+        await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+
+    bundled.assert_not_called()  # the regression: no bundle during vacation
+    per_task.assert_not_called()  # both silenced → nothing sent
+
+
 # ─── Budget Alerts ───────────────────────────────────────────────────────
 
 

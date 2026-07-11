@@ -203,9 +203,13 @@ def test_object_schema_string_caps_match_sanitize_map() -> None:
     # Every field in the shared schema caps a string with a known max.
     assert all(cap is not None for cap in schema_caps.values()), schema_caps
 
-    # `name` is defined per-schema (Required in create), so compare it separately
-    # and check the rest against the sanitize map exactly.
-    expected = {k: v for k, v in _OBJECT_STR_LIMITS.items() if k != "name"}
+    # `name` is defined per-schema (Required in create). A few fields are capped
+    # on import/round-trip but are NOT user-editable via object/create|update —
+    # they are set by the pause (paused_at/until) and replace (predecessor/
+    # replaced_by) flows, so they legitimately live in the cap map but not the
+    # editable schema. Compare the rest exactly.
+    _IMPORT_ONLY = {"paused_at", "paused_until", "predecessor_entry_id", "replaced_by_entry_id"}
+    expected = {k: v for k, v in _OBJECT_STR_LIMITS.items() if k != "name" and k not in _IMPORT_ONLY}
     assert schema_caps == expected, f"object schema caps {schema_caps} diverged from sanitize map {expected}"
 
 

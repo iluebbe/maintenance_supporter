@@ -253,6 +253,43 @@ async def test_adopt_catches_bad_selection(hass: HomeAssistant, global_entry: Mo
     _ = CONF_OBJECT  # keep the import meaningful if the assertion above changes
 
 
+async def test_adopt_rolls_back_new_object_when_task_persist_fails(
+    hass: HomeAssistant, global_entry: MockConfigEntry, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """If the task persist fails after a fresh object was created, that object is
+    removed (no task-less orphan) and objects_created is not over-counted."""
+    import custom_components.maintenance_supporter.websocket.tasks_persist as tp
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
+
+    await setup_integration(hass, global_entry)
+    _problem_sensor(hass, "binary_sensor.doomed_problem", "Doomed", "on")
+
+    async def _boom(*_a: object, **_k: object) -> None:
+        raise ValueError("persist boom")
+
+    monkeypatch.setattr(tp, "async_persist_task", _boom)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_problem_sensors,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/problem_sensors/adopt",
+            "selections": [{"entity_id": "binary_sensor.doomed_problem", "name": "Doomed", "object_name": "Doomed Obj"}],
+        },
+    )
+    await hass.async_block_till_done()
+    res = conn.send_result.call_args[0][1]
+    assert res["tasks_created"] == 0
+    assert res["objects_created"] == 0, "the created object must be rolled back, not counted"
+    assert res["errors"] and res["errors"][0]["entity_id"] == "binary_sensor.doomed_problem"
+    # Only the global entry remains — no orphan object left behind.
+    non_global = [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]
+    assert non_global == [], f"orphan object entries left: {[e.title for e in non_global]}"
+
+
 async def test_discovery_resolves_device_area_and_suggests_existing_object(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

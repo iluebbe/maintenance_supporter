@@ -65,4 +65,24 @@ describe("parts-section", () => {
     expect(writer.shadowRoot!.querySelector(".part-form")).to.not.equal(null);
     expect(writer.shadowRoot!.querySelectorAll(".part-form input").length).to.be.greaterThan(5);
   });
+
+  it("does not render a non-http(s) shopping_url as a link (XSS guard)", async () => {
+    const el = await fixture<MaintenancePartsSection>(html`
+      <maintenance-parts-section
+        .hass=${{ language: "en", connection: { sendMessagePromise: async () => ({}) } } as never}
+        .entryId=${"e1"}
+        .parts=${[
+          { id: "p1", name: "Evil", stock: null, is_low: false, shopping_url: "javascript:alert(1)" },
+          { id: "p2", name: "Good", stock: null, is_low: false, shopping_url: "https://ok.example/x" },
+        ] as MaintenancePart[]}
+        .canWrite=${false}
+      ></maintenance-parts-section>
+    `);
+    await el.updateComplete;
+    const rows = el.shadowRoot!.querySelectorAll(".part-row");
+    // Row 0 (javascript:) → plain text, NO anchor. Row 1 (https) → anchor.
+    expect(rows[0].querySelector(".part-name a"), "javascript: url must not become a link").to.equal(null);
+    expect(rows[0].querySelector(".part-name")!.textContent!.trim()).to.equal("Evil");
+    expect(rows[1].querySelector(".part-name a"), "https url stays a link").to.not.equal(null);
+  });
 });

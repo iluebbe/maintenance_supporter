@@ -38,6 +38,23 @@ ARCHIVE_VERSION = 1
 # real documents backup is dominated by the blobs, already capped at 25 MB
 # each × 100 docs/object — this is a coarse whole-archive ceiling on top.
 MAX_ARCHIVE_BYTES = 500 * 1024 * 1024  # 500 MB uncompressed-blob budget
+MAX_MANIFEST_BYTES = 16 * 1024 * 1024  # the manifest is metadata only
+MAX_ARCHIVE_MEMBERS = 20000  # ceiling on ZIP entry count (blobs cap at 100/obj)
+
+
+def _read_member_bounded(zf: zipfile.ZipFile, name: str, limit: int) -> bytes:
+    """Read a ZIP member but never materialise more than ``limit`` bytes.
+
+    ``ZipFile.read`` inflates the WHOLE member before returning, so a crafted
+    member (small compressed, huge inflated — a "zip bomb") would exhaust memory
+    before any post-hoc size check. Reading through ``open()`` with a hard byte
+    ceiling bounds the decompression regardless of the declared/actual size.
+    """
+    with zf.open(name) as fh:
+        data = fh.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError("archive_member_too_large")
+    return data
 
 
 def _get_store(hass: HomeAssistant) -> Any:
@@ -167,16 +184,24 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
         manifest: dict[str, Any] = {}
         total = 0
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
-            for name in zf.namelist():
+            names = zf.namelist()
+            if len(names) > MAX_ARCHIVE_MEMBERS:
+                raise ValueError("archive_too_many_members")
+            for name in names:
                 if name == MANIFEST_NAME:
-                    manifest = json.loads(zf.read(name).decode("utf-8"))
+                    # Bound the metadata member too (was read uncapped).
+                    manifest = json.loads(_read_member_bounded(zf, name, MAX_MANIFEST_BYTES).decode("utf-8"))
                 elif name.startswith(BLOB_DIR) and not name.endswith("/"):
                     digest = name[len(BLOB_DIR) :]
                     if len(digest) == 64 and all(c in "0123456789abcdef" for c in digest):
-                        content = zf.read(name)
-                        total += len(content)
-                        if total > MAX_ARCHIVE_BYTES:
+                        remaining = MAX_ARCHIVE_BYTES - total
+                        if remaining <= 0:
                             raise ValueError("archive_too_large")
+                        # Read bounded by the remaining budget so a bomb can't
+                        # inflate past the whole-archive ceiling (checked DURING
+                        # the read, not after materialising the full member).
+                        content = _read_member_bounded(zf, name, remaining)
+                        total += len(content)
                         blobs[digest] = content
         return manifest, blobs
 
@@ -185,11 +210,24 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
     except (zipfile.BadZipFile, ValueError, json.JSONDecodeError, KeyError) as err:
         return {"error": f"invalid archive: {err}"}
 
-    # 1) Write every blob back (verify the hash — a blob's name IS its sha256).
+    # 1) Write back only blobs a manifest document actually references — an
+    # archive carrying extra blobs must not litter /config with orphans that
+    # ride every HA backup and are never refcounted (disk-fill hardening).
+    referenced: set[str] = set()
+    for obj in manifest.get("objects", []):
+        if not isinstance(obj, dict):
+            continue
+        for m in obj.get("documents", []):
+            if isinstance(m, dict) and isinstance(m.get("hash"), str):
+                referenced.add(m["hash"])
+
     import hashlib
 
     written = 0
     for digest, content in blobs.items():
+        if digest not in referenced:
+            _LOGGER.info("Documents archive: blob %s referenced by no document, skipped", digest[:12])
+            continue
         if hashlib.sha256(content).hexdigest() != digest:
             _LOGGER.warning("Documents archive: blob %s failed hash check, skipped", digest[:12])
             continue
