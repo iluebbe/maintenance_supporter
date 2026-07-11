@@ -317,3 +317,20 @@ that triggers while the sensor is on and auto-completes on recovery
 (`state_change` → `on` + `auto_complete_on_recovery`). With `entry_id` it
 attaches to that object; otherwise a fresh object (`object_name`, bound to
 `device_id`) is created — two selections sharing a `device_id` reuse one object.
+
+## Saved filter views — shared named panel-list filter combinations
+
+Views bundle the task-list filters (`status`, `user_id`, `archived`) plus
+`sort_mode` + `group_by` under a name. One shared list on the global entry;
+everything is re-sanitised on read/save (unknown values coerce to the permissive
+default). Note the field is `view_id`, not `id` — `id` is the WS message id.
+
+### `views/list` — read
+`{}` → `{views:[{id,name,filters:{status,user_id,archived,sort_mode,group_by}}]}`.
+
+### `views/save` — @require_write
+`{name, view_id?, filters?}` → `{views:[...], saved_id}`. Omit `view_id` to
+create; include it to update in place. Rejects past 50 views (`too_many_views`).
+
+### `views/delete` — @require_write
+`{view_id}` → `{views:[...]}`. No-op if the id doesn't exist.

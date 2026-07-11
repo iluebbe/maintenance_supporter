@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(ny)",
   "adopt_problem_adopt": "Anta valda",
-  "adopt_problem_done": "Antog {tasks} problemsensor(er)"
+  "adopt_problem_done": "Antog {tasks} problemsensor(er)",
+  "views_label": "Vyer",
+  "views_none": "— Ingen vy —",
+  "views_manage": "Spara / hantera vyer",
+  "views_dialog_title": "Sparade vyer",
+  "views_dialog_hint": "Spara de aktuella filtren som en namngiven vy som alla kan återanvända.",
+  "views_name_placeholder": "Vynamn",
+  "views_save_current": "Spara aktuella filter",
+  "views_none_yet": "Inga sparade vyer ännu.",
+  "close": "Stäng"
 }

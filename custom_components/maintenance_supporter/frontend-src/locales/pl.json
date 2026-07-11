@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(nowy)",
   "adopt_problem_adopt": "Przejmij zaznaczone",
-  "adopt_problem_done": "Przejęto {tasks} czujnik(ów) problemów"
+  "adopt_problem_done": "Przejęto {tasks} czujnik(ów) problemów",
+  "views_label": "Widoki",
+  "views_none": "— Brak widoku —",
+  "views_manage": "Zapisz / zarządzaj widokami",
+  "views_dialog_title": "Zapisane widoki",
+  "views_dialog_hint": "Zapisz bieżące filtry jako nazwany widok, którego każdy może użyć.",
+  "views_name_placeholder": "Nazwa widoku",
+  "views_save_current": "Zapisz bieżące filtry",
+  "views_none_yet": "Brak zapisanych widoków.",
+  "close": "Zamknij"
 }

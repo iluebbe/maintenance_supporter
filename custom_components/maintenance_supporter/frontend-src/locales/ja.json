@@ -737,5 +737,14 @@
   "adopt_problem_ok": "正常",
   "adopt_problem_new_object": "（新規）",
   "adopt_problem_adopt": "選択を取り込む",
-  "adopt_problem_done": "{tasks} 件の問題センサーを取り込みました"
+  "adopt_problem_done": "{tasks} 件の問題センサーを取り込みました",
+  "views_label": "ビュー",
+  "views_none": "— ビューなし —",
+  "views_manage": "ビューを保存／管理",
+  "views_dialog_title": "保存済みビュー",
+  "views_dialog_hint": "現在のフィルターを、全員が再利用できる名前付きビューとして保存します。",
+  "views_name_placeholder": "ビュー名",
+  "views_save_current": "現在のフィルターを保存",
+  "views_none_yet": "保存済みのビューはまだありません。",
+  "close": "閉じる"
 }

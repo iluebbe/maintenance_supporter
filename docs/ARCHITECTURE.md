@@ -30,7 +30,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (69 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (72 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -190,7 +190,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               69 WS commands, split by domain
+├── websocket/                               72 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
 │   ├── objects.py                              Object CRUD + archive (8 handlers)
 │   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) + archive (2.10.0+) (11 handlers)
@@ -510,7 +510,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-69 commands organized by function:
+72 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -534,7 +534,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 69 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 72 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

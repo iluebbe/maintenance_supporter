@@ -24,6 +24,8 @@ import type {
   HistoryEntry,
   TriggerConfig,
   StatisticsPoint,
+  SavedView,
+  SavedViewFilters,
 } from "./types";
 import { StatisticsService } from "./statistics-service";
 import { UserService } from "./user-service";
@@ -57,6 +59,8 @@ import "./components/seasonal-overrides-dialog";
 import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
 import "./components/group-dialog";
 import type { MaintenanceGroupDialog } from "./components/group-dialog";
+import "./components/saved-views-dialog";
+import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialog";
 import { type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
 import { renderTriggerProgress, renderMiniSparkline } from "./renderers/progress";
@@ -88,6 +92,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _selectedTaskId: string | null = null;
   @state() private _filterStatus = "";
   @state() private _filterUser: string | null = null;
+  // v2.24: shared saved filter views + the id of the one currently applied ("" =
+  // none; cleared the moment the user hand-edits any filter control).
+  @state() private _savedViews: SavedView[] = [];
+  @state() private _activeViewId = "";
   @state() private _unsub: (() => void) | null = null;
   @state() private _chartRangeDays = (() => {
     try {
@@ -338,13 +346,15 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _loadData(): Promise<void> {
-    const [objResult, statsResult, budgetResult, groupsResult, settingsResult] = await Promise.all([
+    const [objResult, statsResult, budgetResult, groupsResult, settingsResult, viewsResult] = await Promise.all([
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/budget_status" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/groups" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/settings" }).catch(() => null),
+      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/views/list" }).catch(() => null),
     ]);
+    if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
     if (objResult) this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
     if (statsResult) this._stats = statsResult as StatisticsResponse;
     if (budgetResult) this._budget = budgetResult as BudgetStatus;
@@ -699,12 +709,62 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  the task list. Empty string clears the filter (used by "Tasks" KPI). */
   private _filterByStatus(status: string): void {
     this._filterStatus = status;
+    this._activeViewId = "";
     // Make sure we're on the dashboard tab so the task list is actually
     // visible — pointless to filter on the calendar/settings tabs.
     if (this._overviewTab !== "dashboard") {
       this._overviewTab = "dashboard";
     }
     this._scrollContentToTop();
+  }
+
+  // ── v2.24: saved filter views ──────────────────────────────────────────────
+
+  /** The panel's current task-list filter state, in the shape a view stores. */
+  private get _currentFilters(): SavedViewFilters {
+    return {
+      status: this._filterStatus,
+      user_id: this._filterUser,
+      archived: this._showArchived,
+      sort_mode: this._sortMode,
+      group_by: this._groupByMode,
+    };
+  }
+
+  /** Apply a saved view's filters to the live controls (or clear on ""). */
+  private _applyView(viewId: string): void {
+    this._activeViewId = viewId;
+    if (!viewId) return;
+    const view = this._savedViews.find((v) => v.id === viewId);
+    if (!view) return;
+    const f = view.filters;
+    this._filterStatus = f.status || "";
+    this._filterUser = f.user_id || null;
+    this._showArchived = !!f.archived;
+    this._sortMode = f.sort_mode as SortMode;
+    this._groupByMode = f.group_by as GroupByMode;
+    // Persist sort/group like the manual controls do, so they stick after reload.
+    try {
+      localStorage.setItem(LS_KEYS.taskSort, this._sortMode);
+      localStorage.setItem(LS_KEYS.groupBy, this._groupByMode);
+    } catch {
+      // ignore private-mode storage errors
+    }
+    if (this._overviewTab !== "dashboard") this._overviewTab = "dashboard";
+  }
+
+  private _openSavedViewsDialog(): void {
+    this.shadowRoot!
+      .querySelector<MaintenanceSavedViewsDialog>("maintenance-saved-views-dialog")
+      ?.open(this._currentFilters, this._savedViews);
+  }
+
+  private _onSavedViewsChanged(e: CustomEvent<{ views: SavedView[] }>): void {
+    this._savedViews = e.detail.views || [];
+    // If the applied view was deleted, drop the stale selection.
+    if (this._activeViewId && !this._savedViews.some((v) => v.id === this._activeViewId)) {
+      this._activeViewId = "";
+    }
   }
 
   /** Reset scroll on the panel's .content container. Used by every
@@ -1699,6 +1759,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         .hass=${this.hass}
         @problem-sensors-adopted=${(e: CustomEvent) => this._onProblemSensorsAdopted(e)}
       ></maintenance-adopt-problem-sensors-dialog>
+      <maintenance-saved-views-dialog
+        .hass=${this.hass}
+        @saved-views-changed=${(e: CustomEvent<{ views: SavedView[] }>) => this._onSavedViewsChanged(e)}
+      ></maintenance-saved-views-dialog>
       ${this._toastMessage ? html`<div class="toast">
         <span>${this._toastMessage}</span>
         ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${t("undo", this._lang)}</button>` : nothing}
@@ -1952,10 +2016,31 @@ export class MaintenanceSupporterPanel extends LitElement {
 
       <div class="filter-bar">
         <label class="filter-field">
+          <span class="filter-label">${t("views_label", L)}</span>
+          <select
+            .value=${this._activeViewId}
+            @change=${(e: Event) => this._applyView((e.target as HTMLSelectElement).value)}
+          >
+            <option value="">${t("views_none", L)}</option>
+            ${this._savedViews.map(
+              (v) => html`<option value=${v.id} ?selected=${this._activeViewId === v.id}>${v.name}</option>`,
+            )}
+          </select>
+        </label>
+        ${!isOperator ? html`
+          <ha-icon-button
+            class="views-save-btn"
+            .path=${"M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"}
+            .label=${t("views_manage", L)}
+            title=${t("views_manage", L)}
+            @click=${() => this._openSavedViewsDialog()}
+          ></ha-icon-button>
+        ` : nothing}
+        <label class="filter-field">
           <span class="filter-label">${t("filter_label", L)}</span>
           <select
             .value=${this._filterStatus}
-            @change=${(e: Event) => (this._filterStatus = (e.target as HTMLSelectElement).value)}
+            @change=${(e: Event) => { this._filterStatus = (e.target as HTMLSelectElement).value; this._activeViewId = ""; }}
           >
             <option value="">${t("all", L)}</option>
             <option value="overdue">${t("overdue", L)}</option>
@@ -1971,6 +2056,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             @change=${(e: Event) => {
               const val = (e.target as HTMLSelectElement).value;
               this._filterUser = val || null;
+              this._activeViewId = "";
             }}
           >
             <option value="">${t("all_users", L)}</option>
@@ -1984,6 +2070,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             @change=${(e: Event) => {
               this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
               localStorage.setItem(LS_KEYS.taskSort, this._sortMode);
+              this._activeViewId = "";
             }}
           >
             <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
@@ -2002,6 +2089,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             @change=${(e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
               localStorage.setItem(LS_KEYS.groupBy, this._groupByMode);
+              this._activeViewId = "";
             }}
           >
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
@@ -2013,7 +2101,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${archivedCount > 0 ? html`
           <ha-button
             class="archived-toggle ${this._showArchived ? "active" : ""}"
-            @click=${() => { this._showArchived = !this._showArchived; }}
+            @click=${() => { this._showArchived = !this._showArchived; this._activeViewId = ""; }}
           >
             <ha-icon icon="mdi:archive-outline"></ha-icon>
             ${this._showArchived ? t("hide_archived", L) : `${t("show_archived", L)} (${archivedCount})`}

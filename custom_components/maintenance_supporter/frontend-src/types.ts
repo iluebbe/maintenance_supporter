@@ -275,6 +275,22 @@ export interface StatisticsResponse {
   budget?: { currency_symbol?: string } | null;
 }
 
+/** A saved filter view: the panel task-list's filter/sort/group state, named
+ * and shared across users. Mirrors helpers/saved_views.py. */
+export interface SavedViewFilters {
+  status: string;
+  user_id: string | null;
+  archived: boolean;
+  sort_mode: string;
+  group_by: string;
+}
+
+export interface SavedView {
+  id: string;
+  name: string;
+  filters: SavedViewFilters;
+}
+
 export interface CardConfig {
   type: string;
   title?: string;

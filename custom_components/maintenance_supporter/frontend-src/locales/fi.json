@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(uusi)",
   "adopt_problem_adopt": "Ota valitut käyttöön",
-  "adopt_problem_done": "Otettiin käyttöön {tasks} ongelma-anturia"
+  "adopt_problem_done": "Otettiin käyttöön {tasks} ongelma-anturia",
+  "views_label": "Näkymät",
+  "views_none": "— Ei näkymää —",
+  "views_manage": "Tallenna / hallitse näkymiä",
+  "views_dialog_title": "Tallennetut näkymät",
+  "views_dialog_hint": "Tallenna nykyiset suodattimet nimettynä näkymänä, jota kaikki voivat käyttää.",
+  "views_name_placeholder": "Näkymän nimi",
+  "views_save_current": "Tallenna nykyiset suodattimet",
+  "views_none_yet": "Ei tallennettuja näkymiä vielä.",
+  "close": "Sulje"
 }

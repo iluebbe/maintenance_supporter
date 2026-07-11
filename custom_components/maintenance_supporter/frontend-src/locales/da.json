@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(ny)",
   "adopt_problem_adopt": "Adopter valgte",
-  "adopt_problem_done": "Adopterede {tasks} problemsensor(er)"
+  "adopt_problem_done": "Adopterede {tasks} problemsensor(er)",
+  "views_label": "Visninger",
+  "views_none": "— Ingen visning —",
+  "views_manage": "Gem / administrer visninger",
+  "views_dialog_title": "Gemte visninger",
+  "views_dialog_hint": "Gem de aktuelle filtre som en navngiven visning, som alle kan genbruge.",
+  "views_name_placeholder": "Visningsnavn",
+  "views_save_current": "Gem aktuelle filtre",
+  "views_none_yet": "Ingen gemte visninger endnu.",
+  "close": "Luk"
 }

@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ठीक",
   "adopt_problem_new_object": "(नया)",
   "adopt_problem_adopt": "चयनित अपनाएँ",
-  "adopt_problem_done": "{tasks} समस्या सेंसर अपनाए गए"
+  "adopt_problem_done": "{tasks} समस्या सेंसर अपनाए गए",
+  "views_label": "व्यू",
+  "views_none": "— कोई व्यू नहीं —",
+  "views_manage": "व्यू सहेजें / प्रबंधित करें",
+  "views_dialog_title": "सहेजे गए व्यू",
+  "views_dialog_hint": "वर्तमान फ़िल्टर को एक नामित व्यू के रूप में सहेजें जिसे सभी उपयोग कर सकें।",
+  "views_name_placeholder": "व्यू का नाम",
+  "views_save_current": "वर्तमान फ़िल्टर सहेजें",
+  "views_none_yet": "अभी तक कोई सहेजा गया व्यू नहीं।",
+  "close": "बंद करें"
 }

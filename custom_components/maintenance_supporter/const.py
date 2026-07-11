@@ -135,6 +135,15 @@ CONF_OBJECTS_TABLE_COLUMNS = "objects_table_columns"
 # removed from the pickers so a growing catalog never clutters the UI.
 CONF_DISABLED_TEMPLATE_IDS = "disabled_template_ids"
 
+# v2.24: saved filter views — named, shared combinations of the panel list's
+# filters (status / user / archived) + sort + group-by that any user can apply
+# from the toolbar. Stored on the global entry as a list of view dicts; see
+# helpers/saved_views.py for the shape + sanitiser. A view's id can later feed
+# notification routing ("only notify me about view X").
+CONF_SAVED_FILTER_VIEWS = "saved_filter_views"
+MAX_SAVED_VIEWS = 50  # coarse ceiling so the global entry can't grow unbounded
+MAX_VIEW_NAME_LENGTH = 60
+
 # Every column key the objects table can render. The Settings UI offers exactly
 # these; the WS update handler drops anything outside this set.
 KNOWN_OBJECT_TABLE_COLUMNS = [

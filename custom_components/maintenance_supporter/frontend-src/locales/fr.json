@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(nouveau)",
   "adopt_problem_adopt": "Adopter la sélection",
-  "adopt_problem_done": "{tasks} capteur(s) de problème adopté(s)"
+  "adopt_problem_done": "{tasks} capteur(s) de problème adopté(s)",
+  "views_label": "Vues",
+  "views_none": "— Aucune vue —",
+  "views_manage": "Enregistrer / gérer les vues",
+  "views_dialog_title": "Vues enregistrées",
+  "views_dialog_hint": "Enregistrez les filtres actuels comme une vue nommée réutilisable par tous.",
+  "views_name_placeholder": "Nom de la vue",
+  "views_save_current": "Enregistrer les filtres actuels",
+  "views_none_yet": "Aucune vue enregistrée pour l'instant.",
+  "close": "Fermer"
 }

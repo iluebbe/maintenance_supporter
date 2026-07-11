@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(nuevo)",
   "adopt_problem_adopt": "Adoptar seleccionados",
-  "adopt_problem_done": "{tasks} sensor(es) de problema adoptado(s)"
+  "adopt_problem_done": "{tasks} sensor(es) de problema adoptado(s)",
+  "views_label": "Vistas",
+  "views_none": "— Sin vista —",
+  "views_manage": "Guardar / gestionar vistas",
+  "views_dialog_title": "Vistas guardadas",
+  "views_dialog_hint": "Guarda los filtros actuales como una vista con nombre que todos pueden reutilizar.",
+  "views_name_placeholder": "Nombre de la vista",
+  "views_save_current": "Guardar filtros actuales",
+  "views_none_yet": "Aún no hay vistas guardadas.",
+  "close": "Cerrar"
 }
