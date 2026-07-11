@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.23.1] - 2026-07-11
 
 ### 📎 Documents under tasks
 
