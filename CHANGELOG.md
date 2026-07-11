@@ -4,6 +4,34 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🛡️ Bug-audit fixes, round 2
+
+- **Task times set via the Configure UI no longer collapse to midnight** — HA's
+  time picker stores `HH:MM:SS`, but the calendar event, the next-due sensor and
+  the same-day "overdue after HH:MM" refinement parsed only `HH:MM` and fell
+  back to midnight on the extra seconds. All three now parse both formats and the
+  Configure form normalises to `HH:MM`.
+- **Non-Latin object names work** — a name in CJK/Cyrillic/emoji/punctuation
+  slugified to an empty string, so a second such object collided on one id and
+  aborted (discarding the tasks just entered). Names with no ASCII now fall back
+  to a stable hash slug, so distinct names stay distinct.
+- **Privacy: diagnostics redact more** — HA user UUIDs in `assignee_pool` and
+  `admin_panel_user_ids` (and spare-part supplier/URL fields) are now redacted
+  like `responsible_user_id`, and data-quality warnings reference task ids rather
+  than names, so a diagnostics download pasted into a public issue leaks less.
+- **A completion carrying a photo can't double-record** — the household
+  double-tap guard was stamped only after the photo-link step, so two
+  photo-completions of the same task in the same instant could both slip through
+  (double rotation advance / part consume). The guard is now stamped up-front.
+- **A paused object stays silent** — an event-driven auto-complete-on-recovery
+  bypassed the pause gate and recorded a real completion when a paused object's
+  sensor recovered. It now honours the pause like the periodic path.
+- Hardening: imported history costs are scrubbed of `NaN`/`Infinity`/negative
+  values (they'd poison budget totals); the status **chip** in the task-detail
+  view got the same dark-text contrast fix as the badges (the tripwire now
+  covers it); QR `base_url` is length-capped; `reading_unit` is CSV-escaped; an
+  imported `product_url` is stored trimmed.
+
 ### 🛡️ Bug-audit fixes (correctness & hardening)
 
 - **Documents-archive import is bomb-resistant** — the ZIP import decompressed

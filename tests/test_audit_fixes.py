@@ -423,6 +423,39 @@ async def test_diagnostics_redacts_serial_number(
     assert obj.get("serial_number") == "**REDACTED**"
 
 
+async def test_diagnostics_redacts_user_uuid_lists(hass: HomeAssistant) -> None:
+    """2026-07 audit: HA user UUIDs in assignee_pool (task) and
+    admin_panel_user_ids (global options) must be redacted like
+    responsible_user_id — they were leaking into public diagnostics."""
+    from custom_components.maintenance_supporter.const import CONF_ADMIN_PANEL_USER_IDS
+
+    gdata = build_global_entry_data()
+    gdata[CONF_ADMIN_PANEL_USER_IDS] = ["admin-uuid-AAA", "admin-uuid-BBB"]
+    global_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="MS", data=gdata,
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+
+    task = build_task_data(last_performed="2024-06-01")
+    task["assignee_pool"] = ["pool-uuid-XXX", "pool-uuid-YYY"]
+    task["rotation_strategy"] = "round_robin"
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Pool Test",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Pool Test"), tasks={TASK_ID_1: task},
+        ),
+        source="user", unique_id="maintenance_supporter_pool_redact",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    obj_diag_str = json.dumps(await async_get_config_entry_diagnostics(hass, entry))
+    assert "pool-uuid-XXX" not in obj_diag_str and "pool-uuid-YYY" not in obj_diag_str
+    global_diag_str = json.dumps(await async_get_config_entry_diagnostics(hass, global_entry))
+    assert "admin-uuid-AAA" not in global_diag_str and "admin-uuid-BBB" not in global_diag_str
+
+
 # ─── Fix G: Options flow — NFC duplicate check ───────────────────────
 
 

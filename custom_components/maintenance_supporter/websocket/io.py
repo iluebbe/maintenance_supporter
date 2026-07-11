@@ -63,6 +63,31 @@ def _iso_marker(value: Any) -> str | None:
             return None
 
 
+def _sanitize_history(history: Any) -> list[dict[str, Any]]:
+    """Scrub imported history entries: drop a non-finite/negative ``cost``.
+
+    Every live write path range-guards cost, but import copied history verbatim
+    and ``json.loads``/``yaml.safe_load`` both accept ``NaN``/``Infinity``. Such
+    a value would poison budget aggregation (a `+inf` fake "budget exceeded"
+    alert, or `nan` silently disabling all alerts). The completion still counts;
+    only the bad cost is removed.
+    """
+    import math
+
+    if not isinstance(history, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for entry in history:
+        if not isinstance(entry, dict):
+            continue
+        clean = dict(entry)
+        cost = clean.get("cost")
+        if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
+            clean.pop("cost", None)
+        out.append(clean)
+    return out
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/templates",
@@ -410,7 +435,9 @@ async def ws_import_json(
                 # backup could persist a javascript: link (the panel now also
                 # guards the href, but keep bad data out of storage).
                 _purl = pdata.get("product_url")
-                if not (isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://"))):
+                if isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://")):
+                    pdata["product_url"] = _purl.strip()  # store trimmed so the render guard matches
+                else:
                     pdata.pop("product_url", None)
                 import_parts[new_id] = pdata
                 if old_id:
@@ -444,7 +471,7 @@ async def ws_import_json(
                 "enabled": task_entry.get("enabled", True),
                 "schedule_type": task_entry.get("schedule_type", "time_based"),
                 "warning_days": task_entry.get("warning_days", get_default_warning_days(hass)),
-                "history": task_entry.get("history", []),
+                "history": _sanitize_history(task_entry.get("history", [])),
             }
             for key in (
                 # Provenance + lifecycle — mirror the export builder so an
@@ -633,7 +660,7 @@ async def ws_import_json(
         vol.Optional("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("action", default="view"): vol.In(["view", "complete", "quick_complete"]),
         vol.Optional("url_mode", default="server"): vol.In(["server", "local", "companion"]),
-        vol.Optional("base_url"): vol.Url(),
+        vol.Optional("base_url"): vol.All(vol.Url(), vol.Length(max=512)),
     }
 )
 @websocket_api.async_response
@@ -731,7 +758,7 @@ def _cached_qr_svg(url: str, icon: str | None) -> str:
             vol.Length(min=1, max=4),
         ),
         vol.Optional("url_mode", default="server"): vol.In(["server", "local", "companion"]),
-        vol.Optional("base_url"): vol.Url(),
+        vol.Optional("base_url"): vol.All(vol.Url(), vol.Length(max=512)),
     }
 )
 @websocket_api.async_response

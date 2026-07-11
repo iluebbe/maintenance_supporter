@@ -474,9 +474,10 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
         schedule_time = task.get("schedule_time")
         if schedule_time and self._schedule_time_enabled():
             try:
-                hh, mm = str(schedule_time).split(":", 1)
-                at = time(int(hh), int(mm))
-            except (ValueError, TypeError):
+                # Tolerate "HH:MM" and "HH:MM:SS" (HA TimeSelector's format).
+                parts = str(schedule_time).split(":")
+                at = time(int(parts[0]), int(parts[1]))
+            except (ValueError, TypeError, IndexError):
                 at = time(0, 0)  # malformed -> midnight, like the calendar
         return datetime.combine(due, at, tzinfo=dt_util.DEFAULT_TIME_ZONE)
 
