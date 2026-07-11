@@ -233,12 +233,20 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
 
     tasks = [_build_task_summary(hass, tid, tdata, ct_tasks.get(tid), object_slug) for tid, tdata in tasks_data.items()]
 
-    # (roadmap P2) attached-document count for the objects-table paperclip badge.
+    # (roadmap P2) attached-document count for the objects-table paperclip badge,
+    # plus a per-task count so each task row can carry its own document badge.
     from .. import DOCUMENT_STORE_KEY
 
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     object_id = obj_data.get("id", "")
-    document_count = len(doc_store.for_object(object_id)) if doc_store is not None and object_id else 0
+    object_docs = doc_store.for_object(object_id) if doc_store is not None and object_id else []
+    document_count = len(object_docs)
+    task_doc_counts: dict[str, int] = {}
+    for _doc in object_docs:
+        for _tid in _doc.get("task_ids") or []:
+            task_doc_counts[_tid] = task_doc_counts.get(_tid, 0) + 1
+    for _task in tasks:
+        _task["document_count"] = task_doc_counts.get(_task["id"], 0)
 
     # Spare parts: full definition + merged stock + the derived helpers the
     # panel renders (is_low, resolved shopping URL). EVERY persisted field is

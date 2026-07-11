@@ -8084,12 +8084,6 @@ ${h?`<div class="sub">${h}</div>`:""}
               <div class="object-notes-body">${t.notes}</div>
             </div>`:p}
 
-        <maintenance-documents-section
-          .hass=${this.hass}
-          .entryId=${e.entry_id}
-          .canWrite=${!a}
-        ></maintenance-documents-section>
-
         <h3>${s("tasks",i)} (${c.length})${l>0?o`
           <ha-button
             class="archived-toggle ${this._showArchived?"active":""}"
@@ -8108,6 +8102,7 @@ ${h?`<div class="sub">${h}</div>`:""}
                   ${this._statusBadge(!!h.archived,!!h.is_done,h.status)}
                   ${h.enabled?p:o`<span class="badge-disabled">${s("disabled",i)}</span>`}
                   ${h.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",i)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:p}
+                  ${h.document_count?o`<span class="doc-badge" title="${h.document_count} ${s("documents",i)}"><ha-icon icon="mdi:paperclip"></ha-icon>${h.document_count}</span>`:p}
                 </span>
                 <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,h.id)}>${h.name}</span>
                 <span class="task-sub${h.responsible_user_id?"":" task-sub-empty"}">${Bt(h,u=>this._userService?.getUserName(u)??null)}</span>
@@ -8127,6 +8122,12 @@ ${h?`<div class="sub">${h}</div>`:""}
                 </span>
               </div>
             `)}</div>`}
+
+        <maintenance-documents-section
+          .hass=${this.hass}
+          .entryId=${e.entry_id}
+          .canWrite=${!a}
+        ></maintenance-documents-section>
 
         <maintenance-parts-section
           .hass=${this.hass}

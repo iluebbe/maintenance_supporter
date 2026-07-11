@@ -28,8 +28,9 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
     File binaries are NOT in the JSON export (they live under /config and travel
     via the HA backup). An import without a matching backup therefore recreates
     file metadata pointing at a missing blob — the storage-hygiene repair issue
-    catches those as dangling. Web-links round-trip fully. task_ids are dropped:
-    tasks get fresh ids on import, so the links wouldn't resolve.
+    catches those as dangling. Web-links round-trip fully. ``task_ids`` are
+    carried too (as the OLD task ids); the importer remaps them onto the fresh
+    task ids so a doc's task links survive a backup/restore.
     """
     out: list[dict[str, Any]] = []
     for d in doc_store.for_object(object_id):
@@ -40,6 +41,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
                     "url": d.get("url"),
                     "title": d.get("title"),
                     "tags": d.get("tags") or [],
+                    "task_ids": d.get("task_ids") or [],
                 }
             )
         else:
@@ -52,6 +54,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
                     "mime": d.get("mime"),
                     "size": d.get("size"),
                     "tags": d.get("tags") or [],
+                    "task_ids": d.get("task_ids") or [],
                 }
             )
     return out

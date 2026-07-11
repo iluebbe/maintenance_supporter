@@ -22,6 +22,8 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    call_ws_handler,
+    make_ws_connection,
     setup_integration,
 )
 
@@ -169,3 +171,64 @@ async def test_documents_archive_matches_object_by_name_cross_instance(
     assert store.blob_path(digest).is_file()
     restored = store.for_object("oid_fresh")
     assert any(d.get("hash") == digest for d in restored), "doc not re-attached to the renamed object"
+
+
+async def test_document_task_links_survive_json_roundtrip(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A document linked to a task keeps that link across export → import: the
+    old task id is exported and remapped onto the fresh task id (mirrors the
+    part-link remap). Before the fix task_ids were dropped, so a restored doc
+    lost its task association."""
+    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import CONF_TASKS
+    from custom_components.maintenance_supporter.export import build_export_data
+    from custom_components.maintenance_supporter.websocket.io import ws_import_json
+    import json as _json
+
+    a = _object(hass, "Linked", "oid_linked", "maintenance_supporter_linked")
+    await setup_integration(hass, global_entry, a)
+    store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+    doc = await store.async_add_file("oid_linked", content=b"manual", filename="m.pdf", mime="application/pdf")
+    await store.async_update(doc["id"], task_ids=[TASK_ID_1])
+
+    exported = build_export_data(hass)
+    obj = next(o for o in exported["objects"] if o["object"]["name"] == "Linked")
+    assert obj["documents"][0]["task_ids"] == [TASK_ID_1], "task link dropped on export"
+
+    obj["object"]["name"] = "Linked Copy"
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_import_json, hass, conn,
+        {"id": 1, "type": "maintenance_supporter/json/import", "json_content": _json.dumps({"objects": [obj]})},
+    )
+    await hass.async_block_till_done()
+
+    copy = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "Linked Copy")
+    new_task_id = next(iter(copy.data[CONF_TASKS]))
+    copy_oid = copy.data["object"]["id"]
+    copy_docs = store.for_object(copy_oid)
+    assert copy_docs, "document not restored on the copy"
+    assert copy_docs[0]["task_ids"] == [new_task_id], "task link not remapped onto the fresh task id"
+
+
+async def test_objects_response_carries_per_task_document_count(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Each task in the objects WS response reports its own document_count so
+    the task row can show a paperclip badge."""
+    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.websocket.objects import ws_get_objects
+
+    a = _object(hass, "Counted", "oid_counted", "maintenance_supporter_counted")
+    await setup_integration(hass, global_entry, a)
+    store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+    doc = await store.async_add_file("oid_counted", content=b"x", filename="x.pdf", mime="application/pdf")
+    await store.async_update(doc["id"], task_ids=[TASK_ID_1])
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_get_objects, hass, conn, {"id": 1, "type": "maintenance_supporter/objects"})
+    payload = conn.send_result.call_args[0][1]
+    obj = next(o for o in payload["objects"] if o["object"]["name"] == "Counted")
+    task = next(t for t in obj["tasks"] if t["id"] == TASK_ID_1)
+    assert task["document_count"] == 1, "per-task document_count missing/incorrect"

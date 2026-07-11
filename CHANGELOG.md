@@ -4,6 +4,21 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 📎 Documents under tasks
+
+- **Task-linked documents survive a backup/restore** — a document linked to a
+  task kept that link only in memory; the export/import (and the documents
+  archive) dropped `task_ids`, so a restored manual reverted to object-level
+  only. The links now round-trip: the old task ids are exported and **remapped
+  onto the fresh task ids** on import (same mechanism as the spare-part links),
+  and a same-instance archive restore keeps them too.
+- **Paperclip badge on task rows** — each task row in the object view now shows
+  how many documents are attached (the objects response carries a per-task
+  `document_count`), so linked manuals are visible without opening the task.
+- **Object view order** — the documents section now sits **below the task
+  list** (Tasks → Documents → Parts), matching where the parts shelf already
+  moved.
+
 ### ✨ New — flexible backup: selective export + a documents archive
 
 - **Selective export** — the JSON, YAML and CSV exports now take an optional
