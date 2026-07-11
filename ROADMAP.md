@@ -18,17 +18,20 @@ backup** (selective JSON/YAML/CSV export + a documents archive that carries the
 file contents). What's left, ordered by value × how much it reuses existing
 machinery × risk:
 
-1. **Adopt problem sensors as triggered tasks** (💡) — highest leverage. It
-   reuses the whole *sensor-trigger → task → history → notification* pipeline,
-   so it's a discovery + opt-in-sync layer rather than a new subsystem. Turns
-   one-off appliance faults (printer errors, filter warnings, battery alerts)
-   into the same inbox, history and reminders as planned maintenance. The care
-   is in the **scoping** — explicit include/exclude by entity / device / area /
-   label so a chatty integration can't flood the task list.
-2. **Saved filter views (profiles)** (💡) — high value, larger surface. Ship the
-   MVP first (save + apply a named filter combo across the panel list and the
-   card), then the interesting part: **notification routing** ("only notify me
-   about view 'Garden'").
+1. ~~**Adopt problem sensors as triggered tasks**~~ ✅ **Shipped** (Unreleased) —
+   a discovery + opt-in-sync layer over the existing *sensor-trigger → task →
+   history → notification* pipeline. An **Adopt problem sensors** button
+   discovers `device_class: problem` binary sensors, proposes a target object,
+   and — on an explicit selection — creates a task per sensor that triggers
+   while the problem is active and auto-completes on recovery. Opt-in by design;
+   the integration's own per-task sensors are excluded.
+2. ~~**Saved filter views (MVP)**~~ ✅ **Shipped** (Unreleased) — a **Views**
+   dropdown on the panel list saves the status / user / archived filters plus
+   sort + group-by under a name and reapplies the whole combination in one tap.
+   Views are shared across everyone who opens the panel and persist on the
+   global entry. **Still open (the interesting part):** apply views in the
+   Lovelace **card**, and **notification routing** ("only notify me about view
+   'Garden'") — a view's id is already a stable handle for it.
 3. **Dark-mode & color-blind contrast QA** (🟡) — no new code, a manual
    multi-theme browser pass; can piggyback on the screenshot pipeline.
 4. **Form generation from field specs** (🟡, internal) — the long-term
@@ -241,23 +244,23 @@ panel. When the task has a linked PDF manual with a page hint
 `document/{id}/excerpt` endpoint (pypdf) extracts "from page X, N pages" of
 the stored PDF for printing alongside.
 
-### 💡 Saved filter views (profiles)
-The panel and card offer rich filtering, but every filter is transient. A
-**named, saved view** (combination of status / labels / areas / objects /
-assignee) would be reusable across the panel task list, the Lovelace card
-config, and — the interesting part — **notification routing**: "only notify
-me about tasks in view 'Garden'". Shared across devices via the global
-settings store.
+### ✅ Saved filter views (profiles) — MVP shipped (Unreleased)
+Every panel filter used to be transient. A **named, saved view** (status /
+user / archived + sort + group-by) is now reusable across the panel task list
+via a **Views** dropdown, shared across everyone who opens the panel and stored
+on the global entry. **Still open:** apply views in the Lovelace card config,
+and — the interesting part — **notification routing** ("only notify me about
+tasks in view 'Garden'"); a view's id is already the stable handle for it.
+Later: broaden the captured filters (labels / areas / objects / assignee).
 
-### 💡 Adopt problem sensors as triggered tasks
+### ✅ Adopt problem sensors as triggered tasks — shipped (Unreleased)
 Many integrations expose `binary_sensor` entities with
 `device_class: problem` (printer errors, filter warnings, battery alerts).
-An opt-in sync could mirror selected problem sensors as sensor-based tasks:
-the task triggers while the problem is active and resolves when it clears —
-putting one-off appliance complaints into the same inbox, history and
-notification pipeline as planned maintenance. Needs careful scoping
-(explicit include/exclude by entity, device, area or label) so a chatty
-integration can't flood the task list.
+An **Adopt problem sensors** button now mirrors selected problem sensors as
+sensor-based tasks: the task triggers while the problem is active and resolves
+when it clears — putting one-off appliance complaints into the same inbox,
+history and notification pipeline as planned maintenance. Opt-in by design
+(discovery only proposes; the integration's own per-task sensors are excluded).
 
 ### ✅ Cross-cutting labels / tags
 **Shipped** (v2.17). Lightweight comma-separated tags per task (e.g. `safety`,
