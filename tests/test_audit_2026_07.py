@@ -17,6 +17,7 @@ from datetime import date
 
 import pytest
 
+from custom_components.maintenance_supporter.const import slugify_object_name
 from custom_components.maintenance_supporter.helpers import doc_archive
 from custom_components.maintenance_supporter.helpers.saved_views import (
     list_saved_views,
@@ -26,9 +27,70 @@ from custom_components.maintenance_supporter.helpers.schedule import (
     KIND_INTERVAL,
     Schedule,
 )
-from custom_components.maintenance_supporter.websocket.io import _iso_marker
+from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
+from custom_components.maintenance_supporter.websocket.io import _iso_marker, _sanitize_history
 
 TODAY = date(2026, 6, 1)
+
+
+# ── HH:MM:SS schedule_time (config-flow TimeSelector) parses, not midnight ────
+
+
+def test_schedule_time_tolerates_hh_mm_ss() -> None:
+    """The config-flow TimeSelector stores "HH:MM:SS"; the consumers must parse
+    it, not fall back to midnight (the old split(':',1) → int('30:00') raised).
+
+    tz-independent proof: time(0,0) is "past" at every wall-clock time, so a
+    SUCCESSFUL parse of "00:00:30" reads True regardless of the test's timezone —
+    the old (raising) code returned False for any "HH:MM:SS" value.
+    """
+    from .conftest import build_task_data
+
+    assert MaintenanceTask.from_dict(build_task_data(schedule_time="00:00:30"))._is_past_schedule_time() is True
+    # Plain HH:MM unchanged.
+    assert MaintenanceTask.from_dict(build_task_data(schedule_time="00:00"))._is_past_schedule_time() is True
+    # A malformed value still falls back safely to "not past" (no crash).
+    assert MaintenanceTask.from_dict(build_task_data(schedule_time="garbage"))._is_past_schedule_time() is False
+
+
+# ── Non-Latin object names slugify to distinct, non-empty slugs ───────────────
+
+
+def test_slugify_non_latin_names_are_distinct_and_nonempty() -> None:
+    a = slugify_object_name("日本語")
+    b = slugify_object_name("中文")
+    assert a and b and a != b, (a, b)
+    assert slugify_object_name("!!!") != ""
+    # Latin names are unchanged (no hash fallback).
+    assert slugify_object_name("Pool Pump") == "pool_pump"
+    # Same name → same slug (duplicate detection still works).
+    assert slugify_object_name("日本語") == a
+
+
+# ── Imported history: non-finite / negative cost is scrubbed ──────────────────
+
+
+def test_sanitize_history_scrubs_bad_cost() -> None:
+    import math
+
+    hist = [
+        {"type": "completed", "cost": float("inf")},
+        {"type": "completed", "cost": float("nan")},
+        {"type": "completed", "cost": -50},
+        {"type": "completed", "cost": 12.5},
+        {"type": "completed", "cost": True},  # bool is not a cost
+        {"type": "completed"},  # no cost
+        "not-a-dict",
+    ]
+    out = _sanitize_history(hist)
+    assert len(out) == 6  # the non-dict is dropped
+    costs = [e.get("cost") for e in out]
+    # Only the finite non-negative float survives; the rest have cost removed.
+    assert costs[3] == 12.5
+    assert "cost" not in out[0] and "cost" not in out[1] and "cost" not in out[2]
+    assert "cost" not in out[4] and "cost" not in out[5]
+    assert all(c is None or math.isfinite(c) for c in costs)
+    assert _sanitize_history("not-a-list") == []
 
 
 # ── 3. Finite series can't be resurrected by a postpone/override ──────────────

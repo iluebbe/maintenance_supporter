@@ -1115,6 +1115,63 @@ async def test_auto_complete_skips_archived_task(
     assert len(completed) == 0
 
 
+async def test_auto_complete_skips_paused_object(
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
+) -> None:
+    """2026-07 audit: a paused object fires nothing — the event-driven recovery
+    path must gate on paused_at too, not just archived/enabled."""
+    last = (dt_util.now().date() - timedelta(days=40)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Paused Recovery",
+        data=build_object_entry_data(
+            object_data={**build_object_data(name="Paused Recovery"), "paused_at": dt_util.now().isoformat()},
+            tasks={TASK_ID_1: task},
+        ),
+        source="user", unique_id="maintenance_supporter_recovery_paused",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+
+    coordinator = obj_entry.runtime_data.coordinator
+    await coordinator.async_auto_complete_on_recovery(TASK_ID_1, 82.5)
+
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
+    assert len(completed) == 0, "paused object must not record an auto-completion"
+
+
+async def test_double_photo_completion_is_deduped(
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """2026-07 audit: two completions carrying a photo, interleaved within the
+    dedup window, must record only ONE completion. The guard is now stamped
+    BEFORE the photo-link await (stamping only at the end let both interleave)."""
+    import asyncio
+
+    last = (dt_util.now().date() - timedelta(days=40)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    obj_entry = _recovery_entry(hass, task, "maintenance_supporter_double_photo")
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+    coordinator = obj_entry.runtime_data.coordinator
+
+    async def _slow_link(self: object, photo_doc_id: str, task_id: str) -> None:
+        await asyncio.sleep(0.02)  # force a loop yield so the two calls interleave
+
+    monkeypatch.setattr(type(coordinator), "_link_completion_photo", _slow_link)
+    await asyncio.gather(
+        coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_id="doc-a"),
+        coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_id="doc-b"),
+    )
+
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
+    assert len(completed) == 1, f"double-tap with photo recorded {len(completed)} completions"
+
+
 # ─── Trigger-value visibility for state_change / runtime (forum #16) ────
 
 

@@ -428,14 +428,16 @@ export const panelStyles = css`
     text-transform: uppercase;
   }
 
+  /* Dark text on the light chips — white on green/orange is 2.2–2.8:1, below
+     the 3:1 WCAG UI floor (matches the .status-badge fix). */
   .status-chip.ok {
     background: #4caf50;
-    color: white;
+    color: #000;
   }
 
   .status-chip.warning {
     background: #ff9800;
-    color: white;
+    color: #000;
   }
 
   .status-chip.overdue {

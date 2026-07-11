@@ -14,8 +14,11 @@ import { expect, fixture, html } from "@open-wc/testing";
 import { LitElement, css } from "lit";
 import { customElement } from "lit/decorators.js";
 import { sharedStyles } from "../styles";
+import { panelStyles } from "../panel-styles";
 
 const STATUSES = ["ok", "due_soon", "overdue", "triggered", "done", "archived", "paused"];
+// The task-detail view uses a SEPARATE `.status-chip` set in panel-styles.ts.
+const CHIP_STATUSES = ["ok", "warning", "overdue", "done"];
 
 @customElement("badge-contrast-probe")
 class BadgeContrastProbe extends LitElement {
@@ -23,6 +26,16 @@ class BadgeContrastProbe extends LitElement {
   render() {
     return html`${STATUSES.map(
       (s) => html`<span class="status-badge ${s}" data-s=${s}>${s}</span>`,
+    )}`;
+  }
+}
+
+@customElement("chip-contrast-probe")
+class ChipContrastProbe extends LitElement {
+  static styles = [panelStyles, css`:host { display: block; }`];
+  render() {
+    return html`${CHIP_STATUSES.map(
+      (s) => html`<span class="status-chip ${s}" data-s=${s}>${s}</span>`,
     )}`;
   }
 }
@@ -55,6 +68,17 @@ describe("status badge contrast (WCAG UI 3:1)", () => {
       const cs = getComputedStyle(badge);
       const ratio = contrast(cs.color, cs.backgroundColor);
       expect(ratio, `${s}: ${cs.color} on ${cs.backgroundColor} = ${ratio.toFixed(2)}:1`).to.be.greaterThan(3.0);
+    }
+  });
+
+  it("every task-detail status chip clears 3:1 text-on-background", async () => {
+    const el = await fixture<ChipContrastProbe>(html`<chip-contrast-probe></chip-contrast-probe>`);
+    await el.updateComplete;
+    for (const s of CHIP_STATUSES) {
+      const chip = el.shadowRoot!.querySelector<HTMLElement>(`.status-chip[data-s="${s}"]`)!;
+      const cs = getComputedStyle(chip);
+      const ratio = contrast(cs.color, cs.backgroundColor);
+      expect(ratio, `chip ${s}: ${cs.color} on ${cs.backgroundColor} = ${ratio.toFixed(2)}:1`).to.be.greaterThan(3.0);
     }
   });
 });

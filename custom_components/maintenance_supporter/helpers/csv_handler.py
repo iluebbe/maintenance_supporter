@@ -113,7 +113,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "due_date": sched["due_date"] or "",
                     "interval_anchor": sched["interval_anchor"],
                     "schedule_time": tdata.get("schedule_time", ""),
-                    "reading_unit": tdata.get("reading_unit", ""),
+                    "reading_unit": _csv_safe(tdata.get("reading_unit", "")),
                     "warning_days": tdata.get("warning_days", DEFAULT_WARNING_DAYS),
                     "last_performed": tdata.get("last_performed", ""),
                     "notes": _csv_safe(tdata.get("notes", "")),

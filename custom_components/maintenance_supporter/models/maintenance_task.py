@@ -170,9 +170,11 @@ class MaintenanceTask:
         if not self.schedule_time:
             return False
         try:
-            hh, mm = self.schedule_time.split(":", 1)
-            target = time(int(hh), int(mm))
-        except (ValueError, TypeError):
+            # Tolerate both "HH:MM" (panel/WS) and "HH:MM:SS" (HA TimeSelector
+            # in the config-flow) — take the first two components.
+            parts = str(self.schedule_time).split(":")
+            target = time(int(parts[0]), int(parts[1]))
+        except (ValueError, TypeError, IndexError):
             return False
         return dt_util.now().time() >= target
 

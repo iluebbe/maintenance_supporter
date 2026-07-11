@@ -972,6 +972,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 time.monotonic() - last_manual,
             )
             return
+        # Stamp the guard NOW, before any await (the photo-link below yields the
+        # loop). Stamping only at the end let two photo-carrying completions in
+        # the same tick both pass the check and interleave → double rotation /
+        # part-consume / history entry.
+        self._recent_manual_completions[task_id] = time.monotonic()
 
         task = MaintenanceTask.from_dict(merged[task_id])
         pre_rotation_responsible = task.responsible_user_id
@@ -1019,7 +1024,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 updated_config = analyzer.update_on_completion(task.adaptive_config, actual_interval, feedback)
                 task.adaptive_config = updated_config
 
-        self._recent_manual_completions[task_id] = time.monotonic()
         await self._persist_and_signal_task_change(task_id, task)
 
         # Shared-task rotation: advance_rotation() (inside task.complete)
@@ -1092,6 +1096,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         # Inert tasks never auto-complete.
         if task_data.get("archived_at") is not None or task_data.get("enabled") is False:
+            return
+        # A paused object fires nothing — the periodic evaluator gates on this,
+        # but this event-driven recovery path must too (else a paused object
+        # whose sensor recovers records a real completion, defeating the pause).
+        if self.entry.data.get(CONF_OBJECT, {}).get("paused_at") is not None:
             return
         # Race guard: if a completion was recorded moments ago (e.g. a manual
         # complete whose trigger reset crossed paths with a queued state

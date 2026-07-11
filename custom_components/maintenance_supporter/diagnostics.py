@@ -33,7 +33,16 @@ TO_REDACT = {
     "nfc_tag_id",
     "notify_service",
     "responsible_user_id",
+    # HA user UUIDs — redact for parity with responsible_user_id (were leaking).
+    "assignee_pool",
+    "admin_panel_user_ids",
     "serial_number",
+    # Spare-part supplier/product identifiers (product_url can carry tokens).
+    "product_url",
+    "vendor",
+    "mpn",
+    "gtin",
+    "storage_location",
 }
 
 
@@ -211,10 +220,11 @@ def _check_data_quality(data: Mapping[str, Any]) -> list[str]:
 
         sched = read_legacy_fields(task)
         if sched["schedule_type"] == "time_based" and not sched["interval_days"]:
-            warnings.append(f"Task '{task.get('name', task_id)}' is time-based but has no interval")
+            # Reference by id, not name — these warnings aren't redacted.
+            warnings.append(f"Task {task_id} is time-based but has no interval")
 
         trigger = task.get("trigger_config")
         if trigger and trigger.get("type") != "compound" and not trigger.get("entity_id"):
-            warnings.append(f"Task '{task.get('name', task_id)}' has trigger config but no entity")
+            warnings.append(f"Task {task_id} has trigger config but no entity")
 
     return warnings

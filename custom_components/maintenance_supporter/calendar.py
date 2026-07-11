@@ -542,15 +542,16 @@ class MaintenanceCalendar(CalendarEntity):
         end: date | datetime = next_due + timedelta(days=1)
         if task.schedule_time and self._is_schedule_time_feature_enabled():
             try:
-                hh, mm = task.schedule_time.split(":", 1)
+                # Tolerate "HH:MM" and "HH:MM:SS" (HA TimeSelector's format).
+                parts = str(task.schedule_time).split(":")
                 start_dt = datetime.combine(
                     next_due,
-                    time(int(hh), int(mm)),
+                    time(int(parts[0]), int(parts[1])),
                     tzinfo=dt_util.DEFAULT_TIME_ZONE,
                 )
                 start = start_dt
                 end = start_dt + timedelta(minutes=30)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, IndexError):
                 pass  # malformed schedule_time → fall back to all-day
 
         return CalendarEvent(

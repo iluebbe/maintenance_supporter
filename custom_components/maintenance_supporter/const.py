@@ -32,8 +32,19 @@ def slugify_object_name(name: str) -> str:
 
     Replaces any non-alphanumeric character with underscore, collapses
     consecutive underscores, and strips leading/trailing underscores.
+
+    A name with no ASCII alphanumerics (CJK, Cyrillic, emoji, punctuation-only)
+    slugifies to an empty string, which would make every such object collide on
+    the same ``maintenance_supporter_`` unique id (so a whole non-Latin-script
+    user base could only ever create ONE object). Fall back to a stable hash of
+    the original name so distinct names get distinct ids.
     """
-    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]", "_", name.lower())).strip("_")
+    slug = re.sub(r"_+", "_", re.sub(r"[^a-z0-9]", "_", name.lower())).strip("_")
+    if not slug:
+        import hashlib
+
+        slug = "obj_" + hashlib.sha1(name.strip().encode("utf-8")).hexdigest()[:12]
+    return slug
 
 
 PLATFORMS: list[Platform] = [

@@ -188,6 +188,12 @@ class TaskCrudMixin:
                 # schedule_time only present when global advanced flag is on; clear by submitting "".
                 if CONF_TASK_SCHEDULE_TIME in user_input:
                     sched = (user_input.get(CONF_TASK_SCHEDULE_TIME) or "").strip()
+                    # HA's TimeSelector serialises "HH:MM:SS"; every consumer
+                    # parses "HH:MM", so normalise to the first two components
+                    # here (else the calendar/next-due land at midnight).
+                    parts = sched.split(":")
+                    if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+                        sched = f"{int(parts[0]):02d}:{int(parts[1]):02d}"
                     if sched:
                         updated_task["schedule_time"] = sched
                     else:
