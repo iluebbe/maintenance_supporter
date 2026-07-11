@@ -722,5 +722,11 @@
   "part_restock": "Muuta varastoa",
   "restock_quantity_label": "Ostettu määrä",
   "consumes_parts_label": "Kuluttaa osia",
-  "parts_load_failed": "Kohteen osia ei voitu ladata — osien kulutusvalinnat eivät ole juuri nyt käytettävissä."
+  "parts_load_failed": "Kohteen osia ei voitu ladata — osien kulutusvalinnat eivät ole juuri nyt käytettävissä.",
+  "settings_export_selection": "Rajaa valittuihin kohteisiin (valinnainen)",
+  "settings_docs_archive": "Asiakirja-arkisto (tiedostoineen)",
+  "settings_docs_archive_hint": "JSON/YAML/CSV-viennit sisältävät vain asetukset. Tämä ZIP sisältää ladattujen tiedostojen sisällön, joten palautus on täydellinen.",
+  "settings_docs_export_btn": "Lataa asiakirjojen ZIP",
+  "settings_docs_import_btn": "Palauta asiakirjojen ZIP",
+  "settings_docs_import_success": "Palautettu: {blobs} tiedostoa, {docs} asiakirjaa"
 }

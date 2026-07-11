@@ -722,5 +722,11 @@
   "part_restock": "Ajustar existencias",
   "restock_quantity_label": "Cantidad comprada",
   "consumes_parts_label": "Consume piezas",
-  "parts_load_failed": "No se pudieron cargar las piezas de este objeto — las opciones de consumo de piezas no están disponibles ahora."
+  "parts_load_failed": "No se pudieron cargar las piezas de este objeto — las opciones de consumo de piezas no están disponibles ahora.",
+  "settings_export_selection": "Limitar a los objetos seleccionados (opcional)",
+  "settings_docs_archive": "Archivo de documentos (con archivos)",
+  "settings_docs_archive_hint": "Las exportaciones JSON/YAML/CSV solo contienen la configuración. Este ZIP incluye el contenido de los archivos subidos para una restauración completa.",
+  "settings_docs_export_btn": "Descargar ZIP de documentos",
+  "settings_docs_import_btn": "Restaurar ZIP de documentos",
+  "settings_docs_import_success": "Restaurado: {blobs} archivos, {docs} documentos"
 }

@@ -4,6 +4,22 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ New — flexible backup: selective export + a documents archive
+
+- **Selective export** — the JSON, YAML and CSV exports now take an optional
+  object selection (`entry_ids`), so you can move a single asset between
+  installs instead of always exporting everything. Omitting the selection
+  keeps the existing "export all" behaviour.
+- **Documents archive (ZIP with file contents)** — the JSON/YAML/CSV backups
+  carry settings only; document *file contents* rode the HA backup and went
+  missing on a plain JSON import. A new admin-only archive
+  (`GET`/`POST /api/maintenance_supporter/documents/archive`, fetched via a
+  signed path) packs the uploaded files (content-addressed blobs) + a manifest
+  into a ZIP and restores them — matching objects by id, then by name for a
+  cross-instance restore, and idempotent on repeat. Pair it with a JSON export
+  for a complete, portable backup. Both are reachable from **Settings →
+  Import / Export** (object picker + *Download / Restore documents ZIP*).
+
 ### 🐛 Fixed (export/import completeness audit 2026-07-11)
 
 - **Archived tasks came back ACTIVE after a backup/restore** — the JSON export

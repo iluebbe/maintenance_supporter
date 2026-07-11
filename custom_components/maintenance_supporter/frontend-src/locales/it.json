@@ -722,5 +722,11 @@
   "part_restock": "Correggi scorta",
   "restock_quantity_label": "Quantità acquistata",
   "consumes_parts_label": "Consuma ricambi",
-  "parts_load_failed": "Impossibile caricare i ricambi di questo oggetto — le opzioni di consumo ricambi non sono al momento disponibili."
+  "parts_load_failed": "Impossibile caricare i ricambi di questo oggetto — le opzioni di consumo ricambi non sono al momento disponibili.",
+  "settings_export_selection": "Limita agli oggetti selezionati (facoltativo)",
+  "settings_docs_archive": "Archivio documenti (con file)",
+  "settings_docs_archive_hint": "Gli export JSON/YAML/CSV contengono solo le impostazioni. Questo ZIP include il contenuto dei file caricati per un ripristino completo.",
+  "settings_docs_export_btn": "Scarica ZIP dei documenti",
+  "settings_docs_import_btn": "Ripristina ZIP dei documenti",
+  "settings_docs_import_success": "Ripristinati: {blobs} file, {docs} documenti"
 }

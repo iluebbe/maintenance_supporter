@@ -33,6 +33,8 @@ from .helpers.permissions import user_can_write
 UPLOAD_URL = "/api/maintenance_supporter/document/upload"
 SERVE_URL = "/api/maintenance_supporter/document/{doc_id}"
 EXCERPT_URL = "/api/maintenance_supporter/document/{doc_id}/excerpt"
+# Documents archive (ZIP with blobs) — the one export carrying file contents.
+DOCS_ARCHIVE_URL = "/api/maintenance_supporter/documents/archive"
 
 # Survives the hass.data[DOMAIN] pop on last-entry unload (see registrar).
 _VIEWS_REGISTERED_KEY = f"{DOMAIN}_views_registered"
@@ -241,6 +243,61 @@ class DocumentExcerptView(HomeAssistantView):
         )
 
 
+class DocumentsArchiveView(HomeAssistantView):
+    """Export/import the documents archive — a ZIP that carries file BLOBS.
+
+    ``GET`` streams a ZIP (manifest + blobs) for all objects, or a selection
+    via ``?entry_ids=a,b``. ``POST`` a ZIP restores blobs + re-attaches
+    metadata. Admin-only both ways (it moves file contents in and out).
+    """
+
+    url = DOCS_ARCHIVE_URL
+    name = "api:maintenance_supporter:documents:archive"
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        """Store the hass reference (the view outlives any single request)."""
+        self.hass = hass
+
+    def _require_admin(self, request: web.Request) -> bool:
+        user = request.get("hass_user")
+        return bool(user and user.is_admin)
+
+    async def get(self, request: web.Request) -> web.StreamResponse:
+        """Stream the documents archive ZIP (all objects or ?entry_ids=…)."""
+        if not self._require_admin(request):
+            return web.Response(status=HTTPStatus.FORBIDDEN)
+        from .helpers.doc_archive import build_documents_archive
+
+        raw = request.query.get("entry_ids")
+        entry_ids = {e for e in raw.split(",") if e} if raw else None
+        content = await self.hass.async_add_executor_job(build_documents_archive, self.hass, entry_ids)
+        return web.Response(
+            body=content,
+            content_type="application/zip",
+            headers={
+                hdrs.CONTENT_DISPOSITION: _content_disposition("maintenance-documents.zip", inline=False),
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+    async def post(self, request: web.Request) -> web.Response:
+        """Restore a documents archive ZIP (blobs + metadata)."""
+        if not self._require_admin(request):
+            return self.json_message("Not authorized", HTTPStatus.FORBIDDEN)
+        from .helpers.doc_archive import MAX_ARCHIVE_BYTES, import_documents_archive
+
+        request._client_max_size = MAX_ARCHIVE_BYTES + 1024 * 1024
+        data = await request.post()
+        file_field = data.get("file")
+        if not isinstance(file_field, web.FileField):
+            return self.json_message("file is required", HTTPStatus.BAD_REQUEST)
+        content = await self.hass.async_add_executor_job(file_field.file.read)
+        result = await import_documents_archive(self.hass, content)
+        if "error" in result:
+            return self.json_message(result["error"], HTTPStatus.BAD_REQUEST)
+        return self.json(result)
+
+
 def async_register_document_views(hass: HomeAssistant) -> None:
     """Register the upload + serve views on the HTTP component.
 
@@ -253,4 +310,5 @@ def async_register_document_views(hass: HomeAssistant) -> None:
     hass.http.register_view(DocumentUploadView(hass))
     hass.http.register_view(DocumentServeView(hass))
     hass.http.register_view(DocumentExcerptView(hass))
+    hass.http.register_view(DocumentsArchiveView(hass))
     hass.data[_VIEWS_REGISTERED_KEY] = True

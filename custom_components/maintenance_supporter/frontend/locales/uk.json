@@ -722,5 +722,11 @@
   "part_restock": "Змінити запас",
   "restock_quantity_label": "Куплена кількість",
   "consumes_parts_label": "Витрачає деталі",
-  "parts_load_failed": "Не вдалося завантажити запчастини цього об'єкта — параметри витрати запчастин зараз недоступні."
+  "parts_load_failed": "Не вдалося завантажити запчастини цього об'єкта — параметри витрати запчастин зараз недоступні.",
+  "settings_export_selection": "Обмежити вибраними об'єктами (необов'язково)",
+  "settings_docs_archive": "Архів документів (з файлами)",
+  "settings_docs_archive_hint": "Експорти JSON/YAML/CSV містять лише налаштування. Цей ZIP містить вміст завантажених файлів, щоб відновлення було повним.",
+  "settings_docs_export_btn": "Завантажити ZIP документів",
+  "settings_docs_import_btn": "Відновити ZIP документів",
+  "settings_docs_import_success": "Відновлено: {blobs} файлів, {docs} документів"
 }
