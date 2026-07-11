@@ -737,5 +737,14 @@
   "adopt_problem_ok": "норма",
   "adopt_problem_new_object": "(новий)",
   "adopt_problem_adopt": "Прийняти вибрані",
-  "adopt_problem_done": "Прийнято сенсорів проблем: {tasks}"
+  "adopt_problem_done": "Прийнято сенсорів проблем: {tasks}",
+  "views_label": "Подання",
+  "views_none": "— Без подання —",
+  "views_manage": "Зберегти / керувати поданнями",
+  "views_dialog_title": "Збережені подання",
+  "views_dialog_hint": "Збережіть поточні фільтри як іменоване подання, доступне всім.",
+  "views_name_placeholder": "Назва подання",
+  "views_save_current": "Зберегти поточні фільтри",
+  "views_none_yet": "Ще немає збережених подань.",
+  "close": "Закрити"
 }

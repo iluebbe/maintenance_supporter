@@ -4,6 +4,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Saved filter views
+
+- **Name a filter combination once, reapply it in one tap** — the panel task
+  list gained a **Views** dropdown. Set the status / user / archived filters plus
+  sort and group-by the way you want, then **Save current filters** under a name
+  (e.g. "Kitchen overdue", "Unassigned this week"). Picking a view from the
+  dropdown reapplies the whole combination; hand-editing any control clears the
+  selection so the dropdown never lies. Views are **shared** across everyone who
+  opens the panel (a household/team sees the same named views) and survive a
+  restart. Manage (rename by re-saving, delete) from the same dialog. Three WS
+  commands (`views/list` read, `views/save` + `views/delete` write); a view's id
+  is a stable handle a later feature can route notifications to.
+
 ### ✨ Adopt problem sensors as tasks
 
 - **Turn HA problem sensors into maintenance tasks** — many integrations expose

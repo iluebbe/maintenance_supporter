@@ -737,5 +737,14 @@
   "adopt_problem_ok": "норма",
   "adopt_problem_new_object": "(новый)",
   "adopt_problem_adopt": "Принять выбранные",
-  "adopt_problem_done": "Принято сенсоров проблем: {tasks}"
+  "adopt_problem_done": "Принято сенсоров проблем: {tasks}",
+  "views_label": "Представления",
+  "views_none": "— Без представления —",
+  "views_manage": "Сохранить / управлять представлениями",
+  "views_dialog_title": "Сохранённые представления",
+  "views_dialog_hint": "Сохраните текущие фильтры как именованное представление, доступное всем.",
+  "views_name_placeholder": "Название представления",
+  "views_save_current": "Сохранить текущие фильтры",
+  "views_none_yet": "Пока нет сохранённых представлений.",
+  "close": "Закрыть"
 }

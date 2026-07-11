@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(new)",
   "adopt_problem_adopt": "Adopt selected",
-  "adopt_problem_done": "Adopted {tasks} problem sensor(s)"
+  "adopt_problem_done": "Adopted {tasks} problem sensor(s)",
+  "views_label": "Views",
+  "views_none": "— No view —",
+  "views_manage": "Save / manage views",
+  "views_dialog_title": "Saved views",
+  "views_dialog_hint": "Save the current filters as a named view everyone can reuse.",
+  "views_name_placeholder": "View name",
+  "views_save_current": "Save current filters",
+  "views_none_yet": "No saved views yet.",
+  "close": "Close"
 }

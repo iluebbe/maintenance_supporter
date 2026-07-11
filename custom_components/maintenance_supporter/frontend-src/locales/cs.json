@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(nový)",
   "adopt_problem_adopt": "Převzít vybrané",
-  "adopt_problem_done": "Převzato {tasks} senzorů problémů"
+  "adopt_problem_done": "Převzato {tasks} senzorů problémů",
+  "views_label": "Zobrazení",
+  "views_none": "— Žádné zobrazení —",
+  "views_manage": "Uložit / spravovat zobrazení",
+  "views_dialog_title": "Uložená zobrazení",
+  "views_dialog_hint": "Uložte aktuální filtry jako pojmenované zobrazení, které může použít každý.",
+  "views_name_placeholder": "Název zobrazení",
+  "views_save_current": "Uložit aktuální filtry",
+  "views_none_yet": "Zatím žádná uložená zobrazení.",
+  "close": "Zavřít"
 }

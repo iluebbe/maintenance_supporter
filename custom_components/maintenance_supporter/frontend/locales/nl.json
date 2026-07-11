@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(nieuw)",
   "adopt_problem_adopt": "Selectie overnemen",
-  "adopt_problem_done": "{tasks} probleemsensor(en) overgenomen"
+  "adopt_problem_done": "{tasks} probleemsensor(en) overgenomen",
+  "views_label": "Weergaven",
+  "views_none": "— Geen weergave —",
+  "views_manage": "Weergaven opslaan/beheren",
+  "views_dialog_title": "Opgeslagen weergaven",
+  "views_dialog_hint": "Sla de huidige filters op als een benoemde weergave die iedereen kan gebruiken.",
+  "views_name_placeholder": "Naam weergave",
+  "views_save_current": "Huidige filters opslaan",
+  "views_none_yet": "Nog geen opgeslagen weergaven.",
+  "close": "Sluiten"
 }

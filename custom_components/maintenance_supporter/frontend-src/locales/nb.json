@@ -737,5 +737,14 @@
   "adopt_problem_ok": "ok",
   "adopt_problem_new_object": "(ny)",
   "adopt_problem_adopt": "Ta i bruk valgte",
-  "adopt_problem_done": "Tok i bruk {tasks} problemsensor(er)"
+  "adopt_problem_done": "Tok i bruk {tasks} problemsensor(er)",
+  "views_label": "Visninger",
+  "views_none": "— Ingen visning —",
+  "views_manage": "Lagre / administrer visninger",
+  "views_dialog_title": "Lagrede visninger",
+  "views_dialog_hint": "Lagre gjeldende filtre som en navngitt visning alle kan bruke.",
+  "views_name_placeholder": "Visningsnavn",
+  "views_save_current": "Lagre gjeldende filtre",
+  "views_none_yet": "Ingen lagrede visninger ennå.",
+  "close": "Lukk"
 }

@@ -737,5 +737,14 @@
   "adopt_problem_ok": "正常",
   "adopt_problem_new_object": "（新建）",
   "adopt_problem_adopt": "采用所选",
-  "adopt_problem_done": "已采用 {tasks} 个问题传感器"
+  "adopt_problem_done": "已采用 {tasks} 个问题传感器",
+  "views_label": "视图",
+  "views_none": "— 无视图 —",
+  "views_manage": "保存/管理视图",
+  "views_dialog_title": "已保存的视图",
+  "views_dialog_hint": "将当前筛选保存为所有人都可复用的命名视图。",
+  "views_name_placeholder": "视图名称",
+  "views_save_current": "保存当前筛选",
+  "views_none_yet": "尚无已保存的视图。",
+  "close": "关闭"
 }
