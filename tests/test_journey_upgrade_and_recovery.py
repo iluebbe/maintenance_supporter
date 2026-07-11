@@ -367,6 +367,11 @@ async def test_export_import_reexport_round_trip(hass: HomeAssistant, global_ent
             for t in o.get("tasks", []):
                 t.pop("id", None)
                 t.pop("object_id", None)
+                # A task with no created_at gets one stamped on import (it is
+                # the next_due fallback anchor) — that's completion, not data
+                # loss, so it's instance-specific like the ids above. The
+                # present-value round trip is pinned in test_ws_io.py.
+                t.pop("created_at", None)
             out.append(o)
         return out
 

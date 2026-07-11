@@ -43,6 +43,11 @@ _TASK_STR_LIMITS: dict[str, int] = {
     "responsible_user_id": MAX_META_LENGTH,
     "entity_slug": MAX_ENTITY_SLUG_LENGTH,
     "created_at": MAX_DATE_LENGTH,
+    # Lifecycle metadata that now round-trips through JSON import (audit
+    # 2026-07-11): an ISO timestamp + a short reason code. Length-capped so a
+    # crafted backup can't smuggle oversized strings past the importer.
+    "archived_at": MAX_META_LENGTH,
+    "archived_reason": MAX_META_LENGTH,
     "schedule_time": MAX_SCHEDULE_TIME_LENGTH,
     "priority": MAX_TYPE_LENGTH,
     "reading_unit": 32,

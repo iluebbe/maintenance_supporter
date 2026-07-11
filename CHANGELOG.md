@@ -4,6 +4,26 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixed (export/import completeness audit 2026-07-11)
+
+- **Archived tasks came back ACTIVE after a backup/restore** — the JSON export
+  and the importer both dropped `archived_at` / `archived_reason`, so a retired
+  task reappeared as due/overdue on the restored copy. Both fields now
+  round-trip; a new tripwire test keeps an archived task archived across
+  export → import.
+- **`created_at` now round-trips** — it is the fallback anchor for `next_due`
+  when a task has no `last_performed`, so silently re-stamping it on import
+  could shift due dates. It is exported and imported (a task that genuinely has
+  none is still stamped on import, as before).
+- **Object `documentation_url` / `notes` were lost on CSV import** — they were
+  in the per-object CSV export columns but never read back. Now imported.
+
+These close the last field-completeness gaps in JSON/CSV round-trip; the
+existing tripwire that pins every persisted task field is extended to cover
+`created_at`, and the parts + stock round-trip remains covered by its own test.
+Document file *contents* (blobs) are still carried by the HA backup, not the
+JSON export — a dedicated documents export is planned.
+
 ### 🛡️ Hardening (limits audit 2026-07-11)
 
 - **Per-object fan-out caps** — a runaway automation or import loop could

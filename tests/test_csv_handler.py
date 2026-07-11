@@ -63,3 +63,19 @@ def test_safe_int_none_returns_default() -> None:
     assert _safe_int("bad", 14) == 14
     assert _safe_int("30", None) == 30
     assert _safe_int("15.7", 0) == 15  # float string → int
+
+
+def test_csv_object_documentation_url_and_notes_roundtrip() -> None:
+    """object_documentation_url + object_notes are in the export columns but
+    were never read back on import (round-trip gap, audit 2026-07-11)."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import import_objects_csv
+
+    csv_content = (
+        "object_name,object_documentation_url,object_notes,task_name,task_type,interval_days,warning_days\n"
+        "Boiler,https://vendor.test/manual.pdf,Serviced by ACME,Descale,cleaning,90,7\n"
+    )
+    objects = import_objects_csv(csv_content)
+    assert len(objects) == 1
+    obj = objects[0]["object"]
+    assert obj["documentation_url"] == "https://vendor.test/manual.pdf", "documentation_url dropped on CSV import"
+    assert obj["notes"] == "Serviced by ACME", "notes dropped on CSV import"
