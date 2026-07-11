@@ -9,6 +9,37 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ---
 
+## Next up (recommended order)
+
+The bulk of this roadmap has shipped — most recently the **v2.23.x** wave:
+spare parts & consumables, **documents linked to tasks** (with a per-task
+paperclip badge and links that survive a backup), and a **complete, portable
+backup** (selective JSON/YAML/CSV export + a documents archive that carries the
+file contents). What's left, ordered by value × how much it reuses existing
+machinery × risk:
+
+1. **Adopt problem sensors as triggered tasks** (💡) — highest leverage. It
+   reuses the whole *sensor-trigger → task → history → notification* pipeline,
+   so it's a discovery + opt-in-sync layer rather than a new subsystem. Turns
+   one-off appliance faults (printer errors, filter warnings, battery alerts)
+   into the same inbox, history and reminders as planned maintenance. The care
+   is in the **scoping** — explicit include/exclude by entity / device / area /
+   label so a chatty integration can't flood the task list.
+2. **Saved filter views (profiles)** (💡) — high value, larger surface. Ship the
+   MVP first (save + apply a named filter combo across the panel list and the
+   card), then the interesting part: **notification routing** ("only notify me
+   about view 'Garden'").
+3. **Dark-mode & color-blind contrast QA** (🟡) — no new code, a manual
+   multi-theme browser pass; can piggyback on the screenshot pipeline.
+4. **Form generation from field specs** (🟡, internal) — the long-term
+   parity-by-construction step for the two hand-written task/trigger forms; no
+   direct user value, so it waits behind the features above.
+
+Exploratory, no near-term commitment: voice/Assist task creation, optional
+gamification, approval workflow.
+
+---
+
 ## Near-term (planned)
 
 ### ✅ LLM setup assistant — a skill that configures the integration for you
@@ -95,6 +126,22 @@ editable in the dialog. Datasheets/receipts attach through the document
 store; per-part stock sensors + a global "parts to reorder" counter feed
 automations (edge-triggered low/out/restocked events); the printable work
 sheet lists required parts; everything round-trips through export/import.
+
+### ✅ Documents linked to tasks
+**Shipped** (v2.23.1). A document can belong to a specific task, not just the
+object: each task row carries a **paperclip badge** with its document count,
+the object view is ordered *Tasks → Documents → Parts*, and the task-detail
+page lets you link/unlink the object's documents. The link **survives a
+backup/restore** — task ids are remapped onto the fresh ids on import, exactly
+like the spare-part links.
+
+### ✅ Complete, portable backup — selective export + documents archive
+**Shipped** (v2.23.1). The JSON/YAML/CSV export can be **limited to selected
+objects** (to move a single asset between installs), and a dedicated
+**documents archive** (a ZIP of the content-addressed file blobs + a manifest)
+downloads/restores the file *contents* the settings export omits — matching
+objects by id then by name for a cross-instance move, idempotent on repeat.
+Together they make a complete, portable backup.
 
 ---
 
@@ -212,10 +259,11 @@ notification pipeline as planned maintenance. Needs careful scoping
 (explicit include/exclude by entity, device, area or label) so a chatty
 integration can't flood the task list.
 
-### 💡 Cross-cutting labels / tags
-Lightweight tags (e.g. `#safety`, `#seasonal`, `#tenant-visible`) that cut
-across objects, areas, and groups for filtering and reporting — orthogonal to
-the existing hierarchical grouping.
+### ✅ Cross-cutting labels / tags
+**Shipped** (v2.17). Lightweight comma-separated tags per task (e.g. `safety`,
+`seasonal`) that cut across objects, areas, and groups — shown as chips,
+searchable in the command palette, filterable, and round-tripped through
+export/import. Orthogonal to the existing hierarchical grouping.
 
 ### ✅ Warranty-expiry reminders
 **Shipped** (opt-in). A daily check reminds once when an object's stored
