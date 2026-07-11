@@ -389,6 +389,9 @@ async def ws_import_json(
                     part_stocks[new_id] = stock
 
         import_tasks: dict[str, dict[str, Any]] = {}
+        # old task id → new id, so document task-links (task_ids) can be
+        # remapped onto the freshly generated tasks (mirrors part_id_map).
+        task_id_map: dict[str, str] = {}
         tasks_list = obj_entry.get("tasks", [])
         if not isinstance(tasks_list, list):
             tasks_list = []
@@ -399,6 +402,9 @@ async def ws_import_json(
             if not task_name:
                 continue
             task_id = uuid4().hex
+            old_task_id = str(task_entry.get("id") or "")
+            if old_task_id:
+                task_id_map[old_task_id] = task_id
             task_data: dict[str, Any] = {
                 "id": task_id,
                 "object_id": obj_id,
@@ -575,7 +581,7 @@ async def ws_import_json(
 
                 doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
                 if doc_store is not None:
-                    await doc_store.async_import_documents(obj_id, import_docs)
+                    await doc_store.async_import_documents(obj_id, import_docs, task_id_map=task_id_map)
         else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
 

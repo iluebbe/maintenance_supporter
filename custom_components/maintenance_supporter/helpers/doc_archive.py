@@ -68,6 +68,19 @@ def _object_name_map(hass: HomeAssistant) -> tuple[dict[str, str], dict[str, str
     return ids, by_name
 
 
+def _object_task_ids(hass: HomeAssistant, object_id: str) -> set[str]:
+    """The current task ids of the object whose id is ``object_id`` (empty if
+    none). Used to keep a same-instance archive restore's task links valid."""
+    from ..const import CONF_OBJECT, CONF_TASKS
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        if entry.data.get(CONF_OBJECT, {}).get("id") == object_id:
+            return set(entry.data.get(CONF_TASKS, {}))
+    return set()
+
+
 def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = None) -> bytes:
     """Build a documents ZIP for the selected objects (None = all).
 
@@ -91,7 +104,13 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
         for d in store.for_object(object_id):
             if d.get("kind") == KIND_WEBLINK:
                 docs.append(
-                    {"kind": KIND_WEBLINK, "url": d.get("url"), "title": d.get("title"), "tags": d.get("tags") or []}
+                    {
+                        "kind": KIND_WEBLINK,
+                        "url": d.get("url"),
+                        "title": d.get("title"),
+                        "tags": d.get("tags") or [],
+                        "task_ids": d.get("task_ids") or [],
+                    }
                 )
             else:
                 h = d.get("hash")
@@ -104,6 +123,7 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
                         "mime": d.get("mime"),
                         "size": d.get("size"),
                         "tags": d.get("tags") or [],
+                        "task_ids": d.get("task_ids") or [],
                     }
                 )
                 if isinstance(h, str):
@@ -198,7 +218,13 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
             if isinstance(m, dict) and (m.get("kind"), m.get("hash") or m.get("url")) not in existing_keys
         ]
         if fresh:
-            docs_created += await store.async_import_documents(target, fresh)
+            # Keep task links that still resolve on the target (a same-instance
+            # restore) via an identity map over the object's current task ids;
+            # a cross-instance restore has fresh task ids, so those links drop
+            # here and are re-established by the JSON import's remap instead.
+            valid_task_ids = _object_task_ids(hass, target)
+            identity = {tid: tid for tid in valid_task_ids}
+            docs_created += await store.async_import_documents(target, fresh, task_id_map=identity)
 
     return {
         "blobs_written": written,

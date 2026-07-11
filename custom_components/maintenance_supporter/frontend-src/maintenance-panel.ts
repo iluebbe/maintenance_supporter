@@ -2760,12 +2760,6 @@ export class MaintenanceSupporterPanel extends LitElement {
             </div>`
           : nothing}
 
-        <maintenance-documents-section
-          .hass=${this.hass}
-          .entryId=${obj.entry_id}
-          .canWrite=${!isOperator}
-        ></maintenance-documents-section>
-
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
           <ha-button
             class="archived-toggle ${this._showArchived ? "active" : ""}"
@@ -2792,6 +2786,9 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ${this._statusBadge(!!task.archived, !!task.is_done, task.status)}
                   ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
                   ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
+                  ${task.document_count
+                    ? html`<span class="doc-badge" title="${task.document_count} ${t("documents", L)}"><ha-icon icon="mdi:paperclip"></ha-icon>${task.document_count}</span>`
+                    : nothing}
                 </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
                 <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null)}</span>
@@ -2813,6 +2810,12 @@ export class MaintenanceSupporterPanel extends LitElement {
                 </span>
               </div>
             `)}</div>`}
+
+        <maintenance-documents-section
+          .hass=${this.hass}
+          .entryId=${obj.entry_id}
+          .canWrite=${!isOperator}
+        ></maintenance-documents-section>
 
         <maintenance-parts-section
           .hass=${this.hass}

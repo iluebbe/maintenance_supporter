@@ -219,6 +219,8 @@ export interface MaintenanceTask {
   responsible_user_id?: string | null;
   custom_icon?: string | null;
   nfc_tag_id?: string | null;
+  /** Number of documents linked to this task (paperclip badge on the row). */
+  document_count?: number;
   /** v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...). */
   reading_unit?: string | null;
   priority?: string | null;

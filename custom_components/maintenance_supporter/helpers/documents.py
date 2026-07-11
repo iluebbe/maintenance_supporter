@@ -226,15 +226,25 @@ class DocumentStore:
         await self._async_save()
         return {"id": doc_id, **doc}
 
-    async def async_import_documents(self, object_id: str, docs: list[dict[str, Any]]) -> int:
+    async def async_import_documents(
+        self, object_id: str, docs: list[dict[str, Any]], task_id_map: dict[str, str] | None = None
+    ) -> int:
         """Recreate document metadata for an imported object (P6).
 
         Web-links round-trip fully. File docs are restored as metadata + a blob
         refcount; the binary itself is not in the JSON export (it rides the
         /config backup), so unless a matching backup was restored the blob is
-        absent and the hygiene scan flags the doc as dangling. task_ids are
-        dropped (tasks get fresh ids on import). Returns the number created.
+        absent and the hygiene scan flags the doc as dangling. ``task_ids`` are
+        remapped through ``task_id_map`` (old→new task id) so a doc's task
+        links survive the import; ids with no mapping are dropped. Returns the
+        number created.
         """
+
+        def _remap(meta: dict[str, Any]) -> list[str]:
+            if not task_id_map:
+                return []
+            return [task_id_map[t] for t in (meta.get("task_ids") or []) if t in task_id_map]
+
         created = 0
         for meta in docs:
             if not isinstance(meta, dict):
@@ -254,7 +264,7 @@ class DocumentStore:
                     "url": url,
                     "title": title or url,
                     "tags": tags,
-                    "task_ids": [],
+                    "task_ids": _remap(meta),
                     "added_at": dt_util.utcnow().isoformat(),
                 }
                 created += 1
@@ -278,7 +288,7 @@ class DocumentStore:
                     "mime": mime,
                     "size": size,
                     "tags": tags,
-                    "task_ids": [],
+                    "task_ids": _remap(meta),
                     "added_at": dt_util.utcnow().isoformat(),
                 }
                 created += 1
