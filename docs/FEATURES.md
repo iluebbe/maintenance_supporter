@@ -267,8 +267,13 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Open in place** — click a document to open it: images pop into an in-app lightbox, PDFs and other files open inline in a new tab; image documents show a thumbnail in the list. Separate download button, and inline **edit** of title/category
 - **Fast capture** — multi-file upload, drag & drop onto the object, and **camera capture** on mobile; optional **web-links** (zero storage, not part of the backup) for manuals that live online
 - **Storage overview** — a collapsible **Document storage** card on the panel overview shows the real backup footprint, the space saved by dedup, and a per-object breakdown; click any object row to jump straight to it, or **search every document** across all objects from the card. Backed by a `sensor.<config>_document_storage` (`device_class: data_size`) with per-object and per-category attributes so you can automate on storage growth
-- **Documents at the task** — link an object's documents to a specific task so the right manual sits on the task-detail page where the work happens; for a PDF you can set a **jump-to page** so opening it lands on the relevant section (`#page=N`)
-- **Lifecycle & hygiene** — deleting a document frees its bytes only when the *last* reference goes; archiving an object keeps its documents (inert); a boot-time **storage-hygiene repair issue** flags orphaned or dangling blobs after a crash or partial restore and cleans them up in one click. Export/import carries document **metadata + web-links** (the binaries travel via the HA backup)
+- **Documents at the task** — link an object's documents to a specific task so the right manual sits on the task-detail page where the work happens; each task row shows a **paperclip badge** with its document count, and the link **survives a backup/restore** (task ids are remapped like the spare-part links). For a PDF you can set a **jump-to page** so opening it lands on the relevant section (`#page=N`)
+- **Lifecycle & hygiene** — deleting a document frees its bytes only when the *last* reference goes; archiving an object keeps its documents (inert); a boot-time **storage-hygiene repair issue** flags orphaned or dangling blobs after a crash or partial restore and cleans them up in one click
+- **Complete, portable backup** — the JSON/YAML/CSV export carries settings + document metadata; a dedicated **documents archive** (a ZIP of the file contents) downloads/restores the blobs on top, matching objects by id then by name for a cross-instance move. Exports can be **limited to selected objects** to migrate a single asset
+
+![Documents & parts below the task list, with a per-task paperclip badge](images/task-documents.png)
+
+![Import / Export: object selection, JSON/YAML/CSV and the documents archive](images/export-options.png)
 
 ### Frontend
 - **Sidebar panel** with dashboard overview, object details, task history, analytics, and in-panel **settings editor**
