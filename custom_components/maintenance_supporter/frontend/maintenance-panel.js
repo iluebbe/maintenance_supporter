@@ -18,7 +18,9 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     --maint-ok-color: var(--success-color, #4caf50);
     --maint-due-soon-color: var(--warning-color, #ff9800);
     --maint-overdue-color: var(--error-color, #f44336);
-    --maint-triggered-color: #ff5722;
+    /* Theme-token first so it follows dark/custom themes (was a bare #ff5722,
+       inconsistent with STATUS_COLORS.triggered which already tokenised it). */
+    --maint-triggered-color: var(--deep-orange-color, #ff5722);
   }
 
   .status-badge {
@@ -40,14 +42,17 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   /* Shape icon so status is not conveyed by colour alone (accessibility). */
   .status-badge ha-icon { --mdc-icon-size: 14px; margin-left: -1px; }
 
-  .status-badge.ok { background-color: var(--maint-ok-color); }
-  .status-badge.due_soon { background-color: var(--maint-due-soon-color); }
+  /* Light-background statuses (green/orange/grey) carry DARK text: white on
+     them fails even the 3:1 WCAG UI-contrast floor (2.2–2.8:1), while the
+     saturated statuses below keep white (≥3.1:1). Matches the calendar pills. */
+  .status-badge.ok { background-color: var(--maint-ok-color); color: #000; }
+  .status-badge.due_soon { background-color: var(--maint-due-soon-color); color: #000; }
   .status-badge.overdue { background-color: var(--maint-overdue-color); }
   .status-badge.triggered { background-color: var(--maint-triggered-color); }
   /* Completed one-time task ("done") — muted blue-grey. */
   .status-badge.done { background-color: var(--maint-done-color, #78909c); }
   /* v2.10.0: archived (retire-but-retain) — neutral grey, clearly inert. */
-  .status-badge.archived { background-color: var(--disabled-color, #9e9e9e); }
+  .status-badge.archived { background-color: var(--disabled-color, #9e9e9e); color: #000; }
   /* v2.20 (N3): paused — frozen but present, info blue. */
   .status-badge.paused { background-color: var(--info-color, #2196f3); }
 
@@ -5150,7 +5155,8 @@ ${h?`<div class="sub">${h}</div>`:""}
   .cal-status-overdue   { background: var(--error-color, #f44336); }
   .cal-status-triggered { background: var(--deep-orange-color, #ff5722); }
   .cal-status-due_soon  { background: var(--warning-color, #ff9800); color: #000; }
-  .cal-status-ok        { background: var(--success-color, #4caf50); }
+  /* Dark text — white on green is only 2.8:1 (below the 3:1 UI floor). */
+  .cal-status-ok        { background: var(--success-color, #4caf50); color: #000; }
 
   @media (max-width: 600px) {
     .cal-controls { padding: 10px 12px; }

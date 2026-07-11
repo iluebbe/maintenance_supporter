@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ♿ Dark-mode & contrast QA
+
+- **Readable status badges on every theme** — the *Due Soon* (orange), *OK*
+  (green) and *Archived* (grey) badges used white text at 2.2–2.8:1, below the
+  3:1 WCAG floor for UI text. They now carry dark text (7.6–9.7:1), matching the
+  calendar pills; the saturated *Overdue* / *Triggered* / *Paused* badges keep
+  white (≥3.1:1). The *Triggered* badge colour is also now a theme token
+  (`--deep-orange-color`) so it follows custom/dark themes like the others did.
+  A rendering **contrast tripwire** (real-browser computed-style test) now fails
+  the build if any status badge drops below 3:1.
+
 ### ✨ Saved filter views
 
 - **Name a filter combination once, reapply it in one tap** — the panel task
