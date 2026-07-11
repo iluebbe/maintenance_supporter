@@ -1,0 +1,50 @@
+name: "CodeQL"
+
+# Continuous static analysis (SAST) for the integration's Python backend and the
+# Lit/TypeScript frontend — complements the manual bug-audit passes with results
+# in the repo's Security → Code scanning tab. Advanced setup (this committed
+# workflow) rather than default setup, so it lives in version control.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Weekly re-scan so new CodeQL queries catch issues in unchanged code.
+    - cron: "23 3 * * 1"
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Neither language needs a build step for CodeQL (interpreted /
+          # transpiled) — build-mode: none scans the source directly.
+          - language: python
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # Default (security-and-quality) query suite for broader coverage.
+          queries: security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"

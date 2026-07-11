@@ -9,3 +9,10 @@ updates:
     directory: "/custom_components/maintenance_supporter/frontend-src"
     schedule:
       interval: "monthly"
+
+  # The e2e (Playwright) toolchain — same npm ecosystem, and where the ws
+  # advisory chain also lives (playwright → puppeteer-core → ws).
+  - package-ecosystem: "npm"
+    directory: "/e2e"
+    schedule:
+      interval: "monthly"
