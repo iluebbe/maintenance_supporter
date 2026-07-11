@@ -169,3 +169,31 @@ def test_sanitize_view_caps_name_and_keeps_id() -> None:
 def test_sanitize_view_mints_id_when_absent() -> None:
     view = sanitize_view({"name": "Fresh"})
     assert view is not None and view["id"]
+
+
+async def test_over_cap_hand_edited_list_not_truncated_on_save_or_delete(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A global entry hand-edited to hold >MAX views must not lose the tail on
+    the next save/delete (list_saved_views no longer truncates on read)."""
+    from custom_components.maintenance_supporter.websocket.saved_views import ws_delete_saved_view
+
+    over = MAX_SAVED_VIEWS + 5
+    seeded = [{"id": f"v{i}", "name": f"View {i}", "filters": {}} for i in range(over)]
+    options = dict(global_entry.options or global_entry.data)
+    options[CONF_SAVED_FILTER_VIEWS] = seeded
+    hass.config_entries.async_update_entry(global_entry, options=options)
+    await setup_integration(hass, global_entry)
+
+    assert len(await _list(hass)) == over  # read does not truncate
+
+    # Updating an existing view re-persists the WHOLE list (no silent drop).
+    await _save(hass, view_id="v0", name="Renamed", filters={})
+    after_save = await _list(hass)
+    assert len(after_save) == over
+    assert next(v for v in after_save if v["id"] == "v0")["name"] == "Renamed"
+
+    # Deleting one leaves the rest intact.
+    conn = make_ws_connection()
+    await call_ws_handler(ws_delete_saved_view, hass, conn, {"id": 1, "type": "x", "view_id": "v1"})
+    assert len(conn.send_result.call_args[0][1]["views"]) == over - 1

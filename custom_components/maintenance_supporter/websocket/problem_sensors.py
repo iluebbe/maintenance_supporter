@@ -78,6 +78,7 @@ async def ws_adopt_problem_sensors(
         entity_id = sel["entity_id"]
         entry_id = sel.get("entry_id")
         device_id = sel.get("device_id")
+        created_entry_id: str | None = None  # object created in THIS iteration
         try:
             if not entry_id and device_id and device_id in device_to_entry:
                 entry_id = device_to_entry[device_id]
@@ -87,6 +88,7 @@ async def ws_adopt_problem_sensors(
                     name=sel.get("object_name") or sel["name"],
                     ha_device_id=device_id or None,
                 )
+                created_entry_id = entry_id
                 objects_created += 1
                 if device_id:
                     device_to_entry[device_id] = entry_id
@@ -110,6 +112,15 @@ async def ws_adopt_problem_sensors(
             tasks_created += 1
         except (ValueError, KeyError) as err:
             errors.append({"entity_id": entity_id, "reason": str(err)})
+            # Roll back an object created in THIS iteration whose task failed —
+            # never leave an empty, task-less orphan object behind (and undo the
+            # count + device-reuse pointer so a later selection re-creates it).
+            if created_entry_id is not None:
+                objects_created -= 1
+                if device_id:
+                    device_to_entry.pop(device_id, None)
+                if hass.config_entries.async_get_entry(created_entry_id) is not None:
+                    await hass.config_entries.async_remove(created_entry_id)
 
     result: dict[str, Any] = {
         "tasks_created": tasks_created,

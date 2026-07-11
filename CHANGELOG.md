@@ -4,6 +4,37 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🛡️ Bug-audit fixes (correctness & hardening)
+
+- **Documents-archive import is bomb-resistant** — the ZIP import decompressed
+  each member fully into memory *before* the size cap was checked (and the
+  manifest was read uncapped), so a small crafted archive could inflate to
+  gigabytes and OOM Home Assistant. Members are now read through a bounded
+  reader that never materialises past the remaining budget, the manifest is
+  capped, and the entry count is bounded. The import also now writes back **only
+  blobs a document references**, so an archive can't litter `/config` with
+  orphan files that ride every backup.
+- **Vacation mode now also silences *bundled* notifications** — the per-task
+  path honoured vacation/exempt tasks, but the bundling path did not, so tasks
+  you were away for still fired in a bundle. Silenced tasks are now filtered out
+  before the bundle is formed (and no longer count toward its threshold).
+- **A finished finite series can't be resurrected by a postpone** — postponing a
+  task whose repeat-N-times / repeat-until had already ended re-armed it and
+  flipped it back to "not done". The end condition is now checked before the
+  per-occurrence override, and the override itself respects the end date.
+- **Spare-part shopping links are scheme-checked** — a part's shopping/product
+  URL is now rendered as a link only when it is `http(s)` (client), and a
+  non-http(s) URL is dropped on JSON import (server), closing a stored-XSS gap
+  via a crafted `javascript:` URL.
+- Hardening: imported object pause/lineage fields are length-capped and the
+  pause markers date-validated (a garbage `paused_at` no longer freezes an
+  object invisibly); adopt-problem-sensors rolls back a freshly-created object
+  if its task fails (no orphan); a hand-edited >50 saved-views list is no longer
+  truncated on the next save; `area_id`/date columns are CSV-injection-escaped;
+  the seasonal-overrides input is length-capped; and a couple of panel
+  `localStorage` reads/writes are wrapped so private-mode browsers don't blank
+  the panel.
+
 ### ♿ Dark-mode & contrast QA
 
 - **Readable status badges on every theme** — the *Due Soon* (orange), *OK*

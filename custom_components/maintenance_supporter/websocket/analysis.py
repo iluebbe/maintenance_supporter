@@ -122,7 +122,9 @@ async def ws_apply_suggestion(
         vol.Required("type"): f"{DOMAIN}/task/seasonal_overrides",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("overrides"): dict,
+        # At most 12 month keys survive validation anyway — cap the input so a
+        # giant dict isn't iterated/coerced first (parity with every other list).
+        vol.Required("overrides"): vol.All(dict, vol.Length(max=12)),
     }
 )
 @require_write

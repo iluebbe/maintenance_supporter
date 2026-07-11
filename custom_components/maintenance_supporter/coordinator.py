@@ -702,6 +702,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if new_status in notify_statuses:
                 notifiable.append((task_id, task_result, new_status, old_status))
 
+        # Vacation mode silences some tasks. Filter them out HERE — before the
+        # bundle-threshold check below — so a silenced/exempt task neither
+        # triggers a bundle nor rides inside one. async_send_bundled has no
+        # per-task vacation gate (async_task_status_changed does), and the bundle
+        # COUNT must also exclude them so N-1 silenced tasks don't force a bundle.
+        from .helpers.vacation import get_vacation_state
+
+        _vac = get_vacation_state(self.hass)
+        notifiable = [row for row in notifiable if not _vac.is_silent_for(row[0])]
+
         if not notifiable:
             # No notifications needed — still update the cache
             for task_id, task_result in task_results.items():

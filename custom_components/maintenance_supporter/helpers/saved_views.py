@@ -88,13 +88,14 @@ def list_saved_views(hass: HomeAssistant) -> list[dict[str, Any]]:
     raw = get_global_options(hass).get(CONF_SAVED_FILTER_VIEWS)
     if not isinstance(raw, list):
         return []
+    # Do NOT truncate here: save/delete re-persist this list, so truncating a
+    # (hand-edited) >MAX list on read would permanently drop the tail on the
+    # next write. Growth past the cap is prevented on the way IN by upsert_view.
     out: list[dict[str, Any]] = []
     for item in raw:
         clean = sanitize_view(item)
         if clean is not None:
             out.append(clean)
-        if len(out) >= MAX_SAVED_VIEWS:
-            break
     return out
 
 

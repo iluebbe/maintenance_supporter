@@ -168,14 +168,19 @@ class Schedule:
         - the finite-series end (``ends_count`` / ``ends_until``) stops re-arming.
         A one_time task keeps its fixed date and ignores season/finite.
         """
-        # A postponed occurrence wins for the current cycle — until it's been
-        # completed past the override date (then fall through to normal cadence).
-        if due_override is not None and (last_performed is None or due_override > last_performed):
-            return due_override
-
-        # Finite series exhausted by completion count → terminally done.
+        # Finite series exhausted by completion count → terminally done. Checked
+        # BEFORE the override so postponing a finished series can't resurrect it
+        # (there is no current cycle left to postpone).
         if self.ends_count is not None and times_performed >= self.ends_count:
             return None
+
+        # A postponed occurrence wins for the current cycle — until it's been
+        # completed past the override date (then fall through to normal cadence).
+        # It still respects the series end date.
+        if due_override is not None and (last_performed is None or due_override > last_performed):
+            if self.ends_until is not None and due_override > self.ends_until:
+                return None
+            return due_override
 
         result = self._compute_next_due(
             last_performed=last_performed,

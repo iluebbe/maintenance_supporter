@@ -220,21 +220,29 @@ export class MaintenanceSupporterPanel extends LitElement {
     window.addEventListener("popstate", this._popstateHandler);
     window.addEventListener("keydown", this._paletteKeydown);
     window.addEventListener("resize", this._onVirtualScroll, { passive: true });
-    const saved = localStorage.getItem(LS_KEYS.taskSort);
-    if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
-      this._sortMode = saved as SortMode;
-    }
-    const savedObj = localStorage.getItem(LS_KEYS.objectSort);
-    if (savedObj && ["alphabetical", "due_soonest", "task_count"].includes(savedObj)) {
-      this._objectSortMode = savedObj as ObjectSortMode;
-    }
-    const savedGroup = localStorage.getItem(LS_KEYS.groupBy);
-    if (savedGroup && ["none", "area", "group", "user"].includes(savedGroup)) {
-      this._groupByMode = savedGroup as GroupByMode;
-    }
-    const savedView = localStorage.getItem(LS_KEYS.objectView);
-    if (savedView === "cards" || savedView === "table") {
-      this._objectViewMode = savedView;
+    // localStorage.getItem can THROW (Safari private mode / locked-down policies
+    // where storage access raises rather than returning null) — an unguarded
+    // read here would abort connectedCallback and leave the panel blank. Every
+    // other storage access in this file is wrapped; wrap these too.
+    try {
+      const saved = localStorage.getItem(LS_KEYS.taskSort);
+      if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
+        this._sortMode = saved as SortMode;
+      }
+      const savedObj = localStorage.getItem(LS_KEYS.objectSort);
+      if (savedObj && ["alphabetical", "due_soonest", "task_count"].includes(savedObj)) {
+        this._objectSortMode = savedObj as ObjectSortMode;
+      }
+      const savedGroup = localStorage.getItem(LS_KEYS.groupBy);
+      if (savedGroup && ["none", "area", "group", "user"].includes(savedGroup)) {
+        this._groupByMode = savedGroup as GroupByMode;
+      }
+      const savedView = localStorage.getItem(LS_KEYS.objectView);
+      if (savedView === "cards" || savedView === "table") {
+        this._objectViewMode = savedView;
+      }
+    } catch {
+      // storage blocked — keep the defaults
     }
   }
 
@@ -741,8 +749,15 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._filterStatus = f.status || "";
     this._filterUser = f.user_id || null;
     this._showArchived = !!f.archived;
-    this._sortMode = f.sort_mode as SortMode;
-    this._groupByMode = f.group_by as GroupByMode;
+    // Validate against the current enums before assigning — a view saved by an
+    // older/renamed build could carry a mode no longer valid, which would then
+    // be persisted to localStorage and silently break sorting/grouping.
+    if (["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(f.sort_mode)) {
+      this._sortMode = f.sort_mode as SortMode;
+    }
+    if (["none", "area", "group", "user"].includes(f.group_by)) {
+      this._groupByMode = f.group_by as GroupByMode;
+    }
     // Persist sort/group like the manual controls do, so they stick after reload.
     try {
       localStorage.setItem(LS_KEYS.taskSort, this._sortMode);
@@ -2069,8 +2084,8 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._sortMode}
             @change=${(e: Event) => {
               this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
-              localStorage.setItem(LS_KEYS.taskSort, this._sortMode);
               this._activeViewId = "";
+              try { localStorage.setItem(LS_KEYS.taskSort, this._sortMode); } catch { /* private mode */ }
             }}
           >
             <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
@@ -2088,8 +2103,8 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._groupByMode}
             @change=${(e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
-              localStorage.setItem(LS_KEYS.groupBy, this._groupByMode);
               this._activeViewId = "";
+              try { localStorage.setItem(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
             }}
           >
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
@@ -2435,7 +2450,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._groupByMode}
             @change=${(e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
-              localStorage.setItem(LS_KEYS.groupBy, this._groupByMode);
+              try { localStorage.setItem(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
             }}
           >
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>

@@ -286,3 +286,42 @@ async def test_import_without_store_returns_error(hass: HomeAssistant, global_en
     hass.data[DOMAIN].pop(DOCUMENT_STORE_KEY, None)
     result = await doc_archive.import_documents_archive(hass, b"")
     assert result == {"error": "documents store unavailable"}
+
+
+async def test_import_skips_blob_no_document_references(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A valid-hash blob that no manifest document references must NOT be written
+    to disk (it would be an unrefcounted orphan riding every HA backup)."""
+    import hashlib
+
+    await setup_integration(hass, global_entry)
+    content = b"orphan-blob-no-one-references-this"
+    digest = hashlib.sha256(content).hexdigest()
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr(doc_archive.MANIFEST_NAME, json.dumps({"version": 1, "objects": []}))
+        zf.writestr(f"{doc_archive.BLOB_DIR}{digest}", content)
+
+    result = await doc_archive.import_documents_archive(hass, buf.getvalue())
+    assert result["blobs_written"] == 0
+    assert not _store(hass).blob_path(digest).is_file()
+
+
+async def test_import_rejects_bomb_member_via_full_path(
+    hass: HomeAssistant, global_entry: MockConfigEntry, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A member that inflates past the (here tiny) budget is rejected DURING the
+    read, before it is fully materialised — the import returns an error."""
+    monkeypatch.setattr(doc_archive, "MAX_ARCHIVE_BYTES", 1024)
+    import hashlib
+
+    await setup_integration(hass, global_entry)
+    payload = b"\x00" * (2 * 1024 * 1024)  # 2 MB, far over the 1 KB budget
+    digest = hashlib.sha256(payload).hexdigest()
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(doc_archive.MANIFEST_NAME, json.dumps({"version": 1, "objects": []}))
+        zf.writestr(f"{doc_archive.BLOB_DIR}{digest}", payload)
+    result = await doc_archive.import_documents_archive(hass, buf.getvalue())
+    assert "error" in result
