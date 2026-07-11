@@ -406,6 +406,7 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
     task = build_task_data(task_type="reading", last_performed="2024-06-01")
     task.update(
         {
+            "created_at": "2023-01-15",
             "priority": "high",
             "labels": ["seasonal", "critical"],
             "earliest_completion_days": 3,
@@ -443,6 +444,7 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
     exported = next(e for e in data["objects"] if e["object"]["name"] == "Full Asset")
     etask = exported["tasks"][0]
     expected = {
+        "created_at": "2023-01-15",
         "priority": "high",
         "labels": ["seasonal", "critical"],
         "earliest_completion_days": 3,
@@ -489,6 +491,51 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
     reexport = build_export_data(hass, include_history=True)
     copy_task = next(e for e in reexport["objects"] if e["object"]["name"] == "Full Asset Copy")["tasks"][0]
     assert copy_task["history"][0]["reading_value"] == 1234.5, "history reading_value not imported"
+
+
+async def test_json_roundtrip_keeps_an_archived_task_archived(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """An archived task must come back ARCHIVED after export → import. The
+    archived_at/archived_reason pair was dropped by both the export builder and
+    the importer (audit 2026-07-11), so a backup/restore silently RESURRECTED
+    retired tasks as active — they'd reappear as due/overdue."""
+    task = build_task_data(name="Retired task", last_performed="2024-01-01")
+    task["archived_at"] = "2024-03-01T12:00:00+00:00"
+    task["archived_reason"] = "replaced"
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Archive Rig",
+        data=build_object_entry_data(object_data=build_object_data(name="Archive Rig"), tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_archive_rig",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    data = build_export_data(hass, include_history=True)
+    exported = next(e for e in data["objects"] if e["object"]["name"] == "Archive Rig")
+    etask = exported["tasks"][0]
+    assert etask.get("archived_at") == "2024-03-01T12:00:00+00:00", "archived_at dropped on export"
+    assert etask.get("archived_reason") == "replaced", "archived_reason dropped on export"
+
+    exported["object"]["name"] = "Archive Rig Copy"
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_import_json,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/json/import", "json_content": json.dumps({"objects": [exported]})},
+    )
+    conn.send_result.assert_called_once()
+
+    copy = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "Archive Rig Copy")
+    imported_task = next(iter(copy.data[CONF_TASKS].values()))
+    assert imported_task.get("archived_at") == "2024-03-01T12:00:00+00:00", "import resurrected an archived task"
+    assert imported_task.get("archived_reason") == "replaced"
 
 
 async def test_json_import_tolerates_malformed_entries(

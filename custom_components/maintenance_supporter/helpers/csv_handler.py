@@ -224,6 +224,10 @@ def import_objects_csv(
                     "area_id": (row.get("object_area_id") or "").strip() or None,
                     "installation_date": (row.get("object_installation_date") or "").strip() or None,
                     "warranty_expiry": (row.get("object_warranty_expiry") or "").strip() or None,
+                    # In the object-CSV export columns but never read back on
+                    # import until now (round-trip gap, audit 2026-07-11).
+                    "documentation_url": (row.get("object_documentation_url") or "").strip() or None,
+                    "notes": (row.get("object_notes") or "").strip() or None,
                     "task_ids": [],
                 },
                 "tasks": {},

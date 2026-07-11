@@ -395,6 +395,12 @@ async def ws_import_json(
                 "history": task_entry.get("history", []),
             }
             for key in (
+                # Provenance + lifecycle — mirror the export builder so an
+                # archived task stays archived and created_at (the next_due
+                # fallback anchor) survives the round trip.
+                "created_at",
+                "archived_at",
+                "archived_reason",
                 "interval_days",
                 "interval_unit",
                 "due_date",

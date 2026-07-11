@@ -81,6 +81,14 @@ def _build_export_object(
             "name": tdata.get("name", ""),
             "type": tdata.get("type", "custom"),
             "enabled": tdata.get("enabled", True),
+            # Provenance + lifecycle a backup must preserve: created_at is the
+            # next_due fallback anchor when last_performed is None (dropping it
+            # silently shifts due dates on restore), and the archived_* pair
+            # keeps a retired task retired — without them an archived task comes
+            # back ACTIVE after a restore.
+            "created_at": tdata.get("created_at"),
+            "archived_at": tdata.get("archived_at"),
+            "archived_reason": tdata.get("archived_reason"),
             "schedule_type": sched["schedule_type"],
             "interval_days": sched["interval_days"],
             "interval_unit": sched["interval_unit"],
