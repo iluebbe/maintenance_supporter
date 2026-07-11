@@ -64,6 +64,9 @@ async def simulate_full_restart(hass: HomeAssistant, *entries: MockConfigEntry) 
     for unsub in domain_data.get("_event_unsubs", []):
         unsub()
     hass.data.pop(DOMAIN, None)
+    from custom_components.maintenance_supporter.const import STORES_CACHE_KEY
+
+    hass.data.pop(STORES_CACHE_KEY, None)
     for entry in entries:
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

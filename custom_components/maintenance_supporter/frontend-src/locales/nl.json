@@ -721,5 +721,6 @@
   "part_auto_buy": "Kooptaak bij lage voorraad",
   "part_restock": "Voorraad aanpassen",
   "restock_quantity_label": "Gekochte hoeveelheid",
-  "consumes_parts_label": "Verbruikt onderdelen"
+  "consumes_parts_label": "Verbruikt onderdelen",
+  "parts_load_failed": "Kon de onderdelen van dit object niet laden — de verbruiksopties zijn nu niet beschikbaar."
 }

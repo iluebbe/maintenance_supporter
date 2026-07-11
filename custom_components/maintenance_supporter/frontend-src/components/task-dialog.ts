@@ -174,6 +174,7 @@ export class MaintenanceTaskDialog extends LitElement {
   // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
   @state() private _readingUnit = "";
   @state() private _consumesParts: Record<string, number> = {};
+  @state() private _partsLoadFailed = false;
   @state() private _availableTags: Array<{id: string; name: string}> = [];
 
   // User assignment
@@ -679,8 +680,12 @@ export class MaintenanceTaskDialog extends LitElement {
         entry_id: this._entryId,
       })) as { parts?: Array<{ id: string; name: string; unit?: string }> };
       this.parts = result.parts || [];
+      this._partsLoadFailed = false;
     } catch {
+      // Surface the failure: an empty-but-failed load must not just hide the
+      // "consumes parts" section as if the object had no parts.
       this.parts = [];
+      this._partsLoadFailed = true;
     }
   }
 
@@ -1473,6 +1478,9 @@ export class MaintenanceTaskDialog extends LitElement {
                 ></ms-textfield>
                 <div class="field-help">${t("reading_unit_help", L)}</div>
               `
+            : nothing}
+          ${this._partsLoadFailed
+            ? html`<div class="field-help parts-load-failed">${t("parts_load_failed", L)}</div>`
             : nothing}
           ${this.parts.length
             ? html`

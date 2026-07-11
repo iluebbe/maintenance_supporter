@@ -193,12 +193,17 @@ class MaintenanceStore:
         return {pid: self.get_part_stock(pid) for pid in self._data.get("parts", {})}
 
     def set_part_stock(self, part_id: str, stock: int | None) -> None:
-        """Set (or untrack with None) a part's on-hand count, clamped at zero."""
+        """Set (or untrack with None) a part's on-hand count, clamped to
+        [0, MAX_PART_STOCK]. The WS schemas cap each INPUT at MAX_PART_STOCK,
+        but additive paths (restock delta / buy-task completion) could push
+        the SUM past it — this chokepoint clamp keeps every writer honest."""
+        from .helpers.parts import MAX_PART_STOCK
+
         parts: dict[str, Any] = self._data.setdefault("parts", {})
         if stock is None:
             parts.pop(part_id, None)
         else:
-            parts.setdefault(part_id, {})["stock"] = max(0, int(stock))
+            parts.setdefault(part_id, {})["stock"] = min(max(0, int(stock)), MAX_PART_STOCK)
 
     def remove_part(self, part_id: str) -> None:
         """Drop a deleted part's stock state."""

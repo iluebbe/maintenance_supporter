@@ -721,5 +721,6 @@
   "part_auto_buy": "Ostotehtävä kun vähissä",
   "part_restock": "Muuta varastoa",
   "restock_quantity_label": "Ostettu määrä",
-  "consumes_parts_label": "Kuluttaa osia"
+  "consumes_parts_label": "Kuluttaa osia",
+  "parts_load_failed": "Kohteen osia ei voitu ladata — osien kulutusvalinnat eivät ole juuri nyt käytettävissä."
 }

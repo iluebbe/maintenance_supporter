@@ -68,6 +68,7 @@ from .const import (
     SERVICE_UPDATE_TASK,
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
+    STORES_CACHE_KEY,
 )
 from .const import (
     DOCUMENT_STORE_KEY as _DS_KEY,
@@ -1077,20 +1078,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
-        # Maintenance object entry: create Store + coordinator
-        store = MaintenanceStore(hass, entry.entry_id)
+        # Maintenance object entry: fetch-or-create the Store. Reused across
+        # entry RELOADS (cache in a top-level hass.data key): a second Store
+        # instance for the same file would race the first one's pending
+        # debounced save — see STORES_CACHE_KEY in const.py.
+        stores: dict[str, MaintenanceStore] = hass.data.setdefault(STORES_CACHE_KEY, {})
+        cached_store = stores.get(entry.entry_id)
+        store = cached_store if cached_store is not None else MaintenanceStore(hass, entry.entry_id)
+        stores[entry.entry_id] = store
 
-        # Migrate dynamic state from ConfigEntry.data → Store (one-time).
-        # Compare against the CAPTURED snapshot, not the live entry.data: the
-        # migration awaits store I/O, and a concurrent WS write during that
-        # window replaces entry.data — an identity check against the live
-        # attribute then fails spuriously and this write clobbers the
-        # concurrent update with the pre-await snapshot (lost update, seen
-        # live when rapid part creates raced a reload's setup).
-        data_before_migration = entry.data
-        cleaned_data = await async_migrate_to_store(hass, entry.entry_id, data_before_migration, store)
-        if cleaned_data is not data_before_migration:
-            hass.config_entries.async_update_entry(entry, data=dict(cleaned_data))
+        if cached_store is None:
+            # First setup this run: load from disk + one-time migration.
+            # Compare against the CAPTURED snapshot, not the live entry.data:
+            # the migration awaits store I/O, and a concurrent WS write during
+            # that window replaces entry.data — an identity check against the
+            # live attribute then fails spuriously and this write clobbers the
+            # concurrent update with the pre-await snapshot (lost update, seen
+            # live when rapid part creates raced a reload's setup).
+            data_before_migration = entry.data
+            cleaned_data = await async_migrate_to_store(hass, entry.entry_id, data_before_migration, store)
+            if cleaned_data is not data_before_migration:
+                hass.config_entries.async_update_entry(entry, data=dict(cleaned_data))
+        # A cached store's memory is authoritative — re-loading from disk here
+        # would drop any change still sitting in its debounce window.
 
         # Reconcile the entry.data <-> Store split (journey I1): drop store
         # state orphaned by a crash between the two writes of a deletion.
@@ -1405,6 +1415,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         # Unregister panel when global entry is unloaded
         await async_unregister_panel(hass)
 
+    # Flush a pending debounced store save BEFORE tearing down — belt and
+    # suspenders next to the store cache: disk is current the moment the entry
+    # goes away, whether or not it ever comes back this run.
+    store = hass.data.get(STORES_CACHE_KEY, {}).get(entry.entry_id)
+    if store is not None:
+        await store.async_save()
+
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     # Clean up domain data if no entries left
@@ -1428,8 +1445,15 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # as a fixable repair issue so the user can restore it (#86).
         _sync_missing_global_entry_issue(hass)
         return
-    store = MaintenanceStore(hass, entry.entry_id)
+    store = hass.data.get(STORES_CACHE_KEY, {}).pop(entry.entry_id, None)
+    if store is None:
+        store = MaintenanceStore(hass, entry.entry_id)
     await store.async_remove()
+    # Drop the per-entry reconcile lock — the module dict would otherwise grow
+    # by one lock per object ever created in this HA run.
+    from .parts_runtime import discard_reconcile_lock
+
+    discard_reconcile_lock(entry.entry_id)
     # v1.5.4: also called from ws_delete_object — but if the user removes the
     # config entry from HA's "Configure" UI, that path doesn't run, leaving
     # phantom task_refs in groups. Belt-and-suspenders.

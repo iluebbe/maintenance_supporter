@@ -62,6 +62,7 @@ export class MaintenancePartsSection extends LitElement {
   @state() private _error = "";
   @state() private _restockFor: string | null = null;
   @state() private _restockQty = "";
+  @state() private _restockInvalid = false;
 
   private get _lang(): string {
     return this.hass?.locale?.language || this.hass?.language || "en";
@@ -157,9 +158,12 @@ export class MaintenancePartsSection extends LitElement {
   private async _restock(part: MaintenancePart): Promise<void> {
     const qty = parseInt(this._restockQty, 10);
     if (!Number.isFinite(qty) || qty === 0) {
-      this._restockFor = null;
+      // Don't silently swallow a no-op amount — keep the input open and mark
+      // it so the user sees WHY nothing happened (0 / empty / not a number).
+      this._restockInvalid = true;
       return;
     }
+    this._restockInvalid = false;
     const result = await this._send<{ stock: number }>({
       type: "maintenance_supporter/part/restock",
       entry_id: this.entryId,
@@ -213,7 +217,7 @@ export class MaintenancePartsSection extends LitElement {
               ${this._restockFor === part.id
                 ? html`
                     <input
-                      class="restock-input"
+                      class="restock-input${this._restockInvalid ? " invalid" : ""}"
                       type="number"
                       .value=${this._restockQty}
                       placeholder="+1"
@@ -233,6 +237,7 @@ export class MaintenancePartsSection extends LitElement {
                       .disabled=${this._busy}
                       @click=${() => {
                         this._restockFor = part.id;
+                        this._restockInvalid = false;
                         this._restockQty = String(part.restock_quantity || 1);
                       }}
                       ><ha-icon icon="mdi:plus-minus-variant"></ha-icon
@@ -397,6 +402,9 @@ export class MaintenancePartsSection extends LitElement {
       border-radius: 4px;
       background: var(--card-background-color);
       color: var(--primary-text-color);
+    }
+    .restock-input.invalid {
+      border-color: var(--error-color, #f44336);
     }
     .part-form {
       border: 1px solid var(--divider-color);

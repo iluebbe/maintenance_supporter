@@ -384,6 +384,10 @@ class MaintenanceTask:
         # Move last_performed to today to restart the cycle
         self.last_performed = dt_util.now().date().isoformat()
         self._trigger_active = False
+        # A postponed occurrence is consumed by skipping it too — otherwise the
+        # override (> last_performed) would keep winning in next_due and the
+        # "cycle restarts either way" promise above would be false.
+        self.due_override = None
 
         self.add_history_entry(
             entry_type=HistoryEntryType.MISSED if as_missed else HistoryEntryType.SKIPPED,

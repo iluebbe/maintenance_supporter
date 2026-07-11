@@ -721,5 +721,6 @@
   "part_auto_buy": "Crear tarea de compra si bajo",
   "part_restock": "Ajustar existencias",
   "restock_quantity_label": "Cantidad comprada",
-  "consumes_parts_label": "Consume piezas"
+  "consumes_parts_label": "Consume piezas",
+  "parts_load_failed": "No se pudieron cargar las piezas de este objeto — las opciones de consumo de piezas no están disponibles ahora."
 }

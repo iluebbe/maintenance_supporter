@@ -721,5 +721,6 @@
   "part_auto_buy": "Task d'acquisto se scarso",
   "part_restock": "Correggi scorta",
   "restock_quantity_label": "Quantità acquistata",
-  "consumes_parts_label": "Consuma ricambi"
+  "consumes_parts_label": "Consuma ricambi",
+  "parts_load_failed": "Impossibile caricare i ricambi di questo oggetto — le opzioni di consumo ricambi non sono al momento disponibili."
 }

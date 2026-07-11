@@ -721,5 +721,6 @@
   "part_auto_buy": "Zadanie zakupu przy niskim stanie",
   "part_restock": "Koryguj stan",
   "restock_quantity_label": "Kupiona ilość",
-  "consumes_parts_label": "Zużywa części"
+  "consumes_parts_label": "Zużywa części",
+  "parts_load_failed": "Nie udało się wczytać części tego obiektu — opcje zużycia części są teraz niedostępne."
 }

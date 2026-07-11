@@ -77,31 +77,41 @@ async def ws_assign_user(
     if entry is None:
         return
 
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
     task_id = msg["task_id"]
-    if task_id not in tasks_data:
+    if task_id not in entry.data.get(CONF_TASKS, {}):
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
 
     user_id = msg.get("user_id")
 
-    # Validate user exists if provided
+    # Validate user exists if provided — BEFORE touching entry.data. This is
+    # the handler's only await; reading the tasks after it means a concurrent
+    # writer landing during the auth lookup (e.g. a completing task persisting
+    # its rotation) can't be reverted by a stale whole-map write (the
+    # migration-race class, bug audit 2026-07-11).
     if user_id:
         user = await hass.auth.async_get_user(user_id)
         if user is None:
             connection.send_error(msg["id"], "invalid_user", "User not found")
             return
 
+    tasks_data = entry.data.get(CONF_TASKS, {})
+    if task_id not in tasks_data:
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
     task = dict(tasks_data[task_id])
     if user_id is None:
         # Unassign user - remove field if it exists
         task.pop("responsible_user_id", None)
     else:
         task["responsible_user_id"] = user_id
-    tasks_data[task_id] = task
 
+    # Patch only this task's key onto a fresh read — never write back a map
+    # snapshot from before an await.
     new_data = dict(entry.data)
-    new_data[CONF_TASKS] = tasks_data
+    new_tasks = dict(new_data.get(CONF_TASKS, {}))
+    new_tasks[task_id] = task
+    new_data[CONF_TASKS] = new_tasks
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Refresh coordinator

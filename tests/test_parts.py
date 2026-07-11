@@ -314,7 +314,10 @@ async def test_setup_migration_does_not_clobber_concurrent_writes(
     entry.data (replaced by the write) instead of the captured snapshot —
     async_setup_entry then wrote the pre-await snapshot back. Seen live when
     rapid part creates raced a reload. The race is injected deterministically
-    by mutating entry.data from inside the store-load await.
+    by mutating entry.data from inside the store-load await. Since the store
+    became cached per entry (bug audit 2026-07-11) a plain reload never
+    re-loads at all — pop the cache first to model the fresh-boot setup where
+    the migration window still exists.
     """
     from unittest.mock import patch
 
@@ -336,7 +339,10 @@ async def test_setup_migration_does_not_clobber_concurrent_writes(
         hass.config_entries.async_update_entry(current, data=new_data)
         return result
 
+    from custom_components.maintenance_supporter.const import STORES_CACHE_KEY
+
     with patch.object(MaintenanceStore, "async_load", racing_load):
+        hass.data.get(STORES_CACHE_KEY, {}).pop(entry.entry_id, None)
         await hass.config_entries.async_reload(entry.entry_id)
         await hass.async_block_till_done()
 
@@ -523,3 +529,19 @@ async def test_runtime_guards_for_coverage(hass: HomeAssistant, global_entry: Mo
     )
     assert entry.runtime_data.store.get_part_stock("p1") is None  # untouched
     await hass.async_block_till_done()
+
+
+def test_stock_sum_clamped_to_max() -> None:
+    """WS schemas cap each input at MAX_PART_STOCK, but additive restocks could
+    push the SUM past it — the storage chokepoint must clamp (bug audit
+    2026-07-11)."""
+    from custom_components.maintenance_supporter.helpers.parts import MAX_PART_STOCK
+    from custom_components.maintenance_supporter.storage import MaintenanceStore
+
+    store = MaintenanceStore.__new__(MaintenanceStore)
+    store._data = {"version": 1, "tasks": {}}
+    store.set_part_stock("p1", MAX_PART_STOCK - 1)
+    store.set_part_stock("p1", store.get_part_stock("p1") + MAX_PART_STOCK)
+    assert store.get_part_stock("p1") == MAX_PART_STOCK
+    store.set_part_stock("p1", -5)
+    assert store.get_part_stock("p1") == 0

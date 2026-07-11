@@ -531,3 +531,18 @@ def test_due_override_works_before_first_completion() -> None:
     s = Schedule(kind=KIND_INTERVAL, every=1, unit="months")
     common = {"created_at": date(2026, 5, 1), "last_planned_due": None, "today": date(2026, 5, 1)}
     assert s.next_due(last_performed=None, due_override=date(2026, 5, 15), **common) == date(2026, 5, 15)
+
+
+def test_next_due_planned_anchor_months_no_february_day_drift() -> None:
+    """Planned monthly marching must multiply from the ORIGINAL anchor: the old
+    iterative add let February clamp a day-31 anchor to 28 permanently
+    (Jan 31 → Feb 28 → Mar 28 …). Jan 31 + 2 months is Mar 31 (bug audit
+    2026-07-11)."""
+    sched = Schedule.from_dict({"kind": "interval", "every": 1, "unit": "months", "anchor": "planned"})
+    result = sched.next_due(
+        last_performed=date(2026, 3, 5),  # late completion, two periods past
+        created_at=date(2026, 1, 1),
+        last_planned_due=date(2026, 1, 31),
+        today=date(2026, 3, 5),
+    )
+    assert result == date(2026, 3, 31), f"February clamp dragged the anchor day: {result}"
