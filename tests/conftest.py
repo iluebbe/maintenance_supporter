@@ -213,6 +213,49 @@ def build_object_entry_data(
     }
 
 
+# ─── Config entry factories (added + registered on hass) ─────────────────
+# ~30 test files hand-rolled an identical `_make_global`/`_make_object`/`_make_entry`
+# MockConfigEntry-envelope wrapper. These factories are the single copy — a change
+# to the entry version / unique-id convention now lives in one place.
+
+
+def make_global_entry(hass: HomeAssistant, **kw: Any) -> MockConfigEntry:
+    """Build + register the global config entry (data via build_global_entry_data)."""
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def make_object_entry(
+    hass: HomeAssistant,
+    tasks: dict[str, dict[str, Any]] | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict[str, Any] | None = None,
+) -> MockConfigEntry:
+    """Build + register a maintenance-object config entry."""
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
 # ─── Config entry fixtures ──────────────────────────────────────────────
 
 

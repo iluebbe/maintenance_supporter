@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .conftest import make_global_entry as _make_global, make_object_entry as _make_object
+
 from custom_components.maintenance_supporter.const import (
     ScheduleType,
 )
@@ -1219,39 +1221,6 @@ async def test_remove_config_entry_device_with_entities(
     assert result is False
 
 
-def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(**kw),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
-def _make_object(
-    hass: HomeAssistant,
-    tasks: dict | None = None,
-    name: str = "Test Object",
-    uid: str = "test_obj_cov",
-    object_data: dict | None = None,
-) -> MockConfigEntry:
-    od = object_data or build_object_data(name=name)
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):
