@@ -15,7 +15,7 @@
     "@web/test-runner-playwright": "^0.11.0",
     "esbuild": "^0.28.1",
     "lit": "^3.3.3",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "pdfjs-dist": "^4.10.38",
