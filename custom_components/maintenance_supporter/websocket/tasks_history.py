@@ -10,6 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    MAX_COST,
+    MAX_DURATION_MINUTES,
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_TEXT_LENGTH,
@@ -47,8 +49,8 @@ from . import (
         # Patch fields — all optional; absent fields stay unchanged.
         vol.Optional("timestamp"): vol.All(str, vol.Length(max=64)),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
-        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None),
-        vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)), None),
+        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
+        vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
         vol.Optional("completed_by"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     }
 )

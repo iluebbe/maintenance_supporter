@@ -56,6 +56,8 @@ from .const import (
     DOMAIN,
     EVENT_UNSUBS_KEY,
     GLOBAL_UNIQUE_ID,
+    MAX_COST,
+    MAX_DURATION_MINUTES,
     PLATFORMS,
     SERVICE_ADD_OBJECT,
     SERVICE_ADD_TASK,
@@ -114,8 +116,8 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Optional("notes"): vol.All(cv.string, vol.Length(max=2000)),
-        vol.Optional("cost"): vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)),
-        vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)),
+        vol.Optional("cost"): vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)),
+        vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)),
         # Meter readings (v2.20, #83): recorded value for `reading` tasks.
         vol.Optional("reading_value"): vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)),
     }

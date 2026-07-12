@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import (
@@ -27,12 +28,22 @@ from ..const import (
 )
 
 
-def get_global_options(hass: HomeAssistant) -> Mapping[str, Any]:
-    """Return the options dict from the global config entry, or empty mapping."""
+def get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:
+    """Return the single global config entry (`unique_id == GLOBAL_UNIQUE_ID`).
+
+    The one place that resolves it — the ~inline `for entry in async_entries(...)
+    if unique_id == GLOBAL_UNIQUE_ID` loop was copy-pasted across many modules.
+    """
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
-            return entry.options or entry.data
-    return {}
+            return entry
+    return None
+
+
+def get_global_options(hass: HomeAssistant) -> Mapping[str, Any]:
+    """Return the options dict from the global config entry, or empty mapping."""
+    entry = get_global_entry(hass)
+    return (entry.options or entry.data) if entry is not None else {}
 
 
 def get_default_warning_days(hass: HomeAssistant) -> int:
