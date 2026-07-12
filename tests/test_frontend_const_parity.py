@@ -218,3 +218,80 @@ def test_every_top_level_surface_loads_locale() -> None:
     assert not offenders, (
         f"top-level surfaces render localized text (import t) but never call ensureLocale — they'll show English: {offenders}"
     )
+
+
+# === Saved-view filter value-sets (panel allowlists ↔ saved_views.py) ========
+
+_PANEL_TS = _FRONTEND / "maintenance-panel.ts"
+
+
+def test_ts_saved_view_sort_group_allowlists_match_python() -> None:
+    """The panel validates a saved view's sort_mode / group_by against inline
+    string allowlists (restated ~4× in maintenance-panel.ts). They MUST match the
+    Python VALID_SORT_MODES / VALID_GROUP_BY the sanitiser coerces against — else
+    a view the panel offers gets silently reset to due_date/none on save (a
+    non-crashing data loss). Every `[...].includes(` allowlist is checked."""
+    from custom_components.maintenance_supporter.helpers.saved_views import (
+        VALID_GROUP_BY,
+        VALID_SORT_MODES,
+    )
+
+    src = _PANEL_TS.read_text(encoding="utf-8")
+    allowlists = re.findall(r"\[((?:\s*\"[^\"]+\",?)+)\s*\]\.includes\(", src)
+    assert allowlists, "no [...].includes( allowlists found in maintenance-panel.ts"
+    sort_seen = group_seen = 0
+    for body in allowlists:
+        values = set(re.findall(r'"([^"]+)"', body))
+        if "due_date" in values:  # a sort-mode allowlist
+            assert values == set(VALID_SORT_MODES), f"sort allowlist {values} != VALID_SORT_MODES {set(VALID_SORT_MODES)}"
+            sort_seen += 1
+        elif "none" in values and "user" in values:  # a group-by allowlist
+            assert values == set(VALID_GROUP_BY), f"group allowlist {values} != VALID_GROUP_BY {set(VALID_GROUP_BY)}"
+            group_seen += 1
+    assert sort_seen and group_seen, f"expected both sort+group allowlists; saw sort={sort_seen} group={group_seen}"
+
+
+# === WS command names (frontend literals ⊆ backend handlers) =================
+
+
+def _backend_ws_commands() -> set[str]:
+    """Every `maintenance_supporter/…` command the backend registers, parsed from
+    the websocket modules (both f"{DOMAIN}/…" and literal forms)."""
+    ws_dir = Path(__file__).resolve().parents[1] / "custom_components" / "maintenance_supporter" / "websocket"
+    cmds: set[str] = set()
+    for f in ws_dir.glob("*.py"):
+        src = f.read_text(encoding="utf-8")
+        cmds.update("maintenance_supporter/" + m for m in re.findall(r'f"\{DOMAIN\}/([a-z_][a-z_/]*)"', src))
+        cmds.update(re.findall(r'"(maintenance_supporter/[a-z_][a-z_/]*)"', src))
+    return cmds
+
+
+def test_ws_command_names_frontend_subset_of_backend() -> None:
+    """Every `maintenance_supporter/…` command string the frontend sends must
+    have a backend handler — a typo or a renamed handler is otherwise a silent
+    runtime 'unknown command'. (Backend-only commands are fine; the check is a
+    subset, not equality.)"""
+    backend = _backend_ws_commands()
+    assert len(backend) > 30, f"backend command parse looks wrong: {len(backend)}"
+    frontend: set[str] = set()
+    for f in _FRONTEND.rglob("*.ts"):
+        if "__tests__" in f.parts:
+            continue
+        frontend.update(re.findall(r'"(maintenance_supporter/[a-z_][a-z_/]*)"', f.read_text(encoding="utf-8")))
+    orphans = frontend - backend
+    assert not orphans, f"frontend sends WS commands with no backend handler: {sorted(orphans)}"
+
+
+# === Settings keys (settings-view.ts ⊆ ALLOWED_SETTING_KEYS) =================
+
+
+def test_settings_view_keys_subset_of_allowed() -> None:
+    """Every key settings-view.ts writes via _updateSetting must be an allowed
+    global-settings key — otherwise the UI offers a control the backend rejects."""
+    from custom_components.maintenance_supporter.helpers.settings_registry import ALLOWED_SETTING_KEYS
+
+    src = _SETTINGS_VIEW_TS.read_text(encoding="utf-8")
+    written = set(re.findall(r'_updateSetting\(\s*"([a-z_][a-z_0-9]*)"', src))
+    assert written, "no _updateSetting(\"key\", …) calls parsed from settings-view.ts"
+    unknown = written - set(ALLOWED_SETTING_KEYS)
+    assert not unknown, f"settings-view.ts writes keys not in ALLOWED_SETTING_KEYS: {sorted(unknown)}"
