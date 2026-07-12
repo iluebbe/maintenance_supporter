@@ -13,7 +13,9 @@ from __future__ import annotations
 from typing import Any
 
 from ..const import (
+    MAX_COST,
     MAX_DATE_LENGTH,
+    MAX_DURATION_MINUTES,
     MAX_ENTITY_SLUG_LENGTH,
     MAX_ICON_LENGTH,
     MAX_ID_LENGTH,
@@ -302,11 +304,11 @@ def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
         cleaned["notes"] = notes[:MAX_TEXT_LENGTH]
 
     cost = defaults.get("cost")
-    if isinstance(cost, (int, float)) and 0 <= cost <= 1_000_000:
+    if isinstance(cost, (int, float)) and 0 <= cost <= MAX_COST:
         cleaned["cost"] = float(cost)
 
     duration = defaults.get("duration")
-    if isinstance(duration, int) and 0 <= duration <= 525_600:
+    if isinstance(duration, int) and 0 <= duration <= MAX_DURATION_MINUTES:
         cleaned["duration"] = duration
 
     from ..const import MaintenanceFeedback

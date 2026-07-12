@@ -315,11 +315,10 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
 
 
 def _get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:
-    """Get the global config entry."""
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            return entry
-    return None
+    """Get the global config entry (thin re-export of the shared helper)."""
+    from ..helpers.global_options import get_global_entry
+
+    return get_global_entry(hass)
 
 
 def _load_object_entry(

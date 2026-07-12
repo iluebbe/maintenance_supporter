@@ -616,6 +616,12 @@ MAX_URL_LENGTH = 2048
 MAX_ICON_LENGTH = 100  # "mdi:icon-name"
 MAX_META_LENGTH = 200  # manufacturer, model, user_id, area_id, etc.
 MAX_PANEL_TITLE_LENGTH = 50  # sidebar panel title override
+
+# Completion cost + duration bounds — one source for the WS schemas AND the
+# config-flow-path sanitiser (they must agree, else a value the sanitiser
+# accepts can bypass the WS cap or vice-versa).
+MAX_COST = 1_000_000  # per completion / history entry
+MAX_DURATION_MINUTES = 525_600  # one year in minutes
 MAX_TYPE_LENGTH = 50  # task_type, schedule_type
 MAX_CHECKLIST_ITEMS = 100
 MAX_CHECKLIST_ITEM_LENGTH = 500

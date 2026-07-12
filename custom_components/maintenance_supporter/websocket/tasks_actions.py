@@ -12,7 +12,9 @@ from ..const import (
     CONF_TASKS,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
+    MAX_COST,
     MAX_DATE_LENGTH,
+    MAX_DURATION_MINUTES,
     MAX_ID_LENGTH,
     MAX_TEXT_LENGTH,
 )
@@ -48,8 +50,8 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
-        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None),
-        vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)), None),
+        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
+        vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
         # Restrict checklist_state to {string-key (≤500): bool, ...} with
         # a hard cap on entries. Without this, attackers (or bad clients)
         # could inflate the per-task history with arbitrarily large dicts.
