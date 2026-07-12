@@ -24,6 +24,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `panel_title` | string | `""` (→ "Maintenance") | max 50 chars | Override for the sidebar panel title. Trimmed and capped at 50 characters on save. Leave blank to clear the override and fall back to the default title "Maintenance" |
 | `part_search_url_template` (2.23+) | string | *(Amazon by UI language)* | `{q}` placeholder | Shopping-search URL used for spare parts without a `product_url` (buy-task link + panel part rows). Any search engine works — e.g. `https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q={q}`. Query precedence: GTIN → "vendor MPN" → part name |
 | `objects_table_columns` (#67) | list[string] | *(9 defaults)* | known column keys | Ordered columns shown in the panel **Objects table** view (the cards/table toggle in *All objects*). Selectable from known object fields only: `name` (always on), `manufacturer`, `model`, `serial_number`, `installation_date`, `warranty_expiry`, `area_id`, `documentation_url`, `notes`, `task_count`, `actions`. Defaults to all of those except `documentation_url`/`notes`. Unknown keys are dropped server-side. Edited under **Settings tab → Objects table columns** |
+| `disabled_template_ids` (2.21+) | list[string] | `[]` | built-in template ids | Built-in templates hidden from the *"From template"* pickers (panel gallery + config-flow). The templates stay functional (a direct `object/from_template` still works); they're only removed from the pickers so a growing catalog doesn't clutter the UI. Toggled under **Settings tab → Template gallery** |
 
 ### Advanced Feature Visibility
 
@@ -78,6 +79,7 @@ Visible only when `notifications_enabled` is `true`.
 | `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |
 
 | `reminder_lead_days` (2.17+) | list[int] | `[]` | each 0–365, max 10 | Extra lead-time reminders: one additional reminder fires on each day where a task's days-until-due matches a listed value (e.g. `[14, 3, 0]` = 14 days before, 3 days before, and on the due date). Empty = off. Honours quiet hours, vacation mode, snooze, per-user routing, and the daily limit |
+| `weekly_digest_enabled` (2.15+) | bool | `false` | — | Send a Monday-morning digest summarising the week's due / overdue / triggered tasks through the notify service. Honours quiet hours and the daily limit |
 | `warranty_reminder_enabled` (2.17+) | bool | `false` | — | Remind once when an object's `warranty_expiry` is exactly `warranty_reminder_days` away |
 | `warranty_reminder_days` (2.17+) | int | 30 | 1–365 | Lead time for the warranty reminder |
 
