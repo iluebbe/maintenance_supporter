@@ -428,25 +428,27 @@ export const panelStyles = css`
     text-transform: uppercase;
   }
 
-  /* Dark text on the light chips — white on green/orange is 2.2–2.8:1, below
-     the 3:1 WCAG UI floor (matches the .status-badge fix). */
+  /* Same theme tokens as STATUS_COLORS / .status-badge / .cal-status (this set
+     predated the token migration and kept bare hex, so it alone ignored custom/
+     dark themes — the 3-palette drift the DRY audit flagged). Dark text on the
+     light chips (green/orange): white is 2.2–2.8:1, below the 3:1 WCAG UI floor. */
   .status-chip.ok {
-    background: #4caf50;
+    background: var(--success-color, #4caf50);
     color: #000;
   }
 
   .status-chip.warning {
-    background: #ff9800;
+    background: var(--warning-color, #ff9800);
     color: #000;
   }
 
   .status-chip.overdue {
-    background: #f44336;
+    background: var(--error-color, #f44336);
     color: white;
   }
 
   .status-chip.done {
-    background: #78909c;
+    background: var(--maint-done-color, #78909c);
     color: white;
   }
 

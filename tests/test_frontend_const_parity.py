@@ -184,6 +184,18 @@ def test_calendar_status_pills_are_theme_token_based() -> None:
     assert not offenders, f".cal-status-* pills must use theme tokens: {offenders}"
 
 
+def test_status_chip_pills_are_theme_token_based() -> None:
+    """The task-detail `.status-chip.*` set (panel-styles.ts) — the third status
+    palette — must also route its background through a theme token. It predated
+    STATUS_COLORS' token migration and kept bare hex, so it alone ignored custom/
+    dark themes (the 3-palette drift the DRY audit surfaced)."""
+    src = (_FRONTEND / "panel-styles.ts").read_text(encoding="utf-8")
+    rules = re.findall(r"\.status-chip\.\w+\s*\{[^}]*?background:\s*([^;]+);", src)
+    assert rules, "could not parse .status-chip.* rules"
+    offenders = [v for v in rules if "var(--" not in v]
+    assert not offenders, f".status-chip.* pills must use theme tokens (bare hex ignores the theme): {offenders}"
+
+
 # === Every localized top-level surface must load its locale =================
 
 
