@@ -528,6 +528,8 @@ Multi-channel notification with:
 | **QR** | `qr/generate`, `qr/batch_generate` |
 | **Entity Introspection** | `entity/attributes` |
 | **NFC Tags** | `tags/list` |
+| **Problem sensors** (2.24) | `problem_sensors/discover`, `problem_sensors/adopt` *(write)* — discover + adopt HA `device_class: problem` sensors as triggered tasks |
+| **Saved views** (2.24) | `views/list`, `views/save` *(write)*, `views/delete` *(write)* — shared named panel-list filter/sort/group combinations |
 | **Documents** (2.11.0) | `documents/list`, `documents/storage`, `documents/add_link`, `documents/update`, `documents/delete`, `documents/search` — file binaries travel through two authenticated HTTP views (`POST /api/maintenance_supporter/document/upload`, `GET /api/maintenance_supporter/document/{doc_id}`), not WS |
 
 All write commands fire events for subscription updates.

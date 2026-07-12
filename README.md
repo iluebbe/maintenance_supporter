@@ -96,7 +96,7 @@ for you — always previewing before it writes.
 | Area | What you get | Details |
 |---|---|---|
 | **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision | [Features → Task Management](docs/FEATURES.md#task-management) |
-| **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |
+| **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery; adopt HA `device_class: problem` sensors as tasks | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |
 | **Adaptive scheduling** | Learns real intervals (EWA + Weibull), seasonal factors, degradation prediction, feedback loop | [Features → Adaptive](docs/FEATURES.md#adaptive-scheduling) |
 | **Notifications** | Any `notify.*` target, per-user routing, actionable mobile buttons, quiet hours, bundling, lead-time reminders, weekly digest, warranty reminders, vacation mode | [Features → Notifications](docs/FEATURES.md#notifications) |
 | **Household** | Priorities, labels, checklists, user assignment + rotation, operator (read-only) mode, native To-do entity | [Features → Task Management](docs/FEATURES.md#task-management) |
@@ -104,7 +104,7 @@ for you — always previewing before it writes.
 | **Documents** | Attach manuals/invoices/photos per object — backup-safe, deduplicated, searchable, linkable to tasks (PDF page jump) | [Features → Documents](docs/FEATURES.md#documents--manuals-2110) |
 | **Spare parts** | Per-object parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags, on-complete service calls back to the device | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
-| **Dashboards** | Sidebar panel (Today view, `/` command palette, bulk actions), Lovelace card, calendar card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
+| **Dashboards** | Sidebar panel (Today view, `/` command palette, bulk actions, saved filter views), Lovelace card, calendar card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
 | **Localization** | Full UI in 18 languages across panel, config flow, and notifications | [Features → Frontend](docs/FEATURES.md#frontend) |
 
 ## Entities & automation hooks
@@ -115,8 +115,9 @@ buttons**. Global **summary sensors** count what needs attention, spare parts ge
 **stock sensors** (plus a global *parts to reorder* counter), a
 **calendar** entity feeds your calendar cards, and a **to-do** entity mirrors
 open work. Lifecycle **events** (`…_task_completed`, `…_trigger_activated`, …)
-fire on every path, and four **services** (`complete`, `skip`, `reset`,
-`export_data`) cover scripting.
+fire on every path, and nine **services** — `complete` / `skip` / `reset` /
+`export_data` plus full task CRUD (`add_object`, `add_task`, `update_task`,
+`delete_task`, `list_tasks`) — cover scripting.
 
 On HA 2026.7+ the new automation editor additionally offers ready-made
 building blocks — *"A maintenance task became overdue"* as a pickable
@@ -135,7 +136,7 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Every configurable parameter (global, per-object, per-task, triggers) |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Use-case recipes, automation YAML, cards & dashboard strategies |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Known limitations, common issues, debug logging, uninstalling |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (59 commands), tests |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (72 commands), tests |
 | [ROADMAP.md](ROADMAP.md) | What's planned and what shipped — ideas welcome via [Discussions](https://github.com/iluebbe/maintenance_supporter/discussions) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
