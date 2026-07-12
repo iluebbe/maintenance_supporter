@@ -309,8 +309,12 @@ def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
     if isinstance(duration, int) and 0 <= duration <= 525_600:
         cleaned["duration"] = duration
 
+    from ..const import MaintenanceFeedback
+
     feedback = defaults.get("feedback")
-    if feedback in ("needed", "not_needed"):
+    # Use the enum (needed / not_needed / not_sure) — a bare ("needed",
+    # "not_needed") literal silently dropped a valid not_sure feedback.
+    if feedback in tuple(MaintenanceFeedback):
         cleaned["feedback"] = feedback
 
     if cleaned:

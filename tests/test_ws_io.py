@@ -493,6 +493,60 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
     assert copy_task["history"][0]["reading_value"] == 1234.5, "history reading_value not imported"
 
 
+async def test_export_covers_every_model_task_field(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Derived tripwire (fails BY CONSTRUCTION): every MaintenanceTask dataclass
+    field is either emitted by the export whitelist or explicitly excluded here.
+
+    The round-trip test above proves the fields it was TOLD about survive — but a
+    NEW model field forgotten in export.py (the #50/#67/#83 data-loss class) is
+    invisible to a hand-maintained `expected` dict. This test derives the field
+    set from the model, so adding a persisted field without wiring the export
+    fails here until it is either exported or listed in NOT_EXPORTED with reason.
+    """
+    import dataclasses
+
+    from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
+
+    # Model fields intentionally NOT top-level JSON-export keys — each with a
+    # reason. Anything else MUST appear as an export key.
+    NOT_EXPORTED = {
+        "object_id",  # implied by the containing object's export
+        "schedule_raw",  # transient nested-shape cache; exported as `schedule`
+        "history",  # dynamic Store; carried via include_history + asserted in the round-trip test
+        "_trigger_active",  # runtime trigger state (never persisted)
+        "_trigger_current_value",  # runtime trigger state (never persisted)
+    }
+    must_export = {f.name for f in dataclasses.fields(MaintenanceTask)} - NOT_EXPORTED
+
+    # A task WITH a trigger so the conditionally-emitted trigger_config key is present.
+    task = build_task_data(
+        trigger_config={"type": "threshold", "entity_ids": ["sensor.ms_dry_probe"], "trigger_above": 10},
+    )
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Coverage Asset",
+        data=build_object_entry_data(object_data=build_object_data(name="Coverage Asset"), tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_coverage_asset",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    exported = next(e for e in build_export_data(hass, include_history=True)["objects"] if e["object"]["name"] == "Coverage Asset")
+    etask_keys = set(exported["tasks"][0])
+    missing = must_export - etask_keys
+    assert not missing, (
+        f"export.py (_build_export_object) is missing model task field(s) {sorted(missing)}. "
+        "Add them to the export whitelist AND websocket/io.py import AND the round-trip test — "
+        "or, if intentionally not persisted in a JSON backup, add them to NOT_EXPORTED with a reason."
+    )
+
+
 async def test_json_roundtrip_keeps_an_archived_task_archived(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
