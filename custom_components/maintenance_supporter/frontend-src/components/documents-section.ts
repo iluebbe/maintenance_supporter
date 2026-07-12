@@ -8,6 +8,7 @@
  */
 
 import { LitElement, html, css, nothing } from "lit";
+import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale } from "../styles";
 import { describeWsError } from "../ws-errors";
@@ -246,7 +247,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     if (doc.kind === "file") void this._preview(doc);
     // Only open http(s) links — never a javascript:/data: URL (the same scheme
     // guard the rest of the panel applies before opening user-supplied URLs).
-    else if (doc.url && /^https?:\/\//i.test(doc.url)) window.open(doc.url, "_blank", "noopener");
+    else if (isSafeHttpUrl(doc.url)) window.open(doc.url, "_blank", "noopener");
   }
 
   private _startEdit(doc: MaintenanceDocument): void {
@@ -484,7 +485,7 @@ export class MaintenanceDocumentsSection extends LitElement {
                 </button>`
             : html`<a
                 class="icon-btn"
-                href=${doc.url && /^https?:\/\//i.test(doc.url) ? doc.url : "#"}
+                href=${isSafeHttpUrl(doc.url) ? doc.url : "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 title=${t("doc_open", L)}

@@ -10,6 +10,7 @@
  */
 
 import { html, nothing } from "lit";
+import { isSafeHttpUrl } from "../helpers/url";
 import { t, formatDate, formatDateTime, formatRecurrence } from "../styles";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
@@ -205,9 +206,9 @@ function renderChecklistCard(task: MaintenanceTask, ctx: TaskDetailContext) {
  *  documentation_url for quick access to the device manual without having to
  *  navigate back to the object detail. */
 function renderTaskMeta(task: MaintenanceTask, ctx: TaskDetailContext) {
-  const safeTaskUrl = task.documentation_url && /^https?:\/\//i.test(task.documentation_url)
+  const safeTaskUrl = isSafeHttpUrl(task.documentation_url)
     ? task.documentation_url : null;
-  const safeObjUrl = ctx.objectDocUrl && /^https?:\/\//i.test(ctx.objectDocUrl) ? ctx.objectDocUrl : null;
+  const safeObjUrl = isSafeHttpUrl(ctx.objectDocUrl) ? ctx.objectDocUrl : null;
   if (!task.notes && !safeTaskUrl && !safeObjUrl) return nothing;
   const L = ctx.lang;
   return html`
