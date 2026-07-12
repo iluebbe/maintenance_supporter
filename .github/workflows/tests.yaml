@@ -98,7 +98,7 @@ jobs:
     needs: [frontend-build, pytest]
     timeout-minutes: 8
     env:
-      HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.7.1
+      HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.7.2
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
@@ -259,7 +259,7 @@ jobs:
             -v "${GITHUB_WORKSPACE}/ha-e2e-config:/config" \
             -v "${GITHUB_WORKSPACE}/custom_components:/config/custom_components:ro" \
             -e TZ=UTC -p 8123:8123 \
-            ghcr.io/home-assistant/home-assistant:2026.7.1
+            ghcr.io/home-assistant/home-assistant:2026.7.2
 
       - name: Wait for HA API (up to 300s)
         run: |
