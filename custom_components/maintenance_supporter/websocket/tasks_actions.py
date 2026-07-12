@@ -28,6 +28,30 @@ from . import (
 # ---------------------------------------------------------------------------
 
 
+def _load_task_context(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+    *,
+    need_coordinator: bool = True,
+) -> tuple[Any, Any] | None:
+    """Resolve ``(runtime_data, entry)`` for a task action, or send the standard
+    not-found error and return None.
+
+    Consolidates the identical prologue the task-action handlers copied inline
+    (the copies had already drifted — e.g. snooze omitted the coordinator check).
+    """
+    rd = _get_runtime_data(hass, msg["entry_id"])
+    if need_coordinator and (rd is None or rd.coordinator is None):
+        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+        return None
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return None
+    return rd, entry
+
+
 def _completion_blocked(rd: Any, task_id: str) -> bool:
     """True iff the task's completion window forbids completing it right now.
 
@@ -81,15 +105,10 @@ async def ws_complete_task(
     msg: dict[str, Any],
 ) -> None:
     """Mark a task as completed."""
-    rd = _get_runtime_data(hass, msg["entry_id"])
-    if rd is None or rd.coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+    ctx = _load_task_context(hass, connection, msg)
+    if ctx is None:
         return
-
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    rd, _entry = ctx
 
     if _completion_blocked(rd, msg["task_id"]):
         connection.send_error(
@@ -192,15 +211,10 @@ async def ws_skip_task(
     msg: dict[str, Any],
 ) -> None:
     """Skip the current maintenance cycle."""
-    rd = _get_runtime_data(hass, msg["entry_id"])
-    if rd is None or rd.coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+    ctx = _load_task_context(hass, connection, msg)
+    if ctx is None:
         return
-
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    rd, _entry = ctx
 
     await rd.coordinator.skip_maintenance(
         task_id=msg["task_id"],
@@ -227,15 +241,10 @@ async def ws_reset_task(
     """Reset the last performed date."""
     from datetime import date as date_cls
 
-    rd = _get_runtime_data(hass, msg["entry_id"])
-    if rd is None or rd.coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+    ctx = _load_task_context(hass, connection, msg)
+    if ctx is None:
         return
-
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    rd, _entry = ctx
 
     reset_date = None
     if msg.get("date"):
@@ -269,15 +278,10 @@ async def ws_postpone_task(
     """Postpone the current occurrence to a chosen date (per-occurrence defer)."""
     from datetime import date as date_cls
 
-    rd = _get_runtime_data(hass, msg["entry_id"])
-    if rd is None or rd.coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+    ctx = _load_task_context(hass, connection, msg)
+    if ctx is None:
         return
-
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    rd, _entry = ctx
 
     try:
         until = date_cls.fromisoformat(msg["until"])
@@ -310,9 +314,7 @@ async def ws_snooze_task(
     """
     from .. import DOMAIN, NOTIFICATION_MANAGER_KEY
 
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
+    if _load_task_context(hass, connection, msg, need_coordinator=False) is None:
         return
 
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
