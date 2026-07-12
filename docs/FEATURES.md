@@ -99,6 +99,14 @@ object and shows its live state; the integration's own sensors are excluded.
 
 ![Adopt problem sensors](images/adopt-problem-sensors.png)
 
+### Saved filter views
+Name a combination of the panel task-list filters — status, responsible user,
+archived, plus sort and group-by — and reapply the whole set in one tap from the
+toolbar (e.g. *"Kitchen overdue"*, *"Unassigned this week"*). Views are **shared**
+across everyone who opens the panel and persist across restarts; save the current
+filters or manage/delete existing views from the same dialog. Hand-editing any
+filter clears the active-view selection, so the dropdown never lies.
+
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.
 Download as PNG/SVG or print; URL modes for LAN, external URL, or the
@@ -375,7 +383,7 @@ Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
 `add_task`, `update_task`, `delete_task`, and `list_tasks` (returns a
 response — id, name, status, next due per task, filterable by object and
 status) join the long-standing `complete` / `skip` / `reset` /
-`export_data`. For the full WebSocket API (49 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+`export_data`. For the full WebSocket API (72 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 
 ## Data Updates
