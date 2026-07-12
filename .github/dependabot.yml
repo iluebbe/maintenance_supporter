@@ -9,6 +9,12 @@ updates:
     directory: "/custom_components/maintenance_supporter/frontend-src"
     schedule:
       interval: "monthly"
+    ignore:
+      # pdf.js 6.x needs Map.getOrInsertComputed (too new for many HA-user
+      # browsers) — the worksheet deliberately vendors the v4 LEGACY build.
+      # A major bump compiles but breaks PDF rendering at runtime.
+      - dependency-name: "pdfjs-dist"
+        update-types: ["version-update:semver-major"]
 
   # The e2e (Playwright) toolchain — same npm ecosystem, and where the ws
   # advisory chain also lives (playwright → puppeteer-core → ws).
