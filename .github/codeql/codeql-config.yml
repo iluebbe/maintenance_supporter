@@ -1,0 +1,15 @@
+name: "maintenance_supporter CodeQL config"
+
+# Security-focused query suite (more security queries than the default, without
+# the quality queries ruff/mypy + the manual audits already cover).
+queries:
+  - uses: security-extended
+
+# Analyse ONLY the shipped integration. The test suite, the Playwright e2e
+# automation and the dev scripts are not distributed to users, and CodeQL's
+# security queries flag idioms that are fine there but noisy in the Security tab
+# (test `"host" in url` asserts, unanchored regexes in e2e scripts, http→file
+# writes in the screenshot tooling). Scoping to custom_components keeps the scan
+# on user-facing code — where it found zero issues.
+paths:
+  - custom_components

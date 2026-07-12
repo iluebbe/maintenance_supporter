@@ -41,11 +41,9 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
-          # Security-focused suite: more security queries than the default,
-          # WITHOUT the quality queries (unused imports, redundant comparisons)
-          # that ruff/mypy + the manual audits already cover — keeps the Security
-          # tab free of ~100 style notes so real findings aren't buried.
-          queries: security-extended
+          # Query suite + path scoping (only the shipped integration) live in the
+          # config file so both languages share them.
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
