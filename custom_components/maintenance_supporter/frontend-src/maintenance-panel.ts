@@ -1,6 +1,7 @@
 /** Maintenance Supporter Sidebar Panel. */
 
 import { LitElement, html, nothing } from "lit";
+import { isSafeHttpUrl } from "./helpers/url";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence } from "./styles";
 import { LS_KEYS } from "./helpers/storage-keys";
@@ -2573,7 +2574,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
       case "documentation_url":
         return html`<td class="oc-documentation_url">${
-          o.documentation_url && /^https?:\/\//i.test(o.documentation_url)
+          isSafeHttpUrl(o.documentation_url)
             ? html`<a href=${o.documentation_url} target="_blank" rel="noopener noreferrer"
                 @click=${(e: Event) => e.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`
             : "—"
@@ -2872,7 +2873,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           ? html`<p class="meta">${[o.manufacturer, o.model].filter(Boolean).join(" ")}</p>`
           : nothing}
         ${o.serial_number ? html`<p class="meta">${t("serial_number_label", L)}: ${o.serial_number}</p>` : nothing}
-        ${o.documentation_url && /^https?:\/\//i.test(o.documentation_url)
+        ${isSafeHttpUrl(o.documentation_url)
           ? html`<p class="meta">${t("documentation_url_label", L)}:
               <a href=${o.documentation_url} target="_blank" rel="noopener noreferrer">${o.documentation_url}</a>
             </p>`

@@ -9,6 +9,7 @@
  */
 
 import { LitElement, html, css, nothing } from "lit";
+import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
 import { t, STATUS_COLORS } from "../styles";
 import { describeWsError } from "../ws-errors";
@@ -239,7 +240,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
               <span class="meta-value">${
                 // Only render http(s) values as links (never javascript:/data:);
                 // value-based so it works in every UI language, not just English.
-                /^https?:\/\//i.test(value)
+                isSafeHttpUrl(value)
                   ? html`<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`
                   : value
               }</span>
