@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Kalenderplan",
-          "description": "Nestet gjentakelse for kalendertypene, f.eks. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} for 1. lørdag (weekday 0=man ... 6=søn), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} for man & tor, eller {\"kind\": \"day_of_month\", \"day\": 15}. Har forrang over interval_days / schedule_type."
+          "description": "Nestet gjentakelse for kalendertypene, f.eks. kind=nth_weekday, nth=1, weekday=5 for 1. lørdag (weekday 0=man ... 6=søn), kind=weekdays, weekdays=[0, 3] for man & tor, eller kind=day_of_month, day=15. Har forrang over interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Varsel (dager)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Plan (kalendergjentakelse)",
-          "description": "Nestet gjentakelsesobjekt for kalendertypene, f.eks. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Har forrang over de flate feltene."
+          "description": "Nestet gjentakelsesobjekt for kalendertypene, f.eks. kind=day_of_month, day=-1, business=true. Har forrang over de flate feltene."
         },
         "warning_days": {
           "name": "Varseldager",

@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Harmonogram kalendarzowy",
-          "description": "Zagnieżdżone powtarzanie dla typów kalendarzowych, np. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} dla 1. soboty (weekday 0=pon ... 6=niedz), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} dla pon i czw, lub {\"kind\": \"day_of_month\", \"day\": 15}. Ma pierwszeństwo przed interval_days / schedule_type."
+          "description": "Zagnieżdżone powtarzanie dla typów kalendarzowych, np. kind=nth_weekday, nth=1, weekday=5 dla 1. soboty (weekday 0=pon ... 6=niedz), kind=weekdays, weekdays=[0, 3] dla pon i czw, lub kind=day_of_month, day=15. Ma pierwszeństwo przed interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Ostrzeżenie (dni)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Harmonogram (powtarzanie kalendarzowe)",
-          "description": "Zagnieżdżony obiekt powtarzania dla typów kalendarzowych, np. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Ma pierwszeństwo przed polami płaskimi."
+          "description": "Zagnieżdżony obiekt powtarzania dla typów kalendarzowych, np. kind=day_of_month, day=-1, business=true. Ma pierwszeństwo przed polami płaskimi."
         },
         "warning_days": {
           "name": "Dni ostrzeżenia",

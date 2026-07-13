@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "कैलेंडर शेड्यूल",
-          "description": "कैलेंडर प्रकारों के लिए नेस्टेड पुनरावृत्ति, जैसे {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} पहले शनिवार के लिए (weekday 0=सोम ... 6=रवि), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} सोम और गुरु के लिए, या {\"kind\": \"day_of_month\", \"day\": 15}। interval_days / schedule_type पर प्राथमिकता।"
+          "description": "कैलेंडर प्रकारों के लिए नेस्टेड पुनरावृत्ति, जैसे kind=nth_weekday, nth=1, weekday=5 पहले शनिवार के लिए (weekday 0=सोम ... 6=रवि), kind=weekdays, weekdays=[0, 3] सोम और गुरु के लिए, या kind=day_of_month, day=15। interval_days / schedule_type पर प्राथमिकता।"
         },
         "warning_days": {
           "name": "चेतावनी (दिन)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "शेड्यूल (कैलेंडर पुनरावृत्ति)",
-          "description": "कैलेंडर प्रकारों के लिए नेस्टेड पुनरावृत्ति ऑब्जेक्ट, जैसे {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}। सपाट फ़ील्ड पर प्राथमिकता।"
+          "description": "कैलेंडर प्रकारों के लिए नेस्टेड पुनरावृत्ति ऑब्जेक्ट, जैसे kind=day_of_month, day=-1, business=true। सपाट फ़ील्ड पर प्राथमिकता।"
         },
         "warning_days": {
           "name": "चेतावनी दिन",

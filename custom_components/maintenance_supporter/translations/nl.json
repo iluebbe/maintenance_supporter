@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Kalenderplanning",
-          "description": "Geneste herhaling voor de kalendertypen, bijv. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} voor de 1e zaterdag (weekday 0=ma ... 6=zo), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} voor ma & do, of {\"kind\": \"day_of_month\", \"day\": 15}. Heeft voorrang op interval_days / schedule_type."
+          "description": "Geneste herhaling voor de kalendertypen, bijv. kind=nth_weekday, nth=1, weekday=5 voor de 1e zaterdag (weekday 0=ma ... 6=zo), kind=weekdays, weekdays=[0, 3] voor ma & do, of kind=day_of_month, day=15. Heeft voorrang op interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Waarschuwing (dagen)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Planning (kalenderherhaling)",
-          "description": "Genest herhalingsobject voor de kalendertypen, bijv. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Heeft voorrang op de platte velden."
+          "description": "Genest herhalingsobject voor de kalendertypen, bijv. kind=day_of_month, day=-1, business=true. Heeft voorrang op de platte velden."
         },
         "warning_days": {
           "name": "Waarschuwingsdagen",

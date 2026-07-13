@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Kalenteriaikataulu",
-          "description": "Sisäkkäinen toisto kalenterityypeille, esim. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} 1. lauantaille (weekday 0=ma ... 6=su), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} ma & to, tai {\"kind\": \"day_of_month\", \"day\": 15}. Ohittaa interval_days / schedule_type -kentät."
+          "description": "Sisäkkäinen toisto kalenterityypeille, esim. kind=nth_weekday, nth=1, weekday=5 1. lauantaille (weekday 0=ma ... 6=su), kind=weekdays, weekdays=[0, 3] ma & to, tai kind=day_of_month, day=15. Ohittaa interval_days / schedule_type -kentät."
         },
         "warning_days": {
           "name": "Varoitus (päivää)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Aikataulu (kalenteritoisto)",
-          "description": "Sisäkkäinen toisto-objekti kalenterityypeille, esim. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Ohittaa litteät kentät."
+          "description": "Sisäkkäinen toisto-objekti kalenterityypeille, esim. kind=day_of_month, day=-1, business=true. Ohittaa litteät kentät."
         },
         "warning_days": {
           "name": "Varoituspäivät",

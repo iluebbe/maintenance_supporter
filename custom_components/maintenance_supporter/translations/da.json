@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Kalenderplan",
-          "description": "Indlejret gentagelse for kalendertyperne, f.eks. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} for 1. lørdag (weekday 0=man ... 6=søn), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} for man & tor, eller {\"kind\": \"day_of_month\", \"day\": 15}. Har forrang over interval_days / schedule_type."
+          "description": "Indlejret gentagelse for kalendertyperne, f.eks. kind=nth_weekday, nth=1, weekday=5 for 1. lørdag (weekday 0=man ... 6=søn), kind=weekdays, weekdays=[0, 3] for man & tor, eller kind=day_of_month, day=15. Har forrang over interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Varsel (dage)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Plan (kalendergentagelse)",
-          "description": "Indlejret gentagelsesobjekt for kalendertyperne, f.eks. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Har forrang over de flade felter."
+          "description": "Indlejret gentagelsesobjekt for kalendertyperne, f.eks. kind=day_of_month, day=-1, business=true. Har forrang over de flade felter."
         },
         "warning_days": {
           "name": "Advarselsdage",

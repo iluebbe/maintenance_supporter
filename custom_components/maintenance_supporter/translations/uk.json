@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Календарний розклад",
-          "description": "Вкладене повторення для календарних типів, напр. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} для 1-ї суботи (weekday 0=Пн ... 6=Нд), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} для Пн і Чт, або {\"kind\": \"day_of_month\", \"day\": 15}. Має пріоритет над interval_days / schedule_type."
+          "description": "Вкладене повторення для календарних типів, напр. kind=nth_weekday, nth=1, weekday=5 для 1-ї суботи (weekday 0=Пн ... 6=Нд), kind=weekdays, weekdays=[0, 3] для Пн і Чт, або kind=day_of_month, day=15. Має пріоритет над interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Попередження (дні)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Розклад (календарне повторення)",
-          "description": "Вкладений об'єкт повторення для календарних типів, напр. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Має пріоритет над плоскими полями."
+          "description": "Вкладений об'єкт повторення для календарних типів, напр. kind=day_of_month, day=-1, business=true. Має пріоритет над плоскими полями."
         },
         "warning_days": {
           "name": "Днів попередження",

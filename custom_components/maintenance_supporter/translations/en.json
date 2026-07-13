@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Calendar schedule",
-          "description": "Nested recurrence for the calendar kinds, e.g. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} for the 1st Saturday (weekday 0=Mon ... 6=Sun), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} for Mon & Thu, or {\"kind\": \"day_of_month\", \"day\": 15}. Takes precedence over interval_days / schedule_type."
+          "description": "Nested recurrence for the calendar kinds, e.g. kind=nth_weekday, nth=1, weekday=5 for the 1st Saturday (weekday 0=Mon ... 6=Sun), kind=weekdays, weekdays=[0, 3] for Mon & Thu, or kind=day_of_month, day=15. Takes precedence over interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Warning (days)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Schedule (calendar recurrence)",
-          "description": "Nested recurrence object for the calendar kinds, e.g. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Takes precedence over the flat fields."
+          "description": "Nested recurrence object for the calendar kinds, e.g. kind=day_of_month, day=-1, business=true. Takes precedence over the flat fields."
         },
         "warning_days": {
           "name": "Warning days",
