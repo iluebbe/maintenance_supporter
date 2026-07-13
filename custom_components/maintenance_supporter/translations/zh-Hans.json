@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "日历计划",
-          "description": "日历类型的嵌套重复，例如第1个周六为 {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5}（weekday 0=周一 ... 6=周日），周一和周四为 {\"kind\": \"weekdays\", \"weekdays\": [0, 3]}，或 {\"kind\": \"day_of_month\", \"day\": 15}。优先于 interval_days / schedule_type。"
+          "description": "日历类型的嵌套重复，例如第1个周六为 kind=nth_weekday, nth=1, weekday=5（weekday 0=周一 ... 6=周日），周一和周四为 kind=weekdays, weekdays=[0, 3]，或 kind=day_of_month, day=15。优先于 interval_days / schedule_type。"
         },
         "warning_days": {
           "name": "警告（天）",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "计划（日历重复）",
-          "description": "日历类型的嵌套重复对象，例如 {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}。优先于扁平字段。"
+          "description": "日历类型的嵌套重复对象，例如 kind=day_of_month, day=-1, business=true。优先于扁平字段。"
         },
         "warning_days": {
           "name": "预警天数",

@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Agendamento de calendário",
-          "description": "Recorrência aninhada para os tipos de calendário, p. ex. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} para o 1.º sábado (weekday 0=seg ... 6=dom), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} para seg e qui, ou {\"kind\": \"day_of_month\", \"day\": 15}. Tem prioridade sobre interval_days / schedule_type."
+          "description": "Recorrência aninhada para os tipos de calendário, p. ex. kind=nth_weekday, nth=1, weekday=5 para o 1.º sábado (weekday 0=seg ... 6=dom), kind=weekdays, weekdays=[0, 3] para seg e qui, ou kind=day_of_month, day=15. Tem prioridade sobre interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Aviso (dias)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Agendamento (recorrência de calendário)",
-          "description": "Objeto de recorrência aninhado para os tipos de calendário, p. ex. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Tem prioridade sobre os campos simples."
+          "description": "Objeto de recorrência aninhado para os tipos de calendário, p. ex. kind=day_of_month, day=-1, business=true. Tem prioridade sobre os campos simples."
         },
         "warning_days": {
           "name": "Dias de aviso",

@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Kalendářní plán",
-          "description": "Vnořené opakování pro kalendářní typy, např. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} pro 1. sobotu (weekday 0=Po ... 6=Ne), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} pro Po a Čt, nebo {\"kind\": \"day_of_month\", \"day\": 15}. Má přednost před interval_days / schedule_type."
+          "description": "Vnořené opakování pro kalendářní typy, např. kind=nth_weekday, nth=1, weekday=5 pro 1. sobotu (weekday 0=Po ... 6=Ne), kind=weekdays, weekdays=[0, 3] pro Po a Čt, nebo kind=day_of_month, day=15. Má přednost před interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Upozornění (dny)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Plán (kalendářní opakování)",
-          "description": "Vnořený objekt opakování pro kalendářní typy, např. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Má přednost před plochými poli."
+          "description": "Vnořený objekt opakování pro kalendářní typy, např. kind=day_of_month, day=-1, business=true. Má přednost před plochými poli."
         },
         "warning_days": {
           "name": "Dny upozornění",

@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Programación de calendario",
-          "description": "Recurrencia anidada para los tipos de calendario, p. ej. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} para el 1.er sábado (weekday 0=lun ... 6=dom), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} para lun y jue, o {\"kind\": \"day_of_month\", \"day\": 15}. Tiene prioridad sobre interval_days / schedule_type."
+          "description": "Recurrencia anidada para los tipos de calendario, p. ej. kind=nth_weekday, nth=1, weekday=5 para el 1.er sábado (weekday 0=lun ... 6=dom), kind=weekdays, weekdays=[0, 3] para lun y jue, o kind=day_of_month, day=15. Tiene prioridad sobre interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Aviso (días)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Programación (recurrencia de calendario)",
-          "description": "Objeto de recurrencia anidado para los tipos de calendario, p. ej. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Tiene prioridad sobre los campos planos."
+          "description": "Objeto de recurrencia anidado para los tipos de calendario, p. ej. kind=day_of_month, day=-1, business=true. Tiene prioridad sobre los campos planos."
         },
         "warning_days": {
           "name": "Días de aviso",

@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Planification calendaire",
-          "description": "Récurrence imbriquée pour les types calendaires, p. ex. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} pour le 1er samedi (weekday 0=lun ... 6=dim), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} pour lun et jeu, ou {\"kind\": \"day_of_month\", \"day\": 15}. Prioritaire sur interval_days / schedule_type."
+          "description": "Récurrence imbriquée pour les types calendaires, p. ex. kind=nth_weekday, nth=1, weekday=5 pour le 1er samedi (weekday 0=lun ... 6=dim), kind=weekdays, weekdays=[0, 3] pour lun et jeu, ou kind=day_of_month, day=15. Prioritaire sur interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Préavis (jours)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Planification (récurrence calendaire)",
-          "description": "Objet de récurrence imbriqué pour les types calendaires, p. ex. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Prioritaire sur les champs plats."
+          "description": "Objet de récurrence imbriqué pour les types calendaires, p. ex. kind=day_of_month, day=-1, business=true. Prioritaire sur les champs plats."
         },
         "warning_days": {
           "name": "Jours d'avertissement",

@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "カレンダースケジュール",
-          "description": "カレンダー種別のネストした繰り返し。例: 第1土曜日は {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5}（weekday 0=月 ... 6=日）、月・木は {\"kind\": \"weekdays\", \"weekdays\": [0, 3]}、毎月15日は {\"kind\": \"day_of_month\", \"day\": 15}。interval_days / schedule_type より優先されます。"
+          "description": "カレンダー種別のネストした繰り返し。例: 第1土曜日は kind=nth_weekday, nth=1, weekday=5（weekday 0=月 ... 6=日）、月・木は kind=weekdays, weekdays=[0, 3]、毎月15日は kind=day_of_month, day=15。interval_days / schedule_type より優先されます。"
         },
         "warning_days": {
           "name": "警告（日数）",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "スケジュール（カレンダー繰り返し）",
-          "description": "カレンダー種別のネストした繰り返しオブジェクト。例: {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}。フラットなフィールドより優先されます。"
+          "description": "カレンダー種別のネストした繰り返しオブジェクト。例: kind=day_of_month, day=-1, business=true。フラットなフィールドより優先されます。"
         },
         "warning_days": {
           "name": "警告日数",

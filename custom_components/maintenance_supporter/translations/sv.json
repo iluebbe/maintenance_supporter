@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Kalenderschema",
-          "description": "Nästlad upprepning för kalendertyperna, t.ex. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} för 1:a lördagen (weekday 0=mån ... 6=sön), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} för mån & tor, eller {\"kind\": \"day_of_month\", \"day\": 15}. Har företräde framför interval_days / schedule_type."
+          "description": "Nästlad upprepning för kalendertyperna, t.ex. kind=nth_weekday, nth=1, weekday=5 för 1:a lördagen (weekday 0=mån ... 6=sön), kind=weekdays, weekdays=[0, 3] för mån & tor, eller kind=day_of_month, day=15. Har företräde framför interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Varning (dagar)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Schema (kalenderupprepning)",
-          "description": "Nästlat upprepningsobjekt för kalendertyperna, t.ex. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Har företräde framför de platta fälten."
+          "description": "Nästlat upprepningsobjekt för kalendertyperna, t.ex. kind=day_of_month, day=-1, business=true. Har företräde framför de platta fälten."
         },
         "warning_days": {
           "name": "Varningsdagar",

@@ -1610,7 +1610,7 @@
         },
         "schedule": {
           "name": "Pianificazione calendario",
-          "description": "Ricorrenza annidata per i tipi calendario, es. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} per il 1° sabato (weekday 0=lun ... 6=dom), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} per lun e gio, o {\"kind\": \"day_of_month\", \"day\": 15}. Ha priorità su interval_days / schedule_type."
+          "description": "Ricorrenza annidata per i tipi calendario, es. kind=nth_weekday, nth=1, weekday=5 per il 1° sabato (weekday 0=lun ... 6=dom), kind=weekdays, weekdays=[0, 3] per lun e gio, o kind=day_of_month, day=15. Ha priorità su interval_days / schedule_type."
         },
         "warning_days": {
           "name": "Preavviso (giorni)",
@@ -1662,7 +1662,7 @@
         },
         "schedule": {
           "name": "Pianificazione (ricorrenza calendario)",
-          "description": "Oggetto di ricorrenza annidato per i tipi calendario, es. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Ha priorità sui campi semplici."
+          "description": "Oggetto di ricorrenza annidato per i tipi calendario, es. kind=day_of_month, day=-1, business=true. Ha priorità sui campi semplici."
         },
         "warning_days": {
           "name": "Giorni di avviso",
