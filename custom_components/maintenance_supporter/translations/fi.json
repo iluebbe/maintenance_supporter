@@ -1538,6 +1538,181 @@
           "description": "Sisällytetäänkö tehtävähistorian merkinnät vientiin."
         }
       }
+    },
+    "add_object": {
+      "name": "Lisää kohde",
+      "description": "Luo uuden huoltokohteen (laitteen). Palauttaa uuden entry_id:n.",
+      "fields": {
+        "name": {
+          "name": "Nimi",
+          "description": "Kohteen/laitteen nimi."
+        },
+        "area_id": {
+          "name": "Alue",
+          "description": "Alue, johon laite liitetään."
+        },
+        "manufacturer": {
+          "name": "Valmistaja"
+        },
+        "model": {
+          "name": "Malli"
+        },
+        "serial_number": {
+          "name": "Sarjanumero"
+        },
+        "installation_date": {
+          "name": "Asennuspäivä"
+        },
+        "warranty_expiry": {
+          "name": "Takuun päättyminen",
+          "description": "Takuun päättymispäivä (omaisuuden seurantaan ja muistutuksiin)."
+        },
+        "documentation_url": {
+          "name": "Dokumentaation URL-osoite",
+          "description": "Linkki käyttöohjeeseen tai valmistajan sivulle (vain http/https)."
+        },
+        "notes": {
+          "name": "Muistiinpanot"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Lisää tehtävä",
+      "description": "Lisää huoltotehtävän olemassa olevaan kohteeseen. Palauttaa uuden task_id:n.",
+      "fields": {
+        "entry_id": {
+          "name": "Kohde",
+          "description": "Huoltokohde, johon tehtävä lisätään."
+        },
+        "name": {
+          "name": "Nimi",
+          "description": "Tehtävän nimi."
+        },
+        "task_type": {
+          "name": "Tehtävän tyyppi",
+          "description": "Vapaamuotoinen luokka (esim. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Aikataulun tyyppi",
+          "description": "time_based (väli) tai sensor_based. Oletus: time_based."
+        },
+        "interval_days": {
+          "name": "Väli",
+          "description": "Välin pituus esiintymien välillä (aikapohjaisille tehtäville), yhdessä interval_unitin kanssa."
+        },
+        "interval_unit": {
+          "name": "Aikavälin yksikkö",
+          "description": "Välin yksikkö: days, weeks, months tai years. Oletus: days."
+        },
+        "due_date": {
+          "name": "Eräpäivä",
+          "description": "Eräpäivä (YYYY-MM-DD) kertaluonteiselle tehtävälle (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Kalenteriaikataulu",
+          "description": "Sisäkkäinen toisto kalenterityypeille, esim. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} 1. lauantaille (weekday 0=ma ... 6=su), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} ma & to, tai {\"kind\": \"day_of_month\", \"day\": 15}. Ohittaa interval_days / schedule_type -kentät."
+        },
+        "warning_days": {
+          "name": "Varoitus (päivää)",
+          "description": "Päivien määrä ennen eräpäivää, jolloin tehtävä siirtyy pian erääntyvien ikkunaan."
+        },
+        "enabled": {
+          "name": "Käytössä"
+        },
+        "notes": {
+          "name": "Muistiinpanot"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Päivitä tehtävä",
+      "description": "Päivittää olemassa olevan huoltotehtävän yleiset kentät. Vain annetut kentät muuttuvat.",
+      "fields": {
+        "entry_id": {
+          "name": "Kohde",
+          "description": "Huoltokohde, johon tehtävä kuuluu."
+        },
+        "task_id": {
+          "name": "Tehtävän ID",
+          "description": "Päivitettävän tehtävän id (ks. list_tasks)."
+        },
+        "name": {
+          "name": "Nimi",
+          "description": "Tehtävän uusi nimi."
+        },
+        "task_type": {
+          "name": "Tehtävän tyyppi",
+          "description": "Luokka (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Aikataulun tyyppi",
+          "description": "time_based (väli), sensor_based, one_time tai manual."
+        },
+        "interval_days": {
+          "name": "Väli",
+          "description": "Välin pituus esiintymien välillä, yhdessä interval_unitin kanssa."
+        },
+        "interval_unit": {
+          "name": "Aikavälin yksikkö",
+          "description": "days, weeks, months tai years."
+        },
+        "due_date": {
+          "name": "Eräpäivä",
+          "description": "Eräpäivä kertaluonteisille tehtäville (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Aikataulu (kalenteritoisto)",
+          "description": "Sisäkkäinen toisto-objekti kalenterityypeille, esim. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Ohittaa litteät kentät."
+        },
+        "warning_days": {
+          "name": "Varoituspäivät",
+          "description": "Päivien määrä ennen eräpäivää, jolloin tehtävä muuttuu pian erääntyväksi."
+        },
+        "enabled": {
+          "name": "Käytössä",
+          "description": "Onko tehtävä aktiivinen."
+        },
+        "notes": {
+          "name": "Muistiinpanot",
+          "description": "Vapaamuotoiset muistiinpanot tehtävästä."
+        },
+        "priority": {
+          "name": "Prioriteetti",
+          "description": "low, normal tai high."
+        },
+        "labels": {
+          "name": "Tunnisteet",
+          "description": "Luettelo tunnisteista suodatusta ja raportointia varten."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Poista tehtävä",
+      "description": "Poistaa huoltotehtävän ja sen historian. Tätä ei voi kumota - harkitse sen sijaan arkistointia paneelista.",
+      "fields": {
+        "entry_id": {
+          "name": "Kohde",
+          "description": "Huoltokohde, johon tehtävä kuuluu."
+        },
+        "task_id": {
+          "name": "Tehtävän ID",
+          "description": "Poistettavan tehtävän id (ks. list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Listaa tehtävät",
+      "description": "Palauttaa tilannekuvan aktiivisista huoltotehtävistä (id, nimi, tila, seuraava eräpäivä) automaatioille, skripteille ja puheelle. Tukee suodatusta kohteen ja tilan mukaan.",
+      "fields": {
+        "entry_id": {
+          "name": "Kohde",
+          "description": "Palauta vain tämän huoltokohteen tehtävät."
+        },
+        "status": {
+          "name": "Tila",
+          "description": "Palauta vain tehtävät, joilla on tämä tila."
+        }
+      }
     }
   },
   "issues": {

@@ -1538,6 +1538,181 @@
           "description": "Om historikkoppføringer for oppgaver skal inkluderes i eksporten."
         }
       }
+    },
+    "add_object": {
+      "name": "Legg til objekt",
+      "description": "Opprett et nytt vedlikeholdsobjekt (enhet). Returnerer den nye entry_id.",
+      "fields": {
+        "name": {
+          "name": "Navn",
+          "description": "Navn på objektet/enheten."
+        },
+        "area_id": {
+          "name": "Område",
+          "description": "Område enheten skal tildeles."
+        },
+        "manufacturer": {
+          "name": "Produsent"
+        },
+        "model": {
+          "name": "Modell"
+        },
+        "serial_number": {
+          "name": "Serienummer"
+        },
+        "installation_date": {
+          "name": "Installasjonsdato"
+        },
+        "warranty_expiry": {
+          "name": "Garantiens utløp",
+          "description": "Garantiutløpsdato (brukes til aktivasporing og påminnelser)."
+        },
+        "documentation_url": {
+          "name": "Dokumentasjons-URL",
+          "description": "Lenke til en manual eller leverandørside (kun http/https)."
+        },
+        "notes": {
+          "name": "Notater"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Legg til oppgave",
+      "description": "Legg til en vedlikeholdsoppgave i et eksisterende objekt. Returnerer den nye task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vedlikeholdsobjektet oppgaven skal legges til."
+        },
+        "name": {
+          "name": "Navn",
+          "description": "Navn på oppgaven."
+        },
+        "task_type": {
+          "name": "Oppgavetype",
+          "description": "Frikategori (f.eks. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Planleggingstype",
+          "description": "time_based (intervall) eller sensor_based. Standard: time_based."
+        },
+        "interval_days": {
+          "name": "Intervall",
+          "description": "Intervallengde mellom forekomster (for tidsbaserte oppgaver), kombinert med interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervallenhet",
+          "description": "Enhet for intervallet: days, weeks, months eller years. Standard: days."
+        },
+        "due_date": {
+          "name": "Forfallsdato",
+          "description": "Forfallsdato (YYYY-MM-DD) for en engangsoppgave (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Kalenderplan",
+          "description": "Nestet gjentakelse for kalendertypene, f.eks. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} for 1. lørdag (weekday 0=man ... 6=søn), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} for man & tor, eller {\"kind\": \"day_of_month\", \"day\": 15}. Har forrang over interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Varsel (dager)",
+          "description": "Dager før forfall der oppgaven går inn i due-soon-vinduet."
+        },
+        "enabled": {
+          "name": "Aktivert"
+        },
+        "notes": {
+          "name": "Notater"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Oppdater oppgave",
+      "description": "Oppdater de vanlige feltene i en eksisterende vedlikeholdsoppgave. Bare de angitte feltene endres.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vedlikeholdsobjektet oppgaven tilhører."
+        },
+        "task_id": {
+          "name": "Oppgave-ID",
+          "description": "Id-en til oppgaven som skal oppdateres (se list_tasks)."
+        },
+        "name": {
+          "name": "Navn",
+          "description": "Nytt navn på oppgaven."
+        },
+        "task_type": {
+          "name": "Oppgavetype",
+          "description": "Kategori (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Planleggingstype",
+          "description": "time_based (intervall), sensor_based, one_time eller manual."
+        },
+        "interval_days": {
+          "name": "Intervall",
+          "description": "Intervallengde mellom forekomster, kombinert med interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervallenhet",
+          "description": "days, weeks, months eller years."
+        },
+        "due_date": {
+          "name": "Forfallsdato",
+          "description": "Forfallsdato for engangsoppgaver (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Plan (kalendergjentakelse)",
+          "description": "Nestet gjentakelsesobjekt for kalendertypene, f.eks. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Har forrang over de flate feltene."
+        },
+        "warning_days": {
+          "name": "Varseldager",
+          "description": "Dager før forfall der oppgaven blir due-soon."
+        },
+        "enabled": {
+          "name": "Aktivert",
+          "description": "Om oppgaven er aktiv."
+        },
+        "notes": {
+          "name": "Notater",
+          "description": "Frie notater om oppgaven."
+        },
+        "priority": {
+          "name": "Prioritet",
+          "description": "low, normal eller high."
+        },
+        "labels": {
+          "name": "Etiketter",
+          "description": "Liste over etiketter for filtrering og rapportering."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Slett oppgave",
+      "description": "Slett en vedlikeholdsoppgave inkludert historikken. Dette kan ikke angres - vurder heller å arkivere via panelet.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vedlikeholdsobjektet oppgaven tilhører."
+        },
+        "task_id": {
+          "name": "Oppgave-ID",
+          "description": "Id-en til oppgaven som skal slettes (se list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "List opp oppgaver",
+      "description": "Returnerer et øyeblikksbilde av aktive vedlikeholdsoppgaver (id, navn, status, neste forfall) for automatiseringer, skript og tale. Støtter filtrering etter objekt og status.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Returner kun oppgaver for dette vedlikeholdsobjektet."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Returner kun oppgaver med denne statusen."
+        }
+      }
     }
   },
   "issues": {

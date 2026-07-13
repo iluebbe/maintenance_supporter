@@ -1538,6 +1538,181 @@
           "description": "Om uppgiftshistorikposter ska inkluderas i exporten."
         }
       }
+    },
+    "add_object": {
+      "name": "Lägg till objekt",
+      "description": "Skapa ett nytt underhållsobjekt (enhet). Returnerar det nya entry_id.",
+      "fields": {
+        "name": {
+          "name": "Namn",
+          "description": "Namn på objektet/enheten."
+        },
+        "area_id": {
+          "name": "Område",
+          "description": "Område som enheten ska tilldelas."
+        },
+        "manufacturer": {
+          "name": "Tillverkare"
+        },
+        "model": {
+          "name": "Modell"
+        },
+        "serial_number": {
+          "name": "Serienummer"
+        },
+        "installation_date": {
+          "name": "Installationsdatum"
+        },
+        "warranty_expiry": {
+          "name": "Garantins utgång",
+          "description": "Garantins utgångsdatum (används för tillgångsspårning och påminnelser)."
+        },
+        "documentation_url": {
+          "name": "Dokumentations-URL",
+          "description": "Länk till en manual eller leverantörssida (endast http/https)."
+        },
+        "notes": {
+          "name": "Anteckningar"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Lägg till uppgift",
+      "description": "Lägg till en underhållsuppgift till ett befintligt objekt. Returnerar det nya task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Underhållsobjektet som uppgiften ska läggas till i."
+        },
+        "name": {
+          "name": "Namn",
+          "description": "Uppgiftens namn."
+        },
+        "task_type": {
+          "name": "Uppgiftstyp",
+          "description": "Frivillig kategori (t.ex. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Schematyp",
+          "description": "time_based (intervall) eller sensor_based. Standard: time_based."
+        },
+        "interval_days": {
+          "name": "Intervall",
+          "description": "Intervalllängd mellan förekomster (för tidsbaserade uppgifter), i kombination med interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervallenhet",
+          "description": "Enhet för intervallet: days, weeks, months eller years. Standard: days."
+        },
+        "due_date": {
+          "name": "Förfallodatum",
+          "description": "Förfallodatum (YYYY-MM-DD) för en engångsuppgift (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Kalenderschema",
+          "description": "Nästlad upprepning för kalendertyperna, t.ex. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} för 1:a lördagen (weekday 0=mån ... 6=sön), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} för mån & tor, eller {\"kind\": \"day_of_month\", \"day\": 15}. Har företräde framför interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Varning (dagar)",
+          "description": "Dagar före förfall då uppgiften går in i snart-förfaller-fönstret."
+        },
+        "enabled": {
+          "name": "Aktiverad"
+        },
+        "notes": {
+          "name": "Anteckningar"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Uppdatera uppgift",
+      "description": "Uppdatera de vanliga fälten för en befintlig underhållsuppgift. Endast de angivna fälten ändras.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Underhållsobjektet som uppgiften tillhör."
+        },
+        "task_id": {
+          "name": "Uppgifts-ID",
+          "description": "Id för uppgiften som ska uppdateras (se list_tasks)."
+        },
+        "name": {
+          "name": "Namn",
+          "description": "Uppgiftens nya namn."
+        },
+        "task_type": {
+          "name": "Uppgiftstyp",
+          "description": "Kategori (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Schematyp",
+          "description": "time_based (intervall), sensor_based, one_time eller manual."
+        },
+        "interval_days": {
+          "name": "Intervall",
+          "description": "Intervalllängd mellan förekomster, i kombination med interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervallenhet",
+          "description": "days, weeks, months eller years."
+        },
+        "due_date": {
+          "name": "Förfallodatum",
+          "description": "Förfallodatum för engångsuppgifter (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Schema (kalenderupprepning)",
+          "description": "Nästlat upprepningsobjekt för kalendertyperna, t.ex. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Har företräde framför de platta fälten."
+        },
+        "warning_days": {
+          "name": "Varningsdagar",
+          "description": "Dagar före förfall då uppgiften blir snart-förfaller."
+        },
+        "enabled": {
+          "name": "Aktiverad",
+          "description": "Om uppgiften är aktiv."
+        },
+        "notes": {
+          "name": "Anteckningar",
+          "description": "Fria anteckningar om uppgiften."
+        },
+        "priority": {
+          "name": "Prioritet",
+          "description": "low, normal eller high."
+        },
+        "labels": {
+          "name": "Etiketter",
+          "description": "Lista med etiketter för filtrering och rapportering."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Ta bort uppgift",
+      "description": "Ta bort en underhållsuppgift inklusive dess historik. Detta kan inte ångras - överväg att arkivera via panelen i stället.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Underhållsobjektet som uppgiften tillhör."
+        },
+        "task_id": {
+          "name": "Uppgifts-ID",
+          "description": "Id för uppgiften som ska tas bort (se list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Lista uppgifter",
+      "description": "Returnerar en ögonblicksbild av aktiva underhållsuppgifter (id, namn, status, nästa förfall) för automationer, skript och röst. Stöder filtrering efter objekt och status.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Returnera endast uppgifter för detta underhållsobjekt."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Returnera endast uppgifter med denna status."
+        }
+      }
     }
   },
   "issues": {

@@ -1538,6 +1538,181 @@
           "description": "Ob Aufgabenhistorie-Einträge im Export enthalten sein sollen."
         }
       }
+    },
+    "add_object": {
+      "name": "Objekt hinzufügen",
+      "description": "Erstellt ein neues Wartungsobjekt (Gerät). Gibt die neue entry_id zurück.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name des Objekts/Geräts."
+        },
+        "area_id": {
+          "name": "Bereich",
+          "description": "Bereich, dem das Gerät zugeordnet wird."
+        },
+        "manufacturer": {
+          "name": "Hersteller"
+        },
+        "model": {
+          "name": "Modell"
+        },
+        "serial_number": {
+          "name": "Seriennummer"
+        },
+        "installation_date": {
+          "name": "Installationsdatum"
+        },
+        "warranty_expiry": {
+          "name": "Garantieablauf",
+          "description": "Garantieablaufdatum (für Bestandsverwaltung und Erinnerungen)."
+        },
+        "documentation_url": {
+          "name": "Dokumentations-URL",
+          "description": "Link zu einer Anleitung oder Herstellerseite (nur http/https)."
+        },
+        "notes": {
+          "name": "Notizen"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Aufgabe hinzufügen",
+      "description": "Fügt einem bestehenden Objekt eine Wartungsaufgabe hinzu. Gibt die neue task_id zurück.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Das Wartungsobjekt, dem die Aufgabe hinzugefügt wird."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name der Aufgabe."
+        },
+        "task_type": {
+          "name": "Aufgabentyp",
+          "description": "Freie Kategorie (z. B. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Zeitplantyp",
+          "description": "time_based (Intervall) oder sensor_based. Standard: time_based."
+        },
+        "interval_days": {
+          "name": "Intervall",
+          "description": "Intervalllänge zwischen den Terminen (bei zeitbasierten Aufgaben), zusammen mit interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervalleinheit",
+          "description": "Einheit für das Intervall: days, weeks, months oder years. Standard: days."
+        },
+        "due_date": {
+          "name": "Fälligkeitsdatum",
+          "description": "Fälligkeitsdatum (YYYY-MM-DD) für eine einmalige Aufgabe (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Kalender-Zeitplan",
+          "description": "Verschachtelte Wiederholung für die Kalenderarten, z. B. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} für den 1. Samstag (weekday 0=Mo ... 6=So), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} für Mo & Do oder {\"kind\": \"day_of_month\", \"day\": 15}. Hat Vorrang vor interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Vorwarnung (Tage)",
+          "description": "Tage vor Fälligkeit, ab denen die Aufgabe ins Bald-fällig-Fenster eintritt."
+        },
+        "enabled": {
+          "name": "Aktiviert"
+        },
+        "notes": {
+          "name": "Notizen"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Aufgabe aktualisieren",
+      "description": "Aktualisiert die gängigen Felder einer bestehenden Wartungsaufgabe. Nur die übergebenen Felder werden geändert.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Das Wartungsobjekt, zu dem die Aufgabe gehört."
+        },
+        "task_id": {
+          "name": "Aufgaben-ID",
+          "description": "Die ID der zu aktualisierenden Aufgabe (siehe list_tasks)."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Neuer Name der Aufgabe."
+        },
+        "task_type": {
+          "name": "Aufgabentyp",
+          "description": "Kategorie (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Zeitplantyp",
+          "description": "time_based (Intervall), sensor_based, one_time oder manual."
+        },
+        "interval_days": {
+          "name": "Intervall",
+          "description": "Intervalllänge zwischen den Terminen, zusammen mit interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervalleinheit",
+          "description": "days, weeks, months oder years."
+        },
+        "due_date": {
+          "name": "Fälligkeitsdatum",
+          "description": "Fälligkeitsdatum für einmalige Aufgaben (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Zeitplan (Kalender-Wiederholung)",
+          "description": "Verschachteltes Wiederholungsobjekt für die Kalenderarten, z. B. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Hat Vorrang vor den flachen Feldern."
+        },
+        "warning_days": {
+          "name": "Warntage",
+          "description": "Tage vor Fälligkeit, ab denen die Aufgabe „bald fällig“ wird."
+        },
+        "enabled": {
+          "name": "Aktiviert",
+          "description": "Ob die Aufgabe aktiv ist."
+        },
+        "notes": {
+          "name": "Notizen",
+          "description": "Freie Notizen zur Aufgabe."
+        },
+        "priority": {
+          "name": "Priorität",
+          "description": "low, normal oder high."
+        },
+        "labels": {
+          "name": "Labels",
+          "description": "Liste von Tags für Filterung und Auswertung."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Aufgabe löschen",
+      "description": "Löscht eine Wartungsaufgabe samt Verlauf. Kann nicht rückgängig gemacht werden - erwäge stattdessen das Archivieren über das Panel.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Das Wartungsobjekt, zu dem die Aufgabe gehört."
+        },
+        "task_id": {
+          "name": "Aufgaben-ID",
+          "description": "Die ID der zu löschenden Aufgabe (siehe list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Aufgaben auflisten",
+      "description": "Gibt eine Momentaufnahme der aktiven Wartungsaufgaben (id, Name, Status, nächste Fälligkeit) für Automationen, Skripte und Sprache zurück. Unterstützt Filterung nach Objekt und Status.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Nur Aufgaben dieses Wartungsobjekts zurückgeben."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Nur Aufgaben mit diesem Status zurückgeben."
+        }
+      }
     }
   },
   "issues": {

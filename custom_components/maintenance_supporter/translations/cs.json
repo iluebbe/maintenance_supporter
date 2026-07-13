@@ -1538,6 +1538,181 @@
           "description": "Zda zahrnout záznamy historie úkolů do exportu."
         }
       }
+    },
+    "add_object": {
+      "name": "Přidat objekt",
+      "description": "Vytvoří nový objekt údržby (zařízení). Vrací nové entry_id.",
+      "fields": {
+        "name": {
+          "name": "Název",
+          "description": "Název objektu/zařízení."
+        },
+        "area_id": {
+          "name": "Oblast",
+          "description": "Oblast, do které se zařízení přiřadí."
+        },
+        "manufacturer": {
+          "name": "Výrobce"
+        },
+        "model": {
+          "name": "Model"
+        },
+        "serial_number": {
+          "name": "Sériové číslo"
+        },
+        "installation_date": {
+          "name": "Datum instalace"
+        },
+        "warranty_expiry": {
+          "name": "Konec záruky",
+          "description": "Datum konce záruky (pro evidenci majetku a připomenutí)."
+        },
+        "documentation_url": {
+          "name": "URL dokumentace",
+          "description": "Odkaz na návod nebo stránku výrobce (pouze http/https)."
+        },
+        "notes": {
+          "name": "Poznámky"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Přidat úkol",
+      "description": "Přidá úkol údržby k existujícímu objektu. Vrací nové task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Objekt údržby, ke kterému se úkol přidá."
+        },
+        "name": {
+          "name": "Název",
+          "description": "Název úkolu."
+        },
+        "task_type": {
+          "name": "Typ úkolu",
+          "description": "Volná kategorie (např. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Typ plánu",
+          "description": "time_based (interval) nebo sensor_based. Výchozí: time_based."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Délka intervalu mezi výskyty (u časových úkolů), v kombinaci s interval_unit."
+        },
+        "interval_unit": {
+          "name": "Jednotka intervalu",
+          "description": "Jednotka intervalu: days, weeks, months nebo years. Výchozí: days."
+        },
+        "due_date": {
+          "name": "Termín",
+          "description": "Termín (YYYY-MM-DD) jednorázového úkolu (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Kalendářní plán",
+          "description": "Vnořené opakování pro kalendářní typy, např. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} pro 1. sobotu (weekday 0=Po ... 6=Ne), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} pro Po a Čt, nebo {\"kind\": \"day_of_month\", \"day\": 15}. Má přednost před interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Upozornění (dny)",
+          "description": "Počet dní před termínem pro vstup do okna „brzy k termínu“."
+        },
+        "enabled": {
+          "name": "Povoleno"
+        },
+        "notes": {
+          "name": "Poznámky"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Aktualizovat úkol",
+      "description": "Aktualizuje běžná pole existujícího úkolu údržby. Změní se pouze zadaná pole.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Objekt údržby, ke kterému úkol patří."
+        },
+        "task_id": {
+          "name": "ID úkolu",
+          "description": "ID úkolu, který se má aktualizovat (viz list_tasks)."
+        },
+        "name": {
+          "name": "Název",
+          "description": "Nový název úkolu."
+        },
+        "task_type": {
+          "name": "Typ úkolu",
+          "description": "Kategorie (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Typ plánu",
+          "description": "time_based (interval), sensor_based, one_time nebo manual."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Délka intervalu mezi výskyty, v kombinaci s interval_unit."
+        },
+        "interval_unit": {
+          "name": "Jednotka intervalu",
+          "description": "days, weeks, months nebo years."
+        },
+        "due_date": {
+          "name": "Termín",
+          "description": "Termín jednorázových úkolů (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Plán (kalendářní opakování)",
+          "description": "Vnořený objekt opakování pro kalendářní typy, např. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Má přednost před plochými poli."
+        },
+        "warning_days": {
+          "name": "Dny upozornění",
+          "description": "Počet dní před termínem, kdy úkol přejde do stavu „brzy k termínu“."
+        },
+        "enabled": {
+          "name": "Povoleno",
+          "description": "Zda je úkol aktivní."
+        },
+        "notes": {
+          "name": "Poznámky",
+          "description": "Volné poznámky k úkolu."
+        },
+        "priority": {
+          "name": "Priorita",
+          "description": "low, normal nebo high."
+        },
+        "labels": {
+          "name": "Štítky",
+          "description": "Seznam štítků pro filtrování a přehledy."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Smazat úkol",
+      "description": "Smaže úkol údržby včetně jeho historie. Nelze vrátit zpět - zvažte místo toho archivaci v panelu.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Objekt údržby, ke kterému úkol patří."
+        },
+        "task_id": {
+          "name": "ID úkolu",
+          "description": "ID úkolu, který se má smazat (viz list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Vypsat úkoly",
+      "description": "Vrátí přehled aktivních úkolů údržby (id, název, stav, další termín) pro automatizace, skripty a hlas. Podporuje filtrování podle objektu a stavu.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vrátit pouze úkoly tohoto objektu údržby."
+        },
+        "status": {
+          "name": "Stav",
+          "description": "Vrátit pouze úkoly s tímto stavem."
+        }
+      }
     }
   },
   "issues": {

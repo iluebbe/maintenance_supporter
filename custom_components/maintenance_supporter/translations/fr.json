@@ -1538,6 +1538,181 @@
           "description": "Inclure ou non les entrées d'historique des tâches dans l'exportation."
         }
       }
+    },
+    "add_object": {
+      "name": "Ajouter un objet",
+      "description": "Crée un nouvel objet de maintenance (appareil). Renvoie le nouvel entry_id.",
+      "fields": {
+        "name": {
+          "name": "Nom",
+          "description": "Nom de l'objet/appareil."
+        },
+        "area_id": {
+          "name": "Zone",
+          "description": "Zone à laquelle affecter l'appareil."
+        },
+        "manufacturer": {
+          "name": "Fabricant"
+        },
+        "model": {
+          "name": "Modèle"
+        },
+        "serial_number": {
+          "name": "Numéro de série"
+        },
+        "installation_date": {
+          "name": "Date d'installation"
+        },
+        "warranty_expiry": {
+          "name": "Fin de garantie",
+          "description": "Date de fin de garantie (pour le suivi des biens et les rappels)."
+        },
+        "documentation_url": {
+          "name": "URL de documentation",
+          "description": "Lien vers un manuel ou une page du fabricant (http/https uniquement)."
+        },
+        "notes": {
+          "name": "Notes"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Ajouter une tâche",
+      "description": "Ajoute une tâche de maintenance à un objet existant. Renvoie le nouveau task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Objet",
+          "description": "L'objet de maintenance auquel ajouter la tâche."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Nom de la tâche."
+        },
+        "task_type": {
+          "name": "Type de tâche",
+          "description": "Catégorie libre (p. ex. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Type de planification",
+          "description": "time_based (intervalle) ou sensor_based. Par défaut : time_based."
+        },
+        "interval_days": {
+          "name": "Intervalle",
+          "description": "Longueur de l'intervalle entre les occurrences (pour les tâches temporelles), combinée avec interval_unit."
+        },
+        "interval_unit": {
+          "name": "Unité d'intervalle",
+          "description": "Unité de l'intervalle : days, weeks, months ou years. Par défaut : days."
+        },
+        "due_date": {
+          "name": "Date d'échéance",
+          "description": "Date d'échéance (YYYY-MM-DD) pour une tâche ponctuelle (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Planification calendaire",
+          "description": "Récurrence imbriquée pour les types calendaires, p. ex. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} pour le 1er samedi (weekday 0=lun ... 6=dim), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} pour lun et jeu, ou {\"kind\": \"day_of_month\", \"day\": 15}. Prioritaire sur interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Préavis (jours)",
+          "description": "Jours avant l'échéance pour entrer dans la fenêtre « bientôt dû »."
+        },
+        "enabled": {
+          "name": "Activé"
+        },
+        "notes": {
+          "name": "Notes"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Mettre à jour la tâche",
+      "description": "Met à jour les champs courants d'une tâche de maintenance existante. Seuls les champs fournis changent.",
+      "fields": {
+        "entry_id": {
+          "name": "Objet",
+          "description": "L'objet de maintenance auquel appartient la tâche."
+        },
+        "task_id": {
+          "name": "ID de tâche",
+          "description": "L'id de la tâche à mettre à jour (voir list_tasks)."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Nouveau nom de la tâche."
+        },
+        "task_type": {
+          "name": "Type de tâche",
+          "description": "Catégorie (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Type de planification",
+          "description": "time_based (intervalle), sensor_based, one_time ou manual."
+        },
+        "interval_days": {
+          "name": "Intervalle",
+          "description": "Longueur de l'intervalle entre les occurrences, combinée avec interval_unit."
+        },
+        "interval_unit": {
+          "name": "Unité d'intervalle",
+          "description": "days, weeks, months ou years."
+        },
+        "due_date": {
+          "name": "Date d'échéance",
+          "description": "Date d'échéance pour les tâches ponctuelles (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Planification (récurrence calendaire)",
+          "description": "Objet de récurrence imbriqué pour les types calendaires, p. ex. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Prioritaire sur les champs plats."
+        },
+        "warning_days": {
+          "name": "Jours d'avertissement",
+          "description": "Jours avant l'échéance où la tâche devient « bientôt due »."
+        },
+        "enabled": {
+          "name": "Activé",
+          "description": "Si la tâche est active."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Notes libres sur la tâche."
+        },
+        "priority": {
+          "name": "Priorité",
+          "description": "low, normal ou high."
+        },
+        "labels": {
+          "name": "Étiquettes",
+          "description": "Liste d'étiquettes pour le filtrage et les rapports."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Supprimer la tâche",
+      "description": "Supprime une tâche de maintenance ainsi que son historique. Irréversible - envisagez plutôt l'archivage via le panneau.",
+      "fields": {
+        "entry_id": {
+          "name": "Objet",
+          "description": "L'objet de maintenance auquel appartient la tâche."
+        },
+        "task_id": {
+          "name": "ID de tâche",
+          "description": "L'id de la tâche à supprimer (voir list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Lister les tâches",
+      "description": "Renvoie un instantané des tâches de maintenance actives (id, nom, statut, prochaine échéance) pour les automatisations, scripts et la voix. Prend en charge le filtrage par objet et statut.",
+      "fields": {
+        "entry_id": {
+          "name": "Objet",
+          "description": "Ne renvoyer que les tâches de cet objet de maintenance."
+        },
+        "status": {
+          "name": "Statut",
+          "description": "Ne renvoyer que les tâches ayant ce statut."
+        }
+      }
     }
   },
   "issues": {

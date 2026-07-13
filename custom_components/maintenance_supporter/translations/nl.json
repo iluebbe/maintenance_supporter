@@ -1538,6 +1538,181 @@
           "description": "Of taakgeschiedenisvermeldingen in de export moeten worden opgenomen."
         }
       }
+    },
+    "add_object": {
+      "name": "Object toevoegen",
+      "description": "Maak een nieuw onderhoudsobject (apparaat). Geeft de nieuwe entry_id terug.",
+      "fields": {
+        "name": {
+          "name": "Naam",
+          "description": "Naam van het object/apparaat."
+        },
+        "area_id": {
+          "name": "Ruimte",
+          "description": "Ruimte waaraan het apparaat wordt toegewezen."
+        },
+        "manufacturer": {
+          "name": "Fabrikant"
+        },
+        "model": {
+          "name": "Model"
+        },
+        "serial_number": {
+          "name": "Serienummer"
+        },
+        "installation_date": {
+          "name": "Installatiedatum"
+        },
+        "warranty_expiry": {
+          "name": "Garantie verloopt",
+          "description": "Einddatum van de garantie (voor assetbeheer en herinneringen)."
+        },
+        "documentation_url": {
+          "name": "Documentatie-URL",
+          "description": "Link naar een handleiding of leverancierspagina (alleen http/https)."
+        },
+        "notes": {
+          "name": "Notities"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Taak toevoegen",
+      "description": "Voeg een onderhoudstaak toe aan een bestaand object. Geeft de nieuwe task_id terug.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "Het onderhoudsobject waaraan de taak wordt toegevoegd."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Naam van de taak."
+        },
+        "task_type": {
+          "name": "Taaktype",
+          "description": "Vrije categorie (bijv. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Planningstype",
+          "description": "time_based (interval) of sensor_based. Standaard: time_based."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Intervallengte tussen voorvallen (voor tijdgebaseerde taken), gecombineerd met interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervaleenheid",
+          "description": "Eenheid voor het interval: days, weeks, months of years. Standaard: days."
+        },
+        "due_date": {
+          "name": "Vervaldatum",
+          "description": "Vervaldatum (YYYY-MM-DD) voor een eenmalige taak (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Kalenderplanning",
+          "description": "Geneste herhaling voor de kalendertypen, bijv. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} voor de 1e zaterdag (weekday 0=ma ... 6=zo), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} voor ma & do, of {\"kind\": \"day_of_month\", \"day\": 15}. Heeft voorrang op interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Waarschuwing (dagen)",
+          "description": "Dagen vóór de vervaldatum waarop de taak in het binnenkort-venster komt."
+        },
+        "enabled": {
+          "name": "Ingeschakeld"
+        },
+        "notes": {
+          "name": "Notities"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Taak bijwerken",
+      "description": "Werk de algemene velden van een bestaande onderhoudstaak bij. Alleen de opgegeven velden veranderen.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "Het onderhoudsobject waartoe de taak behoort."
+        },
+        "task_id": {
+          "name": "Taak-ID",
+          "description": "De id van de bij te werken taak (zie list_tasks)."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Nieuwe naam van de taak."
+        },
+        "task_type": {
+          "name": "Taaktype",
+          "description": "Categorie (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Planningstype",
+          "description": "time_based (interval), sensor_based, one_time of manual."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Intervallengte tussen voorvallen, gecombineerd met interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervaleenheid",
+          "description": "days, weeks, months of years."
+        },
+        "due_date": {
+          "name": "Vervaldatum",
+          "description": "Vervaldatum voor eenmalige taken (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Planning (kalenderherhaling)",
+          "description": "Genest herhalingsobject voor de kalendertypen, bijv. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Heeft voorrang op de platte velden."
+        },
+        "warning_days": {
+          "name": "Waarschuwingsdagen",
+          "description": "Dagen vóór de vervaldatum waarop de taak binnenkort-vervallend wordt."
+        },
+        "enabled": {
+          "name": "Ingeschakeld",
+          "description": "Of de taak actief is."
+        },
+        "notes": {
+          "name": "Notities",
+          "description": "Vrije notities bij de taak."
+        },
+        "priority": {
+          "name": "Prioriteit",
+          "description": "low, normal of high."
+        },
+        "labels": {
+          "name": "Labels",
+          "description": "Lijst met labels voor filteren en rapportage."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Taak verwijderen",
+      "description": "Verwijder een onderhoudstaak inclusief de geschiedenis. Dit kan niet ongedaan worden gemaakt - overweeg in plaats daarvan archiveren via het paneel.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "Het onderhoudsobject waartoe de taak behoort."
+        },
+        "task_id": {
+          "name": "Taak-ID",
+          "description": "De id van de te verwijderen taak (zie list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Taken weergeven",
+      "description": "Geeft een momentopname van actieve onderhoudstaken (id, naam, status, volgende vervaldatum) voor automatiseringen, scripts en spraak. Ondersteunt filteren op object en status.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "Alleen taken van dit onderhoudsobject teruggeven."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Alleen taken met deze status teruggeven."
+        }
+      }
     }
   },
   "issues": {

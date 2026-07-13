@@ -1538,6 +1538,181 @@
           "description": "Includere o meno le voci della cronologia delle attività nell'esportazione."
         }
       }
+    },
+    "add_object": {
+      "name": "Aggiungi oggetto",
+      "description": "Crea un nuovo oggetto di manutenzione (dispositivo). Restituisce il nuovo entry_id.",
+      "fields": {
+        "name": {
+          "name": "Nome",
+          "description": "Nome dell'oggetto/dispositivo."
+        },
+        "area_id": {
+          "name": "Area",
+          "description": "Area a cui assegnare il dispositivo."
+        },
+        "manufacturer": {
+          "name": "Produttore"
+        },
+        "model": {
+          "name": "Modello"
+        },
+        "serial_number": {
+          "name": "Numero di serie"
+        },
+        "installation_date": {
+          "name": "Data di installazione"
+        },
+        "warranty_expiry": {
+          "name": "Scadenza garanzia",
+          "description": "Data di scadenza della garanzia (per il tracciamento dei beni e i promemoria)."
+        },
+        "documentation_url": {
+          "name": "URL documentazione",
+          "description": "Link a un manuale o alla pagina del produttore (solo http/https)."
+        },
+        "notes": {
+          "name": "Note"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Aggiungi attività",
+      "description": "Aggiunge un'attività di manutenzione a un oggetto esistente. Restituisce il nuovo task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Oggetto",
+          "description": "L'oggetto di manutenzione a cui aggiungere l'attività."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nome dell'attività."
+        },
+        "task_type": {
+          "name": "Tipo di attività",
+          "description": "Categoria libera (es. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Tipo di pianificazione",
+          "description": "time_based (intervallo) o sensor_based. Predefinito: time_based."
+        },
+        "interval_days": {
+          "name": "Intervallo",
+          "description": "Lunghezza dell'intervallo tra le occorrenze (per le attività a tempo), combinata con interval_unit."
+        },
+        "interval_unit": {
+          "name": "Unità di intervallo",
+          "description": "Unità dell'intervallo: days, weeks, months o years. Predefinito: days."
+        },
+        "due_date": {
+          "name": "Scadenza",
+          "description": "Data di scadenza (YYYY-MM-DD) per un'attività una tantum (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Pianificazione calendario",
+          "description": "Ricorrenza annidata per i tipi calendario, es. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} per il 1° sabato (weekday 0=lun ... 6=dom), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} per lun e gio, o {\"kind\": \"day_of_month\", \"day\": 15}. Ha priorità su interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Preavviso (giorni)",
+          "description": "Giorni prima della scadenza per entrare nella finestra «in scadenza»."
+        },
+        "enabled": {
+          "name": "Abilitato"
+        },
+        "notes": {
+          "name": "Note"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Aggiorna attività",
+      "description": "Aggiorna i campi comuni di un'attività di manutenzione esistente. Cambiano solo i campi forniti.",
+      "fields": {
+        "entry_id": {
+          "name": "Oggetto",
+          "description": "L'oggetto di manutenzione a cui appartiene l'attività."
+        },
+        "task_id": {
+          "name": "ID attività",
+          "description": "L'id dell'attività da aggiornare (vedi list_tasks)."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nuovo nome dell'attività."
+        },
+        "task_type": {
+          "name": "Tipo di attività",
+          "description": "Categoria (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Tipo di pianificazione",
+          "description": "time_based (intervallo), sensor_based, one_time o manual."
+        },
+        "interval_days": {
+          "name": "Intervallo",
+          "description": "Lunghezza dell'intervallo tra le occorrenze, combinata con interval_unit."
+        },
+        "interval_unit": {
+          "name": "Unità di intervallo",
+          "description": "days, weeks, months o years."
+        },
+        "due_date": {
+          "name": "Scadenza",
+          "description": "Data di scadenza per attività una tantum (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Pianificazione (ricorrenza calendario)",
+          "description": "Oggetto di ricorrenza annidato per i tipi calendario, es. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Ha priorità sui campi semplici."
+        },
+        "warning_days": {
+          "name": "Giorni di avviso",
+          "description": "Giorni prima della scadenza in cui l'attività diventa «in scadenza»."
+        },
+        "enabled": {
+          "name": "Abilitato",
+          "description": "Se l'attività è attiva."
+        },
+        "notes": {
+          "name": "Note",
+          "description": "Note libere sull'attività."
+        },
+        "priority": {
+          "name": "Priorità",
+          "description": "low, normal o high."
+        },
+        "labels": {
+          "name": "Etichette",
+          "description": "Elenco di tag per filtri e report."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Elimina attività",
+      "description": "Elimina un'attività di manutenzione inclusa la sua cronologia. Non è annullabile: valuta invece l'archiviazione dal pannello.",
+      "fields": {
+        "entry_id": {
+          "name": "Oggetto",
+          "description": "L'oggetto di manutenzione a cui appartiene l'attività."
+        },
+        "task_id": {
+          "name": "ID attività",
+          "description": "L'id dell'attività da eliminare (vedi list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Elenca attività",
+      "description": "Restituisce un'istantanea delle attività di manutenzione attive (id, nome, stato, prossima scadenza) per automazioni, script e voce. Supporta il filtro per oggetto e stato.",
+      "fields": {
+        "entry_id": {
+          "name": "Oggetto",
+          "description": "Restituisce solo le attività di questo oggetto di manutenzione."
+        },
+        "status": {
+          "name": "Stato",
+          "description": "Restituisce solo le attività con questo stato."
+        }
+      }
     }
   },
   "issues": {

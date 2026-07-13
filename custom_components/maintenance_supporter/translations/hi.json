@@ -1538,6 +1538,181 @@
           "description": "निर्यात में कार्य इतिहास प्रविष्टियाँ शामिल करनी हैं या नहीं।"
         }
       }
+    },
+    "add_object": {
+      "name": "ऑब्जेक्ट जोड़ें",
+      "description": "एक नया रखरखाव ऑब्जेक्ट (डिवाइस) बनाएँ। नया entry_id लौटाता है।",
+      "fields": {
+        "name": {
+          "name": "नाम",
+          "description": "ऑब्जेक्ट/डिवाइस का नाम।"
+        },
+        "area_id": {
+          "name": "क्षेत्र",
+          "description": "वह क्षेत्र जिसे डिवाइस असाइन किया जाए।"
+        },
+        "manufacturer": {
+          "name": "निर्माता"
+        },
+        "model": {
+          "name": "मॉडल"
+        },
+        "serial_number": {
+          "name": "सीरियल नंबर"
+        },
+        "installation_date": {
+          "name": "स्थापना तिथि"
+        },
+        "warranty_expiry": {
+          "name": "वारंटी समाप्ति",
+          "description": "वारंटी समाप्ति तिथि (संपत्ति ट्रैकिंग और अनुस्मारकों के लिए)।"
+        },
+        "documentation_url": {
+          "name": "दस्तावेज़ीकरण URL",
+          "description": "मैनुअल या विक्रेता पृष्ठ का लिंक (केवल http/https)।"
+        },
+        "notes": {
+          "name": "टिप्पणियाँ"
+        }
+      }
+    },
+    "add_task": {
+      "name": "कार्य जोड़ें",
+      "description": "मौजूदा ऑब्जेक्ट में रखरखाव कार्य जोड़ें। नया task_id लौटाता है।",
+      "fields": {
+        "entry_id": {
+          "name": "ऑब्जेक्ट",
+          "description": "वह रखरखाव ऑब्जेक्ट जिसमें कार्य जोड़ा जाए।"
+        },
+        "name": {
+          "name": "नाम",
+          "description": "कार्य का नाम।"
+        },
+        "task_type": {
+          "name": "कार्य प्रकार",
+          "description": "स्वतंत्र श्रेणी (जैसे inspection, service, custom)।"
+        },
+        "schedule_type": {
+          "name": "शेड्यूल प्रकार",
+          "description": "time_based (अंतराल) या sensor_based। डिफ़ॉल्ट: time_based।"
+        },
+        "interval_days": {
+          "name": "अंतराल",
+          "description": "घटनाओं के बीच अंतराल की लंबाई (समय-आधारित कार्यों के लिए), interval_unit के साथ।"
+        },
+        "interval_unit": {
+          "name": "अंतराल इकाई",
+          "description": "अंतराल की इकाई: days, weeks, months या years। डिफ़ॉल्ट: days।"
+        },
+        "due_date": {
+          "name": "देय तिथि",
+          "description": "एक बार के कार्य के लिए नियत तिथि (YYYY-MM-DD) (schedule_type one_time)।"
+        },
+        "schedule": {
+          "name": "कैलेंडर शेड्यूल",
+          "description": "कैलेंडर प्रकारों के लिए नेस्टेड पुनरावृत्ति, जैसे {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} पहले शनिवार के लिए (weekday 0=सोम ... 6=रवि), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} सोम और गुरु के लिए, या {\"kind\": \"day_of_month\", \"day\": 15}। interval_days / schedule_type पर प्राथमिकता।"
+        },
+        "warning_days": {
+          "name": "चेतावनी (दिन)",
+          "description": "नियत तिथि से पहले के दिन जब कार्य due-soon विंडो में आता है।"
+        },
+        "enabled": {
+          "name": "सक्षम"
+        },
+        "notes": {
+          "name": "टिप्पणियाँ"
+        }
+      }
+    },
+    "update_task": {
+      "name": "कार्य अपडेट करें",
+      "description": "मौजूदा रखरखाव कार्य के सामान्य फ़ील्ड अपडेट करें। केवल दिए गए फ़ील्ड बदलते हैं।",
+      "fields": {
+        "entry_id": {
+          "name": "ऑब्जेक्ट",
+          "description": "वह रखरखाव ऑब्जेक्ट जिससे कार्य संबंधित है।"
+        },
+        "task_id": {
+          "name": "कार्य ID",
+          "description": "अपडेट किए जाने वाले कार्य की id (list_tasks देखें)।"
+        },
+        "name": {
+          "name": "नाम",
+          "description": "कार्य का नया नाम।"
+        },
+        "task_type": {
+          "name": "कार्य प्रकार",
+          "description": "श्रेणी (cleaning, inspection, replacement, calibration, service, reading, custom)।"
+        },
+        "schedule_type": {
+          "name": "शेड्यूल प्रकार",
+          "description": "time_based (अंतराल), sensor_based, one_time या manual।"
+        },
+        "interval_days": {
+          "name": "अंतराल",
+          "description": "घटनाओं के बीच अंतराल की लंबाई, interval_unit के साथ।"
+        },
+        "interval_unit": {
+          "name": "अंतराल इकाई",
+          "description": "days, weeks, months या years।"
+        },
+        "due_date": {
+          "name": "देय तिथि",
+          "description": "एक बार के कार्यों के लिए नियत तिथि (YYYY-MM-DD)।"
+        },
+        "schedule": {
+          "name": "शेड्यूल (कैलेंडर पुनरावृत्ति)",
+          "description": "कैलेंडर प्रकारों के लिए नेस्टेड पुनरावृत्ति ऑब्जेक्ट, जैसे {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}। सपाट फ़ील्ड पर प्राथमिकता।"
+        },
+        "warning_days": {
+          "name": "चेतावनी दिन",
+          "description": "नियत तिथि से पहले के दिन जब कार्य due-soon हो जाता है।"
+        },
+        "enabled": {
+          "name": "सक्षम",
+          "description": "क्या कार्य सक्रिय है।"
+        },
+        "notes": {
+          "name": "टिप्पणियाँ",
+          "description": "कार्य पर स्वतंत्र टिप्पणियाँ।"
+        },
+        "priority": {
+          "name": "प्राथमिकता",
+          "description": "low, normal या high।"
+        },
+        "labels": {
+          "name": "लेबल",
+          "description": "फ़िल्टरिंग और रिपोर्टिंग के लिए टैग की सूची।"
+        }
+      }
+    },
+    "delete_task": {
+      "name": "कार्य हटाएँ",
+      "description": "इतिहास सहित रखरखाव कार्य हटाएँ। इसे पूर्ववत नहीं किया जा सकता - इसके बजाय पैनल से संग्रहित करने पर विचार करें।",
+      "fields": {
+        "entry_id": {
+          "name": "ऑब्जेक्ट",
+          "description": "वह रखरखाव ऑब्जेक्ट जिससे कार्य संबंधित है।"
+        },
+        "task_id": {
+          "name": "कार्य ID",
+          "description": "हटाए जाने वाले कार्य की id (list_tasks देखें)।"
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "कार्य सूची",
+      "description": "ऑटोमेशन, स्क्रिप्ट और वॉइस के लिए सक्रिय रखरखाव कार्यों का स्नैपशॉट (id, नाम, स्थिति, अगली नियत तिथि) लौटाता है। ऑब्जेक्ट और स्थिति के अनुसार फ़िल्टरिंग का समर्थन करता है।",
+      "fields": {
+        "entry_id": {
+          "name": "ऑब्जेक्ट",
+          "description": "केवल इस रखरखाव ऑब्जेक्ट के कार्य लौटाएँ।"
+        },
+        "status": {
+          "name": "स्थिति",
+          "description": "केवल इस स्थिति वाले कार्य लौटाएँ।"
+        }
+      }
     }
   },
   "issues": {

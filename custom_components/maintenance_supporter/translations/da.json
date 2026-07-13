@@ -1538,6 +1538,181 @@
           "description": "Om opgavehistorikposter skal inkluderes i eksporten."
         }
       }
+    },
+    "add_object": {
+      "name": "Tilføj objekt",
+      "description": "Opret et nyt vedligeholdelsesobjekt (enhed). Returnerer det nye entry_id.",
+      "fields": {
+        "name": {
+          "name": "Navn",
+          "description": "Navn på objektet/enheden."
+        },
+        "area_id": {
+          "name": "Område",
+          "description": "Område, som enheden tildeles."
+        },
+        "manufacturer": {
+          "name": "Producent"
+        },
+        "model": {
+          "name": "Model"
+        },
+        "serial_number": {
+          "name": "Serienummer"
+        },
+        "installation_date": {
+          "name": "Installationsdato"
+        },
+        "warranty_expiry": {
+          "name": "Garantiudløb",
+          "description": "Garantiudløbsdato (bruges til aktivsporing og påmindelser)."
+        },
+        "documentation_url": {
+          "name": "Dokumentations-URL",
+          "description": "Link til en manual eller leverandørside (kun http/https)."
+        },
+        "notes": {
+          "name": "Noter"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Tilføj opgave",
+      "description": "Tilføj en vedligeholdelsesopgave til et eksisterende objekt. Returnerer det nye task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vedligeholdelsesobjektet, som opgaven tilføjes."
+        },
+        "name": {
+          "name": "Navn",
+          "description": "Navn på opgaven."
+        },
+        "task_type": {
+          "name": "Opgavetype",
+          "description": "Fritekstkategori (f.eks. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Planlægningstype",
+          "description": "time_based (interval) eller sensor_based. Standard: time_based."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Intervallængde mellem forekomster (for tidsbaserede opgaver), kombineret med interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervalenhed",
+          "description": "Enhed for intervallet: days, weeks, months eller years. Standard: days."
+        },
+        "due_date": {
+          "name": "Forfaldsdato",
+          "description": "Forfaldsdato (YYYY-MM-DD) for en engangsopgave (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Kalenderplan",
+          "description": "Indlejret gentagelse for kalendertyperne, f.eks. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} for 1. lørdag (weekday 0=man ... 6=søn), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} for man & tor, eller {\"kind\": \"day_of_month\", \"day\": 15}. Har forrang over interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Varsel (dage)",
+          "description": "Dage før forfald, hvor opgaven går ind i due-soon-vinduet."
+        },
+        "enabled": {
+          "name": "Aktiveret"
+        },
+        "notes": {
+          "name": "Noter"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Opdater opgave",
+      "description": "Opdater de almindelige felter for en eksisterende vedligeholdelsesopgave. Kun de angivne felter ændres.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vedligeholdelsesobjektet, som opgaven hører til."
+        },
+        "task_id": {
+          "name": "Opgave-ID",
+          "description": "Id for opgaven, der skal opdateres (se list_tasks)."
+        },
+        "name": {
+          "name": "Navn",
+          "description": "Nyt navn på opgaven."
+        },
+        "task_type": {
+          "name": "Opgavetype",
+          "description": "Kategori (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Planlægningstype",
+          "description": "time_based (interval), sensor_based, one_time eller manual."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Intervallængde mellem forekomster, kombineret med interval_unit."
+        },
+        "interval_unit": {
+          "name": "Intervalenhed",
+          "description": "days, weeks, months eller years."
+        },
+        "due_date": {
+          "name": "Forfaldsdato",
+          "description": "Forfaldsdato for engangsopgaver (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Plan (kalendergentagelse)",
+          "description": "Indlejret gentagelsesobjekt for kalendertyperne, f.eks. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Har forrang over de flade felter."
+        },
+        "warning_days": {
+          "name": "Advarselsdage",
+          "description": "Dage før forfald, hvor opgaven bliver due-soon."
+        },
+        "enabled": {
+          "name": "Aktiveret",
+          "description": "Om opgaven er aktiv."
+        },
+        "notes": {
+          "name": "Noter",
+          "description": "Frie noter til opgaven."
+        },
+        "priority": {
+          "name": "Prioritet",
+          "description": "low, normal eller high."
+        },
+        "labels": {
+          "name": "Etiketter",
+          "description": "Liste over etiketter til filtrering og rapportering."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Slet opgave",
+      "description": "Slet en vedligeholdelsesopgave inklusive dens historik. Dette kan ikke fortrydes - overvej i stedet at arkivere via panelet.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vedligeholdelsesobjektet, som opgaven hører til."
+        },
+        "task_id": {
+          "name": "Opgave-ID",
+          "description": "Id for opgaven, der skal slettes (se list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Vis opgaver",
+      "description": "Returnerer et øjebliksbillede af aktive vedligeholdelsesopgaver (id, navn, status, næste forfald) til automatiseringer, scripts og stemme. Understøtter filtrering efter objekt og status.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Returner kun opgaver for dette vedligeholdelsesobjekt."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Returner kun opgaver med denne status."
+        }
+      }
     }
   },
   "issues": {

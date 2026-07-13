@@ -1538,6 +1538,181 @@
           "description": "Czy uwzględnić wpisy historii zadań w eksporcie."
         }
       }
+    },
+    "add_object": {
+      "name": "Dodaj obiekt",
+      "description": "Utwórz nowy obiekt konserwacji (urządzenie). Zwraca nowe entry_id.",
+      "fields": {
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa obiektu/urządzenia."
+        },
+        "area_id": {
+          "name": "Obszar",
+          "description": "Obszar, do którego przypisać urządzenie."
+        },
+        "manufacturer": {
+          "name": "Producent"
+        },
+        "model": {
+          "name": "Model"
+        },
+        "serial_number": {
+          "name": "Numer seryjny"
+        },
+        "installation_date": {
+          "name": "Data instalacji"
+        },
+        "warranty_expiry": {
+          "name": "Wygaśnięcie gwarancji",
+          "description": "Data końca gwarancji (do ewidencji majątku i przypomnień)."
+        },
+        "documentation_url": {
+          "name": "URL dokumentacji",
+          "description": "Link do instrukcji lub strony producenta (tylko http/https)."
+        },
+        "notes": {
+          "name": "Notatki"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Dodaj zadanie",
+      "description": "Dodaj zadanie konserwacji do istniejącego obiektu. Zwraca nowe task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Obiekt",
+          "description": "Obiekt konserwacji, do którego zostanie dodane zadanie."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa zadania."
+        },
+        "task_type": {
+          "name": "Typ zadania",
+          "description": "Dowolna kategoria (np. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Typ harmonogramu",
+          "description": "time_based (interwał) lub sensor_based. Domyślnie: time_based."
+        },
+        "interval_days": {
+          "name": "Interwał",
+          "description": "Długość interwału między wystąpieniami (dla zadań czasowych), w połączeniu z interval_unit."
+        },
+        "interval_unit": {
+          "name": "Jednostka interwału",
+          "description": "Jednostka interwału: days, weeks, months lub years. Domyślnie: days."
+        },
+        "due_date": {
+          "name": "Termin",
+          "description": "Termin (YYYY-MM-DD) zadania jednorazowego (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Harmonogram kalendarzowy",
+          "description": "Zagnieżdżone powtarzanie dla typów kalendarzowych, np. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} dla 1. soboty (weekday 0=pon ... 6=niedz), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} dla pon i czw, lub {\"kind\": \"day_of_month\", \"day\": 15}. Ma pierwszeństwo przed interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Ostrzeżenie (dni)",
+          "description": "Liczba dni przed terminem, od których zadanie wchodzi w okno „wkrótce”."
+        },
+        "enabled": {
+          "name": "Włączone"
+        },
+        "notes": {
+          "name": "Notatki"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Aktualizuj zadanie",
+      "description": "Aktualizuje typowe pola istniejącego zadania konserwacji. Zmieniają się tylko podane pola.",
+      "fields": {
+        "entry_id": {
+          "name": "Obiekt",
+          "description": "Obiekt konserwacji, do którego należy zadanie."
+        },
+        "task_id": {
+          "name": "Identyfikator zadania",
+          "description": "Id zadania do zaktualizowania (zob. list_tasks)."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nowa nazwa zadania."
+        },
+        "task_type": {
+          "name": "Typ zadania",
+          "description": "Kategoria (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Typ harmonogramu",
+          "description": "time_based (interwał), sensor_based, one_time lub manual."
+        },
+        "interval_days": {
+          "name": "Interwał",
+          "description": "Długość interwału między wystąpieniami, w połączeniu z interval_unit."
+        },
+        "interval_unit": {
+          "name": "Jednostka interwału",
+          "description": "days, weeks, months lub years."
+        },
+        "due_date": {
+          "name": "Termin",
+          "description": "Termin zadań jednorazowych (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Harmonogram (powtarzanie kalendarzowe)",
+          "description": "Zagnieżdżony obiekt powtarzania dla typów kalendarzowych, np. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Ma pierwszeństwo przed polami płaskimi."
+        },
+        "warning_days": {
+          "name": "Dni ostrzeżenia",
+          "description": "Liczba dni przed terminem, od których zadanie staje się „wkrótce”."
+        },
+        "enabled": {
+          "name": "Włączone",
+          "description": "Czy zadanie jest aktywne."
+        },
+        "notes": {
+          "name": "Notatki",
+          "description": "Dowolne notatki do zadania."
+        },
+        "priority": {
+          "name": "Priorytet",
+          "description": "low, normal lub high."
+        },
+        "labels": {
+          "name": "Etykiety",
+          "description": "Lista tagów do filtrowania i raportowania."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Usuń zadanie",
+      "description": "Usuwa zadanie konserwacji wraz z jego historią. Nie można tego cofnąć - rozważ zamiast tego archiwizację w panelu.",
+      "fields": {
+        "entry_id": {
+          "name": "Obiekt",
+          "description": "Obiekt konserwacji, do którego należy zadanie."
+        },
+        "task_id": {
+          "name": "Identyfikator zadania",
+          "description": "Id zadania do usunięcia (zob. list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Wyświetl zadania",
+      "description": "Zwraca migawkę aktywnych zadań konserwacji (id, nazwa, status, następny termin) dla automatyzacji, skryptów i głosu. Obsługuje filtrowanie według obiektu i statusu.",
+      "fields": {
+        "entry_id": {
+          "name": "Obiekt",
+          "description": "Zwracaj tylko zadania tego obiektu konserwacji."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Zwracaj tylko zadania o tym statusie."
+        }
+      }
     }
   },
   "issues": {
