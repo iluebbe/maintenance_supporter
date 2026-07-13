@@ -1538,6 +1538,181 @@
           "description": "Чи включати записи історії завдань в експорт."
         }
       }
+    },
+    "add_object": {
+      "name": "Додати об'єкт",
+      "description": "Створити новий об'єкт обслуговування (пристрій). Повертає новий entry_id.",
+      "fields": {
+        "name": {
+          "name": "Назва",
+          "description": "Назва об'єкта/пристрою."
+        },
+        "area_id": {
+          "name": "Зона",
+          "description": "Зона, до якої призначити пристрій."
+        },
+        "manufacturer": {
+          "name": "Виробник"
+        },
+        "model": {
+          "name": "Модель"
+        },
+        "serial_number": {
+          "name": "Серійний номер"
+        },
+        "installation_date": {
+          "name": "Дата встановлення"
+        },
+        "warranty_expiry": {
+          "name": "Закінчення гарантії",
+          "description": "Дата закінчення гарантії (для обліку активів і нагадувань)."
+        },
+        "documentation_url": {
+          "name": "URL документації",
+          "description": "Посилання на інструкцію або сторінку виробника (лише http/https)."
+        },
+        "notes": {
+          "name": "Примітки"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Додати завдання",
+      "description": "Додати завдання обслуговування до наявного об'єкта. Повертає новий task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Об'єкт",
+          "description": "Об'єкт обслуговування, до якого додати завдання."
+        },
+        "name": {
+          "name": "Назва",
+          "description": "Назва завдання."
+        },
+        "task_type": {
+          "name": "Тип завдання",
+          "description": "Довільна категорія (напр. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Тип розкладу",
+          "description": "time_based (інтервал) або sensor_based. Типово: time_based."
+        },
+        "interval_days": {
+          "name": "Інтервал",
+          "description": "Довжина інтервалу між виконаннями (для завдань за часом), у поєднанні з interval_unit."
+        },
+        "interval_unit": {
+          "name": "Одиниця інтервалу",
+          "description": "Одиниця інтервалу: days, weeks, months або years. Типово: days."
+        },
+        "due_date": {
+          "name": "Термін",
+          "description": "Термін (YYYY-MM-DD) для одноразового завдання (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Календарний розклад",
+          "description": "Вкладене повторення для календарних типів, напр. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} для 1-ї суботи (weekday 0=Пн ... 6=Нд), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} для Пн і Чт, або {\"kind\": \"day_of_month\", \"day\": 15}. Має пріоритет над interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Попередження (дні)",
+          "description": "За скільки днів до терміну завдання потрапляє у вікно «незабаром термін»."
+        },
+        "enabled": {
+          "name": "Увімкнено"
+        },
+        "notes": {
+          "name": "Примітки"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Оновити завдання",
+      "description": "Оновити основні поля наявного завдання обслуговування. Змінюються лише передані поля.",
+      "fields": {
+        "entry_id": {
+          "name": "Об'єкт",
+          "description": "Об'єкт обслуговування, до якого належить завдання."
+        },
+        "task_id": {
+          "name": "ID завдання",
+          "description": "Ідентифікатор завдання для оновлення (див. list_tasks)."
+        },
+        "name": {
+          "name": "Назва",
+          "description": "Нова назва завдання."
+        },
+        "task_type": {
+          "name": "Тип завдання",
+          "description": "Категорія (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Тип розкладу",
+          "description": "time_based (інтервал), sensor_based, one_time або manual."
+        },
+        "interval_days": {
+          "name": "Інтервал",
+          "description": "Довжина інтервалу між виконаннями, у поєднанні з interval_unit."
+        },
+        "interval_unit": {
+          "name": "Одиниця інтервалу",
+          "description": "days, weeks, months або years."
+        },
+        "due_date": {
+          "name": "Термін",
+          "description": "Термін для одноразових завдань (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Розклад (календарне повторення)",
+          "description": "Вкладений об'єкт повторення для календарних типів, напр. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Має пріоритет над плоскими полями."
+        },
+        "warning_days": {
+          "name": "Днів попередження",
+          "description": "За скільки днів до терміну завдання стає «незабаром термін»."
+        },
+        "enabled": {
+          "name": "Увімкнено",
+          "description": "Чи активне завдання."
+        },
+        "notes": {
+          "name": "Примітки",
+          "description": "Довільні нотатки до завдання."
+        },
+        "priority": {
+          "name": "Пріоритет",
+          "description": "low, normal або high."
+        },
+        "labels": {
+          "name": "Мітки",
+          "description": "Список міток для фільтрації та звітів."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Видалити завдання",
+      "description": "Видалити завдання обслуговування разом з історією. Дію не можна скасувати - натомість розгляньте архівування через панель.",
+      "fields": {
+        "entry_id": {
+          "name": "Об'єкт",
+          "description": "Об'єкт обслуговування, до якого належить завдання."
+        },
+        "task_id": {
+          "name": "ID завдання",
+          "description": "Ідентифікатор завдання для видалення (див. list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Список завдань",
+      "description": "Повертає знімок активних завдань обслуговування (id, назва, статус, наступний термін) для автоматизацій, скриптів і голосу. Підтримує фільтрацію за об'єктом і статусом.",
+      "fields": {
+        "entry_id": {
+          "name": "Об'єкт",
+          "description": "Повертати лише завдання цього об'єкта обслуговування."
+        },
+        "status": {
+          "name": "Статус",
+          "description": "Повертати лише завдання з цим статусом."
+        }
+      }
     }
   },
   "issues": {

@@ -1538,6 +1538,181 @@
           "description": "Whether to include task history entries in the export."
         }
       }
+    },
+    "add_object": {
+      "name": "Add Object",
+      "description": "Create a new maintenance object (device). Returns the new entry_id.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name of the object/device."
+        },
+        "area_id": {
+          "name": "Area",
+          "description": "Area to assign the device to."
+        },
+        "manufacturer": {
+          "name": "Manufacturer"
+        },
+        "model": {
+          "name": "Model"
+        },
+        "serial_number": {
+          "name": "Serial number"
+        },
+        "installation_date": {
+          "name": "Installation date"
+        },
+        "warranty_expiry": {
+          "name": "Warranty expiry",
+          "description": "Warranty expiry date (used for asset tracking and reminders)."
+        },
+        "documentation_url": {
+          "name": "Documentation URL",
+          "description": "Link to a manual or vendor page (http/https only)."
+        },
+        "notes": {
+          "name": "Notes"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Add Task",
+      "description": "Add a maintenance task to an existing object. Returns the new task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "The maintenance object to add the task to."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name of the task."
+        },
+        "task_type": {
+          "name": "Task type",
+          "description": "Free-form category (e.g. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Schedule type",
+          "description": "time_based (interval) or sensor_based. Default: time_based."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Interval length between occurrences (for time-based tasks), combined with interval_unit."
+        },
+        "interval_unit": {
+          "name": "Interval unit",
+          "description": "Unit for the interval: days, weeks, months or years. Default: days."
+        },
+        "due_date": {
+          "name": "Due date",
+          "description": "Due date (YYYY-MM-DD) for a one-time task (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Calendar schedule",
+          "description": "Nested recurrence for the calendar kinds, e.g. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} for the 1st Saturday (weekday 0=Mon ... 6=Sun), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} for Mon & Thu, or {\"kind\": \"day_of_month\", \"day\": 15}. Takes precedence over interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Warning (days)",
+          "description": "Days before due to enter the due-soon window."
+        },
+        "enabled": {
+          "name": "Enabled"
+        },
+        "notes": {
+          "name": "Notes"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Update Task",
+      "description": "Update the common fields of an existing maintenance task. Only the provided fields change.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "The maintenance object the task belongs to."
+        },
+        "task_id": {
+          "name": "Task ID",
+          "description": "The id of the task to update (see list_tasks)."
+        },
+        "name": {
+          "name": "Name",
+          "description": "New name of the task."
+        },
+        "task_type": {
+          "name": "Task type",
+          "description": "Category (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Schedule type",
+          "description": "time_based (interval), sensor_based, one_time or manual."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Interval length between occurrences, combined with interval_unit."
+        },
+        "interval_unit": {
+          "name": "Interval unit",
+          "description": "days, weeks, months or years."
+        },
+        "due_date": {
+          "name": "Due date",
+          "description": "Due date for one-time tasks (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Schedule (calendar recurrence)",
+          "description": "Nested recurrence object for the calendar kinds, e.g. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Takes precedence over the flat fields."
+        },
+        "warning_days": {
+          "name": "Warning days",
+          "description": "Days before due when the task turns due-soon."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "Whether the task is active."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Free-form notes on the task."
+        },
+        "priority": {
+          "name": "Priority",
+          "description": "low, normal or high."
+        },
+        "labels": {
+          "name": "Labels",
+          "description": "List of tags for filtering and reporting."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Delete Task",
+      "description": "Delete a maintenance task including its history. This cannot be undone - consider archiving via the panel instead.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "The maintenance object the task belongs to."
+        },
+        "task_id": {
+          "name": "Task ID",
+          "description": "The id of the task to delete (see list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "List Tasks",
+      "description": "Return a snapshot of active maintenance tasks (id, name, status, next due) for automations, scripts and voice. Supports filtering by object and status.",
+      "fields": {
+        "entry_id": {
+          "name": "Object",
+          "description": "Only return tasks of this maintenance object."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Only return tasks with this status."
+        }
+      }
     }
   },
   "issues": {

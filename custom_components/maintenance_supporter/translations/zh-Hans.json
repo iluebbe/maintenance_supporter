@@ -1538,6 +1538,181 @@
           "description": "是否在导出中包含任务历史记录。"
         }
       }
+    },
+    "add_object": {
+      "name": "添加对象",
+      "description": "创建新的维护对象（设备）。返回新的 entry_id。",
+      "fields": {
+        "name": {
+          "name": "名称",
+          "description": "对象/设备的名称。"
+        },
+        "area_id": {
+          "name": "区域",
+          "description": "设备所属的区域。"
+        },
+        "manufacturer": {
+          "name": "制造商"
+        },
+        "model": {
+          "name": "型号"
+        },
+        "serial_number": {
+          "name": "序列号"
+        },
+        "installation_date": {
+          "name": "安装日期"
+        },
+        "warranty_expiry": {
+          "name": "保修到期",
+          "description": "保修到期日期（用于资产跟踪和提醒）。"
+        },
+        "documentation_url": {
+          "name": "文档 URL",
+          "description": "手册或供应商页面的链接（仅限 http/https）。"
+        },
+        "notes": {
+          "name": "备注"
+        }
+      }
+    },
+    "add_task": {
+      "name": "添加任务",
+      "description": "向现有对象添加维护任务。返回新的 task_id。",
+      "fields": {
+        "entry_id": {
+          "name": "对象",
+          "description": "要添加任务的维护对象。"
+        },
+        "name": {
+          "name": "名称",
+          "description": "任务的名称。"
+        },
+        "task_type": {
+          "name": "任务类型",
+          "description": "自由格式类别（例如 inspection、service、custom）。"
+        },
+        "schedule_type": {
+          "name": "计划类型",
+          "description": "time_based（间隔）或 sensor_based。默认：time_based。"
+        },
+        "interval_days": {
+          "name": "间隔",
+          "description": "两次执行之间的间隔长度（用于基于时间的任务），与 interval_unit 组合使用。"
+        },
+        "interval_unit": {
+          "name": "间隔单位",
+          "description": "间隔的单位：days、weeks、months 或 years。默认：days。"
+        },
+        "due_date": {
+          "name": "到期日期",
+          "description": "一次性任务的到期日期（YYYY-MM-DD）（schedule_type one_time）。"
+        },
+        "schedule": {
+          "name": "日历计划",
+          "description": "日历类型的嵌套重复，例如第1个周六为 {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5}（weekday 0=周一 ... 6=周日），周一和周四为 {\"kind\": \"weekdays\", \"weekdays\": [0, 3]}，或 {\"kind\": \"day_of_month\", \"day\": 15}。优先于 interval_days / schedule_type。"
+        },
+        "warning_days": {
+          "name": "警告（天）",
+          "description": "进入“即将到期”窗口的提前天数。"
+        },
+        "enabled": {
+          "name": "已启用"
+        },
+        "notes": {
+          "name": "备注"
+        }
+      }
+    },
+    "update_task": {
+      "name": "更新任务",
+      "description": "更新现有维护任务的常用字段。仅更改提供的字段。",
+      "fields": {
+        "entry_id": {
+          "name": "对象",
+          "description": "任务所属的维护对象。"
+        },
+        "task_id": {
+          "name": "任务ID",
+          "description": "要更新的任务 id（参见 list_tasks）。"
+        },
+        "name": {
+          "name": "名称",
+          "description": "任务的新名称。"
+        },
+        "task_type": {
+          "name": "任务类型",
+          "description": "类别（cleaning、inspection、replacement、calibration、service、reading、custom）。"
+        },
+        "schedule_type": {
+          "name": "计划类型",
+          "description": "time_based（间隔）、sensor_based、one_time 或 manual。"
+        },
+        "interval_days": {
+          "name": "间隔",
+          "description": "两次执行之间的间隔长度，与 interval_unit 组合使用。"
+        },
+        "interval_unit": {
+          "name": "间隔单位",
+          "description": "days、weeks、months 或 years。"
+        },
+        "due_date": {
+          "name": "到期日期",
+          "description": "一次性任务的到期日期（YYYY-MM-DD）。"
+        },
+        "schedule": {
+          "name": "计划（日历重复）",
+          "description": "日历类型的嵌套重复对象，例如 {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}。优先于扁平字段。"
+        },
+        "warning_days": {
+          "name": "预警天数",
+          "description": "任务变为“即将到期”的提前天数。"
+        },
+        "enabled": {
+          "name": "已启用",
+          "description": "任务是否处于活动状态。"
+        },
+        "notes": {
+          "name": "备注",
+          "description": "关于任务的自由格式备注。"
+        },
+        "priority": {
+          "name": "优先级",
+          "description": "low、normal 或 high。"
+        },
+        "labels": {
+          "name": "标签",
+          "description": "用于筛选和报告的标签列表。"
+        }
+      }
+    },
+    "delete_task": {
+      "name": "删除任务",
+      "description": "删除维护任务及其历史记录。此操作无法撤销——建议改为在面板中归档。",
+      "fields": {
+        "entry_id": {
+          "name": "对象",
+          "description": "任务所属的维护对象。"
+        },
+        "task_id": {
+          "name": "任务ID",
+          "description": "要删除的任务 id（参见 list_tasks）。"
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "列出任务",
+      "description": "返回活动维护任务的快照（id、名称、状态、下次到期）供自动化、脚本和语音使用。支持按对象和状态筛选。",
+      "fields": {
+        "entry_id": {
+          "name": "对象",
+          "description": "仅返回此维护对象的任务。"
+        },
+        "status": {
+          "name": "状态",
+          "description": "仅返回具有此状态的任务。"
+        }
+      }
     }
   },
   "issues": {

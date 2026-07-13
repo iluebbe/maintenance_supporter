@@ -1538,6 +1538,181 @@
           "description": "Включать ли записи истории задач в экспорт."
         }
       }
+    },
+    "add_object": {
+      "name": "Добавить объект",
+      "description": "Создать новый объект обслуживания (устройство). Возвращает новый entry_id.",
+      "fields": {
+        "name": {
+          "name": "Название",
+          "description": "Название объекта/устройства."
+        },
+        "area_id": {
+          "name": "Зона",
+          "description": "Зона, к которой привязать устройство."
+        },
+        "manufacturer": {
+          "name": "Производитель"
+        },
+        "model": {
+          "name": "Модель"
+        },
+        "serial_number": {
+          "name": "Серийный номер"
+        },
+        "installation_date": {
+          "name": "Дата установки"
+        },
+        "warranty_expiry": {
+          "name": "Окончание гарантии",
+          "description": "Дата окончания гарантии (для учёта активов и напоминаний)."
+        },
+        "documentation_url": {
+          "name": "URL документации",
+          "description": "Ссылка на инструкцию или страницу производителя (только http/https)."
+        },
+        "notes": {
+          "name": "Заметки"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Добавить задачу",
+      "description": "Добавить задачу обслуживания к существующему объекту. Возвращает новый task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Объект",
+          "description": "Объект обслуживания, к которому добавить задачу."
+        },
+        "name": {
+          "name": "Название",
+          "description": "Название задачи."
+        },
+        "task_type": {
+          "name": "Тип задачи",
+          "description": "Свободная категория (например, inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Тип расписания",
+          "description": "time_based (интервал) или sensor_based. По умолчанию: time_based."
+        },
+        "interval_days": {
+          "name": "Интервал",
+          "description": "Длина интервала между выполнениями (для задач по времени), в сочетании с interval_unit."
+        },
+        "interval_unit": {
+          "name": "Единица интервала",
+          "description": "Единица интервала: days, weeks, months или years. По умолчанию: days."
+        },
+        "due_date": {
+          "name": "Срок",
+          "description": "Срок (YYYY-MM-DD) для одноразовой задачи (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Календарное расписание",
+          "description": "Вложенное повторение для календарных типов, напр. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} для 1-й субботы (weekday 0=Пн ... 6=Вс), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} для Пн и Чт, или {\"kind\": \"day_of_month\", \"day\": 15}. Имеет приоритет над interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Предупреждение (дни)",
+          "description": "За сколько дней до срока задача попадает в окно «скоро срок»."
+        },
+        "enabled": {
+          "name": "Включено"
+        },
+        "notes": {
+          "name": "Заметки"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Обновить задачу",
+      "description": "Обновить основные поля существующей задачи обслуживания. Изменяются только переданные поля.",
+      "fields": {
+        "entry_id": {
+          "name": "Объект",
+          "description": "Объект обслуживания, к которому относится задача."
+        },
+        "task_id": {
+          "name": "ID задачи",
+          "description": "Идентификатор задачи для обновления (см. list_tasks)."
+        },
+        "name": {
+          "name": "Название",
+          "description": "Новое название задачи."
+        },
+        "task_type": {
+          "name": "Тип задачи",
+          "description": "Категория (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Тип расписания",
+          "description": "time_based (интервал), sensor_based, one_time или manual."
+        },
+        "interval_days": {
+          "name": "Интервал",
+          "description": "Длина интервала между выполнениями, в сочетании с interval_unit."
+        },
+        "interval_unit": {
+          "name": "Единица интервала",
+          "description": "days, weeks, months или years."
+        },
+        "due_date": {
+          "name": "Срок",
+          "description": "Срок для одноразовых задач (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Расписание (календарное повторение)",
+          "description": "Вложенный объект повторения для календарных типов, напр. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Имеет приоритет над плоскими полями."
+        },
+        "warning_days": {
+          "name": "Дней предупреждения",
+          "description": "За сколько дней до срока задача переходит в состояние «скоро срок»."
+        },
+        "enabled": {
+          "name": "Включено",
+          "description": "Активна ли задача."
+        },
+        "notes": {
+          "name": "Заметки",
+          "description": "Произвольные заметки к задаче."
+        },
+        "priority": {
+          "name": "Приоритет",
+          "description": "low, normal или high."
+        },
+        "labels": {
+          "name": "Метки",
+          "description": "Список меток для фильтрации и отчётов."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Удалить задачу",
+      "description": "Удалить задачу обслуживания вместе с её историей. Действие необратимо - вместо этого рассмотрите архивирование через панель.",
+      "fields": {
+        "entry_id": {
+          "name": "Объект",
+          "description": "Объект обслуживания, к которому относится задача."
+        },
+        "task_id": {
+          "name": "ID задачи",
+          "description": "Идентификатор задачи для удаления (см. list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Список задач",
+      "description": "Возвращает снимок активных задач обслуживания (id, название, статус, следующий срок) для автоматизаций, скриптов и голоса. Поддерживает фильтрацию по объекту и статусу.",
+      "fields": {
+        "entry_id": {
+          "name": "Объект",
+          "description": "Возвращать только задачи этого объекта обслуживания."
+        },
+        "status": {
+          "name": "Статус",
+          "description": "Возвращать только задачи с этим статусом."
+        }
+      }
     }
   },
   "issues": {

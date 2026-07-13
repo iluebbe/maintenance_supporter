@@ -1538,6 +1538,181 @@
           "description": "エクスポートにタスク履歴のエントリを含めるかどうかです。"
         }
       }
+    },
+    "add_object": {
+      "name": "オブジェクトを追加",
+      "description": "新しいメンテナンス対象（デバイス）を作成します。新しい entry_id を返します。",
+      "fields": {
+        "name": {
+          "name": "名前",
+          "description": "オブジェクト／デバイスの名前。"
+        },
+        "area_id": {
+          "name": "エリア",
+          "description": "デバイスを割り当てるエリア。"
+        },
+        "manufacturer": {
+          "name": "メーカー"
+        },
+        "model": {
+          "name": "モデル"
+        },
+        "serial_number": {
+          "name": "シリアル番号"
+        },
+        "installation_date": {
+          "name": "設置日"
+        },
+        "warranty_expiry": {
+          "name": "保証期限",
+          "description": "保証期限日（資産管理とリマインダーに使用）。"
+        },
+        "documentation_url": {
+          "name": "ドキュメントの URL",
+          "description": "マニュアルまたはベンダーページへのリンク（http/https のみ）。"
+        },
+        "notes": {
+          "name": "メモ"
+        }
+      }
+    },
+    "add_task": {
+      "name": "タスクを追加",
+      "description": "既存のオブジェクトにメンテナンスタスクを追加します。新しい task_id を返します。",
+      "fields": {
+        "entry_id": {
+          "name": "オブジェクト",
+          "description": "タスクを追加するメンテナンス対象。"
+        },
+        "name": {
+          "name": "名前",
+          "description": "タスクの名前。"
+        },
+        "task_type": {
+          "name": "タスクの種類",
+          "description": "自由入力のカテゴリ（例: inspection、service、custom）。"
+        },
+        "schedule_type": {
+          "name": "スケジュールの種類",
+          "description": "time_based（間隔）または sensor_based。既定値: time_based。"
+        },
+        "interval_days": {
+          "name": "間隔",
+          "description": "発生間隔の長さ（時間ベースのタスク用）。interval_unit と組み合わせて使用します。"
+        },
+        "interval_unit": {
+          "name": "間隔の単位",
+          "description": "間隔の単位: days、weeks、months、years。既定値: days。"
+        },
+        "due_date": {
+          "name": "期限日",
+          "description": "1回限りのタスクの期日（YYYY-MM-DD）（schedule_type one_time）。"
+        },
+        "schedule": {
+          "name": "カレンダースケジュール",
+          "description": "カレンダー種別のネストした繰り返し。例: 第1土曜日は {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5}（weekday 0=月 ... 6=日）、月・木は {\"kind\": \"weekdays\", \"weekdays\": [0, 3]}、毎月15日は {\"kind\": \"day_of_month\", \"day\": 15}。interval_days / schedule_type より優先されます。"
+        },
+        "warning_days": {
+          "name": "警告（日数）",
+          "description": "期日前に「まもなく期限」ウィンドウに入るまでの日数。"
+        },
+        "enabled": {
+          "name": "有効"
+        },
+        "notes": {
+          "name": "メモ"
+        }
+      }
+    },
+    "update_task": {
+      "name": "タスクを更新",
+      "description": "既存のメンテナンスタスクの共通フィールドを更新します。指定したフィールドのみが変更されます。",
+      "fields": {
+        "entry_id": {
+          "name": "オブジェクト",
+          "description": "タスクが属するメンテナンス対象。"
+        },
+        "task_id": {
+          "name": "タスクID",
+          "description": "更新するタスクの id（list_tasks を参照）。"
+        },
+        "name": {
+          "name": "名前",
+          "description": "タスクの新しい名前。"
+        },
+        "task_type": {
+          "name": "タスクの種類",
+          "description": "カテゴリ（cleaning、inspection、replacement、calibration、service、reading、custom）。"
+        },
+        "schedule_type": {
+          "name": "スケジュールの種類",
+          "description": "time_based（間隔）、sensor_based、one_time、manual。"
+        },
+        "interval_days": {
+          "name": "間隔",
+          "description": "発生間隔の長さ。interval_unit と組み合わせて使用します。"
+        },
+        "interval_unit": {
+          "name": "間隔の単位",
+          "description": "days、weeks、months、years。"
+        },
+        "due_date": {
+          "name": "期限日",
+          "description": "1回限りのタスクの期日（YYYY-MM-DD）。"
+        },
+        "schedule": {
+          "name": "スケジュール（カレンダー繰り返し）",
+          "description": "カレンダー種別のネストした繰り返しオブジェクト。例: {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}。フラットなフィールドより優先されます。"
+        },
+        "warning_days": {
+          "name": "警告日数",
+          "description": "タスクが「まもなく期限」になる期日前の日数。"
+        },
+        "enabled": {
+          "name": "有効",
+          "description": "タスクが有効かどうか。"
+        },
+        "notes": {
+          "name": "メモ",
+          "description": "タスクに関する自由記述のメモ。"
+        },
+        "priority": {
+          "name": "優先度",
+          "description": "low、normal、high。"
+        },
+        "labels": {
+          "name": "ラベル",
+          "description": "フィルタリングとレポート用のタグのリスト。"
+        }
+      }
+    },
+    "delete_task": {
+      "name": "タスクを削除",
+      "description": "メンテナンスタスクを履歴ごと削除します。元に戻せません。代わりにパネルからのアーカイブを検討してください。",
+      "fields": {
+        "entry_id": {
+          "name": "オブジェクト",
+          "description": "タスクが属するメンテナンス対象。"
+        },
+        "task_id": {
+          "name": "タスクID",
+          "description": "削除するタスクの id（list_tasks を参照）。"
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "タスク一覧",
+      "description": "オートメーション・スクリプト・音声向けに、アクティブなメンテナンスタスクのスナップショット（id、名前、ステータス、次回期日）を返します。オブジェクトとステータスによるフィルタリングに対応しています。",
+      "fields": {
+        "entry_id": {
+          "name": "オブジェクト",
+          "description": "このメンテナンス対象のタスクのみを返します。"
+        },
+        "status": {
+          "name": "ステータス",
+          "description": "このステータスのタスクのみを返します。"
+        }
+      }
     }
   },
   "issues": {

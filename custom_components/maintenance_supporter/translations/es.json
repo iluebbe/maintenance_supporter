@@ -1538,6 +1538,181 @@
           "description": "Incluir o no las entradas del historial de tareas en la exportación."
         }
       }
+    },
+    "add_object": {
+      "name": "Añadir objeto",
+      "description": "Crea un nuevo objeto de mantenimiento (dispositivo). Devuelve el nuevo entry_id.",
+      "fields": {
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre del objeto/dispositivo."
+        },
+        "area_id": {
+          "name": "Área",
+          "description": "Área a la que asignar el dispositivo."
+        },
+        "manufacturer": {
+          "name": "Fabricante"
+        },
+        "model": {
+          "name": "Modelo"
+        },
+        "serial_number": {
+          "name": "Número de serie"
+        },
+        "installation_date": {
+          "name": "Fecha de instalación"
+        },
+        "warranty_expiry": {
+          "name": "Vencimiento de garantía",
+          "description": "Fecha de fin de garantía (para seguimiento de activos y recordatorios)."
+        },
+        "documentation_url": {
+          "name": "URL de documentación",
+          "description": "Enlace a un manual o página del proveedor (solo http/https)."
+        },
+        "notes": {
+          "name": "Notas"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Añadir tarea",
+      "description": "Añade una tarea de mantenimiento a un objeto existente. Devuelve el nuevo task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Objeto",
+          "description": "El objeto de mantenimiento al que añadir la tarea."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre de la tarea."
+        },
+        "task_type": {
+          "name": "Tipo de tarea",
+          "description": "Categoría libre (p. ej. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Tipo de programación",
+          "description": "time_based (intervalo) o sensor_based. Predeterminado: time_based."
+        },
+        "interval_days": {
+          "name": "Intervalo",
+          "description": "Longitud del intervalo entre ocurrencias (para tareas basadas en tiempo), combinada con interval_unit."
+        },
+        "interval_unit": {
+          "name": "Unidad de intervalo",
+          "description": "Unidad del intervalo: days, weeks, months o years. Predeterminado: days."
+        },
+        "due_date": {
+          "name": "Fecha de vencimiento",
+          "description": "Fecha de vencimiento (YYYY-MM-DD) para una tarea única (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Programación de calendario",
+          "description": "Recurrencia anidada para los tipos de calendario, p. ej. {\"kind\": \"nth_weekday\", \"nth\": 1, \"weekday\": 5} para el 1.er sábado (weekday 0=lun ... 6=dom), {\"kind\": \"weekdays\", \"weekdays\": [0, 3]} para lun y jue, o {\"kind\": \"day_of_month\", \"day\": 15}. Tiene prioridad sobre interval_days / schedule_type."
+        },
+        "warning_days": {
+          "name": "Aviso (días)",
+          "description": "Días antes del vencimiento para entrar en la ventana de «vence pronto»."
+        },
+        "enabled": {
+          "name": "Habilitado"
+        },
+        "notes": {
+          "name": "Notas"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Actualizar tarea",
+      "description": "Actualiza los campos comunes de una tarea de mantenimiento existente. Solo cambian los campos proporcionados.",
+      "fields": {
+        "entry_id": {
+          "name": "Objeto",
+          "description": "El objeto de mantenimiento al que pertenece la tarea."
+        },
+        "task_id": {
+          "name": "ID de tarea",
+          "description": "El id de la tarea a actualizar (véase list_tasks)."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nuevo nombre de la tarea."
+        },
+        "task_type": {
+          "name": "Tipo de tarea",
+          "description": "Categoría (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Tipo de programación",
+          "description": "time_based (intervalo), sensor_based, one_time o manual."
+        },
+        "interval_days": {
+          "name": "Intervalo",
+          "description": "Longitud del intervalo entre ocurrencias, combinada con interval_unit."
+        },
+        "interval_unit": {
+          "name": "Unidad de intervalo",
+          "description": "days, weeks, months o years."
+        },
+        "due_date": {
+          "name": "Fecha de vencimiento",
+          "description": "Fecha de vencimiento para tareas únicas (YYYY-MM-DD)."
+        },
+        "schedule": {
+          "name": "Programación (recurrencia de calendario)",
+          "description": "Objeto de recurrencia anidado para los tipos de calendario, p. ej. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Tiene prioridad sobre los campos planos."
+        },
+        "warning_days": {
+          "name": "Días de aviso",
+          "description": "Días antes del vencimiento en que la tarea pasa a «vence pronto»."
+        },
+        "enabled": {
+          "name": "Habilitado",
+          "description": "Si la tarea está activa."
+        },
+        "notes": {
+          "name": "Notas",
+          "description": "Notas libres sobre la tarea."
+        },
+        "priority": {
+          "name": "Prioridad",
+          "description": "low, normal o high."
+        },
+        "labels": {
+          "name": "Etiquetas",
+          "description": "Lista de etiquetas para filtrado e informes."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Eliminar tarea",
+      "description": "Elimina una tarea de mantenimiento incluido su historial. No se puede deshacer: considera archivarla desde el panel.",
+      "fields": {
+        "entry_id": {
+          "name": "Objeto",
+          "description": "El objeto de mantenimiento al que pertenece la tarea."
+        },
+        "task_id": {
+          "name": "ID de tarea",
+          "description": "El id de la tarea a eliminar (véase list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Listar tareas",
+      "description": "Devuelve una instantánea de las tareas de mantenimiento activas (id, nombre, estado, próximo vencimiento) para automatizaciones, scripts y voz. Admite filtrado por objeto y estado.",
+      "fields": {
+        "entry_id": {
+          "name": "Objeto",
+          "description": "Devolver solo las tareas de este objeto de mantenimiento."
+        },
+        "status": {
+          "name": "Estado",
+          "description": "Devolver solo las tareas con este estado."
+        }
+      }
     }
   },
   "issues": {
