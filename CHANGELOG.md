@@ -2,6 +2,26 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.24.1] - 2026-07-13
+
+### 🌍 Localization
+
+- **All nine services are now translated in every language** — the task-CRUD
+  services (`add_object`, `add_task`, `update_task`, `delete_task`,
+  `list_tasks`, shipped in 2.19) showed English names/descriptions in the HA
+  service UI regardless of language. They now carry full translations (name,
+  description, every field) in all 18 languages, reusing the existing
+  per-language terminology.
+
+### 📝 Documentation
+
+- Docs reconciled against the code: the **Saved filter views** feature section
+  was added to FEATURES.md; stale WebSocket-command counts (59/49 → 72) and the
+  service count (four → nine) corrected; the ARCHITECTURE command table now
+  lists the problem-sensors and saved-views command families; the last two
+  undocumented global settings (`disabled_template_ids`,
+  `weekly_digest_enabled`) documented — CONFIGURATION.md now covers all 46.
+
 ## [2.24.0] - 2026-07-12
 
 ### 🛡️ Bug-audit fixes, round 2
