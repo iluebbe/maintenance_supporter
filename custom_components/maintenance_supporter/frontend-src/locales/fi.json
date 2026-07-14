@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Tehtävä erääntyy {hours} h kertyneen käyntiajan jälkeen; laskuri alkaa alusta jokaisen suorituksen jälkeen.",
   "trigger_hint_state_change": "Tehtävä erääntyy {count} tilanmuutoksen jälkeen.",
   "trigger_hint_state_change_to": "Tehtävä erääntyy {count} muutoksen jälkeen tilaan ”{state}”.",
-  "trigger_hint_state_now": "Nykyinen tila: {value}."
+  "trigger_hint_state_now": "Nykyinen tila: {value}.",
+  "adopt_problem_part": "Käyttää varaosaa: {name}"
 }

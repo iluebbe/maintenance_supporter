@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Uppgiften förfaller efter {hours} h ackumulerad drifttid; räknaren börjar om efter varje slutförande.",
   "trigger_hint_state_change": "Uppgiften förfaller efter {count} tillståndsändring(ar).",
   "trigger_hint_state_change_to": "Uppgiften förfaller efter {count} ändring(ar) till ”{state}”.",
-  "trigger_hint_state_now": "Aktuellt tillstånd: {value}."
+  "trigger_hint_state_now": "Aktuellt tillstånd: {value}.",
+  "adopt_problem_part": "Använder reservdel: {name}"
 }

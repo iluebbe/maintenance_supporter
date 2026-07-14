@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "A tarefa vence após {hours} h de funcionamento acumulado; a contagem recomeça após cada conclusão.",
   "trigger_hint_state_change": "A tarefa vence após {count} mudança(s) de estado.",
   "trigger_hint_state_change_to": "A tarefa vence após {count} mudança(s) para «{state}».",
-  "trigger_hint_state_now": "Estado atual: {value}."
+  "trigger_hint_state_now": "Estado atual: {value}.",
+  "adopt_problem_part": "Usa a peça: {name}"
 }

@@ -39,6 +39,9 @@ _SELECTION_SCHEMA = vol.Schema(
         vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("object_name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("device_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        # Spare part to link as consumes_parts on the adopted task (discovery's
+        # suggested_part_id) — completing the task then consumes/restocks it.
+        vol.Optional("part_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
     }
 )
 
@@ -108,6 +111,19 @@ async def ws_adopt_problem_sensors(
                 "schedule": task["schedule"],
                 "trigger_config": task["trigger_config"],
             }
+            # Link the suggested spare part (validated against the target
+            # object's parts — an unknown id is silently dropped, same as the
+            # task-CRUD path).
+            if sel.get("part_id"):
+                from ..const import CONF_PARTS
+                from ..helpers.parts import sanitize_consumes_parts
+
+                links = sanitize_consumes_parts(
+                    [{"part_id": sel["part_id"], "quantity": 1}],
+                    set(entry.data.get(CONF_PARTS) or {}),
+                )
+                if links:
+                    task_data["consumes_parts"] = links
             await async_persist_task(hass, entry, task_data)
             tasks_created += 1
         except (ValueError, KeyError) as err:

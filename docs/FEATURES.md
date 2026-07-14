@@ -96,6 +96,10 @@ Discover HA `device_class: problem` binary sensors (printer errors, filter
 warnings, low battery) and adopt selected ones as tasks that trigger while the
 problem is active and clear themselves when it resolves. Each proposes a target
 object and shows its live state; the integration's own sensors are excluded.
+When the target object already owns a **spare part** whose name matches the
+sensor (toner-low ↔ *Toner cartridge*), adoption pre-links it as the task's
+consumed part — completing the task then consumes/restocks it, closing the
+problem → task → buy-part loop in one step.
 
 ![Adopt problem sensors](images/adopt-problem-sensors.png)
 

@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Opgaven forfalder efter {hours} t akkumuleret driftstid; tælleren starter forfra efter hver fuldførelse.",
   "trigger_hint_state_change": "Opgaven forfalder efter {count} tilstandsskift.",
   "trigger_hint_state_change_to": "Opgaven forfalder efter {count} skift til ”{state}”.",
-  "trigger_hint_state_now": "Aktuel tilstand: {value}."
+  "trigger_hint_state_now": "Aktuel tilstand: {value}.",
+  "adopt_problem_part": "Bruger reservedel: {name}"
 }

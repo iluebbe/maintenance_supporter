@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "De taak vervalt na {hours} u opgetelde draaitijd; de teller herstart na elke afronding.",
   "trigger_hint_state_change": "De taak vervalt na {count} statuswijziging(en).",
   "trigger_hint_state_change_to": "De taak vervalt na {count} wijziging(en) naar “{state}”.",
-  "trigger_hint_state_now": "Huidige status: {value}."
+  "trigger_hint_state_now": "Huidige status: {value}.",
+  "adopt_problem_part": "Gebruikt onderdeel: {name}"
 }

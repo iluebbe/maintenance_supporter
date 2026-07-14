@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "累積稼働 {hours} 時間でタスクが期限になります。完了のたびにカウントはやり直しになります。",
   "trigger_hint_state_change": "{count} 回の状態変化でタスクが期限になります。",
   "trigger_hint_state_change_to": "「{state}」への {count} 回の変化でタスクが期限になります。",
-  "trigger_hint_state_now": "現在の状態: {value}。"
+  "trigger_hint_state_now": "現在の状態: {value}。",
+  "adopt_problem_part": "使用する部品: {name}"
 }

@@ -253,6 +253,115 @@ async def test_adopt_catches_bad_selection(hass: HomeAssistant, global_entry: Mo
     _ = CONF_OBJECT  # keep the import meaningful if the assertion above changes
 
 
+def test_match_part_for_sensor_heuristics() -> None:
+    """Token-overlap matching: toner-low ↔ 'Toner cartridge'; generic words
+    (problem/low/sensor) never establish a match; best overlap wins."""
+    from custom_components.maintenance_supporter.helpers.problem_sensors import match_part_for_sensor
+
+    parts = {
+        "p1": {"name": "Toner cartridge"},
+        "p2": {"name": "Drum unit"},
+        "p3": {"name": "Toner cartridge black"},
+    }
+    # "Toner low" shares the meaningful token "toner" → a toner part (p1 or p3).
+    m = match_part_for_sensor("Printer toner low", parts)
+    assert m is not None and m[0] in ("p1", "p3")
+    # More overlapping tokens win: "black toner cartridge" → p3 (3 tokens).
+    m = match_part_for_sensor("Black toner cartridge empty", parts)
+    assert m == ("p3", "Toner cartridge black")
+    # Purely generic sensor names must NOT match anything.
+    assert match_part_for_sensor("Printer problem", {"p1": {"name": "Problem fixer"}}) is None
+    assert match_part_for_sensor("Sensor low", parts) is None
+    assert match_part_for_sensor("Toner low", {}) is None
+
+
+async def test_discovery_suggests_matching_part_on_existing_object(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A problem sensor whose suggested (device-linked) object owns a part with
+    a matching name carries suggested_part_id/name in the discovery payload."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_discover_problem_sensors
+
+    from .conftest import build_object_data, build_object_entry_data
+
+    foreign = MockConfigEntry(domain="demo", title="Demo")
+    foreign.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=foreign.entry_id, identifiers={("demo", "printer-1")}, name="Laser Printer",
+    )
+    data = build_object_entry_data(
+        object_data={**build_object_data(name="Printer"), "ha_device_id": device.id}
+    )
+    data["parts"] = {"part_toner": {"id": "part_toner", "name": "Toner cartridge"}}
+    obj = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Printer", data=data,
+        source="user", unique_id="ms_ps_part",
+    )
+    obj.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj)
+
+    entry = er.async_get(hass).async_get_or_create(
+        "binary_sensor", "demo", "toner-low-1", device_id=device.id, original_device_class="problem",
+    )
+    hass.states.async_set(entry.entity_id, "on", {"device_class": "problem", "friendly_name": "Toner low"})
+    await hass.async_block_till_done()
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_discover_problem_sensors, hass, conn, {"id": 1, "type": "maintenance_supporter/problem_sensors/discover"}
+    )
+    cand = next(s for s in conn.send_result.call_args[0][1]["sensors"] if s["entity_id"] == entry.entity_id)
+    assert cand["suggested_entry_id"] == obj.entry_id
+    assert cand["suggested_part_id"] == "part_toner"
+    assert cand["suggested_part_name"] == "Toner cartridge"
+
+
+async def test_adopt_links_suggested_part_as_consumes_parts(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A selection carrying part_id creates the task with consumes_parts
+    [{part_id, quantity: 1}]; an unknown part_id is silently dropped."""
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
+
+    from .conftest import OBJECT_ID_1, build_object_data, build_object_entry_data
+
+    data = build_object_entry_data(object_data=build_object_data(name="Printer", object_id=OBJECT_ID_1))
+    data["parts"] = {"part_toner": {"id": "part_toner", "name": "Toner cartridge"}}
+    obj = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Printer", data=data,
+        source="user", unique_id="ms_ps_adopt_part",
+    )
+    obj.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj)
+    _problem_sensor(hass, "binary_sensor.toner_low", "Toner low", "on")
+    _problem_sensor(hass, "binary_sensor.drum_warn", "Drum warning", "on")
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_problem_sensors,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/problem_sensors/adopt",
+            "selections": [
+                {"entity_id": "binary_sensor.toner_low", "name": "Toner low", "entry_id": obj.entry_id, "part_id": "part_toner"},
+                {"entity_id": "binary_sensor.drum_warn", "name": "Drum warning", "entry_id": obj.entry_id, "part_id": "not_a_part"},
+            ],
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    assert conn.send_result.call_args[0][1]["tasks_created"] == 2
+
+    fresh = hass.config_entries.async_get_entry(obj.entry_id)
+    tasks = {t["name"]: t for t in fresh.data[CONF_TASKS].values()}
+    assert tasks["Toner low"]["consumes_parts"] == [{"part_id": "part_toner", "quantity": 1}]
+    assert "consumes_parts" not in tasks["Drum warning"]  # unknown id dropped
+
+
 async def test_adopt_rolls_back_new_object_when_task_persist_fails(
     hass: HomeAssistant, global_entry: MockConfigEntry, monkeypatch: pytest.MonkeyPatch
 ) -> None:
