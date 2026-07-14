@@ -11,12 +11,13 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
-The bulk of this roadmap has shipped — most recently the **v2.23.x** wave:
-spare parts & consumables, **documents linked to tasks** (with a per-task
-paperclip badge and links that survive a backup), and a **complete, portable
-backup** (selective JSON/YAML/CSV export + a documents archive that carries the
-file contents). What's left, ordered by value × how much it reuses existing
-machinery × risk:
+**This list is fully worked off** (2026-07): every user-facing item below has
+shipped — most recently the **2.26 wave**: saved views completed across all
+surfaces (label filter, notification routing, Lovelace card), Assist voice
+intents, part suggestions on problem-sensor adoption, note persistence across
+re-adopt, and per-part document links. The only remaining entry is the
+internal form-generation refactor (item 7, deliberately deferred). New ideas
+land here as they come up — suggestions welcome via issues/Discussions.
 
 1. ~~**Adopt problem sensors as triggered tasks**~~ ✅ **Shipped in v2.24.0** —
    a discovery + opt-in-sync layer over the existing *sensor-trigger → task →
