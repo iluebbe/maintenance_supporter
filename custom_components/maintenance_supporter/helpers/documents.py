@@ -178,6 +178,7 @@ class DocumentStore:
             "size": len(content),
             "tags": list(tags or []),
             "task_ids": [],
+            "part_ids": [],
             "added_at": dt_util.utcnow().isoformat(),
         }
         self.documents[doc_id] = doc
@@ -220,6 +221,7 @@ class DocumentStore:
             "title": title or url,
             "tags": list(tags or []),
             "task_ids": [],
+            "part_ids": [],
             "added_at": dt_util.utcnow().isoformat(),
         }
         self.documents[doc_id] = doc
@@ -227,23 +229,32 @@ class DocumentStore:
         return {"id": doc_id, **doc}
 
     async def async_import_documents(
-        self, object_id: str, docs: list[dict[str, Any]], task_id_map: dict[str, str] | None = None
+        self,
+        object_id: str,
+        docs: list[dict[str, Any]],
+        task_id_map: dict[str, str] | None = None,
+        part_id_map: dict[str, str] | None = None,
     ) -> int:
         """Recreate document metadata for an imported object (P6).
 
         Web-links round-trip fully. File docs are restored as metadata + a blob
         refcount; the binary itself is not in the JSON export (it rides the
         /config backup), so unless a matching backup was restored the blob is
-        absent and the hygiene scan flags the doc as dangling. ``task_ids`` are
-        remapped through ``task_id_map`` (old→new task id) so a doc's task
-        links survive the import; ids with no mapping are dropped. Returns the
-        number created.
+        absent and the hygiene scan flags the doc as dangling. ``task_ids`` /
+        ``part_ids`` are remapped through their old→new id maps so a doc's
+        task and spare-part links survive the import; ids with no mapping are
+        dropped. Returns the number created.
         """
 
         def _remap(meta: dict[str, Any]) -> list[str]:
             if not task_id_map:
                 return []
             return [task_id_map[t] for t in (meta.get("task_ids") or []) if t in task_id_map]
+
+        def _remap_parts(meta: dict[str, Any]) -> list[str]:
+            if not part_id_map:
+                return []
+            return [part_id_map[p] for p in (meta.get("part_ids") or []) if p in part_id_map]
 
         created = 0
         for meta in docs:
@@ -265,6 +276,7 @@ class DocumentStore:
                     "title": title or url,
                     "tags": tags,
                     "task_ids": _remap(meta),
+                    "part_ids": _remap_parts(meta),
                     "added_at": dt_util.utcnow().isoformat(),
                 }
                 created += 1
@@ -289,6 +301,7 @@ class DocumentStore:
                     "size": size,
                     "tags": tags,
                     "task_ids": _remap(meta),
+                    "part_ids": _remap_parts(meta),
                     "added_at": dt_util.utcnow().isoformat(),
                 }
                 created += 1
@@ -308,13 +321,15 @@ class DocumentStore:
         tags: list[str] | None = None,
         task_ids: list[str] | None = None,
         task_pages: dict[str, int] | None = None,
+        part_ids: list[str] | None = None,
     ) -> bool:
-        """Update editable metadata (title / tags / task links / per-task page).
+        """Update editable metadata (title / tags / task+part links / per-task page).
 
         ``task_pages`` is a ``{task_id: page}`` map merged into the doc: a page
         ``>= 1`` sets the jump-to page for that task's link, ``0`` clears it. Page
         hints are always pruned to the currently linked tasks so an unlink also
         forgets its page, and an empty map is dropped to keep the record clean.
+        ``part_ids`` (v2.26) links the doc to spare parts, mirroring task links.
         """
         doc = self.documents.get(doc_id)
         if doc is None:
@@ -325,6 +340,8 @@ class DocumentStore:
             doc["tags"] = list(tags)
         if task_ids is not None:
             doc["task_ids"] = list(task_ids)
+        if part_ids is not None:
+            doc["part_ids"] = list(part_ids)
         if task_pages is not None:
             merged = dict(doc.get("task_pages") or {})
             for tid, page in task_pages.items():

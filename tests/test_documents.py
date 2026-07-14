@@ -358,3 +358,53 @@ async def test_list_blob_files_tolerates_dir_vanishing_mid_scan(
 
     monkeypatch.setattr(Path, "iterdir", _boom)
     assert s._list_blob_files() == set()  # tolerated, no FileNotFoundError
+
+
+# ── per-part document links (v2.26, roadmap) ─────────────────────────────────
+
+
+async def test_part_links_update_and_round_trip(hass: HomeAssistant) -> None:
+    """part_ids mirror task_ids: settable via async_update, present on fresh
+    docs, and remapped through part_id_map on import (unmapped ids drop)."""
+    s = await _store(hass)
+    doc = await s.async_add_file("obj1", content=b"ds", filename="datasheet.pdf", mime="application/pdf")
+    assert doc["part_ids"] == []
+    link = await s.async_add_weblink("obj1", url="https://x/spec")
+    assert link["part_ids"] == []
+
+    assert await s.async_update(doc["id"], part_ids=["p1", "p2"]) is True
+    assert s.get(doc["id"])["part_ids"] == ["p1", "p2"]
+    # Updating other fields leaves part links untouched.
+    assert await s.async_update(doc["id"], title="Renamed") is True
+    assert s.get(doc["id"])["part_ids"] == ["p1", "p2"]
+
+
+async def test_import_documents_remaps_part_ids(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    n = await s.async_import_documents(
+        "obj1",
+        [
+            {"kind": "weblink", "url": "https://x/spec", "part_ids": ["old_p", "unknown_p"]},
+            {
+                "kind": "file",
+                "hash": "b" * 64,
+                "filename": "d.pdf",
+                "mime": "application/pdf",
+                "size": 9,
+                "part_ids": ["old_p"],
+            },
+        ],
+        part_id_map={"old_p": "new_p"},
+    )
+    assert n == 2
+    for d in s.for_object("obj1"):
+        assert d["part_ids"] == ["new_p"]  # remapped; unknown ids dropped
+
+
+async def test_import_documents_without_part_map_drops_links(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    await s.async_import_documents(
+        "obj1", [{"kind": "weblink", "url": "https://x", "part_ids": ["p1"]}]
+    )
+    (doc,) = s.for_object("obj1")
+    assert doc["part_ids"] == []

@@ -919,7 +919,10 @@ async def ws_replace_object(
     if doc_store is not None:
         src_docs = doc_store.for_object(object_id_for_entry(entry))
         if src_docs:
-            await doc_store.async_import_documents(new_obj["id"], src_docs)
+            # part_id_map keeps a doc's spare-part links pointing at the carried
+            # parts' fresh ids (task links intentionally drop — the successor's
+            # tasks restart fresh).
+            await doc_store.async_import_documents(new_obj["id"], src_docs, part_id_map=part_id_map)
 
     # Copy the tracked stock counts (dynamic store state) onto the carried
     # parts, then let the successor's reconcile recreate any needed reminder.

@@ -765,5 +765,6 @@
   "settings_notify_scope_hint": "Kun opgaver, der matcher den valgte visnings etiket-/brugerfiltre, sender påmindelser. Visningens status, sortering og gruppering ignoreres her.",
   "card_saved_view": "Gemt visning",
   "card_saved_view_none": "Ingen",
-  "card_saved_view_help": "Anvender visningens status-, bruger- og etiketfiltre oven på filtrene ovenfor. Visningens sortering og gruppering er panelvisningsindstillinger og anvendes ikke på kortet."
+  "card_saved_view_help": "Anvender visningens status-, bruger- og etiketfiltre oven på filtrene ovenfor. Visningens sortering og gruppering er panelvisningsindstillinger og anvendes ikke på kortet.",
+  "doc_part_none": "Ingen dokumenter knyttet til denne del."
 }

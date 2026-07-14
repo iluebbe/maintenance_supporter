@@ -141,6 +141,8 @@ async def ws_documents_add_link(
         vol.Optional("tags"): _TAGS_SCHEMA,
         vol.Optional("task_ids"): _TASK_IDS_SCHEMA,
         vol.Optional("task_pages"): _TASK_PAGES_SCHEMA,
+        # Spare-part links (v2.26) — same shape/cap as task links.
+        vol.Optional("part_ids"): _TASK_IDS_SCHEMA,
     }
 )
 @require_write
@@ -162,6 +164,7 @@ async def ws_documents_update(
         tags=msg.get("tags"),
         task_ids=msg.get("task_ids"),
         task_pages=msg.get("task_pages"),
+        part_ids=msg.get("part_ids"),
     )
     if not ok:
         connection.send_error(msg["id"], "not_found", "Document not found")

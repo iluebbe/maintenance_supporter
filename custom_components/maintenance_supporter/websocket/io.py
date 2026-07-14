@@ -639,7 +639,9 @@ async def ws_import_json(
 
                 doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
                 if doc_store is not None:
-                    await doc_store.async_import_documents(obj_id, import_docs, task_id_map=task_id_map)
+                    await doc_store.async_import_documents(
+                        obj_id, import_docs, task_id_map=task_id_map, part_id_map=part_id_map
+                    )
         else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
 

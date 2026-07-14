@@ -47,11 +47,11 @@ machinery × risk:
    parity-by-construction step for the two hand-written task/trigger forms; no
    direct user value, so it waits behind the features above.
 
-Smaller candidates: ~~notes on an adopted problem-sensor task survive an
-un-adopt → re-adopt cycle~~ ✅ **Shipped (Unreleased)** — deleted adopted-task
-notes are stashed per sensor and restored (consumed) on re-adopt; per-part file
-attachments (the documents machinery already exists — a part-scoped link is
-cheap).
+Smaller candidates — both ✅ **Shipped (Unreleased)**: ~~notes on an adopted
+problem-sensor task survive an un-adopt → re-adopt cycle~~ (deleted adopted-task
+notes are stashed per sensor and restored on re-adopt) and ~~per-part file
+attachments~~ (documents link to spare parts via `part_ids`, mirroring task
+links incl. export/import remap and the Replace-object carry-over).
 
 Exploratory, no near-term commitment: voice/Assist task creation, optional
 gamification, approval workflow.
