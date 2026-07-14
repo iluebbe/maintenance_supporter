@@ -4,6 +4,20 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🎙️ Voice & Assist intents
+
+- **Query and complete maintenance by voice.** Two Assist intents:
+  *"What maintenance is due?"* speaks the actionable tasks most-urgent-first
+  (`MaintenanceSupporterListTasks`), and *"Complete the oil change"* records a
+  **real completion** — history, rotation, part consumption and on-complete
+  actions all fire, and the completion window is honoured
+  (`MaintenanceSupporterCompleteTask`). The spoken task name is fuzzy-matched
+  and may include the object (*"oil change on the car"*); ambiguous names get
+  the candidate list read back instead of guessing. **LLM-based Assist
+  pipelines pick both up automatically as tools in any language**; for the
+  classic sentence agent, copy the shipped `assist/custom_sentences/` files
+  (en/de) into your config. Responses are localised (en/de).
+
 ### ✨ Suggest a spare part when adopting a problem sensor
 
 - **Adopting a problem sensor can now pre-link the matching spare part.** When

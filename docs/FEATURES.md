@@ -389,6 +389,27 @@ response — id, name, status, next due per task, filterable by object and
 status) join the long-standing `complete` / `skip` / `reset` /
 `export_data`. For the full WebSocket API (72 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
+### Voice & Assist (2.26+)
+
+Two Assist intents let you **query and complete tasks by voice**:
+
+- **`MaintenanceSupporterListTasks`** — *"What maintenance is due?"* Speaks the
+  actionable tasks (overdue / due soon / triggered), most urgent first, e.g.
+  *"2 maintenance tasks need attention: Oil Change on Family Car (5 days
+  overdue), Filter Cleaning on Pool Pump (due today)."*
+- **`MaintenanceSupporterCompleteTask`** — *"Complete the oil change"* — matches
+  the spoken name (the object name counts too: *"oil change on the car"*),
+  records a **real completion** (history, rotation, part consumption,
+  on-complete actions), and honours the completion window.
+
+**LLM-based Assist pipelines** (OpenAI, Claude, Gemini, local LLMs) pick both
+intents up **automatically as tools** in any language — nothing to configure.
+The **classic sentence-matching agent** needs the shipped sentence files: copy
+[`assist/custom_sentences/en/maintenance_supporter.yaml`](../assist/custom_sentences/en/maintenance_supporter.yaml)
+(or `de/`) into `config/custom_sentences/<lang>/` and reload Home Assistant.
+Spoken responses are localised for en/de; other languages fall back to English
+on the classic agent (LLM agents answer in your language regardless).
+
 
 ## Data Updates
 
