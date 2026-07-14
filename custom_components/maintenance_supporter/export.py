@@ -42,6 +42,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
                     "title": d.get("title"),
                     "tags": d.get("tags") or [],
                     "task_ids": d.get("task_ids") or [],
+                    "part_ids": d.get("part_ids") or [],
                 }
             )
         else:
@@ -55,6 +56,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
                     "size": d.get("size"),
                     "tags": d.get("tags") or [],
                     "task_ids": d.get("task_ids") or [],
+                    "part_ids": d.get("part_ids") or [],
                 }
             )
     return out

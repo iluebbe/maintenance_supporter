@@ -123,3 +123,48 @@ describe("task-documents", () => {
     }
   });
 });
+
+// ── part mode (v2.26): same component, linking via part_ids ─────────────────
+
+const P_LINKED = { id: "d1", kind: "file", title: "Datasheet", filename: "d.pdf", mime: "application/pdf", size: 100, tags: [], task_ids: [], part_ids: ["p1"] };
+const P_AVAIL = { id: "d2", kind: "weblink", title: "Spec page", url: "https://x/spec", tags: [], task_ids: [], part_ids: [] };
+
+async function mountPart(docs: unknown[] = [P_LINKED, P_AVAIL]) {
+  const { hass, sent } = createMockHass({
+    handlers: {
+      "maintenance_supporter/documents/list": () => ({ documents: docs }),
+      "maintenance_supporter/documents/update": () => ({ id: "d1" }),
+    },
+  });
+  const el = await fixture<MaintenanceTaskDocuments>(html`
+    <maintenance-task-documents .hass=${hass} .entryId=${"e1"} .partId=${"p1"} .canWrite=${true}></maintenance-task-documents>
+  `);
+  await new Promise((r) => setTimeout(r, 30));
+  await el.updateComplete;
+  return { el, sent };
+}
+
+describe("task-documents in part mode", () => {
+  it("filters by part_ids and links via part_ids (never task_ids)", async () => {
+    const { el, sent } = await mountPart();
+    const rows = el.shadowRoot!.querySelectorAll(".tdoc-row");
+    expect(rows.length).to.equal(1);
+    expect(rows[0].querySelector(".tdoc-title")!.textContent).to.contain("Datasheet");
+
+    const select = el.shadowRoot!.querySelector<HTMLSelectElement>(".tdoc-select")!;
+    select.value = "d2";
+    select.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".tdoc-btn")!.click();
+    await el.updateComplete;
+    const msg = sent.find((m) => m.type === "maintenance_supporter/documents/update" && m.doc_id === "d2");
+    expect(msg, "link WS sent").to.exist;
+    expect(msg!.part_ids).to.deep.equal(["p1"]);
+    expect(msg!.task_ids, "task_ids untouched in part mode").to.be.undefined;
+  });
+
+  it("offers no per-task page input for a linked PDF in part mode", async () => {
+    const { el } = await mountPart([P_LINKED]);
+    expect(el.shadowRoot!.querySelector(".tdoc-page")).to.not.exist;
+  });
+});

@@ -65,6 +65,9 @@ The object's parts shelf (below the task list): a stocked descaler (6 pcs),
 the water filter **at its reorder threshold** (orange low badge + cart icon —
 its auto-created *Buy…* task is already in the task list above), and a
 catalog-only seal with just identifiers. Stock adjust, edit and delete per row.
+The paperclip on a row (2.26+) links the object's **documents** to that part —
+datasheet or receipt right at the shelf; part links survive export/import and
+*Replace object* like task links do.
 
 ![Parts & consumables section](images/parts-section.png)
 

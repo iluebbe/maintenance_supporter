@@ -765,5 +765,6 @@
   "settings_notify_scope_hint": "Alleen taken die overeenkomen met de label-/gebruikersfilters van de gekozen weergave sturen herinneringen. Status, sortering en groepering van de weergave worden hier genegeerd.",
   "card_saved_view": "Opgeslagen weergave",
   "card_saved_view_none": "Geen",
-  "card_saved_view_help": "Past de status-, gebruikers- en labelfilters van de weergave toe bovenop de bovenstaande filters. Sortering en groepering van de weergave zijn paneelweergave-instellingen en gelden niet voor de kaart."
+  "card_saved_view_help": "Past de status-, gebruikers- en labelfilters van de weergave toe bovenop de bovenstaande filters. Sortering en groepering van de weergave zijn paneelweergave-instellingen en gelden niet voor de kaart.",
+  "doc_part_none": "Geen documenten gekoppeld aan dit onderdeel."
 }

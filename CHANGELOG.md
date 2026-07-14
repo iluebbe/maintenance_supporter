@@ -24,6 +24,16 @@ All notable changes to Maintenance Supporter are documented in this file.
   a deleted view degrades to "no view filter" instead of an empty card. This
   completes the saved-views roadmap item across all surfaces.
 
+### 📎 Documents on spare parts
+
+- **Attach documents to a spare part.** The paperclip on each part row opens
+  the part's document list: link the object's existing documents (datasheet,
+  receipt, compatibility list) to the part and open/download them right there —
+  the same link/unlink flow tasks have had since 2.23. Part links ride the
+  JSON export/import (ids remapped like task links), the documents archive,
+  and **Replace object** (the successor's carried parts keep their datasheets).
+  Read-only users can view and open, writers link/unlink.
+
 ### 📝 Notes survive un-adopting a problem sensor
 
 - **Un-adopt → re-adopt no longer loses your notes.** Deleting an adopted

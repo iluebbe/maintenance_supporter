@@ -98,6 +98,19 @@ def _object_task_ids(hass: HomeAssistant, object_id: str) -> set[str]:
     return set()
 
 
+def _object_part_ids(hass: HomeAssistant, object_id: str) -> set[str]:
+    """The current spare-part ids of the object (same role as
+    ``_object_task_ids``, for a doc's part links)."""
+    from ..const import CONF_OBJECT, CONF_PARTS
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        if entry.data.get(CONF_OBJECT, {}).get("id") == object_id:
+            return set(entry.data.get(CONF_PARTS) or {})
+    return set()
+
+
 def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = None) -> bytes:
     """Build a documents ZIP for the selected objects (None = all).
 
@@ -127,6 +140,7 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
                         "title": d.get("title"),
                         "tags": d.get("tags") or [],
                         "task_ids": d.get("task_ids") or [],
+                        "part_ids": d.get("part_ids") or [],
                     }
                 )
             else:
@@ -141,6 +155,7 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
                         "size": d.get("size"),
                         "tags": d.get("tags") or [],
                         "task_ids": d.get("task_ids") or [],
+                        "part_ids": d.get("part_ids") or [],
                     }
                 )
                 if isinstance(h, str):
@@ -262,7 +277,10 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
             # here and are re-established by the JSON import's remap instead.
             valid_task_ids = _object_task_ids(hass, target)
             identity = {tid: tid for tid in valid_task_ids}
-            docs_created += await store.async_import_documents(target, fresh, task_id_map=identity)
+            part_identity = {pid: pid for pid in _object_part_ids(hass, target)}
+            docs_created += await store.async_import_documents(
+                target, fresh, task_id_map=identity, part_id_map=part_identity
+            )
 
     return {
         "blobs_written": written,

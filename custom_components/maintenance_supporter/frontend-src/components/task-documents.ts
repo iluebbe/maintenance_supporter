@@ -1,10 +1,12 @@
-/** Documents linked to a maintenance task.
+/** Documents linked to a maintenance task — or (v2.26) to a spare part.
  *
- * A filtered view over the object's document pool via each doc's `task_ids`:
- * link/unlink existing object documents to the task and open/download them. Full
- * upload + management lives at the object level (documents-section); this keeps
- * the manual / spare-parts list right where the maintenance work happens. Hides
- * itself entirely when the object has no documents at all.
+ * A filtered view over the object's document pool via each doc's `task_ids`
+ * (task mode) or `part_ids` (part mode, set `partId` instead of `taskId`):
+ * link/unlink existing object documents and open/download them. Full upload +
+ * management lives at the object level (documents-section); this keeps the
+ * manual / datasheet right where the work happens. Per-task PDF page hints
+ * exist only in task mode. Hides itself entirely when the object has no
+ * documents at all.
  */
 
 import { LitElement, html, css, nothing } from "lit";
@@ -26,6 +28,7 @@ interface Doc {
   tags?: string[];
   task_ids?: string[];
   task_pages?: Record<string, number>;
+  part_ids?: string[];
 }
 
 const CATEGORIES = ["manual", "warranty", "invoice", "spare_parts", "photo", "other"] as const;
@@ -41,7 +44,9 @@ const CATEGORY_ICONS: Record<string, string> = {
 export class MaintenanceTaskDocuments extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public entryId!: string;
-  @property({ attribute: false }) public taskId!: string;
+  @property({ attribute: false }) public taskId?: string;
+  /** Part mode: link docs to this spare part (via `part_ids`) instead of a task. */
+  @property({ attribute: false }) public partId?: string;
   @property({ type: Boolean }) public canWrite = false;
 
   @state() private _docs: Doc[] = [];
@@ -57,14 +62,24 @@ export class MaintenanceTaskDocuments extends LitElement {
     return this.hass?.language || "en";
   }
 
+  /** The id linked docs reference — a task id or (part mode) a part id. */
+  private get _refId(): string {
+    return this.partId || this.taskId || "";
+  }
+
+  /** The doc metadata field the link lives in. */
+  private get _linkField(): "task_ids" | "part_ids" {
+    return this.partId ? "part_ids" : "task_ids";
+  }
+
   updated(changed: Map<string, unknown>): void {
     super.updated(changed);
     if (this.hass && !this._localeReady) {
       this._localeReady = true;
       void ensureLocale(this._lang).then(() => this.requestUpdate());
     }
-    const key = `${this.entryId}|${this.taskId}`;
-    if (this.hass && this.entryId && this.taskId && this._loadedKey !== key) {
+    const key = `${this.entryId}|${this._refId}`;
+    if (this.hass && this.entryId && this._refId && this._loadedKey !== key) {
       this._loadedKey = key;
       void this._load();
     }
@@ -85,22 +100,26 @@ export class MaintenanceTaskDocuments extends LitElement {
     }
   }
 
+  private _links(doc: Doc): string[] {
+    return doc[this._linkField] || [];
+  }
+
   private _linked(): Doc[] {
-    return this._docs.filter((d) => (d.task_ids || []).includes(this.taskId));
+    return this._docs.filter((d) => this._links(d).includes(this._refId));
   }
 
   private _available(): Doc[] {
-    return this._docs.filter((d) => !(d.task_ids || []).includes(this.taskId));
+    return this._docs.filter((d) => !this._links(d).includes(this._refId));
   }
 
-  private async _setTaskIds(doc: Doc, taskIds: string[]): Promise<void> {
+  private async _setLinks(doc: Doc, ids: string[]): Promise<void> {
     this._busy = true;
     this._error = "";
     try {
       await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/documents/update",
         doc_id: doc.id,
-        task_ids: taskIds,
+        [this._linkField]: ids,
       });
       await this._load();
     } catch (e) {
@@ -114,20 +133,21 @@ export class MaintenanceTaskDocuments extends LitElement {
     const doc = this._docs.find((d) => d.id === this._attachId);
     if (!doc) return;
     this._attachId = "";
-    void this._setTaskIds(doc, [...(doc.task_ids || []), this.taskId]);
+    void this._setLinks(doc, [...this._links(doc), this._refId]);
   }
 
   private _unlink(doc: Doc): void {
-    void this._setTaskIds(doc, (doc.task_ids || []).filter((x) => x !== this.taskId));
+    void this._setLinks(doc, this._links(doc).filter((x) => x !== this._refId));
   }
 
   private _isPdf(doc: Doc): boolean {
     return doc.mime === "application/pdf" || (doc.filename || "").toLowerCase().endsWith(".pdf");
   }
 
-  /** The page this doc should open at for the current task, if set (PDFs only). */
+  /** The page this doc should open at for the current task, if set (PDFs only;
+   *  page hints are a task-mode concept — none in part mode). */
   private _pageFor(doc: Doc): number | undefined {
-    return this._isPdf(doc) ? doc.task_pages?.[this.taskId] : undefined;
+    return this._isPdf(doc) && this.taskId ? doc.task_pages?.[this.taskId] : undefined;
   }
 
   private async _open(doc: Doc): Promise<void> {
@@ -157,6 +177,7 @@ export class MaintenanceTaskDocuments extends LitElement {
 
   /** Set (page >= 1) or clear (0) the jump-to page for this doc's task link. */
   private async _setPage(doc: Doc, page: number): Promise<void> {
+    if (!this.taskId) return;
     this._busy = true;
     this._error = "";
     try {
@@ -197,7 +218,7 @@ export class MaintenanceTaskDocuments extends LitElement {
         <h3><ha-icon icon="mdi:paperclip"></ha-icon> ${t("documents", L)} (${linked.length})</h3>
         ${this._error ? html`<div class="tdoc-error">${this._error}</div>` : nothing}
         ${linked.length === 0
-          ? html`<div class="tdoc-empty">${t("doc_task_none", L)}</div>`
+          ? html`<div class="tdoc-empty">${t(this.partId ? "doc_part_none" : "doc_task_none", L)}</div>`
           : html`<div class="tdoc-list">${linked.map((d) => this._renderRow(d, L))}</div>`}
         ${this.canWrite && available.length
           ? html`<div class="tdoc-attach">
@@ -223,7 +244,7 @@ export class MaintenanceTaskDocuments extends LitElement {
   private _renderRow(doc: Doc, L: string) {
     const isFile = doc.kind === "file";
     const isPdf = this._isPdf(doc);
-    const page = doc.task_pages?.[this.taskId];
+    const page = this._pageFor(doc);
     const cat = (doc.tags || []).find((x) => (CATEGORIES as readonly string[]).includes(x)) || "other";
     const meta = isFile ? formatBytes(doc.size) : t("doc_link_badge", L);
     return html`
@@ -247,7 +268,7 @@ export class MaintenanceTaskDocuments extends LitElement {
             ${meta}${page ? html` · <span class="tdoc-pagetag">${t("doc_page", L)} ${page}</span>` : nothing}
           </div>
         </div>
-        ${this.canWrite && isPdf
+        ${this.canWrite && isPdf && this.taskId
           ? html`<input
               class="tdoc-page"
               type="number"

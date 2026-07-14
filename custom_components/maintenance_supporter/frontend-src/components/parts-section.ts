@@ -18,6 +18,8 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale } from "../styles";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant, MaintenancePart } from "../types";
+// Per-part document links (v2.26) — the task-documents component in part mode.
+import "./task-documents";
 
 interface PartForm {
   id?: string;
@@ -64,6 +66,7 @@ export class MaintenancePartsSection extends LitElement {
   @state() private _restockFor: string | null = null;
   @state() private _restockQty = "";
   @state() private _restockInvalid = false;
+  @state() private _docsFor: string | null = null;
 
   private get _lang(): string {
     return this.hass?.locale?.language || this.hass?.language || "en";
@@ -190,6 +193,7 @@ export class MaintenancePartsSection extends LitElement {
     const L = this._lang;
     const tracked = part.stock !== null && part.stock !== undefined;
     const ident = this._identLine(part);
+    const docsOpen = this._docsFor === part.id;
     return html`
       <div class="part-row ${part.is_low ? "low" : ""}">
         <ha-icon class="part-icon" icon=${part.is_low ? "mdi:cart-arrow-down" : "mdi:package-variant-closed"}></ha-icon>
@@ -213,6 +217,12 @@ export class MaintenancePartsSection extends LitElement {
               : nothing}
           </div>
         </div>
+        <ha-icon-button
+          title=${t("documents", L)}
+          class=${docsOpen ? "docs-open" : ""}
+          @click=${() => (this._docsFor = docsOpen ? null : part.id)}
+          ><ha-icon icon="mdi:paperclip"></ha-icon
+        ></ha-icon-button>
         ${this.canWrite
           ? html`
               ${this._restockFor === part.id
@@ -253,6 +263,16 @@ export class MaintenancePartsSection extends LitElement {
             `
           : nothing}
       </div>
+      ${docsOpen
+        ? html`<div class="part-docs">
+            <maintenance-task-documents
+              .hass=${this.hass}
+              .entryId=${this.entryId}
+              .partId=${part.id}
+              .canWrite=${this.canWrite}
+            ></maintenance-task-documents>
+          </div>`
+        : nothing}
     `;
   }
 
@@ -406,6 +426,13 @@ export class MaintenancePartsSection extends LitElement {
     }
     .restock-input.invalid {
       border-color: var(--error-color, #f44336);
+    }
+    .docs-open {
+      color: var(--primary-color);
+    }
+    .part-docs {
+      padding: 0 4px 8px 34px;
+      border-bottom: 1px solid var(--divider-color);
     }
     .part-form {
       border: 1px solid var(--divider-color);

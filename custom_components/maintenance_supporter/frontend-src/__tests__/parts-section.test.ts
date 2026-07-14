@@ -56,7 +56,11 @@ describe("parts-section", () => {
 
   it("gates editing on canWrite", async () => {
     const reader = await mount(false);
-    expect(reader.shadowRoot!.querySelectorAll("ha-icon-button").length).to.equal(0);
+    // Read-only users keep the (read-action) documents paperclip — one per
+    // part — but no edit/delete/restock buttons.
+    const readerBtns = [...reader.shadowRoot!.querySelectorAll("ha-icon-button")];
+    expect(readerBtns.length).to.equal(reader.shadowRoot!.querySelectorAll(".part-row").length);
+    expect(readerBtns.every((b) => b.querySelector('ha-icon[icon="mdi:paperclip"]'))).to.be.true;
     const writer = await mount(true);
     expect(writer.shadowRoot!.querySelectorAll("ha-icon-button").length).to.be.greaterThan(0);
     // Add button opens the inline form with native inputs (dialog-input trap).
