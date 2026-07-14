@@ -4,6 +4,12 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 💱 New Zealand Dollar
+
+- **NZD is now a selectable budget currency** (`NZ$`) — requested in #96. The
+  symbol propagates everywhere like the other 17 currencies: KPIs, activity
+  badges, history rows, cost inputs. (AUD has been available since 1.4.8.)
+
 ### ✨ Live "what happens next" hint on sensor triggers
 
 - **The trigger form now explains itself against the live sensor.** While

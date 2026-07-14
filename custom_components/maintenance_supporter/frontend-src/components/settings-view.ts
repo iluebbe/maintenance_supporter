@@ -91,7 +91,7 @@ interface VacationPreviewRow {
 // Keep in lockstep with const.BUDGET_CURRENCIES (keys + order). Parity is
 // enforced by tests/test_frontend_const_parity.py (drift fails CI).
 const CURRENCIES = [
-  "EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD", "CNY", "INR", "BRL",
+  "EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "CNY", "INR", "BRL",
   "CZK", "PLN", "RUB", "SEK", "NOK", "DKK", "UAH",
 ];
 
