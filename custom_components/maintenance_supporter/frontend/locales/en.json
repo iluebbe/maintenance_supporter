@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "The task becomes due after {count} state change(s).",
   "trigger_hint_state_change_to": "The task becomes due after {count} change(s) to “{state}”.",
   "trigger_hint_state_now": "Current state: {value}.",
-  "adopt_problem_part": "Uses part: {name}"
+  "adopt_problem_part": "Uses part: {name}",
+  "label_filter": "Label",
+  "all_labels": "All labels",
+  "settings_notify_scope": "Notify only for view",
+  "settings_notify_scope_all": "All tasks",
+  "settings_notify_scope_hint": "Only tasks matching the selected saved view's label/user filters send reminders. Status, sorting and grouping of the view are ignored here."
 }

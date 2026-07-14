@@ -227,6 +227,11 @@ CONF_NOTIFICATION_BUNDLE_THRESHOLD = "notification_bundle_threshold"
 #   "object_name" — use the object name as the title (helps when phone stacks notifications).
 #   "task_name"   — use the task name as the title.
 CONF_NOTIFICATION_TITLE_STYLE = "notification_title_style"
+
+# v2.26: notification routing — id of a saved filter view; when set, only tasks
+# MATCHING that view's task-selecting filters (label + responsible user) send
+# reminders. "" = no scope (all tasks). See helpers/saved_views.view_matches_task.
+CONF_NOTIFY_SCOPE_VIEW_ID = "notify_scope_view_id"
 NOTIFICATION_TITLE_STYLES = ("default", "object_name", "task_name")
 
 # --- Config Keys: Notification Actions ---

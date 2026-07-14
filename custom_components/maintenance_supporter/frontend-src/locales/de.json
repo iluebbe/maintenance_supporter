@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "Die Aufgabe wird nach {count} Zustandswechsel(n) fällig.",
   "trigger_hint_state_change_to": "Die Aufgabe wird nach {count} Wechsel(n) zu „{state}“ fällig.",
   "trigger_hint_state_now": "Aktueller Zustand: {value}.",
-  "adopt_problem_part": "Nutzt Ersatzteil: {name}"
+  "adopt_problem_part": "Nutzt Ersatzteil: {name}",
+  "label_filter": "Label",
+  "all_labels": "Alle Labels",
+  "settings_notify_scope": "Nur benachrichtigen für Ansicht",
+  "settings_notify_scope_all": "Alle Aufgaben",
+  "settings_notify_scope_hint": "Nur Aufgaben, die zu den Label-/Nutzer-Filtern der gewählten Ansicht passen, senden Erinnerungen. Status, Sortierung und Gruppierung der Ansicht werden hier ignoriert."
 }

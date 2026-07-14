@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "{count} स्थिति परिवर्तन(ों) के बाद कार्य देय होगा।",
   "trigger_hint_state_change_to": "“{state}” में {count} परिवर्तन(ों) के बाद कार्य देय होगा।",
   "trigger_hint_state_now": "वर्तमान स्थिति: {value}।",
-  "adopt_problem_part": "पुर्ज़ा उपयोग करता है: {name}"
+  "adopt_problem_part": "पुर्ज़ा उपयोग करता है: {name}",
+  "label_filter": "लेबल",
+  "all_labels": "सभी लेबल",
+  "settings_notify_scope": "केवल इस व्यू के लिए सूचित करें",
+  "settings_notify_scope_all": "सभी कार्य",
+  "settings_notify_scope_hint": "केवल वे कार्य अनुस्मारक भेजते हैं जो चुने गए व्यू के लेबल/उपयोगकर्ता फ़िल्टर से मेल खाते हैं। व्यू की स्थिति, क्रम और समूहन यहाँ अनदेखे रहते हैं।"
 }

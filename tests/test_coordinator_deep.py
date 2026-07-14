@@ -285,6 +285,72 @@ async def test_vacation_active_suppresses_bundled_notifications(hass: HomeAssist
     per_task.assert_not_called()  # both silenced → nothing sent
 
 
+async def test_notification_scope_view_filters_notifiable_tasks(hass: HomeAssistant) -> None:
+    """v2.26 notification routing: with a saved-view scope set, only tasks
+    matching the view's label filter notify; the rest are dropped BEFORE the
+    bundle threshold. A stale view id means no scope (never silence-everything)."""
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFY_SCOPE_VIEW_ID,
+        CONF_SAVED_FILTER_VIEWS,
+        NOTIFICATION_MANAGER_KEY,
+    )
+
+    today = dt_util.now().date()
+    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
+    data[CONF_SAVED_FILTER_VIEWS] = [
+        {"id": "vgarden", "name": "Garden", "filters": {"label": "garden"}}
+    ]
+    data[CONF_NOTIFY_SCOPE_VIEW_ID] = "vgarden"
+    global_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="MS", data=data,
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+
+    last = (today - timedelta(days=60)).isoformat()
+    t_garden = build_task_data(task_id=TASK_ID_1, name="Mow", last_performed=last, interval_days=30)
+    t_garden["labels"] = ["garden"]
+    t_other = build_task_data(task_id=TASK_ID_2, name="Descale", last_performed=last, interval_days=30)
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Scoped",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Scoped"),
+            tasks={TASK_ID_1: t_garden, TASK_ID_2: t_other},
+        ),
+        source="user", unique_id="maintenance_supporter_scope_route",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    coord = hass.config_entries.async_get_entry(obj_entry.entry_id).runtime_data.coordinator
+    nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
+    with (
+        patch.object(nm, "async_send_bundled", new_callable=AsyncMock) as bundled,
+        patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task,
+    ):
+        coord._previous_statuses = {}
+        await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+    bundled.assert_not_called()  # only 1 task left in scope → below bundle threshold
+    sent_ids = {c.kwargs.get("task_id") or c.args[1] for c in per_task.call_args_list}
+    assert per_task.call_count == 1
+    assert TASK_ID_1 in sent_ids  # the garden task notifies
+    # The unlabeled task was scoped out entirely.
+
+    # Stale scope id → no scope: BOTH tasks notifiable again.
+    options = dict(global_entry.options or global_entry.data)
+    options[CONF_NOTIFY_SCOPE_VIEW_ID] = "deleted_view"
+    hass.config_entries.async_update_entry(global_entry, options=options)
+    with (
+        patch.object(nm, "async_send_bundled", new_callable=AsyncMock),
+        patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task2,
+    ):
+        coord._previous_statuses = {}
+        await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+    assert per_task2.call_count == 2
+
+
 # ─── Budget Alerts ───────────────────────────────────────────────────────
 
 

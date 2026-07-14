@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "经过 {count} 次状态变化后任务到期。",
   "trigger_hint_state_change_to": "变为“{state}”共 {count} 次后任务到期。",
   "trigger_hint_state_now": "当前状态：{value}。",
-  "adopt_problem_part": "使用配件：{name}"
+  "adopt_problem_part": "使用配件：{name}",
+  "label_filter": "标签",
+  "all_labels": "所有标签",
+  "settings_notify_scope": "仅为该视图发送通知",
+  "settings_notify_scope_all": "所有任务",
+  "settings_notify_scope_hint": "只有匹配所选视图的标签/用户筛选的任务才会发送提醒。视图的状态、排序和分组在此处被忽略。"
 }

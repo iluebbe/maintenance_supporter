@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "L'attività scade dopo {count} cambi(o) di stato.",
   "trigger_hint_state_change_to": "L'attività scade dopo {count} passaggi(o) a «{state}».",
   "trigger_hint_state_now": "Stato attuale: {value}.",
-  "adopt_problem_part": "Usa il ricambio: {name}"
+  "adopt_problem_part": "Usa il ricambio: {name}",
+  "label_filter": "Etichetta",
+  "all_labels": "Tutte le etichette",
+  "settings_notify_scope": "Notifica solo per la vista",
+  "settings_notify_scope_all": "Tutte le attività",
+  "settings_notify_scope_hint": "Solo le attività che corrispondono ai filtri etichetta/utente della vista scelta inviano promemoria. Stato, ordinamento e raggruppamento della vista qui vengono ignorati."
 }

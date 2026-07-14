@@ -171,6 +171,33 @@ def test_sanitize_view_mints_id_when_absent() -> None:
     assert view is not None and view["id"]
 
 
+def test_label_filter_round_trips_and_is_sanitised() -> None:
+    """v2.26: the label dimension survives sanitising; junk is dropped."""
+    view = sanitize_view({"name": "Garden", "filters": {"label": " garden "}})
+    assert view is not None and view["filters"]["label"] == "garden"
+    assert sanitize_view({"name": "X", "filters": {"label": "x" * 100}})["filters"]["label"] is None
+    assert sanitize_view({"name": "X", "filters": {"label": 42}})["filters"]["label"] is None
+    assert sanitize_view({"name": "X", "filters": {}})["filters"]["label"] is None
+
+
+def test_view_matches_task_routing_semantics() -> None:
+    """Notification routing matches on label + user; status/sort/group are
+    display-only; the client-side current_user sentinel means no user filter."""
+    from custom_components.maintenance_supporter.helpers.saved_views import view_matches_task
+
+    task = {"labels": ["garden", "safety"], "responsible_user_id": "u1"}
+    assert view_matches_task({"label": "garden"}, task) is True
+    assert view_matches_task({"label": "kitchen"}, task) is False
+    assert view_matches_task({"user_id": "u1"}, task) is True
+    assert view_matches_task({"user_id": "u2"}, task) is False
+    assert view_matches_task({"user_id": "current_user"}, task) is True  # unresolvable → no filter
+    assert view_matches_task({"label": "garden", "user_id": "u1"}, task) is True
+    assert view_matches_task({"label": "garden", "user_id": "u2"}, task) is False
+    # Display dimensions are ignored.
+    assert view_matches_task({"status": "overdue", "sort_mode": "area"}, {"labels": []}) is True
+    assert view_matches_task({}, {}) is True
+
+
 async def test_over_cap_hand_edited_list_not_truncated_on_save_or_delete(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

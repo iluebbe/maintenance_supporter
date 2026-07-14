@@ -52,13 +52,41 @@ def _clean_filters(raw: Any) -> dict[str, Any]:
     if isinstance(user_id, str) and len(user_id) > 64:
         user_id = None
 
+    # v2.26: a label filter ("only tasks tagged 'garden'") — free text like the
+    # labels themselves (capped to their length), None = no label filter.
+    from ..const import MAX_LABEL_LENGTH
+
+    label = src.get("label")
+    label = label.strip() if isinstance(label, str) and label.strip() else None
+    if isinstance(label, str) and len(label) > MAX_LABEL_LENGTH:
+        label = None
+
     return {
         "status": status,
         "user_id": user_id,
+        "label": label,
         "archived": bool(src.get("archived")),
         "sort_mode": sort_mode,
         "group_by": group_by,
     }
+
+
+def view_matches_task(filters: Mapping[str, Any], task: Mapping[str, Any]) -> bool:
+    """Does a task match a view's TASK-SELECTING filters (label + user)?
+
+    Used by notification routing ("only notify about view X"). Deliberately
+    ignores the DISPLAY dimensions: ``status`` (the per-status notify toggles
+    own that), ``archived`` (archived tasks never notify anyway) and
+    sort/group. A ``user_id`` of ``current_user`` is a client-side sentinel
+    that cannot be resolved server-side — treated as "no user filter".
+    """
+    label = filters.get("label")
+    if label and label not in (task.get("labels") or []):
+        return False
+    user_id = filters.get("user_id")
+    if user_id and user_id != "current_user" and task.get("responsible_user_id") != user_id:
+        return False
+    return True
 
 
 def sanitize_view(raw: Any, *, view_id: str | None = None) -> dict[str, Any] | None:

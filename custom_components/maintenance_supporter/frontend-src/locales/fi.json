@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "Tehtävä erääntyy {count} tilanmuutoksen jälkeen.",
   "trigger_hint_state_change_to": "Tehtävä erääntyy {count} muutoksen jälkeen tilaan ”{state}”.",
   "trigger_hint_state_now": "Nykyinen tila: {value}.",
-  "adopt_problem_part": "Käyttää varaosaa: {name}"
+  "adopt_problem_part": "Käyttää varaosaa: {name}",
+  "label_filter": "Tunniste",
+  "all_labels": "Kaikki tunnisteet",
+  "settings_notify_scope": "Ilmoita vain näkymälle",
+  "settings_notify_scope_all": "Kaikki tehtävät",
+  "settings_notify_scope_hint": "Vain valitun näkymän tunniste-/käyttäjäsuodattimiin osuvat tehtävät lähettävät muistutuksia. Näkymän tila, lajittelu ja ryhmittely ohitetaan tässä."
 }

@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "Oppgaven forfaller etter {count} tilstandsendring(er).",
   "trigger_hint_state_change_to": "Oppgaven forfaller etter {count} endring(er) til “{state}”.",
   "trigger_hint_state_now": "Gjeldende tilstand: {value}.",
-  "adopt_problem_part": "Bruker del: {name}"
+  "adopt_problem_part": "Bruker del: {name}",
+  "label_filter": "Etikett",
+  "all_labels": "Alle etiketter",
+  "settings_notify_scope": "Varsle kun for visning",
+  "settings_notify_scope_all": "Alle oppgaver",
+  "settings_notify_scope_hint": "Bare oppgaver som matcher etikett-/brukerfiltrene til valgt visning sender påminnelser. Visningens status, sortering og gruppering ignoreres her."
 }
