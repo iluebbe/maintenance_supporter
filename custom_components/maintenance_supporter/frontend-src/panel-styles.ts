@@ -45,6 +45,10 @@ export const panelStyles = css`
 
   .filter-bar {
     display: flex;
+    /* Wrap at EVERY width: with six filter dropdowns + action buttons the
+       bar doesn't fit one line even on wide tablets, and unwrapped flex
+       compressed the selects into unreadable stubs ("— No v", "Al"). */
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-end;
     padding: 8px 0;
@@ -72,6 +76,9 @@ export const panelStyles = css`
     border-radius: 4px;
     background: var(--card-background-color, #fff);
     color: var(--primary-text-color);
+    /* Readability floor — selects wrap to the next line instead of
+       shrinking their selected value into ellipsis. */
+    min-width: 96px;
   }
 
   /* Desktop: the LIST owns the 7-column grid and every row is a subgrid

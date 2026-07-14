@@ -1143,7 +1143,14 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .sparkline-svg { height: 100px; }
 
     .stats-bar { gap: 8px; padding: 12px; }
-    .stat-item { min-width: 60px; }
+    /* min-width: 0 (NOT a fixed floor) — a fixed min-width re-enables the
+       grid's auto minimum, so the 5 KPI tracks couldn't shrink below their
+       label text and the last KPI clipped off-screen on phones (the header
+       only *looked* cut — .content scrolls sideways, but nothing hints so).
+       With 0 the tracks compress and the labels wrap to a second line. */
+    .stat-item { min-width: 0; }
+    .stat-item.clickable { padding: 4px 4px; }
+    .stat-item .stat-label { font-size: 11px; white-space: normal; text-align: center; line-height: 1.2; }
     .stat-value { font-size: 20px; }
   }
 `;var B={overviewTab:"msp-overview-tab",collapsedSections:"msp-collapsed-sections",chartRange:"msp-chart-range",chartHideOutliers:"msp-chart-hide-outliers",taskSort:"maintenance_supporter_sort",objectSort:"maintenance_supporter_object_sort",groupBy:"maintenance_supporter_groupby",objectView:"maintenance_supporter_object_view"};var gs={days:1,weeks:7,months:30.4368,years:365.25};function Nt(n,r){return!n||n<=0?0:n*(gs[r||"days"]??1)}function _t(n,r,e){let t=Nt(n,e);if(t<=0||r==null)return{pct:0,overflow:!1};let i=(t-r)/t*100;return{pct:Math.max(0,Math.min(100,i)),overflow:i>100}}function z(n){return String(n??"").replace(/[&<>"']/g,r=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[r])}function mi(n,r,e,t,i,a){let l=[[e.manufacturer,n.manufacturer],[e.model,n.model],[e.serial,n.serial_number],[e.installed,n.installation_date?t(n.installation_date):null],[e.warranty,n.warranty_expiry?t(n.warranty_expiry):null]].filter(([,u])=>!!u),c=r.map(u=>{let g=e.scheduleLabel(u);return`<tr>
@@ -1306,6 +1313,10 @@ ${z(n.notes)}</div>`:""}
 
   .filter-bar {
     display: flex;
+    /* Wrap at EVERY width: with six filter dropdowns + action buttons the
+       bar doesn't fit one line even on wide tablets, and unwrapped flex
+       compressed the selects into unreadable stubs ("— No v", "Al"). */
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-end;
     padding: 8px 0;
@@ -1333,6 +1344,9 @@ ${z(n.notes)}</div>`:""}
     border-radius: 4px;
     background: var(--card-background-color, #fff);
     color: var(--primary-text-color);
+    /* Readability floor — selects wrap to the next line instead of
+       shrinking their selected value into ellipsis. */
+    min-width: 96px;
   }
 
   /* Desktop: the LIST owns the 7-column grid and every row is a subgrid
