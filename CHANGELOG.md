@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Live "what happens next" hint on sensor triggers
+
+- **The trigger form now explains itself against the live sensor.** While
+  configuring a sensor-based task, an info hint below the trigger fields reads
+  the bound entity's current state and spells out what will happen — e.g. *"The
+  sensor reads 660 h right now. Counts from the current reading (660 h): due at
+  760 h (+100 h), and the count restarts after each completion."* This clears
+  the most common usage-meter confusion: a delta counter counts from the
+  sensor's **current** reading (not from zero) and restarts after each
+  completion. Covers threshold (current value vs above/below), counter
+  (delta and absolute — with edit-mode wording, since an existing task's
+  baseline is the last completion, not "now"), runtime and state-change
+  triggers, honours a selected attribute, and appears in all 18 languages.
+
 ## [2.24.1] - 2026-07-13
 
 ### 🌍 Localization

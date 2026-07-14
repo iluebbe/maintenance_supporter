@@ -746,5 +746,15 @@
   "views_name_placeholder": "Visningsnavn",
   "views_save_current": "Lagre gjeldende filtre",
   "views_none_yet": "Ingen lagrede visninger ennå.",
-  "close": "Lukk"
+  "close": "Lukk",
+  "trigger_hint_now": "Sensoren viser {value} akkurat nå.",
+  "trigger_hint_above": "Oppgaven utløses når verdien stiger over {target}.",
+  "trigger_hint_below": "Den utløses når verdien faller under {target}.",
+  "trigger_hint_counter_delta": "Teller fra gjeldende avlesning ({value}): forfaller ved {due} (+{target}); telleren starter på nytt etter hver fullføring.",
+  "trigger_hint_counter_delta_edit": "Teller forbruket siden forrige fullføring: forfaller etter +{target}; telleren starter på nytt etter hver fullføring.",
+  "trigger_hint_counter_abs": "Oppgaven forfaller når sensoren når {target}.",
+  "trigger_hint_runtime": "Oppgaven forfaller etter {hours} t akkumulert driftstid; telleren starter på nytt etter hver fullføring.",
+  "trigger_hint_state_change": "Oppgaven forfaller etter {count} tilstandsendring(er).",
+  "trigger_hint_state_change_to": "Oppgaven forfaller etter {count} endring(er) til “{state}”.",
+  "trigger_hint_state_now": "Gjeldende tilstand: {value}."
 }

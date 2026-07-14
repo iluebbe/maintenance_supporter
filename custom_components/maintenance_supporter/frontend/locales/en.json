@@ -746,5 +746,15 @@
   "views_name_placeholder": "View name",
   "views_save_current": "Save current filters",
   "views_none_yet": "No saved views yet.",
-  "close": "Close"
+  "close": "Close",
+  "trigger_hint_now": "The sensor reads {value} right now.",
+  "trigger_hint_above": "The task triggers once it rises above {target}.",
+  "trigger_hint_below": "It triggers once it falls below {target}.",
+  "trigger_hint_counter_delta": "Counts from the current reading ({value}): due at {due} (+{target}), and the count restarts after each completion.",
+  "trigger_hint_counter_delta_edit": "Counts usage since the last completion: due after +{target}; the count restarts after each completion.",
+  "trigger_hint_counter_abs": "The task becomes due once the sensor reaches {target}.",
+  "trigger_hint_runtime": "The task becomes due after {hours} h of accumulated on-time; the counter restarts after each completion.",
+  "trigger_hint_state_change": "The task becomes due after {count} state change(s).",
+  "trigger_hint_state_change_to": "The task becomes due after {count} change(s) to “{state}”.",
+  "trigger_hint_state_now": "Current state: {value}."
 }

@@ -746,5 +746,15 @@
   "views_name_placeholder": "Nombre de la vista",
   "views_save_current": "Guardar filtros actuales",
   "views_none_yet": "Aún no hay vistas guardadas.",
-  "close": "Cerrar"
+  "close": "Cerrar",
+  "trigger_hint_now": "El sensor marca {value} ahora mismo.",
+  "trigger_hint_above": "La tarea se activa cuando supere {target}.",
+  "trigger_hint_below": "Se activa cuando baje de {target}.",
+  "trigger_hint_counter_delta": "Cuenta desde la lectura actual ({value}): vence en {due} (+{target}); el contador se reinicia tras cada finalización.",
+  "trigger_hint_counter_delta_edit": "Cuenta el uso desde la última finalización: vence tras +{target}; el contador se reinicia tras cada finalización.",
+  "trigger_hint_counter_abs": "La tarea vence cuando el sensor alcance {target}.",
+  "trigger_hint_runtime": "La tarea vence tras {hours} h de funcionamiento acumulado; el contador se reinicia tras cada finalización.",
+  "trigger_hint_state_change": "La tarea vence tras {count} cambio(s) de estado.",
+  "trigger_hint_state_change_to": "La tarea vence tras {count} cambio(s) a «{state}».",
+  "trigger_hint_state_now": "Estado actual: {value}."
 }

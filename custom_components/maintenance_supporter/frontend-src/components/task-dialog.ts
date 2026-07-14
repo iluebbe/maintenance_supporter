@@ -1011,6 +1011,7 @@ export class MaintenanceTaskDialog extends LitElement {
           `
         }
         ${this._renderTriggerTypeFields()}
+        ${this._renderTriggerLiveHint()}
       `}
       <label>
         <input
@@ -1342,6 +1343,81 @@ export class MaintenanceTaskDialog extends LitElement {
         .value=${this._calOffset}
         @input=${(e: Event) => (this._calOffset = (e.target as HTMLInputElement).value)}
       ></ms-textfield>`;
+  }
+
+  /** Live "what happens next" hint for sensor-based triggers.
+   *
+   * Reads the bound entity's CURRENT state client-side (the dialog already
+   * holds `hass`) and spells out the trigger semantics against it — clearing
+   * the most common usage-meter confusion: a delta counter counts from the
+   * sensor's current reading (not from zero) and restarts after each
+   * completion. Renders nothing when there's no entity/state to read.
+   */
+  private _renderTriggerLiveHint() {
+    if (this._triggerType === "compound") return nothing;
+    const entityId = this._triggerEntityId || this._triggerEntityIds[0];
+    if (!entityId || !this.hass?.states) return nothing;
+    const st = this.hass.states[entityId];
+    if (!st) return nothing;
+    const L = this._lang;
+
+    const unitAttr = st.attributes?.unit_of_measurement;
+    const unit = typeof unitAttr === "string" && unitAttr ? ` ${unitAttr}` : "";
+    const raw = this._triggerAttribute
+      ? st.attributes?.[this._triggerAttribute]
+      : st.state;
+    const num = typeof raw === "number" ? raw : parseFloat(String(raw));
+    const hasNum = raw !== "unknown" && raw !== "unavailable" && raw != null && !isNaN(num);
+    const fmt = (v: number) => (Number.isInteger(v) ? String(v) : String(Math.round(v * 10) / 10));
+
+    const parts: string[] = [];
+    if (this._triggerType === "threshold") {
+      const above = parseFloat(this._triggerAbove);
+      const below = parseFloat(this._triggerBelow);
+      if (isNaN(above) && isNaN(below)) return nothing;
+      if (hasNum) parts.push(t("trigger_hint_now", L).replace("{value}", fmt(num) + unit));
+      if (!isNaN(above)) parts.push(t("trigger_hint_above", L).replace("{target}", fmt(above) + unit));
+      if (!isNaN(below)) parts.push(t("trigger_hint_below", L).replace("{target}", fmt(below) + unit));
+    } else if (this._triggerType === "counter") {
+      const target = parseFloat(this._triggerTargetValue);
+      if (isNaN(target)) return nothing;
+      if (this._triggerDeltaMode) {
+        if (this._taskId) {
+          // Editing: the baseline is the reading at the last completion (or
+          // task creation), not the current value — don't imply otherwise.
+          parts.push(t("trigger_hint_counter_delta_edit", L).replace("{target}", fmt(target) + unit));
+        } else if (hasNum) {
+          parts.push(
+            t("trigger_hint_counter_delta", L)
+              .replace("{value}", fmt(num) + unit)
+              .replace("{due}", fmt(num + target) + unit)
+              .replace("{target}", fmt(target) + unit),
+          );
+        } else {
+          parts.push(t("trigger_hint_counter_delta_edit", L).replace("{target}", fmt(target) + unit));
+        }
+      } else {
+        if (hasNum) parts.push(t("trigger_hint_now", L).replace("{value}", fmt(num) + unit));
+        parts.push(t("trigger_hint_counter_abs", L).replace("{target}", fmt(target) + unit));
+      }
+    } else if (this._triggerType === "runtime") {
+      const hours = parseFloat(this._triggerRuntimeHours);
+      if (isNaN(hours)) return nothing;
+      parts.push(t("trigger_hint_runtime", L).replace("{hours}", fmt(hours)));
+      parts.push(t("trigger_hint_state_now", L).replace("{value}", String(st.state)));
+    } else if (this._triggerType === "state_change") {
+      const n = parseInt(this._triggerTargetChanges, 10) || 1;
+      const to = this._triggerToState.trim();
+      parts.push(
+        (to
+          ? t("trigger_hint_state_change_to", L).replace("{state}", to)
+          : t("trigger_hint_state_change", L)
+        ).replace("{count}", String(n)),
+      );
+      parts.push(t("trigger_hint_state_now", L).replace("{value}", String(st.state)));
+    }
+    if (!parts.length) return nothing;
+    return html`<div class="trigger-live-hint">${parts.join(" ")}</div>`;
   }
 
   private _renderTriggerTypeFields() {
@@ -1872,6 +1948,17 @@ export class MaintenanceTaskDialog extends LitElement {
     .field-help {
       font-size: 12px;
       color: var(--secondary-text-color);
+    }
+    /* Live computed trigger hint — reads the bound sensor and explains what
+       happens next. Info-accented so it reads as guidance, not an error. */
+    .trigger-live-hint {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      border-left: 3px solid var(--info-color, #2196f3);
+      background: rgba(33, 150, 243, 0.08);
+      border-radius: 0 6px 6px 0;
+      padding: 6px 10px;
+      margin: 4px 0;
     }
     .field-help a,
     .link-button {

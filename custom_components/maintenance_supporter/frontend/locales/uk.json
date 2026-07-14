@@ -746,5 +746,15 @@
   "views_name_placeholder": "Назва подання",
   "views_save_current": "Зберегти поточні фільтри",
   "views_none_yet": "Ще немає збережених подань.",
-  "close": "Закрити"
+  "close": "Закрити",
+  "trigger_hint_now": "Зараз датчик показує {value}.",
+  "trigger_hint_above": "Завдання спрацює, коли значення підніметься вище {target}.",
+  "trigger_hint_below": "Воно спрацює, коли значення опуститься нижче {target}.",
+  "trigger_hint_counter_delta": "Відлік від поточного показника ({value}): термін при {due} (+{target}); лічильник починається заново після кожного виконання.",
+  "trigger_hint_counter_delta_edit": "Рахує використання з останнього виконання: термін після +{target}; лічильник починається заново після кожного виконання.",
+  "trigger_hint_counter_abs": "Завдання настане, коли датчик досягне {target}.",
+  "trigger_hint_runtime": "Завдання настане після {hours} год сумарного напрацювання; лічильник починається заново після кожного виконання.",
+  "trigger_hint_state_change": "Завдання настане після {count} зміни(-) стану.",
+  "trigger_hint_state_change_to": "Завдання настане після {count} переходу(-ів) у «{state}».",
+  "trigger_hint_state_now": "Поточний стан: {value}."
 }

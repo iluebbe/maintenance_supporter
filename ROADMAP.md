@@ -18,25 +18,39 @@ backup** (selective JSON/YAML/CSV export + a documents archive that carries the
 file contents). What's left, ordered by value × how much it reuses existing
 machinery × risk:
 
-1. ~~**Adopt problem sensors as triggered tasks**~~ ✅ **Shipped** (Unreleased) —
+1. ~~**Adopt problem sensors as triggered tasks**~~ ✅ **Shipped in v2.24.0** —
    a discovery + opt-in-sync layer over the existing *sensor-trigger → task →
-   history → notification* pipeline. An **Adopt problem sensors** button
-   discovers `device_class: problem` binary sensors, proposes a target object,
-   and — on an explicit selection — creates a task per sensor that triggers
-   while the problem is active and auto-completes on recovery. Opt-in by design;
-   the integration's own per-task sensors are excluded.
-2. ~~**Saved filter views (MVP)**~~ ✅ **Shipped** (Unreleased) — a **Views**
-   dropdown on the panel list saves the status / user / archived filters plus
-   sort + group-by under a name and reapplies the whole combination in one tap.
-   Views are shared across everyone who opens the panel and persist on the
-   global entry. **Still open (the interesting part):** apply views in the
-   Lovelace **card**, and **notification routing** ("only notify me about view
-   'Garden'") — a view's id is already a stable handle for it.
-3. **Dark-mode & color-blind contrast QA** (🟡) — no new code, a manual
-   multi-theme browser pass; can piggyback on the screenshot pipeline.
-4. **Form generation from field specs** (🟡, internal) — the long-term
+   history → notification* pipeline; opt-in by design, own sensors excluded.
+2. ~~**Saved filter views (MVP)**~~ ✅ **Shipped in v2.24.0** — shared named
+   filter/sort/group combinations on the panel list. **Still open (the
+   interesting part):** apply views in the Lovelace **card**, and **notification
+   routing** ("only notify me about view 'Garden'") — a view's id is already a
+   stable handle for it.
+3. ~~**Dark-mode & color-blind contrast QA**~~ ✅ **Shipped in v2.24.0** —
+   WCAG-contrast pass on status badges/chips + theme-token routing, pinned by a
+   real-browser contrast tripwire.
+4. **Live "what happens next" hint on sensor-based triggers** (💡) — the
+   trigger form explains itself against the *live* sensor: e.g. *"the sensor
+   reads 660 h now — the task becomes due at 760 h, then every 100 h after each
+   completion."* Clears the most common usage-meter confusion (the target counts
+   from the sensor's **current** reading, not from zero, and restarts after each
+   completion). Pure panel change — the dialog already holds `hass`, so the hint
+   reads the bound entity client-side; no backend work.
+5. **Suggest a spare part when adopting a problem sensor** (💡, small) — a
+   problem sensor that maps to a consumable (printer toner, filter) could
+   pre-fill `consumes_parts` on the adopted task when the target object has a
+   matching part, closing the problem → task → buy-part loop in one step.
+6. **Voice/Assist intents** (promoted from Exploratory) — complete + query
+   tasks by voice; the `list_tasks`/`complete` services already expose the
+   needed surface, so this is an intent-schema layer on top.
+7. **Form generation from field specs** (🟡, internal) — the long-term
    parity-by-construction step for the two hand-written task/trigger forms; no
    direct user value, so it waits behind the features above.
+
+Smaller candidates: notes on an adopted problem-sensor task could survive an
+un-adopt → re-adopt cycle (today the task deletion drops them); per-part file
+attachments (the documents machinery already exists — a part-scoped link is
+cheap).
 
 Exploratory, no near-term commitment: voice/Assist task creation, optional
 gamification, approval workflow.
