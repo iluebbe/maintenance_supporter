@@ -44,8 +44,12 @@ machinery × risk:
    (`assist/custom_sentences/`). Completion goes through the real coordinator
    path (history, rotation, parts, completion window).
 7. **Form generation from field specs** (🟡, internal) — the long-term
-   parity-by-construction step for the two hand-written task/trigger forms; no
-   direct user value, so it waits behind the features above.
+   parity-by-construction step for the two hand-written task/trigger forms
+   (~2k-line panel dialog + ~80 config-flow fields). No direct user value, and
+   parity is already tripwire-enforced at the values level (`task_fields`) and
+   the existence level (`test_parity_task_fields`) — so this deliberately
+   stays a standalone refactor for a quiet cycle, not bundled into a feature
+   wave.
 
 Smaller candidates — both ✅ **Shipped (Unreleased)**: ~~notes on an adopted
 problem-sensor task survive an un-adopt → re-adopt cycle~~ (deleted adopted-task
