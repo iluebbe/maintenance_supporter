@@ -746,5 +746,15 @@
   "views_name_placeholder": "Nazwa widoku",
   "views_save_current": "Zapisz bieżące filtry",
   "views_none_yet": "Brak zapisanych widoków.",
-  "close": "Zamknij"
+  "close": "Zamknij",
+  "trigger_hint_now": "Czujnik wskazuje teraz {value}.",
+  "trigger_hint_above": "Zadanie uruchomi się, gdy wartość przekroczy {target}.",
+  "trigger_hint_below": "Uruchomi się, gdy wartość spadnie poniżej {target}.",
+  "trigger_hint_counter_delta": "Liczy od bieżącego odczytu ({value}): termin przy {due} (+{target}); licznik startuje od nowa po każdym ukończeniu.",
+  "trigger_hint_counter_delta_edit": "Liczy zużycie od ostatniego ukończenia: termin po +{target}; licznik startuje od nowa po każdym ukończeniu.",
+  "trigger_hint_counter_abs": "Zadanie staje się wymagalne, gdy czujnik osiągnie {target}.",
+  "trigger_hint_runtime": "Zadanie staje się wymagalne po {hours} h łącznej pracy; licznik startuje od nowa po każdym ukończeniu.",
+  "trigger_hint_state_change": "Zadanie staje się wymagalne po {count} zmianie/zmianach stanu.",
+  "trigger_hint_state_change_to": "Zadanie staje się wymagalne po {count} zmianie/zmianach na „{state}”.",
+  "trigger_hint_state_now": "Bieżący stan: {value}."
 }

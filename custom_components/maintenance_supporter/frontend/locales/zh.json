@@ -746,5 +746,15 @@
   "views_name_placeholder": "视图名称",
   "views_save_current": "保存当前筛选",
   "views_none_yet": "尚无已保存的视图。",
-  "close": "关闭"
+  "close": "关闭",
+  "trigger_hint_now": "传感器当前读数为 {value}。",
+  "trigger_hint_above": "当数值升到 {target} 以上时任务触发。",
+  "trigger_hint_below": "当数值降到 {target} 以下时任务触发。",
+  "trigger_hint_counter_delta": "从当前读数（{value}）开始计数：到 {due}（+{target}）时到期；每次完成后重新计数。",
+  "trigger_hint_counter_delta_edit": "从上次完成开始计算用量：+{target} 后到期；每次完成后重新计数。",
+  "trigger_hint_counter_abs": "当传感器达到 {target} 时任务到期。",
+  "trigger_hint_runtime": "累计运行 {hours} 小时后任务到期；每次完成后重新计数。",
+  "trigger_hint_state_change": "经过 {count} 次状态变化后任务到期。",
+  "trigger_hint_state_change_to": "变为“{state}”共 {count} 次后任务到期。",
+  "trigger_hint_state_now": "当前状态：{value}。"
 }

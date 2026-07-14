@@ -746,5 +746,15 @@
   "views_name_placeholder": "Nome della vista",
   "views_save_current": "Salva filtri attuali",
   "views_none_yet": "Nessuna vista salvata.",
-  "close": "Chiudi"
+  "close": "Chiudi",
+  "trigger_hint_now": "Il sensore indica {value} in questo momento.",
+  "trigger_hint_above": "L'attività scatta quando supera {target}.",
+  "trigger_hint_below": "Scatta quando scende sotto {target}.",
+  "trigger_hint_counter_delta": "Conta dalla lettura attuale ({value}): scade a {due} (+{target}); il conteggio riparte dopo ogni completamento.",
+  "trigger_hint_counter_delta_edit": "Conta l'uso dall'ultimo completamento: scade dopo +{target}; il conteggio riparte dopo ogni completamento.",
+  "trigger_hint_counter_abs": "L'attività scade quando il sensore raggiunge {target}.",
+  "trigger_hint_runtime": "L'attività scade dopo {hours} h di funzionamento accumulato; il conteggio riparte dopo ogni completamento.",
+  "trigger_hint_state_change": "L'attività scade dopo {count} cambi(o) di stato.",
+  "trigger_hint_state_change_to": "L'attività scade dopo {count} passaggi(o) a «{state}».",
+  "trigger_hint_state_now": "Stato attuale: {value}."
 }

@@ -746,5 +746,15 @@
   "views_name_placeholder": "ビュー名",
   "views_save_current": "現在のフィルターを保存",
   "views_none_yet": "保存済みのビューはまだありません。",
-  "close": "閉じる"
+  "close": "閉じる",
+  "trigger_hint_now": "センサーは現在 {value} を示しています。",
+  "trigger_hint_above": "値が {target} を上回るとタスクが発動します。",
+  "trigger_hint_below": "値が {target} を下回ると発動します。",
+  "trigger_hint_counter_delta": "現在の読み値（{value}）から数えます: {due}（+{target}）で期限になり、完了のたびにカウントはやり直しになります。",
+  "trigger_hint_counter_delta_edit": "前回の完了からの使用量を数えます: +{target} で期限になり、完了のたびにカウントはやり直しになります。",
+  "trigger_hint_counter_abs": "センサーが {target} に達するとタスクが期限になります。",
+  "trigger_hint_runtime": "累積稼働 {hours} 時間でタスクが期限になります。完了のたびにカウントはやり直しになります。",
+  "trigger_hint_state_change": "{count} 回の状態変化でタスクが期限になります。",
+  "trigger_hint_state_change_to": "「{state}」への {count} 回の変化でタスクが期限になります。",
+  "trigger_hint_state_now": "現在の状態: {value}。"
 }

@@ -746,5 +746,15 @@
   "views_name_placeholder": "Nom de la vue",
   "views_save_current": "Enregistrer les filtres actuels",
   "views_none_yet": "Aucune vue enregistrée pour l'instant.",
-  "close": "Fermer"
+  "close": "Fermer",
+  "trigger_hint_now": "Le capteur indique {value} en ce moment.",
+  "trigger_hint_above": "La tâche se déclenche dès que la valeur dépasse {target}.",
+  "trigger_hint_below": "Elle se déclenche dès que la valeur passe sous {target}.",
+  "trigger_hint_counter_delta": "Compte à partir de la valeur actuelle ({value}) : échéance à {due} (+{target}) ; le compteur repart après chaque exécution.",
+  "trigger_hint_counter_delta_edit": "Compte l'usage depuis la dernière exécution : échéance après +{target} ; le compteur repart après chaque exécution.",
+  "trigger_hint_counter_abs": "La tâche devient due dès que le capteur atteint {target}.",
+  "trigger_hint_runtime": "La tâche devient due après {hours} h de fonctionnement cumulé ; le compteur repart après chaque exécution.",
+  "trigger_hint_state_change": "La tâche devient due après {count} changement(s) d'état.",
+  "trigger_hint_state_change_to": "La tâche devient due après {count} passage(s) à « {state} ».",
+  "trigger_hint_state_now": "État actuel : {value}."
 }

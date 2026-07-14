@@ -746,5 +746,15 @@
   "views_name_placeholder": "Vynamn",
   "views_save_current": "Spara aktuella filter",
   "views_none_yet": "Inga sparade vyer ännu.",
-  "close": "Stäng"
+  "close": "Stäng",
+  "trigger_hint_now": "Sensorn visar {value} just nu.",
+  "trigger_hint_above": "Uppgiften utlöses när värdet stiger över {target}.",
+  "trigger_hint_below": "Den utlöses när värdet faller under {target}.",
+  "trigger_hint_counter_delta": "Räknar från den aktuella avläsningen ({value}): förfaller vid {due} (+{target}); räknaren börjar om efter varje slutförande.",
+  "trigger_hint_counter_delta_edit": "Räknar förbrukningen sedan senaste slutförandet: förfaller efter +{target}; räknaren börjar om efter varje slutförande.",
+  "trigger_hint_counter_abs": "Uppgiften förfaller när sensorn når {target}.",
+  "trigger_hint_runtime": "Uppgiften förfaller efter {hours} h ackumulerad drifttid; räknaren börjar om efter varje slutförande.",
+  "trigger_hint_state_change": "Uppgiften förfaller efter {count} tillståndsändring(ar).",
+  "trigger_hint_state_change_to": "Uppgiften förfaller efter {count} ändring(ar) till ”{state}”.",
+  "trigger_hint_state_now": "Aktuellt tillstånd: {value}."
 }

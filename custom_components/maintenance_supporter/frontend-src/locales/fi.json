@@ -746,5 +746,15 @@
   "views_name_placeholder": "Näkymän nimi",
   "views_save_current": "Tallenna nykyiset suodattimet",
   "views_none_yet": "Ei tallennettuja näkymiä vielä.",
-  "close": "Sulje"
+  "close": "Sulje",
+  "trigger_hint_now": "Anturi näyttää nyt {value}.",
+  "trigger_hint_above": "Tehtävä laukeaa, kun arvo ylittää {target}.",
+  "trigger_hint_below": "Se laukeaa, kun arvo alittaa {target}.",
+  "trigger_hint_counter_delta": "Laskee nykyisestä lukemasta ({value}): erääntyy kohdassa {due} (+{target}); laskuri alkaa alusta jokaisen suorituksen jälkeen.",
+  "trigger_hint_counter_delta_edit": "Laskee käytön viime suorituksesta: erääntyy +{target} jälkeen; laskuri alkaa alusta jokaisen suorituksen jälkeen.",
+  "trigger_hint_counter_abs": "Tehtävä erääntyy, kun anturi saavuttaa {target}.",
+  "trigger_hint_runtime": "Tehtävä erääntyy {hours} h kertyneen käyntiajan jälkeen; laskuri alkaa alusta jokaisen suorituksen jälkeen.",
+  "trigger_hint_state_change": "Tehtävä erääntyy {count} tilanmuutoksen jälkeen.",
+  "trigger_hint_state_change_to": "Tehtävä erääntyy {count} muutoksen jälkeen tilaan ”{state}”.",
+  "trigger_hint_state_now": "Nykyinen tila: {value}."
 }

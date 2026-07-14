@@ -746,5 +746,15 @@
   "views_name_placeholder": "व्यू का नाम",
   "views_save_current": "वर्तमान फ़िल्टर सहेजें",
   "views_none_yet": "अभी तक कोई सहेजा गया व्यू नहीं।",
-  "close": "बंद करें"
+  "close": "बंद करें",
+  "trigger_hint_now": "सेंसर अभी {value} दिखा रहा है।",
+  "trigger_hint_above": "मान {target} से ऊपर जाते ही कार्य ट्रिगर होगा।",
+  "trigger_hint_below": "मान {target} से नीचे आते ही यह ट्रिगर होगा।",
+  "trigger_hint_counter_delta": "वर्तमान रीडिंग ({value}) से गिनती: {due} पर देय (+{target}); हर पूर्णता के बाद गिनती फिर से शुरू होती है।",
+  "trigger_hint_counter_delta_edit": "पिछली पूर्णता से उपयोग गिनता है: +{target} के बाद देय; हर पूर्णता के बाद गिनती फिर से शुरू होती है।",
+  "trigger_hint_counter_abs": "सेंसर {target} तक पहुँचते ही कार्य देय होगा।",
+  "trigger_hint_runtime": "{hours} घंटे की संचित चालू-अवधि के बाद कार्य देय होगा; हर पूर्णता के बाद गिनती फिर से शुरू होती है।",
+  "trigger_hint_state_change": "{count} स्थिति परिवर्तन(ों) के बाद कार्य देय होगा।",
+  "trigger_hint_state_change_to": "“{state}” में {count} परिवर्तन(ों) के बाद कार्य देय होगा।",
+  "trigger_hint_state_now": "वर्तमान स्थिति: {value}।"
 }

@@ -746,5 +746,15 @@
   "views_name_placeholder": "Název zobrazení",
   "views_save_current": "Uložit aktuální filtry",
   "views_none_yet": "Zatím žádná uložená zobrazení.",
-  "close": "Zavřít"
+  "close": "Zavřít",
+  "trigger_hint_now": "Senzor nyní ukazuje {value}.",
+  "trigger_hint_above": "Úkol se spustí, jakmile hodnota překročí {target}.",
+  "trigger_hint_below": "Spustí se, jakmile hodnota klesne pod {target}.",
+  "trigger_hint_counter_delta": "Počítá od aktuální hodnoty ({value}): splatné při {due} (+{target}); počítadlo se po každém dokončení restartuje.",
+  "trigger_hint_counter_delta_edit": "Počítá spotřebu od posledního dokončení: splatné po +{target}; počítadlo se po každém dokončení restartuje.",
+  "trigger_hint_counter_abs": "Úkol bude splatný, jakmile senzor dosáhne {target}.",
+  "trigger_hint_runtime": "Úkol bude splatný po {hours} h nasčítaného provozu; počítadlo se po každém dokončení restartuje.",
+  "trigger_hint_state_change": "Úkol bude splatný po {count} změně/změnách stavu.",
+  "trigger_hint_state_change_to": "Úkol bude splatný po {count} změně/změnách na „{state}“.",
+  "trigger_hint_state_now": "Aktuální stav: {value}."
 }
