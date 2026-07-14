@@ -612,6 +612,11 @@ async def async_delete_task(
         return False
 
     old_trigger_config = new_tasks[task_id].get("trigger_config")
+    # Adopted problem-sensor task? Preserve its notes for a later re-adopt
+    # (no-op for everything else).
+    from ..helpers.problem_sensors import stash_task_notes_for_readopt
+
+    stash_task_notes_for_readopt(hass, new_tasks[task_id])
     del new_tasks[task_id]
     new_data[CONF_TASKS] = new_tasks
 

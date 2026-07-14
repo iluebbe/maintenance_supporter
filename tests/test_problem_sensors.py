@@ -459,3 +459,130 @@ async def test_discovery_resolves_device_area_and_suggests_existing_object(
     assert cand["area_name"] == "Basement"
     assert cand["suggested_entry_id"] == obj.entry_id
     assert cand["suggested_object_name"] == "Sump"
+
+
+# ── note persistence across un-adopt → re-adopt (v2.26, roadmap) ─────────────
+
+
+async def _adopt(hass: HomeAssistant, entity_id: str, name: str, object_name: str) -> None:
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_problem_sensors,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/problem_sensors/adopt",
+            "selections": [{"entity_id": entity_id, "name": name, "object_name": object_name}],
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+
+
+def _adopted_object_and_task(hass: HomeAssistant, object_name: str) -> tuple:
+    obj = next(
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == object_name
+    )
+    (task,) = obj.data[CONF_TASKS].values()
+    return obj, task
+
+
+async def test_notes_survive_unadopt_readopt_cycle(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Adopt → write notes → delete the task (un-adopt) → re-adopt: the notes
+    come back on the fresh task, and the stash entry is consumed."""
+    from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES
+    from custom_components.maintenance_supporter.websocket.tasks_crud import ws_delete_task
+
+    await setup_integration(hass, global_entry)
+    _problem_sensor(hass, "binary_sensor.softener_salt_low", "Softener salt low", "on")
+    await _adopt(hass, "binary_sensor.softener_salt_low", "Softener salt low", "Water softener")
+
+    obj, task = _adopted_object_and_task(hass, "Water softener")
+    # Accumulate notes on the adopted task (as task/update would persist them).
+    new_data = dict(obj.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    new_tasks[task["id"]] = {**task, "notes": "Use broad-salt only; bypass valve sticks."}
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(obj, data=new_data)
+
+    # Un-adopt = delete the task.
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/task/delete", "entry_id": obj.entry_id, "task_id": task["id"]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+
+    # The notes are stashed on the global entry, keyed by the sensor.
+    stash = (global_entry.options or global_entry.data).get(CONF_ADOPTED_NOTES, {})
+    assert stash == {"binary_sensor.softener_salt_low": "Use broad-salt only; bypass valve sticks."}
+
+    # Re-adopt (sensor is discoverable again) → notes restored on the new task.
+    await _adopt(hass, "binary_sensor.softener_salt_low", "Softener salt low", "Water softener 2")
+    _, task2 = _adopted_object_and_task(hass, "Water softener 2")
+    assert task2["notes"] == "Use broad-salt only; bypass valve sticks."
+    assert task2["id"] != task["id"]
+
+    # Consumed: a third adopt would start clean.
+    stash_after = (global_entry.options or global_entry.data).get(CONF_ADOPTED_NOTES, {})
+    assert stash_after == {}
+
+
+async def test_stash_ignores_non_adopted_tasks_and_empty_notes(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES
+    from custom_components.maintenance_supporter.helpers.problem_sensors import (
+        stash_task_notes_for_readopt,
+    )
+
+    await setup_integration(hass, global_entry)
+    # A plain time-based task with notes: not adopted → never stashed.
+    stash_task_notes_for_readopt(hass, {"notes": "hello", "trigger_config": None})
+    stash_task_notes_for_readopt(
+        hass,
+        {"notes": "hello", "trigger_config": {"type": "threshold", "entity_ids": ["sensor.x"]}},
+    )
+    # Adopted signature but empty/whitespace notes → nothing to preserve.
+    stash_task_notes_for_readopt(
+        hass,
+        {
+            "notes": "   ",
+            "trigger_config": {"auto_complete_on_recovery": True, "entity_ids": ["binary_sensor.p"]},
+        },
+    )
+    assert (global_entry.options or global_entry.data).get(CONF_ADOPTED_NOTES) in (None, {})
+
+
+async def test_stash_is_fifo_capped(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES, MAX_ADOPTED_NOTES
+    from custom_components.maintenance_supporter.helpers.problem_sensors import (
+        stash_task_notes_for_readopt,
+    )
+
+    await setup_integration(hass, global_entry)
+    for i in range(MAX_ADOPTED_NOTES + 5):
+        stash_task_notes_for_readopt(
+            hass,
+            {
+                "notes": f"note {i}",
+                "trigger_config": {
+                    "auto_complete_on_recovery": True,
+                    "entity_ids": [f"binary_sensor.p{i}"],
+                },
+            },
+        )
+    stash = (global_entry.options or global_entry.data)[CONF_ADOPTED_NOTES]
+    assert len(stash) == MAX_ADOPTED_NOTES
+    # Oldest evicted, newest kept.
+    assert "binary_sensor.p0" not in stash
+    assert stash[f"binary_sensor.p{MAX_ADOPTED_NOTES + 4}"] == f"note {MAX_ADOPTED_NOTES + 4}"

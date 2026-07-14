@@ -22,7 +22,14 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from ..const import (
+    CONF_ADOPTED_NOTES,
+    CONF_OBJECT,
+    CONF_TASKS,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    MAX_ADOPTED_NOTES,
+)
 
 PROBLEM_DEVICE_CLASS = "problem"
 
@@ -157,6 +164,58 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
         )
     out.sort(key=lambda c: (c["device_name"] or "", c["name"]))
     return out
+
+
+def stash_task_notes_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> None:
+    """Preserve a deleted adopted task's notes for a later re-adopt.
+
+    Un-adopting a problem sensor = deleting its task, which used to drop the
+    accumulated notes ("needs part X", "reset via service menu"). For tasks
+    carrying the adopted signature (``auto_complete_on_recovery`` on watched
+    ``entity_ids``), non-empty notes are stashed on the global entry keyed by
+    the watched sensor, and restored (consumed) when the sensor is re-adopted.
+    FIFO-capped at ``MAX_ADOPTED_NOTES`` so the global entry can't grow
+    unbounded. Called from the shared task-delete path; a no-op for everything
+    that isn't an adopted task with notes.
+    """
+    tc = task.get("trigger_config")
+    if not isinstance(tc, dict) or not tc.get("auto_complete_on_recovery"):
+        return
+    entity_ids = tc.get("entity_ids") or []
+    notes = task.get("notes")
+    if not entity_ids or not isinstance(notes, str) or not notes.strip():
+        return
+    from .global_options import get_global_entry
+
+    entry = get_global_entry(hass)
+    if entry is None:
+        return
+    options = dict(entry.options or entry.data)
+    stash = dict(options.get(CONF_ADOPTED_NOTES) or {})
+    key = str(entity_ids[0])
+    stash.pop(key, None)  # re-insert as newest (dict order = age)
+    stash[key] = notes
+    while len(stash) > MAX_ADOPTED_NOTES:
+        stash.pop(next(iter(stash)))
+    options[CONF_ADOPTED_NOTES] = stash
+    hass.config_entries.async_update_entry(entry, options=options)
+
+
+def pop_stashed_notes(hass: HomeAssistant, entity_id: str) -> str | None:
+    """Consume (return + remove) stashed notes for ``entity_id``, if any."""
+    from .global_options import get_global_entry
+
+    entry = get_global_entry(hass)
+    if entry is None:
+        return None
+    options = dict(entry.options or entry.data)
+    stash = dict(options.get(CONF_ADOPTED_NOTES) or {})
+    notes = stash.pop(entity_id, None)
+    if notes is None:
+        return None
+    options[CONF_ADOPTED_NOTES] = stash
+    hass.config_entries.async_update_entry(entry, options=options)
+    return notes if isinstance(notes, str) and notes.strip() else None
 
 
 def build_problem_task(entity_id: str, name: str) -> dict[str, Any]:

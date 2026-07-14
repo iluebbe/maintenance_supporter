@@ -24,6 +24,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   a deleted view degrades to "no view filter" instead of an empty card. This
   completes the saved-views roadmap item across all surfaces.
 
+### 📝 Notes survive un-adopting a problem sensor
+
+- **Un-adopt → re-adopt no longer loses your notes.** Deleting an adopted
+  problem-sensor task used to drop everything you'd written on it ("needs the
+  small filter, reset via service menu"). The notes are now preserved keyed by
+  the watched sensor and restored automatically when the same sensor is
+  adopted again — even onto a different object. Consumed on restore, capped,
+  and a no-op for ordinary (non-adopted) tasks.
+
 ### 🎙️ Voice & Assist intents
 
 - **Query and complete maintenance by voice.** Two Assist intents:

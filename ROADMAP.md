@@ -47,8 +47,9 @@ machinery × risk:
    parity-by-construction step for the two hand-written task/trigger forms; no
    direct user value, so it waits behind the features above.
 
-Smaller candidates: notes on an adopted problem-sensor task could survive an
-un-adopt → re-adopt cycle (today the task deletion drops them); per-part file
+Smaller candidates: ~~notes on an adopted problem-sensor task survive an
+un-adopt → re-adopt cycle~~ ✅ **Shipped (Unreleased)** — deleted adopted-task
+notes are stashed per sensor and restored (consumed) on re-adopt; per-part file
 attachments (the documents machinery already exists — a part-scoped link is
 cheap).
 

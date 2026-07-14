@@ -99,7 +99,9 @@ object and shows its live state; the integration's own sensors are excluded.
 When the target object already owns a **spare part** whose name matches the
 sensor (toner-low ↔ *Toner cartridge*), adoption pre-links it as the task's
 consumed part — completing the task then consumes/restocks it, closing the
-problem → task → buy-part loop in one step.
+problem → task → buy-part loop in one step. **Notes survive un-adopting**:
+deleting an adopted task stashes its notes per sensor and the next adoption of
+the same sensor restores them.
 
 ![Adopt problem sensors](images/adopt-problem-sensors.png)
 
