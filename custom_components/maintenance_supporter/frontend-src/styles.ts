@@ -1392,7 +1392,14 @@ export const sharedStyles = css`
     .sparkline-svg { height: 100px; }
 
     .stats-bar { gap: 8px; padding: 12px; }
-    .stat-item { min-width: 60px; }
+    /* min-width: 0 (NOT a fixed floor) — a fixed min-width re-enables the
+       grid's auto minimum, so the 5 KPI tracks couldn't shrink below their
+       label text and the last KPI clipped off-screen on phones (the header
+       only *looked* cut — .content scrolls sideways, but nothing hints so).
+       With 0 the tracks compress and the labels wrap to a second line. */
+    .stat-item { min-width: 0; }
+    .stat-item.clickable { padding: 4px 4px; }
+    .stat-item .stat-label { font-size: 11px; white-space: normal; text-align: center; line-height: 1.2; }
     .stat-value { font-size: 20px; }
   }
 `;

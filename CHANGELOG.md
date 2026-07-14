@@ -23,6 +23,19 @@ All notable changes to Maintenance Supporter are documented in this file.
   frequently-tuned sections (notifications, budget, archive) now come first;
   the set-once gallery toggles live at the bottom.
 
+### 📱 Responsive fixes (device sweep: phones, iPad mini/10.2/Pro, Android tablets)
+
+- **All five KPI counters now fit on phones.** The header stats grid kept a
+  fixed per-item minimum on small screens, so the fifth KPI (*Triggered*)
+  slid off the right edge with no visible hint (the pane silently scrolled
+  sideways). The tracks now compress and labels wrap to a second line —
+  verified down to 360 px wide.
+- **The task-list filter bar stays readable on tablets.** With six filter
+  dropdowns plus action buttons the single-line bar compressed the selects
+  into unreadable stubs ("— No v…", "Al…") on iPad-class widths. The bar now
+  wraps at every width and each dropdown keeps a readability floor — buttons
+  flow onto their own line instead.
+
 ## [2.26.0] - 2026-07-14
 
 ### 🏷️ Label filter + view-scoped notification routing
