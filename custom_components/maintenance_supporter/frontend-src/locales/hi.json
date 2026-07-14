@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "{hours} घंटे की संचित चालू-अवधि के बाद कार्य देय होगा; हर पूर्णता के बाद गिनती फिर से शुरू होती है।",
   "trigger_hint_state_change": "{count} स्थिति परिवर्तन(ों) के बाद कार्य देय होगा।",
   "trigger_hint_state_change_to": "“{state}” में {count} परिवर्तन(ों) के बाद कार्य देय होगा।",
-  "trigger_hint_state_now": "वर्तमान स्थिति: {value}।"
+  "trigger_hint_state_now": "वर्तमान स्थिति: {value}।",
+  "adopt_problem_part": "पुर्ज़ा उपयोग करता है: {name}"
 }

@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Zadanie staje się wymagalne po {hours} h łącznej pracy; licznik startuje od nowa po każdym ukończeniu.",
   "trigger_hint_state_change": "Zadanie staje się wymagalne po {count} zmianie/zmianach stanu.",
   "trigger_hint_state_change_to": "Zadanie staje się wymagalne po {count} zmianie/zmianach na „{state}”.",
-  "trigger_hint_state_now": "Bieżący stan: {value}."
+  "trigger_hint_state_now": "Bieżący stan: {value}.",
+  "adopt_problem_part": "Używa części: {name}"
 }

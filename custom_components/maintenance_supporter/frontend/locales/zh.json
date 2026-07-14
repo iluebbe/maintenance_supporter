@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "累计运行 {hours} 小时后任务到期；每次完成后重新计数。",
   "trigger_hint_state_change": "经过 {count} 次状态变化后任务到期。",
   "trigger_hint_state_change_to": "变为“{state}”共 {count} 次后任务到期。",
-  "trigger_hint_state_now": "当前状态：{value}。"
+  "trigger_hint_state_now": "当前状态：{value}。",
+  "adopt_problem_part": "使用配件：{name}"
 }

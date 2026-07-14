@@ -22,6 +22,8 @@ interface ProblemSensor {
   area_name: string | null;
   suggested_entry_id: string | null;
   suggested_object_name: string;
+  suggested_part_id: string | null;
+  suggested_part_name: string | null;
 }
 
 interface DiscoverResponse {
@@ -109,6 +111,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
           entry_id: s.suggested_entry_id ?? undefined,
           object_name: s.suggested_object_name,
           device_id: s.device_id ?? undefined,
+          part_id: s.suggested_part_id ?? undefined,
         }));
       const result = await this.hass.connection.sendMessagePromise<AdoptResponse>({
         type: "maintenance_supporter/problem_sensors/adopt",
@@ -184,6 +187,12 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                                 ? nothing
                                 : html` <span class="new-tag">${t("adopt_problem_new_object", L)}</span>`}
                             </div>
+                            ${s.suggested_part_name
+                              ? html`<div class="row-part">
+                                  <ha-icon icon="mdi:package-variant-closed"></ha-icon>
+                                  ${t("adopt_problem_part", L).replace("{name}", s.suggested_part_name)}
+                                </div>`
+                              : nothing}
                           </div>
                         </label>
                       `;
@@ -304,6 +313,16 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     .row-target {
       color: var(--secondary-text-color);
       font-size: 12px;
+    }
+    .row-part {
+      color: var(--secondary-text-color);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .row-part ha-icon {
+      --mdc-icon-size: 14px;
     }
     .new-tag {
       font-style: italic;

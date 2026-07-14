@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Úkol bude splatný po {hours} h nasčítaného provozu; počítadlo se po každém dokončení restartuje.",
   "trigger_hint_state_change": "Úkol bude splatný po {count} změně/změnách stavu.",
   "trigger_hint_state_change_to": "Úkol bude splatný po {count} změně/změnách na „{state}“.",
-  "trigger_hint_state_now": "Aktuální stav: {value}."
+  "trigger_hint_state_now": "Aktuální stav: {value}.",
+  "adopt_problem_part": "Používá díl: {name}"
 }

@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "L'attività scade dopo {hours} h di funzionamento accumulato; il conteggio riparte dopo ogni completamento.",
   "trigger_hint_state_change": "L'attività scade dopo {count} cambi(o) di stato.",
   "trigger_hint_state_change_to": "L'attività scade dopo {count} passaggi(o) a «{state}».",
-  "trigger_hint_state_now": "Stato attuale: {value}."
+  "trigger_hint_state_now": "Stato attuale: {value}.",
+  "adopt_problem_part": "Usa il ricambio: {name}"
 }

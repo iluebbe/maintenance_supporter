@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Задача наступит после {hours} ч суммарной наработки; счётчик начинается заново после каждого выполнения.",
   "trigger_hint_state_change": "Задача наступит после {count} изменения(й) состояния.",
   "trigger_hint_state_change_to": "Задача наступит после {count} перехода(ов) в «{state}».",
-  "trigger_hint_state_now": "Текущее состояние: {value}."
+  "trigger_hint_state_now": "Текущее состояние: {value}.",
+  "adopt_problem_part": "Использует деталь: {name}"
 }

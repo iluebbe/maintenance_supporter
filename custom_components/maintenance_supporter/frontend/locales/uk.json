@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Завдання настане після {hours} год сумарного напрацювання; лічильник починається заново після кожного виконання.",
   "trigger_hint_state_change": "Завдання настане після {count} зміни(-) стану.",
   "trigger_hint_state_change_to": "Завдання настане після {count} переходу(-ів) у «{state}».",
-  "trigger_hint_state_now": "Поточний стан: {value}."
+  "trigger_hint_state_now": "Поточний стан: {value}.",
+  "adopt_problem_part": "Використовує деталь: {name}"
 }

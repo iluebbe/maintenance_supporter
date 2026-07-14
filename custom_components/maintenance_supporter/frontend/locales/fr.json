@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "La tâche devient due après {hours} h de fonctionnement cumulé ; le compteur repart après chaque exécution.",
   "trigger_hint_state_change": "La tâche devient due après {count} changement(s) d'état.",
   "trigger_hint_state_change_to": "La tâche devient due après {count} passage(s) à « {state} ».",
-  "trigger_hint_state_now": "État actuel : {value}."
+  "trigger_hint_state_now": "État actuel : {value}.",
+  "adopt_problem_part": "Utilise la pièce : {name}"
 }

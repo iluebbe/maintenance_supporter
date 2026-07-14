@@ -756,5 +756,6 @@
   "trigger_hint_runtime": "Die Aufgabe wird nach {hours} h aufsummierter Laufzeit fällig; der Zähler startet nach jedem Abschluss neu.",
   "trigger_hint_state_change": "Die Aufgabe wird nach {count} Zustandswechsel(n) fällig.",
   "trigger_hint_state_change_to": "Die Aufgabe wird nach {count} Wechsel(n) zu „{state}“ fällig.",
-  "trigger_hint_state_now": "Aktueller Zustand: {value}."
+  "trigger_hint_state_now": "Aktueller Zustand: {value}.",
+  "adopt_problem_part": "Nutzt Ersatzteil: {name}"
 }

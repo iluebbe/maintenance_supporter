@@ -307,16 +307,22 @@ complete, portable backup.
 
 ### `problem_sensors/discover` — read
 `{}` → `{sensors:[{entity_id,name,state,device_id,device_name,area_name,
-suggested_entry_id,suggested_object_name}]}`. Lists adoptable problem sensors
-NOT already watched by a task (`state:"on"` = problem active now).
+suggested_entry_id,suggested_object_name,suggested_part_id,suggested_part_name}]}`.
+Lists adoptable problem sensors NOT already watched by a task (`state:"on"` =
+problem active now). When the suggested existing object owns a spare part whose
+name matches the sensor's (toner-low ↔ "Toner cartridge"), `suggested_part_*`
+carry it so adoption can pre-link it.
 
 ### `problem_sensors/adopt` — @require_write
-`{selections:[{entity_id,name,entry_id?,object_name?,device_id?}]}` →
+`{selections:[{entity_id,name,entry_id?,object_name?,device_id?,part_id?}]}` →
 `{tasks_created,objects_created,total,errors?}`. Each selection becomes a task
 that triggers while the sensor is on and auto-completes on recovery
 (`state_change` → `on` + `auto_complete_on_recovery`). With `entry_id` it
 attaches to that object; otherwise a fresh object (`object_name`, bound to
 `device_id`) is created — two selections sharing a `device_id` reuse one object.
+A `part_id` (from discovery's suggestion) links the part as the task's
+`consumes_parts` (qty 1) — completing the task then consumes/restocks it;
+unknown ids are silently dropped.
 
 ## Saved filter views — shared named panel-list filter combinations
 

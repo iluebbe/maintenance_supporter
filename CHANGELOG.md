@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Suggest a spare part when adopting a problem sensor
+
+- **Adopting a problem sensor can now pre-link the matching spare part.** When
+  the suggested target object already owns a part whose name matches the sensor
+  (toner-low ↔ *Toner cartridge*), the adopt dialog shows it on the row and the
+  created task carries it as its consumed part — completing the task then
+  consumes/restocks the part, closing the problem → task → buy-part loop in one
+  step. Conservative by design: only a meaningful shared name token matches
+  (generic words like "problem"/"low" never do), and unknown part ids are
+  dropped server-side.
+
 ## [2.25.0] - 2026-07-14
 
 ### 💱 New Zealand Dollar

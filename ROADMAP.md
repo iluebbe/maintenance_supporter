@@ -29,17 +29,14 @@ machinery × risk:
 3. ~~**Dark-mode & color-blind contrast QA**~~ ✅ **Shipped in v2.24.0** —
    WCAG-contrast pass on status badges/chips + theme-token routing, pinned by a
    real-browser contrast tripwire.
-4. **Live "what happens next" hint on sensor-based triggers** (💡) — the
-   trigger form explains itself against the *live* sensor: e.g. *"the sensor
-   reads 660 h now — the task becomes due at 760 h, then every 100 h after each
-   completion."* Clears the most common usage-meter confusion (the target counts
-   from the sensor's **current** reading, not from zero, and restarts after each
-   completion). Pure panel change — the dialog already holds `hass`, so the hint
-   reads the bound entity client-side; no backend work.
-5. **Suggest a spare part when adopting a problem sensor** (💡, small) — a
-   problem sensor that maps to a consumable (printer toner, filter) could
-   pre-fill `consumes_parts` on the adopted task when the target object has a
-   matching part, closing the problem → task → buy-part loop in one step.
+4. ~~**Live "what happens next" hint on sensor-based triggers**~~ ✅ **Shipped
+   in v2.25.0** — the trigger form explains itself against the *live* sensor
+   ("the sensor reads 660 h now — due at 760 h, +100 h, restarting after each
+   completion"); covers threshold/counter/runtime/state-change, 18 languages.
+5. ~~**Suggest a spare part when adopting a problem sensor**~~ ✅ **Shipped**
+   (Unreleased) — discovery suggests the target object's name-matching part;
+   adoption pre-links it as the task's consumed part, closing the
+   problem → task → buy-part loop in one step.
 6. **Voice/Assist intents** (promoted from Exploratory) — complete + query
    tasks by voice; the `list_tasks`/`complete` services already expose the
    needed surface, so this is an intent-schema layer on top.

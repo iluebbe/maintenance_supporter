@@ -26,6 +26,45 @@ from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 
 PROBLEM_DEVICE_CLASS = "problem"
 
+# Words too generic to establish a sensor↔part relationship on their own
+# ("Printer problem" must not match a part just because it's ON the printer).
+_MATCH_STOPWORDS = frozenset(
+    {"problem", "low", "empty", "sensor", "status", "warning", "error", "alert", "the", "and"}
+)
+
+
+def _name_tokens(name: str) -> set[str]:
+    """Meaningful lowercase tokens (≥3 chars, stopwords removed) of a name."""
+    import re
+
+    return {
+        tok
+        for tok in re.split(r"[^a-z0-9]+", name.lower())
+        if len(tok) >= 3 and tok not in _MATCH_STOPWORDS
+    }
+
+
+def match_part_for_sensor(sensor_name: str, parts: dict[str, Any]) -> tuple[str, str] | None:
+    """The object's spare part that best matches a problem sensor's name.
+
+    A toner-low sensor on a printer should suggest the "Toner cartridge" part:
+    match = shared meaningful name token (case-insensitive, stopwords ignored).
+    Returns ``(part_id, part_name)`` of the best (most-overlapping) match, or
+    ``None`` — deliberately conservative: no token overlap, no suggestion.
+    """
+    sensor_tokens = _name_tokens(sensor_name)
+    if not sensor_tokens or not isinstance(parts, dict):
+        return None
+    best: tuple[int, str, str] | None = None
+    for part_id, part in parts.items():
+        if not isinstance(part, dict):
+            continue
+        part_name = str(part.get("name") or "")
+        overlap = len(_name_tokens(part_name) & sensor_tokens)
+        if overlap and (best is None or overlap > best[0]):
+            best = (overlap, str(part_id), part_name)
+    return (best[1], best[2]) if best else None
+
 
 def _adopted_entity_ids(hass: HomeAssistant) -> set[str]:
     """Every entity id already watched by some task's trigger — so discovery
@@ -92,6 +131,16 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
                 area_name = area.name
         # Suggested target: existing object on this device, else a fresh one.
         suggested = by_device.get(device_id) if device_id else None
+        # Suggested spare part: when the target object already exists and has a
+        # part whose name matches the sensor's (toner-low ↔ "Toner cartridge"),
+        # adoption can pre-link it so completing the task consumes/restocks it.
+        suggested_part: tuple[str, str] | None = None
+        if suggested is not None:
+            from ..const import CONF_PARTS
+
+            target_entry = hass.config_entries.async_get_entry(suggested["entry_id"])
+            if target_entry is not None:
+                suggested_part = match_part_for_sensor(name, target_entry.data.get(CONF_PARTS) or {})
         out.append(
             {
                 "entity_id": state.entity_id,
@@ -102,6 +151,8 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
                 "area_name": area_name,
                 "suggested_entry_id": suggested["entry_id"] if suggested else None,
                 "suggested_object_name": suggested["name"] if suggested else (device_name or name),
+                "suggested_part_id": suggested_part[0] if suggested_part else None,
+                "suggested_part_name": suggested_part[1] if suggested_part else None,
             }
         )
     out.sort(key=lambda c: (c["device_name"] or "", c["name"]))
