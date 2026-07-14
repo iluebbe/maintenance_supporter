@@ -1,0 +1,25 @@
+# Assist-Sätze für Maintenance Supporter (Deutsch).
+#
+# Der klassische (Nicht-LLM-)Assist-Agent lädt Sätze nur aus dem HA-Config-
+# Verzeichnis — diese Datei kopieren nach:
+#   config/custom_sentences/de/maintenance_supporter.yaml
+# (LLM-basierte Assist-Pipelines brauchen sie nicht: dort sind die Intents
+# automatisch als Tools verfügbar.)
+language: "de"
+intents:
+  MaintenanceSupporterListTasks:
+    data:
+      - sentences:
+          - "welche Wartung[en] (ist|sind) [gerade] (fällig|überfällig)"
+          - "was ist [an Wartung] (fällig|überfällig)"
+          - "steht [eine] Wartung an"
+          - "was muss gewartet werden"
+  MaintenanceSupporterCompleteTask:
+    data:
+      - sentences:
+          - "[die] Wartung[saufgabe] {name} (erledigen|abschließen)"
+          - "markiere [die] [Wartung[saufgabe]] {name} als erledigt"
+          - "ich habe [die] {name} (erledigt|gemacht|abgeschlossen)"
+lists:
+  name:
+    wildcard: true

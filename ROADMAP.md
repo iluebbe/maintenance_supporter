@@ -37,9 +37,12 @@ machinery × risk:
    (Unreleased) — discovery suggests the target object's name-matching part;
    adoption pre-links it as the task's consumed part, closing the
    problem → task → buy-part loop in one step.
-6. **Voice/Assist intents** (promoted from Exploratory) — complete + query
-   tasks by voice; the `list_tasks`/`complete` services already expose the
-   needed surface, so this is an intent-schema layer on top.
+6. ~~**Voice/Assist intents**~~ ✅ **Shipped** (Unreleased) — two intents
+   (`MaintenanceSupporterListTasks`, `MaintenanceSupporterCompleteTask`):
+   LLM-based Assist pipelines pick them up automatically as tools in any
+   language; the classic agent uses the shipped en/de sentence files
+   (`assist/custom_sentences/`). Completion goes through the real coordinator
+   path (history, rotation, parts, completion window).
 7. **Form generation from field specs** (🟡, internal) — the long-term
    parity-by-construction step for the two hand-written task/trigger forms; no
    direct user value, so it waits behind the features above.

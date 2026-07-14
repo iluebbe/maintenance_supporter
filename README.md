@@ -117,7 +117,10 @@ buttons**. Global **summary sensors** count what needs attention, spare parts ge
 open work. Lifecycle **events** (`…_task_completed`, `…_trigger_activated`, …)
 fire on every path, and nine **services** — `complete` / `skip` / `reset` /
 `export_data` plus full task CRUD (`add_object`, `add_task`, `update_task`,
-`delete_task`, `list_tasks`) — cover scripting.
+`delete_task`, `list_tasks`) — cover scripting. Two **Assist intents** answer
+*"what maintenance is due?"* and complete tasks by voice — LLM-based Assist
+picks them up automatically; classic Assist uses the shipped sentence files
+([Features → Voice & Assist](docs/FEATURES.md#voice--assist-226)).
 
 On HA 2026.7+ the new automation editor additionally offers ready-made
 building blocks — *"A maintenance task became overdue"* as a pickable

@@ -1,0 +1,23 @@
+# Assist sentences for Maintenance Supporter (English).
+#
+# The classic (non-LLM) Assist agent only loads sentences from your HA config
+# directory — copy this file to:  config/custom_sentences/en/maintenance_supporter.yaml
+# (LLM-based Assist pipelines don't need it: they pick the intents up as tools.)
+language: "en"
+intents:
+  MaintenanceSupporterListTasks:
+    data:
+      - sentences:
+          - "what maintenance is (due|overdue)"
+          - "which maintenance [tasks] (are|is) (due|overdue|pending)"
+          - "is [there] any maintenance due"
+          - "what needs (maintenance|servicing)"
+  MaintenanceSupporterCompleteTask:
+    data:
+      - sentences:
+          - "complete [the] [maintenance] [task] {name}"
+          - "mark [the] [maintenance] [task] {name} [as] (done|completed)"
+          - "I (did|finished) [the] {name}"
+lists:
+  name:
+    wildcard: true
