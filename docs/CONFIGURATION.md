@@ -17,7 +17,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `default_warning_days` | int | 7 | 1–365 | Days before a task is due when its status changes to `due_soon` |
-| `budget_currency` (1.4.9+ in General; 1.4.8+ added 7 currencies) | enum | `EUR` | EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH | Display currency for **all** monetary values — `Avg cost` KPI, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs in the config flow. The corresponding symbol (e.g. `€`, `$`, `Kč`, `zł`) propagates everywhere. Storage key is still `budget_currency` for backwards-compat |
+| `budget_currency` (1.4.9+ in General; 1.4.8+ added 7 currencies; NZD in 2.25/#96) | enum | `EUR` | EUR, USD, GBP, JPY, CHF, CAD, AUD, NZD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH | Display currency for **all** monetary values — `Avg cost` KPI, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs in the config flow. The corresponding symbol (e.g. `€`, `$`, `Kč`, `zł`) propagates everywhere. Storage key is still `budget_currency` for backwards-compat |
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
 | `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately |

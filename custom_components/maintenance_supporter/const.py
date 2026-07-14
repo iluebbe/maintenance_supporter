@@ -413,6 +413,7 @@ BUDGET_CURRENCIES: dict[str, str] = {
     "CHF": "Fr",
     "CAD": "C$",
     "AUD": "A$",
+    "NZD": "NZ$",  # #96
     "CNY": "¥",
     "INR": "₹",
     "BRL": "R$",
