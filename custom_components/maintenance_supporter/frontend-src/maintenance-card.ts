@@ -9,6 +9,8 @@ import type {
   MaintenanceTask,
   StatisticsResponse,
   CardConfig,
+  SavedView,
+  SavedViewFilters,
 } from "./types";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
@@ -30,6 +32,7 @@ export class MaintenanceSupporterCard extends LitElement {
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
   @state() private _unsub: (() => void) | null = null;
+  @state() private _viewFilters: SavedViewFilters | null = null;
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -54,7 +57,13 @@ export class MaintenanceSupporterCard extends LitElement {
   }
 
   setConfig(config: CardConfig): void {
+    const viewChanged = config.view_id !== this._config.view_id;
     this._config = config;
+    // Config can change after the initial load (editor preview) — re-resolve
+    // the referenced view then; the initial resolve happens in _loadData.
+    if (viewChanged && this._dataLoaded && this.hass) {
+      this._loadViewFilters();
+    }
   }
 
   getCardSize(): number {
@@ -113,6 +122,26 @@ export class MaintenanceSupporterCard extends LitElement {
     } catch {
       // WS not available yet
     }
+    await this._loadViewFilters();
+  }
+
+  /** Resolve the configured saved view's filters (best-effort). A missing or
+   *  deleted view degrades to "no view filter" — same fallback semantics as
+   *  the backend's notification routing, never an inexplicably empty card. */
+  private async _loadViewFilters(): Promise<void> {
+    if (!this._config.view_id) {
+      this._viewFilters = null;
+      return;
+    }
+    try {
+      const res = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/views/list",
+      }) as { views: SavedView[] };
+      const view = (res.views || []).find((v) => v.id === this._config.view_id);
+      this._viewFilters = view ? view.filters : null;
+    } catch {
+      this._viewFilters = null;
+    }
   }
 
   private async _subscribe(): Promise<void> {
@@ -148,6 +177,14 @@ export class MaintenanceSupporterCard extends LitElement {
     const entityFilter = entity_ids?.length ? new Set(entity_ids) : null;
     const hasDueRange =
       filter_due_min_days !== undefined || filter_due_max_days !== undefined;
+    // Saved-view scope: unlike the panel (where applying a view REPLACES the
+    // filter state), the card ANDs the view's task-selecting filters with its
+    // own config — the card's filters are static YAML, not transient UI state.
+    // The view's `current_user` sentinel resolves against the logged-in user
+    // here (client-side), which the backend notification routing cannot do.
+    const vf = this._viewFilters;
+    const viewUser =
+      vf?.user_id === "current_user" ? (this.hass.user?.id ?? null) : (vf?.user_id ?? null);
 
     for (const obj of this._objects) {
       if (filter_objects?.length && !filter_objects.includes(obj.object.name)) continue;
@@ -174,6 +211,11 @@ export class MaintenanceSupporterCard extends LitElement {
           if (days === null || days === undefined) continue;
           if (filter_due_min_days !== undefined && days < filter_due_min_days) continue;
           if (filter_due_max_days !== undefined && days > filter_due_max_days) continue;
+        }
+        if (vf) {
+          if (vf.status && task.status !== vf.status) continue;
+          if (vf.label && !(task.labels || []).includes(vf.label)) continue;
+          if (viewUser && task.responsible_user_id !== viewUser) continue;
         }
         tasks.push({ entry_id: obj.entry_id, object_name: obj.object.name, task });
       }

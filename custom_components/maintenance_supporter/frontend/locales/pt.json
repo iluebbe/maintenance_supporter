@@ -762,5 +762,8 @@
   "all_labels": "Todas as etiquetas",
   "settings_notify_scope": "Notificar apenas para a vista",
   "settings_notify_scope_all": "Todas as tarefas",
-  "settings_notify_scope_hint": "Apenas as tarefas que correspondem aos filtros de etiqueta/utilizador da vista escolhida enviam lembretes. O estado, a ordenação e o agrupamento da vista são ignorados aqui."
+  "settings_notify_scope_hint": "Apenas as tarefas que correspondem aos filtros de etiqueta/utilizador da vista escolhida enviam lembretes. O estado, a ordenação e o agrupamento da vista são ignorados aqui.",
+  "card_saved_view": "Vista guardada",
+  "card_saved_view_none": "Nenhuma",
+  "card_saved_view_help": "Aplica os filtros de estado, utilizador e etiqueta da vista além dos filtros acima. A ordenação e o agrupamento da vista são definições de apresentação do painel e não se aplicam ao cartão."
 }

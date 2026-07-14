@@ -762,5 +762,8 @@
   "all_labels": "Alla etiketter",
   "settings_notify_scope": "Avisera endast för vy",
   "settings_notify_scope_all": "Alla uppgifter",
-  "settings_notify_scope_hint": "Endast uppgifter som matchar den valda vyns etikett-/användarfilter skickar påminnelser. Vyns status, sortering och gruppering ignoreras här."
+  "settings_notify_scope_hint": "Endast uppgifter som matchar den valda vyns etikett-/användarfilter skickar påminnelser. Vyns status, sortering och gruppering ignoreras här.",
+  "card_saved_view": "Sparad vy",
+  "card_saved_view_none": "Ingen",
+  "card_saved_view_help": "Tillämpar vyns status-, användar- och etikettfilter utöver filtren ovan. Vyns sortering och gruppering är panelvisningsinställningar och tillämpas inte på kortet."
 }

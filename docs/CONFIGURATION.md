@@ -474,10 +474,11 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |
 | `filter_objects` | string[] | `[]` | Show only tasks whose parent object name is in the list |
 | `entity_ids` | string[] | `[]` | **(1.0.45+)** HA-native filter — show only tasks whose `sensor_entity_id` or `binary_sensor_entity_id` matches. Combines additively with the other filters. |
+| `view_id` | string | unset | **(2.26+)** Scope the card to a **saved view**: the view's status/user/label filters apply **on top of** the card's own filters (AND). The view's `current_user` filter resolves against the logged-in user; its sorting/grouping are panel display settings and are not applied on the card. A deleted view id degrades to "no view filter" rather than an empty card |
 
 **Adding the card from the picker (1.0.45+)** auto-populates `filter_status: ["overdue", "triggered", "due_soon"]` and `max_items: 10` so the new card immediately shows the actionable subset rather than every task.
 
-**Visual editor** lets you set all of the above without touching YAML — status chip-row, object multi-checkbox-list, HA-native entity-multi-picker.
+**Visual editor** lets you set all of the above without touching YAML — status chip-row, object multi-checkbox-list, HA-native entity-multi-picker, and (2.26+) a saved-view dropdown (shown once any views exist; views are created in the panel toolbar).
 
 ## Constants & Internal Defaults
 

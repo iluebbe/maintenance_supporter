@@ -762,5 +762,8 @@
   "all_labels": "Alle etiketter",
   "settings_notify_scope": "Varsle kun for visning",
   "settings_notify_scope_all": "Alle oppgaver",
-  "settings_notify_scope_hint": "Bare oppgaver som matcher etikett-/brukerfiltrene til valgt visning sender påminnelser. Visningens status, sortering og gruppering ignoreres her."
+  "settings_notify_scope_hint": "Bare oppgaver som matcher etikett-/brukerfiltrene til valgt visning sender påminnelser. Visningens status, sortering og gruppering ignoreres her.",
+  "card_saved_view": "Lagret visning",
+  "card_saved_view_none": "Ingen",
+  "card_saved_view_help": "Bruker visningens status-, bruker- og etikettfiltre i tillegg til filtrene over. Visningens sortering og gruppering er panelvisningsinnstillinger og brukes ikke på kortet."
 }

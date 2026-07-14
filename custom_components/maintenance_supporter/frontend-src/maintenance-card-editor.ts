@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t } from "./styles";
-import type { HomeAssistant, CardConfig, MaintenanceObjectResponse } from "./types";
+import type { HomeAssistant, CardConfig, MaintenanceObjectResponse, SavedView } from "./types";
 
 const STATUS_KEYS = ["overdue", "triggered", "due_soon", "ok"] as const;
 
@@ -13,6 +13,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _loadingObjects = true;
   @state() private _loadError = false;
+  @state() private _views: SavedView[] = [];
 
   private _objectsLoaded = false;
 
@@ -44,12 +45,22 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       this._loadError = true;
     }
     this._loadingObjects = false;
+    // Saved views feed the scope dropdown; best-effort — the editor works
+    // without them (the dropdown just stays at "none").
+    try {
+      const res = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/views/list",
+      }) as { views: SavedView[] };
+      this._views = res.views || [];
+    } catch {
+      this._views = [];
+    }
   }
 
   private _valueChanged(key: string, value: unknown): void {
     const newConfig = { ...this._config, [key]: value };
-    // Drop empty arrays so the saved YAML stays clean
-    if (Array.isArray(value) && value.length === 0) {
+    // Drop empty arrays / empty strings so the saved YAML stays clean
+    if ((Array.isArray(value) && value.length === 0) || value === "") {
       delete (newConfig as Record<string, unknown>)[key];
     }
     this._config = newConfig;
@@ -157,6 +168,33 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           <div class="field-help">${t("card_filter_entities_help", L)}</div>
         </div>
 
+        <!-- Saved-view scope (v2.26): applies the view's status/user/label
+             filters on top of everything above. Hidden while no views exist —
+             views are created in the panel toolbar, not here. -->
+        ${this._views.length > 0
+          ? html`
+              <div class="field">
+                <div class="field-label">${t("card_saved_view", L)}</div>
+                <select
+                  class="view-select"
+                  .value=${this._config.view_id || ""}
+                  @change=${(e: Event) =>
+                    this._valueChanged("view_id", (e.target as HTMLSelectElement).value)}
+                >
+                  <option value="" ?selected=${!this._config.view_id}>
+                    ${t("card_saved_view_none", L)}
+                  </option>
+                  ${this._views.map(
+                    (v) => html`<option value=${v.id} ?selected=${this._config.view_id === v.id}>
+                      ${v.name}
+                    </option>`
+                  )}
+                </select>
+                <div class="field-help">${t("card_saved_view_help", L)}</div>
+              </div>
+            `
+          : nothing}
+
         <ha-formfield label="${t("card_show_header", L)}">
           <ha-switch
             .checked=${this._config.show_header !== false}
@@ -263,6 +301,15 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       cursor: pointer;
     }
     .object-row input { cursor: pointer; }
+    .view-select {
+      padding: 8px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 14px;
+      max-width: 320px;
+    }
   `;
 }
 

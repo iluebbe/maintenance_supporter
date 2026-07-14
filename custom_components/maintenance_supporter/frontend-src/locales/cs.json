@@ -762,5 +762,8 @@
   "all_labels": "Všechny štítky",
   "settings_notify_scope": "Upozorňovat jen pro zobrazení",
   "settings_notify_scope_all": "Všechny úkoly",
-  "settings_notify_scope_hint": "Připomenutí posílají jen úkoly odpovídající filtrům štítku/uživatele zvoleného zobrazení. Stav, řazení a seskupení zobrazení se zde ignorují."
+  "settings_notify_scope_hint": "Připomenutí posílají jen úkoly odpovídající filtrům štítku/uživatele zvoleného zobrazení. Stav, řazení a seskupení zobrazení se zde ignorují.",
+  "card_saved_view": "Uložené zobrazení",
+  "card_saved_view_none": "Žádné",
+  "card_saved_view_help": "Použije filtry stavu, uživatele a štítku zobrazení navíc k výše uvedeným filtrům. Řazení a seskupení zobrazení jsou nastavení panelu a na kartě se nepoužijí."
 }

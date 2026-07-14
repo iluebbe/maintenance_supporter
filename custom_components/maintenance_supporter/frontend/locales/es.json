@@ -762,5 +762,8 @@
   "all_labels": "Todas las etiquetas",
   "settings_notify_scope": "Notificar solo para la vista",
   "settings_notify_scope_all": "Todas las tareas",
-  "settings_notify_scope_hint": "Solo las tareas que coinciden con los filtros de etiqueta/usuario de la vista seleccionada envían recordatorios. El estado, el orden y la agrupación de la vista se ignoran aquí."
+  "settings_notify_scope_hint": "Solo las tareas que coinciden con los filtros de etiqueta/usuario de la vista seleccionada envían recordatorios. El estado, el orden y la agrupación de la vista se ignoran aquí.",
+  "card_saved_view": "Vista guardada",
+  "card_saved_view_none": "Ninguna",
+  "card_saved_view_help": "Aplica los filtros de estado, usuario y etiqueta de la vista además de los filtros anteriores. El orden y la agrupación de la vista son ajustes de visualización del panel y no se aplican en la tarjeta."
 }
