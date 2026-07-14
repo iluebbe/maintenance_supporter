@@ -17,6 +17,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   Display-only dimensions of the view (status, sorting, grouping, archived) are
   ignored, the *"current user"* sentinel means no user restriction, and a
   deleted view falls back to notifying for everything rather than going silent.
+- **Scope the Lovelace card to a saved view.** New `view_id` card option (with
+  a saved-view dropdown in the visual editor): the view's status/user/label
+  filters apply **on top of** the card's own filters — *"the Garden view, as a
+  card"*. The *"current user"* filter resolves against the logged-in user, and
+  a deleted view degrades to "no view filter" instead of an empty card. This
+  completes the saved-views roadmap item across all surfaces.
 
 ### 🎙️ Voice & Assist intents
 

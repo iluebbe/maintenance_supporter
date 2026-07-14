@@ -112,7 +112,9 @@ save the current filters or manage/delete existing views from the same dialog.
 Hand-editing any filter clears the active-view selection, so the dropdown never
 lies. A view can also **route notifications**: pick it under Settings →
 Notifications → *"Notify only for view"* and reminders fire only for tasks
-matching its label/user filters (display-only dimensions are ignored).
+matching its label/user filters (display-only dimensions are ignored). And the
+**Lovelace card** can be scoped to a view (`view_id` option / editor dropdown):
+the view's status/user/label filters apply on top of the card's own config.
 
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.

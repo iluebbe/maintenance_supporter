@@ -21,12 +21,11 @@ machinery × risk:
 1. ~~**Adopt problem sensors as triggered tasks**~~ ✅ **Shipped in v2.24.0** —
    a discovery + opt-in-sync layer over the existing *sensor-trigger → task →
    history → notification* pipeline; opt-in by design, own sensors excluded.
-2. ~~**Saved filter views (MVP)**~~ ✅ **Shipped in v2.24.0** — shared named
-   filter/sort/group combinations on the panel list. ✅ **Label filter +
-   notification routing shipped (Unreleased)** — views capture a label
-   dimension, and `notify_scope_view_id` routes all reminders through one
-   view's label/user filters ("only notify me about view 'Garden'").
-   **Still open:** apply views in the Lovelace **card** config.
+2. ~~**Saved filter views**~~ ✅ **Complete** — MVP shipped in v2.24.0 (shared
+   named filter/sort/group combinations on the panel list); label filter,
+   **notification routing** (`notify_scope_view_id` — "only notify me about
+   view 'Garden'") and **saved views on the Lovelace card** (`view_id` card
+   option, AND semantics) shipped Unreleased.
 3. ~~**Dark-mode & color-blind contrast QA**~~ ✅ **Shipped in v2.24.0** —
    WCAG-contrast pass on status badges/chips + theme-token routing, pinned by a
    real-browser contrast tripwire.
@@ -266,7 +265,8 @@ task list via a **Views** dropdown, shared across everyone who opens the panel
 and stored on the global entry. **Notification routing shipped (Unreleased):**
 `notify_scope_view_id` restricts all reminders to tasks matching one view's
 label/user filters ("only notify me about tasks in view 'Garden'").
-**Still open:** apply views in the Lovelace card config.
+**Card application shipped (Unreleased):** the `view_id` card option applies a
+view's status/user/label filters on top of the card's own config.
 Later: broaden the captured filters further (areas / objects).
 
 ### ✅ Adopt problem sensors as triggered tasks — shipped (Unreleased)

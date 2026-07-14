@@ -762,5 +762,8 @@
   "all_labels": "Kaikki tunnisteet",
   "settings_notify_scope": "Ilmoita vain näkymälle",
   "settings_notify_scope_all": "Kaikki tehtävät",
-  "settings_notify_scope_hint": "Vain valitun näkymän tunniste-/käyttäjäsuodattimiin osuvat tehtävät lähettävät muistutuksia. Näkymän tila, lajittelu ja ryhmittely ohitetaan tässä."
+  "settings_notify_scope_hint": "Vain valitun näkymän tunniste-/käyttäjäsuodattimiin osuvat tehtävät lähettävät muistutuksia. Näkymän tila, lajittelu ja ryhmittely ohitetaan tässä.",
+  "card_saved_view": "Tallennettu näkymä",
+  "card_saved_view_none": "Ei mitään",
+  "card_saved_view_help": "Soveltaa näkymän tila-, käyttäjä- ja tunnistesuodattimet yllä olevien suodattimien lisäksi. Näkymän lajittelu ja ryhmittely ovat paneelin näyttöasetuksia eivätkä vaikuta korttiin."
 }

@@ -762,5 +762,8 @@
   "all_labels": "Alle Labels",
   "settings_notify_scope": "Nur benachrichtigen für Ansicht",
   "settings_notify_scope_all": "Alle Aufgaben",
-  "settings_notify_scope_hint": "Nur Aufgaben, die zu den Label-/Nutzer-Filtern der gewählten Ansicht passen, senden Erinnerungen. Status, Sortierung und Gruppierung der Ansicht werden hier ignoriert."
+  "settings_notify_scope_hint": "Nur Aufgaben, die zu den Label-/Nutzer-Filtern der gewählten Ansicht passen, senden Erinnerungen. Status, Sortierung und Gruppierung der Ansicht werden hier ignoriert.",
+  "card_saved_view": "Gespeicherte Ansicht",
+  "card_saved_view_none": "Keine",
+  "card_saved_view_help": "Wendet die Status-, Nutzer- und Label-Filter der Ansicht zusätzlich zu den obigen Filtern an. Sortierung und Gruppierung der Ansicht sind Panel-Darstellung und werden auf der Karte nicht angewendet."
 }

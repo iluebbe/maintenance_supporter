@@ -317,6 +317,11 @@ export interface CardConfig {
   filter_due_max_days?: number;
   compact?: boolean;
   show_actions?: boolean;
+  // Saved-view scope (v2.26): apply a saved view's task-selecting filters
+  // (status / user / label) ON TOP of the card's own filters. The view's
+  // sort/group dimensions are panel display state and are not applied here.
+  // A deleted view id degrades to "no view filter" instead of an empty card.
+  view_id?: string;
 }
 
 export interface GroupTaskRef {

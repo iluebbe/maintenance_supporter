@@ -762,5 +762,8 @@
   "all_labels": "Toutes les étiquettes",
   "settings_notify_scope": "Notifier uniquement pour la vue",
   "settings_notify_scope_all": "Toutes les tâches",
-  "settings_notify_scope_hint": "Seules les tâches correspondant aux filtres étiquette/utilisateur de la vue choisie envoient des rappels. Le statut, le tri et le regroupement de la vue sont ignorés ici."
+  "settings_notify_scope_hint": "Seules les tâches correspondant aux filtres étiquette/utilisateur de la vue choisie envoient des rappels. Le statut, le tri et le regroupement de la vue sont ignorés ici.",
+  "card_saved_view": "Vue enregistrée",
+  "card_saved_view_none": "Aucune",
+  "card_saved_view_help": "Applique les filtres statut, utilisateur et étiquette de la vue en plus des filtres ci-dessus. Le tri et le regroupement de la vue sont des réglages d'affichage du panneau et ne s'appliquent pas à la carte."
 }
