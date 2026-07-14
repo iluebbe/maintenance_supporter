@@ -5539,13 +5539,13 @@ ${h?`<div class="sub">${h}</div>`:""}
       ${this._renderPanelAccess(e)}
       ${this._renderGeneral(e)}
       ${this._renderObjectsColumns(e)}
-        ${this._renderTemplateToggles(e)}
       ${this._settings.general.notifications_enabled?this._renderNotifications(e):p}
       ${this.features.budget?this._renderBudget(e):p}
       ${this._renderArchive(e)}
       ${this._renderVacation(e)}
       ${this._renderPrintQr(e)}
       ${this._renderImportExport(e)}
+      ${this._renderTemplateToggles(e)}
       ${this._toast?o`<div class="settings-toast">${this._toast}</div>`:p}
     `}scrollToSection(e){requestAnimationFrame(()=>{let t=this.shadowRoot;if(!t)return;let i=t.querySelector(`[data-section="${e}"]`)??t.querySelector(`[data-section-alt="${e}"]`);i&&i.scrollIntoView({behavior:"smooth",block:"start"})})}_renderPanelAccess(e){let t=new Set(this._settings.admin_panel_user_ids||[]),i=this._users.filter(c=>!c.is_admin),a=this._settings.operator_write_enabled??!1,l=(c,h)=>{let u=new Set(t);h?u.add(c):u.delete(c),this._updateSetting("admin_panel_user_ids",[...u])};return o`
       <div class="settings-section">
