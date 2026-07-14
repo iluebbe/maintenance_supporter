@@ -26,7 +26,7 @@ land here as they come up — suggestions welcome via issues/Discussions.
    named filter/sort/group combinations on the panel list); label filter,
    **notification routing** (`notify_scope_view_id` — "only notify me about
    view 'Garden'") and **saved views on the Lovelace card** (`view_id` card
-   option, AND semantics) shipped Unreleased.
+   option, AND semantics) shipped in v2.26.0.
 3. ~~**Dark-mode & color-blind contrast QA**~~ ✅ **Shipped in v2.24.0** —
    WCAG-contrast pass on status badges/chips + theme-token routing, pinned by a
    real-browser contrast tripwire.
@@ -34,11 +34,11 @@ land here as they come up — suggestions welcome via issues/Discussions.
    in v2.25.0** — the trigger form explains itself against the *live* sensor
    ("the sensor reads 660 h now — due at 760 h, +100 h, restarting after each
    completion"); covers threshold/counter/runtime/state-change, 18 languages.
-5. ~~**Suggest a spare part when adopting a problem sensor**~~ ✅ **Shipped**
-   (Unreleased) — discovery suggests the target object's name-matching part;
+5. ~~**Suggest a spare part when adopting a problem sensor**~~ ✅ **Shipped in
+   v2.26.0** — discovery suggests the target object's name-matching part;
    adoption pre-links it as the task's consumed part, closing the
    problem → task → buy-part loop in one step.
-6. ~~**Voice/Assist intents**~~ ✅ **Shipped** (Unreleased) — two intents
+6. ~~**Voice/Assist intents**~~ ✅ **Shipped in v2.26.0** — two intents
    (`MaintenanceSupporterListTasks`, `MaintenanceSupporterCompleteTask`):
    LLM-based Assist pipelines pick them up automatically as tools in any
    language; the classic agent uses the shipped en/de sentence files
@@ -52,7 +52,7 @@ land here as they come up — suggestions welcome via issues/Discussions.
    stays a standalone refactor for a quiet cycle, not bundled into a feature
    wave.
 
-Smaller candidates — both ✅ **Shipped (Unreleased)**: ~~notes on an adopted
+Smaller candidates — both ✅ **Shipped in v2.26.0**: ~~notes on an adopted
 problem-sensor task survive an un-adopt → re-adopt cycle~~ (deleted adopted-task
 notes are stashed per sensor and restored on re-adopt) and ~~per-part file
 attachments~~ (documents link to spare parts via `part_ids`, mirroring task
@@ -268,14 +268,14 @@ the stored PDF for printing alongside.
 Every panel filter used to be transient. A **named, saved view** (status /
 user / archived + **label** + sort + group-by) is now reusable across the panel
 task list via a **Views** dropdown, shared across everyone who opens the panel
-and stored on the global entry. **Notification routing shipped (Unreleased):**
+and stored on the global entry. **Notification routing shipped (v2.26.0):**
 `notify_scope_view_id` restricts all reminders to tasks matching one view's
 label/user filters ("only notify me about tasks in view 'Garden'").
-**Card application shipped (Unreleased):** the `view_id` card option applies a
+**Card application shipped (v2.26.0):** the `view_id` card option applies a
 view's status/user/label filters on top of the card's own config.
 Later: broaden the captured filters further (areas / objects).
 
-### ✅ Adopt problem sensors as triggered tasks — shipped (Unreleased)
+### ✅ Adopt problem sensors as triggered tasks — shipped (v2.24.0)
 Many integrations expose `binary_sensor` entities with
 `device_class: problem` (printer errors, filter warnings, battery alerts).
 An **Adopt problem sensors** button now mirrors selected problem sensors as
@@ -333,7 +333,7 @@ Smaller, high-frequency wins first; each ships independently.
 ### Design system
 - ✅ **Dark-mode & color-blind audit** — status badges carry a shape icon and the
   chart danger zone uses a diagonal hatch (v2.15.0). Status colours route through
-  HA theme tokens. **Contrast QA done (Unreleased):** the light-background badges
+  HA theme tokens. **Contrast QA done (v2.24.0):** the light-background badges
   (Due Soon / OK / Archived) wore white text below the 3:1 WCAG UI floor — now
   dark text (7.6–9.7:1); the Triggered badge became a `--deep-orange-color` token
   so it follows themes. A real-browser **contrast tripwire** (computed-style

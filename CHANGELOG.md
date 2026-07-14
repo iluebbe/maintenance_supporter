@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.26.0] - 2026-07-14
 
 ### 🏷️ Label filter + view-scoped notification routing
 
