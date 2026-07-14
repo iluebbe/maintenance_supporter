@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "Завдання настане після {count} зміни(-) стану.",
   "trigger_hint_state_change_to": "Завдання настане після {count} переходу(-ів) у «{state}».",
   "trigger_hint_state_now": "Поточний стан: {value}.",
-  "adopt_problem_part": "Використовує деталь: {name}"
+  "adopt_problem_part": "Використовує деталь: {name}",
+  "label_filter": "Мітка",
+  "all_labels": "Усі мітки",
+  "settings_notify_scope": "Сповіщати лише для подання",
+  "settings_notify_scope_all": "Усі завдання",
+  "settings_notify_scope_hint": "Нагадування надсилають лише завдання, що відповідають фільтрам мітки/користувача обраного подання. Статус, сортування та групування подання тут ігноруються."
 }

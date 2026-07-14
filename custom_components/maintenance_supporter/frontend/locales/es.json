@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "La tarea vence tras {count} cambio(s) de estado.",
   "trigger_hint_state_change_to": "La tarea vence tras {count} cambio(s) a «{state}».",
   "trigger_hint_state_now": "Estado actual: {value}.",
-  "adopt_problem_part": "Usa la pieza: {name}"
+  "adopt_problem_part": "Usa la pieza: {name}",
+  "label_filter": "Etiqueta",
+  "all_labels": "Todas las etiquetas",
+  "settings_notify_scope": "Notificar solo para la vista",
+  "settings_notify_scope_all": "Todas las tareas",
+  "settings_notify_scope_hint": "Solo las tareas que coinciden con los filtros de etiqueta/usuario de la vista seleccionada envían recordatorios. El estado, el orden y la agrupación de la vista se ignoran aquí."
 }

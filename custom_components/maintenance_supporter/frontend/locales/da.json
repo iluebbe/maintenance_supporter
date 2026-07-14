@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "Opgaven forfalder efter {count} tilstandsskift.",
   "trigger_hint_state_change_to": "Opgaven forfalder efter {count} skift til ”{state}”.",
   "trigger_hint_state_now": "Aktuel tilstand: {value}.",
-  "adopt_problem_part": "Bruger reservedel: {name}"
+  "adopt_problem_part": "Bruger reservedel: {name}",
+  "label_filter": "Etiket",
+  "all_labels": "Alle etiketter",
+  "settings_notify_scope": "Underret kun for visning",
+  "settings_notify_scope_all": "Alle opgaver",
+  "settings_notify_scope_hint": "Kun opgaver, der matcher den valgte visnings etiket-/brugerfiltre, sender påmindelser. Visningens status, sortering og gruppering ignoreres her."
 }

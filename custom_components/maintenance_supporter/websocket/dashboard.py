@@ -45,6 +45,7 @@ from ..const import (
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
+    CONF_NOTIFY_SCOPE_VIEW_ID,
     CONF_NOTIFY_SERVICE,
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
@@ -167,6 +168,9 @@ def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str
             "title_style": options.get(CONF_NOTIFICATION_TITLE_STYLE, "default"),
             # Multiple lead-time reminders (days before due); [] = off.
             "reminder_lead_days": options.get(CONF_REMINDER_LEAD_DAYS, []),
+            # v2.26: notification routing — saved-view id scoping which
+            # tasks may notify ("" = all tasks).
+            "scope_view_id": options.get(CONF_NOTIFY_SCOPE_VIEW_ID, ""),
         },
         "actions": {
             "complete_enabled": options.get(CONF_ACTION_COMPLETE_ENABLED, False),

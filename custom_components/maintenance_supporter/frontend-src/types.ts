@@ -280,6 +280,8 @@ export interface StatisticsResponse {
 export interface SavedViewFilters {
   status: string;
   user_id: string | null;
+  /** Only tasks carrying this label (v2.26); null = no label filter. */
+  label?: string | null;
   archived: boolean;
   sort_mode: string;
   group_by: string;

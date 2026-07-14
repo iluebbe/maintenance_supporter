@@ -22,10 +22,11 @@ machinery × risk:
    a discovery + opt-in-sync layer over the existing *sensor-trigger → task →
    history → notification* pipeline; opt-in by design, own sensors excluded.
 2. ~~**Saved filter views (MVP)**~~ ✅ **Shipped in v2.24.0** — shared named
-   filter/sort/group combinations on the panel list. **Still open (the
-   interesting part):** apply views in the Lovelace **card**, and **notification
-   routing** ("only notify me about view 'Garden'") — a view's id is already a
-   stable handle for it.
+   filter/sort/group combinations on the panel list. ✅ **Label filter +
+   notification routing shipped (Unreleased)** — views capture a label
+   dimension, and `notify_scope_view_id` routes all reminders through one
+   view's label/user filters ("only notify me about view 'Garden'").
+   **Still open:** apply views in the Lovelace **card** config.
 3. ~~**Dark-mode & color-blind contrast QA**~~ ✅ **Shipped in v2.24.0** —
    WCAG-contrast pass on status badges/chips + theme-token routing, pinned by a
    real-browser contrast tripwire.
@@ -258,14 +259,15 @@ panel. When the task has a linked PDF manual with a page hint
 `document/{id}/excerpt` endpoint (pypdf) extracts "from page X, N pages" of
 the stored PDF for printing alongside.
 
-### ✅ Saved filter views (profiles) — MVP shipped (Unreleased)
+### ✅ Saved filter views (profiles) — MVP shipped (v2.24.0)
 Every panel filter used to be transient. A **named, saved view** (status /
-user / archived + sort + group-by) is now reusable across the panel task list
-via a **Views** dropdown, shared across everyone who opens the panel and stored
-on the global entry. **Still open:** apply views in the Lovelace card config,
-and — the interesting part — **notification routing** ("only notify me about
-tasks in view 'Garden'"); a view's id is already the stable handle for it.
-Later: broaden the captured filters (labels / areas / objects / assignee).
+user / archived + **label** + sort + group-by) is now reusable across the panel
+task list via a **Views** dropdown, shared across everyone who opens the panel
+and stored on the global entry. **Notification routing shipped (Unreleased):**
+`notify_scope_view_id` restricts all reminders to tasks matching one view's
+label/user filters ("only notify me about tasks in view 'Garden'").
+**Still open:** apply views in the Lovelace card config.
+Later: broaden the captured filters further (areas / objects).
 
 ### ✅ Adopt problem sensors as triggered tasks — shipped (Unreleased)
 Many integrations expose `binary_sensor` entities with

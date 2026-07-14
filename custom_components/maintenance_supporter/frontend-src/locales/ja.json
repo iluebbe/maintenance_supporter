@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "{count} 回の状態変化でタスクが期限になります。",
   "trigger_hint_state_change_to": "「{state}」への {count} 回の変化でタスクが期限になります。",
   "trigger_hint_state_now": "現在の状態: {value}。",
-  "adopt_problem_part": "使用する部品: {name}"
+  "adopt_problem_part": "使用する部品: {name}",
+  "label_filter": "ラベル",
+  "all_labels": "すべてのラベル",
+  "settings_notify_scope": "このビューのみ通知",
+  "settings_notify_scope_all": "すべてのタスク",
+  "settings_notify_scope_hint": "選択した保存済みビューのラベル／ユーザーフィルターに一致するタスクのみがリマインダーを送信します。ビューのステータス・並び順・グループ化はここでは無視されます。"
 }

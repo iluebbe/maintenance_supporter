@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "De taak vervalt na {count} statuswijziging(en).",
   "trigger_hint_state_change_to": "De taak vervalt na {count} wijziging(en) naar “{state}”.",
   "trigger_hint_state_now": "Huidige status: {value}.",
-  "adopt_problem_part": "Gebruikt onderdeel: {name}"
+  "adopt_problem_part": "Gebruikt onderdeel: {name}",
+  "label_filter": "Label",
+  "all_labels": "Alle labels",
+  "settings_notify_scope": "Alleen melden voor weergave",
+  "settings_notify_scope_all": "Alle taken",
+  "settings_notify_scope_hint": "Alleen taken die overeenkomen met de label-/gebruikersfilters van de gekozen weergave sturen herinneringen. Status, sortering en groepering van de weergave worden hier genegeerd."
 }

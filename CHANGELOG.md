@@ -4,6 +4,20 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🏷️ Label filter + view-scoped notification routing
+
+- **Filter the panel task list by label.** A new Label dropdown in the filter
+  bar (shown once any task carries a label) narrows the list to one label, and
+  **saved views capture it** alongside status/user/sort/group — so *"Garden"*
+  can literally be the view that filters on the `garden` label.
+- **Route notifications through a saved view.** A new global setting,
+  `notify_scope_view_id` (Settings → Notifications → *"Notify only for view"*),
+  restricts all status-change reminders to tasks matching the selected view's
+  **label and user filters** — e.g. only notify about tasks in view *"Garden"*.
+  Display-only dimensions of the view (status, sorting, grouping, archived) are
+  ignored, the *"current user"* sentinel means no user restriction, and a
+  deleted view falls back to notifying for everything rather than going silent.
+
 ### 🎙️ Voice & Assist intents
 
 - **Query and complete maintenance by voice.** Two Assist intents:

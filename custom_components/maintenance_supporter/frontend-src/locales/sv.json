@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "Uppgiften förfaller efter {count} tillståndsändring(ar).",
   "trigger_hint_state_change_to": "Uppgiften förfaller efter {count} ändring(ar) till ”{state}”.",
   "trigger_hint_state_now": "Aktuellt tillstånd: {value}.",
-  "adopt_problem_part": "Använder reservdel: {name}"
+  "adopt_problem_part": "Använder reservdel: {name}",
+  "label_filter": "Etikett",
+  "all_labels": "Alla etiketter",
+  "settings_notify_scope": "Avisera endast för vy",
+  "settings_notify_scope_all": "Alla uppgifter",
+  "settings_notify_scope_hint": "Endast uppgifter som matchar den valda vyns etikett-/användarfilter skickar påminnelser. Vyns status, sortering och gruppering ignoreras här."
 }

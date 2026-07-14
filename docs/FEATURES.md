@@ -105,11 +105,14 @@ problem → task → buy-part loop in one step.
 
 ### Saved filter views
 Name a combination of the panel task-list filters — status, responsible user,
-archived, plus sort and group-by — and reapply the whole set in one tap from the
-toolbar (e.g. *"Kitchen overdue"*, *"Unassigned this week"*). Views are **shared**
-across everyone who opens the panel and persist across restarts; save the current
-filters or manage/delete existing views from the same dialog. Hand-editing any
-filter clears the active-view selection, so the dropdown never lies.
+**label**, archived, plus sort and group-by — and reapply the whole set in one
+tap from the toolbar (e.g. *"Kitchen overdue"*, *"Unassigned this week"*). Views
+are **shared** across everyone who opens the panel and persist across restarts;
+save the current filters or manage/delete existing views from the same dialog.
+Hand-editing any filter clears the active-view selection, so the dropdown never
+lies. A view can also **route notifications**: pick it under Settings →
+Notifications → *"Notify only for view"* and reminders fire only for tasks
+matching its label/user filters (display-only dimensions are ignored).
 
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.

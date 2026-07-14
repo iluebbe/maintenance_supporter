@@ -42,6 +42,7 @@ _EXPECTED_STR_MAX_LENGTHS = {
     "quiet_hours_start": 5,
     "quiet_hours_end": 5,
     "budget_currency": 5,
+    "notify_scope_view_id": 64,
 }
 
 
@@ -58,12 +59,12 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 45 writable settings, each mapped to a concrete Python type.
-    assert len(ALLOWED_SETTING_KEYS) == 46
+    # 47 writable settings, each mapped to a concrete Python type.
+    assert len(ALLOWED_SETTING_KEYS) == 47
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 46
+    assert len(keys) == len(set(keys)) == 47
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

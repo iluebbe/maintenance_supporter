@@ -712,6 +712,23 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _vac = get_vacation_state(self.hass)
         notifiable = [row for row in notifiable if not _vac.is_silent_for(row[0])]
 
+        # v2.26 notification routing: a saved-view scope ("only notify about
+        # view X") drops tasks the view's label/user filters don't match —
+        # BEFORE the bundle threshold, like the vacation filter above. A stale
+        # view id (view deleted) means no scope, never "silence everything".
+        from .const import CONF_NOTIFY_SCOPE_VIEW_ID
+        from .helpers.global_options import get_global_options
+
+        scope_view_id = get_global_options(self.hass).get(CONF_NOTIFY_SCOPE_VIEW_ID) or ""
+        if scope_view_id:
+            from .helpers.saved_views import list_saved_views, view_matches_task
+
+            scope = next((v for v in list_saved_views(self.hass) if v["id"] == scope_view_id), None)
+            if scope is not None:
+                notifiable = [
+                    row for row in notifiable if view_matches_task(scope["filters"], row[1])
+                ]
+
         if not notifiable:
             # No notifications needed — still update the cache
             for task_id, task_result in task_results.items():

@@ -42,6 +42,7 @@ interface SettingsResponse {
     bundling_enabled: boolean;
     bundle_threshold: number;
     reminder_lead_days: number[];
+    scope_view_id: string;
   };
   actions: {
     complete_enabled: boolean;
@@ -108,6 +109,7 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _toast = "";
   @state() private _testingNotification = false;
   @state() private _users: HAUser[] = [];
+  @state() private _savedViews: Array<{ id: string; name: string }> = [];
 
   // Vacation mode section state (v1.2.0)
   @state() private _vacEnabled = false;
@@ -177,6 +179,15 @@ export class MaintenanceSettingsView extends LitElement {
       });
       this._settings = result as SettingsResponse;
       this._hydrateVacationFromSettings();
+    } catch {
+      /* ignore */
+    }
+    // Saved views feed the notification-scope picker (best-effort).
+    try {
+      const v = await this.hass.connection.sendMessagePromise<{ views: Array<{ id: string; name: string }> }>({
+        type: "maintenance_supporter/views/list",
+      });
+      this._savedViews = v.views || [];
     } catch {
       /* ignore */
     }
@@ -622,6 +633,19 @@ export class MaintenanceSettingsView extends LitElement {
             }} />
         </label>
         <div class="setting-hint">${t("settings_reminder_leads_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_notify_scope", L)}</span>
+          <select
+            .value=${n.scope_view_id || ""}
+            @change=${(e: Event) => this._updateSetting("notify_scope_view_id", (e.target as HTMLSelectElement).value)}
+          >
+            <option value="" ?selected=${!n.scope_view_id}>${t("settings_notify_scope_all", L)}</option>
+            ${this._savedViews.map(
+              (v) => html`<option value=${v.id} ?selected=${n.scope_view_id === v.id}>${v.name}</option>`
+            )}
+          </select>
+        </label>
+        <div class="setting-hint">${t("settings_notify_scope_hint", L)}</div>
 
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_actions", L)}</h4>
         <label class="setting-row">

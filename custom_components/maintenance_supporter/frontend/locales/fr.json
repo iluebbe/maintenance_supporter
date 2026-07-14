@@ -757,5 +757,10 @@
   "trigger_hint_state_change": "La tâche devient due après {count} changement(s) d'état.",
   "trigger_hint_state_change_to": "La tâche devient due après {count} passage(s) à « {state} ».",
   "trigger_hint_state_now": "État actuel : {value}.",
-  "adopt_problem_part": "Utilise la pièce : {name}"
+  "adopt_problem_part": "Utilise la pièce : {name}",
+  "label_filter": "Étiquette",
+  "all_labels": "Toutes les étiquettes",
+  "settings_notify_scope": "Notifier uniquement pour la vue",
+  "settings_notify_scope_all": "Toutes les tâches",
+  "settings_notify_scope_hint": "Seules les tâches correspondant aux filtres étiquette/utilisateur de la vue choisie envoient des rappels. Le statut, le tri et le regroupement de la vue sont ignorés ici."
 }

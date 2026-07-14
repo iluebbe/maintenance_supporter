@@ -93,6 +93,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _selectedTaskId: string | null = null;
   @state() private _filterStatus = "";
   @state() private _filterUser: string | null = null;
+  @state() private _filterLabel: string | null = null;
   // v2.24: shared saved filter views + the id of the one currently applied ("" =
   // none; cleared the moment the user hand-edits any filter control).
   @state() private _savedViews: SavedView[] = [];
@@ -580,6 +581,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           if (task.responsible_user_id !== userId) continue;
         }
 
+        // Label filter (v2.26 — also captured by saved views)
+        if (this._filterLabel && !(task.labels || []).includes(this._filterLabel)) continue;
+
         // Collect groups that contain this task
         const groupNames: string[] = [];
         for (const group of Object.values(this._groups)) {
@@ -729,11 +733,23 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // ── v2.24: saved filter views ──────────────────────────────────────────────
 
+  /** Distinct labels across all loaded tasks (for the label-filter dropdown). */
+  private get _allLabels(): string[] {
+    const seen = new Set<string>();
+    for (const obj of this._objects) {
+      for (const task of obj.tasks) {
+        for (const lb of task.labels || []) seen.add(lb);
+      }
+    }
+    return [...seen].sort((a, b) => a.localeCompare(b));
+  }
+
   /** The panel's current task-list filter state, in the shape a view stores. */
   private get _currentFilters(): SavedViewFilters {
     return {
       status: this._filterStatus,
       user_id: this._filterUser,
+      label: this._filterLabel,
       archived: this._showArchived,
       sort_mode: this._sortMode,
       group_by: this._groupByMode,
@@ -749,6 +765,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const f = view.filters;
     this._filterStatus = f.status || "";
     this._filterUser = f.user_id || null;
+    this._filterLabel = f.label || null;
     this._showArchived = !!f.archived;
     // Validate against the current enums before assigning — a view saved by an
     // older/renamed build could carry a mode no longer valid, which would then
@@ -2079,6 +2096,24 @@ export class MaintenanceSupporterPanel extends LitElement {
             <option value="current_user">${t("my_tasks", L)}</option>
           </select>
         </label>
+        ${this._allLabels.length > 0 ? html`
+          <label class="filter-field">
+            <span class="filter-label">${t("label_filter", L)}</span>
+            <select
+              .value=${this._filterLabel || ""}
+              @change=${(e: Event) => {
+                const val = (e.target as HTMLSelectElement).value;
+                this._filterLabel = val || null;
+                this._activeViewId = "";
+              }}
+            >
+              <option value="">${t("all_labels", L)}</option>
+              ${this._allLabels.map(
+                (lb) => html`<option value=${lb} ?selected=${this._filterLabel === lb}>${lb}</option>`
+              )}
+            </select>
+          </label>
+        ` : nothing}
         <label class="filter-field">
           <span class="filter-label">${t("sort_label", L)}</span>
           <select
