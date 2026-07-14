@@ -259,13 +259,13 @@ export class MaintenanceSettingsView extends LitElement {
       ${this._renderPanelAccess(L)}
       ${this._renderGeneral(L)}
       ${this._renderObjectsColumns(L)}
-        ${this._renderTemplateToggles(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
       ${this.features.budget ? this._renderBudget(L) : nothing}
       ${this._renderArchive(L)}
       ${this._renderVacation(L)}
       ${this._renderPrintQr(L)}
       ${this._renderImportExport(L)}
+      ${this._renderTemplateToggles(L)}
       ${this._toast ? html`<div class="settings-toast">${this._toast}</div>` : nothing}
     `;
   }

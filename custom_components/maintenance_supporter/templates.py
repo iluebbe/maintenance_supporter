@@ -179,6 +179,48 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
         ],
     ),
+    # v2.27 wishlist wave (Discussion #85): RO filter, houseplants, bathroom
+    # fan, kitchen knives — the freeze-sensitive garden/appliance ones live in
+    # their categories below.
+    ObjectTemplate(
+        id="home_ro_filter",
+        name="Drinking Water Filter",
+        category="home",
+        tasks=[
+            TaskTemplate("Sediment Pre-Filter", "replacement", "time_based", 180, 14),
+            TaskTemplate("Carbon Pre-Filter", "replacement", "time_based", 270, 21),
+            TaskTemplate("RO Membrane", "replacement", "time_based", 730, 30),
+            TaskTemplate("Post-Carbon Filter", "replacement", "time_based", 365, 30),
+            TaskTemplate("Sanitize Filter Housings", "cleaning", "time_based", 365, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_houseplants",
+        name="Houseplants",
+        category="home",
+        tasks=[
+            TaskTemplate("Watering", "service", "time_based", 7, 1),
+            TaskTemplate("Fertilizing", "service", "time_based", 30, 7),
+            TaskTemplate("Repotting Check", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_bathroom_fan",
+        name="Bathroom Exhaust Fan",
+        category="home",
+        tasks=[
+            TaskTemplate("Clean Fan and Grille", "cleaning", "time_based", 180, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_knives",
+        name="Kitchen Knives",
+        category="home",
+        tasks=[
+            TaskTemplate("Knife Sharpening", "service", "time_based", 75, 7),
+            TaskTemplate("Honing", "service", "time_based", 14, 3),
+        ],
+    ),
     # --- Pool & Garden ---
     ObjectTemplate(
         id="pool_pump",
@@ -212,6 +254,40 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Spark Plug", "replacement", "time_based", 365, 30),
         ],
     ),
+    ObjectTemplate(
+        id="garden_irrigation",
+        name="Lawn Irrigation System",
+        category="pool",
+        tasks=[
+            TaskTemplate(
+                "Winterize System",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Blow out and drain before the first frost. Tip: a sensor-based threshold trigger (below 3 °C on an outdoor temperature entity) makes this reminder frost-aware.",
+            ),
+            TaskTemplate("Spring Startup and Leak Check", "inspection", "time_based", 365, 21),
+            TaskTemplate("Sprinkler Head Inspection", "inspection", "time_based", 180, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="garden_pressure_washer",
+        name="Pressure Washer",
+        category="pool",
+        tasks=[
+            TaskTemplate(
+                "Winter Storage",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Move to a frost-free spot before the first frost — trapped water cracks the pump. Tip: a sensor-based threshold trigger (below 3 °C) makes this reminder frost-aware.",
+            ),
+            TaskTemplate("Nozzle and Filter Cleaning", "cleaning", "time_based", 180, 14),
+            TaskTemplate("Pump Oil Check", "inspection", "time_based", 365, 30),
+        ],
+    ),
     # --- Appliances ---
     ObjectTemplate(
         id="appliance_washing_machine",
@@ -242,6 +318,53 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Lint Filter Cleaning", "cleaning", "time_based", 1, 0),
             TaskTemplate("Condenser Cleaning", "cleaning", "time_based", 30, 7),
             TaskTemplate("Vent Inspection", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="appliance_espresso",
+        name="Espresso Machine",
+        category="appliance",
+        tasks=[
+            TaskTemplate(
+                "Descaling",
+                "cleaning",
+                "time_based",
+                90,
+                14,
+                "Interval depends on water hardness — descale more often with hard water.",
+            ),
+            TaskTemplate("Backflush Brew Group", "cleaning", "time_based", 14, 3),
+            TaskTemplate("Water Filter", "replacement", "time_based", 60, 7),
+            TaskTemplate("Group Gasket", "replacement", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="appliance_robot_vacuum",
+        name="Robot Vacuum",
+        category="appliance",
+        tasks=[
+            TaskTemplate("Clean Main Brush", "cleaning", "time_based", 14, 3),
+            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 14, 3),
+            TaskTemplate(
+                "Replace Dust Bag",
+                "replacement",
+                "time_based",
+                90,
+                14,
+                "Many docks don't warn when the bag is full — a schedule beats a surprise.",
+            ),
+            TaskTemplate("Clean Sensors", "cleaning", "time_based", 30, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="appliance_robot_mop",
+        name="Mopping Robot Vacuum",
+        category="appliance",
+        tasks=[
+            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 14, 3),
+            TaskTemplate("Empty Dirty Water Tank", "cleaning", "time_based", 7, 2),
+            TaskTemplate("Clean Mop Tray", "cleaning", "time_based", 30, 7),
+            TaskTemplate("Wash Mop Pads", "cleaning", "time_based", 60, 7),
         ],
     ),
 ]

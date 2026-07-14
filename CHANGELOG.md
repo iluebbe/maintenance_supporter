@@ -2,6 +2,27 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🧰 Nine new object templates (Discussion #85 wishlist)
+
+- **The template gallery grows from 14 to 23**, straight from the community
+  wishlist: **Drinking Water Filter** (reverse osmosis — per-cartridge
+  replacement cycles + yearly housing sanitising), **Espresso Machine**
+  (descaling with a water-hardness note, backflush, water filter, group
+  gasket), **Kitchen Knives** (sharpening + honing), **Houseplants**
+  (watering / fertilizing / repotting check), **Bathroom Exhaust Fan**,
+  **Lawn Irrigation System** and **Pressure Washer** (both with
+  winterization tasks whose notes explain how a sensor-based threshold
+  trigger below 3 °C makes the reminder **frost-aware** instead of purely
+  calendar-based), plus **Robot Vacuum** and **Mopping Robot Vacuum** with
+  their distinct task sets. All names, tasks and notes are localized into
+  all 18 languages, and every template can be hidden via the gallery
+  curation toggles as usual.
+- **Template gallery moved to the end of the Settings page** — the
+  frequently-tuned sections (notifications, budget, archive) now come first;
+  the set-once gallery toggles live at the bottom.
+
 ## [2.26.0] - 2026-07-14
 
 ### 🏷️ Label filter + view-scoped notification routing

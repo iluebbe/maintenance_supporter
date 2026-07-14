@@ -89,7 +89,7 @@ async def test_disabled_ids_are_sanitized_and_flagged(hass: HomeAssistant, globa
     assert by_id["pool_pump"]["disabled"] is True
     assert by_id["vehicle_bicycle"]["disabled"] is True
     assert by_id["vehicle_car"]["disabled"] is False
-    assert len(templates) == 14  # nothing removed server-side
+    assert len(templates) == 23  # nothing removed server-side
 
 
 async def test_config_flow_picker_hides_disabled_templates(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
