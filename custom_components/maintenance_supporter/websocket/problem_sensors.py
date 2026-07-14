@@ -17,7 +17,11 @@ from homeassistant.core import HomeAssistant
 
 from ..const import CONF_OBJECT, DOMAIN, MAX_ENTITY_ID_LENGTH, MAX_ID_LENGTH, MAX_NAME_LENGTH
 from ..helpers.permissions import require_write
-from ..helpers.problem_sensors import build_problem_task, discover_problem_sensors
+from ..helpers.problem_sensors import (
+    build_problem_task,
+    discover_problem_sensors,
+    pop_stashed_notes,
+)
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/problem_sensors/discover"})
@@ -111,6 +115,11 @@ async def ws_adopt_problem_sensors(
                 "schedule": task["schedule"],
                 "trigger_config": task["trigger_config"],
             }
+            # Un-adopt → re-adopt: restore (and consume) the notes the deleted
+            # predecessor task had accumulated for this sensor.
+            restored_notes = pop_stashed_notes(hass, entity_id)
+            if restored_notes:
+                task_data["notes"] = restored_notes
             # Link the suggested spare part (validated against the target
             # object's parts — an unknown id is silently dropped, same as the
             # task-CRUD path).

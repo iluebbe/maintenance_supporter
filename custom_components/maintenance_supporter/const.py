@@ -155,6 +155,13 @@ CONF_SAVED_FILTER_VIEWS = "saved_filter_views"
 MAX_SAVED_VIEWS = 50  # coarse ceiling so the global entry can't grow unbounded
 MAX_VIEW_NAME_LENGTH = 60
 
+# v2.26: notes of a deleted ADOPTED problem-sensor task, keyed by the watched
+# sensor's entity_id, so an un-adopt → re-adopt cycle restores them (roadmap
+# "note persistence"). Internal state on the global entry (like saved views),
+# not a user-facing setting. FIFO-capped; an entry is consumed on re-adopt.
+CONF_ADOPTED_NOTES = "adopted_task_notes"
+MAX_ADOPTED_NOTES = 100
+
 # Every column key the objects table can render. The Settings UI offers exactly
 # these; the WS update handler drops anything outside this set.
 KNOWN_OBJECT_TABLE_COLUMNS = [
