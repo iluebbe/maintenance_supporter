@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.25.0] - 2026-07-14
 
 ### 💱 New Zealand Dollar
 
