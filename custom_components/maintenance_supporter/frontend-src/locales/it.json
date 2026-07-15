@@ -767,5 +767,11 @@
   "card_saved_view_none": "Nessuna",
   "card_saved_view_help": "Applica i filtri stato, utente ed etichetta della vista in aggiunta ai filtri sopra. Ordinamento e raggruppamento della vista sono impostazioni di visualizzazione del pannello e non si applicano alla scheda.",
   "doc_part_none": "Nessun documento collegato a questo ricambio.",
-  "settings_templates_toggle_group": "Attiva o disattiva tutti i modelli di questo gruppo"
+  "settings_templates_toggle_group": "Attiva o disattiva tutti i modelli di questo gruppo",
+  "setups_button": "Configurazioni suggerite",
+  "setups_title": "Configurazioni suggerite",
+  "setups_hint": "Dispositivi di integrazioni supportate i cui sensori dei consumabili possono guidare le attività di manutenzione. L'adozione crea l'oggetto e collega ogni attività al suo sensore: si attiva quando il consumabile si esaurisce e si risolve dopo la sostituzione.",
+  "setups_none": "Nessun dispositivo supportato con sensori di consumabili non collegati.",
+  "setups_adopt": "Configura selezione",
+  "setups_done": "{tasks} attività collegate ai sensori create."
 }

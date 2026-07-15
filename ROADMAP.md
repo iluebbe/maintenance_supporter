@@ -25,23 +25,16 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    `SnoozeTask` and `PartStock` ("how many {part} left?" — with
    reorder-threshold warning). Still a candidate: postpone-by-voice (needs a
    spoken date slot).
-2. **Integration-aware discovery: verified entity signatures** (💡): go
-   through the most popular integrations (core **and** HACS — robot vacuums
-   like Roborock/Dreame/Xiaomi, printers (IPP/Brother/Epson), Tado/HVAC,
-   dishwashers via Home Connect, …) and catalogue **which maintenance-relevant
-   entities each one actually provides** — e.g. Roborock exposes per-consumable
-   countdown sensors (filter / main brush / side brush / sensors time-left).
-   **Method requirement: every signature is verified against the integration's
-   source code — nothing is assumed or invented**; the catalog stores
-   integration domain → entity patterns (suffix/device_class/unit) with a
-   source reference, so a wrong guess can't silently ship. On top of that
-   catalog, discovery gets smart: when a matching device exists, the "From
-   template" flow (and a "suggested setups" surface) proposes the right
-   template **with the sensor-based triggers pre-wired** — the Robot Vacuum
-   template arrives with its filter task already bound to
-   `sensor.<vacuum>_filter_time_left` instead of a bare calendar interval.
-   Builds directly on the existing problem-sensor adoption + suggest-a-part
-   machinery and feeds the LLM setup skill's discovery heuristics.
+2. ~~**Integration-aware discovery: verified entity signatures**~~ ✅
+   **Shipped (Unreleased)** — a source-verified catalog
+   (`helpers/integration_signatures`, method contract: every entry carries a
+   reference into the integration's code, enforced by a tripwire) covers
+   Roborock / Xiaomi Miio / Dreame vacuums and IPP / Brother printers. The
+   new **"Suggested setups"** surface discovers matching devices and adopts
+   them with **sensor threshold triggers pre-wired** (unit-aware: below 24 h
+   left or below 10 % remaining; auto-resolving on replacement). Later:
+   grow the catalog (Tado/HVAC, Home Connect, more printer families) and
+   feed the LLM setup skill's discovery heuristics.
 
 ### Shipped waves
 

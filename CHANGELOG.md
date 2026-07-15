@@ -25,6 +25,23 @@ All notable changes to Maintenance Supporter are documented in this file.
   any language; the shipped `assist/custom_sentences/` files (en/de) cover
   the classic sentence agent. Responses localised (en/de).
 
+### 🔌 Suggested setups — integrations with sensor triggers pre-wired
+
+- **A new "Suggested setups" button** discovers devices of supported
+  integrations whose consumable sensors can drive maintenance tasks —
+  **Roborock, Xiaomi Miio and Dreame vacuums** (main/side brush, filter,
+  sensors), **IPP and Brother printers** (ink/toner, drum, belt, fuser) —
+  and sets them up in one click: the object is bound to the device and every
+  task arrives with its **sensor threshold trigger pre-wired** (below 24 h
+  of consumable left, or below 10 % remaining, unit-aware). Replacing the
+  consumable resolves the task automatically, like a cleared problem sensor.
+- **Every signature is verified against the integration's source code** —
+  the catalog records where, and a tripwire test enforces both the source
+  reference and full 18-language coverage of the task names. Discovery
+  never proposes entities that are already wired to a task, and adoption
+  re-runs the matching server-side so the wiring can't be spoofed by a
+  client.
+
 ## [2.27.0] - 2026-07-15
 
 ### 🧰 Nine new object templates (Discussion #85 wishlist)

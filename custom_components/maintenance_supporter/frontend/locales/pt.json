@@ -767,5 +767,11 @@
   "card_saved_view_none": "Nenhuma",
   "card_saved_view_help": "Aplica os filtros de estado, utilizador e etiqueta da vista além dos filtros acima. A ordenação e o agrupamento da vista são definições de apresentação do painel e não se aplicam ao cartão.",
   "doc_part_none": "Nenhum documento associado a esta peça.",
-  "settings_templates_toggle_group": "Ativar ou desativar todos os modelos deste grupo"
+  "settings_templates_toggle_group": "Ativar ou desativar todos os modelos deste grupo",
+  "setups_button": "Configurações sugeridas",
+  "setups_title": "Configurações sugeridas",
+  "setups_hint": "Dispositivos de integrações suportadas cujos sensores de consumíveis podem acionar tarefas de manutenção. Ao adotar, o objeto é criado e cada tarefa é ligada ao seu sensor — dispara quando o consumível se esgota e resolve-se após a substituição.",
+  "setups_none": "Nenhum dispositivo suportado com sensores de consumíveis por ligar.",
+  "setups_adopt": "Configurar seleção",
+  "setups_done": "{tasks} tarefas ligadas a sensores criadas."
 }

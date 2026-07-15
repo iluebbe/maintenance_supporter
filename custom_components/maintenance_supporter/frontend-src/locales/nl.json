@@ -767,5 +767,11 @@
   "card_saved_view_none": "Geen",
   "card_saved_view_help": "Past de status-, gebruikers- en labelfilters van de weergave toe bovenop de bovenstaande filters. Sortering en groepering van de weergave zijn paneelweergave-instellingen en gelden niet voor de kaart.",
   "doc_part_none": "Geen documenten gekoppeld aan dit onderdeel.",
-  "settings_templates_toggle_group": "Alle sjablonen in deze groep in- of uitschakelen"
+  "settings_templates_toggle_group": "Alle sjablonen in deze groep in- of uitschakelen",
+  "setups_button": "Voorgestelde setups",
+  "setups_title": "Voorgestelde setups",
+  "setups_hint": "Apparaten van ondersteunde integraties waarvan de verbruiksmateriaal-sensoren onderhoudstaken kunnen aansturen. Bij overnemen wordt het object aangemaakt en elke taak aan zijn sensor gekoppeld — hij activeert als het materiaal opraakt en lost zichzelf op na vervanging.",
+  "setups_none": "Geen ondersteunde apparaten met ongekoppelde verbruikssensoren gevonden.",
+  "setups_adopt": "Selectie instellen",
+  "setups_done": "{tasks} sensor-gekoppelde taken aangemaakt."
 }
