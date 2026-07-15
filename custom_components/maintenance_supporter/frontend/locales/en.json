@@ -767,5 +767,11 @@
   "card_saved_view_none": "None",
   "card_saved_view_help": "Applies the view's status, user and label filters on top of the filters above. The view's sorting and grouping are panel display settings and are not applied on the card.",
   "doc_part_none": "No documents linked to this part.",
-  "settings_templates_toggle_group": "Enable or disable all templates in this group"
+  "settings_templates_toggle_group": "Enable or disable all templates in this group",
+  "setups_button": "Suggested setups",
+  "setups_title": "Suggested setups",
+  "setups_hint": "Devices of supported integrations whose consumable sensors can drive maintenance tasks. Adopting creates the object and wires each task to its sensor — it triggers when the consumable runs low and resolves itself after replacement.",
+  "setups_none": "No supported devices with unwired consumable sensors found.",
+  "setups_adopt": "Set up selected",
+  "setups_done": "{tasks} sensor-wired tasks created."
 }

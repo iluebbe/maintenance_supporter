@@ -198,3 +198,67 @@ async def test_adopt_unknown_device_reports_error(
     res = conn.send_result.call_args[0][1]
     assert res["tasks_created"] == 0
     assert res["errors"][0]["reason"] == "no suggestion for this device"
+
+
+async def test_adopt_extends_existing_object_and_flags_bad_entry(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A maintenance object already bound to the device is EXTENDED (no new
+    object); an explicit bogus entry_id lands in errors, nothing created."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+    from custom_components.maintenance_supporter.websocket.objects import async_create_object
+
+    await setup_integration(hass, global_entry)
+    device_id = await _seed_roborock(hass)
+    existing_id = await async_create_object(hass, name="My Vacuum", ha_device_id=device_id)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups,
+        hass,
+        conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": device_id}]},
+    )
+    res = conn.send_result.call_args[0][1]
+    assert res["objects_created"] == 0 and res["tasks_created"] == 2
+    entry = hass.config_entries.async_get_entry(existing_id)
+    assert len(entry.data[CONF_TASKS]) == 2  # tasks landed on the EXISTING object
+
+    # Bogus explicit entry_id -> error row, nothing more created. The wired
+    # entities are consumed, so re-seed a fresh device for a live suggestion.
+    device2 = await _seed_roborock2(hass)
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups,
+        hass,
+        conn2,
+        {"id": 2, "type": "x", "selections": [{"device_id": device2, "entry_id": "bogus"}]},
+    )
+    res2 = conn2.send_result.call_args[0][1]
+    assert res2["tasks_created"] == 0
+    assert res2["errors"][0]["reason"] == "target object not found"
+
+
+async def _seed_roborock2(hass: HomeAssistant) -> str:
+    source = MockConfigEntry(domain="roborock", title="Roborock 2")
+    source.add_to_hass(hass)
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_or_create(
+        config_entry_id=source.entry_id,
+        identifiers={("roborock", "q8")},
+        name="Roborock Q8",
+    )
+    ent_reg = er.async_get(hass)
+    entry = ent_reg.async_get_or_create(
+        "sensor",
+        "roborock",
+        "q8_filter_time_left",
+        config_entry=source,
+        device_id=device.id,
+        translation_key="filter_time_left",
+        suggested_object_id="roborock_q8_filter_time_left",
+    )
+    hass.states.async_set(entry.entity_id, "80", {"unit_of_measurement": "h"})
+    return device.id

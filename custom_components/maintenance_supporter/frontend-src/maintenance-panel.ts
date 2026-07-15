@@ -43,6 +43,8 @@ import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import "./components/adopt-problem-sensors-dialog";
 import type { MaintenanceAdoptProblemSensorsDialog } from "./components/adopt-problem-sensors-dialog";
+import "./components/suggested-setups-dialog";
+import type { MaintenanceSuggestedSetupsDialog } from "./components/suggested-setups-dialog";
 // v2.0.0: panel uses the extracted Calendar Card instead of its own
 // _renderCalendar() method — single source of truth for the calendar view.
 import "./maintenance-calendar-card";
@@ -993,6 +995,20 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._loadData();
   }
 
+  // --- Suggested setups (integration signatures, v2.28) ---
+
+  private _openSuggestedSetups(): void {
+    this.shadowRoot!
+      .querySelector<MaintenanceSuggestedSetupsDialog>("maintenance-suggested-setups-dialog")
+      ?.open();
+  }
+
+  private _onSetupsAdopted(e: CustomEvent): void {
+    const tasks = e.detail?.tasks_created ?? 0;
+    this._showToast(t("setups_done", this._lang).replace("{tasks}", String(tasks)));
+    this._loadData();
+  }
+
   // --- Template gallery ---
 
   private async _openTemplateGallery(): Promise<void> {
@@ -1794,6 +1810,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         .hass=${this.hass}
         @problem-sensors-adopted=${(e: CustomEvent) => this._onProblemSensorsAdopted(e)}
       ></maintenance-adopt-problem-sensors-dialog>
+      <maintenance-suggested-setups-dialog
+        .hass=${this.hass}
+        @integration-setups-adopted=${(e: CustomEvent) => this._onSetupsAdopted(e)}
+      ></maintenance-suggested-setups-dialog>
       <maintenance-saved-views-dialog
         .hass=${this.hass}
         @saved-views-changed=${(e: CustomEvent<{ views: SavedView[] }>) => this._onSavedViewsChanged(e)}
@@ -2180,6 +2200,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           </ha-button>
           <ha-button @click=${() => this._openAdoptProblemSensors()}>
             <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${t("adopt_problem_button", L)}
+          </ha-button>
+          <ha-button @click=${() => this._openSuggestedSetups()}>
+            <ha-icon icon="mdi:auto-fix"></ha-icon> ${t("setups_button", L)}
           </ha-button>
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}

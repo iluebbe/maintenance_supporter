@@ -767,5 +767,11 @@
   "card_saved_view_none": "Brak",
   "card_saved_view_help": "Stosuje filtry statusu, użytkownika i etykiety widoku oprócz powyższych filtrów. Sortowanie i grupowanie widoku to ustawienia wyświetlania panelu i nie są stosowane na karcie.",
   "doc_part_none": "Brak dokumentów powiązanych z tą częścią.",
-  "settings_templates_toggle_group": "Włącz lub wyłącz wszystkie szablony w tej grupie"
+  "settings_templates_toggle_group": "Włącz lub wyłącz wszystkie szablony w tej grupie",
+  "setups_button": "Sugerowane konfiguracje",
+  "setups_title": "Sugerowane konfiguracje",
+  "setups_hint": "Urządzenia obsługiwanych integracji, których czujniki materiałów eksploatacyjnych mogą napędzać zadania konserwacji. Przyjęcie tworzy obiekt i łączy każde zadanie z czujnikiem — uruchamia się, gdy materiał się kończy, i rozwiązuje po wymianie.",
+  "setups_none": "Nie znaleziono obsługiwanych urządzeń z niepodłączonymi czujnikami materiałów.",
+  "setups_adopt": "Skonfiguruj wybrane",
+  "setups_done": "Utworzono {tasks} zadań powiązanych z czujnikami."
 }

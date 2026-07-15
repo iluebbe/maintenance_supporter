@@ -767,5 +767,11 @@
   "card_saved_view_none": "Keine",
   "card_saved_view_help": "Wendet die Status-, Nutzer- und Label-Filter der Ansicht zusätzlich zu den obigen Filtern an. Sortierung und Gruppierung der Ansicht sind Panel-Darstellung und werden auf der Karte nicht angewendet.",
   "doc_part_none": "Keine Dokumente mit diesem Ersatzteil verknüpft.",
-  "settings_templates_toggle_group": "Alle Vorlagen dieser Gruppe ein- oder ausschalten"
+  "settings_templates_toggle_group": "Alle Vorlagen dieser Gruppe ein- oder ausschalten",
+  "setups_button": "Setup-Vorschläge",
+  "setups_title": "Setup-Vorschläge",
+  "setups_hint": "Geräte unterstützter Integrationen, deren Verbrauchsmaterial-Sensoren Wartungsaufgaben antreiben können. Beim Übernehmen wird das Objekt angelegt und jede Aufgabe mit ihrem Sensor verdrahtet — sie löst aus, wenn das Material zur Neige geht, und erledigt sich nach dem Tausch von selbst.",
+  "setups_none": "Keine unterstützten Geräte mit unverdrahteten Verbrauchsmaterial-Sensoren gefunden.",
+  "setups_adopt": "Auswahl einrichten",
+  "setups_done": "{tasks} sensor-verdrahtete Aufgaben angelegt."
 }

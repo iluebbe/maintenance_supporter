@@ -767,5 +767,11 @@
   "card_saved_view_none": "Ingen",
   "card_saved_view_help": "Anvender visningens status-, bruger- og etiketfiltre oven på filtrene ovenfor. Visningens sortering og gruppering er panelvisningsindstillinger og anvendes ikke på kortet.",
   "doc_part_none": "Ingen dokumenter knyttet til denne del.",
-  "settings_templates_toggle_group": "Slå alle skabeloner i denne gruppe til eller fra"
+  "settings_templates_toggle_group": "Slå alle skabeloner i denne gruppe til eller fra",
+  "setups_button": "Foreslåede opsætninger",
+  "setups_title": "Foreslåede opsætninger",
+  "setups_hint": "Enheder fra understøttede integrationer, hvis forbrugsstof-sensorer kan drive vedligeholdelsesopgaver. Ved overtagelse oprettes objektet, og hver opgave kobles til sin sensor — den udløses, når materialet er ved at slippe op, og løser sig selv efter udskiftning.",
+  "setups_none": "Ingen understøttede enheder med utilkoblede forbrugsstof-sensorer fundet.",
+  "setups_adopt": "Opsæt valgte",
+  "setups_done": "{tasks} sensor-koblede opgaver oprettet."
 }

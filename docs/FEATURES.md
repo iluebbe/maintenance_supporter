@@ -106,6 +106,18 @@ problem → task → buy-part loop in one step. **Notes survive un-adopting**:
 deleting an adopted task stashes its notes per sensor and the next adoption of
 the same sensor restores them.
 
+### Suggested Setups (2.28+)
+The **Suggested setups** button discovers devices of supported integrations
+whose consumable sensors can drive maintenance tasks — Roborock, Xiaomi Miio
+and Dreame vacuums (brushes, filter, sensors), IPP and Brother printers
+(ink/toner, drum, belt, fuser) — and sets them up in one click: the object is
+bound to the device and every task arrives with its **sensor threshold trigger
+pre-wired** (below 24 h of consumable left / below 10 % remaining, unit-aware).
+Replacing the consumable resolves the task automatically. Every signature in
+the catalog is **verified against the integration's source code** (a tripwire
+enforces the source reference and full localization), and discovery never
+proposes entities already wired to a task.
+
 ![Adopt problem sensors](images/adopt-problem-sensors.png)
 
 ### Saved filter views
