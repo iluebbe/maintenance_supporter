@@ -160,7 +160,7 @@ export class MaintenancePartsSection extends LitElement {
   }
 
   private async _restock(part: MaintenancePart): Promise<void> {
-    const qty = parseInt(this._restockQty, 10);
+    const qty = parseFloat(this._restockQty);
     if (!Number.isFinite(qty) || qty === 0) {
       // Don't silently swallow a no-op amount — keep the input open and mark
       // it so the user sees WHY nothing happened (0 / empty / not a number).

@@ -55,7 +55,7 @@ def _fire_transition(
     hass: HomeAssistant,
     entry: ConfigEntry,
     part: dict[str, Any],
-    stock: int | None,
+    stock: float | None,
     transition: str | None,
 ) -> None:
     event = _TRANSITION_EVENTS.get(transition or "")
@@ -87,9 +87,9 @@ async def async_change_part_stock(
     entry: ConfigEntry,
     part_id: str,
     *,
-    delta: int | None = None,
+    delta: float | None = None,
     absolute: int | None = None,
-) -> int | None:
+) -> float | None:
     """Change one part's stock (clamped at 0), fire the edge event, save.
 
     Returns the new stock, or None when the part is unknown / untracked with a
@@ -102,9 +102,9 @@ async def async_change_part_stock(
         return None
     old = store.get_part_stock(part_id)
     if absolute is not None:
-        new = max(0, int(absolute))
+        new = max(0.0, float(absolute))
     else:
-        new = max(0, (old or 0) + int(delta or 0))
+        new = max(0.0, (old or 0) + float(delta or 0))
     store.set_part_stock(part_id, new)
     # Immediate save: part CRUD and the buy-task reconcile may reload the entry
     # right after, which re-reads the store from disk — a debounced save would
@@ -121,7 +121,7 @@ async def async_handle_completion_parts(
     entry: ConfigEntry,
     task_data: dict[str, Any],
     *,
-    restock_quantity: int | None = None,
+    restock_quantity: float | None = None,
 ) -> None:
     """Completion-side part effects: consume linked parts / restock a buy task.
 
@@ -140,7 +140,7 @@ async def async_handle_completion_parts(
     ref = task_data.get(PART_REF_FIELD)
     if isinstance(ref, dict) and ref.get("part_id") in parts:
         part = parts[ref["part_id"]]
-        qty = restock_quantity if restock_quantity and restock_quantity > 0 else int(part.get("restock_quantity") or 1)
+        qty = restock_quantity if restock_quantity and restock_quantity > 0 else float(part.get("restock_quantity") or 1)
         old = store.get_part_stock(part["id"])
         new = max(0, (old or 0) + qty)
         store.set_part_stock(part["id"], new)
@@ -156,7 +156,7 @@ async def async_handle_completion_parts(
         old = store.get_part_stock(part["id"])
         if old is None:
             continue  # catalog-only part — nothing to decrement
-        qty = int(link.get("quantity", 1) or 1)
+        qty = float(link.get("quantity", 1) or 1)
         new = max(0, old - qty)
         store.set_part_stock(part["id"], new)
         _fire_transition(hass, entry, part, new, stock_transition(part, old, new))

@@ -95,7 +95,7 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
         # Spare parts: on an auto-created "buy" task, how many units were
         # actually bought (dialog override of the part's restock_quantity).
-        vol.Optional("restock_quantity"): vol.Any(vol.All(int, vol.Range(min=1, max=9999)), None),
+        vol.Optional("restock_quantity"): vol.Any(vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=9999)), None),
     }
 )
 @websocket_api.async_response

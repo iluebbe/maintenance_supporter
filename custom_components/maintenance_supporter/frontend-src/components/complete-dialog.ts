@@ -136,7 +136,7 @@ export class MaintenanceCompleteDialog extends LitElement {
         if (!isNaN(rv)) data.reading_value = rv;
       }
       if (this.restockDefault !== null && this._restockQty !== "") {
-        const rq = parseInt(this._restockQty, 10);
+        const rq = parseFloat(this._restockQty);
         if (!isNaN(rq) && rq >= 1) data.restock_quantity = rq;
       }
       await this.hass.connection.sendMessagePromise(data);
@@ -190,7 +190,7 @@ export class MaintenanceCompleteDialog extends LitElement {
             ? html`
               <label class="field">
                 <span class="field-label">${t("restock_quantity_label", L)}</span>
-                <input type="number" step="1" min="1" class="field-input"
+                <input type="number" step="0.01" min="0.01" class="field-input"
                   .value=${this._restockQty}
                   @input=${(e: Event) => (this._restockQty = (e.target as HTMLInputElement).value)} />
               </label>`
@@ -215,7 +215,7 @@ export class MaintenanceCompleteDialog extends LitElement {
           </label>
           <label class="field">
             <span class="field-label">${t("duration_minutes", L)}</span>
-            <input type="number" step="1" min="0" class="field-input"
+            <input type="number" step="0.01" min="0" class="field-input"
               .value=${this._duration}
               @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
           </label>

@@ -156,17 +156,28 @@ def _clean_cost(raw: Any) -> float | None:
     return v
 
 
-def _clean_stock(raw: Any, field: str) -> int | None:
-    """Stock-ish int or None. ``stock: None`` = inventory not tracked."""
+def round_qty(v: float) -> float | int:
+    """Canonical quantity rounding (#98 decimal consumables): 2 decimals,
+    whole numbers collapse back to int so exports/UI stay clean."""
+    r = round(float(v), 2)
+    return int(r) if r.is_integer() else r
+
+
+def _clean_stock(raw: Any, field: str) -> float | int | None:
+    """Stock-ish number or None. ``stock: None`` = inventory not tracked.
+
+    Decimal quantities are allowed (#98 — half a can of spray is 0.5),
+    rounded to 2 decimals.
+    """
     if raw in (None, ""):
         return None
     try:
-        v = int(raw)
+        v = float(raw)
     except (TypeError, ValueError) as err:
-        raise PartValidationError(f"{field} must be an integer") from err
+        raise PartValidationError(f"{field} must be a number") from err
     if not 0 <= v <= MAX_PART_STOCK:
         raise PartValidationError(f"{field} out of range (0-{MAX_PART_STOCK})")
-    return v
+    return round_qty(v)
 
 
 def normalize_part(raw: Mapping[str, Any]) -> dict[str, Any]:
@@ -217,27 +228,31 @@ def sanitize_consumes_parts(raw: Any, valid_part_ids: set[str] | None = None) ->
         if not part_id or (valid_part_ids is not None and part_id not in valid_part_ids):
             continue
         try:
-            qty = int(item.get("quantity", 1))
+            qty = float(item.get("quantity", 1))
         except (TypeError, ValueError):
-            qty = 1
-        out[part_id] = {"part_id": part_id, "quantity": max(1, min(qty, MAX_CONSUME_QUANTITY))}
+            qty = 1.0
+        # Decimal consumption is allowed (#98). Zero/negative behaves like
+        # invalid input (falls back to 1), matching the old integer clamp.
+        if qty <= 0:
+            qty = 1.0
+        out[part_id] = {"part_id": part_id, "quantity": round_qty(min(qty, MAX_CONSUME_QUANTITY))}
     return list(out.values())
 
 
 # ── Stock rules ──────────────────────────────────────────────────────────────
 
 
-def part_is_low(part: Mapping[str, Any], stock: int | None) -> bool:
+def part_is_low(part: Mapping[str, Any], stock: float | None) -> bool:
     """Tracked stock at/below the reorder threshold."""
     threshold = part.get("reorder_threshold")
-    return stock is not None and threshold is not None and stock <= int(threshold)
+    return stock is not None and threshold is not None and stock <= float(threshold)
 
 
 def part_wants_buy_task(part: Mapping[str, Any]) -> bool:
     return bool(part.get("auto_buy_task")) and part.get("reorder_threshold") is not None
 
 
-def stock_transition(part: Mapping[str, Any], old: int | None, new: int | None) -> str | None:
+def stock_transition(part: Mapping[str, Any], old: float | None, new: float | None) -> str | None:
     """The edge this stock change crossed, if any: ``low`` / ``out`` / ``restocked``.
 
     Edge-triggered on purpose — a further decrease while already low never
@@ -292,7 +307,7 @@ def buy_task_name(part_name: str, lang: str) -> str:
     return tpl.replace("{name}", part_name)
 
 
-def buy_task_notes(part: Mapping[str, Any], stock: int | None) -> str:
+def buy_task_notes(part: Mapping[str, Any], stock: float | None) -> str:
     """Self-contained purchase notes: identifiers, qty, price, storage spot.
 
     Deliberately mostly language-neutral (labels are identifiers like MPN/GTIN;
@@ -324,7 +339,7 @@ def buy_task_notes(part: Mapping[str, Any], stock: int | None) -> str:
 
 def build_buy_task(
     part: Mapping[str, Any],
-    stock: int | None,
+    stock: float | None,
     *,
     object_id: str,
     lang: str,
@@ -351,7 +366,7 @@ def build_buy_task(
 
 def reconcile_buy_tasks(
     parts: Mapping[str, Mapping[str, Any]],
-    stocks: Mapping[str, int | None],
+    stocks: Mapping[str, float | None],
     tasks: Mapping[str, Mapping[str, Any]],
     *,
     object_id: str,
