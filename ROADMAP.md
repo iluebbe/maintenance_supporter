@@ -11,13 +11,50 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
-**This list is fully worked off** (2026-07): every user-facing item below has
-shipped — most recently the **2.26 wave**: saved views completed across all
-surfaces (label filter, notification routing, Lovelace card), Assist voice
-intents, part suggestions on problem-sensor adoption, note persistence across
-re-adopt, and per-part document links. The only remaining entry is the
-internal form-generation refactor (item 7, deliberately deferred). New ideas
-land here as they come up — suggestions welcome via issues/Discussions.
+### Next wave (proposed 2026-07)
+
+1. **More voice/Assist intents — grounded task guidance** (💡): a
+   `MaintenanceSupporterTaskInstructions` intent that answers *"how do I do
+   the descaling on the coffee machine?"* strictly from what is **stored on
+   the task**: its notes, checklist steps, linked documents (title + the
+   per-task page hint — "manual X, page 12"), the consumed spare parts (name,
+   storage location, current stock) and the documentation URL.
+   **Anti-hallucination is the design center:** when a task has none of
+   these, the intent must say so explicitly and ask whether the user wants
+   general, non-verified advice instead — never present invented steps as if
+   they were the stored procedure. For LLM pipelines the tool response
+   carries a machine-readable `grounded: false` marker plus an instruction
+   telling the model to disclose the gap and ask before free-styling; the
+   classic sentence agent simply answers "no instructions stored for this
+   task". Further intent candidates on the same foundation: *"when is X
+   due?"* (single-task due query), *"snooze/postpone X"*, and *"how many
+   {part} do we have left?"* (stock query straight from the parts shelf).
+2. **Integration-aware discovery: verified entity signatures** (💡): go
+   through the most popular integrations (core **and** HACS — robot vacuums
+   like Roborock/Dreame/Xiaomi, printers (IPP/Brother/Epson), Tado/HVAC,
+   dishwashers via Home Connect, …) and catalogue **which maintenance-relevant
+   entities each one actually provides** — e.g. Roborock exposes per-consumable
+   countdown sensors (filter / main brush / side brush / sensors time-left).
+   **Method requirement: every signature is verified against the integration's
+   source code — nothing is assumed or invented**; the catalog stores
+   integration domain → entity patterns (suffix/device_class/unit) with a
+   source reference, so a wrong guess can't silently ship. On top of that
+   catalog, discovery gets smart: when a matching device exists, the "From
+   template" flow (and a "suggested setups" surface) proposes the right
+   template **with the sensor-based triggers pre-wired** — the Robot Vacuum
+   template arrives with its filter task already bound to
+   `sensor.<vacuum>_filter_time_left` instead of a bare calendar interval.
+   Builds directly on the existing problem-sensor adoption + suggest-a-part
+   machinery and feeds the LLM setup skill's discovery heuristics.
+
+### Shipped waves
+
+**Everything below is worked off** — most recently the **2.26/2.27 waves**:
+saved views completed across all surfaces, Assist voice intents, the
+29-template catalog in 6 curatable groups, HA date-format support. The only
+remaining entry is the internal form-generation refactor (item 7,
+deliberately deferred). New ideas land here as they come up — suggestions
+welcome via issues/Discussions.
 
 1. ~~**Adopt problem sensors as triggered tasks**~~ ✅ **Shipped in v2.24.0** —
    a discovery + opt-in-sync layer over the existing *sensor-trigger → task →
