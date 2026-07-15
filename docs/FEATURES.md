@@ -401,7 +401,7 @@ status) join the long-standing `complete` / `skip` / `reset` /
 
 ### Voice & Assist (2.26+)
 
-Two Assist intents let you **query and complete tasks by voice**:
+Six Assist intents let you **query, complete and manage tasks by voice**:
 
 - **`MaintenanceSupporterListTasks`** — *"What maintenance is due?"* Speaks the
   actionable tasks (overdue / due soon / triggered), most urgent first, e.g.
@@ -411,8 +411,23 @@ Two Assist intents let you **query and complete tasks by voice**:
   the spoken name (the object name counts too: *"oil change on the car"*),
   records a **real completion** (history, rotation, part consumption,
   on-complete actions), and honours the completion window.
+- **`MaintenanceSupporterTaskInstructions`** (2.28+) — *"How do I do the pump
+  service?"* — answers **strictly from what is stored on the task**: notes,
+  checklist steps, linked documents with their page hint (*"Pump manual, page
+  12"*), the required spare parts with storage location and live stock, and
+  whether a documentation link is on file. **Grounded by design**: when a task
+  has none of these, the intent says so and asks whether you want general,
+  non-verified advice instead — an LLM relays that question rather than
+  inventing steps and presenting them as your stored procedure.
+- **`MaintenanceSupporterTaskDue`** (2.28+) — *"When is the oil change due?"*
+- **`MaintenanceSupporterSnoozeTask`** (2.28+) — *"Snooze the oil change"* —
+  mutes the task's reminders for the configured snooze duration (the schedule
+  is untouched).
+- **`MaintenanceSupporterPartStock`** (2.28+) — *"How many water filters do we
+  have left?"* — answers with the live stock, the storage location, and a
+  warning when the part is at or below its reorder threshold.
 
-**LLM-based Assist pipelines** (OpenAI, Claude, Gemini, local LLMs) pick both
+**LLM-based Assist pipelines** (OpenAI, Claude, Gemini, local LLMs) pick all
 intents up **automatically as tools** in any language — nothing to configure.
 The **classic sentence-matching agent** needs the shipped sentence files: copy
 [`assist/custom_sentences/en/maintenance_supporter.yaml`](../assist/custom_sentences/en/maintenance_supporter.yaml)

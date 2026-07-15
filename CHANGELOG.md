@@ -2,6 +2,29 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🎙️ Four more voice intents — including grounded task guidance
+
+- **"How do I do the pump service?"** — the new
+  `MaintenanceSupporterTaskInstructions` intent answers **strictly from what
+  is stored on the task**: notes, checklist steps, linked documents with
+  their per-task page hint (*"Pump manual, page 12"*), the required spare
+  parts with storage location and live stock, and whether a documentation
+  link is on file. **Grounded by design:** when a task has none of these,
+  the intent says so and asks whether you want general, non-verified advice
+  instead — an LLM assistant relays that question rather than inventing
+  steps and presenting them as your stored procedure.
+- **"When is the oil change due?"** (`MaintenanceSupporterTaskDue`),
+  **"Snooze the oil change"** (`MaintenanceSupporterSnoozeTask` — mutes the
+  reminders for the configured snooze duration, schedule untouched) and
+  **"How many water filters do we have left?"**
+  (`MaintenanceSupporterPartStock` — live stock, storage location, and a
+  reorder-threshold warning).
+- LLM-based Assist pipelines pick all of them up automatically as tools in
+  any language; the shipped `assist/custom_sentences/` files (en/de) cover
+  the classic sentence agent. Responses localised (en/de).
+
 ## [2.27.0] - 2026-07-15
 
 ### 🧰 Nine new object templates (Discussion #85 wishlist)

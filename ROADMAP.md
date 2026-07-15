@@ -13,22 +13,18 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ### Next wave (proposed 2026-07)
 
-1. **More voice/Assist intents — grounded task guidance** (💡): a
-   `MaintenanceSupporterTaskInstructions` intent that answers *"how do I do
-   the descaling on the coffee machine?"* strictly from what is **stored on
-   the task**: its notes, checklist steps, linked documents (title + the
-   per-task page hint — "manual X, page 12"), the consumed spare parts (name,
-   storage location, current stock) and the documentation URL.
-   **Anti-hallucination is the design center:** when a task has none of
-   these, the intent must say so explicitly and ask whether the user wants
-   general, non-verified advice instead — never present invented steps as if
-   they were the stored procedure. For LLM pipelines the tool response
-   carries a machine-readable `grounded: false` marker plus an instruction
-   telling the model to disclose the gap and ask before free-styling; the
-   classic sentence agent simply answers "no instructions stored for this
-   task". Further intent candidates on the same foundation: *"when is X
-   due?"* (single-task due query), *"snooze/postpone X"*, and *"how many
-   {part} do we have left?"* (stock query straight from the parts shelf).
+1. ~~**More voice/Assist intents — grounded task guidance**~~ ✅ **Shipped
+   (Unreleased)** — `MaintenanceSupporterTaskInstructions` answers *"how do I
+   do the descaling?"* strictly from what is **stored on the task** (notes,
+   checklist, linked documents incl. per-task page hint, required spare parts
+   with location + live stock, documentation link). **Anti-hallucination by
+   design:** with nothing stored it says so and *asks* whether the user wants
+   general, non-verified advice — the disclose-and-ask question is the speech
+   itself, so LLM pipelines relay it instead of inventing steps (the tool
+   description reinforces the contract). Plus `TaskDue` ("when is X due?"),
+   `SnoozeTask` and `PartStock` ("how many {part} left?" — with
+   reorder-threshold warning). Still a candidate: postpone-by-voice (needs a
+   spoken date slot).
 2. **Integration-aware discovery: verified entity signatures** (💡): go
    through the most popular integrations (core **and** HACS — robot vacuums
    like Roborock/Dreame/Xiaomi, printers (IPP/Brother/Epson), Tado/HVAC,

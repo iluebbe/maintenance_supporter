@@ -212,3 +212,190 @@ async def test_complete_ambiguous_name_lists_candidates_and_completes_nothing(
     assert resp2.error_code is None
     state = get_task_store_state(hass, obj_a.entry_id, "a" * 32)
     assert [h for h in state.get("history", []) if h.get("type") == "completed"]
+
+
+# ── v2.28 intents: grounded guidance, due query, snooze, part stock ──────────
+
+
+async def test_instructions_speaks_only_stored_guidance(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Notes, checklist, linked doc (with page), required part (with location
+    and live stock) all come straight from stored data."""
+    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.intent import INTENT_TASK_INSTRUCTIONS
+
+    task = _ok_task("Pump Service")
+    task["notes"] = "Bleed the housing before restarting."
+    task["checklist"] = ["Power off", "Swap seal", "Bleed housing"]
+    task["consumes_parts"] = [{"part_id": "p1", "quantity": 2}]
+    obj = make_object_entry(hass, tasks={TASK_ID_1: task}, name="Pool Pump", uid="intent_guide")
+    data = dict(obj.data)
+    data["parts"] = {"p1": {"id": "p1", "name": "Seal kit", "storage_location": "Shelf B"}}
+    hass.config_entries.async_update_entry(obj, data=data)
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+
+    # Live stock + a linked manual with a per-task page hint.
+    obj.runtime_data.store.set_part_stock("p1", 3)
+    doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+    object_id = obj.data["object"]["id"]
+    doc = await doc_store.async_add_weblink(object_id, url="https://x/manual", title="Pump manual")
+    await doc_store.async_update(doc["id"], task_ids=[TASK_ID_1], task_pages={TASK_ID_1: 12})
+
+    resp = await _handle(hass, INTENT_TASK_INSTRUCTIONS, {"name": {"value": "pump service"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "Bleed the housing before restarting." in speech
+    assert "3 checklist steps" in speech and "Swap seal" in speech
+    assert "Pump manual" in speech and "page 12" in speech
+    assert "2 × Seal kit" in speech
+    assert "Shelf B" in speech and "3 in stock" in speech
+
+
+async def test_instructions_nothing_stored_discloses_and_asks(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The anti-hallucination contract: no stored info → say so and ASK
+    before any general advice; never invent steps."""
+    from custom_components.maintenance_supporter.intent import INTENT_TASK_INSTRUCTIONS
+
+    obj = make_object_entry(hass, tasks={TASK_ID_1: _ok_task("Descaling")}, name="Kettle", uid="intent_bare")
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+
+    resp = await _handle(hass, INTENT_TASK_INSTRUCTIONS, {"name": {"value": "descaling"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "no stored instructions" in speech
+    assert "non-verified advice" in speech and "would you like that?" in speech
+
+    resp_de = await _handle(hass, INTENT_TASK_INSTRUCTIONS, {"name": {"value": "descaling"}}, language="de")
+    assert "ungeprüfte Hinweise" in resp_de.speech["plain"]["speech"]
+
+
+async def test_task_due_speaks_status_and_date(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.intent import INTENT_TASK_DUE
+
+    obj = make_object_entry(
+        hass, tasks={TASK_ID_1: _overdue_task("Oil Change")}, name="Family Car", uid="intent_due"
+    )
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+
+    resp = await _handle(hass, INTENT_TASK_DUE, {"name": {"value": "oil change"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "Oil Change" in speech and "overdue" in speech
+    assert "next due date is 20" in speech.lower()  # ISO year on the date suffix
+
+
+async def test_snooze_task_calls_the_notification_manager(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from unittest.mock import MagicMock
+
+    from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+    from custom_components.maintenance_supporter.intent import INTENT_SNOOZE_TASK
+
+    obj = make_object_entry(
+        hass, tasks={TASK_ID_1: _overdue_task("Oil Change")}, name="Family Car", uid="intent_snooze"
+    )
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+
+    nm = MagicMock()
+    hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = nm
+    resp = await _handle(hass, INTENT_SNOOZE_TASK, {"name": {"value": "oil change"}})
+    nm.snooze_task.assert_called_once_with(obj.entry_id, TASK_ID_1)
+    speech = resp.speech["plain"]["speech"]
+    assert "Snoozed" in speech and "hours" in speech
+
+
+async def test_part_stock_tracked_low_untracked_and_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.intent import INTENT_PART_STOCK
+
+    obj = make_object_entry(hass, tasks={TASK_ID_1: _ok_task("Service")}, name="Softener", uid="intent_stock")
+    data = dict(obj.data)
+    data["parts"] = {
+        "p1": {"id": "p1", "name": "Salt bag", "storage_location": "Basement", "reorder_threshold": 2},
+        "p2": {"id": "p2", "name": "Resin bottle"},
+    }
+    hass.config_entries.async_update_entry(obj, data=data)
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+    obj.runtime_data.store.set_part_stock("p1", 1)
+
+    resp = await _handle(hass, INTENT_PART_STOCK, {"name": {"value": "salt bag"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "1 × Salt bag" in speech and "Basement" in speech
+    assert "reorder threshold" in speech  # 1 <= threshold 2 → low warning
+
+    resp2 = await _handle(hass, INTENT_PART_STOCK, {"name": {"value": "resin bottle"}})
+    assert "Stock isn't tracked" in resp2.speech["plain"]["speech"]
+
+    resp3 = await _handle(hass, INTENT_PART_STOCK, {"name": {"value": "flux capacitor"}})
+    assert resp3.error_code == intent.IntentResponseErrorCode.NO_VALID_TARGETS
+
+
+async def test_instructions_edge_branches(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Doc without a page hint, documentation URL, long-note truncation."""
+    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.intent import INTENT_TASK_INSTRUCTIONS
+
+    task = _ok_task("Belt Change")
+    task["notes"] = "x" * 300  # truncated to 240 with an ellipsis
+    task["documentation_url"] = "https://example.com/belts"
+    obj = make_object_entry(hass, tasks={TASK_ID_1: task}, name="Dryer", uid="intent_guide2")
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+
+    doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+    doc = await doc_store.async_add_weblink(obj.data["object"]["id"], url="https://x/b", title="Belt guide")
+    await doc_store.async_update(doc["id"], task_ids=[TASK_ID_1])  # no page hint
+
+    resp = await _handle(hass, INTENT_TASK_INSTRUCTIONS, {"name": {"value": "belt change"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "Belt guide" in speech and "page" not in speech
+    assert "a documentation link is on file" in speech
+    assert "…" in speech and "x" * 241 not in speech
+
+
+async def test_snooze_without_notification_manager_errors(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+    from custom_components.maintenance_supporter.intent import INTENT_SNOOZE_TASK
+
+    obj = make_object_entry(hass, tasks={TASK_ID_1: _ok_task("Oil Change")}, name="Car", uid="intent_nonm")
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+    hass.data[DOMAIN].pop(NOTIFICATION_MANAGER_KEY, None)
+
+    resp = await _handle(hass, INTENT_SNOOZE_TASK, {"name": {"value": "oil change"}})
+    assert resp.error_code == intent.IntentResponseErrorCode.FAILED_TO_HANDLE
+    assert "nothing to snooze" in resp.speech["plain"]["speech"]
+
+
+async def test_part_stock_ambiguous_lists_candidates(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.intent import INTENT_PART_STOCK
+
+    obj = make_object_entry(hass, tasks={TASK_ID_1: _ok_task("Service")}, name="Printer", uid="intent_amb")
+    data = dict(obj.data)
+    data["parts"] = {
+        "p1": {"id": "p1", "name": "Toner black"},
+        "p2": {"id": "p2", "name": "Toner cyan"},
+    }
+    hass.config_entries.async_update_entry(obj, data=data)
+    await setup_integration(hass, global_entry, obj)
+    await async_setup_intents(hass)
+
+    resp = await _handle(hass, INTENT_PART_STOCK, {"name": {"value": "toner"}})
+    assert resp.error_code == intent.IntentResponseErrorCode.NO_VALID_TARGETS
+    assert "Toner black" in resp.speech["plain"]["speech"]
+    assert "Toner cyan" in resp.speech["plain"]["speech"]

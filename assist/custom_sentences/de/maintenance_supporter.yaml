@@ -20,6 +20,27 @@ intents:
           - "[die] Wartung[saufgabe] {name} (erledigen|abschließen)"
           - "markiere [die] [Wartung[saufgabe]] {name} als erledigt"
           - "ich habe [die] {name} (erledigt|gemacht|abgeschlossen)"
+  MaintenanceSupporterTaskInstructions:
+    data:
+      - sentences:
+          - "wie (mache|erledige) ich [die] {name}"
+          - "(Anleitung|Anweisungen) für [die] {name}"
+          - "was brauche ich für [die] {name}"
+  MaintenanceSupporterTaskDue:
+    data:
+      - sentences:
+          - "wann ist [die] {name} fällig"
+          - "wann muss ich [die] {name} (machen|erledigen)"
+  MaintenanceSupporterSnoozeTask:
+    data:
+      - sentences:
+          - "[die] {name} (snoozen|stummschalten)"
+          - "Erinnerungen für [die] {name} (stummschalten|pausieren)"
+  MaintenanceSupporterPartStock:
+    data:
+      - sentences:
+          - "wie viele {name} haben wir [noch]"
+          - "wie ist der Bestand (von|an) {name}"
 lists:
   name:
     wildcard: true
