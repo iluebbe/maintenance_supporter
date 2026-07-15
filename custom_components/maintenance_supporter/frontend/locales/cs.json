@@ -766,5 +766,6 @@
   "card_saved_view": "Uložené zobrazení",
   "card_saved_view_none": "Žádné",
   "card_saved_view_help": "Použije filtry stavu, uživatele a štítku zobrazení navíc k výše uvedeným filtrům. Řazení a seskupení zobrazení jsou nastavení panelu a na kartě se nepoužijí.",
-  "doc_part_none": "K tomuto dílu nejsou připojeny žádné dokumenty."
+  "doc_part_none": "K tomuto dílu nejsou připojeny žádné dokumenty.",
+  "settings_templates_toggle_group": "Zapnout nebo vypnout všechny šablony v této skupině"
 }

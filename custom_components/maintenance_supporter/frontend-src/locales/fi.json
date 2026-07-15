@@ -766,5 +766,6 @@
   "card_saved_view": "Tallennettu näkymä",
   "card_saved_view_none": "Ei mitään",
   "card_saved_view_help": "Soveltaa näkymän tila-, käyttäjä- ja tunnistesuodattimet yllä olevien suodattimien lisäksi. Näkymän lajittelu ja ryhmittely ovat paneelin näyttöasetuksia eivätkä vaikuta korttiin.",
-  "doc_part_none": "Tähän osaan ei ole linkitetty asiakirjoja."
+  "doc_part_none": "Tähän osaan ei ole linkitetty asiakirjoja.",
+  "settings_templates_toggle_group": "Ota kaikki tämän ryhmän mallit käyttöön tai pois"
 }

@@ -766,5 +766,6 @@
   "card_saved_view": "Vista salvata",
   "card_saved_view_none": "Nessuna",
   "card_saved_view_help": "Applica i filtri stato, utente ed etichetta della vista in aggiunta ai filtri sopra. Ordinamento e raggruppamento della vista sono impostazioni di visualizzazione del pannello e non si applicano alla scheda.",
-  "doc_part_none": "Nessun documento collegato a questo ricambio."
+  "doc_part_none": "Nessun documento collegato a questo ricambio.",
+  "settings_templates_toggle_group": "Attiva o disattiva tutti i modelli di questo gruppo"
 }

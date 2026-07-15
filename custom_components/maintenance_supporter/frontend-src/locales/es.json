@@ -766,5 +766,6 @@
   "card_saved_view": "Vista guardada",
   "card_saved_view_none": "Ninguna",
   "card_saved_view_help": "Aplica los filtros de estado, usuario y etiqueta de la vista además de los filtros anteriores. El orden y la agrupación de la vista son ajustes de visualización del panel y no se aplican en la tarjeta.",
-  "doc_part_none": "No hay documentos vinculados a esta pieza."
+  "doc_part_none": "No hay documentos vinculados a esta pieza.",
+  "settings_templates_toggle_group": "Activar o desactivar todas las plantillas de este grupo"
 }

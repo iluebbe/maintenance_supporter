@@ -23,6 +23,25 @@ All notable changes to Maintenance Supporter are documented in this file.
   frequently-tuned sections (notifications, budget, archive) now come first;
   the set-once gallery toggles live at the bottom.
 
+### 🗂️ Template catalog clustered into 6 groups + six more templates
+
+- **The catalog is now organised into six top-level groups** so it stays
+  scannable as it grows: *Vehicle*, *Home & HVAC*, **Household & Routines**
+  (new), **Garden & Outdoor** (new — split out of the former "Pool & Garden"),
+  *Pool*, *Appliances*. Both "From template" pickers (panel and config flow)
+  section by these groups, and the Settings **template gallery is clustered
+  under group headers** with an enabled-count and a per-group **toggle-all**
+  — no pool? One click hides both pool templates.
+- **Six more templates (catalog 23 → 29):** **Bathroom** (clean bathroom,
+  change towels, refill soap dispensers, wash bath mats, check silicone
+  seals), **Bedroom** (change bed linen, rotate mattress, wash pillows &
+  duvets), **Kitchen** (clean refrigerator, defrost freezer, range-hood
+  filter, oven cleaning), **Smoke & CO Detectors** (monthly test, yearly
+  batteries, 10-year replacement note), **E-Bike** (battery-care check with
+  a 30–80 % storage note, chain, tires, brakes, annual service) and **House
+  Exterior** (gutters, roof inspection, windows). All localized into all 18
+  languages, all curatable.
+
 ### 📱 Responsive fixes (device sweep: phones, iPad mini/10.2/Pro, Android tablets)
 
 - **All five KPI counters now fit on phones.** The header stats grid kept a

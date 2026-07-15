@@ -766,5 +766,6 @@
   "card_saved_view": "Sparad vy",
   "card_saved_view_none": "Ingen",
   "card_saved_view_help": "Tillämpar vyns status-, användar- och etikettfilter utöver filtren ovan. Vyns sortering och gruppering är panelvisningsinställningar och tillämpas inte på kortet.",
-  "doc_part_none": "Inga dokument länkade till denna del."
+  "doc_part_none": "Inga dokument länkade till denna del.",
+  "settings_templates_toggle_group": "Aktivera eller inaktivera alla mallar i denna grupp"
 }

@@ -55,16 +55,63 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_uk": "Житло та кліматичні системи",
         "name_zh": "家",
     },
+    # v2.27: two extra top-level groups keep the growing catalog scannable —
+    # recurring HOUSEHOLD routines split from device-centric "home", and
+    # GARDEN/outdoor split from "pool". Dict order = display order everywhere
+    # (both pickers and the settings gallery group by these).
+    "household": {
+        "icon": "mdi:broom",
+        "name_en": "Household & Routines",
+        "name_de": "Haushalt & Routinen",
+        "name_nl": "Huishouden & routines",
+        "name_fr": "Ménage & routines",
+        "name_it": "Casa & routine",
+        "name_es": "Hogar & rutinas",
+        "name_ru": "Быт и рутины",
+        "name_uk": "Побут і рутини",
+        "name_pt": "Casa & rotinas",
+        "name_pl": "Gospodarstwo i rutyny",
+        "name_cs": "Domácnost a rutiny",
+        "name_sv": "Hushåll & rutiner",
+        "name_da": "Husholdning & rutiner",
+        "name_nb": "Husholdning & rutiner",
+        "name_fi": "Kotityöt ja rutiinit",
+        "name_ja": "家事・ルーティン",
+        "name_hi": "गृहकार्य और दिनचर्या",
+        "name_zh": "家务与日常",
+    },
+    "garden": {
+        "icon": "mdi:tree",
+        "name_en": "Garden & Outdoor",
+        "name_de": "Garten & Außenbereich",
+        "name_nl": "Tuin & buiten",
+        "name_fr": "Jardin & extérieur",
+        "name_it": "Giardino & esterni",
+        "name_es": "Jardín & exterior",
+        "name_ru": "Сад и участок",
+        "name_uk": "Сад і подвір'я",
+        "name_pt": "Jardim & exterior",
+        "name_pl": "Ogród i otoczenie",
+        "name_cs": "Zahrada a exteriér",
+        "name_sv": "Trädgård & utomhus",
+        "name_da": "Have & udendørs",
+        "name_nb": "Hage & utendørs",
+        "name_fi": "Piha ja ulkotilat",
+        "name_ja": "庭・屋外",
+        "name_hi": "बगीचा और बाहरी क्षेत्र",
+        "name_zh": "花园与户外",
+    },
     "pool": {
         "icon": "mdi:pool",
-        "name_en": "Pool & Garden",
-        "name_de": "Pool & Garten",
-        "name_nl": "Zwembad & Tuin",
-        "name_fr": "Piscine & Jardin",
-        "name_it": "Piscina & Giardino",
-        "name_es": "Piscina & Jardín",
-        "name_ru": "Бассейн и сад",
-        "name_uk": "Басейн та сад",
+        "name_en": "Pool",
+        "name_de": "Pool",
+        "name_nl": "Zwembad",
+        "name_fr": "Piscine",
+        "name_it": "Piscina",
+        "name_es": "Piscina",
+        "name_ru": "Бассейн",
+        "name_uk": "Басейн",
+        "name_pt": "Piscina",
         "name_zh": "泳池",
     },
     "appliance": {
@@ -138,6 +185,25 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
         ],
     ),
+    ObjectTemplate(
+        id="vehicle_ebike",
+        name="E-Bike",
+        category="vehicle",
+        tasks=[
+            TaskTemplate(
+                "Battery Care Check",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                "Store the battery at 30–80% charge and away from frost — long-term storage full or empty ages the cells.",
+            ),
+            TaskTemplate("Chain Lubrication", "service", "time_based", 30, 7),
+            TaskTemplate("Tire Pressure Check", "inspection", "time_based", 14, 3),
+            TaskTemplate("Brake Adjustment", "inspection", "time_based", 90, 14),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+        ],
+    ),
     # --- Home & HVAC ---
     ObjectTemplate(
         id="home_hvac",
@@ -197,7 +263,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_houseplants",
         name="Houseplants",
-        category="home",
+        category="household",
         tasks=[
             TaskTemplate("Watering", "service", "time_based", 7, 1),
             TaskTemplate("Fertilizing", "service", "time_based", 30, 7),
@@ -213,9 +279,60 @@ TEMPLATES: list[ObjectTemplate] = [
         ],
     ),
     ObjectTemplate(
+        id="home_smoke_detectors",
+        name="Smoke & CO Detectors",
+        category="home",
+        tasks=[
+            TaskTemplate("Test Detectors", "inspection", "time_based", 30, 7),
+            TaskTemplate("Replace Detector Batteries", "replacement", "time_based", 365, 30),
+            TaskTemplate(
+                "Replace Detectors",
+                "replacement",
+                "time_based",
+                3650,
+                90,
+                "Smoke detectors expire — most sensors are rated for 10 years from the date printed on the unit.",
+            ),
+        ],
+    ),
+    # --- Household & Routines (v2.27) ---
+    ObjectTemplate(
+        id="household_bathroom",
+        name="Bathroom",
+        category="household",
+        tasks=[
+            TaskTemplate("Clean Bathroom", "cleaning", "time_based", 7, 1),
+            TaskTemplate("Change Towels", "cleaning", "time_based", 7, 1),
+            TaskTemplate("Refill Soap Dispensers", "service", "time_based", 30, 7),
+            TaskTemplate("Wash Bath Mats", "cleaning", "time_based", 30, 7),
+            TaskTemplate("Check Silicone Seals", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_bedroom",
+        name="Bedroom",
+        category="household",
+        tasks=[
+            TaskTemplate("Change Bed Linen", "cleaning", "time_based", 14, 3),
+            TaskTemplate("Rotate Mattress", "service", "time_based", 90, 14),
+            TaskTemplate("Wash Pillows and Duvets", "cleaning", "time_based", 180, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_kitchen",
+        name="Kitchen",
+        category="household",
+        tasks=[
+            TaskTemplate("Clean Refrigerator", "cleaning", "time_based", 90, 14),
+            TaskTemplate("Defrost Freezer", "cleaning", "time_based", 180, 21),
+            TaskTemplate("Range Hood Filter", "cleaning", "time_based", 90, 14),
+            TaskTemplate("Oven Cleaning", "cleaning", "time_based", 90, 14),
+        ],
+    ),
+    ObjectTemplate(
         id="home_knives",
         name="Kitchen Knives",
-        category="home",
+        category="household",
         tasks=[
             TaskTemplate("Knife Sharpening", "service", "time_based", 75, 7),
             TaskTemplate("Honing", "service", "time_based", 14, 3),
@@ -246,7 +363,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="garden_lawn_mower",
         name="Lawn Mower",
-        category="pool",
+        category="garden",
         tasks=[
             TaskTemplate("Blade Sharpening", "service", "time_based", 90, 14),
             TaskTemplate("Oil Change", "service", "time_based", 365, 30),
@@ -257,7 +374,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="garden_irrigation",
         name="Lawn Irrigation System",
-        category="pool",
+        category="garden",
         tasks=[
             TaskTemplate(
                 "Winterize System",
@@ -274,7 +391,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="garden_pressure_washer",
         name="Pressure Washer",
-        category="pool",
+        category="garden",
         tasks=[
             TaskTemplate(
                 "Winter Storage",
@@ -286,6 +403,16 @@ TEMPLATES: list[ObjectTemplate] = [
             ),
             TaskTemplate("Nozzle and Filter Cleaning", "cleaning", "time_based", 180, 14),
             TaskTemplate("Pump Oil Check", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="garden_house_exterior",
+        name="House Exterior",
+        category="garden",
+        tasks=[
+            TaskTemplate("Clean Gutters", "cleaning", "time_based", 180, 21),
+            TaskTemplate("Roof Inspection", "inspection", "time_based", 365, 30),
+            TaskTemplate("Clean Windows", "cleaning", "time_based", 90, 14),
         ],
     ),
     # --- Appliances ---
