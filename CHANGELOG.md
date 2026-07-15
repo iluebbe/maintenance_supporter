@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.27.0] - 2026-07-15
 
 ### 🧰 Nine new object templates (Discussion #85 wishlist)
 
