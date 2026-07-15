@@ -400,23 +400,52 @@ export class MaintenanceSettingsView extends LitElement {
   private _renderTemplateToggles(L: string) {
     this._loadTemplates();
     const hidden = new Set(this._settings!.disabled_template_ids || []);
+    // v2.27: cluster by category (declaration order = display order) so the
+    // growing catalog stays scannable — each group gets a header with its
+    // icon, an enabled/total count and a toggle-all checkbox.
+    const byCat = new Map<string, typeof this._allTemplates>();
+    for (const catId of Object.keys(this._templateCategories)) byCat.set(catId, []);
+    for (const tpl of this._allTemplates) {
+      if (!byCat.has(tpl.category)) byCat.set(tpl.category, []);
+      byCat.get(tpl.category)!.push(tpl);
+    }
+    const catName = (catId: string) =>
+      (this._templateCategories[catId]?.["name_" + L] as string)
+      || (this._templateCategories[catId]?.name_en as string)
+      || catId;
     return html`
       <div class="settings-section" data-section="templates">
         <h3>${t("settings_templates_label", L)}</h3>
         <p class="section-desc">${t("settings_templates_hint", L)}</p>
-        ${this._allTemplates.map((tpl) => html`
-          <label class="setting-row">
-            <span>
-              <span class="setting-label">${tpl.name}</span>
-              <span class="setting-desc">${this._templateCategories[tpl.category]?.["name_" + L] || this._templateCategories[tpl.category]?.name_en || tpl.category}</span>
-            </span>
-            <input
-              type="checkbox"
-              .checked=${!hidden.has(tpl.id)}
-              @change=${(e: Event) => this._toggleTemplate(tpl.id, (e.target as HTMLInputElement).checked)}
-            />
-          </label>
-        `)}
+        ${[...byCat.entries()].filter(([, tpls]) => tpls.length > 0).map(([catId, tpls]) => {
+          const enabled = tpls.filter((tpl) => !hidden.has(tpl.id)).length;
+          return html`
+            <div class="tpl-group">
+              <label class="tpl-group-head">
+                <ha-icon icon=${(this._templateCategories[catId]?.icon as string) || "mdi:folder-outline"}></ha-icon>
+                <span class="tpl-group-name">${catName(catId)}</span>
+                <span class="tpl-group-count">${enabled}/${tpls.length}</span>
+                <input
+                  type="checkbox"
+                  title=${t("settings_templates_toggle_group", L)}
+                  .checked=${enabled === tpls.length}
+                  @change=${(e: Event) =>
+                    this._toggleTemplateGroup(tpls.map((tpl) => tpl.id), (e.target as HTMLInputElement).checked)}
+                />
+              </label>
+              ${tpls.map((tpl) => html`
+                <label class="setting-row tpl-row">
+                  <span class="setting-label">${tpl.name}</span>
+                  <input
+                    type="checkbox"
+                    .checked=${!hidden.has(tpl.id)}
+                    @change=${(e: Event) => this._toggleTemplate(tpl.id, (e.target as HTMLInputElement).checked)}
+                  />
+                </label>
+              `)}
+            </div>
+          `;
+        })}
       </div>
     `;
   }
@@ -425,6 +454,16 @@ export class MaintenanceSettingsView extends LitElement {
     const hidden = new Set(this._settings!.disabled_template_ids || []);
     if (visible) hidden.delete(id);
     else hidden.add(id);
+    this._updateSetting("disabled_template_ids", [...hidden]);
+  }
+
+  /** Toggle-all for one category group in the template gallery. */
+  private _toggleTemplateGroup(ids: string[], visible: boolean): void {
+    const hidden = new Set(this._settings!.disabled_template_ids || []);
+    for (const id of ids) {
+      if (visible) hidden.delete(id);
+      else hidden.add(id);
+    }
     this._updateSetting("disabled_template_ids", [...hidden]);
   }
 
@@ -1539,6 +1578,25 @@ export class MaintenanceSettingsView extends LitElement {
       cursor: pointer;
       gap: 12px;
     }
+    /* v2.27: template gallery clustered by category */
+    .tpl-group { margin-top: 14px; }
+    .tpl-group-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0 6px;
+      border-bottom: 2px solid var(--divider-color, #e0e0e0);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tpl-group-head ha-icon { --mdc-icon-size: 18px; color: var(--primary-color); }
+    .tpl-group-name { flex: 1; }
+    .tpl-group-count {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      font-weight: 400;
+    }
+    .tpl-row { padding-left: 26px; }
     .setting-row:last-child { border-bottom: none; }
     .setting-row.sub-row {
       padding-left: 16px;

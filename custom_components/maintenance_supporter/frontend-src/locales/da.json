@@ -766,5 +766,6 @@
   "card_saved_view": "Gemt visning",
   "card_saved_view_none": "Ingen",
   "card_saved_view_help": "Anvender visningens status-, bruger- og etiketfiltre oven på filtrene ovenfor. Visningens sortering og gruppering er panelvisningsindstillinger og anvendes ikke på kortet.",
-  "doc_part_none": "Ingen dokumenter knyttet til denne del."
+  "doc_part_none": "Ingen dokumenter knyttet til denne del.",
+  "settings_templates_toggle_group": "Slå alle skabeloner i denne gruppe til eller fra"
 }

@@ -766,5 +766,6 @@
   "card_saved_view": "已保存的视图",
   "card_saved_view_none": "无",
   "card_saved_view_help": "在上述筛选之外再应用该视图的状态、用户和标签筛选。视图的排序和分组属于面板显示设置，不会应用到卡片上。",
-  "doc_part_none": "此部件没有关联的文档。"
+  "doc_part_none": "此部件没有关联的文档。",
+  "settings_templates_toggle_group": "启用或禁用此组中的所有模板"
 }

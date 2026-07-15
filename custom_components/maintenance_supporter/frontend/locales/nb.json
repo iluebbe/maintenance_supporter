@@ -766,5 +766,6 @@
   "card_saved_view": "Lagret visning",
   "card_saved_view_none": "Ingen",
   "card_saved_view_help": "Bruker visningens status-, bruker- og etikettfiltre i tillegg til filtrene over. Visningens sortering og gruppering er panelvisningsinnstillinger og brukes ikke på kortet.",
-  "doc_part_none": "Ingen dokumenter knyttet til denne delen."
+  "doc_part_none": "Ingen dokumenter knyttet til denne delen.",
+  "settings_templates_toggle_group": "Slå alle maler i denne gruppen på eller av"
 }

@@ -766,5 +766,6 @@
   "card_saved_view": "Zapisany widok",
   "card_saved_view_none": "Brak",
   "card_saved_view_help": "Stosuje filtry statusu, użytkownika i etykiety widoku oprócz powyższych filtrów. Sortowanie i grupowanie widoku to ustawienia wyświetlania panelu i nie są stosowane na karcie.",
-  "doc_part_none": "Brak dokumentów powiązanych z tą częścią."
+  "doc_part_none": "Brak dokumentów powiązanych z tą częścią.",
+  "settings_templates_toggle_group": "Włącz lub wyłącz wszystkie szablony w tej grupie"
 }

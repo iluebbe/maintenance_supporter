@@ -766,5 +766,6 @@
   "card_saved_view": "Vue enregistrée",
   "card_saved_view_none": "Aucune",
   "card_saved_view_help": "Applique les filtres statut, utilisateur et étiquette de la vue en plus des filtres ci-dessus. Le tri et le regroupement de la vue sont des réglages d'affichage du panneau et ne s'appliquent pas à la carte.",
-  "doc_part_none": "Aucun document lié à cette pièce."
+  "doc_part_none": "Aucun document lié à cette pièce.",
+  "settings_templates_toggle_group": "Activer ou désactiver tous les modèles de ce groupe"
 }

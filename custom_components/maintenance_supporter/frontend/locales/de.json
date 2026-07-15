@@ -766,5 +766,6 @@
   "card_saved_view": "Gespeicherte Ansicht",
   "card_saved_view_none": "Keine",
   "card_saved_view_help": "Wendet die Status-, Nutzer- und Label-Filter der Ansicht zusätzlich zu den obigen Filtern an. Sortierung und Gruppierung der Ansicht sind Panel-Darstellung und werden auf der Karte nicht angewendet.",
-  "doc_part_none": "Keine Dokumente mit diesem Ersatzteil verknüpft."
+  "doc_part_none": "Keine Dokumente mit diesem Ersatzteil verknüpft.",
+  "settings_templates_toggle_group": "Alle Vorlagen dieser Gruppe ein- oder ausschalten"
 }
