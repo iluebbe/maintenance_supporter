@@ -1,4 +1,4 @@
-import{a as r}from"./chunk-D7UZZMUK.js";var a=r`
+import{a as r}from"./chunk-XJVTMRPN.js";var a=r`
   ha-card { overflow: hidden; }
   .card-content {
     padding: 16px;

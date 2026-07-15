@@ -464,7 +464,10 @@ export interface HomeAssistant {
     }>;
   }>>;
   language: string;
-  locale?: { language: string; number_format?: string };
+  // date_format/time_format are HA's per-user PROFILE settings ("language" |
+  // "system" | "DMY" | "MDY" | "YMD" resp. "language" | "system" | "12" | "24")
+  // — issue #97: dates must follow them, not just the UI language.
+  locale?: { language: string; number_format?: string; date_format?: string; time_format?: string };
   localize(key: string, ...args: unknown[]): string;
   user?: { id: string; name: string; is_admin: boolean; is_owner: boolean };
   /** Current access token — used for authenticated `fetch()` to our HTTP

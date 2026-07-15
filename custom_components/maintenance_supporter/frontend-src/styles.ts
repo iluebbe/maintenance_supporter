@@ -127,29 +127,72 @@ function langToLocale(lang?: string): string {
   return map[l] ?? "en-US";
 }
 
-/** Format a date string (ISO) in the user's locale.
+/** HA per-user date/time format prefs (issue #97).
+ *
+ * hass.locale.date_format ("language"|"system"|"DMY"|"MDY"|"YMD") and
+ * time_format ("language"|"system"|"12"|"24") are frontend PROFILE settings —
+ * deriving the format from the UI language alone showed en users mm/dd/yyyy
+ * even with dd/mm/yyyy configured. Stored on a window singleton because each
+ * bundle (panel / cards / dialog-mount) gets its own module scope; every
+ * surface calls setDateTimePrefs() on hass updates and whichever runs first
+ * wins for all of them.
+ */
+interface DateTimePrefs {
+  date?: string;
+  time?: string;
+}
+const _w = window as unknown as { __msDateTimePrefs?: DateTimePrefs };
+const DT_PREFS: DateTimePrefs = (_w.__msDateTimePrefs ??= {});
+
+/** Feed HA's per-user date/time format into formatDate/formatDateTime. */
+export function setDateTimePrefs(locale?: { date_format?: string; time_format?: string }): void {
+  if (!locale) return;
+  DT_PREFS.date = locale.date_format;
+  DT_PREFS.time = locale.time_format;
+}
+
+function _formatDateObj(d: Date, lang?: string): string {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(d.getFullYear());
+  switch (DT_PREFS.date) {
+    case "DMY": return `${dd}/${mm}/${yyyy}`;
+    case "MDY": return `${mm}/${dd}/${yyyy}`;
+    case "YMD": return `${yyyy}-${mm}-${dd}`;
+    case "system":
+      return d.toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "numeric" });
+    default: // "language" or unset — derive from the UI language (pre-#97 behaviour)
+      return d.toLocaleDateString(langToLocale(lang), { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+}
+
+function _formatTimeObj(d: Date, lang?: string): string {
+  switch (DT_PREFS.time) {
+    case "12": return d.toLocaleTimeString(langToLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: true });
+    case "24": return d.toLocaleTimeString(langToLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: false });
+    case "system": return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    default: return d.toLocaleTimeString(langToLocale(lang), { hour: "2-digit", minute: "2-digit" });
+  }
+}
+
+/** Format a date string (ISO) honouring the HA profile date format.
  *  Appends T00:00:00 to date-only strings so JS parses them as local time, not UTC. */
 export function formatDate(iso: string | null | undefined, lang?: string): string {
   if (!iso) return "—";
   try {
     const local = iso.includes("T") ? iso : iso + "T00:00:00";
-    return new Date(local).toLocaleDateString(langToLocale(lang), { day: "2-digit", month: "2-digit", year: "numeric" });
+    return _formatDateObj(new Date(local), lang);
   } catch {
     return iso;
   }
 }
 
-/** Format a datetime string (ISO) in the user's locale. */
+/** Format a datetime string (ISO) honouring the HA profile date/time formats. */
 export function formatDateTime(iso: string | null | undefined, lang?: string): string {
   if (!iso) return "—";
   try {
-    const locale = langToLocale(lang);
     const d = new Date(iso);
-    return (
-      d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" }) +
-      " " +
-      d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
-    );
+    return _formatDateObj(d, lang) + " " + _formatTimeObj(d, lang);
   } catch {
     return iso;
   }
