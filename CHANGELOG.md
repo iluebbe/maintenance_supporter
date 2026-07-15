@@ -23,6 +23,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   frequently-tuned sections (notifications, budget, archive) now come first;
   the set-once gallery toggles live at the bottom.
 
+### 🐛 Dates follow the Home Assistant date-format setting (#97)
+
+- **Due dates, history timestamps and every other date now honour the HA
+  profile settings** *Date format* (dd/mm/yyyy, mm/dd/yyyy, ISO, system) and
+  *Time format* (12 h / 24 h). Previously the format was derived from the UI
+  language alone — an English UI always showed mm/dd/yyyy even with
+  dd/mm/yyyy configured in the profile. "Automatic (use language)" keeps the
+  previous behaviour, so nothing changes unless you've set a format.
+
 ### 🗂️ Template catalog clustered into 6 groups + six more templates
 
 - **The catalog is now organised into six top-level groups** so it stays

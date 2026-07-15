@@ -2,7 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded } from "./styles";
+import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -89,6 +89,8 @@ export class MaintenanceSupporterCard extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    // Dates/times follow the HA profile format, not just the language (#97).
+    if (changedProps.has("hass")) setDateTimePrefs(this.hass?.locale);
     const lang = this.hass?.language;
     if (lang && !isLocaleLoaded(lang)) {
       ensureLocale(lang).then(() => this.requestUpdate());

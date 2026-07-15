@@ -30,7 +30,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded } from "./styles";
+import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -114,6 +114,8 @@ export class MaintenanceCalendarCard extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    // Dates/times follow the HA profile format, not just the language (#97).
+    if (changedProps.has("hass")) setDateTimePrefs(this.hass?.locale);
     const lang = this.hass?.language;
     if (lang && !isLocaleLoaded(lang)) {
       ensureLocale(lang).then(() => this.requestUpdate());

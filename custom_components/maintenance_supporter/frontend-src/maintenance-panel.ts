@@ -3,7 +3,7 @@
 import { LitElement, html, nothing } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence } from "./styles";
+import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs } from "./styles";
 import { LS_KEYS } from "./helpers/storage-keys";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
@@ -269,6 +269,8 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    // Dates/times follow the HA profile format, not just the language (#97).
+    if (changedProps.has("hass")) setDateTimePrefs(this.hass?.locale);
     // Lazy-load the user's UI language (non-EN tables aren't bundled) and
     // re-render once it arrives. EN is bundled, so strings read in English
     // until then rather than as raw keys.
