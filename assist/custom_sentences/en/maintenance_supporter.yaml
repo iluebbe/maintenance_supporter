@@ -18,6 +18,27 @@ intents:
           - "complete [the] [maintenance] [task] {name}"
           - "mark [the] [maintenance] [task] {name} [as] (done|completed)"
           - "I (did|finished) [the] {name}"
+  MaintenanceSupporterTaskInstructions:
+    data:
+      - sentences:
+          - "how do I (do|perform) [the] {name}"
+          - "(instructions|guidance) for [the] {name}"
+          - "what do I need for [the] {name}"
+  MaintenanceSupporterTaskDue:
+    data:
+      - sentences:
+          - "when is [the] {name} due"
+          - "when do I (need|have) to (do|perform) [the] {name}"
+  MaintenanceSupporterSnoozeTask:
+    data:
+      - sentences:
+          - "snooze [the] [maintenance] [task] {name}"
+          - "(mute|silence) [the] reminders for [the] {name}"
+  MaintenanceSupporterPartStock:
+    data:
+      - sentences:
+          - "how (many|much) {name} (do we have|are left|is left)"
+          - "what is the stock of [the] {name}"
 lists:
   name:
     wildcard: true
