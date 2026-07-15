@@ -41,12 +41,12 @@ _PART_FIELDS_SCHEMA = {
     vol.Optional("unit"): vol.Any(str, None),
     vol.Optional("cost"): vol.Any(int, float, None),
     vol.Optional("reorder_threshold"): vol.Any(int, None),
-    vol.Optional("restock_quantity"): vol.Any(int, None),
+    vol.Optional("restock_quantity"): vol.Any(int, float, None),
     vol.Optional("auto_buy_task"): bool,
     vol.Optional("doc_id"): vol.Any(str, None),
     # Initial / edited stock travels WITH the definition for dialog simplicity,
     # but is stored in the per-entry Store (dynamic), not entry.data.
-    vol.Optional("stock"): vol.Any(int, None),
+    vol.Optional("stock"): vol.Any(int, float, None),
 }
 
 
@@ -86,7 +86,7 @@ async def ws_create_part(
     if stock is not None:
         from ..parts_runtime import async_change_part_stock
 
-        await async_change_part_stock(hass, entry, part["id"], absolute=int(stock))
+        await async_change_part_stock(hass, entry, part["id"], absolute=float(stock))
     # Reload so the part's stock sensor appears (entities are created at setup).
     await hass.config_entries.async_reload(entry.entry_id)
     connection.send_result(msg["id"], {"part_id": part["id"]})
@@ -137,7 +137,7 @@ async def ws_update_part(
                 await rd.store.async_save()
             schedule_buy_task_reconcile(hass, entry)
         else:
-            await async_change_part_stock(hass, entry, part["id"], absolute=int(stock))
+            await async_change_part_stock(hass, entry, part["id"], absolute=float(stock))
     else:
         # Threshold/opt-in edits can change the desired buy-task set.
         schedule_buy_task_reconcile(hass, entry)
@@ -220,7 +220,7 @@ async def ws_delete_part(
         vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         # Either a relative delta (may be negative for corrections) or an
         # absolute count — exactly one.
-        vol.Optional("delta"): vol.All(int, vol.Range(min=-MAX_PART_STOCK, max=MAX_PART_STOCK)),
+        vol.Optional("delta"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=-MAX_PART_STOCK, max=MAX_PART_STOCK)),
         vol.Optional("absolute"): vol.All(int, vol.Range(min=0, max=MAX_PART_STOCK)),
     }
 )

@@ -1583,12 +1583,13 @@ export class MaintenanceTaskDialog extends LitElement {
                           ? html`<input
                               class="consumes-qty"
                               type="number"
-                              min="1"
+                              min="0.01"
                               max="999"
+                              step="0.01"
                               .value=${String(qty)}
                               @input=${(e: Event) => {
-                                const v = parseInt((e.target as HTMLInputElement).value, 10);
-                                this._consumesParts = { ...this._consumesParts, [part.id]: Number.isFinite(v) && v >= 1 ? v : 1 };
+                                const v = parseFloat((e.target as HTMLInputElement).value);
+                                this._consumesParts = { ...this._consumesParts, [part.id]: Number.isFinite(v) && v >= 0.01 ? v : 1 };
                               }}
                             />`
                           : nothing}

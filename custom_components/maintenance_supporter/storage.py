@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 from .const import CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN
+from .helpers.parts import round_qty
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -182,17 +183,17 @@ class MaintenanceStore:
 
     # --- spare-part stock (mutable count; static part defs live in entry.data) ---
 
-    def get_part_stock(self, part_id: str) -> int | None:
+    def get_part_stock(self, part_id: str) -> float | None:
         """On-hand count for a part, or None when inventory isn't tracked."""
         state = self._data.get("parts", {}).get(part_id, {})
         stock = state.get("stock")
-        return int(stock) if isinstance(stock, int) else None
+        return stock if isinstance(stock, (int, float)) and not isinstance(stock, bool) else None
 
-    def all_part_stocks(self) -> dict[str, int | None]:
+    def all_part_stocks(self) -> dict[str, float | None]:
         """{part_id: stock} for every tracked part."""
         return {pid: self.get_part_stock(pid) for pid in self._data.get("parts", {})}
 
-    def set_part_stock(self, part_id: str, stock: int | None) -> None:
+    def set_part_stock(self, part_id: str, stock: float | None) -> None:
         """Set (or untrack with None) a part's on-hand count, clamped to
         [0, MAX_PART_STOCK]. The WS schemas cap each INPUT at MAX_PART_STOCK,
         but additive paths (restock delta / buy-task completion) could push
@@ -203,7 +204,7 @@ class MaintenanceStore:
         if stock is None:
             parts.pop(part_id, None)
         else:
-            parts.setdefault(part_id, {})["stock"] = min(max(0, int(stock)), MAX_PART_STOCK)
+            parts.setdefault(part_id, {})["stock"] = min(max(0, round_qty(stock)), MAX_PART_STOCK)
 
     def remove_part(self, part_id: str) -> None:
         """Drop a deleted part's stock state."""

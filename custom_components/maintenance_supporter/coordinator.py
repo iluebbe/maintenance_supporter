@@ -964,7 +964,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         completed_by: str | None = None,
         photo_doc_id: str | None = None,
         reading_value: float | None = None,
-        restock_quantity: int | None = None,
+        restock_quantity: float | None = None,
     ) -> None:
         """Mark a task as completed and persist."""
         merged = self._get_merged_tasks_data()

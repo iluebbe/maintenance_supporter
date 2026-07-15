@@ -25,6 +25,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   any language; the shipped `assist/custom_sentences/` files (en/de) cover
   the classic sentence agent. Responses localised (en/de).
 
+### 🧴 Decimal consumable quantities (Discussion #98)
+
+- **Spare-part stock, consumption and restock amounts now accept decimals** —
+  a job that uses half a can of cleaning spray records `0.5`, the shelf can
+  hold `2.5` cans, and the reorder threshold compares fractionally. This
+  keeps the *can* as the natural unit (price stays 4.99 per can) instead of
+  forcing a millilitre workaround that broke on price precision. Quantities
+  round to 2 decimals, whole numbers stay whole, and everything rides
+  through the buy-task loop, stock sensors, export/import and the part-stock
+  voice intent unchanged.
+
 ### 🔌 Suggested setups — integrations with sensor triggers pre-wired
 
 - **A new "Suggested setups" button** discovers devices of supported

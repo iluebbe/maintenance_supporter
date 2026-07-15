@@ -545,3 +545,34 @@ def test_stock_sum_clamped_to_max() -> None:
     assert store.get_part_stock("p1") == MAX_PART_STOCK
     store.set_part_stock("p1", -5)
     assert store.get_part_stock("p1") == 0
+
+
+def test_decimal_quantities_98() -> None:
+    """#98: half a can of spray — decimal stock/consumption round-trips."""
+    from custom_components.maintenance_supporter.helpers.parts import (
+        _clean_stock,
+        part_is_low,
+        round_qty,
+        sanitize_consumes_parts,
+    )
+
+    # Canonical rounding: 2 decimals, whole numbers collapse to int.
+    assert round_qty(0.5) == 0.5
+    assert round_qty(2.0) == 2 and isinstance(round_qty(2.0), int)
+    assert round_qty(0.333) == 0.33
+
+    # Stock fields accept decimals; None still means untracked.
+    assert _clean_stock("2.5", "stock") == 2.5
+    assert _clean_stock(None, "stock") is None
+
+    # Consumption links keep 0.5; zero/invalid falls back to 1 (old clamp).
+    links = sanitize_consumes_parts([
+        {"part_id": "spray", "quantity": 0.5},
+        {"part_id": "zero", "quantity": 0},
+    ])
+    by_id = {x["part_id"]: x["quantity"] for x in links}
+    assert by_id == {"spray": 0.5, "zero": 1}
+
+    # Low check compares floats: 0.5 in stock vs threshold 1 -> low.
+    assert part_is_low({"reorder_threshold": 1}, 0.5) is True
+    assert part_is_low({"reorder_threshold": 0.25}, 0.5) is False

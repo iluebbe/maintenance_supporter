@@ -420,7 +420,7 @@ async def ws_import_json(
 
         part_id_map: dict[str, str] = {}
         import_parts: dict[str, dict[str, Any]] = {}
-        part_stocks: dict[str, int] = {}
+        part_stocks: dict[str, float] = {}
         parts_list = obj_entry.get("parts", [])
         if isinstance(parts_list, list):
             for part_entry in parts_list:
@@ -443,7 +443,7 @@ async def ws_import_json(
                 if old_id:
                     part_id_map[old_id] = new_id
                 stock = part_entry.get("stock")
-                if isinstance(stock, int) and stock >= 0:
+                if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
                     part_stocks[new_id] = stock
 
         import_tasks: dict[str, dict[str, Any]] = {}
