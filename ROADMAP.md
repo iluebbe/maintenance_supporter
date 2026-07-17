@@ -14,7 +14,7 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 ### Next wave (proposed 2026-07)
 
 1. ~~**More voice/Assist intents — grounded task guidance**~~ ✅ **Shipped
-   (Unreleased)** — `MaintenanceSupporterTaskInstructions` answers *"how do I
+   in v2.28.0** — `MaintenanceSupporterTaskInstructions` answers *"how do I
    do the descaling?"* strictly from what is **stored on the task** (notes,
    checklist, linked documents incl. per-task page hint, required spare parts
    with location + live stock, documentation link). **Anti-hallucination by
@@ -26,7 +26,7 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    reorder-threshold warning). Still a candidate: postpone-by-voice (needs a
    spoken date slot).
 2. ~~**Integration-aware discovery: verified entity signatures**~~ ✅
-   **Shipped (Unreleased)** — a source-verified catalog
+   **Shipped in v2.28.0** — a source-verified catalog
    (`helpers/integration_signatures`, method contract: every entry carries a
    reference into the integration's code, enforced by a tripwire) covers
    Roborock / Xiaomi Miio / Dreame vacuums and IPP / Brother printers. The
