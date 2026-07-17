@@ -697,6 +697,40 @@ async def test_skip_maintenance(
     assert any(h.get("type") == "skipped" for h in history)
 
 
+async def test_auto_complete_on_recovery_ignores_inert_and_unknown_tasks(
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
+) -> None:
+    """The event-driven recovery completion must be a no-op for a disabled task
+    and for an unknown task id — a recovering sensor should never revive an
+    inert task or crash on a stale id."""
+    last = (dt_util.now().date() - timedelta(days=20)).isoformat()
+    disabled = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30, enabled=False)
+    obj_entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Inert Test",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Inert Test"),
+            tasks={TASK_ID_1: disabled},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_inert_recovery",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+    coordinator = obj_entry.runtime_data.coordinator
+
+    # Disabled task: recovery must not record a completion.
+    await coordinator.async_auto_complete_on_recovery(TASK_ID_1, 0.0)
+    history = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1).get("history", [])
+    assert not [h for h in history if h.get("type") == "completed"]
+
+    # Unknown task id: returns quietly, no exception.
+    await coordinator.async_auto_complete_on_recovery("does-not-exist", 0.0)
+
+
 async def test_reset_maintenance(
     hass: HomeAssistant,
     global_entry_notifications: MockConfigEntry,

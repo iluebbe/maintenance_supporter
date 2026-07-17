@@ -505,6 +505,40 @@ async def test_home_connect_event_present_state_latch(
     assert tc["auto_complete_on_recovery"] is True
 
 
+async def test_xiaomi_miot_percent_filter_and_brush(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """xiaomi_miot builds generic MIoT-spec entities; we match the percent
+    filter/brush life by entity_id suffix (the property name). One % task per
+    filter — the days/used-hours counterparts of the same filter are NOT
+    cataloged, so a device gets exactly one 'Replace Filter'."""
+    await setup_integration(hass, global_entry)
+    purifier = await _seed_sensor(
+        hass, "xiaomi_miot", "ap1", "Air Purifier",
+        [
+            ("filter_life_level", None, "%"),
+            # Same filter, different views — must NOT create extra tasks.
+            ("filter_left_time", None, "d"),
+            ("filter_used_time", None, "h"),
+        ],
+    )
+    vac = await _seed_sensor(
+        hass, "xiaomi_miot", "v1", "Robot Vacuum",
+        [("filter_life_level", None, "%"), ("brush_life_level", None, "%")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (pf,) = setups[purifier]["tasks"]  # exactly one task despite three filter sensors
+    assert pf["task_name"] == "Replace Filter"
+    assert pf["direction"] == "percent_left" and pf["threshold"] == 10.0
+    assert pf["entity_ids"] == ["sensor.xiaomi_miot_ap1_filter_life_level"]
+
+    vt = {t["task_name"]: t for t in setups[vac]["tasks"]}
+    assert set(vt) == {"Replace Filter", "Replace Main Brush"}
+    assert vt["Replace Main Brush"]["direction"] == "percent_left"
+
+
 async def test_vicare_ventilation_filter_signature(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

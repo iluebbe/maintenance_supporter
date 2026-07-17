@@ -99,6 +99,25 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("sensor_dirty_left",), "Clean Sensors", "percent_left"),
         ),
     ),
+    "xiaomi_miot": IntegrationSignature(
+        name="Xiaomi MIoT",
+        source=(
+            "al-one/hass-xiaomi-miot — generic MIoT-spec entities; entity_id "
+            "suffix = the spec property name (core/miot_spec.py format_name + "
+            "eid = f'{model}_{mac[-4:]}_{desc_name}'). Cross-device consumables: "
+            "'filter-life-level' (PERCENTAGE) on air purifiers/humidifiers/water "
+            "purifiers/vacuums, 'brush-life-level' (PERCENTAGE) on vacuums. The "
+            "days/used-hours filter counterparts describe the SAME filter, so "
+            "only the percent signal is cataloged to avoid duplicate tasks."
+        ),
+        tasks=(
+            # Matched via the entity_id suffix (translation_key is the noisier
+            # 'filter-filter_life_level' form). One % task per filter; the side
+            # brush collides to a '_2' suffix and is intentionally not matched.
+            ConsumableSignature(("filter_life_level",), "Replace Filter", "percent_left"),
+            ConsumableSignature(("brush_life_level",), "Replace Main Brush", "percent_left"),
+        ),
+    ),
     "ecovacs": IntegrationSignature(
         name="Ecovacs",
         source=(
