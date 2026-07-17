@@ -64,12 +64,27 @@ class StateChangeTrigger(BaseTrigger):
 
         # Restore triggered state from persisted change count
         if self._change_count >= self._target_changes:
-            self._triggered = True
-            self.entity.async_update_trigger_state(
-                is_triggered=True,
-                current_value=float(self._change_count),
-                trigger_entity_id=self.entity_id,
-            )
+            # Latch reconciliation: a single-shot state alarm (target_changes
+            # == 1) that already left its alert state while we were down is no
+            # longer active. Clear it quietly — the recovery transition was
+            # never observed, so we must NOT auto-complete for it here (that
+            # path only runs on a live off event, guarded against double-count).
+            if (
+                self._to_state is not None
+                and self._target_changes == 1
+                and state.state != self._to_state
+            ):
+                self._change_count = 0
+                self._current_value = 0.0
+                if self.hass.is_running:
+                    self.hass.async_create_task(self._persist_change_count())
+            else:
+                self._triggered = True
+                self.entity.async_update_trigger_state(
+                    is_triggered=True,
+                    current_value=float(self._change_count),
+                    trigger_entity_id=self.entity_id,
+                )
 
         # Register state change listener (override base: we handle events differently)
         self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_transition)
@@ -165,6 +180,25 @@ class StateChangeTrigger(BaseTrigger):
                 self._on_trigger_activated(float(self._change_count))
             elif not is_triggered and was_triggered:
                 self._on_trigger_deactivated(float(self._change_count))
+
+        # Latch recovery: a single-shot state alarm (target_changes == 1 — an
+        # adopted problem sensor or an appliance event) clears when the entity
+        # leaves its alert state. Reset the counter so the next occurrence can
+        # fire again, and run the deactivation path — which auto-completes on
+        # recovery when opted in. Multi-count triggers keep accumulating and
+        # only reset on manual completion, so they are untouched here.
+        elif (
+            self._to_state is not None
+            and self._target_changes == 1
+            and self._triggered
+            and new_val != self._to_state
+        ):
+            self._change_count = 0
+            self._current_value = 0.0
+            if self.hass.is_running:
+                self.hass.async_create_task(self._persist_change_count())
+            self._triggered = False
+            self._on_trigger_deactivated(0.0)
 
         self._last_state = new_val
 

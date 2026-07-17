@@ -4,6 +4,22 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🍽️ Home Connect suggested setups + a state-recovery fix
+
+- **Home Connect (Bosch/Siemens/Neff/Gaggenau)** appliances now propose
+  maintenance tasks from their **event sensors**: dishwasher *salt* / *rinse
+  aid* nearly-empty, coffee-machine *descale* / *clean*, and cooker-hood
+  *grease-filter* saturation. These are `present`/`off` state events (not
+  percent or countdown values), so they wire a **state latch** that activates
+  when the event appears and auto-completes when the appliance clears it.
+- **Fix — auto-complete on recovery for state triggers.** Single-shot state
+  triggers (adopted **problem sensors** and the new Home Connect events)
+  previously latched on and **never auto-completed** when the alert cleared —
+  the recovery hook only ran on the numeric-threshold path. They now recover
+  correctly: leaving the alert state clears the task and, when opted in,
+  records the completion. A latch whose alert cleared while Home Assistant was
+  down is reconciled to inactive on startup without a phantom completion.
+
 ### 🤖 Robot Lawn Mower template + more suggested-setup signatures
 
 - **New "Robot Lawn Mower" template** (catalog 32) — blade replacement (with a

@@ -95,11 +95,15 @@ method contract).
    - ✅ **ViCare** — ventilation `filter_remaining_hours` (duration_left). Burner
      & compressor hours are lifetime counters with no reset → **not** cataloged;
      boiler service stays a yearly calendar template.
-   - ❌ **Home Connect** — **declined**: coffee counters are lifetime (no reset);
-     salt/rinse-aid/descaling/grease-filter are `sensor` ENUM *event* entities
-     (`present`/`off`), not percent/countdown and not `binary_sensor` problem —
-     fits none of the three directions nor problem-sensor adoption. Would need a
-     new "enum-event" match mechanism (parked as a future idea).
+   - ✅ **Home Connect** — cataloged via a NEW `event_present` direction. Its
+     maintenance signals are `sensor` ENUM *event* entities (`present`/`off`/
+     `confirmed`), not percent/countdown — so a numeric threshold doesn't fit.
+     They now adopt as a **state_change latch on `present`** (salt/rinse-aid,
+     coffee descale/clean, hood grease filter). This first required fixing the
+     `state_change` trigger, whose `auto_complete_on_recovery` never fired for
+     single-shot state alarms (it only counted transitions up) — the same
+     latent gap affected adopted problem sensors; both now auto-resolve when the
+     alert state clears. Coffee lifetime counters stay uncataloged (no reset).
    - ❌ **Tado** — nothing counts/depletes/resets; only a battery-LOW binary
      (device_class BATTERY). Dropped from the candidate list.
 4. Cars: rely on counter/delta triggers (odometer) + problem-sensor adoption
@@ -107,9 +111,6 @@ method contract).
 
 ## Follow-up candidates (parked)
 
-- **Enum-event match mechanism** — a fourth signature style for Home Connect's
-  `present`/`off` event sensors (dishwasher salt/rinse-aid, coffee descaling
-  ladder). 25.7k installs make it the most impactful *new-mechanism* work.
 - **kia_uvo service-distance** — verify remaining-distance vs odometer-target
   semantics before choosing a direction.
 - **Valetudo** — MQTT-discovery-name matching (per-consumable minutes or

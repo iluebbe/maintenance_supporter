@@ -21,6 +21,12 @@ Direction semantics:
   replacement/reset (blade usage time). Trigger: above N hours, converted
   into the entity's display unit; resetting the counter after the swap
   resolves the task (auto_complete_on_recovery).
+* ``event_present``  — an ENUM *event* sensor (no unit) that reports an
+  actionable maintenance state (``present``) vs. ``off``/``confirmed`` — Home
+  Connect salt/rinse-aid/descale/clean events. Trigger: a state_change latch on
+  ``present`` (not a numeric threshold); the task auto-completes when the event
+  clears. The appliance emitting the clearing event is required for auto-resolve
+  — otherwise the task waits for a manual completion.
 """
 
 from __future__ import annotations
@@ -199,6 +205,26 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("filter_remaining_hours",), "Replace Filter", "duration_left"),
         ),
     ),
+    "home_connect": IntegrationSignature(
+        name="Home Connect",
+        source=(
+            "home-assistant/core homeassistant/components/home_connect/sensor.py "
+            "EVENT_SENSORS (HomeConnectEventSensor, device_class ENUM, "
+            "EVENT_OPTIONS ['confirmed','off','present']; translation_key per "
+            "EventKey). No percent/countdown consumables exist (coffee counters "
+            "are lifetime, no reset) — these actionable events are the only "
+            "maintenance-usable signal, matched as a state latch on 'present'."
+        ),
+        tasks=(
+            ConsumableSignature(("salt_nearly_empty",), "Refill Salt", "event_present"),
+            ConsumableSignature(("rinse_aid_nearly_empty",), "Refill Rinse Aid", "event_present"),
+            ConsumableSignature(("device_should_be_descaled",), "Descale Appliance", "event_present"),
+            ConsumableSignature(("device_should_be_cleaned",), "Clean Appliance", "event_present"),
+            ConsumableSignature(
+                ("grease_filter_max_saturation_reached",), "Clean Grease Filter", "event_present"
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         source="home-assistant/core homeassistant/components/ipp/sensor.py (marker_<i>, translation_key 'marker', %)",
@@ -265,7 +291,11 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     which direction applies. A concrete unit disambiguates: percent_left wants
     ``%``; the duration/counter directions want anything else. The check is
     lenient — a missing unit (disabled/just-added entity) never rejects a
-    key match, so existing single-shape signatures are unaffected."""
+    key match, so existing single-shape signatures are unaffected. The one
+    strict case is ``event_present``: ENUM event sensors carry no unit, so a
+    unit-bearing entity that happens to share the key is NOT an event."""
+    if direction == "event_present":
+        return unit is None
     if unit is None:
         return True
     if direction == "percent_left":
@@ -279,6 +309,8 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     Duration values are stored in the signature as hours; HA may present the
     state in s/min/h/d depending on the entity's unit settings.
     """
+    if sig.direction == "event_present":
+        return 0.0  # ENUM event latch — no numeric threshold
     if sig.direction == "percent_left":
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
@@ -291,14 +323,28 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
 def build_setup_trigger(
     sig: ConsumableSignature, hass: HomeAssistant, entity_ids: list[str]
 ) -> dict[str, Any]:
-    """A pre-wired threshold trigger for one signature's matched entities.
+    """A pre-wired trigger for one signature's matched entities.
 
-    ``entity_logic: any`` (any low consumable triggers) and auto-complete on
-    recovery — replacing the consumable resets the countdown/percentage (or,
-    for ``usage_above`` wear counters, resetting the counter drops it back
-    below the threshold), which resolves the task just like a cleared problem
-    sensor.
+    Numeric signatures build a threshold trigger with ``entity_logic: any``
+    (any low consumable triggers) and auto-complete on recovery — replacing the
+    consumable resets the countdown/percentage (or, for ``usage_above`` wear
+    counters, resetting the counter drops it back below the threshold), which
+    resolves the task just like a cleared problem sensor.
+
+    ``event_present`` signatures build a single-entity state-change LATCH on the
+    ``present`` state (Home Connect salt/rinse-aid/descale/clean events): the
+    task activates while the event is present and auto-completes when the
+    appliance clears it (to ``off``/``confirmed``).
     """
+    if sig.direction == "event_present":
+        return {
+            "type": "state_change",
+            "entity_id": entity_ids[0],  # state latch watches a single entity
+            "entity_ids": list(entity_ids),
+            "trigger_to_state": "present",
+            "trigger_target_changes": 1,
+            "auto_complete_on_recovery": True,
+        }
     threshold_key = "trigger_above" if sig.direction == "usage_above" else "trigger_below"
     return {
         "type": "threshold",
