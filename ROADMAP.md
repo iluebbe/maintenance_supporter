@@ -32,9 +32,15 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    Roborock / Xiaomi Miio / Dreame vacuums and IPP / Brother printers. The
    new **"Suggested setups"** surface discovers matching devices and adopts
    them with **sensor threshold triggers pre-wired** (unit-aware: below 24 h
-   left or below 10 % remaining; auto-resolving on replacement). Later:
-   grow the catalog (Tado/HVAC, Home Connect, more printer families) and
-   feed the LLM setup skill's discovery heuristics.
+   left or below 10 % remaining; auto-resolving on replacement). **Next
+   (researched + install-count-verified 2026-07, see
+   docs/design/integration-research-2026-07.md):** signature catalog v2 —
+   Ecovacs (per-consumable lifespan %, incl. GOAT mowers), Husqvarna
+   Automower + Landroid Cloud (blade usage-time counters → new
+   `usage_above` direction), kia_uvo (service-distance); a **Robot Lawn
+   Mower** template; source dives for Home Connect / LG ThinQ / ViCare
+   before cataloging them. BMW is dead (integration removed), Valetudo
+   deferred (MQTT-name matching).
 
 ### Shipped waves
 
