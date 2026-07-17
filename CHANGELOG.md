@@ -25,6 +25,18 @@ All notable changes to Maintenance Supporter are documented in this file.
   any language; the shipped `assist/custom_sentences/` files (en/de) cover
   the classic sentence agent. Responses localised (en/de).
 
+### 🗂️ Template gallery folds — and two more garden templates (Discussion #85)
+
+- **The template-gallery groups in Settings are now collapsed by default** —
+  six compact header rows with the category icon, an enabled/total count and
+  the per-group toggle-all; click a header to expand just the group you're
+  curating. Keeps the settings page short as the catalog grows.
+- **Lawn Care** (mowing with a seasonal-window hint, watering with a
+  sensor-trigger hint, fertilising, scarifying, aerating, overseeding,
+  weeding) and **Hedge Care** (trimming with a nesting-birds note, watering,
+  fertilising, mulching) join Garden & Outdoor — catalog 29 → 31, fully
+  localized. Thanks @Linelore!
+
 ### 📱 Responsive: dialogs fit small phones
 
 - The **Suggested setups**, **Adopt problem sensors** and **Group** dialogs

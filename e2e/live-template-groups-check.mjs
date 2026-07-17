@@ -17,14 +17,14 @@ const token = loadToken();
 const api = await wsClient(REST, token);
 
 const res = await api.send({ type: "maintenance_supporter/templates", language: "de" });
-assert(res.templates.length === 29, `29 templates (got ${res.templates.length})`);
+assert(res.templates.length === 31, `31 templates (got ${res.templates.length})`);
 const cats = Object.keys(res.categories);
 assert(JSON.stringify(cats) === JSON.stringify(["vehicle", "home", "household", "garden", "pool", "appliance"]),
   `6 categories in order (got ${cats.join(",")})`);
 const byCat = {};
 for (const t2 of res.templates) byCat[t2.category] = (byCat[t2.category] || 0) + 1;
 log("  per category:", JSON.stringify(byCat));
-assert(byCat.household === 5 && byCat.garden === 4 && byCat.pool === 2, "household=5, garden=4, pool=2");
+assert(byCat.household === 5 && byCat.garden === 6 && byCat.pool === 2, "household=5, garden=6, pool=2");
 const bathroom = res.templates.find((t2) => t2.id === "household_bathroom");
 assert(bathroom.name === "Badezimmer", `Bathroom localized (got ${bathroom.name})`);
 assert(res.categories.household.name_de === "Haushalt & Routinen", "household category localized");
@@ -78,10 +78,31 @@ const gallery = await p.evaluate(({ finder }) => {
 }, { finder: deepFindPanel });
 assert(!gallery.err, gallery.err || "gallery renders");
 assert(gallery.groups.length === 6, `6 group headers (got ${gallery.groups.length})`);
-assert(gallery.rows === 29, `29 template rows (got ${gallery.rows})`);
+// Collapsed by default: only the headers (with counts) are visible.
+assert(gallery.rows === 0, `groups collapsed by default (got ${gallery.rows} rows)`);
 log("  groups:", gallery.groups.map((g) => `${g.name} ${g.count}`).join(" | "));
 await p.waitForTimeout(400);
 await p.screenshot({ path: `${OUT}/template-groups-settings.png` });
+
+// Expanding a group by clicking its header reveals exactly its rows.
+const expanded = await p.evaluate(({ finder }) => {
+  eval(finder);
+  const sv = window.__panel.shadowRoot.querySelector("maintenance-settings-view");
+  const sec = sv.shadowRoot.querySelector('[data-section="templates"]');
+  const hh = [...sec.querySelectorAll(".tpl-group-head")].find((h) => /Household|Haushalt/.test(h.textContent));
+  hh.click();
+  return true;
+}, { finder: deepFindPanel });
+assert(expanded === true, "household header clicked");
+await p.waitForTimeout(500);
+const afterExpand = await p.evaluate(({ finder }) => {
+  eval(finder);
+  const sv = window.__panel.shadowRoot.querySelector("maintenance-settings-view");
+  const sec = sv.shadowRoot.querySelector('[data-section="templates"]');
+  return sec.querySelectorAll(".tpl-row").length;
+}, { finder: deepFindPanel });
+assert(afterExpand === 5, `expanding household shows its 5 rows (got ${afterExpand})`);
+await p.screenshot({ path: `${OUT}/template-groups-expanded.png` });
 
 // Toggle-all round trip on the household group (real click).
 const toggled = await p.evaluate(({ finder }) => {
