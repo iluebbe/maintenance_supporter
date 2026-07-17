@@ -86,6 +86,23 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("sensor_dirty_left",), "Clean Sensors", "percent_left"),
         ),
     ),
+    "ecovacs": IntegrationSignature(
+        name="Ecovacs",
+        source=(
+            "home-assistant/core homeassistant/components/ecovacs/sensor.py "
+            "(translation_key f'lifespan_{component.name.lower()}', PERCENTAGE) + "
+            "DeebotUniverse/client.py deebot_client/events LifeSpan enum members"
+        ),
+        tasks=(
+            ConsumableSignature(("lifespan_brush",), "Replace Main Brush", "percent_left"),
+            ConsumableSignature(("lifespan_side_brush",), "Replace Side Brush", "percent_left"),
+            ConsumableSignature(("lifespan_filter",), "Replace Filter", "percent_left"),
+            ConsumableSignature(("lifespan_dust_bag",), "Replace Dust Bag", "percent_left"),
+            ConsumableSignature(("lifespan_round_mop",), "Replace Mop Pads", "percent_left"),
+            # GOAT robotic mowers report blade lifespan through the same platform.
+            ConsumableSignature(("lifespan_blade",), "Replace Blades", "percent_left"),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         source="home-assistant/core homeassistant/components/ipp/sensor.py (marker_<i>, translation_key 'marker', %)",
