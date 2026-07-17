@@ -141,6 +141,29 @@ from analytics (tiny/no opt-in base → deprioritize despite category fit): pool
 **Highest-yield next dive: xiaomi_miot** (single family, all four directions,
 ~38k combined opt-in installs with xiaomi_home).
 
+### xiaomi_miot — source dive DONE, ✅ cataloged
+Generic MIoT-spec integration: entity_id suffix = the spec property name
+(`core/miot_spec.py` `format_name` + `eid = f'{model}_{mac[-4:]}_{desc_name}'`);
+translation_key is the noisier `<service>-<prop>` form. Cataloged the **percent**
+consumables, matched by entity_id suffix:
+- `filter_life_level` (%) → "Replace Filter" — air purifiers/humidifiers/water
+  purifiers/vacuums all share it.
+- `brush_life_level` (%) → "Replace Main Brush" — vacuums.
+
+Deliberately **percent-only**: the same filter also exposes `filter_left_time`
+(days, countdown) and `filter_used_time` (hours, counts up) — cataloging those
+would create two or three *duplicate* "Replace Filter" tasks on one device. The
+side-brush shares the `brush_life_level` name and collides to a `_2` entity_id
+suffix, so only the main brush is matched (acceptable — brushes are replaced
+together). No new i18n (both task names already exist).
+
+**xiaomi_home** (official XiaoMi/ha_xiaomi_home) — NOT cataloged: its entity_id
+is `..._filter_life_level_p_{siid}_{piid}` (property name embedded mid-string,
+always suffixed `_p_N_N`) and it sets NO translation_key, so neither
+`translation_key ==` nor `endswith("_<key>")` matches. Would need a matcher
+"contains"/regex mode (`_<name>_p_`) — parked as a matcher-extension candidate,
+not a signature.
+
 ## Follow-up candidates (parked)
 
 - **kia_uvo service-distance** — verify remaining-distance vs odometer-target

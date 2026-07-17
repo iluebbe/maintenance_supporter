@@ -4,6 +4,14 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🌬️ Xiaomi MIoT suggested setups (air purifiers, humidifiers, vacuums)
+
+- **Xiaomi MIoT** (HACS `xiaomi_miot`, one of the most-installed custom
+  integrations) appliances now propose maintenance tasks from their
+  *filter life* and *brush life* percent sensors — air purifiers, humidifiers,
+  water purifiers and robot vacuums. Matched by the MIoT spec property name, so
+  it works across the whole generic device family in one entry.
+
 ### 🍽️ Home Connect suggested setups + a state-recovery fix
 
 - **Home Connect (Bosch/Siemens/Neff/Gaggenau)** appliances now propose
