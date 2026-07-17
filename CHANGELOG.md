@@ -25,6 +25,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   any language; the shipped `assist/custom_sentences/` files (en/de) cover
   the classic sentence agent. Responses localised (en/de).
 
+### 📱 Responsive: dialogs fit small phones
+
+- The **Suggested setups**, **Adopt problem sensors** and **Group** dialogs
+  kept a 360 px minimum width that pushed them past the viewport edge on
+  small phones — the minimum now caps at the screen width. Found by the
+  extended responsive sweep, which now also covers the panel's detail
+  surfaces (object/task view, complete/task/setups dialogs) besides the
+  overview tabs.
+
 ### 🧩 Pick the parts actually used when completing (#99)
 
 - **The complete dialog now lists the object's spare parts as an editable

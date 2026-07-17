@@ -202,7 +202,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      min-width: 360px;
+      min-width: min(360px, calc(100vw - 24px));
       max-width: 560px;
       width: 90vw;
       max-height: 80vh;
