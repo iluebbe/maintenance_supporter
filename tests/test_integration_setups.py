@@ -328,6 +328,7 @@ async def _seed_sensor(
     uid: str,
     device_name: str,
     entities: list[tuple[str, str | None, str | None]],
+    area_name: str | None = None,
 ) -> str:
     """Seed one device of `domain` with (key, translation_key, unit) sensors.
     A None translation_key seeds an entity_id-suffix-only match (HACS style)."""
@@ -337,6 +338,11 @@ async def _seed_sensor(
     device = dev_reg.async_get_or_create(
         config_entry_id=source.entry_id, identifiers={(domain, uid)}, name=device_name
     )
+    if area_name is not None:
+        from homeassistant.helpers import area_registry as ar
+
+        area = ar.async_get(hass).async_get_or_create(area_name)
+        dev_reg.async_update_device(device.id, area_id=area.id)
     ent_reg = er.async_get(hass)
     for key, tkey, unit in entities:
         entry = ent_reg.async_get_or_create(
@@ -508,9 +514,11 @@ async def test_vicare_ventilation_filter_signature(
     dev = await _seed_sensor(
         hass, "vicare", "vh1", "Vitovent",
         [("filter_remaining_hours", "filter_remaining_hours", "h")],
+        area_name="Basement",
     )
     (setup,) = discover_integration_setups(hass)
     assert setup["device_id"] == dev and setup["integration"] == "vicare"
+    assert setup["area_name"] == "Basement"  # device area flows into the suggestion
     (task,) = setup["tasks"]
     assert task["task_name"] == "Replace Filter" and task["direction"] == "duration_left"
     assert task["threshold"] == 24.0
