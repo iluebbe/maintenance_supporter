@@ -82,6 +82,35 @@ method contract).
 2. ✅ **New template: Robot Lawn Mower** (shipped) (blade replacement, undercarriage
    cleaning, charging-contact cleaning, winter storage w/ frost note) — three
    popular mower integrations and no matching template today.
-3. **Source dives** for Home Connect / LG ThinQ / ViCare before any promise.
+3. **Source dives** for Home Connect / LG ThinQ / ViCare — **done 2026-07-17**:
+   - ✅ **LG ThinQ (core `lg_thinq`)** — filter sensors cataloged: AC filter
+     (hours → duration_left), air-purifier/RAC + refrigerator water filters
+     (percent). Gotcha handled: `translation_key="filter_lifetime"` is shared by
+     an hours AND a percent description → the matcher is now **unit-aware**
+     (percent_left claims `%` entities, duration/usage claim the rest).
+   - ✅ **LG ThinQ (HACS `smartthinq_sensors`)** — same filters (matched by
+     entity-id suffix; the integration sets no translation_key) plus the washer
+     **tub-clean counter** (`tub_clean_counter`, unitless wash-cycle count →
+     `usage_above`, resets on a tub-clean course).
+   - ✅ **ViCare** — ventilation `filter_remaining_hours` (duration_left). Burner
+     & compressor hours are lifetime counters with no reset → **not** cataloged;
+     boiler service stays a yearly calendar template.
+   - ❌ **Home Connect** — **declined**: coffee counters are lifetime (no reset);
+     salt/rinse-aid/descaling/grease-filter are `sensor` ENUM *event* entities
+     (`present`/`off`), not percent/countdown and not `binary_sensor` problem —
+     fits none of the three directions nor problem-sensor adoption. Would need a
+     new "enum-event" match mechanism (parked as a future idea).
+   - ❌ **Tado** — nothing counts/depletes/resets; only a battery-LOW binary
+     (device_class BATTERY). Dropped from the candidate list.
 4. Cars: rely on counter/delta triggers (odometer) + problem-sensor adoption
    (warning binaries); a signature entry only for kia_uvo's service-distance.
+
+## Follow-up candidates (parked)
+
+- **Enum-event match mechanism** — a fourth signature style for Home Connect's
+  `present`/`off` event sensors (dishwasher salt/rinse-aid, coffee descaling
+  ladder). 25.7k installs make it the most impactful *new-mechanism* work.
+- **kia_uvo service-distance** — verify remaining-distance vs odometer-target
+  semantics before choosing a direction.
+- **Valetudo** — MQTT-discovery-name matching (per-consumable minutes or
+  percent), harder than translation_key.

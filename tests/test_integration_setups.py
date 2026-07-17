@@ -320,3 +320,145 @@ async def test_usage_above_direction_husqvarna_and_landroid(
     tc = task["trigger_config"]
     assert tc["trigger_above"] == 100.0 and "trigger_below" not in tc
     assert tc["auto_complete_on_recovery"] is True
+
+
+async def _seed_sensor(
+    hass: HomeAssistant,
+    domain: str,
+    uid: str,
+    device_name: str,
+    entities: list[tuple[str, str | None, str | None]],
+) -> str:
+    """Seed one device of `domain` with (key, translation_key, unit) sensors.
+    A None translation_key seeds an entity_id-suffix-only match (HACS style)."""
+    source = MockConfigEntry(domain=domain, title=domain)
+    source.add_to_hass(hass)
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={(domain, uid)}, name=device_name
+    )
+    ent_reg = er.async_get(hass)
+    for key, tkey, unit in entities:
+        entry = ent_reg.async_get_or_create(
+            "sensor", domain, f"{uid}_{key}",
+            config_entry=source, device_id=device.id, translation_key=tkey,
+            suggested_object_id=f"{domain}_{uid}_{key}",
+        )
+        attrs = {"unit_of_measurement": unit} if unit is not None else {}
+        hass.states.async_set(entry.entity_id, "40", attrs)
+    return device.id
+
+
+async def test_lg_thinq_shared_key_unit_disambiguation(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """LG ThinQ reuses translation_key 'filter_lifetime' for an HOURS sensor
+    (AC) and a PERCENT sensor (purifier). The unit-aware matcher must route the
+    hours entity to duration_left and the percent entity to percent_left."""
+    await setup_integration(hass, global_entry)
+    ac = await _seed_sensor(
+        hass, "lg_thinq", "ac1", "Living Room AC",
+        [("filter_lifetime", "filter_lifetime", "h")],
+    )
+    purifier = await _seed_sensor(
+        hass, "lg_thinq", "ap1", "Air Purifier",
+        [
+            ("filter_remain_percent", "filter_lifetime", "%"),
+            ("top_filter", "top_filter_remain_percent", "%"),
+        ],
+    )
+    fridge = await _seed_sensor(
+        hass, "lg_thinq", "rf1", "Fridge",
+        [
+            ("wf1", "water_filter_1_remain_percent", "%"),
+            ("wf2", "water_filter_2_remain_percent", "%"),
+        ],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (ac_task,) = setups[ac]["tasks"]
+    assert ac_task["task_name"] == "Replace Filter"
+    assert ac_task["direction"] == "duration_left" and ac_task["threshold"] == 24.0
+
+    (pf_task,) = setups[purifier]["tasks"]
+    assert pf_task["task_name"] == "Replace Filter"
+    assert pf_task["direction"] == "percent_left" and pf_task["threshold"] == 10.0
+    assert len(pf_task["entity_ids"]) == 2  # both % filters -> one task, any-low
+
+    (rf_task,) = setups[fridge]["tasks"]
+    assert rf_task["task_name"] == "Replace Water Filter"
+    assert rf_task["direction"] == "percent_left" and len(rf_task["entity_ids"]) == 2
+
+    # Adopt the AC: the trigger must use the duration branch (below 24 h), NOT
+    # the collided percent branch.
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": ac}]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Living Room AC"
+    )
+    (task,) = obj.data[CONF_TASKS].values()
+    assert task["trigger_config"]["trigger_below"] == 24.0
+
+
+async def test_smartthinq_entity_id_suffix_and_tub_clean_counter(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """HACS smartthinq_sensors set no translation_key -> matched by entity_id
+    suffix; the unitless tub-clean counter is a usage_above wear counter."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    washer = await _seed_sensor(
+        hass, "smartthinq_sensors", "w1", "Washing Machine",
+        [("tub_clean_counter", None, None), ("filter_remaining_life", None, "%")],
+    )
+
+    (setup,) = discover_integration_setups(hass)
+    by_name = {t["task_name"]: t for t in setup["tasks"]}
+    assert set(by_name) == {"Clean Tub", "Replace Filter"}
+    assert by_name["Clean Tub"]["direction"] == "usage_above"
+    assert by_name["Clean Tub"]["threshold"] == 30.0
+    assert by_name["Replace Filter"]["direction"] == "percent_left"
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": washer}]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Washing Machine"
+    )
+    tub = next(t for t in obj.data[CONF_TASKS].values() if "Tub" in t["name"])["trigger_config"]
+    assert tub["trigger_above"] == 30.0 and "trigger_below" not in tub
+    assert tub["auto_complete_on_recovery"] is True
+
+
+async def test_vicare_ventilation_filter_signature(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """ViCare exposes a real ventilation-filter countdown (filter_remaining_hours,
+    hours) -> duration_left, the first heating-domain signature."""
+    await setup_integration(hass, global_entry)
+    dev = await _seed_sensor(
+        hass, "vicare", "vh1", "Vitovent",
+        [("filter_remaining_hours", "filter_remaining_hours", "h")],
+    )
+    (setup,) = discover_integration_setups(hass)
+    assert setup["device_id"] == dev and setup["integration"] == "vicare"
+    (task,) = setup["tasks"]
+    assert task["task_name"] == "Replace Filter" and task["direction"] == "duration_left"
+    assert task["threshold"] == 24.0

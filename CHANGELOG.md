@@ -2,6 +2,48 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🤖 Robot Lawn Mower template + more suggested-setup signatures
+
+- **New "Robot Lawn Mower" template** (catalog 32) — blade replacement (with a
+  blade-usage-sensor hint), undercarriage cleaning, charging-contact cleaning,
+  and a winter-storage task with a frost/battery note. Fully localized.
+- **Ecovacs suggested setups** — the per-consumable *remaining lifespan %*
+  entities (main/side brush, filter, dust bag, mop pads) map to replacement
+  tasks; the **GOAT robotic mowers** are covered too via their blade lifespan.
+  Verified against core `ecovacs/sensor.py` + the deebot LifeSpan enum.
+
+### 🌱 New `usage_above` signature direction — wear counters that count up
+
+- Some devices report a wear counter that **counts up since the last
+  replacement** instead of a countdown. The new `usage_above` direction wires a
+  *trigger-above* threshold (default 100 usage-hours, converted into the
+  entity's live unit) and auto-resolves the task when the counter is reset after
+  the swap.
+- **Husqvarna Automower** (`cutting_blade_usage_time`) and **Worx Landroid**
+  (`blade_runtime_current`) blade counters now propose a "Replace Blades" task.
+  Both source-verified.
+
+### 🔧 Suggested setups: kitchen & heating filters (LG ThinQ, ViCare)
+
+- **LG ThinQ** (core `lg_thinq`) — AC filter (hours-remaining), air-purifier and
+  RAC filters (percent-remaining), and refrigerator water filters now propose
+  filter-replacement tasks. LG reuses one entity id for both an hours and a
+  percent variant, so discovery now routes each sensor to the right threshold
+  **by its unit**.
+- **LG ThinQ via SmartThinQ** (HACS `smartthinq_sensors`) — the same filters
+  plus the **washer tub-clean counter** (a "Clean Tub" `usage_above` task that
+  resolves when the machine runs a tub-clean course).
+- **Viessmann ViCare** — the ventilation-unit filter countdown
+  (`filter_remaining_hours`) proposes a filter-replacement task, the first
+  heating-domain signature. Boiler burner/compressor hours are lifetime
+  counters with no reset and are deliberately **not** cataloged — a yearly
+  heating-service template covers that instead.
+- Home Connect (Bosch/Siemens) was researched and **declined**: its
+  consumable signals are lifetime counters without reset or transient event
+  sensors, neither of which fits a threshold signature.
+
 ## [2.28.0] - 2026-07-17
 
 ### 🎙️ Four more voice intents — including grounded task guidance
