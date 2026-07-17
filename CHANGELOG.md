@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.28.0] - 2026-07-17
 
 ### 🎙️ Four more voice intents — including grounded task guidance
 
