@@ -41,6 +41,9 @@ const findings = [];
 // optional argv[3]: comma-separated device-name prefixes to run a subset
 const only = (process.argv[3] || "").split(",").filter(Boolean);
 const RUN = only.length ? DEVICES.filter((d) => only.some((o) => d.name.startsWith(o))) : DEVICES;
+// optional argv[4]: comma-separated tab subset (default: all four)
+const tabOnly = (process.argv[4] || "").split(",").filter(Boolean);
+const RUN_TABS = tabOnly.length ? TABS.filter((t2) => tabOnly.includes(t2)) : TABS;
 
 for (const dev of RUN) {
   const ctx = await b.newContext({
@@ -63,7 +66,7 @@ for (const dev of RUN) {
   }
   if (!mounted) { findings.push(`${dev.name}: PANEL NEVER MOUNTED`); await ctx.close(); continue; }
 
-  for (const tab of TABS) {
+  for (const tab of RUN_TABS) {
     await p.evaluate(({ finder, tab: t2 }) => {
       eval(finder);
       window.__panel._view = "overview";
