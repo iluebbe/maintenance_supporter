@@ -375,6 +375,7 @@ export class MaintenanceSettingsView extends LitElement {
 
   @state() private _allTemplates: Array<{ id: string; name: string; category: string; disabled?: boolean }> = [];
   @state() private _templateCategories: Record<string, Record<string, string>> = {};
+  @state() private _tplOpenGroups: Set<string> = new Set();
 
   // One-shot request guard: keyed on a plain flag, NOT on the result being
   // non-empty — an empty catalog answer would otherwise re-trigger the load
@@ -419,9 +420,25 @@ export class MaintenanceSettingsView extends LitElement {
         <p class="section-desc">${t("settings_templates_hint", L)}</p>
         ${[...byCat.entries()].filter(([, tpls]) => tpls.length > 0).map(([catId, tpls]) => {
           const enabled = tpls.filter((tpl) => !hidden.has(tpl.id)).length;
+          // Collapsed by default (user request): the gallery lists 30+
+          // templates — folded groups with an enabled/total count keep the
+          // settings page short; expand only what you're curating.
+          const open = this._tplOpenGroups.has(catId);
           return html`
             <div class="tpl-group">
-              <label class="tpl-group-head">
+              <div
+                class="tpl-group-head"
+                role="button"
+                tabindex="0"
+                @click=${() => this._toggleTplGroupOpen(catId)}
+                @keydown=${(e: KeyboardEvent) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    this._toggleTplGroupOpen(catId);
+                  }
+                }}
+              >
+                <ha-icon class="tpl-chevron" icon=${open ? "mdi:chevron-down" : "mdi:chevron-right"}></ha-icon>
                 <ha-icon icon=${(this._templateCategories[catId]?.icon as string) || "mdi:folder-outline"}></ha-icon>
                 <span class="tpl-group-name">${catName(catId)}</span>
                 <span class="tpl-group-count">${enabled}/${tpls.length}</span>
@@ -429,20 +446,23 @@ export class MaintenanceSettingsView extends LitElement {
                   type="checkbox"
                   title=${t("settings_templates_toggle_group", L)}
                   .checked=${enabled === tpls.length}
+                  @click=${(e: Event) => e.stopPropagation()}
                   @change=${(e: Event) =>
                     this._toggleTemplateGroup(tpls.map((tpl) => tpl.id), (e.target as HTMLInputElement).checked)}
                 />
-              </label>
-              ${tpls.map((tpl) => html`
-                <label class="setting-row tpl-row">
-                  <span class="setting-label">${tpl.name}</span>
-                  <input
-                    type="checkbox"
-                    .checked=${!hidden.has(tpl.id)}
-                    @change=${(e: Event) => this._toggleTemplate(tpl.id, (e.target as HTMLInputElement).checked)}
-                  />
-                </label>
-              `)}
+              </div>
+              ${open
+                ? tpls.map((tpl) => html`
+                    <label class="setting-row tpl-row">
+                      <span class="setting-label">${tpl.name}</span>
+                      <input
+                        type="checkbox"
+                        .checked=${!hidden.has(tpl.id)}
+                        @change=${(e: Event) => this._toggleTemplate(tpl.id, (e.target as HTMLInputElement).checked)}
+                      />
+                    </label>
+                  `)
+                : nothing}
             </div>
           `;
         })}
@@ -455,6 +475,14 @@ export class MaintenanceSettingsView extends LitElement {
     if (visible) hidden.delete(id);
     else hidden.add(id);
     this._updateSetting("disabled_template_ids", [...hidden]);
+  }
+
+  /** Expand/collapse one gallery group (collapsed by default). */
+  private _toggleTplGroupOpen(catId: string): void {
+    const next = new Set(this._tplOpenGroups);
+    if (next.has(catId)) next.delete(catId);
+    else next.add(catId);
+    this._tplOpenGroups = next;
   }
 
   /** Toggle-all for one category group in the template gallery. */
@@ -1590,6 +1618,8 @@ export class MaintenanceSettingsView extends LitElement {
       font-weight: 600;
     }
     .tpl-group-head ha-icon { --mdc-icon-size: 18px; color: var(--primary-color); }
+    .tpl-group-head .tpl-chevron { color: var(--secondary-text-color); }
+    .tpl-group-head:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .tpl-group-name { flex: 1; }
     .tpl-group-count {
       font-size: 12px;
