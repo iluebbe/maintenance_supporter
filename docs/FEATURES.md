@@ -110,7 +110,7 @@ the same sensor restores them.
 The **Suggested setups** button discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks — Roborock, Xiaomi Miio
 and Dreame vacuums (brushes, filter, sensors), IPP and Brother printers
-(ink/toner, drum, belt, fuser) — and sets them up in one click: the object is
+(ink/toner, drum, belt, fuser), **Husqvarna Automower and Worx Landroid mowers** (blade-usage counters) — and sets them up in one click: the object is
 bound to the device and every task arrives with its **sensor threshold trigger
 pre-wired** (below 24 h of consumable left / below 10 % remaining, unit-aware).
 Replacing the consumable resolves the task automatically. Every signature in

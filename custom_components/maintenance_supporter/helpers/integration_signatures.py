@@ -17,6 +17,10 @@ Direction semantics:
 * ``duration_left``  — countdown to the next replacement (device_class
   duration). Trigger: below N hours, converted into the entity's display unit.
 * ``percent_left``   — remaining life/level in percent. Trigger: below N %.
+* ``usage_above``    — a wear counter that counts UP since the last
+  replacement/reset (blade usage time). Trigger: above N hours, converted
+  into the entity's display unit; resetting the counter after the swap
+  resolves the task (auto_complete_on_recovery).
 """
 
 from __future__ import annotations
@@ -31,6 +35,8 @@ from homeassistant.helpers import entity_registry as er
 
 # Hours a duration-countdown may still hold when the task should trigger.
 _DEFAULT_BELOW_HOURS = 24
+# Usage-hours a wear counter may accumulate before the task should trigger.
+_DEFAULT_ABOVE_HOURS = 100
 # Percent floor for percent-remaining consumables (ink, toner, drum, brush %).
 _DEFAULT_BELOW_PERCENT = 10
 
@@ -41,9 +47,10 @@ class ConsumableSignature:
 
     keys: tuple[str, ...]  # translation_key values (also matched as _<key> entity-id suffix)
     task_name: str  # EN task name; localized through templates_i18n
-    direction: str  # "duration_left" | "percent_left"
+    direction: str  # "duration_left" | "percent_left" | "usage_above"
     below_hours: int = _DEFAULT_BELOW_HOURS
     below_percent: int = _DEFAULT_BELOW_PERCENT
+    above_hours: int = _DEFAULT_ABOVE_HOURS
 
 
 @dataclass(frozen=True)
@@ -103,6 +110,26 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("lifespan_blade",), "Replace Blades", "percent_left"),
         ),
     ),
+    "husqvarna_automower": IntegrationSignature(
+        name="Husqvarna Automower",
+        source=(
+            "home-assistant/core homeassistant/components/husqvarna_automower/sensor.py "
+            "(translation_key 'cutting_blade_usage_time', DURATION s→h; matching reset button exists)"
+        ),
+        tasks=(
+            ConsumableSignature(("cutting_blade_usage_time",), "Replace Blades", "usage_above"),
+        ),
+    ),
+    "landroid_cloud": IntegrationSignature(
+        name="Worx Landroid",
+        source=(
+            "MTrab/landroid_cloud custom_components/landroid_cloud/sensor.py "
+            "(translation_key 'blade_runtime_current' — since last reset, DURATION min→h)"
+        ),
+        tasks=(
+            ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         source="home-assistant/core homeassistant/components/ipp/sensor.py (marker_<i>, translation_key 'marker', %)",
@@ -153,17 +180,18 @@ def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:
 
 
 def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str) -> float:
-    """The trigger_below value in the entity's CURRENT display unit.
+    """The trigger threshold in the entity's CURRENT display unit.
 
-    Duration countdowns are stored in the signature as hours; HA may present
-    the state in s/min/h/d depending on the entity's unit settings.
+    Duration values are stored in the signature as hours; HA may present the
+    state in s/min/h/d depending on the entity's unit settings.
     """
     if sig.direction == "percent_left":
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
     unit = (state.attributes.get("unit_of_measurement") if state else None) or "h"
     factor = {"s": 3600.0, "min": 60.0, "h": 1.0, "d": 1 / 24}.get(unit, 1.0)
-    return round(sig.below_hours * factor, 3)
+    hours = sig.above_hours if sig.direction == "usage_above" else sig.below_hours
+    return round(hours * factor, 3)
 
 
 def build_setup_trigger(
@@ -172,13 +200,16 @@ def build_setup_trigger(
     """A pre-wired threshold trigger for one signature's matched entities.
 
     ``entity_logic: any`` (any low consumable triggers) and auto-complete on
-    recovery — replacing the consumable resets the countdown/percentage, which
-    resolves the task just like a cleared problem sensor.
+    recovery — replacing the consumable resets the countdown/percentage (or,
+    for ``usage_above`` wear counters, resetting the counter drops it back
+    below the threshold), which resolves the task just like a cleared problem
+    sensor.
     """
+    threshold_key = "trigger_above" if sig.direction == "usage_above" else "trigger_below"
     return {
         "type": "threshold",
         "entity_ids": list(entity_ids),
-        "trigger_below": _threshold_for(sig, hass, entity_ids[0]),
+        threshold_key: _threshold_for(sig, hass, entity_ids[0]),
         "entity_logic": "any",
         "auto_complete_on_recovery": True,
     }
@@ -237,7 +268,7 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                 {
                     "task_name": sig.task_name,
                     "entity_ids": entity_ids,
-                    "trigger_below": _threshold_for(sig, hass, entity_ids[0]),
+                    "threshold": _threshold_for(sig, hass, entity_ids[0]),
                     "direction": sig.direction,
                 }
             )

@@ -18,7 +18,7 @@ import type { HomeAssistant } from "../types";
 interface SetupTask {
   task_name: string;
   entity_ids: string[];
-  trigger_below: number;
+  threshold: number;
   direction: string;
 }
 

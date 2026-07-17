@@ -72,10 +72,14 @@ method contract).
 
 ## Priorities derived
 
-1. **Signature catalog v2** (suggested setups): `ecovacs` (percent_left, incl.
-   GOAT mowers) → `husqvarna_automower` + `landroid_cloud` (NEW `usage_above`
-   direction) → `kia_uvo` (service-distance). Skip BMW (dead), defer Valetudo.
-2. **New template: Robot Lawn Mower** (blade replacement, undercarriage
+1. **Signature catalog v2** (suggested setups): ✅ `ecovacs` (percent_left,
+   incl. GOAT mowers), ✅ `husqvarna_automower` + `landroid_cloud`
+   (`usage_above` direction, 100 usage-hours default) — both shipped.
+   `kia_uvo` deferred: the next_service_distance entity is verified to exist,
+   but whether it reports *remaining* distance or an odometer *target* needs
+   a deeper source dive before a direction can be chosen. Skip BMW (dead),
+   defer Valetudo.
+2. ✅ **New template: Robot Lawn Mower** (shipped) (blade replacement, undercarriage
    cleaning, charging-contact cleaning, winter storage w/ frost note) — three
    popular mower integrations and no matching template today.
 3. **Source dives** for Home Connect / LG ThinQ / ViCare before any promise.
