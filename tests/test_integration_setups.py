@@ -55,7 +55,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 gaps = [lg for lg in langs if not entry.get(lg)]
                 if gaps:
                     missing.append(f"{domain}: {sig.task_name!r} missing {gaps}")
-            assert sig.direction in ("duration_left", "percent_left", "usage_above")
+            assert sig.direction in ("duration_left", "percent_left", "usage_above", "event_present")
             assert cat.source, f"{domain} lacks a source reference"
     assert not missing, "\n".join(missing)
 
@@ -445,6 +445,58 @@ async def test_smartthinq_entity_id_suffix_and_tub_clean_counter(
     tub = next(t for t in obj.data[CONF_TASKS].values() if "Tub" in t["name"])["trigger_config"]
     assert tub["trigger_above"] == 30.0 and "trigger_below" not in tub
     assert tub["auto_complete_on_recovery"] is True
+
+
+async def test_home_connect_event_present_state_latch(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Home Connect exposes ENUM event sensors (present/off), not numeric
+    consumables. They must adopt as a state_change LATCH on 'present' with
+    auto-complete-on-recovery — one task per event, single-entity."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    dw = await _seed_sensor(
+        hass, "home_connect", "dw1", "Dishwasher",
+        [
+            ("salt_nearly_empty", "salt_nearly_empty", None),
+            ("rinse_aid_nearly_empty", "rinse_aid_nearly_empty", None),
+        ],
+    )
+    # A numeric sensor sharing an event key must NOT be mistaken for an event.
+    ent_reg = er.async_get(hass)
+    stray = ent_reg.async_get_or_create(
+        "sensor", "home_connect", "dw1_bogus",
+        translation_key="salt_nearly_empty", suggested_object_id="home_connect_dw1_num",
+    )
+    hass.states.async_set(stray.entity_id, "50", {"unit_of_measurement": "%"})
+
+    (setup,) = discover_integration_setups(hass)
+    by_name = {t["task_name"]: t for t in setup["tasks"]}
+    assert set(by_name) == {"Refill Salt", "Refill Rinse Aid"}
+    salt = by_name["Refill Salt"]
+    assert salt["direction"] == "event_present" and salt["threshold"] == 0.0
+    # The %-unit stray was rejected: exactly the ENUM event entity is watched.
+    assert salt["entity_ids"] == ["sensor.home_connect_dw1_salt_nearly_empty"]
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": dw, "task_names": ["Refill Salt"]}]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Dishwasher"
+    )
+    (task,) = obj.data[CONF_TASKS].values()
+    tc = task["trigger_config"]
+    assert tc["type"] == "state_change"
+    assert tc["trigger_to_state"] == "present" and tc["trigger_target_changes"] == 1
+    assert tc["entity_id"] == "sensor.home_connect_dw1_salt_nearly_empty"
+    assert tc["auto_complete_on_recovery"] is True
 
 
 async def test_vicare_ventilation_filter_signature(

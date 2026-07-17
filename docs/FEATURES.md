@@ -113,12 +113,15 @@ Dreame and Ecovacs vacuums (brushes, filter, dust bag, mop pads; Ecovacs GOAT
 mowers too), IPP and Brother printers (ink/toner, drum, belt, fuser),
 **Husqvarna Automower and Worx Landroid mowers** (blade-usage counters), **LG
 ThinQ** appliances (AC/purifier/refrigerator filters and the washer tub-clean
-counter) and **Viessmann ViCare** ventilation filters — and sets them up in one
-click: the object is bound to the device and every task arrives with its
-**sensor threshold trigger pre-wired** (below 24 h of consumable left / below
-10 % remaining / above a usage-hours count, unit-aware).
-Replacing the consumable — or resetting the wear counter — resolves the task
-automatically. Every signature in
+counter), **Viessmann ViCare** ventilation filters and **Home Connect**
+(Bosch/Siemens) appliances (dishwasher salt/rinse-aid, coffee descale/clean,
+hood grease filter) — and sets them up in one click: the object is bound to the
+device and every task arrives with its trigger **pre-wired** — a **threshold**
+(below 24 h left / below 10 % remaining / above a usage-hours count, unit-aware)
+for numeric consumables, or a **state latch** on the event for Home Connect's
+`present`/`off` maintenance events.
+Replacing the consumable, resetting the wear counter, or the appliance clearing
+its event resolves the task automatically. Every signature in
 the catalog is **verified against the integration's source code** (a tripwire
 enforces the source reference and full localization), and discovery never
 proposes entities already wired to a task.
