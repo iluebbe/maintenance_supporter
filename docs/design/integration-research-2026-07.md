@@ -109,6 +109,38 @@ method contract).
 4. Cars: rely on counter/delta triggers (odometer) + problem-sensor adoption
    (warning binaries); a signature entry only for kia_uvo's service-distance.
 
+## HACS custom-integration triage (2026-07-17)
+
+Ranked by `analytics.home-assistant.io/custom_integrations.json` `total`
+(opt-in → undercounts; use as a RANKING proxy). Entity claims are triage-level
+(READMEs/docs), NOT source-verified — every catalog entry still needs a source
+dive. Infra/frontend/utility integrations with the largest installs (hacs,
+sonoff, localtuya, alexa_media, webrtc, frigate, browser_mod, spook, alarmo,
+adaptive_lighting, powercalc, battery_notes, waste_collection_schedule, ble_
+monitor, pyscript, camera integrations, virtual thermostats) have **no
+wear/consumable surface** — not candidates.
+
+Source-dive shortlist (device integrations with real maintenance signals):
+
+| Priority | HACS slug | ~Installs | Signal → direction |
+|---|---|---|---|
+| 1 | **xiaomi_miot** (al-one) | 21,009 | air-purifier/humidifier/water-purifier `filter_life_remaining` % → percent_left; `filter_left_time` days → duration_left; `filter_used_time` h → usage_above; vacuum brush/filter/sensor life. Exercises all 4 directions in one family. |
+| 2 | **bambu_lab** (greghesp) | 19,141 | NEW category (3D printer): AMS tray filament remaining % → percent_left; AMS-2-Pro dry-cycle countdown → duration_left. Nozzle wear is NOT a sensor — verify before promising usage_above. |
+| 3 | **xiaomi_home** (al-one) | 17,230 | same Xiaomi MIoT consumable classes; dive alongside #1 (likely shared spec keys); confirm it doesn't just duplicate core `xiaomi_miio` (already covered). |
+| 4 | **midea_ac_lan** (wuwentao) | 11,621 | AC "Clean Filter" alert state → event_present; washers/water heaters — check maintenance flags. |
+| 5 | **hass_dyson** (cmgrayb) | 1,361 | cleanest signal: `hepa_filter_life` + `carbon_filter_life` both % → percent_left (created only when filter present). Low base, low risk. |
+| 6 | **dreo** (JeffSteinbok) | 4,864 | air-purifier `filter_life_remaining` % → percent_left. |
+| 7 | **tuya_local** (make-all) + **xtend_tuya** | 14,498 + 3,121 | vacuum roller/side-brush/filter life % + purifier filter as standardized quirks (unlike raw localtuya) → percent_left. Scoped dive: enumerate which device quirks carry consumable %. |
+| 8 | **daikin_onecta** | 6,164 | HVAC filter-cleaning indicator → event_present (verify entity exists). |
+
+Also noted: electrolux_status (1,841; AEG/Electrolux washer/dryer/purifier filter
+% + rinse-aid states), mbatt/mercedes mbapi2020 (2,436; next-service due). Absent
+from analytics (tiny/no opt-in base → deprioritize despite category fit): pool
+(Hayward/Pentair/AquaPure), water softeners, xiaomi_miot_raw, dyson_local fork.
+
+**Highest-yield next dive: xiaomi_miot** (single family, all four directions,
+~38k combined opt-in installs with xiaomi_home).
+
 ## Follow-up candidates (parked)
 
 - **kia_uvo service-distance** — verify remaining-distance vs odometer-target

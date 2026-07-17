@@ -111,6 +111,34 @@ async def test_state_change_latch_recovers_and_auto_completes(
         assert (await _read(hass, obj.entry_id))["times_performed"] == p0 + 2
 
 
+async def test_state_change_latch_entity_appears_after_setup(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The trigger entity may not exist yet when the task is set up (appliance
+    added later). The listener is registered anyway; once the entity appears the
+    latch fires on the next transition into 'present' and still recovers."""
+    obj = _build_obj(hass)  # NB: sensor state deliberately NOT set -> entity absent
+    assert hass.states.get(_SENSOR) is None
+    with freeze_time("2026-05-01 09:00:00"):
+        await setup_integration(hass, global_entry, obj)
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is False
+
+        # Entity appears (old_state=None) in the healthy state — captured, no fire.
+        hass.states.async_set(_SENSOR, "off")
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is False
+
+        # Now the event fires, then clears -> activate then auto-complete.
+        hass.states.async_set(_SENSOR, "present")
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is True
+        hass.states.async_set(_SENSOR, "off")
+        await hass.async_block_till_done()
+        rec = await _read(hass, obj.entry_id)
+        assert rec["trigger_active"] is False and rec["times_performed"] == 1
+
+
 async def test_state_change_latch_recovered_during_downtime_clears_quietly(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
