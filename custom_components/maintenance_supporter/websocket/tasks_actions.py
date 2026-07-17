@@ -96,6 +96,25 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # Spare parts: on an auto-created "buy" task, how many units were
         # actually bought (dialog override of the part's restock_quantity).
         vol.Optional("restock_quantity"): vol.Any(vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=9999)), None),
+        # #99: the parts actually used on THIS completion. An explicit list
+        # (even an empty one) REPLACES the task's automatic consumes_parts
+        # deduction; omitting the key keeps the automatic behaviour.
+        vol.Optional("used_parts"): vol.Any(
+            vol.All(
+                [
+                    vol.Schema(
+                        {
+                            vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                            vol.Optional("quantity", default=1): vol.All(
+                                vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=999)
+                            ),
+                        }
+                    )
+                ],
+                vol.Length(max=10),
+            ),
+            None,
+        ),
     }
 )
 @websocket_api.async_response
@@ -118,6 +137,15 @@ async def ws_complete_task(
         )
         return
 
+    # #99: validate the per-completion selection against the object's parts
+    # (unknown ids drop, quantities round) — absent stays absent so the
+    # automatic consumes_parts path is untouched.
+    used_parts = msg.get("used_parts")
+    if used_parts is not None:
+        from ..helpers.parts import sanitize_consumes_parts
+
+        used_parts = sanitize_consumes_parts(used_parts, set(_entry.data.get("parts") or {}))
+
     await rd.coordinator.complete_maintenance(
         task_id=msg["task_id"],
         notes=msg.get("notes"),
@@ -128,6 +156,7 @@ async def ws_complete_task(
         photo_doc_id=msg.get("photo_doc_id"),
         reading_value=msg.get("reading_value"),
         restock_quantity=msg.get("restock_quantity"),
+        used_parts=used_parts,
     )
     connection.send_result(msg["id"], {"success": True})
 

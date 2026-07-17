@@ -19,6 +19,10 @@ export class MaintenanceCompleteDialog extends LitElement {
   @property() public readingUnit = "";
   /** Buy task (part_ref): default restock quantity — shows an editable qty field. */
   @property({ attribute: false }) public restockDefault: number | null = null;
+  /** #99: the object's parts — enables the editable "parts used" section. */
+  @property({ attribute: false }) public parts: Array<{ id: string; name: string; unit?: string | null; stock?: number | null }> = [];
+  /** #99: the task's fixed consumes_parts links (prefill for the section). */
+  @property({ attribute: false }) public consumesParts: Array<{ part_id: string; quantity: number }> = [];
   /** "Consumes: 1× HEPA-Filter (Shelf B)" hint lines for consuming tasks. */
   @property({ type: Array }) public consumesInfo: string[] = [];
   @state() private _open = false;
@@ -34,6 +38,7 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _photoUploading = false;
   @state() private _readingValue = "";
   @state() private _restockQty = "";
+  @state() private _usedParts: Record<string, number> = {};
 
   public open(): void {
     if (this._open) return;
@@ -49,6 +54,9 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._photoUploading = false;
     this._readingValue = "";
     this._restockQty = this.restockDefault !== null ? String(this.restockDefault) : "";
+    // #99: prefill "parts used" with the task's fixed links — the user can
+    // untick or adjust before completing.
+    this._usedParts = Object.fromEntries(this.consumesParts.map((l) => [l.part_id, l.quantity]));
   }
 
   private _toggleCheck(idx: number): void {
@@ -139,6 +147,13 @@ export class MaintenanceCompleteDialog extends LitElement {
         const rq = parseFloat(this._restockQty);
         if (!isNaN(rq) && rq >= 1) data.restock_quantity = rq;
       }
+      // #99: with a parts section shown, send the explicit selection — it
+      // replaces the automatic consumes_parts deduction (empty = none used).
+      if (this.parts.length > 0) {
+        data.used_parts = Object.entries(this._usedParts)
+          .filter(([, qty]) => Number.isFinite(qty) && qty > 0)
+          .map(([part_id, quantity]) => ({ part_id, quantity }));
+      }
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
@@ -181,11 +196,39 @@ export class MaintenanceCompleteDialog extends LitElement {
                   @input=${(e: Event) => (this._readingValue = (e.target as HTMLInputElement).value)} />
               </label>`
             : nothing}
-          ${this.consumesInfo.length
-            ? html`<div class="consumes-hint">
-                ${this.consumesInfo.map((line) => html`<div>${line}</div>`)}
+          ${this.parts.length
+            ? html`<div class="used-parts">
+                <span class="field-label">${t("complete_parts_used", L)}</span>
+                ${this.parts.map((pt) => {
+                  const qty = this._usedParts[pt.id];
+                  const checked = qty !== undefined;
+                  return html`<div class="used-part-row">
+                    <label class="used-part-check">
+                      <input type="checkbox" .checked=${checked}
+                        @change=${(e: Event) => {
+                          const next = { ...this._usedParts };
+                          if ((e.target as HTMLInputElement).checked) next[pt.id] = next[pt.id] || 1;
+                          else delete next[pt.id];
+                          this._usedParts = next;
+                        }} />
+                      <span>${pt.name}${pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : ""}</span>
+                    </label>
+                    ${checked
+                      ? html`<input class="used-part-qty" type="number" min="0.01" max="999" step="0.01"
+                          .value=${String(qty)}
+                          @input=${(e: Event) => {
+                            const v = parseFloat((e.target as HTMLInputElement).value);
+                            this._usedParts = { ...this._usedParts, [pt.id]: Number.isFinite(v) && v >= 0.01 ? v : 1 };
+                          }} />`
+                      : nothing}
+                  </div>`;
+                })}
               </div>`
-            : nothing}
+            : this.consumesInfo.length
+              ? html`<div class="consumes-hint">
+                  ${this.consumesInfo.map((line) => html`<div>${line}</div>`)}
+                </div>`
+              : nothing}
           ${this.restockDefault !== null
             ? html`
               <label class="field">
@@ -296,6 +339,20 @@ export class MaintenanceCompleteDialog extends LitElement {
       border-left: 3px solid var(--primary-color);
       padding: 4px 8px;
       margin: 4px 0 8px;
+    }
+    /* #99: editable per-completion parts selection */
+    .used-parts { margin: 4px 0 8px; display: flex; flex-direction: column; gap: 4px; }
+    .used-part-row { display: flex; align-items: center; gap: 8px; }
+    .used-part-check {
+      display: flex; align-items: center; gap: 6px; flex: 1;
+      font-size: 13px; cursor: pointer;
+    }
+    .used-part-check input { cursor: pointer; }
+    .used-part-qty {
+      width: 76px; padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 13px;
+      border: 1px solid var(--divider-color);
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
     }
     .error {
       color: var(--error-color, #f44336);

@@ -773,5 +773,7 @@
   "setups_hint": "Enheder fra understøttede integrationer, hvis forbrugsstof-sensorer kan drive vedligeholdelsesopgaver. Ved overtagelse oprettes objektet, og hver opgave kobles til sin sensor — den udløses, når materialet er ved at slippe op, og løser sig selv efter udskiftning.",
   "setups_none": "Ingen understøttede enheder med utilkoblede forbrugsstof-sensorer fundet.",
   "setups_adopt": "Opsæt valgte",
-  "setups_done": "{tasks} sensor-koblede opgaver oprettet."
+  "setups_done": "{tasks} sensor-koblede opgaver oprettet.",
+  "complete_parts_used": "Dele brugt denne gang",
+  "part_delete_confirm": "Slet delen '{name}'? Lagersporing, opgavekoblinger og en åben købspåmindelse fjernes."
 }

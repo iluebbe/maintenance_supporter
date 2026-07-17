@@ -773,5 +773,7 @@
   "setups_hint": "Appareils d'intégrations prises en charge dont les capteurs de consommables peuvent piloter des tâches d'entretien. L'adoption crée l'objet et relie chaque tâche à son capteur — elle se déclenche quand le consommable s'épuise et se résout après le remplacement.",
   "setups_none": "Aucun appareil pris en charge avec des capteurs de consommables non reliés.",
   "setups_adopt": "Configurer la sélection",
-  "setups_done": "{tasks} tâches reliées aux capteurs créées."
+  "setups_done": "{tasks} tâches reliées aux capteurs créées.",
+  "complete_parts_used": "Pièces utilisées cette fois",
+  "part_delete_confirm": "Supprimer la pièce '{name}' ? Son suivi de stock, ses liens aux tâches et tout rappel d'achat ouvert seront supprimés."
 }

@@ -25,6 +25,21 @@ All notable changes to Maintenance Supporter are documented in this file.
   any language; the shipped `assist/custom_sentences/` files (en/de) cover
   the classic sentence agent. Responses localised (en/de).
 
+### 🧩 Pick the parts actually used when completing (#99)
+
+- **The complete dialog now lists the object's spare parts as an editable
+  "Parts used this time" selection** — prefilled from the task's fixed
+  links, but adjustable per completion: tick the filter you actually
+  replaced (quantities take decimals), untick everything when nothing was
+  used. An explicit selection **replaces** the automatic deduction, so
+  consumables that are used "as needed" no longer have to hang permanently
+  on the task. The history entry records what was used (name + quantity).
+  Works in the panel and on the Lovelace card; QR quick-complete and the
+  To-do checkbox keep the automatic behaviour.
+- **Deleting a spare part now asks for confirmation** — it drops stock
+  tracking, task links and any open buy reminder, which is destructive
+  enough to warrant the extra click.
+
 ### 🧴 Decimal consumable quantities (Discussion #98)
 
 - **Spare-part stock, consumption and restock amounts now accept decimals** —

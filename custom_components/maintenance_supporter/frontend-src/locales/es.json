@@ -773,5 +773,7 @@
   "setups_hint": "Dispositivos de integraciones compatibles cuyos sensores de consumibles pueden impulsar tareas de mantenimiento. Al adoptar se crea el objeto y cada tarea se conecta a su sensor: se activa cuando el consumible se agota y se resuelve sola tras el cambio.",
   "setups_none": "No se encontraron dispositivos compatibles con sensores de consumibles sin conectar.",
   "setups_adopt": "Configurar selección",
-  "setups_done": "{tasks} tareas conectadas a sensores creadas."
+  "setups_done": "{tasks} tareas conectadas a sensores creadas.",
+  "complete_parts_used": "Piezas usadas esta vez",
+  "part_delete_confirm": "¿Eliminar la pieza '{name}'? Se eliminarán su control de stock, los vínculos con tareas y cualquier recordatorio de compra abierto."
 }

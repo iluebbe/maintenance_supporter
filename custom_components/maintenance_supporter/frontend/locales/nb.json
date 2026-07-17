@@ -773,5 +773,7 @@
   "setups_hint": "Enheter fra støttede integrasjoner der forbruksmateriell-sensorer kan drive vedlikeholdsoppgaver. Ved overtakelse opprettes objektet og hver oppgave kobles til sin sensor — den utløses når materiellet nesten er brukt opp, og løser seg selv etter bytte.",
   "setups_none": "Ingen støttede enheter med ukoblede forbrukssensorer funnet.",
   "setups_adopt": "Sett opp valgte",
-  "setups_done": "{tasks} sensor-koblede oppgaver opprettet."
+  "setups_done": "{tasks} sensor-koblede oppgaver opprettet.",
+  "complete_parts_used": "Deler brukt denne gangen",
+  "part_delete_confirm": "Slette delen '{name}'? Lagersporing, oppgavekoblinger og en åpen kjøpspåminnelse fjernes."
 }

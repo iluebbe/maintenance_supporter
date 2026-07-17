@@ -773,5 +773,7 @@
   "setups_hint": "Dispositivi di integrazioni supportate i cui sensori dei consumabili possono guidare le attività di manutenzione. L'adozione crea l'oggetto e collega ogni attività al suo sensore: si attiva quando il consumabile si esaurisce e si risolve dopo la sostituzione.",
   "setups_none": "Nessun dispositivo supportato con sensori di consumabili non collegati.",
   "setups_adopt": "Configura selezione",
-  "setups_done": "{tasks} attività collegate ai sensori create."
+  "setups_done": "{tasks} attività collegate ai sensori create.",
+  "complete_parts_used": "Ricambi usati questa volta",
+  "part_delete_confirm": "Eliminare il ricambio '{name}'? Verranno rimossi il monitoraggio delle scorte, i collegamenti alle attività e ogni promemoria d'acquisto aperto."
 }

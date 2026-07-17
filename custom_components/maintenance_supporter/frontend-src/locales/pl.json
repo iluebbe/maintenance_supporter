@@ -773,5 +773,7 @@
   "setups_hint": "Urządzenia obsługiwanych integracji, których czujniki materiałów eksploatacyjnych mogą napędzać zadania konserwacji. Przyjęcie tworzy obiekt i łączy każde zadanie z czujnikiem — uruchamia się, gdy materiał się kończy, i rozwiązuje po wymianie.",
   "setups_none": "Nie znaleziono obsługiwanych urządzeń z niepodłączonymi czujnikami materiałów.",
   "setups_adopt": "Skonfiguruj wybrane",
-  "setups_done": "Utworzono {tasks} zadań powiązanych z czujnikami."
+  "setups_done": "Utworzono {tasks} zadań powiązanych z czujnikami.",
+  "complete_parts_used": "Części użyte tym razem",
+  "part_delete_confirm": "Usunąć część '{name}'? Zostaną usunięte śledzenie stanu, powiązania z zadaniami i otwarte przypomnienie o zakupie."
 }

@@ -352,6 +352,12 @@ export class MaintenanceSupporterCard extends LitElement {
                                 dlg.taskType = task.type || "";
                                 dlg.readingUnit = (task as any).reading_unit || "";
                                 dlg.lang = L;
+                                // #99: editable per-completion parts selection
+                                // (skip on buy tasks — those restock instead).
+                                const obj = this._objects.find((o) => o.entry_id === entry_id);
+                                const isBuy = !!(task as any).part_ref;
+                                dlg.parts = isBuy ? [] : (obj?.parts || []);
+                                dlg.consumesParts = isBuy ? [] : ((task as any).consumes_parts || []);
                                 dlg.open();
                               }}
                             >

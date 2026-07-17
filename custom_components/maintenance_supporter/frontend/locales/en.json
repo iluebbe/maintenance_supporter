@@ -773,5 +773,7 @@
   "setups_hint": "Devices of supported integrations whose consumable sensors can drive maintenance tasks. Adopting creates the object and wires each task to its sensor — it triggers when the consumable runs low and resolves itself after replacement.",
   "setups_none": "No supported devices with unwired consumable sensors found.",
   "setups_adopt": "Set up selected",
-  "setups_done": "{tasks} sensor-wired tasks created."
+  "setups_done": "{tasks} sensor-wired tasks created.",
+  "complete_parts_used": "Parts used this time",
+  "part_delete_confirm": "Delete part '{name}'? Its stock tracking, task links and any open buy reminder will be removed."
 }

@@ -1736,6 +1736,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         return `${link.quantity}× ${pt.name}${stock}${loc}`;
       })
       .filter(Boolean);
+    // #99: editable per-completion parts selection (not on buy tasks — those
+    // RESTOCK via the qty field instead of consuming).
+    dlg.parts = tk?.part_ref ? [] : objParts;
+    dlg.consumesParts = tk?.part_ref ? [] : (tk?.consumes_parts || []);
     dlg.open();
   }
 
