@@ -17,14 +17,14 @@ const token = loadToken();
 const api = await wsClient(REST, token);
 
 const res = await api.send({ type: "maintenance_supporter/templates", language: "de" });
-assert(res.templates.length === 31, `31 templates (got ${res.templates.length})`);
+assert(res.templates.length === 32, `32 templates (got ${res.templates.length})`);
 const cats = Object.keys(res.categories);
 assert(JSON.stringify(cats) === JSON.stringify(["vehicle", "home", "household", "garden", "pool", "appliance"]),
   `6 categories in order (got ${cats.join(",")})`);
 const byCat = {};
 for (const t2 of res.templates) byCat[t2.category] = (byCat[t2.category] || 0) + 1;
 log("  per category:", JSON.stringify(byCat));
-assert(byCat.household === 5 && byCat.garden === 6 && byCat.pool === 2, "household=5, garden=6, pool=2");
+assert(byCat.household === 5 && byCat.garden === 7 && byCat.pool === 2, "household=5, garden=7, pool=2");
 const bathroom = res.templates.find((t2) => t2.id === "household_bathroom");
 assert(bathroom.name === "Badezimmer", `Bathroom localized (got ${bathroom.name})`);
 assert(res.categories.household.name_de === "Haushalt & Routinen", "household category localized");

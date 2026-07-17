@@ -406,6 +406,31 @@ TEMPLATES: list[ObjectTemplate] = [
         ],
     ),
     ObjectTemplate(
+        id="garden_robot_mower",
+        name="Robot Lawn Mower",
+        category="garden",
+        tasks=[
+            TaskTemplate(
+                "Replace Blades",
+                "replacement",
+                "time_based",
+                60,
+                7,
+                "Dull pivoting blades tear the grass instead of cutting it — supported integrations expose blade-usage sensors that can trigger this instead of the calendar.",
+            ),
+            TaskTemplate("Clean Undercarriage", "cleaning", "time_based", 30, 7),
+            TaskTemplate("Clean Charging Contacts", "cleaning", "time_based", 90, 14),
+            TaskTemplate(
+                "Winter Storage",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Store indoors over winter with the battery at partial charge — frost and a fully drained battery both age the cells.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
         id="garden_lawn",
         name="Lawn Care",
         category="garden",
