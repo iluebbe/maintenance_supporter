@@ -130,6 +130,75 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
         ),
     ),
+    "lg_thinq": IntegrationSignature(
+        name="LG ThinQ",
+        source=(
+            "home-assistant/core homeassistant/components/lg_thinq/sensor.py "
+            "(ThinQProperty StrEnum translation_key; FILTER_LIFETIME is shared by "
+            "an HOURS description and a PERCENTAGE one — the unit-aware matcher "
+            "routes each entity to the right direction) + "
+            "thinq-connect/pythinqconnect devices/const.py Property members"
+        ),
+        tasks=(
+            # AC filter reports hours-remaining; air-purifier/RAC filters report
+            # percent — both under translation_key 'filter_lifetime'. Two
+            # directions, unit-disambiguated at match time.
+            ConsumableSignature(
+                ("filter_lifetime", "top_filter_remain_percent"), "Replace Filter", "percent_left"
+            ),
+            ConsumableSignature(("filter_lifetime",), "Replace Filter", "duration_left"),
+            ConsumableSignature(
+                (
+                    "water_filter_1_remain_percent",
+                    "water_filter_2_remain_percent",
+                    "water_filter_3_remain_percent",
+                ),
+                "Replace Water Filter",
+                "percent_left",
+            ),
+        ),
+    ),
+    "smartthinq_sensors": IntegrationSignature(
+        name="LG ThinQ (SmartThinQ)",
+        source=(
+            "ollo69/ha-smartthinq-sensors custom_components/smartthinq_sensors/sensor.py "
+            "(legacy name= entities, NO translation_key → matched by entity_id suffix; "
+            "FILTER_*_LIFE / *_REMAIN_PERC are percent via wideq device.py "
+            "_get_filter_life(); TUBCLEAN_COUNT counts up per wash cycle and the "
+            "machine resets it when a tub-clean course runs)"
+        ),
+        tasks=(
+            ConsumableSignature(
+                (
+                    "filter_remaining_life",
+                    "filter_remaining_life_main",
+                    "filter_remaining_life_bottom",
+                    "filter_remaining_life_dust",
+                    "filter_remaining_life_middle",
+                    "filter_remaining_life_top",
+                    "fresh_air_filter_remaining",
+                ),
+                "Replace Filter",
+                "percent_left",
+            ),
+            ConsumableSignature(("water_filter_remaining",), "Replace Water Filter", "percent_left"),
+            # Unitless wash-cycle counter: above_hours here is the cycle count
+            # (~monthly cadence); resetting on a tub-clean course resolves it.
+            ConsumableSignature(("tub_clean_counter",), "Clean Tub", "usage_above", above_hours=30),
+        ),
+    ),
+    "vicare": IntegrationSignature(
+        name="Viessmann ViCare",
+        source=(
+            "home-assistant/core homeassistant/components/vicare/sensor.py "
+            "(GLOBAL_SENSORS translation_key 'filter_remaining_hours', UnitOfTime.HOURS, "
+            "disabled-by-default; PyViCare ventilation.filter.runtime.remainingHours). "
+            "Burner/compressor hours are lifetime counters with no reset → excluded."
+        ),
+        tasks=(
+            ConsumableSignature(("filter_remaining_hours",), "Replace Filter", "duration_left"),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         source="home-assistant/core homeassistant/components/ipp/sensor.py (marker_<i>, translation_key 'marker', %)",
@@ -177,6 +246,31 @@ def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:
     if entry.translation_key == key:
         return True
     return entry.entity_id.endswith(f"_{key}")
+
+
+def _entity_unit(hass: HomeAssistant, entry: er.RegistryEntry) -> str | None:
+    """The entity's live display unit, falling back to the registry unit."""
+    state = hass.states.get(entry.entity_id)
+    if state and (unit := state.attributes.get("unit_of_measurement")):
+        return str(unit)
+    reg_unit = entry.unit_of_measurement
+    return str(reg_unit) if reg_unit is not None else None
+
+
+def _unit_compatible(direction: str, unit: str | None) -> bool:
+    """Whether an entity's unit fits a signature's direction.
+
+    Some integrations (LG ThinQ) reuse ONE translation_key for both an
+    hours-remaining and a percent-remaining sensor; the key alone can't say
+    which direction applies. A concrete unit disambiguates: percent_left wants
+    ``%``; the duration/counter directions want anything else. The check is
+    lenient — a missing unit (disabled/just-added entity) never rejects a
+    key match, so existing single-shape signatures are unaffected."""
+    if unit is None:
+        return True
+    if direction == "percent_left":
+        return unit == "%"
+    return unit != "%"
 
 
 def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str) -> float:
@@ -231,8 +325,10 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     already_watched = _adopted_entity_ids(hass)
     by_device = _object_by_device(hass)
 
-    # device_id → {sig_key: [entity_ids]} for entities of catalogued domains.
-    matched: dict[str, dict[tuple[str, str], list[str]]] = {}
+    # device_id → {(integration, task_name, direction): {sig, entity_ids}}.
+    # The direction is part of the key so an integration that ships one task
+    # name in two directions (LG ThinQ filter: hours vs percent) stays split.
+    matched: dict[str, dict[tuple[str, str, str], dict[str, Any]]] = {}
     for entry in ent_reg.entities.values():
         integration = entry.platform
         catalog = SIGNATURES.get(integration)
@@ -240,11 +336,16 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             continue
         if entry.disabled_by is not None or entry.entity_id in already_watched:
             continue
+        unit = _entity_unit(hass, entry)
         for sig in catalog.tasks:
+            if not _unit_compatible(sig.direction, unit):
+                continue
             if any(_entity_matches(entry, key) for key in sig.keys):
-                matched.setdefault(entry.device_id, {}).setdefault(
-                    (integration, sig.task_name), []
-                ).append(entry.entity_id)
+                group = matched.setdefault(entry.device_id, {}).setdefault(
+                    (integration, sig.task_name, sig.direction),
+                    {"sig": sig, "entity_ids": []},
+                )
+                group["entity_ids"].append(entry.entity_id)
                 break
 
     out: list[dict[str, Any]] = []
@@ -260,20 +361,21 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
         catalog = SIGNATURES[integration]
         suggested = by_device.get(device_id)
         tasks = []
-        for sig in catalog.tasks:
-            entity_ids = sorted(sig_map.get((integration, sig.task_name), []))
+        for (_integ, task_name, direction), group in sig_map.items():
+            entity_ids = sorted(group["entity_ids"])
             if not entity_ids:
                 continue
             tasks.append(
                 {
-                    "task_name": sig.task_name,
+                    "task_name": task_name,
                     "entity_ids": entity_ids,
-                    "threshold": _threshold_for(sig, hass, entity_ids[0]),
-                    "direction": sig.direction,
+                    "threshold": _threshold_for(group["sig"], hass, entity_ids[0]),
+                    "direction": direction,
                 }
             )
         if not tasks:
             continue
+        tasks.sort(key=lambda t: (t["task_name"], t["direction"]))
         out.append(
             {
                 "device_id": device_id,

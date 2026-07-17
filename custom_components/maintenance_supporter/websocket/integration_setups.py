@@ -87,8 +87,11 @@ async def ws_adopt_integration_setups(
             errors.append({"device_id": device_id, "reason": "no suggestion for this device"})
             continue
         wanted = set(sel.get("task_names") or [t["task_name"] for t in setup["tasks"]])
-        sig_by_name = {
-            s.task_name: s for s in SIGNATURES[setup["integration"]].tasks
+        # Keyed by (task_name, direction): one integration can ship a task name
+        # in two directions (LG ThinQ filter: hours vs percent), and the trigger
+        # must be built from the signature matching the discovered direction.
+        sig_by_key = {
+            (s.task_name, s.direction): s for s in SIGNATURES[setup["integration"]].tasks
         }
         created_entry_id: str | None = None
         try:
@@ -110,7 +113,7 @@ async def ws_adopt_integration_setups(
             for task in setup["tasks"]:
                 if task["task_name"] not in wanted:
                     continue
-                sig = sig_by_name[task["task_name"]]
+                sig = sig_by_key[(task["task_name"], task["direction"])]
                 await async_persist_task(
                     hass,
                     entry,
