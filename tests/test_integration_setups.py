@@ -55,7 +55,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 gaps = [lg for lg in langs if not entry.get(lg)]
                 if gaps:
                     missing.append(f"{domain}: {sig.task_name!r} missing {gaps}")
-            assert sig.direction in ("duration_left", "percent_left")
+            assert sig.direction in ("duration_left", "percent_left", "usage_above")
             assert cat.source, f"{domain} lacks a source reference"
     assert not missing, "\n".join(missing)
 
@@ -98,7 +98,7 @@ async def test_discover_matches_and_builds_unit_aware_thresholds(
     assert setup["suggested_object_name"] == "Roborock S7 MaxV"
     by_name = {t["task_name"]: t for t in setup["tasks"]}
     assert set(by_name) == {"Replace Main Brush", "Replace Filter"}
-    assert by_name["Replace Filter"]["trigger_below"] == 24.0
+    assert by_name["Replace Filter"]["threshold"] == 24.0
 
 
 async def test_adopt_creates_object_with_prewired_triggers(
@@ -262,3 +262,61 @@ async def _seed_roborock2(hass: HomeAssistant) -> str:
     )
     hass.states.async_set(entry.entity_id, "80", {"unit_of_measurement": "h"})
     return device.id
+
+
+async def test_usage_above_direction_husqvarna_and_landroid(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Wear counters that count UP get trigger_above thresholds, unit-aware:
+    Husqvarna blade time (h display) -> above 100; Landroid current blade
+    runtime in native minutes -> above 6000."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    for domain, uid, key, unit, dev_name in (
+        ("husqvarna_automower", "am1", "cutting_blade_usage_time", "h", "Automower 305"),
+        ("landroid_cloud", "lr1", "blade_runtime_current", "min", "Landroid M500"),
+    ):
+        source = MockConfigEntry(domain=domain, title=domain)
+        source.add_to_hass(hass)
+        dev_reg = dr.async_get(hass)
+        device = dev_reg.async_get_or_create(
+            config_entry_id=source.entry_id,
+            identifiers={(domain, uid)},
+            name=dev_name,
+        )
+        ent_reg = er.async_get(hass)
+        entry = ent_reg.async_get_or_create(
+            "sensor", domain, f"{uid}_{key}",
+            config_entry=source, device_id=device.id, translation_key=key,
+            suggested_object_id=f"{uid}_{key}",
+        )
+        hass.states.async_set(entry.entity_id, "42", {"unit_of_measurement": unit})
+
+    setups = {s2["integration"]: s2 for s2 in discover_integration_setups(hass)}
+    assert set(setups) == {"husqvarna_automower", "landroid_cloud"}
+    hq = setups["husqvarna_automower"]["tasks"][0]
+    assert hq["task_name"] == "Replace Blades" and hq["direction"] == "usage_above"
+    assert hq["threshold"] == 100.0  # hours display -> 100 h
+    lr = setups["landroid_cloud"]["tasks"][0]
+    assert lr["threshold"] == 6000.0  # native minutes -> 100 h * 60
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups,
+        hass,
+        conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": setups["husqvarna_automower"]["device_id"]}]},
+    )
+    res = conn.send_result.call_args[0][1]
+    assert res["tasks_created"] == 1
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Automower 305"
+    )
+    (task,) = obj.data[CONF_TASKS].values()
+    tc = task["trigger_config"]
+    assert tc["trigger_above"] == 100.0 and "trigger_below" not in tc
+    assert tc["auto_complete_on_recovery"] is True
