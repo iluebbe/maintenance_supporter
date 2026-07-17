@@ -122,3 +122,59 @@ async def test_journey_parts_loop_across_restart(hass: HomeAssistant, global_ent
     assert entry.runtime_data.store.get_part_stock("p1") == 0
     fresh = _buy_tasks(entry)
     assert len(fresh) == 1 and next(iter(fresh)) != buy_id, "fresh episode must create a NEW reminder"
+
+
+async def test_used_parts_override_on_complete_99(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """#99: an explicit per-completion selection replaces the fixed links —
+    including the empty selection; the history entry records what was used."""
+    parts = {
+        "p1": normalize_part({"id": "p1", "name": "Filter box"}),
+        "p2": normalize_part({"id": "p2", "name": "Seal"}),
+    }
+    task = build_task_data(name="Inspect filters", last_performed="2026-01-01")
+    task["consumes_parts"] = [{"part_id": "p1", "quantity": 1}]
+    data = build_object_entry_data(object_data=build_object_data(name="Vent"), tasks={TASK_ID_1: task})
+    data[CONF_PARTS] = parts
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Vent", data=data,
+        source="user", unique_id="maintenance_supporter_used_parts_99",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+    entry.runtime_data.store.set_part_stock("p1", 5)
+    entry.runtime_data.store.set_part_stock("p2", 5)
+    await entry.runtime_data.store.async_save()
+    coordinator = entry.runtime_data.coordinator
+
+    # 1. Explicit selection replaces the fixed link: 2.5x p2, NOT p1.
+    await coordinator.complete_maintenance(
+        TASK_ID_1, used_parts=[{"part_id": "p2", "quantity": 2.5}]
+    )
+    await hass.async_block_till_done()
+    store = entry.runtime_data.store
+    assert store.get_part_stock("p1") == 5   # fixed link NOT deducted
+    assert store.get_part_stock("p2") == 2.5
+    history = store.merge_all_tasks(entry.data[CONF_TASKS])[TASK_ID_1]["history"]
+    completed = [h for h in history if h.get("type") == "completed"]
+    assert completed[-1]["used_parts"] == [
+        {"part_id": "p2", "name": "Seal", "quantity": 2.5}
+    ]
+
+    # 2. Empty selection = "nothing used this time" despite the fixed link.
+    #    (Clear the double-complete dedup stamp so this run isn't dropped;
+    #    the growing history proves the completion actually happened.)
+    coordinator._recent_manual_completions.clear()
+    await coordinator.complete_maintenance(TASK_ID_1, used_parts=[])
+    await hass.async_block_till_done()
+    history2 = store.merge_all_tasks(entry.data[CONF_TASKS])[TASK_ID_1]["history"]
+    assert len([h for h in history2 if h.get("type") == "completed"]) == 2
+    assert store.get_part_stock("p1") == 5
+    assert store.get_part_stock("p2") == 2.5
+
+    # 3. No selection at all -> the automatic consumes_parts still applies.
+    #    (Dedup guard: use a fresh coordinator call after the dedup window by
+    #    clearing the manual-completion stamp.)
+    coordinator._recent_manual_completions.clear()
+    await coordinator.complete_maintenance(TASK_ID_1)
+    await hass.async_block_till_done()
+    assert store.get_part_stock("p1") == 4

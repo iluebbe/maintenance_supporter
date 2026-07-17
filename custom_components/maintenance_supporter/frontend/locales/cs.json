@@ -773,5 +773,7 @@
   "setups_hint": "Zařízení podporovaných integrací, jejichž senzory spotřebního materiálu mohou řídit údržbové úkoly. Převzetím se vytvoří objekt a každý úkol se propojí se svým senzorem — spustí se, když materiál dochází, a po výměně se sám vyřeší.",
   "setups_none": "Nenalezena žádná podporovaná zařízení s nepropojenými senzory spotřebního materiálu.",
   "setups_adopt": "Nastavit vybrané",
-  "setups_done": "Vytvořeno {tasks} úkolů propojených se senzory."
+  "setups_done": "Vytvořeno {tasks} úkolů propojených se senzory.",
+  "complete_parts_used": "Tentokrát použité díly",
+  "part_delete_confirm": "Smazat díl '{name}'? Odstraní se sledování zásob, vazby na úkoly i případná otevřená připomínka nákupu."
 }

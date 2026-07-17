@@ -298,6 +298,7 @@ class MaintenanceTask:
         completed_by: str | None = None,
         photo_doc_id: str | None = None,
         reading_value: float | None = None,
+        used_parts: list[dict[str, Any]] | None = None,
     ) -> None:
         """Mark this task as completed."""
         # Save current next_due as anchor for planned mode before resetting
@@ -322,6 +323,7 @@ class MaintenanceTask:
             completed_by=completed_by,
             photo_doc_id=photo_doc_id,
             reading_value=reading_value,
+            used_parts=used_parts,
         )
 
         # Shared tasks: rotate the "currently responsible" pointer to the next
@@ -408,6 +410,7 @@ class MaintenanceTask:
         completed_by: str | None = None,
         photo_doc_id: str | None = None,
         reading_value: float | None = None,
+        used_parts: list[dict[str, Any]] | None = None,
     ) -> None:
         """Add an entry to the maintenance history."""
         entry: dict[str, Any] = {
@@ -434,6 +437,10 @@ class MaintenanceTask:
         # completion entry — the delta view derives from consecutive entries.
         if reading_value is not None:
             entry["reading_value"] = reading_value
+        if used_parts:
+            # #99: the parts actually used on THIS completion ([{part_id,
+            # name, quantity}]) — explicit per-completion consumption record.
+            entry["used_parts"] = used_parts
 
         self.history.append(entry)
 

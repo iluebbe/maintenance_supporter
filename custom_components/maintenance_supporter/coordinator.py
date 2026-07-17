@@ -965,6 +965,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         photo_doc_id: str | None = None,
         reading_value: float | None = None,
         restock_quantity: float | None = None,
+        used_parts: list[dict[str, Any]] | None = None,
     ) -> None:
         """Mark a task as completed and persist."""
         merged = self._get_merged_tasks_data()
@@ -1007,6 +1008,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except (ValueError, TypeError):
                 actual_interval = None
 
+        # #99: enrich the per-completion parts selection with names so the
+        # history entry is readable without a part-id lookup.
+        enriched_used: list[dict[str, Any]] | None = None
+        if used_parts is not None:
+            parts_catalog = self.entry.data.get("parts") or {}
+            enriched_used = [
+                {
+                    "part_id": link["part_id"],
+                    "name": (parts_catalog.get(link["part_id"]) or {}).get("name") or link["part_id"],
+                    "quantity": link.get("quantity", 1),
+                }
+                for link in used_parts
+            ]
+
         task.complete(
             notes=notes,
             cost=cost,
@@ -1016,6 +1031,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             completed_by=completed_by,
             photo_doc_id=photo_doc_id,
             reading_value=reading_value,
+            used_parts=enriched_used,
         )
 
         # Link the completion photo to this task so it also surfaces under the
@@ -1075,6 +1091,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.entry,
                 merged[task_id],
                 restock_quantity=restock_quantity,
+                used_parts=used_parts,
             )
         except Exception:
             _LOGGER.exception("Part consumption failed for task %s", task_id)

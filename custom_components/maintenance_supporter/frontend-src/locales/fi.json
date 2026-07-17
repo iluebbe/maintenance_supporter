@@ -773,5 +773,7 @@
   "setups_hint": "Tuettujen integraatioiden laitteet, joiden kulutusosa-anturit voivat ohjata huoltotehtäviä. Käyttöönotto luo kohteen ja kytkee jokaisen tehtävän anturiinsa — se laukeaa, kun kulutusosa on vähissä, ja ratkeaa itsestään vaihdon jälkeen.",
   "setups_none": "Tuettuja laitteita, joissa on kytkemättömiä kulutusosa-antureita, ei löytynyt.",
   "setups_adopt": "Ota valitut käyttöön",
-  "setups_done": "{tasks} anturiin kytkettyä tehtävää luotu."
+  "setups_done": "{tasks} anturiin kytkettyä tehtävää luotu.",
+  "complete_parts_used": "Tällä kertaa käytetyt osat",
+  "part_delete_confirm": "Poistetaanko osa '{name}'? Varastoseuranta, tehtäväkytkennät ja avoin ostomuistutus poistetaan."
 }

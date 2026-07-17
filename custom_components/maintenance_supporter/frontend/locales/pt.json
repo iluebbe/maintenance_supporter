@@ -773,5 +773,7 @@
   "setups_hint": "Dispositivos de integrações suportadas cujos sensores de consumíveis podem acionar tarefas de manutenção. Ao adotar, o objeto é criado e cada tarefa é ligada ao seu sensor — dispara quando o consumível se esgota e resolve-se após a substituição.",
   "setups_none": "Nenhum dispositivo suportado com sensores de consumíveis por ligar.",
   "setups_adopt": "Configurar seleção",
-  "setups_done": "{tasks} tarefas ligadas a sensores criadas."
+  "setups_done": "{tasks} tarefas ligadas a sensores criadas.",
+  "complete_parts_used": "Peças usadas desta vez",
+  "part_delete_confirm": "Eliminar a peça '{name}'? O controlo de stock, as ligações a tarefas e qualquer lembrete de compra aberto serão removidos."
 }

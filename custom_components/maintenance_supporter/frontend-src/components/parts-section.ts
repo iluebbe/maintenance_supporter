@@ -151,6 +151,9 @@ export class MaintenancePartsSection extends LitElement {
   }
 
   private async _delete(part: MaintenancePart): Promise<void> {
+    // Deleting a part drops its stock tracking, task links and buy reminder —
+    // destructive enough to warrant an explicit confirmation (user request).
+    if (!window.confirm(t("part_delete_confirm", this._lang).replace("{name}", part.name))) return;
     const result = await this._send<{ success: boolean }>({
       type: "maintenance_supporter/part/delete",
       entry_id: this.entryId,

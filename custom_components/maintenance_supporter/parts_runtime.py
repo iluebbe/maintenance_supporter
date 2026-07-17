@@ -122,6 +122,7 @@ async def async_handle_completion_parts(
     task_data: dict[str, Any],
     *,
     restock_quantity: float | None = None,
+    used_parts: list[dict[str, Any]] | None = None,
 ) -> None:
     """Completion-side part effects: consume linked parts / restock a buy task.
 
@@ -147,7 +148,11 @@ async def async_handle_completion_parts(
         _fire_transition(hass, entry, part, new, stock_transition(part, old, new))
         changed = True
 
-    for link in task_data.get(CONF_TASK_CONSUMES_PARTS) or []:
+    # #99: an explicit per-completion selection REPLACES the fixed links —
+    # including the empty selection ("nothing used this time"). None keeps the
+    # automatic consumes_parts behaviour.
+    links = used_parts if used_parts is not None else (task_data.get(CONF_TASK_CONSUMES_PARTS) or [])
+    for link in links:
         if not isinstance(link, dict):
             continue
         part = parts.get(link.get("part_id"))

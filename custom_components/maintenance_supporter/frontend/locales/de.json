@@ -773,5 +773,7 @@
   "setups_hint": "Geräte unterstützter Integrationen, deren Verbrauchsmaterial-Sensoren Wartungsaufgaben antreiben können. Beim Übernehmen wird das Objekt angelegt und jede Aufgabe mit ihrem Sensor verdrahtet — sie löst aus, wenn das Material zur Neige geht, und erledigt sich nach dem Tausch von selbst.",
   "setups_none": "Keine unterstützten Geräte mit unverdrahteten Verbrauchsmaterial-Sensoren gefunden.",
   "setups_adopt": "Auswahl einrichten",
-  "setups_done": "{tasks} sensor-verdrahtete Aufgaben angelegt."
+  "setups_done": "{tasks} sensor-verdrahtete Aufgaben angelegt.",
+  "complete_parts_used": "Diesmal verwendete Teile",
+  "part_delete_confirm": "Ersatzteil '{name}' löschen? Bestandsverfolgung, Aufgaben-Verknüpfungen und eine offene Kauf-Erinnerung werden entfernt."
 }

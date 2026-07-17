@@ -773,5 +773,7 @@
   "setups_hint": "Enheter från integrationer som stöds vars förbrukningssensorer kan driva underhållsuppgifter. Vid övertagande skapas objektet och varje uppgift kopplas till sin sensor — den utlöses när materialet börjar ta slut och löser sig själv efter byte.",
   "setups_none": "Inga enheter med okopplade förbrukningssensorer hittades.",
   "setups_adopt": "Konfigurera valda",
-  "setups_done": "{tasks} sensorkopplade uppgifter skapade."
+  "setups_done": "{tasks} sensorkopplade uppgifter skapade.",
+  "complete_parts_used": "Delar använda denna gång",
+  "part_delete_confirm": "Ta bort delen '{name}'? Lagerspårning, uppgiftskopplingar och en öppen köppåminnelse tas bort."
 }
