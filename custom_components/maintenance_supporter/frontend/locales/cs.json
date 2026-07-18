@@ -775,5 +775,8 @@
   "setups_adopt": "Nastavit vybrané",
   "setups_done": "Vytvořeno {tasks} úkolů propojených se senzory.",
   "complete_parts_used": "Tentokrát použité díly",
-  "part_delete_confirm": "Smazat díl '{name}'? Odstraní se sledování zásob, vazby na úkoly i případná otevřená připomínka nákupu."
+  "part_delete_confirm": "Smazat díl '{name}'? Odstraní se sledování zásob, vazby na úkoly i případná otevřená připomínka nákupu.",
+  "baseline_start_value": "Počáteční hodnota (volitelné)",
+  "baseline_start_help": "Počítání začíná od této hodnoty. Ponechte prázdné pro počítání od aktuálního stavu; zadejte stav při posledním servisu, aby se započítalo i dosavadní využití.",
+  "setups_baseline_hint": "stav při posledním servisu (volitelné)"
 }

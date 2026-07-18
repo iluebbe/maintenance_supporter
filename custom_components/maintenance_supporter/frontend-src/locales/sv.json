@@ -775,5 +775,8 @@
   "setups_adopt": "Konfigurera valda",
   "setups_done": "{tasks} sensorkopplade uppgifter skapade.",
   "complete_parts_used": "Delar använda denna gång",
-  "part_delete_confirm": "Ta bort delen '{name}'? Lagerspårning, uppgiftskopplingar och en öppen köppåminnelse tas bort."
+  "part_delete_confirm": "Ta bort delen '{name}'? Lagerspårning, uppgiftskopplingar och en öppen köppåminnelse tas bort.",
+  "baseline_start_value": "Startvärde (valfritt)",
+  "baseline_start_help": "Räkningen börjar från detta värde. Lämna tomt för att räkna från nuvarande värde; ange mätarställningen vid senaste servicen så räknas användningen sedan dess.",
+  "setups_baseline_hint": "mätarställning vid senaste service (valfritt)"
 }

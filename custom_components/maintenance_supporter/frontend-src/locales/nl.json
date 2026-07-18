@@ -775,5 +775,8 @@
   "setups_adopt": "Selectie instellen",
   "setups_done": "{tasks} sensor-gekoppelde taken aangemaakt.",
   "complete_parts_used": "Deze keer gebruikte onderdelen",
-  "part_delete_confirm": "Onderdeel '{name}' verwijderen? De voorraadregistratie, taakkoppelingen en een openstaande koopherinnering worden verwijderd."
+  "part_delete_confirm": "Onderdeel '{name}' verwijderen? De voorraadregistratie, taakkoppelingen en een openstaande koopherinnering worden verwijderd.",
+  "baseline_start_value": "Startwaarde (optioneel)",
+  "baseline_start_help": "De telling begint bij deze waarde. Laat leeg om vanaf de huidige stand te tellen; vul de stand bij de laatste servicebeurt in zodat het gebruik sindsdien meetelt.",
+  "setups_baseline_hint": "stand bij laatste onderhoud (optioneel)"
 }

@@ -775,5 +775,8 @@
   "setups_adopt": "Opsæt valgte",
   "setups_done": "{tasks} sensor-koblede opgaver oprettet.",
   "complete_parts_used": "Dele brugt denne gang",
-  "part_delete_confirm": "Slet delen '{name}'? Lagersporing, opgavekoblinger og en åben købspåmindelse fjernes."
+  "part_delete_confirm": "Slet delen '{name}'? Lagersporing, opgavekoblinger og en åben købspåmindelse fjernes.",
+  "baseline_start_value": "Startværdi (valgfrit)",
+  "baseline_start_help": "Tællingen starter fra denne værdi. Lad feltet stå tomt for at tælle fra den aktuelle værdi; angiv aflæsningen ved sidste service, så forbruget siden da tæller med.",
+  "setups_baseline_hint": "aflæsning ved sidste service (valgfrit)"
 }

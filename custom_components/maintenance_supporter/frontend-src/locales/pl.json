@@ -775,5 +775,8 @@
   "setups_adopt": "Skonfiguruj wybrane",
   "setups_done": "Utworzono {tasks} zadań powiązanych z czujnikami.",
   "complete_parts_used": "Części użyte tym razem",
-  "part_delete_confirm": "Usunąć część '{name}'? Zostaną usunięte śledzenie stanu, powiązania z zadaniami i otwarte przypomnienie o zakupie."
+  "part_delete_confirm": "Usunąć część '{name}'? Zostaną usunięte śledzenie stanu, powiązania z zadaniami i otwarte przypomnienie o zakupie.",
+  "baseline_start_value": "Wartość początkowa (opcjonalnie)",
+  "baseline_start_help": "Liczenie zaczyna się od tej wartości. Pozostaw puste, aby liczyć od bieżącego stanu; wpisz stan z ostatniego serwisu, aby uwzględnić dotychczasowe zużycie.",
+  "setups_baseline_hint": "stan przy ostatnim serwisie (opcjonalnie)"
 }

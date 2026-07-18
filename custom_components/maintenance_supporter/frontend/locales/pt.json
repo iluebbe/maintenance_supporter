@@ -775,5 +775,8 @@
   "setups_adopt": "Configurar seleção",
   "setups_done": "{tasks} tarefas ligadas a sensores criadas.",
   "complete_parts_used": "Peças usadas desta vez",
-  "part_delete_confirm": "Eliminar a peça '{name}'? O controlo de stock, as ligações a tarefas e qualquer lembrete de compra aberto serão removidos."
+  "part_delete_confirm": "Eliminar a peça '{name}'? O controlo de stock, as ligações a tarefas e qualquer lembrete de compra aberto serão removidos.",
+  "baseline_start_value": "Valor inicial (opcional)",
+  "baseline_start_help": "A contagem começa neste valor. Deixe vazio para contar a partir do valor atual; introduza a leitura da última manutenção para que o uso desde então já conte.",
+  "setups_baseline_hint": "leitura na última manutenção (opcional)"
 }

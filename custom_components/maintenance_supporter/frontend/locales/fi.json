@@ -775,5 +775,8 @@
   "setups_adopt": "Ota valitut käyttöön",
   "setups_done": "{tasks} anturiin kytkettyä tehtävää luotu.",
   "complete_parts_used": "Tällä kertaa käytetyt osat",
-  "part_delete_confirm": "Poistetaanko osa '{name}'? Varastoseuranta, tehtäväkytkennät ja avoin ostomuistutus poistetaan."
+  "part_delete_confirm": "Poistetaanko osa '{name}'? Varastoseuranta, tehtäväkytkennät ja avoin ostomuistutus poistetaan.",
+  "baseline_start_value": "Aloitusarvo (valinnainen)",
+  "baseline_start_help": "Laskenta alkaa tästä arvosta. Jätä tyhjäksi laskeaksesi nykyisestä arvosta; syötä viimeisimmän huollon lukema, jotta sen jälkeinen käyttö lasketaan mukaan.",
+  "setups_baseline_hint": "lukema viime huollossa (valinnainen)"
 }

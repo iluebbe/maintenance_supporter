@@ -775,5 +775,8 @@
   "setups_adopt": "Configurer la sélection",
   "setups_done": "{tasks} tâches reliées aux capteurs créées.",
   "complete_parts_used": "Pièces utilisées cette fois",
-  "part_delete_confirm": "Supprimer la pièce '{name}' ? Son suivi de stock, ses liens aux tâches et tout rappel d'achat ouvert seront supprimés."
+  "part_delete_confirm": "Supprimer la pièce '{name}' ? Son suivi de stock, ses liens aux tâches et tout rappel d'achat ouvert seront supprimés.",
+  "baseline_start_value": "Valeur de départ (facultatif)",
+  "baseline_start_help": "Le comptage démarre à cette valeur. Laissez vide pour compter à partir de la valeur actuelle ; saisissez le relevé du dernier entretien pour que l'usage écoulé depuis soit compté.",
+  "setups_baseline_hint": "relevé au dernier entretien (facultatif)"
 }
