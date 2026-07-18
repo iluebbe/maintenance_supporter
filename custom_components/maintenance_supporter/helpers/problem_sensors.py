@@ -32,6 +32,9 @@ from ..const import (
 )
 
 PROBLEM_DEVICE_CLASS = "problem"
+# safety (NAS disk-health / lifespan thresholds) and tamper alarms behave like
+# problem sensors for adoption purposes: binary, on = action needed.
+ADOPTABLE_DEVICE_CLASSES = frozenset({PROBLEM_DEVICE_CLASS, "safety", "tamper"})
 
 # Words too generic to establish a sensor↔part relationship on their own
 # ("Printer problem" must not match a part just because it's ON the printer).
@@ -117,7 +120,10 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
 
     out: list[dict[str, Any]] = []
     for state in hass.states.async_all("binary_sensor"):
-        if state.attributes.get("device_class") != PROBLEM_DEVICE_CLASS:
+        # safety/tamper alarms are maintenance-adjacent the same way problem
+        # is (NAS disk-health thresholds ship as device_class: safety) —
+        # adoption stays opt-in per sensor either way.
+        if state.attributes.get("device_class") not in ADOPTABLE_DEVICE_CLASSES:
             continue
         if state.entity_id in adopted:
             continue

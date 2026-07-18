@@ -259,5 +259,37 @@
     "strings": [
       "\"odometer\": ["
     ]
+  },
+  "synology_dsm": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/synology_dsm/sensor.py"
+    ],
+    "strings": [
+      "volume_percentage_used"
+    ]
+  },
+  "qnap": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/qnap/sensor.py"
+    ],
+    "strings": [
+      "volume_percentage_used"
+    ]
+  },
+  "easee": {
+    "urls": [
+      "https://raw.githubusercontent.com/nordicopen/easee_hass/master/custom_components/easee/const.py"
+    ],
+    "strings": [
+      "lifetime_energy"
+    ]
+  },
+  "bosch": {
+    "urls": [
+      "https://raw.githubusercontent.com/bosch-thermostat/home-assistant-bosch-custom-component/master/custom_components/bosch/sensor/base.py"
+    ],
+    "strings": [
+      "self._name"
+    ]
   }
 }

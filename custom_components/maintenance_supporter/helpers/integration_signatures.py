@@ -51,6 +51,9 @@ Direction semantics:
   maintenance genuinely lowers the value, so auto_complete_on_recovery is
   correct here — unlike wear counters, where a plain above-threshold would
   re-fire after a manual completion.
+* ``value_below``    — the mirror image: a MEASUREMENT that signals the
+  condition while LOW (heating-loop pressure → refill water). Plain threshold
+  below N in the entity's own unit; the maintenance raises the value back.
 """
 
 from __future__ import annotations
@@ -623,6 +626,71 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
         ),
     ),
+    "synology_dsm": IntegrationSignature(
+        name="Synology NAS",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/synology_dsm/sensor.py "
+            "STORAGE_VOL_SENSORS (translation_key 'volume_percentage_used', "
+            "PERCENTAGE). Disk-health thresholds ship as device_class: safety "
+            "binaries → covered by problem-sensor adoption (widened to safety)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85
+            ),
+        ),
+    ),
+    "qnap": IntegrationSignature(
+        name="QNAP NAS",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/qnap/sensor.py "
+            "(translation_key 'volume_percentage_used', PERCENTAGE — same key "
+            "shape as synology_dsm)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85
+            ),
+        ),
+    ),
+    "easee": IntegrationSignature(
+        name="Easee Wallbox",
+        verified="2026-07-18 @ nordicopen/easee_hass master",
+        source=(
+            "nordicopen/easee_hass const.py 'lifetime_energy' "
+            "(state.lifetimeEnergy, translation_key 'lifetime_energy', kWh "
+            "lifetime counter) → cable/plug inspection by delivered energy. "
+            "Core `wallbox` verified NEGATIVE: its added_energy is per-session."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("lifetime_energy",),
+                "Inspect Cable and Plug",
+                "usage_delta",
+                delta_units=5000,
+            ),
+        ),
+    ),
+    "bosch": IntegrationSignature(
+        name="Bosch/Buderus heating",
+        verified="2026-07-18 @ bosch-thermostat/home-assistant-bosch-custom-component master + live RC300 registry",
+        source=(
+            "bosch-thermostat custom component: sensors are DYNAMIC (named "
+            "from the device's XMPP data, sensor/base.py builds names without "
+            "a device prefix → entity ids like sensor.system_pressure; no "
+            "translation_keys). Key verified against a live Buderus RC300 "
+            "registry; matched via the exact-object-id pattern."
+        ),
+        tasks=(
+            # Heating-loop pressure: refill water when it drops below 1 bar;
+            # topping up raises the value back (auto-resolve).
+            ConsumableSignature(
+                ("system_pressure",), "Refill Heating Water", "value_below", delta_units=1
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",
@@ -690,7 +758,12 @@ def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:
         return True
     if entry.entity_id.endswith(f"_{key}"):
         return True
-    return f"_{key}_p_" in entry.entity_id
+    if f"_{key}_p_" in entry.entity_id:
+        return True
+    # Fourth pattern: integrations that name entities WITHOUT a device prefix
+    # (bosch thermostat: ``sensor.system_pressure``) — exact object-id match.
+    # Platform scoping keeps this from bleeding across integrations.
+    return entry.entity_id.split(".", 1)[1] == key
 
 
 def _entity_unit(hass: HomeAssistant, entry: er.RegistryEntry) -> str | None:
@@ -715,7 +788,7 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     unit-bearing entity that happens to share the key is NOT an event."""
     if direction in ("event_present", "runtime_hours"):
         return unit is None  # ENUM events and state entities carry no unit
-    if direction == "alert_above":
+    if direction in ("alert_above", "value_below"):
         return True  # measurement alert in the entity's own unit (any unit)
     if unit is None:
         return True
@@ -732,7 +805,7 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     """
     if sig.direction == "event_present":
         return 0.0  # ENUM event latch — no numeric threshold
-    if sig.direction in ("runtime_hours", "alert_above"):
+    if sig.direction in ("runtime_hours", "alert_above", "value_below"):
         # Engine-accumulated hours resp. a raw measurement threshold in the
         # entity's own unit — no conversion in either case.
         return float(sig.delta_units)
@@ -816,7 +889,7 @@ def build_setup_trigger(
             trigger["trigger_baseline_value"] = 0
             trigger["auto_complete_on_recovery"] = True
         return trigger
-    threshold_key = "trigger_above" if sig.direction == "alert_above" else "trigger_below"
+    threshold_key = "trigger_above" if sig.direction == "alert_above" else "trigger_below"  # value_below + consumables use trigger_below
     return {
         "type": "threshold",
         "entity_ids": list(entity_ids),
