@@ -769,7 +769,7 @@
   "doc_part_none": "此部件没有关联的文档。",
   "settings_templates_toggle_group": "启用或禁用此组中的所有模板",
   "setups_button": "推荐配置",
-  "setups_title": "推荐配置",
+  "setups_title": "推荐配置 (Beta)",
   "setups_hint": "受支持集成的设备，其耗材传感器可以驱动维护任务。采用后将创建对象并把每个任务连接到其传感器——耗材即将用尽时触发，更换后自动解决。",
   "setups_none": "未找到具有未连接耗材传感器的受支持设备。",
   "setups_adopt": "配置所选项",

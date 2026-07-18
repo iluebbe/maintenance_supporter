@@ -769,7 +769,7 @@
   "doc_part_none": "Ingen dokumenter knyttet til denne del.",
   "settings_templates_toggle_group": "Slå alle skabeloner i denne gruppe til eller fra",
   "setups_button": "Foreslåede opsætninger",
-  "setups_title": "Foreslåede opsætninger",
+  "setups_title": "Foreslåede opsætninger (Beta)",
   "setups_hint": "Enheder fra understøttede integrationer, hvis forbrugsstof-sensorer kan drive vedligeholdelsesopgaver. Ved overtagelse oprettes objektet, og hver opgave kobles til sin sensor — den udløses, når materialet er ved at slippe op, og løser sig selv efter udskiftning.",
   "setups_none": "Ingen understøttede enheder med utilkoblede forbrugsstof-sensorer fundet.",
   "setups_adopt": "Opsæt valgte",

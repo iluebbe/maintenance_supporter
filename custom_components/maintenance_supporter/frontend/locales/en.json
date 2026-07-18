@@ -769,7 +769,7 @@
   "doc_part_none": "No documents linked to this part.",
   "settings_templates_toggle_group": "Enable or disable all templates in this group",
   "setups_button": "Suggested setups",
-  "setups_title": "Suggested setups",
+  "setups_title": "Suggested setups (Beta)",
   "setups_hint": "Devices of supported integrations whose consumable sensors can drive maintenance tasks. Adopting creates the object and wires each task to its sensor — it triggers when the consumable runs low and resolves itself after replacement.",
   "setups_none": "No supported devices with unwired consumable sensors found.",
   "setups_adopt": "Set up selected",

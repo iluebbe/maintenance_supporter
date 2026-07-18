@@ -769,7 +769,7 @@
   "doc_part_none": "Brak dokumentów powiązanych z tą częścią.",
   "settings_templates_toggle_group": "Włącz lub wyłącz wszystkie szablony w tej grupie",
   "setups_button": "Sugerowane konfiguracje",
-  "setups_title": "Sugerowane konfiguracje",
+  "setups_title": "Sugerowane konfiguracje (Beta)",
   "setups_hint": "Urządzenia obsługiwanych integracji, których czujniki materiałów eksploatacyjnych mogą napędzać zadania konserwacji. Przyjęcie tworzy obiekt i łączy każde zadanie z czujnikiem — uruchamia się, gdy materiał się kończy, i rozwiązuje po wymianie.",
   "setups_none": "Nie znaleziono obsługiwanych urządzeń z niepodłączonymi czujnikami materiałów.",
   "setups_adopt": "Skonfiguruj wybrane",

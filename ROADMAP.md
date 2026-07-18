@@ -40,7 +40,20 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    `usage_above` direction), kia_uvo (service-distance); a **Robot Lawn
    Mower** template; source dives for Home Connect / LG ThinQ / ViCare
    before cataloging them. BMW is dead (integration removed), Valetudo
-   deferred (MQTT-name matching).
+   deferred (MQTT-name matching). **Update (v2.29.0):** all of the above
+   shipped, plus Xiaomi MIoT/Home, Midea (LAN), Bambu Lab and car odometers
+   (Kia/Hyundai, Tesla, Renault) — the catalog stands at 19 integrations /
+   48 task-signatures across five trigger directions. The discovery surface
+   is labelled **Beta** while the catalog matures.
+
+3. 💡 **Bambu Lab: model-aware 3D-printer templates** — study the different
+   printer models (A1/A1 mini vs P1P/P1S vs X1C/X1E, AMS vs AMS 2 Pro/AMS HT)
+   and Bambu's official maintenance guides, then tune the 3D Printer template
+   per model: enclosure models add carbon/HEPA filter replacement, the A1
+   series has different rod/rail care, AMS units get desiccant/feeder
+   maintenance, and interval defaults should follow the wiki's per-model
+   recommendations. Discovery already binds the template to the printer
+   device, so the model is known at adoption time.
 
 ### Shipped waves
 

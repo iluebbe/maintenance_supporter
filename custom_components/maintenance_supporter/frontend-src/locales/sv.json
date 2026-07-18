@@ -769,7 +769,7 @@
   "doc_part_none": "Inga dokument länkade till denna del.",
   "settings_templates_toggle_group": "Aktivera eller inaktivera alla mallar i denna grupp",
   "setups_button": "Föreslagna uppsättningar",
-  "setups_title": "Föreslagna uppsättningar",
+  "setups_title": "Föreslagna uppsättningar (Beta)",
   "setups_hint": "Enheter från integrationer som stöds vars förbrukningssensorer kan driva underhållsuppgifter. Vid övertagande skapas objektet och varje uppgift kopplas till sin sensor — den utlöses när materialet börjar ta slut och löser sig själv efter byte.",
   "setups_none": "Inga enheter med okopplade förbrukningssensorer hittades.",
   "setups_adopt": "Konfigurera valda",
