@@ -2,7 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.31.0] - 2026-07-18
+
+> One release later, the suggested-setups catalog stands at **45 integrations
+> / 91 task-signatures across nine trigger styles** (v2.30: 27/70/7) and the
+> template catalog at **41 templates in 8 categories** — this wave was driven
+> by holding a real production instance against the catalog. Still **Beta**;
+> missed devices → [Discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
+
+### 🌐 Localization completeness
+
+- All six partially localized template-category names (Vehicle, Home & HVAC,
+  Pool, Appliances, Pets, Tech & IT) now carry all 18 languages — previously
+  eight languages silently fell back to English. A tripwire keeps every
+  future category complete. All 209 template/signature strings verified
+  complete ×17.
+
 
 ### 🔐 Locks by cycle count — and more wallboxes (incl. Matter)
 
