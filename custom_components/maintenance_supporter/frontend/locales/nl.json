@@ -782,5 +782,6 @@
   "baseline_start_help_edit": "Laat leeg om de bestaande telling te behouden. Een ingevulde waarde verankert de telling opnieuw (bijv. de stand bij de laatste servicebeurt).",
   "baseline_current_effective": "Momenteel geldende startwaarde: {value}",
   "runtime_on_states": "Actieve statussen (kommagescheiden)",
-  "runtime_on_states_help": "Statussen die als draaitijd tellen — standaard: on. Bijv. mowing, cleaning, printing. Met een geselecteerd attribuut worden de waarden daarvan vergeleken."
+  "runtime_on_states_help": "Statussen die als draaitijd tellen — standaard: on. Bijv. mowing, cleaning, printing. Met een geselecteerd attribuut worden de waarden daarvan vergeleken.",
+  "setups_target_new": "Nieuw aanmaken: {name}"
 }

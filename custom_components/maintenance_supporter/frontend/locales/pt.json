@@ -782,5 +782,6 @@
   "baseline_start_help_edit": "Deixe vazio para manter a contagem existente. Um valor introduzido reancora a contagem (p. ex., a leitura da última manutenção).",
   "baseline_current_effective": "Valor inicial atualmente em vigor: {value}",
   "runtime_on_states": "Estados ativos (separados por vírgulas)",
-  "runtime_on_states_help": "Estados que contam como em funcionamento — padrão: on. P. ex. mowing, cleaning, printing. Com um atributo selecionado, são comparados os valores dele."
+  "runtime_on_states_help": "Estados que contam como em funcionamento — padrão: on. P. ex. mowing, cleaning, printing. Com um atributo selecionado, são comparados os valores dele.",
+  "setups_target_new": "Criar novo: {name}"
 }

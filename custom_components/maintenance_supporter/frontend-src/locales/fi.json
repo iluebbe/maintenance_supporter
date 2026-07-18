@@ -782,5 +782,6 @@
   "baseline_start_help_edit": "Jätä tyhjäksi säilyttääksesi nykyisen laskennan. Syötetty arvo ankkuroi laskennan uudelleen (esim. viimeisimmän huollon lukema).",
   "baseline_current_effective": "Nyt voimassa oleva aloitusarvo: {value}",
   "runtime_on_states": "Aktiiviset tilat (pilkuin eroteltuina)",
-  "runtime_on_states_help": "Tilat, jotka lasketaan käyntiajaksi — oletus: on. Esim. mowing, cleaning, printing. Jos attribuutti on valittu, verrataan sen arvoja."
+  "runtime_on_states_help": "Tilat, jotka lasketaan käyntiajaksi — oletus: on. Esim. mowing, cleaning, printing. Jos attribuutti on valittu, verrataan sen arvoja.",
+  "setups_target_new": "Luo uusi: {name}"
 }

@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🎯 Suggested setups: pick the target object (#105)
+
+- Every row in the Suggested-setups dialog now has a **target picker**: keep
+  the default (the device-bound object, or creating a new one) or adopt the
+  tasks **into any existing object** — no more duplicate objects when you
+  had already created one for the device by hand.
+- Adopting into an object that wasn't device-linked yet also **binds the
+  device to it**, so model-aware suggestions and future discovery target
+  that object from then on.
+
 ## [2.32.1] - 2026-07-18
 
 ### ⏱️ Runtime "active states" now configurable in the UI (#103)

@@ -782,5 +782,6 @@
   "baseline_start_help_edit": "La stå tomt for å beholde den eksisterende tellingen. En angitt verdi forankrer tellingen på nytt (f.eks. avlesningen ved forrige service).",
   "baseline_current_effective": "Gjeldende startverdi: {value}",
   "runtime_on_states": "Aktive tilstander (kommaseparert)",
-  "runtime_on_states_help": "Tilstander som teller som driftstid — standard: on. F.eks. mowing, cleaning, printing. Med et valgt attributt sammenlignes verdiene dets i stedet."
+  "runtime_on_states_help": "Tilstander som teller som driftstid — standard: on. F.eks. mowing, cleaning, printing. Med et valgt attributt sammenlignes verdiene dets i stedet.",
+  "setups_target_new": "Opprett ny: {name}"
 }
