@@ -686,6 +686,40 @@ async def test_car_odometer_usage_delta_km_and_miles(
     assert tesla_by_name["Tire Rotation"]["threshold"] == 6213.7  # 10000 km in miles
 
 
+async def test_adopt_into_user_picked_object_binds_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#105: adopting into an explicitly chosen existing object that is NOT
+    device-bound lands the tasks there AND binds the device (so gates and
+    future discovery target this object instead of proposing a new one)."""
+    from custom_components.maintenance_supporter.const import CONF_OBJECT
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+    from custom_components.maintenance_supporter.websocket.objects import async_create_object
+
+    await setup_integration(hass, global_entry)
+    device_id = await _seed_roborock(hass)
+    # Manually created object WITHOUT device link — the #105 scenario.
+    existing_id = await async_create_object(hass, name="My Vacuum", ha_device_id=None)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups,
+        hass,
+        conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": device_id, "entry_id": existing_id}]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    res = conn.send_result.call_args[0][1]
+    assert res["objects_created"] == 0 and res["tasks_created"] == 2
+
+    entry = hass.config_entries.async_get_entry(existing_id)
+    assert entry is not None
+    assert len(entry.data[CONF_TASKS]) == 2  # tasks landed on the chosen object
+    assert entry.data[CONF_OBJECT].get("ha_device_id") == device_id  # now bound
+
+
 async def test_adopt_with_baseline_seeds_start_value(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

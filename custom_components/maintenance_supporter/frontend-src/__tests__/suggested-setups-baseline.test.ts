@@ -45,6 +45,9 @@ async function mountOpen(): Promise<{ el: MaintenanceSuggestedSetupsDialog; sent
   const { hass, sent } = createMockHass({
     handlers: {
       "maintenance_supporter/integration_setups/discover": () => ({ setups: SETUPS }),
+      "maintenance_supporter/objects": () => ({
+        objects: [{ entry_id: "obj_existing", object: { name: "My Vacuum" } }],
+      }),
       "maintenance_supporter/integration_setups/adopt": () => ({
         tasks_created: 3, objects_created: 2, total: 2,
       }),
@@ -65,6 +68,27 @@ describe("suggested-setups dialog: counting start value (#102)", () => {
     expect(rows.length).to.equal(2);
     expect(rows[0].querySelectorAll(".baseline-field").length).to.equal(2); // both car duties
     expect(rows[1].querySelectorAll(".baseline-field").length).to.equal(0); // duration_left
+  });
+
+  it("target picker: choosing an existing object forwards its entry_id (#105)", async () => {
+    const { el, sent } = await mountOpen();
+    const selects = el.shadowRoot!.querySelectorAll<HTMLSelectElement>(".target-select");
+    expect(selects.length).to.equal(2); // one per selected row
+    // First row (car1): pick the existing object instead of "create new".
+    selects[0].value = "obj_existing";
+    selects[0].dispatchEvent(new Event("change", { bubbles: true }));
+    await el.updateComplete;
+
+    el.shadowRoot!.querySelectorAll<HTMLElement>("ha-button")[1].click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/integration_setups/adopt")! as {
+      selections: Array<{ device_id: string; entry_id?: string }>;
+    };
+    const byId = Object.fromEntries(adopt.selections.map((s) => [s.device_id, s]));
+    expect(byId["car1"].entry_id).to.equal("obj_existing");
+    expect(byId["vac1"].entry_id).to.equal(undefined); // untouched row keeps default
   });
 
   it("forwards entered start values per task and omits empty ones", async () => {

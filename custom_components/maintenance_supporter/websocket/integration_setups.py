@@ -119,6 +119,20 @@ async def ws_adopt_integration_setups(
                 errors.append({"device_id": device_id, "reason": "target object not found"})
                 continue
 
+            # #105: adopting into a user-picked existing object that isn't
+            # device-bound yet — bind it, so model/sibling gates work and
+            # future discovery suggests this object instead of a new one.
+            # (Objects reached via suggested_entry_id are bound by definition;
+            # the guard makes this a no-op for them.)
+            obj_data = entry.data.get(CONF_OBJECT, {})
+            if not obj_data.get("ha_device_id"):
+                new_data = dict(entry.data)
+                new_data[CONF_OBJECT] = {**obj_data, "ha_device_id": device_id}
+                hass.config_entries.async_update_entry(entry, data=new_data)
+                refreshed = hass.config_entries.async_get_entry(entry_id)
+                if refreshed is not None:
+                    entry = refreshed
+
             # Second dedup layer (discovery already hides these): never create
             # a task whose name — in any language — already exists on the
             # target object.

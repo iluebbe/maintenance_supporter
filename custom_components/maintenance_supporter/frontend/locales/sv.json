@@ -782,5 +782,6 @@
   "baseline_start_help_edit": "Lämna tomt för att behålla den befintliga räkningen. Ett angivet värde förankrar räkningen på nytt (t.ex. mätarställningen vid senaste servicen).",
   "baseline_current_effective": "Nu gällande startvärde: {value}",
   "runtime_on_states": "Aktiva tillstånd (kommaseparerade)",
-  "runtime_on_states_help": "Tillstånd som räknas som drifttid — standard: on. T.ex. mowing, cleaning, printing. Med ett valt attribut jämförs dess värden i stället."
+  "runtime_on_states_help": "Tillstånd som räknas som drifttid — standard: on. T.ex. mowing, cleaning, printing. Med ett valt attribut jämförs dess värden i stället.",
+  "setups_target_new": "Skapa ny: {name}"
 }

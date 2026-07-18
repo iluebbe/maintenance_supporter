@@ -782,5 +782,6 @@
   "baseline_start_help_edit": "Pozostaw puste, aby zachować dotychczasowe liczenie. Wpisana wartość zakotwicza liczenie na nowo (np. stan przy ostatnim serwisie).",
   "baseline_current_effective": "Obecnie obowiązująca wartość początkowa: {value}",
   "runtime_on_states": "Stany aktywne (rozdzielone przecinkami)",
-  "runtime_on_states_help": "Stany liczone jako czas pracy — domyślnie: on. Np. mowing, cleaning, printing. Przy wybranym atrybucie porównywane są jego wartości."
+  "runtime_on_states_help": "Stany liczone jako czas pracy — domyślnie: on. Np. mowing, cleaning, printing. Przy wybranym atrybucie porównywane są jego wartości.",
+  "setups_target_new": "Utwórz nowy: {name}"
 }
