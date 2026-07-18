@@ -337,6 +337,22 @@ adopt-all is the default and a deselected duty forfeits its later proposal).
   quirks — a scoped dive must enumerate which quirks carry filter/brush
   percent before anything is cataloged.
 
+## Model-aware Bambu wave (post-v2.30, user-directed)
+
+Roadmap item implemented in the signature layer (model known at adoption):
+- `models_exclude` gate added (substring models=("AMS",) would swallow
+  "AMS Lite" — the Lite has NO desiccant compartment and must not qualify).
+- NEW 7th direction `alert_above`: plain threshold above a MEASUREMENT in the
+  entity's own unit + auto_complete_on_recovery — correct here (unlike wear
+  counters) because the maintenance genuinely lowers the value.
+- New duties: Clean Carbon Rods 100 print-h (X1/P1S/P1P CoreXY), Replace
+  Purge Wiper 300 h (A1 series), Replace Desiccant on AMS/AMS 2 Pro/AMS HT
+  via measured humidity > 40 % (key "humidity" in definitions.py, verified;
+  AMS devices carry their own registry model strings per coordinator.py).
+- 3 new task names ×17. Duty intervals are editorial defaults per Bambu's
+  maintenance guidance (the wiki is an unfetchable SPA — hardware facts
+  grounded on the established model designs; entity keys source-verified).
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted

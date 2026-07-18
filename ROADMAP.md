@@ -75,7 +75,14 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    Miele washer tub-clean via status-entity runtime (verify status values
    first).
 
-5. 💡 **Bambu Lab: model-aware 3D-printer templates** — study the different
+5. ~~**Bambu Lab: model-aware 3D-printer maintenance**~~ ✅ **Shipped
+   2026-07-18 (post-v2.30)** — via the signature layer, where the model is
+   known: CoreXY (X1/P1S/P1P) get carbon-rod cleaning every 100 print-hours,
+   A1 bed-slingers a purge-wiper replacement every 300 h, enclosed models the
+   chamber filter (300 h), and **AMS units propose desiccant replacement from
+   their MEASURED humidity** (new `alert_above` style, >40 %, auto-resolving;
+   AMS Lite excluded — no desiccant compartment). The static 3D Printer
+   template stays model-neutral. Original idea (kept for reference): study the different
    printer models (A1/A1 mini vs P1P/P1S vs X1C/X1E, AMS vs AMS 2 Pro/AMS HT)
    and Bambu's official maintenance guides, then tune the 3D Printer template
    per model: enclosure models add carbon/HEPA filter replacement, the A1
