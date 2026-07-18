@@ -1204,6 +1204,49 @@ async def test_category_sweep_litterrobot_ble_mower_evse(
     assert e_task["task_name"] == "Inspect Cable and Plug" and e_task["threshold"] == 5000.0
 
 
+async def test_ac_filter_via_hvac_action_attribute(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """AC-only integrations (daikin/gree) propose filter cleaning by
+    CONDITIONING time: the runtime trigger tracks the hvac_action ATTRIBUTE —
+    the climate state only reports the standby mode."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    source = MockConfigEntry(domain="daikin", title="Daikin")
+    source.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("daikin", "d1")}, name="Daikin Emura"
+    )
+    clim = er.async_get(hass).async_get_or_create(
+        "climate", "daikin", "d1", config_entry=source, device_id=dev.id,
+        suggested_object_id="daikin_emura",
+    )
+    hass.states.async_set(clim.entity_id, "cool", {"hvac_action": "idle"})
+
+    (setup,) = discover_integration_setups(hass)
+    (task,) = setup["tasks"]
+    assert task["task_name"] == "Filter Cleaning" and task["direction"] == "runtime_hours"
+    assert task["threshold"] == 250.0
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": dev.id}]},
+    )
+    assert not conn.send_error.called
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Daikin Emura"
+    )
+    (t,) = obj.data[CONF_TASKS].values()
+    tc = t["trigger_config"]
+    assert tc["type"] == "runtime" and tc["attribute"] == "hvac_action"
+    assert set(tc["trigger_on_states"]) == {"cooling", "heating", "fan", "drying"}
+
+
 async def test_state_derived_wave_roomba_mqtt_prusalink(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

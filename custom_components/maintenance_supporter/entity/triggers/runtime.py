@@ -3,6 +3,12 @@
 Tracks accumulated 'on' time of a binary entity (input_boolean, switch,
 binary_sensor, etc.) and triggers when the total runtime reaches a
 configured threshold in hours.
+
+When ``attribute`` is configured, the tracked value is that ATTRIBUTE of the
+entity instead of its state — a climate entity's ``hvac_action`` says whether
+the unit is actually conditioning (cooling/heating/fan), while its state only
+reports the standby MODE. State-change events fire on attribute changes too,
+so the same listener covers both.
 """
 
 from __future__ import annotations
@@ -11,7 +17,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
@@ -87,7 +93,7 @@ class RuntimeTrigger(BaseTrigger):
             return
 
         # Entity exists — check if currently ON
-        if self._is_on(state.state):
+        if self._is_on(self._tracked_value(state)):
             if self._on_since_dt is None:
                 # No restored timestamp — start tracking from now
                 now = dt_util.utcnow()
@@ -154,7 +160,9 @@ class RuntimeTrigger(BaseTrigger):
         if new_state is None:
             return
 
-        new_val = new_state.state
+        new_val = self._tracked_value(new_state)
+        # Availability is judged on the raw STATE even in attribute mode.
+        raw_state = new_state.state
 
         # Entity appeared for the first time
         if old_state is None:
@@ -172,10 +180,10 @@ class RuntimeTrigger(BaseTrigger):
             self._update_evaluation()
             return
 
-        old_val = old_state.state
+        old_val = self._tracked_value(old_state)
 
         # Handle unavailable/unknown — pause accumulation
-        if new_val in ("unavailable", "unknown"):
+        if raw_state in ("unavailable", "unknown"):
             if self._on_since_dt is not None:
                 self._accumulate_elapsed()
                 self._on_since_dt = None
@@ -185,7 +193,7 @@ class RuntimeTrigger(BaseTrigger):
                 _LOGGER.warning(
                     "Runtime trigger entity %s became %s (runtime paused)",
                     self.entity_id,
-                    new_val,
+                    raw_state,
                 )
                 self._logged_unavailable = True
             return
@@ -235,6 +243,12 @@ class RuntimeTrigger(BaseTrigger):
     def _is_on(self, state_value: str) -> bool:
         """Check if state represents 'on'."""
         return state_value.lower() in self._on_states
+
+    def _tracked_value(self, state: State) -> str:
+        """The tracked string: the configured attribute if set, else the state."""
+        if self.attribute:
+            return str(state.attributes.get(self.attribute, "") or "")
+        return str(state.state)
 
     def _accumulate_elapsed(self, now: datetime | None = None) -> None:
         """Add elapsed time since _on_since to accumulated total."""

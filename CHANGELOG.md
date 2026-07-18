@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ❄️ Air conditioners count their real running time
+
+- The runtime trigger can now watch an **attribute** instead of the state:
+  it accumulates only while e.g. `hvac_action` reports actual
+  cooling/heating — a thermostat merely set to "cool" does not count.
+- **Daikin and Gree** air conditioners propose "Filter Cleaning" every
+  250 hours of real compressor/fan runtime.
+- **Shark IQ and TP-Link Tapo** robot vacuums (no consumable sensors
+  upstream) get engine-counted filter and main-brush duties.
+
 ### 🧹 Engine-counted duties for sensor-less devices — incl. Valetudo
 
 - Vacuums whose integrations expose **no consumable sensors at all** now get

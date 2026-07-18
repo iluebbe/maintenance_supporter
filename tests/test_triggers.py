@@ -2168,6 +2168,43 @@ class TestMultiEntityRuntime:
         assert triggers[1]._accumulated_seconds == 108000.0
 
 
+    async def test_runtime_tracks_attribute_not_state(self, hass: HomeAssistant) -> None:
+        """With `attribute` configured, the runtime trigger accumulates while
+        the ATTRIBUTE is in on_states — a climate entity in mode 'cool' with
+        hvac_action 'idle' must NOT count; flipping the attribute to 'cooling'
+        starts tracking, flipping back stops it."""
+        hass.states.async_set("climate.ac", "cool", {"hvac_action": "idle"})
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["climate.ac"],
+            "entity_id": "climate.ac",
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100,
+            "attribute": "hvac_action",
+            "trigger_on_states": ["cooling", "heating", "fan"],
+        }
+        (trigger,) = create_triggers(hass, entity, config)
+        await trigger.async_setup()
+        assert trigger._on_since_dt is None  # idle attribute -> not tracking
+
+        # Attribute flips to cooling (state unchanged) -> tracking starts.
+        hass.states.async_set("climate.ac", "cool", {"hvac_action": "cooling"})
+        await hass.async_block_till_done()
+        assert trigger._on_since_dt is not None
+
+        # Attribute back to idle -> tracking stops, elapsed time accumulated.
+        hass.states.async_set("climate.ac", "cool", {"hvac_action": "idle"})
+        await hass.async_block_till_done()
+        assert trigger._on_since_dt is None
+        assert trigger._accumulated_seconds >= 0.0
+
+        # A bare STATE change while the attribute stays idle must not track.
+        hass.states.async_set("climate.ac", "heat", {"hvac_action": "idle"})
+        await hass.async_block_till_done()
+        assert trigger._on_since_dt is None
+        await trigger.async_teardown()
+
+
 # ─── Phase 2A: Multi-Entity StateChange ────────────────────────────────
 
 

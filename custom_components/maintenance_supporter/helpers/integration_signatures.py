@@ -1574,7 +1574,7 @@ def build_setup_trigger(
         # The engine accumulates the time the entity spends in on_states
         # itself (no integration counter needed); completing the task resets
         # the accumulation.
-        trigger = {
+        runtime_trigger: dict[str, Any] = {
             "type": "runtime",
             "entity_id": entity_ids[0],
             "entity_ids": list(entity_ids),
@@ -1582,8 +1582,8 @@ def build_setup_trigger(
             "trigger_runtime_hours": _threshold_for(sig, hass, entity_ids[0]),
         }
         if sig.attribute:
-            trigger["attribute"] = sig.attribute
-        return trigger
+            runtime_trigger["attribute"] = sig.attribute
+        return runtime_trigger
     if sig.direction in ("usage_delta", "usage_above"):
         # Counter trigger in delta mode for both wear-counter flavours — a
         # plain trigger_above threshold would re-fire immediately after a
