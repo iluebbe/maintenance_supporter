@@ -565,6 +565,39 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Wash Mop Pads", "cleaning", "time_based", 60, 7),
         ],
     ),
+    ObjectTemplate(
+        id="appliance_3d_printer",
+        name="3D Printer",
+        category="appliance",
+        tasks=[
+            TaskTemplate(
+                "Clean Print Bed",
+                "cleaning",
+                "time_based",
+                14,
+                3,
+                "Grease and dust ruin first-layer adhesion — clean with isopropyl alcohol, not household cleaners.",
+            ),
+            TaskTemplate("Clean or Replace Nozzle", "service", "time_based", 90, 14),
+            TaskTemplate(
+                "Lubricate Rails and Rods",
+                "service",
+                "time_based",
+                180,
+                21,
+                "Follow the manufacturer's lubricant spec — the wrong grease attracts dust and wears the bearings faster.",
+            ),
+            TaskTemplate("Check Belt Tension", "inspection", "time_based", 180, 21),
+            TaskTemplate(
+                "Dry Filament Stock",
+                "service",
+                "time_based",
+                90,
+                14,
+                "Moist filament pops and strings — hygroscopic materials (PETG, PA, TPU) need drying well before PLA does.",
+            ),
+        ],
+    ),
 ]
 
 

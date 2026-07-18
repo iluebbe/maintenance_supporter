@@ -118,6 +118,39 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("brush_life_level",), "Replace Main Brush", "percent_left"),
         ),
     ),
+    "xiaomi_home": IntegrationSignature(
+        name="Xiaomi Home",
+        source=(
+            "XiaoMi/ha_xiaomi_home miot/miot_device.py gen_prop_entity_id: "
+            "entity_id = f'{model}_{did}_{model}_{slugify_name(prop)}_p_{siid}_{piid}' "
+            "(property name mid-string, no translation_key) — matched via the "
+            "'_<key>_p_' infix. Same MIoT spec properties as hass-xiaomi-miot."
+        ),
+        tasks=(
+            ConsumableSignature(("filter_life_level",), "Replace Filter", "percent_left"),
+            ConsumableSignature(("brush_life_level",), "Replace Main Brush", "percent_left"),
+        ),
+    ),
+    "midea_ac_lan": IntegrationSignature(
+        name="Midea (LAN)",
+        source=(
+            "wuwentao/midea_ac_lan midea_devices.py + midea_entity.py "
+            "(_attr_translation_key from the per-attribute config; entity_id = "
+            "f'{device_id}_{entity_key}'). 0xED water purifier: filter1/2/3_life "
+            "PERCENTAGE; 0xC2: filter_life PERCENTAGE. The filterN_days "
+            "countdowns describe the SAME filters — percent only, no duplicate "
+            "tasks. Filter cleaning/change reminders (A1/CE/AC full_dust) are "
+            "device_class problem binaries — covered by problem-sensor adoption."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter1_life", "filter2_life", "filter3_life"),
+                "Replace Water Filter",
+                "percent_left",
+            ),
+            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+        ),
+    ),
     "ecovacs": IntegrationSignature(
         name="Ecovacs",
         source=(
@@ -287,10 +320,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
 
 def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:
     """translation_key match, with an entity_id-suffix fallback for custom
-    integrations that don't set translation_key on their descriptions."""
+    integrations that don't set translation_key on their descriptions.
+
+    Third pattern: xiaomi_home embeds the MIoT property name mid-entity_id with
+    a ``_p_{siid}_{piid}`` tail (``..._filter_life_level_p_4_1``) and sets no
+    translation_key — matched via the distinctive ``_<key>_p_`` infix. Matching
+    is already scoped to the signature's integration (entry.platform), so this
+    cannot bleed across integrations."""
     if entry.translation_key == key:
         return True
-    return entry.entity_id.endswith(f"_{key}")
+    if entry.entity_id.endswith(f"_{key}"):
+        return True
+    return f"_{key}_p_" in entry.entity_id
 
 
 def _entity_unit(hass: HomeAssistant, entry: er.RegistryEntry) -> str | None:
