@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🔩 More duties from the same sensors — undercarriage, contacts, tires
+
+- One source sensor can now back **several maintenance duties**: all four
+  mower integrations additionally propose **"Clean Undercarriage" every 25
+  mowing-hours** (Husqvarna from its cutting-time statistic, Landroid from
+  total runtime, Gardena and Navimow from the same hours source as the blade
+  task), Husqvarna adds **"Clean Charging Contacts" every 100 docking
+  cycles**, and all three car integrations add **"Tire Rotation" every
+  10,000 km** alongside the 15,000 km service — each duty with its own
+  re-baselining interval.
+
 ### 🛡️ Catalog governance — weekly upstream drift watchdog
 
 - The signature catalog now has an automated freshness check: a **weekly

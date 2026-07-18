@@ -334,11 +334,25 @@ async def test_usage_above_direction_husqvarna_and_landroid(
         )
         hass.states.async_set(entry.entity_id, "42", {"unit_of_measurement": unit})
 
+    # Husqvarna also exposes lifetime statistics -> extra derived duties.
+    ent_reg = er.async_get(hass)
+    stat = ent_reg.async_get_or_create(
+        "sensor", "husqvarna_automower", "am1_total_cutting_time",
+        config_entry=hass.config_entries.async_entries("husqvarna_automower")[0],
+        device_id=dr.async_get(hass).async_get_device({("husqvarna_automower", "am1")}).id,
+        translation_key="total_cutting_time",
+        suggested_object_id="am1_total_cutting_time",
+    )
+    hass.states.async_set(stat.entity_id, "310", {"unit_of_measurement": "h"})
+
     setups = {s2["integration"]: s2 for s2 in discover_integration_setups(hass)}
     assert set(setups) == {"husqvarna_automower", "landroid_cloud"}
-    hq = setups["husqvarna_automower"]["tasks"][0]
-    assert hq["task_name"] == "Replace Blades" and hq["direction"] == "usage_above"
+    hq_by_name = {t["task_name"]: t for t in setups["husqvarna_automower"]["tasks"]}
+    assert set(hq_by_name) == {"Replace Blades", "Clean Undercarriage"}
+    hq = hq_by_name["Replace Blades"]
+    assert hq["direction"] == "usage_above"
     assert hq["threshold"] == 100.0  # hours display -> 100 h
+    assert hq_by_name["Clean Undercarriage"]["threshold"] == 25.0
     lr = setups["landroid_cloud"]["tasks"][0]
     assert lr["threshold"] == 6000.0  # native minutes -> 100 h * 60
 
@@ -350,12 +364,12 @@ async def test_usage_above_direction_husqvarna_and_landroid(
         {"id": 1, "type": "x", "selections": [{"device_id": setups["husqvarna_automower"]["device_id"]}]},
     )
     res = conn.send_result.call_args[0][1]
-    assert res["tasks_created"] == 1
+    assert res["tasks_created"] == 2  # blades + undercarriage (multi-duty adopt-all)
     obj = next(
         e for e in hass.config_entries.async_entries(DOMAIN)
         if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Automower 305"
     )
-    (task,) = obj.data[CONF_TASKS].values()
+    task = next(t for t in obj.data[CONF_TASKS].values() if "Undercarriage" not in t["name"])
     tc = task["trigger_config"]
     # Resettable wear counters wire a DELTA counter from an explicit 0 baseline
     # (absolute at adoption; manual completion re-baselines instead of
@@ -654,11 +668,13 @@ async def test_car_odometer_usage_delta_km_and_miles(
     setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
 
     for dev in (kia, renault):
-        (t,) = setups[dev]["tasks"]
-        assert t["task_name"] == "Annual Service" and t["direction"] == "usage_delta"
-        assert t["threshold"] == 15000.0
-    (tt,) = setups[tesla]["tasks"]
-    assert tt["threshold"] == 9320.55  # 15000 km in miles
+        by_name = {t["task_name"]: t for t in setups[dev]["tasks"]}
+        assert set(by_name) == {"Annual Service", "Tire Rotation"}  # one odometer, two duties
+        assert by_name["Annual Service"]["threshold"] == 15000.0
+        assert by_name["Tire Rotation"]["threshold"] == 10000.0
+    tesla_by_name = {t["task_name"]: t for t in setups[tesla]["tasks"]}
+    assert tesla_by_name["Annual Service"]["threshold"] == 9320.55  # 15000 km in miles
+    assert tesla_by_name["Tire Rotation"]["threshold"] == 6213.7  # 10000 km in miles
 
 
 async def test_midea_water_purifier_and_xiaomi_home_infix(
@@ -726,10 +742,12 @@ async def test_navimow_runtime_hours_on_lawn_mower_entity(
     hass.states.async_set(battery.entity_id, "80", {"unit_of_measurement": "%"})
 
     (setup,) = discover_integration_setups(hass)
-    (task,) = setup["tasks"]
-    assert task["task_name"] == "Replace Blades" and task["direction"] == "runtime_hours"
-    assert task["threshold"] == 100.0
-    assert task["entity_ids"] == ["lawn_mower.navimow_h1500"]
+    by_name = {t["task_name"]: t for t in setup["tasks"]}
+    assert set(by_name) == {"Replace Blades", "Clean Undercarriage"}  # multi-duty
+    blades = by_name["Replace Blades"]
+    assert blades["direction"] == "runtime_hours" and blades["threshold"] == 100.0
+    assert blades["entity_ids"] == ["lawn_mower.navimow_h1500"]
+    assert by_name["Clean Undercarriage"]["threshold"] == 25.0
 
     conn = make_ws_connection()
     await call_ws_handler(
@@ -741,8 +759,10 @@ async def test_navimow_runtime_hours_on_lawn_mower_entity(
         e for e in hass.config_entries.async_entries(DOMAIN)
         if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Navimow H1500"
     )
-    (t,) = obj.data[CONF_TASKS].values()
-    tc = t["trigger_config"]
+    tasks = list(obj.data[CONF_TASKS].values())
+    assert len(tasks) == 2  # both duties adopted, both watching the mower
+    blades_task = next(t for t in tasks if "Blades" in t["name"] or "Messer" in t["name"])
+    tc = blades_task["trigger_config"]
     assert tc["type"] == "runtime"
     assert tc["trigger_on_states"] == ["mowing"] and tc["trigger_runtime_hours"] == 100.0
     assert tc["entity_id"] == "lawn_mower.navimow_h1500"
@@ -761,9 +781,14 @@ async def test_gardena_mower_operating_hours_delta(
     )
     (setup,) = discover_integration_setups(hass)
     assert setup["device_id"] == mower
-    (task,) = setup["tasks"]
-    assert task["task_name"] == "Replace Blades" and task["direction"] == "usage_delta"
-    assert task["threshold"] == 100.0
+    # Multi-duty: ONE operating_hours entity backs BOTH mower duties.
+    by_name = {t["task_name"]: t for t in setup["tasks"]}
+    assert set(by_name) == {"Replace Blades", "Clean Undercarriage"}
+    assert by_name["Replace Blades"]["threshold"] == 100.0
+    assert by_name["Clean Undercarriage"]["threshold"] == 25.0
+    assert (
+        by_name["Replace Blades"]["entity_ids"] == by_name["Clean Undercarriage"]["entity_ids"]
+    )
 
 
 async def test_miele_fill_levels_dishwasher_and_washer(

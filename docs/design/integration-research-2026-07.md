@@ -276,10 +276,40 @@ cumulative-runtime sensors could carry a second duty today; Gardena/Navimow
 could not. Needs a matcher/exclusion rework (per-duty entity claims instead
 of per-entity) before per-usage-source task bundles can ship.
 
-**Open verification candidate:** Miele appliances expose a program/status
-entity — a runtime-based washer "Clean Tub every N operating hours" (LG has a
-counter, Miele doesn't) is plausible but needs the status values verified at
-source first.
+## Re-audit round 2 — NEW duties from derived triggers (2026-07-18)
+
+Second pass with the opposite question: which NEW tasks do the derived
+directions make possible? Prerequisite shipped first: the matcher's
+one-signature-per-entity `break` was removed — **one source entity may now
+back several duties** (adopting any duty marks the entity watched, so
+adopt-all is the default and a deselected duty forfeits its later proposal).
+
+**Added (8 signatures, all names already localized):**
+- **Clean Undercarriage by mowing time** on all four mower integrations:
+  husqvarna `total_cutting_time` (separate lifetime stat, s→h), landroid
+  `mower_runtime_total` (min→h), gardena `operating_hours` (2nd duty on the
+  same entity), navimow lawn_mower runtime (2nd runtime duty) — usage_delta/
+  runtime 25 h.
+- **Clean Charging Contacts** on husqvarna via `number_of_charging_cycles`
+  (unitless lifetime counter → usage_delta every 100 docking cycles).
+- **Tire Rotation every 10,000 km** on kia_uvo / tesla_custom / renault —
+  second odometer duty next to the 15,000 km Annual Service (miles converted:
+  6,213.7 mi).
+
+**Verified and REJECTED:**
+- **Miele "Clean Tub" via status runtime** — the status sensor exists and has
+  an `in_use` state (verified in core miele/sensor.py), but its
+  translation_key `status` is IDENTICAL across all Miele appliance types: the
+  signature would propose "Clean Tub" on dishwashers, ovens and fridges too.
+  Needs appliance-type awareness in the matcher (device model/class) before
+  it can ship — recorded as a matcher-extension candidate.
+- Vacuum runtime duties (dustbin etc.): still rejected — after-every-run
+  routine, not a trackable interval; consumable signatures cover the real
+  wear duties.
+- Bambu second usage duty (belt check): one usage-interval task per printer
+  suffices; belts stay on the calendar template.
+- ViCare water pressure (bar) — would need a raw value-below direction
+  (the hour-canonical threshold conversion doesn't apply); parked.
 
 ## Follow-up candidates (parked)
 
