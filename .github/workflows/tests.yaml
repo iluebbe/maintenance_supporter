@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Install frontend dependencies
@@ -101,7 +101,7 @@ jobs:
       HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.7.2
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
 
@@ -237,7 +237,7 @@ jobs:
     timeout-minutes: 14
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
 
