@@ -5086,7 +5086,7 @@ ${h?`<div class="sub">${h}</div>`:""}
                             </div>
                             <div class="row-tasks">
                               ${t.tasks.map(l=>o`<span class="chip" title=${l.entity_ids.join(", ")}>
-                                  <ha-icon icon="mdi:link-variant"></ha-icon>${l.task_name}
+                                  <ha-icon icon="mdi:link-variant"></ha-icon>${l.task_name_localized||l.task_name}
                                 </span>`)}
                             </div>
                           </div>

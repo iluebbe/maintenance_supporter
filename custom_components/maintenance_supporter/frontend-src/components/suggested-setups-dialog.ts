@@ -17,6 +17,7 @@ import type { HomeAssistant } from "../types";
 
 interface SetupTask {
   task_name: string;
+  task_name_localized?: string;
   entity_ids: string[];
   threshold: number;
   direction: string;
@@ -157,7 +158,8 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
                             <div class="row-tasks">
                               ${s.tasks.map(
                                 (task) => html`<span class="chip" title=${task.entity_ids.join(", ")}>
-                                  <ha-icon icon="mdi:link-variant"></ha-icon>${task.task_name}
+                                  <ha-icon icon="mdi:link-variant"></ha-icon>${task.task_name_localized ||
+                                  task.task_name}
                                 </span>`,
                               )}
                             </div>
