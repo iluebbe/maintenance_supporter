@@ -121,7 +121,9 @@ mowers too), **Xiaomi MIoT / Xiaomi Home** air purifiers/humidifiers/vacuums
 **Miele** dishwashers and washers (salt, rinse aid, PowerDisk/TwinDos
 detergent fill levels), IPP and Brother printers (ink/toner, drum, belt,
 fuser),
-**Husqvarna Automower and Worx Landroid mowers** (blade-usage counters), **LG
+**Husqvarna Automower, Worx Landroid, Gardena Sileno and Segway Navimow
+mowers** (blade-usage/mowing-hours counters — for Navimow the engine
+accumulates the mowing time itself), **LG
 ThinQ** appliances (AC/purifier/refrigerator filters and the washer tub-clean
 counter), **Viessmann ViCare** ventilation filters and service hours, **Bambu Lab**
 printers (usage-hour service intervals), **Hyundai/Kia, Tesla and Renault**

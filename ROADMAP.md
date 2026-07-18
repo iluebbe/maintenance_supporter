@@ -47,9 +47,9 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    is labelled **Beta** while the catalog matures.
 
 3. 💡 **Signature catalog: community candidates** — from Discussion #101 and
-   the stargazer analysis: ~~Segway Navimow~~ (verified 2026-07-18: NavimowHA
-   exposes only battery/position/progress — **no maintenance sensors**, nothing
-   to catalog; re-check if upstream grows blade sensors), **WeBack vacuums**
+   the stargazer analysis: ~~Segway Navimow~~ ✅ shipped via the new runtime_hours
+   direction (the engine accumulates mowing time on the lawn_mower entity —
+   no integration counter needed), **WeBack vacuums**
    (Jezza34000/homeassistant_weback_component — consumable sensors to
    verify), plus the parked dreo / tuya_local / daikin_onecta /
    electrolux_status / Mercedes (mbapi2020) and the core Tesla trio. ~~Miele~~

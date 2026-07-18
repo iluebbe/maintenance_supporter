@@ -7,8 +7,12 @@ object **with sensor-based triggers pre-wired** instead of bare calendar
 intervals.
 
 METHOD CONTRACT: every signature is verified against the integration's actual
-source code — the ``source`` field records where. Nothing here is assumed from
-docs or memory; when adding an integration, read its ``sensor.py`` first.
+source code — the ``source`` field records where, ``verified`` records when and
+against which ref. Evaluation follows the direct→derived ladder in
+docs/design/signature-evaluation-scheme.md: inventory ALL entity platforms,
+then direct signals (percent/countdown/resettable counter/event), then derived
+(lifetime counters via delta, attributes), then engine-derived (runtime on
+state entities) — a negative verdict only after all rungs.
 Matching uses the entity registry's ``translation_key`` (the stable id from the
 integration's EntityDescription, immune to renames) with an entity_id-suffix
 fallback for custom integrations that don't set one.
@@ -34,6 +38,13 @@ Direction semantics:
   counters, kilometres for odometers) of accumulated use since the task was
   last completed; completing the task re-baselines the counter. No
   auto_complete_on_recovery (a lifetime counter never recovers).
+* ``runtime_hours``  — the integration exposes NO usage counter at all, only a
+  STATE entity (a ``lawn_mower`` reporting ``mowing``). The ENGINE accumulates
+  the time spent in the given states itself (runtime trigger: persisted every
+  5 min, restart-safe, paused while unavailable) and fires after N accumulated
+  hours; completing the task resets the accumulation. Signatures of this
+  direction set ``entity_domain``/``on_states`` and may leave ``keys`` empty —
+  meaning "the device's single entity of that domain".
 """
 
 from __future__ import annotations
@@ -63,11 +74,15 @@ class ConsumableSignature:
 
     keys: tuple[str, ...]  # translation_key values (also matched as _<key> entity-id suffix)
     task_name: str  # EN task name; localized through templates_i18n
-    direction: str  # "duration_left" | "percent_left" | "usage_above" | "event_present" | "usage_delta"
+    direction: str  # duration_left | percent_left | usage_above | event_present | usage_delta | runtime_hours
     below_hours: int = _DEFAULT_BELOW_HOURS
     below_percent: int = _DEFAULT_BELOW_PERCENT
     above_hours: int = _DEFAULT_ABOVE_HOURS
     delta_units: int = _DEFAULT_DELTA_UNITS
+    # runtime_hours signatures target a non-sensor STATE entity; empty keys
+    # then mean "the device's single entity of this domain".
+    entity_domain: str = "sensor"
+    on_states: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -209,6 +224,45 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
+        ),
+    ),
+    "gardena_smart_system": IntegrationSignature(
+        name="Gardena Smart System",
+        verified="2026-07-18 @ py-smart-gardena/hass-gardena-smart-system master",
+        source=(
+            "py-smart-gardena/hass-gardena-smart-system sensor.py "
+            "GardenaMowerOperatingHoursSensor (entity_id "
+            "'{device.id}_{service.id}_operating_hours', UnitOfTime.HOURS, "
+            "TOTAL_INCREASING lifetime — no reset anywhere) → usage_delta."
+        ),
+        tasks=(
+            # Sileno mowers: pivoting razor blades wear by mowing time — every
+            # 100 operating hours since the last change (delta re-baselines on
+            # completion, matching the Husqvarna default).
+            ConsumableSignature(
+                ("operating_hours",), "Replace Blades", "usage_delta", delta_units=100
+            ),
+        ),
+    ),
+    "navimow": IntegrationSignature(
+        name="Segway Navimow",
+        verified="2026-07-18 @ pgoutsos/NavimowHA main",
+        source=(
+            "pgoutsos/NavimowHA lawn_mower.py (one LawnMower entity per "
+            "device) + const.py MOWER_STATUS_TO_ACTIVITY ('mowing' → "
+            "LawnMowerActivity.MOWING). The integration exposes NO usage "
+            "counter — the ENGINE accumulates mowing time itself via the "
+            "runtime trigger on the lawn_mower entity."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Replace Blades",
+                "runtime_hours",
+                delta_units=100,
+                entity_domain="lawn_mower",
+                on_states=("mowing",),
+            ),
         ),
     ),
     "lg_thinq": IntegrationSignature(
@@ -471,8 +525,8 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     key match, so existing single-shape signatures are unaffected. The one
     strict case is ``event_present``: ENUM event sensors carry no unit, so a
     unit-bearing entity that happens to share the key is NOT an event."""
-    if direction == "event_present":
-        return unit is None
+    if direction in ("event_present", "runtime_hours"):
+        return unit is None  # ENUM events and state entities carry no unit
     if unit is None:
         return True
     if direction == "percent_left":
@@ -488,6 +542,8 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     """
     if sig.direction == "event_present":
         return 0.0  # ENUM event latch — no numeric threshold
+    if sig.direction == "runtime_hours":
+        return float(sig.delta_units)  # engine-accumulated hours, no unit scaling
     if sig.direction == "percent_left":
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
@@ -533,6 +589,17 @@ def build_setup_trigger(
             "trigger_to_state": "present",
             "trigger_target_changes": 1,
             "auto_complete_on_recovery": True,
+        }
+    if sig.direction == "runtime_hours":
+        # The engine accumulates the time the entity spends in on_states
+        # itself (no integration counter needed); completing the task resets
+        # the accumulation.
+        return {
+            "type": "runtime",
+            "entity_id": entity_ids[0],
+            "entity_ids": list(entity_ids),
+            "trigger_on_states": list(sig.on_states) or ["on"],
+            "trigger_runtime_hours": _threshold_for(sig, hass, entity_ids[0]),
         }
     if sig.direction in ("usage_delta", "usage_above"):
         # Counter trigger in delta mode for both wear-counter flavours — a
@@ -589,21 +656,26 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     for entry in ent_reg.entities.values():
         integration = entry.platform
         catalog = SIGNATURES.get(integration)
-        if catalog is None or entry.domain != "sensor" or not entry.device_id:
+        if catalog is None or not entry.device_id:
             continue
         if entry.disabled_by is not None or entry.entity_id in already_watched:
             continue
         unit = _entity_unit(hass, entry)
         for sig in catalog.tasks:
+            if entry.domain != sig.entity_domain:
+                continue
             if not _unit_compatible(sig.direction, unit):
                 continue
-            if any(_entity_matches(entry, key) for key in sig.keys):
-                group = matched.setdefault(entry.device_id, {}).setdefault(
-                    (integration, sig.task_name, sig.direction),
-                    {"sig": sig, "entity_ids": []},
-                )
-                group["entity_ids"].append(entry.entity_id)
-                break
+            # Empty keys (non-sensor domains only, tripwire-enforced) match the
+            # device's single entity of that domain — e.g. THE lawn_mower.
+            if sig.keys and not any(_entity_matches(entry, key) for key in sig.keys):
+                continue
+            group = matched.setdefault(entry.device_id, {}).setdefault(
+                (integration, sig.task_name, sig.direction),
+                {"sig": sig, "entity_ids": []},
+            )
+            group["entity_ids"].append(entry.entity_id)
+            break
 
     out: list[dict[str, Any]] = []
     for device_id, sig_map in matched.items():
