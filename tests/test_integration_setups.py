@@ -77,6 +77,28 @@ def test_every_signature_task_name_is_fully_translated() -> None:
     assert not missing, "\n".join(missing)
 
 
+def test_every_signature_has_a_drift_probe() -> None:
+    """Tripwire: scripts/signature_probes.json (the weekly upstream drift
+    watchdog's input) must cover exactly the SIGNATURES domains — a new
+    catalog entry without a probe would silently escape freshness control."""
+    import json
+    from pathlib import Path
+
+    probes_file = Path(__file__).parent.parent / "scripts" / "signature_probes.json"
+    if not probes_file.exists():
+        # The ha-maint dev container only mounts custom_components + tests;
+        # CI checks out the full repo and enforces this tripwire there.
+        pytest.skip("scripts/ not mounted in this environment (enforced in CI)")
+    probes = json.loads(probes_file.read_text(encoding="utf-8"))
+    probes.pop("_comment", None)
+    assert set(probes) == set(SIGNATURES), (
+        f"probe/catalog mismatch: only-in-probes={set(probes) - set(SIGNATURES)}, "
+        f"missing-probes={set(SIGNATURES) - set(probes)}"
+    )
+    for domain, probe in probes.items():
+        assert probe.get("urls") and probe.get("strings"), f"{domain}: empty probe"
+
+
 async def _seed_roborock(hass: HomeAssistant) -> str:
     """A fake Roborock device with two consumable sensors (translation_key
     match) — states in HOURS like HA's suggested display unit."""

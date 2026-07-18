@@ -4,6 +4,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🛡️ Catalog governance — weekly upstream drift watchdog
+
+- The signature catalog now has an automated freshness check: a **weekly
+  GitHub Action** verifies that every integration's signature keys still
+  exist in the upstream source they were verified against, and files a
+  drift issue when something changed upstream (never blocking regular CI).
+  A tripwire keeps the probe list in exact sync with the catalog. Adopted
+  tasks were already protected at runtime: the `missing_trigger_entity`
+  Repair surfaces a vanished trigger entity natively in Home Assistant.
+- Full catalog re-audit against the (new) evaluation scheme: all 22
+  integrations confirmed to use the most direct available signal per duty
+  (results in the research doc).
+
 ### 🌿 Mower blades by mowing hours — Gardena Sileno & Segway Navimow
 
 - **Gardena Smart System** mowers propose "Replace Blades" every **100

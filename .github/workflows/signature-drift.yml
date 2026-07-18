@@ -1,0 +1,51 @@
+name: Signature drift
+
+# Weekly watchdog: verify that every suggested-setups signature still matches
+# the upstream integration source it was verified against. Deliberately NOT
+# part of the PR gate — upstream churn must never block our merges. On drift
+# it files (or updates) a tracking issue instead.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check signature probes against upstream
+        id: drift
+        run: |
+          set +e
+          python3 scripts/check_signature_drift.py | tee drift.log
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: File or update drift issue
+        if: steps.drift.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Signature drift: upstream integration sources changed"
+          BODY="The weekly signature-drift check found catalog entries whose upstream source no longer contains the probe strings. Each listed integration needs a re-dive per docs/design/signature-evaluation-scheme.md (update keys, bump \`verified\`).
+
+          \`\`\`
+          $(cat drift.log)
+          \`\`\`
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" --state open --search "in:title Signature drift" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "${{ github.repository }}" --body "$BODY"
+          else
+            gh issue create --repo "${{ github.repository }}" --title "$TITLE" --body "$BODY"
+          fi
+
+      - name: Summary
+        run: cat drift.log >> "$GITHUB_STEP_SUMMARY"
