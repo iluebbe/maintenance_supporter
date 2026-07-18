@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🌐 Translation-completeness audit — 13 stuck keys fixed in 16 languages
+
+- A full audit across all i18n surfaces (frontend locales ×18, backend
+  translations ×18 + strings.json, template/signature catalog ×17,
+  notification texts ×18) found **13 frontend keys that were only ever
+  translated into German** — recurrence extras (last day / business day /
+  offset), extra reminder leads, warranty-reminder settings, shared-with
+  rotation, labels help and earliest-completion. All 13 are now translated
+  in the remaining 16 languages (208 new strings).
+- The audit is now a repo script (`scripts/audit_translations.py`) checking
+  key parity, empty values, placeholder parity and English-stuck values —
+  with an audited allowlist for genuine cognates ("Filter"/"Service").
+
 ## [2.32.0] - 2026-07-18
 
 ### 🚗 Start value for km/usage tasks — "the last service was at X" (#102)
