@@ -16,7 +16,7 @@ const api = await wsClient(REST, token);
 
 const res = await api.send({ type: "maintenance_supporter/templates", language: "de" });
 const tpls = res.templates || [];
-assert(tpls.length === 33, `templates WS lists 33 (got ${tpls.length})`);
+assert(tpls.length === 41, `templates WS lists 41 (got ${tpls.length})`);
 const ids = new Set(tpls.map((t) => t.id));
 for (const id of ["home_ro_filter", "appliance_espresso", "home_knives", "garden_irrigation",
   "garden_pressure_washer", "home_houseplants", "home_bathroom_fan",
