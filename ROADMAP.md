@@ -91,6 +91,19 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    recommendations. Discovery already binds the template to the printer
    device, so the model is known at adoption time.
 
+4. 💡 **Seed the counting baseline from the last real service (#102)** —
+   a km/usage delta task adopted today always counts from the adoption
+   reading, so a car serviced 15,000 km ago still shows "0 / 15,000 km".
+   Let the user state *"last service was at X km"* — at adoption (an
+   optional question in the suggested-setups dialog) and later in the task
+   dialog (an editable baseline field for delta-counter triggers;
+   `trigger_baseline_value` is already WS-writable, and since the
+   store-beats-config restore fix a config baseline is safe to edit). Pairs
+   naturally with a backdated history entry (date, cost, invoice document —
+   all already supported by the history tab) so past services can be
+   registered in one step. The display/restart bugs found alongside #102
+   are already fixed (e45f47d).
+
 ### Shipped waves
 
 **Everything below is worked off** — most recently the **2.26/2.27 waves**:
