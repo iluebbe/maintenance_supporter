@@ -625,6 +625,17 @@ SIGNATURES: dict[str, IntegrationSignature] = {
 }
 
 
+def task_name_variants(task_name: str) -> set[str]:
+    """The EN signature task name plus all its localizations, lowercased —
+    used to recognise an equivalent EXISTING task on the target object
+    regardless of the language it was created in."""
+    from ..templates_i18n import _T
+
+    variants = {task_name.lower()}
+    variants.update(v.lower() for v in _T.get(task_name, {}).values())
+    return variants
+
+
 def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:
     """translation_key match, with an entity_id-suffix fallback for custom
     integrations that don't set translation_key on their descriptions.
@@ -848,10 +859,25 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
         integration = next(iter(sig_map))[0]
         catalog = SIGNATURES[integration]
         suggested = by_device.get(device_id)
+        # Duties already present on the bound object BY NAME (any language) are
+        # not re-proposed — covers manually created calendar tasks whose
+        # trigger watches no entity (the entity-watched exclusion misses them).
+        existing_names: set[str] = set()
+        if suggested and (
+            target := hass.config_entries.async_get_entry(suggested["entry_id"])
+        ):
+            from ..const import CONF_TASKS
+
+            existing_names = {
+                str(t.get("name", "")).lower()
+                for t in target.data.get(CONF_TASKS, {}).values()
+            }
         tasks = []
         for (_integ, task_name, direction), group in sig_map.items():
             entity_ids = sorted(group["entity_ids"])
             if not entity_ids:
+                continue
+            if existing_names and existing_names & task_name_variants(task_name):
                 continue
             tasks.append(
                 {

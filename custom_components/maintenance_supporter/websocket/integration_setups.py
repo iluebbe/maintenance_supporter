@@ -17,7 +17,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_OBJECT, DOMAIN, MAX_ID_LENGTH, MAX_NAME_LENGTH
+from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, MAX_ID_LENGTH, MAX_NAME_LENGTH
 from ..helpers.integration_signatures import (
     SIGNATURES,
     build_setup_trigger,
@@ -110,8 +110,20 @@ async def ws_adopt_integration_setups(
                 errors.append({"device_id": device_id, "reason": "target object not found"})
                 continue
 
+            # Second dedup layer (discovery already hides these): never create
+            # a task whose name — in any language — already exists on the
+            # target object.
+            from ..helpers.integration_signatures import task_name_variants
+
+            existing_names = {
+                str(t.get("name", "")).lower()
+                for t in entry.data.get(CONF_TASKS, {}).values()
+            }
+
             for task in setup["tasks"]:
                 if task["task_name"] not in wanted:
+                    continue
+                if existing_names & task_name_variants(task["task_name"]):
                     continue
                 sig = sig_by_key[(task["task_name"], task["direction"])]
                 await async_persist_task(

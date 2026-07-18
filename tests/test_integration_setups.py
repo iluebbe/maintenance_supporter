@@ -860,6 +860,89 @@ async def test_bambu_model_gate_enclosed_vs_open_frame(
     assert a1_task["task_name"] == "Lubricate Rails and Rods"  # no filter duty
 
 
+async def test_second_identical_device_still_proposed_after_first_adopted(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Duplicate suppression is per ENTITY, not per device type: adopting the
+    first of two identical vacuums removes ITS proposals, while the second
+    device keeps being proposed."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    dev_a = await _seed_sensor(
+        hass, "roborock", "twin_a", "Roborock Upstairs",
+        [("filter_time_left", "filter_time_left", "h")],
+    )
+    dev_b = await _seed_sensor(
+        hass, "roborock", "twin_b", "Roborock Downstairs",
+        [("filter_time_left", "filter_time_left", "h")],
+    )
+    assert {s["device_id"] for s in discover_integration_setups(hass)} == {dev_a, dev_b}
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": dev_a}]},
+    )
+    assert not conn.send_error.called
+
+    # First device fully adopted -> gone; the second twin is still proposed.
+    remaining = discover_integration_setups(hass)
+    assert {s["device_id"] for s in remaining} == {dev_b}
+
+
+async def test_existing_task_name_on_bound_object_not_reproposed(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A manually created CALENDAR task (no watched entity) with the same duty
+    name on the device-bound object must suppress the proposal — in discovery
+    AND as an adopt-time second layer (any catalog language counts)."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+    from uuid import uuid4
+
+    from custom_components.maintenance_supporter.websocket.objects import async_create_object
+    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+        async_persist_task,
+    )
+
+    await setup_integration(hass, global_entry)
+    device_id = await _seed_roborock(hass)  # Replace Main Brush + Replace Filter
+    entry_id = await async_create_object(hass, name="Vac", ha_device_id=device_id)
+    entry = hass.config_entries.async_get_entry(entry_id)
+    # German name of "Replace Filter" — a calendar task, watches no entity.
+    await async_persist_task(
+        hass, entry,
+        {
+            "id": uuid4().hex,
+            "object_id": entry.data[CONF_OBJECT]["id"],
+            "name": "Filter ersetzen",
+            "type": "replacement",
+            "enabled": True,
+            "schedule": {"kind": "interval", "interval_days": 90},
+        },
+    )
+
+    (setup,) = discover_integration_setups(hass)
+    names = {t["task_name"] for t in setup["tasks"]}
+    assert names == {"Replace Main Brush"}  # Replace Filter suppressed by name
+
+    # Adopt-time layer: even a forced full selection cannot duplicate it.
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": device_id}]},
+    )
+    res = conn.send_result.call_args[0][1]
+    assert res["tasks_created"] == 1  # only Replace Main Brush
+    entry = hass.config_entries.async_get_entry(entry_id)
+    names_after = [t["name"] for t in entry.data[CONF_TASKS].values()]
+    assert sorted(names_after) == ["Filter ersetzen", "Replace Main Brush"]
+
+
 async def test_candidate_wave_dyson_weback_mercedes(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
