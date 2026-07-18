@@ -297,12 +297,16 @@ adopt-all is the default and a deselected duty forfeits its later proposal).
   6,213.7 mi).
 
 **Verified and REJECTED:**
-- **Miele "Clean Tub" via status runtime** — the status sensor exists and has
-  an `in_use` state (verified in core miele/sensor.py), but its
-  translation_key `status` is IDENTICAL across all Miele appliance types: the
-  signature would propose "Clean Tub" on dishwashers, ovens and fridges too.
-  Needs appliance-type awareness in the matcher (device model/class) before
-  it can ship — recorded as a matcher-extension candidate.
+- ~~Miele "Clean Tub" via status runtime~~ — **UNBLOCKED and shipped** after
+  the device-type gates landed (user-directed): the signature is
+  sibling-gated to washers via `require_sibling_keys`
+  (`twin_dos_1/2_level`/`spin_speed` — all washer-only per core sensor.py
+  `types=` gating), so the identical `status` key on dishwashers/ovens no
+  longer mis-proposes. Runtime 60 wash-hours, `in_use` state (verified).
+  Bambu got the second gate: `models` (registry model = device_type enum
+  X1C/P1S/A1…) gates a NEW **chamber-filter duty (Replace Filter every 300
+  print-hours) to enclosed printers** — an A1 next to an X1C gets only the
+  lubrication task.
 - Vacuum runtime duties (dustbin etc.): still rejected — after-every-run
   routine, not a trackable interval; consumable signatures cover the real
   wear duties.

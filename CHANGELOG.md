@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🎯 Device-type-aware suggestions — washer tub clean, printer chamber filter
+
+- Signatures can now gate on the **appliance type**: via type-identifying
+  sibling entities or the device registry's model string. Two new proposals
+  use it: **Miele washers** get "Clean Tub" every 60 accumulated wash-hours
+  (the engine counts the `in_use` time; dishwashers with the identical status
+  sensor are correctly excluded), and **enclosed Bambu Lab printers**
+  (X1C/X1E/P1S/H2) get "Replace Filter" every 300 print-hours for the
+  activated-carbon chamber filter — an open-frame A1 next to an X1C is left
+  alone.
+
 ### 🔩 More duties from the same sensors — undercarriage, contacts, tires
 
 - One source sensor can now back **several maintenance duties**: all four
