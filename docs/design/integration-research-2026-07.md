@@ -1,5 +1,9 @@
 # Integration popularity & maintenance-signal research (2026-07-17)
 
+> Evaluation method: see
+> [signature-evaluation-scheme.md](signature-evaluation-scheme.md) — the
+> direct→derived trigger ladder every candidate walks before any verdict.
+
 Grounding for the next template + suggested-setup waves: which integrations
 are popular (core **and** HACS), and which expose *real* consumable/wear
 sensors vs. mere status. Install counts verified directly against
@@ -236,11 +240,20 @@ descaling/degreasing/milk-cleaning counters are TOTAL_INCREASING tallies of
 
 ## Follow-up candidates (parked)
 
-- ~~**NavimowHA**~~ — source dive DONE (2026-07-18 @ pgoutsos/NavimowHA main):
-  sensor.py defines ONLY battery/position/heading/zone/mow-progress — **no
-  blade or maintenance sensors exist**. Nothing to catalog; Navimow owners are
-  served by the Robot Lawn Mower calendar template. Re-check if the upstream
-  integration grows blade sensors.
+- ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted
+  "delta on mowing time?"): `GardenaMowerOperatingHoursSensor`
+  (suffix `_operating_hours`, HOURS, TOTAL_INCREASING lifetime, no reset) →
+  cataloged as usage_delta "Replace Blades" every 100 mowing-hours. 3.3k
+  installs; covers the Sileno family.
+- ✅ **NavimowHA** — CORRECTED verdict (2026-07-18, user-prompted "the engine
+  can count itself"): the first negative missed `lawn_mower.py` (one
+  LawnMower entity per device, const.py maps status 'mowing' →
+  LawnMowerActivity.MOWING). No usage counter exists, but none is needed —
+  the NEW `runtime_hours` direction targets the STATE entity and lets the
+  ENGINE accumulate mowing time (runtime trigger, on_states=["mowing"], 100 h,
+  reset on completion). Cataloged. Lesson recorded twice now: check the FULL
+  trigger engine (incl. runtime + state-change counting) AND all entity
+  platforms of an integration before a negative verdict.
 - **WeBack** (Jezza34000/homeassistant_weback_component, WeBack/Tesvor
   vacuums) — same route; check for consumable sensors.
 - **kia_uvo service-distance** — verify remaining-distance vs odometer-target

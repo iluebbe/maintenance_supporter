@@ -61,6 +61,16 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 "usage_above",
                 "event_present",
                 "usage_delta",
+                "runtime_hours",
+            )
+            # Empty keys = "the device's single entity of that domain" — only
+            # safe for non-sensor domains (a sensor catalog entry without keys
+            # would swallow every sensor of the integration).
+            assert sig.keys or sig.entity_domain != "sensor", (
+                f"{domain}: {sig.task_name!r} has empty keys on a sensor signature"
+            )
+            assert sig.direction != "runtime_hours" or sig.on_states, (
+                f"{domain}: {sig.task_name!r} runtime signature needs on_states"
             )
             assert cat.source, f"{domain} lacks a source reference"
             assert cat.verified, f"{domain} lacks a verified date/ref"
@@ -660,6 +670,78 @@ async def test_midea_water_purifier_and_xiaomi_home_infix(
     (xt,) = setups[xh]["tasks"]
     assert xt["task_name"] == "Replace Filter"
     assert xt["entity_ids"] == ["sensor.xiaomi_home_zhimi1_filter_life_level_p_4_1"]
+
+
+async def test_navimow_runtime_hours_on_lawn_mower_entity(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Navimow exposes NO usage counter — the signature targets the device's
+    lawn_mower STATE entity (empty keys = the single entity of that domain) and
+    wires a runtime trigger: the engine accumulates 'mowing' time itself and
+    fires after 100 hours; completing resets the accumulation."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    source = MockConfigEntry(domain="navimow", title="Navimow")
+    source.add_to_hass(hass)
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("navimow", "h1500")}, name="Navimow H1500"
+    )
+    ent_reg = er.async_get(hass)
+    mower = ent_reg.async_get_or_create(
+        "lawn_mower", "navimow", "h1500",
+        config_entry=source, device_id=device.id, suggested_object_id="navimow_h1500",
+    )
+    hass.states.async_set(mower.entity_id, "docked")
+    # A sensor on the same device must NOT be swallowed by the empty-keys sig.
+    battery = ent_reg.async_get_or_create(
+        "sensor", "navimow", "h1500_battery",
+        config_entry=source, device_id=device.id, suggested_object_id="navimow_h1500_battery",
+    )
+    hass.states.async_set(battery.entity_id, "80", {"unit_of_measurement": "%"})
+
+    (setup,) = discover_integration_setups(hass)
+    (task,) = setup["tasks"]
+    assert task["task_name"] == "Replace Blades" and task["direction"] == "runtime_hours"
+    assert task["threshold"] == 100.0
+    assert task["entity_ids"] == ["lawn_mower.navimow_h1500"]
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": device.id}]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Navimow H1500"
+    )
+    (t,) = obj.data[CONF_TASKS].values()
+    tc = t["trigger_config"]
+    assert tc["type"] == "runtime"
+    assert tc["trigger_on_states"] == ["mowing"] and tc["trigger_runtime_hours"] == 100.0
+    assert tc["entity_id"] == "lawn_mower.navimow_h1500"
+
+
+async def test_gardena_mower_operating_hours_delta(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Gardena Sileno mowers expose a lifetime operating_hours counter (no
+    translation_key -> entity_id-suffix match) -> Replace Blades every 100
+    mowing-hours via the delta counter."""
+    await setup_integration(hass, global_entry)
+    mower = await _seed_sensor(
+        hass, "gardena_smart_system", "sileno1", "Sileno City",
+        [("operating_hours", None, "h")],
+    )
+    (setup,) = discover_integration_setups(hass)
+    assert setup["device_id"] == mower
+    (task,) = setup["tasks"]
+    assert task["task_name"] == "Replace Blades" and task["direction"] == "usage_delta"
+    assert task["threshold"] == 100.0
 
 
 async def test_miele_fill_levels_dishwasher_and_washer(

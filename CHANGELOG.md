@@ -4,6 +4,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🌿 Mower blades by mowing hours — Gardena Sileno & Segway Navimow
+
+- **Gardena Smart System** mowers propose "Replace Blades" every **100
+  operating hours** from their lifetime mowing-hours counter — completing the
+  task re-baselines, so the next change is due 100 mowing-hours after yours.
+- **Segway Navimow** exposes no usage counter at all — so the engine now
+  **accumulates the mowing time itself**: the new `runtime_hours` signature
+  style watches the mower's state entity, counts the hours it spends
+  `mowing` (restart-safe, paused while unavailable) and fires after 100
+  accumulated hours. Completing the task resets the count. This unlocks
+  suggested setups for any device that reports only a state, no counters.
+
 ### 🫧 Miele suggested setups — real fill levels
 
 - **Miele** (core) appliances now propose refill tasks from their **percent
