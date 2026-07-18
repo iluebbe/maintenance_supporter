@@ -593,6 +593,36 @@ async def test_usage_delta_lifetime_counters_bambu_and_vicare(
     assert "auto_complete_on_recovery" not in tc  # lifetime counters never recover
 
 
+async def test_car_odometer_usage_delta_km_and_miles(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Car odometers (lifetime km/mi counters) propose 'Annual Service' every
+    15,000 km via the delta counter; a miles-display odometer gets the target
+    converted (15000 km -> 9320.55 mi)."""
+    await setup_integration(hass, global_entry)
+    kia = await _seed_sensor(
+        hass, "kia_uvo", "ev6", "Kia EV6",
+        [("odometer", "odometer", "km")],
+    )
+    tesla = await _seed_sensor(
+        hass, "tesla_custom", "m3", "Model 3",
+        [("odometer", None, "mi")],  # no translation_key -> suffix match
+    )
+    renault = await _seed_sensor(
+        hass, "renault", "zoe", "Zoe",
+        [("mileage", "mileage", "km")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    for dev in (kia, renault):
+        (t,) = setups[dev]["tasks"]
+        assert t["task_name"] == "Annual Service" and t["direction"] == "usage_delta"
+        assert t["threshold"] == 15000.0
+    (tt,) = setups[tesla]["tasks"]
+    assert tt["threshold"] == 9320.55  # 15000 km in miles
+
+
 async def test_midea_water_purifier_and_xiaomi_home_infix(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
