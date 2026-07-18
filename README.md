@@ -26,11 +26,21 @@ your phone, and keep the full history of what was done and what it cost.
 ## What can it do for you?
 
 **"The HVAC filter is due every 3 months."**
-Create the object once (or pick it from 13 ready-made templates), give it a
+Create the object once (or pick it from 33 ready-made templates), give it a
 task with an interval — days, weeks, months, or specific patterns like *first
 Saturday* or *last business day of the month*. You get a reminder before it's
 due, and completing it takes one tap — optionally with notes, cost, duration,
 and a photo of the work.
+
+**"My vacuum already knows when its filter is worn."**
+**Suggested setups** (Beta) discovers devices of 27 supported integrations —
+vacuums, robotic mowers, printers, kitchen appliances, heating, 3D printers,
+cars — and sets them up in one click with **sensor triggers pre-wired**:
+percent remaining, countdowns, wear counters, usage intervals (service every
+15,000 km / blades every 100 mowing-hours), appliance events (dishwasher
+"salt nearly empty"), and even engine-counted runtime for devices that expose
+no counters at all. Every signature is verified against the integration's
+source code.
 
 **"Service the pump after 200 hours of runtime — not by the calendar."**
 Bind a task to a real sensor: accumulated runtime, a counter (e.g. odometer
