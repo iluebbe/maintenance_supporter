@@ -27,6 +27,11 @@ Direction semantics:
   ``present`` (not a numeric threshold); the task auto-completes when the event
   clears. The appliance emitting the clearing event is required for auto-resolve
   — otherwise the task waits for a manual completion.
+* ``usage_delta``    — a LIFETIME counter with no reset anywhere (printer
+  usage hours, burner hours, odometer). Trigger: a counter trigger in delta
+  mode — fires every N hours of accumulated use since the task was last
+  completed; completing the task re-baselines the counter. No
+  auto_complete_on_recovery (a lifetime counter never recovers).
 """
 
 from __future__ import annotations
@@ -43,6 +48,8 @@ from homeassistant.helpers import entity_registry as er
 _DEFAULT_BELOW_HOURS = 24
 # Usage-hours a wear counter may accumulate before the task should trigger.
 _DEFAULT_ABOVE_HOURS = 100
+# Usage-hours between services for lifetime counters (usage_delta mode).
+_DEFAULT_DELTA_HOURS = 500
 # Percent floor for percent-remaining consumables (ink, toner, drum, brush %).
 _DEFAULT_BELOW_PERCENT = 10
 
@@ -53,10 +60,11 @@ class ConsumableSignature:
 
     keys: tuple[str, ...]  # translation_key values (also matched as _<key> entity-id suffix)
     task_name: str  # EN task name; localized through templates_i18n
-    direction: str  # "duration_left" | "percent_left" | "usage_above"
+    direction: str  # "duration_left" | "percent_left" | "usage_above" | "event_present" | "usage_delta"
     below_hours: int = _DEFAULT_BELOW_HOURS
     below_percent: int = _DEFAULT_BELOW_PERCENT
     above_hours: int = _DEFAULT_ABOVE_HOURS
+    delta_hours: int = _DEFAULT_DELTA_HOURS
 
 
 @dataclass(frozen=True)
@@ -250,11 +258,39 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         source=(
             "home-assistant/core homeassistant/components/vicare/sensor.py "
             "(GLOBAL_SENSORS translation_key 'filter_remaining_hours', UnitOfTime.HOURS, "
-            "disabled-by-default; PyViCare ventilation.filter.runtime.remainingHours). "
-            "Burner/compressor hours are lifetime counters with no reset → excluded."
+            "disabled-by-default; PyViCare ventilation.filter.runtime.remainingHours; "
+            "BURNER_SENSORS/COMPRESSOR_SENSORS 'burner_hours'/'compressor_hours', "
+            "UnitOfTime.HOURS, TOTAL_INCREASING lifetime → usage_delta)."
         ),
         tasks=(
             ConsumableSignature(("filter_remaining_hours",), "Replace Filter", "duration_left"),
+            # Boiler/heat-pump service by accumulated operating hours since the
+            # last service — the counters are lifetime (no reset), which is
+            # exactly what the delta-baseline trigger models.
+            ConsumableSignature(
+                ("burner_hours", "compressor_hours"),
+                "Annual Inspection",
+                "usage_delta",
+                delta_hours=2000,
+            ),
+        ),
+    ),
+    "bambu_lab": IntegrationSignature(
+        name="Bambu Lab",
+        source=(
+            "greghesp/ha-bambulab definitions.py (key/translation_key "
+            "'total_usage_hours', UnitOfTime.HOURS, TOTAL_INCREASING lifetime "
+            "usage → usage_delta every 500 print-hours; filament remaining is "
+            "only a tray-sensor attribute and hms/print_error are device_class "
+            "problem → problem-sensor adoption)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("total_usage_hours",),
+                "Lubricate Rails and Rods",
+                "usage_delta",
+                delta_hours=500,
+            ),
         ),
     ),
     "home_connect": IntegrationSignature(
@@ -376,7 +412,10 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     state = hass.states.get(entity_id)
     unit = (state.attributes.get("unit_of_measurement") if state else None) or "h"
     factor = {"s": 3600.0, "min": 60.0, "h": 1.0, "d": 1 / 24}.get(unit, 1.0)
-    hours = sig.above_hours if sig.direction == "usage_above" else sig.below_hours
+    hours = {
+        "usage_above": sig.above_hours,
+        "usage_delta": sig.delta_hours,
+    }.get(sig.direction, sig.below_hours)
     return round(hours * factor, 3)
 
 
@@ -404,6 +443,16 @@ def build_setup_trigger(
             "trigger_to_state": "present",
             "trigger_target_changes": 1,
             "auto_complete_on_recovery": True,
+        }
+    if sig.direction == "usage_delta":
+        # Lifetime counter: fire every N hours of use since the last
+        # completion; completing the task re-baselines (CounterTrigger.reset).
+        return {
+            "type": "counter",
+            "entity_id": entity_ids[0],  # counter watches a single entity
+            "entity_ids": list(entity_ids),
+            "trigger_delta_mode": True,
+            "trigger_target_value": _threshold_for(sig, hass, entity_ids[0]),
         }
     threshold_key = "trigger_above" if sig.direction == "usage_above" else "trigger_below"
     return {

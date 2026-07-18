@@ -163,14 +163,33 @@ the matcher with a third pattern: the `_<key>_p_` infix (its entity_id is
 translation_key). Same filter/brush percent signatures as xiaomi_miot; matching
 stays scoped per integration so the infix cannot bleed.
 
-### bambu_lab — source dive DONE, ❌ no signatures → 3D Printer template
+### bambu_lab — source dive DONE → 3D Printer template + usage_delta signature
 `definitions.py`: filament remaining is only an ATTRIBUTE of the tray sensor
-(no entity); `total_usage_hours` is TOTAL_INCREASING lifetime with no reset
-(fails the usage_above contract); `remaining_drying_time` is an operational
-cycle countdown, not a maintenance interval; no filter-lifetime entity. Its
-`hms`/`print_error` binaries are device_class problem → already covered by
-problem-sensor adoption. Shipped instead: **"3D Printer" calendar template**
-(catalog 33: print bed, nozzle, rails/rods, belts, filament drying).
+(no entity — an attribute trigger would be possible but tracks spool
+consumption, not device wear, and resets on every spool swap → deliberately
+skipped as noisy); `remaining_drying_time` is an operational cycle countdown;
+no filter-lifetime entity. Its `hms`/`print_error` binaries are device_class
+problem → already covered by problem-sensor adoption. Shipped: **"3D Printer"
+calendar template** (catalog 33) **plus** a `total_usage_hours` signature via
+the NEW `usage_delta` direction (see below) — "Lubricate Rails and Rods" every
+500 print-hours.
+
+### CORRECTION: lifetime counters ARE usable → `usage_delta` direction
+Earlier verdicts rejected lifetime counters ("no reset → fails the usage_above
+contract"). That was wrong: the trigger engine has a **counter trigger with
+delta mode** (`trigger_delta_mode` — fires when value − baseline ≥ target;
+completing the task re-baselines; rollover and unavailable-at-completion are
+handled) and **attribute triggers** (`trigger_config.attribute`). The 5th
+signature direction `usage_delta` now wires exactly that. Re-verdicted:
+- ✅ bambu_lab `total_usage_hours` → Lubricate Rails and Rods / 500 h delta.
+- ✅ vicare `burner_hours`/`compressor_hours` → Annual Inspection / 2000 h
+  delta (boiler & heat-pump service by operating hours).
+- Home Connect coffee lifetime counters stay uncataloged — a deliberate call,
+  not a limitation: the integration's own descale/clean EVENT sensors are the
+  appliance's calibrated signal, and a second counter-based "Descale Appliance"
+  row on the same device would duplicate them.
+- Cars (kia_uvo/tesla odometers) are now clearly feasible via `usage_delta`
+  (service every N km) — still parked pending the kia_uvo semantics dive.
 
 ### midea_ac_lan — source dive DONE, ✅ cataloged
 `midea_devices.py` + `midea_entity.py` (translation_key set per attribute;
