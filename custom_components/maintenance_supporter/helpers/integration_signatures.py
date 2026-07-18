@@ -369,6 +369,29 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "miele": IntegrationSignature(
+        name="Miele",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/miele/sensor.py "
+            "(dishwasher salt_level/rinse_aid_level/power_disk_level PERCENTAGE "
+            "fill levels; washer twin_dos_1/2_level PERCENTAGE detergent "
+            "containers). Coffee descaling/degreasing counters are lifetime "
+            "tallies of PERFORMED maintenance — unclear delta semantics, "
+            "skipped."
+        ),
+        tasks=(
+            ConsumableSignature(("salt_level",), "Refill Salt", "percent_left"),
+            ConsumableSignature(("rinse_aid_level",), "Refill Rinse Aid", "percent_left"),
+            # PowerDisk (dishwasher AutoDos) and TwinDos (washer) are both
+            # detergent reservoirs — one any-low task per device.
+            ConsumableSignature(
+                ("power_disk_level", "twin_dos_1_level", "twin_dos_2_level"),
+                "Refill Detergent",
+                "percent_left",
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",

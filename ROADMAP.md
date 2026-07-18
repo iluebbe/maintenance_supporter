@@ -46,7 +46,18 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    48 task-signatures across five trigger directions. The discovery surface
    is labelled **Beta** while the catalog matures.
 
-3. 💡 **Bambu Lab: model-aware 3D-printer templates** — study the different
+3. 💡 **Signature catalog: community candidates** — from Discussion #101 and
+   the stargazer analysis: ~~Segway Navimow~~ (verified 2026-07-18: NavimowHA
+   exposes only battery/position/progress — **no maintenance sensors**, nothing
+   to catalog; re-check if upstream grows blade sensors), **WeBack vacuums**
+   (Jezza34000/homeassistant_weback_component — consumable sensors to
+   verify), plus the parked dreo / tuya_local / daikin_onecta /
+   electrolux_status / Mercedes (mbapi2020) and the core Tesla trio. ~~Miele~~
+   ✅ shipped (salt / rinse aid / PowerDisk / TwinDos fill levels — thanks for
+   the pointer!). Each entry needs the usual source dive first (method
+   contract).
+
+4. 💡 **Bambu Lab: model-aware 3D-printer templates** — study the different
    printer models (A1/A1 mini vs P1P/P1S vs X1C/X1E, AMS vs AMS 2 Pro/AMS HT)
    and Bambu's official maintenance guides, then tune the 3D Printer template
    per model: enclosure models add carbon/HEPA filter replacement, the A1

@@ -225,8 +225,24 @@ describe the same filters — percent only, no duplicates); 0xC2 `filter_life`
 `full_dust` alert are device_class problem binaries → already covered by
 problem-sensor adoption (verified verbatim in source).
 
+### miele — source dive DONE (2026-07-18), ✅ cataloged (user-suggested)
+Core `miele/sensor.py`: REAL percent fill levels (better than Home Connect's
+events) — dishwasher `salt_level` / `rinse_aid_level` / `power_disk_level`
+(PowerDisk AutoDos), washer `twin_dos_1_level` / `twin_dos_2_level` (TwinDos).
+Cataloged as percent_left: Refill Salt / Refill Rinse Aid / Refill Detergent
+(PowerDisk + TwinDos collapse to one any-low task). Coffee
+descaling/degreasing/milk-cleaning counters are TOTAL_INCREASING tallies of
+*performed* maintenance — unclear delta semantics, skipped.
+
 ## Follow-up candidates (parked)
 
+- ~~**NavimowHA**~~ — source dive DONE (2026-07-18 @ pgoutsos/NavimowHA main):
+  sensor.py defines ONLY battery/position/heading/zone/mow-progress — **no
+  blade or maintenance sensors exist**. Nothing to catalog; Navimow owners are
+  served by the Robot Lawn Mower calendar template. Re-check if the upstream
+  integration grows blade sensors.
+- **WeBack** (Jezza34000/homeassistant_weback_component, WeBack/Tesvor
+  vacuums) — same route; check for consumable sensors.
 - **kia_uvo service-distance** — verify remaining-distance vs odometer-target
   semantics before choosing a direction.
 - **Valetudo** — MQTT-discovery-name matching (per-consumable minutes or

@@ -662,6 +662,40 @@ async def test_midea_water_purifier_and_xiaomi_home_infix(
     assert xt["entity_ids"] == ["sensor.xiaomi_home_zhimi1_filter_life_level_p_4_1"]
 
 
+async def test_miele_fill_levels_dishwasher_and_washer(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Miele exposes real PERCENT fill levels: dishwasher salt/rinse-aid/
+    PowerDisk, washer TwinDos containers — the two detergent reservoirs
+    collapse into one any-low 'Refill Detergent' task per device."""
+    await setup_integration(hass, global_entry)
+    dw = await _seed_sensor(
+        hass, "miele", "g7460", "Miele Dishwasher",
+        [
+            ("salt_level", "salt_level", "%"),
+            ("rinse_aid_level", "rinse_aid_level", "%"),
+            ("power_disk_level", "power_disk_level", "%"),
+        ],
+    )
+    washer = await _seed_sensor(
+        hass, "miele", "wwe860", "Miele Washer",
+        [
+            ("twin_dos_1_level", "twin_dos_1_level", "%"),
+            ("twin_dos_2_level", "twin_dos_2_level", "%"),
+        ],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    dw_tasks = {t["task_name"]: t for t in setups[dw]["tasks"]}
+    assert set(dw_tasks) == {"Refill Salt", "Refill Rinse Aid", "Refill Detergent"}
+    assert all(t["direction"] == "percent_left" and t["threshold"] == 10.0 for t in dw_tasks.values())
+
+    (w_task,) = setups[washer]["tasks"]
+    assert w_task["task_name"] == "Refill Detergent"
+    assert len(w_task["entity_ids"]) == 2  # both TwinDos containers, any-low
+
+
 async def test_vicare_ventilation_filter_signature(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
