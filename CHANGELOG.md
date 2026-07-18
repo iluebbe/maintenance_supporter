@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🧹 Engine-counted duties for sensor-less devices — incl. Valetudo
+
+- Vacuums whose integrations expose **no consumable sensors at all** now get
+  engine-counted cleaning-time duties (filter 15 h, main brush 30 h):
+  **Roomba** (plus "Empty Dustbin" while its bin-full flag is on), **Neato,
+  ROMY, Tuya, SwitchBot and SmartThings vacuums** — and **MQTT vacuums,
+  which finally covers Valetudo**, plus MQTT lawn mowers (OpenMower).
+- **OctoPrint and PrusaLink** printers accumulate print time on their
+  printing state: rail/rod lubrication every 500 print-hours.
+
 ### 🐈 Litter-Robot, more cars, more locks — the category sweep
 
 - **Litter-Robot** gets three duties: **empty the waste drawer** when its

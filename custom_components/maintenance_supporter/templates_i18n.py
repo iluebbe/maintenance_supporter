@@ -4025,6 +4025,25 @@ _T: dict[str, dict[str, str]] = {
         "hi": "लिटर भरें",
         "zh": "补充猫砂",
     },
+    "Empty Dustbin": {
+        "de": "Staubbehälter leeren",
+        "es": "Vaciar el depósito de polvo",
+        "fr": "Vider le bac à poussière",
+        "it": "Svuotare il contenitore della polvere",
+        "nl": "Stofreservoir legen",
+        "pt": "Esvaziar o depósito de pó",
+        "ru": "Опорожнить пылесборник",
+        "uk": "Спорожнити пилозбірник",
+        "pl": "Opróżnić pojemnik na kurz",
+        "cs": "Vyprázdnit nádobu na prach",
+        "sv": "Töm dammbehållaren",
+        "da": "Tøm støvbeholderen",
+        "nb": "Tøm støvbeholderen",
+        "fi": "Tyhjennä pölysäiliö",
+        "ja": "ダストボックスを空にする",
+        "hi": "डस्टबिन खाली करें",
+        "zh": "清空尘盒",
+    },
 }
 
 

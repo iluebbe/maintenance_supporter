@@ -343,7 +343,9 @@
   },
   "mqtt": {
     "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lock.py"
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lock.py",
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/vacuum.py",
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lawn_mower.py"
     ],
     "strings": [
       "LockEntity"
@@ -511,6 +513,104 @@
     ],
     "strings": [
       "LockEntity"
+    ]
+  },
+  "roomba": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roomba/vacuum.py",
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roomba/binary_sensor.py"
+    ],
+    "strings": [
+      "Vacuum",
+      "bin_full"
+    ]
+  },
+  "neato": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/neato/vacuum.py"
+    ],
+    "strings": [
+      "Vacuum"
+    ]
+  },
+  "romy": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/romy/vacuum.py"
+    ],
+    "strings": [
+      "Vacuum"
+    ]
+  },
+  "tuya": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/vacuum.py"
+    ],
+    "strings": [
+      "Vacuum"
+    ]
+  },
+  "switchbot_cloud": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot_cloud/vacuum.py"
+    ],
+    "strings": [
+      "Vacuum"
+    ]
+  },
+  "smartthings": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/vacuum.py"
+    ],
+    "strings": [
+      "Vacuum"
+    ]
+  },
+  "octoprint": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/octoprint/binary_sensor.py"
+    ],
+    "strings": [
+      "OctoPrintPrintingBinarySensor"
+    ]
+  },
+  "prusalink": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/prusalink/sensor.py"
+    ],
+    "strings": [
+      "printer_state"
+    ]
+  },
+  "sharkiq": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/sharkiq/vacuum.py"
+    ],
+    "strings": [
+      "Vacuum"
+    ]
+  },
+  "tplink": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tplink/vacuum.py"
+    ],
+    "strings": [
+      "Vacuum"
+    ]
+  },
+  "daikin": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/daikin/climate.py"
+    ],
+    "strings": [
+      "Climate"
+    ]
+  },
+  "gree": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/gree/climate.py"
+    ],
+    "strings": [
+      "Climate"
     ]
   }
 }

@@ -472,6 +472,40 @@ Verdicts without a catalog entry:
   possible future "replace UPS battery" duty (date-based — no direction
   fits today).
 
+## CORRECTION No. 2: state-derived duties across the swept categories
+
+The category sweep's per-category negatives repeated the Navimow mistake at
+scale (user-caught, again): "no sensors" is NOT "no signal" — the engine
+rungs (runtime_hours / cycle_count / event latch) only need STATE entities.
+Re-walked every swept category through the engine rungs:
+
+**Shipped (+8 integrations, mqtt extended, +19 signatures):**
+- Sensor-less vacuums get the WeBack pattern (Filter Cleaning 15 h + Clean
+  Main Brush 30 h of engine-counted cleaning time): **roomba** (plus an
+  event latch on its plain `bin_full` binary — "Empty Dustbin" NEW ×17; NOT
+  problem-class, so adoption didn't cover it), **neato, romy, tuya,
+  switchbot_cloud, smartthings** (bridges vacuum-domain-gated).
+- **mqtt** gains vacuum + lawn_mower runtime duties — this un-parks
+  **Valetudo** (MQTT vacuums) and covers **OpenMower**-style DIY mowers at
+  the duty level without per-consumable matching.
+- **octoprint** (binary 'Printing' → suffix _printing) and **prusalink**
+  (ENUM `printer_state` incl. 'printing') flip from negative to
+  runtime-based: "Lubricate Rails and Rods" every 500 engine-counted
+  print-hours.
+- The vacuum-runtime rejection HOLDS for vacuums WITH consumable sensors
+  (most-direct-signal rule) — refined, not reversed.
+
+**Still negative, now with the precise reason:**
+- climate / humidifier / water-heater: the running state lives in the
+  `hvac_action`/`action` ATTRIBUTE, while the runtime trigger accumulates on
+  the STATE — mode-time (heat/cool standing by) is a bad usage proxy.
+  → engine-extension candidate: runtime trigger attribute support.
+- irrigation: per-zone switches would need per-zone runtime modeling
+  (multi-entity), and the real duties are seasonal → template stays right.
+- valve: "exercise the shutoff valve" is a LACK-of-use duty → template
+  candidate ("Water Shutoff Valve", exercise twice a year), not a signature.
+- camera/doorbell: always-on, no duty-proportional state. Confirmed.
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted
