@@ -17,7 +17,7 @@ const token = loadToken();
 const api = await wsClient(REST, token);
 
 const res = await api.send({ type: "maintenance_supporter/templates", language: "de" });
-assert(res.templates.length === 32, `32 templates (got ${res.templates.length})`);
+assert(res.templates.length === 33, `33 templates (got ${res.templates.length})`);
 const cats = Object.keys(res.categories);
 assert(JSON.stringify(cats) === JSON.stringify(["vehicle", "home", "household", "garden", "pool", "appliance"]),
   `6 categories in order (got ${cats.join(",")})`);

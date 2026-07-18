@@ -4,6 +4,25 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🖨️ 3D Printer template + Midea & Xiaomi Home suggested setups
+
+- **New "3D Printer" template** (catalog 33) — print-bed cleaning (isopropyl
+  note), nozzle service, rail/rod lubrication (lubricant-spec note), belt
+  tension, filament drying (hygroscopic-materials note). Researched against
+  the Bambu Lab integration: its printers expose no resettable wear sensor
+  (usage hours are lifetime, filament remaining is an attribute), and its HMS
+  problem sensors already work via *Adopt problem sensors* — so a calendar
+  template is the honest fit.
+- **Midea (LAN)** (HACS `midea_ac_lan`) — water-purifier filter stages
+  (`filter1/2/3_life`, one any-low task) and the percent filter on other
+  device types now propose filter-replacement tasks. The filter-cleaning
+  reminder binaries (dehumidifiers, fresh-air units, AC dust alert) already
+  surface through problem-sensor adoption.
+- **Xiaomi Home** (official `xiaomi_home`) — same filter/brush percent
+  signatures as Xiaomi MIoT. Its entities embed the property name mid-id with
+  a `_p_…` tail and set no translation key, so the signature matcher gained a
+  third matching pattern for exactly that shape.
+
 ### 🌬️ Xiaomi MIoT suggested setups (air purifiers, humidifiers, vacuums)
 
 - **Xiaomi MIoT** (HACS `xiaomi_miot`, one of the most-installed custom

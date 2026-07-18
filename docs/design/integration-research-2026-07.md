@@ -157,12 +157,29 @@ side-brush shares the `brush_life_level` name and collides to a `_2` entity_id
 suffix, so only the main brush is matched (acceptable — brushes are replaced
 together). No new i18n (both task names already exist).
 
-**xiaomi_home** (official XiaoMi/ha_xiaomi_home) — NOT cataloged: its entity_id
-is `..._filter_life_level_p_{siid}_{piid}` (property name embedded mid-string,
-always suffixed `_p_N_N`) and it sets NO translation_key, so neither
-`translation_key ==` nor `endswith("_<key>")` matches. Would need a matcher
-"contains"/regex mode (`_<name>_p_`) — parked as a matcher-extension candidate,
-not a signature.
+**xiaomi_home** (official XiaoMi/ha_xiaomi_home) — ✅ cataloged after extending
+the matcher with a third pattern: the `_<key>_p_` infix (its entity_id is
+`..._filter_life_level_p_{siid}_{piid}`, property mid-string, no
+translation_key). Same filter/brush percent signatures as xiaomi_miot; matching
+stays scoped per integration so the infix cannot bleed.
+
+### bambu_lab — source dive DONE, ❌ no signatures → 3D Printer template
+`definitions.py`: filament remaining is only an ATTRIBUTE of the tray sensor
+(no entity); `total_usage_hours` is TOTAL_INCREASING lifetime with no reset
+(fails the usage_above contract); `remaining_drying_time` is an operational
+cycle countdown, not a maintenance interval; no filter-lifetime entity. Its
+`hms`/`print_error` binaries are device_class problem → already covered by
+problem-sensor adoption. Shipped instead: **"3D Printer" calendar template**
+(catalog 33: print bed, nozzle, rails/rods, belts, filament drying).
+
+### midea_ac_lan — source dive DONE, ✅ cataloged
+`midea_devices.py` + `midea_entity.py` (translation_key set per attribute;
+entity_id = `{device_id}_{entity_key}`): 0xED water purifier `filter1/2/3_life`
+(%) → ONE any-low "Replace Water Filter" task (the `filterN_days` countdowns
+describe the same filters — percent only, no duplicates); 0xC2 `filter_life`
+(%) → "Replace Filter". The A1/CE filter-cleaning/change reminders and the AC
+`full_dust` alert are device_class problem binaries → already covered by
+problem-sensor adoption (verified verbatim in source).
 
 ## Follow-up candidates (parked)
 

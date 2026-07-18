@@ -539,6 +539,39 @@ async def test_xiaomi_miot_percent_filter_and_brush(
     assert vt["Replace Main Brush"]["direction"] == "percent_left"
 
 
+async def test_midea_water_purifier_and_xiaomi_home_infix(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """midea_ac_lan: three water-purifier filter stages (translation_key
+    filter1/2/3_life, %) collapse into ONE any-low 'Replace Water Filter' task.
+    xiaomi_home embeds the property mid-entity_id with a _p_{siid}_{piid} tail
+    and no translation_key — matched via the '_<key>_p_' infix."""
+    await setup_integration(hass, global_entry)
+    purifier = await _seed_sensor(
+        hass, "midea_ac_lan", "wp1", "Water Purifier",
+        [
+            ("life1", "filter1_life", "%"),
+            ("life2", "filter2_life", "%"),
+            ("life3", "filter3_life", "%"),
+        ],
+    )
+    # xiaomi_home style: property name mid-string, _p_siid_piid tail, no tk.
+    xh = await _seed_sensor(
+        hass, "xiaomi_home", "zhimi1", "Zhimi Purifier",
+        [("filter_life_level_p_4_1", None, "%")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (mt,) = setups[purifier]["tasks"]
+    assert mt["task_name"] == "Replace Water Filter" and mt["direction"] == "percent_left"
+    assert len(mt["entity_ids"]) == 3  # all three stages, entity_logic any
+
+    (xt,) = setups[xh]["tasks"]
+    assert xt["task_name"] == "Replace Filter"
+    assert xt["entity_ids"] == ["sensor.xiaomi_home_zhimi1_filter_life_level_p_4_1"]
+
+
 async def test_vicare_ventilation_filter_signature(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
