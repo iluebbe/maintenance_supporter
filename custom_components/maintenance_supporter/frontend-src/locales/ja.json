@@ -780,5 +780,7 @@
   "baseline_start_help": "カウントはこの値から始まります。空欄の場合は現在の値からカウントします。前回整備時の値を入力すると、それ以降の使用分が計上されます。",
   "setups_baseline_hint": "前回整備時の値（任意）",
   "baseline_start_help_edit": "空欄のままにすると現在のカウントを維持します。値を入力するとカウントの起点を再設定します（例：前回整備時の値）。",
-  "baseline_current_effective": "現在有効な開始値：{value}"
+  "baseline_current_effective": "現在有効な開始値：{value}",
+  "runtime_on_states": "稼働中とみなす状態（カンマ区切り）",
+  "runtime_on_states_help": "稼働時間として数える状態 — 既定値：on。例：mowing, cleaning, printing。属性を選択している場合はその値が比較されます。"
 }

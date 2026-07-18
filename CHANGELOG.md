@@ -4,6 +4,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ⏱️ Runtime "active states" now configurable in the UI (#103)
+
+- Runtime triggers (single and inside compound conditions) get an **"Active
+  states"** field in the task dialog — devices reporting e.g. `mowing`,
+  `cleaning` or `printing` instead of `on` can now be tracked without
+  editing the configuration file. Empty = the default `on`.
+- This also fixes a silent data-loss on edit: the dialog rebuilt the
+  trigger on save **without** `trigger_on_states`, so merely renaming an
+  adopted mower/vacuum task reset its active states to `on` and stopped
+  the runtime accumulation. Adopted values now hydrate into the field and
+  survive the roundtrip.
+
 ### 🌐 Translation-completeness audit — 13 stuck keys fixed in 16 languages
 
 - A full audit across all i18n surfaces (frontend locales ×18, backend

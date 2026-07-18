@@ -780,5 +780,7 @@
   "baseline_start_help": "Počítání začíná od této hodnoty. Ponechte prázdné pro počítání od aktuálního stavu; zadejte stav při posledním servisu, aby se započítalo i dosavadní využití.",
   "setups_baseline_hint": "stav při posledním servisu (volitelné)",
   "baseline_start_help_edit": "Ponechte prázdné pro zachování stávajícího počítání. Zadaná hodnota počítání znovu ukotví (např. stav při posledním servisu).",
-  "baseline_current_effective": "Aktuálně platná počáteční hodnota: {value}"
+  "baseline_current_effective": "Aktuálně platná počáteční hodnota: {value}",
+  "runtime_on_states": "Aktivní stavy (oddělené čárkami)",
+  "runtime_on_states_help": "Stavy počítané jako doba běhu — výchozí: on. Např. mowing, cleaning, printing. Při zvoleném atributu se porovnávají jeho hodnoty."
 }

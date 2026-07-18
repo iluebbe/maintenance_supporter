@@ -780,5 +780,7 @@
   "baseline_start_help": "Räkningen börjar från detta värde. Lämna tomt för att räkna från nuvarande värde; ange mätarställningen vid senaste servicen så räknas användningen sedan dess.",
   "setups_baseline_hint": "mätarställning vid senaste service (valfritt)",
   "baseline_start_help_edit": "Lämna tomt för att behålla den befintliga räkningen. Ett angivet värde förankrar räkningen på nytt (t.ex. mätarställningen vid senaste servicen).",
-  "baseline_current_effective": "Nu gällande startvärde: {value}"
+  "baseline_current_effective": "Nu gällande startvärde: {value}",
+  "runtime_on_states": "Aktiva tillstånd (kommaseparerade)",
+  "runtime_on_states_help": "Tillstånd som räknas som drifttid — standard: on. T.ex. mowing, cleaning, printing. Med ett valt attribut jämförs dess värden i stället."
 }
