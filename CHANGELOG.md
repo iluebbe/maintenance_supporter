@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.32.0] - 2026-07-18
 
 ### 🚗 Start value for km/usage tasks — "the last service was at X" (#102)
 
