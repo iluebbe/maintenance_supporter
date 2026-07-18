@@ -324,5 +324,85 @@
     "strings": [
       "MatterLock"
     ]
+  },
+  "zwave_js": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zwave_js/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "zha": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zha/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "mqtt": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "homekit_controller": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homekit_controller/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "tedee": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tedee/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "august": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/august/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "yale": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/yale/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "switchbot": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "loqed": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/loqed/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "homematicip_cloud": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homematicip_cloud/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
   }
 }

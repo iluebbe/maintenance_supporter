@@ -1103,7 +1103,12 @@ async def test_wallbox_energy_and_lock_cycle_wave(
     )
     # Locks: nuki + matter, one lock entity per device.
     locks = {}
-    for domain, uid, name in (("nuki", "n1", "Front Door"), ("matter", "m1", "Back Door")):
+    for domain, uid, name in (
+        ("nuki", "n1", "Front Door"),
+        ("matter", "m1", "Back Door"),
+        ("zwave_js", "z1", "Cellar Door"),
+        ("tedee", "t1", "Side Door"),
+    ):
         source = MockConfigEntry(domain=domain, title=domain)
         source.add_to_hass(hass)
         dev = dr.async_get(hass).async_get_or_create(
@@ -1123,7 +1128,7 @@ async def test_wallbox_energy_and_lock_cycle_wave(
     (gt,) = setups[goe]["tasks"]
     assert gt["threshold"] == 5000000.0  # 5,000 kWh in native Wh
 
-    for domain in ("nuki", "matter"):
+    for domain in ("nuki", "matter", "zwave_js", "tedee"):
         (lt,) = setups[locks[domain]]["tasks"]
         assert lt["task_name"] == "Lubricate Cylinder" and lt["direction"] == "cycle_count"
         assert lt["threshold"] == 500.0

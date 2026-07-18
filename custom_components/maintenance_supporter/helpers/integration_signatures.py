@@ -763,6 +763,196 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "zwave_js": IntegrationSignature(
+        name="Z-Wave lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/zwave_js/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "zha": IntegrationSignature(
+        name="Zigbee (ZHA) lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/zha/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "mqtt": IntegrationSignature(
+        name="MQTT lock (Zigbee2MQTT etc.)",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/mqtt/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "homekit_controller": IntegrationSignature(
+        name="HomeKit lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/homekit_controller/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "tedee": IntegrationSignature(
+        name="Tedee Smart Lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/tedee/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "august": IntegrationSignature(
+        name="August lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/august/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "yale": IntegrationSignature(
+        name="Yale lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/yale/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "switchbot": IntegrationSignature(
+        name="SwitchBot Lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/switchbot/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "loqed": IntegrationSignature(
+        name="LOQED Smart Lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/loqed/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "homematicip_cloud": IntegrationSignature(
+        name="Homematic IP lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/homematicip_cloud/lock.py "
+            "(lock platform verified present). Locks carry no wear sensor — "
+            "the ENGINE counts locking cycles; entity_domain-gated to locks."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",
