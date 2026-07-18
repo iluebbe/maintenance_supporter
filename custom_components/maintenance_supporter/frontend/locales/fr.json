@@ -769,7 +769,7 @@
   "doc_part_none": "Aucun document lié à cette pièce.",
   "settings_templates_toggle_group": "Activer ou désactiver tous les modèles de ce groupe",
   "setups_button": "Configurations suggérées",
-  "setups_title": "Configurations suggérées",
+  "setups_title": "Configurations suggérées (Beta)",
   "setups_hint": "Appareils d'intégrations prises en charge dont les capteurs de consommables peuvent piloter des tâches d'entretien. L'adoption crée l'objet et relie chaque tâche à son capteur — elle se déclenche quand le consommable s'épuise et se résout après le remplacement.",
   "setups_none": "Aucun appareil pris en charge avec des capteurs de consommables non reliés.",
   "setups_adopt": "Configurer la sélection",

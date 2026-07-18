@@ -769,7 +769,7 @@
   "doc_part_none": "Tähän osaan ei ole linkitetty asiakirjoja.",
   "settings_templates_toggle_group": "Ota kaikki tämän ryhmän mallit käyttöön tai pois",
   "setups_button": "Ehdotetut asennukset",
-  "setups_title": "Ehdotetut asennukset",
+  "setups_title": "Ehdotetut asennukset (Beta)",
   "setups_hint": "Tuettujen integraatioiden laitteet, joiden kulutusosa-anturit voivat ohjata huoltotehtäviä. Käyttöönotto luo kohteen ja kytkee jokaisen tehtävän anturiinsa — se laukeaa, kun kulutusosa on vähissä, ja ratkeaa itsestään vaihdon jälkeen.",
   "setups_none": "Tuettuja laitteita, joissa on kytkemättömiä kulutusosa-antureita, ei löytynyt.",
   "setups_adopt": "Ota valitut käyttöön",

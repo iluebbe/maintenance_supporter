@@ -769,7 +769,7 @@
   "doc_part_none": "Ingen dokumenter knyttet til denne delen.",
   "settings_templates_toggle_group": "Slå alle maler i denne gruppen på eller av",
   "setups_button": "Foreslåtte oppsett",
-  "setups_title": "Foreslåtte oppsett",
+  "setups_title": "Foreslåtte oppsett (Beta)",
   "setups_hint": "Enheter fra støttede integrasjoner der forbruksmateriell-sensorer kan drive vedlikeholdsoppgaver. Ved overtakelse opprettes objektet og hver oppgave kobles til sin sensor — den utløses når materiellet nesten er brukt opp, og løser seg selv etter bytte.",
   "setups_none": "Ingen støttede enheter med ukoblede forbrukssensorer funnet.",
   "setups_adopt": "Sett opp valgte",

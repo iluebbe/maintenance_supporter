@@ -2,7 +2,13 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.29.0] - 2026-07-18
+
+> **Suggested setups is a Beta feature.** The signature catalog (now 19
+> integrations / 48 task-signatures) is verified against each integration's
+> source code, but real-world device variety is large. If your device isn't
+> discovered or a consumable sensor is missing, please tell us in the
+> discussions — the catalog grows with your reports.
 
 ### ⏱️ Usage-interval suggested setups (Bambu Lab, ViCare service hours)
 

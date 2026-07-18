@@ -769,7 +769,7 @@
   "doc_part_none": "No hay documentos vinculados a esta pieza.",
   "settings_templates_toggle_group": "Activar o desactivar todas las plantillas de este grupo",
   "setups_button": "Configuraciones sugeridas",
-  "setups_title": "Configuraciones sugeridas",
+  "setups_title": "Configuraciones sugeridas (Beta)",
   "setups_hint": "Dispositivos de integraciones compatibles cuyos sensores de consumibles pueden impulsar tareas de mantenimiento. Al adoptar se crea el objeto y cada tarea se conecta a su sensor: se activa cuando el consumible se agota y se resuelve sola tras el cambio.",
   "setups_none": "No se encontraron dispositivos compatibles con sensores de consumibles sin conectar.",
   "setups_adopt": "Configurar selección",

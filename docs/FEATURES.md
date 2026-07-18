@@ -106,7 +106,13 @@ problem → task → buy-part loop in one step. **Notes survive un-adopting**:
 deleting an adopted task stashes its notes per sensor and the next adoption of
 the same sensor restores them.
 
-### Suggested Setups (2.28+)
+### Suggested Setups (2.28+, Beta)
+> **Beta**: integration discovery is new and the signature catalog grows
+> release by release. Every entry is verified against the integration's source
+> code, but real-world device variety is large — if a supported device isn't
+> discovered (or a well-known consumable sensor is missing), please open an
+> issue or discussion with the integration name and entity ids.
+
 The **Suggested setups** button discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks — Roborock, Xiaomi Miio,
 Dreame and Ecovacs vacuums (brushes, filter, dust bag, mop pads; Ecovacs GOAT
