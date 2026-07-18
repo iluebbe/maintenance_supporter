@@ -1204,6 +1204,64 @@ async def test_category_sweep_litterrobot_ble_mower_evse(
     assert e_task["task_name"] == "Inspect Cable and Plug" and e_task["threshold"] == 5000.0
 
 
+async def test_state_derived_wave_roomba_mqtt_prusalink(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """State-derived correction wave (user-caught, again): sensor-less vacuums
+    get engine-runtime duties + Roomba's plain bin_full binary latches; MQTT
+    mowers (OpenMower) get the Navimow pattern; PrusaLink accumulates print
+    time on its ENUM state sensor."""
+    await setup_integration(hass, global_entry)
+    # Roomba: vacuum entity + bin_full binary (no consumable sensors).
+    source = MockConfigEntry(domain="roomba", title="Roomba")
+    source.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("roomba", "r1")}, name="Roomba j7"
+    )
+    ent = er.async_get(hass)
+    vac = ent.async_get_or_create(
+        "vacuum", "roomba", "r1", config_entry=source, device_id=dev.id,
+        suggested_object_id="roomba_j7",
+    )
+    hass.states.async_set(vac.entity_id, "docked")
+    binf = ent.async_get_or_create(
+        "binary_sensor", "roomba", "r1_bin", config_entry=source, device_id=dev.id,
+        translation_key="bin_full", suggested_object_id="roomba_j7_bin_full",
+    )
+    hass.states.async_set(binf.entity_id, "off")
+    # MQTT mower.
+    src2 = MockConfigEntry(domain="mqtt", title="MQTT")
+    src2.add_to_hass(hass)
+    mdev = dr.async_get(hass).async_get_or_create(
+        config_entry_id=src2.entry_id, identifiers={("mqtt", "om1")}, name="OpenMower"
+    )
+    mow = ent.async_get_or_create(
+        "lawn_mower", "mqtt", "om1", config_entry=src2, device_id=mdev.id,
+        suggested_object_id="openmower",
+    )
+    hass.states.async_set(mow.entity_id, "docked")
+    # PrusaLink state sensor.
+    prusa = await _seed_sensor(
+        hass, "prusalink", "mk4", "Prusa MK4",
+        [("state", "printer_state", None)],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    roomba_tasks = {t["task_name"]: t for t in setups[dev.id]["tasks"]}
+    assert set(roomba_tasks) == {"Filter Cleaning", "Clean Main Brush", "Empty Dustbin"}
+    assert roomba_tasks["Empty Dustbin"]["direction"] == "event_present"
+    assert roomba_tasks["Filter Cleaning"]["direction"] == "runtime_hours"
+
+    assert mdev.id in setups, f"mqtt mower missing; got {[(s['integration'], s['device_name'], [x['task_name'] for x in s['tasks']]) for s in setups.values()]}"
+    mow_tasks = {t["task_name"]: t for t in setups[mdev.id]["tasks"]}
+    assert set(mow_tasks) == {"Replace Blades", "Clean Undercarriage"}
+
+    (p_task,) = setups[prusa]["tasks"]
+    assert p_task["task_name"] == "Lubricate Rails and Rods"
+    assert p_task["direction"] == "runtime_hours" and p_task["threshold"] == 500.0
+
+
 async def test_dolphin_filter_bag_latches_on_full(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

@@ -96,6 +96,9 @@ class ConsumableSignature:
     # then mean "the device's single entity of this domain".
     entity_domain: str = "sensor"
     on_states: tuple[str, ...] = ()
+    # runtime signatures may track an ATTRIBUTE instead of the state — a
+    # climate entity's hvac_action says whether it actually conditions.
+    attribute: str = ""
     # Device-type gates. Some integrations reuse one entity key across ALL
     # appliance types (Miele's status sensor) — require_sibling_keys restricts
     # the signature to devices that ALSO carry a type-identifying entity
@@ -832,6 +835,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 entity_domain="lock",
                 on_states=("locked",),
             ),
+            # MQTT vacuums (Valetudo!) and mowers (OpenMower) expose only
+            # state entities — engine-accumulated usage covers their duties.
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Replace Blades", "runtime_hours", delta_units=100,
+                entity_domain="lawn_mower", on_states=("mowing",),
+            ),
+            ConsumableSignature(
+                (), "Clean Undercarriage", "runtime_hours", delta_units=25,
+                entity_domain="lawn_mower", on_states=("mowing",),
+            ),
         ),
     ),
     "homekit_controller": IntegrationSignature(
@@ -1146,6 +1167,229 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "roomba": IntegrationSignature(
+        name="iRobot Roomba",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/roomba/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            # bin_full is a plain binary (no problem device_class, so the
+            # problem-sensor adoption does NOT cover it) -> event latch.
+            ConsumableSignature(
+                ("bin_full",), "Empty Dustbin", "event_present",
+                entity_domain="binary_sensor", on_states=("on",),
+            ),
+        ),
+    ),
+    "neato": IntegrationSignature(
+        name="Neato Botvac",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/neato/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "romy": IntegrationSignature(
+        name="ROMY Vacuum",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/romy/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "tuya": IntegrationSignature(
+        name="Tuya vacuum",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/tuya/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "switchbot_cloud": IntegrationSignature(
+        name="SwitchBot vacuum",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/switchbot_cloud/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "smartthings": IntegrationSignature(
+        name="SmartThings vacuum",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/smartthings/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "octoprint": IntegrationSignature(
+        name="OctoPrint",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/octoprint/"
+            "binary_sensor.py (OctoPrintPrintingBinarySensor named 'Printing' "
+            "-> entity suffix _printing; no lifetime counter exists) — the "
+            "ENGINE accumulates print time."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("printing",), "Lubricate Rails and Rods", "runtime_hours",
+                delta_units=500, entity_domain="binary_sensor", on_states=("on",),
+            ),
+        ),
+    ),
+    "prusalink": IntegrationSignature(
+        name="PrusaLink",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/prusalink/sensor.py "
+            "(translation_key 'printer_state', ENUM incl. 'printing') — the "
+            "ENGINE accumulates print time on the state sensor."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("printer_state",), "Lubricate Rails and Rods", "runtime_hours",
+                delta_units=500, on_states=("printing",),
+            ),
+        ),
+    ),
+    "sharkiq": IntegrationSignature(
+        name="Shark IQ",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/sharkiq/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "tplink": IntegrationSignature(
+        name="TP-Link Tapo vacuum",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/tplink/vacuum.py "
+            "(vacuum platform verified present; no consumable sensors) — the "
+            "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=15,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (), "Clean Main Brush", "runtime_hours", delta_units=30,
+                entity_domain="vacuum", on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "daikin": IntegrationSignature(
+        name="Daikin AC",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/daikin/climate.py "
+            "(climate platform verified present; AC-only integration, so the "
+            "climate entity IS an air conditioner). Runtime on the hvac_action "
+            "ATTRIBUTE — the state only reports the standby mode."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=250,
+                entity_domain="climate", attribute="hvac_action",
+                on_states=("cooling", "heating", "fan", "drying"),
+            ),
+        ),
+    ),
+    "gree": IntegrationSignature(
+        name="Gree AC",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/gree/climate.py "
+            "(climate platform verified present; AC-only integration, so the "
+            "climate entity IS an air conditioner). Runtime on the hvac_action "
+            "ATTRIBUTE — the state only reports the standby mode."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Filter Cleaning", "runtime_hours", delta_units=250,
+                entity_domain="climate", attribute="hvac_action",
+                on_states=("cooling", "heating", "fan", "drying"),
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",
@@ -1330,13 +1574,16 @@ def build_setup_trigger(
         # The engine accumulates the time the entity spends in on_states
         # itself (no integration counter needed); completing the task resets
         # the accumulation.
-        return {
+        trigger = {
             "type": "runtime",
             "entity_id": entity_ids[0],
             "entity_ids": list(entity_ids),
             "trigger_on_states": list(sig.on_states) or ["on"],
             "trigger_runtime_hours": _threshold_for(sig, hass, entity_ids[0]),
         }
+        if sig.attribute:
+            trigger["attribute"] = sig.attribute
+        return trigger
     if sig.direction in ("usage_delta", "usage_above"):
         # Counter trigger in delta mode for both wear-counter flavours — a
         # plain trigger_above threshold would re-fire immediately after a
