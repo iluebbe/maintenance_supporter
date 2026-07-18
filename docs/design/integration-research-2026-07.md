@@ -353,6 +353,43 @@ Roadmap item implemented in the signature layer (model known at adoption):
   maintenance guidance (the wiki is an unfetchable SPA — hardware facts
   grounded on the established model designs; entity keys source-verified).
 
+## Prod-registry gap wave (2026-07-18, user-directed)
+
+The user held their PRODUCTION objects/entities against the catalog — the
+strongest possible requirements source. Shipped from it:
+- ✅ **synology_dsm** + **qnap** (core, same key): `volume_percentage_used` %
+  → "Storage Cleanup" via `alert_above` 85 % (cleanup lowers usage →
+  auto-resolve; proof-of-need: the user's manual ">85 % aufräumen" task).
+- ✅ **easee**: `lifetime_energy` (kWh, lifetime) → "Inspect Cable and Plug"
+  every 5,000 kWh (usage_delta). Core **wallbox verified NEGATIVE**: its
+  added_energy is per-session (TOTAL_INCREASING but session-scoped) — a
+  lifetime delta would only ever see within-session energy.
+- ✅ **bosch** (bosch-thermostat custom component, Buderus via RC300):
+  sensors are DYNAMIC (device-named, unprefixed entity ids, no
+  translation_keys) → NEW exact-object-id matcher pattern;
+  `system_pressure` → "Refill Heating Water" via NEW `value_below` direction
+  (below 1 bar, topping up raises it → auto-resolve). numberofstarts /
+  working-time counters exist but interval semantics are weak — skipped.
+- ✅ **Problem-sensor adoption widened** to device_class `safety` + `tamper`
+  (Synology disk-health thresholds ship as safety and previously fell
+  through the strict problem filter). Adoption stays opt-in per sensor.
+- Parked per user: **mysmartbike** ride_distance (tk `odometry`, m,
+  state_class measurement — lifetime vs per-trip semantics unverified).
+  esphome devices are un-catalogable by contract (user-defined entities);
+  reolink/shelly/fritz/nest correctly out (no wear signals).
+
+### Sibling candidates per device class (user ask — need dives)
+- **NAS**: TrueNAS (HACS), OpenMediaVault — volume/disk metrics likely.
+- **Wallboxen**: go-e, openWB (MQTT), Keba, myenergi (zappi) — look for
+  lifetime energy counters (the easee pattern); session counters don't work.
+- **E-Bikes**: mysmartbike (parked), Cowboy (HACS) — odometer semantics
+  first. VanMoof effectively dead.
+- **Drucker**: generically covered via `ipp` (Epson/HP/most network
+  printers) + `brother`. Curiosity: core `epson` (projectors) exposes lamp
+  hours → possible "Replace Lamp" usage_delta if demand shows.
+- **Kameras**: no wear signals anywhere (reolink/unifi) — template material
+  only, no signatures.
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted

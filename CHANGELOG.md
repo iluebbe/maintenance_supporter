@@ -4,6 +4,23 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🗄️ NAS, wallbox & boiler — signatures from real-world registries
+
+- **Synology and QNAP NAS**: "Storage Cleanup" fires while a volume sits
+  above **85 % used** and resolves itself once the cleanup brings it back
+  down. Their disk-health thresholds (shipped as `safety` binaries) are now
+  adoptable too: **problem-sensor adoption accepts `safety` and `tamper`**
+  classes alongside `problem`.
+- **Easee wallboxes**: "Inspect Cable and Plug" every **5,000 kWh** of
+  delivered lifetime energy.
+- **Bosch/Buderus heating** (bosch-thermostat component): "Refill Heating
+  Water" when the loop pressure drops below **1 bar** — topping up resolves
+  the task. Its dynamically named, unprefixed entities required a fourth
+  matcher pattern (exact object-id).
+- Two new trigger styles complete the measurement pair: `alert_above` (fires
+  while a value is high) and `value_below` (fires while it is low) — both
+  auto-resolving, because the maintenance genuinely moves the value.
+
 ### 🖨️ Model-aware Bambu Lab maintenance
 
 - The proposals now follow the **printer model** (Bambu's maintenance guides

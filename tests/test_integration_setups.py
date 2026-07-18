@@ -63,6 +63,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 "usage_delta",
                 "runtime_hours",
                 "alert_above",
+                "value_below",
             )
             # Empty keys = "the device's single entity of that domain" — only
             # safe for non-sensor domains (a sensor catalog entry without keys
@@ -990,6 +991,93 @@ async def test_existing_task_name_on_bound_object_not_reproposed(
     entry = hass.config_entries.async_get_entry(entry_id)
     names_after = [t["name"] for t in entry.data[CONF_TASKS].values()]
     assert sorted(names_after) == ["Filter ersetzen", "Replace Main Brush"]
+
+
+async def test_prod_gap_wave_nas_wallbox_boiler(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Prod-registry gap wave: NAS volume usage fires ABOVE 85 % (cleanup
+    lowers it -> auto-resolve); Easee cable inspection every 5,000 kWh of
+    lifetime energy; the bosch component names entities WITHOUT a device
+    prefix (sensor.system_pressure) -> exact-object-id match + value_below."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    nas = await _seed_sensor(
+        hass, "synology_dsm", "ds218", "Synology DS218+",
+        [("volume_percentage_used", "volume_percentage_used", "%")],
+    )
+    wallbox = await _seed_sensor(
+        hass, "easee", "eh1", "Easee Home",
+        [("lifetime_energy", "lifetime_energy", "kWh")],
+    )
+    # bosch: unprefixed entity id, no translation_key.
+    source = MockConfigEntry(domain="bosch", title="Bosch")
+    source.add_to_hass(hass)
+    dev_reg = dr.async_get(hass)
+    boiler = dev_reg.async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("bosch", "rc300")}, name="Buderus RC300"
+    )
+    ent_reg = er.async_get(hass)
+    pressure = ent_reg.async_get_or_create(
+        "sensor", "bosch", "rc300_pressure",
+        config_entry=source, device_id=boiler.id, suggested_object_id="system_pressure",
+    )
+    assert pressure.entity_id == "sensor.system_pressure"
+    hass.states.async_set(pressure.entity_id, "1.5", {"unit_of_measurement": "bar"})
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (nas_task,) = setups[nas]["tasks"]
+    assert nas_task["task_name"] == "Storage Cleanup" and nas_task["direction"] == "alert_above"
+    assert nas_task["threshold"] == 85.0
+
+    (wb_task,) = setups[wallbox]["tasks"]
+    assert wb_task["task_name"] == "Inspect Cable and Plug"
+    assert wb_task["direction"] == "usage_delta" and wb_task["threshold"] == 5000.0
+
+    (b_task,) = setups[boiler.id]["tasks"]
+    assert b_task["task_name"] == "Refill Heating Water" and b_task["direction"] == "value_below"
+    assert b_task["entity_ids"] == ["sensor.system_pressure"]
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": boiler.id}]},
+    )
+    assert not conn.send_error.called
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Buderus RC300"
+    )
+    (t,) = obj.data[CONF_TASKS].values()
+    tc = t["trigger_config"]
+    assert tc["type"] == "threshold" and tc["trigger_below"] == 1.0
+    assert tc["auto_complete_on_recovery"] is True
+
+
+async def test_safety_binary_sensors_adoptable(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """device_class safety (NAS disk-health thresholds) and tamper are now
+    adoptable like problem sensors; other classes stay excluded."""
+    from custom_components.maintenance_supporter.helpers.problem_sensors import (
+        discover_problem_sensors,
+    )
+
+    await setup_integration(hass, global_entry)
+    hass.states.async_set(
+        "binary_sensor.nas_disk_health", "off",
+        {"device_class": "safety", "friendly_name": "Disk health threshold"},
+    )
+    hass.states.async_set(
+        "binary_sensor.front_door", "off", {"device_class": "door", "friendly_name": "Door"}
+    )
+    ids = {s["entity_id"] for s in discover_problem_sensors(hass)}
+    assert "binary_sensor.nas_disk_health" in ids
+    assert "binary_sensor.front_door" not in ids
 
 
 async def test_candidate_wave_dyson_weback_mercedes(
