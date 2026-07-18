@@ -495,11 +495,28 @@ Re-walked every swept category through the engine rungs:
 - The vacuum-runtime rejection HOLDS for vacuums WITH consumable sensors
   (most-direct-signal rule) — refined, not reversed.
 
+**Refinement round (user-caught, 2026-07-18): most-direct-wins only applies
+where a direct signal EXISTS.** Two integrations were wrongly excluded by
+over-applying the rule:
+- **sharkiq** (core, vacuum.py verified): no consumable/wear sensors at all
+  → runtime duties apply (Filter Cleaning 15 h / Clean Main Brush 30 h).
+- **tplink** (core, vacuum.py verified — Tapo robovacs): same — vacuum
+  entity only, no consumable sensors → runtime duties.
+
 **Still negative, now with the precise reason:**
-- climate / humidifier / water-heater: the running state lives in the
+- ~~climate / humidifier / water-heater: the running state lives in the
   `hvac_action`/`action` ATTRIBUTE, while the runtime trigger accumulates on
-  the STATE — mode-time (heat/cool standing by) is a bad usage proxy.
-  → engine-extension candidate: runtime trigger attribute support.
+  the STATE — mode-time (heat/cool standing by) is a bad usage proxy.~~
+  → RESOLVED (2026-07-18, user-prompted "runtime goes via state — we had
+  that in the scheme"): the runtime trigger now accepts an optional
+  `attribute` — it accumulates while `state.attributes[attribute]` is in
+  on_states (availability still judged on the raw state). Cataloged:
+  **daikin** (core climate, ~9.7k installs) and **gree** (core climate,
+  ~3.5k) — "Filter Cleaning" every 250 h of hvac_action in
+  cooling/heating/fan/drying. Humidifier/water-heater stay negative: the
+  `action` attribute exists but running-time is a poor proxy for their real
+  duties (descale is water-hardness-driven, filter/wick is evaporation-
+  driven); revisit if users ask.
 - irrigation: per-zone switches would need per-zone runtime modeling
   (multi-entity), and the real duties are seasonal → template stays right.
 - valve: "exercise the shutoff valve" is a LACK-of-use duty → template
