@@ -19,6 +19,11 @@ from .base_trigger import BaseTrigger
 _LOGGER = logging.getLogger(__name__)
 
 
+def _norm_state(value: str | None) -> str | None:
+    """Case/whitespace-insensitive state form for from/to comparisons."""
+    return value.strip().casefold() if isinstance(value, str) else value
+
+
 class StateChangeTrigger(BaseTrigger):
     """Trigger that activates after counting state transitions.
 
@@ -35,8 +40,13 @@ class StateChangeTrigger(BaseTrigger):
         """Initialize state change trigger."""
         super().__init__(hass, entity, trigger_config)
 
-        self._from_state: str | None = trigger_config.get("trigger_from_state")
-        self._to_state: str | None = trigger_config.get("trigger_to_state")
+        # Case-insensitive matching, like RuntimeTrigger's on_states: the
+        # options flow lowercases these on save while the panel keeps the
+        # user's casing, and HA states themselves can be capitalized
+        # (input_select "Home") — normalizing BOTH sides at compare time is
+        # the only variant that works for every surface combination.
+        self._from_state: str | None = _norm_state(trigger_config.get("trigger_from_state"))
+        self._to_state: str | None = _norm_state(trigger_config.get("trigger_to_state"))
         self._target_changes: int = trigger_config.get("trigger_target_changes", 1)
         # Restore persisted change count from config, default to 0
         self._change_count: int = trigger_config.get("trigger_change_count", 0)
@@ -72,7 +82,7 @@ class StateChangeTrigger(BaseTrigger):
             if (
                 self._to_state is not None
                 and self._target_changes == 1
-                and state.state != self._to_state
+                and _norm_state(state.state) != self._to_state
             ):
                 self._change_count = 0
                 self._current_value = 0.0
@@ -152,9 +162,9 @@ class StateChangeTrigger(BaseTrigger):
 
         # Check if transition matches pattern
         matches = True
-        if self._from_state is not None and effective_old != self._from_state:
+        if self._from_state is not None and _norm_state(effective_old) != self._from_state:
             matches = False
-        if self._to_state is not None and new_val != self._to_state:
+        if self._to_state is not None and _norm_state(new_val) != self._to_state:
             matches = False
 
         if matches and effective_old != new_val:
@@ -191,7 +201,7 @@ class StateChangeTrigger(BaseTrigger):
             self._to_state is not None
             and self._target_changes == 1
             and self._triggered
-            and new_val != self._to_state
+            and _norm_state(new_val) != self._to_state
         ):
             self._change_count = 0
             self._current_value = 0.0

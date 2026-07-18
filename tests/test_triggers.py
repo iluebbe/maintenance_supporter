@@ -2236,6 +2236,37 @@ class TestMultiEntityRuntime:
 class TestMultiEntityStateChange:
     """Tests for multi-entity state change triggers."""
 
+    async def test_state_change_matches_case_insensitively(self, hass: HomeAssistant) -> None:
+        """from/to matching must ignore case and padding (#103 audit).
+
+        The options flow lowercases these on save while the panel keeps the
+        user's casing, and HA states themselves can be capitalized
+        (input_select "Home") — every combination must still match, like
+        RuntimeTrigger's on_states."""
+        set_sensor_state(hass, "sensor.bag", "empty")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.bag",
+            "attribute": None,
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_to_state": " Full ",  # panel casing + stray padding
+            "trigger_target_changes": 2,
+        }
+        (trigger,) = create_triggers(hass, entity, config)
+        await trigger.async_setup()
+
+        hass.states.async_set("sensor.bag", "full")  # device reports lowercase
+        await hass.async_block_till_done()
+        assert trigger._change_count == 1
+
+        hass.states.async_set("sensor.bag", "empty")
+        await hass.async_block_till_done()
+        hass.states.async_set("sensor.bag", "FULL")  # and sometimes shouty
+        await hass.async_block_till_done()
+        assert trigger._change_count == 2
+        assert trigger._triggered is True
+        await trigger.async_teardown()
+
     async def test_state_change_creates_multiple_triggers(self, hass: HomeAssistant) -> None:
         """Test that multi-entity state_change creates one trigger per entity."""
         set_sensor_state(hass, "binary_sensor.door_1", "off")
