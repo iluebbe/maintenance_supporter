@@ -315,6 +315,28 @@ adopt-all is the default and a deselected duty forfeits its later proposal).
 - ViCare water pressure (bar) — would need a raw value-below direction
   (the hour-canonical threshold conversion doesn't apply); parked.
 
+## Candidate wave 3 — shortlist worked off (2026-07-18)
+
+- ✅ **hass_dyson** — DysonFilterLifeSensor, translation_key `filter_life` for
+  BOTH hepa and carbon instances, PERCENTAGE → one any-low "Replace Filter".
+- ✅ **dreo** — translation_key `filter_life`, unit `%` (humidifiers with
+  FILTERTIME support) → percent_left.
+- ✅ **weback_vacuum** — NO sensors at all (only vacuum.py/camera.py); all
+  clean modes map to STATE_CLEANING → engine-runtime duties on the vacuum
+  entity: Filter Cleaning 15 h + Clean Main Brush 30 h.
+- ✅ **electrolux_status** — catalog `FilterLife` (PERCENTAGE); entity_id is
+  assigned raw as `..._{entity_attr}` and HA slugifies the tail, so both slug
+  forms (`filterlife`/`filter_life`) are matched.
+- ✅ **mbapi2020 (Mercedes)** — SENSORS `odometer` (name → suffix; attributes
+  carry serviceintervaldays/distance) → Annual Service 15,000 km + Tire
+  Rotation 10,000 km.
+- ❌ **daikin_onecta** — verified negative: no filter/dirty indicator in
+  const.py/binary_sensor.py (the air-filter icon belongs to `streamerMode`,
+  a mode setting). Re-check if upstream adds one.
+- **tuya_local / xtend_tuya** stay parked: consumable keys are per-product
+  quirks — a scoped dive must enumerate which quirks carry filter/brush
+  percent before anything is cataloged.
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted

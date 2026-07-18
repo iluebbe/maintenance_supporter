@@ -216,5 +216,47 @@
     "strings": [
       "mileage"
     ]
+  },
+  "hass_dyson": {
+    "urls": [
+      "https://raw.githubusercontent.com/cmgrayb/hass-dyson/main/custom_components/hass_dyson/sensor.py"
+    ],
+    "strings": [
+      "filter_life",
+      "DysonFilterLifeSensor"
+    ]
+  },
+  "dreo": {
+    "urls": [
+      "https://raw.githubusercontent.com/JeffSteinbok/hass-dreo/main/custom_components/dreo/sensor.py"
+    ],
+    "strings": [
+      "filter_life",
+      "FILTERTIME_KEY"
+    ]
+  },
+  "weback_vacuum": {
+    "urls": [
+      "https://raw.githubusercontent.com/Jezza34000/homeassistant_weback_component/main/custom_components/weback_vacuum/vacuum.py"
+    ],
+    "strings": [
+      "STATE_CLEANING"
+    ]
+  },
+  "electrolux_status": {
+    "urls": [
+      "https://raw.githubusercontent.com/albaintor/homeassistant_electrolux_status/master/custom_components/electrolux_status/catalog_purifier.py"
+    ],
+    "strings": [
+      "FilterLife"
+    ]
+  },
+  "mbapi2020": {
+    "urls": [
+      "https://raw.githubusercontent.com/ReneNulschDE/mbapi2020/master/custom_components/mbapi2020/const.py"
+    ],
+    "strings": [
+      "\"odometer\": ["
+    ]
   }
 }
