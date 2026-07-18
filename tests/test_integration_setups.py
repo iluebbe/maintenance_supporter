@@ -55,7 +55,13 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 gaps = [lg for lg in langs if not entry.get(lg)]
                 if gaps:
                     missing.append(f"{domain}: {sig.task_name!r} missing {gaps}")
-            assert sig.direction in ("duration_left", "percent_left", "usage_above", "event_present")
+            assert sig.direction in (
+                "duration_left",
+                "percent_left",
+                "usage_above",
+                "event_present",
+                "usage_delta",
+            )
             assert cat.source, f"{domain} lacks a source reference"
     assert not missing, "\n".join(missing)
 
@@ -537,6 +543,54 @@ async def test_xiaomi_miot_percent_filter_and_brush(
     vt = {t["task_name"]: t for t in setups[vac]["tasks"]}
     assert set(vt) == {"Replace Filter", "Replace Main Brush"}
     assert vt["Replace Main Brush"]["direction"] == "percent_left"
+
+
+async def test_usage_delta_lifetime_counters_bambu_and_vicare(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Lifetime counters with no reset (printer usage hours, burner hours) get
+    a DELTA counter trigger: fire every N hours of use since the last
+    completion; adopting wires type=counter with trigger_delta_mode."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    printer = await _seed_sensor(
+        hass, "bambu_lab", "p1s", "Bambu P1S",
+        [("total_usage_hours", "total_usage_hours", "h")],
+    )
+    boiler = await _seed_sensor(
+        hass, "vicare", "vb1", "Vitodens",
+        [("burner_hours", "burner_hours", "h")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (pt,) = setups[printer]["tasks"]
+    assert pt["task_name"] == "Lubricate Rails and Rods"
+    assert pt["direction"] == "usage_delta" and pt["threshold"] == 500.0
+
+    (bt,) = setups[boiler]["tasks"]
+    assert bt["task_name"] == "Annual Inspection"
+    assert bt["direction"] == "usage_delta" and bt["threshold"] == 2000.0
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": printer}]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Bambu P1S"
+    )
+    (task,) = obj.data[CONF_TASKS].values()
+    tc = task["trigger_config"]
+    assert tc["type"] == "counter"
+    assert tc["trigger_delta_mode"] is True and tc["trigger_target_value"] == 500.0
+    assert tc["entity_id"] == "sensor.bambu_lab_p1s_total_usage_hours"
+    assert "auto_complete_on_recovery" not in tc  # lifetime counters never recover
 
 
 async def test_midea_water_purifier_and_xiaomi_home_infix(

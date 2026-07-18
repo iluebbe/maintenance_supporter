@@ -115,13 +115,15 @@ mowers too), **Xiaomi MIoT / Xiaomi Home** air purifiers/humidifiers/vacuums
 IPP and Brother printers (ink/toner, drum, belt, fuser),
 **Husqvarna Automower and Worx Landroid mowers** (blade-usage counters), **LG
 ThinQ** appliances (AC/purifier/refrigerator filters and the washer tub-clean
-counter), **Viessmann ViCare** ventilation filters and **Home Connect**
+counter), **Viessmann ViCare** ventilation filters and service hours, **Bambu Lab**
+printers (usage-hour service intervals) and **Home Connect**
 (Bosch/Siemens) appliances (dishwasher salt/rinse-aid, coffee descale/clean,
 hood grease filter) — and sets them up in one click: the object is bound to the
 device and every task arrives with its trigger **pre-wired** — a **threshold**
 (below 24 h left / below 10 % remaining / above a usage-hours count, unit-aware)
-for numeric consumables, or a **state latch** on the event for Home Connect's
-`present`/`off` maintenance events.
+for numeric consumables, a **state latch** on the event for Home Connect's
+`present`/`off` maintenance events, or a **usage-interval counter** for
+lifetime hour meters (every N hours of use, re-baselined on completion).
 Replacing the consumable, resetting the wear counter, or the appliance clearing
 its event resolves the task automatically. Every signature in
 the catalog is **verified against the integration's source code** (a tripwire

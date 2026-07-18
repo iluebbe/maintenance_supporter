@@ -4,15 +4,27 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ⏱️ Usage-interval suggested setups (Bambu Lab, ViCare service hours)
+
+- **New `usage_delta` signature direction** — lifetime counters that never
+  reset (printer usage hours, boiler burner hours) now wire a **delta counter
+  trigger**: the task fires every N hours of accumulated use since it was last
+  completed, and completing it re-baselines the counter.
+- **Bambu Lab** printers propose "Lubricate Rails and Rods" every 500
+  print-hours from `total_usage_hours`; **ViCare** boilers and heat pumps
+  propose "Annual Inspection" every 2,000 operating hours from their
+  burner/compressor-hours counters.
+
 ### 🖨️ 3D Printer template + Midea & Xiaomi Home suggested setups
 
 - **New "3D Printer" template** (catalog 33) — print-bed cleaning (isopropyl
   note), nozzle service, rail/rod lubrication (lubricant-spec note), belt
   tension, filament drying (hygroscopic-materials note). Researched against
-  the Bambu Lab integration: its printers expose no resettable wear sensor
-  (usage hours are lifetime, filament remaining is an attribute), and its HMS
-  problem sensors already work via *Adopt problem sensors* — so a calendar
-  template is the honest fit.
+  the Bambu Lab integration: filament remaining is an attribute (spool
+  consumption, not device wear) and the HMS problem sensors already work via
+  *Adopt problem sensors* — the calendar template covers the rest, and the
+  printer's lifetime usage-hours counter drives the new usage-interval
+  signature above.
 - **Midea (LAN)** (HACS `midea_ac_lan`) — water-purifier filter stages
   (`filter1/2/3_life`, one any-low task) and the percent filter on other
   device types now propose filter-replacement tasks. The filter-cleaning
