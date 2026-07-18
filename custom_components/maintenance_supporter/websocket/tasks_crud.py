@@ -540,10 +540,14 @@ async def ws_update_task(
     if "trigger_config" in msg:
         old_tc = tasks_data.get(task_id, {}).get("trigger_config") or {}
         new_tc = msg["trigger_config"] or {}
+        # An edited baseline counts as fundamental: the Store baseline wins
+        # over the config on restore (#102 restart fix), so without clearing
+        # it a user-entered start value would silently never take effect.
         if (
             old_tc.get("type") != new_tc.get("type")
             or old_tc.get("entity_id") != new_tc.get("entity_id")
             or old_tc.get("entity_ids") != new_tc.get("entity_ids")
+            or old_tc.get("trigger_baseline_value") != new_tc.get("trigger_baseline_value")
         ):
             rd = _get_runtime_data(hass, msg["entry_id"])
             if rd and rd.store:

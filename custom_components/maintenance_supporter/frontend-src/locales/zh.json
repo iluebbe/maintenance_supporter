@@ -775,5 +775,8 @@
   "setups_adopt": "配置所选项",
   "setups_done": "已创建 {tasks} 个传感器联动任务。",
   "complete_parts_used": "本次使用的部件",
-  "part_delete_confirm": "删除部件“{name}”？其库存跟踪、任务关联及未完成的购买提醒将被移除。"
+  "part_delete_confirm": "删除部件“{name}”？其库存跟踪、任务关联及未完成的购买提醒将被移除。",
+  "baseline_start_value": "起始读数（可选）",
+  "baseline_start_help": "计数从该读数开始。留空则从当前值开始计数；填写上次保养时的读数，则此后的使用量会计入。",
+  "setups_baseline_hint": "上次保养时的读数（可选）"
 }

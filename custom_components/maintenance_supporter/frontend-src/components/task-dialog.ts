@@ -154,6 +154,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerForMinutes = "0";
   @state() private _triggerTargetValue = "";
   @state() private _triggerDeltaMode = false;
+  @state() private _triggerBaselineValue = "";
   @state() private _autoCompleteOnRecovery = false;
   @state() private _triggerFromState = "";
   @state() private _triggerToState = "";
@@ -330,6 +331,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerForMinutes = tc.trigger_for_minutes?.toString() || "0";
       this._triggerTargetValue = tc.trigger_target_value?.toString() || "";
       this._triggerDeltaMode = tc.trigger_delta_mode || false;
+      this._triggerBaselineValue = tc.trigger_baseline_value?.toString() || "";
       this._autoCompleteOnRecovery = tc.auto_complete_on_recovery || false;
       this._triggerFromState = tc.trigger_from_state || "";
       this._triggerToState = tc.trigger_to_state || "";
@@ -423,6 +425,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerForMinutes = "0";
     this._triggerTargetValue = "";
     this._triggerDeltaMode = false;
+    this._triggerBaselineValue = "";
     this._autoCompleteOnRecovery = false;
     this._triggerFromState = "";
     this._triggerToState = "";
@@ -844,6 +847,13 @@ export class MaintenanceTaskDialog extends LitElement {
         } else if (this._triggerType === "counter") {
           if (this._triggerTargetValue) { const v = parseFloat(this._triggerTargetValue); if (!isNaN(v)) triggerConfig.trigger_target_value = v; }
           triggerConfig.trigger_delta_mode = this._triggerDeltaMode;
+          // #102: optional counting start value ("last service was at X").
+          // Empty = count from the reading at creation / keep the live
+          // baseline; the backend clears stale Store state when it changes.
+          if (this._triggerDeltaMode && this._triggerBaselineValue) {
+            const b = parseFloat(this._triggerBaselineValue);
+            if (!isNaN(b) && b >= 0) triggerConfig.trigger_baseline_value = b;
+          }
         } else if (this._triggerType === "state_change") {
           if (this._triggerFromState) triggerConfig.trigger_from_state = this._triggerFromState;
           if (this._triggerToState) triggerConfig.trigger_to_state = this._triggerToState;
@@ -1463,6 +1473,18 @@ export class MaintenanceTaskDialog extends LitElement {
           />
           ${t("delta_mode", L)}
         </label>
+        ${this._triggerDeltaMode
+          ? html`
+              <ms-textfield
+                label="${t("baseline_start_value", L)}"
+                type="number"
+                step="any"
+                .value=${this._triggerBaselineValue}
+                @input=${(e: Event) => (this._triggerBaselineValue = (e.target as HTMLInputElement).value)}
+              ></ms-textfield>
+              <div class="field-help">${t("baseline_start_help", L)}</div>
+            `
+          : nothing}
       `;
     }
     if (this._triggerType === "state_change") {

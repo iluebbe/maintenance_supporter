@@ -686,6 +686,65 @@ async def test_car_odometer_usage_delta_km_and_miles(
     assert tesla_by_name["Tire Rotation"]["threshold"] == 6213.7  # 10000 km in miles
 
 
+async def test_adopt_with_baseline_seeds_start_value(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#102: 'the last service was at reading X' — an optional per-task
+    baseline in the adopt selection lands as trigger_baseline_value on
+    usage_delta duties only; omitted duties keep counting from adoption."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        _SELECTION_SCHEMA,
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    kia = await _seed_sensor(
+        hass, "kia_uvo", "ev6", "Kia EV6",
+        [("odometer", "odometer", "km")],
+    )
+    hass.states.async_set("sensor.kia_uvo_ev6_odometer", "27000", {"unit_of_measurement": "km"})
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "x",
+            "selections": [
+                {"device_id": kia, "baselines": {"Annual Service": 12000}}
+            ],
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    res = conn.send_result.call_args[0][1]
+    assert res["tasks_created"] == 2
+
+    obj = next(
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Kia EV6"
+    )
+    by_name = {t["name"]: t for t in obj.data[CONF_TASKS].values()}
+    service_tc = by_name["Annual Service"]["trigger_config"]
+    assert service_tc["trigger_delta_mode"] is True
+    assert service_tc["trigger_baseline_value"] == 12000.0  # counts from last service
+    rotation_tc = by_name["Tire Rotation"]["trigger_config"]
+    assert "trigger_baseline_value" not in rotation_tc  # counts from adoption
+
+    # call_ws_handler bypasses the decorator schema — validate it directly:
+    # the baselines dict must accept task-name -> number and reject negatives.
+    _SELECTION_SCHEMA({"device_id": "d", "baselines": {"Annual Service": 12000}})
+    import pytest
+    import voluptuous as vol_mod
+
+    with pytest.raises(vol_mod.Invalid):
+        _SELECTION_SCHEMA({"device_id": "d", "baselines": {"Annual Service": -1}})
+    with pytest.raises(vol_mod.Invalid):
+        _SELECTION_SCHEMA({"device_id": "d", "baselines": {"Annual Service": "abc"}})
+
+
 async def test_midea_water_purifier_and_xiaomi_home_infix(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

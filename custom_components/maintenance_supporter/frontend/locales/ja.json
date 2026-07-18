@@ -775,5 +775,8 @@
   "setups_adopt": "選択項目をセットアップ",
   "setups_done": "センサー接続タスクを{tasks}件作成しました。",
   "complete_parts_used": "今回使用した部品",
-  "part_delete_confirm": "部品「{name}」を削除しますか？在庫管理、タスクとのリンク、未完了の購入リマインダーが削除されます。"
+  "part_delete_confirm": "部品「{name}」を削除しますか？在庫管理、タスクとのリンク、未完了の購入リマインダーが削除されます。",
+  "baseline_start_value": "開始値（任意）",
+  "baseline_start_help": "カウントはこの値から始まります。空欄の場合は現在の値からカウントします。前回整備時の値を入力すると、それ以降の使用分が計上されます。",
+  "setups_baseline_hint": "前回整備時の値（任意）"
 }

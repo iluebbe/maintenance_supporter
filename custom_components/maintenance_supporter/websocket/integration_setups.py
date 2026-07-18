@@ -47,6 +47,15 @@ _SELECTION_SCHEMA = vol.Schema(
         vol.Optional("task_names"): vol.All(
             [vol.All(str, vol.Length(max=MAX_NAME_LENGTH))], vol.Length(max=20)
         ),
+        # Optional counting start values per task name (#102): "the last
+        # service was at reading X". Only applied to usage_delta duties —
+        # the delta then counts from X instead of the adoption reading, so
+        # an interval that already elapsed comes due immediately.
+        vol.Optional("baselines"): {
+            vol.All(str, vol.Length(max=MAX_NAME_LENGTH)): vol.All(
+                vol.Coerce(float), vol.Range(min=0)
+            )
+        },
     }
 )
 
@@ -120,12 +129,20 @@ async def ws_adopt_integration_setups(
                 for t in entry.data.get(CONF_TASKS, {}).values()
             }
 
+            baselines = sel.get("baselines") or {}
             for task in setup["tasks"]:
                 if task["task_name"] not in wanted:
                     continue
                 if existing_names & task_name_variants(task["task_name"]):
                     continue
                 sig = sig_by_key[(task["task_name"], task["direction"])]
+                trigger = build_setup_trigger(sig, hass, task["entity_ids"])
+                # #102: "last service was at reading X" — usage_delta only.
+                # Other directions either already have absolute semantics
+                # (usage_above's explicit 0) or no baseline concept at all.
+                baseline = baselines.get(task["task_name"])
+                if baseline is not None and sig.direction == "usage_delta":
+                    trigger["trigger_baseline_value"] = float(baseline)
                 await async_persist_task(
                     hass,
                     entry,
@@ -136,7 +153,7 @@ async def ws_adopt_integration_setups(
                         "type": "replacement",
                         "enabled": True,
                         "schedule": {"kind": "manual"},
-                        "trigger_config": build_setup_trigger(sig, hass, task["entity_ids"]),
+                        "trigger_config": trigger,
                     },
                 )
                 tasks_created += 1

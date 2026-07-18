@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🚗 Start value for km/usage tasks — "the last service was at X" (#102)
+
+- Delta-counter tasks can now start counting from a reading you provide
+  instead of the value at creation. In the **Suggested setups** dialog every
+  km/usage duty gets an optional *"reading at last service"* field — a car
+  at 27,000 km whose last service was at 12,000 km comes due immediately,
+  as it should. In the **task dialog** the same start value is editable on
+  any delta-mode counter trigger (leave empty to count from the current
+  reading). Editing it re-anchors the counting; all 18 languages.
+
 ### 🚗 Fixed: fresh km/usage tasks no longer look overdue (#102)
 
 - A freshly adopted interval task on a lifetime counter (e.g. a 27,000 km

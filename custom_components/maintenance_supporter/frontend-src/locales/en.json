@@ -775,5 +775,8 @@
   "setups_adopt": "Set up selected",
   "setups_done": "{tasks} sensor-wired tasks created.",
   "complete_parts_used": "Parts used this time",
-  "part_delete_confirm": "Delete part '{name}'? Its stock tracking, task links and any open buy reminder will be removed."
+  "part_delete_confirm": "Delete part '{name}'? Its stock tracking, task links and any open buy reminder will be removed.",
+  "baseline_start_value": "Start reading (optional)",
+  "baseline_start_help": "Counting starts from this reading. Leave empty to count from the current value; enter the reading at the last service so usage since then already counts.",
+  "setups_baseline_hint": "reading at last service (optional)"
 }

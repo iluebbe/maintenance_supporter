@@ -693,6 +693,88 @@ async def test_ws_update_task_with_trigger(
     conn.send_result.assert_called_once()
 
 
+async def test_ws_update_task_baseline_change_clears_store_runtime(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """#102: editing trigger_baseline_value must clear the Store's trigger
+    runtime — the Store baseline wins on restore, so without the clear a
+    user-entered start value would silently never take effect. An update
+    that keeps the baseline untouched must NOT clear the runtime."""
+    await setup_integration(hass, global_entry, object_entry)
+    hass.states.async_set("sensor.odometer", "27000")
+
+    base_tc = {
+        "type": "counter",
+        "entity_id": "sensor.odometer",
+        "trigger_target_value": 15000.0,
+        "trigger_delta_mode": True,
+    }
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "trigger_config": dict(base_tc),
+        },
+    )
+    conn.send_result.assert_called_once()
+
+    def seed_runtime() -> None:
+        entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+        assert entry is not None
+        entry.runtime_data.store.set_trigger_runtime(
+            TASK_ID_1, "sensor.odometer", {"baseline_value": 27000.0}
+        )
+
+    def stored_runtime() -> dict[str, Any]:
+        state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+        return state.get("trigger_runtime") or {}
+
+    # Same trigger_config (baseline untouched) -> runtime survives.
+    seed_runtime()
+    conn2 = _mock_connection()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "name": "Renamed",
+            "trigger_config": dict(base_tc),
+        },
+    )
+    conn2.send_result.assert_called_once()
+    assert stored_runtime().get("sensor.odometer", {}).get("baseline_value") == 27000.0
+
+    # Edited baseline ("last service was at 12000") -> stale runtime cleared.
+    conn3 = _mock_connection()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn3,
+        {
+            "id": 3,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "trigger_config": {**base_tc, "trigger_baseline_value": 12000.0},
+        },
+    )
+    conn3.send_result.assert_called_once()
+    runtime = stored_runtime()
+    assert runtime.get("sensor.odometer", {}).get("baseline_value") != 27000.0
+
+
 async def test_ws_update_task_invalid_trigger(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
