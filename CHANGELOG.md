@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐈 Litter-Robot, more cars, more locks — the category sweep
+
+- **Litter-Robot** gets three duties: **empty the waste drawer** when its
+  level passes 90 % (auto-resolves on emptying), **refill litter** when the
+  level runs low (LR4/5), and **wash the box** every 150 cycles.
+- **Subaru and Volvo** join the car lineup (now ten brands); **OpenEVSE**
+  joins the wallboxes; the **BLE Automower** gets engine-counted blade and
+  undercarriage duties; and six more lock integrations (Schlage, Sesame,
+  Yale/August BLE, dormakaba dKey, deCONZ, Homematic KeyMatic) join the
+  cycle-count family.
+
 ### 🌊 Maytronics Dolphin pool robots
 
 - Dolphin pool cleaners propose **"Filter Cleaning" when the filter-bag

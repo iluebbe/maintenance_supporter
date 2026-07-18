@@ -422,5 +422,95 @@
       "FILTER_BAG_STATUS",
       "Filter Status"
     ]
+  },
+  "litterrobot": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/litterrobot/sensor.py"
+    ],
+    "strings": [
+      "waste_drawer",
+      "litter_level",
+      "total_cycles"
+    ]
+  },
+  "husqvarna_automower_ble": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower_ble/lawn_mower.py"
+    ],
+    "strings": [
+      "LawnMower"
+    ]
+  },
+  "subaru": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/subaru/sensor.py"
+    ],
+    "strings": [
+      "odometer"
+    ]
+  },
+  "volvo": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/volvo/sensor.py"
+    ],
+    "strings": [
+      "odometer"
+    ]
+  },
+  "openevse": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/openevse/sensor.py"
+    ],
+    "strings": [
+      "usage_total"
+    ]
+  },
+  "schlage": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/schlage/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "sesame": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/sesame/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "yalexs_ble": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/yalexs_ble/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "dormakaba_dkey": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/dormakaba_dkey/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "deconz": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/deconz/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
+  },
+  "homematic": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homematic/lock.py"
+    ],
+    "strings": [
+      "LockEntity"
+    ]
   }
 }
