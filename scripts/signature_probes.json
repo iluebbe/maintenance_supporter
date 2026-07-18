@@ -291,5 +291,38 @@
     "strings": [
       "self._name"
     ]
+  },
+  "keba": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/keba/sensor.py"
+    ],
+    "strings": [
+      "E total",
+      "total_energy"
+    ]
+  },
+  "goecharger_api2": {
+    "urls": [
+      "https://raw.githubusercontent.com/marq24/ha-goecharger-api2/main/custom_components/goecharger_api2/const.py"
+    ],
+    "strings": [
+      "Tag.ETO"
+    ]
+  },
+  "nuki": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/nuki/lock.py"
+    ],
+    "strings": [
+      "NukiLockEntity"
+    ]
+  },
+  "matter": {
+    "urls": [
+      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/lock.py"
+    ],
+    "strings": [
+      "MatterLock"
+    ]
   }
 }

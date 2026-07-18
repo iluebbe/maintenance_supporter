@@ -390,6 +390,25 @@ strongest possible requirements source. Shipped from it:
 - **Kameras**: no wear signals anywhere (reolink/unifi) — template material
   only, no signatures.
 
+## Sibling wave — more wallboxes, NAS, locks incl. Matter (2026-07-18)
+
+User-directed follow-up ("search for comparable integrations"):
+- ✅ **keba** (core): 'E total' → suffix `_total_energy` (kWh,
+  TOTAL_INCREASING lifetime) → Inspect Cable and Plug every 5,000 kWh.
+- ✅ **goecharger_api2** (HACS marq24): Tag.ETO key `eto`, native Wh with
+  suggested kWh display → the unit map gained Wh/kWh/MWh (canonical kWh)
+  so the 5,000 kWh target converts to the live display unit.
+- ✅ **nuki** (core) + ✅ **matter** locks: no wear sensor exists on locks —
+  NEW `cycle_count` direction: the ENGINE counts transitions to `locked`
+  (state_change, 500 cycles → "Lubricate Cylinder"; completing resets the
+  counter). The matter signature is entity_domain-gated to locks, so the
+  bridge's other device types are untouched — any Matter lock from any
+  vendor qualifies.
+- ❌ **truenas** (HACS tomaae) — verified negative for a cleanup signature:
+  pools expose `pool_free` in BYTES only, no percent; a byte threshold can't
+  default sanely across pool sizes. Re-check if upstream adds a percent.
+- Parked for later dives: openWB (MQTT), myenergi/zappi, OpenMediaVault.
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted

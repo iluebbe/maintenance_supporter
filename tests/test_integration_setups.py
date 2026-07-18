@@ -64,6 +64,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 "runtime_hours",
                 "alert_above",
                 "value_below",
+                "cycle_count",
             )
             # Empty keys = "the device's single entity of that domain" — only
             # safe for non-sensor domains (a sensor catalog entry without keys
@@ -71,8 +72,8 @@ def test_every_signature_task_name_is_fully_translated() -> None:
             assert sig.keys or sig.entity_domain != "sensor", (
                 f"{domain}: {sig.task_name!r} has empty keys on a sensor signature"
             )
-            assert sig.direction != "runtime_hours" or sig.on_states, (
-                f"{domain}: {sig.task_name!r} runtime signature needs on_states"
+            assert sig.direction not in ("runtime_hours", "cycle_count") or sig.on_states, (
+                f"{domain}: {sig.task_name!r} runtime/cycle signature needs on_states"
             )
             assert cat.source, f"{domain} lacks a source reference"
             assert cat.verified, f"{domain} lacks a verified date/ref"
@@ -1078,6 +1079,71 @@ async def test_safety_binary_sensors_adoptable(
     ids = {s["entity_id"] for s in discover_problem_sensors(hass)}
     assert "binary_sensor.nas_disk_health" in ids
     assert "binary_sensor.front_door" not in ids
+
+
+async def test_wallbox_energy_and_lock_cycle_wave(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """KEBA (kWh) and go-e (native Wh -> converted target) wallboxes propose
+    cable inspection by delivered energy; Nuki and Matter locks get
+    engine-counted locking cycles (state_change, 500 transitions to
+    'locked', reset on completion)."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    keba = await _seed_sensor(
+        hass, "keba", "p30", "KEBA P30",
+        [("total_energy", None, "kWh")],
+    )
+    goe = await _seed_sensor(
+        hass, "goecharger_api2", "g11", "go-e Charger",
+        [("eto", None, "Wh")],
+    )
+    # Locks: nuki + matter, one lock entity per device.
+    locks = {}
+    for domain, uid, name in (("nuki", "n1", "Front Door"), ("matter", "m1", "Back Door")):
+        source = MockConfigEntry(domain=domain, title=domain)
+        source.add_to_hass(hass)
+        dev = dr.async_get(hass).async_get_or_create(
+            config_entry_id=source.entry_id, identifiers={(domain, uid)}, name=name
+        )
+        lock = er.async_get(hass).async_get_or_create(
+            "lock", domain, uid, config_entry=source, device_id=dev.id,
+            suggested_object_id=f"{domain}_{uid}",
+        )
+        hass.states.async_set(lock.entity_id, "locked")
+        locks[domain] = dev.id
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (kt,) = setups[keba]["tasks"]
+    assert kt["task_name"] == "Inspect Cable and Plug" and kt["threshold"] == 5000.0
+    (gt,) = setups[goe]["tasks"]
+    assert gt["threshold"] == 5000000.0  # 5,000 kWh in native Wh
+
+    for domain in ("nuki", "matter"):
+        (lt,) = setups[locks[domain]]["tasks"]
+        assert lt["task_name"] == "Lubricate Cylinder" and lt["direction"] == "cycle_count"
+        assert lt["threshold"] == 500.0
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": locks["nuki"]}]},
+    )
+    assert not conn.send_error.called
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Front Door"
+    )
+    (t,) = obj.data[CONF_TASKS].values()
+    tc = t["trigger_config"]
+    assert tc["type"] == "state_change"
+    assert tc["trigger_to_state"] == "locked" and tc["trigger_target_changes"] == 500
+    assert tc["entity_id"] == "lock.nuki_n1"
+    assert "auto_complete_on_recovery" not in tc  # cycles don't recover
 
 
 async def test_candidate_wave_dyson_weback_mercedes(

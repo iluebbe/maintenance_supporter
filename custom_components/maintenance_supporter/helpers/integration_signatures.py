@@ -54,6 +54,10 @@ Direction semantics:
 * ``value_below``    — the mirror image: a MEASUREMENT that signals the
   condition while LOW (heating-loop pressure → refill water). Plain threshold
   below N in the entity's own unit; the maintenance raises the value back.
+* ``cycle_count``    — the ENGINE counts state transitions itself: a lock has
+  no wear sensor, but every transition to ``locked`` is one mechanical cycle.
+  state_change trigger with ``trigger_target_changes = N``; completing the
+  task resets the counter. No auto-complete (cycles don't recover).
 """
 
 from __future__ import annotations
@@ -691,6 +695,74 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "keba": IntegrationSignature(
+        name="KEBA Wallbox",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/keba/sensor.py "
+            "('E total' description, name 'Total Energy' → entity_id suffix "
+            "_total_energy, kWh, TOTAL_INCREASING lifetime)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("total_energy",), "Inspect Cable and Plug", "usage_delta", delta_units=5000
+            ),
+        ),
+    ),
+    "goecharger_api2": IntegrationSignature(
+        name="go-e Charger",
+        verified="2026-07-18 @ marq24/ha-goecharger-api2 main",
+        source=(
+            "marq24/ha-goecharger-api2 const.py Tag.ETO sensor (key 'eto', "
+            "native WATT_HOUR with suggested kWh display, TOTAL_INCREASING "
+            "lifetime energy) — the unit map converts the 5,000 kWh target "
+            "into the live display unit."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("eto",), "Inspect Cable and Plug", "usage_delta", delta_units=5000
+            ),
+        ),
+    ),
+    "nuki": IntegrationSignature(
+        name="Nuki Smart Lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/nuki/lock.py "
+            "(NukiLockEntity, one lock entity per device). No wear sensor — "
+            "the ENGINE counts locking cycles on the lock entity."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "matter": IntegrationSignature(
+        name="Matter lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/matter/lock.py "
+            "(MatterLock, lock domain entity per device). Matter bridges many "
+            "device types — the lock entity_domain restricts this signature "
+            "to locks; every transition to 'locked' is one mechanical cycle."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=500,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",
@@ -786,7 +858,7 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     key match, so existing single-shape signatures are unaffected. The one
     strict case is ``event_present``: ENUM event sensors carry no unit, so a
     unit-bearing entity that happens to share the key is NOT an event."""
-    if direction in ("event_present", "runtime_hours"):
+    if direction in ("event_present", "runtime_hours", "cycle_count"):
         return unit is None  # ENUM events and state entities carry no unit
     if direction in ("alert_above", "value_below"):
         return True  # measurement alert in the entity's own unit (any unit)
@@ -805,7 +877,7 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     """
     if sig.direction == "event_present":
         return 0.0  # ENUM event latch — no numeric threshold
-    if sig.direction in ("runtime_hours", "alert_above", "value_below"):
+    if sig.direction in ("runtime_hours", "alert_above", "value_below", "cycle_count"):
         # Engine-accumulated hours resp. a raw measurement threshold in the
         # entity's own unit — no conversion in either case.
         return float(sig.delta_units)
@@ -822,6 +894,10 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         "d": 1 / 24,
         "km": 1.0,
         "mi": 0.62137,
+        # energy counters are canonical in kWh (wallbox cable inspection)
+        "Wh": 1000.0,
+        "kWh": 1.0,
+        "MWh": 0.001,
     }.get(unit, 1.0)
     hours = {
         "usage_above": sig.above_hours,
@@ -854,6 +930,16 @@ def build_setup_trigger(
             "trigger_to_state": "present",
             "trigger_target_changes": 1,
             "auto_complete_on_recovery": True,
+        }
+    if sig.direction == "cycle_count":
+        # Engine-counted mechanical cycles: every transition into on_states[0]
+        # increments; the task fires at N and completing it resets the count.
+        return {
+            "type": "state_change",
+            "entity_id": entity_ids[0],
+            "entity_ids": list(entity_ids),
+            "trigger_to_state": sig.on_states[0],
+            "trigger_target_changes": int(_threshold_for(sig, hass, entity_ids[0])),
         }
     if sig.direction == "runtime_hours":
         # The engine accumulates the time the entity spends in on_states
