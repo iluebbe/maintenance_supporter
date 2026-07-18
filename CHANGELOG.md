@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🔐 Locks by cycle count — and more wallboxes (incl. Matter)
+
+- **Door locks wear by cycles, not by calendar**: Nuki and **any Matter
+  lock** now propose "Lubricate Cylinder" every **500 locking cycles** — the
+  engine counts the transitions itself (no wear sensor needed); completing
+  the task restarts the count.
+- **KEBA** and **go-e** wallboxes join Easee: cable/plug inspection every
+  5,000 kWh of delivered energy (go-e's native watt-hours are converted
+  automatically). TrueNAS was checked and exposes no usable percent metric
+  yet (bytes-only) — documented for re-checking.
+
 ### 🐾💻 Two new template categories — Pets and Tech & IT (catalog 41)
 
 - **Pets**: the Cat Litter Box template (scoop, litter change, wash — with a
