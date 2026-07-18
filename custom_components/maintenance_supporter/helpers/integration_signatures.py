@@ -986,6 +986,166 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "litterrobot": IntegrationSignature(
+        name="Litter-Robot",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/litterrobot/sensor.py "
+            "(waste_drawer_level tk 'waste_drawer' % FULL -> alert_above; "
+            "litter_level tk 'litter_level' % remaining (LR4/5) -> "
+            "percent_left; total_cycles lifetime counter -> usage_delta)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("waste_drawer",), "Empty Waste Drawer", "alert_above", delta_units=90
+            ),
+            ConsumableSignature(("litter_level",), "Refill Litter", "percent_left"),
+            ConsumableSignature(
+                ("total_cycles",), "Wash Litter Box", "usage_delta", delta_units=150
+            ),
+        ),
+    ),
+    "husqvarna_automower_ble": IntegrationSignature(
+        name="Husqvarna Automower BLE",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/husqvarna_automower_ble/"
+            "lawn_mower.py (lawn_mower entity; the BLE variant exposes no blade "
+            "counter) — the ENGINE accumulates mowing time."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Replace Blades", "runtime_hours", delta_units=100,
+                entity_domain="lawn_mower", on_states=("mowing",),
+            ),
+            ConsumableSignature(
+                (), "Clean Undercarriage", "runtime_hours", delta_units=25,
+                entity_domain="lawn_mower", on_states=("mowing",),
+            ),
+        ),
+    ),
+    "subaru": IntegrationSignature(
+        name="Subaru",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/subaru/sensor.py "
+            "(key sc.ODOMETER, translation_key 'odometer')."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "volvo": IntegrationSignature(
+        name="Volvo",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/volvo/sensor.py "
+            "(key 'odometer', api_field 'odometer')."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "openevse": IntegrationSignature(
+        name="OpenEVSE",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/openevse/sensor.py "
+            "(translation_key 'usage_total', kWh lifetime; usage_session is "
+            "per-session and deliberately not used)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("usage_total",), "Inspect Cable and Plug", "usage_delta", delta_units=5000
+            ),
+        ),
+    ),
+    "schlage": IntegrationSignature(
+        name="Schlage lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/schlage/lock.py "
+            "(lock platform verified present) — engine-counted locking cycles."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                entity_domain="lock", on_states=("locked",),
+            ),
+        ),
+    ),
+    "sesame": IntegrationSignature(
+        name="Sesame lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/sesame/lock.py "
+            "(lock platform verified present) — engine-counted locking cycles."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                entity_domain="lock", on_states=("locked",),
+            ),
+        ),
+    ),
+    "yalexs_ble": IntegrationSignature(
+        name="Yale/August BLE lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/yalexs_ble/lock.py "
+            "(lock platform verified present) — engine-counted locking cycles."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                entity_domain="lock", on_states=("locked",),
+            ),
+        ),
+    ),
+    "dormakaba_dkey": IntegrationSignature(
+        name="dormakaba dKey lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/dormakaba_dkey/lock.py "
+            "(lock platform verified present) — engine-counted locking cycles."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                entity_domain="lock", on_states=("locked",),
+            ),
+        ),
+    ),
+    "deconz": IntegrationSignature(
+        name="deCONZ (Zigbee) lock",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/deconz/lock.py "
+            "(lock platform verified present) — engine-counted locking cycles, entity_domain-gated so the bridge's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                entity_domain="lock", on_states=("locked",),
+            ),
+        ),
+    ),
+    "homematic": IntegrationSignature(
+        name="Homematic KeyMatic",
+        verified="2026-07-18 @ home-assistant/core dev",
+        source=(
+            "home-assistant/core homeassistant/components/homematic/lock.py "
+            "(lock platform verified present) — engine-counted locking cycles, entity_domain-gated so the hub's other device types are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                entity_domain="lock", on_states=("locked",),
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",

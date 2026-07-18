@@ -439,6 +439,39 @@ Bambu Lab (cataloged).
   calendars/cards/VoIP/police-API etc. (no device wear); Medication
   Reminder + Annuals are adjacent products, not devices.
 
+## Official category sweep — home-assistant.io/integrations (2026-07-18)
+
+User-directed completeness pass over the OFFICIAL category pages (the site
+embeds all 1,506 integrations with categories as JS — parsed wholesale and
+held against the catalog). Shipped (+11 integrations / +16 signatures):
+- **litterrobot** (core): waste_drawer % FULL → alert_above 90 ("Empty Waste
+  Drawer" NEW ×17); litter_level % remaining (LR4/5) → percent_left ("Refill
+  Litter" NEW ×17); total_cycles lifetime → usage_delta 150 (Wash Litter
+  Box). Perfect fit for the new Pets category.
+- **husqvarna_automower_ble**: lawn_mower entity, no counters → engine
+  runtime (blades 100 h, undercarriage 25 h).
+- **subaru** + **volvo** (core): translation_key/key 'odometer' → the car
+  pattern. Car lineup now TEN brands.
+- **openevse**: 'usage_total' kWh lifetime → cable inspection 5,000 kWh
+  (usage_session deliberately unused — per-session).
+- Locks +6: **schlage, sesame, yalexs_ble, dormakaba_dkey, deconz,
+  homematic** (lock.py verified; ultraloq/aqara have NO core lock platform).
+Verdicts without a catalog entry:
+- **sensibo** filter_clean is device_class PROBLEM → already covered by
+  problem-sensor adoption (no signature needed).
+- **nibe_heatpump**: coil-based dynamic entities → un-catalogable by
+  contract (like esphome). **smarttub**: reminders lack a clear
+  device_class → parked pending a deeper dive. **octoprint/prusalink**: no
+  lifetime print-hour sensors (status/job only) → template material.
+- Camera/doorbell categories: confirmed zero wear signals anywhere →
+  template-only (Security Camera template exists). Irrigation: controllers
+  expose no consumables → garden_irrigation template covers it. Climate:
+  overwhelmingly thermostats without consumables. Water-heater: statuses
+  only (no anode/descale sensors in any core integration). Valve/pump:
+  nothing. System-monitor: UPS battery dates (apcupsd/nut) noted as a
+  possible future "replace UPS battery" duty (date-based — no direction
+  fits today).
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted

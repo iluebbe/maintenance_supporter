@@ -1112,6 +1112,7 @@ async def test_wallbox_energy_and_lock_cycle_wave(
         ("matter", "m1", "Back Door"),
         ("zwave_js", "z1", "Cellar Door"),
         ("tedee", "t1", "Side Door"),
+        ("schlage", "s1", "Garage Door"),
     ):
         source = MockConfigEntry(domain=domain, title=domain)
         source.add_to_hass(hass)
@@ -1132,7 +1133,7 @@ async def test_wallbox_energy_and_lock_cycle_wave(
     (gt,) = setups[goe]["tasks"]
     assert gt["threshold"] == 5000000.0  # 5,000 kWh in native Wh
 
-    for domain in ("nuki", "matter", "zwave_js", "tedee"):
+    for domain in ("nuki", "matter", "zwave_js", "tedee", "schlage"):
         (lt,) = setups[locks[domain]]["tasks"]
         assert lt["task_name"] == "Lubricate Cylinder" and lt["direction"] == "cycle_count"
         assert lt["threshold"] == 500.0
@@ -1153,6 +1154,54 @@ async def test_wallbox_energy_and_lock_cycle_wave(
     assert tc["trigger_to_state"] == "locked" and tc["trigger_target_changes"] == 500
     assert tc["entity_id"] == "lock.nuki_n1"
     assert "auto_complete_on_recovery" not in tc  # cycles don't recover
+
+
+async def test_category_sweep_litterrobot_ble_mower_evse(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Category-sweep wave: Litter-Robot proposes THREE duties (waste drawer
+    fills UP -> alert_above 90 %, litter depletes -> percent_left, lifetime
+    cycles -> wash every 150); the BLE Automower gets engine-runtime mower
+    duties; OpenEVSE the wallbox energy interval."""
+    await setup_integration(hass, global_entry)
+    lr = await _seed_sensor(
+        hass, "litterrobot", "lr4", "Litter-Robot 4",
+        [
+            ("waste_drawer_level", "waste_drawer", "%"),
+            ("litter_level", "litter_level", "%"),
+            ("total_cycles", "total_cycles", None),
+        ],
+    )
+    source = MockConfigEntry(domain="husqvarna_automower_ble", title="AM BLE")
+    source.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("husqvarna_automower_ble", "b1")}, name="Automower 310"
+    )
+    mower = er.async_get(hass).async_get_or_create(
+        "lawn_mower", "husqvarna_automower_ble", "b1",
+        config_entry=source, device_id=dev.id, suggested_object_id="automower_310",
+    )
+    hass.states.async_set(mower.entity_id, "docked")
+    evse = await _seed_sensor(
+        hass, "openevse", "e1", "OpenEVSE",
+        [("usage_total", "usage_total", "kWh")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    lr_tasks = {t["task_name"]: t for t in setups[lr]["tasks"]}
+    assert set(lr_tasks) == {"Empty Waste Drawer", "Refill Litter", "Wash Litter Box"}
+    assert lr_tasks["Empty Waste Drawer"]["direction"] == "alert_above"
+    assert lr_tasks["Empty Waste Drawer"]["threshold"] == 90.0
+    assert lr_tasks["Refill Litter"]["direction"] == "percent_left"
+    assert lr_tasks["Wash Litter Box"]["threshold"] == 150.0
+
+    ble_tasks = {t["task_name"]: t for t in setups[dev.id]["tasks"]}
+    assert set(ble_tasks) == {"Replace Blades", "Clean Undercarriage"}
+    assert all(t["direction"] == "runtime_hours" for t in ble_tasks.values())
+
+    (e_task,) = setups[evse]["tasks"]
+    assert e_task["task_name"] == "Inspect Cable and Plug" and e_task["threshold"] == 5000.0
 
 
 async def test_dolphin_filter_bag_latches_on_full(
