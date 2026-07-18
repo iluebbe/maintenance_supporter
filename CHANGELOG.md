@@ -16,6 +16,20 @@ All notable changes to Maintenance Supporter are documented in this file.
   the runtime accumulation. Adopted values now hydrate into the field and
   survive the roundtrip.
 
+### 🔒 Trigger-config surfaces can no longer drift apart
+
+- A follow-up audit of the #103 class found three more silent-loss gaps and
+  closed them: the **compound editor** dropped per-condition attribute,
+  start value and entity logic on save (they now travel through a
+  passthrough untouched, even without form fields), and the **options
+  flow** dropped a task's counting start value when editing its trigger
+  (now carried over, like the recovery flag).
+- New parity tripwires pin the closure permanently: every WS-allowlisted
+  trigger key must be known to the panel dialog AND the options flow, and
+  the suggested-setups catalog may only emit allowlisted keys — a future
+  field that misses one of the surfaces fails CI instead of silently
+  losing data.
+
 ### 🌐 Translation-completeness audit — 13 stuck keys fixed in 16 languages
 
 - A full audit across all i18n surfaces (frontend locales ×18, backend

@@ -33,15 +33,28 @@ interface CompoundConditionDraft {
   targetChanges: string;
   runtimeHours: string;
   onStates: string;
+  /** Original keys this editor has no fields for (attribute, baseline, ...).
+   *  Spread back on save so a compound roundtrip never drops them (#103 class). */
+  carry: Partial<TriggerConfig>;
 }
 
 function emptyCondition(): CompoundConditionDraft {
   return {
     entityIds: "", type: "threshold", above: "", below: "", forMinutes: "0",
     targetValue: "", deltaMode: false, fromState: "", toState: "",
-    targetChanges: "", runtimeHours: "", onStates: "",
+    targetChanges: "", runtimeHours: "", onStates: "", carry: {},
   };
 }
+
+/** Keys the compound editor owns via its own form fields — everything else
+ *  travels through `carry` untouched. */
+const MANAGED_CONDITION_KEYS = new Set([
+  "entity_id", "entity_ids", "type",
+  "trigger_above", "trigger_below", "trigger_for_minutes",
+  "trigger_target_value", "trigger_delta_mode",
+  "trigger_from_state", "trigger_to_state", "trigger_target_changes",
+  "trigger_runtime_hours", "trigger_on_states",
+]);
 
 /** Map a persisted compound condition (storage shape) to an editable draft. */
 function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
@@ -59,6 +72,9 @@ function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
     targetChanges: c.trigger_target_changes?.toString() ?? "",
     runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
     onStates: (c.trigger_on_states || []).join(", "),
+    carry: Object.fromEntries(
+      Object.entries(c).filter(([k]) => !MANAGED_CONDITION_KEYS.has(k)),
+    ) as Partial<TriggerConfig>,
   };
 }
 
@@ -67,7 +83,7 @@ function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
 function draftToCondition(d: CompoundConditionDraft): TriggerConfig | null {
   const ids = d.entityIds.split(",").map((s) => s.trim()).filter(Boolean);
   if (ids.length === 0) return null;
-  const c: TriggerConfig = { entity_id: ids[0], entity_ids: ids, type: d.type };
+  const c: TriggerConfig = { ...(d.carry || {}), entity_id: ids[0], entity_ids: ids, type: d.type };
   if (d.type === "threshold") {
     const a = parseFloat(d.above); if (!isNaN(a)) c.trigger_above = a;
     const b = parseFloat(d.below); if (!isNaN(b)) c.trigger_below = b;
