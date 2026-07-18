@@ -17,10 +17,11 @@ Direction semantics:
 * ``duration_left``  — countdown to the next replacement (device_class
   duration). Trigger: below N hours, converted into the entity's display unit.
 * ``percent_left``   — remaining life/level in percent. Trigger: below N %.
-* ``usage_above``    — a wear counter that counts UP since the last
-  replacement/reset (blade usage time). Trigger: above N hours, converted
-  into the entity's display unit; resetting the counter after the swap
-  resolves the task (auto_complete_on_recovery).
+* ``usage_above``    — a wear counter that counts UP since the device's own
+  last reset (blade usage time, tub-clean cycles). Trigger: a delta counter
+  from an explicit 0 baseline — absolute semantics at adoption, but a manual
+  completion re-baselines instead of immediately re-firing, and a device-side
+  reset both re-baselines (rollover handling) and auto-completes the task.
 * ``event_present``  — an ENUM *event* sensor (no unit) that reports an
   actionable maintenance state (``present``) vs. ``off``/``confirmed`` — Home
   Connect salt/rinse-aid/descale/clean events. Trigger: a state_change latch on
@@ -75,12 +76,16 @@ class IntegrationSignature:
 
     name: str  # human-readable integration name
     source: str  # where the entity keys were verified
+    # When and against which ref the source was read (branch head at that
+    # date, not a pinned commit) — the audit trail for "verified against what".
+    verified: str = ""
     tasks: tuple[ConsumableSignature, ...] = field(default_factory=tuple)
 
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "roborock": IntegrationSignature(
         name="Roborock",
+        verified="2026-07-16 @ home-assistant/core dev",
         source="home-assistant/core homeassistant/components/roborock/sensor.py (translation_key, duration s→h)",
         tasks=(
             ConsumableSignature(("main_brush_time_left",), "Replace Main Brush", "duration_left"),
@@ -91,6 +96,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "xiaomi_miio": IntegrationSignature(
         name="Xiaomi Miio",
+        verified="2026-07-16 @ home-assistant/core dev",
         source="home-assistant/core homeassistant/components/xiaomi_miio/sensor.py (consumable_* descriptions, duration s)",
         tasks=(
             ConsumableSignature(("main_brush_left",), "Replace Main Brush", "duration_left"),
@@ -101,6 +107,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "dreame_vacuum": IntegrationSignature(
         name="Dreame Vacuum",
+        verified="2026-07-16 @ Tasshack/dreame-vacuum master",
         source="Tasshack/dreame-vacuum custom_components/dreame_vacuum/sensor.py (property keys *_left, percent)",
         tasks=(
             ConsumableSignature(("main_brush_left",), "Replace Main Brush", "percent_left"),
@@ -111,6 +118,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "xiaomi_miot": IntegrationSignature(
         name="Xiaomi MIoT",
+        verified="2026-07-17 @ al-one/hass-xiaomi-miot master",
         source=(
             "al-one/hass-xiaomi-miot — generic MIoT-spec entities; entity_id "
             "suffix = the spec property name (core/miot_spec.py format_name + "
@@ -130,6 +138,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "xiaomi_home": IntegrationSignature(
         name="Xiaomi Home",
+        verified="2026-07-18 @ XiaoMi/ha_xiaomi_home main",
         source=(
             "XiaoMi/ha_xiaomi_home miot/miot_device.py gen_prop_entity_id: "
             "entity_id = f'{model}_{did}_{model}_{slugify_name(prop)}_p_{siid}_{piid}' "
@@ -143,6 +152,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "midea_ac_lan": IntegrationSignature(
         name="Midea (LAN)",
+        verified="2026-07-18 @ wuwentao/midea_ac_lan master",
         source=(
             "wuwentao/midea_ac_lan midea_devices.py + midea_entity.py "
             "(_attr_translation_key from the per-attribute config; entity_id = "
@@ -163,6 +173,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ecovacs": IntegrationSignature(
         name="Ecovacs",
+        verified="2026-07-17 @ home-assistant/core dev + DeebotUniverse/client.py main",
         source=(
             "home-assistant/core homeassistant/components/ecovacs/sensor.py "
             "(translation_key f'lifespan_{component.name.lower()}', PERCENTAGE) + "
@@ -180,6 +191,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "husqvarna_automower": IntegrationSignature(
         name="Husqvarna Automower",
+        verified="2026-07-17 @ home-assistant/core dev",
         source=(
             "home-assistant/core homeassistant/components/husqvarna_automower/sensor.py "
             "(translation_key 'cutting_blade_usage_time', DURATION s→h; matching reset button exists)"
@@ -190,6 +202,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "landroid_cloud": IntegrationSignature(
         name="Worx Landroid",
+        verified="2026-07-17 @ MTrab/landroid_cloud master",
         source=(
             "MTrab/landroid_cloud custom_components/landroid_cloud/sensor.py "
             "(translation_key 'blade_runtime_current' — since last reset, DURATION min→h)"
@@ -200,6 +213,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "lg_thinq": IntegrationSignature(
         name="LG ThinQ",
+        verified="2026-07-17 @ home-assistant/core dev + thinq-connect/pythinqconnect main",
         source=(
             "home-assistant/core homeassistant/components/lg_thinq/sensor.py "
             "(ThinQProperty StrEnum translation_key; FILTER_LIFETIME is shared by "
@@ -228,6 +242,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "smartthinq_sensors": IntegrationSignature(
         name="LG ThinQ (SmartThinQ)",
+        verified="2026-07-17 @ ollo69/ha-smartthinq-sensors master",
         source=(
             "ollo69/ha-smartthinq-sensors custom_components/smartthinq_sensors/sensor.py "
             "(legacy name= entities, NO translation_key → matched by entity_id suffix; "
@@ -257,6 +272,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "vicare": IntegrationSignature(
         name="Viessmann ViCare",
+        verified="2026-07-17 (filter) / 2026-07-18 (burner) @ home-assistant/core dev + openviess/PyViCare master",
         source=(
             "home-assistant/core homeassistant/components/vicare/sensor.py "
             "(GLOBAL_SENSORS translation_key 'filter_remaining_hours', UnitOfTime.HOURS, "
@@ -279,6 +295,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "kia_uvo": IntegrationSignature(
         name="Hyundai / Kia Connect",
+        verified="2026-07-18 @ Hyundai-Kia-Connect/kia_uvo master",
         source=(
             "Hyundai-Kia-Connect/kia_uvo custom_components/kia_uvo/sensor.py "
             "(translation_key 'odometer', DISTANCE, TOTAL_INCREASING, dynamic "
@@ -291,6 +308,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "tesla_custom": IntegrationSignature(
         name="Tesla (custom)",
+        verified="2026-07-18 @ alandtse/tesla dev",
         source=(
             "alandtse/tesla custom_components/tesla_custom/sensor.py "
             "TeslaCarOdometer (type='odometer' → entity_id suffix, no "
@@ -302,6 +320,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "renault": IntegrationSignature(
         name="Renault",
+        verified="2026-07-18 @ home-assistant/core dev",
         source=(
             "home-assistant/core homeassistant/components/renault/sensor.py "
             "(translation_key 'mileage', DISTANCE, TOTAL_INCREASING, km)."
@@ -312,6 +331,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "bambu_lab": IntegrationSignature(
         name="Bambu Lab",
+        verified="2026-07-18 @ greghesp/ha-bambulab main",
         source=(
             "greghesp/ha-bambulab definitions.py (key/translation_key "
             "'total_usage_hours', UnitOfTime.HOURS, TOTAL_INCREASING lifetime "
@@ -330,6 +350,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "home_connect": IntegrationSignature(
         name="Home Connect",
+        verified="2026-07-17 @ home-assistant/core dev",
         source=(
             "home-assistant/core homeassistant/components/home_connect/sensor.py "
             "EVENT_SENSORS (HomeConnectEventSensor, device_class ENUM, "
@@ -350,6 +371,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ipp": IntegrationSignature(
         name="IPP printer",
+        verified="2026-07-16 @ home-assistant/core dev",
         source="home-assistant/core homeassistant/components/ipp/sensor.py (marker_<i>, translation_key 'marker', %)",
         tasks=(
             # Every marker (each ink/toner) shares translation_key "marker" —
@@ -359,6 +381,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "brother": IntegrationSignature(
         name="Brother printer",
+        verified="2026-07-16 @ home-assistant/core dev",
         source="home-assistant/core homeassistant/components/brother/sensor.py (*_toner_remaining / *_remaining_life, %)",
         tasks=(
             ConsumableSignature(
@@ -488,21 +511,33 @@ def build_setup_trigger(
             "trigger_target_changes": 1,
             "auto_complete_on_recovery": True,
         }
-    if sig.direction == "usage_delta":
-        # Lifetime counter: fire every N hours of use since the last
-        # completion; completing the task re-baselines (CounterTrigger.reset).
-        return {
+    if sig.direction in ("usage_delta", "usage_above"):
+        # Counter trigger in delta mode for both wear-counter flavours — a
+        # plain trigger_above threshold would re-fire immediately after a
+        # manual completion (the counter is still past the mark), whereas the
+        # delta baseline moves on completion.
+        # * usage_delta (lifetime counter): baseline = current value at setup;
+        #   the task is due every N units from the adoption/completion point.
+        # * usage_above (counts since the device's own reset): explicit 0
+        #   baseline keeps absolute semantics at adoption (80 h old blades are
+        #   80 h old), manual completion re-baselines, and a device-side reset
+        #   drops the value below the baseline — the rollover handling
+        #   re-baselines and the deactivation auto-completes the task.
+        trigger: dict[str, Any] = {
             "type": "counter",
             "entity_id": entity_ids[0],  # counter watches a single entity
             "entity_ids": list(entity_ids),
             "trigger_delta_mode": True,
             "trigger_target_value": _threshold_for(sig, hass, entity_ids[0]),
         }
-    threshold_key = "trigger_above" if sig.direction == "usage_above" else "trigger_below"
+        if sig.direction == "usage_above":
+            trigger["trigger_baseline_value"] = 0
+            trigger["auto_complete_on_recovery"] = True
+        return trigger
     return {
         "type": "threshold",
         "entity_ids": list(entity_ids),
-        threshold_key: _threshold_for(sig, hass, entity_ids[0]),
+        "trigger_below": _threshold_for(sig, hass, entity_ids[0]),
         "entity_logic": "any",
         "auto_complete_on_recovery": True,
     }

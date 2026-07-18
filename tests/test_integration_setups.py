@@ -63,6 +63,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 "usage_delta",
             )
             assert cat.source, f"{domain} lacks a source reference"
+            assert cat.verified, f"{domain} lacks a verified date/ref"
     assert not missing, "\n".join(missing)
 
 
@@ -324,7 +325,11 @@ async def test_usage_above_direction_husqvarna_and_landroid(
     )
     (task,) = obj.data[CONF_TASKS].values()
     tc = task["trigger_config"]
-    assert tc["trigger_above"] == 100.0 and "trigger_below" not in tc
+    # Resettable wear counters wire a DELTA counter from an explicit 0 baseline
+    # (absolute at adoption; manual completion re-baselines instead of
+    # re-firing; a device-side reset re-baselines AND auto-completes).
+    assert tc["type"] == "counter" and tc["trigger_delta_mode"] is True
+    assert tc["trigger_target_value"] == 100.0 and tc["trigger_baseline_value"] == 0
     assert tc["auto_complete_on_recovery"] is True
 
 
@@ -455,7 +460,8 @@ async def test_smartthinq_entity_id_suffix_and_tub_clean_counter(
         if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Washing Machine"
     )
     tub = next(t for t in obj.data[CONF_TASKS].values() if "Tub" in t["name"])["trigger_config"]
-    assert tub["trigger_above"] == 30.0 and "trigger_below" not in tub
+    assert tub["type"] == "counter" and tub["trigger_delta_mode"] is True
+    assert tub["trigger_target_value"] == 30.0 and tub["trigger_baseline_value"] == 0
     assert tub["auto_complete_on_recovery"] is True
 
 
