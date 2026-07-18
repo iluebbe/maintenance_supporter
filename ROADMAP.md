@@ -57,7 +57,23 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    the pointer!). Each entry needs the usual source dive first (method
    contract).
 
-4. 💡 **Bambu Lab: model-aware 3D-printer templates** — study the different
+4. 💡 **Catalog governance: full re-audit + drift watchdog** — see
+   docs/design/signature-evaluation-scheme.md ("Catalog governance").
+   a) **Re-audit all cataloged integrations against the evaluation scheme**:
+   the ladder gained two rungs late (`usage_delta`, `runtime_hours`), so every
+   pre-existing entry gets walked again — are there additional derivable
+   signals (e.g. vacuums with state entities could ALSO offer runtime-based
+   deep-clean tasks), and does each entry still pick the most direct signal
+   per duty? Results recorded per entry in the research doc, `verified`
+   bumped. b) **`signature-drift.yml` GitHub Action** (monthly cron + manual
+   dispatch): fetch each entry's referenced upstream source file and grep the
+   signature keys — missing key = drift → auto-filed issue naming the
+   integration, key and recorded ref. Never a PR-blocking check (upstream
+   churn must not block our merges); adopted tasks are immune anyway (they
+   watch registry entity_ids, which survive upstream renames — drift only
+   degrades new discovery).
+
+5. 💡 **Bambu Lab: model-aware 3D-printer templates** — study the different
    printer models (A1/A1 mini vs P1P/P1S vs X1C/X1E, AMS vs AMS 2 Pro/AMS HT)
    and Bambu's official maintenance guides, then tune the 3D Printer template
    per model: enclosure models add carbon/HEPA filter replacement, the A1
