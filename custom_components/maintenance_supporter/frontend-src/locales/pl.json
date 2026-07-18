@@ -780,5 +780,7 @@
   "baseline_start_help": "Liczenie zaczyna się od tej wartości. Pozostaw puste, aby liczyć od bieżącego stanu; wpisz stan z ostatniego serwisu, aby uwzględnić dotychczasowe zużycie.",
   "setups_baseline_hint": "stan przy ostatnim serwisie (opcjonalnie)",
   "baseline_start_help_edit": "Pozostaw puste, aby zachować dotychczasowe liczenie. Wpisana wartość zakotwicza liczenie na nowo (np. stan przy ostatnim serwisie).",
-  "baseline_current_effective": "Obecnie obowiązująca wartość początkowa: {value}"
+  "baseline_current_effective": "Obecnie obowiązująca wartość początkowa: {value}",
+  "runtime_on_states": "Stany aktywne (rozdzielone przecinkami)",
+  "runtime_on_states_help": "Stany liczone jako czas pracy — domyślnie: on. Np. mowing, cleaning, printing. Przy wybranym atrybucie porównywane są jego wartości."
 }

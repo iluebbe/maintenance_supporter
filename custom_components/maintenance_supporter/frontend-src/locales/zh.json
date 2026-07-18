@@ -780,5 +780,7 @@
   "baseline_start_help": "计数从该读数开始。留空则从当前值开始计数；填写上次保养时的读数，则此后的使用量会计入。",
   "setups_baseline_hint": "上次保养时的读数（可选）",
   "baseline_start_help_edit": "留空以保留现有计数。填写数值会重新锚定计数（例如上次保养时的读数）。",
-  "baseline_current_effective": "当前生效的起始读数：{value}"
+  "baseline_current_effective": "当前生效的起始读数：{value}",
+  "runtime_on_states": "活动状态（逗号分隔）",
+  "runtime_on_states_help": "计入运行时间的状态 — 默认：on。例如 mowing、cleaning、printing。选择了属性时将比较该属性的值。"
 }

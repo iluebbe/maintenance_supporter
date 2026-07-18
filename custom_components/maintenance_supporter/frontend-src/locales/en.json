@@ -780,5 +780,7 @@
   "baseline_start_help": "Counting starts from this reading. Leave empty to count from the current value; enter the reading at the last service so usage since then already counts.",
   "setups_baseline_hint": "reading at last service (optional)",
   "baseline_start_help_edit": "Leave empty to keep the existing counting. Entering a value re-anchors the counting (e.g. the reading at the last service).",
-  "baseline_current_effective": "Currently effective start value: {value}"
+  "baseline_current_effective": "Currently effective start value: {value}",
+  "runtime_on_states": "Active states (comma-separated)",
+  "runtime_on_states_help": "States that count as running — default: on. E.g. mowing, cleaning, printing. With an attribute selected, its values are matched instead."
 }

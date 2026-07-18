@@ -49,6 +49,8 @@ export interface TriggerConfig {
   trigger_to_state?: string | null;
   trigger_target_changes?: number;
   trigger_runtime_hours?: number;
+  /** States (or attribute values) that count as "running" — default ["on"]. */
+  trigger_on_states?: string[];
   compound_logic?: "AND" | "OR";
   conditions?: Array<TriggerConfig>;
   /** Record a completion when the trigger clears itself (#53). */

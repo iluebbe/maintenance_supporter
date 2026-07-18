@@ -32,13 +32,14 @@ interface CompoundConditionDraft {
   toState: string;
   targetChanges: string;
   runtimeHours: string;
+  onStates: string;
 }
 
 function emptyCondition(): CompoundConditionDraft {
   return {
     entityIds: "", type: "threshold", above: "", below: "", forMinutes: "0",
     targetValue: "", deltaMode: false, fromState: "", toState: "",
-    targetChanges: "", runtimeHours: "",
+    targetChanges: "", runtimeHours: "", onStates: "",
   };
 }
 
@@ -57,6 +58,7 @@ function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
     toState: c.trigger_to_state || "",
     targetChanges: c.trigger_target_changes?.toString() ?? "",
     runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
+    onStates: (c.trigger_on_states || []).join(", "),
   };
 }
 
@@ -79,6 +81,8 @@ function draftToCondition(d: CompoundConditionDraft): TriggerConfig | null {
     const n = parseInt(d.targetChanges, 10); if (!isNaN(n)) c.trigger_target_changes = n;
   } else if (d.type === "runtime") {
     const h = parseFloat(d.runtimeHours); if (!isNaN(h)) c.trigger_runtime_hours = h;
+    const on = (d.onStates || "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (on.length > 0) c.trigger_on_states = on;
   }
   return c;
 }
@@ -165,6 +169,11 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
   @state() private _triggerRuntimeHours = "";
+  // Comma-separated "running" states for the runtime trigger (#103) —
+  // empty = the backend default ["on"]. Must roundtrip on edit: adopted
+  // tasks ship e.g. ["mowing"], and dropping it on save silently stops
+  // the accumulation.
+  @state() private _triggerOnStates = "";
   // Compound trigger (type === "compound"): a list of conditions + AND/OR logic
   @state() private _compoundLogic: "AND" | "OR" = "AND";
   @state() private _compoundConditions: CompoundConditionDraft[] = [];
@@ -343,6 +352,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerToState = tc.trigger_to_state || "";
       this._triggerTargetChanges = tc.trigger_target_changes?.toString() || "";
       this._triggerRuntimeHours = tc.trigger_runtime_hours?.toString() || "";
+      this._triggerOnStates = (tc.trigger_on_states || []).join(", ");
       if (tc.type === "compound") {
         this._compoundLogic = tc.compound_logic === "OR" ? "OR" : "AND";
         this._compoundConditions = (tc.conditions || []).map(conditionToDraft);
@@ -438,6 +448,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerToState = "";
     this._triggerTargetChanges = "";
     this._triggerRuntimeHours = "";
+    this._triggerOnStates = "";
     this._compoundLogic = "AND";
     this._compoundConditions = [];
   }
@@ -867,6 +878,8 @@ export class MaintenanceTaskDialog extends LitElement {
           if (this._triggerTargetChanges) { const v = parseInt(this._triggerTargetChanges, 10); if (!isNaN(v)) triggerConfig.trigger_target_changes = v; }
         } else if (this._triggerType === "runtime") {
           if (this._triggerRuntimeHours) { const v = parseFloat(this._triggerRuntimeHours); if (!isNaN(v)) triggerConfig.trigger_runtime_hours = v; }
+          const onStates = this._triggerOnStates.split(",").map((s) => s.trim()).filter(Boolean);
+          if (onStates.length > 0) triggerConfig.trigger_on_states = onStates;
         }
 
         data.trigger_config = triggerConfig;
@@ -1163,6 +1176,8 @@ export class MaintenanceTaskDialog extends LitElement {
       return html`
         <ms-textfield label="${t("runtime_hours", L)}" type="number" .value=${c.runtimeHours}
           @input=${(e: Event) => this._patchCondition(i, { runtimeHours: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("runtime_on_states", L)}" placeholder="on" .value=${c.onStates}
+          @input=${(e: Event) => this._patchCondition(i, { onStates: (e.target as HTMLInputElement).value })}></ms-textfield>
       `;
     }
     return nothing;
@@ -1536,6 +1551,13 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._triggerRuntimeHours}
           @input=${(e: Event) => (this._triggerRuntimeHours = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
+        <ms-textfield
+          label="${t("runtime_on_states", L)}"
+          placeholder="on"
+          .value=${this._triggerOnStates}
+          @input=${(e: Event) => (this._triggerOnStates = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <div class="field-help">${t("runtime_on_states_help", L)}</div>
       `;
     }
     return nothing;

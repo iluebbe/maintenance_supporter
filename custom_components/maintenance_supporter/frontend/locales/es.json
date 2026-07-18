@@ -780,5 +780,7 @@
   "baseline_start_help": "El conteo comienza desde este valor. Déjalo vacío para contar desde el valor actual; introduce la lectura del último mantenimiento para que cuente el uso desde entonces.",
   "setups_baseline_hint": "lectura en el último mantenimiento (opcional)",
   "baseline_start_help_edit": "Déjalo vacío para mantener el conteo actual. Un valor introducido reancla el conteo (p. ej., la lectura del último mantenimiento).",
-  "baseline_current_effective": "Valor inicial vigente: {value}"
+  "baseline_current_effective": "Valor inicial vigente: {value}",
+  "runtime_on_states": "Estados activos (separados por comas)",
+  "runtime_on_states_help": "Estados que cuentan como en funcionamiento — predeterminado: on. P. ej. mowing, cleaning, printing. Con un atributo seleccionado se comparan sus valores."
 }
