@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.32.1] - 2026-07-18
 
 ### ⏱️ Runtime "active states" now configurable in the UI (#103)
 
