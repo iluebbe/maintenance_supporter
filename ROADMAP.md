@@ -57,21 +57,23 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    the pointer!). Each entry needs the usual source dive first (method
    contract).
 
-4. 💡 **Catalog governance: full re-audit + drift watchdog** — see
-   docs/design/signature-evaluation-scheme.md ("Catalog governance").
-   a) **Re-audit all cataloged integrations against the evaluation scheme**:
-   the ladder gained two rungs late (`usage_delta`, `runtime_hours`), so every
-   pre-existing entry gets walked again — are there additional derivable
-   signals (e.g. vacuums with state entities could ALSO offer runtime-based
-   deep-clean tasks), and does each entry still pick the most direct signal
-   per duty? Results recorded per entry in the research doc, `verified`
-   bumped. b) **`signature-drift.yml` GitHub Action** (monthly cron + manual
-   dispatch): fetch each entry's referenced upstream source file and grep the
-   signature keys — missing key = drift → auto-filed issue naming the
-   integration, key and recorded ref. Never a PR-blocking check (upstream
-   churn must not block our merges); adopted tasks are immune anyway (they
-   watch registry entity_ids, which survive upstream renames — drift only
-   degrades new discovery).
+4. ~~**Catalog governance: full re-audit + drift watchdog**~~ ✅ **Shipped
+   2026-07-18** — (a) all 22 entries re-audited against the evaluation
+   scheme (results in the research doc: everything picks the most direct
+   signal per duty; authoritative count 22 integrations / 53 signatures);
+   (b) **`signature-drift.yml`** runs WEEKLY (Monday cron + manual
+   dispatch): `scripts/check_signature_drift.py` greps per-entry probe
+   strings (`scripts/signature_probes.json`, tripwire-synced with
+   SIGNATURES) in the referenced upstream sources and auto-files a drift
+   issue — never PR-blocking. Runtime side already existed: the
+   `missing_trigger_entity` HA Repair covers adopted tasks natively.
+   **Follow-up candidate from the re-audit:** one source entity can only
+   feed ONE signature today (matcher breaks after first match +
+   already-watched exclusion) — blocks multi-duty proposals like
+   "Clean Undercarriage every 25 mowing-hours" alongside the blade task
+   from the same usage source; needs per-duty entity claims. Also open:
+   Miele washer tub-clean via status-entity runtime (verify status values
+   first).
 
 5. 💡 **Bambu Lab: model-aware 3D-printer templates** — study the different
    printer models (A1/A1 mini vs P1P/P1S vs X1C/X1E, AMS vs AMS 2 Pro/AMS HT)

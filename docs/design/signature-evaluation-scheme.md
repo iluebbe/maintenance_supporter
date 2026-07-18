@@ -113,20 +113,36 @@ Two catalog classes age differently:
   `verified` field ("date @ repo/branch head") — an audit trail, not a
   monitor.
 
-### Proposed: automated drift check in GitHub Actions
-A scheduled workflow (`signature-drift.yml`, monthly cron + manual dispatch):
-1. For every `IntegrationSignature`, derive the raw source URL(s) from the
-   `source` field (or an explicit optional `probe_urls` tuple added per
-   entry) and fetch them from the recorded repo/branch.
-2. Grep each signature key (translation_key / property name) in the fetched
-   text. Every key that no longer appears = **drift**.
-3. Output: a job summary listing stale entries, and an auto-filed/updated
-   "signature drift" issue naming integration, missing key and the recorded
-   `verified` ref — never a hard CI failure on unrelated PRs (upstream churn
-   must not block our merges; the scheduled job is the watchdog, the PR gate
-   stays about OUR code).
-The check is text-level by design (grep for the literal key in the referenced
-file), so it needs no upstream imports and works for core + HACS alike.
+### Shipped: automated drift check in GitHub Actions (weekly)
+`/.github/workflows/signature-drift.yml` — **weekly** cron (Mondays 06:00
+UTC) + manual dispatch, so drift is caught before it piles up:
+1. `scripts/check_signature_drift.py` (stdlib-only) reads
+   `scripts/signature_probes.json`: per integration the raw upstream URL(s)
+   the entry was verified against and literal probe strings that must still
+   appear there. Probes are chosen per entry to survive code style (LG probes
+   the UPPERCASE enum members because the lowercase values are StrEnum
+   `auto()`; xiaomi_home probes the entity-id builder because its keys come
+   from device specs, not the repo).
+2. A missing string (or unreachable source) = **drift** → the workflow files
+   or updates a "Signature drift" issue with the log; the job summary lists
+   every probe result. Never a PR-blocking check — upstream churn must not
+   block our merges; the scheduled job is the watchdog, the PR gate stays
+   about OUR code.
+3. A tripwire test (`test_every_signature_has_a_drift_probe`) keeps the probe
+   file in exact sync with `SIGNATURES` — a new catalog entry without a probe
+   fails CI (the test skips in the dev container, which doesn't mount
+   `scripts/`; the full CI checkout enforces it).
+
+### Runtime layer: HA-native Repairs (already shipped)
+Drift has a second, user-local detection layer that predates the catalog:
+the coordinator raises the fixable **`missing_trigger_entity` Repair issue**
+when a task's watched entity has been missing from the state machine past a
+startup grace period and a refresh threshold (plus `stale_action_entity` for
+on-complete action targets). So if an upstream change ever does remove a
+registered entity, affected users see a native HA Repair naming the task,
+object and entity — while the weekly Action catches the catalog side before
+new discoveries silently dry up. Two layers, two audiences: Repairs for the
+user's adopted tasks, the Action for the catalog maintainer.
 
 ### Handling upstream changes when they happen
 - **Runtime is already graceful, twice over**: (1) if upstream renames a key,

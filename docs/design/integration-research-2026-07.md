@@ -238,6 +238,49 @@ Cataloged as percent_left: Refill Salt / Refill Rinse Aid / Refill Detergent
 descaling/degreasing/milk-cleaning counters are TOTAL_INCREASING tallies of
 *performed* maintenance — unclear delta semantics, skipped.
 
+## Full catalog re-audit against the evaluation scheme (2026-07-18)
+
+All 22 cataloged integrations re-walked after the ladder gained
+`usage_delta` and `runtime_hours` (per the governance rule: scheme grows →
+re-audit everything). Authoritative count: **22 integrations / 53
+task-signatures** (28 percent, 10 duration, 6 delta, 5 event, 3 above,
+1 runtime).
+
+**Confirmed optimal (most-direct signal per duty, no additions):**
+- Vacuums (roborock, xiaomi_miio, dreame, ecovacs, xiaomi_miot/home): every
+  wear duty (brushes, filter, sensors, dust bag, mop) is covered by a direct
+  percent/countdown signal. A runtime-based "empty dustbin" task was
+  considered and rejected — it's an after-every-run routine, not a trackable
+  maintenance interval.
+- Printers (ipp, brother): percent covers every consumable a page counter
+  would proxy. bambu_lab: usage_delta on print hours is the direct signal.
+- Kitchen (lg_thinq, smartthinq, midea, miele, home_connect): fill levels /
+  percent / events all direct; LG `used_time` and Home Connect coffee
+  counters remain correctly excluded as duplicates of more direct signals.
+- Heating (vicare): countdown for the filter, delta for burner/compressor —
+  both rungs used correctly.
+- Cars (kia_uvo, tesla_custom, renault): odometer delta is the only
+  wear-proportional signal exposed; service-distance sensors stay unverified.
+- Mowers (husqvarna, landroid, gardena, navimow): blade duty covered by the
+  most direct counter each integration has (device wear counter > lifetime
+  hours > engine runtime, in that order).
+
+**Structural finding (new ROADMAP candidate): one source entity can only
+feed ONE signature.** The matcher `break`s after the first signature an
+entity matches, and adopted entities are excluded from re-discovery
+(`already_watched`). That's correct for consumables, but it blocks
+*multi-duty* proposals from a single usage source — e.g. "Clean
+Undercarriage every 25 mowing-hours" **alongside** "Replace Blades every
+100 h" from the same `operating_hours`/state entity. Husqvarna's separate
+cumulative-runtime sensors could carry a second duty today; Gardena/Navimow
+could not. Needs a matcher/exclusion rework (per-duty entity claims instead
+of per-entity) before per-usage-source task bundles can ship.
+
+**Open verification candidate:** Miele appliances expose a program/status
+entity — a runtime-based washer "Clean Tub every N operating hours" (LG has a
+counter, Miele doesn't) is plausible but needs the status values verified at
+source first.
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted
