@@ -4,6 +4,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🧹 Five more integrations — Dyson, Dreo, WeBack, Electrolux/AEG, Mercedes
+
+- **Dyson** purifiers/fans (HACS `hass_dyson`): HEPA and carbon filter life
+  (both %) feed one any-low filter-replacement task. **Dreo** humidifiers and
+  **Electrolux/AEG** purifiers: filter life %. **Mercedes-Benz**
+  (`mbapi2020`): service every 15,000 km and tire rotation every 10,000 km by
+  odometer. **WeBack** vacuums expose no sensors at all — the engine
+  accumulates cleaning time on the vacuum entity and proposes filter cleaning
+  (15 h) and main-brush cleaning (30 h) instead.
+- Researched negative: `daikin_onecta` currently exposes no filter/maintenance
+  indicator (re-checked when upstream grows one).
+
 ### 🎯 Device-type-aware suggestions — washer tub clean, printer chamber filter
 
 - Signatures can now gate on the **appliance type**: via type-identifying

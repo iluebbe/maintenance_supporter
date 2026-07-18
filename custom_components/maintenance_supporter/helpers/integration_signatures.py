@@ -506,6 +506,82 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "hass_dyson": IntegrationSignature(
+        name="Dyson",
+        verified="2026-07-18 @ cmgrayb/hass-dyson main",
+        source=(
+            "cmgrayb/hass-dyson sensor.py DysonFilterLifeSensor "
+            "(translation_key 'filter_life' for BOTH hepa and carbon "
+            "instances, PERCENTAGE) — one any-low task covers both filters."
+        ),
+        tasks=(
+            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+        ),
+    ),
+    "dreo": IntegrationSignature(
+        name="Dreo",
+        verified="2026-07-18 @ JeffSteinbok/hass-dreo main",
+        source=(
+            "JeffSteinbok/hass-dreo sensor.py (translation_key 'filter_life', "
+            "unit '%', humidifiers with FILTERTIME support)."
+        ),
+        tasks=(
+            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+        ),
+    ),
+    "weback_vacuum": IntegrationSignature(
+        name="WeBack Vacuum",
+        verified="2026-07-18 @ Jezza34000/homeassistant_weback_component main",
+        source=(
+            "Jezza34000/homeassistant_weback_component vacuum.py (NO sensors "
+            "at all — STATE_MAPPING maps all clean modes to STATE_CLEANING) — "
+            "the ENGINE accumulates cleaning time on the vacuum entity."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
+            ),
+            ConsumableSignature(
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
+            ),
+        ),
+    ),
+    "electrolux_status": IntegrationSignature(
+        name="Electrolux / AEG",
+        verified="2026-07-18 @ albaintor/homeassistant_electrolux_status master",
+        source=(
+            "albaintor/homeassistant_electrolux_status catalog_purifier.py "
+            "'FilterLife' (PERCENTAGE) + entity.py entity_id = "
+            "f'..._{entity_attr}' — HA slugifies the raw 'FilterLife' tail, so "
+            "both slug forms are matched."
+        ),
+        tasks=(
+            ConsumableSignature(("filterlife", "filter_life"), "Replace Filter", "percent_left"),
+        ),
+    ),
+    "mbapi2020": IntegrationSignature(
+        name="Mercedes-Benz",
+        verified="2026-07-18 @ ReneNulschDE/mbapi2020 master",
+        source=(
+            "ReneNulschDE/mbapi2020 const.py SENSORS 'odometer' (name "
+            "'Odometer' → entity_id suffix; attributes carry "
+            "serviceintervaldays/distance) — lifetime km counter."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",

@@ -860,6 +860,55 @@ async def test_bambu_model_gate_enclosed_vs_open_frame(
     assert a1_task["task_name"] == "Lubricate Rails and Rods"  # no filter duty
 
 
+async def test_candidate_wave_dyson_weback_mercedes(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Third candidate wave: Dyson HEPA+carbon filters collapse into one
+    any-low percent task; WeBack (no sensors at all) gets TWO engine-runtime
+    duties on its vacuum entity; a Mercedes odometer carries both car duties."""
+    await setup_integration(hass, global_entry)
+    dyson = await _seed_sensor(
+        hass, "hass_dyson", "d1", "Dyson Purifier",
+        [
+            ("hepa_filter_life", "filter_life", "%"),
+            ("carbon_filter_life", "filter_life", "%"),
+        ],
+    )
+    # WeBack: only a vacuum STATE entity, nothing else.
+    source = MockConfigEntry(domain="weback_vacuum", title="WeBack")
+    source.add_to_hass(hass)
+    dev_reg = dr.async_get(hass)
+    wb_dev = dev_reg.async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("weback_vacuum", "wb1")}, name="WeBack Robot"
+    )
+    ent_reg = er.async_get(hass)
+    vac = ent_reg.async_get_or_create(
+        "vacuum", "weback_vacuum", "wb1",
+        config_entry=source, device_id=wb_dev.id, suggested_object_id="weback_robot",
+    )
+    hass.states.async_set(vac.entity_id, "docked")
+    mb = await _seed_sensor(
+        hass, "mbapi2020", "w205", "Mercedes C-Class",
+        [("odometer", None, "km")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (dy_task,) = setups[dyson]["tasks"]
+    assert dy_task["task_name"] == "Replace Filter" and dy_task["direction"] == "percent_left"
+    assert len(dy_task["entity_ids"]) == 2  # hepa + carbon, any-low
+
+    wb_tasks = {t["task_name"]: t for t in setups[wb_dev.id]["tasks"]}
+    assert set(wb_tasks) == {"Filter Cleaning", "Clean Main Brush"}
+    assert wb_tasks["Filter Cleaning"]["direction"] == "runtime_hours"
+    assert wb_tasks["Filter Cleaning"]["threshold"] == 15.0
+    assert wb_tasks["Clean Main Brush"]["threshold"] == 30.0
+
+    mb_tasks = {t["task_name"]: t for t in setups[mb]["tasks"]}
+    assert set(mb_tasks) == {"Annual Service", "Tire Rotation"}
+    assert mb_tasks["Annual Service"]["threshold"] == 15000.0
+
+
 async def test_vicare_ventilation_filter_signature(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
