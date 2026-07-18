@@ -4,6 +4,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐾💻 Two new template categories — Pets and Tech & IT (catalog 41)
+
+- **Pets**: the Cat Litter Box template (scoop, litter change, wash — with a
+  mild-soap note). **Tech & IT**: Printer (nozzle check, maintenance box),
+  Smart Lock (battery, cylinder lubricant note, recalibration), EV Wallbox
+  (**RCD test twice a year** — it only protects if it still trips — plus
+  cable inspection), Home Server / NAS (**backup-restore test**, disk health,
+  storage cleanup, firmware, dusting) and Security Camera (lens, mounting,
+  firmware). Plus **Fitness Equipment** (wipe-down, bolts, belt/chain
+  lubrication) under Household and a **Garden Pond** template (filter, water
+  test, autumn leaf net, winterizing) — pond ≠ pool. Template catalog
+  33 → **41**, all fully localized.
+
 ### 🗄️ NAS, wallbox & boiler — signatures from real-world registries
 
 - **Synology and QNAP NAS**: "Storage Cleanup" fires while a volume sits

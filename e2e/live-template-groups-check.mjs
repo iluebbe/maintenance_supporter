@@ -17,14 +17,14 @@ const token = loadToken();
 const api = await wsClient(REST, token);
 
 const res = await api.send({ type: "maintenance_supporter/templates", language: "de" });
-assert(res.templates.length === 33, `33 templates (got ${res.templates.length})`);
+assert(res.templates.length === 41, `41 templates (got ${res.templates.length})`);
 const cats = Object.keys(res.categories);
-assert(JSON.stringify(cats) === JSON.stringify(["vehicle", "home", "household", "garden", "pool", "appliance"]),
+assert(JSON.stringify(cats) === JSON.stringify(["vehicle", "home", "household", "garden", "pool", "appliance", "pets", "tech"]),
   `6 categories in order (got ${cats.join(",")})`);
 const byCat = {};
 for (const t2 of res.templates) byCat[t2.category] = (byCat[t2.category] || 0) + 1;
 log("  per category:", JSON.stringify(byCat));
-assert(byCat.household === 5 && byCat.garden === 7 && byCat.pool === 2, "household=5, garden=7, pool=2");
+assert(byCat.household === 6 && byCat.garden === 8 && byCat.pool === 2, "household=5, garden=7, pool=2");
 const bathroom = res.templates.find((t2) => t2.id === "household_bathroom");
 assert(bathroom.name === "Badezimmer", `Bathroom localized (got ${bathroom.name})`);
 assert(res.categories.household.name_de === "Haushalt & Routinen", "household category localized");
@@ -77,7 +77,7 @@ const gallery = await p.evaluate(({ finder }) => {
   };
 }, { finder: deepFindPanel });
 assert(!gallery.err, gallery.err || "gallery renders");
-assert(gallery.groups.length === 6, `6 group headers (got ${gallery.groups.length})`);
+assert(gallery.groups.length === 8, `8 group headers (got ${gallery.groups.length})`);
 // Collapsed by default: only the headers (with counts) are visible.
 assert(gallery.rows === 0, `groups collapsed by default (got ${gallery.rows} rows)`);
 log("  groups:", gallery.groups.map((g) => `${g.name} ${g.count}`).join(" | "));
