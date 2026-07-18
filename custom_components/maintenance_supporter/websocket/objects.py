@@ -534,6 +534,22 @@ async def ws_create_from_template(
     lang = (msg.get("language") or normalize_language(hass))[:2].lower()
     default_name = localize_template_text(template.name, lang) or template.name
     name = (msg.get("name") or default_name).strip() or default_name
+    # Auto-number on collision: applying the same template twice (or owning
+    # three litter boxes) must not fail with already_configured — the second
+    # object becomes "Name 2", then "Name 3", … The check mirrors the config
+    # flow's duplicate detection (object name, case-insensitive).
+    existing_names = {
+        str(e.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")).strip().lower()
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID
+    }
+    if name.strip().lower() in existing_names:
+        base = name[: MAX_NAME_LENGTH - 4]
+        for n in range(2, 100):
+            candidate = f"{base} {n}"
+            if candidate.strip().lower() not in existing_names:
+                name = candidate
+                break
     object_id = uuid4().hex
     new_obj: dict[str, Any] = {
         "id": object_id,

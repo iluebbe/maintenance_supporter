@@ -1183,8 +1183,11 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     creating a duplicate. Entities already watched by some task's trigger are
     skipped — re-running discovery never proposes what is already wired.
     """
+    from ..templates import localize_template_text
+    from .i18n import normalize_language
     from .problem_sensors import _adopted_entity_ids, _object_by_device
 
+    lang = normalize_language(hass)
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
     area_reg = ar.async_get(hass)
@@ -1278,7 +1281,10 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                 continue
             tasks.append(
                 {
+                    # task_name stays the EN catalog key (adopt selections
+                    # match on it); the dialog renders the localized twin.
                     "task_name": task_name,
+                    "task_name_localized": localize_template_text(task_name, lang) or task_name,
                     "entity_ids": entity_ids,
                     "threshold": _threshold_for(group["sig"], hass, entity_ids[0]),
                     "direction": direction,

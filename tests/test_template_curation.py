@@ -131,6 +131,37 @@ async def test_disabled_template_still_works_when_called_directly(hass: HomeAssi
     assert conn.send_result.called
     assert conn.send_result.call_args[0][1]["entry_id"]
 
+async def test_from_template_auto_numbers_duplicate_names(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Applying the same template twice must NOT fail with already_configured
+    (user-reported: 'Waschmaschine' existed, the template silently errored while
+    'Auto' worked). The second object gets ' 2', the third ' 3'."""
+    from custom_components.maintenance_supporter.const import CONF_OBJECT
+    from custom_components.maintenance_supporter.websocket.objects import (
+        ws_create_from_template,
+    )
+
+    await setup_integration(hass, global_entry)
+    names = []
+    for i in range(3):
+        conn = _conn()
+        await call_ws_handler(
+            ws_create_from_template,
+            hass,
+            conn,
+            {"id": 1, "type": "x", "template_id": "appliance_washing_machine", "language": "de"},
+        )
+        await hass.async_block_till_done()
+        assert conn.send_result.called, f"round {i}: {conn.send_error.call_args}"
+        entry_id = conn.send_result.call_args[0][1]["entry_id"]
+        entry = hass.config_entries.async_get_entry(entry_id)
+        names.append(entry.data[CONF_OBJECT]["name"])
+    assert names[0] == "Waschmaschine"
+    assert names[1] == "Waschmaschine 2"
+    assert names[2] == "Waschmaschine 3"
+
+
 def test_every_category_name_fully_localized() -> None:
     """Tripwire: every TEMPLATE_CATEGORIES entry carries name_xx for ALL 18
     languages — a new category copying an old partial pattern fails here

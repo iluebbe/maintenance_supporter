@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixes (user-reported on v2.31.0)
+
+- **Suggested-setups dialog shows task names in your language** — the
+  proposal chips displayed the English catalog names ("Replace Filter")
+  even on a German instance; discovery now delivers the localized name and
+  the dialog renders it.
+- **Applying a template twice no longer fails silently** — creating e.g. the
+  Washing Machine template while an object named "Waschmaschine" already
+  exists errored with only a generic toast (the Car template worked because
+  no "Auto" existed). Duplicate names now auto-number: "Waschmaschine 2",
+  "3", … — which also makes owning three litter boxes a two-click affair.
+
 ## [2.31.0] - 2026-07-18
 
 > One release later, the suggested-setups catalog stands at **45 integrations
