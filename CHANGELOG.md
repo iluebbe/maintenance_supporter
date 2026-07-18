@@ -6,10 +6,12 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🔐 Locks by cycle count — and more wallboxes (incl. Matter)
 
-- **Door locks wear by cycles, not by calendar**: Nuki and **any Matter
-  lock** now propose "Lubricate Cylinder" every **500 locking cycles** — the
-  engine counts the transitions itself (no wear sensor needed); completing
-  the task restarts the count.
+- **Door locks wear by cycles, not by calendar**: "Lubricate Cylinder" every
+  **500 locking cycles** — the engine counts the transitions itself (no wear
+  sensor needed); completing the task restarts the count. Covered lock ways:
+  **Nuki, Tedee, August, Yale, SwitchBot, LOQED, Homematic IP — and the four
+  big transports: Matter, Z-Wave, Zigbee (ZHA) and MQTT/Zigbee2MQTT**, so
+  virtually every smart lock qualifies regardless of vendor.
 - **KEBA** and **go-e** wallboxes join Easee: cable/plug inspection every
   5,000 kWh of delivered energy (go-e's native watt-hours are converted
   automatically). TrueNAS was checked and exposes no usable percent metric
