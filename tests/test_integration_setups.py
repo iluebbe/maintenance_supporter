@@ -386,6 +386,7 @@ async def _seed_sensor(
     device_name: str,
     entities: list[tuple[str, str | None, str | None]],
     area_name: str | None = None,
+    model: str | None = None,
 ) -> str:
     """Seed one device of `domain` with (key, translation_key, unit) sensors.
     A None translation_key seeds an entity_id-suffix-only match (HACS style)."""
@@ -393,7 +394,8 @@ async def _seed_sensor(
     source.add_to_hass(hass)
     dev_reg = dr.async_get(hass)
     device = dev_reg.async_get_or_create(
-        config_entry_id=source.entry_id, identifiers={(domain, uid)}, name=device_name
+        config_entry_id=source.entry_id, identifiers={(domain, uid)}, name=device_name,
+        model=model,
     )
     if area_name is not None:
         from homeassistant.helpers import area_registry as ar
@@ -796,7 +798,9 @@ async def test_miele_fill_levels_dishwasher_and_washer(
 ) -> None:
     """Miele exposes real PERCENT fill levels: dishwasher salt/rinse-aid/
     PowerDisk, washer TwinDos containers — the two detergent reservoirs
-    collapse into one any-low 'Refill Detergent' task per device."""
+    collapse into one any-low 'Refill Detergent' task per device. Both
+    appliance types carry an identical 'status' ENUM sensor: the sibling-gated
+    Clean Tub signature must fire ONLY on the washer."""
     await setup_integration(hass, global_entry)
     dw = await _seed_sensor(
         hass, "miele", "g7460", "Miele Dishwasher",
@@ -804,6 +808,7 @@ async def test_miele_fill_levels_dishwasher_and_washer(
             ("salt_level", "salt_level", "%"),
             ("rinse_aid_level", "rinse_aid_level", "%"),
             ("power_disk_level", "power_disk_level", "%"),
+            ("state_status", "status", None),  # same key as the washer's!
         ],
     )
     washer = await _seed_sensor(
@@ -811,18 +816,48 @@ async def test_miele_fill_levels_dishwasher_and_washer(
         [
             ("twin_dos_1_level", "twin_dos_1_level", "%"),
             ("twin_dos_2_level", "twin_dos_2_level", "%"),
+            ("state_status", "status", None),
         ],
     )
 
     setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
 
     dw_tasks = {t["task_name"]: t for t in setups[dw]["tasks"]}
+    # No Clean Tub on the dishwasher despite the identical status sensor.
     assert set(dw_tasks) == {"Refill Salt", "Refill Rinse Aid", "Refill Detergent"}
     assert all(t["direction"] == "percent_left" and t["threshold"] == 10.0 for t in dw_tasks.values())
 
-    (w_task,) = setups[washer]["tasks"]
-    assert w_task["task_name"] == "Refill Detergent"
-    assert len(w_task["entity_ids"]) == 2  # both TwinDos containers, any-low
+    w_tasks = {t["task_name"]: t for t in setups[washer]["tasks"]}
+    assert set(w_tasks) == {"Refill Detergent", "Clean Tub"}  # sibling gate passed
+    assert len(w_tasks["Refill Detergent"]["entity_ids"]) == 2  # both TwinDos, any-low
+    tub = w_tasks["Clean Tub"]
+    assert tub["direction"] == "runtime_hours" and tub["threshold"] == 60.0
+
+
+async def test_bambu_model_gate_enclosed_vs_open_frame(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Device-model gate: the chamber-filter duty applies to enclosed printers
+    (registry model X1C/P1S/...) only — an open-frame A1 gets just the
+    lubrication task from the same usage-hours entity."""
+    await setup_integration(hass, global_entry)
+    x1c = await _seed_sensor(
+        hass, "bambu_lab", "x1c1", "X1C_123",
+        [("total_usage_hours", "total_usage_hours", "h")], model="X1C",
+    )
+    a1 = await _seed_sensor(
+        hass, "bambu_lab", "a1m1", "A1_456",
+        [("total_usage_hours", "total_usage_hours", "h")], model="A1MINI",
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    x1_tasks = {t["task_name"]: t for t in setups[x1c]["tasks"]}
+    assert set(x1_tasks) == {"Lubricate Rails and Rods", "Replace Filter"}
+    assert x1_tasks["Replace Filter"]["threshold"] == 300.0
+
+    (a1_task,) = setups[a1]["tasks"]
+    assert a1_task["task_name"] == "Lubricate Rails and Rods"  # no filter duty
 
 
 async def test_vicare_ventilation_filter_signature(

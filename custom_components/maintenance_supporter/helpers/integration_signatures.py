@@ -83,6 +83,13 @@ class ConsumableSignature:
     # then mean "the device's single entity of this domain".
     entity_domain: str = "sensor"
     on_states: tuple[str, ...] = ()
+    # Device-type gates. Some integrations reuse one entity key across ALL
+    # appliance types (Miele's status sensor) — require_sibling_keys restricts
+    # the signature to devices that ALSO carry a type-identifying entity
+    # (a washer has twin_dos/spin_speed). models gates on the device
+    # registry's model string (case-insensitive substring — Bambu X1C vs A1).
+    require_sibling_keys: tuple[str, ...] = ()
+    models: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -430,6 +437,16 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "usage_delta",
                 delta_units=500,
             ),
+            # Enclosed printers only (device registry model = the device_type
+            # enum: X1C/X1E/P1S/H2*) — the activated-carbon/chamber filter
+            # duty makes no sense on open-frame A1/A1MINI/P1P.
+            ConsumableSignature(
+                ("total_usage_hours",),
+                "Replace Filter",
+                "usage_delta",
+                delta_units=300,
+                models=("X1C", "X1E", "P1S", "H2"),
+            ),
         ),
     ),
     "home_connect": IntegrationSignature(
@@ -473,6 +490,19 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 ("power_disk_level", "twin_dos_1_level", "twin_dos_2_level"),
                 "Refill Detergent",
                 "percent_left",
+            ),
+            # Tub cleaning by accumulated wash time. The status sensor's
+            # translation_key ("status") is IDENTICAL across all Miele
+            # appliance types, so the signature is sibling-gated to washers:
+            # only devices that also carry TwinDos/spin-speed entities (both
+            # washer-only per core sensor.py `types=` gating) qualify.
+            ConsumableSignature(
+                ("status",),
+                "Clean Tub",
+                "runtime_hours",
+                delta_units=60,
+                on_states=("in_use",),
+                require_sibling_keys=("twin_dos_1_level", "twin_dos_2_level", "spin_speed"),
             ),
         ),
     ),
@@ -679,37 +709,56 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     already_watched = _adopted_entity_ids(hass)
     by_device = _object_by_device(hass)
 
+    # Collect the enabled registry entities of cataloged integrations per
+    # (device, integration) first — the device-type gates need the device's
+    # FULL entity list (siblings identify the appliance type).
+    by_device_integration: dict[tuple[str, str], list[er.RegistryEntry]] = {}
+    for entry in ent_reg.entities.values():
+        if SIGNATURES.get(entry.platform) is None or not entry.device_id:
+            continue
+        if entry.disabled_by is not None:
+            continue
+        by_device_integration.setdefault((entry.device_id, entry.platform), []).append(entry)
+
     # device_id → {(integration, task_name, direction): {sig, entity_ids}}.
     # The direction is part of the key so an integration that ships one task
     # name in two directions (LG ThinQ filter: hours vs percent) stays split.
     matched: dict[str, dict[tuple[str, str, str], dict[str, Any]]] = {}
-    for entry in ent_reg.entities.values():
-        integration = entry.platform
-        catalog = SIGNATURES.get(integration)
-        if catalog is None or not entry.device_id:
-            continue
-        if entry.disabled_by is not None or entry.entity_id in already_watched:
-            continue
-        unit = _entity_unit(hass, entry)
+    for (device_id, integration), entries in by_device_integration.items():
+        catalog = SIGNATURES[integration]
+        device = dev_reg.async_get(device_id)
+        model = ((device.model or "") if device else "").lower()
         for sig in catalog.tasks:
-            if entry.domain != sig.entity_domain:
+            # Device-type gates: registry model substring and/or a
+            # type-identifying sibling entity (watched siblings still count —
+            # only the match TARGET must be unwatched).
+            if sig.models and not any(m.lower() in model for m in sig.models):
                 continue
-            if not _unit_compatible(sig.direction, unit):
+            if sig.require_sibling_keys and not any(
+                any(_entity_matches(e, key) for key in sig.require_sibling_keys)
+                for e in entries
+            ):
                 continue
-            # Empty keys (non-sensor domains only, tripwire-enforced) match the
-            # device's single entity of that domain — e.g. THE lawn_mower.
-            if sig.keys and not any(_entity_matches(entry, key) for key in sig.keys):
-                continue
-            group = matched.setdefault(entry.device_id, {}).setdefault(
-                (integration, sig.task_name, sig.direction),
-                {"sig": sig, "entity_ids": []},
-            )
-            group["entity_ids"].append(entry.entity_id)
-            # No break: one source entity may back SEVERAL duties (a mower's
-            # operating-hours counter drives blade replacement AND
-            # undercarriage cleaning). Adopting any of them marks the entity
-            # watched, so re-discovery stops proposing the device — adopt-all
-            # is the default, deselecting a duty forfeits its later proposal.
+            for entry in entries:
+                if entry.domain != sig.entity_domain:
+                    continue
+                if entry.entity_id in already_watched:
+                    continue
+                if not _unit_compatible(sig.direction, _entity_unit(hass, entry)):
+                    continue
+                # Empty keys (non-sensor domains only, tripwire-enforced) match
+                # the device's single entity of that domain — THE lawn_mower.
+                if sig.keys and not any(_entity_matches(entry, key) for key in sig.keys):
+                    continue
+                group = matched.setdefault(device_id, {}).setdefault(
+                    (integration, sig.task_name, sig.direction),
+                    {"sig": sig, "entity_ids": []},
+                )
+                group["entity_ids"].append(entry.entity_id)
+                # One source entity may back SEVERAL duties (a mower's hours
+                # counter drives blades AND undercarriage). Adopting any duty
+                # marks the entity watched — adopt-all is the default,
+                # deselecting a duty forfeits its later proposal.
 
     out: list[dict[str, Any]] = []
     for device_id, sig_map in matched.items():

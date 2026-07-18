@@ -71,6 +71,24 @@ signal fits. Record it in the research doc with date + ref so it can be
 re-checked when upstream grows entities. Devices with `device_class: problem`
 binaries need no signature — problem-sensor adoption covers them generically.
 
+## Device-type gates
+
+Two optional per-signature gates restrict a match to the right appliance when
+the entity key alone can't:
+- **`require_sibling_keys`** — the device must ALSO carry an entity matching
+  one of these keys. Identifies the appliance type from its own entity set:
+  Miele's `status` sensor is identical across all appliance types, but only
+  washers carry `twin_dos_*`/`spin_speed` (washer-gated in core's `types=`),
+  so the tub-clean signature fires only there. Watched/adopted siblings still
+  count as type evidence — only the match *target* must be unwatched.
+- **`models`** — case-insensitive substring match against the device
+  registry's `model`. Bambu sets model to the printer type (X1C/P1S/A1…), so
+  the chamber-filter duty gates to enclosed models and an open-frame A1 next
+  to an X1C gets only the lubrication task.
+When neither gate can express the distinction (no identifying sibling, no
+model string), the signature must NOT ship — mis-proposing on the wrong
+appliance type is worse than a missing proposal.
+
 ## Cross-cutting rules
 
 - **One duty, one task**: when the same physical part is exposed in several

@@ -158,7 +158,9 @@
       "rinse_aid_level",
       "power_disk_level",
       "twin_dos_1_level",
-      "twin_dos_2_level"
+      "twin_dos_2_level",
+      "state_status",
+      "spin_speed"
     ]
   },
   "ipp": {
@@ -182,10 +184,13 @@
   },
   "bambu_lab": {
     "urls": [
-      "https://raw.githubusercontent.com/greghesp/ha-bambulab/main/custom_components/bambu_lab/definitions.py"
+      "https://raw.githubusercontent.com/greghesp/ha-bambulab/main/custom_components/bambu_lab/definitions.py",
+      "https://raw.githubusercontent.com/greghesp/ha-bambulab/main/custom_components/bambu_lab/pybambu/const.py"
     ],
     "strings": [
-      "total_usage_hours"
+      "total_usage_hours",
+      "X1C",
+      "P1S"
     ]
   },
   "kia_uvo": {
