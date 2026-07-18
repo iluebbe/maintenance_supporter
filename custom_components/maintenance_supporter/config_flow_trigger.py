@@ -221,15 +221,22 @@ class TriggerConfigMixin:
 
             attr = user_input.get(CONF_TRIGGER_ATTRIBUTE, "_state")
             entity_ids = getattr(self, "_trigger_entity_ids", [self._trigger_entity_id])
-            # Rebuilding from form fields — carry over the panel-managed
-            # recovery flag (#53) so an options-flow trigger edit doesn't
-            # silently drop it.
+            # Rebuilding from form fields — carry over panel-managed keys the
+            # flow has no fields for, so an options-flow trigger edit doesn't
+            # silently drop them: the recovery flag (#53) and the counting
+            # start value (#102/#103 class; the flow's counter step re-writes
+            # target+delta but never the baseline).
             prev_tc = self._current_task.get("trigger_config") or {}
             self._current_task["trigger_config"] = {
                 "entity_id": entity_ids[0] if entity_ids else self._trigger_entity_id,
                 "entity_ids": entity_ids,
                 "attribute": None if attr == "_state" else attr,
                 **({"auto_complete_on_recovery": True} if prev_tc.get("auto_complete_on_recovery") else {}),
+                **(
+                    {"trigger_baseline_value": prev_tc["trigger_baseline_value"]}
+                    if "trigger_baseline_value" in prev_tc
+                    else {}
+                ),
             }
             return await next_step()
 
