@@ -2,7 +2,14 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.30.0] - 2026-07-18
+
+> The suggested-setups catalog grows from 19 to **27 integrations / 70
+> task-signatures across six trigger styles** in this release — including a
+> style for devices that expose no counters at all (the engine measures usage
+> itself), device-type-aware proposals, multi-duty sensors, and a weekly
+> upstream drift watchdog. Still **Beta**: reports of missed devices are very
+> welcome in [Discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
 
 ### 🚫 No duplicate proposals — precise per-device, per-duty suppression
 
