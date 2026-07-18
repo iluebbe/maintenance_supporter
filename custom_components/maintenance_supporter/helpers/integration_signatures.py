@@ -213,6 +213,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("cutting_blade_usage_time",), "Replace Blades", "usage_above"),
+            # Lifetime statistics sensors (SECONDS, suggested h) carry two more
+            # duties: undercarriage washing by mowing time, contact cleaning by
+            # docking cycles (unitless counter -> delta target is the count).
+            ConsumableSignature(
+                ("total_cutting_time",), "Clean Undercarriage", "usage_delta", delta_units=25
+            ),
+            ConsumableSignature(
+                ("number_of_charging_cycles",),
+                "Clean Charging Contacts",
+                "usage_delta",
+                delta_units=100,
+            ),
         ),
     ),
     "landroid_cloud": IntegrationSignature(
@@ -224,6 +236,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
+            ConsumableSignature(
+                ("mower_runtime_total",), "Clean Undercarriage", "usage_delta", delta_units=25
+            ),
         ),
     ),
     "gardena_smart_system": IntegrationSignature(
@@ -241,6 +256,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # completion, matching the Husqvarna default).
             ConsumableSignature(
                 ("operating_hours",), "Replace Blades", "usage_delta", delta_units=100
+            ),
+            # Same source entity, second duty — the matcher allows multi-duty.
+            ConsumableSignature(
+                ("operating_hours",), "Clean Undercarriage", "usage_delta", delta_units=25
             ),
         ),
     ),
@@ -260,6 +279,14 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "Replace Blades",
                 "runtime_hours",
                 delta_units=100,
+                entity_domain="lawn_mower",
+                on_states=("mowing",),
+            ),
+            ConsumableSignature(
+                (),
+                "Clean Undercarriage",
+                "runtime_hours",
+                delta_units=25,
                 entity_domain="lawn_mower",
                 on_states=("mowing",),
             ),
@@ -358,6 +385,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
         ),
     ),
     "tesla_custom": IntegrationSignature(
@@ -370,6 +398,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
         ),
     ),
     "renault": IntegrationSignature(
@@ -381,6 +410,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
         ),
     ),
     "bambu_lab": IntegrationSignature(
@@ -675,7 +705,11 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                 {"sig": sig, "entity_ids": []},
             )
             group["entity_ids"].append(entry.entity_id)
-            break
+            # No break: one source entity may back SEVERAL duties (a mower's
+            # operating-hours counter drives blade replacement AND
+            # undercarriage cleaning). Adopting any of them marks the entity
+            # watched, so re-discovery stops proposing the device — adopt-all
+            # is the default, deselecting a duty forfeits its later proposal.
 
     out: list[dict[str, Any]] = []
     for device_id, sig_map in matched.items():
