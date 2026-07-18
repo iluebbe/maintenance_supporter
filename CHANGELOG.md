@@ -4,6 +4,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🚗 Fixed: fresh km/usage tasks no longer look overdue (#102)
+
+- A freshly adopted interval task on a lifetime counter (e.g. a 27,000 km
+  odometer with a 15,000 km service interval) briefly rendered its progress
+  as the RAW counter against the target — a full red "27000 / 15000 km" bar
+  that read as "overdue, counting from zero". Three-part fix: the baseline
+  now reaches the panel within seconds of adoption, the delta-mode progress
+  bar never falls back to the raw lifetime value, and a completion's
+  re-baseline can no longer be lost across a Home Assistant restart on
+  wear-counter tasks (which would have re-triggered the just-completed
+  task).
+
 ### ❄️ Air conditioners count their real running time
 
 - The runtime trigger can now watch an **attribute** instead of the state:

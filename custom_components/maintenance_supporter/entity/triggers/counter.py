@@ -44,7 +44,12 @@ class CounterTrigger(BaseTrigger):
         # Restore persisted baseline BEFORE super().async_setup() which calls
         # evaluate().  Without this, evaluate() sets _baseline_value to the
         # current sensor value, discarding the saved baseline from the Store.
-        if self._delta_mode and self._baseline_value is None:
+        # The Store baseline wins even over an explicit trigger_baseline_value
+        # from the config: the config value is only the INITIAL baseline, while
+        # the Store holds the LIVING one — after a completion re-baselines to
+        # e.g. 80, falling back to the config's 0 on restart would re-fire the
+        # just-completed task (issue #102 family).
+        if self._delta_mode:
             saved = self.config.get("_trigger_state", {}).get(self.entity_id, {}).get("baseline_value")
             if saved is not None:
                 self._baseline_value = saved
@@ -154,6 +159,13 @@ class CounterTrigger(BaseTrigger):
                 entity_id=self.entity_id,
                 immediate=True,
             )
+            # Surface the moved baseline in the coordinator read-model right
+            # away. Without this, a freshly adopted delta task shows no delta
+            # for up to a full update interval and the panel's progress bar
+            # falls back to the RAW counter value — a 27,000 km odometer reads
+            # as "27000/15000, overdue" (issue #102). Debounced upstream, and
+            # the periodic refresh never writes baselines, so no loop.
+            await self._coordinator.async_request_refresh()
 
     def reset(self) -> None:
         """Reset trigger and baseline."""

@@ -375,6 +375,31 @@ class TestCounterTrigger:
         assert trigger._baseline_value == 500
         assert trigger.evaluate(600) is True
 
+    async def test_store_baseline_beats_explicit_config_baseline(self, hass: HomeAssistant) -> None:
+        """Restart after a completion must keep the Store's re-baseline (#102 family).
+
+        usage_above signatures ship an explicit trigger_baseline_value of 0.
+        Completing the task re-baselines to e.g. 80 in the Store — on the next
+        restart the config's 0 must NOT win, or the just-completed task
+        re-fires immediately (delta 80 >= target 50)."""
+        set_sensor_state(hass, "sensor.blade_usage", "80")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.blade_usage",
+            "attribute": None,
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 50,
+            "trigger_delta_mode": True,
+            "trigger_baseline_value": 0,
+            "_trigger_state": {"sensor.blade_usage": {"baseline_value": 80.0}},
+        }
+        trigger = CounterTrigger(hass, entity, config)
+        await trigger.async_setup()
+        assert trigger._baseline_value == 80.0
+        assert trigger.evaluate(80) is False  # delta 0 — stays quiet
+        assert trigger.evaluate(130) is True  # next interval fires normally
+        await trigger.async_teardown()
+
     async def test_current_delta(self, hass: HomeAssistant) -> None:
         """Test current_delta property."""
         entity = _make_mock_entity(hass)
