@@ -130,3 +130,15 @@ async def test_disabled_template_still_works_when_called_directly(hass: HomeAssi
     await hass.async_block_till_done()
     assert conn.send_result.called
     assert conn.send_result.call_args[0][1]["entry_id"]
+
+def test_every_category_name_fully_localized() -> None:
+    """Tripwire: every TEMPLATE_CATEGORIES entry carries name_xx for ALL 18
+    languages — a new category copying an old partial pattern fails here
+    (found 2026-07-18: six categories silently fell back to English for 8+
+    languages)."""
+    from custom_components.maintenance_supporter.templates import TEMPLATE_CATEGORIES
+
+    langs = ("en", "de", "es", "fr", "it", "nl", "pt", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh")
+    for cat, spec in TEMPLATE_CATEGORIES.items():
+        gaps = [lg for lg in langs if not spec.get(f"name_{lg}")]
+        assert not gaps, f"category {cat} missing {gaps}"
