@@ -778,5 +778,7 @@
   "part_delete_confirm": "Slet delen '{name}'? Lagersporing, opgavekoblinger og en åben købspåmindelse fjernes.",
   "baseline_start_value": "Startværdi (valgfrit)",
   "baseline_start_help": "Tællingen starter fra denne værdi. Lad feltet stå tomt for at tælle fra den aktuelle værdi; angiv aflæsningen ved sidste service, så forbruget siden da tæller med.",
-  "setups_baseline_hint": "aflæsning ved sidste service (valgfrit)"
+  "setups_baseline_hint": "aflæsning ved sidste service (valgfrit)",
+  "baseline_start_help_edit": "Lad feltet stå tomt for at beholde den eksisterende tælling. En indtastet værdi forankrer tællingen på ny (f.eks. aflæsningen ved sidste service).",
+  "baseline_current_effective": "Aktuelt gældende startværdi: {value}"
 }

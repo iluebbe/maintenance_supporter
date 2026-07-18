@@ -12,7 +12,10 @@ All notable changes to Maintenance Supporter are documented in this file.
   at 27,000 km whose last service was at 12,000 km comes due immediately,
   as it should. In the **task dialog** the same start value is editable on
   any delta-mode counter trigger (leave empty to count from the current
-  reading). Editing it re-anchors the counting; all 18 languages.
+  reading). Editing it re-anchors the counting; all 18 languages. When
+  editing an existing task the dialog shows the **currently effective start
+  value** (the live counting anchor, which moves on each completion) and
+  clarifies that an empty field keeps the existing counting.
 
 ### 🚗 Fixed: fresh km/usage tasks no longer look overdue (#102)
 

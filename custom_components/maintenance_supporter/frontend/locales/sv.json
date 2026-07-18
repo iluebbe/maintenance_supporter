@@ -778,5 +778,7 @@
   "part_delete_confirm": "Ta bort delen '{name}'? Lagerspårning, uppgiftskopplingar och en öppen köppåminnelse tas bort.",
   "baseline_start_value": "Startvärde (valfritt)",
   "baseline_start_help": "Räkningen börjar från detta värde. Lämna tomt för att räkna från nuvarande värde; ange mätarställningen vid senaste servicen så räknas användningen sedan dess.",
-  "setups_baseline_hint": "mätarställning vid senaste service (valfritt)"
+  "setups_baseline_hint": "mätarställning vid senaste service (valfritt)",
+  "baseline_start_help_edit": "Lämna tomt för att behålla den befintliga räkningen. Ett angivet värde förankrar räkningen på nytt (t.ex. mätarställningen vid senaste servicen).",
+  "baseline_current_effective": "Nu gällande startvärde: {value}"
 }

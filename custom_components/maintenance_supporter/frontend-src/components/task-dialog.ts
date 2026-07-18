@@ -155,6 +155,11 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerTargetValue = "";
   @state() private _triggerDeltaMode = false;
   @state() private _triggerBaselineValue = "";
+  // The LIVE counting anchor from the read-model (Store baseline — moves on
+  // completion). Display-only: adopted delta tasks have no config baseline,
+  // so without this the edit dialog would show an empty start-value field
+  // even though counting is anchored at e.g. 27,000 km.
+  @state() private _liveBaselineValue: number | null = null;
   @state() private _autoCompleteOnRecovery = false;
   @state() private _triggerFromState = "";
   @state() private _triggerToState = "";
@@ -332,6 +337,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerTargetValue = tc.trigger_target_value?.toString() || "";
       this._triggerDeltaMode = tc.trigger_delta_mode || false;
       this._triggerBaselineValue = tc.trigger_baseline_value?.toString() || "";
+      this._liveBaselineValue = task.trigger_baseline_value ?? null;
       this._autoCompleteOnRecovery = tc.auto_complete_on_recovery || false;
       this._triggerFromState = tc.trigger_from_state || "";
       this._triggerToState = tc.trigger_to_state || "";
@@ -426,6 +432,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerTargetValue = "";
     this._triggerDeltaMode = false;
     this._triggerBaselineValue = "";
+    this._liveBaselineValue = null;
     this._autoCompleteOnRecovery = false;
     this._triggerFromState = "";
     this._triggerToState = "";
@@ -1482,7 +1489,17 @@ export class MaintenanceTaskDialog extends LitElement {
                 .value=${this._triggerBaselineValue}
                 @input=${(e: Event) => (this._triggerBaselineValue = (e.target as HTMLInputElement).value)}
               ></ms-textfield>
-              <div class="field-help">${t("baseline_start_help", L)}</div>
+              <div class="field-help">
+                ${this._taskId ? t("baseline_start_help_edit", L) : t("baseline_start_help", L)}
+                ${this._taskId && this._liveBaselineValue != null
+                  ? html`<div class="baseline-effective">
+                      ${t("baseline_current_effective", L).replace(
+                        "{value}",
+                        String(this._liveBaselineValue),
+                      )}
+                    </div>`
+                  : nothing}
+              </div>
             `
           : nothing}
       `;
@@ -1971,6 +1988,11 @@ export class MaintenanceTaskDialog extends LitElement {
     .field-help {
       font-size: 12px;
       color: var(--secondary-text-color);
+    }
+    .baseline-effective {
+      margin-top: 2px;
+      font-weight: 500;
+      color: var(--primary-text-color);
     }
     /* Live computed trigger hint — reads the bound sensor and explains what
        happens next. Info-accented so it reads as guidance, not an error. */

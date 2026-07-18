@@ -778,5 +778,7 @@
   "part_delete_confirm": "Smazat díl '{name}'? Odstraní se sledování zásob, vazby na úkoly i případná otevřená připomínka nákupu.",
   "baseline_start_value": "Počáteční hodnota (volitelné)",
   "baseline_start_help": "Počítání začíná od této hodnoty. Ponechte prázdné pro počítání od aktuálního stavu; zadejte stav při posledním servisu, aby se započítalo i dosavadní využití.",
-  "setups_baseline_hint": "stav při posledním servisu (volitelné)"
+  "setups_baseline_hint": "stav při posledním servisu (volitelné)",
+  "baseline_start_help_edit": "Ponechte prázdné pro zachování stávajícího počítání. Zadaná hodnota počítání znovu ukotví (např. stav při posledním servisu).",
+  "baseline_current_effective": "Aktuálně platná počáteční hodnota: {value}"
 }

@@ -778,5 +778,7 @@
   "part_delete_confirm": "¿Eliminar la pieza '{name}'? Se eliminarán su control de stock, los vínculos con tareas y cualquier recordatorio de compra abierto.",
   "baseline_start_value": "Valor inicial (opcional)",
   "baseline_start_help": "El conteo comienza desde este valor. Déjalo vacío para contar desde el valor actual; introduce la lectura del último mantenimiento para que cuente el uso desde entonces.",
-  "setups_baseline_hint": "lectura en el último mantenimiento (opcional)"
+  "setups_baseline_hint": "lectura en el último mantenimiento (opcional)",
+  "baseline_start_help_edit": "Déjalo vacío para mantener el conteo actual. Un valor introducido reancla el conteo (p. ej., la lectura del último mantenimiento).",
+  "baseline_current_effective": "Valor inicial vigente: {value}"
 }
