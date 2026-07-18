@@ -398,6 +398,7 @@ export interface TaskRow {
   trigger_active: boolean;
   trigger_current_value: number | null;
   trigger_current_delta: number | null;
+  trigger_baseline_value?: number | null;
   trigger_config: TriggerConfig | null;
   trigger_entity_info: TriggerEntityInfo | null;
   times_performed: number;

@@ -55,9 +55,20 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask) {
     }
   } else if (triggerType === "counter") {
     const target = tc.trigger_target_value || 1;
-    // Use delta if available, otherwise current value
-    const delta = row.trigger_current_delta ?? null;
-    const val = delta ?? (row.trigger_current_value ?? null);
+    let val: number | null;
+    if (tc.trigger_delta_mode) {
+      // Delta mode: NEVER fall back to the raw counter — a lifetime odometer
+      // at 27,000 km with a 15,000 km interval would render as a full red
+      // "27000/15000" bar right after adoption, before the baseline reaches
+      // the read-model (issue #102). Compute from the baseline if the delta
+      // itself isn't exposed yet; show nothing rather than lie.
+      val = row.trigger_current_delta ?? null;
+      if (val == null && row.trigger_baseline_value != null && row.trigger_current_value != null) {
+        val = row.trigger_current_value - row.trigger_baseline_value;
+      }
+    } else {
+      val = row.trigger_current_value ?? null;
+    }
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
     label = `${val.toFixed(1)} / ${target} ${unit}`;
