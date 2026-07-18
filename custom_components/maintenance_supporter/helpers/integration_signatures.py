@@ -28,9 +28,10 @@ Direction semantics:
   clears. The appliance emitting the clearing event is required for auto-resolve
   — otherwise the task waits for a manual completion.
 * ``usage_delta``    — a LIFETIME counter with no reset anywhere (printer
-  usage hours, burner hours, odometer). Trigger: a counter trigger in delta
-  mode — fires every N hours of accumulated use since the task was last
-  completed; completing the task re-baselines the counter. No
+  usage hours, burner hours, car odometer). Trigger: a counter trigger in
+  delta mode — fires every N canonical units (hours for operating-time
+  counters, kilometres for odometers) of accumulated use since the task was
+  last completed; completing the task re-baselines the counter. No
   auto_complete_on_recovery (a lifetime counter never recovers).
 """
 
@@ -48,8 +49,9 @@ from homeassistant.helpers import entity_registry as er
 _DEFAULT_BELOW_HOURS = 24
 # Usage-hours a wear counter may accumulate before the task should trigger.
 _DEFAULT_ABOVE_HOURS = 100
-# Usage-hours between services for lifetime counters (usage_delta mode).
-_DEFAULT_DELTA_HOURS = 500
+# Canonical units between services for lifetime counters (usage_delta mode):
+# hours for operating-time counters, kilometres for odometers.
+_DEFAULT_DELTA_UNITS = 500
 # Percent floor for percent-remaining consumables (ink, toner, drum, brush %).
 _DEFAULT_BELOW_PERCENT = 10
 
@@ -64,7 +66,7 @@ class ConsumableSignature:
     below_hours: int = _DEFAULT_BELOW_HOURS
     below_percent: int = _DEFAULT_BELOW_PERCENT
     above_hours: int = _DEFAULT_ABOVE_HOURS
-    delta_hours: int = _DEFAULT_DELTA_HOURS
+    delta_units: int = _DEFAULT_DELTA_UNITS
 
 
 @dataclass(frozen=True)
@@ -271,8 +273,41 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 ("burner_hours", "compressor_hours"),
                 "Annual Inspection",
                 "usage_delta",
-                delta_hours=2000,
+                delta_units=2000,
             ),
+        ),
+    ),
+    "kia_uvo": IntegrationSignature(
+        name="Hyundai / Kia Connect",
+        source=(
+            "Hyundai-Kia-Connect/kia_uvo custom_components/kia_uvo/sensor.py "
+            "(translation_key 'odometer', DISTANCE, TOTAL_INCREASING, dynamic "
+            "km/mi unit). next/last_service_distance exist but their semantics "
+            "(target vs remaining) are unverified — odometer delta instead."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+        ),
+    ),
+    "tesla_custom": IntegrationSignature(
+        name="Tesla (custom)",
+        source=(
+            "alandtse/tesla custom_components/tesla_custom/sensor.py "
+            "TeslaCarOdometer (type='odometer' → entity_id suffix, no "
+            "translation_key; DISTANCE, TOTAL_INCREASING, native miles)."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+        ),
+    ),
+    "renault": IntegrationSignature(
+        name="Renault",
+        source=(
+            "home-assistant/core homeassistant/components/renault/sensor.py "
+            "(translation_key 'mileage', DISTANCE, TOTAL_INCREASING, km)."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
         ),
     ),
     "bambu_lab": IntegrationSignature(
@@ -289,7 +324,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 ("total_usage_hours",),
                 "Lubricate Rails and Rods",
                 "usage_delta",
-                delta_hours=500,
+                delta_units=500,
             ),
         ),
     ),
@@ -411,10 +446,19 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
     unit = (state.attributes.get("unit_of_measurement") if state else None) or "h"
-    factor = {"s": 3600.0, "min": 60.0, "h": 1.0, "d": 1 / 24}.get(unit, 1.0)
+    # Canonical → display unit: time counters are stored in hours, odometers in
+    # kilometres; the entity may display s/min/d resp. miles.
+    factor = {
+        "s": 3600.0,
+        "min": 60.0,
+        "h": 1.0,
+        "d": 1 / 24,
+        "km": 1.0,
+        "mi": 0.62137,
+    }.get(unit, 1.0)
     hours = {
         "usage_above": sig.above_hours,
-        "usage_delta": sig.delta_hours,
+        "usage_delta": sig.delta_units,
     }.get(sig.direction, sig.below_hours)
     return round(hours * factor, 3)
 

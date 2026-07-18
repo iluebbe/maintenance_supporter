@@ -188,8 +188,33 @@ signature direction `usage_delta` now wires exactly that. Re-verdicted:
   not a limitation: the integration's own descale/clean EVENT sensors are the
   appliance's calibrated signal, and a second counter-based "Descale Appliance"
   row on the same device would duplicate them.
-- Cars (kia_uvo/tesla odometers) are now clearly feasible via `usage_delta`
-  (service every N km) — still parked pending the kia_uvo semantics dive.
+- ✅ Cars SHIPPED via `usage_delta`: **kia_uvo** (translation_key `odometer`,
+  dynamic km/mi), **tesla_custom** (entity-id suffix `_odometer`, native mi, no
+  translation_key), **renault** (translation_key `mileage`, km) — "Annual
+  Service" every 15,000 km, unit-aware (mi target = km × 0.62137). The
+  kia_uvo `next_service_distance` stays unused (target-vs-remaining semantics
+  still unverified; the odometer delta needs no such guess). Core Tesla trio
+  (teslemetry/tessie/tesla_fleet) NOT cataloged: odometer translation_key not
+  verifiable from the description (and entity is default-disabled) — needs its
+  own dive before entry.
+
+### Full re-audit under the usage_delta/attribute insight (2026-07-18)
+
+Every earlier verdict re-checked against the complete trigger engine
+(threshold, state latch, counter delta, attribute):
+- **Flipped → shipped**: bambu_lab usage hours, vicare burner/compressor
+  hours, kia_uvo/tesla_custom/renault odometers (above).
+- **Deliberately unchanged**: Home Connect coffee counters (descale/clean
+  EVENTS are the appliance's calibrated signal — a counter twin would
+  duplicate the task); LG ThinQ `used_time` (same filters as the percent
+  signatures — duplicate); Bambu filament `remain` attribute (spool
+  consumption, not wear; resets on swap); husqvarna/roborock cumulative
+  runtimes (their consumable signatures already cover the real maintenance;
+  a second "service by runtime" row per vacuum adds noise, and the mower
+  template has Winter Storage for the annual service); brother page counters
+  (drum/toner/belt/fuser percent already cover every consumable the pages
+  would proxy).
+- **Still not usable**: Tado (nothing counts or depletes — unchanged).
 
 ### midea_ac_lan — source dive DONE, ✅ cataloged
 `midea_devices.py` + `midea_entity.py` (translation_key set per attribute;

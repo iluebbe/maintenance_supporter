@@ -14,6 +14,11 @@ All notable changes to Maintenance Supporter are documented in this file.
   print-hours from `total_usage_hours`; **ViCare** boilers and heat pumps
   propose "Annual Inspection" every 2,000 operating hours from their
   burner/compressor-hours counters.
+- **Car service by mileage** — **Hyundai/Kia Connect**, the **Tesla** HACS
+  integration and **Renault** propose "Annual Service" every 15,000 km from
+  the odometer, unit-aware (a miles odometer gets the converted target).
+  Completing the service re-baselines, so the next one is due 15,000 km after
+  *your* service, not at a fixed odometer mark.
 
 ### 🖨️ 3D Printer template + Midea & Xiaomi Home suggested setups
 

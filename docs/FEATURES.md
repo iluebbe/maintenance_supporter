@@ -116,7 +116,8 @@ IPP and Brother printers (ink/toner, drum, belt, fuser),
 **Husqvarna Automower and Worx Landroid mowers** (blade-usage counters), **LG
 ThinQ** appliances (AC/purifier/refrigerator filters and the washer tub-clean
 counter), **Viessmann ViCare** ventilation filters and service hours, **Bambu Lab**
-printers (usage-hour service intervals) and **Home Connect**
+printers (usage-hour service intervals), **Hyundai/Kia, Tesla and Renault**
+cars (service every 15,000 km by odometer) and **Home Connect**
 (Bosch/Siemens) appliances (dishwasher salt/rinse-aid, coffee descale/clean,
 hood grease filter) — and sets them up in one click: the object is bound to the
 device and every task arrives with its trigger **pre-wired** — a **threshold**
