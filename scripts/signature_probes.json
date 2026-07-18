@@ -404,5 +404,23 @@
     "strings": [
       "LockEntity"
     ]
+  },
+  "vw_eu_data_act": {
+    "urls": [
+      "https://raw.githubusercontent.com/mikrohard/hass-vw-eu-data-act/main/custom_components/vw_eu_data_act/data.py"
+    ],
+    "strings": [
+      "\"mileage\"",
+      "total_increasing"
+    ]
+  },
+  "mydolphin_plus": {
+    "urls": [
+      "https://raw.githubusercontent.com/sh00t2kill/dolphin-robot/master/custom_components/mydolphin_plus/common/consts.py"
+    ],
+    "strings": [
+      "FILTER_BAG_STATUS",
+      "Filter Status"
+    ]
   }
 }

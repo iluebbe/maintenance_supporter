@@ -669,10 +669,14 @@ async def test_car_odometer_usage_delta_km_and_miles(
         hass, "renault", "zoe", "Zoe",
         [("mileage", "mileage", "km")],
     )
+    vw = await _seed_sensor(
+        hass, "vw_eu_data_act", "id4", "VW ID.4",
+        [("mileage", None, "km")],  # curated sensor, suffix match
+    )
 
     setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
 
-    for dev in (kia, renault):
+    for dev in (kia, renault, vw):
         by_name = {t["task_name"]: t for t in setups[dev]["tasks"]}
         assert set(by_name) == {"Annual Service", "Tire Rotation"}  # one odometer, two duties
         assert by_name["Annual Service"]["threshold"] == 15000.0
@@ -1149,6 +1153,41 @@ async def test_wallbox_energy_and_lock_cycle_wave(
     assert tc["trigger_to_state"] == "locked" and tc["trigger_target_changes"] == 500
     assert tc["entity_id"] == "lock.nuki_n1"
     assert "auto_complete_on_recovery" not in tc  # cycles don't recover
+
+
+async def test_dolphin_filter_bag_latches_on_full(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The Dolphin pool robot's filter-bag ENUM latches on its own alert state
+    'full' (not the Home Connect default 'present'); emptying the bag drops
+    the state back and auto-completes."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    robot = await _seed_sensor(
+        hass, "mydolphin_plus", "m600", "Dolphin M600",
+        [("filter_status", None, None)],
+    )
+    (setup,) = discover_integration_setups(hass)
+    (task,) = setup["tasks"]
+    assert task["task_name"] == "Filter Cleaning" and task["direction"] == "event_present"
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": robot}]},
+    )
+    assert not conn.send_error.called
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Dolphin M600"
+    )
+    (t,) = obj.data[CONF_TASKS].values()
+    tc = t["trigger_config"]
+    assert tc["type"] == "state_change" and tc["trigger_to_state"] == "full"
+    assert tc["auto_complete_on_recovery"] is True
 
 
 async def test_candidate_wave_dyson_weback_mercedes(

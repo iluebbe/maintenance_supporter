@@ -409,6 +409,36 @@ User-directed follow-up ("search for comparable integrations"):
   default sanely across pool sizes. Re-check if upstream adds a percent.
 - Parked for later dives: openWB (MQTT), myenergi/zappi, OpenMediaVault.
 
+## Community-trend sweep — forum + Reddit (2026-07-18, user-directed)
+
+Sources: community.home-assistant.io custom-integrations TOP (quarterly) via
+the Discourse JSON API; Reddit r/homeassistant via web search (direct JSON
+blocked). Reddit surfaced mostly the known infra set (Mushroom, Browser Mod,
+Adaptive Lighting, Powercalc, LocalTuya, Frigate — all non-candidates) plus
+Bambu Lab (cataloged).
+
+- ✅ **vw_eu_data_act SHIPPED** (mikrohard/hass-vw-eu-data-act): the hottest
+  custom-integrations thread of the quarter (~7.4k views) — official EU Data
+  Act portal data for **VW/Audi/Škoda/SEAT/Cupra/Bentley** after upstream
+  locked the unofficial WeConnect APIs. Curated sensor
+  `CuratedSensor("mileage", "Mileage", "distance", "km", "total_increasing")`
+  → the established car pattern (Annual Service 15,000 km + Tire Rotation
+  10,000 km, suffix match). Effectively supersedes `volkswagencarnet` (2.4k
+  installs, WeConnect-dependent). Competing implementations noted
+  (its-me-prash/vwgroup-connect-ha domain `vag_connect`, WulfgarW,
+  rafaelhutter) — catalog follows the thread-starter; add others on demand.
+- ✅ **mydolphin_plus** (sh00t2kill/dolphin-robot, 76★): FILTER_BAG_STATUS
+  enum (empty→full/fault) on the 'Filter Status' entity → event latch on
+  'full' ("Filter Cleaning", auto-resolves when the bag is emptied). The
+  event_present direction gained a parametrizable latch state (on_states[0],
+  default 'present') for it.
+- Parked after triage: Silverline/Poolex heat pump + Eveus charger +
+  QuietCool fans — tiny star counts (<20), signals unverified; re-check on
+  demand.
+- Non-candidates: Amazon Price Tracker, Gaming Status, IP Ban Manager,
+  calendars/cards/VoIP/police-API etc. (no device wear); Medication
+  Reminder + Annuals are adjacent products, not devices.
+
 ## Follow-up candidates (parked)
 
 - ✅ **gardena_smart_system** — source dive DONE (2026-07-18, user-prompted

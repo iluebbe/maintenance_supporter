@@ -4,6 +4,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🌊 Maytronics Dolphin pool robots
+
+- Dolphin pool cleaners propose **"Filter Cleaning" when the filter-bag
+  sensor reports full** — emptying the bag resolves the task automatically.
+
+### 🚗 VW Group via EU Data Act
+
+- **VW, Audi, Škoda, SEAT, Cupra and Bentley** join the car lineup through
+  the new EU-Data-Act portal integration (`vw_eu_data_act`) — service every
+  15,000 km and tire rotation every 10,000 km from the official mileage
+  data. (The unofficial WeConnect APIs were locked down upstream; this is
+  the legal, read-only path.)
+
 ### 🐛 Fixes (user-reported on v2.31.0)
 
 - **Suggested-setups dialog shows task names in your language** — the

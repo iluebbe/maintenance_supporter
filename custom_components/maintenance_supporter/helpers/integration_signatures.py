@@ -695,6 +695,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "vw_eu_data_act": IntegrationSignature(
+        name="VW Group (EU Data Act)",
+        verified="2026-07-18 @ mikrohard/hass-vw-eu-data-act main",
+        source=(
+            "mikrohard/hass-vw-eu-data-act data.py CuratedSensor('mileage', "
+            "'Mileage', 'distance', 'km', 'total_increasing') — official EU "
+            "Data Act portal data for VW/Audi/Škoda/SEAT/Cupra/Bentley (the "
+            "unofficial WeConnect APIs were locked down upstream)."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
     "keba": IntegrationSignature(
         name="KEBA Wallbox",
         verified="2026-07-18 @ home-assistant/core dev",
@@ -953,6 +967,25 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "mydolphin_plus": IntegrationSignature(
+        name="Maytronics Dolphin",
+        verified="2026-07-18 @ sh00t2kill/dolphin-robot master",
+        source=(
+            "sh00t2kill/dolphin-robot common/consts.py "
+            "(DATA_KEY_FILTER_STATUS 'Filter Status' -> entity suffix "
+            "_filter_status; FILTER_BAG_STATUS enum empty/partially_full/"
+            "getting_full/almost_full/full/fault) — latch on 'full', emptying "
+            "the bag drops the state back (auto-resolve)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter_status",),
+                "Filter Cleaning",
+                "event_present",
+                on_states=("full",),
+            ),
+        ),
+    ),
     "ipp": IntegrationSignature(
         name="IPP printer",
         verified="2026-07-16 @ home-assistant/core dev",
@@ -1117,7 +1150,9 @@ def build_setup_trigger(
             "type": "state_change",
             "entity_id": entity_ids[0],  # state latch watches a single entity
             "entity_ids": list(entity_ids),
-            "trigger_to_state": "present",
+            # Home Connect events use "present"; other integrations latch on
+            # their own alert state (Dolphin filter bag: "full").
+            "trigger_to_state": sig.on_states[0] if sig.on_states else "present",
             "trigger_target_changes": 1,
             "auto_complete_on_recovery": True,
         }
