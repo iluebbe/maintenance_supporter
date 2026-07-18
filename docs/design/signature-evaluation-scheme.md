@@ -88,3 +88,60 @@ binaries need no signature — problem-sensor adoption covers them generically.
 - Method contract stays: nothing enters the catalog without reading the
   integration's actual source (`source` + `verified` fields, i18n ×17 for
   task names — all tripwire-enforced in `tests/test_integration_setups.py`).
+
+## Catalog governance — extensibility, freshness, upstream changes
+
+### Architecture: catalogs are data with machine-checked invariants
+Both catalogs are plain in-repo data structures — `SIGNATURES`
+(dict of `IntegrationSignature`) and `TEMPLATES` (list of `ObjectTemplate`) —
+with their invariants enforced by tripwire tests rather than convention:
+direction whitelist, non-empty `source`/`verified`, full ×17 localization of
+every task name, empty-keys-only-for-non-sensor-domains, template curation
+count pins. **Adding an entry is one dict/list literal plus i18n**; nothing
+else in the pipeline changes, because discovery, trigger building and the
+dialog are all driven off the data. That is the extensibility contract:
+new integrations and templates must never require touching the engine.
+
+### Freshness control (Aktualitätskontrolle)
+Two catalog classes age differently:
+- **Templates** have no upstream dependency — their freshness is editorial
+  (interval defaults, model guidance). Review is periodic and
+  discussion-driven; entries that cite external guidance (Bambu wiki) carry
+  the date in the note.
+- **Signatures** depend on upstream entity naming and CAN silently rot when
+  an integration renames a translation_key or entity. Today's guard is the
+  `verified` field ("date @ repo/branch head") — an audit trail, not a
+  monitor.
+
+### Proposed: automated drift check in GitHub Actions
+A scheduled workflow (`signature-drift.yml`, monthly cron + manual dispatch):
+1. For every `IntegrationSignature`, derive the raw source URL(s) from the
+   `source` field (or an explicit optional `probe_urls` tuple added per
+   entry) and fetch them from the recorded repo/branch.
+2. Grep each signature key (translation_key / property name) in the fetched
+   text. Every key that no longer appears = **drift**.
+3. Output: a job summary listing stale entries, and an auto-filed/updated
+   "signature drift" issue naming integration, missing key and the recorded
+   `verified` ref — never a hard CI failure on unrelated PRs (upstream churn
+   must not block our merges; the scheduled job is the watchdog, the PR gate
+   stays about OUR code).
+The check is text-level by design (grep for the literal key in the referenced
+file), so it needs no upstream imports and works for core + HACS alike.
+
+### Handling upstream changes when they happen
+- **Runtime is already graceful, twice over**: (1) if upstream renames a key,
+  discovery simply stops proposing that entry — no crash, no wrong wiring.
+  (2) **Already-adopted tasks are immune**: they watch concrete entity_ids,
+  and HA's entity registry keeps entity_ids stable across integration
+  updates — an upstream rename of the description key does not rename
+  registered entities. Drift therefore only degrades NEW discovery.
+- **Repair process** (drift issue → fix): re-dive the integration per this
+  scheme (the rename may also have changed unit or shape), update the keys,
+  bump `verified`, note it in the CHANGELOG if the entry was
+  user-visible-broken. If upstream *removed* the signal, move the entry to
+  the research doc's negative list with the date — the audit trail is the
+  point.
+- **Full re-audit**: whenever the scheme itself gains a rung (as it just did
+  with `usage_delta` and `runtime_hours`), all existing entries are walked
+  again — tracked as a ROADMAP item, results recorded per entry in the
+  research doc.
