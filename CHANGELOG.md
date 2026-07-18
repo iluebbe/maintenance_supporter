@@ -16,6 +16,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   the runtime accumulation. Adopted values now hydrate into the field and
   survive the roundtrip.
 
+### 🔤 State-change matching is now case-insensitive
+
+- The state-change trigger compared from/to states case-sensitively while
+  the two editors normalized differently (the options flow lowercased on
+  save, the panel kept your casing) — "Full" typed in the panel never
+  matched a device reporting `full`, and a flow-saved `home` never matched
+  an input_select reporting "Home". Matching now ignores case and padding
+  on both sides, like the runtime trigger's active states always did.
+
 ### 🔒 Trigger-config surfaces can no longer drift apart
 
 - A follow-up audit of the #103 class found three more silent-loss gaps and

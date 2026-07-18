@@ -73,7 +73,7 @@ function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
     runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
     onStates: (c.trigger_on_states || []).join(", "),
     carry: Object.fromEntries(
-      Object.entries(c).filter(([k]) => !MANAGED_CONDITION_KEYS.has(k)),
+      Object.entries(c).filter(([k]) => !MANAGED_CONDITION_KEYS.has(k) && !k.startsWith("_")),
     ) as Partial<TriggerConfig>,
   };
 }
