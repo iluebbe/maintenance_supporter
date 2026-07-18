@@ -62,6 +62,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 "event_present",
                 "usage_delta",
                 "runtime_hours",
+                "alert_above",
             )
             # Empty keys = "the device's single entity of that domain" — only
             # safe for non-sensor domains (a sensor catalog entry without keys
@@ -853,11 +854,59 @@ async def test_bambu_model_gate_enclosed_vs_open_frame(
     setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
 
     x1_tasks = {t["task_name"]: t for t in setups[x1c]["tasks"]}
-    assert set(x1_tasks) == {"Lubricate Rails and Rods", "Replace Filter"}
+    # Enclosed CoreXY: filter + carbon rods on top of the generic lubrication.
+    assert set(x1_tasks) == {"Lubricate Rails and Rods", "Replace Filter", "Clean Carbon Rods"}
     assert x1_tasks["Replace Filter"]["threshold"] == 300.0
+    assert x1_tasks["Clean Carbon Rods"]["threshold"] == 100.0
 
-    (a1_task,) = setups[a1]["tasks"]
-    assert a1_task["task_name"] == "Lubricate Rails and Rods"  # no filter duty
+    a1_tasks = {t["task_name"]: t for t in setups[a1]["tasks"]}
+    # Open-frame bed-slinger: purge wiper instead of filter/carbon rods.
+    assert set(a1_tasks) == {"Lubricate Rails and Rods", "Replace Purge Wiper"}
+    assert a1_tasks["Replace Purge Wiper"]["threshold"] == 300.0
+
+
+async def test_bambu_ams_desiccant_alert_above_and_lite_excluded(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """AMS units (separate devices) propose desiccant replacement via a plain
+    above-threshold on their humidity sensor (auto-resolving when fresh
+    desiccant pulls the value down); the AMS Lite has no desiccant compartment
+    and is excluded despite the 'AMS' substring."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    ams = await _seed_sensor(
+        hass, "bambu_lab", "ams1", "AMS_2_Pro_1",
+        [("humidity", "humidity", "%")], model="AMS 2 Pro",
+    )
+    lite = await _seed_sensor(
+        hass, "bambu_lab", "amsl1", "AMS_Lite_1",
+        [("humidity", "humidity", "%")], model="AMS Lite",
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    assert lite not in setups  # no desiccant compartment -> no proposal
+
+    (task,) = setups[ams]["tasks"]
+    assert task["task_name"] == "Replace Desiccant" and task["direction"] == "alert_above"
+    assert task["threshold"] == 40.0
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": ams}]},
+    )
+    assert not conn.send_error.called
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "AMS_2_Pro_1"
+    )
+    (t,) = obj.data[CONF_TASKS].values()
+    tc = t["trigger_config"]
+    assert tc["type"] == "threshold" and tc["trigger_above"] == 40.0
+    assert tc["auto_complete_on_recovery"] is True and "trigger_below" not in tc
 
 
 async def test_second_identical_device_still_proposed_after_first_adopted(

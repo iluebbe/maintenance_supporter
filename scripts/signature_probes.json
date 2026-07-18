@@ -190,7 +190,8 @@
     "strings": [
       "total_usage_hours",
       "X1C",
-      "P1S"
+      "P1S",
+      "humidity"
     ]
   },
   "kia_uvo": {

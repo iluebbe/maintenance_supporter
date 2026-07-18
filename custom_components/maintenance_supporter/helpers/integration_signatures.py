@@ -45,6 +45,12 @@ Direction semantics:
   hours; completing the task resets the accumulation. Signatures of this
   direction set ``entity_domain``/``on_states`` and may leave ``keys`` empty —
   meaning "the device's single entity of that domain".
+* ``alert_above``    — a MEASUREMENT that signals a maintenance condition
+  while it is high (AMS humidity → desiccant saturated). Trigger: plain
+  threshold above N in the entity's own unit (no conversion); performing the
+  maintenance genuinely lowers the value, so auto_complete_on_recovery is
+  correct here — unlike wear counters, where a plain above-threshold would
+  re-fire after a manual completion.
 """
 
 from __future__ import annotations
@@ -90,6 +96,10 @@ class ConsumableSignature:
     # registry's model string (case-insensitive substring — Bambu X1C vs A1).
     require_sibling_keys: tuple[str, ...] = ()
     models: tuple[str, ...] = ()
+    # Substring exclusion applied AFTER models: ("AMS",) matches "AMS Lite"
+    # too, so the desiccant duty excludes it explicitly (the Lite has no
+    # desiccant compartment).
+    models_exclude: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -447,6 +457,37 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 delta_units=300,
                 models=("X1C", "X1E", "P1S", "H2"),
             ),
+            # Model-aware duties (Bambu maintenance guides): the CoreXY
+            # X1/P1 series runs on carbon rods that want regular wipe-downs;
+            # the A1 bed-slingers have a replaceable purge wiper. Intervals
+            # are tunable print-hour defaults.
+            ConsumableSignature(
+                ("total_usage_hours",),
+                "Clean Carbon Rods",
+                "usage_delta",
+                delta_units=100,
+                models=("X1", "P1S", "P1P"),
+            ),
+            ConsumableSignature(
+                ("total_usage_hours",),
+                "Replace Purge Wiper",
+                "usage_delta",
+                delta_units=300,
+                models=("A1",),
+            ),
+            # AMS desiccant by MEASURED humidity: the AMS/AMS 2 Pro/AMS HT are
+            # separate devices (model = 'AMS'/'AMS 2 Pro'/'AMS HT') with a
+            # humidity sensor; saturated desiccant shows as high humidity and
+            # replacing it brings the value down (auto-resolve). The AMS Lite
+            # has NO desiccant compartment and is excluded.
+            ConsumableSignature(
+                ("humidity",),
+                "Replace Desiccant",
+                "alert_above",
+                delta_units=40,
+                models=("AMS",),
+                models_exclude=("AMS Lite",),
+            ),
         ),
     ),
     "home_connect": IntegrationSignature(
@@ -674,6 +715,8 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     unit-bearing entity that happens to share the key is NOT an event."""
     if direction in ("event_present", "runtime_hours"):
         return unit is None  # ENUM events and state entities carry no unit
+    if direction == "alert_above":
+        return True  # measurement alert in the entity's own unit (any unit)
     if unit is None:
         return True
     if direction == "percent_left":
@@ -689,8 +732,10 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     """
     if sig.direction == "event_present":
         return 0.0  # ENUM event latch — no numeric threshold
-    if sig.direction == "runtime_hours":
-        return float(sig.delta_units)  # engine-accumulated hours, no unit scaling
+    if sig.direction in ("runtime_hours", "alert_above"):
+        # Engine-accumulated hours resp. a raw measurement threshold in the
+        # entity's own unit — no conversion in either case.
+        return float(sig.delta_units)
     if sig.direction == "percent_left":
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
@@ -771,10 +816,11 @@ def build_setup_trigger(
             trigger["trigger_baseline_value"] = 0
             trigger["auto_complete_on_recovery"] = True
         return trigger
+    threshold_key = "trigger_above" if sig.direction == "alert_above" else "trigger_below"
     return {
         "type": "threshold",
         "entity_ids": list(entity_ids),
-        "trigger_below": _threshold_for(sig, hass, entity_ids[0]),
+        threshold_key: _threshold_for(sig, hass, entity_ids[0]),
         "entity_logic": "any",
         "auto_complete_on_recovery": True,
     }
@@ -820,6 +866,8 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             # type-identifying sibling entity (watched siblings still count —
             # only the match TARGET must be unwatched).
             if sig.models and not any(m.lower() in model for m in sig.models):
+                continue
+            if sig.models_exclude and any(m.lower() in model for m in sig.models_exclude):
                 continue
             if sig.require_sibling_keys and not any(
                 any(_entity_matches(e, key) for key in sig.require_sibling_keys)

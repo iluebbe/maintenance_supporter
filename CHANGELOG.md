@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🖨️ Model-aware Bambu Lab maintenance
+
+- The proposals now follow the **printer model** (Bambu's maintenance guides
+  per series): CoreXY machines (X1/P1S/P1P) get **"Clean Carbon Rods" every
+  100 print-hours**, the A1 bed-slingers get **"Replace Purge Wiper" every
+  300 print-hours** — on top of the generic lubrication task and the
+  enclosed-model chamber filter.
+- **AMS units** (their own devices in Home Assistant) propose **"Replace
+  Desiccant"** driven by their **measured humidity**: the task fires while
+  humidity sits above 40 % and resolves itself when fresh desiccant pulls it
+  back down. The AMS Lite — which has no desiccant compartment — is
+  correctly excluded.
+
 ## [2.30.0] - 2026-07-18
 
 > The suggested-setups catalog grows from 19 to **27 integrations / 70
