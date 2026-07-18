@@ -105,6 +105,7 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     # counter
     "trigger_target_value",
     "trigger_delta_mode",
+    "trigger_baseline_value",
     # runtime
     "trigger_runtime_hours",
     "trigger_on_states",

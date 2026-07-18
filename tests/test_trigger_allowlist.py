@@ -155,11 +155,13 @@ def test_counter_delta_mode_preserved(mock_hass) -> None:
         "trigger_to_state",
         "trigger_for_minutes",
         "trigger_delta_mode",
+        "trigger_baseline_value",
         "attribute",
     ],
 )
 def test_critical_keys_in_allowlist(key: str) -> None:
-    """Pin the 5 keys that have already been silently stripped once."""
+    """Pin the keys that have already been silently stripped once (or, for
+    trigger_baseline_value, would have been: suggested setups seed it)."""
     assert key in _TRIGGER_ALLOWED_KEYS, (
         f"{key} was dropped from _TRIGGER_ALLOWED_KEYS — this caused issue "
         f"#37 (state_change filter) and equivalent silent failures for "

@@ -78,9 +78,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 - Some devices report a wear counter that **counts up since the last
   replacement** instead of a countdown. The new `usage_above` direction wires a
-  *trigger-above* threshold (default 100 usage-hours, converted into the
-  entity's live unit) and auto-resolves the task when the counter is reset after
-  the swap.
+  **delta counter from a zero baseline** (default 100 usage-hours, converted
+  into the entity's live unit): absolute wear semantics at adoption, the task
+  auto-resolves when the counter is reset on the device after the swap — and
+  completing the task manually re-baselines instead of immediately re-firing
+  while the device counter still reads high.
 - **Husqvarna Automower** (`cutting_blade_usage_time`) and **Worx Landroid**
   (`blade_runtime_current`) blade counters now propose a "Replace Blades" task.
   Both source-verified.
