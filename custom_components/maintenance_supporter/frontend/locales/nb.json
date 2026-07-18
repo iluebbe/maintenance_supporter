@@ -778,5 +778,7 @@
   "part_delete_confirm": "Slette delen '{name}'? Lagersporing, oppgavekoblinger og en åpen kjøpspåminnelse fjernes.",
   "baseline_start_value": "Startverdi (valgfritt)",
   "baseline_start_help": "Tellingen starter fra denne verdien. La stå tomt for å telle fra nåværende verdi; oppgi avlesningen ved forrige service slik at bruken siden da teller med.",
-  "setups_baseline_hint": "avlesning ved forrige service (valgfritt)"
+  "setups_baseline_hint": "avlesning ved forrige service (valgfritt)",
+  "baseline_start_help_edit": "La stå tomt for å beholde den eksisterende tellingen. En angitt verdi forankrer tellingen på nytt (f.eks. avlesningen ved forrige service).",
+  "baseline_current_effective": "Gjeldende startverdi: {value}"
 }

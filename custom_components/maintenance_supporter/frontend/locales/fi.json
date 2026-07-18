@@ -778,5 +778,7 @@
   "part_delete_confirm": "Poistetaanko osa '{name}'? Varastoseuranta, tehtäväkytkennät ja avoin ostomuistutus poistetaan.",
   "baseline_start_value": "Aloitusarvo (valinnainen)",
   "baseline_start_help": "Laskenta alkaa tästä arvosta. Jätä tyhjäksi laskeaksesi nykyisestä arvosta; syötä viimeisimmän huollon lukema, jotta sen jälkeinen käyttö lasketaan mukaan.",
-  "setups_baseline_hint": "lukema viime huollossa (valinnainen)"
+  "setups_baseline_hint": "lukema viime huollossa (valinnainen)",
+  "baseline_start_help_edit": "Jätä tyhjäksi säilyttääksesi nykyisen laskennan. Syötetty arvo ankkuroi laskennan uudelleen (esim. viimeisimmän huollon lukema).",
+  "baseline_current_effective": "Nyt voimassa oleva aloitusarvo: {value}"
 }

@@ -778,5 +778,7 @@
   "part_delete_confirm": "Onderdeel '{name}' verwijderen? De voorraadregistratie, taakkoppelingen en een openstaande koopherinnering worden verwijderd.",
   "baseline_start_value": "Startwaarde (optioneel)",
   "baseline_start_help": "De telling begint bij deze waarde. Laat leeg om vanaf de huidige stand te tellen; vul de stand bij de laatste servicebeurt in zodat het gebruik sindsdien meetelt.",
-  "setups_baseline_hint": "stand bij laatste onderhoud (optioneel)"
+  "setups_baseline_hint": "stand bij laatste onderhoud (optioneel)",
+  "baseline_start_help_edit": "Laat leeg om de bestaande telling te behouden. Een ingevulde waarde verankert de telling opnieuw (bijv. de stand bij de laatste servicebeurt).",
+  "baseline_current_effective": "Momenteel geldende startwaarde: {value}"
 }

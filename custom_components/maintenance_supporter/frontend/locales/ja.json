@@ -778,5 +778,7 @@
   "part_delete_confirm": "部品「{name}」を削除しますか？在庫管理、タスクとのリンク、未完了の購入リマインダーが削除されます。",
   "baseline_start_value": "開始値（任意）",
   "baseline_start_help": "カウントはこの値から始まります。空欄の場合は現在の値からカウントします。前回整備時の値を入力すると、それ以降の使用分が計上されます。",
-  "setups_baseline_hint": "前回整備時の値（任意）"
+  "setups_baseline_hint": "前回整備時の値（任意）",
+  "baseline_start_help_edit": "空欄のままにすると現在のカウントを維持します。値を入力するとカウントの起点を再設定します（例：前回整備時の値）。",
+  "baseline_current_effective": "現在有効な開始値：{value}"
 }

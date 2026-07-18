@@ -778,5 +778,7 @@
   "part_delete_confirm": "Supprimer la pièce '{name}' ? Son suivi de stock, ses liens aux tâches et tout rappel d'achat ouvert seront supprimés.",
   "baseline_start_value": "Valeur de départ (facultatif)",
   "baseline_start_help": "Le comptage démarre à cette valeur. Laissez vide pour compter à partir de la valeur actuelle ; saisissez le relevé du dernier entretien pour que l'usage écoulé depuis soit compté.",
-  "setups_baseline_hint": "relevé au dernier entretien (facultatif)"
+  "setups_baseline_hint": "relevé au dernier entretien (facultatif)",
+  "baseline_start_help_edit": "Laissez vide pour conserver le comptage existant. Une valeur saisie réancre le comptage (p. ex. le relevé du dernier entretien).",
+  "baseline_current_effective": "Valeur de départ actuellement en vigueur : {value}"
 }
