@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🚫 No duplicate proposals — precise per-device, per-duty suppression
+
+- Suggested setups never re-propose what you already have, at the right
+  granularity: suppression works **per entity** (a second identical vacuum
+  keeps being proposed after you adopt the first) and now also **per duty
+  name** on the device-bound object — a manually created calendar task like
+  "Filter ersetzen" (which watches no sensor) suppresses the equivalent
+  proposal in **any catalog language**, both in the discovery list and as an
+  adopt-time safety net.
+
 ### 🧹 Five more integrations — Dyson, Dreo, WeBack, Electrolux/AEG, Mercedes
 
 - **Dyson** purifiers/fans (HACS `hass_dyson`): HEPA and carbon filter life
