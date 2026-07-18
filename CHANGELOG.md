@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🫧 Miele suggested setups — real fill levels
+
+- **Miele** (core) appliances now propose refill tasks from their **percent
+  fill-level sensors** — dishwasher salt, rinse aid and PowerDisk, and the
+  washer's TwinDos detergent containers (both reservoirs feed one any-low
+  "Refill Detergent" task). Unlike event-style integrations these are true
+  percentages, so the task fires below 10 % and resolves itself on refill.
+  The coffee-system descaling/degreasing counters count *performed*
+  maintenance and are deliberately not cataloged.
+
 ## [2.29.0] - 2026-07-18
 
 > **Suggested setups is a Beta feature.** The signature catalog (now 19

@@ -118,7 +118,9 @@ whose consumable sensors can drive maintenance tasks — Roborock, Xiaomi Miio,
 Dreame and Ecovacs vacuums (brushes, filter, dust bag, mop pads; Ecovacs GOAT
 mowers too), **Xiaomi MIoT / Xiaomi Home** air purifiers/humidifiers/vacuums
 (filter & brush life), **Midea (LAN)** water-purifier and appliance filters,
-IPP and Brother printers (ink/toner, drum, belt, fuser),
+**Miele** dishwashers and washers (salt, rinse aid, PowerDisk/TwinDos
+detergent fill levels), IPP and Brother printers (ink/toner, drum, belt,
+fuser),
 **Husqvarna Automower and Worx Landroid mowers** (blade-usage counters), **LG
 ThinQ** appliances (AC/purifier/refrigerator filters and the washer tub-clean
 counter), **Viessmann ViCare** ventilation filters and service hours, **Bambu Lab**

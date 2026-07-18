@@ -3151,6 +3151,25 @@ _T: dict[str, dict[str, str]] = {
         "hi": "नम फ़िलामेंट चटकता और तार खींचता है — हाइग्रोस्कोपिक सामग्री (PETG, PA, TPU) को PLA से बहुत पहले सुखाना ज़रूरी है।",
         "zh": "受潮耗材会爆裂和拉丝——吸湿性材料（PETG、PA、TPU）远比PLA更早需要干燥。",
     },
+    "Refill Detergent": {
+        "de": "Waschmittel nachfüllen",
+        "es": "Rellenar el detergente",
+        "fr": "Remplir le détergent",
+        "it": "Rabboccare il detersivo",
+        "nl": "Wasmiddel bijvullen",
+        "pt": "Reabastecer o detergente",
+        "ru": "Долить моющее средство",
+        "uk": "Долити мийний засіб",
+        "pl": "Uzupełnić detergent",
+        "cs": "Doplnit prací prostředek",
+        "sv": "Fyll på tvättmedel",
+        "da": "Fyld vaskemiddel på",
+        "nb": "Fyll på vaskemiddel",
+        "fi": "Lisää pesuainetta",
+        "ja": "洗剤を補充",
+        "hi": "डिटर्जेंट भरें",
+        "zh": "添加洗涤剂",
+    },
 }
 
 
