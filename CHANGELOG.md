@@ -4,6 +4,15 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 📦 ZIP releases
+
+- Releases now ship a `maintenance_supporter.zip` asset (built and
+  attached automatically by CI) and `hacs.json` declares `zip_release`.
+  HACS installs download just the integration instead of the whole
+  repository archive — noticeably faster installs and updates — and the
+  HACS store now shows a download counter. The three most recent
+  releases were back-filled with assets.
+
 ### 🐛 Options-flow edit form: two save-blocking validation bugs
 
 - With the advanced **schedule-time** flag enabled, saving the edit-task
