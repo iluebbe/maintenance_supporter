@@ -686,6 +686,98 @@ async def test_car_odometer_usage_delta_km_and_miles(
     assert tesla_by_name["Tire Rotation"]["threshold"] == 6213.7  # 10000 km in miles
 
 
+async def test_wave4_boilers_hrv_purifier_espresso_petkit_klipper(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Research round 4: boiler pressure (opentherm_gw/plugwise), HRV filter
+    days (comfoconnect, name-style suffix), Levoit filter %, La Marzocco
+    multi-duty shot counter, PetKit desiccant+fountain, Moonraker filament
+    meters (name-slug suffix)."""
+    await setup_integration(hass, global_entry)
+
+    otgw = await _seed_sensor(
+        hass, "opentherm_gw", "gw1", "OpenTherm Gateway",
+        [("central_heating_pressure", "central_heating_pressure", "bar")],
+    )
+    anna = await _seed_sensor(
+        hass, "plugwise", "anna1", "Anna Thermostat",
+        [("water_pressure", "water_pressure", "bar")],
+    )
+    hrv = await _seed_sensor(
+        hass, "comfoconnect", "ca350", "ComfoAirQ 350",
+        [("days_to_replace_filter", None, "d")],  # name-style, suffix match
+    )
+    purifier = await _seed_sensor(
+        hass, "vesync", "lv1", "Levoit Core 300S",
+        [("filter_life", "filter_life", "%")],
+    )
+    espresso = await _seed_sensor(
+        hass, "lamarzocco", "lm1", "Linea Micra",
+        [("total_coffees_made", "total_coffees_made", None)],
+    )
+    feeder = await _seed_sensor(
+        hass, "petkit", "pk1", "PetKit Feeder",
+        [("desiccant_left_days", "desiccant_left_days", "d")],
+    )
+    printer = await _seed_sensor(
+        hass, "moonraker", "vor1", "Voron 2.4",
+        [("totals_filament_used", None, "m")],  # name-slug, suffix match
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    for dev in (otgw, anna):
+        (task,) = setups[dev]["tasks"]
+        assert task["task_name"] == "Refill Heating Water"
+        assert task["direction"] == "value_below" and task["threshold"] == 1.0
+
+    (hrv_task,) = setups[hrv]["tasks"]
+    assert hrv_task["task_name"] == "Replace Ventilation Filter"
+    assert hrv_task["direction"] == "duration_left"
+    assert hrv_task["threshold"] == 7.0  # 168 canonical hours in a days-unit entity
+
+    (filter_task,) = setups[purifier]["tasks"]
+    assert filter_task["task_name"] == "Replace Filter" and filter_task["threshold"] == 10.0
+
+    lm_by_name = {t["task_name"]: t for t in setups[espresso]["tasks"]}
+    assert set(lm_by_name) == {"Backflush Espresso Group", "Replace Water Filter"}
+    assert lm_by_name["Backflush Espresso Group"]["threshold"] == 100.0
+    assert lm_by_name["Replace Water Filter"]["threshold"] == 1000.0
+
+    (desiccant,) = setups[feeder]["tasks"]
+    assert desiccant["task_name"] == "Replace Desiccant"
+    assert desiccant["threshold"] == 2.0  # 48 canonical hours in days
+
+    (nozzle,) = setups[printer]["tasks"]
+    assert nozzle["task_name"] == "Replace Nozzle"
+    assert nozzle["direction"] == "usage_delta" and nozzle["threshold"] == 1000.0
+
+
+async def test_wave4_atag_exact_object_id(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """ATAG's legacy naming can yield an unprefixed sensor.ch_water_pressure —
+    covered by the exact-object-id matcher pattern."""
+    await setup_integration(hass, global_entry)
+    source = MockConfigEntry(domain="atag", title="ATAG One")
+    source.add_to_hass(hass)
+    dev_reg = dr.async_get(hass)
+    boiler = dev_reg.async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("atag", "one1")}, name="ATAG One"
+    )
+    ent_reg = er.async_get(hass)
+    pressure = ent_reg.async_get_or_create(
+        "sensor", "atag", "one1_pressure",
+        config_entry=source, device_id=boiler.id, suggested_object_id="ch_water_pressure",
+    )
+    assert pressure.entity_id == "sensor.ch_water_pressure"
+    hass.states.async_set(pressure.entity_id, "1.6", {"unit_of_measurement": "bar"})
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    (task,) = setups[boiler.id]["tasks"]
+    assert task["task_name"] == "Refill Heating Water" and task["threshold"] == 1.0
+
+
 async def test_adopt_into_user_picked_object_binds_device(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

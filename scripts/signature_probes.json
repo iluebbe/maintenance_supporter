@@ -1,616 +1,699 @@
 {
-  "_comment": "Upstream drift probes for the suggested-setups signature catalog. Per integration: raw source URLs (the files the signatures were verified against) and literal strings that must still appear there. Checked weekly by .github/workflows/signature-drift.yml; a tripwire test keeps this file in sync with SIGNATURES. Strings are chosen per entry to survive code style (e.g. LG probes the UPPERCASE enum members because the lowercase values are StrEnum auto()).",
-  "roborock": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roborock/sensor.py"
-    ],
-    "strings": [
-      "main_brush_time_left",
-      "side_brush_time_left",
-      "filter_time_left",
-      "sensor_time_left"
-    ]
-  },
-  "xiaomi_miio": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/xiaomi_miio/sensor.py"
-    ],
-    "strings": [
-      "main_brush_left",
-      "side_brush_left",
-      "filter_left",
-      "sensor_dirty_left"
-    ]
-  },
-  "dreame_vacuum": {
-    "urls": [
-      "https://raw.githubusercontent.com/Tasshack/dreame-vacuum/master/custom_components/dreame_vacuum/dreame/const.py"
-    ],
-    "strings": [
-      "main_brush_left",
-      "side_brush_left",
-      "filter_left",
-      "sensor_dirty_left"
-    ]
-  },
-  "xiaomi_miot": {
-    "urls": [
-      "https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/custom_components/xiaomi_miot/core/miot_spec.py"
-    ],
-    "strings": [
-      "filter_life_level",
-      "format_name"
-    ]
-  },
-  "xiaomi_home": {
-    "urls": [
-      "https://raw.githubusercontent.com/XiaoMi/ha_xiaomi_home/main/custom_components/xiaomi_home/miot/miot_device.py"
-    ],
-    "strings": [
-      "gen_prop_entity_id",
-      "_p_"
-    ]
-  },
-  "midea_ac_lan": {
-    "urls": [
-      "https://raw.githubusercontent.com/wuwentao/midea_ac_lan/master/custom_components/midea_ac_lan/midea_devices.py"
-    ],
-    "strings": [
-      "filter1_life",
-      "filter2_life",
-      "filter3_life",
-      "filter_life"
-    ]
-  },
-  "ecovacs": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/sensor.py"
-    ],
-    "strings": [
-      "lifespan_"
-    ]
-  },
-  "husqvarna_automower": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower/sensor.py"
-    ],
-    "strings": [
-      "cutting_blade_usage_time",
-      "total_cutting_time",
-      "number_of_charging_cycles"
-    ]
-  },
-  "landroid_cloud": {
-    "urls": [
-      "https://raw.githubusercontent.com/MTrab/landroid_cloud/master/custom_components/landroid_cloud/sensor.py"
-    ],
-    "strings": [
-      "blade_runtime_current",
-      "mower_runtime_total"
-    ]
-  },
-  "gardena_smart_system": {
-    "urls": [
-      "https://raw.githubusercontent.com/py-smart-gardena/hass-gardena-smart-system/master/custom_components/gardena_smart_system/sensor.py"
-    ],
-    "strings": [
-      "operating_hours"
-    ]
-  },
-  "navimow": {
-    "urls": [
-      "https://raw.githubusercontent.com/pgoutsos/NavimowHA/main/custom_components/navimow/const.py",
-      "https://raw.githubusercontent.com/pgoutsos/NavimowHA/main/custom_components/navimow/lawn_mower.py"
-    ],
-    "strings": [
-      "MOWER_STATUS_TO_ACTIVITY"
-    ]
-  },
-  "lg_thinq": {
-    "urls": [
-      "https://raw.githubusercontent.com/thinq-connect/pythinqconnect/main/thinqconnect/devices/const.py"
-    ],
-    "strings": [
-      "FILTER_LIFETIME",
-      "TOP_FILTER_REMAIN_PERCENT",
-      "WATER_FILTER_1_REMAIN_PERCENT"
-    ]
-  },
-  "smartthinq_sensors": {
-    "urls": [
-      "https://raw.githubusercontent.com/ollo69/ha-smartthinq-sensors/master/custom_components/smartthinq_sensors/sensor.py"
-    ],
-    "strings": [
-      "Tub clean counter",
-      "Filter Remaining Life",
-      "Water filter remaining",
-      "Fresh air filter remaining"
-    ]
-  },
-  "vicare": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vicare/sensor.py"
-    ],
-    "strings": [
-      "filter_remaining_hours",
-      "burner_hours",
-      "compressor_hours"
-    ]
-  },
-  "home_connect": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/home_connect/sensor.py"
-    ],
-    "strings": [
-      "salt_nearly_empty",
-      "rinse_aid_nearly_empty",
-      "device_should_be_descaled",
-      "device_should_be_cleaned",
-      "grease_filter_max_saturation_reached"
-    ]
-  },
-  "miele": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/miele/sensor.py"
-    ],
-    "strings": [
-      "salt_level",
-      "rinse_aid_level",
-      "power_disk_level",
-      "twin_dos_1_level",
-      "twin_dos_2_level",
-      "state_status",
-      "spin_speed"
-    ]
-  },
-  "ipp": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ipp/sensor.py"
-    ],
-    "strings": [
-      "marker"
-    ]
-  },
-  "brother": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/brother/sensor.py"
-    ],
-    "strings": [
-      "black_toner_remaining",
-      "drum_remaining_life",
-      "belt_unit_remaining_life",
-      "fuser_remaining_life"
-    ]
-  },
-  "bambu_lab": {
-    "urls": [
-      "https://raw.githubusercontent.com/greghesp/ha-bambulab/main/custom_components/bambu_lab/definitions.py",
-      "https://raw.githubusercontent.com/greghesp/ha-bambulab/main/custom_components/bambu_lab/pybambu/const.py"
-    ],
-    "strings": [
-      "total_usage_hours",
-      "X1C",
-      "P1S",
-      "humidity"
-    ]
-  },
-  "kia_uvo": {
-    "urls": [
-      "https://raw.githubusercontent.com/Hyundai-Kia-Connect/kia_uvo/master/custom_components/kia_uvo/sensor.py"
-    ],
-    "strings": [
-      "odometer"
-    ]
-  },
-  "tesla_custom": {
-    "urls": [
-      "https://raw.githubusercontent.com/alandtse/tesla/dev/custom_components/tesla_custom/sensor.py"
-    ],
-    "strings": [
-      "odometer"
-    ]
-  },
-  "renault": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/renault/sensor.py"
-    ],
-    "strings": [
-      "mileage"
-    ]
-  },
-  "hass_dyson": {
-    "urls": [
-      "https://raw.githubusercontent.com/cmgrayb/hass-dyson/main/custom_components/hass_dyson/sensor.py"
-    ],
-    "strings": [
-      "filter_life",
-      "DysonFilterLifeSensor"
-    ]
-  },
-  "dreo": {
-    "urls": [
-      "https://raw.githubusercontent.com/JeffSteinbok/hass-dreo/main/custom_components/dreo/sensor.py"
-    ],
-    "strings": [
-      "filter_life",
-      "FILTERTIME_KEY"
-    ]
-  },
-  "weback_vacuum": {
-    "urls": [
-      "https://raw.githubusercontent.com/Jezza34000/homeassistant_weback_component/main/custom_components/weback_vacuum/vacuum.py"
-    ],
-    "strings": [
-      "STATE_CLEANING"
-    ]
-  },
-  "electrolux_status": {
-    "urls": [
-      "https://raw.githubusercontent.com/albaintor/homeassistant_electrolux_status/master/custom_components/electrolux_status/catalog_purifier.py"
-    ],
-    "strings": [
-      "FilterLife"
-    ]
-  },
-  "mbapi2020": {
-    "urls": [
-      "https://raw.githubusercontent.com/ReneNulschDE/mbapi2020/master/custom_components/mbapi2020/const.py"
-    ],
-    "strings": [
-      "\"odometer\": ["
-    ]
-  },
-  "synology_dsm": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/synology_dsm/sensor.py"
-    ],
-    "strings": [
-      "volume_percentage_used"
-    ]
-  },
-  "qnap": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/qnap/sensor.py"
-    ],
-    "strings": [
-      "volume_percentage_used"
-    ]
-  },
-  "easee": {
-    "urls": [
-      "https://raw.githubusercontent.com/nordicopen/easee_hass/master/custom_components/easee/const.py"
-    ],
-    "strings": [
-      "lifetime_energy"
-    ]
-  },
-  "bosch": {
-    "urls": [
-      "https://raw.githubusercontent.com/bosch-thermostat/home-assistant-bosch-custom-component/master/custom_components/bosch/sensor/base.py"
-    ],
-    "strings": [
-      "self._name"
-    ]
-  },
-  "keba": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/keba/sensor.py"
-    ],
-    "strings": [
-      "E total",
-      "total_energy"
-    ]
-  },
-  "goecharger_api2": {
-    "urls": [
-      "https://raw.githubusercontent.com/marq24/ha-goecharger-api2/main/custom_components/goecharger_api2/const.py"
-    ],
-    "strings": [
-      "Tag.ETO"
-    ]
-  },
-  "nuki": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/nuki/lock.py"
-    ],
-    "strings": [
-      "NukiLockEntity"
-    ]
-  },
-  "matter": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/lock.py"
-    ],
-    "strings": [
-      "MatterLock"
-    ]
-  },
-  "zwave_js": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zwave_js/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "zha": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zha/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "mqtt": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lock.py",
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/vacuum.py",
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lawn_mower.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "homekit_controller": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homekit_controller/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "tedee": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tedee/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "august": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/august/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "yale": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/yale/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "switchbot": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "loqed": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/loqed/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "homematicip_cloud": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homematicip_cloud/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "vw_eu_data_act": {
-    "urls": [
-      "https://raw.githubusercontent.com/mikrohard/hass-vw-eu-data-act/main/custom_components/vw_eu_data_act/data.py"
-    ],
-    "strings": [
-      "\"mileage\"",
-      "total_increasing"
-    ]
-  },
-  "mydolphin_plus": {
-    "urls": [
-      "https://raw.githubusercontent.com/sh00t2kill/dolphin-robot/master/custom_components/mydolphin_plus/common/consts.py"
-    ],
-    "strings": [
-      "FILTER_BAG_STATUS",
-      "Filter Status"
-    ]
-  },
-  "litterrobot": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/litterrobot/sensor.py"
-    ],
-    "strings": [
-      "waste_drawer",
-      "litter_level",
-      "total_cycles"
-    ]
-  },
-  "husqvarna_automower_ble": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower_ble/lawn_mower.py"
-    ],
-    "strings": [
-      "LawnMower"
-    ]
-  },
-  "subaru": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/subaru/sensor.py"
-    ],
-    "strings": [
-      "odometer"
-    ]
-  },
-  "volvo": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/volvo/sensor.py"
-    ],
-    "strings": [
-      "odometer"
-    ]
-  },
-  "openevse": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/openevse/sensor.py"
-    ],
-    "strings": [
-      "usage_total"
-    ]
-  },
-  "schlage": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/schlage/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "sesame": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/sesame/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "yalexs_ble": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/yalexs_ble/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "dormakaba_dkey": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/dormakaba_dkey/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "deconz": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/deconz/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "homematic": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homematic/lock.py"
-    ],
-    "strings": [
-      "LockEntity"
-    ]
-  },
-  "roomba": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roomba/vacuum.py",
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roomba/binary_sensor.py"
-    ],
-    "strings": [
-      "Vacuum",
-      "bin_full"
-    ]
-  },
-  "neato": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/neato/vacuum.py"
-    ],
-    "strings": [
-      "Vacuum"
-    ]
-  },
-  "romy": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/romy/vacuum.py"
-    ],
-    "strings": [
-      "Vacuum"
-    ]
-  },
-  "tuya": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/vacuum.py"
-    ],
-    "strings": [
-      "Vacuum"
-    ]
-  },
-  "switchbot_cloud": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot_cloud/vacuum.py"
-    ],
-    "strings": [
-      "Vacuum"
-    ]
-  },
-  "smartthings": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/vacuum.py"
-    ],
-    "strings": [
-      "Vacuum"
-    ]
-  },
-  "octoprint": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/octoprint/binary_sensor.py"
-    ],
-    "strings": [
-      "OctoPrintPrintingBinarySensor"
-    ]
-  },
-  "prusalink": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/prusalink/sensor.py"
-    ],
-    "strings": [
-      "printer_state"
-    ]
-  },
-  "sharkiq": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/sharkiq/vacuum.py"
-    ],
-    "strings": [
-      "Vacuum"
-    ]
-  },
-  "tplink": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tplink/vacuum.py"
-    ],
-    "strings": [
-      "Vacuum"
-    ]
-  },
-  "daikin": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/daikin/climate.py"
-    ],
-    "strings": [
-      "Climate"
-    ]
-  },
-  "gree": {
-    "urls": [
-      "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/gree/climate.py"
-    ],
-    "strings": [
-      "Climate"
-    ]
-  }
+ "_comment": "Upstream drift probes for the suggested-setups signature catalog. Per integration: raw source URLs (the files the signatures were verified against) and literal strings that must still appear there. Checked weekly by .github/workflows/signature-drift.yml; a tripwire test keeps this file in sync with SIGNATURES. Strings are chosen per entry to survive code style (e.g. LG probes the UPPERCASE enum members because the lowercase values are StrEnum auto()).",
+ "roborock": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roborock/sensor.py"
+  ],
+  "strings": [
+   "main_brush_time_left",
+   "side_brush_time_left",
+   "filter_time_left",
+   "sensor_time_left"
+  ]
+ },
+ "xiaomi_miio": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/xiaomi_miio/sensor.py"
+  ],
+  "strings": [
+   "main_brush_left",
+   "side_brush_left",
+   "filter_left",
+   "sensor_dirty_left"
+  ]
+ },
+ "dreame_vacuum": {
+  "urls": [
+   "https://raw.githubusercontent.com/Tasshack/dreame-vacuum/master/custom_components/dreame_vacuum/dreame/const.py"
+  ],
+  "strings": [
+   "main_brush_left",
+   "side_brush_left",
+   "filter_left",
+   "sensor_dirty_left"
+  ]
+ },
+ "xiaomi_miot": {
+  "urls": [
+   "https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/custom_components/xiaomi_miot/core/miot_spec.py"
+  ],
+  "strings": [
+   "filter_life_level",
+   "format_name"
+  ]
+ },
+ "xiaomi_home": {
+  "urls": [
+   "https://raw.githubusercontent.com/XiaoMi/ha_xiaomi_home/main/custom_components/xiaomi_home/miot/miot_device.py"
+  ],
+  "strings": [
+   "gen_prop_entity_id",
+   "_p_"
+  ]
+ },
+ "midea_ac_lan": {
+  "urls": [
+   "https://raw.githubusercontent.com/wuwentao/midea_ac_lan/master/custom_components/midea_ac_lan/midea_devices.py"
+  ],
+  "strings": [
+   "filter1_life",
+   "filter2_life",
+   "filter3_life",
+   "filter_life"
+  ]
+ },
+ "ecovacs": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/sensor.py"
+  ],
+  "strings": [
+   "lifespan_"
+  ]
+ },
+ "husqvarna_automower": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower/sensor.py"
+  ],
+  "strings": [
+   "cutting_blade_usage_time",
+   "total_cutting_time",
+   "number_of_charging_cycles"
+  ]
+ },
+ "landroid_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/MTrab/landroid_cloud/master/custom_components/landroid_cloud/sensor.py"
+  ],
+  "strings": [
+   "blade_runtime_current",
+   "mower_runtime_total"
+  ]
+ },
+ "gardena_smart_system": {
+  "urls": [
+   "https://raw.githubusercontent.com/py-smart-gardena/hass-gardena-smart-system/master/custom_components/gardena_smart_system/sensor.py"
+  ],
+  "strings": [
+   "operating_hours"
+  ]
+ },
+ "navimow": {
+  "urls": [
+   "https://raw.githubusercontent.com/pgoutsos/NavimowHA/main/custom_components/navimow/const.py",
+   "https://raw.githubusercontent.com/pgoutsos/NavimowHA/main/custom_components/navimow/lawn_mower.py"
+  ],
+  "strings": [
+   "MOWER_STATUS_TO_ACTIVITY"
+  ]
+ },
+ "lg_thinq": {
+  "urls": [
+   "https://raw.githubusercontent.com/thinq-connect/pythinqconnect/main/thinqconnect/devices/const.py"
+  ],
+  "strings": [
+   "FILTER_LIFETIME",
+   "TOP_FILTER_REMAIN_PERCENT",
+   "WATER_FILTER_1_REMAIN_PERCENT"
+  ]
+ },
+ "smartthinq_sensors": {
+  "urls": [
+   "https://raw.githubusercontent.com/ollo69/ha-smartthinq-sensors/master/custom_components/smartthinq_sensors/sensor.py"
+  ],
+  "strings": [
+   "Tub clean counter",
+   "Filter Remaining Life",
+   "Water filter remaining",
+   "Fresh air filter remaining"
+  ]
+ },
+ "vicare": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vicare/sensor.py"
+  ],
+  "strings": [
+   "filter_remaining_hours",
+   "burner_hours",
+   "compressor_hours"
+  ]
+ },
+ "home_connect": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/home_connect/sensor.py"
+  ],
+  "strings": [
+   "salt_nearly_empty",
+   "rinse_aid_nearly_empty",
+   "device_should_be_descaled",
+   "device_should_be_cleaned",
+   "grease_filter_max_saturation_reached"
+  ]
+ },
+ "miele": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/miele/sensor.py"
+  ],
+  "strings": [
+   "salt_level",
+   "rinse_aid_level",
+   "power_disk_level",
+   "twin_dos_1_level",
+   "twin_dos_2_level",
+   "state_status",
+   "spin_speed"
+  ]
+ },
+ "ipp": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ipp/sensor.py"
+  ],
+  "strings": [
+   "marker"
+  ]
+ },
+ "brother": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/brother/sensor.py"
+  ],
+  "strings": [
+   "black_toner_remaining",
+   "drum_remaining_life",
+   "belt_unit_remaining_life",
+   "fuser_remaining_life"
+  ]
+ },
+ "bambu_lab": {
+  "urls": [
+   "https://raw.githubusercontent.com/greghesp/ha-bambulab/main/custom_components/bambu_lab/definitions.py",
+   "https://raw.githubusercontent.com/greghesp/ha-bambulab/main/custom_components/bambu_lab/pybambu/const.py"
+  ],
+  "strings": [
+   "total_usage_hours",
+   "X1C",
+   "P1S",
+   "humidity"
+  ]
+ },
+ "kia_uvo": {
+  "urls": [
+   "https://raw.githubusercontent.com/Hyundai-Kia-Connect/kia_uvo/master/custom_components/kia_uvo/sensor.py"
+  ],
+  "strings": [
+   "odometer"
+  ]
+ },
+ "tesla_custom": {
+  "urls": [
+   "https://raw.githubusercontent.com/alandtse/tesla/dev/custom_components/tesla_custom/sensor.py"
+  ],
+  "strings": [
+   "odometer"
+  ]
+ },
+ "renault": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/renault/sensor.py"
+  ],
+  "strings": [
+   "mileage"
+  ]
+ },
+ "hass_dyson": {
+  "urls": [
+   "https://raw.githubusercontent.com/cmgrayb/hass-dyson/main/custom_components/hass_dyson/sensor.py"
+  ],
+  "strings": [
+   "filter_life",
+   "DysonFilterLifeSensor"
+  ]
+ },
+ "dreo": {
+  "urls": [
+   "https://raw.githubusercontent.com/JeffSteinbok/hass-dreo/main/custom_components/dreo/sensor.py"
+  ],
+  "strings": [
+   "filter_life",
+   "FILTERTIME_KEY"
+  ]
+ },
+ "weback_vacuum": {
+  "urls": [
+   "https://raw.githubusercontent.com/Jezza34000/homeassistant_weback_component/main/custom_components/weback_vacuum/vacuum.py"
+  ],
+  "strings": [
+   "STATE_CLEANING"
+  ]
+ },
+ "electrolux_status": {
+  "urls": [
+   "https://raw.githubusercontent.com/albaintor/homeassistant_electrolux_status/master/custom_components/electrolux_status/catalog_purifier.py"
+  ],
+  "strings": [
+   "FilterLife"
+  ]
+ },
+ "mbapi2020": {
+  "urls": [
+   "https://raw.githubusercontent.com/ReneNulschDE/mbapi2020/master/custom_components/mbapi2020/const.py"
+  ],
+  "strings": [
+   "\"odometer\": ["
+  ]
+ },
+ "synology_dsm": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/synology_dsm/sensor.py"
+  ],
+  "strings": [
+   "volume_percentage_used"
+  ]
+ },
+ "qnap": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/qnap/sensor.py"
+  ],
+  "strings": [
+   "volume_percentage_used"
+  ]
+ },
+ "easee": {
+  "urls": [
+   "https://raw.githubusercontent.com/nordicopen/easee_hass/master/custom_components/easee/const.py"
+  ],
+  "strings": [
+   "lifetime_energy"
+  ]
+ },
+ "bosch": {
+  "urls": [
+   "https://raw.githubusercontent.com/bosch-thermostat/home-assistant-bosch-custom-component/master/custom_components/bosch/sensor/base.py"
+  ],
+  "strings": [
+   "self._name"
+  ]
+ },
+ "keba": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/keba/sensor.py"
+  ],
+  "strings": [
+   "E total",
+   "total_energy"
+  ]
+ },
+ "goecharger_api2": {
+  "urls": [
+   "https://raw.githubusercontent.com/marq24/ha-goecharger-api2/main/custom_components/goecharger_api2/const.py"
+  ],
+  "strings": [
+   "Tag.ETO"
+  ]
+ },
+ "nuki": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/nuki/lock.py"
+  ],
+  "strings": [
+   "NukiLockEntity"
+  ]
+ },
+ "matter": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/lock.py"
+  ],
+  "strings": [
+   "MatterLock"
+  ]
+ },
+ "zwave_js": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zwave_js/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "zha": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zha/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "mqtt": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lock.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/vacuum.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/mqtt/lawn_mower.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "homekit_controller": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homekit_controller/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "tedee": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tedee/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "august": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/august/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "yale": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/yale/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "switchbot": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "loqed": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/loqed/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "homematicip_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homematicip_cloud/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "vw_eu_data_act": {
+  "urls": [
+   "https://raw.githubusercontent.com/mikrohard/hass-vw-eu-data-act/main/custom_components/vw_eu_data_act/data.py"
+  ],
+  "strings": [
+   "\"mileage\"",
+   "total_increasing"
+  ]
+ },
+ "mydolphin_plus": {
+  "urls": [
+   "https://raw.githubusercontent.com/sh00t2kill/dolphin-robot/master/custom_components/mydolphin_plus/common/consts.py"
+  ],
+  "strings": [
+   "FILTER_BAG_STATUS",
+   "Filter Status"
+  ]
+ },
+ "litterrobot": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/litterrobot/sensor.py"
+  ],
+  "strings": [
+   "waste_drawer",
+   "litter_level",
+   "total_cycles"
+  ]
+ },
+ "husqvarna_automower_ble": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower_ble/lawn_mower.py"
+  ],
+  "strings": [
+   "LawnMower"
+  ]
+ },
+ "subaru": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/subaru/sensor.py"
+  ],
+  "strings": [
+   "odometer"
+  ]
+ },
+ "volvo": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/volvo/sensor.py"
+  ],
+  "strings": [
+   "odometer"
+  ]
+ },
+ "openevse": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/openevse/sensor.py"
+  ],
+  "strings": [
+   "usage_total"
+  ]
+ },
+ "schlage": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/schlage/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "sesame": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/sesame/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "yalexs_ble": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/yalexs_ble/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "dormakaba_dkey": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/dormakaba_dkey/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "deconz": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/deconz/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "homematic": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homematic/lock.py"
+  ],
+  "strings": [
+   "LockEntity"
+  ]
+ },
+ "roomba": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roomba/vacuum.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roomba/binary_sensor.py"
+  ],
+  "strings": [
+   "Vacuum",
+   "bin_full"
+  ]
+ },
+ "neato": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/neato/vacuum.py"
+  ],
+  "strings": [
+   "Vacuum"
+  ]
+ },
+ "romy": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/romy/vacuum.py"
+  ],
+  "strings": [
+   "Vacuum"
+  ]
+ },
+ "tuya": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/vacuum.py"
+  ],
+  "strings": [
+   "Vacuum"
+  ]
+ },
+ "switchbot_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot_cloud/vacuum.py"
+  ],
+  "strings": [
+   "Vacuum"
+  ]
+ },
+ "smartthings": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/vacuum.py"
+  ],
+  "strings": [
+   "Vacuum"
+  ]
+ },
+ "octoprint": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/octoprint/binary_sensor.py"
+  ],
+  "strings": [
+   "OctoPrintPrintingBinarySensor"
+  ]
+ },
+ "prusalink": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/prusalink/sensor.py"
+  ],
+  "strings": [
+   "printer_state"
+  ]
+ },
+ "sharkiq": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/sharkiq/vacuum.py"
+  ],
+  "strings": [
+   "Vacuum"
+  ]
+ },
+ "tplink": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tplink/vacuum.py"
+  ],
+  "strings": [
+   "Vacuum"
+  ]
+ },
+ "daikin": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/daikin/climate.py"
+  ],
+  "strings": [
+   "Climate"
+  ]
+ },
+ "gree": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/gree/climate.py"
+  ],
+  "strings": [
+   "Climate"
+  ]
+ },
+ "opentherm_gw": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/opentherm_gw/sensor.py"
+  ],
+  "strings": [
+   "central_heating_pressure"
+  ]
+ },
+ "plugwise": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/plugwise/sensor.py"
+  ],
+  "strings": [
+   "water_pressure"
+  ]
+ },
+ "incomfort": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/incomfort/sensor.py"
+  ],
+  "strings": [
+   "cv_pressure"
+  ]
+ },
+ "atag": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/atag/sensor.py"
+  ],
+  "strings": [
+   "CH Water Pressure"
+  ]
+ },
+ "vesync": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vesync/sensor.py"
+  ],
+  "strings": [
+   "filter_life"
+  ]
+ },
+ "comfoconnect": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/comfoconnect/sensor.py"
+  ],
+  "strings": [
+   "days_to_replace_filter"
+  ]
+ },
+ "renson": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/renson/sensor.py"
+  ],
+  "strings": [
+   "filter_change",
+   "FILTER_REMAIN_FIELD"
+  ]
+ },
+ "lamarzocco": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/lamarzocco/sensor.py"
+  ],
+  "strings": [
+   "total_coffees_made"
+  ]
+ },
+ "petkit": {
+  "urls": [
+   "https://raw.githubusercontent.com/Jezza34000/homeassistant_petkit/main/custom_components/petkit/sensor.py"
+  ],
+  "strings": [
+   "desiccant_left_days",
+   "filter_percent"
+  ]
+ },
+ "moonraker": {
+  "urls": [
+   "https://raw.githubusercontent.com/marcolivierarsenault/moonraker-home-assistant/main/custom_components/moonraker/sensor.py"
+  ],
+  "strings": [
+   "Totals Filament Used",
+   "total_filament_used"
+  ]
+ }
 }
