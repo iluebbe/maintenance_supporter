@@ -1,5 +1,14 @@
 """2D and 3D printers incl. Klipper via Moonraker.
 
+Threshold audit 2026-07-19: the AMS desiccant trigger targets the REAL
+percentage humidity sensor (tk 'humidity', PERCENTAGE + HUMIDITY class,
+exists only on hygrometer-equipped AMS units via Features.AMS_HUMIDITY) —
+NOT the 1-5 'humidity_index' scale sensor (distinct tk; an endswith
+'_humidity' match cannot hit '_humidity_index' either). Bambu publishes
+no official RH threshold (their desiccant status is color-based), so
+>40 % RH stays an editorial trip point: fresh desiccant holds an AMS at
+~10-20 % RH, 40 % means it is spent.
+
 Interval audit 2026-07-19: rail/rod lubrication follows Prusa's OFFICIAL
 200-print-hour maintenance interval (octoprint/prusalink); Bambu's 500 h
 stays editorial (different motion system, wiki unfetchable).

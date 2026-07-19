@@ -713,3 +713,24 @@ Catalog after round 7: **92 integrations / 172 signatures**.
   (not in HACS default under expected slugs).
 
 Catalog after round 8: **94 integrations / 174 signatures**.
+
+
+## Threshold audit round 2 (2026-07-19): the trip points
+
+Follow-up to the interval audit — the THRESHOLD-type values verified
+against manuals:
+
+- ✅ **Heating pressure value_below 1.0 bar** (7 integrations): Vaillant's
+  official guidance — ideal 1.0-1.5 bar cold, "below 1 bar → top up".
+  Exactly our trip point.
+- ✅ **Clean Tub 30 cycles**: LG's official tCL indicator fires "every 30
+  cycles / monthly" — validates smartthinq (30), hOn's reuse (30) and
+  Whirlpool's 60-wash-hours derivation (~30 cycles at 2 h).
+- ✅ **AMS desiccant >40 % RH**: verified the signature targets the REAL
+  percentage sensor (tk 'humidity', PERCENTAGE, hygrometer-AMS only) and
+  cannot hit the 1-5 'humidity_index' scale. Bambu has no official RH
+  number (color-based desiccant status) → 40 % stays editorial (fresh
+  desiccant = ~10-20 % RH).
+- Warning MARGINS (below 24 h / 10 % / 72 h / 7 days on device-reported
+  countdowns) are by design OUR lead times — the devices themselves alert
+  at zero; margins give the user time to order parts.
