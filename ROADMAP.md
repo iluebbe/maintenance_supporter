@@ -103,6 +103,20 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    registration of PAST services — pre-fill a backdated history entry
    (date, cost, invoice document) together with the start value.
 
+5. 💡 **Show the value of used parts on completions (#104)** — costs are
+   deliberately booked ONCE (part purchases at restock time; the completion
+   cost field is for extra expenses like labor), so a completion that only
+   consumed stocked parts shows cost 0. Correct for budgets, but the history
+   entry could additionally display the *informational* value of the parts
+   used (qty × unit price at purchase) without double-counting it into any
+   budget total.
+6. 💡 **Persisted checklist progress without completing (#73)** — checklist
+   ticks currently live only in the completion dialog and are stored on the
+   history entry at completion. A "partially done" workflow would persist
+   per-item progress on the PENDING task (WS field + panel rendering +
+   reset on completion), letting users tick off steps across several days
+   before closing the task.
+
 ### Shipped waves
 
 **Everything below is worked off** — most recently the **2.26/2.27 waves**:

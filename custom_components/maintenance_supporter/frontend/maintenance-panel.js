@@ -8649,19 +8649,27 @@ ${h?`<div class="sub">${h}</div>`:""}
             </div>
           `}
       </div>
-    `}_openGroupCreate(){this.shadowRoot.querySelector("maintenance-group-dialog")?.openCreate()}_openGroupEdit(e){let t=this._groups[e];t&&this.shadowRoot.querySelector("maintenance-group-dialog")?.openEdit(e,t)}async _deleteGroup(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(i?await i.confirm({title:s("delete_group",this._lang),message:s("delete_group_confirm",this._lang).replace("{name}",t),confirmText:s("delete",this._lang)}):confirm(`${s("delete_group_confirm",this._lang).replace("{name}",t)}`))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/delete",group_id:e}),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_renderBudgetBar(){let e=this._budget;if(!e)return p;let t=this._lang,i=e.currency_symbol||Ae,a=[];return e.monthly_budget>0&&a.push({label:s("budget_monthly",t),spent:e.monthly_spent,budget:e.monthly_budget}),e.yearly_budget>0&&a.push({label:s("budget_yearly",t),spent:e.yearly_spent,budget:e.yearly_budget}),a.length===0?p:o`
+    `}_openGroupCreate(){this.shadowRoot.querySelector("maintenance-group-dialog")?.openCreate()}_openGroupEdit(e){let t=this._groups[e];t&&this.shadowRoot.querySelector("maintenance-group-dialog")?.openEdit(e,t)}async _deleteGroup(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(i?await i.confirm({title:s("delete_group",this._lang),message:s("delete_group_confirm",this._lang).replace("{name}",t),confirmText:s("delete",this._lang)}):confirm(`${s("delete_group_confirm",this._lang).replace("{name}",t)}`))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/delete",group_id:e}),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_renderBudgetBar(){let e=this._budget;if(!e)return p;let t=this._lang,i=e.currency_symbol||Ae,a=[];e.monthly_budget>0&&a.push({label:s("budget_monthly",t),spent:e.monthly_spent,budget:e.monthly_budget}),e.yearly_budget>0&&a.push({label:s("budget_yearly",t),spent:e.yearly_spent,budget:e.yearly_budget});let l=[];return e.monthly_budget>0||l.push({label:s("budget_monthly",t),spent:e.monthly_spent||0}),e.yearly_budget>0||l.push({label:s("budget_yearly",t),spent:e.yearly_spent||0}),o`
       <div class="budget-bars">
-        ${a.map(l=>{let c=Math.min(100,Math.max(0,l.spent/l.budget*100)),h=c>=100?"var(--error-color, #f44336)":c>=e.alert_threshold_pct?"var(--warning-color, #ff9800)":"var(--success-color, #4caf50)";return o`
+        ${a.map(c=>{let h=Math.min(100,Math.max(0,c.spent/c.budget*100)),u=h>=100?"var(--error-color, #f44336)":h>=e.alert_threshold_pct?"var(--warning-color, #ff9800)":"var(--success-color, #4caf50)";return o`
             <div class="budget-item">
               <div class="budget-label">
-                <span>${l.label}</span>
-                <span>${l.spent.toFixed(2)} / ${l.budget.toFixed(2)} ${i}</span>
+                <span>${c.label}</span>
+                <span>${c.spent.toFixed(2)} / ${c.budget.toFixed(2)} ${i}</span>
               </div>
               <div class="budget-bar">
-                <div class="budget-bar-fill" style="width:${c}%; background:${h}"></div>
+                <div class="budget-bar-fill" style="width:${h}%; background:${u}"></div>
               </div>
             </div>
           `})}
+        ${l.map(c=>o`
+            <div class="budget-item budget-spent-only">
+              <div class="budget-label">
+                <span>${c.label}</span>
+                <span>${c.spent.toFixed(2)} ${i}</span>
+              </div>
+            </div>
+          `)}
       </div>
     `}_renderOverviewRow(e){let t=this._lang,i=e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0,a=0,l=Ye.ok,c=!1;if(i&&e.days_until_due!==null){let v=bt(e.interval_days,e.days_until_due,e.interval_unit);a=v.pct,c=v.overflow,e.status==="overdue"?l=Ye.overdue:e.status==="due_soon"&&(l=Ye.due_soon)}let h=e.area_id?this.hass?.areas?.[e.area_id]?.name:null,u=e.responsible_user_id?this._userService?.getUserName(e.responsible_user_id):null,g=e.group_names.length>0||h||u,m=this._bulkMode&&this._bulkSelected.has(this._bulkKey(e));return o`
       <div class="task-row${e.enabled?"":" task-disabled"}${m?" bulk-selected":""}">
