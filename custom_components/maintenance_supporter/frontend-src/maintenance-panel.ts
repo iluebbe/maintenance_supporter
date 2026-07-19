@@ -132,6 +132,11 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _toastMessage = "";
   @state() private _toastUndo: (() => void) | null = null;
   @state() private _toastActionLabel = "";
+  // Narrow-viewport disclosure (UX 2026-07): filters and create-actions are
+  // occasional-use — collapsed behind two toggle buttons so the task list
+  // starts above the fold on phones. Desktop renders them inline as before.
+  @state() private _filtersOpen = false;
+  @state() private _actionsMenuOpen = false;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _dismissedSuggestions = new Set<string>();
 
@@ -2094,10 +2099,39 @@ export class MaintenanceSupporterPanel extends LitElement {
       (n, o) => n + o.tasks.filter((tk) => tk.archived).length, 0,
     );
 
+    // Filters actively narrowing the list — shown on the collapsed toggle so
+    // "why is my list short?" has a visible answer even with filters hidden.
+    const activeFilterCount =
+      (this._filterStatus ? 1 : 0) +
+      (this._filterUser ? 1 : 0) +
+      (this._filterLabel ? 1 : 0) +
+      (this._activeViewId ? 1 : 0);
+
     return html`
       ${this._features.budget ? this._renderBudgetBar() : nothing}
 
-      <div class="filter-bar">
+      ${this.narrow ? html`
+        <div class="mobile-controls">
+          <ha-button
+            class="mobile-toggle ${this._filtersOpen ? "active" : ""}"
+            @click=${() => { this._filtersOpen = !this._filtersOpen; }}
+          >
+            <ha-icon icon="mdi:filter-variant"></ha-icon>
+            ${t("filter_label", L)}${activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+          </ha-button>
+          ${!isOperator ? html`
+            <ha-button
+              class="mobile-toggle ${this._actionsMenuOpen ? "active" : ""}"
+              @click=${() => { this._actionsMenuOpen = !this._actionsMenuOpen; }}
+            >
+              <ha-icon icon="mdi:plus"></ha-icon>
+              ${t("add", L)}
+            </ha-button>
+          ` : nothing}
+        </div>
+      ` : nothing}
+
+      <div class="filter-bar ${this.narrow && !this._filtersOpen ? "collapsed" : ""}">
         <label class="filter-field">
           <span class="filter-label">${t("views_label", L)}</span>
           <select
@@ -2217,7 +2251,18 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${this._bulkMode ? t("cancel", L) : t("bulk_select", L)}
           </ha-button>
         ` : nothing}
-        ${!isOperator ? html`
+      </div>
+
+      ${!isOperator ? html`
+        <div
+          class="actions-bar ${this.narrow && !this._actionsMenuOpen ? "collapsed" : ""}"
+          @click=${() => { if (this.narrow) this._actionsMenuOpen = false; }}
+        >
+          <ha-button
+            @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}
+          >
+            ${t("new_task", L)}
+          </ha-button>
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
           >
@@ -2232,13 +2277,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           <ha-button @click=${() => this._openSuggestedSetups()}>
             <ha-icon icon="mdi:auto-fix"></ha-icon> ${t("setups_button", L)}
           </ha-button>
-          <ha-button
-            @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}
-          >
-            ${t("new_task", L)}
-          </ha-button>
-        ` : nothing}
-      </div>
+        </div>
+      ` : nothing}
 
       ${rows.length === 0
         ? html`
