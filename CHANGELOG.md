@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Options-flow edit form: two save-blocking validation bugs
+
+- With the advanced **schedule-time** flag enabled, saving the edit-task
+  form without a time set always failed (HTTP 400): the field's empty
+  default did not pass its own time validator. The empty value is now
+  accepted — which also makes the documented "clear the time by leaving
+  the field empty" path actually work.
+- A task whose responsible user was stored as `null` — or pointed at a
+  since-deleted HA user — likewise blocked the form from saving. The
+  dropdown now falls back to "—" in both cases.
+
 ### 📖 New: supported-integrations reference
 
 - `docs/INTEGRATIONS.md` lists every catalogued integration with its
