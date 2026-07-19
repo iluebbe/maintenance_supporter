@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 💰 Spent totals visible without a budget maximum (#104)
+
+- With budget tracking enabled but no monthly/yearly maximum configured,
+  the dashboard showed nothing — the spent money was only discoverable in
+  per-object details. The dashboard now shows plain **spent lines**
+  ("Monthly: 9.00 €") whenever a maximum isn't set; a configured maximum
+  keeps the classic progress bar. Mixed setups show one of each.
+
 ## [2.32.2] - 2026-07-19
 
 ### 🎯 Suggested setups: pick the target object (#105)

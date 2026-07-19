@@ -2758,7 +2758,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     const bars: { label: string; spent: number; budget: number }[] = [];
     if (b.monthly_budget > 0) bars.push({ label: t("budget_monthly", L), spent: b.monthly_spent, budget: b.monthly_budget });
     if (b.yearly_budget > 0) bars.push({ label: t("budget_yearly", L), spent: b.yearly_spent, budget: b.yearly_budget });
-    if (bars.length === 0) return nothing;
+    // #104: budget tracking enabled WITHOUT a maximum — the spent totals were
+    // invisible (a bar needs a denominator). Show plain spent lines instead,
+    // so "what did I spend" always has a dashboard answer.
+    const spentOnly: { label: string; spent: number }[] = [];
+    if (!(b.monthly_budget > 0)) spentOnly.push({ label: t("budget_monthly", L), spent: b.monthly_spent || 0 });
+    if (!(b.yearly_budget > 0)) spentOnly.push({ label: t("budget_yearly", L), spent: b.yearly_spent || 0 });
 
     return html`
       <div class="budget-bars">
@@ -2777,6 +2782,16 @@ export class MaintenanceSupporterPanel extends LitElement {
             </div>
           `;
         })}
+        ${spentOnly.map(
+          (s) => html`
+            <div class="budget-item budget-spent-only">
+              <div class="budget-label">
+                <span>${s.label}</span>
+                <span>${s.spent.toFixed(2)} ${cs}</span>
+              </div>
+            </div>
+          `,
+        )}
       </div>
     `;
   }
