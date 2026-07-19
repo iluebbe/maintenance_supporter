@@ -166,6 +166,31 @@ export const panelStyles = css`
 
   /* Bulk selection: a leading checkbox column while selecting. */
   .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) minmax(0, 220px) 100px 150px auto; }
+
+  /* Wide desktop (UX 2026-07): with a 1fr name column the slack landed
+     BETWEEN the task name and its right-aligned chips — a ragged hole in
+     the middle of every row. Size the name track to its content instead
+     and hand the slack to the chips track, chips now left-aligned: the
+     row reads as a left description cluster (badges/object/name/chips)
+     and a right meta cluster (type/due/actions). */
+  @media (min-width: 1200px) {
+    .task-table {
+      grid-template-columns:
+        auto                       /* badges */
+        minmax(100px, 180px)       /* object-name */
+        fit-content(400px)         /* task-name — hugs the longest name */
+        minmax(0, 1fr)             /* task-sub (chips) absorbs the slack */
+        100px                      /* type */
+        150px                      /* due-cell */
+        auto;                      /* row-actions */
+    }
+    .task-table.bulk {
+      grid-template-columns: auto auto minmax(100px, 180px) fit-content(400px) minmax(0, 1fr) 100px 150px auto;
+    }
+    .task-table .task-sub {
+      justify-content: flex-start;
+    }
+  }
   .bulk-check { display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .bulk-check input, .bulk-selectall input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary-color); }
   .task-row.bulk-selected { background: color-mix(in srgb, var(--primary-color) 12%, transparent); }

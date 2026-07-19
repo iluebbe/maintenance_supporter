@@ -1143,10 +1143,19 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .weibull-info-row { flex-direction: column; gap: 8px; }
 
     /* One compact line instead of two stacked rows — the bars are glanceable
-       info, not the page's main content (UX 2026-07). */
+       info, not the page's main content (UX 2026-07). The label stacks above
+       the value: side-by-side, the yearly pair wrapped raggedly on 360px
+       screens; a uniform two-line stack reads as intended at every width. */
     .budget-bars { gap: 12px; padding: 6px 8px; }
     .budget-item { min-width: 0; }
-    .budget-label { font-size: 11px; margin-bottom: 2px; }
+    .budget-label {
+      font-size: 11px;
+      margin-bottom: 2px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .budget-label span { white-space: nowrap; }
     .budget-bar { height: 4px; }
 
     .group-card { min-width: 0; max-width: 100%; }
@@ -1450,6 +1459,31 @@ ${H(n.notes)}</div>`:""}
 
   /* Bulk selection: a leading checkbox column while selecting. */
   .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) minmax(0, 220px) 100px 150px auto; }
+
+  /* Wide desktop (UX 2026-07): with a 1fr name column the slack landed
+     BETWEEN the task name and its right-aligned chips — a ragged hole in
+     the middle of every row. Size the name track to its content instead
+     and hand the slack to the chips track, chips now left-aligned: the
+     row reads as a left description cluster (badges/object/name/chips)
+     and a right meta cluster (type/due/actions). */
+  @media (min-width: 1200px) {
+    .task-table {
+      grid-template-columns:
+        auto                       /* badges */
+        minmax(100px, 180px)       /* object-name */
+        fit-content(400px)         /* task-name — hugs the longest name */
+        minmax(0, 1fr)             /* task-sub (chips) absorbs the slack */
+        100px                      /* type */
+        150px                      /* due-cell */
+        auto;                      /* row-actions */
+    }
+    .task-table.bulk {
+      grid-template-columns: auto auto minmax(100px, 180px) fit-content(400px) minmax(0, 1fr) 100px 150px auto;
+    }
+    .task-table .task-sub {
+      justify-content: flex-start;
+    }
+  }
   .bulk-check { display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .bulk-check input, .bulk-selectall input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary-color); }
   .task-row.bulk-selected { background: color-mix(in srgb, var(--primary-color) 12%, transparent); }
