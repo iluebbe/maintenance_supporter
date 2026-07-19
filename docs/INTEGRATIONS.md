@@ -114,6 +114,14 @@ dialog picks it up automatically.
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
 | Volvo | `volvo` | Annual Service | every 15000 units (counter delta) |  |
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Polestar | `polestar_api` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Ford (FordPass) | `fordpass` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Toyota Connected | `toyota` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| MG/SAIC iSMART | `mg_saic` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
 
@@ -139,6 +147,8 @@ dialog picks it up automatically.
 |  |  | Refill Softener Salt | below 7 days remaining |  |
 | EcoWater softener | `ecowater_softener` | Refill Softener Salt | below 10 % remaining |  |
 |  |  | Refill Softener Salt | below 7 days remaining |  |
+| Wolf SmartSet | `wolflink` | Refill Heating Water | below 1 |  |
+| Palazzetti pellet stove | `palazzetti` | Empty Ash Pan | every 100 units (counter delta) |  |
 
 ## Air treatment — purifiers, ACs and HRV/ventilation filters
 
@@ -183,6 +193,9 @@ dialog picks it up automatically.
 |  |  | Replace Filter | below 10 % remaining |  |
 | La Marzocco | `lamarzocco` | Backflush Espresso Group | every 100 units (counter delta) |  |
 |  |  | Replace Water Filter | every 1000 units (counter delta) |  |
+| Haier hOn (Haier/Candy/Hoover) | `hon` | Replace Filter | below 10 % remaining |  |
+|  |  | Filter Cleaning | below 10 % remaining |  |
+|  |  | Clean Tub | every 30 units (counter delta) |  |
 
 ## 2D and 3D printers incl. Klipper via Moonraker
 
@@ -268,6 +281,6 @@ dialog picks it up automatically.
 
 ---
 
-**85 integrations / 159 verified signatures.**
+**92 integrations / 172 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

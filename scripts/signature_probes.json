@@ -744,5 +744,65 @@
    "SALT_LEVEL_PERCENTAGE",
    "OUT_OF_SALT"
   ]
+ },
+ "hon": {
+  "urls": [
+   "https://raw.githubusercontent.com/Andre0512/hon/main/custom_components/hon/sensor.py"
+  ],
+  "strings": [
+   "mainFilterStatus",
+   "filter_cleaning",
+   "totalWashCycle",
+   "cycles_total"
+  ]
+ },
+ "polestar_api": {
+  "urls": [
+   "https://raw.githubusercontent.com/pypolestar/polestar_api/main/custom_components/polestar_api/sensor.py"
+  ],
+  "strings": [
+   "current_odometer"
+  ]
+ },
+ "fordpass": {
+  "urls": [
+   "https://raw.githubusercontent.com/itchannel/fordpass-ha/master/custom_components/fordpass/sensor.py"
+  ],
+  "strings": [
+   "odometer"
+  ]
+ },
+ "toyota": {
+  "urls": [
+   "https://raw.githubusercontent.com/DurgNomis-drol/ha_toyota/master/custom_components/toyota/sensor.py"
+  ],
+  "strings": [
+   "odometer"
+  ]
+ },
+ "mg_saic": {
+  "urls": [
+   "https://raw.githubusercontent.com/ad-ha/mg-saic-ha/main/custom_components/mg_saic/sensor.py"
+  ],
+  "strings": [
+   "Mileage",
+   "mileage"
+  ]
+ },
+ "wolflink": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/wolflink/sensor.py"
+  ],
+  "strings": [
+   "pressure"
+  ]
+ },
+ "palazzetti": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/palazzetti/sensor.py"
+  ],
+  "strings": [
+   "pellet_quantity"
+  ]
  }
 }

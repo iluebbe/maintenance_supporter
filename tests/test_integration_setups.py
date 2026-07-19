@@ -782,6 +782,59 @@ def test_integrations_doc_in_sync_with_catalog() -> None:
     )
 
 
+async def test_round7_hon_cars2_pellet_wolf(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Round 7: hOn purifier+washer (the open #101 Haier ask), the second
+    car wave (Polestar/Ford/Toyota/MG), Palazzetti ash pan by pellet kg,
+    Wolf heating pressure."""
+    await setup_integration(hass, global_entry)
+    purifier = await _seed_sensor(
+        hass, "hon", "ap1", "Haier Purifier",
+        [("main_filter", "filter_life", "%"), ("pre_filter", "filter_cleaning", "%")],
+    )
+    washer = await _seed_sensor(
+        hass, "hon", "wm1", "Candy Washer",
+        [("cycles", "cycles_total", None)],
+    )
+    polestar = await _seed_sensor(
+        hass, "polestar_api", "ps2", "Polestar 2",
+        [("current_odometer", None, "km")],
+    )
+    toyota = await _seed_sensor(
+        hass, "toyota", "rav4", "RAV4",
+        [("odometer", "odometer", "km")],
+    )
+    stove = await _seed_sensor(
+        hass, "palazzetti", "eco1", "Palazzetti Ecofire",
+        [("pellet_quantity", "pellet_quantity", "kg")],
+    )
+    wolf = await _seed_sensor(
+        hass, "wolflink", "csw1", "Wolf CSW",
+        [("pressure", "pressure", "bar")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    pur = {t["task_name"]: t for t in setups[purifier]["tasks"]}
+    assert set(pur) == {"Replace Filter", "Filter Cleaning"}
+    (wash_task,) = setups[washer]["tasks"]
+    assert wash_task["task_name"] == "Clean Tub"
+    assert wash_task["direction"] == "usage_delta" and wash_task["threshold"] == 30.0
+
+    for car in (polestar, toyota):
+        by_name = {t["task_name"]: t for t in setups[car]["tasks"]}
+        assert by_name["Annual Service"]["threshold"] == 15000.0
+        assert by_name["Tire Rotation"]["threshold"] == 10000.0
+
+    (ash,) = setups[stove]["tasks"]
+    assert ash["task_name"] == "Empty Ash Pan" and ash["threshold"] == 100.0
+
+    (wp,) = setups[wolf]["tasks"]
+    assert wp["task_name"] == "Refill Heating Water"
+    assert wp["direction"] == "value_below" and wp["threshold"] == 1.0
+
+
 async def test_softener_salt_and_philips_wick(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

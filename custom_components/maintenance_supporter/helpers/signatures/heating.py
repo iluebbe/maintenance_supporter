@@ -128,4 +128,26 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "wolflink": IntegrationSignature(
+        name="Wolf SmartSet",
+        verified="2026-07-19 @ core/dev wolflink/sensor.py",
+        source="core wolflink: key 'pressure', BAR (heating loop).",
+        tasks=(
+            ConsumableSignature(("pressure",), "Refill Heating Water", "value_below", delta_units=1),
+        ),
+    ),
+    "palazzetti": IntegrationSignature(
+        name="Palazzetti pellet stove",
+        verified="2026-07-19 @ core/dev palazzetti/sensor.py",
+        source=(
+            "core palazzetti: tk 'pellet_quantity' (KILOGRAMS consumed, "
+            "cumulative) -> usage_delta; ash-pan cadence ~100 kg of pellets "
+            "(editorial: roughly weekly in season; manuals prescribe "
+            "calendar-based cleaning). 'pellet_level' is a CM tank gauge — "
+            "inventory, not wear; skipped."
+        ),
+        tasks=(
+            ConsumableSignature(("pellet_quantity",), "Empty Ash Pan", "usage_delta", delta_units=100),
+        ),
+    ),
 }

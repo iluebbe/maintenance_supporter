@@ -100,4 +100,47 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
         ),
     ),
+    "polestar_api": IntegrationSignature(
+        name="Polestar",
+        verified="2026-07-19 @ pypolestar/polestar_api main sensor.py",
+        source=(
+            "HACS polestar_api: key 'current_odometer' (native METERS, "
+            "suggested display KILOMETERS — the unit-aware threshold reads "
+            "the display unit)."
+        ),
+        tasks=(
+            ConsumableSignature(("current_odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("current_odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "fordpass": IntegrationSignature(
+        name="Ford (FordPass)",
+        verified="2026-07-19 @ itchannel/fordpass-ha master sensor.py",
+        source="HACS fordpass: dict-key 'odometer' sensor (name-style, suffix match).",
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "toyota": IntegrationSignature(
+        name="Toyota Connected",
+        verified="2026-07-19 @ DurgNomis-drol/ha_toyota master sensor.py",
+        source="HACS toyota: tk 'odometer', DISTANCE, TOTAL_INCREASING.",
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "mg_saic": IntegrationSignature(
+        name="MG/SAIC iSMART",
+        verified="2026-07-19 @ ad-ha/mg-saic-ha main sensor.py (HACS default)",
+        source=(
+            "HACS mg_saic: 'Mileage' sensor (suffix _mileage; the sibling "
+            "'Mileage Since Last Charge' does not end in _mileage — no clash)."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
 }

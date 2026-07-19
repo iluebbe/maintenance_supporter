@@ -185,4 +185,19 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "hon": IntegrationSignature(
+        name="Haier hOn (Haier/Candy/Hoover)",
+        verified="2026-07-19 @ Andre0512/hon main sensor.py (1.5k stars; open #101 ask)",
+        source=(
+            "HACS hon: purifiers (type AP) expose tk 'filter_life' (main "
+            "filter, %) and tk 'filter_cleaning' (pre-filter, %); washers "
+            "(WM/WD) expose tk 'cycles_total' (lifetime wash-cycle counter) — "
+            "tub-clean cadence reuses LG's manufacturer value of 30 cycles."
+        ),
+        tasks=(
+            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+            ConsumableSignature(("filter_cleaning",), "Filter Cleaning", "percent_left"),
+            ConsumableSignature(("cycles_total",), "Clean Tub", "usage_delta", delta_units=30),
+        ),
+    ),
 }

@@ -4158,6 +4158,25 @@ _T: dict[str, dict[str, str]] = {
         "hi": "सॉफ़्नर नमक भरें",
         "zh": "补充软水盐",
     },
+    "Empty Ash Pan": {
+        "de": "Aschekasten leeren",
+        "es": "Vaciar el cajón de cenizas",
+        "fr": "Vider le bac à cendres",
+        "it": "Svuotare il cassetto della cenere",
+        "nl": "Aslade legen",
+        "pt": "Esvaziar a gaveta de cinzas",
+        "ru": "Опорожнить зольник",
+        "uk": "Спорожнити зольник",
+        "pl": "Opróżnić popielnik",
+        "cs": "Vyprázdnit popelník",
+        "sv": "Töm asklådan",
+        "da": "Tøm askeskuffen",
+        "nb": "Tøm askeskuffen",
+        "fi": "Tyhjennä tuhka-astia",
+        "ja": "灰受けを空にする",
+        "hi": "राख की ट्रे खाली करें",
+        "zh": "清空灰盒",
+    },
 }
 
 
