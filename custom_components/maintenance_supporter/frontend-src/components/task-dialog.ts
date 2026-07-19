@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../types";
-import { t, weekdayName } from "../styles";
+import { formatDate, t, weekdayName } from "../styles";
 import { UserService } from "../user-service";
 
 import { describeWsError } from "../ws-errors";
@@ -156,6 +156,12 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _endsMode: "never" | "count" | "until" = "never";
   @state() private _endsCount = "";
   @state() private _endsUntil = "";
+  // #83: live "next dates" preview — dates come from the BACKEND engine via
+  // schedule/preview (never a frontend reimplementation; the #103 lesson).
+  @state() private _schedulePreview: string[] = [];
+  @state() private _schedulePreviewEnded = false;
+  private _previewTimer: ReturnType<typeof setTimeout> | undefined;
+  private _previewSeq = 0;
   @state() private _notes = "";
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
@@ -1223,6 +1229,99 @@ export class MaintenanceTaskDialog extends LitElement {
       : [...this._weekdays, i];
   }
 
+  /** The draft schedule in engine (Schedule.to_dict) form — MIRRORS the
+   *  _save mapping; keep both in sync when adding schedule fields. Null =
+   *  nothing to preview (manual, or trigger-only without an interval). */
+  private _previewScheduleDict(): Record<string, unknown> | null {
+    if (this._scheduleType === "one_time") {
+      return this._dueDate ? { kind: "one_time", due_date: this._dueDate } : null;
+    }
+    if (CALENDAR_KINDS.includes(this._scheduleType)) {
+      return { ...this._buildSchedule(), ...this._recurrenceExtras() };
+    }
+    const every = parseInt(this._intervalDays, 10);
+    if (this._scheduleType === "manual" || !every || every <= 0) return null;
+    return {
+      kind: "interval",
+      every,
+      unit: this._intervalUnit,
+      anchor: this._intervalAnchor,
+      ...this._recurrenceExtras(),
+    };
+  }
+
+  private static readonly _PREVIEW_RELEVANT = new Set([
+    "_open", "_scheduleType", "_intervalDays", "_intervalUnit", "_intervalAnchor",
+    "_dueDate", "_weekdays", "_nth", "_nthWeekday", "_domDay", "_domLastDay",
+    "_domBusiness", "_calOffset", "_seasonMonths", "_endsMode", "_endsCount",
+    "_endsUntil", "_lastPerformed",
+  ]);
+
+  protected updated(changed: Map<PropertyKey, unknown>): void {
+    super.updated?.(changed);
+    for (const key of changed.keys()) {
+      if (MaintenanceTaskDialog._PREVIEW_RELEVANT.has(String(key))) {
+        this._schedulePreviewRefresh();
+        return;
+      }
+    }
+  }
+
+  private _schedulePreviewRefresh(): void {
+    if (this._previewTimer) clearTimeout(this._previewTimer);
+    this._previewTimer = setTimeout(() => void this._fetchSchedulePreview(), 300);
+  }
+
+  private async _fetchSchedulePreview(): Promise<void> {
+    const sched = this._open ? this._previewScheduleDict() : null;
+    if (!sched) {
+      this._schedulePreview = [];
+      this._schedulePreviewEnded = false;
+      return;
+    }
+    const seq = ++this._previewSeq;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{
+        occurrences: string[];
+        series_ended: boolean;
+      }>({
+        type: "maintenance_supporter/schedule/preview",
+        schedule: sched,
+        ...(this._lastPerformed ? { last_performed: this._lastPerformed } : {}),
+      });
+      if (seq !== this._previewSeq) return; // a newer edit superseded this
+      this._schedulePreview = res.occurrences || [];
+      this._schedulePreviewEnded = !!res.series_ended;
+    } catch {
+      // Transient WS error — keep the last preview instead of flickering.
+    }
+  }
+
+  private _renderSchedulePreview() {
+    if (this._schedulePreview.length === 0) return nothing;
+    const L = this._lang;
+    const time = this.scheduleTimeEnabled && this._scheduleTime ? ` ${this._scheduleTime}` : "";
+    const chips = this._schedulePreview
+      .map((iso, i) => {
+        const js = new Date(`${iso}T12:00:00`).getDay(); // 0=Sun
+        const wd = weekdayName(js === 0 ? 6 : js - 1, L, "short");
+        return `${wd} ${formatDate(iso, L)}${i === 0 ? time : ""}`;
+      })
+      .join(" · ");
+    const onTime =
+      this._scheduleType === "time_based" && this._intervalAnchor === "completion"
+        ? html`<div class="field-help">${t("schedule_preview_ontime", L)}</div>`
+        : nothing;
+    return html`
+      <div class="trigger-live-hint schedule-preview">
+        ${t("schedule_preview_title", L)}: ${chips}${this._schedulePreviewEnded
+          ? html` <span class="field-help">${t("schedule_preview_ends", L)}</span>`
+          : nothing}
+        ${onTime}
+      </div>
+    `;
+  }
+
   /** Build the nested `schedule` object for the selected calendar kind. */
   private _buildSchedule(): Record<string, unknown> {
     const withOffset = (schedule: Record<string, unknown>) => {
@@ -1750,6 +1849,7 @@ export class MaintenanceTaskDialog extends LitElement {
               `
             : nothing}
           ${this._renderRecurrenceExtras()}
+          ${this._renderSchedulePreview()}
           <ms-textfield
             label="${t("warning_days", L)}"
             type="number"

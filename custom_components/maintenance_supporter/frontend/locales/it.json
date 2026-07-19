@@ -783,5 +783,8 @@
   "baseline_current_effective": "Valore iniziale attualmente in vigore: {value}",
   "runtime_on_states": "Stati attivi (separati da virgole)",
   "runtime_on_states_help": "Stati che contano come in funzione — predefinito: on. Ad es. mowing, cleaning, printing. Con un attributo selezionato vengono confrontati i suoi valori.",
-  "setups_target_new": "Crea nuovo: {name}"
+  "setups_target_new": "Crea nuovo: {name}",
+  "schedule_preview_title": "Prossime date",
+  "schedule_preview_ontime": "Presumendo un completamento puntuale.",
+  "schedule_preview_ends": "(la serie termina)"
 }

@@ -783,5 +783,8 @@
   "baseline_current_effective": "Gjeldende startverdi: {value}",
   "runtime_on_states": "Aktive tilstander (kommaseparert)",
   "runtime_on_states_help": "Tilstander som teller som driftstid — standard: on. F.eks. mowing, cleaning, printing. Med et valgt attributt sammenlignes verdiene dets i stedet.",
-  "setups_target_new": "Opprett ny: {name}"
+  "setups_target_new": "Opprett ny: {name}",
+  "schedule_preview_title": "Kommende datoer",
+  "schedule_preview_ontime": "Forutsatt fullføring i tide.",
+  "schedule_preview_ends": "(serien avsluttes)"
 }

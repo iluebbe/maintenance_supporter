@@ -198,17 +198,34 @@ class Schedule:
         return result
 
     def _roll_to_season(self, d: date | None) -> date | None:
-        """Roll a due date outside the seasonal window to the 1st of the next
-        active month; a no-op when there's no window or the date is in season."""
+        """Roll a due date outside the seasonal window into the next active
+        month; a no-op when there's no window or the date is in season.
+
+        Interval kinds land on the month's 1st ("due once the season starts").
+        Calendar kinds PRESERVE their pattern inside the window — a "2nd
+        Saturday" task must come due on the 2nd Saturday of the active month,
+        not on the 1st (#83). If the pattern (or its ±offset) misses the
+        active month, the search continues into the next one, bounded.
+        """
         if d is None or not self.season_months or d.month in self.season_months:
             return d
         year, month = d.year, d.month
-        for _ in range(12):
+        for _ in range(24):
             month += 1
             if month > 12:
                 month, year = 1, year + 1
-            if month in self.season_months:
+            if month not in self.season_months:
+                continue
+            if self.kind not in _CALENDAR_KINDS:
                 return date(year, month, 1)
+            occ = self._calendar_occurrence(date(year, month, 1), inclusive=True)
+            if occ is None:
+                return date(year, month, 1)
+            if occ.month in self.season_months:
+                return occ
+            # Pattern (e.g. a 5th Friday) or its offset fell outside the
+            # window — keep searching from where the occurrence landed.
+            year, month = occ.year, occ.month
         return d  # season_months held only invalid values — leave the date as-is
 
     def _compute_next_due(

@@ -783,5 +783,8 @@
   "baseline_current_effective": "現在有効な開始値：{value}",
   "runtime_on_states": "稼働中とみなす状態（カンマ区切り）",
   "runtime_on_states_help": "稼働時間として数える状態 — 既定値：on。例：mowing, cleaning, printing。属性を選択している場合はその値が比較されます。",
-  "setups_target_new": "新規作成：{name}"
+  "setups_target_new": "新規作成：{name}",
+  "schedule_preview_title": "次回の予定日",
+  "schedule_preview_ontime": "期日どおりに完了した場合。",
+  "schedule_preview_ends": "（シリーズ終了）"
 }

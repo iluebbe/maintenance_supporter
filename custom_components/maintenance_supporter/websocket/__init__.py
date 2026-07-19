@@ -427,6 +427,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_get_budget_status,
         ws_get_settings,
         ws_get_statistics,
+        ws_schedule_preview,
         ws_subscribe,
         ws_test_notification,
         ws_update_global_settings,
@@ -549,6 +550,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_templates)
     websocket_api.async_register_command(hass, ws_export_data)
     websocket_api.async_register_command(hass, ws_get_budget_status)
+    websocket_api.async_register_command(hass, ws_schedule_preview)
     websocket_api.async_register_command(hass, ws_export_csv)
     websocket_api.async_register_command(hass, ws_export_objects_csv)
     websocket_api.async_register_command(hass, ws_import_csv)

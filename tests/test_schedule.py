@@ -429,6 +429,35 @@ def test_season_window_rolls_off_season_due_to_next_active_month() -> None:
     assert _nd(s, last=date(2026, 10, 25)) == date(2027, 4, 1)
 
 
+def test_season_window_preserves_calendar_pattern() -> None:
+    """#83: a '2nd Saturday' task with a Jan+Jul window must come due on the
+    2nd SATURDAY of the active month — not on its 1st (the interval-kind
+    roll). Chain two completions to cover both window months."""
+    s = Schedule(kind=KIND_NTH_WEEKDAY, nth=2, weekday=5, season_months=(1, 7))
+    # Completed on 2026-07-19 → next monthly pattern date (Aug) is off-season
+    # → rolled into January, ON the pattern: Sat 2027-01-09.
+    d1 = _nd(s, last=date(2026, 7, 19))
+    assert d1 == date(2027, 1, 9)
+    assert d1.weekday() == 5
+    # And from there: Sat 2027-07-10.
+    assert _nd(s, last=d1) == date(2027, 7, 10)
+
+
+def test_season_window_calendar_pattern_missing_in_window_month() -> None:
+    """A 5th-Tuesday task windowed to February: Feb 2027 has no 5th Tuesday,
+    so the roll continues to the next window year — Feb 2028 (leap layout)
+    HAS one: Tue 2028-02-29. Covers the keep-searching branch."""
+    s = Schedule(kind=KIND_NTH_WEEKDAY, nth=5, weekday=1, season_months=(2,))
+    assert _nd(s, last=date(2026, 12, 31)) == date(2028, 2, 29)
+
+
+def test_season_window_calendar_falls_back_when_pattern_undefined() -> None:
+    """A weekdays kind with an EMPTY weekday set can't produce an occurrence —
+    the roll falls back to the window month's 1st instead of looping."""
+    s = Schedule(kind=KIND_WEEKDAYS, weekdays=(), season_months=(4,))
+    assert s._roll_to_season(date(2026, 11, 8)) == date(2027, 4, 1)
+
+
 def test_season_window_keeps_in_season_due_untouched() -> None:
     s = Schedule(kind=KIND_INTERVAL, every=2, unit="weeks", season_months=(4, 5, 6, 7, 8, 9, 10))
     # A June completion → mid-July, still in season, unchanged.
