@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🌐 Fixed: Polish, Czech and Swedish date formats
+
+- Dates for the `pl`, `cs` and `sv` UI languages silently fell back to the
+  US format (a Polish user saw `01/09/2027` instead of `09.01.2027`) — the
+  three locales were missing from the language→locale map. Found by a live
+  multi-language render check, which is now a kept script
+  (`e2e/live-i18n-spotcheck.mjs`): it renders the panel in six languages
+  via the real user-language setting and compares the new-feature strings
+  and date formats against the shipped locale files.
+
 ## [2.34.0] - 2026-07-19
 
 ### 📅 Live schedule preview — your next three dates (#83)
