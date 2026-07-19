@@ -753,6 +753,40 @@ async def test_wave4_boilers_hrv_purifier_espresso_petkit_klipper(
     assert nozzle["direction"] == "usage_delta" and nozzle["threshold"] == 1000.0
 
 
+async def test_oralb_brush_head_via_state_runtime(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Oral-B: the engine counts brushing time on the ENUM state entity
+    (on_states=['running']) — 6 h ≈ the dentist's three months."""
+    await setup_integration(hass, global_entry)
+    brush = await _seed_sensor(
+        hass, "oralb", "io8", "Oral-B iO8",
+        [("toothbrush_state", "toothbrush_state", None)],
+    )
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    (task,) = setups[brush]["tasks"]
+    assert task["task_name"] == "Replace Brush Head"
+    assert task["direction"] == "runtime_hours" and task["threshold"] == 6.0
+
+    conn = make_ws_connection()
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": brush}]},
+    )
+    obj = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Oral-B iO8"
+    )
+    (task_cfg,) = obj.data[CONF_TASKS].values()
+    tc = task_cfg["trigger_config"]
+    assert tc["type"] == "runtime" and tc["trigger_on_states"] == ["running"]
+    assert tc["trigger_runtime_hours"] == 6.0
+
+
 async def test_philips_dual_unit_and_starkvind_minutes(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

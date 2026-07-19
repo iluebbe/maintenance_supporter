@@ -4101,6 +4101,25 @@ _T: dict[str, dict[str, str]] = {
         "hi": "नोज़ल बदलें",
         "zh": "更换喷嘴",
     },
+    "Replace Brush Head": {
+        "de": "Bürstenkopf wechseln",
+        "es": "Sustituir el cabezal del cepillo",
+        "fr": "Remplacer la brossette",
+        "it": "Sostituire la testina",
+        "nl": "Opzetborstel vervangen",
+        "pt": "Substituir a cabeça da escova",
+        "ru": "Заменить насадку щётки",
+        "uk": "Замінити насадку щітки",
+        "pl": "Wymienić końcówkę szczoteczki",
+        "cs": "Vyměnit hlavici kartáčku",
+        "sv": "Byt borsthuvud",
+        "da": "Udskift børstehoved",
+        "nb": "Bytt børstehode",
+        "fi": "Vaihda harjaspää",
+        "ja": "ブラシヘッドを交換",
+        "hi": "ब्रश हेड बदलें",
+        "zh": "更换刷头",
+    },
 }
 
 

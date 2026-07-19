@@ -716,5 +716,14 @@
    "filter_elapsed_time",
    "Filter Elapsed Time"
   ]
+ },
+ "oralb": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/oralb/sensor.py"
+  ],
+  "strings": [
+   "toothbrush_state",
+   "TOOTHBRUSH_STATE"
+  ]
  }
 }

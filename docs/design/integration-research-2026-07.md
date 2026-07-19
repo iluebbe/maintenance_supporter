@@ -611,3 +611,25 @@ value_below duty name is reused — check at impl); "Replace Desiccant",
   smarttub, myenergi/openWB/OMV, tuya_local scoped dive, melcloud.
 
 Catalog after round 5: **82 integrations / 152 signatures**.
+
+
+## Research round 6 (2026-07-19): rest of the parked list
+
+- ✅ **oralb** (core) — SHIPPED via runtime-on-state: tk 'toothbrush_state'
+  (ENUM, name=None → main entity; tk match) with on_states=['running'];
+  6 h of brushing = the dentist's 3 months at 2x2 min/day. The 'time'
+  sensor is SESSION-scoped (TOTAL_INCREASING but resets) — unusable for
+  deltas, same class as wallbox. New name "Replace Brush Head" x17. New
+  category module signatures/personal.py.
+- ✅ **smarttub** (core) — verified COVERED-BY-ADOPTION: SmartTubReminder is
+  BinarySensorDeviceClass.PROBLEM (filter/water reminders) → the
+  problem-sensor adoption surface handles it; no signature needed.
+  Un-parked with verdict.
+- ❌ **myenergi** (HACS CJNE) — verified NEGATIVE: zappi's only per-charger
+  counter is 'Charge added session' (session-scoped); the CT
+  imported/exported totals are grid-level, not charger wear.
+- Still parked (repo identification / scoped dives pending): EcoWater and
+  BWT Perla salt levels (HACS repos not located under the tried slugs),
+  generac, tuya_local, melcloud, openWB, OMV.
+
+Catalog after round 6: **83 integrations / 153 signatures**.
