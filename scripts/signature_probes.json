@@ -705,7 +705,8 @@
    "hepa_filter",
    "active_carbon_filter",
    "nanoprotect_filter",
-   "PhilipsFilterSensor"
+   "PhilipsFilterSensor",
+   "FILTER_WICK"
   ]
  },
  "dirigera_platform": {
@@ -724,6 +725,24 @@
   "strings": [
    "toothbrush_state",
    "TOOTHBRUSH_STATE"
+  ]
+ },
+ "bwt_perla": {
+  "urls": [
+   "https://raw.githubusercontent.com/dkarv/ha-bwt-perla/main/custom_components/bwt_perla/sensor.py"
+  ],
+  "strings": [
+   "regenerativ_level",
+   "regenerativ_days"
+  ]
+ },
+ "ecowater_softener": {
+  "urls": [
+   "https://raw.githubusercontent.com/barleybobs/homeassistant-ecowater-softener/master/custom_components/ecowater_softener/sensor.py"
+  ],
+  "strings": [
+   "SALT_LEVEL_PERCENTAGE",
+   "OUT_OF_SALT"
   ]
  }
 }

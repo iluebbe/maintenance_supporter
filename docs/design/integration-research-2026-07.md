@@ -633,3 +633,24 @@ Catalog after round 5: **82 integrations / 152 signatures**.
   generac, tuya_local, melcloud, openWB, OMV.
 
 Catalog after round 6: **83 integrations / 153 signatures**.
+
+
+## Research round 6b (2026-07-19): the salt softeners + wick
+
+- ✅ **bwt_perla** (dkarv/ha-bwt-perla, HACS DEFAULT — the earlier repo hunt
+  failed on wrong author guesses; found via the hacs/default list): tk
+  'regenerativ_level' (%, salt reserve) + 'regenerativ_days' (DAYS) →
+  "Refill Softener Salt" percent_left + duration_left (warn ≤7 days).
+- ✅ **ecowater_softener** (barleybobs, HACS DEFAULT): key
+  'salt_level_percentage' (PERCENTAGE) + 'out_of_salt_days' (days),
+  name-style suffix match → same two duties. The OUT_OF_SALT_ON date
+  sensor remains date-class (future date direction).
+- ✅ **philips wick** — the humidifier evaporation wick joined the philips
+  entry (dual-unit like the filters), new name "Replace Wick" x17.
+- ❌ **kia_uvo next_service_distance** — still parked: the API-lib fields
+  exist but remaining-vs-odometer-target semantics stayed unresolved after
+  two dives; the odometer usage_delta duties cover the practical need.
+- LESSON: for HACS repos, check hacs/default's integration list FIRST —
+  star counts scatter across forks and author guesses fail.
+
+Catalog after round 6b: **85 integrations / 159 signatures**.

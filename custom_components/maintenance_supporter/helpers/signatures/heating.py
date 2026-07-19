@@ -1,4 +1,4 @@
-"""Boilers and heating — water pressure and burner/filter signals.
+"""Boilers, heating & water treatment.
 
 Data module of the suggested-setups signature catalog — see
 ``helpers/signatures/_model.py`` for the direction semantics and the
@@ -96,6 +96,36 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("ch_water_pressure",), "Refill Heating Water", "value_below", delta_units=1),
+        ),
+    ),
+    "bwt_perla": IntegrationSignature(
+        name="BWT Perla",
+        verified="2026-07-19 @ dkarv/ha-bwt-perla main sensor.py (HACS default)",
+        source=(
+            "HACS bwt_perla (dkarv): tk 'regenerativ_level' (salt reserve, "
+            "PERCENTAGE) and tk 'regenerativ_days' (days of salt left, "
+            "UnitOfTime.DAYS) — refilling raises both (auto-resolve)."
+        ),
+        tasks=(
+            ConsumableSignature(("regenerativ_level",), "Refill Softener Salt", "percent_left"),
+            ConsumableSignature(
+                ("regenerativ_days",), "Refill Softener Salt", "duration_left", below_hours=168
+            ),
+        ),
+    ),
+    "ecowater_softener": IntegrationSignature(
+        name="EcoWater softener",
+        verified="2026-07-19 @ barleybobs/homeassistant-ecowater-softener master (HACS default)",
+        source=(
+            "HACS ecowater_softener (barleybobs): key 'salt_level_percentage' "
+            "(PERCENTAGE) and key 'out_of_salt_days' (days) — name-style "
+            "entities, suffix-matched."
+        ),
+        tasks=(
+            ConsumableSignature(("salt_level_percentage",), "Refill Softener Salt", "percent_left"),
+            ConsumableSignature(
+                ("out_of_salt_days",), "Refill Softener Salt", "duration_left", below_hours=168
+            ),
         ),
     ),
 }

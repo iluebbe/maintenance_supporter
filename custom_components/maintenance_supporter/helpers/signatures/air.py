@@ -10,11 +10,6 @@ from __future__ import annotations
 from ._model import ConsumableSignature, IntegrationSignature
 
 SIGNATURES: dict[str, IntegrationSignature] = {
-            # Tub cleaning by accumulated wash time. The status sensor's
-            # translation_key ("status") is IDENTICAL across all Miele
-            # appliance types, so the signature is sibling-gated to washers:
-            # only devices that also carry TwinDos/spin-speed entities (both
-            # washer-only per core sensor.py `types=` gating) qualify.
     "hass_dyson": IntegrationSignature(
         name="Dyson",
         verified="2026-07-18 @ cmgrayb/hass-dyson main",
@@ -110,8 +105,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "PERCENT when the filter total is known, else HOURS remaining — "
             "the LG dual-unit pattern, split per direction. tks: pre_filter "
             "(cleaning cycle), hepa_filter / active_carbon_filter / "
-            "nanoprotect_filter (replacements). 'wick' (humidifier) skipped "
-            "for now — needs its own duty name."
+            "nanoprotect_filter (replacements), wick (humidifier "
+            "evaporation wick)."
         ),
         tasks=(
             ConsumableSignature(("pre_filter",), "Filter Cleaning", "percent_left"),
@@ -127,6 +122,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "duration_left",
                 below_hours=72,
             ),
+            # Humidifier models: the evaporation wick (tk 'wick'), same
+            # dual-unit shape as the filters.
+            ConsumableSignature(("wick",), "Replace Wick", "percent_left"),
+            ConsumableSignature(("wick",), "Replace Wick", "duration_left", below_hours=72),
         ),
     ),
     "dirigera_platform": IntegrationSignature(
