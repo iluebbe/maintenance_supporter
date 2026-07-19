@@ -79,10 +79,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     "subaru": IntegrationSignature(
         name="Subaru",
         verified="2026-07-18 @ home-assistant/core dev",
-        source=(
-            "home-assistant/core homeassistant/components/subaru/sensor.py "
-            "(key sc.ODOMETER, translation_key 'odometer')."
-        ),
+        source=("home-assistant/core homeassistant/components/subaru/sensor.py (key sc.ODOMETER, translation_key 'odometer')."),
         tasks=(
             ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
             ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
@@ -91,10 +88,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     "volvo": IntegrationSignature(
         name="Volvo",
         verified="2026-07-18 @ home-assistant/core dev",
-        source=(
-            "home-assistant/core homeassistant/components/volvo/sensor.py "
-            "(key 'odometer', api_field 'odometer')."
-        ),
+        source=("home-assistant/core homeassistant/components/volvo/sensor.py (key 'odometer', api_field 'odometer')."),
         tasks=(
             ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
             ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
@@ -141,6 +135,44 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
             ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "myskoda": IntegrationSignature(
+        name="Škoda (MySkoda)",
+        verified="2026-07-19 @ skodaconnect/homeassistant-myskoda main sensor.py",
+        source=(
+            "HACS myskoda: tk 'mileage' (key 'milage', km, TOTAL_INCREASING); "
+            "tk 'inspection' (DAYS) / 'inspection_in_km' (km) and "
+            "'oil_service_in_days' / 'oil_service_in_km' — the car's own "
+            "maintenance_report *_due_in countdowns (remaining until due). "
+            "The countdown replaces a generic odometer service duty, so no "
+            "editorial 15000 km interval here."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ConsumableSignature(("inspection",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(("inspection_in_km",), "Annual Service", "value_below", delta_units=1000),
+            ConsumableSignature(("oil_service_in_days",), "Oil Service", "duration_left", below_hours=336),
+            ConsumableSignature(("oil_service_in_km",), "Oil Service", "value_below", delta_units=1000),
+        ),
+    ),
+    "audiconnect": IntegrationSignature(
+        name="Audi Connect",
+        verified="2026-07-19 @ audiconnect/audi_connect_ha master sensor.py",
+        source=(
+            "HACS audiconnect (name-derived entity ids, no translation_key): "
+            "'Mileage' (km, TOTAL_INCREASING); 'Service inspection time' "
+            "(days) / 'Service inspection distance' (km) and 'Oil change "
+            "time' / 'Oil change distance' — VAG API inspectionDue_*/"
+            "oilServiceDue_* remaining-until countdowns (audi_models.py). "
+            "Countdowns replace the generic odometer service duty."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ConsumableSignature(("service_inspection_time",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(("service_inspection_distance",), "Annual Service", "value_below", delta_units=1000),
+            ConsumableSignature(("oil_change_time",), "Oil Service", "duration_left", below_hours=336),
+            ConsumableSignature(("oil_change_distance",), "Oil Service", "value_below", delta_units=1000),
         ),
     ),
 }

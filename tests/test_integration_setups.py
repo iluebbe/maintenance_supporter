@@ -1809,3 +1809,94 @@ async def test_vicare_ventilation_filter_signature(
     (task,) = setup["tasks"]
     assert task["task_name"] == "Replace Filter" and task["direction"] == "duration_left"
     assert task["threshold"] == 24.0
+
+
+async def test_round9_service_countdowns_and_purifiers(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Round 9: MySkoda/Audi service COUNTDOWNS (days+km, value_below/
+    duration_left) + tire rotation via odometer — deliberately NO generic
+    15000 km Annual Service (the car's own countdown replaces it); Blueair,
+    Grohe Blue, Coway and Winix percent consumables."""
+    await setup_integration(hass, global_entry)
+    skoda = await _seed_sensor(
+        hass, "myskoda", "enyaq1", "Enyaq iV80",
+        [
+            ("milage", "mileage", "km"),
+            ("inspection", "inspection", "d"),
+            ("inspection_in_km", "inspection_in_km", "km"),
+            ("oil_service_in_days", "oil_service_in_days", "d"),
+            ("oil_service_in_km", "oil_service_in_km", "km"),
+        ],
+    )
+    audi = await _seed_sensor(
+        hass, "audiconnect", "a4b9", "Audi A4",
+        [
+            ("mileage", None, "km"),
+            ("service_inspection_time", None, "d"),
+            ("service_inspection_distance", None, "km"),
+            ("oil_change_time", None, "d"),
+            ("oil_change_distance", None, "km"),
+        ],
+    )
+    blueair = await _seed_sensor(
+        hass, "ha_blueair", "b7i", "Blueair 7470i",
+        [("filter_life", None, "%"), ("wick_life", None, "%"), ("water_refresher_life", None, "%")],
+    )
+    grohe = await _seed_sensor(
+        hass, "grohe_smarthome", "blue1", "Grohe Blue Home",
+        [
+            ("remaining_filter", None, "%"),
+            ("remaining_co2", None, "%"),
+            # The App-adjusted sibling must NOT double-match the filter duty.
+            ("remaining_filter_app", None, "%"),
+        ],
+    )
+    coway_eu = await _seed_sensor(
+        hass, "coway", "ap1512", "Coway AP-1512HHS",
+        [("pre_filter", None, "%"), ("hepa_filter", None, "%")],
+    )
+    coway_us = await _seed_sensor(
+        hass, "coway", "airmega", "Coway AIRMEGA",
+        [("charcoal_filter", None, "%"), ("max2_filter", None, "%")],
+    )
+    winix = await _seed_sensor(
+        hass, "winix", "c545", "Winix C545",
+        [("filter_life", "filter_life", "%")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    for car in (skoda, audi):
+        tasks = setups[car]["tasks"]
+        by_pair = {(t["task_name"], t["direction"]): t for t in tasks}
+        assert set(by_pair) == {
+            ("Tire Rotation", "usage_delta"),
+            ("Annual Service", "duration_left"),
+            ("Annual Service", "value_below"),
+            ("Oil Service", "duration_left"),
+            ("Oil Service", "value_below"),
+        }
+        assert by_pair[("Tire Rotation", "usage_delta")]["threshold"] == 10000.0
+        # 336 h rendered in the day-unit countdown entity = 14 days lead.
+        assert by_pair[("Annual Service", "duration_left")]["threshold"] == 14.0
+        assert by_pair[("Annual Service", "value_below")]["threshold"] == 1000.0
+        assert by_pair[("Oil Service", "duration_left")]["threshold"] == 14.0
+        assert by_pair[("Oil Service", "value_below")]["threshold"] == 1000.0
+
+    blue = {t["task_name"]: t for t in setups[blueair]["tasks"]}
+    assert set(blue) == {"Replace Filter", "Replace Wick", "Replace Water Refresher"}
+    assert all(t["direction"] == "percent_left" and t["threshold"] == 10.0 for t in blue.values())
+
+    gr = {t["task_name"]: t for t in setups[grohe]["tasks"]}
+    assert set(gr) == {"Replace Water Filter", "Replace CO2 Bottle"}
+    # remaining_filter_app matched nothing: exactly one filter task with one entity.
+    assert len(setups[grohe]["tasks"]) == 2
+    assert len(gr["Replace Water Filter"]["entity_ids"]) == 1
+
+    for dev in (coway_eu, coway_us):
+        cw = {t["task_name"]: t for t in setups[dev]["tasks"]}
+        assert set(cw) == {"Filter Cleaning", "Replace Filter"}
+
+    (wx,) = setups[winix]["tasks"]
+    assert wx["task_name"] == "Replace Filter" and wx["threshold"] == 10.0
