@@ -150,4 +150,22 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("pellet_quantity",), "Empty Ash Pan", "usage_delta", delta_units=100),
         ),
     ),
+    "mypyllant": IntegrationSignature(
+        name="Vaillant (myVAILLANT)",
+        verified="2026-07-19 @ signalkraft/mypyllant-component main sensor.py",
+        source=(
+            "HACS mypyllant: SystemWaterPressureSensor (name '... System "
+            "Water Pressure' -> suffix system_water_pressure) and the "
+            "device-level operational-data variant (suffix water_pressure), "
+            "both BAR — matched any-low."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("system_water_pressure", "water_pressure"),
+                "Refill Heating Water",
+                "value_below",
+                delta_units=1,
+            ),
+        ),
+    ),
 }

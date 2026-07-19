@@ -200,4 +200,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("cycles_total",), "Clean Tub", "usage_delta", delta_units=30),
         ),
     ),
+    "whirlpool": IntegrationSignature(
+        name="Whirlpool",
+        verified="2026-07-19 @ core/dev whirlpool/sensor.py",
+        source=(
+            "core whirlpool: tk 'washer_state' ENUM incl. 'running_maincycle' "
+            "— no cycle counter exists, so the ENGINE accumulates wash time "
+            "(the Miele Clean-Tub pattern; 60 h of washing ~= LG's 30-cycle "
+            "cadence at a typical 2-h cycle). The dryer's distinct "
+            "'dryer_state' tk cannot match."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("washer_state",),
+                "Clean Tub",
+                "runtime_hours",
+                delta_units=60,
+                on_states=("running_maincycle",),
+            ),
+        ),
+    ),
 }

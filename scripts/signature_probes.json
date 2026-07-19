@@ -804,5 +804,23 @@
   "strings": [
    "pellet_quantity"
   ]
+ },
+ "mypyllant": {
+  "urls": [
+   "https://raw.githubusercontent.com/signalkraft/mypyllant-component/main/custom_components/mypyllant/sensor.py"
+  ],
+  "strings": [
+   "SystemWaterPressureSensor",
+   "water_pressure"
+  ]
+ },
+ "whirlpool": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/whirlpool/sensor.py"
+  ],
+  "strings": [
+   "washer_state",
+   "running_maincycle"
+  ]
  }
 }

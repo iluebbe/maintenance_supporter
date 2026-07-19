@@ -696,3 +696,20 @@ unfetchable), wallbox 5,000 kWh editorial (no official figure exists).
   dependent entities), whirlpool/homewhiz quick checks, bosch_ebike.
 
 Catalog after round 7: **92 integrations / 172 signatures**.
+
+
+## Research round 8 (2026-07-19): Vaillant + Whirlpool
+
+- ✅ **mypyllant** (signalkraft, 327 stars — the big Vaillant-cloud base):
+  system- and device-level water-pressure sensors (BAR), matched any-low
+  via both naming variants (suffix system_water_pressure / water_pressure)
+  -> Refill Heating Water. Sixth member of the pressure family.
+- ✅ **whirlpool** (core): no cycle counter exists — tk 'washer_state' ENUM
+  incl. 'running_maincycle' -> the Miele Clean-Tub pattern (engine-counted
+  60 h of washing ~= LG's 30-cycle cadence at ~2 h/cycle). The dryer's
+  distinct 'dryer_state' tk cannot match (pinned by test).
+- Parked round 9: homewhiz (Beko/Grundig — BLE/cloud hybrid, entities
+  config-generated), ebusd (config-dependent), bosch_ebike, V-ZUG/Narwal
+  (not in HACS default under expected slugs).
+
+Catalog after round 8: **94 integrations / 174 signatures**.

@@ -782,6 +782,37 @@ def test_integrations_doc_in_sync_with_catalog() -> None:
     )
 
 
+async def test_round8_vaillant_whirlpool(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Vaillant (myPyllant) pressure via either naming variant; Whirlpool
+    washers get the Miele-pattern engine-counted tub clean (60 h,
+    running_maincycle) — the dryer's distinct tk must NOT match."""
+    await setup_integration(hass, global_entry)
+    vaillant = await _seed_sensor(
+        hass, "mypyllant", "vrc1", "Vaillant ecoTEC",
+        [("system_water_pressure", None, "bar")],  # suffix variant
+    )
+    washer = await _seed_sensor(
+        hass, "whirlpool", "ww1", "Whirlpool Washer",
+        [("state", "washer_state", None)],
+    )
+    dryer = await _seed_sensor(
+        hass, "whirlpool", "wd1", "Whirlpool Dryer",
+        [("state", "dryer_state", None)],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (vp,) = setups[vaillant]["tasks"]
+    assert vp["task_name"] == "Refill Heating Water" and vp["threshold"] == 1.0
+
+    (tub,) = setups[washer]["tasks"]
+    assert tub["task_name"] == "Clean Tub"
+    assert tub["direction"] == "runtime_hours" and tub["threshold"] == 60.0
+    assert dryer not in setups  # dryer_state must not match
+
+
 async def test_round7_hon_cars2_pellet_wolf(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
