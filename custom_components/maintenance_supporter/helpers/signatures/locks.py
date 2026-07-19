@@ -1,5 +1,9 @@
 """Smart locks — cycle-count lubrication duties.
 
+Interval audit 2026-07-19: Nuki's official guidance is ANNUAL cylinder
+lubrication — 2,000 cycles ≈ a year at a typical main door (5-6
+cycles/day); heavy doors reach it sooner, matching wear.
+
 Data module of the suggested-setups signature catalog — see
 ``helpers/signatures/_model.py`` for the direction semantics and the
 method contract (every entry cites and is verified against the
@@ -23,7 +27,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 (),
                 "Lubricate Cylinder",
                 "cycle_count",
-                delta_units=500,
+                delta_units=2000,
                 entity_domain="lock",
                 on_states=("locked",),
             ),
@@ -42,7 +46,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 (),
                 "Lubricate Cylinder",
                 "cycle_count",
-                delta_units=500,
+                delta_units=2000,
                 entity_domain="lock",
                 on_states=("locked",),
             ),
@@ -61,7 +65,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 (),
                 "Lubricate Cylinder",
                 "cycle_count",
-                delta_units=500,
+                delta_units=2000,
                 entity_domain="lock",
                 on_states=("locked",),
             ),
@@ -80,7 +84,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 (),
                 "Lubricate Cylinder",
                 "cycle_count",
-                delta_units=500,
+                delta_units=2000,
                 entity_domain="lock",
                 on_states=("locked",),
             ),
@@ -99,7 +103,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 (),
                 "Lubricate Cylinder",
                 "cycle_count",
-                delta_units=500,
+                delta_units=2000,
                 entity_domain="lock",
                 on_states=("locked",),
             ),
@@ -118,7 +122,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 (),
                 "Lubricate Cylinder",
                 "cycle_count",
-                delta_units=500,
+                delta_units=2000,
                 entity_domain="lock",
                 on_states=("locked",),
             ),
@@ -137,7 +141,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 (),
                 "Lubricate Cylinder",
                 "cycle_count",
-                delta_units=500,
+                delta_units=2000,
                 entity_domain="lock",
                 on_states=("locked",),
             ),
@@ -152,7 +156,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
                 entity_domain="lock", on_states=("locked",),
             ),
         ),
@@ -166,7 +170,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
                 entity_domain="lock", on_states=("locked",),
             ),
         ),
@@ -180,7 +184,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
                 entity_domain="lock", on_states=("locked",),
             ),
         ),
@@ -194,7 +198,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
                 entity_domain="lock", on_states=("locked",),
             ),
         ),
@@ -208,7 +212,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=500,
+                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
                 entity_domain="lock", on_states=("locked",),
             ),
         ),

@@ -1409,7 +1409,7 @@ async def test_wallbox_energy_and_lock_cycle_wave(
 ) -> None:
     """KEBA (kWh) and go-e (native Wh -> converted target) wallboxes propose
     cable inspection by delivered energy; Nuki and Matter locks get
-    engine-counted locking cycles (state_change, 500 transitions to
+    engine-counted locking cycles (state_change, 2000 transitions to
     'locked', reset on completion)."""
     from custom_components.maintenance_supporter.websocket.integration_setups import (
         ws_adopt_integration_setups,
@@ -1455,7 +1455,7 @@ async def test_wallbox_energy_and_lock_cycle_wave(
     for domain in ("nuki", "matter", "zwave_js", "tedee", "schlage"):
         (lt,) = setups[locks[domain]]["tasks"]
         assert lt["task_name"] == "Lubricate Cylinder" and lt["direction"] == "cycle_count"
-        assert lt["threshold"] == 500.0
+        assert lt["threshold"] == 2000.0
 
     conn = make_ws_connection()
     await call_ws_handler(
@@ -1470,7 +1470,7 @@ async def test_wallbox_energy_and_lock_cycle_wave(
     (t,) = obj.data[CONF_TASKS].values()
     tc = t["trigger_config"]
     assert tc["type"] == "state_change"
-    assert tc["trigger_to_state"] == "locked" and tc["trigger_target_changes"] == 500
+    assert tc["trigger_to_state"] == "locked" and tc["trigger_target_changes"] == 2000
     assert tc["entity_id"] == "lock.nuki_n1"
     assert "auto_complete_on_recovery" not in tc  # cycles don't recover
 
@@ -1548,7 +1548,7 @@ async def test_ac_filter_via_hvac_action_attribute(
     (setup,) = discover_integration_setups(hass)
     (task,) = setup["tasks"]
     assert task["task_name"] == "Filter Cleaning" and task["direction"] == "runtime_hours"
-    assert task["threshold"] == 250.0
+    assert task["threshold"] == 100.0
 
     conn = make_ws_connection()
     await call_ws_handler(
@@ -1621,7 +1621,7 @@ async def test_state_derived_wave_roomba_mqtt_prusalink(
 
     (p_task,) = setups[prusa]["tasks"]
     assert p_task["task_name"] == "Lubricate Rails and Rods"
-    assert p_task["direction"] == "runtime_hours" and p_task["threshold"] == 500.0
+    assert p_task["direction"] == "runtime_hours" and p_task["threshold"] == 200.0
 
 
 async def test_dolphin_filter_bag_latches_on_full(

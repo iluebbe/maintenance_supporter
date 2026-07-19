@@ -173,8 +173,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         source=(
             "core lamarzocco: tk 'total_coffees_made', TOTAL_INCREASING "
             "lifetime shot counter — one entity, two duties (intervals are "
-            "editorial defaults: backflush ~weekly at home ≈ 100 shots, "
-            "water filter per LM guidance ≈ 1000 shots)."
+            "intervals cross-checked 2026-07-19 against home-barista guidance: detergent backflush every 4-6 weeks ≈ 100 shots at 3/day; "
+            "water filter ≈ 1000 shots (editorial)."
         ),
         tasks=(
             ConsumableSignature(

@@ -1,5 +1,9 @@
 """Cleaning robots — vacuums, mops and the Dolphin pool robot.
 
+Interval audit 2026-07-19: the sensor-less runtime duties (filter wash
+15 h / main-brush clean 30 h of cleaning time) map to Roborock's official
+biweekly cleaning cadence at typical 1-2 h/day usage.
+
 Data module of the suggested-setups signature catalog — see
 ``helpers/signatures/_model.py`` for the direction semantics and the
 method contract (every entry cites and is verified against the
