@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Akce úkolu",
-        "description": "Úkol: {task_name} — Vyberte akci.",
+        "description": "Úkol: {task_name} — vyberte akci.\n\nNejbližší termíny: {next_dates}",
         "menu_options": {
           "edit_task": "Upravit úkol",
           "edit_trigger": "Upravit spoušť",

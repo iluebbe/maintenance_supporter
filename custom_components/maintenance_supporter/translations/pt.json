@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Ações da Tarefa",
-        "description": "Tarefa: {task_name} — Escolha uma ação.",
+        "description": "Tarefa: {task_name} — Escolha uma ação.\n\nPróximas datas: {next_dates}",
         "menu_options": {
           "edit_task": "Editar Tarefa",
           "edit_trigger": "Editar Acionamento",

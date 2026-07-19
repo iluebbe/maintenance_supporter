@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Tehtävän toiminnot",
-        "description": "Tehtävä: {task_name} — Valitse toiminto.",
+        "description": "Tehtävä: {task_name} — valitse toiminto.\n\nSeuraavat päivämäärät: {next_dates}",
         "menu_options": {
           "edit_task": "Muokkaa tehtävää",
           "edit_trigger": "Muokkaa laukaisinta",

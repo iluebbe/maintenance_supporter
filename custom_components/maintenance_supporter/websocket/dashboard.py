@@ -368,7 +368,7 @@ async def ws_schedule_preview(
 
     from homeassistant.util import dt as dt_util
 
-    from ..helpers.schedule import Schedule
+    from ..helpers.schedule import Schedule, preview_occurrences
 
     lp: date_cls | None = None
     raw_lp = msg.get("last_performed")
@@ -380,34 +380,23 @@ async def ws_schedule_preview(
             return
 
     today = dt_util.now().date()
-    occurrences: list[str] = []
-    series_ended = False
     try:
         sched = Schedule.from_dict(msg["schedule"])
-        times = int(msg.get("times_performed", 0))
-        lpd: date_cls | None = None
-        for _ in range(int(msg.get("count", 3))):
-            nxt = sched.next_due(
-                last_performed=lp,
-                created_at=today,
-                last_planned_due=lpd,
-                today=today,
-                times_performed=times,
-            )
-            if nxt is None:
-                series_ended = True
-                break
-            if occurrences and nxt.isoformat() <= occurrences[-1]:  # pragma: no cover
-                break  # safety net: the engine must advance — never loop
-            occurrences.append(nxt.isoformat())
-            lp = nxt
-            lpd = nxt
-            times += 1
+        dates, series_ended = preview_occurrences(
+            sched,
+            last_performed=lp,
+            times_performed=int(msg.get("times_performed", 0)),
+            today=today,
+            count=int(msg.get("count", 3)),
+        )
     except (TypeError, ValueError) as err:
         connection.send_error(msg["id"], "invalid_input", f"Invalid schedule: {err}")
         return
 
-    connection.send_result(msg["id"], {"occurrences": occurrences, "series_ended": series_ended})
+    connection.send_result(
+        msg["id"],
+        {"occurrences": [d.isoformat() for d in dates], "series_ended": series_ended},
+    )
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/budget_status"})

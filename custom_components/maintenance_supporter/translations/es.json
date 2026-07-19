@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Acciones de tarea",
-        "description": "Tarea: {task_name} — Elija una acción.",
+        "description": "Tarea: {task_name} — Elige una acción.\n\nPróximas fechas: {next_dates}",
         "menu_options": {
           "edit_task": "Editar tarea",
           "edit_trigger": "Editar trigger",

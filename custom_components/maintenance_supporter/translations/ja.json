@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "タスクのアクション",
-        "description": "タスク: {task_name} — アクションを選択してください。",
+        "description": "タスク：{task_name} — 操作を選択してください。\n\n次回の予定日：{next_dates}",
         "menu_options": {
           "edit_task": "タスクを編集",
           "edit_trigger": "トリガーを編集",

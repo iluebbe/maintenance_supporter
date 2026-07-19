@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Taakacties",
-        "description": "Taak: {task_name} — Kies een actie.",
+        "description": "Taak: {task_name} — Kies een actie.\n\nVolgende vervaldatums: {next_dates}",
         "menu_options": {
           "edit_task": "Taak bewerken",
           "edit_trigger": "Trigger bewerken",

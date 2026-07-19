@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Дії із завданням",
-        "description": "Завдання: {task_name} — Оберіть дію.",
+        "description": "Завдання: {task_name} — виберіть дію.\n\nНайближчі дати: {next_dates}",
         "menu_options": {
           "edit_task": "Редагувати завдання",
           "edit_trigger": "Редагувати тригер",

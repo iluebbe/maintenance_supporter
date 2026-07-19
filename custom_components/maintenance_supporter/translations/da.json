@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Opgavehandlinger",
-        "description": "Opgave: {task_name} — Vælg en handling.",
+        "description": "Opgave: {task_name} — vælg en handling.\n\nKommende datoer: {next_dates}",
         "menu_options": {
           "edit_task": "Rediger opgave",
           "edit_trigger": "Rediger udløser",

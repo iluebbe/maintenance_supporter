@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Uppgiftsåtgärder",
-        "description": "Uppgift: {task_name} — Välj en åtgärd.",
+        "description": "Uppgift: {task_name} — välj en åtgärd.\n\nKommande datum: {next_dates}",
         "menu_options": {
           "edit_task": "Redigera uppgift",
           "edit_trigger": "Redigera utlösare",

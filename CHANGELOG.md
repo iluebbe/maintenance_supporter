@@ -11,6 +11,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   The page is GENERATED from the catalog and tripwire-tested, so it can
   never drift from what the code actually does.
 
+### 📅 Next-dates preview in the classic config flow too
+
+- The task-action menu of the HA-native options flow now shows the task's
+  **next three due dates** (ISO, order-unambiguous) — the flow-side twin
+  of the panel's live schedule preview. It re-renders after every
+  schedule edit, so the effect of a change is visible immediately after
+  saving. Both surfaces compute through the SAME engine helper
+  (`preview_occurrences`), so they can never disagree.
+
 ### 🔥 Vaillant heating & Whirlpool washers
 
 - **Vaillant (myVAILLANT)** joins the heating-pressure family — "Refill

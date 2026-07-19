@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Действия с задачей",
-        "description": "Задача: {task_name} — Выберите действие.",
+        "description": "Задача: {task_name} — выберите действие.\n\nБлижайшие даты: {next_dates}",
         "menu_options": {
           "edit_task": "Редактировать задачу",
           "edit_trigger": "Редактировать триггер",
