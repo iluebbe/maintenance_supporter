@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.35.0] - 2026-07-19
 
 ### 💨 Philips air purifiers & IKEA STARKVIND
 
