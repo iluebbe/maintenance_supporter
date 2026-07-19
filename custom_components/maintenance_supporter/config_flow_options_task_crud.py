@@ -63,6 +63,21 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
+class _OptionalTimeSelector(selector.TimeSelector):
+    """TimeSelector that also accepts "".
+
+    The schedule_time field defaults to "" (no time stored) and is cleared by
+    submitting "" — a bare TimeSelector rejects both, which 400s every save of
+    the untouched form. Wrapping in vol.Any is no option: voluptuous_serialize
+    cannot convert it and the form itself would 500. Subclassing keeps the
+    serialized schema a plain time selector."""
+
+    def __call__(self, data: Any) -> Any:
+        if data == "":
+            return ""
+        return super().__call__(data)
+
+
 class TaskCrudMixin:
     """Manage, edit, delete tasks + checklist editing."""
 
@@ -311,7 +326,12 @@ class TaskCrudMixin:
                 continue
             user_options.append(selector.SelectOptionDict(value=user.id, label=user.name or user.id))
 
-        user_id_default = task.get(CONF_RESPONSIBLE_USER_ID, "")
+        # Guard the default: a stored None (or a user since deleted, hence no
+        # longer in the dropdown) would fail the select's own validation and
+        # 400 the whole form on save.
+        user_id_default = task.get(CONF_RESPONSIBLE_USER_ID) or ""
+        if user_id_default not in {o["value"] for o in user_options}:
+            user_id_default = ""
         user_id_key = vol.Optional(CONF_RESPONSIBLE_USER_ID, default=user_id_default)
         # Rotation pool options = the real users (no empty sentinel).
         pool_options = [o for o in user_options if o["value"]]
@@ -379,7 +399,7 @@ class TaskCrudMixin:
                                     vol.Optional(
                                         CONF_TASK_SCHEDULE_TIME,
                                         default=task.get("schedule_time", ""),
-                                    ): selector.TimeSelector(),
+                                    ): _OptionalTimeSelector(),
                                 }
                                 if self._get_global_options().get(CONF_ADVANCED_SCHEDULE_TIME, False)
                                 else dict[Any, Any]()
@@ -403,8 +423,7 @@ class TaskCrudMixin:
                     # Seasonal window + finite-series end — recurring kinds only.
                     **(
                         season_ends_schema(task.get("schedule"))
-                        if sched["schedule_type"] == ScheduleType.TIME_BASED
-                        or sched["schedule_type"] in CALENDAR_KIND_VALUES
+                        if sched["schedule_type"] == ScheduleType.TIME_BASED or sched["schedule_type"] in CALENDAR_KIND_VALUES
                         else dict[Any, Any]()
                     ),
                     vol.Optional(

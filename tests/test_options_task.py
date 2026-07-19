@@ -2491,6 +2491,153 @@ async def test_options_edit_task_schedule_time(
     assert refreshed.data[CONF_TASKS][TASK_ID_1].get("schedule_time") == "08:00"
 
 
+async def test_options_edit_task_schedule_time_omitted(
+    hass: HomeAssistant,
+    cfg_global_entry_with_advanced: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Saving edit_task with NO time set must not 400 (live-found bug).
+
+    With the advanced schedule-time flag on, the field's default is "" — the
+    schema itself must accept "" or an untouched form can never be saved."""
+    await setup_integration(hass, cfg_global_entry_with_advanced, object_entry)
+
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"selected_task": TASK_ID_1, "go_back": False},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+    assert result["step_id"] == "edit_task"
+
+    # The HTTP layer serializes the schema for the frontend — a validator the
+    # serializer cannot convert (e.g. vol.Any) 500s the form before it renders.
+    import voluptuous_serialize
+    from homeassistant.helpers import config_validation as cv
+
+    voluptuous_serialize.convert(result["data_schema"], custom_serializer=cv.custom_serializer)
+
+    # Omit schedule_time entirely: the schema default "" is applied and
+    # validated — before the fix this raised vol.Invalid (HTTP 400 in the UI).
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            "go_back": False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+
+    refreshed = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert refreshed is not None
+    assert "schedule_time" not in refreshed.data[CONF_TASKS][TASK_ID_1]
+
+
+async def test_options_edit_task_schedule_time_empty_clears(
+    hass: HomeAssistant,
+    cfg_global_entry_with_advanced: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Submitting schedule_time "" clears a stored time (the documented path)."""
+    await setup_integration(hass, cfg_global_entry_with_advanced, object_entry)
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    tasks = dict(entry.data[CONF_TASKS])
+    tasks[TASK_ID_1] = {**tasks[TASK_ID_1], "schedule_time": "08:00"}
+    hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
+
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"selected_task": TASK_ID_1, "go_back": False},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+    assert result["step_id"] == "edit_task"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            "schedule_time": "",
+            "go_back": False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+
+    refreshed = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert refreshed is not None
+    assert "schedule_time" not in refreshed.data[CONF_TASKS][TASK_ID_1]
+
+
+async def test_options_edit_task_responsible_user_none_stored(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """A stored responsible_user_id of None must not 400 the edit form.
+
+    The select's default is validated against its options on save — None (or a
+    since-deleted user id) must be coerced to "" when building the form."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    tasks = dict(entry.data[CONF_TASKS])
+    tasks[TASK_ID_1] = {**tasks[TASK_ID_1], "responsible_user_id": None}
+    hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
+
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"selected_task": TASK_ID_1, "go_back": False},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+    assert result["step_id"] == "edit_task"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            "go_back": False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+
+
 async def test_options_remove_trigger_multi_entity_partial(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
@@ -2995,15 +3142,11 @@ async def test_edit_task_sets_season_and_finite_series(
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"}
-    )
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "manage_tasks"})
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input={"selected_task": TASK_ID_1, "go_back": False}
     )
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"}
-    )
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_task"})
     assert result["step_id"] == "edit_task"
     # The recurrence-extras fields are offered for the time-based task.
     schema_keys = {str(k.schema) for k in result["data_schema"].schema}
