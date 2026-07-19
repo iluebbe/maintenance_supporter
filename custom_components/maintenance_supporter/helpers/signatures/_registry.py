@@ -2,10 +2,25 @@
 
 from __future__ import annotations
 
-from . import air, cars, garden, heating, home_it, kitchen, locks, pets, printers, transports, vacuums, wallboxes, xiaomi
+from . import (
+    air,
+    cars,
+    garden,
+    heating,
+    home_it,
+    kitchen,
+    locks,
+    personal,
+    pets,
+    printers,
+    transports,
+    vacuums,
+    wallboxes,
+    xiaomi,
+)
 from ._model import IntegrationSignature
 
-_MODULES = (air, cars, garden, heating, home_it, kitchen, locks, pets, printers, transports, vacuums, wallboxes, xiaomi)
+_MODULES = (air, cars, garden, heating, home_it, kitchen, locks, personal, pets, printers, transports, vacuums, wallboxes, xiaomi)
 
 SIGNATURES: dict[str, IntegrationSignature] = {}
 for _mod in _MODULES:

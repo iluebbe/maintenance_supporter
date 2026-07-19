@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🪥 Oral-B toothbrushes
+
+- The engine now counts your actual **brushing time** on the toothbrush's
+  state — "Replace Brush Head" comes due after 6 hours of brushing, which
+  is the dentist's three months at twice two minutes a day. (SmartTub spa
+  reminders turned out to be problem-class sensors — the adopt-problem-
+  sensors surface already covers them.)
+
+Catalog: **83 integrations / 153 verified signatures**.
+
 ## [2.35.0] - 2026-07-19
 
 ### 💨 Philips air purifiers & IKEA STARKVIND
