@@ -46,11 +46,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "home-assistant/core homeassistant/components/daikin/climate.py "
             "(climate platform verified present; AC-only integration, so the "
             "climate entity IS an air conditioner). Runtime on the hvac_action "
-            "ATTRIBUTE — the state only reports the standby mode."
+            "ATTRIBUTE — the state only reports the standby mode. Interval per Daikin's official guidance (clean filters every 2 weeks; ≈100 runtime-hours at typical in-season use)."
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=250,
+                (), "Filter Cleaning", "runtime_hours", delta_units=100,
                 entity_domain="climate", attribute="hvac_action",
                 on_states=("cooling", "heating", "fan", "drying"),
             ),
@@ -63,11 +63,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "home-assistant/core homeassistant/components/gree/climate.py "
             "(climate platform verified present; AC-only integration, so the "
             "climate entity IS an air conditioner). Runtime on the hvac_action "
-            "ATTRIBUTE — the state only reports the standby mode."
+            "ATTRIBUTE — the state only reports the standby mode. Interval per Daikin's official guidance (clean filters every 2 weeks; ≈100 runtime-hours at typical in-season use)."
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=250,
+                (), "Filter Cleaning", "runtime_hours", delta_units=100,
                 entity_domain="climate", attribute="hvac_action",
                 on_states=("cooling", "heating", "fan", "drying"),
             ),

@@ -128,8 +128,8 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 | Dyson | `hass_dyson` | Replace Filter | below 10 % remaining |  |
 | Dreo | `dreo` | Replace Filter | below 10 % remaining |  |
 | VeSync (Levoit) | `vesync` | Replace Filter | below 10 % remaining |  |
-| Daikin AC | `daikin` | Filter Cleaning | every 250 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
-| Gree AC | `gree` | Filter Cleaning | every 250 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
+| Daikin AC | `daikin` | Filter Cleaning | every 100 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
+| Gree AC | `gree` | Filter Cleaning | every 100 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
 | Zehnder ComfoAirQ | `comfoconnect` | Replace Ventilation Filter | below 7 days remaining |  |
 | Renson Endura Delta | `renson` | Replace Ventilation Filter | below 7 days remaining |  |
 | Philips AirPurifier (CoAP) | `philips_airpurifier_coap` | Filter Cleaning | below 10 % remaining |  |
@@ -174,8 +174,8 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 |  |  | Clean Carbon Rods | every 100 units (counter delta) | models: X1/P1S/P1P |
 |  |  | Replace Purge Wiper | every 300 units (counter delta) | models: A1 |
 |  |  | Replace Desiccant | above 40 | models: AMS; except AMS Lite |
-| OctoPrint | `octoprint` | Lubricate Rails and Rods | every 500 h counted by the engine | binary_sensor entity; active: on |
-| PrusaLink | `prusalink` | Lubricate Rails and Rods | every 500 h counted by the engine | active: printing |
+| OctoPrint | `octoprint` | Lubricate Rails and Rods | every 200 h counted by the engine | binary_sensor entity; active: on |
+| PrusaLink | `prusalink` | Lubricate Rails and Rods | every 200 h counted by the engine | active: printing |
 | Moonraker (Klipper) | `moonraker` | Replace Nozzle | every 1000 units (counter delta) |  |
 | IPP printer | `ipp` | Replace Ink or Toner | below 10 % remaining |  |
 | Brother printer | `brother` | Replace Toner | below 10 % remaining |  |
@@ -187,33 +187,33 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| Nuki Smart Lock | `nuki` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Tedee Smart Lock | `tedee` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| August lock | `august` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Yale lock | `yale` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| SwitchBot Lock | `switchbot` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| LOQED Smart Lock | `loqed` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Homematic IP lock | `homematicip_cloud` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Schlage lock | `schlage` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Sesame lock | `sesame` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Yale/August BLE lock | `yalexs_ble` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| dormakaba dKey lock | `dormakaba_dkey` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Homematic KeyMatic | `homematic` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
+| Nuki Smart Lock | `nuki` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Tedee Smart Lock | `tedee` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| August lock | `august` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Yale lock | `yale` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| SwitchBot Lock | `switchbot` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| LOQED Smart Lock | `loqed` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Homematic IP lock | `homematicip_cloud` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Schlage lock | `schlage` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Sesame lock | `sesame` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Yale/August BLE lock | `yalexs_ble` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| dormakaba dKey lock | `dormakaba_dkey` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Homematic KeyMatic | `homematic` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 
 ## Protocol/hub transports whose duties are entity-domain-gated
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| Matter lock | `matter` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Z-Wave lock | `zwave_js` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| Zigbee (ZHA) lock | `zha` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| MQTT lock (Zigbee2MQTT etc.) | `mqtt` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
+| Matter lock | `matter` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Z-Wave lock | `zwave_js` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Zigbee (ZHA) lock | `zha` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| MQTT lock (Zigbee2MQTT etc.) | `mqtt` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 |  |  | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Replace Blades | every 100 h counted by the engine | lawn_mower entity; active: mowing |
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
-| HomeKit lock | `homekit_controller` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
-| deCONZ (Zigbee) lock | `deconz` | Lubricate Cylinder | every 500 cycles | lock entity; active: locked |
+| HomeKit lock | `homekit_controller` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| deCONZ (Zigbee) lock | `deconz` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 
 ## NAS & home IT
 

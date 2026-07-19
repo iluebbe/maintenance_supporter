@@ -1,5 +1,9 @@
 """2D and 3D printers incl. Klipper via Moonraker.
 
+Interval audit 2026-07-19: rail/rod lubrication follows Prusa's OFFICIAL
+200-print-hour maintenance interval (octoprint/prusalink); Bambu's 500 h
+stays editorial (different motion system, wiki unfetchable).
+
 Data module of the suggested-setups signature catalog — see
 ``helpers/signatures/_model.py`` for the direction semantics and the
 method contract (every entry cites and is verified against the
@@ -70,7 +74,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             ConsumableSignature(
                 ("printing",), "Lubricate Rails and Rods", "runtime_hours",
-                delta_units=500, entity_domain="binary_sensor", on_states=("on",),
+                delta_units=200, entity_domain="binary_sensor", on_states=("on",),
             ),
         ),
     ),
@@ -85,7 +89,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             ConsumableSignature(
                 ("printer_state",), "Lubricate Rails and Rods", "runtime_hours",
-                delta_units=500, on_states=("printing",),
+                delta_units=200, on_states=("printing",),
             ),
         ),
     ),

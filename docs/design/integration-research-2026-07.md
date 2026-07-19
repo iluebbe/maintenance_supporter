@@ -654,3 +654,25 @@ Catalog after round 6: **83 integrations / 153 signatures**.
   star counts scatter across forks and author guesses fail.
 
 Catalog after round 6b: **85 integrations / 159 signatures**.
+
+
+## Interval audit vs manufacturer guidance (2026-07-19)
+
+All 27 distinct editorial defaults cross-checked (device-reported
+countdowns are manufacturer values by definition — only OUR intervals and
+warning margins audited). Corrected:
+
+| Duty | Was | Now | Manufacturer source |
+|---|---|---|---|
+| AC Filter Cleaning (daikin/gree) | 250 h | 100 h | Daikin manual/FAQ: clean every 2 weeks (≈100 runtime-h) |
+| Lubricate Cylinder (18 lock entries) | 500 cycles | 2,000 | Nuki: annual graphite lubrication (≈2,000 cycles/yr typical door) |
+| Lubricate Rails and Rods (octoprint/prusalink) | 500 h | 200 h | Prusa KB: maintenance every 200 print hours |
+
+Validated unchanged (citations added): Husqvarna blades 100 h (official
+"every 2 months" + app blade timer), La Marzocco backflush 100 shots
+(detergent backflush every 4-6 weeks), sensor-less vacuum 15/30 h
+(Roborock official biweekly filter/brush cleaning), Litter-Robot 150
+cycles (Whisker: globe clean every 1-3 months), tire rotation 10,000 km
+(Tesla: every 6,250 mi), Oral-B 6 h (official 3 months), STARKVIND
+4,320 h (IKEA's own budget), Bambu values stay editorial (wiki
+unfetchable), wallbox 5,000 kWh editorial (no official figure exists).

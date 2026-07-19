@@ -11,6 +11,22 @@ All notable changes to Maintenance Supporter are documented in this file.
   The page is GENERATED from the catalog and tripwire-tested, so it can
   never drift from what the code actually does.
 
+### 🔧 Interval audit against manufacturer guidance
+
+- Every editorial default in the catalog was cross-checked against the
+  manufacturers' own maintenance guidance. Three came back adrift and were
+  corrected for NEW adoptions (existing tasks keep their configured
+  values): **AC filter cleaning** 250 → 100 runtime-hours (Daikin says
+  every 2 weeks), **lock cylinder lubrication** 500 → 2,000 cycles (Nuki
+  says annually), **rail/rod lubrication** 500 → 200 print-hours
+  (Prusa's official interval).
+- Validated as-is with sources now cited in the catalog: mower blades
+  100 h (Husqvarna: every 2 months), espresso backflush ~100 shots
+  (4-6 weeks), robot-vacuum cleaning cadences (Roborock: biweekly),
+  litter-box wash 150 cycles (Whisker: every 1-3 months), tire rotation
+  10,000 km (Tesla: 6,250 mi), brush head 6 brushing-hours (Oral-B:
+  3 months), STARKVIND (IKEA's own 259,200-minute budget).
+
 ### 🧂 Water softeners & humidifier wicks
 
 - **BWT Perla** and **EcoWater** softeners propose "Refill Softener Salt"
