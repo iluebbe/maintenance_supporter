@@ -695,5 +695,26 @@
    "Totals Filament Used",
    "total_filament_used"
   ]
+ },
+ "philips_airpurifier_coap": {
+  "urls": [
+   "https://raw.githubusercontent.com/kongo09/philips-airpurifier-coap/master/custom_components/philips_airpurifier_coap/const.py",
+   "https://raw.githubusercontent.com/kongo09/philips-airpurifier-coap/master/custom_components/philips_airpurifier_coap/sensor.py"
+  ],
+  "strings": [
+   "hepa_filter",
+   "active_carbon_filter",
+   "nanoprotect_filter",
+   "PhilipsFilterSensor"
+  ]
+ },
+ "dirigera_platform": {
+  "urls": [
+   "https://raw.githubusercontent.com/sanjoyg/dirigera_platform/main/custom_components/dirigera_platform/sensor.py"
+  ],
+  "strings": [
+   "filter_elapsed_time",
+   "Filter Elapsed Time"
+  ]
  }
 }

@@ -588,3 +588,26 @@ names x17 needed: "Replace Ventilation Filter", "Backflush Espresso
 Group", "Replace Nozzle", "Top Up Heating Water" (unless the Bosch
 value_below duty name is reused — check at impl); "Replace Desiccant",
 "Replace Water Filter", "Replace Filter" already exist.
+
+
+## Research round 5 (2026-07-19): parked-list dives
+
+- ✅ **philips_airpurifier_coap** (HACS kongo09) — SHIPPED. PhilipsFilterSensor
+  reports PERCENT (total known) or HOURS remaining → the LG dual-unit
+  pattern, split per direction. tks pre_filter (cleaning) +
+  hepa/active_carbon/nanoprotect (replacement, any-low). 'wick' skipped —
+  humidifier part needs its own duty name (follow-up).
+- ✅ **dirigera_platform / IKEA STARKVIND** (HACS sanjoyg) — SHIPPED.
+  'Filter Elapsed Time' (suffix, MINUTES, counts up, resets on IKEA's
+  filter reset) → usage_above 4,320 h = exactly IKEA's 259,200-minute
+  lifetime. 'Filter Lifetime' sibling is the constant total — unusable.
+- ❌ **wallbox** (core) — verified NEGATIVE for usage_delta: added_energy is
+  SESSION-scoped (resets each charging session despite TOTAL_INCREASING).
+  Our rollover handling would re-baseline every session, so the delta only
+  measures the CURRENT session — a 5,000 kWh cable-inspection target would
+  never fire. Needs a lifetime counter upstream; none exists today.
+- Parked for a later round: BWT Perla / EcoWater salt levels (repo hunt
+  needed), Oral-B (runtime-on-brushing idea, BT flakiness), generac,
+  smarttub, myenergi/openWB/OMV, tuya_local scoped dive, melcloud.
+
+Catalog after round 5: **82 integrations / 152 signatures**.
