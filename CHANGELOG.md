@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.34.1] - 2026-07-19
 
 ### 🌐 Fixed: Polish, Czech and Swedish date formats
 
