@@ -117,6 +117,42 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    reset on completion), letting users tick off steps across several days
    before closing the task.
 
+7. 💡 **Live schedule preview — "your next three dates" (#83)** — while
+   editing a task's recurrence, show the next 3 concrete occurrences the
+   CURRENT settings produce, updating live as fields change. This is the
+   schedule-side twin of the trigger live-hint (v2.25) and would have
+   answered #83 ("every 6 months on the 2nd Saturday — possible?") at a
+   glance.
+
+   **Engine contract (no drift by construction):** the dates come from the
+   REAL engine, never a frontend reimplementation — a new read-only WS
+   command (`schedule/preview`: draft schedule + last_performed +
+   schedule_time → next N ISO dates) that instantiates
+   `Schedule.from_dict` and iterates `next_due()`, simulating on-time
+   completion per step (`last_performed`/`last_planned_due` advance,
+   `times_performed` increments so finite series terminate correctly).
+   Season rolls, business-day rolls, ±offsets and series ends all apply
+   automatically because it IS the engine.
+
+   **Display:** an info-accented hint box (same visual language as
+   `.trigger-live-hint`) directly under the recurrence fields:
+
+       📅 Nächste Termine
+       Sa 10.01.2026 10:00 · Sa 11.07.2026 · Sa 09.01.2027
+       (bei pünktlichem Abschluss)
+
+   - Dates as weekday-prefixed chips via the shared date formatter
+     (honors `window.__msDateTimePrefs`); `schedule_time` appended when
+     the feature is on.
+   - The "(assuming on-time completion)" caption appears only for
+     completion-anchored tasks — due-anchored grids are exact.
+   - Finite series show fewer chips + "series ends" when < N remain;
+     manual/trigger-only schedules hide the box entirely.
+   - Recomputed via the WS preview, debounced ~300 ms per keystroke;
+     the previous result stays visible while the next loads (no flicker).
+   - Read-only surfaces later: the task-detail view could show the same
+     three dates under "next due" (cheap once the endpoint exists).
+
 ### Shipped waves
 
 **Everything below is worked off** — most recently the **2.26/2.27 waves**:
