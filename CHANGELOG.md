@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.32.2] - 2026-07-19
 
 ### 🎯 Suggested setups: pick the target object (#105)
 
