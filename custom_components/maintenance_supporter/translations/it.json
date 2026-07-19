@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Azioni attività",
-        "description": "Attività: {task_name} — Scegli un'azione.",
+        "description": "Attività: {task_name} — Scegli un'azione.\n\nProssime scadenze: {next_dates}",
         "menu_options": {
           "edit_task": "Modifica attività",
           "edit_trigger": "Modifica trigger",

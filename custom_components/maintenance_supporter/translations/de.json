@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Aufgabenaktionen",
-        "description": "Aufgabe: {task_name} — Wählen Sie eine Aktion.",
+        "description": "Aufgabe: {task_name} — Aktion wählen.\n\nNächste Fälligkeiten: {next_dates}",
         "menu_options": {
           "edit_task": "Aufgabe bearbeiten",
           "edit_trigger": "Trigger bearbeiten",

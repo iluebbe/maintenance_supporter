@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "कार्य क्रियाएँ",
-        "description": "कार्य: {task_name} — एक क्रिया चुनें।",
+        "description": "कार्य: {task_name} — एक क्रिया चुनें।\n\nअगली तिथियाँ: {next_dates}",
         "menu_options": {
           "edit_task": "कार्य संपादित करें",
           "edit_trigger": "ट्रिगर संपादित करें",

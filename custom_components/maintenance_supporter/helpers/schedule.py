@@ -458,6 +458,50 @@ class Schedule:
         )
 
 
+
+def preview_occurrences(
+    schedule: Schedule,
+    *,
+    last_performed: date | None,
+    times_performed: int = 0,
+    today: date,
+    count: int = 3,
+) -> tuple[list[date], bool]:
+    """The next ``count`` occurrences a schedule produces, plus whether the
+    series ends within them.
+
+    Simulates an ON-TIME completion per step (last_performed and the
+    planned anchor advance, times_performed increments), so completion-
+    anchored intervals, calendar kinds, season windows, business-day rolls,
+    ±offsets and finite series all advance exactly as the engine would.
+    Single source of truth for BOTH preview surfaces — the panel's
+    ``schedule/preview`` WS command and the options flow's next-dates line
+    (#83; keep them DRY through this helper).
+    """
+    occurrences: list[date] = []
+    series_ended = False
+    lp = last_performed
+    lpd: date | None = None
+    times = times_performed
+    for _ in range(count):
+        nxt = schedule.next_due(
+            last_performed=lp,
+            created_at=today,
+            last_planned_due=lpd,
+            today=today,
+            times_performed=times,
+        )
+        if nxt is None:
+            series_ended = True
+            break
+        if occurrences and nxt <= occurrences[-1]:  # pragma: no cover
+            break  # safety net: the engine must advance — never loop
+        occurrences.append(nxt)
+        lp = nxt
+        lpd = nxt
+        times += 1
+    return occurrences, series_ended
+
 def is_recurring(task: Mapping[str, Any]) -> bool:
     """True iff the task dict has a cycling schedule (interval or calendar kind).
 

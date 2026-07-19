@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "任务动作",
-        "description": "任务：{task_name} —— 选择一个动作。",
+        "description": "任务：{task_name} — 选择操作。\n\n下次日期：{next_dates}",
         "menu_options": {
           "edit_task": "编辑任务",
           "edit_trigger": "编辑触发器",

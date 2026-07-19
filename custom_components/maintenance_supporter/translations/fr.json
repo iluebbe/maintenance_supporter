@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Actions de tâche",
-        "description": "Tâche : {task_name} — Choisissez une action.",
+        "description": "Tâche : {task_name} — Choisissez une action.\n\nProchaines échéances : {next_dates}",
         "menu_options": {
           "edit_task": "Modifier la tâche",
           "edit_trigger": "Modifier le déclencheur",

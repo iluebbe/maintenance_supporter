@@ -243,6 +243,25 @@ async def _navigate_opts_to_task_action(
     return result
 
 
+async def test_task_action_menu_shows_next_dates(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """#83 flow-side preview: the task_action menu carries a next_dates
+    placeholder with the next three ISO dates, computed by the SAME engine
+    helper as the panel's live preview (DRY through preview_occurrences)."""
+    await setup_integration(hass, global_entry, object_entry)
+    result = await _navigate_opts_to_task_action(hass, object_entry)
+    placeholders = result["description_placeholders"]
+    assert "next_dates" in placeholders
+    line = placeholders["next_dates"]
+    # TASK_ID_1 is a recurring interval task -> three ISO dates, " · "-joined.
+    import re
+
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}( · \d{4}-\d{2}-\d{2}){2}", line), line
+
+
 # ─── Init Menu ──────────────────────────────────────────────────────────
 
 

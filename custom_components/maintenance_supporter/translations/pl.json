@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Akcje zadania",
-        "description": "Zadanie: {task_name} — Wybierz akcję.",
+        "description": "Zadanie: {task_name} — wybierz akcję.\n\nNajbliższe terminy: {next_dates}",
         "menu_options": {
           "edit_task": "Edytuj zadanie",
           "edit_trigger": "Edytuj wyzwalacz",

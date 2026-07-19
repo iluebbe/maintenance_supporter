@@ -647,7 +647,7 @@
       },
       "task_action": {
         "title": "Task Actions",
-        "description": "Task: {task_name} — Choose an action.",
+        "description": "Task: {task_name} — Choose an action.\n\nNext due dates: {next_dates}",
         "menu_options": {
           "edit_task": "Edit Task",
           "edit_trigger": "Edit Trigger",

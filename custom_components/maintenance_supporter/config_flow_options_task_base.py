@@ -195,9 +195,47 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
     def _show_task_action_menu(self) -> ConfigFlowResult:
         """Show the task_action menu (sync helper for callbacks)."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
-        task = tasks_data.get(self._selected_task_id or "", {})
+        task_id = self._selected_task_id or ""
+        task = tasks_data.get(task_id, {})
         return self.async_show_menu(
             step_id="task_action",
             menu_options=self._build_task_action_menu(),
-            description_placeholders={"task_name": task.get("name", "Unknown")},
+            description_placeholders={
+                "task_name": task.get("name", "Unknown"),
+                "next_dates": self._next_dates_line(task_id, task),
+            },
         )
+
+    def _next_dates_line(self, task_id: str, static_task: dict[str, Any]) -> str:
+        """The task's next three due dates — the flow-side twin of the panel's
+        live schedule preview (#83), computed by the SAME engine helper
+        (helpers.schedule.preview_occurrences) so the two surfaces stay DRY.
+
+        Rendered ISO (YYYY-MM-DD): server-side text has no user locale, and
+        ISO is the only order-unambiguous form. Menus re-render after every
+        schedule edit, so the line updates right after saving."""
+        from datetime import date as date_cls
+
+        from homeassistant.util import dt as dt_util
+
+        from .helpers.schedule import Schedule, preview_occurrences
+
+        merged: dict[str, Any] = dict(static_task)
+        rd = getattr(self.config_entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        if store is not None:
+            merged = store.merge_task_data(task_id, merged)
+
+        try:
+            sched = Schedule.parse(merged)
+            lp_raw = merged.get("last_performed")
+            lp = date_cls.fromisoformat(lp_raw[:10]) if isinstance(lp_raw, str) and lp_raw else None
+            times = sum(1 for e in merged.get("history") or [] if e.get("type") == "completed")
+            dates, _ended = preview_occurrences(
+                sched, last_performed=lp, times_performed=times, today=dt_util.now().date()
+            )
+        except (TypeError, ValueError):  # pragma: no cover — malformed legacy data
+            return "—"
+        if not dates:
+            return "—"
+        return " · ".join(d.isoformat() for d in dates)
