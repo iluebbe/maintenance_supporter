@@ -149,6 +149,7 @@ dialog picks it up automatically.
 |  |  | Refill Softener Salt | below 7 days remaining |  |
 | Wolf SmartSet | `wolflink` | Refill Heating Water | below 1 |  |
 | Palazzetti pellet stove | `palazzetti` | Empty Ash Pan | every 100 units (counter delta) |  |
+| Vaillant (myVAILLANT) | `mypyllant` | Refill Heating Water | below 1 |  |
 
 ## Air treatment — purifiers, ACs and HRV/ventilation filters
 
@@ -196,6 +197,7 @@ dialog picks it up automatically.
 | Haier hOn (Haier/Candy/Hoover) | `hon` | Replace Filter | below 10 % remaining |  |
 |  |  | Filter Cleaning | below 10 % remaining |  |
 |  |  | Clean Tub | every 30 units (counter delta) |  |
+| Whirlpool | `whirlpool` | Clean Tub | every 60 h counted by the engine | active: running_maincycle |
 
 ## 2D and 3D printers incl. Klipper via Moonraker
 
@@ -281,6 +283,6 @@ dialog picks it up automatically.
 
 ---
 
-**92 integrations / 172 verified signatures.**
+**94 integrations / 174 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

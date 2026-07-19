@@ -11,6 +11,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   The page is GENERATED from the catalog and tripwire-tested, so it can
   never drift from what the code actually does.
 
+### 🔥 Vaillant heating & Whirlpool washers
+
+- **Vaillant (myVAILLANT)** joins the heating-pressure family — "Refill
+  Heating Water" below 1 bar, from either the system- or device-level
+  pressure sensor.
+- **Whirlpool washers** get the tub-clean duty even though the
+  integration has no cycle counter: the engine counts actual washing time
+  (60 hours ≈ 30 typical cycles).
+
+Catalog: **94 integrations / 174 verified signatures**.
+
 ### 🌡️ Haier hOn, four more car brands, pellet stoves, Wolf heating
 
 - **Haier / Candy / Hoover (hOn)** — the most-requested integration from
