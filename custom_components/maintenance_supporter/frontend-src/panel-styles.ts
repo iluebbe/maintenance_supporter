@@ -55,6 +55,40 @@ export const panelStyles = css`
     gap: 8px;
   }
 
+  /* Narrow-viewport disclosure (UX 2026-07): the collapsed classes are only
+     ever set when the host is narrow — desktop always renders inline. */
+  .filter-bar.collapsed,
+  .actions-bar.collapsed {
+    display: none;
+  }
+
+  .mobile-controls {
+    display: flex;
+    gap: 8px;
+    padding: 8px 0 0;
+  }
+
+  .mobile-controls .mobile-toggle {
+    flex: 1;
+  }
+
+  .mobile-controls .mobile-toggle.active {
+    --ha-button-background: var(--primary-color);
+  }
+
+  .actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0 8px;
+    justify-content: flex-end;
+  }
+
+  :host([narrow]) .actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .filter-field {
     display: flex;
     flex-direction: column;

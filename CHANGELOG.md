@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 📱 Mobile: the task list is back above the fold
+
+- On phones and portrait tablets the dashboard's six filter controls and
+  five create/setup buttons are now collapsed behind two compact toggle
+  buttons — **Filter** (with an active-filter count) and **+ Add** (a
+  menu with New task / New object / From template / Suggested setups /
+  Adopt problem sensors). The budget bars compact to a single line.
+  Before, the first task started at ~80 % of the screen height (small
+  phones showed no task at all without scrolling); now it starts at
+  ~33 % and five to six tasks are immediately visible. Desktop and
+  landscape layouts are unchanged.
+
 ## [2.36.0] - 2026-07-19
 
 ### 📦 ZIP releases

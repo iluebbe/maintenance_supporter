@@ -1339,8 +1339,12 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
 
     .weibull-info-row { flex-direction: column; gap: 8px; }
 
-    .budget-bars { flex-direction: column; }
+    /* One compact line instead of two stacked rows — the bars are glanceable
+       info, not the page's main content (UX 2026-07). */
+    .budget-bars { gap: 12px; padding: 6px 8px; }
     .budget-item { min-width: 0; }
+    .budget-label { font-size: 11px; margin-bottom: 2px; }
+    .budget-bar { height: 4px; }
 
     .group-card { min-width: 0; max-width: 100%; }
 
