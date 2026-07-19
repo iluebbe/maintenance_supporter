@@ -92,6 +92,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
       <div class="history-content">
         <div class="history-row">
           <strong>${t(entry.type, L)}</strong>
+          ${entry.auto ? html`<span class="history-auto-badge">${t("history_auto", L)}</span>` : nothing}
           ${editable
             ? html`<button class="history-edit-btn"
                      title=${t("history_edit_button", L) || "Edit entry"}

@@ -786,5 +786,8 @@
   "setups_target_new": "新建：{name}",
   "schedule_preview_title": "下次日期",
   "schedule_preview_ontime": "假设按时完成。",
-  "schedule_preview_ends": "（系列结束）"
+  "schedule_preview_ends": "（系列结束）",
+  "adopt_problem_responsible": "所有采用任务的负责用户（可选）",
+  "adopt_problem_configure": "配置",
+  "history_auto": "自动"
 }

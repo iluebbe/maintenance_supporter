@@ -786,5 +786,8 @@
   "setups_target_new": "Vytvořit nový: {name}",
   "schedule_preview_title": "Nejbližší termíny",
   "schedule_preview_ontime": "Za předpokladu včasného dokončení.",
-  "schedule_preview_ends": "(série končí)"
+  "schedule_preview_ends": "(série končí)",
+  "adopt_problem_responsible": "Odpovědná osoba pro všechny převzaté úkoly (volitelné)",
+  "adopt_problem_configure": "Konfigurovat",
+  "history_auto": "Automaticky"
 }

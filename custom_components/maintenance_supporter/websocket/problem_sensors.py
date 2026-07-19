@@ -20,7 +20,7 @@ from ..helpers.permissions import require_write
 from ..helpers.problem_sensors import (
     build_problem_task,
     discover_problem_sensors,
-    pop_stashed_notes,
+    pop_stashed_config,
 )
 
 
@@ -46,6 +46,9 @@ _SELECTION_SCHEMA = vol.Schema(
         # Spare part to link as consumes_parts on the adopted task (discovery's
         # suggested_part_id) — completing the task then consumes/restocks it.
         vol.Optional("part_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        # Responsible HA user for the created task (the adopt dialog offers one
+        # picker applied to every selection). Wins over a stashed value.
+        vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
     }
 )
 
@@ -76,6 +79,8 @@ async def ws_adopt_problem_sensors(
     selections = msg["selections"]
     tasks_created = 0
     objects_created = 0
+    # Created tasks, in order — the dialog links "configure now" to the first.
+    created: list[dict[str, str]] = []
     # Reuse an object created earlier in THIS batch for the same device, so two
     # sensors on one device don't spawn two objects.
     device_to_entry: dict[str, str] = {}
@@ -115,26 +120,33 @@ async def ws_adopt_problem_sensors(
                 "schedule": task["schedule"],
                 "trigger_config": task["trigger_config"],
             }
-            # Un-adopt → re-adopt: restore (and consume) the notes the deleted
-            # predecessor task had accumulated for this sensor.
-            restored_notes = pop_stashed_notes(hass, entity_id)
-            if restored_notes:
-                task_data["notes"] = restored_notes
-            # Link the suggested spare part (validated against the target
-            # object's parts — an unknown id is silently dropped, same as the
-            # task-CRUD path).
-            if sel.get("part_id"):
-                from ..const import CONF_PARTS
-                from ..helpers.parts import sanitize_consumes_parts
+            # Un-adopt → re-adopt: restore (and consume) the notes and one-time
+            # setup the deleted predecessor task had accumulated for this
+            # sensor. Restored part links are re-validated below alongside the
+            # dialog's suggestion (the target object/parts may have changed).
+            from ..const import CONF_PARTS
+            from ..helpers.parts import sanitize_consumes_parts
 
-                links = sanitize_consumes_parts(
-                    [{"part_id": sel["part_id"], "quantity": 1}],
-                    set(entry.data.get(CONF_PARTS) or {}),
-                )
+            stashed = pop_stashed_config(hass, entity_id) or {}
+            for field in ("notes", "responsible_user_id", "priority", "labels"):
+                if stashed.get(field):
+                    task_data[field] = stashed[field]
+            # An explicit dialog pick wins over the stashed responsible user.
+            if sel.get("responsible_user_id"):
+                task_data["responsible_user_id"] = sel["responsible_user_id"]
+            # Link the suggested spare part — or, absent one, the stashed link —
+            # validated against the target object's parts (an unknown id is
+            # silently dropped, same as the task-CRUD path).
+            raw_links = (
+                [{"part_id": sel["part_id"], "quantity": 1}] if sel.get("part_id") else stashed.get("consumes_parts") or []
+            )
+            if raw_links:
+                links = sanitize_consumes_parts(raw_links, set(entry.data.get(CONF_PARTS) or {}))
                 if links:
                     task_data["consumes_parts"] = links
             await async_persist_task(hass, entry, task_data)
             tasks_created += 1
+            created.append({"entry_id": entry_id, "task_id": task_data["id"], "name": task_data["name"]})
         except (ValueError, KeyError) as err:
             errors.append({"entity_id": entity_id, "reason": str(err)})
             # Roll back an object created in THIS iteration whose task failed —
@@ -150,6 +162,7 @@ async def ws_adopt_problem_sensors(
     result: dict[str, Any] = {
         "tasks_created": tasks_created,
         "objects_created": objects_created,
+        "created": created,
         "total": len(object_entries(hass)),
     }
     if errors:

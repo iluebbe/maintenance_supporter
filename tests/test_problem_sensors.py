@@ -524,7 +524,7 @@ async def test_notes_survive_unadopt_readopt_cycle(
 
     # The notes are stashed on the global entry, keyed by the sensor.
     stash = (global_entry.options or global_entry.data).get(CONF_ADOPTED_NOTES, {})
-    assert stash == {"binary_sensor.softener_salt_low": "Use broad-salt only; bypass valve sticks."}
+    assert stash == {"binary_sensor.softener_salt_low": {"notes": "Use broad-salt only; bypass valve sticks."}}
 
     # Re-adopt (sensor is discoverable again) → notes restored on the new task.
     await _adopt(hass, "binary_sensor.softener_salt_low", "Softener salt low", "Water softener 2")
@@ -542,18 +542,18 @@ async def test_stash_ignores_non_adopted_tasks_and_empty_notes(
 ) -> None:
     from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES
     from custom_components.maintenance_supporter.helpers.problem_sensors import (
-        stash_task_notes_for_readopt,
+        stash_task_config_for_readopt,
     )
 
     await setup_integration(hass, global_entry)
     # A plain time-based task with notes: not adopted → never stashed.
-    stash_task_notes_for_readopt(hass, {"notes": "hello", "trigger_config": None})
-    stash_task_notes_for_readopt(
+    stash_task_config_for_readopt(hass, {"notes": "hello", "trigger_config": None})
+    stash_task_config_for_readopt(
         hass,
         {"notes": "hello", "trigger_config": {"type": "threshold", "entity_ids": ["sensor.x"]}},
     )
     # Adopted signature but empty/whitespace notes → nothing to preserve.
-    stash_task_notes_for_readopt(
+    stash_task_config_for_readopt(
         hass,
         {
             "notes": "   ",
@@ -566,12 +566,12 @@ async def test_stash_ignores_non_adopted_tasks_and_empty_notes(
 async def test_stash_is_fifo_capped(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES, MAX_ADOPTED_NOTES
     from custom_components.maintenance_supporter.helpers.problem_sensors import (
-        stash_task_notes_for_readopt,
+        stash_task_config_for_readopt,
     )
 
     await setup_integration(hass, global_entry)
     for i in range(MAX_ADOPTED_NOTES + 5):
-        stash_task_notes_for_readopt(
+        stash_task_config_for_readopt(
             hass,
             {
                 "notes": f"note {i}",
@@ -585,4 +585,163 @@ async def test_stash_is_fifo_capped(hass: HomeAssistant, global_entry: MockConfi
     assert len(stash) == MAX_ADOPTED_NOTES
     # Oldest evicted, newest kept.
     assert "binary_sensor.p0" not in stash
-    assert stash[f"binary_sensor.p{MAX_ADOPTED_NOTES + 4}"] == f"note {MAX_ADOPTED_NOTES + 4}"
+    assert stash[f"binary_sensor.p{MAX_ADOPTED_NOTES + 4}"] == {"notes": f"note {MAX_ADOPTED_NOTES + 4}"}
+
+
+async def test_full_config_survives_unadopt_readopt_cycle(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Responsible user, priority, labels and notes all come back on re-adopt."""
+    from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES
+    from custom_components.maintenance_supporter.websocket.tasks_crud import ws_delete_task
+
+    await setup_integration(hass, global_entry)
+    _problem_sensor(hass, "binary_sensor.pump_fault", "Pump fault")
+    await _adopt(hass, "binary_sensor.pump_fault", "Pump fault", "Pond pump")
+
+    obj, task = _adopted_object_and_task(hass, "Pond pump")
+    new_data = dict(obj.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    new_tasks[task["id"]] = {
+        **task,
+        "notes": "Impeller spare in basement.",
+        "responsible_user_id": "user-abc",
+        "priority": "high",
+        "labels": ["outdoor", "seasonal"],
+    }
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(obj, data=new_data)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/task/delete", "entry_id": obj.entry_id, "task_id": task["id"]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+
+    stash = (global_entry.options or global_entry.data)[CONF_ADOPTED_NOTES]
+    assert stash["binary_sensor.pump_fault"] == {
+        "notes": "Impeller spare in basement.",
+        "responsible_user_id": "user-abc",
+        "priority": "high",
+        "labels": ["outdoor", "seasonal"],
+    }
+
+    await _adopt(hass, "binary_sensor.pump_fault", "Pump fault", "Pond pump 2")
+    _, task2 = _adopted_object_and_task(hass, "Pond pump 2")
+    assert task2["notes"] == "Impeller spare in basement."
+    assert task2["responsible_user_id"] == "user-abc"
+    assert task2["priority"] == "high"
+    assert task2["labels"] == ["outdoor", "seasonal"]
+    # Consumed.
+    assert (global_entry.options or global_entry.data)[CONF_ADOPTED_NOTES] == {}
+
+
+async def test_legacy_string_stash_still_restores_notes(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A pre-v2.37 stash (bare notes string) restores as notes on adopt."""
+    from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES
+
+    await setup_integration(hass, global_entry)
+    options = dict(global_entry.options or global_entry.data)
+    options[CONF_ADOPTED_NOTES] = {"binary_sensor.old_style": "legacy note"}
+    hass.config_entries.async_update_entry(global_entry, options=options)
+
+    _problem_sensor(hass, "binary_sensor.old_style", "Old style problem")
+    await _adopt(hass, "binary_sensor.old_style", "Old style problem", "Legacy device")
+    _, task = _adopted_object_and_task(hass, "Legacy device")
+    assert task["notes"] == "legacy note"
+
+
+async def test_adopt_with_responsible_user_and_created_list(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The dialog's responsible pick lands on the task and beats a stashed one;
+    the result carries the created task refs for the configure-now link."""
+    from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
+
+    await setup_integration(hass, global_entry)
+    # Stash claims another user — the explicit selection must win.
+    options = dict(global_entry.options or global_entry.data)
+    options[CONF_ADOPTED_NOTES] = {
+        "binary_sensor.filter_alarm": {"responsible_user_id": "stashed-user", "notes": "old note"}
+    }
+    hass.config_entries.async_update_entry(global_entry, options=options)
+
+    _problem_sensor(hass, "binary_sensor.filter_alarm", "Filter alarm")
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_problem_sensors,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/problem_sensors/adopt",
+            "selections": [
+                {
+                    "entity_id": "binary_sensor.filter_alarm",
+                    "name": "Filter alarm",
+                    "object_name": "Ventilation",
+                    "responsible_user_id": "picked-user",
+                }
+            ],
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    result = conn.send_result.call_args[0][1]
+    obj, task = _adopted_object_and_task(hass, "Ventilation")
+    assert task["responsible_user_id"] == "picked-user"
+    assert task["notes"] == "old note"
+    assert result["created"] == [{"entry_id": obj.entry_id, "task_id": task["id"], "name": "Filter alarm"}]
+
+
+async def test_auto_complete_history_flag_and_rotation_freeze(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Recovery auto-complete flags the history entry and does NOT advance the
+    rotation pool; a manual complete afterwards still rotates."""
+    from custom_components.maintenance_supporter.const import CONF_TASKS as _CT
+
+    await setup_integration(hass, global_entry)
+    _problem_sensor(hass, "binary_sensor.brush_worn", "Brush worn")
+    await _adopt(hass, "binary_sensor.brush_worn", "Brush worn", "Robot mower")
+
+    obj, task = _adopted_object_and_task(hass, "Robot mower")
+    new_data = dict(obj.data)
+    new_tasks = dict(new_data[_CT])
+    new_tasks[task["id"]] = {
+        **task,
+        "assignee_pool": ["user-a", "user-b"],
+        "rotation_strategy": "round_robin",
+        "responsible_user_id": "user-a",
+    }
+    new_data[_CT] = new_tasks
+    hass.config_entries.async_update_entry(obj, data=new_data)
+
+    coordinator = obj.runtime_data.coordinator
+    await coordinator.async_auto_complete_on_recovery(task["id"], 0.0)
+    await hass.async_block_till_done()
+
+    # History rides on the Store — read the store-merged view.
+    task_after = coordinator._get_merged_tasks_data()[task["id"]]
+    history = [e for e in task_after["history"] if e["type"] == "completed"]
+    assert len(history) == 1
+    assert history[0].get("auto") is True
+    assert "completed_by" not in history[0]
+    # Rotation pointer untouched by the anonymous auto-complete.
+    assert task_after["responsible_user_id"] == "user-a"
+
+    # A manual complete rotates as before (and is not auto-flagged).
+    coordinator._recent_manual_completions.clear()
+    await coordinator.complete_maintenance(task["id"], completed_by="user-a")
+    await hass.async_block_till_done()
+    task_after2 = coordinator._get_merged_tasks_data()[task["id"]]
+    completions = [e for e in task_after2["history"] if e["type"] == "completed"]
+    assert len(completions) == 2
+    assert completions[-1].get("auto") is None
+    assert task_after2["responsible_user_id"] == "user-b"

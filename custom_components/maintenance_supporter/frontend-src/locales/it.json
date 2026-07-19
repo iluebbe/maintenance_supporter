@@ -786,5 +786,8 @@
   "setups_target_new": "Crea nuovo: {name}",
   "schedule_preview_title": "Prossime date",
   "schedule_preview_ontime": "Presumendo un completamento puntuale.",
-  "schedule_preview_ends": "(la serie termina)"
+  "schedule_preview_ends": "(la serie termina)",
+  "adopt_problem_responsible": "Utente responsabile per tutte le attività adottate (opzionale)",
+  "adopt_problem_configure": "Configura",
+  "history_auto": "Automatico"
 }

@@ -786,5 +786,8 @@
   "setups_target_new": "Nieuw aanmaken: {name}",
   "schedule_preview_title": "Volgende data",
   "schedule_preview_ontime": "Uitgaande van tijdige afronding.",
-  "schedule_preview_ends": "(reeks eindigt)"
+  "schedule_preview_ends": "(reeks eindigt)",
+  "adopt_problem_responsible": "Verantwoordelijke gebruiker voor alle overgenomen taken (optioneel)",
+  "adopt_problem_configure": "Configureren",
+  "history_auto": "Automatisch"
 }

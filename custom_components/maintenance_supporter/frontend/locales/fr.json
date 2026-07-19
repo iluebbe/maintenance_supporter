@@ -786,5 +786,8 @@
   "setups_target_new": "Créer : {name}",
   "schedule_preview_title": "Prochaines échéances",
   "schedule_preview_ontime": "En supposant un achèvement ponctuel.",
-  "schedule_preview_ends": "(fin de la série)"
+  "schedule_preview_ends": "(fin de la série)",
+  "adopt_problem_responsible": "Personne responsable pour toutes les tâches adoptées (optionnel)",
+  "adopt_problem_configure": "Configurer",
+  "history_auto": "Automatique"
 }

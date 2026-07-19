@@ -38,20 +38,14 @@ ADOPTABLE_DEVICE_CLASSES = frozenset({PROBLEM_DEVICE_CLASS, "safety", "tamper"})
 
 # Words too generic to establish a sensor↔part relationship on their own
 # ("Printer problem" must not match a part just because it's ON the printer).
-_MATCH_STOPWORDS = frozenset(
-    {"problem", "low", "empty", "sensor", "status", "warning", "error", "alert", "the", "and"}
-)
+_MATCH_STOPWORDS = frozenset({"problem", "low", "empty", "sensor", "status", "warning", "error", "alert", "the", "and"})
 
 
 def _name_tokens(name: str) -> set[str]:
     """Meaningful lowercase tokens (≥3 chars, stopwords removed) of a name."""
     import re
 
-    return {
-        tok
-        for tok in re.split(r"[^a-z0-9]+", name.lower())
-        if len(tok) >= 3 and tok not in _MATCH_STOPWORDS
-    }
+    return {tok for tok in re.split(r"[^a-z0-9]+", name.lower()) if len(tok) >= 3 and tok not in _MATCH_STOPWORDS}
 
 
 def match_part_for_sensor(sensor_name: str, parts: dict[str, Any]) -> tuple[str, str] | None:
@@ -172,24 +166,35 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
     return out
 
 
-def stash_task_notes_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> None:
-    """Preserve a deleted adopted task's notes for a later re-adopt.
+# Task fields worth surviving an un-adopt → re-adopt cycle. Notes carry the
+# accumulated knowledge; the rest is configuration the user set up once and
+# shouldn't have to redo (consumes_parts is re-validated against the target
+# object's parts on restore — the object may differ or the part may be gone).
+_STASHED_TASK_FIELDS = ("notes", "responsible_user_id", "priority", "labels", "consumes_parts")
+
+
+def stash_task_config_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> None:
+    """Preserve a deleted adopted task's configuration for a later re-adopt.
 
     Un-adopting a problem sensor = deleting its task, which used to drop the
-    accumulated notes ("needs part X", "reset via service menu"). For tasks
-    carrying the adopted signature (``auto_complete_on_recovery`` on watched
-    ``entity_ids``), non-empty notes are stashed on the global entry keyed by
-    the watched sensor, and restored (consumed) when the sensor is re-adopted.
-    FIFO-capped at ``MAX_ADOPTED_NOTES`` so the global entry can't grow
-    unbounded. Called from the shared task-delete path; a no-op for everything
-    that isn't an adopted task with notes.
+    accumulated notes ("needs part X") AND the one-time setup (responsible
+    user, priority, labels, part link). For tasks carrying the adopted
+    signature (``auto_complete_on_recovery`` on watched ``entity_ids``), the
+    ``_STASHED_TASK_FIELDS`` present on the task are stashed on the global
+    entry keyed by the watched sensor, and restored (consumed) when the sensor
+    is re-adopted. FIFO-capped at ``MAX_ADOPTED_NOTES`` so the global entry
+    can't grow unbounded. Called from the shared task-delete path; a no-op for
+    everything that isn't an adopted task with stashable fields.
     """
     tc = task.get("trigger_config")
     if not isinstance(tc, dict) or not tc.get("auto_complete_on_recovery"):
         return
     entity_ids = tc.get("entity_ids") or []
-    notes = task.get("notes")
-    if not entity_ids or not isinstance(notes, str) or not notes.strip():
+    config = {k: task[k] for k in _STASHED_TASK_FIELDS if task.get(k) and (not isinstance(task[k], str) or task[k].strip())}
+    # "normal" priority is the default — not worth resurrecting on its own.
+    if config.get("priority") == "normal":
+        config.pop("priority")
+    if not entity_ids or not config:
         return
     from .global_options import get_global_entry
 
@@ -200,15 +205,19 @@ def stash_task_notes_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> N
     stash = dict(options.get(CONF_ADOPTED_NOTES) or {})
     key = str(entity_ids[0])
     stash.pop(key, None)  # re-insert as newest (dict order = age)
-    stash[key] = notes
+    stash[key] = config
     while len(stash) > MAX_ADOPTED_NOTES:
         stash.pop(next(iter(stash)))
     options[CONF_ADOPTED_NOTES] = stash
     hass.config_entries.async_update_entry(entry, options=options)
 
 
-def pop_stashed_notes(hass: HomeAssistant, entity_id: str) -> str | None:
-    """Consume (return + remove) stashed notes for ``entity_id``, if any."""
+def pop_stashed_config(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | None:
+    """Consume (return + remove) the stashed config for ``entity_id``, if any.
+
+    Pre-v2.37 stashes stored the notes string bare — normalized here to the
+    dict shape so the adopt path has a single format to apply.
+    """
     from .global_options import get_global_entry
 
     entry = get_global_entry(hass)
@@ -216,12 +225,17 @@ def pop_stashed_notes(hass: HomeAssistant, entity_id: str) -> str | None:
         return None
     options = dict(entry.options or entry.data)
     stash = dict(options.get(CONF_ADOPTED_NOTES) or {})
-    notes = stash.pop(entity_id, None)
-    if notes is None:
+    stored = stash.pop(entity_id, None)
+    if stored is None:
         return None
     options[CONF_ADOPTED_NOTES] = stash
     hass.config_entries.async_update_entry(entry, options=options)
-    return notes if isinstance(notes, str) and notes.strip() else None
+    if isinstance(stored, str):
+        return {"notes": stored} if stored.strip() else None
+    if isinstance(stored, dict):
+        config = {k: v for k, v in stored.items() if k in _STASHED_TASK_FIELDS and v}
+        return config or None
+    return None
 
 
 def build_problem_task(entity_id: str, name: str) -> dict[str, Any]:

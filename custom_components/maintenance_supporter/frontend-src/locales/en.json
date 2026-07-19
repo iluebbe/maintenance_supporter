@@ -786,5 +786,8 @@
   "setups_target_new": "Create new: {name}",
   "schedule_preview_title": "Next dates",
   "schedule_preview_ontime": "Assuming on-time completion.",
-  "schedule_preview_ends": "(series ends)"
+  "schedule_preview_ends": "(series ends)",
+  "adopt_problem_responsible": "Responsible user for all adopted tasks (optional)",
+  "adopt_problem_configure": "Configure",
+  "history_auto": "Automatic"
 }

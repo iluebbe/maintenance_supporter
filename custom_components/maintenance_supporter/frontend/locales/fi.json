@@ -786,5 +786,8 @@
   "setups_target_new": "Luo uusi: {name}",
   "schedule_preview_title": "Seuraavat päivämäärät",
   "schedule_preview_ontime": "Olettaen, että valmistuminen on ajallaan.",
-  "schedule_preview_ends": "(sarja päättyy)"
+  "schedule_preview_ends": "(sarja päättyy)",
+  "adopt_problem_responsible": "Vastuuhenkilö kaikille omaksutuille tehtäville (valinnainen)",
+  "adopt_problem_configure": "Määritä",
+  "history_auto": "Automaattinen"
 }

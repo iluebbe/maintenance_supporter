@@ -11,7 +11,8 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale } from "../styles";
 import { describeWsError } from "../ws-errors";
-import type { HomeAssistant } from "../types";
+import { UserService } from "../user-service";
+import type { HAUser, HomeAssistant } from "../types";
 
 interface ProblemSensor {
   entity_id: string;
@@ -33,6 +34,7 @@ interface DiscoverResponse {
 interface AdoptResponse {
   tasks_created: number;
   objects_created: number;
+  created: Array<{ entry_id: string; task_id: string; name: string }>;
   total: number;
   errors?: string[];
 }
@@ -46,8 +48,11 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
   @state() private _error = "";
   @state() private _sensors: ProblemSensor[] = [];
   @state() private _selected: Set<string> = new Set();
+  @state() private _users: HAUser[] = [];
+  @state() private _responsible = "";
 
   private _localeReady = false;
+  private _userService: UserService | null = null;
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -66,12 +71,20 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     this._error = "";
     this._sensors = [];
     this._selected = new Set();
+    this._responsible = "";
     try {
-      const resp = await this.hass.connection.sendMessagePromise<DiscoverResponse>({
-        type: "maintenance_supporter/problem_sensors/discover",
-      });
+      if (!this._userService) this._userService = new UserService(this.hass);
+      else this._userService.updateHass(this.hass);
+      const [resp, users] = await Promise.all([
+        this.hass.connection.sendMessagePromise<DiscoverResponse>({
+          type: "maintenance_supporter/problem_sensors/discover",
+        }),
+        // Best-effort: adoption works fine without the user list.
+        this._userService.getUsers().catch(() => [] as HAUser[]),
+      ]);
       this._sensors = resp.sensors || [];
       this._selected = new Set(this._sensors.map((s) => s.entity_id));
+      this._users = users;
     } catch (e) {
       this._error = describeWsError(e, this._lang);
     } finally {
@@ -112,6 +125,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
           object_name: s.suggested_object_name,
           device_id: s.device_id ?? undefined,
           part_id: s.suggested_part_id ?? undefined,
+          responsible_user_id: this._responsible || undefined,
         }));
       const result = await this.hass.connection.sendMessagePromise<AdoptResponse>({
         type: "maintenance_supporter/problem_sensors/adopt",
@@ -199,6 +213,25 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                     })}
                   </div>
                 `}
+
+          ${!this._loading && this._sensors.length > 0 && this._users.length > 0
+            ? html`
+                <label class="responsible">
+                  <span>${t("adopt_problem_responsible", L)}</span>
+                  <select
+                    .value=${this._responsible}
+                    @change=${(e: Event) => {
+                      this._responsible = (e.target as HTMLSelectElement).value;
+                    }}
+                  >
+                    <option value="" ?selected=${!this._responsible}>${t("no_user_assigned", L)}</option>
+                    ${this._users.map(
+                      (u) => html`<option value=${u.id} ?selected=${u.id === this._responsible}>${u.name}</option>`,
+                    )}
+                  </select>
+                </label>
+              `
+            : nothing}
 
           <div class="actions">
             <ha-button appearance="plain" @click=${this._close}>
@@ -340,6 +373,24 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     .chip-ok {
       background: var(--divider-color);
       color: var(--secondary-text-color);
+    }
+    .responsible {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      flex-wrap: wrap;
+    }
+    .responsible select {
+      flex: 1;
+      min-width: 140px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--divider-color);
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 13px;
     }
     .actions {
       display: flex;

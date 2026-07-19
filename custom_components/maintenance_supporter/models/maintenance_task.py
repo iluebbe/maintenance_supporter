@@ -299,8 +299,14 @@ class MaintenanceTask:
         photo_doc_id: str | None = None,
         reading_value: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
+        auto: bool = False,
     ) -> None:
-        """Mark this task as completed."""
+        """Mark this task as completed.
+
+        ``auto`` marks a completion nobody performed in the UI (a trigger
+        recovering on its own): the history entry is flagged so surfaces can
+        label it, and the rotation pointer stays put — advancing it would
+        credit/skip a pool member for work nobody attributed."""
         # Save current next_due as anchor for planned mode before resetting
         if self.interval_anchor == "planned" and self.next_due is not None:
             self.last_planned_due = self.next_due.isoformat()
@@ -324,12 +330,14 @@ class MaintenanceTask:
             photo_doc_id=photo_doc_id,
             reading_value=reading_value,
             used_parts=used_parts,
+            auto=auto,
         )
 
         # Shared tasks: rotate the "currently responsible" pointer to the next
         # assignee for the coming cycle (after this completion is recorded, so
-        # least_completed sees it).
-        self.advance_rotation()
+        # least_completed sees it). Auto-completions don't rotate — see above.
+        if not auto:
+            self.advance_rotation()
 
     def advance_rotation(self) -> None:
         """Advance ``responsible_user_id`` to the next pool member.
@@ -411,12 +419,15 @@ class MaintenanceTask:
         photo_doc_id: str | None = None,
         reading_value: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
+        auto: bool = False,
     ) -> None:
         """Add an entry to the maintenance history."""
         entry: dict[str, Any] = {
             "timestamp": dt_util.now().isoformat(),
             "type": entry_type,
         }
+        if auto:
+            entry["auto"] = True
         if notes is not None:
             entry["notes"] = notes
         if cost is not None:

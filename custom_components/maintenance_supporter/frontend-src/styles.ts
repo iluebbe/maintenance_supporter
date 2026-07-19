@@ -537,6 +537,18 @@ export const sharedStyles = css`
     justify-content: space-between;
     gap: 8px;
   }
+  /* v2.37 — marks completions the system recorded itself (trigger recovered).
+     margin-right:auto keeps it left beside the type label while the edit
+     button stays pinned right by the row's space-between. */
+  .history-auto-badge {
+    margin-right: auto;
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--secondary-background-color);
+    color: var(--secondary-text-color);
+    white-space: nowrap;
+  }
   .history-edit-btn {
     background: transparent;
     color: var(--secondary-text-color);

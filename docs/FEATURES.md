@@ -102,9 +102,33 @@ object and shows its live state; the integration's own sensors are excluded.
 When the target object already owns a **spare part** whose name matches the
 sensor (toner-low ↔ *Toner cartridge*), adoption pre-links it as the task's
 consumed part — completing the task then consumes/restocks it, closing the
-problem → task → buy-part loop in one step. **Notes survive un-adopting**:
-deleting an adopted task stashes its notes per sensor and the next adoption of
-the same sensor restores them.
+problem → task → buy-part loop in one step. The adopt dialog can assign a
+**responsible user** to every adopted task in one go.
+
+**Lifecycle of an adopted task** — the task is created *at adoption*, not when
+a problem first occurs. From day one it sits in the task list (status OK) and
+is configurable like any other task: responsible user or rotation pool,
+priority, labels, notes, documents, checklist, part links. What the problem
+sensor controls is only *when it becomes due*:
+
+- **Sensor turns on** → the task becomes due immediately and the normal
+  reminder/notification pipeline runs (including the responsible user's
+  routing). There is no advance-warning phase — the sensor itself *is* the
+  warning, so `warning_days` never applies here.
+- **Sensor turns off** → the task auto-completes through the regular
+  completion path: a history entry is written (marked **Automatic**, with no
+  user attribution), linked spare parts are consumed at their default
+  quantity, statistics and `on_complete_action` run. A rotation pool does
+  **not** advance on an automatic completion — nobody was credited with the
+  work, so nobody is skipped.
+- **Manual completion** while the problem is active works as usual (with
+  user, cost, parts, photo) and takes precedence — a recovery arriving within
+  two minutes of it is not recorded twice.
+
+**Configuration survives un-adopting**: deleting an adopted task stashes its
+notes, responsible user, priority, labels and part link per sensor, and the
+next adoption of the same sensor restores them (part links are re-validated
+against the target object's parts).
 
 ### Suggested Setups (2.28+, Beta)
 > **Beta**: integration discovery is new and the signature catalog grows

@@ -37,6 +37,12 @@ If a device reports a maintenance condition as a problem-class
 binary sensor, it does not need a catalog entry here — the adoption
 dialog picks it up automatically.
 
+Adopted tasks are created *at adoption* (not when a problem first
+fires) and are fully configurable from day one — responsible user,
+priority, notes, documents, part links. See the
+[adopted-task lifecycle](FEATURES.md#adopt-problem-sensors) for how
+due/auto-complete and un-adopt/re-adopt behave.
+
 ## Cleaning robots — vacuums, mops and the Dolphin pool robot
 
 | Integration | Domain | Task | Default | Notes |

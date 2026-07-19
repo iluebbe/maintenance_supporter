@@ -786,5 +786,8 @@
   "setups_target_new": "Utwórz nowy: {name}",
   "schedule_preview_title": "Najbliższe terminy",
   "schedule_preview_ontime": "Przy założeniu terminowego ukończenia.",
-  "schedule_preview_ends": "(seria się kończy)"
+  "schedule_preview_ends": "(seria się kończy)",
+  "adopt_problem_responsible": "Osoba odpowiedzialna za wszystkie przejęte zadania (opcjonalnie)",
+  "adopt_problem_configure": "Konfiguruj",
+  "history_auto": "Automatycznie"
 }

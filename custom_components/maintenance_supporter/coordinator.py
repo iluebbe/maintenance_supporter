@@ -725,9 +725,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             scope = next((v for v in list_saved_views(self.hass) if v["id"] == scope_view_id), None)
             if scope is not None:
-                notifiable = [
-                    row for row in notifiable if view_matches_task(scope["filters"], row[1])
-                ]
+                notifiable = [row for row in notifiable if view_matches_task(scope["filters"], row[1])]
 
         if not notifiable:
             # No notifications needed — still update the cache
@@ -966,6 +964,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         reading_value: float | None = None,
         restock_quantity: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
+        auto: bool = False,
     ) -> None:
         """Mark a task as completed and persist."""
         merged = self._get_merged_tasks_data()
@@ -1032,6 +1031,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             photo_doc_id=photo_doc_id,
             reading_value=reading_value,
             used_parts=enriched_used,
+            auto=auto,
         )
 
         # Link the completion photo to this task so it also surfaces under the
@@ -1165,6 +1165,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.complete_maintenance(
             task_id,
             notes=f"Auto-completed: sensor recovered ({trigger_value:g})",
+            auto=True,
         )
 
     async def reset_maintenance(

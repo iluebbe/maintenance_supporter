@@ -786,5 +786,8 @@
   "setups_target_new": "Opret ny: {name}",
   "schedule_preview_title": "Kommende datoer",
   "schedule_preview_ontime": "Forudsat rettidig fuldførelse.",
-  "schedule_preview_ends": "(serien slutter)"
+  "schedule_preview_ends": "(serien slutter)",
+  "adopt_problem_responsible": "Ansvarlig bruger for alle overtagne opgaver (valgfrit)",
+  "adopt_problem_configure": "Konfigurer",
+  "history_auto": "Automatisk"
 }
