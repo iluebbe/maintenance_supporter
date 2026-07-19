@@ -783,5 +783,8 @@
   "baseline_current_effective": "Obecnie obowiązująca wartość początkowa: {value}",
   "runtime_on_states": "Stany aktywne (rozdzielone przecinkami)",
   "runtime_on_states_help": "Stany liczone jako czas pracy — domyślnie: on. Np. mowing, cleaning, printing. Przy wybranym atrybucie porównywane są jego wartości.",
-  "setups_target_new": "Utwórz nowy: {name}"
+  "setups_target_new": "Utwórz nowy: {name}",
+  "schedule_preview_title": "Najbliższe terminy",
+  "schedule_preview_ontime": "Przy założeniu terminowego ukończenia.",
+  "schedule_preview_ends": "(seria się kończy)"
 }

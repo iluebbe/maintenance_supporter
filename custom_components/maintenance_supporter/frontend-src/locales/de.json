@@ -783,5 +783,8 @@
   "baseline_current_effective": "Aktuell wirksamer Startwert: {value}",
   "runtime_on_states": "Aktive Zustände (kommagetrennt)",
   "runtime_on_states_help": "Zustände, die als Laufzeit zählen — Standard: on. Z. B. mowing, cleaning, printing. Bei gewähltem Attribut werden dessen Werte verglichen.",
-  "setups_target_new": "Neu anlegen: {name}"
+  "setups_target_new": "Neu anlegen: {name}",
+  "schedule_preview_title": "Nächste Termine",
+  "schedule_preview_ontime": "Bei pünktlichem Abschluss.",
+  "schedule_preview_ends": "(Serie endet)"
 }

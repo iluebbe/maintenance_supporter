@@ -783,5 +783,8 @@
   "baseline_current_effective": "Momenteel geldende startwaarde: {value}",
   "runtime_on_states": "Actieve statussen (kommagescheiden)",
   "runtime_on_states_help": "Statussen die als draaitijd tellen — standaard: on. Bijv. mowing, cleaning, printing. Met een geselecteerd attribuut worden de waarden daarvan vergeleken.",
-  "setups_target_new": "Nieuw aanmaken: {name}"
+  "setups_target_new": "Nieuw aanmaken: {name}",
+  "schedule_preview_title": "Volgende data",
+  "schedule_preview_ontime": "Uitgaande van tijdige afronding.",
+  "schedule_preview_ends": "(reeks eindigt)"
 }

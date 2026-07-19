@@ -783,5 +783,8 @@
   "baseline_current_effective": "当前生效的起始读数：{value}",
   "runtime_on_states": "活动状态（逗号分隔）",
   "runtime_on_states_help": "计入运行时间的状态 — 默认：on。例如 mowing、cleaning、printing。选择了属性时将比较该属性的值。",
-  "setups_target_new": "新建：{name}"
+  "setups_target_new": "新建：{name}",
+  "schedule_preview_title": "下次日期",
+  "schedule_preview_ontime": "假设按时完成。",
+  "schedule_preview_ends": "（系列结束）"
 }

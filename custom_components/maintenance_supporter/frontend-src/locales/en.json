@@ -783,5 +783,8 @@
   "baseline_current_effective": "Currently effective start value: {value}",
   "runtime_on_states": "Active states (comma-separated)",
   "runtime_on_states_help": "States that count as running — default: on. E.g. mowing, cleaning, printing. With an attribute selected, its values are matched instead.",
-  "setups_target_new": "Create new: {name}"
+  "setups_target_new": "Create new: {name}",
+  "schedule_preview_title": "Next dates",
+  "schedule_preview_ontime": "Assuming on-time completion.",
+  "schedule_preview_ends": "(series ends)"
 }

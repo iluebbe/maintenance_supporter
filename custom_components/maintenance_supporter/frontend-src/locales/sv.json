@@ -783,5 +783,8 @@
   "baseline_current_effective": "Nu gällande startvärde: {value}",
   "runtime_on_states": "Aktiva tillstånd (kommaseparerade)",
   "runtime_on_states_help": "Tillstånd som räknas som drifttid — standard: on. T.ex. mowing, cleaning, printing. Med ett valt attribut jämförs dess värden i stället.",
-  "setups_target_new": "Skapa ny: {name}"
+  "setups_target_new": "Skapa ny: {name}",
+  "schedule_preview_title": "Kommande datum",
+  "schedule_preview_ontime": "Förutsatt slutförande i tid.",
+  "schedule_preview_ends": "(serien avslutas)"
 }

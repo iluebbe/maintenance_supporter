@@ -337,6 +337,79 @@ async def ws_subscribe(
     _forward_update()
 
 
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/schedule/preview",
+        # A DRAFT schedule in Schedule.to_dict form — validated leniently by
+        # Schedule.from_dict (unknown kinds sanitize to manual → empty result).
+        vol.Required("schedule"): dict,
+        vol.Optional("last_performed"): vol.Any(str, None),
+        vol.Optional("times_performed", default=0): vol.All(int, vol.Range(min=0, max=100000)),
+        vol.Optional("count", default=3): vol.All(int, vol.Range(min=1, max=10)),
+    }
+)
+@websocket_api.async_response
+async def ws_schedule_preview(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Next N occurrences of a draft schedule — computed by the REAL engine.
+
+    Powers the task dialog's live "next dates" preview (#83 roadmap item).
+    Stateless and read-only: instantiates Schedule.from_dict and iterates
+    next_due(), simulating an ON-TIME completion per step (last_performed /
+    last_planned_due advance, times_performed increments) — so completion-
+    anchored intervals, calendar kinds, season windows, business-day rolls,
+    ±offsets and finite series all advance exactly as the engine would.
+    Never a frontend reimplementation (the #103 drift lesson).
+    """
+    from datetime import date as date_cls
+
+    from homeassistant.util import dt as dt_util
+
+    from ..helpers.schedule import Schedule
+
+    lp: date_cls | None = None
+    raw_lp = msg.get("last_performed")
+    if raw_lp:
+        try:
+            lp = date_cls.fromisoformat(raw_lp)
+        except ValueError:
+            connection.send_error(msg["id"], "invalid_date", "Invalid last_performed (expected YYYY-MM-DD)")
+            return
+
+    today = dt_util.now().date()
+    occurrences: list[str] = []
+    series_ended = False
+    try:
+        sched = Schedule.from_dict(msg["schedule"])
+        times = int(msg.get("times_performed", 0))
+        lpd: date_cls | None = None
+        for _ in range(int(msg.get("count", 3))):
+            nxt = sched.next_due(
+                last_performed=lp,
+                created_at=today,
+                last_planned_due=lpd,
+                today=today,
+                times_performed=times,
+            )
+            if nxt is None:
+                series_ended = True
+                break
+            if occurrences and nxt.isoformat() <= occurrences[-1]:  # pragma: no cover
+                break  # safety net: the engine must advance — never loop
+            occurrences.append(nxt.isoformat())
+            lp = nxt
+            lpd = nxt
+            times += 1
+    except (TypeError, ValueError) as err:
+        connection.send_error(msg["id"], "invalid_input", f"Invalid schedule: {err}")
+        return
+
+    connection.send_result(msg["id"], {"occurrences": occurrences, "series_ended": series_ended})
+
+
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/budget_status"})
 @websocket_api.async_response
 async def ws_get_budget_status(

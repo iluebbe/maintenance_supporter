@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 📅 Live schedule preview — your next three dates (#83)
+
+- While editing a task's schedule, the dialog now shows the **next three
+  concrete occurrences** the current settings produce — weekday-prefixed
+  ("Sat 01/09/2027"), updating live as you change fields, with the
+  schedule time appended and an "assuming on-time completion" note on
+  completion-anchored intervals. Finite series show where they end;
+  manual schedules show nothing.
+- The dates come from the REAL scheduling engine via a new read-only
+  `schedule/preview` WebSocket command — never a frontend
+  reimplementation, so season windows, business-day rolls, ±offsets and
+  series ends are always exact.
+
+### 🐛 Fixed: seasonal window now preserves calendar patterns
+
+- A calendar-pattern task (e.g. "2nd Saturday") with a seasonal window
+  came due on the **1st** of the next active month instead of its pattern
+  date — a "2nd Saturday of Jan+Jul" setup fired on Jan 1st. The seasonal
+  roll now recomputes the pattern inside the active month (Sat Jan 9th),
+  searching onward when a month lacks the pattern (e.g. a 5th Tuesday).
+  Interval schedules keep the documented roll to the month's 1st.
+
 ## [2.33.0] - 2026-07-19
 
 ### 💰 Spent totals visible without a budget maximum (#104)

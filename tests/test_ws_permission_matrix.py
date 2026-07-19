@@ -93,6 +93,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/task/update": "write",
     # ── read (any authenticated user; actions deliberately household-open) ──
     "maintenance_supporter/budget_status": "read",
+    "maintenance_supporter/schedule/preview": "read",
     "maintenance_supporter/documents/list": "read",
     "maintenance_supporter/documents/search": "read",
     "maintenance_supporter/documents/storage": "read",

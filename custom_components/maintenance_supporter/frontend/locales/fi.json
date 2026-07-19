@@ -783,5 +783,8 @@
   "baseline_current_effective": "Nyt voimassa oleva aloitusarvo: {value}",
   "runtime_on_states": "Aktiiviset tilat (pilkuin eroteltuina)",
   "runtime_on_states_help": "Tilat, jotka lasketaan käyntiajaksi — oletus: on. Esim. mowing, cleaning, printing. Jos attribuutti on valittu, verrataan sen arvoja.",
-  "setups_target_new": "Luo uusi: {name}"
+  "setups_target_new": "Luo uusi: {name}",
+  "schedule_preview_title": "Seuraavat päivämäärät",
+  "schedule_preview_ontime": "Olettaen, että valmistuminen on ajallaan.",
+  "schedule_preview_ends": "(sarja päättyy)"
 }

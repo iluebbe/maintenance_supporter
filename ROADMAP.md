@@ -117,7 +117,7 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    reset on completion), letting users tick off steps across several days
    before closing the task.
 
-7. 💡 **Live schedule preview — "your next three dates" (#83)** — while
+7. ~~**Live schedule preview — "your next three dates" (#83)**~~ ✅ **Shipped (unreleased)** — implemented exactly as designed below, incl. an engine fix the work surfaced (seasonal window now preserves calendar patterns instead of rolling to the 1st). — while
    editing a task's recurrence, show the next 3 concrete occurrences the
    CURRENT settings produce, updating live as fields change. This is the
    schedule-side twin of the trigger live-hint (v2.25) and would have
