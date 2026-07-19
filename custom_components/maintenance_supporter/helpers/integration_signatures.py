@@ -988,6 +988,130 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    # ─── Research round 4 (2026-07-19): boiler pressure, HRV filters, ───
+    # ─── purifiers, espresso, pet tech, Klipper ─────────────────────────
+    "opentherm_gw": IntegrationSignature(
+        name="OpenTherm Gateway",
+        verified="2026-07-19 @ core/dev opentherm_gw/sensor.py",
+        source=(
+            "core opentherm_gw: tk 'central_heating_pressure', BAR, "
+            "MEASUREMENT — generic for EVERY OpenTherm-connected boiler."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("central_heating_pressure",), "Refill Heating Water", "value_below", delta_units=1
+            ),
+        ),
+    ),
+    "plugwise": IntegrationSignature(
+        name="Plugwise (Anna/Adam)",
+        verified="2026-07-19 @ core/dev plugwise/sensor.py",
+        source="core plugwise: tk 'water_pressure', BAR, MEASUREMENT (boiler loop).",
+        tasks=(
+            ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),
+        ),
+    ),
+    "incomfort": IntegrationSignature(
+        name="Intergas InComfort",
+        verified="2026-07-19 @ core/dev incomfort/sensor.py",
+        source=(
+            "core incomfort: key 'cv_pressure', BAR, MEASUREMENT. NOTE: "
+            "entity_registry_enabled_default=False — the suggestion appears "
+            "once the user enables the sensor."
+        ),
+        tasks=(
+            ConsumableSignature(("cv_pressure",), "Refill Heating Water", "value_below", delta_units=1),
+        ),
+    ),
+    "atag": IntegrationSignature(
+        name="ATAG One",
+        verified="2026-07-19 @ core/dev atag/sensor.py",
+        source=(
+            "core atag: legacy name-based sensors ('CH Water Pressure' → "
+            "object id ch_water_pressure), BAR — matched via suffix or the "
+            "exact-object-id pattern."
+        ),
+        tasks=(
+            ConsumableSignature(("ch_water_pressure",), "Refill Heating Water", "value_below", delta_units=1),
+        ),
+    ),
+    "vesync": IntegrationSignature(
+        name="VeSync (Levoit)",
+        verified="2026-07-19 @ core/dev vesync/sensor.py",
+        source="core vesync: tk 'filter_life', PERCENTAGE, MEASUREMENT (Levoit purifiers).",
+        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
+    ),
+    "comfoconnect": IntegrationSignature(
+        name="Zehnder ComfoAirQ",
+        verified="2026-07-19 @ core/dev comfoconnect/sensor.py",
+        source=(
+            "core comfoconnect: key 'days_to_replace_filter', UnitOfTime.DAYS "
+            "(name-style, no tk → suffix match)."
+        ),
+        tasks=(
+            # 168 canonical hours = warn at 7 days remaining (unit 'd' → ÷24).
+            ConsumableSignature(
+                ("days_to_replace_filter",), "Replace Ventilation Filter", "duration_left", below_hours=168
+            ),
+        ),
+    ),
+    "renson": IntegrationSignature(
+        name="Renson Endura Delta",
+        verified="2026-07-19 @ core/dev renson/sensor.py",
+        source="core renson: tk 'filter_change', DURATION, DAYS, MEASUREMENT.",
+        tasks=(
+            ConsumableSignature(
+                ("filter_change",), "Replace Ventilation Filter", "duration_left", below_hours=168
+            ),
+        ),
+    ),
+    "lamarzocco": IntegrationSignature(
+        name="La Marzocco",
+        verified="2026-07-19 @ core/dev lamarzocco/sensor.py",
+        source=(
+            "core lamarzocco: tk 'total_coffees_made', TOTAL_INCREASING "
+            "lifetime shot counter — one entity, two duties (intervals are "
+            "editorial defaults: backflush ~weekly at home ≈ 100 shots, "
+            "water filter per LM guidance ≈ 1000 shots)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("total_coffees_made",), "Backflush Espresso Group", "usage_delta", delta_units=100
+            ),
+            ConsumableSignature(
+                ("total_coffees_made",), "Replace Water Filter", "usage_delta", delta_units=1000
+            ),
+        ),
+    ),
+    "petkit": IntegrationSignature(
+        name="PetKit",
+        verified="2026-07-19 @ Jezza34000/homeassistant_petkit main sensor.py",
+        source=(
+            "HACS petkit (Jezza34000): tk 'desiccant_left_days' (feeder, "
+            "UnitOfTime.DAYS) and tk 'filter_percent' (water fountain, "
+            "PERCENTAGE)."
+        ),
+        tasks=(
+            # 48 canonical hours = warn at 2 days of desiccant left.
+            ConsumableSignature(("desiccant_left_days",), "Replace Desiccant", "duration_left", below_hours=48),
+            ConsumableSignature(("filter_percent",), "Replace Water Filter", "percent_left"),
+        ),
+    ),
+    "moonraker": IntegrationSignature(
+        name="Moonraker (Klipper)",
+        verified="2026-07-19 @ marcolivierarsenault/moonraker-home-assistant main sensor.py+base.py",
+        source=(
+            "HACS moonraker: name 'Totals Filament Used' (has_entity_name → "
+            "suffix totals_filament_used), METERS, TOTAL_INCREASING lifetime. "
+            "NOTE: 'Totals Print Time' is a formatted STRING — unusable. "
+            "Nozzle interval is an editorial default (~1000 m on brass)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("totals_filament_used",), "Replace Nozzle", "usage_delta", delta_units=1000
+            ),
+        ),
+    ),
     "mydolphin_plus": IntegrationSignature(
         name="Maytronics Dolphin",
         verified="2026-07-18 @ sh00t2kill/dolphin-robot master",

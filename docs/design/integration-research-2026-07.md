@@ -554,7 +554,7 @@ always. Focus: categories never swept — ventilation (HRV/ERV filters),
 boiler water pressure beyond Bosch, air purifiers, espresso machines,
 pet tech, Klipper.
 
-**Catalog-ready (verified positive):**
+**Catalog-ready (verified positive):** — ✅ ALL TEN SHIPPED 2026-07-19 (impl notes: atag via exact-object-id; moonraker suffix is the NAME slug totals_filament_used; incomfort sensor is disabled-by-default upstream; the pressure quartet reuses the Bosch duty name)
 
 | Integration | Evidence | Direction / duty |
 |---|---|---|

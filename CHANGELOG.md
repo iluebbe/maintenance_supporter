@@ -2,6 +2,29 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔥 Ten more integrations — boilers, ventilation, espresso, pets, Klipper
+
+- **Heating water pressure** joins four more ways: the generic **OpenTherm
+  Gateway** (works with every OpenTherm boiler), **Plugwise** (Anna/Adam),
+  **Intergas InComfort** and **ATAG One** all propose "Refill Heating
+  Water" when the loop drops below 1 bar — topping up resolves the task.
+- **Ventilation (HRV) filters**: **Zehnder ComfoAirQ** and **Renson Endura
+  Delta** propose the filter change when fewer than 7 days remain on the
+  device's own countdown.
+- **Levoit air purifiers** (VeSync) propose "Replace Filter" from the
+  filter-life percentage.
+- **La Marzocco espresso machines** get two duties from the lifetime shot
+  counter: backflush the group every ~100 shots and replace the water
+  filter every ~1000 (editorial defaults).
+- **PetKit** feeders propose desiccant replacement (≤ 2 days left) and
+  fountains the water-filter change; **Klipper printers via Moonraker**
+  propose a nozzle change every ~1000 m of filament.
+
+Catalog: **80 integrations / 147 verified signatures**; all upstream drift
+probes green.
+
 ## [2.34.1] - 2026-07-19
 
 ### 🌐 Fixed: Polish, Czech and Swedish date formats
