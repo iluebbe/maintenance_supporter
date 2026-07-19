@@ -46,9 +46,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             # Heating-loop pressure: refill water when it drops below 1 bar;
             # topping up raises the value back (auto-resolve).
-            ConsumableSignature(
-                ("system_pressure",), "Refill Heating Water", "value_below", delta_units=1
-            ),
+            ConsumableSignature(("system_pressure",), "Refill Heating Water", "value_below", delta_units=1),
         ),
     ),
     # ─── Research round 4 (2026-07-19): boiler pressure, HRV filters, ───
@@ -57,22 +55,15 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         name="OpenTherm Gateway",
         verified="2026-07-19 @ core/dev opentherm_gw/sensor.py",
         source=(
-            "core opentherm_gw: tk 'central_heating_pressure', BAR, "
-            "MEASUREMENT — generic for EVERY OpenTherm-connected boiler."
+            "core opentherm_gw: tk 'central_heating_pressure', BAR, MEASUREMENT — generic for EVERY OpenTherm-connected boiler."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("central_heating_pressure",), "Refill Heating Water", "value_below", delta_units=1
-            ),
-        ),
+        tasks=(ConsumableSignature(("central_heating_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
     ),
     "plugwise": IntegrationSignature(
         name="Plugwise (Anna/Adam)",
         verified="2026-07-19 @ core/dev plugwise/sensor.py",
         source="core plugwise: tk 'water_pressure', BAR, MEASUREMENT (boiler loop).",
-        tasks=(
-            ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),
-        ),
+        tasks=(ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
     ),
     "incomfort": IntegrationSignature(
         name="Intergas InComfort",
@@ -82,9 +73,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "entity_registry_enabled_default=False — the suggestion appears "
             "once the user enables the sensor."
         ),
-        tasks=(
-            ConsumableSignature(("cv_pressure",), "Refill Heating Water", "value_below", delta_units=1),
-        ),
+        tasks=(ConsumableSignature(("cv_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
     ),
     "atag": IntegrationSignature(
         name="ATAG One",
@@ -94,9 +83,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "object id ch_water_pressure), BAR — matched via suffix or the "
             "exact-object-id pattern."
         ),
-        tasks=(
-            ConsumableSignature(("ch_water_pressure",), "Refill Heating Water", "value_below", delta_units=1),
-        ),
+        tasks=(ConsumableSignature(("ch_water_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
     ),
     "bwt_perla": IntegrationSignature(
         name="BWT Perla",
@@ -108,9 +95,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("regenerativ_level",), "Refill Softener Salt", "percent_left"),
-            ConsumableSignature(
-                ("regenerativ_days",), "Refill Softener Salt", "duration_left", below_hours=168
-            ),
+            ConsumableSignature(("regenerativ_days",), "Refill Softener Salt", "duration_left", below_hours=168),
         ),
     ),
     "ecowater_softener": IntegrationSignature(
@@ -123,18 +108,14 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("salt_level_percentage",), "Refill Softener Salt", "percent_left"),
-            ConsumableSignature(
-                ("out_of_salt_days",), "Refill Softener Salt", "duration_left", below_hours=168
-            ),
+            ConsumableSignature(("out_of_salt_days",), "Refill Softener Salt", "duration_left", below_hours=168),
         ),
     ),
     "wolflink": IntegrationSignature(
         name="Wolf SmartSet",
         verified="2026-07-19 @ core/dev wolflink/sensor.py",
         source="core wolflink: key 'pressure', BAR (heating loop).",
-        tasks=(
-            ConsumableSignature(("pressure",), "Refill Heating Water", "value_below", delta_units=1),
-        ),
+        tasks=(ConsumableSignature(("pressure",), "Refill Heating Water", "value_below", delta_units=1),),
     ),
     "palazzetti": IntegrationSignature(
         name="Palazzetti pellet stove",
@@ -146,9 +127,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "calendar-based cleaning). 'pellet_level' is a CM tank gauge — "
             "inventory, not wear; skipped."
         ),
-        tasks=(
-            ConsumableSignature(("pellet_quantity",), "Empty Ash Pan", "usage_delta", delta_units=100),
-        ),
+        tasks=(ConsumableSignature(("pellet_quantity",), "Empty Ash Pan", "usage_delta", delta_units=100),),
     ),
     "mypyllant": IntegrationSignature(
         name="Vaillant (myVAILLANT)",
@@ -166,6 +145,22 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "value_below",
                 delta_units=1,
             ),
+        ),
+    ),
+    "grohe_smarthome": IntegrationSignature(
+        name="Grohe Blue",
+        verified="2026-07-19 @ flo-schilli/ha-grohe_smarthome main (HACS default)",
+        source=(
+            "HACS grohe_smarthome, yaml-driven name-derived entities "
+            "(config/config.yaml, GroheBlueHome/GroheBlueProf): 'Remaining "
+            "Filter' (%) and 'Remaining CO2' (%) — reset by the device's own "
+            "filter/CO2 reset commands. The sibling 'Remaining Filter (App)' "
+            "slugs to _remaining_filter_app and cannot clash with the exact "
+            "_remaining_filter suffix."
+        ),
+        tasks=(
+            ConsumableSignature(("remaining_filter",), "Replace Water Filter", "percent_left"),
+            ConsumableSignature(("remaining_co2",), "Replace CO2 Bottle", "percent_left"),
         ),
     ),
 }

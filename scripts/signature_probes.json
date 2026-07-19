@@ -822,5 +822,73 @@
    "washer_state",
    "running_maincycle"
   ]
+ },
+ "myskoda": {
+  "urls": [
+   "https://raw.githubusercontent.com/skodaconnect/homeassistant-myskoda/main/custom_components/myskoda/sensor.py"
+  ],
+  "strings": [
+   "\"milage\"",
+   "translation_key=\"mileage\"",
+   "inspection_in_km",
+   "oil_service_in_days",
+   "oil_service_in_km",
+   "inspection_due_in_days"
+  ]
+ },
+ "audiconnect": {
+  "urls": [
+   "https://raw.githubusercontent.com/audiconnect/audi_connect_ha/master/custom_components/audiconnect/sensor.py"
+  ],
+  "strings": [
+   "attr_key=\"mileage\"",
+   "service_inspection_time",
+   "service_inspection_distance",
+   "oil_change_time",
+   "oil_change_distance"
+  ]
+ },
+ "ha_blueair": {
+  "urls": [
+   "https://raw.githubusercontent.com/dahlb/ha_blueair/master/custom_components/ha_blueair/sensor.py",
+   "https://raw.githubusercontent.com/dahlb/ha_blueair/master/custom_components/ha_blueair/blueair_update_coordinator_device_aws.py"
+  ],
+  "strings": [
+   "filter_life",
+   "wick_life",
+   "water_refresher_life",
+   "100 - self.blueair_api_device.filter_usage_percentage"
+  ]
+ },
+ "grohe_smarthome": {
+  "urls": [
+   "https://raw.githubusercontent.com/flo-schilli/ha-grohe_smarthome/main/custom_components/grohe_smarthome/config/config.yaml"
+  ],
+  "strings": [
+   "Remaining Filter",
+   "Remaining CO2",
+   "remaining_filter",
+   "remaining_co2"
+  ]
+ },
+ "coway": {
+  "urls": [
+   "https://raw.githubusercontent.com/robertd502/home-assistant-iocare/master/custom_components/coway/sensor.py"
+  ],
+  "strings": [
+   "Pre filter",
+   "Charcoal filter",
+   "MAX2 filter",
+   "HEPA filter"
+  ]
+ },
+ "winix": {
+  "urls": [
+   "https://raw.githubusercontent.com/iprak/winix/master/custom_components/winix/sensor.py"
+  ],
+  "strings": [
+   "SENSOR_FILTER_LIFE",
+   "filter_alarm_duration"
+  ]
  }
 }

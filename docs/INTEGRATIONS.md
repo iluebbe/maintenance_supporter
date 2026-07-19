@@ -141,6 +141,16 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
 | MG/SAIC iSMART | `mg_saic` | Annual Service | every 15000 units (counter delta) |  |
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Škoda (MySkoda) | `myskoda` | Tire Rotation | every 10000 units (counter delta) |  |
+|  |  | Annual Service | below 14 days remaining |  |
+|  |  | Annual Service | below 1000 |  |
+|  |  | Oil Service | below 14 days remaining |  |
+|  |  | Oil Service | below 1000 |  |
+| Audi Connect | `audiconnect` | Tire Rotation | every 10000 units (counter delta) |  |
+|  |  | Annual Service | below 14 days remaining |  |
+|  |  | Annual Service | below 1000 |  |
+|  |  | Oil Service | below 14 days remaining |  |
+|  |  | Oil Service | below 1000 |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
 
@@ -169,6 +179,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Wolf SmartSet | `wolflink` | Refill Heating Water | below 1 |  |
 | Palazzetti pellet stove | `palazzetti` | Empty Ash Pan | every 100 units (counter delta) |  |
 | Vaillant (myVAILLANT) | `mypyllant` | Refill Heating Water | below 1 |  |
+| Grohe Blue | `grohe_smarthome` | Replace Water Filter | below 10 % remaining |  |
+|  |  | Replace CO2 Bottle | below 10 % remaining |  |
 
 ## Air treatment — purifiers, ACs and HRV/ventilation filters
 
@@ -188,6 +200,12 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Replace Wick | below 10 % remaining |  |
 |  |  | Replace Wick | below 3 days remaining |  |
 | IKEA DIRIGERA (STARKVIND) | `dirigera_platform` | Replace Filter | at 4320 h counted by the device |  |
+| Blueair | `ha_blueair` | Replace Filter | below 10 % remaining |  |
+|  |  | Replace Wick | below 10 % remaining |  |
+|  |  | Replace Water Refresher | below 10 % remaining |  |
+| Coway IoCare | `coway` | Filter Cleaning | below 10 % remaining |  |
+|  |  | Replace Filter | below 10 % remaining |  |
+| Winix | `winix` | Replace Filter | below 10 % remaining |  |
 
 ## Kitchen & household appliances incl. espresso machines
 
@@ -302,6 +320,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**94 integrations / 174 verified signatures.**
+**100 integrations / 192 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

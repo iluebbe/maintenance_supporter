@@ -18,20 +18,15 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'filter_life' for BOTH hepa and carbon "
             "instances, PERCENTAGE) — one any-low task covers both filters."
         ),
-        tasks=(
-            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
-        ),
+        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
     ),
     "dreo": IntegrationSignature(
         name="Dreo",
         verified="2026-07-18 @ JeffSteinbok/hass-dreo main",
         source=(
-            "JeffSteinbok/hass-dreo sensor.py (translation_key 'filter_life', "
-            "unit '%', humidifiers with FILTERTIME support)."
+            "JeffSteinbok/hass-dreo sensor.py (translation_key 'filter_life', unit '%', humidifiers with FILTERTIME support)."
         ),
-        tasks=(
-            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
-        ),
+        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
     ),
     "vesync": IntegrationSignature(
         name="VeSync (Levoit)",
@@ -50,8 +45,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=100,
-                entity_domain="climate", attribute="hvac_action",
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=100,
+                entity_domain="climate",
+                attribute="hvac_action",
                 on_states=("cooling", "heating", "fan", "drying"),
             ),
         ),
@@ -67,8 +66,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=100,
-                entity_domain="climate", attribute="hvac_action",
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=100,
+                entity_domain="climate",
+                attribute="hvac_action",
                 on_states=("cooling", "heating", "fan", "drying"),
             ),
         ),
@@ -76,26 +79,17 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     "comfoconnect": IntegrationSignature(
         name="Zehnder ComfoAirQ",
         verified="2026-07-19 @ core/dev comfoconnect/sensor.py",
-        source=(
-            "core comfoconnect: key 'days_to_replace_filter', UnitOfTime.DAYS "
-            "(name-style, no tk → suffix match)."
-        ),
+        source=("core comfoconnect: key 'days_to_replace_filter', UnitOfTime.DAYS (name-style, no tk → suffix match)."),
         tasks=(
             # 168 canonical hours = warn at 7 days remaining (unit 'd' → ÷24).
-            ConsumableSignature(
-                ("days_to_replace_filter",), "Replace Ventilation Filter", "duration_left", below_hours=168
-            ),
+            ConsumableSignature(("days_to_replace_filter",), "Replace Ventilation Filter", "duration_left", below_hours=168),
         ),
     ),
     "renson": IntegrationSignature(
         name="Renson Endura Delta",
         verified="2026-07-19 @ core/dev renson/sensor.py",
         source="core renson: tk 'filter_change', DURATION, DAYS, MEASUREMENT.",
-        tasks=(
-            ConsumableSignature(
-                ("filter_change",), "Replace Ventilation Filter", "duration_left", below_hours=168
-            ),
-        ),
+        tasks=(ConsumableSignature(("filter_change",), "Replace Ventilation Filter", "duration_left", below_hours=168),),
     ),
     "philips_airpurifier_coap": IntegrationSignature(
         name="Philips AirPurifier (CoAP)",
@@ -138,10 +132,45 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(= IKEA's 259,200-minute filter lifetime). The sibling "
             "'Filter Lifetime' sensor is the constant total — unusable."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("filter_elapsed_time",), "Replace Filter", "usage_above", above_hours=4320
-            ),
+        tasks=(ConsumableSignature(("filter_elapsed_time",), "Replace Filter", "usage_above", above_hours=4320),),
+    ),
+    "ha_blueair": IntegrationSignature(
+        name="Blueair",
+        verified="2026-07-19 @ dahlb/ha_blueair master sensor.py (HACS default)",
+        source=(
+            "HACS ha_blueair: name-derived 'Filter Life' / 'Wick Life' / "
+            "'Water Refresher Life' (PERCENTAGE). Verified % REMAINING: the "
+            "device-aws coordinator returns 100 - filter_usage_percentage. "
+            "A filter_expired problem binary also exists (adoption path)."
         ),
+        tasks=(
+            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+            ConsumableSignature(("wick_life",), "Replace Wick", "percent_left"),
+            ConsumableSignature(("water_refresher_life",), "Replace Water Refresher", "percent_left"),
+        ),
+    ),
+    "coway": IntegrationSignature(
+        name="Coway IoCare",
+        verified="2026-07-19 @ robertd502/home-assistant-iocare main sensor.py (HACS default)",
+        source=(
+            "HACS coway: name-derived entities, % remaining — 'Pre filter' "
+            "(AIRMEGA odor variant: 'Charcoal filter') and 'MAX2 filter' "
+            "(AP-1512HHS EU/UK models: 'HEPA filter'); both name variants "
+            "listed as keys."
+        ),
+        tasks=(
+            ConsumableSignature(("pre_filter", "charcoal_filter"), "Filter Cleaning", "percent_left"),
+            ConsumableSignature(("max2_filter", "hepa_filter"), "Replace Filter", "percent_left"),
+        ),
+    ),
+    "winix": IntegrationSignature(
+        name="Winix",
+        verified="2026-07-19 @ iprak/winix master sensor.py (HACS default)",
+        source=(
+            "HACS winix: tk 'filter_life' (PERCENTAGE) — % remaining derived "
+            "device-side from filter hours vs the model's "
+            "filter_alarm_duration."
+        ),
+        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
     ),
 }
