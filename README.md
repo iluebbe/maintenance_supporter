@@ -27,14 +27,14 @@ your phone, and keep the full history of what was done and what it cost.
 ## What can it do for you?
 
 **"The HVAC filter is due every 3 months."**
-Create the object once (or pick it from 33 ready-made templates), give it a
+Create the object once (or pick it from 41 ready-made templates), give it a
 task with an interval — days, weeks, months, or specific patterns like *first
 Saturday* or *last business day of the month*. You get a reminder before it's
 due, and completing it takes one tap — optionally with notes, cost, duration,
 and a photo of the work.
 
 **"My vacuum already knows when its filter is worn."**
-**Suggested setups** (Beta) discovers devices of 27 supported integrations —
+**Suggested setups** (Beta) discovers devices of 100 supported integrations —
 vacuums, robotic mowers, printers, kitchen appliances, heating, 3D printers,
 cars — and sets them up in one click with **sensor triggers pre-wired**:
 percent remaining, countdowns, wear counters, usage intervals (service every
@@ -106,7 +106,7 @@ for you — always previewing before it writes.
 
 | Area | What you get | Details |
 |---|---|---|
-| **Suggested setups** | 83 integrations discovered with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more | [Supported integrations](docs/INTEGRATIONS.md) |
+| **Suggested setups** | 100 integrations / 190 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more | [Supported integrations](docs/INTEGRATIONS.md) |
 | **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision; live "next three dates" preview while editing | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery; adopt HA `device_class: problem` sensors as tasks | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |
 | **Adaptive scheduling** | Learns real intervals (EWA + Weibull), seasonal factors, degradation prediction, feedback loop | [Features → Adaptive](docs/FEATURES.md#adaptive-scheduling) |
