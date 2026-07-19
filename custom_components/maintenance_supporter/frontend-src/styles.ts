@@ -122,7 +122,10 @@ function langToLocale(lang?: string): string {
   const l = (lang || "en").substring(0, 2).toLowerCase();
   const map: Record<string, string> = {
     de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT", ru: "ru-RU", uk: "uk-UA", zh: "zh-CN",
-    da: "da-DK", fi: "fi-FI", nb: "nb-NO", ja: "ja-JP", hi: "hi-IN"
+    da: "da-DK", fi: "fi-FI", nb: "nb-NO", ja: "ja-JP", hi: "hi-IN",
+    // pl/cs/sv were missing and silently fell back to en-US — Polish users
+    // saw MM/DD dates (caught by the live multi-language check, 2026-07-19).
+    pl: "pl-PL", cs: "cs-CZ", sv: "sv-SE",
   };
   return map[l] ?? "en-US";
 }

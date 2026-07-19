@@ -34,6 +34,16 @@ describe("formatDate with HA profile date_format (#97)", () => {
     expect(formatDate("2026-08-10", "de")).to.equal("10.08.2026");
   });
 
+  it("pl/cs/sv derive their own locale, not en-US (live-check find)", () => {
+    setDateTimePrefs({ date_format: "language" });
+    // These three were missing from langToLocale and silently rendered
+    // US-ordered dates. Day must come before month for all of them.
+    expect(formatDate("2026-08-10", "pl")).to.equal("10.08.2026");
+    expect(formatDate("2026-08-10", "cs")).to.equal("10. 08. 2026"); // Czech spaces its dots
+    expect(formatDate("2026-08-10", "sv")).to.equal("2026-08-10"); // sv-SE = ISO order
+    reset();
+  });
+
   it("null/invalid input unchanged by prefs", () => {
     setDateTimePrefs({ date_format: "DMY" });
     expect(formatDate(null, "en")).to.equal("—");
