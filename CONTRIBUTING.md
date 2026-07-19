@@ -124,6 +124,7 @@ Maintainer-only. Sequence:
 2. Move CHANGELOG `[Unreleased]` block to the new version heading
 3. `git commit + push`
 4. `gh release create v<version> --notes "..."` — HACS picks up new versions from GitHub Releases, not commits/tags alone.
+5. The **Release ZIP** workflow then attaches `maintenance_supporter.zip` automatically. This asset is mandatory: `hacs.json` declares `zip_release`, so HACS installs *only* from the asset — verify the workflow ran green before announcing a release. If it failed, attach manually: `git archive v<version>:custom_components/maintenance_supporter --format=zip -o maintenance_supporter.zip && gh release upload v<version> maintenance_supporter.zip`.
 
 ## Reporting issues
 

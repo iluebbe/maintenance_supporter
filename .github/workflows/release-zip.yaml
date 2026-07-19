@@ -1,0 +1,31 @@
+name: Release ZIP
+
+# hacs.json declares zip_release, so every release MUST carry a
+# maintenance_supporter.zip asset — HACS has no source fallback and a
+# release without the asset is uninstallable. This attaches it automatically.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  attach-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Build integration ZIP (contents at zip root)
+        run: |
+          cd custom_components/maintenance_supporter
+          zip -r "$GITHUB_WORKSPACE/maintenance_supporter.zip" .
+      - name: Verify zip structure
+        run: |
+          unzip -l maintenance_supporter.zip | grep -q " manifest.json$" || { echo "manifest.json not at zip root"; exit 1; }
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" maintenance_supporter.zip --clobber
