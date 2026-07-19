@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.33.0] - 2026-07-19
 
 ### 💰 Spent totals visible without a budget maximum (#104)
 
