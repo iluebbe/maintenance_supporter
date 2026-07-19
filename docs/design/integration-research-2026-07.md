@@ -676,3 +676,23 @@ cycles (Whisker: globe clean every 1-3 months), tire rotation 10,000 km
 (Tesla: every 6,250 mi), Oral-B 6 h (official 3 months), STARKVIND
 4,320 h (IKEA's own budget), Bambu values stay editorial (wiki
 unfetchable), wallbox 5,000 kWh editorial (no official figure exists).
+
+
+## Research round 7 (2026-07-19): fresh sources
+
+- ✅ **hon** (Andre0512, 1.5k stars — closes the OPEN #101 Haier ask):
+  purifier tk filter_life (%) + tk filter_cleaning (pre-filter, %) +
+  washer tk cycles_total (lifetime counter) -> Clean Tub every 30 cycles
+  (reusing LG's manufacturer cadence).
+- ✅ **Car wave 2** (now 14 brands): polestar_api (current_odometer,
+  native m / display km), fordpass (dict-key odometer, suffix), toyota
+  (tk odometer TOTAL_INCREASING), mg_saic (ad-ha, HACS default; 'Mileage'
+  suffix — 'Mileage Since Last Charge' cannot clash).
+- ✅ **palazzetti** (core): tk pellet_quantity (kg consumed, cumulative)
+  -> Empty Ash Pan every 100 kg (editorial ~weekly in season; manuals are
+  calendar-based). pellet_level is a CM tank gauge — inventory, skipped.
+- ✅ **wolflink** (core): key 'pressure' BAR -> Refill Heating Water.
+- Parked for round 8: ebusd (Vaillant via eBus — big DE base, config-
+  dependent entities), whirlpool/homewhiz quick checks, bosch_ebike.
+
+Catalog after round 7: **92 integrations / 172 signatures**.
