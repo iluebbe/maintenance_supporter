@@ -18,7 +18,7 @@ import { chromium } from "@playwright/test";
 import fs from "fs";
 import { wsClient, watchdog } from "./ws-client.mjs";
 
-const REST = "http://localhost:8131";           // host-side REST
+const REST = "http://127.0.0.1:8131";           // host-side REST
 const HA = "http://ha-shots:8123";              // browser-side (docker net)
 const PW_WS = "ws://127.0.0.1:3000/";
 const CID = REST + "/";

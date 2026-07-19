@@ -3,7 +3,7 @@
  *  panel header, shoots it, then adopts and checks a task was created. */
 import { chromium } from "@playwright/test";
 
-const REST = "http://localhost:8131", HA = "http://ha-shots:8123", PW_WS = "ws://127.0.0.1:3000/";
+const REST = "http://127.0.0.1:8131", HA = "http://ha-shots:8123", PW_WS = "ws://127.0.0.1:3000/";
 const CID = REST + "/", USER = "demo", PASS = "demo-pass-1";
 const OUT = new URL("../docs/images/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const j = (r) => r.json();
@@ -24,11 +24,28 @@ log("seeded problem sensors");
 
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
-await ctx.addInitScript(({ t, ha }) => {
-  localStorage.setItem("hassTokens", JSON.stringify({ access_token: t, token_type: "Bearer", expires_in: 1800, hassUrl: ha, clientId: ha + "/", expires: Date.now() + 9e11, refresh_token: "" }));
+await ctx.addInitScript(() => {
   localStorage.setItem("selectedTheme", JSON.stringify({ dark: true }));
-}, { t: token, ha: HA });
+});
 const p = await ctx.newPage();
+// UI login (token injection started bouncing to /auth/authorize, 2026-07-20).
+await p.goto(HA + "/", { waitUntil: "domcontentloaded" });
+await p.waitForTimeout(4000);
+await p.evaluate(({ u, pw }) => {
+  const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+    while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+      if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+      for (const k of (el.children || [])) st.push(k); } return o; };
+  const inputs = deep((el) => el.tagName === "INPUT" && ["text", "password"].includes(el.type));
+  const set = (el, v) => { el.focus(); el.value = v; el.dispatchEvent(new Event("input", { bubbles: true, composed: true })); };
+  const user = inputs.find((i) => i.type === "text");
+  const pass = inputs.find((i) => i.type === "password");
+  if (user) set(user, u);
+  if (pass) set(pass, pw);
+}, { u: USER, pw: PASS });
+await p.waitForTimeout(500);
+await p.keyboard.press("Enter");
+await p.waitForTimeout(6000);
 await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
 for (let i = 0; i < 25; i++) {
   const ok = await p.evaluate(() => !!document.querySelector("home-assistant")?.shadowRoot?.querySelector("home-assistant-main")?.shadowRoot?.querySelector("maintenance-supporter-panel")?.shadowRoot?.querySelector("maintenance-adopt-problem-sensors-dialog")).catch(() => false);

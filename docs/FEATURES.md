@@ -130,6 +130,13 @@ notes, responsible user, priority, labels and part link per sensor, and the
 next adoption of the same sensor restores them (part links are re-validated
 against the target object's parts).
 
+![Adopt problem sensors](images/adopt-problem-sensors.png)
+
+[INTEGRATIONS.md](INTEGRATIONS.md#beyond-this-list-problem-sensor-adoption)
+lists, per integration, the problem sensors known to be adoptable — from
+Synology disk health over hOn dishwasher salt/rinse-aid to the vehicle
+warning-lamp families.
+
 ### Suggested Setups (2.28+, Beta)
 > **Beta**: integration discovery is new and the signature catalog grows
 > release by release. Every entry is verified against the integration's source
@@ -138,22 +145,14 @@ against the target object's parts).
 > issue or discussion with the integration name and entity ids.
 
 The **Suggested setups** button discovers devices of supported integrations
-whose consumable sensors can drive maintenance tasks — Roborock, Xiaomi Miio,
-Dreame and Ecovacs vacuums (brushes, filter, dust bag, mop pads; Ecovacs GOAT
-mowers too), **Xiaomi MIoT / Xiaomi Home** air purifiers/humidifiers/vacuums
-(filter & brush life), **Midea (LAN)** water-purifier and appliance filters,
-**Miele** dishwashers and washers (salt, rinse aid, PowerDisk/TwinDos
-detergent fill levels), IPP and Brother printers (ink/toner, drum, belt,
-fuser),
-**Husqvarna Automower, Worx Landroid, Gardena Sileno and Segway Navimow
-mowers** (blade-usage/mowing-hours counters — for Navimow the engine
-accumulates the mowing time itself), **LG
-ThinQ** appliances (AC/purifier/refrigerator filters and the washer tub-clean
-counter), **Viessmann ViCare** ventilation filters and service hours, **Bambu Lab**
-printers (usage-hour service intervals), **Hyundai/Kia, Tesla and Renault**
-cars (service every 15,000 km by odometer) and **Home Connect**
-(Bosch/Siemens) appliances (dishwasher salt/rinse-aid, coffee descale/clean,
-hood grease filter) — and sets them up in one click: the object is bound to the
+whose consumable sensors can drive maintenance tasks and sets them up in one
+click. The catalog currently covers **100 integrations with 190 verified
+signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
+Škoda/Audi service countdowns straight from the vehicle), air purifiers,
+heating and water treatment, locks, pet tech and more; the complete,
+always-current list with every duty and default lives in
+**[INTEGRATIONS.md](INTEGRATIONS.md)** (generated from the catalog itself, so
+it cannot drift). The object is bound to the
 device and every task arrives with its trigger **pre-wired** — a **threshold**
 (below 24 h left / below 10 % remaining / above a usage-hours count, unit-aware)
 for numeric consumables, a **state latch** on the event for Home Connect's
@@ -164,8 +163,6 @@ its event resolves the task automatically. Every signature in
 the catalog is **verified against the integration's source code** (a tripwire
 enforces the source reference and full localization), and discovery never
 proposes entities already wired to a task.
-
-![Adopt problem sensors](images/adopt-problem-sensors.png)
 
 ### Saved filter views
 Name a combination of the panel task-list filters — status, responsible user,
@@ -229,8 +226,19 @@ native HA UI.
 
 ![Configuration](images/config-flow.png)
 
-### Mobile Task Detail
-![Mobile Task Detail](images/mobile-task.png)
+### Mobile
+On phones and portrait tablets the dashboard keeps the task list above the
+fold: the six filter controls and the five create/setup actions collapse
+behind two compact toggles — **Filter** (showing how many filters are
+actively narrowing the list) and **+ Add** (a menu with *New task*, *New
+object*, *From template*, *Suggested setups* and *Adopt problem sensors*).
+The KPI chips at the top remain the one-tap filter path, and the budget
+bars compact to a single line. Desktop and landscape layouts render all
+controls inline.
+
+| Dashboard (collapsed controls) | Task detail |
+|:-:|:-:|
+| ![Mobile dashboard](images/mobile-dashboard.png) | ![Mobile Task Detail](images/mobile-task.png) |
 
 ### On-Complete Action (1.3.0+)
 Run any HA service when the task is completed — here *turn the pool pump back

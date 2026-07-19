@@ -16,6 +16,16 @@ All notable changes to Maintenance Supporter are documented in this file.
   ~33 % and five to six tasks are immediately visible. Desktop and
   landscape layouts are unchanged.
 
+### 📸 Documentation refresh
+
+- All 29 documentation screenshots regenerated from a fresh, faketime-pinned
+  demo instance (English, dark mode) — they now show the current UI including
+  the mobile disclosure design, the tidied desktop rows and the adopt dialog's
+  responsible-user picker. FEATURES.md gained a Mobile section; the
+  Suggested-Setups prose now defers to the generated INTEGRATIONS.md instead
+  of a hand-maintained (and stale) integration list; README counts corrected
+  (41 templates, 100 integrations / 190 signatures).
+
 ### 🖥️ Desktop: tidier task rows
 
 - On wide screens the task-name column now sizes to its content and the
