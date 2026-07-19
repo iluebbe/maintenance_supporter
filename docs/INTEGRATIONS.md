@@ -26,19 +26,46 @@ surface exists alongside it: **Adopt problem sensors** turns any
 binary sensor of device class `problem`, `safety` or `tamper` into a
 triggered maintenance task that auto-resolves when the alert clears.
 
-Known adoptable sensors (source-verified 2026-07-19; every entry
-names the sensor the integration actually ships and the duty it
-becomes):
+Known adoptable sensors (source-verified 2026-07-19 by sweeping the
+upstream code of every catalogued integration; every entry names
+the sensor the integration actually ships and the duty it becomes):
+
+**Vehicles** — the warning-lamp families pair naturally with the
+odometer/countdown duties above:
 
 | Integration | Problem sensor(s) | Adopts as |
 |---|---|---|
+| **Hyundai / Kia** (HACS kia_uvo) | washer fluid, brake fluid, oil level, aux-battery, tire pressure (all + per tire) | Top-up / tire-check duties per warning |
+| **Volvo** (core) | 28 warning binaries: oil, coolant and brake-fluid levels, washer fluid, per-lamp bulb failures, per-tire pressure | Fluid top-ups, bulb replacement, tire checks |
+| **Mercedes-Benz** (HACS mbapi2020) | brake fluid, wash water, coolant level, aux battery, tire warnings | Same family |
+| **Audi Connect** (HACS) | oil-level warning (`problem`), parking-light/braking status (`safety`) | Oil top-up, light check |
+
+**Appliances & home:**
+
+| Integration | Problem sensor(s) | Adopts as |
+|---|---|---|
+| **Haier hOn** (HACS) | dishwasher **salt**, **rinse aid**, filter-replacement | Refill salt / rinse aid, change filter |
+| **LG ThinQ** (HACS smartthinq_sensors) | detergent low, softener low, appliance error state | Refill detergent / softener |
+| **Miele** (core) | appliance failure + active-notification (carries salt / rinse-aid / service warnings) | One catch-all fault task per appliance |
 | **Synology DSM** (core) | `safety`-class disk status, bad-sector threshold exceeded, SSD remaining-life below threshold | Disk inspection / replacement per drive |
-| **Miele** (core) | `problem`-class appliance failure + active-notification (carries salt / rinse-aid / service warnings) | One catch-all fault task per appliance |
-| **Roborock** (core) | `problem`-class dock water shortage, dirty-water box full | Refill dock water / empty dirty-water box |
-| **Sensibo** (core) | `problem`-class filter-clean alert (device-computed) | AC filter cleaning |
-| **SmartTub** (core) | `problem`-class spa reminders — one binary per reminder (filter, water care) | The matching spa duty each |
-| **VeSync / Levoit** (core) | `problem`-class humidifier water-lacks, water-tank-lifted | Refill / reseat the tank |
-| **Bambu Lab** (HACS) | `problem`-class HMS errors, print error | Printer fault triage |
+| **OpenTherm Gateway** (core) | boiler **service required**, low water pressure, gas fault, air-pressure fault, water overtemperature — any OpenTherm boiler | Boiler service / fault duties |
+| **Intergas InComfort** (core) | boiler fault | Boiler service |
+| **Viessmann ViCare** (core) | device error | Boiler service |
+| **PetKit** (HACS) | replace-filter, waste-tank full, sand/food/water-level alerts, deodorizer presence | The matching feeder/litter/fountain duty each |
+| **Litter-Robot** (core) | drawer removed, bonnet removed, **laser dirty** | Empty drawer / clean sensor |
+| **La Marzocco** (core) | water tank empty | Refill water tank |
+| **Roborock** (core) | dock water shortage, dirty-water box full | Refill dock water / empty dirty-water box |
+| **ROMY** (core) | water tank empty | Refill mop tank |
+| **Dyson** (HACS hass_dyson) | filter-replacement binary, per-fault sensors (incl. humidifier tank) | Filter change / fault triage |
+| **Dreo** (HACS) | humidifier water empty | Refill tank |
+| **Sensibo** (core) | filter-clean alert (device-computed) | AC filter cleaning |
+| **VeSync / Levoit** (core) | humidifier water-lacks, water-tank-lifted | Refill / reseat the tank |
+| **Blueair** (HACS) / **Winix** (HACS) | filter-expired resp. filter-replace binaries (alongside the % sensors in the catalog) | Filter change |
+| **SmartTub** (core) | spa reminders — one binary per reminder (filter, water care) | The matching spa duty each |
+| **Bambu Lab** (HACS) | HMS errors, print error | Printer fault triage |
+| **Tedee** (core) | lock uncalibrated | Recalibrate lock |
+| **Schlage** (core) | keypad disabled | Lock service check |
+| **SwitchBot** (core) | lock/door unclosed + unlocked alarms, `tamper` alarm | Door/lock checks |
 | **ZHA / Z-Wave JS / deCONZ / MQTT** | device-dependent `tamper` + smoke-detector fault binaries | Detector service / tamper checks |
 
 (QNAP, despite the family resemblance to Synology, ships no binary

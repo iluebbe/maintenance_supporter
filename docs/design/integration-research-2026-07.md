@@ -800,3 +800,21 @@ membership checked first.
   state-derived approach like Valetudo. Parked.
 - **kia_uvo** `next_service_distance` semantics: still unverified
   (target-vs-remaining) — odometer delta remains our path there.
+
+## Problem-sensor sweep (2026-07-19): all 100 catalogued integrations
+
+Swept the upstream binary_sensor/const/definitions sources of every
+catalogued integration (script-driven; transports/hubs skipped as
+device-dependent) for `problem`/`safety`/`tamper` device classes:
+36 integrations ship such binaries, 51 verified clean, 13 generic.
+
+Maintenance-relevant findings now listed in docs/INTEGRATIONS.md:
+vehicle warning-lamp families (kia_uvo 9, volvo 28, mbapi2020 6,
+audiconnect 3), hOn dishwasher salt/rinse-aid/filter binaries,
+LG detergent/softener-low, OpenTherm service-required + fault family,
+PetKit's 24 alerts, Litter-Robot laser-dirty, La Marzocco water tank,
+ROMY/Dreo/Dyson tank+filter binaries, lock calibration/tamper alerts
+(tedee/schlage/switchbot). Not maintenance-relevant (excluded):
+generic connectivity/error states without an actionable duty
+(tplink overheated, mg_saic/keba unnamed, husqvarna enum error keys —
+those are STRING sensors, not binaries).
