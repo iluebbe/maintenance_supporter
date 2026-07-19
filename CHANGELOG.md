@@ -11,6 +11,16 @@ All notable changes to Maintenance Supporter are documented in this file.
   The page is GENERATED from the catalog and tripwire-tested, so it can
   never drift from what the code actually does.
 
+### 🧂 Water softeners & humidifier wicks
+
+- **BWT Perla** and **EcoWater** softeners propose "Refill Softener Salt"
+  from the salt reserve — whichever your unit reports (percent or days of
+  salt left), refilling resolves the task automatically.
+- **Philips humidifiers** (CoAP) get the evaporation-wick replacement,
+  percent- or hour-based like the filters.
+
+Catalog: **85 integrations / 159 verified signatures**.
+
 ### 🪥 Oral-B toothbrushes
 
 - The engine now counts your actual **brushing time** on the toothbrush's

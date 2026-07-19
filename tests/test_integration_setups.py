@@ -782,6 +782,38 @@ def test_integrations_doc_in_sync_with_catalog() -> None:
     )
 
 
+async def test_softener_salt_and_philips_wick(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Water softeners (BWT tk-matched, EcoWater suffix-matched) propose the
+    salt refill from %- AND days-sensors; Philips humidifiers get the wick."""
+    await setup_integration(hass, global_entry)
+    bwt = await _seed_sensor(
+        hass, "bwt_perla", "perla1", "BWT Perla",
+        [("regenerativ_level", "regenerativ_level", "%"), ("regenerativ_days", "regenerativ_days", "d")],
+    )
+    eco = await _seed_sensor(
+        hass, "ecowater_softener", "ew1", "EcoWater ERR3500",
+        [("salt_level_percentage", None, "%"), ("out_of_salt_days", None, "d")],
+    )
+    humidifier = await _seed_sensor(
+        hass, "philips_airpurifier_coap", "hu5710", "Philips HU5710",
+        [("wick", "wick", "%")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    for dev in (bwt, eco):
+        by_dir = {t["direction"]: t for t in setups[dev]["tasks"]}
+        assert set(by_dir) == {"percent_left", "duration_left"}
+        assert all(t["task_name"] == "Refill Softener Salt" for t in by_dir.values())
+        assert by_dir["percent_left"]["threshold"] == 10.0
+        assert by_dir["duration_left"]["threshold"] == 7.0  # 168 h in a days entity
+
+    (wick_task,) = setups[humidifier]["tasks"]
+    assert wick_task["task_name"] == "Replace Wick" and wick_task["threshold"] == 10.0
+
+
 async def test_oralb_brush_head_via_state_runtime(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

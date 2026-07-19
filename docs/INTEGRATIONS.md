@@ -105,7 +105,7 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 | go-e Charger | `goecharger_api2` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 | OpenEVSE | `openevse` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 
-## Boilers and heating — water pressure and burner/filter signals
+## Boilers, heating & water treatment
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
@@ -116,6 +116,10 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 | Plugwise (Anna/Adam) | `plugwise` | Refill Heating Water | below 1 |  |
 | Intergas InComfort | `incomfort` | Refill Heating Water | below 1 |  |
 | ATAG One | `atag` | Refill Heating Water | below 1 |  |
+| BWT Perla | `bwt_perla` | Refill Softener Salt | below 10 % remaining |  |
+|  |  | Refill Softener Salt | below 7 days remaining |  |
+| EcoWater softener | `ecowater_softener` | Refill Softener Salt | below 10 % remaining |  |
+|  |  | Refill Softener Salt | below 7 days remaining |  |
 
 ## Air treatment — purifiers, ACs and HRV/ventilation filters
 
@@ -132,6 +136,8 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 |  |  | Filter Cleaning | below 3 days remaining |  |
 |  |  | Replace Filter | below 10 % remaining |  |
 |  |  | Replace Filter | below 3 days remaining |  |
+|  |  | Replace Wick | below 10 % remaining |  |
+|  |  | Replace Wick | below 3 days remaining |  |
 | IKEA DIRIGERA (STARKVIND) | `dirigera_platform` | Replace Filter | at 4320 h counted by the device |  |
 
 ## Kitchen & household appliances incl. espresso machines
@@ -243,6 +249,6 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 
 ---
 
-**83 integrations / 153 verified signatures.**
+**85 integrations / 159 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
