@@ -131,6 +131,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _moreMenuOpen = false;
   @state() private _toastMessage = "";
   @state() private _toastUndo: (() => void) | null = null;
+  @state() private _toastActionLabel = "";
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _dismissedSuggestions = new Set<string>();
 
@@ -854,15 +855,23 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _showToast(msg: string): void {
     if (this._toastTimer) clearTimeout(this._toastTimer);
     this._toastUndo = null;
+    this._toastActionLabel = "";
     this._toastMessage = msg;
     this._toastTimer = setTimeout(() => { this._toastMessage = ""; this._toastTimer = null; }, 4000);
   }
 
-  /** A toast with an Undo action — used for reversible actions (archive) that
-   *  run immediately instead of behind a confirm dialog. Longer-lived so the
-   *  user has time to react; the undo callback dismisses it. */
+  /** A toast with an action button (label defaults to Undo). Used for
+   *  reversible actions (archive) and follow-up shortcuts (configure the
+   *  freshly adopted task). Longer-lived so the user has time to react; the
+   *  callback dismisses it. */
+  private _showActionToast(msg: string, label: string, action: () => void): void {
+    this._showUndoToast(msg, action);
+    this._toastActionLabel = label;
+  }
+
   private _showUndoToast(msg: string, undo: () => void): void {
     if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastActionLabel = "";
     this._toastMessage = msg;
     this._toastUndo = undo;
     this._toastTimer = setTimeout(() => {
@@ -989,10 +998,25 @@ export class MaintenanceSupporterPanel extends LitElement {
       ?.open();
   }
 
-  private _onProblemSensorsAdopted(e: CustomEvent): void {
+  private async _onProblemSensorsAdopted(e: CustomEvent): Promise<void> {
     const tasks = e.detail?.tasks_created ?? 0;
-    this._showToast(t("adopt_problem_done", this._lang).replace("{tasks}", String(tasks)));
-    this._loadData();
+    const created = (e.detail?.created ?? []) as Array<{ entry_id: string; task_id: string; name: string }>;
+    await this._loadData();
+    const msg = t("adopt_problem_done", this._lang).replace("{tasks}", String(tasks));
+    if (created.length > 0) {
+      // Adopted tasks are fully configurable from day one (responsible user,
+      // priority, documents) — surface that with a direct path to the first.
+      this._showActionToast(msg, t("adopt_problem_configure", this._lang), () => {
+        const ref = created[0];
+        const obj = this._objects.find((o) => o.entry_id === ref.entry_id);
+        const tk = obj?.tasks.find((task) => task.id === ref.task_id);
+        if (obj && tk) {
+          this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(ref.entry_id, tk);
+        }
+      });
+    } else {
+      this._showToast(msg);
+    }
   }
 
   // --- Suggested setups (integration signatures, v2.28) ---
@@ -1824,7 +1848,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       ></maintenance-saved-views-dialog>
       ${this._toastMessage ? html`<div class="toast">
         <span>${this._toastMessage}</span>
-        ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${t("undo", this._lang)}</button>` : nothing}
+        ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${this._toastActionLabel || t("undo", this._lang)}</button>` : nothing}
       </div>` : nothing}
       ${this._renderPalette()}
       ${this._renderTemplateGallery()}

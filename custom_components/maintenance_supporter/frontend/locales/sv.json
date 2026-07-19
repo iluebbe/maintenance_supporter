@@ -786,5 +786,8 @@
   "setups_target_new": "Skapa ny: {name}",
   "schedule_preview_title": "Kommande datum",
   "schedule_preview_ontime": "Förutsatt slutförande i tid.",
-  "schedule_preview_ends": "(serien avslutas)"
+  "schedule_preview_ends": "(serien avslutas)",
+  "adopt_problem_responsible": "Ansvarig användare för alla övertagna uppgifter (valfritt)",
+  "adopt_problem_configure": "Konfigurera",
+  "history_auto": "Automatiskt"
 }

@@ -786,5 +786,8 @@
   "setups_target_new": "Создать новый: {name}",
   "schedule_preview_title": "Ближайшие даты",
   "schedule_preview_ontime": "При условии своевременного выполнения.",
-  "schedule_preview_ends": "(серия завершается)"
+  "schedule_preview_ends": "(серия завершается)",
+  "adopt_problem_responsible": "Ответственный пользователь для всех принятых задач (необязательно)",
+  "adopt_problem_configure": "Настроить",
+  "history_auto": "Автоматически"
 }

@@ -786,5 +786,8 @@
   "setups_target_new": "Opprett ny: {name}",
   "schedule_preview_title": "Kommende datoer",
   "schedule_preview_ontime": "Forutsatt fullføring i tide.",
-  "schedule_preview_ends": "(serien avsluttes)"
+  "schedule_preview_ends": "(serien avsluttes)",
+  "adopt_problem_responsible": "Ansvarlig bruker for alle overtatte oppgaver (valgfritt)",
+  "adopt_problem_configure": "Konfigurer",
+  "history_auto": "Automatisk"
 }

@@ -786,5 +786,8 @@
   "setups_target_new": "Neu anlegen: {name}",
   "schedule_preview_title": "Nächste Termine",
   "schedule_preview_ontime": "Bei pünktlichem Abschluss.",
-  "schedule_preview_ends": "(Serie endet)"
+  "schedule_preview_ends": "(Serie endet)",
+  "adopt_problem_responsible": "Verantwortliche Person für alle übernommenen Aufgaben (optional)",
+  "adopt_problem_configure": "Konfigurieren",
+  "history_auto": "Automatisch"
 }

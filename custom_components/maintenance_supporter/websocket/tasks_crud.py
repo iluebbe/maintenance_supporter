@@ -270,9 +270,7 @@ async def ws_create_task(
         from ..const import CONF_PARTS
         from ..helpers.parts import sanitize_consumes_parts
 
-        links = sanitize_consumes_parts(
-            msg["consumes_parts"], set(entry.data.get(CONF_PARTS) or {})
-        )
+        links = sanitize_consumes_parts(msg["consumes_parts"], set(entry.data.get(CONF_PARTS) or {}))
         if links:
             task_data["consumes_parts"] = links
     if msg.get("checklist"):
@@ -616,11 +614,12 @@ async def async_delete_task(
         return False
 
     old_trigger_config = new_tasks[task_id].get("trigger_config")
-    # Adopted problem-sensor task? Preserve its notes for a later re-adopt
+    # Adopted problem-sensor task? Preserve its notes + one-time setup
+    # (responsible user, priority, labels, part link) for a later re-adopt
     # (no-op for everything else).
-    from ..helpers.problem_sensors import stash_task_notes_for_readopt
+    from ..helpers.problem_sensors import stash_task_config_for_readopt
 
-    stash_task_notes_for_readopt(hass, new_tasks[task_id])
+    stash_task_config_for_readopt(hass, new_tasks[task_id])
     del new_tasks[task_id]
     new_data[CONF_TASKS] = new_tasks
 

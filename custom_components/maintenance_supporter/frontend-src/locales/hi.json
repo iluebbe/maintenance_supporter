@@ -786,5 +786,8 @@
   "setups_target_new": "नया बनाएँ: {name}",
   "schedule_preview_title": "अगली तिथियाँ",
   "schedule_preview_ontime": "समय पर पूर्णता मानते हुए।",
-  "schedule_preview_ends": "(श्रृंखला समाप्त)"
+  "schedule_preview_ends": "(श्रृंखला समाप्त)",
+  "adopt_problem_responsible": "सभी अपनाए गए कार्यों के लिए ज़िम्मेदार उपयोगकर्ता (वैकल्पिक)",
+  "adopt_problem_configure": "कॉन्फ़िगर करें",
+  "history_auto": "स्वचालित"
 }
