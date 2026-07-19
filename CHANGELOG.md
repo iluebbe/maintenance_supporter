@@ -4,6 +4,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 📖 New: supported-integrations reference
+
+- `docs/INTEGRATIONS.md` lists every catalogued integration with its
+  duties, trigger style and default interval — grouped by category.
+  The page is GENERATED from the catalog and tripwire-tested, so it can
+  never drift from what the code actually does.
+
 ### 🪥 Oral-B toothbrushes
 
 - The engine now counts your actual **brushing time** on the toothbrush's
