@@ -545,3 +545,46 @@ over-applying the rule:
   semantics before choosing a direction.
 - **Valetudo** — MQTT-discovery-name matching (per-consumable minutes or
   percent), harder than translation_key.
+
+
+## Research round 4 (2026-07-19): unswept categories
+
+Source-verified inline (curl on core/dev + HACS repos), method contract as
+always. Focus: categories never swept — ventilation (HRV/ERV filters),
+boiler water pressure beyond Bosch, air purifiers, espresso machines,
+pet tech, Klipper.
+
+**Catalog-ready (verified positive):**
+
+| Integration | Evidence | Direction / duty |
+|---|---|---|
+| `opentherm_gw` (core) | tk `central_heating_pressure`, bar, MEASUREMENT | value_below 1.0 — "Top Up Heating Water". GENERIC for every OpenTherm boiler — highest leverage of the round. |
+| `plugwise` (core, Anna/Adam) | tk `water_pressure`, bar, MEASUREMENT | value_below 1.0, same duty |
+| `incomfort` (core, Intergas) | key `cv_pressure`, bar | value_below 1.0 (naming/tk to confirm at impl) |
+| `atag` (core) | "CH Water Pressure" -> `ch_water_pres`, bar | value_below 1.0 (legacy naming — verify entity suffix at impl) |
+| `vesync` (core, Levoit purifiers) | tk `filter_life`, %, MEASUREMENT | percent_left — "Replace Filter". Large install base. |
+| `comfoconnect` (core, Zehnder ComfoAirQ) | key `days_to_replace_filter`, DAYS (name-style, no tk) | duration_left (days) — "Replace Ventilation Filter" (below ~7 d) |
+| `renson` (core, Endura Delta) | tk `filter_change`, DURATION/DAYS, MEASUREMENT | duration_left — same duty |
+| `lamarzocco` (core) | tk `total_coffees_made`, TOTAL_INCREASING (+ `total_flushes_done`) | usage_delta x2 — "Backflush Espresso Group" (~100 shots), "Replace Water Filter" (~1000 shots; editorial defaults) |
+| `petkit` (HACS Jezza34000 — the WeBack author) | tk `desiccant_left_days` (days), `filter_percent` (%) + "Filter left days" | duration_left "Replace Desiccant" (feeder) + percent_left/any-low "Replace Water Filter" (fountain) |
+| `moonraker` (HACS, Klipper — huge) | `total_filament_used`, METERS, TOTAL_INCREASING | usage_delta — "Replace Nozzle" (~1000 m, editorial). NOTE: `total_print_time` is a FORMATTED STRING ("Xh Ym Zs") — unusable, documented so nobody re-tries it. |
+
+**Verified negative:**
+- `vallox` (core): `remaining_time_for_filter` is device_class TIMESTAMP —
+  a date, no numeric direction fits (same class as UPS battery dates).
+- `blueair` (core): no sensor.py (404) — nothing to match today.
+
+**Parked (shortlist for a later dive):**
+- `philips_airpurifier_coap` (HACS kongo09): filter sensors exist per docs,
+  but the source layout needs a deeper dive (const.py has no filter keys).
+- IKEA STARKVIND via `dirigera_platform` (HACS): filter alarm/lifetime.
+- `wallbox` (core): `added_energy` is TOTAL_INCREASING but per-session
+  semantics unclear — do not catalog until lifetime semantics are proven.
+- EcoWater / BWT Perla (salt level), Oral-B (runtime-on-brushing idea, but
+  BT presence is flaky), winix (not in core), generac.
+
+Projected: +10 integrations / ~13 signatures -> catalog ~80/148. New task
+names x17 needed: "Replace Ventilation Filter", "Backflush Espresso
+Group", "Replace Nozzle", "Top Up Heating Water" (unless the Bosch
+value_below duty name is reused — check at impl); "Replace Desiccant",
+"Replace Water Filter", "Replace Filter" already exist.
