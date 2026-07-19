@@ -25,17 +25,30 @@ wear and consumable sensors. A second, **integration-agnostic**
 surface exists alongside it: **Adopt problem sensors** turns any
 binary sensor of device class `problem`, `safety` or `tamper` into a
 triggered maintenance task that auto-resolves when the alert clears.
-That covers, among many others:
 
-- **Synology / QNAP disk health** — SMART/bad-sector alerts are
-  `safety`-class binaries,
-- **SmartTub spa reminders** (filter, water care),
-- **Sensibo** filter-clean alerts, **Bambu Lab** HMS errors,
-- smoke-detector faults, leak sensors, tamper alarms.
+Known adoptable sensors (source-verified 2026-07-19; every entry
+names the sensor the integration actually ships and the duty it
+becomes):
+
+| Integration | Problem sensor(s) | Adopts as |
+|---|---|---|
+| **Synology DSM** (core) | `safety`-class disk status, bad-sector threshold exceeded, SSD remaining-life below threshold | Disk inspection / replacement per drive |
+| **Miele** (core) | `problem`-class appliance failure + active-notification (carries salt / rinse-aid / service warnings) | One catch-all fault task per appliance |
+| **Roborock** (core) | `problem`-class dock water shortage, dirty-water box full | Refill dock water / empty dirty-water box |
+| **Sensibo** (core) | `problem`-class filter-clean alert (device-computed) | AC filter cleaning |
+| **SmartTub** (core) | `problem`-class spa reminders — one binary per reminder (filter, water care) | The matching spa duty each |
+| **VeSync / Levoit** (core) | `problem`-class humidifier water-lacks, water-tank-lifted | Refill / reseat the tank |
+| **Bambu Lab** (HACS) | `problem`-class HMS errors, print error | Printer fault triage |
+| **ZHA / Z-Wave JS / deCONZ / MQTT** | device-dependent `tamper` + smoke-detector fault binaries | Detector service / tamper checks |
+
+(QNAP, despite the family resemblance to Synology, ships no binary
+sensors at all — its disk data is plain sensors, covered by the
+catalog entry above.)
 
 If a device reports a maintenance condition as a problem-class
 binary sensor, it does not need a catalog entry here — the adoption
-dialog picks it up automatically.
+dialog picks it up automatically, whether or not it appears in this
+table.
 
 Adopted tasks are created *at adoption* (not when a problem first
 fires) and are fully configurable from day one — responsible user,
