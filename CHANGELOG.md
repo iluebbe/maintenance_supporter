@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 💨 Philips air purifiers & IKEA STARKVIND
+
+- **Philips purifiers** (CoAP integration) propose pre-filter cleaning and
+  HEPA/carbon/NanoProtect replacement — whether your model reports filter
+  life in percent or hours, the right trigger is wired automatically.
+- **IKEA STARKVIND** (via DIRIGERA) proposes the filter change after
+  IKEA's own 6-month runtime budget (259,200 minutes) elapses.
+
+Catalog: **82 integrations / 152 verified signatures**.
+
 ### 🔥 Ten more integrations — boilers, ventilation, espresso, pets, Klipper
 
 - **Heating water pressure** joins four more ways: the generic **OpenTherm

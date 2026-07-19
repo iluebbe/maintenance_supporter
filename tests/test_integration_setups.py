@@ -753,6 +753,45 @@ async def test_wave4_boilers_hrv_purifier_espresso_petkit_klipper(
     assert nozzle["direction"] == "usage_delta" and nozzle["threshold"] == 1000.0
 
 
+async def test_philips_dual_unit_and_starkvind_minutes(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """philips_airpurifier_coap reports % OR hours per filter (LG dual-unit
+    pattern → the unit-aware matcher routes each entity to its direction);
+    STARKVIND's elapsed-time counter is in MINUTES (4,320 h → 259,200 min)."""
+    await setup_integration(hass, global_entry)
+    philips = await _seed_sensor(
+        hass, "philips_airpurifier_coap", "ac2889", "Philips AC2889",
+        [
+            ("hepa", "hepa_filter", "%"),
+            ("carbon", "active_carbon_filter", "h"),
+            ("pre", "pre_filter", "h"),
+        ],
+    )
+    starkvind = await _seed_sensor(
+        hass, "dirigera_platform", "sv1", "STARKVIND Table",
+        [("filter_elapsed_time", None, "min")],  # suffix match
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    ph = {(t["task_name"], t["direction"]): t for t in setups[philips]["tasks"]}
+    # % entity -> percent_left; hours entities -> duration_left (72 h).
+    assert ph[("Replace Filter", "percent_left")]["entity_ids"] == [
+        "sensor.philips_airpurifier_coap_ac2889_hepa"
+    ]
+    assert ph[("Replace Filter", "duration_left")]["entity_ids"] == [
+        "sensor.philips_airpurifier_coap_ac2889_carbon"
+    ]
+    assert ph[("Replace Filter", "duration_left")]["threshold"] == 72.0
+    assert ph[("Filter Cleaning", "duration_left")]["threshold"] == 72.0
+
+    (sv_task,) = setups[starkvind]["tasks"]
+    assert sv_task["task_name"] == "Replace Filter"
+    assert sv_task["direction"] == "usage_above"
+    assert sv_task["threshold"] == 259200.0  # 4,320 h in a minutes-unit entity
+
+
 async def test_wave4_atag_exact_object_id(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

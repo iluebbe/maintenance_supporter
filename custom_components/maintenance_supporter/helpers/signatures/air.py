@@ -102,4 +102,47 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "philips_airpurifier_coap": IntegrationSignature(
+        name="Philips AirPurifier (CoAP)",
+        verified="2026-07-19 @ kongo09/philips-airpurifier-coap master sensor.py+const.py",
+        source=(
+            "HACS philips-airpurifier-coap: PhilipsFilterSensor reports "
+            "PERCENT when the filter total is known, else HOURS remaining — "
+            "the LG dual-unit pattern, split per direction. tks: pre_filter "
+            "(cleaning cycle), hepa_filter / active_carbon_filter / "
+            "nanoprotect_filter (replacements). 'wick' (humidifier) skipped "
+            "for now — needs its own duty name."
+        ),
+        tasks=(
+            ConsumableSignature(("pre_filter",), "Filter Cleaning", "percent_left"),
+            ConsumableSignature(("pre_filter",), "Filter Cleaning", "duration_left", below_hours=72),
+            ConsumableSignature(
+                ("hepa_filter", "active_carbon_filter", "nanoprotect_filter"),
+                "Replace Filter",
+                "percent_left",
+            ),
+            ConsumableSignature(
+                ("hepa_filter", "active_carbon_filter", "nanoprotect_filter"),
+                "Replace Filter",
+                "duration_left",
+                below_hours=72,
+            ),
+        ),
+    ),
+    "dirigera_platform": IntegrationSignature(
+        name="IKEA DIRIGERA (STARKVIND)",
+        verified="2026-07-19 @ sanjoyg/dirigera_platform main sensor.py",
+        source=(
+            "HACS dirigera_platform: STARKVIND 'Filter Elapsed Time' sensor "
+            "(suffix filter_elapsed_time, MINUTES, DURATION) counts UP and "
+            "resets on IKEA's filter-change reset -> usage_above at 4,320 h "
+            "(= IKEA's 259,200-minute filter lifetime). The sibling "
+            "'Filter Lifetime' sensor is the constant total — unusable."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter_elapsed_time",), "Replace Filter", "usage_above", above_hours=4320
+            ),
+        ),
+    ),
 }
