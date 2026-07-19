@@ -753,6 +753,35 @@ async def test_wave4_boilers_hrv_purifier_espresso_petkit_klipper(
     assert nozzle["direction"] == "usage_delta" and nozzle["threshold"] == 1000.0
 
 
+def test_integrations_doc_in_sync_with_catalog() -> None:
+    """docs/INTEGRATIONS.md is GENERATED from the catalog — regenerate and
+    compare byte-for-byte so the doc can never drift from SIGNATURES.
+    (Skipped in the bind-mounted container where scripts/docs are absent —
+    enforced in CI, same pattern as the probe-sync tripwire.)"""
+    import importlib.util
+    from pathlib import Path
+
+    import pytest as _pytest
+
+    root = Path(__file__).resolve().parent.parent
+    gen_path = root / "scripts" / "generate_integrations_doc.py"
+    doc_path = root / "docs" / "INTEGRATIONS.md"
+    if not gen_path.exists() or not doc_path.exists():
+        _pytest.skip("scripts/docs not mounted (container run) — enforced in CI")
+
+    spec = importlib.util.spec_from_file_location("generate_integrations_doc", gen_path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    generated = module.generate().replace("\r\n", "\n")
+    committed = doc_path.read_text(encoding="utf-8").replace("\r\n", "\n")
+    assert committed == generated, (
+        "docs/INTEGRATIONS.md is out of sync with the signature catalog — "
+        "regenerate: py -X utf8 scripts/generate_integrations_doc.py"
+    )
+
+
 async def test_oralb_brush_head_via_state_runtime(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
