@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.34.0] - 2026-07-19
 
 ### 📅 Live schedule preview — your next three dates (#83)
 
