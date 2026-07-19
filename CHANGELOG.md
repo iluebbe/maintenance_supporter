@@ -16,6 +16,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   ~33 % and five to six tasks are immediately visible. Desktop and
   landscape layouts are unchanged.
 
+### 🖥️ Desktop: tidier task rows
+
+- On wide screens the task-name column now sizes to its content and the
+  label/user chips sit directly beside the name — the leftover width
+  used to open a ragged hole in the middle of every row (name … gap …
+  chips). Rows now read as a left description cluster and a right
+  meta cluster (type / due / actions). Budget labels on very small
+  phones stack uniformly instead of wrapping raggedly.
+
 ## [2.36.0] - 2026-07-19
 
 ### 📦 ZIP releases

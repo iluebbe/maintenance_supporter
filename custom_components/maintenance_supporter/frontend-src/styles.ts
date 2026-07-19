@@ -1438,10 +1438,19 @@ export const sharedStyles = css`
     .weibull-info-row { flex-direction: column; gap: 8px; }
 
     /* One compact line instead of two stacked rows — the bars are glanceable
-       info, not the page's main content (UX 2026-07). */
+       info, not the page's main content (UX 2026-07). The label stacks above
+       the value: side-by-side, the yearly pair wrapped raggedly on 360px
+       screens; a uniform two-line stack reads as intended at every width. */
     .budget-bars { gap: 12px; padding: 6px 8px; }
     .budget-item { min-width: 0; }
-    .budget-label { font-size: 11px; margin-bottom: 2px; }
+    .budget-label {
+      font-size: 11px;
+      margin-bottom: 2px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .budget-label span { white-space: nowrap; }
     .budget-bar { height: 4px; }
 
     .group-card { min-width: 0; max-width: 100%; }
