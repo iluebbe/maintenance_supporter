@@ -734,3 +734,69 @@ against manuals:
 - Warning MARGINS (below 24 h / 10 % / 72 h / 7 days on device-reported
   countdowns) are by design OUR lead times — the devices themselves alert
   at zero; margins give the user time to order parts.
+
+## Round 9 (2026-07-19): service countdowns, three purifier families, Grohe Blue
+
+All entries source-verified at the repo/branch named; HACS-default
+membership checked first.
+
+### Catalog-ready
+
+1. **MySkoda** (`myskoda`, HACS default skodaconnect/homeassistant-myskoda)
+   — the richest maintenance surface of any car integration so far:
+   - tk `mileage` (key `milage`!, km, TOTAL_INCREASING; self-healing
+     against API glitches) → Tire Rotation usage_delta 10 000 km.
+   - tk `inspection` (DAYS remaining) + tk `inspection_in_km` (km
+     remaining) — the CAR's own inspection countdown → "Book Inspection"
+     via duration_left / value_below. No editorial interval needed.
+   - tk `oil_service_in_days` + `oil_service_in_km` (fuel vehicles) →
+     "Oil Service" the same way.
+   Skip the generic odometer Annual Service here — the countdown IS the
+   service signal (avoids a duplicate duty).
+2. **Audi Connect** (`audiconnect`, HACS default audiconnect/audi_connect_ha)
+   — same shape, name-derived entities (no translation_key):
+   - "Mileage" (km, TOTAL_INCREASING) → Tire Rotation 10 000 km.
+   - "Service inspection time" (days) / "Service inspection distance"
+     (km) → Book Inspection. "Oil change time" / "Oil change distance"
+     → Oil Service. All four are remaining-until countdowns
+     (`inspectionDue_days/km`, `oilServiceDue_days/km` from the VAG API).
+3. **Blueair** (`ha_blueair`, HACS default dahlb/ha_blueair) — purifiers
+   AND humidifiers:
+   - "Filter Life" % (verified: coordinator returns 100 − usage → %
+     REMAINING) → Replace Filter percent_left.
+   - "Wick Life" % → Replace Wick; "Water Refresher Life" % → Replace
+     Water Refresher. Plus a filter_expired problem binary (adoption
+     path) as belt-and-braces.
+4. **Grohe Smarthome** (`grohe_smarthome`, HACS default
+   flo-schilli/ha-grohe_smarthome) — Grohe Blue Home/Prof water systems:
+   - "Remaining Filter" % → Replace Filter Cartridge percent_left.
+   - "Remaining CO2" % → Replace CO₂ Bottle percent_left.
+   Entities are YAML-config-driven (config/config.yaml) with fixed names
+   → name-style suffix matching.
+5. **Coway IoCare** (`coway`, HACS default robertd502/home-assistant-iocare):
+   - "Pre filter" % (odor/charcoal variant on AIRMEGA: "Charcoal
+     filter") → Clean Pre-Filter percent_left.
+   - "MAX2 filter" % ("HEPA filter" on AP-1512HHS EU/UK models) →
+     Replace MAX2/HEPA Filter percent_left. Multiple name variants →
+     list all in the signature's tks.
+6. **Winix** (`winix`, HACS default iprak/winix): tk `filter_life` % —
+   derived device-side from filter hours vs the model's alarm duration
+   (verified in sensor.py) → Replace Filter percent_left.
+
+### Verified negatives / parked
+
+- **BMW**: core `bmw_connected_drive` was REMOVED (BMW shut the API);
+  the replacement `kvanbiesen/bmw-cardata-ha` is not in the HACS
+  default store yet → re-check next round.
+- **Mammotion** mowers: not in the HACS default store.
+- **Aseko** (core `aseko_pool_live`): water-chemistry measurements only
+  (electrolyzer g/h = performance, not wear) — no consumable surface.
+- **QNAP**: no binary_sensor platform at all (relevant for the
+  problem-sensor table, corrected there).
+- **Daikin Onecta** (`daikin_onecta`): GitHub code search returned no
+  filter entities; needs a manual source dive next round.
+- **HomeWhiz**: entities are generated dynamically from the appliance's
+  own API config — no stable keys to sign against; would need a
+  state-derived approach like Valetudo. Parked.
+- **kia_uvo** `next_service_distance` semantics: still unverified
+  (target-vs-remaining) — odometer delta remains our path there.
