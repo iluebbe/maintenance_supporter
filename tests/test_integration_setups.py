@@ -2125,3 +2125,21 @@ async def test_round12_hacs_sweep_wave(
 
     (sl,) = setups[softener]["tasks"]
     assert sl["task_name"] == "Refill Softener Salt" and sl["threshold"] == 10.0
+
+
+async def test_bosch_ebike_odometer_duties(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Bosch eBike: the total_distance odometer drives chain lubrication
+    (250 km) and a drivetrain service (2000 km)."""
+    await setup_integration(hass, global_entry)
+    bike = await _seed_sensor(
+        hass, "bosch_ebike", "kiox1", "Bosch eBike",
+        [("total_distance", "total_distance", "km")],
+    )
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    by_name = {t["task_name"]: t for t in setups[bike]["tasks"]}
+    assert set(by_name) == {"Lubricate Chain", "Bike Service"}
+    assert by_name["Lubricate Chain"]["direction"] == "usage_delta"
+    assert by_name["Lubricate Chain"]["threshold"] == 250.0
+    assert by_name["Bike Service"]["threshold"] == 2000.0
