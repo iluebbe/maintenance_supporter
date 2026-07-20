@@ -273,7 +273,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             if rec["name"] is None and friendly:
                 rec["name"] = friendly
 
-    for key, rec in native.items():
+    for rec in native.values():
         level = _level_of(rec["level_state"]) if rec["level_state"] is not None else None
         low_state = rec["low_state"]
         level_available = rec["level_state"] not in _NO_READING if rec["level_state"] is not None else False
