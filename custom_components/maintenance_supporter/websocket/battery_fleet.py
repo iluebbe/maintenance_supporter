@@ -13,9 +13,13 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN
+from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
 from ..helpers.battery_fleet import compute_overview, has_battery_notes
-from ..helpers.battery_fleet_setup import async_setup_battery_fleet, find_fleet_entry
+from ..helpers.battery_fleet_setup import (
+    async_mark_replaced,
+    async_setup_battery_fleet,
+    find_fleet_entry,
+)
 from ..helpers.permissions import require_write
 
 
@@ -50,4 +54,21 @@ async def ws_battery_fleet_setup(hass: HomeAssistant, connection: websocket_api.
         connection.send_error(msg["id"], "not_available", "No Battery Notes devices found")
         return
     result = await async_setup_battery_fleet(hass)
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/battery_fleet/mark_replaced",
+        # battery_plus entity_ids to mark; omit to mark ALL currently low.
+        vol.Optional("entity_ids"): [vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH))],
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_battery_fleet_mark_replaced(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Mark batteries replaced (press their button + consume the type-parts)."""
+    result = await async_mark_replaced(hass, msg.get("entity_ids"))
     connection.send_result(msg["id"], result)
