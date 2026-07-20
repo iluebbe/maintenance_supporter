@@ -164,6 +164,34 @@ the catalog is **verified against the integration's source code** (a tripwire
 enforces the source reference and full localization), and discovery never
 proposes entities already wired to a task.
 
+### Battery Fleet (Battery Notes)
+If you run the [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes)
+integration, 30–70+ battery devices would mean 30–70 maintenance tasks — noise.
+Instead, **one click** sets up a single *Battery Fleet*: **one object, one task**
+that aggregates every battery, and one managed spare-part per battery **type**.
+
+The fleet task's detail view is the whole surface:
+
+- **Which batteries are low now**, each with its device, type × quantity and
+  charge level, and a per-device *mark replaced* action.
+- **A grouped shopping list** — *"Buy now: 1× 9V · 2× AA · 4× AAA · …"* — so you
+  know exactly what to pick up, not which device needs what.
+- **A "needed soon" forecast** grouped by type, predicted from each battery's
+  last-replaced date and its typical service life, so you can order ahead.
+- **Mark all replaced** in one tap: this presses each battery's Battery Notes
+  *replaced* button (resetting the forecast) and consumes the matching spares
+  from stock. The task clears itself once the devices report fresh batteries.
+
+Because battery types are ordinary **spare parts**, the existing stock and
+reorder machinery applies — track how many AA/CR2032/… you keep, and the
+*Parts to reorder* count flags a type before you run out. The single task is
+triggered by a global `sensor.maintenance_supporter_batteries_to_replace`
+(count of low batteries) via an ordinary threshold trigger — no special-casing,
+and it auto-completes when the count returns to zero.
+
+The **Battery fleet** setup button appears in the task-list actions only when
+Battery Notes is present and the fleet isn't set up yet.
+
 ### Saved filter views
 Name a combination of the panel task-list filters — status, responsible user,
 **label**, archived, plus sort and group-by — and reapply the whole set in one
