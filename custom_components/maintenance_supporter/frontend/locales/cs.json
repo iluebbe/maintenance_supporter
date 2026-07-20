@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(série končí)",
   "adopt_problem_responsible": "Odpovědná osoba pro všechny převzaté úkoly (volitelné)",
   "adopt_problem_configure": "Konfigurovat",
-  "history_auto": "Automaticky"
+  "history_auto": "Automaticky",
+  "battery_fleet_title": "Flotila baterií",
+  "battery_fleet_none_low": "Všechny baterie OK — není co měnit.",
+  "battery_fleet_buy_now": "Koupit nyní",
+  "battery_fleet_soon": "Brzy potřeba",
+  "battery_fleet_soon_hint": "Odhad podle poslední výměny — objednejte předem.",
+  "battery_fleet_mark_all": "Označit vše jako vyměněné",
+  "battery_fleet_mark_one": "Označit tuto baterii jako vyměněnou",
+  "battery_fleet_total": "Sledováno baterií: {n}",
+  "battery_fleet_setup_button": "Flotila baterií",
+  "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny."
 }

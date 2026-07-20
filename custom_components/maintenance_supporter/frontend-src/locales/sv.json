@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(serien avslutas)",
   "adopt_problem_responsible": "Ansvarig användare för alla övertagna uppgifter (valfritt)",
   "adopt_problem_configure": "Konfigurera",
-  "history_auto": "Automatiskt"
+  "history_auto": "Automatiskt",
+  "battery_fleet_title": "Batteriflotta",
+  "battery_fleet_none_low": "Alla batterier OK — inget att byta.",
+  "battery_fleet_buy_now": "Köp nu",
+  "battery_fleet_soon": "Behövs snart",
+  "battery_fleet_soon_hint": "Uppskattat från senaste bytet — beställ i förväg.",
+  "battery_fleet_mark_all": "Markera alla bytta",
+  "battery_fleet_mark_one": "Markera detta batteri bytt",
+  "battery_fleet_total": "{n} batterier spåras",
+  "battery_fleet_setup_button": "Batteriflotta",
+  "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier."
 }

@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(серія завершується)",
   "adopt_problem_responsible": "Відповідальний користувач для всіх прийнятих завдань (необов'язково)",
   "adopt_problem_configure": "Налаштувати",
-  "history_auto": "Автоматично"
+  "history_auto": "Автоматично",
+  "battery_fleet_title": "Парк батарей",
+  "battery_fleet_none_low": "Усі батареї в нормі — нічого міняти.",
+  "battery_fleet_buy_now": "Купити зараз",
+  "battery_fleet_soon": "Скоро знадобиться",
+  "battery_fleet_soon_hint": "Оцінка за датою останньої заміни — замовте заздалегідь.",
+  "battery_fleet_mark_all": "Позначити всі заміненими",
+  "battery_fleet_mark_one": "Позначити цю батарею заміненою",
+  "battery_fleet_total": "Відстежується батарей: {n}",
+  "battery_fleet_setup_button": "Парк батарей",
+  "battery_fleet_setup_done": "Парк батарей налаштовано — одне завдання стежить за всіма."
 }

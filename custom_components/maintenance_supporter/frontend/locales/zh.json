@@ -789,5 +789,15 @@
   "schedule_preview_ends": "（系列结束）",
   "adopt_problem_responsible": "所有采用任务的负责用户（可选）",
   "adopt_problem_configure": "配置",
-  "history_auto": "自动"
+  "history_auto": "自动",
+  "battery_fleet_title": "电池群",
+  "battery_fleet_none_low": "所有电池正常 — 无需更换。",
+  "battery_fleet_buy_now": "现在购买",
+  "battery_fleet_soon": "即将需要",
+  "battery_fleet_soon_hint": "根据上次更换日期预测 — 提前订购。",
+  "battery_fleet_mark_all": "全部标记为已更换",
+  "battery_fleet_mark_one": "标记此电池为已更换",
+  "battery_fleet_total": "已跟踪 {n} 个电池",
+  "battery_fleet_setup_button": "电池群",
+  "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。"
 }

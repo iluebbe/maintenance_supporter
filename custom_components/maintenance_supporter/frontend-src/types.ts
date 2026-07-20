@@ -180,6 +180,8 @@ export interface MaintenanceTask {
   trigger_config?: TriggerConfig | null;
   trigger_entity_info?: TriggerEntityInfo | null;
   trigger_entity_infos?: TriggerEntityInfo[] | null;
+  /** Battery Fleet: the single aggregate task renders the battery section. */
+  battery_fleet_task?: boolean;
   history: HistoryEntry[];
   // Computed
   status: string; // "ok" | "due_soon" | "overdue" | "triggered" | "archived"
