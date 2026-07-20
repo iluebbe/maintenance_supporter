@@ -156,8 +156,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
-                entity_domain="lock", on_states=("locked",),
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
             ),
         ),
     ),
@@ -170,8 +174,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
-                entity_domain="lock", on_states=("locked",),
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
             ),
         ),
     ),
@@ -184,8 +192,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
-                entity_domain="lock", on_states=("locked",),
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
             ),
         ),
     ),
@@ -198,8 +210,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
-                entity_domain="lock", on_states=("locked",),
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
             ),
         ),
     ),
@@ -212,8 +228,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
-                entity_domain="lock", on_states=("locked",),
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
             ),
         ),
     ),

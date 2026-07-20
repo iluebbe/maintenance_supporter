@@ -175,4 +175,53 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("oil_change_distance",), "Oil Service", "value_below", delta_units=1000),
         ),
     ),
+    # The three core Tesla integrations share the same entity pattern:
+    # translation_key = description key (entity.py `_attr_translation_key =
+    # self.key`), odometer in native MILES — the unit-aware threshold
+    # converts. Complements the HACS tesla_custom already covered.
+    "tesla_fleet": IntegrationSignature(
+        name="Tesla Fleet",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core tesla_fleet: key/tk 'vehicle_state_odometer' (TOTAL_INCREASING, MILES, DISTANCE)."),
+        tasks=(
+            ConsumableSignature(("vehicle_state_odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("vehicle_state_odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "teslemetry": IntegrationSignature(
+        name="Teslemetry",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core teslemetry: key/tk 'vehicle_state_odometer' (TOTAL_INCREASING, MILES, DISTANCE)."),
+        tasks=(
+            ConsumableSignature(("vehicle_state_odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("vehicle_state_odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "tessie": IntegrationSignature(
+        name="Tessie",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core tessie: key/tk 'vehicle_state_odometer' (TOTAL_INCREASING, MILES, DISTANCE)."),
+        tasks=(
+            ConsumableSignature(("vehicle_state_odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("vehicle_state_odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "ituran": IntegrationSignature(
+        name="Ituran",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core ituran: tk 'mileage' (KILOMETERS, DISTANCE) — fleet-tracker odometer."),
+        tasks=(
+            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "starline": IntegrationSignature(
+        name="StarLine",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core starline: tk 'mileage' (KILOMETERS, TOTAL_INCREASING) — alarm-system odometer."),
+        tasks=(
+            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
 }

@@ -36,11 +36,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "('E total' description, name 'Total Energy' → entity_id suffix "
             "_total_energy, kWh, TOTAL_INCREASING lifetime)."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("total_energy",), "Inspect Cable and Plug", "usage_delta", delta_units=5000
-            ),
-        ),
+        tasks=(ConsumableSignature(("total_energy",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
     ),
     "goecharger_api2": IntegrationSignature(
         name="go-e Charger",
@@ -51,11 +47,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "lifetime energy) — the unit map converts the 5,000 kWh target "
             "into the live display unit."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("eto",), "Inspect Cable and Plug", "usage_delta", delta_units=5000
-            ),
-        ),
+        tasks=(ConsumableSignature(("eto",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
     ),
     "openevse": IntegrationSignature(
         name="OpenEVSE",
@@ -65,10 +57,6 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'usage_total', kWh lifetime; usage_session is "
             "per-session and deliberately not used)."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("usage_total",), "Inspect Cable and Plug", "usage_delta", delta_units=5000
-            ),
-        ),
+        tasks=(ConsumableSignature(("usage_total",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
     ),
 }

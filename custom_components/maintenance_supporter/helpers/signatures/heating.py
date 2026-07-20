@@ -163,4 +163,42 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("remaining_co2",), "Replace CO2 Bottle", "percent_left"),
         ),
     ),
+    "fumis": IntegrationSignature(
+        name="Fumis (pellet stoves)",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core fumis: tk 'time_to_service' (DURATION, HOURS remaining) — "
+            "the controller's own service countdown for Fumis-driven pellet "
+            "stoves/boilers."
+        ),
+        tasks=(ConsumableSignature(("time_to_service",), "Annual Service", "duration_left"),),
+    ),
+    "rehlko": IntegrationSignature(
+        name="Rehlko / Kohler generators",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core rehlko: tk 'runtime_since_last_maintenance' (HOURS since "
+            "the last maintenance, resets when maintenance is recorded) → "
+            "usage_above at 100 h — Kohler's oil-change interval (every "
+            "100 run-hours or annually). An 'oil_pressure' problem binary "
+            "also exists (adoption path)."
+        ),
+        tasks=(ConsumableSignature(("runtime_since_last_maintenance",), "Oil Service", "usage_above", above_hours=100),),
+    ),
+    "aquacell": IntegrationSignature(
+        name="AquaCell softener",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core aquacell: tk 'salt_left_side_percentage' and "
+            "'salt_right_side_percentage' (PERCENTAGE) — dual salt tanks, "
+            "matched any-low."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("salt_left_side_percentage", "salt_right_side_percentage"),
+                "Refill Softener Salt",
+                "percent_left",
+            ),
+        ),
+    ),
 }

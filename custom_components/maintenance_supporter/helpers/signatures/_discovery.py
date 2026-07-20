@@ -66,8 +66,7 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             if sig.models_exclude and any(m.lower() in model for m in sig.models_exclude):
                 continue
             if sig.require_sibling_keys and not any(
-                any(_entity_matches(e, key) for key in sig.require_sibling_keys)
-                for e in entries
+                any(_entity_matches(e, key) for key in sig.require_sibling_keys) for e in entries
             ):
                 continue
             for entry in entries:
@@ -107,15 +106,10 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
         # not re-proposed — covers manually created calendar tasks whose
         # trigger watches no entity (the entity-watched exclusion misses them).
         existing_names: set[str] = set()
-        if suggested and (
-            target := hass.config_entries.async_get_entry(suggested["entry_id"])
-        ):
+        if suggested and (target := hass.config_entries.async_get_entry(suggested["entry_id"])):
             from ...const import CONF_TASKS
 
-            existing_names = {
-                str(t.get("name", "")).lower()
-                for t in target.data.get(CONF_TASKS, {}).values()
-            }
+            existing_names = {str(t.get("name", "")).lower() for t in target.data.get(CONF_TASKS, {}).values()}
         tasks = []
         for (_integ, task_name, direction), group in sig_map.items():
             entity_ids = sorted(group["entity_ids"])
@@ -151,4 +145,3 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
         )
     out.sort(key=lambda s: (s["integration_name"], s["device_name"]))
     return out
-
