@@ -22,9 +22,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # Lifetime statistics sensors (SECONDS, suggested h) carry two more
             # duties: undercarriage washing by mowing time, contact cleaning by
             # docking cycles (unitless counter -> delta target is the count).
-            ConsumableSignature(
-                ("total_cutting_time",), "Clean Undercarriage", "usage_delta", delta_units=25
-            ),
+            ConsumableSignature(("total_cutting_time",), "Clean Undercarriage", "usage_delta", delta_units=25),
             ConsumableSignature(
                 ("number_of_charging_cycles",),
                 "Clean Charging Contacts",
@@ -42,9 +40,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
-            ConsumableSignature(
-                ("mower_runtime_total",), "Clean Undercarriage", "usage_delta", delta_units=25
-            ),
+            ConsumableSignature(("mower_runtime_total",), "Clean Undercarriage", "usage_delta", delta_units=25),
         ),
     ),
     "gardena_smart_system": IntegrationSignature(
@@ -60,15 +56,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # Sileno mowers: pivoting razor blades wear by mowing time — every
             # 100 operating hours since the last change (delta re-baselines on
             # completion, matching the Husqvarna default).
-            ConsumableSignature(
-                ("operating_hours",), "Replace Blades", "usage_delta", delta_units=100
-            ),
-            ConsumableSignature(
-                ("operating_hours",), "Clean Undercarriage", "usage_delta", delta_units=25
-            ),
+            ConsumableSignature(("operating_hours",), "Replace Blades", "usage_delta", delta_units=100),
+            ConsumableSignature(("operating_hours",), "Clean Undercarriage", "usage_delta", delta_units=25),
         ),
     ),
-            # Same source entity, second duty — the matcher allows multi-duty.
+    # Same source entity, second duty — the matcher allows multi-duty.
     "navimow": IntegrationSignature(
         name="Segway Navimow",
         verified="2026-07-18 @ pgoutsos/NavimowHA main",
@@ -108,12 +100,44 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Replace Blades", "runtime_hours", delta_units=100,
-                entity_domain="lawn_mower", on_states=("mowing",),
+                (),
+                "Replace Blades",
+                "runtime_hours",
+                delta_units=100,
+                entity_domain="lawn_mower",
+                on_states=("mowing",),
             ),
             ConsumableSignature(
-                (), "Clean Undercarriage", "runtime_hours", delta_units=25,
-                entity_domain="lawn_mower", on_states=("mowing",),
+                (),
+                "Clean Undercarriage",
+                "runtime_hours",
+                delta_units=25,
+                entity_domain="lawn_mower",
+                on_states=("mowing",),
+            ),
+        ),
+    ),
+    "rainbird": IntegrationSignature(
+        name="Rain Bird irrigation",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core rainbird: switch.py creates one irrigation-zone switch per "
+            "zone, each on its own 'Rain Bird Sprinkler <n>' device (single "
+            "switch entity per device). No consumable sensors; the rainsensor "
+            "binary carries no device_class (not adoptable) and raindelay is "
+            "operational — the ENGINE accumulates actual watering time on the "
+            "zone switch instead. Cadence per Rain Bird's maintenance "
+            "guidance: inspect/clean heads and (drip) filters at least once a "
+            "season — ~30 h of watering at typical in-season use."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Clean Sprinkler Heads",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="switch",
+                on_states=("on",),
             ),
         ),
     ),
