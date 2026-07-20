@@ -44,6 +44,7 @@ import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import "./components/adopt-problem-sensors-dialog";
 import type { MaintenanceAdoptProblemSensorsDialog } from "./components/adopt-problem-sensors-dialog";
 import "./components/suggested-setups-dialog";
+import "./components/battery-fleet-section";
 import type { MaintenanceSuggestedSetupsDialog } from "./components/suggested-setups-dialog";
 // v2.0.0: panel uses the extracted Calendar Card instead of its own
 // _renderCalendar() method — single source of truth for the calendar view.
@@ -137,6 +138,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   // starts above the fold on phones. Desktop renders them inline as before.
   @state() private _filtersOpen = false;
   @state() private _actionsMenuOpen = false;
+  // Battery Fleet: offer one-click setup only when Battery Notes is present
+  // and the fleet isn't set up yet.
+  @state() private _batteryFleetSetupAvailable = false;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _dismissedSuggestions = new Set<string>();
 
@@ -376,6 +380,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     ]);
     if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
     if (objResult) this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
+    // Battery Fleet availability (Battery Notes present + not yet set up).
+    this.hass.connection
+      .sendMessagePromise<{ available: boolean; configured: boolean }>({
+        type: "maintenance_supporter/battery_fleet/overview",
+      })
+      .then((ov) => {
+        this._batteryFleetSetupAvailable = !!ov.available && !ov.configured;
+      })
+      .catch(() => {
+        this._batteryFleetSetupAvailable = false;
+      });
     if (statsResult) this._stats = statsResult as StatisticsResponse;
     if (budgetResult) this._budget = budgetResult as BudgetStatus;
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
@@ -1025,6 +1040,25 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   // --- Suggested setups (integration signatures, v2.28) ---
+
+  private async _setupBatteryFleet(): Promise<void> {
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{ entry_id: string; task_id?: string }>({
+        type: "maintenance_supporter/battery_fleet/setup",
+      });
+      this._batteryFleetSetupAvailable = false;
+      await this._loadData();
+      // Jump to the fleet task so the user lands on its battery detail section.
+      const obj = this._objects.find((o) => o.entry_id === res.entry_id);
+      const tk = obj?.tasks.find((t2) => t2.id === res.task_id) || obj?.tasks[0];
+      if (obj && tk) {
+        this._showTask(obj.entry_id, tk.id);
+      }
+      this._showToast(t("battery_fleet_setup_done", this._lang));
+    } catch (e) {
+      this._showToast(describeWsError(e, this._lang));
+    }
+  }
 
   private _openSuggestedSetups(): void {
     this.shadowRoot!
@@ -2277,6 +2311,11 @@ export class MaintenanceSupporterPanel extends LitElement {
           <ha-button @click=${() => this._openSuggestedSetups()}>
             <ha-icon icon="mdi:auto-fix"></ha-icon> ${t("setups_button", L)}
           </ha-button>
+          ${this._batteryFleetSetupAvailable ? html`
+            <ha-button @click=${() => this._setupBatteryFleet()}>
+              <ha-icon icon="mdi:battery-sync"></ha-icon> ${t("battery_fleet_setup_button", L)}
+            </ha-button>
+          ` : nothing}
         </div>
       ` : nothing}
 

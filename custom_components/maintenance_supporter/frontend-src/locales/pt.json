@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(a série termina)",
   "adopt_problem_responsible": "Utilizador responsável por todas as tarefas adotadas (opcional)",
   "adopt_problem_configure": "Configurar",
-  "history_auto": "Automático"
+  "history_auto": "Automático",
+  "battery_fleet_title": "Frota de baterias",
+  "battery_fleet_none_low": "Todas as baterias OK — nada a substituir.",
+  "battery_fleet_buy_now": "Comprar agora",
+  "battery_fleet_soon": "Necessário em breve",
+  "battery_fleet_soon_hint": "Estimado pela última substituição — encomende com antecedência.",
+  "battery_fleet_mark_all": "Marcar todas substituídas",
+  "battery_fleet_mark_one": "Marcar esta bateria substituída",
+  "battery_fleet_total": "{n} baterias monitorizadas",
+  "battery_fleet_setup_button": "Frota de baterias",
+  "battery_fleet_setup_done": "Frota de baterias configurada — uma tarefa acompanha todas."
 }

@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(series ends)",
   "adopt_problem_responsible": "Responsible user for all adopted tasks (optional)",
   "adopt_problem_configure": "Configure",
-  "history_auto": "Automatic"
+  "history_auto": "Automatic",
+  "battery_fleet_title": "Battery fleet",
+  "battery_fleet_none_low": "All batteries OK — nothing to replace.",
+  "battery_fleet_buy_now": "Buy now",
+  "battery_fleet_soon": "Needed soon",
+  "battery_fleet_soon_hint": "Predicted from the last replacement date — order ahead.",
+  "battery_fleet_mark_all": "Mark all replaced",
+  "battery_fleet_mark_one": "Mark this battery replaced",
+  "battery_fleet_total": "{n} batteries tracked",
+  "battery_fleet_setup_button": "Battery fleet",
+  "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries."
 }

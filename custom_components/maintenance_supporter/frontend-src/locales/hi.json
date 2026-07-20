@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(श्रृंखला समाप्त)",
   "adopt_problem_responsible": "सभी अपनाए गए कार्यों के लिए ज़िम्मेदार उपयोगकर्ता (वैकल्पिक)",
   "adopt_problem_configure": "कॉन्फ़िगर करें",
-  "history_auto": "स्वचालित"
+  "history_auto": "स्वचालित",
+  "battery_fleet_title": "बैटरी फ्लीट",
+  "battery_fleet_none_low": "सभी बैटरियाँ ठीक — बदलने को कुछ नहीं।",
+  "battery_fleet_buy_now": "अभी खरीदें",
+  "battery_fleet_soon": "जल्द आवश्यक",
+  "battery_fleet_soon_hint": "पिछले प्रतिस्थापन से अनुमानित — पहले ऑर्डर करें।",
+  "battery_fleet_mark_all": "सभी बदली हुई चिह्नित करें",
+  "battery_fleet_mark_one": "इस बैटरी को बदली हुई चिह्नित करें",
+  "battery_fleet_total": "{n} बैटरियाँ ट्रैक की गईं",
+  "battery_fleet_setup_button": "बैटरी फ्लीट",
+  "battery_fleet_setup_done": "बैटरी फ्लीट सेट — एक कार्य सभी बैटरियों को ट्रैक करता है।"
 }

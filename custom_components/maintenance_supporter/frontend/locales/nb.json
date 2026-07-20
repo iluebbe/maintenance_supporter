@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(serien avsluttes)",
   "adopt_problem_responsible": "Ansvarlig bruker for alle overtatte oppgaver (valgfritt)",
   "adopt_problem_configure": "Konfigurer",
-  "history_auto": "Automatisk"
+  "history_auto": "Automatisk",
+  "battery_fleet_title": "Batteriflåte",
+  "battery_fleet_none_low": "Alle batterier OK — ingenting å bytte.",
+  "battery_fleet_buy_now": "Kjøp nå",
+  "battery_fleet_soon": "Trengs snart",
+  "battery_fleet_soon_hint": "Estimert fra siste bytte — bestill i forkant.",
+  "battery_fleet_mark_all": "Merk alle byttet",
+  "battery_fleet_mark_one": "Merk dette batteriet byttet",
+  "battery_fleet_total": "{n} batterier spores",
+  "battery_fleet_setup_button": "Batteriflåte",
+  "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene."
 }

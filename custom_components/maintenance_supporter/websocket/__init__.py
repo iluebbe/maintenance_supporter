@@ -170,6 +170,9 @@ def _build_task_summary(
             else None
         ),
         "trigger_config": trigger_config,
+        # Battery Fleet: marks the single aggregate task so the detail view
+        # renders the battery section instead of the generic trigger card.
+        "battery_fleet_task": task_data.get("battery_fleet_task", False),
         "trigger_entity_info": trigger_entity_info,
         "trigger_entity_infos": trigger_entity_infos,
         "checklist": task_data.get("checklist", []),

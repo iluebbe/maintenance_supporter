@@ -789,5 +789,15 @@
   "schedule_preview_ends": "（シリーズ終了）",
   "adopt_problem_responsible": "採用したすべてのタスクの担当ユーザー（任意）",
   "adopt_problem_configure": "設定",
-  "history_auto": "自動"
+  "history_auto": "自動",
+  "battery_fleet_title": "電池フリート",
+  "battery_fleet_none_low": "すべての電池は正常 — 交換不要。",
+  "battery_fleet_buy_now": "今すぐ購入",
+  "battery_fleet_soon": "まもなく必要",
+  "battery_fleet_soon_hint": "前回交換日からの予測 — 早めに注文を。",
+  "battery_fleet_mark_all": "すべて交換済みにする",
+  "battery_fleet_mark_one": "この電池を交換済みにする",
+  "battery_fleet_total": "{n} 個の電池を監視",
+  "battery_fleet_setup_button": "電池フリート",
+  "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。"
 }

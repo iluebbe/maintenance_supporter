@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(la serie termina)",
   "adopt_problem_responsible": "Utente responsabile per tutte le attività adottate (opzionale)",
   "adopt_problem_configure": "Configura",
-  "history_auto": "Automatico"
+  "history_auto": "Automatico",
+  "battery_fleet_title": "Parco batterie",
+  "battery_fleet_none_low": "Tutte le batterie OK — niente da sostituire.",
+  "battery_fleet_buy_now": "Da comprare",
+  "battery_fleet_soon": "Presto necessario",
+  "battery_fleet_soon_hint": "Stimato dall'ultima sostituzione — ordina in anticipo.",
+  "battery_fleet_mark_all": "Segna tutte sostituite",
+  "battery_fleet_mark_one": "Segna questa batteria sostituita",
+  "battery_fleet_total": "{n} batterie monitorate",
+  "battery_fleet_setup_button": "Parco batterie",
+  "battery_fleet_setup_done": "Parco batterie configurato — un'attività monitora tutte."
 }

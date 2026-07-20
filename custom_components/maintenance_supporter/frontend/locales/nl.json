@@ -789,5 +789,15 @@
   "schedule_preview_ends": "(reeks eindigt)",
   "adopt_problem_responsible": "Verantwoordelijke gebruiker voor alle overgenomen taken (optioneel)",
   "adopt_problem_configure": "Configureren",
-  "history_auto": "Automatisch"
+  "history_auto": "Automatisch",
+  "battery_fleet_title": "Batterijvloot",
+  "battery_fleet_none_low": "Alle batterijen OK — niets te vervangen.",
+  "battery_fleet_buy_now": "Nu kopen",
+  "battery_fleet_soon": "Binnenkort nodig",
+  "battery_fleet_soon_hint": "Geschat op basis van de laatste vervanging — bestel vooruit.",
+  "battery_fleet_mark_all": "Alles gemarkeerd als vervangen",
+  "battery_fleet_mark_one": "Deze batterij als vervangen markeren",
+  "battery_fleet_total": "{n} batterijen gevolgd",
+  "battery_fleet_setup_button": "Batterijvloot",
+  "battery_fleet_setup_done": "Batterijvloot ingesteld — één taak volgt al je batterijen."
 }

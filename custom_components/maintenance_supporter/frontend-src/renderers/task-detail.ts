@@ -375,9 +375,13 @@ export function renderOverviewTab(task: MaintenanceTask, ctx: TaskDetailContext)
     <div class="tab-content overview-tab">
       ${renderKPIBar(task, ctx)}
       ${renderTaskMeta(task, ctx)}
-      ${renderDaysProgress(task, ctx.lang)}
-      ${renderTriggerSection(task, ctx.sparkline)}
-      ${renderPredictionSection(task, L, ctx.features)}
+      ${task.battery_fleet_task
+        ? html`<maintenance-battery-fleet-section .hass=${ctx.hass}></maintenance-battery-fleet-section>`
+        : html`
+            ${renderDaysProgress(task, ctx.lang)}
+            ${renderTriggerSection(task, ctx.sparkline)}
+            ${renderPredictionSection(task, L, ctx.features)}
+          `}
       <div class="two-column-layout ${hasLeftColumn ? '' : 'single-column'}">
         ${hasLeftColumn ? html`
           <div class="left-column">
