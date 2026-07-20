@@ -3,6 +3,14 @@
 Checks per surface: key parity, empty values, placeholder parity, and
 English-identical values in non-EN files (heuristic, with an allowlist of
 legitimately language-neutral strings).
+
+NOTE: since 2026-07 the frontend surface is gated in CI by sharper tests —
+``test_frontend_locale_value_completeness`` (EN-identical values in Latin
+languages, missing native script in ru/uk/zh/ja/hi) and
+``test_frontend_t_usage_coverage`` (every static ``t("key")`` exists) in
+``tests/test_i18n.py``. New keys go in via ``scripts/add_locale_key.py``,
+which requires all 18 translations up front. This script remains useful as a
+periodic deep audit (it also covers the backend + template surfaces).
 """
 import json
 import os

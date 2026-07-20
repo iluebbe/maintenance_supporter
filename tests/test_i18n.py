@@ -230,6 +230,168 @@ def test_frontend_locale_key_parity(path: Path) -> None:
     }
 
 
+# ── Value-level completeness gates ──────────────────────────────────────────
+#
+# Key parity alone lets untranslated VALUES ship: the easiest way to satisfy it
+# is copying the English value into all 18 files "for now" — which is exactly
+# how "Missed" / "Snooze" / "Last day of month" ended up live in ru/zh/cs
+# (2026-07 audit: 270 such values). These gates make that a CI failure.
+
+# Languages whose UI text is written in a non-Latin script. A value that
+# contains Latin words but not a single native-script character is untranslated
+# English, not a loanword.
+_NATIVE_SCRIPTS = {
+    "ru": re.compile(r"[Ѐ-ӿ]"),  # Cyrillic
+    "uk": re.compile(r"[Ѐ-ӿ]"),
+    "zh": re.compile(r"[一-鿿]"),  # Han
+    "ja": re.compile(r"[぀-ヿ一-鿿]"),  # Kana + Han
+    "hi": re.compile(r"[ऀ-ॿ]"),  # Devanagari
+}
+
+# Values that are language-neutral everywhere (acronyms, formats, symbols).
+_NEUTRAL_VALUES = {"ok", "id", "url", "qr", "pdf", "csv", "svg", "json", "nfc", "matter", "e-mail", "email", "beta", "mdns"}
+
+# Frontend keys whose value is LEGITIMATELY identical to English in the listed
+# languages (audited cognates/loanwords — "Dashboard" IS the German word,
+# "Notes"/"Actions" ARE French) or legitimately ASCII in native-script
+# languages ("*"). Adding a key here is a REVIEWED decision, not a shortcut:
+# a new failure means translate the value or consciously allowlist it.
+_VALUE_OK: dict[str, frozenset[str] | str] = {
+    "actions": frozenset({"fr"}),
+    "qr_print_actions": frozenset({"fr"}),
+    "area": frozenset({"it"}),
+    "sort_area": frozenset({"it"}),
+    "battery_fleet_offline": frozenset({"de", "it", "nl", "pl", "pt", "sv", "da", "fi", "cs"}),
+    "checklist": frozenset({"fr", "it", "nl"}),
+    "feat_checklists": frozenset({"fr", "nl"}),
+    "compound_condition": frozenset({"fr"}),
+    "dashboard": frozenset({"de", "it", "nl"}),
+    "degradation_trend": frozenset({"de", "nl", "pl", "sv", "nb", "cs"}),
+    "doc_cat_manual": frozenset({"es", "pt", "sv"}),
+    "documentation_url_label": frozenset({"es", "pt", "sv", "da"}),
+    "manual": frozenset({"es", "pt"}),
+    "seasonal_manual": frozenset({"es", "pt"}),
+    "doc_cat_photo": frozenset({"fr"}),
+    "doc_download": frozenset({"da"}),
+    "qr_download": frozenset({"da"}),
+    "doc_link_badge": frozenset({"de", "it", "nl", "pl", "da"}),
+    "doc_link_url": "*",  # "URL (https://…)" — syntax hint, neutral
+    "doc_page": frozenset({"fr"}),
+    "documentation_label": frozenset({"fr"}),
+    "documents": frozenset({"fr"}),
+    "filter_label": frozenset({"de", "nl", "sv", "da", "nb"}),
+    "qr_print_filter": frozenset({"de", "nl", "sv", "da", "nb"}),
+    "inspection": frozenset({"fr"}),
+    "interval": frozenset({"nl", "da", "cs"}),
+    "interval_value": frozenset({"nl", "da", "cs"}),
+    "label_filter": frozenset({"de", "nl"}),
+    "labels": frozenset({"de", "nl"}),
+    "maintenance": frozenset({"fr"}),
+    "model": frozenset({"nl", "pl", "da", "cs"}),
+    "name": frozenset({"de"}),
+    "part_name": frozenset({"de"}),
+    "normal": frozenset({"de", "fr", "es", "pt", "sv", "da", "nb"}),
+    "priority_normal": frozenset({"de", "es", "pt", "sv", "da", "nb"}),
+    "notes_label": frozenset({"fr"}),
+    "object_notes_label": frozenset({"fr"}),
+    "report_notes": frozenset({"fr"}),
+    "quick_complete_defaults_notes": frozenset({"fr"}),
+    "object": frozenset({"nl"}),
+    "on_complete_action_service": frozenset({"de", "fr", "nl"}),
+    "service": frozenset({"de", "fr", "nl", "sv", "da", "nb"}),
+    "part_stock": frozenset({"fr"}),
+    "qr_mode_companion": "*",  # "Companion App" — HA product name
+    "qr_mode_local": frozenset({"fr", "es", "pt"}),
+    "recurrence_occurrence": frozenset({"fr"}),
+    "report_button": frozenset({"it"}),
+    "report_col_status": frozenset({"de", "nl", "pl", "sv", "da", "nb"}),
+    "report_col_type": frozenset({"fr", "nl", "da", "nb"}),
+    "sort_type": frozenset({"fr", "nl", "da", "nb"}),
+    "reset": frozenset({"cs"}),
+    "rotation_strategy": frozenset({"de", "fr", "sv", "da"}),
+    "send_test": frozenset({"da", "nb"}),
+    "settings_budget": frozenset({"de", "fr", "it", "nl", "sv", "da"}),
+    "settings_general": frozenset({"es"}),
+    "settings_import_export": frozenset({"de", "fr", "it", "nl", "sv", "cs"}),
+    "settings_notifications": frozenset({"fr"}),
+    "settings_quiet_start": frozenset({"nl", "sv", "da", "nb"}),
+    "vacation_start": frozenset({"sv", "da", "nb"}),
+    "trend_stable": frozenset({"fr"}),
+    "trigger": frozenset({"de", "it", "nl"}),
+    "weibull_r_squared": frozenset({"nl"}),
+    "worksheet_pages": frozenset({"fr"}),
+}
+
+
+def _value_allowlisted(key: str, lang: str) -> bool:
+    allowed = _VALUE_OK.get(key)
+    return allowed == "*" or (isinstance(allowed, frozenset) and lang in allowed)
+
+
+def _suspicious_value(key: str, lang: str, value: str, en_value: str | None) -> bool:
+    """True when *value* looks like untranslated English for *lang*."""
+    stripped = _TOKEN_RE.sub("", value).strip()  # placeholders are neutral
+    if len(stripped) <= 3 or stripped.lower() in _NEUTRAL_VALUES:
+        return False
+    if _value_allowlisted(key, lang):
+        return False
+    native = _NATIVE_SCRIPTS.get(lang)
+    if native is not None:
+        # Latin words but not one native-script character → not translated.
+        return bool(re.search(r"[A-Za-z]{3}", stripped)) and not native.search(value)
+    # Latin-script language: byte-identical to English is suspect.
+    return value == en_value and bool(re.search(r"[A-Za-z]{3}", stripped))
+
+
+@pytest.mark.parametrize(
+    "path",
+    [p for p in sorted(_FRONTEND_LOCALES.glob("*.json")) if p.stem != "en"],
+    ids=lambda p: p.name,
+)
+def test_frontend_locale_value_completeness(path: Path) -> None:
+    """No untranslated English VALUES behind a green key parity.
+
+    Copying the EN value into every locale satisfies key parity but ships
+    English UI to that language. Fails naming (key, value); fix = translate,
+    or — for a genuine cognate/loanword — consciously extend ``_VALUE_OK``.
+    """
+    en = _load(_FRONTEND_LOCALES / "en.json")
+    lang = path.stem
+    bad = {
+        key: value
+        for key, value in _load(path).items()
+        if isinstance(value, str) and _suspicious_value(key, lang, value, en.get(key))
+    }
+    assert not bad, {"locale": path.name, "untranslated_values": bad}
+
+
+# Static t("...") literals in the panel/card sources. Dynamic keys
+# (t(`prefix_${x}`), t(variable)) are invisible here and intentionally skipped.
+_T_CALL_RE = re.compile(r"""\bt\(\s*(?:"([^"]+)"|'([^']+)')\s*[,)]""")
+
+
+def test_frontend_t_usage_coverage() -> None:
+    """Every static ``t("key")`` in the frontend sources exists in en.json.
+
+    ``t()`` falls back to the RAW KEY string when a key is missing from every
+    locale — key parity can't catch that (all files are equally missing it),
+    so a typo'd or forgotten key renders as e.g. ``battery_fleet_title`` in
+    the UI. This scans the sources and fails on the first unknown key.
+    """
+    en_keys = set(_load(_FRONTEND_LOCALES / "en.json"))
+    src = _COMPONENT / "frontend-src"
+    missing: dict[str, str] = {}
+    for ts in src.rglob("*.ts"):
+        rel = ts.relative_to(src).as_posix()
+        if rel.startswith(("node_modules/", "__tests__/", "locales/")):
+            continue
+        for match in _T_CALL_RE.finditer(ts.read_text(encoding="utf-8", errors="replace")):
+            key = match.group(1) or match.group(2)
+            if key not in en_keys:
+                missing.setdefault(key, rel)
+    assert not missing, {"t()_keys_missing_from_en.json": missing}
+
+
 def test_buy_name_templates_cover_every_ui_language() -> None:
     """The auto buy-task name table (helpers/parts.py) was the only 18-language
     table WITHOUT a language tripwire (DRY audit 2026-07-10) — a newly added
