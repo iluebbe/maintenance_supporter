@@ -1027,3 +1027,17 @@ pass over all categories, then source-dived ~27 repos.
 - Not maintenance: waste_collection_schedule (garbage calendars),
   battery_notes (battery meta), pool chemistry testers
   (poollab/poolmath/iopool — dosing is daily ops, not consumables).
+
+## Bosch Smart Home (bosch_shc, 2026-07-20, user-requested)
+
+HACS tschamm/boschshc-hass (~1,925 installs). Full sensor/binary sweep:
+- NO catalog signature possible — every sensor is environmental or
+  operational (temperature, humidity, Twinguard purity/air-quality
+  READING [not a filter], power/energy, illuminance, communication
+  quality, shutter calibration-duration). No consumable, filter or
+  maintenance-countdown entity exists. It is a smart-home controller
+  (shutters/sirens/smoke/motion), not a consumable device.
+- ADOPTABLE problem/tamper binaries (added to the table): shutter
+  `calibration required` (PROBLEM), outdoor-siren AC/DC error, battery
+  defect, battery-temperature abnormal, primary-power outage (all
+  PROBLEM), siren TAMPER, motion-detector TAMPER.
