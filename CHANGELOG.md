@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔋 Battery Fleet (Battery Notes)
+
+- With the [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes)
+  integration, one click sets up a single **Battery Fleet** — **one object,
+  one task** aggregating every battery (30–70+ devices) instead of a task per
+  battery, plus one managed spare-part per battery type. The task's detail
+  view shows which batteries are low, a grouped shopping list ("Buy now: 2× AA
+  · 4× AAA …"), a last-replaced forecast of what's needed soon, and a
+  **mark all replaced** action that presses each Battery Notes replaced button
+  and consumes the spares from stock. The single task is threshold-triggered by
+  a new global battery-low count sensor and auto-completes when the count
+  returns to zero. Reuses the existing parts/stock and reorder machinery.
+
+### 🧰 Catalog
+
+- Rounds 10–13 + Rain Bird, KNX, Bosch: **123 integrations / 228 signatures**
+  (Samsung fridge/hood filters, Traeger cook cycles, Tesla-Fleet/Teslemetry/
+  Tessie odometers, IKEA Trådfri STARKVIND, Flexit/Duco/Venstar filters, Kohler
+  generators, pool salt, Bosch/Stromer eBike drivetrain, Sunseeker blades,
+  Dyson-local, WashData smart-plug cycles). Full history in
+  docs/design/integration-research-2026-07.md.
+
 ## [2.37.0] - 2026-07-20
 
 ### 🚨 Adopted problem sensors: complete lifecycle
