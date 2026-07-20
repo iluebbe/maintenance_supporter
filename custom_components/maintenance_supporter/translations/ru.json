@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Детали к дозаказу"
+      },
+      "batteries_to_replace": {
+        "name": "Батареи к замене"
       }
     },
     "calendar": {

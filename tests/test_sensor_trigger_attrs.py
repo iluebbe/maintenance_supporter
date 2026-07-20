@@ -412,12 +412,16 @@ async def test_sensor_setup_global_creates_summary_sensors(
     entity_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_reg, global_entry.entry_id)
     sensors = [e for e in entities if e.domain == "sensor"]
-    assert len(sensors) == 8  # 6 summary metrics + document-storage + parts-to-reorder
+    assert len(sensors) == 9  # 6 summary metrics + document-storage + parts-to-reorder + batteries-to-replace
     assert all(e.unique_id.startswith("maintenance_supporter_global_") for e in sensors)
     # Stable, documented entity IDs (see README "Summary sensors").
     assert {e.entity_id for e in sensors} == {
         f"sensor.maintenance_supporter_{k}" for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
-    } | {"sensor.maintenance_supporter_document_storage", "sensor.maintenance_supporter_parts_to_reorder"}
+    } | {
+        "sensor.maintenance_supporter_document_storage",
+        "sensor.maintenance_supporter_parts_to_reorder",
+        "sensor.maintenance_supporter_batteries_to_replace",
+    }
 
 
 async def test_summary_sensor_ids_are_language_independent(
@@ -436,7 +440,11 @@ async def test_summary_sensor_ids_are_language_independent(
     sensors = {e.entity_id for e in entities if e.domain == "sensor"}
     assert sensors == {
         f"sensor.maintenance_supporter_{k}" for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
-    } | {"sensor.maintenance_supporter_document_storage", "sensor.maintenance_supporter_parts_to_reorder"}
+    } | {
+        "sensor.maintenance_supporter_document_storage",
+        "sensor.maintenance_supporter_parts_to_reorder",
+        "sensor.maintenance_supporter_batteries_to_replace",
+    }
 
 
 # ─── Sensor Extra Attrs: Last Entry ───────────────────────────────────

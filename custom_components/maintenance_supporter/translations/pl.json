@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Części do zamówienia"
+      },
+      "batteries_to_replace": {
+        "name": "Baterie do wymiany"
       }
     },
     "calendar": {

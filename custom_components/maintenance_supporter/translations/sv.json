@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Delar att beställa"
+      },
+      "batteries_to_replace": {
+        "name": "Batterier att byta"
       }
     },
     "calendar": {
