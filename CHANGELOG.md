@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Battery Fleet task lost its sensor trigger after an unrelated edit**
+  (issue #106): the task edit dialog only hydrated the singular
+  `entity_id` field, so the fleet task's trigger — stored with the plural
+  `entity_ids` — was silently nulled when saving any other change (e.g.
+  translating the name). The dialog now falls back to `entity_ids[0]`, the
+  fleet setup writes both key shapes, and re-running the (idempotent) setup
+  repairs a wiped trigger or recreates a deleted fleet task while keeping
+  the user's renames. The fleet detail section shows a one-click **Repair**
+  banner when it detects the broken state.
+
 ## [2.38.0] - 2026-07-20
 
 ### 🔋 Battery Fleet (Battery Notes or native)

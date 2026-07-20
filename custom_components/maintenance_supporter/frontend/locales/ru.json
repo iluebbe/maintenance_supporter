@@ -798,6 +798,8 @@
   "battery_fleet_mark_all": "Отметить все заменёнными",
   "battery_fleet_mark_one": "Отметить эту батарею заменённой",
   "battery_fleet_offline": "не в сети",
+  "battery_fleet_trigger_lost": "Сенсорный триггер этой задачи утерян — она не сработает и не завершится автоматически.",
+  "battery_fleet_repair": "Восстановить",
   "battery_fleet_total": "Отслеживается батарей: {n}",
   "battery_fleet_setup_button": "Парк батарей",
   "battery_fleet_setup_done": "Парк батарей настроен — одна задача следит за всеми."

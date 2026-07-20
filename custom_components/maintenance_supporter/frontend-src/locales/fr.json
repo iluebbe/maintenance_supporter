@@ -798,6 +798,8 @@
   "battery_fleet_mark_all": "Tout marquer remplacé",
   "battery_fleet_mark_one": "Marquer cette pile remplacée",
   "battery_fleet_offline": "hors ligne",
+  "battery_fleet_trigger_lost": "Le déclencheur de capteur de cette tâche a été perdu — elle ne se déclenchera pas et ne se terminera pas automatiquement.",
+  "battery_fleet_repair": "Réparer",
   "battery_fleet_total": "{n} piles suivies",
   "battery_fleet_setup_button": "Parc de piles",
   "battery_fleet_setup_done": "Parc de piles configuré — une tâche suit toutes vos piles."

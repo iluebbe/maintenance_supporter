@@ -798,6 +798,8 @@
   "battery_fleet_mark_all": "Marcar todas como reemplazadas",
   "battery_fleet_mark_one": "Marcar esta batería como reemplazada",
   "battery_fleet_offline": "sin conexión",
+  "battery_fleet_trigger_lost": "El disparador de sensor de esta tarea se perdió — no se activará ni se completará automáticamente.",
+  "battery_fleet_repair": "Reparar",
   "battery_fleet_total": "{n} baterías monitorizadas",
   "battery_fleet_setup_button": "Flota de baterías",
   "battery_fleet_setup_done": "Flota de baterías configurada — una tarea controla todas."

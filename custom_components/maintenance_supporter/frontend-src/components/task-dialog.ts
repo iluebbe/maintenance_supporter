@@ -357,7 +357,11 @@ export class MaintenanceTaskDialog extends LitElement {
 
     if (task.trigger_config) {
       const tc = task.trigger_config;
-      this._triggerEntityId = tc.entity_id || "";
+      // A trigger stored with only the plural entity_ids (e.g. the Battery
+      // Fleet task) must still hydrate the singular field — the save path
+      // gates on _triggerEntityId and would otherwise NULL the whole trigger
+      // on an unrelated edit (issue #106).
+      this._triggerEntityId = tc.entity_id || (tc.entity_ids && tc.entity_ids[0]) || "";
       this._triggerEntityIds = tc.entity_ids || (tc.entity_id ? [tc.entity_id] : []);
       this._triggerEntityLogic = tc.entity_logic || "any";
       this._triggerAttribute = tc.attribute || "";

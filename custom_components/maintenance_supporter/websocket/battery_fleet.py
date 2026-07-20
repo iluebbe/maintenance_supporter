@@ -19,6 +19,7 @@ from ..helpers.battery_fleet_setup import (
     async_mark_replaced,
     async_setup_battery_fleet,
     find_fleet_entry,
+    fleet_task_trigger_ok,
 )
 from ..helpers.permissions import require_write
 
@@ -35,6 +36,10 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             "available": has_batteries(hass),
             "has_battery_notes": has_battery_notes(hass),
             "configured": fleet is not None,
+            # False when the fleet task was deleted or its trigger was wiped
+            # (issue #106) — the detail section offers a one-click repair,
+            # which re-runs the idempotent setup.
+            "task_ok": fleet is not None and fleet_task_trigger_ok(fleet),
             "entry_id": fleet.entry_id if fleet else None,
             "total": ov.total,
             "low": ov.low,

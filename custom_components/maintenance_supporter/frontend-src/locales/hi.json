@@ -798,6 +798,8 @@
   "battery_fleet_mark_all": "सभी बदली हुई चिह्नित करें",
   "battery_fleet_mark_one": "इस बैटरी को बदली हुई चिह्नित करें",
   "battery_fleet_offline": "ऑफ़लाइन",
+  "battery_fleet_trigger_lost": "इस कार्य का सेंसर ट्रिगर खो गया है — यह सक्रिय नहीं होगा और स्वतः पूर्ण नहीं होगा।",
+  "battery_fleet_repair": "मरम्मत करें",
   "battery_fleet_total": "{n} बैटरियाँ ट्रैक की गईं",
   "battery_fleet_setup_button": "बैटरी फ्लीट",
   "battery_fleet_setup_done": "बैटरी फ्लीट सेट — एक कार्य सभी बैटरियों को ट्रैक करता है।"

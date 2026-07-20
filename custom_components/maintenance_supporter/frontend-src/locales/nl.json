@@ -798,6 +798,8 @@
   "battery_fleet_mark_all": "Alles gemarkeerd als vervangen",
   "battery_fleet_mark_one": "Deze batterij als vervangen markeren",
   "battery_fleet_offline": "offline",
+  "battery_fleet_trigger_lost": "De sensortrigger van deze taak is verloren gegaan — deze wordt niet geactiveerd of automatisch voltooid.",
+  "battery_fleet_repair": "Repareren",
   "battery_fleet_total": "{n} batterijen gevolgd",
   "battery_fleet_setup_button": "Batterijvloot",
   "battery_fleet_setup_done": "Batterijvloot ingesteld — één taak volgt al je batterijen."
