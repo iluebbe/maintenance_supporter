@@ -39,13 +39,17 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "smartthinq_sensors": IntegrationSignature(
         name="LG ThinQ (SmartThinQ)",
-        verified="2026-07-17 @ ollo69/ha-smartthinq-sensors master",
+        verified="2026-07-17 / re-audited 2026-07-20 @ ollo69/ha-smartthinq-sensors master",
         source=(
             "ollo69/ha-smartthinq-sensors custom_components/smartthinq_sensors/sensor.py "
             "(legacy name= entities, NO translation_key → matched by entity_id suffix; "
             "FILTER_*_LIFE / *_REMAIN_PERC are percent via wideq device.py "
             "_get_filter_life(); TUBCLEAN_COUNT counts up per wash cycle and the "
-            "machine resets it when a tub-clean course runs)"
+            "machine resets it when a tub-clean course runs). binary_sensor.py: "
+            "dishwasher RINSEREFILL/SALTREFILL binaries carry NO device_class "
+            "(and are disabled-by-default) → not adoptable, latched here "
+            "instead; the washer DETERGENTLOW/SOFTENERLOW binaries ARE "
+            "problem-class (adoption path)."
         ),
         tasks=(
             ConsumableSignature(
@@ -65,6 +69,23 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # Unitless wash-cycle counter: above_hours here is the cycle count
             # (~monthly cadence); resetting on a tub-clean course resolves it.
             ConsumableSignature(("tub_clean_counter",), "Clean Tub", "usage_above", above_hours=30),
+            # Dishwasher refill alerts: plain binaries (no problem class) →
+            # state latch; the appliance clearing them after a refill resolves
+            # the task. Enable the entities first (disabled-by-default).
+            ConsumableSignature(
+                ("rinse_refill",),
+                "Refill Rinse Aid",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+            ConsumableSignature(
+                ("salt_refill",),
+                "Refill Salt",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
         ),
     ),
     # Enclosed printers only (device registry model = the device_type

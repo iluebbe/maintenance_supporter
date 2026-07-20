@@ -956,3 +956,19 @@ myuplink `has_alarm` (generic heat-pump alarm).
   objects of KNX-connected heat pumps/ventilation; (2) every KNX sensor
   works with the manual trigger config (threshold/counter/runtime).
   Documented in the INTEGRATIONS.md adoption table.
+
+## SmartThinQ re-audit (2026-07-20, user-requested)
+
+Deep re-check of ollo69/ha-smartthinq-sensors against master:
+
+- All 8 covered keys verified still present and correctly named (AC +
+  5 purifier filter-life variants, fridge fresh-air + water filter,
+  tub-clean counter).
+- No missed sensor consumables (no lint filter, no dehumidifier/hood
+  filters; FILTER_*_USE/MAX are raw components of the LIFE value).
+- FOUND + SHIPPED: dishwasher **Rinse refill** / **Salt refill**
+  binaries — NO device_class (not adoptable) and disabled-by-default →
+  added as event_present latches ("Refill Rinse Aid" / "Refill Salt",
+  auto-resolve when the appliance clears them after a refill).
+- Washer DETERGENTLOW/SOFTENERLOW remain problem-class → adoption
+  table (already listed).
