@@ -19,7 +19,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_OBJECT, CONF_PARTS, DOMAIN
-from .battery_fleet import discover_battery_types, lifetime_months
+from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, read_batteries
 
 # The global aggregate sensor the fleet task triggers on (fixed entity_id).
 LOW_COUNT_ENTITY_ID = "sensor.maintenance_supporter_batteries_to_replace"
@@ -134,6 +134,56 @@ def _type_part(btype: str, total_qty: int) -> dict[str, Any]:
         "auto_buy_task": False,
         "notes": f"Typical service life ~{lifetime_months(btype)} months (editorial).",
     }
+
+
+def replaced_button_for(battery_plus_entity_id: str) -> str:
+    """The Battery Notes 'replaced' button entity id for a battery_plus sensor.
+
+    Battery Notes mints them in parallel: sensor.<x>_battery_plus ->
+    button.<x>_battery_replaced.
+    """
+    return battery_plus_entity_id.replace("sensor.", "button.", 1).replace("_battery_plus", "_battery_replaced")
+
+
+async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None = None) -> dict[str, Any]:
+    """Mark batteries replaced: press their Battery Notes 'replaced' button
+    (records the replacement date → resets the forecast) and consume the
+    matching type-part spares from stock.
+
+    ``entity_ids`` = battery_plus sensors to mark; default = all currently low.
+    The fleet task auto-completes on its own once the devices report fresh
+    (low count → 0), so this does NOT complete the task directly (which would
+    race that recovery).
+    """
+    by_eid = {b.entity_id: b for b in read_batteries(hass)}
+    targets = entity_ids if entity_ids is not None else [e for e, b in by_eid.items() if b.low]
+
+    pressed = 0
+    by_type: dict[str, int] = {}
+    for eid in targets:
+        bat = by_eid.get(eid)
+        if bat is None:
+            continue
+        button = replaced_button_for(eid)
+        if hass.states.get(button) is not None:
+            await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
+            pressed += 1
+        t = _norm_type(bat.battery_type)
+        by_type[t] = by_type.get(t, 0) + bat.quantity
+
+    consumed: dict[str, int] = {}
+    fleet = find_fleet_entry(hass)
+    if fleet is not None and by_type:
+        from ..parts_runtime import async_change_part_stock
+
+        parts = fleet.data.get(CONF_PARTS) or {}
+        for btype, qty in by_type.items():
+            pid = f"batt_{btype.lower()}"
+            if pid in parts:
+                await async_change_part_stock(hass, fleet, pid, delta=-qty)
+                consumed[pid] = qty
+
+    return {"marked": len(targets), "pressed": pressed, "consumed": consumed}
 
 
 def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int]) -> int:
