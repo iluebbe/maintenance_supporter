@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Parts to reorder"
+      },
+      "batteries_to_replace": {
+        "name": "Batteries to replace"
       }
     },
     "calendar": {

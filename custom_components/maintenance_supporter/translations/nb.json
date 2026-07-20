@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Deler å etterbestille"
+      },
+      "batteries_to_replace": {
+        "name": "Batterier som må byttes"
       }
     },
     "calendar": {

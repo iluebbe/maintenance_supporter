@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Díly k doobjednání"
+      },
+      "batteries_to_replace": {
+        "name": "Baterie k výměně"
       }
     },
     "calendar": {

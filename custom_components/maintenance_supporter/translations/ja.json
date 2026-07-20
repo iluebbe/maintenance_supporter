@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "再注文が必要な部品"
+      },
+      "batteries_to_replace": {
+        "name": "交換が必要な電池"
       }
     },
     "calendar": {

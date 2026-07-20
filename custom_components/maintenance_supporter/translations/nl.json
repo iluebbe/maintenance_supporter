@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Onderdelen bij te bestellen"
+      },
+      "batteries_to_replace": {
+        "name": "Te vervangen batterijen"
       }
     },
     "calendar": {

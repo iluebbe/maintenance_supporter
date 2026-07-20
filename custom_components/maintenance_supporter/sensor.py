@@ -80,6 +80,9 @@ async def async_setup_entry(
         entities.append(DocumentStorageSensor(hass, doc_store))
         # Spare parts: how many parts across all objects need reordering.
         entities.append(PartsToReorderSensor(hass))
+        # Battery fleet: how many batteries (across all Battery Notes devices)
+        # need replacing now — the aggregate that backs the single fleet task.
+        entities.append(BatteryFleetLowSensor(hass))
         async_add_entities(entities)
         return
 
@@ -573,9 +576,7 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
         await super().async_added_to_hass()
         from .parts_runtime import SIGNAL_PARTS_UPDATED
 
-        self.async_on_remove(
-            async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update)
-        )
+        self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update))
 
     @callback
     def _handle_parts_update(self, entry_id: str) -> None:
@@ -647,9 +648,7 @@ class PartsToReorderSensor(SensorEntity):
         await super().async_added_to_hass()
         from .parts_runtime import SIGNAL_PARTS_UPDATED
 
-        self.async_on_remove(
-            async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update)
-        )
+        self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update))
 
     @callback
     def _handle_parts_update(self, _entry_id: str) -> None:
@@ -672,6 +671,67 @@ class PartsToReorderSensor(SensorEntity):
                 if part_is_low(part, store.get_part_stock(part["id"])):
                     count += 1
         return count
+
+
+class BatteryFleetLowSensor(SensorEntity):
+    """How many batteries across all Battery Notes devices are low right now.
+
+    Aggregate over the fleet (not one sensor per battery). Its state is the
+    threshold source for the single "Replace low batteries" fleet task; the
+    grouped shopping needs + forecast ride along as attributes. Lives on the
+    global hub device; refreshes off the Battery Notes lifecycle events.
+    """
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "batteries_to_replace"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:battery-alert"
+    _attr_native_unit_of_measurement = "batteries"
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        """Initialize the global battery-fleet low-count sensor."""
+        self.hass = hass
+        self._attr_unique_id = f"{GLOBAL_UNIQUE_ID}_batteries_to_replace"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, GLOBAL_UNIQUE_ID)},
+            name="Maintenance Supporter",
+            entry_type=DeviceEntryType.SERVICE,
+        )
+        self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, "maintenance_supporter_batteries_to_replace", hass=hass)
+
+    async def async_added_to_hass(self) -> None:
+        """Refresh on Battery Notes threshold/replaced/increased events."""
+        await super().async_added_to_hass()
+        for event in (
+            "battery_notes_battery_threshold",
+            "battery_notes_battery_replaced",
+            "battery_notes_battery_increased",
+        ):
+            self.async_on_remove(self.hass.bus.async_listen(event, self._handle_event))
+
+    @callback
+    def _handle_event(self, _event: Any) -> None:
+        self.async_write_ha_state()
+
+    def _overview(self):
+        from .helpers.battery_fleet import compute_overview
+
+        return compute_overview(self.hass)
+
+    @property
+    def native_value(self) -> int:
+        return self._overview().low_count
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        ov = self._overview()
+        return {
+            "total_batteries": ov.total,
+            "soon_count": len(ov.soon),
+            "needs_now": dict(ov.needs_now),
+            "needs_soon": dict(ov.needs_soon),
+            "battery_types": ov.types,
+        }
 
 
 class DocumentStorageSensor(SensorEntity):

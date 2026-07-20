@@ -1371,6 +1371,9 @@
       },
       "parts_to_reorder": {
         "name": "Pièces à racheter"
+      },
+      "batteries_to_replace": {
+        "name": "Piles à remplacer"
       }
     },
     "calendar": {
