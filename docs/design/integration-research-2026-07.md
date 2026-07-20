@@ -972,3 +972,58 @@ Deep re-check of ollo69/ha-smartthinq-sensors against master:
   auto-resolve when the appliance clears them after a refill).
 - Washer DETERGENTLOW/SOFTENERLOW remain problem-class → adoption
   table (already listed).
+
+## Round 12 (2026-07-20): HACS-store popularity sweep
+
+Method: joined the HACS store data (2,686 repos, domain↔repo↔stars) with
+the REAL active-install counts from HA analytics, ranked every
+non-catalogued domain, curated the device-relevant top plus a keyword
+pass over all categories, then source-dived ~27 repos.
+
+### Catalog-ready (source-verified)
+
+1. **Dyson (dyson_local)** — libdyson-wg/ha-dyson, **4,685 installs**:
+   the maintained fork (more popular than the covered cmgrayb hass_dyson).
+   "Filter Life" (HOURS remaining), "Filter Life Percentage" /
+   "Carbon Filter Life" / "HEPA Filter Life" / "Combined Filter Life"
+   (all % remaining, /4300 h budget) → Replace Filter dual-direction;
+   the suffix overlap (_carbon_filter_life endswith _filter_life) is
+   resolved by the unit-aware matcher (the lg_thinq pattern).
+2. **WashData (ha_washdata)** — 3dg1luk43/ha_washdata, **5,821
+   installs**: smart-plug cycle detection for DUMB appliances; tk
+   `cycle_count` (unit "cycles", lifetime detected-cycle counter) →
+   Clean Tub usage_delta 30 — brings the tub-clean duty to washers with
+   no smarts at all.
+3. **iQua softener (iqua_softener)** — 198 installs: "Salt level"
+   (PERCENTAGE, suffix _salt_level) → Refill Softener Salt percent_left.
+   "Out of salt estimated day" is a DATE → date-direction parked.
+
+### Adoption-table additions (verified problem-class binaries)
+
+- **midea_dehumidifier_lan** (2,715 installs): tank full, tank removed,
+  **filter replacement** — all PROBLEM.
+- **nest_protect** (2,702): a dozen PROBLEM binaries (smoke/CO/heat
+  faults, battery); `replace_by_date_utc_secs` (device end-of-life) is a
+  timestamp → date-direction parked.
+- **deye_dehumidifier**: water_tank PROBLEM.
+- **pitboss** grills: error binaries default to PROBLEM.
+
+### Parked with reasons (next-round dive list)
+
+- **home_connect_alt** (3,820!) + **homeconnect_ws** (1,800): entities
+  generated dynamically from the appliance's API description —
+  homewhiz-class; needs a dedicated dive into their naming scheme.
+- **bhyve** (3,409) + **opensprinkler** (1,106): likely the Rain Bird
+  zone-switch runtime pattern; device/entity layout dive pending.
+- **volkswagencarnet** (2,376): legacy WeConnect; the modern VW-group
+  path is already covered via vw_eu_data_act — low priority.
+- **panasonic_cc** (3,089) / **midea_ac** (3,528): no filter data and
+  climate entities don't report hvac_action → the AC runtime pattern
+  doesn't apply as-is.
+- **sunseeker** (240): REAL blade_time_left/blade_health sensors —
+  naming scheme dive pending. **jura** (254): BLE counters dive.
+  **indego**, **zcsmower**, **mila**, **petsafe**, **truenas** service
+  binaries, **hikvision_next**, **connectlife** (dynamic properties).
+- Not maintenance: waste_collection_schedule (garbage calendars),
+  battery_notes (battery meta), pool chemistry testers
+  (poollab/poolmath/iopool — dosing is daily ops, not consumables).
