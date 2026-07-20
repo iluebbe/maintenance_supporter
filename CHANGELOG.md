@@ -2,7 +2,38 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.37.0] - 2026-07-20
+
+### 🚨 Adopted problem sensors: complete lifecycle
+
+- The adopt dialog can now assign a **responsible user** to every
+  adopted task in one go, and the success toast offers **Configure** —
+  a direct jump to the first created task for setting priority, notes
+  or documents while the sensor is still quiet.
+- Automatic completions (the sensor recovering on its own) are now
+  labeled **Automatic** in the history and no longer advance a rotation
+  pool — nobody was credited with the work, so nobody gets skipped.
+  Manual completions rotate as before.
+- Un-adopting a sensor now preserves its full one-time setup
+  (responsible user, priority, labels, part link — notes already
+  survived); re-adopting the same sensor restores everything.
+- New FEATURES.md section documenting the lifecycle end to end, and
+  INTEGRATIONS.md now carries a **source-verified table of adoptable
+  problem sensors** across 26 integrations — from Synology disk health
+  over hOn dishwasher salt/rinse-aid binaries to the vehicle
+  warning-lamp families (Volvo alone ships 28).
+
+### 🚗 Catalog round 9 — 100 integrations / 190 verified signatures
+
+- **Škoda (MySkoda)** and **Audi Connect**: the first cars whose service
+  duties come from the vehicle's own countdown sensors — inspection and
+  oil service in days *and* km (suggested at 14 days / 1,000 km lead)
+  instead of an editorial odometer interval; tire rotation stays
+  odometer-based.
+- **Blueair** purifiers/humidifiers (filter, wick and water-refresher
+  life %), **Grohe Blue** (filter cartridge % + CO₂ bottle %),
+  **Coway IoCare** (pre/charcoal + MAX2/HEPA filters, model name
+  variants covered) and **Winix** (filter life %).
 
 ### 📱 Mobile: the task list is back above the fold
 
