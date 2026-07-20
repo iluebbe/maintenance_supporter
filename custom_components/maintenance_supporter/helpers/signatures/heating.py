@@ -163,6 +163,16 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("remaining_co2",), "Replace CO2 Bottle", "percent_left"),
         ),
     ),
+    "iqua_softener": IntegrationSignature(
+        name="iQua softener",
+        verified="2026-07-20 @ mutilator/homeassistant-iqua-softener master sensor.py (HACS default)",
+        source=(
+            "HACS iqua_softener: 'Salt level' (PERCENTAGE, name-style -> "
+            "suffix _salt_level). 'Out of salt estimated day' is a DATE "
+            "sensor - parked for the date direction."
+        ),
+        tasks=(ConsumableSignature(("salt_level",), "Refill Softener Salt", "percent_left"),),
+    ),
     "fumis": IntegrationSignature(
         name="Fumis (pellet stoves)",
         verified="2026-07-20 @ home-assistant/core dev",

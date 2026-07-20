@@ -2082,3 +2082,46 @@ async def test_smartthinq_dishwasher_refill_latches(
     by_name = {t["task_name"]: t for t in setups[dev.id]["tasks"]}
     assert set(by_name) == {"Refill Rinse Aid", "Refill Salt"}
     assert all(t["direction"] == "event_present" for t in by_name.values())
+
+
+async def test_round12_hacs_sweep_wave(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Round 12 (HACS-store sweep): Dyson-local dual-unit filter (the Pure
+    Cool 'combined' sensor shares the plain _filter_life suffix with the
+    hours variant — unit-routed), WashData smart-plug cycles, iQua salt."""
+    await setup_integration(hass, global_entry)
+    dyson_old = await _seed_sensor(
+        hass, "dyson_local", "tp04", "Dyson TP04",
+        [("filter_life", None, "h"), ("carbon_filter_life", None, "%")],
+    )
+    # Pure Cool: ONE combined % sensor named plain "Filter Life".
+    dyson_new = await _seed_sensor(
+        hass, "dyson_local", "tp07", "Dyson TP07",
+        [("filter_life", None, "%")],
+    )
+    washer = await _seed_sensor(
+        hass, "ha_washdata", "wd1", "Old Washer (plug)",
+        [("cycle_count", "cycle_count", "cycles")],
+    )
+    softener = await _seed_sensor(
+        hass, "iqua_softener", "iq1", "iQua Softener",
+        [("salt_level", None, "%")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    old_dirs = {t["direction"]: t for t in setups[dyson_old]["tasks"]}
+    assert set(old_dirs) == {"duration_left", "percent_left"}
+    assert old_dirs["duration_left"]["threshold"] == 72.0
+    assert old_dirs["percent_left"]["threshold"] == 10.0
+
+    (nd,) = setups[dyson_new]["tasks"]
+    assert nd["direction"] == "percent_left"  # % routed despite _filter_life suffix
+
+    (wc,) = setups[washer]["tasks"]
+    assert wc["task_name"] == "Clean Tub"
+    assert wc["direction"] == "usage_delta" and wc["threshold"] == 30.0
+
+    (sl,) = setups[softener]["tasks"]
+    assert sl["task_name"] == "Refill Softener Salt" and sl["threshold"] == 10.0

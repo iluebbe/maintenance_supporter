@@ -1041,5 +1041,36 @@
    "key=\"salt\"",
    "\"mg/L\""
   ]
+ },
+ "dyson_local": {
+  "urls": [
+   "https://raw.githubusercontent.com/libdyson-wg/ha-dyson/main/custom_components/dyson_local/sensor.py"
+  ],
+  "strings": [
+   "Filter Life Percentage",
+   "Carbon Filter Life",
+   "HEPA Filter Life",
+   "_SENSOR_TYPE = \"combined_filter_life\"",
+   "_SENSOR_TYPE = \"filter_life\""
+  ]
+ },
+ "ha_washdata": {
+  "urls": [
+   "https://raw.githubusercontent.com/3dg1luk43/ha_washdata/main/custom_components/ha_washdata/sensor.py"
+  ],
+  "strings": [
+   "key=\"cycle_count\"",
+   "translation_key=\"cycle_count\"",
+   "\"cycles\""
+  ]
+ },
+ "iqua_softener": {
+  "urls": [
+   "https://raw.githubusercontent.com/mutilator/homeassistant-iqua-softener/master/custom_components/iqua_softener/sensor.py"
+  ],
+  "strings": [
+   "key=\"SALT_LEVEL\"",
+   "Salt level"
+  ]
  }
 }

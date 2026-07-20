@@ -208,6 +208,36 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(ConsumableSignature(("filter_life_remaining",), "Replace Filter", "duration_left", below_hours=72),),
     ),
+    "dyson_local": IntegrationSignature(
+        name="Dyson (local)",
+        verified="2026-07-20 @ libdyson-wg/ha-dyson main sensor.py (HACS default)",
+        source=(
+            "HACS dyson_local (libdyson-wg — the maintained fork): "
+            "name-derived 'Filter Life' (HOURS remaining) and 'Filter Life "
+            "Percentage' / 'Carbon Filter Life' / 'HEPA Filter Life' / "
+            "'Combined Filter Life' (PERCENTAGE, value/4300 h budget). The "
+            "percent suffixes end in _filter_life too — the unit-aware "
+            "matcher routes each entity to the right direction (the "
+            "lg_thinq dual-unit pattern)."
+        ),
+        tasks=(
+            # The Pure Cool "combined" sensor is NAMED plain 'Filter Life'
+            # (suffix _filter_life) but reports PERCENT, while older models'
+            # 'Filter Life' reports HOURS — the same suffix appears in BOTH
+            # key tuples and the unit check routes each entity.
+            ConsumableSignature(
+                (
+                    "filter_life_percentage",
+                    "carbon_filter_life",
+                    "hepa_filter_life",
+                    "filter_life",
+                ),
+                "Replace Filter",
+                "percent_left",
+            ),
+            ConsumableSignature(("filter_life",), "Replace Filter", "duration_left", below_hours=72),
+        ),
+    ),
     "venstar": IntegrationSignature(
         name="Venstar thermostat",
         verified="2026-07-20 @ home-assistant/core dev",
