@@ -164,11 +164,20 @@ the catalog is **verified against the integration's source code** (a tripwire
 enforces the source reference and full localization), and discovery never
 proposes entities already wired to a task.
 
-### Battery Fleet (Battery Notes)
-If you run the [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes)
-integration, 30–70+ battery devices would mean 30–70 maintenance tasks — noise.
-Instead, **one click** sets up a single *Battery Fleet*: **one object, one task**
-that aggregates every battery, and one managed spare-part per battery **type**.
+### Battery Fleet (Battery Notes or native)
+If you have many battery devices, 30–70+ of them would mean 30–70 maintenance
+tasks — noise. Instead, **one click** sets up a single *Battery Fleet*: **one
+object, one task** that aggregates every battery, and one managed spare-part per
+battery **type**.
+
+It works best with the [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes)
+integration, which supplies each battery's **type, quantity, low-threshold and
+last-replaced date** — everything the shopping list and forecast need. Battery
+Notes is **not required**, though: any device that exposes a native
+`device_class: battery` sensor or low-battery binary is picked up too, in a
+**degraded mode** (type shown as *Unknown*, quantity 1, no last-replaced
+forecast, low inferred at ≤ 20 %). A device covered by a Battery Notes note is
+never double-counted with its own native sensor.
 
 ![Battery Fleet](images/battery-fleet.png)
 
@@ -191,8 +200,18 @@ triggered by a global `sensor.maintenance_supporter_batteries_to_replace`
 (count of low batteries) via an ordinary threshold trigger — no special-casing,
 and it auto-completes when the count returns to zero.
 
-The **Battery fleet** setup button appears in the task-list actions only when
-Battery Notes is present and the fleet isn't set up yet.
+**Removed or offline batteries** are handled gracefully. A battery whose device
+goes *offline* (a dead battery often takes its whole device down) keeps its
+last-known low flag, so it stays visible in the list — marked *offline* — rather
+than silently vanishing when you most need to see it. A battery that is merely
+offline **without** being low is treated as connectivity noise and hidden. And a
+device that is fully **removed** from Home Assistant (unpaired, deleted) simply
+drops out of the aggregate on the next read — the low count falls, and the task
+auto-completes if nothing else is low. Marking is robust to a battery that
+disappeared between opening the view and tapping *replaced*.
+
+The **Battery fleet** setup button appears in the task-list actions only when at
+least one battery device is present and the fleet isn't set up yet.
 
 ### Saved filter views
 Name a combination of the panel task-list filters — status, responsible user,

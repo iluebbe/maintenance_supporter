@@ -4,7 +4,7 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
-### 🔋 Battery Fleet (Battery Notes)
+### 🔋 Battery Fleet (Battery Notes or native)
 
 - With the [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes)
   integration, one click sets up a single **Battery Fleet** — **one object,
@@ -16,6 +16,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   and consumes the spares from stock. The single task is threshold-triggered by
   a new global battery-low count sensor and auto-completes when the count
   returns to zero. Reuses the existing parts/stock and reorder machinery.
+- **Native fallback:** Battery Notes is no longer required — any device with a
+  native `device_class: battery` sensor or low binary is aggregated too, in a
+  degraded mode (type *Unknown*, quantity 1, no forecast, low at ≤ 20 %). A
+  device already covered by a Battery Notes note is never double-counted.
+- **Removed / offline batteries:** an offline device that is still flagged low
+  stays visible (marked *offline*) rather than vanishing when it matters most;
+  an offline-but-not-low one is hidden as connectivity noise; a fully removed
+  device drops out of the aggregate and lets the task auto-complete. Marking
+  tolerates a battery that disappeared between opening the view and acting.
 
 ### 🧰 Catalog
 

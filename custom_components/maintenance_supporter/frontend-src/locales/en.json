@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "Predicted from the last replacement date — order ahead.",
   "battery_fleet_mark_all": "Mark all replaced",
   "battery_fleet_mark_one": "Mark this battery replaced",
+  "battery_fleet_offline": "offline",
   "battery_fleet_total": "{n} batteries tracked",
   "battery_fleet_setup_button": "Battery fleet",
   "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries."

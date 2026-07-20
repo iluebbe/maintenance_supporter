@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "Arvioitu viime vaihdosta — tilaa etukäteen.",
   "battery_fleet_mark_all": "Merkitse kaikki vaihdetuiksi",
   "battery_fleet_mark_one": "Merkitse tämä paristo vaihdetuksi",
+  "battery_fleet_offline": "offline",
   "battery_fleet_total": "{n} paristoa seurannassa",
   "battery_fleet_setup_button": "Paristokanta",
   "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia."

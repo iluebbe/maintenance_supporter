@@ -104,7 +104,7 @@ async def test_setup_is_idempotent_and_reconciles_new_types(
     assert "batt_9v" in fleets[0].data[CONF_PARTS]
 
 
-async def test_setup_refuses_without_battery_notes(
+async def test_setup_refuses_without_any_batteries(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
     await setup_integration(hass, global_entry)
@@ -114,6 +114,37 @@ async def test_setup_refuses_without_battery_notes(
     await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
     assert conn.send_error.called
     assert conn.send_error.call_args[0][1] == "not_available"
+
+
+async def test_setup_works_with_native_batteries_only(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    # No Battery Notes at all — just native device_class:battery sensors. The
+    # fleet still sets up in degraded mode (one "UNKNOWN" type-part).
+    await setup_integration(hass, global_entry)
+    hass.states.async_set("sensor.phone_battery", "10", {"device_class": "battery"})
+    hass.states.async_set("sensor.remote_battery", "90", {"device_class": "battery"})
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_overview,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    assert not conn.send_error.called, conn.send_error.call_args
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] is True and result["types"] == ["UNKNOWN"]
+    entry = _fleet_entry(hass)
+    assert entry is not None and "batt_unknown" in entry.data[CONF_PARTS]
+
+    # Overview: the 10% native battery is low, the 90% one is not.
+    conn2 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn2, {"id": 2, "type": "x"})
+    res = conn2.send_result.call_args[0][1]
+    assert res["available"] is True and res["has_battery_notes"] is False
+    assert res["total"] == 2 and len(res["low"]) == 1
+    assert res["low"][0]["entity_id"] == "sensor.phone_battery"
 
 
 async def test_mark_replaced_presses_buttons_and_consumes_stock(

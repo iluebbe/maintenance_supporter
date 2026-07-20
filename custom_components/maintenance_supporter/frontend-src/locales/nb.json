@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "Estimert fra siste bytte — bestill i forkant.",
   "battery_fleet_mark_all": "Merk alle byttet",
   "battery_fleet_mark_one": "Merk dette batteriet byttet",
+  "battery_fleet_offline": "frakoblet",
   "battery_fleet_total": "{n} batterier spores",
   "battery_fleet_setup_button": "Batteriflåte",
   "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene."

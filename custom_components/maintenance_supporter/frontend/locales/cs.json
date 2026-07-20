@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "Odhad podle poslední výměny — objednejte předem.",
   "battery_fleet_mark_all": "Označit vše jako vyměněné",
   "battery_fleet_mark_one": "Označit tuto baterii jako vyměněnou",
+  "battery_fleet_offline": "offline",
   "battery_fleet_total": "Sledováno baterií: {n}",
   "battery_fleet_setup_button": "Flotila baterií",
   "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny."

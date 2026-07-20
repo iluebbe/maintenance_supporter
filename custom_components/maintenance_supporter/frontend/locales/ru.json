@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "Оценка по дате последней замены — закажите заранее.",
   "battery_fleet_mark_all": "Отметить все заменёнными",
   "battery_fleet_mark_one": "Отметить эту батарею заменённой",
+  "battery_fleet_offline": "не в сети",
   "battery_fleet_total": "Отслеживается батарей: {n}",
   "battery_fleet_setup_button": "Парк батарей",
   "battery_fleet_setup_done": "Парк батарей настроен — одна задача следит за всеми."

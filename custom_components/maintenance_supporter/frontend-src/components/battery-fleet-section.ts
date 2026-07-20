@@ -17,6 +17,7 @@ interface BatteryRow {
   quantity: number;
   level: number | null;
   days_until: number | null;
+  available?: boolean;
 }
 interface Overview {
   available: boolean;
@@ -125,6 +126,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   (b) => html`
                     <div class="bf-row">
                       <span class="bf-dev">${b.device_name}</span>
+                      ${b.available === false
+                        ? html`<span class="bf-offline">${t("battery_fleet_offline", L)}</span>`
+                        : nothing}
                       <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
                       ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                       <button
