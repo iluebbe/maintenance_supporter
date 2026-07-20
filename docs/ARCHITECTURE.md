@@ -623,6 +623,7 @@ docker exec ha-maint sh -c 'cd /config && python -m pytest tests/ \
 - **New WS command**: Add handler in the appropriate `websocket/*.py` module, import and register in `websocket/__init__.py`
 - **New template**: Add `ObjectTemplate` to `templates.py`
 - **New language**: Add `translations/{lang}.json` for backend + `frontend-src/locales/{lang}.json` for the panel/card frontend (currently 18: cs, da, de, en, es, fi, fr, hi, it, ja, nb, nl, pl, pt, ru, sv, uk, zh-Hans), add the 2-letter code to `SUPPORTED_LANGS`/`langToLocale` in `styles.ts` and the guard sets in `tests/test_i18n.py`; backend uses `zh-Hans`, the frontend table is keyed `zh`
+- **New frontend UI string**: use `py -X utf8 scripts/add_locale_key.py <key> <values.json>` — it inserts the key into **all 18** locale files at once and refuses partial or untranslated values, then rebuild (`node esbuild.mjs`). Never add a key to `en.json` by hand "to translate later": CI enforces key parity (`test_frontend_locale_key_parity`), that every statically-used `t("key")` exists (`test_frontend_t_usage_coverage`), **and** that values are actually translated — English-identical values in Latin-script languages and Latin-only values in ru/uk/zh/ja/hi fail `test_frontend_locale_value_completeness` unless the (key, language) pair is a reviewed cognate in its `_VALUE_OK` allowlist
 
 ---
 

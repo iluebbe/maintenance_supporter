@@ -562,7 +562,7 @@
   "settings_operator_write": "Ausgewählten Nutzern Erstellen, Bearbeiten & Löschen erlauben",
   "settings_operator_write_desc": "Aus: nur Admins können Inhalte ändern. Ein: die ausgewählten Nutzer unten erhalten ebenfalls Vollzugriff.",
   "no_non_admin_users": "Keine Non-Admin-User gefunden. Lege welche unter Einstellungen → Personen an.",
-  "owner_label": "Owner",
+  "owner_label": "Besitzer",
   "feat_completion_actions": "Completion-Actions",
   "feat_completion_actions_desc": "Pro Aufgabe HA-Action beim Abschluss konfigurieren + Quick-Complete-QR mit voreingestellten Werten.",
   "on_complete_action_title": "Beim Abschluss: HA-Action auslösen (optional)",
