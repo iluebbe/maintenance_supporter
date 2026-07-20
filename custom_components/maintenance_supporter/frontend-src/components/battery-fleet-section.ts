@@ -22,6 +22,7 @@ interface BatteryRow {
 interface Overview {
   available: boolean;
   configured: boolean;
+  task_ok?: boolean;
   total: number;
   low: BatteryRow[];
   soon: BatteryRow[];
@@ -74,6 +75,24 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     await this._mark(undefined);
   };
 
+  // Re-runs the idempotent setup, which restores the fleet task's trigger
+  // when a user edit wiped it (issue #106) or recreates a deleted task.
+  private _repair = async (): Promise<void> => {
+    if (this._marking) return;
+    this._marking = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/battery_fleet/setup",
+      });
+      await this._load();
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    } finally {
+      this._marking = false;
+    }
+  };
+
   private async _mark(entityIds: string[] | undefined): Promise<void> {
     if (this._marking) return;
     this._marking = true;
@@ -113,6 +132,17 @@ export class MaintenanceBatteryFleetSection extends LitElement {
           <span class="bf-count ${lowCount ? "bad" : "ok"}">${lowCount}</span>
         </div>
         ${this._error ? html`<div class="bf-error">${this._error}</div>` : nothing}
+
+        ${ov.configured && ov.task_ok === false
+          ? html`
+              <div class="bf-repair">
+                <span>${t("battery_fleet_trigger_lost", L)}</span>
+                <ha-button .disabled=${this._marking} @click=${this._repair}>
+                  ${t("battery_fleet_repair", L)}
+                </ha-button>
+              </div>
+            `
+          : nothing}
 
         ${lowCount === 0
           ? html`<div class="bf-empty">${t("battery_fleet_none_low", L)}</div>`
@@ -199,6 +229,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
     .bf-error {
       color: var(--error-color, #f44336);
+      font-size: 13px;
+    }
+    .bf-repair {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--warning-color, #ff9800) 12%, transparent);
       font-size: 13px;
     }
     .bf-empty {

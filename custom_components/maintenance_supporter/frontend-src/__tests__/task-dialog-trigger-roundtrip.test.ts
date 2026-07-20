@@ -63,6 +63,27 @@ describe("task-dialog trigger_config roundtrip closure (#103 class)", () => {
     });
   });
 
+  it("threshold stored with ONLY plural entity_ids survives an edit (#106)", async () => {
+    // The Battery Fleet task's trigger has no singular entity_id; the save
+    // path gates on _triggerEntityId, so before the hydration fallback an
+    // unrelated edit sent trigger_config: null and wiped the trigger.
+    const tc = await saveRoundtrip({
+      type: "threshold",
+      entity_ids: ["sensor.a"],
+      entity_logic: "any",
+      trigger_above: 0,
+      auto_complete_on_recovery: true,
+    });
+    expect(tc, "trigger_config must not be nulled").to.exist;
+    expect(tc).to.deep.include({
+      type: "threshold",
+      entity_id: "sensor.a",
+      trigger_above: 0,
+      auto_complete_on_recovery: true,
+    });
+    expect(tc.entity_ids).to.deep.equal(["sensor.a"]);
+  });
+
   it("counter: delta mode with start value", async () => {
     const tc = await saveRoundtrip({
       type: "counter",

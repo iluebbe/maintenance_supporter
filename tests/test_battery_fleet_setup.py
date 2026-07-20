@@ -147,6 +147,125 @@ async def test_setup_works_with_native_batteries_only(
     assert res["low"][0]["entity_id"] == "sensor.phone_battery"
 
 
+async def test_setup_trigger_carries_both_entity_id_shapes(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    # Issue #106: the task-dialog save path gates on the SINGULAR entity_id;
+    # a trigger stored with only entity_ids got wiped on an unrelated edit.
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    entry = _fleet_entry(hass)
+    (task,) = entry.data[CONF_TASKS].values()
+    tc = task["trigger_config"]
+    assert tc["entity_id"] == "sensor.maintenance_supporter_batteries_to_replace"
+    assert tc["entity_ids"] == ["sensor.maintenance_supporter_batteries_to_replace"]
+
+
+async def test_reconcile_repairs_wiped_trigger_keeping_user_edits(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    # Full #106 reproduction: the user renames/re-types the fleet task and the
+    # (buggy) dialog sends trigger_config=null — then re-running setup repairs
+    # the trigger without touching the user's translations.
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import fleet_task_trigger_ok
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_overview,
+        ws_battery_fleet_setup,
+    )
+    from custom_components.maintenance_supporter.websocket.tasks_crud import ws_update_task
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    entry = _fleet_entry(hass)
+    (task_id,) = entry.data[CONF_TASKS]
+
+    # The user's edit as the old dialog sent it: rename + type + trigger nulled.
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "x",
+            "entry_id": entry.entry_id,
+            "task_id": task_id,
+            "name": "Remplacer batteries faibles",
+            "task_type": "replacement",
+            "warning_days": 1,
+            "trigger_config": None,
+        },
+    )
+    assert not conn2.send_error.called, conn2.send_error.call_args
+    entry = _fleet_entry(hass)
+    broken = entry.data[CONF_TASKS][task_id]
+    assert broken.get("trigger_config") is None
+    assert broken["battery_fleet_task"] is True  # the flag survives the edit
+    assert fleet_task_trigger_ok(entry) is False
+
+    # Overview surfaces the broken state (drives the panel's Repair button).
+    conn3 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn3, {"id": 3, "type": "x"})
+    assert conn3.send_result.call_args[0][1]["task_ok"] is False
+
+    # Re-running setup (the Repair button) restores the canonical trigger.
+    conn4 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn4, {"id": 4, "type": "x"})
+    res = conn4.send_result.call_args[0][1]
+    assert res["created"] is False and res["task_repaired"] is True
+
+    entry = _fleet_entry(hass)
+    fixed = entry.data[CONF_TASKS][task_id]
+    tc = fixed["trigger_config"]
+    assert tc["type"] == "threshold" and tc["trigger_above"] == 0
+    assert tc["entity_id"] == "sensor.maintenance_supporter_batteries_to_replace"
+    # The user's translations/edits are untouched.
+    assert fixed["name"] == "Remplacer batteries faibles"
+    assert fixed["type"] == "replacement"
+    assert fixed["warning_days"] == 1
+    assert fleet_task_trigger_ok(entry) is True
+
+
+async def test_reconcile_recreates_deleted_fleet_task(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+    from custom_components.maintenance_supporter.websocket.tasks_crud import ws_delete_task
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    entry = _fleet_entry(hass)
+    (task_id,) = entry.data[CONF_TASKS]
+
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_delete_task, hass, conn2, {"id": 2, "type": "x", "entry_id": entry.entry_id, "task_id": task_id}
+    )
+    entry = _fleet_entry(hass)
+    assert entry.data[CONF_TASKS] == {}
+
+    conn3 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn3, {"id": 3, "type": "x"})
+    assert conn3.send_result.call_args[0][1]["task_repaired"] is True
+    entry = _fleet_entry(hass)
+    tasks = entry.data[CONF_TASKS]
+    assert len(tasks) == 1
+    (task,) = tasks.values()
+    assert task["battery_fleet_task"] is True
+    assert task["trigger_config"]["entity_id"] == "sensor.maintenance_supporter_batteries_to_replace"
+
+
 async def test_mark_replaced_presses_buttons_and_consumes_stock(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

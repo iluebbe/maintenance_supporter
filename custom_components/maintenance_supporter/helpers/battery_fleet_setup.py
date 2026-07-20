@@ -18,7 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
-from ..const import CONF_OBJECT, CONF_PARTS, DOMAIN
+from ..const import CONF_OBJECT, CONF_PARTS, CONF_TASKS, DOMAIN
 from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, read_batteries
 
 # The global aggregate sensor the fleet task triggers on (fixed entity_id).
@@ -53,11 +53,13 @@ async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
     existing = find_fleet_entry(hass)
     if existing is not None:
         added = _reconcile_type_parts(hass, existing, types)
+        repaired = await _reconcile_fleet_task(hass, existing)
         return {
             "entry_id": existing.entry_id,
             "created": False,
             "types": list(types),
             "parts_added": added,
+            "task_repaired": repaired,
         }
 
     entry_id = await async_create_object(hass, name="Battery Fleet")
@@ -95,13 +97,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
         "enabled": True,
         TASK_FLAG: True,
         "schedule": {"kind": "manual"},
-        "trigger_config": {
-            "type": "threshold",
-            "entity_ids": [LOW_COUNT_ENTITY_ID],
-            "trigger_above": 0,
-            "entity_logic": "any",
-            "auto_complete_on_recovery": True,
-        },
+        "trigger_config": _fleet_trigger_config(),
         "created_at": dt_util.now().date().isoformat(),
         "notes": ("Aggregate battery check. The detail view lists which devices are low and which battery types to buy."),
     }
@@ -113,6 +109,24 @@ async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
         "types": list(types),
         "parts_added": len(parts),
         "task_id": task["id"],
+    }
+
+
+def _fleet_trigger_config() -> dict[str, Any]:
+    """The canonical fleet-task trigger: threshold >0 on the low-count sensor.
+
+    Carries BOTH the singular ``entity_id`` and plural ``entity_ids`` — the
+    task-dialog's save path gates on the singular field, and a (possibly
+    cached) frontend that hydrates only ``entity_id`` would otherwise wipe
+    the trigger on an unrelated edit (issue #106).
+    """
+    return {
+        "type": "threshold",
+        "entity_id": LOW_COUNT_ENTITY_ID,
+        "entity_ids": [LOW_COUNT_ENTITY_ID],
+        "trigger_above": 0,
+        "entity_logic": "any",
+        "auto_complete_on_recovery": True,
     }
 
 
@@ -184,6 +198,71 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
                 consumed[pid] = qty
 
     return {"marked": len(targets), "pressed": pressed, "consumed": consumed}
+
+
+def find_fleet_task(entry: ConfigEntry) -> tuple[str, dict[str, Any]] | None:
+    """The flagged fleet task (id, data) on the fleet entry, or None."""
+    for task_id, task_data in (entry.data.get(CONF_TASKS) or {}).items():
+        if task_data.get(TASK_FLAG):
+            return task_id, task_data
+    return None
+
+
+def fleet_task_trigger_ok(entry: ConfigEntry) -> bool:
+    """Whether the fleet task exists and still carries a usable trigger.
+
+    A user edit can wipe the trigger (issue #106: the dialog nulled a trigger
+    stored with only the plural ``entity_ids``); without it the task never
+    fires or auto-completes. This is the health signal behind the repair path.
+    """
+    found = find_fleet_task(entry)
+    if found is None:
+        return False
+    tc = found[1].get("trigger_config") or {}
+    eids = tc.get("entity_ids") or ([tc["entity_id"]] if tc.get("entity_id") else [])
+    return tc.get("type") == "threshold" and LOW_COUNT_ENTITY_ID in eids
+
+
+async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Repair the fleet task if broken. Returns True when something was fixed.
+
+    * Trigger lost (issue #106) → restore the canonical threshold trigger,
+      keeping the user's name/type/translations untouched.
+    * Task deleted entirely → recreate it fresh.
+    """
+    from ..websocket.tasks_persist import async_persist_task
+
+    if fleet_task_trigger_ok(entry):
+        return False
+
+    found = find_fleet_task(entry)
+    if found is not None:
+        task_id, task_data = found
+        new_task = dict(task_data)
+        new_task["trigger_config"] = _fleet_trigger_config()
+        new_data = dict(entry.data)
+        new_tasks = dict(new_data.get(CONF_TASKS, {}))
+        new_tasks[task_id] = new_task
+        new_data[CONF_TASKS] = new_tasks
+        hass.config_entries.async_update_entry(entry, data=new_data)
+        await hass.config_entries.async_reload(entry.entry_id)
+        return True
+
+    obj = entry.data.get(CONF_OBJECT, {})
+    task = {
+        "id": uuid4().hex,
+        "object_id": obj.get("id", ""),
+        "name": "Replace low batteries",
+        "type": "inspection",
+        "enabled": True,
+        TASK_FLAG: True,
+        "schedule": {"kind": "manual"},
+        "trigger_config": _fleet_trigger_config(),
+        "created_at": dt_util.now().date().isoformat(),
+        "notes": ("Aggregate battery check. The detail view lists which devices are low and which battery types to buy."),
+    }
+    await async_persist_task(hass, entry, task)
+    return True
 
 
 def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int]) -> int:
