@@ -143,6 +143,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
 | Husqvarna Automower BLE | `husqvarna_automower_ble` | Replace Blades | every 100 h counted by the engine | lawn_mower entity; active: mowing |
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
+| Rain Bird irrigation | `rainbird` | Clean Sprinkler Heads | every 30 h counted by the engine | switch entity; active: on |
 
 ## Cars and EVs — odometer-driven service duties
 
@@ -351,6 +352,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**101 integrations / 196 verified signatures.**
+**102 integrations / 197 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

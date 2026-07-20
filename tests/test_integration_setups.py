@@ -1937,3 +1937,29 @@ async def test_round10_samsung_filters_and_traeger(
     assert gr["Clean Grease Trap"]["direction"] == "usage_delta"
     assert gr["Clean Grease Trap"]["threshold"] == 5.0
     assert gr["Clean Appliance"]["threshold"] == 20.0
+
+
+async def test_rainbird_zone_switch_runtime(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Rain Bird: each irrigation zone is its own device with a single zone
+    switch — the engine accumulates watering time (30 h → clean heads)."""
+    await setup_integration(hass, global_entry)
+    source = MockConfigEntry(domain="rainbird", title="Rain Bird")
+    source.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(
+        config_entry_id=source.entry_id,
+        identifiers={("rainbird", "ctrl-1")},
+        name="Rain Bird Sprinkler 1",
+    )
+    sw = er.async_get(hass).async_get_or_create(
+        "switch", "rainbird", "ctrl-1", config_entry=source, device_id=dev.id,
+        suggested_object_id="rain_bird_sprinkler_1",
+    )
+    hass.states.async_set(sw.entity_id, "off")
+
+    (setup,) = discover_integration_setups(hass)
+    (task,) = setup["tasks"]
+    assert task["task_name"] == "Clean Sprinkler Heads"
+    assert task["direction"] == "runtime_hours" and task["threshold"] == 30.0
+    assert task["entity_ids"] == [sw.entity_id]

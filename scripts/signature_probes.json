@@ -903,5 +903,14 @@
    "Cook Cycle",
    "cook_cycles"
   ]
+ },
+ "rainbird": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/rainbird/switch.py"
+  ],
+  "strings": [
+   "Sprinkler",
+   "for zone in coordinator.data.zones"
+  ]
  }
 }
