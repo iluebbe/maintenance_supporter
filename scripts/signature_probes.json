@@ -559,10 +559,13 @@
  },
  "smartthings": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/vacuum.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/vacuum.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/sensor.py"
   ],
   "strings": [
-   "Vacuum"
+   "Vacuum",
+   "water_filter_usage",
+   "hood_filter_usage"
   ]
  },
  "octoprint": {
@@ -889,6 +892,16 @@
   "strings": [
    "SENSOR_FILTER_LIFE",
    "filter_alarm_duration"
+  ]
+ },
+ "traeger": {
+  "urls": [
+   "https://raw.githubusercontent.com/njobrien1006/hass_traeger/master/custom_components/traeger/sensor.py",
+   "https://raw.githubusercontent.com/johnvoipguy/Traeger-WiFire/main/custom_components/traeger/sensor.py"
+  ],
+  "strings": [
+   "Cook Cycle",
+   "cook_cycles"
   ]
  }
 }

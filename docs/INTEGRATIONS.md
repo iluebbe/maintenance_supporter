@@ -118,8 +118,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | SwitchBot vacuum | `switchbot_cloud` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
-| SmartThings vacuum | `smartthings` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
+| SmartThings | `smartthings` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
+|  |  | Replace Water Filter | above 90 |  |
+|  |  | Clean Grease Filter | above 90 |  |
 | Shark IQ | `sharkiq` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | TP-Link Tapo vacuum | `tplink` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
@@ -262,6 +264,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Filter Cleaning | below 10 % remaining |  |
 |  |  | Clean Tub | every 30 units (counter delta) |  |
 | Whirlpool | `whirlpool` | Clean Tub | every 60 h counted by the engine | active: running_maincycle |
+| Traeger grill | `traeger` | Clean Grease Trap | every 5 units (counter delta) |  |
+|  |  | Clean Appliance | every 20 units (counter delta) |  |
 
 ## 2D and 3D printers incl. Klipper via Moonraker
 
@@ -347,6 +351,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**100 integrations / 192 verified signatures.**
+**101 integrations / 196 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
