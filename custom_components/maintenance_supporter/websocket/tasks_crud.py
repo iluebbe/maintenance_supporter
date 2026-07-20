@@ -399,6 +399,15 @@ async def ws_update_task(
             connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
             return
 
+    # Battery Fleet guard (issue #106): the single fleet task without its
+    # threshold trigger is definitionally broken — it never fires and never
+    # auto-completes. No fleet UI offers removing the trigger, so an incoming
+    # null can only be a client (possibly stale/cached bundle) failing to
+    # round-trip a trigger it did not hydrate. Ignore the null; every other
+    # field in the message still applies.
+    if task.get("battery_fleet_task") and "trigger_config" in msg and msg["trigger_config"] is None:
+        del msg["trigger_config"]
+
     # Validate trigger_config if provided
     tc_warnings: list[str] = []
     if "trigger_config" in msg and msg["trigger_config"] is not None:
