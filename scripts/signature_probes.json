@@ -1072,5 +1072,15 @@
    "key=\"SALT_LEVEL\"",
    "Salt level"
   ]
+ },
+ "bosch_ebike": {
+  "urls": [
+   "https://raw.githubusercontent.com/Phil-Barker/hass-bosch-ebike/main/custom_components/bosch_ebike/sensor.py",
+   "https://raw.githubusercontent.com/marq24/ha-bosch-ebike-flow/main/custom_components/bosch_ebike/bosch_data_handler.py"
+  ],
+  "strings": [
+   "key=\"total_distance\"",
+   "KEY_TOTAL_DISTANCE: Final = \"total_distance\""
+  ]
  }
 }

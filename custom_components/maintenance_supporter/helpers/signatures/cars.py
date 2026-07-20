@@ -224,4 +224,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
         ),
     ),
+    "bosch_ebike": IntegrationSignature(
+        name="Bosch eBike",
+        verified="2026-07-20 @ Phil-Barker/hass-bosch-ebike + marq24/ha-bosch-ebike-flow main (HACS default)",
+        source=(
+            "HACS bosch_ebike (both forks share the domain and the "
+            "'total_distance' key/tk, KILOMETERS, TOTAL_INCREASING) — the "
+            "eBike's odometer. Chain lubrication every ~250 km (bicycle "
+            "maintenance standard) and a drivetrain service every ~2,000 km "
+            "(Bosch eBike's service-interval guidance). Odometer delta "
+            "re-baselines on completion, like the car duties."
+        ),
+        tasks=(
+            ConsumableSignature(("total_distance",), "Lubricate Chain", "usage_delta", delta_units=250),
+            ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),
+        ),
+    ),
 }

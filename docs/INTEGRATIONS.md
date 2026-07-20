@@ -213,6 +213,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
 | StarLine | `starline` | Annual Service | every 15000 units (counter delta) |  |
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Bosch eBike | `bosch_ebike` | Lubricate Chain | every 250 units (counter delta) |  |
+|  |  | Bike Service | every 2000 units (counter delta) |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
 
@@ -398,6 +400,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**120 integrations / 223 verified signatures.**
+**121 integrations / 225 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
