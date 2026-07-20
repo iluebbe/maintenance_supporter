@@ -240,4 +240,16 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),
         ),
     ),
+    "stromer": IntegrationSignature(
+        name="Stromer eBike",
+        verified="2026-07-20 @ CoMPaTech/stromer main sensor.py (HACS default)",
+        source=(
+            "HACS stromer: tk 'total_distance' (KILOMETERS, TOTAL_INCREASING) "
+            "— the eBike's odometer. Same drivetrain duties as Bosch eBike."
+        ),
+        tasks=(
+            ConsumableSignature(("total_distance",), "Lubricate Chain", "usage_delta", delta_units=250),
+            ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),
+        ),
+    ),
 }

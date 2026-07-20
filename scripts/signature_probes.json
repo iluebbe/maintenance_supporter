@@ -1082,5 +1082,24 @@
    "key=\"total_distance\"",
    "KEY_TOTAL_DISTANCE: Final = \"total_distance\""
   ]
+ },
+ "stromer": {
+  "urls": [
+   "https://raw.githubusercontent.com/CoMPaTech/stromer/main/custom_components/stromer/sensor.py"
+  ],
+  "strings": [
+   "key=\"total_distance\"",
+   "UnitOfLength.KILOMETERS"
+  ]
+ },
+ "sunseeker": {
+  "urls": [
+   "https://raw.githubusercontent.com/Sdahl1234/Sunseeker-lawn-mower/main/custom_components/sunseeker/sensor.py"
+  ],
+  "strings": [
+   "blade_time_left",
+   "blade_health",
+   "sunseeker_blade_time_left"
+  ]
  }
 }
