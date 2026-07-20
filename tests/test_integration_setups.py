@@ -2143,3 +2143,32 @@ async def test_bosch_ebike_odometer_duties(
     assert by_name["Lubricate Chain"]["direction"] == "usage_delta"
     assert by_name["Lubricate Chain"]["threshold"] == 250.0
     assert by_name["Bike Service"]["threshold"] == 2000.0
+
+
+async def test_round13_sunseeker_blades_and_stromer_ebike(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Round 13 (HACS re-sweep): Sunseeker dual-unit blade wear (hours +
+    percent → one Replace Blades duty) and Stromer eBike odometer."""
+    await setup_integration(hass, global_entry)
+    mower = await _seed_sensor(
+        hass, "sunseeker", "x7", "Sunseeker X7",
+        [("blade_time_left", "sunseeker_blade_time_left", "h"),
+         ("blade_health", "sunseeker_blade_health", "%")],
+    )
+    bike = await _seed_sensor(
+        hass, "stromer", "st5", "Stromer ST5",
+        [("total_distance", "total_distance", "km")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    blade = {t["direction"]: t for t in setups[mower]["tasks"]}
+    assert set(blade) == {"duration_left", "percent_left"}
+    assert all(t["task_name"] == "Replace Blades" for t in blade.values())
+    assert blade["duration_left"]["threshold"] == 24.0
+    assert blade["percent_left"]["threshold"] == 10.0
+
+    by_name = {t["task_name"]: t for t in setups[bike]["tasks"]}
+    assert set(by_name) == {"Lubricate Chain", "Bike Service"}
+    assert by_name["Bike Service"]["threshold"] == 2000.0

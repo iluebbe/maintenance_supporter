@@ -1041,3 +1041,39 @@ HACS tschamm/boschshc-hass (~1,925 installs). Full sensor/binary sweep:
   `calibration required` (PROBLEM), outdoor-siren AC/DC error, battery
   defect, battery-temperature abnormal, primary-power outage (all
   PROBLEM), siren TAMPER, motion-detector TAMPER.
+
+## Round 13 (2026-07-20): HACS re-sweep of the parked dive-list
+
+Source-dived the round-12 parked candidates + Bosch neighbours.
+
+### Catalog-ready (shipped)
+- **Sunseeker mowers** (Sdahl1234, also Ambrogio/Techline/Wiper via ZCS):
+  REAL blade-wear sensors — 'Blade time left'/'Cutterplade time
+  left'/'Small blade time left' (HOURS remaining) + matching '*_health'
+  (PERCENTAGE). Dual-unit → one Replace Blades duty. (Sunseeker was the
+  standout of the round-12 park list — genuine wear telemetry, unlike
+  the runtime-only mowers.)
+- **Stromer eBike** (CoMPaTech): tk 'total_distance' (km odometer) →
+  the Bosch-eBike duties (Lubricate Chain 250 km, Bike Service 2000 km),
+  no new task names.
+
+### Verified negatives / re-parked
+- **bhyve** (3,409) + **opensprinkler** (1,106): the zone entities are a
+  smart-watering MODE toggle (bhyve) resp. a station ENABLE toggle
+  (opensprinkler) — NOT a "watering active" signal. A runtime signature
+  on them would count mode/enabled time, not watering time. The correct
+  entity is the per-station running binary/valve; needs a per-integration
+  entity-layout pass. Deliberately not signed to avoid a wrong duty.
+- **indego** (Bosch mower), **zcsmower**, **jura** (BLE), **eufy_security**,
+  **dahua**, **senec**, **luxtronik**, **astrandb/miele** (HACS Miele —
+  same core-Miele semantics, coverage already complete): no
+  consumable/wear sensor.
+- **garmin_connect**: distance sensors are WORKOUT distance (fitness),
+  not a device odometer — not maintenance.
+- **anker_solix**: 'runtime' fields are poll intervals, not wear.
+
+Catalog after round 13: **123 integrations / 228 signatures**. The
+popular HACS device integrations are now essentially exhausted; what
+remains is either protocol/transport, dynamic-entity (home_connect_alt/
+homeconnect_ws/homewhiz), date-direction-blocked, or the irrigation
+zone-layout dive.

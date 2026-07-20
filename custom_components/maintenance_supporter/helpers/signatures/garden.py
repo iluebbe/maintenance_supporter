@@ -90,6 +90,45 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "sunseeker": IntegrationSignature(
+        name="Sunseeker mowers",
+        verified="2026-07-20 @ Sdahl1234/Sunseeker-lawn-mower main sensor.py (HACS default)",
+        source=(
+            "HACS sunseeker (also Ambrogio/Techline via ZCS): REAL blade-wear "
+            "sensors — 'Blade time left' / 'Cutterplade time left' / 'Small "
+            "blade time left' (UnitOfTime.HOURS remaining, tk "
+            "sunseeker_*_time_left) and the matching '*_health' (PERCENTAGE "
+            "remaining). Dual-unit like the LG filter: hours→duration_left, "
+            "percent→percent_left, both the one blade-replacement duty."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (
+                    "blade_time_left",
+                    "cutterplade_time_left",
+                    "small_blade_time_left",
+                    "sunseeker_blade_time_left",
+                    "sunseeker_cutterplade_time_left",
+                    "sunseeker_small_blade_time_left",
+                ),
+                "Replace Blades",
+                "duration_left",
+                below_hours=24,
+            ),
+            ConsumableSignature(
+                (
+                    "blade_health",
+                    "cutterplade_health",
+                    "small_blade_health",
+                    "sunseeker_blade_health",
+                    "sunseeker_cutterplade_health",
+                    "sunseeker_small_blade_health",
+                ),
+                "Replace Blades",
+                "percent_left",
+            ),
+        ),
+    ),
     "husqvarna_automower_ble": IntegrationSignature(
         name="Husqvarna Automower BLE",
         verified="2026-07-18 @ home-assistant/core dev",

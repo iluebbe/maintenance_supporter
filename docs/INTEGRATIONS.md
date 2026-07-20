@@ -161,6 +161,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Undercarriage | every 25 units (counter delta) |  |
 | Segway Navimow | `navimow` | Replace Blades | every 100 h counted by the engine | lawn_mower entity; active: mowing |
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
+| Sunseeker mowers | `sunseeker` | Replace Blades | below 24 h remaining |  |
+|  |  | Replace Blades | below 10 % remaining |  |
 | Husqvarna Automower BLE | `husqvarna_automower_ble` | Replace Blades | every 100 h counted by the engine | lawn_mower entity; active: mowing |
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
 | Rain Bird irrigation | `rainbird` | Clean Sprinkler Heads | every 30 h counted by the engine | switch entity; active: on |
@@ -214,6 +216,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | StarLine | `starline` | Annual Service | every 15000 units (counter delta) |  |
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
 | Bosch eBike | `bosch_ebike` | Lubricate Chain | every 250 units (counter delta) |  |
+|  |  | Bike Service | every 2000 units (counter delta) |  |
+| Stromer eBike | `stromer` | Lubricate Chain | every 250 units (counter delta) |  |
 |  |  | Bike Service | every 2000 units (counter delta) |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
@@ -400,6 +404,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**121 integrations / 225 verified signatures.**
+**123 integrations / 229 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
