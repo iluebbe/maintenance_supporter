@@ -139,6 +139,7 @@ def generate() -> str:
         "| **Schlage** (core) | keypad disabled | Lock service check |",
         "| **SwitchBot** (core) | lock/door unclosed + unlocked alarms, `tamper` alarm | Door/lock checks |",
         "| **ZHA / Z-Wave JS / deCONZ / MQTT** | device-dependent `tamper` + smoke-detector fault binaries | Detector service / tamper checks |",
+        "| **KNX** | any binary object the user maps with device class `problem`/`safety`/`tamper` (KNX entities are fully user-configured — set the class on your fault/maintenance group addresses and they become adoptable) | Whatever the object signals |",
         "",
         "(QNAP, despite the family resemblance to Synology, ships no binary",
         "sensors at all — its disk data is plain sensors, covered by the",

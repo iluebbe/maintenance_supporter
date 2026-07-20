@@ -936,3 +936,23 @@ myuplink `has_alarm` (generic heat-pump alarm).
 - **shelly** `lamp_life` (bulb), **tolo/steamist** timers (operational),
   telecom/storage "remaining" sensors (fido, aussie_broadband, onedrive,
   nzbget, forecast_solar, victron, imeon, indevolt): not maintenance.
+
+## Rain Bird + KNX (2026-07-20, user-requested checks)
+
+- **Rain Bird** (core `rainbird`): SHIPPED — no consumable sensors
+  (rainsensor binary has NO device_class → not adoptable; raindelay is
+  operational), but each irrigation zone is its own device with a single
+  zone switch → engine watering-runtime duty "Clean Sprinkler Heads"
+  every 30 h (Rain Bird guidance: heads/drip filters at least once a
+  season).
+- **KNX** (core): a PROTOCOL, not a device integration — every entity is
+  user-configured from group addresses (names, types and device classes
+  all come from the user's config; verified in sensor.py/binary_sensor.py:
+  `config.get(CONF_DEVICE_CLASS)`). There are no stable keys or device
+  fingerprints to sign against, so a catalog entry is impossible by
+  construction (same class as MQTT/ZHA transports). KNX users are still
+  fully served: (1) any KNX binary mapped with device class
+  problem/safety/tamper becomes ADOPTABLE — worth doing for fault
+  objects of KNX-connected heat pumps/ventilation; (2) every KNX sensor
+  works with the manual trigger config (threshold/counter/runtime).
+  Documented in the INTEGRATIONS.md adoption table.
