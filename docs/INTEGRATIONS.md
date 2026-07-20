@@ -80,6 +80,10 @@ odometer/countdown duties above:
 | **Samsung SyncThru** (core) | printer `problem` state | Printer fault triage |
 | **Rehlko / Kohler** (core) | generator `oil_pressure` (alongside the catalog's 100-h oil service) | Immediate oil check |
 | **myUplink** (core) | `has_alarm` — the heat pump's generic alarm flag | Heat-pump service check |
+| **Midea dehumidifiers** (HACS midea_dehumidifier_lan) | tank full, tank removed, **filter replacement** | Empty tank / change filter |
+| **Nest Protect** (HACS) | a dozen fault binaries (smoke/CO/heat sensor faults, battery); the device end-of-life date ships as a separate sensor | Detector service / replacement |
+| **Deye dehumidifiers** (HACS) | water tank full | Empty tank |
+| **Pit Boss grills** (HACS) | error states (default problem class) | Grill fault triage |
 | **ZHA / Z-Wave JS / deCONZ / MQTT** | device-dependent `tamper` + smoke-detector fault binaries | Detector service / tamper checks |
 | **KNX** | any binary object the user maps with device class `problem`/`safety`/`tamper` (KNX entities are fully user-configured — set the class on your fault/maintenance group addresses and they become adoptable) | Whatever the object signals |
 
@@ -238,6 +242,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Vaillant (myVAILLANT) | `mypyllant` | Refill Heating Water | below 1 |  |
 | Grohe Blue | `grohe_smarthome` | Replace Water Filter | below 10 % remaining |  |
 |  |  | Replace CO2 Bottle | below 10 % remaining |  |
+| iQua softener | `iqua_softener` | Refill Softener Salt | below 10 % remaining |  |
 | Fumis (pellet stoves) | `fumis` | Annual Service | below 24 h remaining |  |
 | Rehlko / Kohler generators | `rehlko` | Oil Service | at 100 h counted by the device |  |
 | AquaCell softener | `aquacell` | Refill Softener Salt | below 10 % remaining |  |
@@ -269,6 +274,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Duco ventilation | `duco` | Replace Ventilation Filter | below 7 days remaining |  |
 | Flexit Nordic | `flexit_bacnet` | Replace Ventilation Filter | at 4380 h counted by the device |  |
 | IKEA Trådfri (STARKVIND) | `tradfri` | Replace Filter | below 3 days remaining |  |
+| Dyson (local) | `dyson_local` | Replace Filter | below 10 % remaining |  |
+|  |  | Replace Filter | below 3 days remaining |  |
 | Venstar thermostat | `venstar` | Replace Filter | at 300 h counted by the device |  |
 
 ## Kitchen & household appliances incl. espresso machines
@@ -301,6 +308,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Filter Cleaning | below 10 % remaining |  |
 |  |  | Clean Tub | every 30 units (counter delta) |  |
 | Whirlpool | `whirlpool` | Clean Tub | every 60 h counted by the engine | active: running_maincycle |
+| WashData (smart-plug cycles) | `ha_washdata` | Clean Tub | every 30 units (counter delta) |  |
 | Traeger grill | `traeger` | Clean Grease Trap | every 5 units (counter delta) |  |
 |  |  | Clean Appliance | every 20 units (counter delta) |  |
 
@@ -389,6 +397,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**117 integrations / 219 verified signatures.**
+**120 integrations / 223 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

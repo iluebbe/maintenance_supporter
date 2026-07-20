@@ -231,6 +231,17 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "ha_washdata": IntegrationSignature(
+        name="WashData (smart-plug cycles)",
+        verified="2026-07-20 @ 3dg1luk43/ha_washdata main sensor.py (HACS default)",
+        source=(
+            "HACS ha_washdata: tk 'cycle_count' (unit 'cycles') — lifetime "
+            "count of appliance cycles DETECTED from smart-plug power "
+            "monitoring. Brings the tub-clean cadence to washers with no "
+            "smarts at all (LG's official 30-cycle interval)."
+        ),
+        tasks=(ConsumableSignature(("cycle_count",), "Clean Tub", "usage_delta", delta_units=30),),
+    ),
     "traeger": IntegrationSignature(
         name="Traeger grill",
         verified="2026-07-20 @ njobrien1006/hass_traeger master + johnvoipguy/Traeger-WiFire main (HACS default, shared sensor map)",
