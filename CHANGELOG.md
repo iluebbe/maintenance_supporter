@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.38.0] - 2026-07-20
 
 ### 🔋 Battery Fleet (Battery Notes or native)
 
