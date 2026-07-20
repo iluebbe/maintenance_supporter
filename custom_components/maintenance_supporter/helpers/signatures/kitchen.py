@@ -24,9 +24,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # AC filter reports hours-remaining; air-purifier/RAC filters report
             # percent — both under translation_key 'filter_lifetime'. Two
             # directions, unit-disambiguated at match time.
-            ConsumableSignature(
-                ("filter_lifetime", "top_filter_remain_percent"), "Replace Filter", "percent_left"
-            ),
+            ConsumableSignature(("filter_lifetime", "top_filter_remain_percent"), "Replace Filter", "percent_left"),
             ConsumableSignature(("filter_lifetime",), "Replace Filter", "duration_left"),
             ConsumableSignature(
                 (
@@ -69,18 +67,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("tub_clean_counter",), "Clean Tub", "usage_above", above_hours=30),
         ),
     ),
-            # Enclosed printers only (device registry model = the device_type
-            # enum: X1C/X1E/P1S/H2*) — the activated-carbon/chamber filter
-            # duty makes no sense on open-frame A1/A1MINI/P1P.
-            # Model-aware duties (Bambu maintenance guides): the CoreXY
-            # X1/P1 series runs on carbon rods that want regular wipe-downs;
-            # the A1 bed-slingers have a replaceable purge wiper. Intervals
-            # are tunable print-hour defaults.
-            # AMS desiccant by MEASURED humidity: the AMS/AMS 2 Pro/AMS HT are
-            # separate devices (model = 'AMS'/'AMS 2 Pro'/'AMS HT') with a
-            # humidity sensor; saturated desiccant shows as high humidity and
-            # replacing it brings the value down (auto-resolve). The AMS Lite
-            # has NO desiccant compartment and is excluded.
+    # Enclosed printers only (device registry model = the device_type
+    # enum: X1C/X1E/P1S/H2*) — the activated-carbon/chamber filter
+    # duty makes no sense on open-frame A1/A1MINI/P1P.
+    # Model-aware duties (Bambu maintenance guides): the CoreXY
+    # X1/P1 series runs on carbon rods that want regular wipe-downs;
+    # the A1 bed-slingers have a replaceable purge wiper. Intervals
+    # are tunable print-hour defaults.
+    # AMS desiccant by MEASURED humidity: the AMS/AMS 2 Pro/AMS HT are
+    # separate devices (model = 'AMS'/'AMS 2 Pro'/'AMS HT') with a
+    # humidity sensor; saturated desiccant shows as high humidity and
+    # replacing it brings the value down (auto-resolve). The AMS Lite
+    # has NO desiccant compartment and is excluded.
     "home_connect": IntegrationSignature(
         name="Home Connect",
         verified="2026-07-17 @ home-assistant/core dev",
@@ -97,9 +95,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("rinse_aid_nearly_empty",), "Refill Rinse Aid", "event_present"),
             ConsumableSignature(("device_should_be_descaled",), "Descale Appliance", "event_present"),
             ConsumableSignature(("device_should_be_cleaned",), "Clean Appliance", "event_present"),
-            ConsumableSignature(
-                ("grease_filter_max_saturation_reached",), "Clean Grease Filter", "event_present"
-            ),
+            ConsumableSignature(("grease_filter_max_saturation_reached",), "Clean Grease Filter", "event_present"),
         ),
     ),
     "miele": IntegrationSignature(
@@ -142,9 +138,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "f'..._{entity_attr}' — HA slugifies the raw 'FilterLife' tail, so "
             "both slug forms are matched."
         ),
-        tasks=(
-            ConsumableSignature(("filterlife", "filter_life"), "Replace Filter", "percent_left"),
-        ),
+        tasks=(ConsumableSignature(("filterlife", "filter_life"), "Replace Filter", "percent_left"),),
     ),
     "midea_ac_lan": IntegrationSignature(
         name="Midea (LAN)",
@@ -177,12 +171,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "water filter ≈ 1000 shots (editorial)."
         ),
         tasks=(
-            ConsumableSignature(
-                ("total_coffees_made",), "Backflush Espresso Group", "usage_delta", delta_units=100
-            ),
-            ConsumableSignature(
-                ("total_coffees_made",), "Replace Water Filter", "usage_delta", delta_units=1000
-            ),
+            ConsumableSignature(("total_coffees_made",), "Backflush Espresso Group", "usage_delta", delta_units=100),
+            ConsumableSignature(("total_coffees_made",), "Replace Water Filter", "usage_delta", delta_units=1000),
         ),
     ),
     "hon": IntegrationSignature(
@@ -218,6 +208,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 delta_units=60,
                 on_states=("running_maincycle",),
             ),
+        ),
+    ),
+    "traeger": IntegrationSignature(
+        name="Traeger grill",
+        verified="2026-07-20 @ njobrien1006/hass_traeger master + johnvoipguy/Traeger-WiFire main (HACS default, shared sensor map)",
+        source=(
+            "HACS traeger (both default-store forks share the domain and "
+            "sensor map): 'Cook Cycle' sensor (usage;cook_cycles — lifetime "
+            "counter, suffix _cook_cycle, disabled-by-default DIAGNOSTIC; the "
+            "suggestion appears once the user enables it). Cadence per "
+            "Traeger's official maintenance guidance: grease management every "
+            "few cooks, deep clean ~every 20 cooks / twice a grilling season. "
+            "'Pellet Level' (%) is hopper inventory, not wear — skipped (same "
+            "rationale as Palazzetti's pellet_level)."
+        ),
+        tasks=(
+            ConsumableSignature(("cook_cycle",), "Clean Grease Trap", "usage_delta", delta_units=5),
+            ConsumableSignature(("cook_cycle",), "Clean Appliance", "usage_delta", delta_units=20),
         ),
     ),
 }

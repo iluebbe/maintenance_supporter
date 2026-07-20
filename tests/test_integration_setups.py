@@ -1900,3 +1900,40 @@ async def test_round9_service_countdowns_and_purifiers(
 
     (wx,) = setups[winix]["tasks"]
     assert wx["task_name"] == "Replace Filter" and wx["threshold"] == 10.0
+
+
+async def test_round10_samsung_filters_and_traeger(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Round 10: SmartThings fridge/hood filter USAGE (% counting up →
+    alert_above 90, no vacuum-runtime proposals without a vacuum entity)
+    and Traeger cook-cycle duties."""
+    await setup_integration(hass, global_entry)
+    fridge = await _seed_sensor(
+        hass, "smartthings", "rf9000", "Samsung Fridge",
+        [("water_filter_usage", "water_filter_usage", "%")],
+    )
+    hood = await _seed_sensor(
+        hass, "smartthings", "nk36", "Samsung Hood",
+        [("hood_filter_usage", "hood_filter_usage", "%")],
+    )
+    grill = await _seed_sensor(
+        hass, "traeger", "ir575", "Traeger Ironwood",
+        [("cook_cycle", None, None)],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    (wf,) = setups[fridge]["tasks"]
+    assert wf["task_name"] == "Replace Water Filter"
+    assert wf["direction"] == "alert_above" and wf["threshold"] == 90.0
+
+    (hf,) = setups[hood]["tasks"]
+    assert hf["task_name"] == "Clean Grease Filter"
+    assert hf["direction"] == "alert_above" and hf["threshold"] == 90.0
+
+    gr = {t["task_name"]: t for t in setups[grill]["tasks"]}
+    assert set(gr) == {"Clean Grease Trap", "Clean Appliance"}
+    assert gr["Clean Grease Trap"]["direction"] == "usage_delta"
+    assert gr["Clean Grease Trap"]["threshold"] == 5.0
+    assert gr["Clean Appliance"]["threshold"] == 20.0

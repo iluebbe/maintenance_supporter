@@ -102,21 +102,32 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                ("bin_full",), "Empty Dustbin", "event_present",
-                entity_domain="binary_sensor", on_states=("on",),
+                ("bin_full",),
+                "Empty Dustbin",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
             ),
         ),
     ),
-            # bin_full is a plain binary (no problem device_class, so the
-            # problem-sensor adoption does NOT cover it) -> event latch.
+    # bin_full is a plain binary (no problem device_class, so the
+    # problem-sensor adoption does NOT cover it) -> event latch.
     "neato": IntegrationSignature(
         name="Neato Botvac",
         verified="2026-07-18 @ home-assistant/core dev",
@@ -127,12 +138,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
         ),
     ),
@@ -146,12 +165,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
         ),
     ),
@@ -165,12 +192,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
         ),
     ),
@@ -184,32 +219,56 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
         ),
     ),
     "smartthings": IntegrationSignature(
-        name="SmartThings vacuum",
-        verified="2026-07-18 @ home-assistant/core dev",
+        name="SmartThings",
+        verified="2026-07-18 (vacuum) / 2026-07-20 (filters) @ home-assistant/core dev",
         source=(
             "home-assistant/core homeassistant/components/smartthings/vacuum.py "
             "(vacuum platform verified present; no consumable sensors) — the "
-            "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched."
+            "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched. "
+            "sensor.py: tk 'water_filter_usage' (custom.waterFilter, "
+            "PERCENTAGE, MEASUREMENT — Samsung fridge water filter, % USED "
+            "counting up; replacement resets to 0) and tk 'hood_filter_usage' "
+            "(SAMSUNG_CE_HOOD_FILTER, PERCENTAGE) — same up-counting shape."
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
+            # Samsung fridge water filter / hood grease filter: usage counts
+            # UP in percent; replacing/cleaning resets to 0 (auto-resolve).
+            ConsumableSignature(("water_filter_usage",), "Replace Water Filter", "alert_above", delta_units=90),
+            ConsumableSignature(("hood_filter_usage",), "Clean Grease Filter", "alert_above", delta_units=90),
         ),
     ),
     "sharkiq": IntegrationSignature(
@@ -222,12 +281,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
         ),
     ),
@@ -241,12 +308,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
         ),
     ),
