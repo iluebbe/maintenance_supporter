@@ -170,6 +170,8 @@ integration, 30–70+ battery devices would mean 30–70 maintenance tasks — n
 Instead, **one click** sets up a single *Battery Fleet*: **one object, one task**
 that aggregates every battery, and one managed spare-part per battery **type**.
 
+![Battery Fleet](images/battery-fleet.png)
+
 The fleet task's detail view is the whole surface:
 
 - **Which batteries are low now**, each with its device, type × quantity and
