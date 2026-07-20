@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.38.1] - 2026-07-20
 
 ### 🐛 Fixed
 
@@ -15,6 +15,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   repairs a wiped trigger or recreates a deleted fleet task while keeping
   the user's renames. The fleet detail section shows a one-click **Repair**
   banner when it detects the broken state.
+
+### 🌍 Localization
+
+- **270 untranslated panel strings fixed** across up to 16 languages —
+  "Missed", "Snooze", "Add photo", "Last day of month", the rotation
+  strategies and more had shipped with their English value copied into the
+  locale files. All are now properly translated, and two new CI gates plus a
+  mandatory add-key tool make this class of gap fail the build permanently.
 
 ## [2.38.0] - 2026-07-20
 
