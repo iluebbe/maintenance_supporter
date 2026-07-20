@@ -861,3 +861,78 @@ active-notification binary → already covered by the adoption path
   static keys (airflow, rpm, compressor status) carry no consumable
   semantics. Parked like HomeWhiz.
 - **BMW CarData**: still not in the HACS default store (re-checked).
+
+## Round 11 (2026-07-20): full core sweep — every HA integration
+
+Method: downloaded the complete core dev tree and script-swept ALL 745
+sensor platforms + all binary_sensor platforms of integrations not yet
+in the catalog, for consumable/wear/countdown key patterns and
+problem/safety/tamper classes. 36 sensor-candidate domains, 76
+problem-binary domains; curated below. All semantics verified against
+the local tree (units, state_class, value_fn).
+
+### Catalog-ready (13)
+
+**Cars — five more integrations, all core:**
+1-3. **tesla_fleet / teslemetry / tessie**: `vehicle_state_odometer`
+   (TOTAL_INCREASING, MILES — the unit-aware threshold handles mi) →
+   Annual Service 15000 + Tire Rotation 10000. The official/cloud Tesla
+   trio complements the HACS tesla_custom already covered. Each also
+   ships per-tire TPMS problem binaries (adoption table).
+4. **ituran** (`mileage`, km, DISTANCE) — fleet tracker odometer.
+5. **starline** (`mileage`, km, TOTAL_INCREASING) — alarm-system odometer.
+
+**Ventilation / air:**
+6. **duco** (`filter_remaining`, DURATION DAYS) → Replace Ventilation
+   Filter duration_left 168 h (the comfoconnect/renson pattern).
+7. **flexit_bacnet** (`air_filter_operating_time`, TOTAL_INCREASING
+   HOURS — counts up, reset on filter change) → Replace Ventilation
+   Filter usage_above 4380 h (Flexit: change every 6-12 months). Plus
+   `air_filter_polluted` problem binary (adoption).
+8. **tradfri** (`filter_life_remaining`, MEASUREMENT HOURS) — STARKVIND
+   via the NATIVE IKEA gateway (we only covered the dirigera_platform
+   path) → Replace Filter duration_left 72 h.
+9. **venstar** thermostats (`filterHours`, MEASUREMENT — filter runtime
+   counting up, user-reset on change) → Replace Filter usage_above
+   300 h (typical 1-3-month furnace-filter guidance).
+
+**New categories:**
+10. **eheimdigital** (EHEIM aquarium filters): `service_hours`
+    (DURATION HOURS remaining to next filter service) → Filter Cleaning
+    duration_left (default 24 h lead).
+11. **fumis** (pellet stove controllers): `time_to_service` (DURATION
+    HOURS remaining) → Annual Service duration_left.
+12. **rehlko** (Kohler generators): `runtime_since_last_maintenance`
+    (HOURS since last maintenance, resets at maintenance) → Oil Service
+    usage_above 100 h (Kohler: oil change every 100 h / annually). Plus
+    `oil_pressure` problem binary.
+13. **aquacell** (`salt_left/right_side_percentage`, %) → Refill
+    Softener Salt percent_left, any-low across both tanks.
+
+**Pool salt (chlorinators):**
+14. **screenlogic** (`salt_ppm`, ppm) and **ondilo_ico** (`salt`, mg/L
+    ≡ ppm) → Refill Pool Salt value_below 2700 (Pentair band
+    2600-4500 ppm). NOTE: needs a new _T name ("Refill Pool Salt").
+
+### Adoption-table additions (problem binaries, core)
+
+coolmaster `clean_filter`; fjaraskupan hood `carbon_filter` +
+`grease_filter`; flexit_bacnet `air_filter_polluted`; tesla trio
+per-tire TPMS warnings; **rdw `pending_recall`** (official Dutch
+vehicle-recall register!); unifiprotect `disk_health`; intellifire
+fireplace `maintenance_error`/fan/flame errors; letpot hydroponics
+`low_water`/`low_nutrients`/`pump_error`; shelly `calibration` (TRV) +
+`overheating`; yale_smart_alarm `jam`/`tamper`; hikvision
+`disk_error`/`tamper_detection`; syncthru printer `problem`;
+myuplink `has_alarm` (generic heat-pump alarm).
+
+### Verified negatives / parked
+
+- **smarty** `filter_days_left` and **tami4** filter/UV
+  `*_upcoming_replacement`: TIMESTAMP/DATE device classes — parked for
+  the date-direction engine idea (with vallox, NUT, seneye).
+- **aqualogic** salt: dual-unit (metric g/L vs imperial PPM per config)
+  — one raw threshold cannot serve both; skipped with reason.
+- **shelly** `lamp_life` (bulb), **tolo/steamist** timers (operational),
+  telecom/storage "remaining" sensors (fido, aussie_broadband, onedrive,
+  nzbget, forecast_solar, victron, imeon, indevolt): not maintenance.
