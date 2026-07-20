@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "前回交換日からの予測 — 早めに注文を。",
   "battery_fleet_mark_all": "すべて交換済みにする",
   "battery_fleet_mark_one": "この電池を交換済みにする",
+  "battery_fleet_offline": "オフライン",
   "battery_fleet_total": "{n} 個の電池を監視",
   "battery_fleet_setup_button": "電池フリート",
   "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。"

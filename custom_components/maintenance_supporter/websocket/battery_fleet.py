@@ -14,7 +14,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
-from ..helpers.battery_fleet import compute_overview, has_battery_notes
+from ..helpers.battery_fleet import compute_overview, has_batteries, has_battery_notes
 from ..helpers.battery_fleet_setup import (
     async_mark_replaced,
     async_setup_battery_fleet,
@@ -32,7 +32,8 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
     connection.send_result(
         msg["id"],
         {
-            "available": has_battery_notes(hass),
+            "available": has_batteries(hass),
+            "has_battery_notes": has_battery_notes(hass),
             "configured": fleet is not None,
             "entry_id": fleet.entry_id if fleet else None,
             "total": ov.total,
@@ -50,8 +51,8 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
 @websocket_api.async_response
 async def ws_battery_fleet_setup(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
     """Create (or reconcile) the Battery Fleet object + type-parts + task."""
-    if not has_battery_notes(hass):
-        connection.send_error(msg["id"], "not_available", "No Battery Notes devices found")
+    if not has_batteries(hass):
+        connection.send_error(msg["id"], "not_available", "No battery devices found")
         return
     result = await async_setup_battery_fleet(hass)
     connection.send_result(msg["id"], result)

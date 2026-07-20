@@ -51,6 +51,16 @@ DEFAULT_LIFETIME_MONTHS = 12
 # How far ahead "needed soon" looks by default (days).
 DEFAULT_HORIZON_DAYS = 28
 
+# A native battery %-sensor without a dedicated low binary is treated as low
+# at or below this level (editorial — HA has no universal low threshold).
+NATIVE_LOW_PERCENT = 20
+
+# States that mean "no reading" — a removed device leaves nothing; an offline
+# one leaves these. We keep an OFFLINE battery visible only when its last-known
+# low flag says it needs attention (a dead battery often takes its device
+# offline — that's exactly the one you must not hide).
+_NO_READING = {"unavailable", "unknown", "none", ""}
+
 
 def _norm_type(raw: Any) -> str:
     """Canonicalize a battery-type label for grouping (upper, trimmed)."""
@@ -65,7 +75,8 @@ def lifetime_months(battery_type: str) -> int:
 
 @dataclass
 class Battery:
-    """One battery-powered device as seen through Battery Notes."""
+    """One battery-powered device — from Battery Notes (rich) or a native
+    ``device_class: battery`` entity (degraded: no type/quantity/forecast)."""
 
     entity_id: str
     device_name: str
@@ -74,6 +85,8 @@ class Battery:
     low: bool
     level: float | None
     last_replaced: date | None
+    available: bool = True
+    source: str = "battery_notes"
 
 
 @dataclass
@@ -152,6 +165,7 @@ def _row(bat: Battery, canon_type: str, days_until: int | None) -> dict[str, Any
         "quantity": bat.quantity,
         "level": bat.level,
         "days_until": days_until,
+        "available": bat.available,
     }
 
 
@@ -167,31 +181,124 @@ def _parse_last_replaced(raw: Any) -> date | None:
         return None
 
 
-def read_batteries(hass: HomeAssistant) -> list[Battery]:
-    """Read every Battery Notes ``battery_plus`` sensor from HA state.
+def _level_of(state_val: str) -> float | None:
+    try:
+        return float(state_val)
+    except (ValueError, TypeError):
+        return None
 
-    Identified structurally (device_class ``battery`` + a ``battery_type``
-    attribute), so it works regardless of the Battery Notes entity-id scheme
-    and needs no config coupling.
+
+def read_batteries(hass: HomeAssistant) -> list[Battery]:
+    """Read the battery fleet from HA state — Battery Notes AND native.
+
+    * **Battery Notes** ``battery_plus`` sensors (device_class ``battery`` + a
+      ``battery_type`` attribute) give the rich view: type, quantity, low,
+      last-replaced. When the source goes offline the sensor reads
+      unavailable/unknown but RETAINS its last-known ``battery_low`` — so a
+      dead battery that took its device offline stays visible.
+    * **Native** ``device_class: battery`` entities (a %-sensor and/or a
+      battery-low binary), grouped per device, give a degraded view (type
+      "Unknown", quantity 1, no forecast). A device already covered by a
+      Battery Notes note is skipped (dedup by the note's source entity + its
+      device) so it isn't counted twice.
     """
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+
     out: list[Battery] = []
+    covered_sources: set[str] = set()
+    covered_devices: set[str] = set()
+
+    # ── Pass 1: Battery Notes battery_plus ──────────────────────────────────
     for state in hass.states.async_all("sensor"):
         attrs = state.attributes
         if attrs.get("device_class") != "battery" or "battery_type" not in attrs:
             continue
-        try:
-            level: float | None = float(state.state)
-        except (ValueError, TypeError):
-            level = None
+        src = attrs.get("source_entity_id")
+        if src:
+            covered_sources.add(src)
+        reg = ent_reg.async_get(state.entity_id)
+        if reg and reg.device_id:
+            covered_devices.add(reg.device_id)
+        level = _level_of(state.state)
+        available = state.state not in _NO_READING and level is not None
+        low = bool(attrs.get("battery_low"))
+        # Offline AND not last-known-low = pure connectivity noise → drop it.
+        if not available and not low:
+            continue
         out.append(
             Battery(
                 entity_id=state.entity_id,
                 device_name=attrs.get("device_name") or attrs.get("friendly_name") or state.entity_id,
                 battery_type=str(attrs.get("battery_type") or "Unknown"),
                 quantity=int(attrs.get("battery_quantity") or 1),
-                low=bool(attrs.get("battery_low")),
+                low=low,
                 level=level,
                 last_replaced=_parse_last_replaced(attrs.get("battery_last_replaced")),
+                available=available,
+                source="battery_notes",
+            )
+        )
+
+    # ── Pass 2: native battery entities, grouped per device ─────────────────
+    # {group_key: {"level_state": s, "low_state": s, "name": ..., "device_id": ..., "eid": ...}}
+    native: dict[str, dict[str, Any]] = {}
+    for domain in ("sensor", "binary_sensor"):
+        for state in hass.states.async_all(domain):
+            if state.attributes.get("device_class") != "battery":
+                continue
+            eid = state.entity_id
+            if "battery_type" in state.attributes:  # Battery Notes battery_plus — handled above
+                continue
+            if eid in covered_sources:
+                continue
+            reg = ent_reg.async_get(eid)
+            dev_id = reg.device_id if reg else None
+            if dev_id and dev_id in covered_devices:
+                continue
+            key = dev_id or eid
+            rec = native.setdefault(
+                key,
+                {"level_state": None, "low_state": None, "device_id": dev_id, "eid": eid, "name": None},
+            )
+            friendly = state.attributes.get("friendly_name")
+            if domain == "sensor":
+                rec["level_state"] = state.state
+                rec["eid"] = eid
+            else:
+                rec["low_state"] = state.state
+            if rec["name"] is None and friendly:
+                rec["name"] = friendly
+
+    for key, rec in native.items():
+        level = _level_of(rec["level_state"]) if rec["level_state"] is not None else None
+        low_state = rec["low_state"]
+        level_available = rec["level_state"] not in _NO_READING if rec["level_state"] is not None else False
+        low_available = low_state not in _NO_READING if low_state is not None else False
+        available = level_available or low_available
+        if low_state is not None:
+            low = low_available and str(low_state).lower() in ("on", "true", "1")
+        else:
+            low = level is not None and level <= NATIVE_LOW_PERCENT
+        if not available and not low:
+            continue
+        name = rec["name"]
+        if not name and rec["device_id"] and (dev := dev_reg.async_get(rec["device_id"])):
+            name = dev.name_by_user or dev.name
+        out.append(
+            Battery(
+                entity_id=rec["eid"],
+                device_name=name or rec["eid"],
+                battery_type="Unknown",
+                quantity=1,
+                low=low,
+                level=level,
+                last_replaced=None,
+                available=available,
+                source="native",
             )
         )
     return out
@@ -203,6 +310,15 @@ def has_battery_notes(hass: HomeAssistant) -> bool:
         a = state.attributes
         if a.get("device_class") == "battery" and "battery_type" in a:
             return True
+    return False
+
+
+def has_batteries(hass: HomeAssistant) -> bool:
+    """Whether ANY battery is trackable — Battery Notes OR native. Gates setup."""
+    for domain in ("sensor", "binary_sensor"):
+        for state in hass.states.async_all(domain):
+            if state.attributes.get("device_class") == "battery":
+                return True
     return False
 
 
@@ -223,12 +339,14 @@ def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
 
 __all__ = [
     "DEFAULT_HORIZON_DAYS",
+    "NATIVE_LOW_PERCENT",
     "TYPICAL_LIFETIME_MONTHS",
     "Battery",
     "BatteryOverview",
     "build_overview",
     "compute_overview",
     "discover_battery_types",
+    "has_batteries",
     "has_battery_notes",
     "lifetime_months",
     "read_batteries",

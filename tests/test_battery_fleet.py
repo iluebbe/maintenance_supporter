@@ -73,26 +73,74 @@ def test_lifetime_table_and_unknown_fallback():
     assert lifetime_months("weird-cell") == 12  # default
 
 
+def _set_note(hass, slug, **attrs):
+    base = {
+        "device_class": "battery",
+        "battery_type": "CR2450",
+        "battery_quantity": 1,
+        "battery_low": True,
+        "battery_last_replaced": "2025-01-01T00:00:00+00:00",
+        "device_name": slug.replace("_", " ").title(),
+    }
+    base.update(attrs)
+    hass.states.async_set(f"sensor.{slug}_battery_plus", str(attrs.get("_state", "8")), base)
+
+
 async def test_read_batteries_from_state(hass):
-    hass.states.async_set(
-        "sensor.hall_motion_battery_plus",
-        "8",
-        {
-            "device_class": "battery",
-            "battery_type": "CR2450",
-            "battery_quantity": 1,
-            "battery_low": True,
-            "battery_last_replaced": "2025-01-01T00:00:00+00:00",
-            "device_name": "Hall Motion",
-        },
-    )
-    # A plain battery sensor WITHOUT battery_type must be ignored (not Battery Notes).
-    hass.states.async_set("sensor.phone_battery", "55", {"device_class": "battery"})
+    _set_note(hass, "hall_motion", device_name="Hall Motion")
     bats = read_batteries(hass)
-    assert len(bats) == 1
-    b = bats[0]
-    assert b.device_name == "Hall Motion" and b.battery_type == "CR2450"
-    assert b.low is True and b.level == 8.0
-    assert b.last_replaced == date(2025, 1, 1)
+    # Battery Notes note is read richly.
+    note = next(b for b in bats if b.source == "battery_notes")
+    assert note.device_name == "Hall Motion" and note.battery_type == "CR2450"
+    assert note.low is True and note.level == 8.0
+    assert note.last_replaced == date(2025, 1, 1)
     assert has_battery_notes(hass) is True
-    assert dict(discover_battery_types(hass)) == {"CR2450": 1}
+    assert dict(discover_battery_types(hass))["CR2450"] == 1
+
+
+async def test_native_battery_degraded_pickup(hass):
+    # A plain device_class:battery sensor with NO Battery Notes note → native,
+    # degraded (type Unknown, qty 1). Low is inferred from a low %.
+    hass.states.async_set("sensor.phone_battery", "55", {"device_class": "battery"})
+    hass.states.async_set("sensor.remote_battery", "12", {"device_class": "battery"})
+    bats = read_batteries(hass)
+    assert {b.source for b in bats} == {"native"}
+    remote = next(b for b in bats if b.entity_id == "sensor.remote_battery")
+    assert remote.battery_type == "Unknown" and remote.quantity == 1
+    assert remote.low is True and remote.level == 12.0  # <= NATIVE_LOW_PERCENT
+    phone = next(b for b in bats if b.entity_id == "sensor.phone_battery")
+    assert phone.low is False and phone.level == 55.0
+
+
+async def test_native_low_binary_wins_over_percent(hass):
+    # A battery-low binary present → it decides low, not the % heuristic.
+    hass.states.async_set("binary_sensor.door_battery_low", "on", {"device_class": "battery"})
+    bats = read_batteries(hass)
+    assert len(bats) == 1 and bats[0].low is True and bats[0].source == "native"
+
+
+async def test_native_deduped_against_battery_notes_source(hass):
+    # Battery Notes monitors sensor.hall_motion_battery via source_entity_id;
+    # that native sensor must NOT be double-counted.
+    _set_note(hass, "hall_motion", source_entity_id="sensor.hall_motion_battery")
+    hass.states.async_set("sensor.hall_motion_battery", "8", {"device_class": "battery"})
+    bats = read_batteries(hass)
+    assert len(bats) == 1 and bats[0].source == "battery_notes"
+
+
+async def test_offline_note_retains_low_but_pure_offline_dropped(hass):
+    # A dead battery took its device offline: battery_plus is unavailable but
+    # RETAINS battery_low → stays visible. An offline-and-not-low one is noise.
+    _set_note(hass, "dead_lock", _state="unavailable", battery_low=True, battery_type="9V")
+    _set_note(hass, "idle_probe", _state="unavailable", battery_low=False, battery_type="AA")
+    bats = read_batteries(hass)
+    eids = {b.entity_id for b in bats}
+    assert "sensor.dead_lock_battery_plus" in eids
+    assert "sensor.idle_probe_battery_plus" not in eids
+    dead = next(b for b in bats if b.entity_id == "sensor.dead_lock_battery_plus")
+    assert dead.low is True and dead.available is False and dead.level is None
+
+
+async def test_native_offline_dropped_when_not_low(hass):
+    hass.states.async_set("sensor.gone_battery", "unavailable", {"device_class": "battery"})
+    assert read_batteries(hass) == []

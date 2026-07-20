@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "Aus dem letzten Wechseldatum geschätzt — vorab bestellen.",
   "battery_fleet_mark_all": "Alle als getauscht markieren",
   "battery_fleet_mark_one": "Diese Batterie als getauscht markieren",
+  "battery_fleet_offline": "offline",
   "battery_fleet_total": "{n} Batterien überwacht",
   "battery_fleet_setup_button": "Batterie-Flotte",
   "battery_fleet_setup_done": "Batterie-Flotte eingerichtet — ein Task überwacht alle Batterien."

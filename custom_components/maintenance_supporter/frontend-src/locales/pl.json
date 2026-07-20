@@ -797,6 +797,7 @@
   "battery_fleet_soon_hint": "Szacowane wg ostatniej wymiany — zamów z wyprzedzeniem.",
   "battery_fleet_mark_all": "Oznacz wszystkie jako wymienione",
   "battery_fleet_mark_one": "Oznacz tę baterię jako wymienioną",
+  "battery_fleet_offline": "offline",
   "battery_fleet_total": "Śledzone baterie: {n}",
   "battery_fleet_setup_button": "Flota baterii",
   "battery_fleet_setup_done": "Flota baterii skonfigurowana — jedno zadanie śledzi wszystkie."
