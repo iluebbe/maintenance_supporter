@@ -53,6 +53,7 @@ SUMMARY_METRICS: list[tuple[str, str]] = [
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
+    from .helpers.battery_fleet import BatteryOverview
     from .helpers.documents import DocumentStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -713,7 +714,7 @@ class BatteryFleetLowSensor(SensorEntity):
     def _handle_event(self, _event: Any) -> None:
         self.async_write_ha_state()
 
-    def _overview(self):
+    def _overview(self) -> BatteryOverview:
         from .helpers.battery_fleet import compute_overview
 
         return compute_overview(self.hass)

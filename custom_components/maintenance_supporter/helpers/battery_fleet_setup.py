@@ -13,7 +13,9 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_OBJECT, CONF_PARTS, DOMAIN
@@ -28,7 +30,7 @@ OBJECT_FLAG = "battery_fleet"
 TASK_FLAG = "battery_fleet_task"
 
 
-def find_fleet_entry(hass: HomeAssistant):
+def find_fleet_entry(hass: HomeAssistant) -> ConfigEntry | None:
     """The existing Battery Fleet object entry, or None."""
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.data.get(CONF_OBJECT, {}).get(OBJECT_FLAG):
@@ -60,6 +62,8 @@ async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
 
     entry_id = await async_create_object(hass, name="Battery Fleet")
     entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None:  # pragma: no cover — just created above
+        raise HomeAssistantError("Battery Fleet object entry vanished after creation")
 
     # Flag the object + attach a type-part per battery type present.
     new_data = dict(entry.data)
@@ -132,7 +136,7 @@ def _type_part(btype: str, total_qty: int) -> dict[str, Any]:
     }
 
 
-def _reconcile_type_parts(hass: HomeAssistant, entry, types: dict[str, int]) -> int:
+def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int]) -> int:
     """Add parts for battery types newly seen since setup. Returns count added."""
     from .parts import normalize_part
 
