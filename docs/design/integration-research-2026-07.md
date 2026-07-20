@@ -818,3 +818,46 @@ ROMY/Dreo/Dyson tank+filter binaries, lock calibration/tamper alerts
 generic connectivity/error states without an actionable duty
 (tplink overheated, mg_saic/keba unnamed, husqvarna enum error keys —
 those are STRING sensors, not binaries).
+
+## Round 10 (2026-07-20): Miele deep-dive, Samsung filters, Traeger cook cycles
+
+### Miele (deep-dive on request) — current coverage is complete
+
+Full sweep of core miele sensor.py (all ~40 descriptions): beyond the
+covered salt / rinse-aid / PowerDisk / TwinDos levels and the washer
+tub-clean runtime, the only maintenance-adjacent additions are the
+COFFEE_SYSTEM counters `descaling_counter`, `degreasing_counter`,
+`milk_cleaning_counter` — all TOTAL_INCREASING tallies of maintenance
+already PERFORMED (they increment when you descale), so they cannot
+signal due-ness; at best they could someday auto-complete a task.
+Miele's own descaling prompt reaches HA as the `problem`-class
+active-notification binary → already covered by the adoption path
+(and listed in the INTEGRATIONS.md table). Verdict: nothing to add.
+
+### Catalog-ready
+
+1. **SmartThings fridge & hood filters** (core `smartthings`): tk
+   `water_filter_usage` (Samsung custom.waterFilter, %, MEASUREMENT —
+   usage counts UP, replacement resets to 0) → "Replace Water Filter"
+   alert_above 90 %; tk `hood_filter_usage` (SAMSUNG_CE_HOOD_FILTER, %)
+   → "Clean Grease Filter" alert_above 90 %. Complements the existing
+   engine-runtime vacuum signature on the same domain.
+2. **Traeger grills** (HACS default ×2: njobrien1006/hass_traeger and
+   the johnvoipguy/Traeger-WiFire fork — same sensor map, same domain):
+   "Cook Cycle" sensor (usage;cook_cycles, lifetime counter,
+   suffix _cook_cycle, disabled-by-default DIAGNOSTIC) → "Clean Grease
+   Trap" usage_delta 5 cooks + deep clean ("Clean Appliance")
+   usage_delta 20 cooks — Traeger's official cadence (grease
+   management every few cooks, deep clean ~every 20 cooks / twice a
+   season). "Pellet Level" (%) is hopper inventory — same skip rationale
+   as Palazzetti's pellet_level.
+
+### Verified negatives / parked
+
+- **Daikin Onecta** (`daikin_onecta`): full sensor.py sweep — the cloud
+  API exposes no filter or maintenance data at all.
+- **Ariston** (fustom v3): no anode/maintenance/filter entities.
+- **myUplink** (core): mostly device-dynamic parameter points; the few
+  static keys (airflow, rpm, compressor status) carry no consumable
+  semantics. Parked like HomeWhiz.
+- **BMW CarData**: still not in the HACS default store (re-checked).
