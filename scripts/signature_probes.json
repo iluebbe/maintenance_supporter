@@ -118,13 +118,16 @@
  },
  "smartthinq_sensors": {
   "urls": [
-   "https://raw.githubusercontent.com/ollo69/ha-smartthinq-sensors/master/custom_components/smartthinq_sensors/sensor.py"
+   "https://raw.githubusercontent.com/ollo69/ha-smartthinq-sensors/master/custom_components/smartthinq_sensors/sensor.py",
+   "https://raw.githubusercontent.com/ollo69/ha-smartthinq-sensors/master/custom_components/smartthinq_sensors/binary_sensor.py"
   ],
   "strings": [
    "Tub clean counter",
    "Filter Remaining Life",
    "Water filter remaining",
-   "Fresh air filter remaining"
+   "Fresh air filter remaining",
+   "RINSEREFILL",
+   "SALTREFILL"
   ]
  },
  "vicare": {

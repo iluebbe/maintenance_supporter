@@ -2053,3 +2053,32 @@ async def test_round11_core_sweep_wave(
     (ps,) = setups[pool]["tasks"]
     assert ps["task_name"] == "Refill Pool Salt"
     assert ps["direction"] == "value_below" and ps["threshold"] == 2700.0
+
+
+async def test_smartthinq_dishwasher_refill_latches(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """SmartThinQ re-audit (2026-07-20): the dishwasher's rinse/salt refill
+    binaries carry NO device_class → not adoptable, latched as
+    event_present signatures instead."""
+    await setup_integration(hass, global_entry)
+    source = MockConfigEntry(domain="smartthinq_sensors", title="ThinQ")
+    source.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(
+        config_entry_id=source.entry_id,
+        identifiers={("smartthinq_sensors", "dw1")},
+        name="LG Dishwasher",
+    )
+    ent = er.async_get(hass)
+    for suffix in ("rinse_refill", "salt_refill"):
+        e = ent.async_get_or_create(
+            "binary_sensor", "smartthinq_sensors", f"dw1-{suffix}",
+            config_entry=source, device_id=dev.id,
+            suggested_object_id=f"lg_dishwasher_{suffix}",
+        )
+        hass.states.async_set(e.entity_id, "off")
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    by_name = {t["task_name"]: t for t in setups[dev.id]["tasks"]}
+    assert set(by_name) == {"Refill Rinse Aid", "Refill Salt"}
+    assert all(t["direction"] == "event_present" for t in by_name.values())

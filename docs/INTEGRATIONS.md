@@ -281,6 +281,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | LG ThinQ (SmartThinQ) | `smartthinq_sensors` | Replace Filter | below 10 % remaining |  |
 |  |  | Replace Water Filter | below 10 % remaining |  |
 |  |  | Clean Tub | at 30 h counted by the device |  |
+|  |  | Refill Rinse Aid | while the appliance reports 'on' | binary_sensor entity |
+|  |  | Refill Salt | while the appliance reports 'on' | binary_sensor entity |
 | Home Connect | `home_connect` | Refill Salt | while the appliance reports 'present' |  |
 |  |  | Refill Rinse Aid | while the appliance reports 'present' |  |
 |  |  | Descale Appliance | while the appliance reports 'present' |  |
@@ -387,6 +389,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**117 integrations / 217 verified signatures.**
+**117 integrations / 219 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
