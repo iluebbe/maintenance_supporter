@@ -166,20 +166,18 @@ async def test_setup_trigger_carries_both_entity_id_shapes(
     assert tc["entity_ids"] == ["sensor.maintenance_supporter_batteries_to_replace"]
 
 
-async def test_reconcile_repairs_wiped_trigger_keeping_user_edits(
+async def test_update_cannot_null_fleet_trigger(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
-    # Full #106 reproduction: the user renames/re-types the fleet task and the
-    # (buggy) dialog sends trigger_config=null — then re-running setup repairs
-    # the trigger without touching the user's translations.
+    # #106 belt-and-braces: even a stale/cached frontend bundle that fails to
+    # round-trip the trigger (sends trigger_config=null with an unrelated
+    # edit) must NOT wipe the fleet task's trigger — the backend ignores the
+    # null for the flagged task while every other field still applies.
     await setup_integration(hass, global_entry)
     _battery(hass, "lock", "AA", 4, low=True)
 
     from custom_components.maintenance_supporter.helpers.battery_fleet_setup import fleet_task_trigger_ok
-    from custom_components.maintenance_supporter.websocket.battery_fleet import (
-        ws_battery_fleet_overview,
-        ws_battery_fleet_setup,
-    )
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
     from custom_components.maintenance_supporter.websocket.tasks_crud import ws_update_task
 
     conn = make_ws_connection()
@@ -187,7 +185,7 @@ async def test_reconcile_repairs_wiped_trigger_keeping_user_edits(
     entry = _fleet_entry(hass)
     (task_id,) = entry.data[CONF_TASKS]
 
-    # The user's edit as the old dialog sent it: rename + type + trigger nulled.
+    # The reporter's edit as a stale dialog sends it: rename + type + null trigger.
     conn2 = make_ws_connection()
     await call_ws_handler(
         ws_update_task,
@@ -198,7 +196,7 @@ async def test_reconcile_repairs_wiped_trigger_keeping_user_edits(
             "type": "x",
             "entry_id": entry.entry_id,
             "task_id": task_id,
-            "name": "Remplacer batteries faibles",
+            "name": "Remplacer les piles",
             "task_type": "replacement",
             "warning_days": 1,
             "trigger_config": None,
@@ -206,9 +204,80 @@ async def test_reconcile_repairs_wiped_trigger_keeping_user_edits(
     )
     assert not conn2.send_error.called, conn2.send_error.call_args
     entry = _fleet_entry(hass)
-    broken = entry.data[CONF_TASKS][task_id]
-    assert broken.get("trigger_config") is None
-    assert broken["battery_fleet_task"] is True  # the flag survives the edit
+    task = entry.data[CONF_TASKS][task_id]
+    # Edit applied — but the trigger survived.
+    assert task["name"] == "Remplacer les piles"
+    assert task["type"] == "replacement"
+    assert task["warning_days"] == 1
+    assert task["trigger_config"]["type"] == "threshold"
+    assert fleet_task_trigger_ok(entry) is True
+
+    # A NORMAL task's trigger is still removable via null (unchanged behavior).
+    from custom_components.maintenance_supporter.websocket.tasks_crud import ws_create_task
+
+    conn3 = make_ws_connection()
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn3,
+        {
+            "id": 3,
+            "type": "x",
+            "entry_id": entry.entry_id,
+            "name": "Normal sensor task",
+            "task_type": "inspection",
+            "schedule_type": "sensor_based",
+            "trigger_config": {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 5},
+        },
+    )
+    assert not conn3.send_error.called, conn3.send_error.call_args
+    entry = _fleet_entry(hass)
+    normal_id = next(tid for tid, td in entry.data[CONF_TASKS].items() if td["name"] == "Normal sensor task")
+    conn4 = make_ws_connection()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn4,
+        {"id": 4, "type": "x", "entry_id": entry.entry_id, "task_id": normal_id, "trigger_config": None},
+    )
+    assert not conn4.send_error.called, conn4.send_error.call_args
+    entry = _fleet_entry(hass)
+    assert entry.data[CONF_TASKS][normal_id].get("trigger_config") is None
+
+
+async def test_reconcile_repairs_wiped_trigger_keeping_user_edits(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    # Repair path for installs broken BEFORE the update guard existed: the
+    # stored fleet task has trigger_config=None — re-running setup (the Repair
+    # button) restores the canonical trigger without touching the user's edits.
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import fleet_task_trigger_ok
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_overview,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    entry = _fleet_entry(hass)
+    (task_id,) = entry.data[CONF_TASKS]
+
+    # Corrupt the stored task directly (what a pre-guard client left behind).
+    new_data = dict(entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    broken_task = dict(new_tasks[task_id])
+    broken_task["trigger_config"] = None
+    broken_task["name"] = "Remplacer batteries faibles"
+    broken_task["type"] = "replacement"
+    broken_task["warning_days"] = 1
+    new_tasks[task_id] = broken_task
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    entry = _fleet_entry(hass)
     assert fleet_task_trigger_ok(entry) is False
 
     # Overview surfaces the broken state (drives the panel's Repair button).
