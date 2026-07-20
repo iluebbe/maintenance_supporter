@@ -19,11 +19,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "PERCENTAGE). Disk-health thresholds ship as device_class: safety "
             "binaries → covered by problem-sensor adoption (widened to safety)."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85
-            ),
-        ),
+        tasks=(ConsumableSignature(("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85),),
     ),
     "qnap": IntegrationSignature(
         name="QNAP NAS",
@@ -33,10 +29,6 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'volume_percentage_used', PERCENTAGE — same key "
             "shape as synology_dsm)."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85
-            ),
-        ),
+        tasks=(ConsumableSignature(("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85),),
     ),
 }

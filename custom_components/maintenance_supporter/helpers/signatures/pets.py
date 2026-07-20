@@ -34,13 +34,19 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "percent_left; total_cycles lifetime counter -> usage_delta)."
         ),
         tasks=(
-            ConsumableSignature(
-                ("waste_drawer",), "Empty Waste Drawer", "alert_above", delta_units=90
-            ),
+            ConsumableSignature(("waste_drawer",), "Empty Waste Drawer", "alert_above", delta_units=90),
             ConsumableSignature(("litter_level",), "Refill Litter", "percent_left"),
-            ConsumableSignature(
-                ("total_cycles",), "Wash Litter Box", "usage_delta", delta_units=150
-            ),
+            ConsumableSignature(("total_cycles",), "Wash Litter Box", "usage_delta", delta_units=150),
         ),
+    ),
+    "eheimdigital": IntegrationSignature(
+        name="EHEIM Digital (aquarium)",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core eheimdigital: tk 'service_hours' (DURATION, HOURS remaining "
+            "to the next filter service, suggested display DAYS) — the "
+            "filter's own service countdown."
+        ),
+        tasks=(ConsumableSignature(("service_hours",), "Filter Cleaning", "duration_left"),),
     ),
 }

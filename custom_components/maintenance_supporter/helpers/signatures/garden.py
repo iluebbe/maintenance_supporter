@@ -141,4 +141,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    # Pool chlorinator salt: refill when the water's salt concentration
+    # drops below the generator's operating band (Pentair: 2600-4500 ppm;
+    # low-salt cells stop producing chlorine). Topping up raises the value
+    # back — auto-resolve.
+    "screenlogic": IntegrationSignature(
+        name="Pentair ScreenLogic",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core screenlogic: tk 'salt_ppm' (MEASUREMENT, ppm) — IntelliChlor salt concentration."),
+        tasks=(ConsumableSignature(("salt_ppm",), "Refill Pool Salt", "value_below", delta_units=2700),),
+    ),
+    "ondilo_ico": IntegrationSignature(
+        name="Ondilo ICO",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core ondilo_ico: tk 'salt' (mg/L ≡ ppm numerically) — pool salt concentration."),
+        tasks=(ConsumableSignature(("salt",), "Refill Pool Salt", "value_below", delta_units=2700),),
+    ),
 }

@@ -39,6 +39,8 @@ odometer/countdown duties above:
 | **Volvo** (core) | 28 warning binaries: oil, coolant and brake-fluid levels, washer fluid, per-lamp bulb failures, per-tire pressure | Fluid top-ups, bulb replacement, tire checks |
 | **Mercedes-Benz** (HACS mbapi2020) | brake fluid, wash water, coolant level, aux battery, tire warnings | Same family |
 | **Audi Connect** (HACS) | oil-level warning (`problem`), parking-light/braking status (`safety`) | Oil top-up, light check |
+| **Tesla Fleet / Teslemetry / Tessie** (core) | per-tire TPMS soft warnings | Tire checks |
+| **RDW** (core, NL) | `pending_recall` — the official Dutch vehicle-recall register | Book the recall fix |
 
 **Appliances & home:**
 
@@ -66,6 +68,18 @@ odometer/countdown duties above:
 | **Tedee** (core) | lock uncalibrated | Recalibrate lock |
 | **Schlage** (core) | keypad disabled | Lock service check |
 | **SwitchBot** (core) | lock/door unclosed + unlocked alarms, `tamper` alarm | Door/lock checks |
+| **Yale Smart Alarm** (core) | lock jam, tamper, AC-fail | Lock/panel service |
+| **CoolMaster** (core) | `clean_filter` per AC unit | AC filter cleaning |
+| **Fjäråskupan** (core) | hood carbon-filter + grease-filter alerts | Replace/clean hood filters |
+| **Flexit Nordic** (core) | `air_filter_polluted` (alongside the catalog's operating-time duty) | Filter change |
+| **IntelliFire** (core) | fireplace maintenance / fan / flame / accessory errors | Fireplace service |
+| **LetPot** (core) | hydroponics low-water, low-nutrients, pump error | Refill / pump check |
+| **Shelly** (core) | TRV `calibration`, relay `overheating` | Recalibrate valve / inspect load |
+| **UniFi Protect** (core) | `disk_health`, `tampering` | Replace recorder disk |
+| **Hikvision** (core) | disk error/full, `tamper_detection` | Replace/clear recorder disk |
+| **Samsung SyncThru** (core) | printer `problem` state | Printer fault triage |
+| **Rehlko / Kohler** (core) | generator `oil_pressure` (alongside the catalog's 100-h oil service) | Immediate oil check |
+| **myUplink** (core) | `has_alarm` — the heat pump's generic alarm flag | Heat-pump service check |
 | **ZHA / Z-Wave JS / deCONZ / MQTT** | device-dependent `tamper` + smoke-detector fault binaries | Detector service / tamper checks |
 | **KNX** | any binary object the user maps with device class `problem`/`safety`/`tamper` (KNX entities are fully user-configured — set the class on your fault/maintenance group addresses and they become adoptable) | Whatever the object signals |
 
@@ -145,6 +159,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Husqvarna Automower BLE | `husqvarna_automower_ble` | Replace Blades | every 100 h counted by the engine | lawn_mower entity; active: mowing |
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
 | Rain Bird irrigation | `rainbird` | Clean Sprinkler Heads | every 30 h counted by the engine | switch entity; active: on |
+| Pentair ScreenLogic | `screenlogic` | Refill Pool Salt | below 2700 |  |
+| Ondilo ICO | `ondilo_ico` | Refill Pool Salt | below 2700 |  |
 
 ## Cars and EVs — odometer-driven service duties
 
@@ -182,6 +198,16 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Annual Service | below 1000 |  |
 |  |  | Oil Service | below 14 days remaining |  |
 |  |  | Oil Service | below 1000 |  |
+| Tesla Fleet | `tesla_fleet` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Teslemetry | `teslemetry` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Tessie | `tessie` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Ituran | `ituran` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| StarLine | `starline` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
 
@@ -212,6 +238,9 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Vaillant (myVAILLANT) | `mypyllant` | Refill Heating Water | below 1 |  |
 | Grohe Blue | `grohe_smarthome` | Replace Water Filter | below 10 % remaining |  |
 |  |  | Replace CO2 Bottle | below 10 % remaining |  |
+| Fumis (pellet stoves) | `fumis` | Annual Service | below 24 h remaining |  |
+| Rehlko / Kohler generators | `rehlko` | Oil Service | at 100 h counted by the device |  |
+| AquaCell softener | `aquacell` | Refill Softener Salt | below 10 % remaining |  |
 
 ## Air treatment — purifiers, ACs and HRV/ventilation filters
 
@@ -237,6 +266,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Coway IoCare | `coway` | Filter Cleaning | below 10 % remaining |  |
 |  |  | Replace Filter | below 10 % remaining |  |
 | Winix | `winix` | Replace Filter | below 10 % remaining |  |
+| Duco ventilation | `duco` | Replace Ventilation Filter | below 7 days remaining |  |
+| Flexit Nordic | `flexit_bacnet` | Replace Ventilation Filter | at 4380 h counted by the device |  |
+| IKEA Trådfri (STARKVIND) | `tradfri` | Replace Filter | below 3 days remaining |  |
+| Venstar thermostat | `venstar` | Replace Filter | at 300 h counted by the device |  |
 
 ## Kitchen & household appliances incl. espresso machines
 
@@ -335,6 +368,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Litter-Robot | `litterrobot` | Empty Waste Drawer | above 90 |  |
 |  |  | Refill Litter | below 10 % remaining |  |
 |  |  | Wash Litter Box | every 150 units (counter delta) |  |
+| EHEIM Digital (aquarium) | `eheimdigital` | Filter Cleaning | below 24 h remaining |  |
 
 ## Personal-care devices
 
@@ -353,6 +387,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**102 integrations / 197 verified signatures.**
+**117 integrations / 217 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

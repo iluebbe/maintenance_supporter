@@ -26,7 +26,5 @@ SIGNATURES: dict[str, IntegrationSignature] = {}
 for _mod in _MODULES:
     for _domain, _sig in _mod.SIGNATURES.items():
         if _domain in SIGNATURES:  # pragma: no cover — tripwired
-            raise ValueError(
-                f"duplicate signature domain {_domain!r} in {_mod.__name__}"
-            )
+            raise ValueError(f"duplicate signature domain {_domain!r} in {_mod.__name__}")
         SIGNATURES[_domain] = _sig

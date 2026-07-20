@@ -86,25 +86,41 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 on_states=("locked",),
             ),
             ConsumableSignature(
-                (), "Filter Cleaning", "runtime_hours", delta_units=15,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=15,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Clean Main Brush", "runtime_hours", delta_units=30,
-                entity_domain="vacuum", on_states=("cleaning",),
+                (),
+                "Clean Main Brush",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="vacuum",
+                on_states=("cleaning",),
             ),
             ConsumableSignature(
-                (), "Replace Blades", "runtime_hours", delta_units=100,
-                entity_domain="lawn_mower", on_states=("mowing",),
+                (),
+                "Replace Blades",
+                "runtime_hours",
+                delta_units=100,
+                entity_domain="lawn_mower",
+                on_states=("mowing",),
             ),
             ConsumableSignature(
-                (), "Clean Undercarriage", "runtime_hours", delta_units=25,
-                entity_domain="lawn_mower", on_states=("mowing",),
+                (),
+                "Clean Undercarriage",
+                "runtime_hours",
+                delta_units=25,
+                entity_domain="lawn_mower",
+                on_states=("mowing",),
             ),
         ),
     ),
-            # MQTT vacuums (Valetudo!) and mowers (OpenMower) expose only
-            # state entities — engine-accumulated usage covers their duties.
+    # MQTT vacuums (Valetudo!) and mowers (OpenMower) expose only
+    # state entities — engine-accumulated usage covers their duties.
     "homekit_controller": IntegrationSignature(
         name="HomeKit lock",
         verified="2026-07-18 @ home-assistant/core dev",
@@ -133,8 +149,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                (), "Lubricate Cylinder", "cycle_count", delta_units=2000,
-                entity_domain="lock", on_states=("locked",),
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
             ),
         ),
     ),

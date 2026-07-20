@@ -1963,3 +1963,93 @@ async def test_rainbird_zone_switch_runtime(
     assert task["task_name"] == "Clean Sprinkler Heads"
     assert task["direction"] == "runtime_hours" and task["threshold"] == 30.0
     assert task["entity_ids"] == [sw.entity_id]
+
+
+async def test_round11_core_sweep_wave(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Round 11 (full core sweep): Tesla trio odometers (native miles),
+    HRV/thermostat filters incl. the dual venstar tks, aquarium/pellet/
+    generator countdowns, AquaCell salt, pool salt value_below."""
+    await setup_integration(hass, global_entry)
+    tesla = await _seed_sensor(
+        hass, "teslemetry", "m3", "Model 3",
+        [("vehicle_state_odometer", "vehicle_state_odometer", "mi")],
+    )
+    duco_box = await _seed_sensor(
+        hass, "duco", "box1", "DucoBox",
+        [("filter_remaining", "filter_remaining", "d")],
+    )
+    flexit = await _seed_sensor(
+        hass, "flexit_bacnet", "n2", "Flexit Nordic S2",
+        [("air_filter_operating_time", "air_filter_operating_time", "h")],
+    )
+    starkvind = await _seed_sensor(
+        hass, "tradfri", "sv1", "STARKVIND",
+        [("filter_life_remaining", "filter_life_remaining", "h")],
+    )
+    venstar_t = await _seed_sensor(
+        hass, "venstar", "t7900", "ColorTouch",
+        [("filterHours", "filter_install_time", "h"), ("filterDays", "filter_usage", "d")],
+    )
+    aquarium = await _seed_sensor(
+        hass, "eheimdigital", "pro5", "EHEIM professionel 5e",
+        [("service_hours", "service_hours", "d")],
+    )
+    stove = await _seed_sensor(
+        hass, "fumis", "alpha1", "Fumis Alpha",
+        [("time_to_service", "time_to_service", "h")],
+    )
+    genset = await _seed_sensor(
+        hass, "rehlko", "20resc", "Kohler 20RESC",
+        [("runtime", "runtime_since_last_maintenance", "h")],
+    )
+    softener = await _seed_sensor(
+        hass, "aquacell", "ac1", "AquaCell",
+        [("salt_left", "salt_left_side_percentage", "%"), ("salt_right", "salt_right_side_percentage", "%")],
+    )
+    pool = await _seed_sensor(
+        hass, "screenlogic", "ic40", "IntelliChlor",
+        [("salt_ppm", "salt_ppm", "ppm")],
+    )
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+
+    by_name = {t["task_name"]: t for t in setups[tesla]["tasks"]}
+    # Native miles: 15000/10000 canonical km are converted to the display unit.
+    assert round(by_name["Annual Service"]["threshold"]) == round(15000 * 0.62137)
+    assert round(by_name["Tire Rotation"]["threshold"]) == round(10000 * 0.62137)
+
+    (dv,) = setups[duco_box]["tasks"]
+    assert dv["task_name"] == "Replace Ventilation Filter"
+    assert dv["direction"] == "duration_left" and dv["threshold"] == 7.0  # 168 h in days
+
+    (fx,) = setups[flexit]["tasks"]
+    assert fx["direction"] == "usage_above" and fx["threshold"] == 4380.0
+
+    (sv,) = setups[starkvind]["tasks"]
+    assert sv["task_name"] == "Replace Filter" and sv["threshold"] == 72.0
+
+    (vt,) = setups[venstar_t]["tasks"]
+    assert vt["task_name"] == "Replace Filter"
+    assert vt["direction"] == "usage_above" and vt["threshold"] == 300.0
+    # Only the runtime-hours entity carries the duty — the calendar-days
+    # sibling is deliberately unmatched.
+    assert len(vt["entity_ids"]) == 1
+
+    (aq,) = setups[aquarium]["tasks"]
+    assert aq["task_name"] == "Filter Cleaning" and aq["threshold"] == 1.0  # 24 h in days
+
+    (st,) = setups[stove]["tasks"]
+    assert st["task_name"] == "Annual Service" and st["threshold"] == 24.0
+
+    (gs,) = setups[genset]["tasks"]
+    assert gs["task_name"] == "Oil Service"
+    assert gs["direction"] == "usage_above" and gs["threshold"] == 100.0
+
+    (sf,) = setups[softener]["tasks"]
+    assert sf["task_name"] == "Refill Softener Salt" and len(sf["entity_ids"]) == 2
+
+    (ps,) = setups[pool]["tasks"]
+    assert ps["task_name"] == "Refill Pool Salt"
+    assert ps["direction"] == "value_below" and ps["threshold"] == 2700.0

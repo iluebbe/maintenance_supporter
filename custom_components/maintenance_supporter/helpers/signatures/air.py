@@ -173,4 +173,54 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
     ),
+    "duco": IntegrationSignature(
+        name="Duco ventilation",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=("core duco: tk 'filter_remaining' (DURATION, DAYS) — the box's own filter countdown."),
+        tasks=(ConsumableSignature(("filter_remaining",), "Replace Ventilation Filter", "duration_left", below_hours=168),),
+    ),
+    "flexit_bacnet": IntegrationSignature(
+        name="Flexit Nordic",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core flexit_bacnet: tk 'air_filter_operating_time' "
+            "(TOTAL_INCREASING, HOURS — counts UP, reset on filter change) → "
+            "usage_above at 4380 h (Flexit: change the filter every 6-12 "
+            "months). An 'air_filter_polluted' problem binary also exists "
+            "(adoption path)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("air_filter_operating_time",),
+                "Replace Ventilation Filter",
+                "usage_above",
+                above_hours=4380,
+            ),
+        ),
+    ),
+    "tradfri": IntegrationSignature(
+        name="IKEA Trådfri (STARKVIND)",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core tradfri: tk 'filter_life_remaining' (MEASUREMENT, HOURS "
+            "remaining) — STARKVIND purifiers on the NATIVE IKEA gateway "
+            "(the DIRIGERA path is covered separately)."
+        ),
+        tasks=(ConsumableSignature(("filter_life_remaining",), "Replace Filter", "duration_left", below_hours=72),),
+    ),
+    "venstar": IntegrationSignature(
+        name="Venstar thermostat",
+        verified="2026-07-20 @ home-assistant/core dev",
+        source=(
+            "core venstar CONSUMABLE_ENTITIES: key 'filterHours' carries tk "
+            "'filter_install_time' (HOURS of filter RUNTIME, counts UP, "
+            "user-reset on change) — 300 h ≈ the typical 1-3-month "
+            "furnace-filter guidance. The sibling 'filterDays'/tk "
+            "'filter_usage' (CALENDAR days since install) ships alongside it "
+            "and is skipped: same duty, weaker wear proxy, and two "
+            "same-direction signatures of one task name would collide in "
+            "discovery's per-device dedupe."
+        ),
+        tasks=(ConsumableSignature(("filter_install_time",), "Replace Filter", "usage_above", above_hours=300),),
+    ),
 }

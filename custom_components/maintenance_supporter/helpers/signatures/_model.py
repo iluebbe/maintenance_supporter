@@ -122,7 +122,6 @@ class IntegrationSignature:
     tasks: tuple[ConsumableSignature, ...] = field(default_factory=tuple)
 
 
-
 def task_name_variants(task_name: str) -> set[str]:
     """The EN signature task name plus all its localizations, lowercased —
     used to recognise an equivalent EXISTING task on the target object
@@ -223,9 +222,7 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     return round(hours * factor, 3)
 
 
-def build_setup_trigger(
-    sig: ConsumableSignature, hass: HomeAssistant, entity_ids: list[str]
-) -> dict[str, Any]:
+def build_setup_trigger(sig: ConsumableSignature, hass: HomeAssistant, entity_ids: list[str]) -> dict[str, Any]:
     """A pre-wired trigger for one signature's matched entities.
 
     Numeric signatures build a threshold trigger with ``entity_logic: any``
@@ -297,7 +294,9 @@ def build_setup_trigger(
             trigger["trigger_baseline_value"] = 0
             trigger["auto_complete_on_recovery"] = True
         return trigger
-    threshold_key = "trigger_above" if sig.direction == "alert_above" else "trigger_below"  # value_below + consumables use trigger_below
+    threshold_key = (
+        "trigger_above" if sig.direction == "alert_above" else "trigger_below"
+    )  # value_below + consumables use trigger_below
     return {
         "type": "threshold",
         "entity_ids": list(entity_ids),
@@ -305,5 +304,3 @@ def build_setup_trigger(
         "entity_logic": "any",
         "auto_complete_on_recovery": True,
     }
-
-

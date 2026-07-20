@@ -82,8 +82,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                ("printing",), "Lubricate Rails and Rods", "runtime_hours",
-                delta_units=200, entity_domain="binary_sensor", on_states=("on",),
+                ("printing",),
+                "Lubricate Rails and Rods",
+                "runtime_hours",
+                delta_units=200,
+                entity_domain="binary_sensor",
+                on_states=("on",),
             ),
         ),
     ),
@@ -97,8 +101,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(
-                ("printer_state",), "Lubricate Rails and Rods", "runtime_hours",
-                delta_units=200, on_states=("printing",),
+                ("printer_state",),
+                "Lubricate Rails and Rods",
+                "runtime_hours",
+                delta_units=200,
+                on_states=("printing",),
             ),
         ),
     ),
@@ -111,11 +118,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "NOTE: 'Totals Print Time' is a formatted STRING — unusable. "
             "Nozzle interval is an editorial default (~1000 m on brass)."
         ),
-        tasks=(
-            ConsumableSignature(
-                ("totals_filament_used",), "Replace Nozzle", "usage_delta", delta_units=1000
-            ),
-        ),
+        tasks=(ConsumableSignature(("totals_filament_used",), "Replace Nozzle", "usage_delta", delta_units=1000),),
     ),
     "ipp": IntegrationSignature(
         name="IPP printer",

@@ -912,5 +912,131 @@
    "Sprinkler",
    "for zone in coordinator.data.zones"
   ]
+ },
+ "tesla_fleet": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tesla_fleet/sensor.py"
+  ],
+  "strings": [
+   "vehicle_state_odometer"
+  ]
+ },
+ "teslemetry": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/teslemetry/sensor.py"
+  ],
+  "strings": [
+   "vehicle_state_odometer"
+  ]
+ },
+ "tessie": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tessie/sensor.py"
+  ],
+  "strings": [
+   "vehicle_state_odometer"
+  ]
+ },
+ "ituran": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ituran/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"mileage\""
+  ]
+ },
+ "starline": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/starline/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"mileage\""
+  ]
+ },
+ "duco": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/duco/sensor.py"
+  ],
+  "strings": [
+   "key=\"filter_remaining\"",
+   "UnitOfTime.DAYS"
+  ]
+ },
+ "flexit_bacnet": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/flexit_bacnet/sensor.py"
+  ],
+  "strings": [
+   "air_filter_operating_time",
+   "TOTAL_INCREASING"
+  ]
+ },
+ "tradfri": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tradfri/sensor.py"
+  ],
+  "strings": [
+   "filter_life_remaining"
+  ]
+ },
+ "venstar": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/venstar/sensor.py"
+  ],
+  "strings": [
+   "key=\"filterHours\"",
+   "translation_key=\"filter_install_time\"",
+   "translation_key=\"filter_usage\""
+  ]
+ },
+ "eheimdigital": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/eheimdigital/sensor.py"
+  ],
+  "strings": [
+   "key=\"service_hours\""
+  ]
+ },
+ "fumis": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/fumis/sensor.py"
+  ],
+  "strings": [
+   "key=\"time_to_service\""
+  ]
+ },
+ "rehlko": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/rehlko/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"runtime_since_last_maintenance\""
+  ]
+ },
+ "aquacell": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/aquacell/sensor.py"
+  ],
+  "strings": [
+   "salt_left_side_percentage",
+   "salt_right_side_percentage"
+  ]
+ },
+ "screenlogic": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/screenlogic/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"salt_ppm\""
+  ]
+ },
+ "ondilo_ico": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ondilo_ico/sensor.py"
+  ],
+  "strings": [
+   "key=\"salt\"",
+   "\"mg/L\""
+  ]
  }
 }
