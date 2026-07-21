@@ -147,6 +147,31 @@ async def test_setup_works_with_native_batteries_only(
     assert res["low"][0]["entity_id"] == "sensor.phone_battery"
 
 
+async def test_setup_seeds_localized_names(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    # The created object/task/part names + notes follow the caller's UI
+    # language (the #106 reporter translated them manually — now unneeded).
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x", "language": "de"})
+    assert not conn.send_error.called, conn.send_error.call_args
+    entry = _fleet_entry(hass)
+    assert entry.data[CONF_OBJECT]["name"] == "Batterie-Flotte"
+    (task,) = entry.data[CONF_TASKS].values()
+    assert task["name"] == "Schwache Batterien ersetzen"
+    assert task["notes"].startswith("Gesammelte Batterie-Prüfung")
+    part = entry.data[CONF_PARTS]["batt_aa"]
+    assert part["name"] == "AA-Batterie"
+    assert part["notes"] == "Typische Lebensdauer ~12 Monate."
+    # Trigger stays canonical regardless of language.
+    assert task["trigger_config"]["entity_id"] == "sensor.maintenance_supporter_batteries_to_replace"
+
+
 async def test_setup_trigger_carries_both_entity_id_shapes(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

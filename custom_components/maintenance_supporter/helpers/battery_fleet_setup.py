@@ -38,22 +38,27 @@ def find_fleet_entry(hass: HomeAssistant) -> ConfigEntry | None:
     return None
 
 
-async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
+async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = None) -> dict[str, Any]:
     """Create (or return) the Battery Fleet object with type-parts + the task.
 
     Idempotent: a second call reconciles the type-parts against the current
     fleet (adds parts for newly-seen types) and returns the existing entry.
+    ``language`` is the caller's UI language (same contract as the template
+    WS): the created object/task/part names and notes are localized through
+    the ``_T`` table, falling back to the server language, then English.
     """
     from ..websocket.objects import async_create_object
     from ..websocket.tasks_persist import async_persist_task
+    from .i18n import normalize_language
     from .parts import normalize_part
 
+    lang = (language or normalize_language(hass))[:2].lower()
     types = discover_battery_types(hass)  # {TYPE: total_qty}
 
     existing = find_fleet_entry(hass)
     if existing is not None:
-        added = _reconcile_type_parts(hass, existing, types)
-        repaired = await _reconcile_fleet_task(hass, existing)
+        added = _reconcile_type_parts(hass, existing, types, lang)
+        repaired = await _reconcile_fleet_task(hass, existing, lang)
         return {
             "entry_id": existing.entry_id,
             "created": False,
@@ -62,7 +67,9 @@ async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
             "task_repaired": repaired,
         }
 
-    entry_id = await async_create_object(hass, name="Battery Fleet")
+    from ..templates import localize_template_text
+
+    entry_id = await async_create_object(hass, name=localize_template_text("Battery Fleet", lang) or "Battery Fleet")
     entry = hass.config_entries.async_get_entry(entry_id)
     if entry is None:  # pragma: no cover — just created above
         raise HomeAssistantError("Battery Fleet object entry vanished after creation")
@@ -74,7 +81,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
     new_data[CONF_OBJECT] = obj
     parts: dict[str, dict[str, Any]] = {}
     for btype, total_qty in types.items():
-        part = normalize_part(_type_part(btype, total_qty))
+        part = normalize_part(_type_part(btype, total_qty, lang))
         parts[part["id"]] = part
     new_data[CONF_PARTS] = parts
     hass.config_entries.async_update_entry(entry, data=new_data)
@@ -88,19 +95,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant) -> dict[str, Any]:
         await store.async_save()
 
     # The single aggregate task, triggered by the global low-count sensor.
-    obj_id = obj.get("id", "")
-    task = {
-        "id": uuid4().hex,
-        "object_id": obj_id,
-        "name": "Replace low batteries",
-        "type": "inspection",
-        "enabled": True,
-        TASK_FLAG: True,
-        "schedule": {"kind": "manual"},
-        "trigger_config": _fleet_trigger_config(),
-        "created_at": dt_util.now().date().isoformat(),
-        "notes": ("Aggregate battery check. The detail view lists which devices are low and which battery types to buy."),
-    }
+    task = _fleet_task(obj.get("id", ""), lang)
     await async_persist_task(hass, entry, task)
 
     return {
@@ -130,23 +125,48 @@ def _fleet_trigger_config() -> dict[str, Any]:
     }
 
 
-def _type_part(btype: str, total_qty: int) -> dict[str, Any]:
-    """A spare-part definition for one battery type.
+def _fleet_task(obj_id: str, lang: str) -> dict[str, Any]:
+    """The single aggregate fleet task, with localized name + notes."""
+    from ..templates import localize_template_text
+
+    return {
+        "id": uuid4().hex,
+        "object_id": obj_id,
+        "name": localize_template_text("Replace low batteries", lang) or "Replace low batteries",
+        "type": "inspection",
+        "enabled": True,
+        TASK_FLAG: True,
+        "schedule": {"kind": "manual"},
+        "trigger_config": _fleet_trigger_config(),
+        "created_at": dt_util.now().date().isoformat(),
+        "notes": localize_template_text(
+            "Aggregate battery check. The detail view lists which devices are low and which battery types to buy.",
+            lang,
+        ),
+    }
+
+
+def _type_part(btype: str, total_qty: int, lang: str) -> dict[str, Any]:
+    """A spare-part definition for one battery type (localized name/notes).
 
     reorder_threshold defaults to keeping a spare set roughly the size of the
     fleet's need for that type (min 2); restock is double that. auto_buy_task
     stays off so setup never spawns extra buy-tasks — the fleet task's detail
     is the shopping surface; the user can enable auto-buy per type later.
     """
+    from ..templates import localize_template_text
+
     threshold = max(2, total_qty)
+    name_tpl = localize_template_text("{type} battery", lang) or "{type} battery"
+    notes_tpl = localize_template_text("Typical service life ~{months} months.", lang) or "Typical service life ~{months} months."
     return {
         "id": f"batt_{btype.lower()}",
-        "name": f"{btype} battery",
+        "name": name_tpl.format(type=btype),
         "unit": "pcs",
         "reorder_threshold": threshold,
         "restock_quantity": threshold * 2,
         "auto_buy_task": False,
-        "notes": f"Typical service life ~{lifetime_months(btype)} months (editorial).",
+        "notes": notes_tpl.format(months=lifetime_months(btype)),
     }
 
 
@@ -223,12 +243,12 @@ def fleet_task_trigger_ok(entry: ConfigEntry) -> bool:
     return tc.get("type") == "threshold" and LOW_COUNT_ENTITY_ID in eids
 
 
-async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: str) -> bool:
     """Repair the fleet task if broken. Returns True when something was fixed.
 
     * Trigger lost (issue #106) → restore the canonical threshold trigger,
       keeping the user's name/type/translations untouched.
-    * Task deleted entirely → recreate it fresh.
+    * Task deleted entirely → recreate it fresh (localized).
     """
     from ..websocket.tasks_persist import async_persist_task
 
@@ -249,23 +269,11 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry) -> bool
         return True
 
     obj = entry.data.get(CONF_OBJECT, {})
-    task = {
-        "id": uuid4().hex,
-        "object_id": obj.get("id", ""),
-        "name": "Replace low batteries",
-        "type": "inspection",
-        "enabled": True,
-        TASK_FLAG: True,
-        "schedule": {"kind": "manual"},
-        "trigger_config": _fleet_trigger_config(),
-        "created_at": dt_util.now().date().isoformat(),
-        "notes": ("Aggregate battery check. The detail view lists which devices are low and which battery types to buy."),
-    }
-    await async_persist_task(hass, entry, task)
+    await async_persist_task(hass, entry, _fleet_task(obj.get("id", ""), lang))
     return True
 
 
-def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int]) -> int:
+def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int], lang: str) -> int:
     """Add parts for battery types newly seen since setup. Returns count added."""
     from .parts import normalize_part
 
@@ -275,7 +283,7 @@ def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[s
     for btype, total_qty in types.items():
         pid = f"batt_{btype.lower()}"
         if pid not in existing_ids:
-            parts[pid] = normalize_part(_type_part(btype, total_qty))
+            parts[pid] = normalize_part(_type_part(btype, total_qty, lang))
             added += 1
     if added:
         new_data = dict(entry.data)
