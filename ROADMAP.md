@@ -497,6 +497,48 @@ Smaller, high-frequency wins first; each ships independently.
 Refactorings that keep the codebase healthy as it grows — no user-visible
 changes, but they gate how cheap the features above are to build.
 
+### Regression-class guards (proposed 2026-07, from a 854-commit history audit)
+
+A retrospective over all 180 `fix:` commits found the recurring regression
+classes. The largest by user impact: **field round-trip / surface closure**
+(~30 commits, 6 user-filed issues: #42 #50 #58 #88 #103 #106) — a persisted
+field exists, but one of the read→edit→write surfaces (WS summary, dialog
+hydration, dialog save, options flow, service, import/export) doesn't carry
+it, so the next save silently drops or resets it. i18n gaps (the #2 class)
+were closed 2026-07 with the value gates + `add_locale_key.py`. These guards
+target what's left:
+
+1. 💡 **Contract-fixture round-trip test** (kills the #42/#50/#58/#88/#103/#106
+   class structurally). A backend test builds a MAXIMAL task (every storage
+   field populated), emits the real `_build_task_summary` output as a
+   committed JSON fixture; a frontend test hydrates the task dialog from
+   exactly that fixture, saves, and deep-diffs the update payload against it.
+   Plus a field-inventory tripwire: any key in `ws_update_task`'s `field_map`
+   / `normalize_task_storage` that is missing from the fixture fails with
+   "new field X not covered by the round-trip". A new field can then never
+   re-open the class, and the two sides cannot drift apart unnoticed — the
+   exact hole #106 slipped through (the old round-trip test fed idealized
+   payloads, not the real summary shape).
+2. 💡 **Stale-bundle version handshake** (kills the invisible-stale-cache
+   confusion of the #106 follow-up and the #86 family). esbuild stamps the
+   manifest version into the bundles; the panel compares it against the
+   backend version at load and shows a discreet "new version on the server —
+   refresh" banner on mismatch. Turns an undiagnosable client state into a
+   visible one-click fix (HA's service worker refreshes stale-while-
+   revalidate, so "I cleared the cache" is routinely not enough).
+3. 💡 **Committed overflow sweep** (`e2e/live-overflow-sweep.mjs`, presses the
+   ~18-commit responsive class). The 2026-07 ad-hoc sweep as a permanent
+   pre-release e2e: main surfaces (list, task detail, dialogs, settings) ×
+   {412px, 768px} × the longest-label languages (de/uk/hi), asserting
+   `scrollWidth ≤ clientWidth` and no element past the viewport edge. Runs
+   against the Docker instance before releases (validate-in-Docker rule),
+   like the docs-shots — English-only visual checks provably hide
+   i18n-length overflow (the ⋮-menu bug shipped invisible in EN at 412px).
+4. 💡 **`scripts/preflight.sh`** (presses the CI-environment class): one
+   command bundling the exact CI gates — ruff, mypy --strict (CI arguments),
+   the pytest suite, tsc --noEmit, esbuild, web-test-runner — to run before
+   any push instead of rediscovering each command per session.
+
 - ✅ **Extract per-type trigger evaluators** — done: the coordinator's
   `_evaluate_trigger_fallback` dispatches to pure `evaluate_threshold/counter/
   state_change/runtime` functions in `helpers/trigger_fallback.py`, each unit-
