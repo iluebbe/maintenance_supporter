@@ -1235,6 +1235,10 @@ export const panelStyles = css`
   :host([narrow]) .task-header-actions {
     width: 100%;
     justify-content: flex-start;
+    /* Longer labels (de "Überspringen", fr "Archiver", …) overflow a phone
+       viewport in a nowrap row — the ⋮ menu then needs a horizontal scroll
+       to reach. Wrap instead; language-independent. */
+    flex-wrap: wrap;
   }
 
   :host([narrow]) .filter-bar {
@@ -1433,7 +1437,7 @@ export const panelStyles = css`
     .two-column-layout { grid-template-columns: 1fr; }
     .tab { padding: 12px 16px; font-size: 14px; }
     .task-header { flex-direction: column; align-items: flex-start; }
-    .task-header-actions { width: 100%; justify-content: flex-start; }
+    .task-header-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     .filter-bar { flex-wrap: wrap; }
     .filter-bar select { flex: 1; min-width: 0; }
     /* Mirror the :host([narrow]) grid layout for narrow desktop windows */
