@@ -239,11 +239,12 @@ def test_frontend_locale_key_parity(path: Path) -> None:
 
 # Languages whose UI text is written in a non-Latin script. A value that
 # contains Latin words but not a single native-script character is untranslated
-# English, not a loanword.
+# English, not a loanword. (CJK punctuation counts as native for zh/ja.)
 _NATIVE_SCRIPTS = {
     "ru": re.compile(r"[Ѐ-ӿ]"),  # Cyrillic
     "uk": re.compile(r"[Ѐ-ӿ]"),
     "zh": re.compile(r"[一-鿿]"),  # Han
+    "zh-Hans": re.compile(r"[一-鿿]"),  # backend file-name variant
     "ja": re.compile(r"[぀-ヿ一-鿿]"),  # Kana + Han
     "hi": re.compile(r"[ऀ-ॿ]"),  # Devanagari
 }
@@ -362,6 +363,64 @@ def test_frontend_locale_value_completeness(path: Path) -> None:
         for key, value in _load(path).items()
         if isinstance(value, str) and _suspicious_value(key, lang, value, en.get(key))
     }
+    assert not bad, {"locale": path.name, "untranslated_values": bad}
+
+
+# Backend translations: cognates allowlisted by VALUE (the same English word
+# appears under many dotted keys — "Notes" alone has 8). A value listed here
+# is legitimately identical to English in the given languages; "*" = all.
+_BACKEND_VALUE_OK: dict[str, frozenset[str] | str] = {
+    "Action": frozenset({"fr"}),
+    "Area": frozenset({"it"}),
+    "Checklists": frozenset({"nl"}),
+    "Condition #{condition_num} — Type": frozenset({"fr"}),
+    "Date": frozenset({"fr"}),
+    "Description": frozenset({"fr"}),
+    "Format": frozenset({"da", "de", "fr", "nb", "pl", "sv"}),
+    "Inspection": frozenset({"fr"}),
+    "Interval": frozenset({"cs", "da", "nl"}),
+    "Labels": frozenset({"de", "nl"}),
+    "Maintenance": frozenset({"fr"}),
+    "Maintenance Supporter": "*",  # brand
+    "Manual": frozenset({"es", "pt"}),
+    "Model": frozenset({"cs", "da", "nl", "pl"}),
+    "Name": frozenset({"de"}),
+    "Notes": frozenset({"fr"}),
+    "Object": frozenset({"nl"}),
+    "Service": frozenset({"da", "de", "fr", "nb", "nl", "sv"}),
+    "Stable": frozenset({"fr"}),
+    "Status": frozenset({"da", "de", "nb", "nl", "pl", "sv"}),
+    "Weibull R²": "*",  # statistical term
+}
+
+
+@pytest.mark.parametrize("path", _non_en_files(), ids=lambda p: p.name)
+def test_backend_locale_value_completeness(path: Path) -> None:
+    """Backend twin of the frontend value gate (same 270-values lesson).
+
+    A ``translations/<lang>.json`` value identical to English (Latin-script
+    languages), or containing Latin words without one native-script character
+    (ru/uk/zh-Hans/ja/hi), is untranslated. Cognates are allowlisted by VALUE
+    in ``_BACKEND_VALUE_OK`` since the same English word repeats across many
+    dotted keys.
+    """
+    en = _strings(_load(_TRANSLATIONS / "en.json"))
+    lang = path.stem
+    native = _NATIVE_SCRIPTS.get(lang)
+    bad: dict[str, str] = {}
+    for key, value in _strings(_load(path)).items():
+        en_value = en.get(key)
+        stripped = _TOKEN_RE.sub("", value).strip()
+        if len(stripped) <= 3 or stripped.lower() in _NEUTRAL_VALUES:
+            continue
+        allowed = _BACKEND_VALUE_OK.get(en_value or "")
+        if allowed == "*" or (isinstance(allowed, frozenset) and lang in allowed and value == en_value):
+            continue
+        if native is not None:
+            if re.search(r"[A-Za-z]{3}", stripped) and not native.search(value):
+                bad[key] = value
+        elif value == en_value and re.search(r"[A-Za-z]{3}", stripped):
+            bad[key] = value
     assert not bad, {"locale": path.name, "untranslated_values": bad}
 
 

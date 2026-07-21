@@ -1605,7 +1605,7 @@
         },
         "interval_unit": {
           "name": "間隔の単位",
-          "description": "間隔の単位: days、weeks、months、years。既定値: days。"
+          "description": "間隔の単位: days、weeks、months、years のいずれか。既定値: days。"
         },
         "due_date": {
           "name": "期限日",
@@ -1657,7 +1657,7 @@
         },
         "interval_unit": {
           "name": "間隔の単位",
-          "description": "days、weeks、months、years。"
+          "description": "days、weeks、months、years のいずれか。"
         },
         "due_date": {
           "name": "期限日",
@@ -1681,7 +1681,7 @@
         },
         "priority": {
           "name": "優先度",
-          "description": "low、normal、high。"
+          "description": "low、normal、high のいずれか。"
         },
         "labels": {
           "name": "ラベル",

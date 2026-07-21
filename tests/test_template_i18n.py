@@ -66,6 +66,39 @@ def test_every_catalog_string_is_translated_into_all_languages() -> None:
     assert not missing, "untranslated template strings:\n" + "\n".join(missing)
 
 
+def test_every_catalog_value_is_actually_translated() -> None:
+    """Value gate for _T (same lesson as the frontend's 270 EN-copied values).
+
+    Key coverage alone lets a table entry ship the English source copied into
+    every language. A value identical to the English source in a Latin-script
+    language, or without one native-script character in ru/uk/zh/ja/hi, fails
+    here — unless the (source, language) pair is a reviewed cognate.
+    """
+    import re
+
+    from .test_i18n import _NATIVE_SCRIPTS
+
+    # Audited cognates: identical to English by nature of the language.
+    value_ok: dict[str, set[str]] = {
+        "E-Bike": {"de"},
+        "Printer": {"nl", "da"},
+    }
+    bad: list[str] = []
+    for source, per_lang in _T.items():
+        for lang, value in per_lang.items():
+            if not isinstance(value, str) or len(value.strip()) <= 3:
+                continue
+            if lang in value_ok.get(source, set()):
+                continue
+            native = _NATIVE_SCRIPTS.get(lang)
+            if native is not None:
+                if re.search(r"[A-Za-z]{3}", value) and not native.search(value):
+                    bad.append(f"{source!r} [{lang}] = {value!r} (no {lang}-script characters)")
+            elif value == source:
+                bad.append(f"{source!r} [{lang}] copied English")
+    assert not bad, "untranslated _T values:\n" + "\n".join(bad)
+
+
 def test_localize_falls_back_to_english() -> None:
     assert localize_template_text("Oil Change", "de") == "Ölwechsel"
     assert localize_template_text("Oil Change", "en") == "Oil Change"
