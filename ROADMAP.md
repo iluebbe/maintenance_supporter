@@ -57,6 +57,43 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
    the pointer!). Each entry needs the usual source dive first (method
    contract).
 
+3a. 💡 **CPAP / sleep-therapy template (+ resmed_myair verdict)** — CPAP
+   machines have real, manufacturer-specified upkeep: mask cushion ~monthly,
+   air filter ~monthly, tubing ~3 months, humidifier tub ~6 months,
+   headgear + frame ~6 months, annual overall check. Because a CPAP runs
+   every night, calendar intervals track usage almost perfectly — the rare
+   case where a static template IS the right trigger. Benefits all CPAP
+   users (Löwenstein/Philips too, no integration needed).
+   `resmed_myair` (1,131 installs; source-dived 2026-07-21) exposes only
+   therapy metrics — per-night `totalUsage` gauge (resets nightly, the
+   bhyve-class counter trap), `maskPairCount`, AHI/leak/score, no
+   consumable or cumulative signal, no live state for engine runtime —
+   → **verified, no signature**; record the verdict as an INTEGRATIONS.md
+   row pointing at the template.
+
+3b. 💡 **Second research lens: template-worthiness sweep** (method change —
+   the CPAP lesson). All 13 signature rounds grep integration SOURCES for
+   wear signals (`filter_life`, `*_time_left`, odometers, cycle counts…) —
+   so a device CLASS with genuine maintenance needs whose integration
+   exposes none can never surface, no matter its install count. Add the
+   complementary question to every sweep: *"is this a device class with
+   manufacturer-recommended maintenance?"* → feeds the TEMPLATE catalog
+   instead of the signature catalog. First pass: re-walk the parked
+   "no wear sensors" list (jura, eufy, dahua, indego, zcsmower, garmin,
+   bosch_shc, …) plus categories never walked (medical/sleep, aquarium
+   beyond eheim, musical instruments, e-scooters, …) under this lens.
+
+3c. 💡 **Scheduled catalog re-visit** — integrations EVOLVE: new sensors
+   appear upstream (the SmartThinQ re-audit found adoptable keys months
+   after the first pass), install counts shift the priority order, and
+   park-reasons expire (a parked integration may have gained the missing
+   per-station binary by now). The weekly drift watchdog only guards
+   EXISTING signatures against upstream changes — it never discovers new
+   capability. Add a periodic (roughly quarterly) re-visit: (a) parked
+   list with each park-reason re-checked against current sources, (b)
+   top analytics risers not yet catalogued, (c) spot-check of previous
+   "no signature" verdicts.
+
 4. ~~**Catalog governance: full re-audit + drift watchdog**~~ ✅ **Shipped
    2026-07-18** — (a) all 22 entries re-audited against the evaluation
    scheme (results in the research doc: everything picks the most direct
