@@ -51,7 +51,14 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
     )
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/battery_fleet/setup"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/battery_fleet/setup",
+        # The caller's UI language (same contract as the template WS) —
+        # the created object/task/part names are localized through _T.
+        vol.Optional("language"): vol.All(str, vol.Length(max=10)),
+    }
+)
 @require_write
 @websocket_api.async_response
 async def ws_battery_fleet_setup(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
@@ -59,7 +66,7 @@ async def ws_battery_fleet_setup(hass: HomeAssistant, connection: websocket_api.
     if not has_batteries(hass):
         connection.send_error(msg["id"], "not_available", "No battery devices found")
         return
-    result = await async_setup_battery_fleet(hass)
+    result = await async_setup_battery_fleet(hass, language=msg.get("language"))
     connection.send_result(msg["id"], result)
 
 

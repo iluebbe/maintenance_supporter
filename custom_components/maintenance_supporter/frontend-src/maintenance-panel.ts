@@ -1045,6 +1045,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     try {
       const res = await this.hass.connection.sendMessagePromise<{ entry_id: string; task_id?: string }>({
         type: "maintenance_supporter/battery_fleet/setup",
+        language: this.hass.language || "en",
       });
       this._batteryFleetSetupAvailable = false;
       await this._loadData();

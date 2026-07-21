@@ -84,6 +84,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     try {
       await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/battery_fleet/setup",
+        language: this._lang,
       });
       await this._load();
     } catch (e) {

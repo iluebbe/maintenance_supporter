@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Task detail on phones: the action row no longer overflows.** With longer
+  labels (German "Überspringen", French "Archiver", …) the header buttons ran
+  past the screen edge and the ⋮ menu required scrolling horizontally. The
+  row now wraps on narrow viewports — verified in all 18 UI languages at
+  phone width.
+
+### 🌍 Localization
+
+- **Battery Fleet setup now seeds in your language**: the created object
+  ("Batterie-Flotte" / "Parc de piles" / …), the task ("Schwache Batterien
+  ersetzen"), the per-type spare parts ("AA-Batterie") and their notes follow
+  the UI language at setup time — no more manual translating of the seeded
+  English names. Existing fleets keep their names.
+
 ## [2.38.2] - 2026-07-21
 
 ### 🐛 Fixed

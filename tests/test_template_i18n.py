@@ -51,18 +51,34 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 
+# _T sources used OUTSIDE the template catalog (battery-fleet seeding) — the
+# TEMPLATES-driven coverage loop below never sees them, so they need their own
+# completeness tripwire.
+_EXTRA_T_SOURCES = (
+    "Battery Fleet",
+    "Replace low batteries",
+    "Aggregate battery check. The detail view lists which devices are low and which battery types to buy.",
+    "{type} battery",
+    "Typical service life ~{months} months.",
+)
+
+
 def test_every_catalog_string_is_translated_into_all_languages() -> None:
     """Tripwire: adding a template/task without translations fails here."""
     missing: list[str] = []
-    for t in TEMPLATES:
-        for text in [t.name, *[tt.name for tt in t.tasks], *[tt.notes for tt in t.tasks if tt.notes]]:
-            entry = _T.get(text)
-            if entry is None:
-                missing.append(f"{text!r}: no table entry")
-                continue
-            gaps = [lang for lang in _LANGS if not entry.get(lang)]
-            if gaps:
-                missing.append(f"{text!r}: missing {gaps}")
+    for text in [
+        *[t.name for t in TEMPLATES],
+        *[tt.name for t in TEMPLATES for tt in t.tasks],
+        *[tt.notes for t in TEMPLATES for tt in t.tasks if tt.notes],
+        *_EXTRA_T_SOURCES,
+    ]:
+        entry = _T.get(text)
+        if entry is None:
+            missing.append(f"{text!r}: no table entry")
+            continue
+        gaps = [lang for lang in _LANGS if not entry.get(lang)]
+        if gaps:
+            missing.append(f"{text!r}: missing {gaps}")
     assert not missing, "untranslated template strings:\n" + "\n".join(missing)
 
 
