@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.38.2] - 2026-07-21
+
+### 🐛 Fixed
+
+- **Battery Fleet: the trigger can no longer be lost at all** (follow-up to
+  #106). v2.38.1 fixed the edit dialog, but a browser still running a stale
+  cached panel bundle could hit the old bug until its cache refreshed. The
+  backend now ignores an attempt to clear the fleet task's trigger during an
+  edit — no fleet UI offers removing it, so such a request can only be a
+  client failing to round-trip the trigger. Every other edited field still
+  applies; regular tasks are unaffected.
+
 ## [2.38.1] - 2026-07-20
 
 ### 🐛 Fixed
