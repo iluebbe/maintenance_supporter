@@ -121,30 +121,27 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
       <div class="task-header-actions">
         <ha-button appearance="filled" @click=${() => ctx.openComplete(task)}>${t("complete", L)}</ha-button>
         <ha-button appearance="plain" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>
-        ${!isOperator ? html`
-          <ha-button appearance="plain" @click=${() => ctx.toggleArchive(!!task.archived)}>
-            <ha-icon icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-            ${task.archived ? t("unarchive", L) : t("archive", L)}
-          </ha-button>
-        ` : nothing}
-        <ha-button appearance="plain" @click=${() => ctx.openQr(task.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
-        ${!isOperator ? html`
-          <div class="more-menu-wrapper">
-            <ha-icon-button .disabled=${ctx.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => ctx.toggleMoreMenu()}></ha-icon-button>
-            ${ctx.moreMenuOpen ? html`
-              <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
+        <div class="more-menu-wrapper">
+          <ha-icon-button .disabled=${ctx.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => ctx.toggleMoreMenu()}></ha-icon-button>
+          ${ctx.moreMenuOpen ? html`
+            <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
+              ${!isOperator ? html`
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openEdit(task); }}>${t("edit", L)}</div>
+              ` : nothing}
+              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openQr(task.name); }}>${t("qr_code", L)}</div>
+              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
+              ${!isOperator ? html`
                 <div class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
-                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
+                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.toggleArchive(!!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
                 <div class="popup-menu-divider"></div>
                 <div class="popup-menu-item danger" @click=${() => { ctx.closeMoreMenu(); ctx.deleteTask(); }}>${t("delete", L)}</div>
-              </div>
-            ` : nothing}
-          </div>
-        ` : nothing}
+              ` : nothing}
+            </div>
+          ` : nothing}
+        </div>
       </div>
     </div>
   `;
@@ -373,10 +370,13 @@ export function renderOverviewTab(task: MaintenanceTask, ctx: TaskDetailContext)
 
   return html`
     <div class="tab-content overview-tab">
+      ${task.battery_fleet_task
+        ? html`<maintenance-battery-fleet-section .hass=${ctx.hass}></maintenance-battery-fleet-section>`
+        : nothing}
       ${renderKPIBar(task, ctx)}
       ${renderTaskMeta(task, ctx)}
       ${task.battery_fleet_task
-        ? html`<maintenance-battery-fleet-section .hass=${ctx.hass}></maintenance-battery-fleet-section>`
+        ? nothing
         : html`
             ${renderDaysProgress(task, ctx.lang)}
             ${renderTriggerSection(task, ctx.sparkline)}

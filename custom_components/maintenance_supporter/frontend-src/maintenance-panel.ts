@@ -130,6 +130,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _defaultWarningDays = 7;
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
+  @state() private _objMenuOpen = false;
   @state() private _toastMessage = "";
   @state() private _toastUndo: (() => void) | null = null;
   @state() private _toastActionLabel = "";
@@ -3014,34 +3015,34 @@ export class MaintenanceSupporterPanel extends LitElement {
           <h2>${o.name}</h2>
           <div class="action-buttons">
             ${!isOperator ? html`
-              <ha-button appearance="plain" @click=${() => {
-                const dlg = this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog");
-                dlg?.openEdit(obj.entry_id, o);
-              }}>${t("edit", L)}</ha-button>
               <ha-button appearance="filled" @click=${() => {
                 const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
                 dlg?.openCreate(obj.entry_id);
               }}>${t("add_task", L)}</ha-button>
-              <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._duplicateObject(obj.entry_id)}>
-                <ha-icon icon="mdi:content-copy"></ha-icon> ${t("duplicate", L)}
-              </ha-button>
-              <ha-button appearance="plain" @click=${() => this._toggleArchiveObject(obj.entry_id, !!o.archived)}>
-                <ha-icon icon="${o.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-                ${o.archived ? t("unarchive_object", L) : t("archive_object", L)}
-              </ha-button>
-              ${!o.archived ? html`
-                <ha-button appearance="plain" @click=${() => this._togglePauseObject(obj.entry_id, !!o.paused)}>
-                  <ha-icon icon="${o.paused ? 'mdi:play-circle-outline' : 'mdi:pause-circle-outline'}"></ha-icon>
-                  ${o.paused ? t("resume_object", L) : t("pause_object", L)}
-                </ha-button>
-                <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._replaceObject(obj.entry_id, o.name)}>
-                  <ha-icon icon="mdi:swap-horizontal"></ha-icon> ${t("replace_object", L)}
-                </ha-button>
-              ` : nothing}
-              <ha-button variant="danger" appearance="plain" @click=${() => this._deleteObject(obj.entry_id)}>${t("delete", L)}</ha-button>
+              <ha-button appearance="plain" @click=${() => {
+                const dlg = this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog");
+                dlg?.openEdit(obj.entry_id, o);
+              }}>${t("edit", L)}</ha-button>
             ` : nothing}
-            <ha-button appearance="plain" @click=${() => this._openQrForObject(obj.entry_id, o.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
-            <ha-button appearance="plain" @click=${() => this._printObjectReport(obj.entry_id)}><ha-icon icon="mdi:file-document-outline"></ha-icon> ${t("report_button", L)}</ha-button>
+            <div class="more-menu-wrapper">
+              <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => this._toggleObjMenu()}></ha-icon-button>
+              ${this._objMenuOpen ? html`
+                <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
+                  <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._openQrForObject(obj.entry_id, o.name); }}>${t("qr_code", L)}</div>
+                  <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._printObjectReport(obj.entry_id); }}>${t("report_button", L)}</div>
+                  ${!isOperator ? html`
+                    <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
+                    ${!o.archived ? html`
+                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
+                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o.name); }}>${t("replace_object", L)}</div>
+                    ` : nothing}
+                    <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._toggleArchiveObject(obj.entry_id, !!o.archived); }}>${o.archived ? t("unarchive_object", L) : t("archive_object", L)}</div>
+                    <div class="popup-menu-divider"></div>
+                    <div class="popup-menu-item danger" @click=${() => { this._closeObjMenu(); this._deleteObject(obj.entry_id); }}>${t("delete", L)}</div>
+                  ` : nothing}
+                </div>
+              ` : nothing}
+            </div>
           </div>
         </div>
         ${o.paused
@@ -3141,6 +3142,21 @@ export class MaintenanceSupporterPanel extends LitElement {
   /**
    * Render compact task header with status chip and action buttons.
    */
+  // Object-detail ⋮ menu — same click-away pattern as the task-detail menu.
+  private _toggleObjMenu(): void {
+    this._objMenuOpen = !this._objMenuOpen;
+    if (this._objMenuOpen) {
+      setTimeout(() => {
+        const handler = () => { this._objMenuOpen = false; document.removeEventListener("click", handler); };
+        document.addEventListener("click", handler);
+      }, 0);
+    }
+  }
+
+  private _closeObjMenu(): void {
+    this._objMenuOpen = false;
+  }
+
   private _toggleMoreMenu(): void {
     this._moreMenuOpen = !this._moreMenuOpen;
     if (this._moreMenuOpen) {

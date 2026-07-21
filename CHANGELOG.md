@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🎨 Changed
+
+- **Task and object detail: decluttered action buttons.** The task header now
+  shows only **Complete** and **Skip**; QR code, work sheet, archive and the
+  rest live in the ⋮ menu (archive was far too prominent for how rarely it is
+  used). The object header shows **Add task** and **Edit**; duplicate, QR,
+  report, pause, replace, archive and delete moved into a new ⋮ menu —
+  delete is no longer a top-level button. Operators keep a reduced ⋮ with
+  the read-safe entries (QR, work sheet / QR, report).
+- **Battery Fleet detail: the battery section now renders first.** On phones
+  it sat below seven KPI cards and the notes — effectively invisible. The
+  low-battery list + shopping line open the page; the KPI cards follow.
+
 ## [2.38.3] - 2026-07-21
 
 ### 🐛 Fixed

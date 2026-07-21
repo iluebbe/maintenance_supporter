@@ -177,8 +177,12 @@ describe("maintenance-task-detail-view", () => {
     expect(el.querySelector(".detail-section")).to.equal(null);
   });
 
-  it("hides the more-menu for operators (read-only surface preserved)", async () => {
-    const el = await mount(task(), ctx({ isOperator: true }));
-    expect(el.querySelector(".more-menu-wrapper")).to.equal(null);
+  it("operators get the more-menu with only the read-safe items (QR + worksheet)", async () => {
+    const el = await mount(task(), ctx({ isOperator: true, moreMenuOpen: true }));
+    expect(el.querySelector(".more-menu-wrapper"), "menu present for operators").to.exist;
+    const labels = [...el.querySelectorAll(".popup-menu-item")].map((i) => i.textContent?.trim());
+    expect(labels.length).to.equal(2);
+    // No write actions leak into the operator menu.
+    expect(labels.join(" ")).to.not.match(/edit|archive|delete|duplicate|reset/i);
   });
 });
