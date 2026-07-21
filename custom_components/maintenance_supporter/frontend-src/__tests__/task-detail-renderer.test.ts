@@ -5,8 +5,8 @@
  * behaviour the extraction must preserve:
  *   - header renders name / object breadcrumb / status chip / actions
  *   - Complete / Skip route to the panel callbacks with the task
- *   - operator mode hides archive + the more-menu (read-only surface)
- *   - the more-menu items (edit/duplicate/reset/snooze/delete) fire callbacks
+ *   - operator mode: only Complete/Skip; the more-menu carries just QR + worksheet
+ *   - the more-menu items (edit/qr/worksheet/duplicate/…/archive/delete) fire callbacks
  *   - tab bar switches via setActiveTab; history tab renders the timeline
  *   - KPI bar shows warning days + currency; user badge resolves names
  */
@@ -154,16 +154,18 @@ describe("task-detail renderer", () => {
     expect(skipped).to.equal(1);
   });
 
-  it("operator mode hides archive button and the more-menu", () => {
-    const host = mount(task(), ctx({ isOperator: true }));
-    expect(host.querySelector(".more-menu-wrapper")).to.be.null;
-    // Only Complete / Skip / QR remain.
-    const labels = [...host.querySelectorAll(".task-header-actions ha-button")]
-      .map((b) => b.textContent || "");
-    expect(labels.some((l) => /archive/i.test(l))).to.be.false;
+  it("operator mode: only Complete/Skip buttons; menu carries just QR + worksheet", () => {
+    const host = mount(task(), ctx({ isOperator: true, moreMenuOpen: true }));
+    // The ⋮ stays (QR + worksheet moved into it), but write actions don't.
+    expect(host.querySelector(".more-menu-wrapper"), "menu present").to.exist;
+    const buttons = [...host.querySelectorAll(".task-header-actions ha-button")];
+    expect(buttons.length).to.equal(2); // Complete + Skip only
+    const items = [...host.querySelectorAll(".popup-menu-item")].map((i) => i.textContent?.trim() || "");
+    expect(items.length).to.equal(2);
+    expect(items.join(" ")).to.not.match(/edit|archive|delete|duplicate|reset/i);
   });
 
-  it("open more-menu lists edit/duplicate/reset/postpone/snooze/worksheet/delete and fires callbacks", () => {
+  it("open more-menu lists edit/qr/worksheet/duplicate/reset/postpone/snooze/archive/delete and fires callbacks", () => {
     const calls: string[] = [];
     const host = mount(task(), ctx({
       moreMenuOpen: true,
@@ -172,14 +174,19 @@ describe("task-detail renderer", () => {
       promptPostpone: () => calls.push("postpone"),
       snoozeTask: () => calls.push("snooze"),
       printWorksheet: () => calls.push("worksheet"),
+      toggleArchive: () => calls.push("archive"),
     }));
     const items = [...host.querySelectorAll(".popup-menu-item")];
-    expect(items.length).to.equal(7);
-    (items[3] as HTMLElement).click(); // postpone
-    (items[4] as HTMLElement).click(); // snooze
-    (items[5] as HTMLElement).click(); // work sheet (v2.21)
-    (items[6] as HTMLElement).click(); // delete (danger)
-    expect(calls).to.deep.equal(["close", "postpone", "close", "snooze", "close", "worksheet", "close", "delete"]);
+    // edit, qr, worksheet, duplicate, reset, postpone, snooze, archive, delete
+    expect(items.length).to.equal(9);
+    (items[5] as HTMLElement).click(); // postpone
+    (items[6] as HTMLElement).click(); // snooze
+    (items[2] as HTMLElement).click(); // work sheet (v2.21)
+    (items[7] as HTMLElement).click(); // archive (demoted from the header)
+    (items[8] as HTMLElement).click(); // delete (danger)
+    expect(calls).to.deep.equal([
+      "close", "postpone", "close", "snooze", "close", "worksheet", "close", "archive", "close", "delete",
+    ]);
   });
 
   it("shows a postponed badge when the task has a due_override, and none otherwise", () => {
