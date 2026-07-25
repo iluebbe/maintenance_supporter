@@ -68,6 +68,47 @@ from .tasks_validation import (
     _validate_trigger_config,
 )
 
+# ws_update_task: wire key -> storage key. Almost all are identity; the one
+# rename is deliberate and load-bearing: the WS message envelope reserves
+# "type" for command routing ({"type": "maintenance_supporter/task/update"}),
+# so a task's own type must travel as "task_type" on the wire and is stored
+# as "type". Do NOT "simplify" this to "type": "type" — it would collide with
+# the routing key. The panel↔config-flow parity test (test_parity_task_fields)
+# encodes the same task_type->type alias. Module-level so the CONTRACT-FIXTURE
+# tripwire (tests/test_task_contract_fixture.py) can enumerate it: a field
+# added here without extending the round-trip fixture fails that test.
+TASK_UPDATE_FIELD_MAP = {
+    "name": "name",
+    "task_type": "type",
+    "enabled": "enabled",
+    "schedule_type": "schedule_type",
+    "interval_days": "interval_days",
+    "interval_unit": "interval_unit",
+    "due_date": "due_date",
+    "interval_anchor": "interval_anchor",
+    "warning_days": "warning_days",
+    "earliest_completion_days": "earliest_completion_days",
+    "last_performed": "last_performed",
+    "trigger_config": "trigger_config",
+    "notes": "notes",
+    "documentation_url": "documentation_url",
+    "responsible_user_id": "responsible_user_id",
+    "assignee_pool": "assignee_pool",
+    "rotation_strategy": "rotation_strategy",
+    "entity_slug": "entity_slug",
+    "custom_icon": "custom_icon",
+    "nfc_tag_id": "nfc_tag_id",
+    "reading_unit": "reading_unit",
+    "consumes_parts": "consumes_parts",
+    "priority": "priority",
+    "checklist": "checklist",
+    "labels": "labels",
+    "schedule_time": "schedule_time",
+    # v1.3.0
+    "on_complete_action": "on_complete_action",
+    "quick_complete_defaults": "quick_complete_defaults",
+}
+
 
 @websocket_api.websocket_command(
     {
@@ -452,45 +493,7 @@ async def ws_update_task(
         connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
         return
 
-    # Update provided fields. Wire key -> storage key. Almost all are identity;
-    # the one rename is deliberate and load-bearing: the WS message envelope
-    # reserves "type" for command routing ({"type": "maintenance_supporter/
-    # task/update"}), so a task's own type must travel as "task_type" on the
-    # wire and is stored as "type". Do NOT "simplify" this to "type": "type"
-    # — it would collide with the routing key. The panel↔config-flow parity
-    # test (test_parity_task_fields) encodes the same task_type->type alias.
-    field_map = {
-        "name": "name",
-        "task_type": "type",
-        "enabled": "enabled",
-        "schedule_type": "schedule_type",
-        "interval_days": "interval_days",
-        "interval_unit": "interval_unit",
-        "due_date": "due_date",
-        "interval_anchor": "interval_anchor",
-        "warning_days": "warning_days",
-        "earliest_completion_days": "earliest_completion_days",
-        "last_performed": "last_performed",
-        "trigger_config": "trigger_config",
-        "notes": "notes",
-        "documentation_url": "documentation_url",
-        "responsible_user_id": "responsible_user_id",
-        "assignee_pool": "assignee_pool",
-        "rotation_strategy": "rotation_strategy",
-        "entity_slug": "entity_slug",
-        "custom_icon": "custom_icon",
-        "nfc_tag_id": "nfc_tag_id",
-        "reading_unit": "reading_unit",
-        "consumes_parts": "consumes_parts",
-        "priority": "priority",
-        "checklist": "checklist",
-        "labels": "labels",
-        "schedule_time": "schedule_time",
-        # v1.3.0
-        "on_complete_action": "on_complete_action",
-        "quick_complete_defaults": "quick_complete_defaults",
-    }
-    for msg_key, data_key in field_map.items():
+    for msg_key, data_key in TASK_UPDATE_FIELD_MAP.items():
         if msg_key in msg:
             task[data_key] = msg[msg_key]
 

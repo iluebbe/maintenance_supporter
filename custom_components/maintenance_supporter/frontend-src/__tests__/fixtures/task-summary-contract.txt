@@ -1,0 +1,141 @@
+{
+  "adaptive_config": null,
+  "archived": false,
+  "archived_at": null,
+  "archived_reason": null,
+  "assignee_pool": [
+    "user-uuid-1",
+    "user-uuid-2"
+  ],
+  "average_duration": null,
+  "battery_fleet_task": false,
+  "binary_sensor_entity_id": null,
+  "checklist": [
+    "step one",
+    "step two"
+  ],
+  "consumes_parts": [
+    {
+      "part_id": "part_1",
+      "quantity": 2
+    }
+  ],
+  "custom_icon": "mdi:test-tube",
+  "days_until_due": null,
+  "days_until_threshold": null,
+  "degradation_r_squared": null,
+  "degradation_rate": null,
+  "degradation_trend": null,
+  "documentation_url": "https://example.com/manual",
+  "due_date": null,
+  "due_override": null,
+  "earliest_completion_days": 3,
+  "enabled": true,
+  "entity_slug": "contract_fixture_task",
+  "environmental_correlation": null,
+  "environmental_entity": null,
+  "environmental_factor": null,
+  "history": [],
+  "id": "contract_task",
+  "interval_analysis": null,
+  "interval_anchor": "completion",
+  "interval_confidence": null,
+  "interval_days": 3,
+  "interval_unit": "months",
+  "is_done": false,
+  "labels": [
+    "safety",
+    "seasonal"
+  ],
+  "last_performed": "2026-06-01",
+  "last_planned_due": null,
+  "name": "Contract Fixture Task",
+  "next_due": null,
+  "nfc_tag_id": "contract-nfc-1",
+  "notes": "Contract notes",
+  "on_complete_action": {
+    "data": {
+      "transition": 2
+    },
+    "service": "light.turn_off",
+    "target": {
+      "entity_id": "light.workshop"
+    }
+  },
+  "part_ref": null,
+  "priority": "high",
+  "quick_complete_defaults": {
+    "cost": 5.5,
+    "duration": 15,
+    "feedback": "needed",
+    "notes": "quick note"
+  },
+  "reading_unit": "kWh",
+  "responsible_user_id": "user-uuid-1",
+  "rotation_strategy": "round_robin",
+  "schedule": {
+    "every": 3,
+    "kind": "interval",
+    "unit": "months"
+  },
+  "schedule_time": "08:30",
+  "schedule_type": "sensor_based",
+  "seasonal_factor": null,
+  "seasonal_factors": null,
+  "sensor_entity_id": null,
+  "sensor_prediction_urgency": false,
+  "status": "ok",
+  "suggested_interval": null,
+  "threshold_prediction_confidence": null,
+  "threshold_prediction_date": null,
+  "times_performed": 0,
+  "total_cost": 0.0,
+  "trigger_active": false,
+  "trigger_baseline_value": null,
+  "trigger_config": {
+    "_trigger_state": {},
+    "attribute": "level",
+    "auto_complete_on_recovery": true,
+    "entity_id": "sensor.contract_a",
+    "entity_ids": [
+      "sensor.contract_a",
+      "sensor.contract_b"
+    ],
+    "entity_logic": "all",
+    "trigger_above": 80,
+    "trigger_below": 10,
+    "trigger_for_minutes": 5,
+    "type": "threshold"
+  },
+  "trigger_current_delta": null,
+  "trigger_current_value": null,
+  "trigger_entity_info": {
+    "entity_id": "sensor.contract_a",
+    "friendly_name": "Contract A",
+    "max": null,
+    "min": null,
+    "step": null,
+    "unit_of_measurement": "%"
+  },
+  "trigger_entity_infos": [
+    {
+      "entity_id": "sensor.contract_a",
+      "friendly_name": "Contract A",
+      "max": null,
+      "min": null,
+      "step": null,
+      "unit_of_measurement": "%"
+    },
+    {
+      "entity_id": "sensor.contract_b",
+      "friendly_name": "Contract B",
+      "max": null,
+      "min": null,
+      "step": null,
+      "unit_of_measurement": "%"
+    }
+  ],
+  "trigger_entity_state": "available",
+  "type": "service",
+  "warning_days": 9
+}
