@@ -261,19 +261,30 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
         attrs = state.attributes
         if attrs.get("device_class") != "battery" or "battery_type" not in attrs:
             continue
+        level = _level_of(state.state)
+        available = state.state not in _NO_READING and level is not None
+        low = bool(attrs.get("battery_low"))
+        last_replaced = _parse_last_replaced(attrs.get("battery_last_replaced"))
+        # B1 (roadmap 2026-07-22 audit): a forecast-only note — no level
+        # sensor, so the state reads unknown forever — must SURVIVE when it
+        # carries a replacement date: that date is all `_predicted_date`
+        # needs, and dropping these hid 11 overdue batteries in a live fleet.
+        # Offline AND not low AND no date = pure connectivity noise → drop.
+        if not available and not low and last_replaced is None:
+            continue
+        # B3: only a KEPT note covers its source/device — a dropped dead note
+        # must not suppress the native fallback for its own device (a device
+        # with a dead note and a working level sensor was invisible in BOTH
+        # passes).
         src = attrs.get("source_entity_id")
         if src:
             covered_sources.add(src)
         reg = ent_reg.async_get(state.entity_id)
         if reg and reg.device_id:
             covered_devices.add(reg.device_id)
+        # An EXCLUDED note still covers (above): exclusion hides the battery —
+        # it must not resurrect as a degraded native "Unknown" row.
         if state.entity_id in excluded:
-            continue
-        level = _level_of(state.state)
-        available = state.state not in _NO_READING and level is not None
-        low = bool(attrs.get("battery_low"))
-        # Offline AND not last-known-low = pure connectivity noise → drop it.
-        if not available and not low:
             continue
         out.append(
             Battery(
@@ -283,7 +294,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 quantity=int(attrs.get("battery_quantity") or 1),
                 low=low,
                 level=level,
-                last_replaced=_parse_last_replaced(attrs.get("battery_last_replaced")),
+                last_replaced=last_replaced,
                 available=available,
                 source="battery_notes",
             )

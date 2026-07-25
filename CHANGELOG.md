@@ -13,6 +13,15 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🔋 Battery Fleet
 
+- **Forecast-only Battery Notes are no longer silently hidden** (live-audit
+  finding B1 — the big one): a note without a level sensor reads `unknown`
+  forever and was dropped before the forecast could see its replacement
+  date. In the audited fleet this hid 15 of 27 notes, 11 already overdue.
+  Such notes now survive and appear in the "needed soon" forecast, overdue
+  ones sorted first.
+- **A dead note no longer shadows its device's native sensor** (finding B3):
+  a device carrying a broken note AND a working battery sensor was invisible
+  in both passes; the native fallback now surfaces it.
 - **Self-charging devices are no longer tracked** (issue #107): a robot
   vacuum's battery reads "low" mid-clean, but nobody replaces its cells.
   Devices that also expose a vacuum or lawn-mower entity, a
