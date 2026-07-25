@@ -20,21 +20,20 @@ threshold**. Four independent causes, all in
 `helpers/battery_fleet.py::read_batteries`. B1 + B3 are small, low-risk edits
 with the largest effect.
 
-B1. 💡 **Forecast-only notes are dropped before the forecast can run** (the
-   big one). Battery Notes entries WITHOUT a `source_entity_id` — pure "index
-   cards" carrying `battery_type` + `battery_last_replaced` but no level
-   sensor — read `unknown` forever and are discarded by:
-   ```python
-   if not available and not low:
-       continue
-   ```
-   They never reach `build_overview()`, so the overdue/`soon` forecast
-   (`_predicted_date` = `last_replaced` + typical lifetime) never sees them —
-   even though they carry exactly the two fields that forecast needs. In the
-   audited fleet this hid **15 of 27 notes**, **11 of them already overdue**
-   (3× CR1632, 8× CR2032; worst case 272 days). Suggested fix: keep a battery
-   when a replacement date exists —
-   `if not available and not low and last_replaced is None: continue`.
+B1. ✅ **Forecast-only notes are dropped before the forecast can run** (the
+   big one) — **shipped 2026-07-25**: the drop check became
+   `if not available and not low and last_replaced is None: continue`, so an
+   index-card note (no level sensor, state `unknown` forever) survives when
+   it carries a replacement date and reaches the overdue/`soon` forecast
+   (negative `days_until` sorts overdue forecasts to the top). Regression
+   test: `test_forecast_only_note_reaches_the_forecast`. Original finding:
+   Battery Notes entries WITHOUT a `source_entity_id` carrying only
+   `battery_type` + `battery_last_replaced` were discarded before
+   `build_overview()`; in the audited fleet this hid **15 of 27 notes**,
+   **11 of them already overdue** (worst case 272 days). Open follow-up
+   (💡): forecast-overdue batteries land in `needs_soon` — they do NOT
+   raise the low-count sensor, so the fleet task still doesn't trigger on
+   them; decide whether "forecast overdue" should count as due.
 
 B2. 💡 **Two different low thresholds.** Battery-Notes batteries use Battery
    Notes' own threshold (10 % in the audited setup), native ones use
@@ -44,32 +43,32 @@ B2. 💡 **Two different low thresholds.** Battery-Notes batteries use Battery
    into the Battery-Notes branch, or promote the threshold to one configurable
    value used by both passes.
 
-B3. 💡 **`covered_devices` is filled before the drop check**, so a discarded
-   note still suppresses the native fallback for its own device:
-   ```python
-   covered_devices.add(reg.device_id)   # runs unconditionally
-   ...
-   if not available and not low:
-       continue                          # dropped — device stays "covered"
-   ```
-   A device carrying a dead note AND a working level sensor is invisible in
-   BOTH passes. Not yet biting in the audited fleet (those 15 notes have no
-   native sibling), but it is latent, silent data loss. Suggested fix: move
-   the `add()` behind the drop check — one line.
+B3. ✅ **`covered_devices` is filled before the drop check** — **shipped
+   2026-07-25**: the `covered_sources`/`covered_devices` adds moved BEHIND
+   the (B1-adjusted) drop check, so only a KEPT note covers its source and
+   device; a dead note no longer shadows a working native level sensor on
+   the same device. An EXCLUDED note deliberately still covers (exclusion
+   hides the battery — it must not resurrect as a native "Unknown" row).
+   Regression tests: `test_dead_note_no_longer_shadows_live_native_sensor`,
+   `test_excluded_note_still_covers_its_device`.
 
-B4. 💡 **Rechargeables are treated as replaceable batteries.** Pass 2 adopts
-   everything with `device_class: battery` — phones, watches, tablets, a car,
-   robot vacuums, a robot mower (24 entries in the audited fleet). Any of them
-   dropping below 20 % raises a "replace battery" task and adds an `UNKNOWN`
-   row to the shopping list, which is never actionable. Suggested fix: skip
-   devices that also expose a `battery_charging` entity (or are otherwise
-   identifiable as rechargeable), and/or require a known battery type.
+B4. ✅ **Rechargeables are treated as replaceable batteries** — **shipped
+   2026-07-25 (424b4c6, independently reported as issue #107)**: the native
+   pass skips devices that also expose a vacuum/lawn_mower entity, a
+   `battery_charging` binary, or are Companion-app devices (`mobile_app`
+   identifiers — phones, tablets, Wear-OS watches); an explicit Battery
+   Notes note always wins. Plus a manual per-battery exclude
+   (`battery_fleet/set_excluded` + eye-off row action + restore chips) for
+   everything the heuristics can't know. The audit's alternative "require a
+   known battery type" was deliberately NOT taken — it would disable the
+   native degraded mode entirely. **Known residual gaps** (manual exclude
+   covers them): cars without a `battery_charging` binary, watches/wearables
+   paired through non-Companion integrations, other rechargeables (BLE
+   trackers, toothbrushes).
 
-**Regression guard to ship with the fix:** the audit was only possible by
-replicating `read_batteries` against a live registry — the behaviour is
-currently untestable from fixtures. Add cases for (a) a note without source
-entity plus an old `last_replaced`, (b) a note at 11.5 % against a 10 %
-threshold, (c) a device with both a dead note and a live native sensor.
+**Regression guard:** (a) forecast-only note ✅ and (c) dead note + live
+native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
+10 % threshold belongs to B2 and stays open with it.
 
 ### Next wave (proposed 2026-07)
 

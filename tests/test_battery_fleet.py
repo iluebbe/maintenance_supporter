@@ -130,15 +130,91 @@ async def test_native_deduped_against_battery_notes_source(hass):
 
 async def test_offline_note_retains_low_but_pure_offline_dropped(hass):
     # A dead battery took its device offline: battery_plus is unavailable but
-    # RETAINS battery_low → stays visible. An offline-and-not-low one is noise.
+    # RETAINS battery_low → stays visible. An offline-and-not-low one WITHOUT
+    # a replacement date is noise (with a date it is a forecast-only note, B1).
     _set_note(hass, "dead_lock", _state="unavailable", battery_low=True, battery_type="9V")
-    _set_note(hass, "idle_probe", _state="unavailable", battery_low=False, battery_type="AA")
+    _set_note(hass, "idle_probe", _state="unavailable", battery_low=False, battery_type="AA", battery_last_replaced=None)
     bats = read_batteries(hass)
     eids = {b.entity_id for b in bats}
     assert "sensor.dead_lock_battery_plus" in eids
     assert "sensor.idle_probe_battery_plus" not in eids
     dead = next(b for b in bats if b.entity_id == "sensor.dead_lock_battery_plus")
     assert dead.low is True and dead.available is False and dead.level is None
+
+
+async def test_forecast_only_note_reaches_the_forecast(hass):
+    # B1 (live-audit "the big one"): a Battery Notes index card — no level
+    # sensor (state unknown forever), no source_entity_id — but WITH a
+    # battery_type and an old last_replaced must reach build_overview and
+    # surface in the forecast. 15/27 notes (11 overdue) were silently hidden.
+    _set_note(
+        hass,
+        "garage_remote",
+        _state="unknown",
+        battery_low=False,
+        battery_type="CR2032",
+        battery_last_replaced="2024-01-01T00:00:00+00:00",
+    )
+    bats = read_batteries(hass)
+    assert len(bats) == 1
+    b = bats[0]
+    assert b.available is False and b.low is False
+    assert b.last_replaced == date(2024, 1, 1)
+    # CR2032 lifetime 18mo → long overdue by mid-2026: lands in `soon` with
+    # negative days_until, sorted to the top.
+    ov = build_overview(bats, today=date(2026, 7, 25))
+    assert ov.total == 1 and ov.low == []
+    assert len(ov.soon) == 1
+    assert ov.soon[0]["days_until"] < 0
+    assert dict(ov.needs_soon) == {"CR2032": 1}
+
+
+async def test_dead_note_no_longer_shadows_live_native_sensor(hass):
+    # B3: a device with a DEAD note (no date, no reading) AND a working native
+    # level sensor was invisible in BOTH passes — the dropped note still
+    # marked the device covered. The native fallback must surface now.
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    device = _device_with_battery(hass, slug="hall_cam")  # native sensor.hall_cam_battery at 9%
+    note_entry = MockConfigEntry(domain="battery_notes", data={})
+    note_entry.add_to_hass(hass)
+    er.async_get(hass).async_get_or_create(
+        "sensor", "battery_notes", "hall_cam_plus", suggested_object_id="hall_cam_battery_plus", device_id=device.id
+    )
+    _set_note(hass, "hall_cam", _state="unavailable", battery_low=False, battery_type="AA", battery_last_replaced=None)
+    bats = read_batteries(hass)
+    assert [b.entity_id for b in bats] == ["sensor.hall_cam_battery"]
+    assert bats[0].source == "native" and bats[0].low is True
+
+
+async def test_excluded_note_still_covers_its_device(hass):
+    # B4 interplay: excluding a battery hides it — it must NOT resurrect as a
+    # degraded native "Unknown" row via its own device's native sensor.
+    from custom_components.maintenance_supporter.const import CONF_OBJECT, DOMAIN
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    device = _device_with_battery(hass, slug="porch_cam")
+    note_entry = MockConfigEntry(domain="battery_notes", data={})
+    note_entry.add_to_hass(hass)
+    er.async_get(hass).async_get_or_create(
+        "sensor", "battery_notes", "porch_cam_plus", suggested_object_id="porch_cam_battery_plus", device_id=device.id
+    )
+    _set_note(hass, "porch_cam", battery_type="AA", source_entity_id="sensor.porch_cam_battery")
+    fleet = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_OBJECT: {
+                "id": "obj1",
+                "name": "Fleet",
+                "battery_fleet": True,
+                "battery_fleet_excluded": ["sensor.porch_cam_battery_plus"],
+            }
+        },
+    )
+    fleet.add_to_hass(hass)
+    assert read_batteries(hass) == []
 
 
 async def test_native_offline_dropped_when_not_low(hass):
