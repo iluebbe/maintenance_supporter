@@ -800,6 +800,9 @@
   "battery_fleet_offline": "offline",
   "battery_fleet_trigger_lost": "This task's sensor trigger was lost — it will not fire or auto-complete.",
   "battery_fleet_repair": "Repair",
+  "battery_fleet_exclude": "Exclude from the fleet",
+  "battery_fleet_excluded": "Excluded",
+  "battery_fleet_include": "Track again",
   "battery_fleet_total": "{n} batteries tracked",
   "battery_fleet_setup_button": "Battery fleet",
   "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries."

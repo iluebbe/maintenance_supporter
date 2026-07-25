@@ -401,6 +401,53 @@ async def test_mark_replaced_presses_buttons_and_consumes_stock(
     assert pressed_targets == {"button.lock_battery_replaced", "button.motion_battery_replaced"}
 
 
+async def test_ws_set_excluded_roundtrip(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    # #107: exclude via WS -> battery leaves the overview; include -> back.
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+    _battery(hass, "motion", "AA", 1, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_overview,
+        ws_battery_fleet_set_excluded,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_excluded,
+        hass,
+        conn2,
+        {"id": 2, "type": "x", "entity_id": "sensor.lock_battery_plus", "excluded": True},
+    )
+    assert not conn2.send_error.called, conn2.send_error.call_args
+
+    conn3 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn3, {"id": 3, "type": "x"})
+    res = conn3.send_result.call_args[0][1]
+    assert res["total"] == 1 and len(res["low"]) == 1
+    assert res["low"][0]["entity_id"] == "sensor.motion_battery_plus"
+    assert [x["entity_id"] for x in res["excluded"]] == ["sensor.lock_battery_plus"]
+    assert res["excluded"][0]["device_name"] == "lock"
+
+    conn4 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_excluded,
+        hass,
+        conn4,
+        {"id": 4, "type": "x", "entity_id": "sensor.lock_battery_plus", "excluded": False},
+    )
+    conn5 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn5, {"id": 5, "type": "x"})
+    res5 = conn5.send_result.call_args[0][1]
+    assert res5["total"] == 2 and res5["excluded"] == []
+
+
 async def test_overview_reports_low_and_grouped_needs(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

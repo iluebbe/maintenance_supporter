@@ -11,6 +11,66 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### 🐞 Battery Fleet: silent under-reporting (found 2026-07-22, live-audited)
+
+**Correctness before features.** A live audit against a 27-note production
+fleet found the fleet reporting **0 batteries to replace** while **11 were
+already overdue** (up to 272 days) and **2 more sat below the native low
+threshold**. Four independent causes, all in
+`helpers/battery_fleet.py::read_batteries`. B1 + B3 are small, low-risk edits
+with the largest effect.
+
+B1. 💡 **Forecast-only notes are dropped before the forecast can run** (the
+   big one). Battery Notes entries WITHOUT a `source_entity_id` — pure "index
+   cards" carrying `battery_type` + `battery_last_replaced` but no level
+   sensor — read `unknown` forever and are discarded by:
+   ```python
+   if not available and not low:
+       continue
+   ```
+   They never reach `build_overview()`, so the overdue/`soon` forecast
+   (`_predicted_date` = `last_replaced` + typical lifetime) never sees them —
+   even though they carry exactly the two fields that forecast needs. In the
+   audited fleet this hid **15 of 27 notes**, **11 of them already overdue**
+   (3× CR1632, 8× CR2032; worst case 272 days). Suggested fix: keep a battery
+   when a replacement date exists —
+   `if not available and not low and last_replaced is None: continue`.
+
+B2. 💡 **Two different low thresholds.** Battery-Notes batteries use Battery
+   Notes' own threshold (10 % in the audited setup), native ones use
+   `NATIVE_LOW_PERCENT = 20`. The same cell counts as low or healthy depending
+   on which pass found it — a CR2032 at **11.5 %** and a CR123A at **16.5 %**
+   were both reported healthy. Suggested fix: OR the native percentage floor
+   into the Battery-Notes branch, or promote the threshold to one configurable
+   value used by both passes.
+
+B3. 💡 **`covered_devices` is filled before the drop check**, so a discarded
+   note still suppresses the native fallback for its own device:
+   ```python
+   covered_devices.add(reg.device_id)   # runs unconditionally
+   ...
+   if not available and not low:
+       continue                          # dropped — device stays "covered"
+   ```
+   A device carrying a dead note AND a working level sensor is invisible in
+   BOTH passes. Not yet biting in the audited fleet (those 15 notes have no
+   native sibling), but it is latent, silent data loss. Suggested fix: move
+   the `add()` behind the drop check — one line.
+
+B4. 💡 **Rechargeables are treated as replaceable batteries.** Pass 2 adopts
+   everything with `device_class: battery` — phones, watches, tablets, a car,
+   robot vacuums, a robot mower (24 entries in the audited fleet). Any of them
+   dropping below 20 % raises a "replace battery" task and adds an `UNKNOWN`
+   row to the shopping list, which is never actionable. Suggested fix: skip
+   devices that also expose a `battery_charging` entity (or are otherwise
+   identifiable as rechargeable), and/or require a known battery type.
+
+**Regression guard to ship with the fix:** the audit was only possible by
+replicating `read_batteries` against a live registry — the behaviour is
+currently untestable from fixtures. Add cases for (a) a note without source
+entity plus an old `last_replaced`, (b) a note at 11.5 % against a 10 %
+threshold, (c) a device with both a dead note and a live native sensor.
+
 ### Next wave (proposed 2026-07)
 
 1. ~~**More voice/Assist intents — grounded task guidance**~~ ✅ **Shipped

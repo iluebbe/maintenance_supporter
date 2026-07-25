@@ -800,6 +800,9 @@
   "battery_fleet_offline": "offline",
   "battery_fleet_trigger_lost": "Uppgiftens sensorutlösare har gått förlorad — den utlöses inte och slutförs inte automatiskt.",
   "battery_fleet_repair": "Reparera",
+  "battery_fleet_exclude": "Uteslut från flottan",
+  "battery_fleet_excluded": "Uteslutna",
+  "battery_fleet_include": "Spåra igen",
   "battery_fleet_total": "{n} batterier spåras",
   "battery_fleet_setup_button": "Batteriflotta",
   "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier."

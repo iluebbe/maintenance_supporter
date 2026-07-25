@@ -220,6 +220,30 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     return {"marked": len(targets), "pressed": pressed, "consumed": consumed}
 
 
+def set_battery_excluded(hass: HomeAssistant, entity_id: str, excluded: bool) -> bool:
+    """Persist a manual exclude/include of one battery on the fleet object.
+
+    Issue #107: some tracked batteries should never appear (a rechargeable
+    device the heuristics missed, a neighbour's sensor, …). Stored as
+    ``battery_fleet_excluded`` on the fleet object dict. Returns False when
+    no fleet exists yet.
+    """
+    entry = find_fleet_entry(hass)
+    if entry is None:
+        return False
+    new_data = dict(entry.data)
+    obj = dict(new_data.get(CONF_OBJECT, {}))
+    current = set(obj.get("battery_fleet_excluded") or [])
+    if excluded:
+        current.add(entity_id)
+    else:
+        current.discard(entity_id)
+    obj["battery_fleet_excluded"] = sorted(current)
+    new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    return True
+
+
 def find_fleet_task(entry: ConfigEntry) -> tuple[str, dict[str, Any]] | None:
     """The flagged fleet task (id, data) on the fleet entry, or None."""
     for task_id, task_data in (entry.data.get(CONF_TASKS) or {}).items():

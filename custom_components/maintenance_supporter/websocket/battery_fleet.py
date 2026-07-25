@@ -14,12 +14,13 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
-from ..helpers.battery_fleet import compute_overview, has_batteries, has_battery_notes
+from ..helpers.battery_fleet import compute_overview, fleet_excluded_entities, has_batteries, has_battery_notes
 from ..helpers.battery_fleet_setup import (
     async_mark_replaced,
     async_setup_battery_fleet,
     find_fleet_entry,
     fleet_task_trigger_ok,
+    set_battery_excluded,
 )
 from ..helpers.permissions import require_write
 
@@ -47,6 +48,19 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             "needs_now": dict(ov.needs_now),
             "needs_soon": dict(ov.needs_soon),
             "types": ov.types,
+            # Manually excluded batteries (issue #107) — names enriched where
+            # the entity still exists, so the restore list stays readable.
+            "excluded": [
+                {
+                    "entity_id": eid,
+                    "device_name": (
+                        (st := hass.states.get(eid)) is not None
+                        and (st.attributes.get("device_name") or st.attributes.get("friendly_name"))
+                    )
+                    or eid,
+                }
+                for eid in sorted(fleet_excluded_entities(hass))
+            ],
         },
     )
 
@@ -68,6 +82,25 @@ async def ws_battery_fleet_setup(hass: HomeAssistant, connection: websocket_api.
         return
     result = await async_setup_battery_fleet(hass, language=msg.get("language"))
     connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/battery_fleet/set_excluded",
+        vol.Required("entity_id"): vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)),
+        vol.Required("excluded"): bool,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_battery_fleet_set_excluded(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Manually exclude a battery from the fleet (or take it back in) — #107."""
+    if not set_battery_excluded(hass, msg["entity_id"], msg["excluded"]):
+        connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
+        return
+    connection.send_result(msg["id"], {"success": True})
 
 
 @websocket_api.websocket_command(
