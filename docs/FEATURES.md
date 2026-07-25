@@ -6,6 +6,24 @@ with the [README](../README.md); for every configurable parameter see
 [CONFIGURATION.md](CONFIGURATION.md); for copy-paste automations and dashboards
 see [EXAMPLES.md](EXAMPLES.md).
 
+## In action
+
+Short clips of the key flows (recorded reproducibly against the demo
+instance — `e2e/gifs-demo.mjs` refreshes them per release):
+
+**Create an object from a template** — pick one of 41 templates and get an
+object with typical tasks pre-configured:
+
+![Create from template](images/gifs/create-from-template.gif)
+
+**Complete a task** — one tap, optionally with notes, cost and a photo:
+
+![Complete a task](images/gifs/complete-task.gif)
+
+**Calendar card, filtered to one object** (`object_filter`, v2.40):
+
+![Calendar object filter](images/gifs/calendar-object-filter.gif)
+
 ## Screenshots
 
 | Dashboard | Task Detail | Mobile |
