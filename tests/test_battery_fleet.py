@@ -142,6 +142,20 @@ async def test_offline_note_retains_low_but_pure_offline_dropped(hass):
     assert dead.low is True and dead.available is False and dead.level is None
 
 
+async def test_low_floor_applies_to_battery_notes_too(hass):
+    # B2 (live-audit case b): a CR2032 at 11.5 % with Battery Notes' own 10 %
+    # threshold (battery_low=False) counted healthy while the same level was
+    # low in the native pass. The fleet-wide floor now ORs in — and a HIGHER
+    # Battery Notes threshold still wins via its battery_low flag.
+    _set_note(hass, "coin_cell", _state="11.5", battery_low=False, battery_type="CR2032")
+    _set_note(hass, "healthy", _state="55", battery_low=False, battery_type="AA")
+    _set_note(hass, "high_threshold", _state="28", battery_low=True, battery_type="AA")  # BN threshold 30%
+    by_eid = {b.entity_id: b for b in read_batteries(hass)}
+    assert by_eid["sensor.coin_cell_battery_plus"].low is True
+    assert by_eid["sensor.healthy_battery_plus"].low is False
+    assert by_eid["sensor.high_threshold_battery_plus"].low is True
+
+
 async def test_forecast_only_note_reaches_the_forecast(hass):
     # B1 (live-audit "the big one"): a Battery Notes index card — no level
     # sensor (state unknown forever), no source_entity_id — but WITH a
