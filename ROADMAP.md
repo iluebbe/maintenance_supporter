@@ -543,6 +543,20 @@ one-off date on the object, not a schedule.
 Smaller, high-frequency wins first; each ships independently.
 
 ### Quick wins
+- 💡 **Explainer & onboarding GIFs** — short (10–20 s, looping) screen
+  recordings of the key flows, embedded in the README and the matching
+  FEATURES.md sections, so a prospective user SEES the integration work
+  before installing. Candidate flows: first-run → template gallery → object
+  created; complete-with-photo; Suggested setups adopting a device with a
+  pre-wired trigger; Battery Fleet (shopping list → mark all replaced); QR
+  quick-complete from a phone; calendar + object filter. Build them
+  REPRODUCIBLY like the docs screenshots: a committed script on the ha-shots
+  instance (Playwright records video → ffmpeg/gifski to GIF, English
+  dark-mode, faketime-pinned dates), so every release can refresh them
+  cheaply instead of hand-recording. Keep each GIF small (≤ ~2–3 MB, panel
+  cropped); host in-repo under `docs/images/gifs/`. Later idea: surface the
+  same GIFs in-app — the first-run empty state could offer a "20-second
+  tour" instead of text only.
 - ⏸️ **Object photos as avatars** — the documents feature already stores images;
   pick one as the object's thumbnail in cards and the objects table. **On hold**
   (2026-07): unsure it reads/looks well at avatar size — revisit with a design
