@@ -35,7 +35,10 @@ B1. ✅ **Forecast-only notes are dropped before the forecast can run** (the
    raise the low-count sensor, so the fleet task still doesn't trigger on
    them; decide whether "forecast overdue" should count as due.
 
-B2. 💡 **Two different low thresholds.** Battery-Notes batteries use Battery
+B2. ✅ **Two different low thresholds** — **shipped 2026-07-26**: the
+   NATIVE_LOW_PERCENT floor (20 %) is OR-ed into the Battery-Notes branch;
+   Battery Notes' own battery_low still applies, so a higher configured
+   threshold keeps winning. Regression test = audit case (b). Original: Battery-Notes batteries use Battery
    Notes' own threshold (10 % in the audited setup), native ones use
    `NATIVE_LOW_PERCENT = 20`. The same cell counts as low or healthy depending
    on which pass found it — a CR2032 at **11.5 %** and a CR123A at **16.5 %**
