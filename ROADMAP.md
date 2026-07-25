@@ -546,7 +546,12 @@ one-off date on the object, not a schedule.
 Smaller, high-frequency wins first; each ships independently.
 
 ### Quick wins
-- 💡 **Explainer & onboarding GIFs** — short (10–20 s, looping) screen
+- ✅ **Explainer & onboarding GIFs** — **first set shipped 2026-07-26** via
+  `e2e/gifs-demo.mjs` (create-from-template, complete-task,
+  calendar-object-filter; measured-trim recording against ha-shots,
+  ffmpeg-static conversion; embedded in README + FEATURES → In action).
+  Remaining flows (suggested setups, battery fleet, QR quick-complete) +
+  dark-mode theming stay open. Original idea: short (10–20 s, looping) screen
   recordings of the key flows, embedded in the README and the matching
   FEATURES.md sections, so a prospective user SEES the integration work
   before installing. Candidate flows: first-run → template gallery → object

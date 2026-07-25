@@ -11,6 +11,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   same level counted low for native batteries. The ≤ 20 % floor now applies
   to both; a higher Battery Notes threshold still wins.
 
+## [Unreleased]
+
+### 📚 Documentation
+
+- **Animated "see it in action" clips**: three reproducible GIFs (create an
+  object from a template, complete a task, filter the calendar card by
+  object) recorded via the new `e2e/gifs-demo.mjs` pipeline against the
+  demo instance — embedded in the README and FEATURES.md.
+
 ## [2.40.0] - 2026-07-25
 
 ### ✨ Added

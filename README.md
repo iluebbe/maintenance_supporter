@@ -24,6 +24,14 @@ your phone, and keep the full history of what was done and what it cost.
 
 <sub>More screenshots in the [feature reference](docs/FEATURES.md#screenshots).</sub>
 
+### See it in action
+
+![Create an object from a template](docs/images/gifs/create-from-template.gif)
+
+<sub>Pick a template, get a fully configured object with tasks — more short
+clips (completing a task, filtering the calendar) in
+[FEATURES.md → In action](docs/FEATURES.md#in-action).</sub>
+
 ## What can it do for you?
 
 **"The HVAC filter is due every 3 months."**
