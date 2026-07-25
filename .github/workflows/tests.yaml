@@ -25,7 +25,10 @@ jobs:
         with:
           python-version: "3.14"
       - name: Install ruff
-        run: pip install ruff
+        # PINNED: an unpinned ruff broke lint on 2026-07-25 (new release made
+        # every '# noqa: BLE001' an RUF100 unused-noqa). Keep in sync with the
+        # ha-maint container; upgrade deliberately together with a noqa sweep.
+        run: pip install ruff==0.15.22
       - name: Ruff check
         run: ruff check custom_components/maintenance_supporter/ tests/
 
