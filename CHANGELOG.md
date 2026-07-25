@@ -4,6 +4,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Calendar card: filter by object** (Discussion #83) — a new object
+  dropdown next to the user filter (shown when you have 2+ objects;
+  `show_object_filter: false` hides it), plus `object_filter` to
+  pre-select one object in YAML — by entry_id or simply by object name.
+
 ### 🔋 Battery Fleet
 
 - **Self-charging devices are no longer tracked** (issue #107): a robot

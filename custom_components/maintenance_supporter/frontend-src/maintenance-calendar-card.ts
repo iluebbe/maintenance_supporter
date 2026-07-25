@@ -19,6 +19,8 @@
  *   show_window_chips: true          # default true; hide for embedded use
  *   show_user_filter: true           # default true
  *   user_filter: ""                  # "" | "current_user" | "<uuid>"
+ *   show_object_filter: true         # default true; dropdown appears with 2+ objects
+ *   object_filter: ""                # "" | "<entry_id>" | "<object name>" (Discussion #83)
  */
 
 import { LitElement, html, css, nothing } from "lit";
@@ -47,6 +49,9 @@ interface CalendarCardConfig {
   show_window_chips?: boolean;
   show_user_filter?: boolean;
   user_filter?: string;
+  /** Discussion #83 — in-card object dropdown + optional preselect. */
+  show_object_filter?: boolean;
+  object_filter?: string;
   /** v2.2.0 — when set, the card renders past N days from history instead
    *  of forward N days from next_due. Mutually exclusive with window_days. */
   past_days?: PastDays;
@@ -62,6 +67,7 @@ export class MaintenanceCalendarCard extends LitElement {
   @state() private _windowDays: WindowDays = 30;
   @state() private _pastDays: PastDays | 0 = 0; // 0 = forward mode
   @state() private _userFilter = "";
+  @state() private _objectFilter = "";
   @state() private _unsub: (() => void) | null = null;
 
   private _dataLoaded = false;
@@ -91,6 +97,9 @@ export class MaintenanceCalendarCard extends LitElement {
     }
     if (typeof config.user_filter === "string") {
       this._userFilter = config.user_filter;
+    }
+    if (typeof config.object_filter === "string") {
+      this._objectFilter = config.object_filter;
     }
   }
 
@@ -224,12 +233,26 @@ export class MaintenanceCalendarCard extends LitElement {
         : this._userFilter;
     }
 
+    // Object filter (#83): the config value may be an entry_id or an object
+    // NAME (friendlier in hand-written YAML) — resolve against the loaded
+    // objects; an unknown value falls back to "all" instead of a blank card.
+    const showObjectFilter = this._config.show_object_filter !== false && this._objects.length > 1;
+    let filterEntryId: string | null = null;
+    if (this._objectFilter) {
+      const needle = this._objectFilter.toLowerCase();
+      const match = this._objects.find(
+        (o) => o.entry_id === this._objectFilter || o.object.name.toLowerCase() === needle,
+      );
+      filterEntryId = match?.entry_id ?? null;
+    }
+    const objects = filterEntryId ? this._objects.filter((o) => o.entry_id === filterEntryId) : this._objects;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const isPast = this._pastDays > 0;
     const buckets = isPast
-      ? buildPastBuckets(this._objects, today, this._pastDays, userFilter)
-      : buildCalendarBuckets(this._objects, today, this._windowDays, userFilter);
+      ? buildPastBuckets(objects, today, this._pastDays, userFilter)
+      : buildCalendarBuckets(objects, today, this._windowDays, userFilter);
 
     const todayIso = isoDateLocal(today);
     // Year view AND past views collapse empty days — past windows can be
@@ -363,6 +386,22 @@ export class MaintenanceCalendarCard extends LitElement {
                       </select>
                     `
                   : nothing}
+                ${showObjectFilter
+                  ? html`
+                      <select class="cal-user-filter"
+                        .value=${filterEntryId ?? ""}
+                        @change=${(e: Event) => {
+                          this._objectFilter = (e.target as HTMLSelectElement).value;
+                        }}>
+                        <option value="">${t("all_objects", L)}</option>
+                        ${[...this._objects]
+                          .sort((a, b) => a.object.name.localeCompare(b.object.name))
+                          .map(
+                            (o) => html`<option value=${o.entry_id} ?selected=${o.entry_id === filterEntryId}>${o.object.name}</option>`,
+                          )}
+                      </select>
+                    `
+                  : nothing}
               </div>
             `
           : nothing}
@@ -416,6 +455,9 @@ class MaintenanceCalendarCardEditor extends LitElement {
     }
     if (key === "show_user_filter" && value === true) {
       delete (newConfig as unknown as Record<string, unknown>).show_user_filter;
+    }
+    if (key === "show_object_filter" && value === true) {
+      delete (newConfig as unknown as Record<string, unknown>).show_object_filter;
     }
     if (key === "title" && (!value || (typeof value === "string" && value.trim() === ""))) {
       delete (newConfig as unknown as Record<string, unknown>).title;
@@ -512,6 +554,22 @@ class MaintenanceCalendarCardEditor extends LitElement {
               My tasks (current user)
             </option>
           </select>
+        </div>
+        <div class="row toggle">
+          <label for="objf">Show object filter dropdown</label>
+          <input
+            id="objf"
+            type="checkbox"
+            .checked=${this._config.show_object_filter !== false}
+            @change=${(e: Event) =>
+              this._valueChanged(
+                "show_object_filter",
+                (e.target as HTMLInputElement).checked,
+              )}
+          />
+        </div>
+        <div class="hint">
+          Pre-select one object via YAML: object_filter: "&lt;object name&gt;".
         </div>
       </div>
     `;
