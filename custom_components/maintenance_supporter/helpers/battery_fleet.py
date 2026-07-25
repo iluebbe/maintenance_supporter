@@ -263,7 +263,13 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             continue
         level = _level_of(state.state)
         available = state.state not in _NO_READING and level is not None
-        low = bool(attrs.get("battery_low"))
+        # B2 (roadmap 2026-07-22 audit): ONE low floor across both passes.
+        # Battery Notes' own threshold (default 10 %) still counts via its
+        # battery_low flag, but the fleet-wide NATIVE_LOW_PERCENT floor is
+        # OR-ed in — a CR2032 at 11.5 % was "healthy" here while the same
+        # level counted low in the native pass. A HIGHER Battery Notes
+        # threshold (e.g. 30 %) still wins through battery_low.
+        low = bool(attrs.get("battery_low")) or (level is not None and level <= NATIVE_LOW_PERCENT)
         last_replaced = _parse_last_replaced(attrs.get("battery_last_replaced"))
         # B1 (roadmap 2026-07-22 audit): a forecast-only note — no level
         # sensor, so the state reads unknown forever — must SURVIVE when it

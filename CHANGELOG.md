@@ -2,6 +2,15 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔋 Battery Fleet
+
+- **One low threshold fleet-wide** (live-audit finding B2): a Battery Notes
+  battery at 11.5 % counted healthy (its own threshold is 10 %) while the
+  same level counted low for native batteries. The ≤ 20 % floor now applies
+  to both; a higher Battery Notes threshold still wins.
+
 ## [2.40.0] - 2026-07-25
 
 ### ✨ Added
