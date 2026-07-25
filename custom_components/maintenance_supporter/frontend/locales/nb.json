@@ -800,6 +800,9 @@
   "battery_fleet_offline": "frakoblet",
   "battery_fleet_trigger_lost": "Oppgavens sensorutløser er tapt — den utløses ikke og fullføres ikke automatisk.",
   "battery_fleet_repair": "Reparer",
+  "battery_fleet_exclude": "Utelukk fra flåten",
+  "battery_fleet_excluded": "Utelukket",
+  "battery_fleet_include": "Følg igjen",
   "battery_fleet_total": "{n} batterier spores",
   "battery_fleet_setup_button": "Batteriflåte",
   "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene."

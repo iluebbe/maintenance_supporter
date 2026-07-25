@@ -800,6 +800,9 @@
   "battery_fleet_offline": "offline",
   "battery_fleet_trigger_lost": "Wyzwalacz czujnika tego zadania został utracony — nie uruchomi się ani nie zakończy automatycznie.",
   "battery_fleet_repair": "Napraw",
+  "battery_fleet_exclude": "Wyklucz z floty",
+  "battery_fleet_excluded": "Wykluczone",
+  "battery_fleet_include": "Śledź ponownie",
   "battery_fleet_total": "Śledzone baterie: {n}",
   "battery_fleet_setup_button": "Flota baterii",
   "battery_fleet_setup_done": "Flota baterii skonfigurowana — jedno zadanie śledzi wszystkie."

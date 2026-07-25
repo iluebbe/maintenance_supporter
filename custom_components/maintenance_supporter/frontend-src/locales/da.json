@@ -800,6 +800,9 @@
   "battery_fleet_offline": "offline",
   "battery_fleet_trigger_lost": "Opgavens sensorudløser er gået tabt — den udløses ikke og fuldføres ikke automatisk.",
   "battery_fleet_repair": "Reparér",
+  "battery_fleet_exclude": "Udeluk fra flåden",
+  "battery_fleet_excluded": "Udelukket",
+  "battery_fleet_include": "Følg igen",
   "battery_fleet_total": "{n} batterier overvåges",
   "battery_fleet_setup_button": "Batteriflåde",
   "battery_fleet_setup_done": "Batteriflåde opsat — én opgave følger alle batterier."

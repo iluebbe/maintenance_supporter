@@ -800,6 +800,9 @@
   "battery_fleet_offline": "offline",
   "battery_fleet_trigger_lost": "Tehtävän anturiliipaisin on kadonnut — se ei laukea eikä valmistu automaattisesti.",
   "battery_fleet_repair": "Korjaa",
+  "battery_fleet_exclude": "Sulje pois kannasta",
+  "battery_fleet_excluded": "Pois suljetut",
+  "battery_fleet_include": "Seuraa uudelleen",
   "battery_fleet_total": "{n} paristoa seurannassa",
   "battery_fleet_setup_button": "Paristokanta",
   "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia."

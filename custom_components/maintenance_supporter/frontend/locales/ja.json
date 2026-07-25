@@ -800,6 +800,9 @@
   "battery_fleet_offline": "オフライン",
   "battery_fleet_trigger_lost": "このタスクのセンサートリガーが失われました — 発動も自動完了もしません。",
   "battery_fleet_repair": "修復",
+  "battery_fleet_exclude": "フリートから除外",
+  "battery_fleet_excluded": "除外済み",
+  "battery_fleet_include": "再び追跡",
   "battery_fleet_total": "{n} 個の電池を監視",
   "battery_fleet_setup_button": "電池フリート",
   "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。"

@@ -800,6 +800,9 @@
   "battery_fleet_offline": "offline",
   "battery_fleet_trigger_lost": "O gatilho de sensor desta tarefa foi perdido — ela não será acionada nem concluída automaticamente.",
   "battery_fleet_repair": "Reparar",
+  "battery_fleet_exclude": "Excluir da frota",
+  "battery_fleet_excluded": "Excluídas",
+  "battery_fleet_include": "Acompanhar novamente",
   "battery_fleet_total": "{n} baterias monitorizadas",
   "battery_fleet_setup_button": "Frota de baterias",
   "battery_fleet_setup_done": "Frota de baterias configurada — uma tarefa acompanha todas."

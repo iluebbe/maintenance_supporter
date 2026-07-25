@@ -188,6 +188,46 @@ def _level_of(state_val: str) -> float | None:
         return None
 
 
+def fleet_excluded_entities(hass: HomeAssistant) -> set[str]:
+    """Manually excluded battery entity_ids, stored on the fleet object entry.
+
+    Inlined lookup (not via battery_fleet_setup.find_fleet_entry) to keep this
+    module import-cycle-free — setup imports the aggregation, not vice versa.
+    """
+    from ..const import CONF_OBJECT, DOMAIN
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        obj = entry.data.get(CONF_OBJECT, {})
+        if obj.get("battery_fleet"):
+            return set(obj.get("battery_fleet_excluded") or [])
+    return set()
+
+
+def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
+    """Whether a device recharges itself — its battery is never REPLACED.
+
+    Issue #107: a Roborock's native battery sensor reads "low" mid-clean, but
+    nobody swaps its cells. Heuristics (native pickup only — an explicit
+    Battery Notes note always wins): the device also has a vacuum/lawn_mower
+    entity, exposes a ``battery_charging`` binary, or is a Companion-app
+    phone/tablet (``mobile_app`` identifiers).
+    """
+    if not device_id:
+        return False
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    device = dr.async_get(hass).async_get(device_id)
+    if device and any(domain == "mobile_app" for domain, _ in device.identifiers):
+        return True
+    for reg_entry in er.async_entries_for_device(er.async_get(hass), device_id, include_disabled_entities=True):
+        if reg_entry.domain in ("vacuum", "lawn_mower"):
+            return True
+        if reg_entry.domain == "binary_sensor" and (reg_entry.device_class or reg_entry.original_device_class) == "battery_charging":
+            return True
+    return False
+
+
 def read_batteries(hass: HomeAssistant) -> list[Battery]:
     """Read the battery fleet from HA state — Battery Notes AND native.
 
@@ -200,13 +240,17 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       battery-low binary), grouped per device, give a degraded view (type
       "Unknown", quantity 1, no forecast). A device already covered by a
       Battery Notes note is skipped (dedup by the note's source entity + its
-      device) so it isn't counted twice.
+      device) so it isn't counted twice; self-charging devices (vacuums,
+      mowers, phones — see :func:`_is_self_charging`) are skipped entirely.
+    * Manually excluded entity_ids (fleet detail → exclude) are dropped from
+      BOTH passes.
     """
     from homeassistant.helpers import device_registry as dr
     from homeassistant.helpers import entity_registry as er
 
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
+    excluded = fleet_excluded_entities(hass)
 
     out: list[Battery] = []
     covered_sources: set[str] = set()
@@ -223,6 +267,8 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
         reg = ent_reg.async_get(state.entity_id)
         if reg and reg.device_id:
             covered_devices.add(reg.device_id)
+        if state.entity_id in excluded:
+            continue
         level = _level_of(state.state)
         available = state.state not in _NO_READING and level is not None
         low = bool(attrs.get("battery_low"))
@@ -253,11 +299,13 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             eid = state.entity_id
             if "battery_type" in state.attributes:  # Battery Notes battery_plus — handled above
                 continue
-            if eid in covered_sources:
+            if eid in covered_sources or eid in excluded:
                 continue
             reg = ent_reg.async_get(eid)
             dev_id = reg.device_id if reg else None
             if dev_id and dev_id in covered_devices:
+                continue
+            if _is_self_charging(hass, dev_id):  # #107: vacuums/mowers/phones
                 continue
             key = dev_id or eid
             rec = native.setdefault(
@@ -346,6 +394,7 @@ __all__ = [
     "build_overview",
     "compute_overview",
     "discover_battery_types",
+    "fleet_excluded_entities",
     "has_batteries",
     "has_battery_notes",
     "lifetime_months",

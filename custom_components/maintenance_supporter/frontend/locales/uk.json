@@ -800,6 +800,9 @@
   "battery_fleet_offline": "не в мережі",
   "battery_fleet_trigger_lost": "Сенсорний тригер цього завдання втрачено — воно не спрацює і не завершиться автоматично.",
   "battery_fleet_repair": "Відновити",
+  "battery_fleet_exclude": "Виключити з парку",
+  "battery_fleet_excluded": "Виключені",
+  "battery_fleet_include": "Знову відстежувати",
   "battery_fleet_total": "Відстежується батарей: {n}",
   "battery_fleet_setup_button": "Парк батарей",
   "battery_fleet_setup_done": "Парк батарей налаштовано — одне завдання стежить за всіма."

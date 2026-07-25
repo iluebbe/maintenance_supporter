@@ -800,6 +800,9 @@
   "battery_fleet_offline": "hors ligne",
   "battery_fleet_trigger_lost": "Le déclencheur de capteur de cette tâche a été perdu — elle ne se déclenchera pas et ne se terminera pas automatiquement.",
   "battery_fleet_repair": "Réparer",
+  "battery_fleet_exclude": "Exclure du parc",
+  "battery_fleet_excluded": "Exclues",
+  "battery_fleet_include": "Suivre à nouveau",
   "battery_fleet_total": "{n} piles suivies",
   "battery_fleet_setup_button": "Parc de piles",
   "battery_fleet_setup_done": "Parc de piles configuré — une tâche suit toutes vos piles."

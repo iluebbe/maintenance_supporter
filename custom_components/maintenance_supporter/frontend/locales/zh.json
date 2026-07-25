@@ -800,6 +800,9 @@
   "battery_fleet_offline": "离线",
   "battery_fleet_trigger_lost": "此任务的传感器触发器已丢失——它不会触发，也不会自动完成。",
   "battery_fleet_repair": "修复",
+  "battery_fleet_exclude": "从电池群中排除",
+  "battery_fleet_excluded": "已排除",
+  "battery_fleet_include": "重新跟踪",
   "battery_fleet_total": "已跟踪 {n} 个电池",
   "battery_fleet_setup_button": "电池群",
   "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。"

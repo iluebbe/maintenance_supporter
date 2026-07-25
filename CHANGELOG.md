@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔋 Battery Fleet
+
+- **Self-charging devices are no longer tracked** (issue #107): a robot
+  vacuum's battery reads "low" mid-clean, but nobody replaces its cells.
+  Devices that also expose a vacuum or lawn-mower entity, a
+  `battery_charging` binary, or are Companion-app phones/tablets are now
+  skipped by the native pickup (an explicit Battery Notes note always wins —
+  that is user intent). And any battery can be **manually excluded** from the
+  fleet via the new eye-off action on its row; excluded batteries are listed
+  under the section and can be taken back in with one tap.
+
 ## [2.39.0] - 2026-07-21
 
 ### 🎨 Changed

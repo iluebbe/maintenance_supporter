@@ -29,6 +29,7 @@ interface Overview {
   needs_now: Record<string, number>;
   needs_soon: Record<string, number>;
   types: string[];
+  excluded?: { entity_id: string; device_name: string }[];
 }
 
 export class MaintenanceBatteryFleetSection extends LitElement {
@@ -111,6 +112,27 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
   }
 
+  // Manual exclude/include (#107): a rechargeable device the heuristics
+  // missed (or any battery the user never wants tracked) leaves the fleet;
+  // the restore list below the section brings it back.
+  private async _setExcluded(entityId: string, excluded: boolean): Promise<void> {
+    if (this._marking) return;
+    this._marking = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/battery_fleet/set_excluded",
+        entity_id: entityId,
+        excluded,
+      });
+      await this._load();
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    } finally {
+      this._marking = false;
+    }
+  }
+
   private _shoppingLine(needs: Record<string, number>): string {
     return Object.entries(needs)
       .map(([type, qty]) => `${qty}× ${type}`)
@@ -170,6 +192,14 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                       >
                         <ha-icon icon="mdi:battery-sync"></ha-icon>
                       </button>
+                      <button
+                        class="bf-mark bf-exclude"
+                        title=${t("battery_fleet_exclude", L)}
+                        .disabled=${this._marking}
+                        @click=${() => this._setExcluded(b.entity_id, true)}
+                      >
+                        <ha-icon icon="mdi:eye-off-outline"></ha-icon>
+                      </button>
                     </div>
                   `,
                 )}
@@ -187,6 +217,28 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 <span class="bf-label">${t("battery_fleet_soon", L)}</span>
                 <span class="bf-list">${this._shoppingLine(ov.needs_soon)}</span>
                 <div class="bf-soon-hint">${t("battery_fleet_soon_hint", L)}</div>
+              </div>
+            `
+          : nothing}
+        ${ov.excluded?.length
+          ? html`
+              <div class="bf-excluded">
+                <span class="bf-label">${t("battery_fleet_excluded", L)}</span>
+                ${ov.excluded.map(
+                  (x) => html`
+                    <span class="bf-excluded-chip">
+                      ${x.device_name}
+                      <button
+                        class="bf-mark"
+                        title=${t("battery_fleet_include", L)}
+                        .disabled=${this._marking}
+                        @click=${() => this._setExcluded(x.entity_id, false)}
+                      >
+                        <ha-icon icon="mdi:eye-outline"></ha-icon>
+                      </button>
+                    </span>
+                  `,
+                )}
               </div>
             `
           : nothing}
@@ -314,6 +366,27 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-total {
       font-size: 12px;
       color: var(--secondary-text-color);
+    }
+    .bf-exclude {
+      color: var(--secondary-text-color);
+    }
+    .bf-excluded {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      border-top: 1px solid var(--divider-color);
+      padding-top: 8px;
+    }
+    .bf-excluded-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      background: var(--secondary-background-color);
+      border-radius: 10px;
+      padding: 1px 4px 1px 10px;
     }
   `;
 }

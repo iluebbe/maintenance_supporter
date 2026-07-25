@@ -144,3 +144,83 @@ async def test_offline_note_retains_low_but_pure_offline_dropped(hass):
 async def test_native_offline_dropped_when_not_low(hass):
     hass.states.async_set("sensor.gone_battery", "unavailable", {"device_class": "battery"})
     assert read_batteries(hass) == []
+
+
+def _device_with_battery(hass, *, slug, extra_domain=None, extra_device_class=None, identifiers=None):
+    """Registry device + native battery sensor (+ optional sibling entity)."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(domain="test", data={})
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers=identifiers or {("test", slug)},
+        name=slug.title(),
+    )
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "sensor", "test", f"{slug}_batt", suggested_object_id=f"{slug}_battery", device_id=device.id
+    )
+    if extra_domain:
+        ent_reg.async_get_or_create(
+            extra_domain,
+            "test",
+            f"{slug}_extra",
+            suggested_object_id=f"{slug}_extra",
+            device_id=device.id,
+            original_device_class=extra_device_class,
+        )
+    hass.states.async_set(f"sensor.{slug}_battery", "9", {"device_class": "battery"})
+    return device
+
+
+async def test_self_charging_devices_skipped(hass):
+    # #107: a vacuum's low native battery must NOT enter the fleet — the
+    # robot recharges itself. Same for battery_charging binaries and phones.
+    _device_with_battery(hass, slug="roborock", extra_domain="vacuum")
+    _device_with_battery(hass, slug="ebike", extra_domain="binary_sensor", extra_device_class="battery_charging")
+    _device_with_battery(hass, slug="pixel", identifiers={("mobile_app", "pixel10")})
+    _device_with_battery(hass, slug="door_sensor")  # plain battery device stays
+    bats = read_batteries(hass)
+    assert [b.entity_id for b in bats] == ["sensor.door_sensor_battery"]
+
+
+async def test_battery_notes_note_wins_over_self_charging_heuristic(hass):
+    # An explicit Battery Notes note on a vacuum is user intent — keep it.
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    device = _device_with_battery(hass, slug="mower", extra_domain="lawn_mower")
+    note_entry = MockConfigEntry(domain="battery_notes", data={})
+    note_entry.add_to_hass(hass)
+    er.async_get(hass).async_get_or_create(
+        "sensor", "battery_notes", "mower_plus", suggested_object_id="mower_battery_plus", device_id=device.id
+    )
+    _set_note(hass, "mower", battery_type="AA", source_entity_id="sensor.mower_battery")
+    bats = read_batteries(hass)
+    assert len(bats) == 1
+    assert bats[0].source == "battery_notes"
+
+
+async def test_manual_exclusion_filters_both_passes(hass):
+    from custom_components.maintenance_supporter.const import CONF_OBJECT, DOMAIN
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    _set_note(hass, "hall_motion", battery_type="CR2450")
+    hass.states.async_set("sensor.remote_battery", "9", {"device_class": "battery"})
+    # Fleet entry with both entity_ids excluded.
+    fleet = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_OBJECT: {
+                "id": "obj1",
+                "name": "Fleet",
+                "battery_fleet": True,
+                "battery_fleet_excluded": ["sensor.hall_motion_battery_plus", "sensor.remote_battery"],
+            }
+        },
+    )
+    fleet.add_to_hass(hass)
+    assert read_batteries(hass) == []
