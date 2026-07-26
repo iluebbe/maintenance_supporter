@@ -488,6 +488,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Document storage sensor** (2.11.0+) — one global entity `sensor.<config>_document_storage` (`device_class: data_size`) reporting the physical footprint of attached documents, with `dedup_savings_bytes`, `document_count`, and per-object / per-category breakdowns as attributes
 - **Part stock sensors** (2.23+) — one per spare part on the object's device (`sensor.<object>_<part>_stock`): state is the tracked on-hand count (`unavailable` for catalog-only parts), attributes carry the reorder threshold, storage location and `is_low`. Plus one global `sensor.maintenance_supporter_parts_to_reorder` counting parts at/below their threshold across all objects
 - **Next-due timestamp sensor** (2.19+) — one per task (`device_class: timestamp`), **disabled by default**; enable it for relative-time displays ("in 2 days") on tile/entities cards and plain timestamp automations. Honours the task's time-of-day when that feature is on
+- **Days-until-due countdown sensor** (2.41+) — one per task, **disabled by default**; its state is the plain number of days until the task is due (negative once overdue) for gauge/progress-bar cards, which cannot read the status sensor's `days_until_due` attribute. See the [gauge recipe](EXAMPLES.md#gauge--progress-bar-countdown)
 
 ### Sensor Attributes
 

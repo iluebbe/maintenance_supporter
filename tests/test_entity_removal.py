@@ -581,9 +581,11 @@ async def test_task_deletion_removes_entities(
 
     entity_reg = er.async_get(hass)
     entities_before = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
-    # One STATUS sensor per task; each task also registers a (default-
-    # disabled) next-due timestamp sensor since 2.19 — filter it out here.
-    status_sensors_before = [e for e in entities_before if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
+    # One STATUS sensor per task; each task also registers default-disabled
+    # next-due timestamp and days-until-due countdown companions — filtered.
+    status_sensors_before = [
+        e for e in entities_before if e.domain == "sensor" and not e.unique_id.endswith(("_next_due", "_days_until_due"))
+    ]
     assert len(status_sensors_before) == 2
 
     # Delete one task via WS
@@ -606,7 +608,9 @@ async def test_task_deletion_removes_entities(
     # task's status AND next-due sensor are both cleaned up (the `_{task_id}`
     # unique-id segment match covers every per-task entity).
     entities_after = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
-    status_after = [e for e in entities_after if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
+    status_after = [
+        e for e in entities_after if e.domain == "sensor" and not e.unique_id.endswith(("_next_due", "_days_until_due"))
+    ]
     assert len(status_after) == 1
     assert not any(TASK_ID_2 in e.unique_id for e in entities_after)
 

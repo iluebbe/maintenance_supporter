@@ -1369,6 +1369,9 @@
       "next_due": {
         "name": "{task_name} 次回期日"
       },
+      "days_until_due": {
+        "name": "{task_name} 期限までの日数"
+      },
       "parts_to_reorder": {
         "name": "再注文が必要な部品"
       },

@@ -294,6 +294,41 @@ entity_ids: [sensor.hvac_system_filter_change, binary_sensor.family_car_oil_chan
 max_items: 10
 ```
 
+### Gauge / Progress-Bar Countdown
+
+Each task registers a **days-until-due countdown sensor** (disabled by
+default — enable it under *Settings → Devices → your object → entities*).
+Its state is the plain number of days until the task is due, negative once
+overdue — exactly what gauge and progress-style cards need, since they
+cannot read the status sensor's `days_until_due` attribute:
+
+```yaml
+type: gauge
+entity: sensor.family_car_oil_change_days_until_due
+name: Oil change
+min: 0
+max: 180
+needle: true
+segments:
+  - from: 0
+    color: red
+  - from: 14
+    color: yellow
+  - from: 30
+    color: green
+```
+
+On older versions (or for one-off needs) the same number is available
+without the sensor via a template:
+
+```yaml
+template:
+  - sensor:
+      - name: "Oil change countdown"
+        unit_of_measurement: d
+        state: "{{ state_attr('sensor.family_car_oil_change', 'days_until_due') }}"
+```
+
 ### Dashboard Strategy
 
 <a id="dashboard-strategy"></a>

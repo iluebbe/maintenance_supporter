@@ -115,7 +115,7 @@ async def test_owner_reorganizes_everything_after_a_year(hass: HomeAssistant, gl
     await hass.async_block_till_done()
 
     baseline = registry_snapshot(hass, _entry(hass, entry_id))
-    assert len(baseline) == 6  # status+next_due sensors, binary, 3 buttons
+    assert len(baseline) == 7  # status+next_due+countdown sensors, binary, 3 buttons
 
     # ── Mutation 1: interval becomes 12 months (unit change, issue #58) ────
     await call_ws_handler(

@@ -58,7 +58,7 @@ async def test_sensor_unique_id_format(
     entity_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_reg, object_config_entry.entry_id)
 
-    sensor_entities = [e for e in entities if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
+    sensor_entities = [e for e in entities if e.domain == "sensor" and not e.unique_id.endswith(("_next_due", "_days_until_due"))]
     assert len(sensor_entities) == 1
 
     # unique_id should be: maintenance_supporter_{object_slug}_{task_id}
@@ -170,9 +170,9 @@ async def test_multiple_tasks_create_sensors(
 
     entity_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
-    # One status sensor per task (+ one default-disabled next-due timestamp
-    # sensor each, 2.19 — excluded here).
-    sensor_entities = [e for e in entities if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
+    # One status sensor per task (+ default-disabled next-due timestamp and
+    # days-until-due countdown companions each — excluded here).
+    sensor_entities = [e for e in entities if e.domain == "sensor" and not e.unique_id.endswith(("_next_due", "_days_until_due"))]
     assert len(sensor_entities) == 2
 
 

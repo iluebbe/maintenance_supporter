@@ -1369,6 +1369,9 @@
       "next_due": {
         "name": "{task_name} Seuraava eräpäivä"
       },
+      "days_until_due": {
+        "name": "{task_name} Päiviä eräpäivään"
+      },
       "parts_to_reorder": {
         "name": "Tilattavat osat"
       },
