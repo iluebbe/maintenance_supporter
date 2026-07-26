@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfInformation
+from homeassistant.const import UnitOfInformation, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -100,6 +100,10 @@ async def async_setup_entry(
     # next-due instant for tile/entities cards with the relative time-format
     # display options ("in 2 days"), template automations, etc.
     entities.extend(MaintenanceNextDueSensor(coordinator, task_id) for task_id in tasks)
+    # Numeric countdown companion per task (disabled by default): plain
+    # days-until-due number for gauge/progress-bar cards, which cannot read
+    # the status sensor's attribute.
+    entities.extend(MaintenanceDaysUntilDueSensor(coordinator, task_id) for task_id in tasks)
     # Spare parts: one stock sensor per part on the object device (catalog-only
     # parts without a tracked count read unavailable).
     from .const import CONF_PARTS
@@ -492,6 +496,49 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
                 opts = ce.options or ce.data
                 return bool(opts.get(CONF_ADVANCED_SCHEDULE_TIME, False))
         return False
+
+
+class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):
+    """Numeric days-until-due countdown for a task.
+
+    Companion to the per-task status sensor, disabled by default like the
+    next-due timestamp twin — always-on would double the entity count for
+    large setups. Once enabled its STATE is the plain number of days until
+    the task is due (negative once overdue), which is what gauge and
+    progress-bar cards need; the status sensor only carries this as an
+    attribute. Manual, archived and trigger-only tasks read unknown.
+    """
+
+    _attr_translation_key = "days_until_due"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTime.DAYS
+    _attr_suggested_display_precision = 0
+    _attr_icon = "mdi:calendar-clock"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self,
+        coordinator: MaintenanceCoordinator,
+        task_id: str,
+    ) -> None:
+        """Initialize the days-until-due sensor."""
+        super().__init__(coordinator, task_id)
+        obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
+        task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
+        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_days_until_due"
+        self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
+
+    @property
+    def native_value(self) -> int | None:
+        """Days until due (negative = overdue), or None without a due date."""
+        task = self._task_data
+        if not task:
+            return None
+        if task.get("_status") == MaintenanceStatus.ARCHIVED:
+            return None
+        days = task.get("_days_until_due")
+        return int(days) if days is not None else None
 
 
 class MaintenanceSummarySensor(CoordinatorEntity[MaintenanceSummaryCoordinator], SensorEntity):

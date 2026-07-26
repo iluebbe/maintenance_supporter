@@ -1369,6 +1369,9 @@
       "next_due": {
         "name": "{task_name} Наступний термін"
       },
+      "days_until_due": {
+        "name": "{task_name} Днів до терміну"
+      },
       "parts_to_reorder": {
         "name": "Деталі до замовлення"
       },

@@ -1369,6 +1369,9 @@
       "next_due": {
         "name": "{task_name} Next due"
       },
+      "days_until_due": {
+        "name": "{task_name} Days until due"
+      },
       "parts_to_reorder": {
         "name": "Parts to reorder"
       },

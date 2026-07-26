@@ -1369,6 +1369,9 @@
       "next_due": {
         "name": "{task_name} Neste forfall"
       },
+      "days_until_due": {
+        "name": "{task_name} Dager til forfall"
+      },
       "parts_to_reorder": {
         "name": "Deler å etterbestille"
       },

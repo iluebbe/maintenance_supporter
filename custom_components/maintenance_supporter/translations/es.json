@@ -1369,6 +1369,9 @@
       "next_due": {
         "name": "{task_name} Próximo vencimiento"
       },
+      "days_until_due": {
+        "name": "{task_name} Días hasta vencimiento"
+      },
       "parts_to_reorder": {
         "name": "Piezas por reponer"
       },

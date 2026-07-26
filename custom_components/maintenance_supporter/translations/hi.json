@@ -1369,6 +1369,9 @@
       "next_due": {
         "name": "{task_name} अगली नियत तिथि"
       },
+      "days_until_due": {
+        "name": "{task_name} देय तक दिन"
+      },
       "parts_to_reorder": {
         "name": "पुनः ऑर्डर करने योग्य पुर्ज़े"
       },
