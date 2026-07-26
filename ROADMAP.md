@@ -626,7 +626,10 @@ it, so the next save silently drops or resets it. i18n gaps (the #2 class)
 were closed 2026-07 with the value gates + `add_locale_key.py`. These guards
 target what's left:
 
-1. 💡 **Contract-fixture round-trip test** (kills the #42/#50/#58/#88/#103/#106
+1. ✅ **Contract-fixture round-trip test** — **shipped 2026-07-26** exactly as
+   designed below (tests/test_task_contract_fixture.py + the frontend
+   task-contract-roundtrip closure test + TASK_UPDATE_FIELD_MAP inventory
+   tripwire; regenerate via MS_REGEN_CONTRACT=1). Original: (kills the #42/#50/#58/#88/#103/#106
    class structurally). A backend test builds a MAXIMAL task (every storage
    field populated), emits the real `_build_task_summary` output as a
    committed JSON fixture; a frontend test hydrates the task dialog from
