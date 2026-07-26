@@ -194,12 +194,18 @@ last-replaced date** — everything the shopping list and forecast need. Battery
 Notes is **not required**, though: any device that exposes a native
 `device_class: battery` sensor or low-battery binary is picked up too, in a
 **degraded mode** (type shown as *Unknown*, quantity 1, no last-replaced
-forecast). One low floor applies fleet-wide: any battery at **≤ 20 %** counts
+forecast) — including %-sensors that ship **without** a `device_class`
+(some Zigbee2MQTT/ESPHome devices), found via a strict battery-name
+heuristic that keeps charging electronics and home-storage SoC sensors
+out. One low floor applies fleet-wide: any battery at **≤ 20 %** counts
 as low — for Battery Notes batteries in addition to their own configured
 threshold (a higher Battery Notes threshold still wins). A device covered by
 a Battery Notes note is never double-counted with its own native sensor, and
 self-charging devices (robot vacuums/mowers, devices with a charging sensor,
-Companion-app phones) are skipped entirely.
+Companion-app phones) are skipped entirely. A native battery that was low
+and then goes **unavailable** (a dead battery takes its device offline)
+stays listed for up to 48 hours instead of vanishing at the exact moment it
+needs replacing.
 
 ![Battery Fleet](images/battery-fleet.png)
 
