@@ -97,6 +97,18 @@ binary sensor, it does not need a catalog entry here — the adoption
 dialog picks it up automatically, whether or not it appears in this
 table.
 
+## Reviewed — no usable signals (use a template instead)
+
+Integrations we source-dived that expose NEITHER consumable/wear
+sensors NOR adoptable problem binaries. Their devices still need
+maintenance — a static template covers them, and because these
+devices run on fixed rhythms, calendar intervals track real usage
+closely.
+
+| Integration | What it exposes | Use instead |
+|---|---|---|
+| **ResMed myAir** (HACS resmed_myair_sensors) | therapy metrics only — per-night usage minutes, AHI, mask leak, myAir score; no consumable data, no cumulative counter, no live running state | The **CPAP Machine** template (nightly use ⇒ calendar ≈ usage; ResMed-guideline intervals for mask cushion, filter, tubing, humidifier tub, headgear) |
+
 Adopted tasks are created *at adoption* (not when a problem first
 fires) and are fully configurable from day one — responsible user,
 priority, notes, documents, part links. See the

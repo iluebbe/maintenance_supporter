@@ -13,6 +13,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **CPAP / sleep-therapy template** (the 42nd, opening a new *Health*
+  category): weekly mask & humidifier-tub cleaning, monthly mask cushion
+  and air filter, tubing every 3 months, humidifier tub and
+  headgear + frame every 6 months, annual service — following ResMed's
+  replacement guidance, and a good fit for any brand: a CPAP runs every
+  night, so calendar intervals track real usage closely. The reviewed
+  `resmed_myair` integration exposes only therapy metrics (no wear
+  sensors), recorded in a new INTEGRATIONS.md "Reviewed — no usable
+  signals" section pointing at this template.
+
 ### 🐛 Fixed
 
 - **Ukrainian tab bar overflowed phone screens**: the four main tabs ran

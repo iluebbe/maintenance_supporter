@@ -119,7 +119,12 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    the pointer!). Each entry needs the usual source dive first (method
    contract).
 
-3a. 💡 **CPAP / sleep-therapy template (+ resmed_myair verdict)** — CPAP
+3a. ✅ **CPAP / sleep-therapy template (+ resmed_myair verdict)** — **shipped
+   2026-07-26**: `health_cpap` template (new Health category, 7 tasks:
+   weekly mask+tub cleaning, monthly cushion + filter, tubing 90 d,
+   humidifier tub + headgear/frame 180 d, annual service; 8 new _T sources
+   ×17). INTEGRATIONS.md gained a "Reviewed — no usable signals" section
+   with the resmed_myair verdict row pointing at the template. Original: CPAP
    machines have real, manufacturer-specified upkeep: mask cushion ~monthly,
    air filter ~monthly, tubing ~3 months, humidifier tub ~6 months,
    headgear + frame ~6 months, annual overall check. Because a CPAP runs

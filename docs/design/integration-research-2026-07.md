@@ -1077,3 +1077,16 @@ popular HACS device integrations are now essentially exhausted; what
 remains is either protocol/transport, dynamic-entity (home_connect_alt/
 homeconnect_ws/homewhiz), date-direction-blocked, or the irrigation
 zone-layout dive.
+
+## resmed_myair (2026-07-26, roadmap 3a) — verified, NO signature → CPAP template
+
+Source-dived `prestomation/resmed_myair_sensors` (1,131 installs,
+`custom_components/resmed_myair/const.py` SLEEP_RECORD_SENSOR_DESCRIPTIONS +
+DEVICE_SENSOR_DESCRIPTIONS): therapy metrics only — `totalUsage` ("CPAP Usage
+Minutes", per-NIGHT, state_class MEASUREMENT → the bhyve-class nightly-reset
+counter trap), `maskPairCount`, `ahi`, `leakPercentile`, `sleepScore`, date/
+sync sensors. No consumable/wear signal, no cumulative lifetime counter, no
+live running state (myAir syncs once daily) → nothing for any trigger
+direction. Verdict: **verified, no signature**; the `health_cpap` template
+covers the real maintenance (nightly use ⇒ calendar ≈ usage). This case
+created the template-worthiness lens (roadmap 3b).
