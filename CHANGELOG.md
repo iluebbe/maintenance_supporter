@@ -32,6 +32,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   sensors), recorded in a new INTEGRATIONS.md "Reviewed — no usable
   signals" section pointing at this template.
 
+### 🔋 Battery Fleet
+
+- **A dead native battery no longer vanishes from the fleet**: a battery
+  that was low and then goes unavailable (dead batteries take their device
+  offline) is now retained from a runtime snapshot for up to 48 hours —
+  previously it disappeared at the exact moment it needed replacing.
+  (Battery Notes batteries always had this via their retained low flag.)
+- **Batteries without a `device_class` are now found too**: a strict
+  battery-name + %-unit heuristic picks up Zigbee2MQTT/ESPHome-style levels
+  while keeping charging electronics and home-storage SoC sensors out.
+
 ### 🐛 Fixed
 
 - **Ukrainian tab bar overflowed phone screens**: the four main tabs ran

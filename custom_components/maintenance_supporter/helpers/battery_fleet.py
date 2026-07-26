@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -60,6 +60,41 @@ NATIVE_LOW_PERCENT = 20
 # low flag says it needs attention (a dead battery often takes its device
 # offline — that's exactly the one you must not hide).
 _NO_READING = {"unavailable", "unknown", "none", ""}
+
+# How long a NATIVE battery that was last seen LOW stays in the fleet after
+# its entity goes unavailable. Battery Notes covers this case via its retained
+# ``battery_low`` attribute; native entities have no equivalent, so without a
+# snapshot the battery would vanish at the exact moment it died and took its
+# device offline. Bounded so a permanently removed device eventually drops.
+_NATIVE_RETENTION = timedelta(hours=48)
+
+# Heuristic (sensors WITHOUT device_class): a %-sensor whose object_id talks
+# about a battery — some Zigbee2MQTT/ESPHome devices ship battery levels
+# without the device class. Deliberately strict: the exclusion words keep out
+# charging electronics and home-storage state-of-charge sensors (a Powerwall
+# is not a battery you replace).
+_HEURISTIC_EXCLUDE = ("charging", "current", "power", "voltage", "energy", "load", "soc", "state_of_charge", "storage", "temp")
+
+
+def _is_native_battery_sensor(state: Any) -> bool:
+    """Whether a sensor state looks like a replaceable-battery level."""
+    attrs = state.attributes
+    if attrs.get("device_class") == "battery":
+        return True
+    if attrs.get("unit_of_measurement") != "%":
+        return False
+    object_id = state.entity_id.split(".", 1)[1]
+    if "battery" not in object_id:
+        return False
+    return not any(word in object_id for word in _HEURISTIC_EXCLUDE)
+
+
+def _native_snapshot_cache(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
+    """Runtime cache of last-known native battery readings (per entity_id)."""
+    from ..const import DOMAIN
+
+    cache: dict[str, dict[str, Any]] = hass.data.setdefault(DOMAIN, {}).setdefault("battery_fleet_native_cache", {})
+    return cache
 
 
 def _norm_type(raw: Any) -> str:
@@ -237,11 +272,16 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       unavailable/unknown but RETAINS its last-known ``battery_low`` — so a
       dead battery that took its device offline stays visible.
     * **Native** ``device_class: battery`` entities (a %-sensor and/or a
-      battery-low binary), grouped per device, give a degraded view (type
-      "Unknown", quantity 1, no forecast). A device already covered by a
-      Battery Notes note is skipped (dedup by the note's source entity + its
-      device) so it isn't counted twice; self-charging devices (vacuums,
-      mowers, phones — see :func:`_is_self_charging`) are skipped entirely.
+      battery-low binary) — plus %-sensors matching the strict battery-name
+      heuristic for devices that ship no device class — grouped per device,
+      give a degraded view (type "Unknown", quantity 1, no forecast). A
+      device already covered by a Battery Notes note is skipped (dedup by
+      the note's source entity + its device) so it isn't counted twice;
+      self-charging devices (vacuums, mowers, phones — see
+      :func:`_is_self_charging`) are skipped entirely. A native battery
+      last seen LOW that goes unavailable is retained from a runtime
+      snapshot for ``_NATIVE_RETENTION`` (the Battery Notes path gets this
+      for free via its retained ``battery_low`` attribute).
     * Manually excluded entity_ids (fleet detail → exclude) are dropped from
       BOTH passes.
     """
@@ -311,7 +351,13 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     native: dict[str, dict[str, Any]] = {}
     for domain in ("sensor", "binary_sensor"):
         for state in hass.states.async_all(domain):
-            if state.attributes.get("device_class") != "battery":
+            # Sensors: device_class battery OR the strict name/% heuristic
+            # (Zigbee2MQTT/ESPHome levels without a device class). Binaries:
+            # device_class only — name-guessing booleans is too risky.
+            if domain == "sensor":
+                if not _is_native_battery_sensor(state):
+                    continue
+            elif state.attributes.get("device_class") != "battery":
                 continue
             eid = state.entity_id
             if "battery_type" in state.attributes:  # Battery Notes battery_plus — handled above
@@ -338,6 +384,8 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             if rec["name"] is None and friendly:
                 rec["name"] = friendly
 
+    snapshot_cache = _native_snapshot_cache(hass)
+    now = dt_util.utcnow()
     for rec in native.values():
         level = _level_of(rec["level_state"]) if rec["level_state"] is not None else None
         low_state = rec["low_state"]
@@ -348,6 +396,19 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             low = low_available and str(low_state).lower() in ("on", "true", "1")
         else:
             low = level is not None and level <= NATIVE_LOW_PERCENT
+        if available:
+            # Remember the last real reading — the retention path below needs
+            # it once the entity goes unavailable.
+            snapshot_cache[rec["eid"]] = {"low": low, "level": level, "ts": now}
+        elif not low:
+            # Native dead-battery retention: an entity that was LOW and then
+            # went unavailable (the battery died and took the device offline)
+            # stays visible for _NATIVE_RETENTION instead of vanishing at the
+            # exact moment it needs replacing.
+            snap = snapshot_cache.get(rec["eid"])
+            if snap and snap.get("low") and now - snap["ts"] <= _NATIVE_RETENTION:
+                low = True
+                level = snap.get("level")
         if not available and not low:
             continue
         name = rec["name"]
@@ -380,11 +441,9 @@ def has_battery_notes(hass: HomeAssistant) -> bool:
 
 def has_batteries(hass: HomeAssistant) -> bool:
     """Whether ANY battery is trackable — Battery Notes OR native. Gates setup."""
-    for domain in ("sensor", "binary_sensor"):
-        for state in hass.states.async_all(domain):
-            if state.attributes.get("device_class") == "battery":
-                return True
-    return False
+    if any(_is_native_battery_sensor(s) for s in hass.states.async_all("sensor")):
+        return True
+    return any(s.attributes.get("device_class") == "battery" for s in hass.states.async_all("binary_sensor"))
 
 
 def compute_overview(hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON_DAYS) -> BatteryOverview:

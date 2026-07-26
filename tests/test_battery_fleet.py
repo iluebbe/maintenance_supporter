@@ -236,6 +236,57 @@ async def test_native_offline_dropped_when_not_low(hass):
     assert read_batteries(hass) == []
 
 
+async def test_heuristic_pickup_without_device_class(hass):
+    # Some Zigbee2MQTT/ESPHome devices ship battery levels WITHOUT a
+    # device_class — the strict %-plus-name heuristic finds them, while
+    # charging electronics and home-storage SoC sensors stay out.
+    hass.states.async_set("sensor.shed_door_battery", "85", {"unit_of_measurement": "%"})
+    hass.states.async_set("sensor.porch_battery_level", "9", {"unit_of_measurement": "%"})
+    hass.states.async_set("sensor.inverter_battery_power", "1200", {"unit_of_measurement": "W"})
+    hass.states.async_set("sensor.wallbox_battery_charging_current", "16", {"unit_of_measurement": "%"})
+    hass.states.async_set("sensor.powerwall_battery_soc", "64", {"unit_of_measurement": "%"})
+    hass.states.async_set("sensor.humidity_kitchen", "45", {"unit_of_measurement": "%"})
+    bats = {b.entity_id: b for b in read_batteries(hass)}
+    assert set(bats) == {"sensor.shed_door_battery", "sensor.porch_battery_level"}
+    assert bats["sensor.porch_battery_level"].low is True  # 9 <= floor
+    assert bats["sensor.shed_door_battery"].low is False
+
+
+async def test_native_dead_battery_retained_from_snapshot(hass):
+    # battery_monitor comparison finding: a NATIVE battery that dies takes
+    # its entity to unavailable — without a snapshot it vanished at the exact
+    # moment it needed replacing (Battery Notes covers this via its retained
+    # battery_low attribute; native has no equivalent).
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet import _native_snapshot_cache
+
+    hass.states.async_set("sensor.gate_battery", "12", {"device_class": "battery"})
+    bats = read_batteries(hass)  # populates the snapshot cache
+    assert bats[0].low is True and bats[0].available is True
+
+    hass.states.async_set("sensor.gate_battery", "unavailable", {"device_class": "battery"})
+    bats = read_batteries(hass)
+    assert len(bats) == 1
+    assert bats[0].low is True and bats[0].available is False and bats[0].level == 12.0
+
+    # Beyond the retention window the snapshot expires and the battery drops.
+    cache = _native_snapshot_cache(hass)
+    cache["sensor.gate_battery"]["ts"] = dt_util.utcnow() - timedelta(hours=49)
+    assert read_batteries(hass) == []
+
+
+async def test_native_healthy_then_offline_not_retained(hass):
+    # Only last-known-LOW batteries are retained — a healthy battery whose
+    # device drops off wifi is connectivity noise, not a replace candidate.
+    hass.states.async_set("sensor.cam_battery", "80", {"device_class": "battery"})
+    read_batteries(hass)
+    hass.states.async_set("sensor.cam_battery", "unavailable", {"device_class": "battery"})
+    assert read_batteries(hass) == []
+
+
 def _device_with_battery(hass, *, slug, extra_domain=None, extra_device_class=None, identifiers=None):
     """Registry device + native battery sensor (+ optional sibling entity)."""
     from homeassistant.helpers import device_registry as dr
