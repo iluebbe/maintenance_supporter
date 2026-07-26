@@ -13,6 +13,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixed
+
+- **Ukrainian tab bar overflowed phone screens**: the four main tabs ran
+  past 412 px viewports in Ukrainian (and sat tight in Hindi/German) —
+  caught by the new automated overflow sweep; narrow-screen tabs now use
+  tighter padding.
+
 ### ✨ Added
 
 - **Stale-frontend detection**: the panel now compares the version baked into

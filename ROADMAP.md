@@ -651,7 +651,12 @@ target what's left:
    refresh" banner on mismatch. Turns an undiagnosable client state into a
    visible one-click fix (HA's service worker refreshes stale-while-
    revalidate, so "I cleared the cache" is routinely not enough).
-3. 💡 **Committed overflow sweep** (`e2e/live-overflow-sweep.mjs`, presses the
+3. ✅ **Committed overflow sweep** — **shipped 2026-07-26** as
+   `e2e/live-overflow-sweep.mjs` (4 surfaces × {412, 768}px × de/uk/hi/en,
+   fails on any element past the viewport). Paid for itself on its FIRST
+   run: the Ukrainian tab bar overflowed 412px phones on every surface
+   (fixed via tighter narrow tab padding — the earlier 18-language sweep
+   had only measured the task-detail view). Original: (presses the
    ~18-commit responsive class). The 2026-07 ad-hoc sweep as a permanent
    pre-release e2e: main surfaces (list, task detail, dialogs, settings) ×
    {412px, 768px} × the longest-label languages (de/uk/hi), asserting
@@ -659,7 +664,13 @@ target what's left:
    against the Docker instance before releases (validate-in-Docker rule),
    like the docs-shots — English-only visual checks provably hide
    i18n-length overflow (the ⋮-menu bug shipped invisible in EN at 412px).
-4. 💡 **`scripts/preflight.sh`** (presses the CI-environment class): one
+4. ✅ **`scripts/preflight.sh`** — **shipped 2026-07-26**: ruff (pinned) →
+   tsc → mypy (warning-only: the container's HA lags CI's pht-cc-latest, so
+   identical mypy versions still disagree; CI authoritative) → esbuild →
+   web-test-runner → full pytest with a calibrated coverage policy (<97.5 %
+   fails; 97.5–98 % warns — CI runs the holidays-gated tests the container
+   skips, measured local baseline 97.54 % vs CI green;
+   PREFLIGHT_SKIP_PYTEST=1 for quick loops). Original: one
    command bundling the exact CI gates — ruff, mypy --strict (CI arguments),
    the pytest suite, tsc --noEmit, esbuild, web-test-runner — to run before
    any push instead of rediscovering each command per session.
