@@ -603,12 +603,15 @@ async def test_mgr_lang_normalizes_regional_code(hass: HomeAssistant) -> None:
     """
     _create_global_entry(hass)
 
-    # pt-BR resolves to the real Portuguese block (present today), proving the
-    # regional code reaches a localized table rather than the English fallback.
+    # pt-BR resolves to its OWN Brazilian block (since the 22-language round),
+    # proving the regional code reaches a localized table rather than the
+    # English fallback — and no longer collapses into European Portuguese.
     hass.config.language = "pt-BR"
     mgr = NotificationManager(hass)
-    assert mgr._lang == "pt"
+    assert mgr._lang == "pt-br"
     assert _notif_t("overdue_title", mgr._lang) != _notif_t("overdue_title", "en")
+    hass.config.language = "pt-PT"
+    assert NotificationManager(hass)._lang == "pt"
 
     # zh-Hans / zh-Hant collapse to the "zh" key the translation uses.
     hass.config.language = "zh-Hans"

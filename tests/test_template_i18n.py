@@ -31,7 +31,7 @@ from custom_components.maintenance_supporter.websocket.objects import (
 
 from .conftest import make_ws_connection as _conn, build_global_entry_data, call_ws_handler, setup_integration
 
-_LANGS = ("de", "es", "fr", "it", "nl", "pt", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh")
+_LANGS = ("de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
 
 
 @pytest.fixture

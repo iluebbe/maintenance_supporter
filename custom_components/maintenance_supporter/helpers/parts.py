@@ -76,6 +76,10 @@ _BUY_NAME_TEMPLATES = {
     "sv": "Köp {name}",
     "uk": "Купити {name}",
     "zh": "购买{name}",
+    "pt-br": "Comprar {name}",
+    "hu": "{name} vásárlása",
+    "ko": "{name} 구매",
+    "tr": "{name} satın al",
 }
 
 # Default shopping-search templates by UI language (the "Amazon as fallback"
@@ -86,6 +90,8 @@ _DEFAULT_SEARCH_TEMPLATES = {
     "it": "https://www.amazon.it/s?k={q}",
     "es": "https://www.amazon.es/s?k={q}",
     "nl": "https://www.amazon.nl/s?k={q}",
+    "pt-br": "https://www.amazon.com.br/s?k={q}",
+    "tr": "https://www.amazon.com.tr/s?k={q}",
 }
 _FALLBACK_SEARCH_TEMPLATE = "https://www.amazon.com/s?k={q}"
 
@@ -275,7 +281,9 @@ def stock_transition(part: Mapping[str, Any], old: float | None, new: float | No
 
 
 def default_search_template(lang: str) -> str:
-    return _DEFAULT_SEARCH_TEMPLATES.get((lang or "en")[:2].lower(), _FALLBACK_SEARCH_TEMPLATE)
+    from .i18n import normalize_language_code
+
+    return _DEFAULT_SEARCH_TEMPLATES.get(normalize_language_code(lang), _FALLBACK_SEARCH_TEMPLATE)
 
 
 def search_query(part: Mapping[str, Any]) -> str:
@@ -303,7 +311,9 @@ def resolve_shopping_url(part: Mapping[str, Any], template: str | None, lang: st
 
 
 def buy_task_name(part_name: str, lang: str) -> str:
-    tpl = _BUY_NAME_TEMPLATES.get((lang or "en")[:2].lower(), _BUY_NAME_TEMPLATES["en"])
+    from .i18n import normalize_language_code
+
+    tpl = _BUY_NAME_TEMPLATES.get(normalize_language_code(lang), _BUY_NAME_TEMPLATES["en"])
     return tpl.replace("{name}", part_name)
 
 

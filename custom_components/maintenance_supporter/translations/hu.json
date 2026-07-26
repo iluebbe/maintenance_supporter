@@ -1,0 +1,1927 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Állítsa be karbantartáskezelő rendszerét.",
+        "menu_options": {
+          "create_object": "Karbantartási objektum létrehozása",
+          "create_from_template": "Létrehozás sablonból",
+          "global_setup": "Globális beállítások"
+        }
+      },
+      "create_from_template": {
+        "title": "Sablonkategória kiválasztása",
+        "description": "Válasszon kategóriát az előre elkészített karbantartási sablonok böngészéséhez.",
+        "data": {
+          "template_category": "Kategória",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "go_back": "Visszatérés a főmenübe mentés nélkül."
+        }
+      },
+      "template_select": {
+        "title": "Sablon kiválasztása",
+        "description": "Válasszon karbantartási sablont kiindulási alapként.",
+        "data": {
+          "template_id": "Sablon",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "go_back": "Visszatérés a kategóriaválasztáshoz mentés nélkül."
+        }
+      },
+      "template_customize": {
+        "title": "Sablon testreszabása",
+        "description": "Szabja testre a(z) {template_name} sablont. {task_count} feladatot tartalmaz: {task_list}.",
+        "data": {
+          "name": "Objektum neve",
+          "area_id": "Terület",
+          "manufacturer": "Gyártó",
+          "model": "Modell",
+          "serial_number": "Sorozatszám",
+          "documentation_url": "Kézikönyv / dokumentáció URL",
+          "notes": "Megjegyzések",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "name": "A karbantartási objektum neve.",
+          "area_id": "A terület, ahol az objektum található.",
+          "manufacturer": "Az objektum gyártója.",
+          "model": "A modell neve vagy száma.",
+          "serial_number": "Az objektum sorozatszáma.",
+          "documentation_url": "Opcionális hivatkozás PDF kézikönyvre, gyártói oldalra vagy bármely URL-re, amely referenciainformációt tartalmaz az objektumról.",
+          "notes": "Szabad szöveges megjegyzések az objektumról — cikkszámok, eljárások, beállítási emlékeztetők stb.",
+          "go_back": "Visszatérés a sablonválasztáshoz mentés nélkül."
+        }
+      },
+      "global_setup": {
+        "title": "Globális beállítások",
+        "description": "Állítsa be a globális karbantartási beállításokat.",
+        "data": {
+          "default_warning_days": "Alapértelmezett figyelmeztetési napok az esedékesség előtt",
+          "notifications_enabled": "Értesítések engedélyezése",
+          "notify_service": "Értesítési szolgáltatás"
+        },
+        "data_description": {
+          "default_warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "notifications_enabled": "Értesítések küldése, amikor karbantartási feladatok esedékessé válnak.",
+          "notify_service": "A használandó értesítési szolgáltatás (pl. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Karbantartási objektum létrehozása",
+        "description": "Adjon meg egy eszközt vagy vagyontárgyat, amelynek karbantartását kezelni szeretné.",
+        "data": {
+          "name": "Objektum neve",
+          "area_id": "Terület",
+          "manufacturer": "Gyártó",
+          "model": "Modell",
+          "serial_number": "Sorozatszám",
+          "documentation_url": "Kézikönyv / dokumentáció URL",
+          "notes": "Megjegyzések",
+          "installation_date": "Telepítés dátuma",
+          "warranty_expiry": "Garancia lejárta",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "name": "A karbantartási objektum egyedi neve (pl. „Medenceszivattyú”, „Autó”).",
+          "area_id": "Az otthonának az a területe, ahol az objektum található.",
+          "manufacturer": "Az objektum gyártója.",
+          "model": "A modell neve vagy száma.",
+          "serial_number": "Az objektum sorozatszáma.",
+          "documentation_url": "Opcionális hivatkozás PDF kézikönyvre, gyártói oldalra vagy bármely URL-re, amely referenciainformációt tartalmaz az objektumról.",
+          "notes": "Szabad szöveges megjegyzések az objektumról — cikkszámok, eljárások, beállítási emlékeztetők stb.",
+          "installation_date": "Mikor telepítették vagy vásárolták az objektumot.",
+          "warranty_expiry": "Mikor jár le az objektum gyártói garanciája.",
+          "go_back": "Visszatérés a főmenübe mentés nélkül."
+        }
+      },
+      "task_menu": {
+        "title": "Karbantartási feladatok",
+        "description": "Adjon hozzá karbantartási feladatokat ehhez: {object_name}. Jelenleg {task_count} feladat van megadva.",
+        "menu_options": {
+          "add_task": "Karbantartási feladat hozzáadása",
+          "finish": "Beállítás befejezése"
+        }
+      },
+      "add_task": {
+        "title": "Karbantartási feladat hozzáadása",
+        "description": "Adjon meg egy karbantartási feladatot ehhez: {object_name}.",
+        "data": {
+          "name": "Feladat neve",
+          "type": "Karbantartás típusa",
+          "schedule_type": "Ütemezés típusa",
+          "custom_icon": "Feladat ikonja",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "name": "A feladat beszédes neve (pl. „Szűrőtisztítás”, „Olajcsere”).",
+          "type": "A karbantartási munka kategóriája.",
+          "schedule_type": "Hogyan legyen ütemezve ez a feladat.",
+          "custom_icon": "Opcionális egyéni ikon a feladathoz (pl. mdi:oil, mdi:filter-variant).",
+          "go_back": "Visszatérés a feladat létrehozásához mentés nélkül."
+        }
+      },
+      "time_based": {
+        "title": "Időalapú ütemezés",
+        "description": "Állítsa be a karbantartási feladat időintervallumát.",
+        "data": {
+          "interval_days": "Intervallum",
+          "interval_unit": "Intervallum egysége",
+          "last_performed": "Utoljára elvégezve",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "interval_anchor": "Intervallum horgonya"
+        },
+        "data_description": {
+          "interval_days": "Milyen gyakran ismétlődik a karbantartás, az intervallum egységével együtt.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "last_performed": "Mikor végezték el utoljára ezt a karbantartást. Hagyja üresen, ha még soha.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a feladat létrehozásához mentés nélkül.",
+          "interval_anchor": "Hogyan számítódik a következő esedékesség az elvégzés után. A „Tervezett” megakadályozza az ütemezés csúszását azzal, hogy az eredeti esedékességhez horgonyoz."
+        }
+      },
+      "one_time": {
+        "title": "Egyszeri feladat",
+        "description": "Egyszeri, nem ismétlődő karbantartási feladat beállítása. Elvégzés után archiválódik.",
+        "data": {
+          "due_date": "Határidő",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "due_date": "Az a dátum, amikor ez az egyszeri feladat esedékes.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a feladat létrehozásához mentés nélkül."
+        }
+      },
+      "calendar": {
+        "title": "Naptári ütemezés",
+        "description": "Naptáralapú ismétlődés beállítása (hét napjai, a hónap n. hétnapja vagy a hónap egy napja).",
+        "data": {
+          "weekdays": "Ezeken a napokon",
+          "nth": "Melyik előfordulás",
+          "weekday": "Hét napja",
+          "day": "A hónap napja",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "last_day": "A hónap utolsó napja",
+          "business": "Csak munkanapokon",
+          "offset": "Eltolás (nap)"
+        },
+        "data_description": {
+          "weekdays": "A feladat minden kiválasztott hétnapon ismétlődik.",
+          "nth": "Melyik előfordulás a hónapban (pl. 1. vagy Utolsó).",
+          "weekday": "A hét napja az n. hétnap szabályhoz (pl. szombat).",
+          "day": "A hónap napja (1–31; a hónap hosszához igazítva).",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a feladat létrehozásához mentés nélkül.",
+          "last_day": "Felülbírálja a nap számát: a feladat a hónap utolsó napján esedékes.",
+          "business": "A hétvégére eső dátum visszalép az azt megelőző péntekre (pl. utolsó munkanap).",
+          "offset": "A kiszámított dátum eltolása ±N nappal (pl. -2 = két nappal korábban)."
+        }
+      },
+      "sensor_select": {
+        "title": "Kiváltó érzékelő kiválasztása",
+        "description": "Válasszon egy Home Assistant entitást, amelyet ez a karbantartási feladat figyeljen.",
+        "data": {
+          "trigger_entity": "Figyelendő entitás",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_entity": "Válassza ki az érzékelőentitást, amely kiváltsa ezt a karbantartási feladatot.",
+          "go_back": "Visszatérés a feladat létrehozásához mentés nélkül."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Attribútum kiválasztása",
+        "description": "Válassza ki, melyik értéket figyelje innen: {entity_id}. Jelenlegi állapot: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Figyelendő érték",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_attribute": "Válassza ki az entitás állapotát vagy egy adott attribútumot a figyeléshez.",
+          "go_back": "Visszatérés az entitásválasztáshoz mentés nélkül."
+        }
+      },
+      "trigger_type": {
+        "title": "Kiváltó típusa",
+        "description": "Hogyan váltsa ki az érzékelő értéke a karbantartást?",
+        "data": {
+          "trigger_type": "Kiváltó típusa",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_type": "Küszöbérték: akkor vált ki, ha az érték túllépi a határokat. Számláló: egy célérték felhalmozása után vált ki. Állapotváltozás: adott számú állapotátmenet után vált ki.",
+          "go_back": "Visszatérés az attribútumválasztáshoz mentés nélkül."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Küszöbérték beállítása",
+        "description": "Adja meg a küszöbértékeket ehhez: **{entity_id}** ({attribute}).\nJelenlegi: **{current_value} {unit}** | Átlag: {average} | Tartomány: {minimum}–{maximum} ({data_period} nap)\nJavasolt felső: {suggested_above} | Javasolt alsó: {suggested_below}",
+        "data": {
+          "trigger_above": "Kiváltás e fölött",
+          "trigger_below": "Kiváltás ez alatt",
+          "trigger_for_minutes": "Legalább ennyi ideig (perc)",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_above": "A karbantartás kiváltása, ha az érték túllépi ezt a küszöböt.",
+          "trigger_below": "A karbantartás kiváltása, ha az érték e küszöb alá esik.",
+          "trigger_for_minutes": "Az értéknek ennyi percig kell a küszöbön túl lennie a kiváltás előtt.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+        }
+      },
+      "trigger_counter": {
+        "title": "Számláló beállítása",
+        "description": "Adja meg a számláló célértékét ehhez: {entity_id} ({attribute}). Jelenlegi: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Célérték",
+          "trigger_delta_mode": "Delta mód (változások számolása, nem abszolút érték)",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_target_value": "A karbantartás kiváltása, amikor ez a felhalmozott érték elérésre kerül.",
+          "trigger_delta_mode": "Ha engedélyezve van, az abszolút érték helyett egy kiindulási értékhez képesti különbséget számolja.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum a számlálókiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Állapotváltozás beállítása",
+        "description": "Állapotátmenetek számolása: {entity_id}.",
+        "data": {
+          "trigger_from_state": "Kezdő állapot (opcionális)",
+          "trigger_to_state": "Célállapot (opcionális)",
+          "trigger_target_changes": "Kiváltó változások száma",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_from_state": "Csak az ebből az állapotból induló átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_to_state": "Csak az ebbe az állapotba érkező átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_target_changes": "Az egyező állapotváltozások száma a karbantartás kiváltása előtt.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az állapotváltozás-kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Üzemidő beállítása",
+        "description": "A(z) {entity_id} összesített üzemidejének követése. A karbantartás akkor váltódik ki, amikor a teljes bekapcsolt idő eléri a célórákat.",
+        "data": {
+          "trigger_runtime_hours": "Cél üzemidő (óra)",
+          "trigger_on_states": "Aktív állapotok (vesszővel elválasztva)",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "A karbantartás kiváltása ennyi óra összesített üzemidő után.",
+          "trigger_on_states": "Mely érzékelőállapotok számítanak „aktívnak”. Hagyja üresen az alapértelmezéshez: on, 1, true. Példa: in_use, running",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az üzemidő-kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+        }
+      },
+      "compound_logic": {
+        "title": "Összetett kiváltó",
+        "description": "Válassza ki, hogyan legyenek a feltételek kombinálva.",
+        "data": {
+          "compound_logic": "Logika",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "compound_logic": "ÉS = minden feltételnek teljesülnie kell. VAGY = bármely feltétel kivált.",
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "{condition_num}. feltétel — Entitás",
+        "description": "Válassza ki az entitást ehhez a feltételhez.",
+        "data": {
+          "trigger_entity": "Entitás",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_entity": "Az ehhez a feltételhez figyelendő érzékelőentitás.",
+          "go_back": "Visszatérés az előző lépéshez mentés nélkül."
+        }
+      },
+      "compound_condition_type": {
+        "title": "{condition_num}. feltétel — Típus",
+        "description": "Hogyan értékelje ez a feltétel az érzékelőt?",
+        "data": {
+          "trigger_type": "Kiváltó típusa",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_type": "A módszer, amellyel meghatározzuk, mikor teljesül ez a feltétel.",
+          "go_back": "Visszatérés az entitásválasztáshoz mentés nélkül."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Feltétel — Küszöbérték",
+        "data": {
+          "trigger_above": "Kiváltás e fölött",
+          "trigger_below": "Kiváltás ez alatt",
+          "trigger_for_minutes": "Időtartam (perc)",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_above": "Kiváltás, ha az érték túllépi ezt a küszöböt.",
+          "trigger_below": "Kiváltás, ha az érték e küszöb alá esik.",
+          "trigger_for_minutes": "Az értéknek ennyi ideig kell a küszöbön túl maradnia.",
+          "go_back": "Visszatérés a feltételtípus-választáshoz mentés nélkül."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Feltétel — Számláló",
+        "data": {
+          "trigger_target_value": "Célérték",
+          "trigger_delta_mode": "Delta mód",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_target_value": "Kiváltás, amikor a felhalmozott érték eléri ezt a célt.",
+          "trigger_delta_mode": "Az abszolút érték helyett a kiindulási értékhez képesti változás számolása.",
+          "go_back": "Visszatérés a feltételtípus-választáshoz mentés nélkül."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Feltétel — Állapotváltozás",
+        "data": {
+          "trigger_from_state": "Kezdő állapot",
+          "trigger_to_state": "Célállapot",
+          "trigger_target_changes": "Változások száma",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_from_state": "Csak az ebből az állapotból induló átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_to_state": "Csak az ebbe az állapotba érkező átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_target_changes": "Az egyező állapotváltozások száma a kiváltás előtt.",
+          "go_back": "Visszatérés a feltételtípus-választáshoz mentés nélkül."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Feltétel — Üzemidő",
+        "data": {
+          "trigger_runtime_hours": "Cél üzemidő (óra)",
+          "trigger_on_states": "Aktív állapotok",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Kiváltás ennyi óra összesített üzemidő után.",
+          "trigger_on_states": "Az „aktívnak” számító érzékelőállapotok. Hagyja üresen az alapértelmezéshez.",
+          "go_back": "Visszatérés a feltételtípus-választáshoz mentés nélkül."
+        }
+      },
+      "compound_review": {
+        "title": "Összetett kiváltó áttekintése",
+        "description": "{condition_count} feltétel beállítva {compound_logic} logikával.",
+        "data": {
+          "compound_action": "Művelet",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "go_back": "Visszatérés a logikaválasztáshoz mentés nélkül."
+        }
+      },
+      "manual": {
+        "title": "Kézi ütemezés",
+        "description": "Ennek a feladatnak nincs automatikus ütemezése. Kézzel jelölheti esedékesnek.",
+        "data": {
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "notes": "Megjegyzések",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "notes": "További megjegyzések vagy utasítások a feladathoz.",
+          "go_back": "Visszatérés a feladat létrehozásához mentés nélkül."
+        }
+      },
+      "reconfigure": {
+        "title": "{name} újrakonfigurálása",
+        "description": "Frissítse a karbantartási objektum beállításait.",
+        "data": {
+          "name": "Objektum neve",
+          "area_id": "Terület",
+          "manufacturer": "Gyártó",
+          "model": "Modell",
+          "serial_number": "Sorozatszám",
+          "documentation_url": "Kézikönyv / dokumentáció URL",
+          "notes": "Megjegyzések",
+          "installation_date": "Telepítés dátuma",
+          "warranty_expiry": "Garancia lejárta"
+        },
+        "data_description": {
+          "name": "A karbantartási objektum neve.",
+          "area_id": "A terület, ahol az objektum található.",
+          "manufacturer": "Az objektum gyártója.",
+          "model": "Az objektum modellje.",
+          "serial_number": "Az objektum sorozatszáma.",
+          "documentation_url": "Opcionális hivatkozás PDF kézikönyvre, gyártói oldalra vagy bármely URL-re, amely referenciainformációt tartalmaz az objektumról.",
+          "notes": "Szabad szöveges megjegyzések az objektumról — cikkszámok, eljárások, beállítási emlékeztetők stb.",
+          "installation_date": "Mikor telepítették az objektumot.",
+          "warranty_expiry": "Mikor jár le az objektum gyártói garanciája."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Már létezik karbantartási objektum ezzel a névvel.",
+      "no_tasks": "Legalább egy karbantartási feladat szükséges.",
+      "invalid_entity": "A kiválasztott entitás nem létezik, vagy nincs numerikus adata.",
+      "invalid_attribute": "A kiválasztott attribútum nem érhető el ezen az entitáson.",
+      "invalid_threshold": "Legalább egy küszöbértéket (felső vagy alsó) meg kell adni.",
+      "invalid_due_date": "Az egyszeri feladatokhoz határidő szükséges.",
+      "invalid_interval": "Az intervallumnak pozitív számnak kell lennie.",
+      "min_exceeds_max": "A minimális intervallum nem lehet nagyobb a maximálisnál.",
+      "invalid_notify_service": "Érvénytelen értesítésiszolgáltatás-formátum. Használja a „notify.szolgaltatas_nev” alakot (pl. notify.mobile_app_phone).",
+      "notify_service_not_found": "Ez az értesítési szolgáltatás nem található a Home Assistantban. Ellenőrizze a szolgáltatás nevét.",
+      "nfc_tag_duplicate": "Ez az NFC címke már egy másik feladathoz van rendelve."
+    },
+    "abort": {
+      "already_configured": "Ez a karbantartási objektum már be van állítva.",
+      "global_already_exists": "A globális beállítások már be vannak állítva.",
+      "template_not_found": "A kiválasztott sablon nem található.",
+      "missing_data": "A szükséges adatok nem lettek megadva.",
+      "reconfigure_successful": "A konfiguráció sikeresen frissítve.",
+      "reconfigure_cancelled": "Az újrakonfigurálás megszakítva."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Karbantartási beállítások",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Feladatok kezelése",
+          "add_task": "Új feladat hozzáadása",
+          "object_settings": "Objektumbeállítások",
+          "done": "Kész"
+        }
+      },
+      "global_init": {
+        "title": "Globális beállítások",
+        "description": "Állítsa be a globális karbantartási beállításokat.",
+        "menu_options": {
+          "general_settings": "Általános beállítások",
+          "advanced_features": "Speciális funkciók",
+          "panel_access": "Panel-hozzáférés",
+          "budget_settings": "Költségkeret-beállítások",
+          "manage_groups": "Csoportok kezelése",
+          "notification_settings": "Értesítési beállítások",
+          "notification_actions": "Interaktív műveletek",
+          "test_notification": "Tesztértesítés küldése",
+          "done": "Kész"
+        }
+      },
+      "advanced_features": {
+        "title": "Speciális funkciók",
+        "description": "Válassza ki, mely speciális funkciók jelenjenek meg a felületen. A kikapcsolás elrejti a funkciót a felületről, de nem töröl adatot.",
+        "data": {
+          "advanced_adaptive_visible": "Adaptív ütemezés",
+          "advanced_predictions_visible": "Érzékelő-előrejelzések",
+          "advanced_seasonal_visible": "Szezonális igazítások",
+          "advanced_environmental_visible": "Környezeti korreláció",
+          "advanced_budget_visible": "Költségkeret követése",
+          "advanced_groups_visible": "Csoportok",
+          "advanced_checklists_visible": "Ellenőrzőlisták",
+          "advanced_schedule_time_visible": "Napszakhoz kötött ütemezés"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "EWA, Weibull-elemzés és intervallumjavaslatok megjelenítése a feladatokhoz.",
+          "advanced_predictions_visible": "Érzékelőromlás-elemzés és küszöbérték-előrejelzési diagramok megjelenítése.",
+          "advanced_seasonal_visible": "Szezonálistényező-diagramok és havi igazítási adatok megjelenítése.",
+          "advanced_environmental_visible": "Környezeti korrelációs (hőmérséklet, páratartalom) igazítások megjelenítése.",
+          "advanced_budget_visible": "Havi/éves költségkeret-követés és riasztások megjelenítése.",
+          "advanced_groups_visible": "Karbantartási csoportok kezelésének megjelenítése.",
+          "advanced_checklists_visible": "Feladat-ellenőrzőlisták megjelenítése a lépésenkénti elvégzéshez.",
+          "advanced_schedule_time_visible": "A feladatok nem éjfélkor, hanem egy megadott napszakban válhassanak lejárttá."
+        }
+      },
+      "panel_access": {
+        "title": "Panel-hozzáférés",
+        "description": "Az adminok mindig teljes hozzáféréssel rendelkeznek. Ha a létrehozást, szerkesztést és törlést adott nem admin felhasználókra bízná, kapcsolja be az alábbi opciót, és válassza ki őket — mindenki más csak az Elvégzés és a Kihagyás gombot látja. {user_count} nem admin felhasználó található.",
+        "data": {
+          "operator_write_enabled": "A kiválasztott felhasználók létrehozhatnak, szerkeszthetnek és törölhetnek",
+          "admin_panel_user_ids": "Teljes panel-hozzáféréssel rendelkező felhasználók"
+        },
+        "data_description": {
+          "operator_write_enabled": "Ki (alapértelmezés): csak adminok módosíthatnak tartalmat. Be: a lent kiválasztott felhasználók is teljes létrehozási/szerkesztési/törlési jogot kapnak.",
+          "admin_panel_user_ids": "A felsorolt felhasználók a teljes panelt látják; mindenki más feladatonként csak az Elvégzés és a Kihagyás gombot."
+        }
+      },
+      "general_settings": {
+        "title": "Általános beállítások",
+        "description": "A Maintenance Supporter alapbeállításainak megadása.",
+        "data": {
+          "default_warning_days": "Alapértelmezett figyelmeztetési napok az esedékesség előtt",
+          "notifications_enabled": "Értesítések engedélyezése",
+          "notify_service": "Értesítési szolgáltatás",
+          "panel_enabled": "Oldalsáv-panel megjelenítése",
+          "panel_title": "Oldalsáv-panel címe"
+        },
+        "data_description": {
+          "default_warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "notifications_enabled": "Értesítések küldése, amikor karbantartási feladatok esedékessé válnak vagy lejárnak.",
+          "notify_service": "A használandó értesítési szolgáltatás (pl. notify.mobile_app_phone).",
+          "panel_enabled": "Maintenance Supporter panel megjelenítése az oldalsávban.",
+          "panel_title": "Az oldalsáv-bejegyzés egyéni neve. Hagyja üresen a „Karbantartás” használatához. Hasznos, ha ütközne a Home Assistant beépített Karbantartás irányítópultjával."
+        }
+      },
+      "notification_settings": {
+        "title": "Értesítési beállítások",
+        "description": "Állítsa be, mikor és milyen gyakran menjenek ki értesítések az egyes állapotokhoz.",
+        "data": {
+          "notify_due_soon_enabled": "Értesítés, ha hamarosan esedékes",
+          "notify_due_soon_interval_hours": "Hamarosan esedékes emlékeztető intervalluma (óra)",
+          "notify_overdue_enabled": "Értesítés lejáratkor",
+          "notify_overdue_interval_hours": "Lejárt emlékeztető intervalluma (óra)",
+          "notify_triggered_enabled": "Értesítés kiváltáskor",
+          "notify_triggered_interval_hours": "Kiváltási emlékeztető intervalluma (óra)",
+          "quiet_hours_enabled": "Csendes órák engedélyezése",
+          "quiet_hours_start": "Csendes órák kezdete",
+          "quiet_hours_end": "Csendes órák vége",
+          "max_notifications_per_day": "Max. értesítés naponta",
+          "notification_bundling_enabled": "Értesítések összevonása",
+          "notification_bundle_threshold": "Összevonási küszöb",
+          "notification_title_style": "Értesítés címének stílusa"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Milyen gyakran ismétlődjön a hamarosan esedékes emlékeztető. 0 = csak egyetlen értesítés.",
+          "notify_overdue_interval_hours": "Milyen gyakran ismétlődjön a lejárt emlékeztető. 0 = csak egyetlen értesítés.",
+          "notify_triggered_interval_hours": "Milyen gyakran ismétlődjön a kiváltási értesítés. 0 = csak egyetlen értesítés.",
+          "quiet_hours_enabled": "Értesítések elnémítása a csendes órák alatt.",
+          "max_notifications_per_day": "Az értesítések napi maximális száma. 0 = korlátlan.",
+          "notification_bundling_enabled": "Egyetlen összefoglaló értesítés küldése, ha több feladat igényel figyelmet.",
+          "notification_bundle_threshold": "Az összevont értesítéshez szükséges minimális feladatszám.",
+          "notification_title_style": "Mi jelenjen meg az értesítés CÍMEKÉNT. Az alapértelmezés az állapotonkénti szöveget tartja meg (pl. „Karbantartás lejárt!”). Az objektumnév / feladatnév akkor segít, ha a telefonon egymásra tornyosulnak az értesítések."
+        }
+      },
+      "notification_actions": {
+        "title": "Interaktív műveletek",
+        "description": "A mobilértesítéseken megjelenő műveletgombok beállítása (Companion alkalmazás szükséges).",
+        "data": {
+          "action_complete_enabled": "„Elvégzés” gomb megjelenítése",
+          "action_skip_enabled": "„Kihagyás” gomb megjelenítése",
+          "action_snooze_enabled": "„Szundi” gomb megjelenítése",
+          "snooze_duration_hours": "Szundi időtartama (óra)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Gombot ad az értesítéshez, amellyel a feladat közvetlenül elvégzettként jelölhető.",
+          "action_skip_enabled": "Gombot ad az értesítéshez az aktuális karbantartási ciklus kihagyásához.",
+          "action_snooze_enabled": "Gombot ad az értesítési emlékeztető elhalasztásához.",
+          "snooze_duration_hours": "Mennyi időre halasztódjanak az értesítések a szundi megnyomásakor."
+        }
+      },
+      "budget_settings": {
+        "title": "Költségkeret-beállítások",
+        "description": "Állítson be havi és éves karbantartási költségkereteket a kiadások követéséhez.",
+        "data": {
+          "budget_currency": "Pénznem",
+          "budget_monthly": "Havi költségkeret",
+          "budget_yearly": "Éves költségkeret",
+          "budget_alerts_enabled": "Költségkeret-riasztások engedélyezése",
+          "budget_alert_threshold": "Riasztási küszöb (%)"
+        },
+        "data_description": {
+          "budget_currency": "A költségkeretek megjelenítéséhez és az értesítésekhez használt pénznem.",
+          "budget_monthly": "A maximális havi karbantartási kiadás. 0 = kikapcsolva.",
+          "budget_yearly": "A maximális éves karbantartási kiadás. 0 = kikapcsolva.",
+          "budget_alerts_enabled": "Értesítés küldése, ha a kiadás túllépi a riasztási küszöböt.",
+          "budget_alert_threshold": "A költségkeret azon százaléka, amelynél riasztás megy ki."
+        }
+      },
+      "test_notification": {
+        "title": "Tesztértesítés",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Csoportok kezelése",
+        "description": "Válasszon egy kezelendő csoportot, vagy hozzon létre újat.",
+        "data": {
+          "selected_group": "Csoport kiválasztása"
+        }
+      },
+      "add_group": {
+        "title": "Csoport hozzáadása",
+        "description": "Hozzon létre új karbantartási csoportot az összetartozó feladatok rendszerezéséhez.",
+        "data": {
+          "group_name": "Csoport neve",
+          "group_description": "Leírás"
+        },
+        "data_description": {
+          "group_name": "A csoport neve (pl. „Tavaszi karbantartás”).",
+          "group_description": "A csoport opcionális leírása."
+        }
+      },
+      "manage_tasks": {
+        "title": "Feladatok kezelése",
+        "description": "Válasszon egy feladatot szerkesztéshez vagy eltávolításhoz.",
+        "data": {
+          "selected_task": "Feladat kiválasztása",
+          "go_back": "Vissza"
+        }
+      },
+      "task_action": {
+        "title": "Feladatműveletek",
+        "description": "Feladat: {task_name} — Válasszon műveletet.\n\nKövetkező esedékességek: {next_dates}",
+        "menu_options": {
+          "edit_task": "Feladat szerkesztése",
+          "edit_trigger": "Kiváltó szerkesztése",
+          "remove_trigger": "Kiváltó eltávolítása",
+          "edit_checklist": "Ellenőrzőlista szerkesztése",
+          "adaptive_scheduling": "Adaptív ütemezés",
+          "delete_task": "Feladat törlése",
+          "manage_tasks": "Vissza"
+        }
+      },
+      "edit_task": {
+        "title": "Feladat szerkesztése",
+        "description": "A(z) **{task_name}** feladat beállításainak szerkesztése.",
+        "data": {
+          "name": "Feladat neve",
+          "type": "Karbantartás típusa",
+          "interval_days": "Intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "due_date": "Határidő",
+          "enabled": "Engedélyezve",
+          "notes": "Megjegyzések",
+          "documentation_url": "Dokumentáció URL",
+          "last_performed": "Utoljára elvégezve",
+          "responsible_user_id": "Felelős felhasználó",
+          "custom_icon": "Feladat ikonja",
+          "nfc_tag_id": "NFC címke azonosító",
+          "go_back": "Vissza",
+          "interval_anchor": "Intervallum horgonya",
+          "reading_unit": "Leolvasás mértékegysége (leolvasási feladatokhoz, pl. kWh)",
+          "season_months": "Szezonális időablak (hónapok)",
+          "ends_count": "Befejeződik ennyi alkalom után",
+          "ends_until": "Befejeződik ezen a dátumon"
+        },
+        "data_description": {
+          "name": "A feladat beszédes neve (pl. „Szűrőtisztítás”, „Olajcsere”).",
+          "type": "A karbantartási munka kategóriája.",
+          "interval_days": "Milyen gyakran ismétlődik a karbantartás, az intervallum egységével együtt.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "due_date": "Az a dátum, amikor ez az egyszeri feladat esedékes.",
+          "enabled": "Kikapcsolva az ütemezés és a kiváltók szünetelnek. A feladat nem törlődik.",
+          "notes": "További megjegyzések vagy utasítások a feladathoz.",
+          "documentation_url": "Hivatkozás a feladat külső dokumentációjára vagy kézikönyvére.",
+          "last_performed": "Mikor végezték el utoljára ezt a karbantartást. Hagyja üresen, ha még soha.",
+          "responsible_user_id": "A feladatért felelős Home Assistant felhasználó.",
+          "custom_icon": "Opcionális egyéni ikon a feladathoz (pl. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "NFC címke hozzárendelése a feladathoz. A címke beolvasása automatikusan elvégzettként jelöli a feladatot.",
+          "go_back": "Visszatérés a feladatműveletekhez mentés nélkül.",
+          "interval_anchor": "Hogyan számítódik a következő esedékesség az elvégzés után. A „Tervezett” megakadályozza az ütemezés csúszását azzal, hogy az eredeti esedékességhez horgonyoz.",
+          "season_months": "Csak a kiválasztott hónapokban esedékes; a szezonon kívüli dátumok a következő aktív hónapra tolódnak. Hagyja üresen az egész évhez.",
+          "ends_count": "Az ismétlés leáll ennyi elvégzés után (véges sorozat). Hagyja üresen a korlátlan ismétléshez.",
+          "ends_until": "Az ismétlés leáll, ha a következő alkalom e dátum utánra esne. Figyelmen kívül marad, ha a „Befejeződik ennyi alkalom után” meg van adva."
+        }
+      },
+      "edit_checklist": {
+        "title": "Ellenőrzőlista szerkesztése",
+        "description": "Adja meg a(z) {task_name} ellenőrzőlistájának lépéseit. Soronként egy lépést írjon.",
+        "data": {
+          "checklist_text": "Ellenőrzőlista lépései",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "checklist_text": "Minden ellenőrzőlista-lépést külön sorba írjon. Ezek a lépések a feladat elvégzésekor jelennek meg.",
+          "go_back": "Visszatérés a feladatműveletekhez mentés nélkül."
+        }
+      },
+      "compound_logic": {
+        "title": "Összetett kiváltó",
+        "description": "Válassza ki, hogyan legyenek a feltételek kombinálva.",
+        "data": {
+          "compound_logic": "Logika",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "compound_logic": "ÉS = minden feltételnek teljesülnie kell. VAGY = bármely feltétel kivált."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "{condition_num}. feltétel — Entitás",
+        "description": "Válassza ki az entitást ehhez a feltételhez.",
+        "data": {
+          "trigger_entity": "Entitás",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_entity": "Az ehhez a feltételhez figyelendő érzékelőentitás."
+        }
+      },
+      "compound_condition_type": {
+        "title": "{condition_num}. feltétel — Típus",
+        "description": "Hogyan értékelje ez a feltétel az érzékelőt?",
+        "data": {
+          "trigger_type": "Kiváltó típusa",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_type": "A módszer, amellyel meghatározzuk, mikor teljesül ez a feltétel."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Feltétel — Küszöbérték",
+        "data": {
+          "trigger_above": "Kiváltás e fölött",
+          "trigger_below": "Kiváltás ez alatt",
+          "trigger_for_minutes": "Időtartam (perc)",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_above": "Kiváltás, ha az érték túllépi ezt a küszöböt.",
+          "trigger_below": "Kiváltás, ha az érték e küszöb alá esik.",
+          "trigger_for_minutes": "Az értéknek ennyi ideig kell a küszöbön túl maradnia."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Feltétel — Számláló",
+        "data": {
+          "trigger_target_value": "Célérték",
+          "trigger_delta_mode": "Delta mód",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_target_value": "Kiváltás, amikor a felhalmozott érték eléri ezt a célt.",
+          "trigger_delta_mode": "Az abszolút érték helyett a kiindulási értékhez képesti változás számolása."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Feltétel — Állapotváltozás",
+        "data": {
+          "trigger_from_state": "Kezdő állapot",
+          "trigger_to_state": "Célállapot",
+          "trigger_target_changes": "Változások száma",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_from_state": "Csak az ebből az állapotból induló átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_to_state": "Csak az ebbe az állapotba érkező átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_target_changes": "Az egyező állapotváltozások száma a kiváltás előtt."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Feltétel — Üzemidő",
+        "data": {
+          "trigger_runtime_hours": "Cél üzemidő (óra)",
+          "trigger_on_states": "Aktív állapotok",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Kiváltás ennyi óra összesített üzemidő után.",
+          "trigger_on_states": "Az „aktívnak” számító érzékelőállapotok. Hagyja üresen az alapértelmezéshez."
+        }
+      },
+      "compound_review": {
+        "title": "Összetett kiváltó áttekintése",
+        "description": "{condition_count} feltétel beállítva {compound_logic} logikával.",
+        "data": {
+          "compound_action": "Művelet",
+          "go_back": "Vissza"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptív ütemezés",
+        "description": "Az intelligens intervallum-igazítás beállítása ehhez: {task_name}. A rendszer az elvégzési visszajelzéseiből tanulva javasol jobb intervallumokat.",
+        "data": {
+          "adaptive_enabled": "Adaptív ütemezés engedélyezése",
+          "ewa_alpha": "Tanulási ráta (alfa)",
+          "min_interval_days": "Minimális intervallum (nap)",
+          "max_interval_days": "Maximális intervallum (nap)",
+          "seasonal_enabled": "Szezonális igazodás engedélyezése",
+          "sensor_prediction_enabled": "Érzékelővezérelt előrejelzések engedélyezése",
+          "environmental_entity": "Környezeti érzékelő (opcionális)",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "adaptive_enabled": "Engedélyezve a rendszer tanul a visszajelzéseiből, és optimális karbantartási intervallumokat javasol.",
+          "ewa_alpha": "Milyen gyorsan alkalmazkodik az algoritmus az új adatokhoz. Magasabb = érzékenyebb, alacsonyabb = stabilabb.",
+          "min_interval_days": "A legrövidebb intervallum, amelyet a rendszer valaha javasol.",
+          "max_interval_days": "A leghosszabb intervallum, amelyet a rendszer valaha javasol.",
+          "seasonal_enabled": "A javaslatok igazítása a karbantartási előzményekből tanult szezonális minták alapján.",
+          "sensor_prediction_enabled": "Érzékelőtrendek elemzése annak előrejelzésére, mikor érik el a küszöbértékeket, és szükség esetén korábbi karbantartás javaslata.",
+          "environmental_entity": "Kapcsoljon hozzá hőmérséklet-, páratartalom- vagy nyomásérzékelőt a környezeti feltételek és a karbantartási intervallumok korrelálásához.",
+          "go_back": "Visszatérés a feladatműveletekhez mentés nélkül."
+        }
+      },
+      "delete_task": {
+        "title": "Feladat törlése",
+        "description": "Biztosan törli a(z) {task_name} feladatot? Ez nem vonható vissza.",
+        "data": {
+          "confirm": "Törlés megerősítése",
+          "go_back": "Vissza"
+        }
+      },
+      "remove_trigger": {
+        "title": "Kiváltó eltávolítása",
+        "description": "Eltávolítja a kiváltót a(z) **{task_name}** feladatról?\n\n**Entitás:** {entity_ids}\n**Típus:** {trigger_type}\n**Konfiguráció:** {config_details}\n\nHa minden entitást eltávolít, az ütemezés visszaáll időalapúra.",
+        "data": {
+          "entities_to_remove": "Eltávolítandó entitások",
+          "confirm": "Eltávolítás megerősítése",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "entities_to_remove": "Válassza ki, mely entitásokat távolítja el a kiváltóból. Ha mindet eltávolítja, a teljes kiváltó törlődik.",
+          "go_back": "Visszatérés a feladatműveletekhez mentés nélkül."
+        }
+      },
+      "trigger_summary": {
+        "title": "Jelenlegi kiváltó",
+        "description": "A(z) **{task_name}** kiváltója:\n\n**Entitás:** {entity_ids}\n**Jelenlegi állapot:** {current_states}\n**Típus:** {trigger_type} (attribútum: {attribute})\n**Konfiguráció:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Kiváltó szerkesztése",
+          "task_action": "Vissza"
+        }
+      },
+      "add_task": {
+        "title": "Karbantartási feladat hozzáadása",
+        "description": "Adjon meg új karbantartási feladatot ehhez az objektumhoz.",
+        "data": {
+          "name": "Feladat neve",
+          "type": "Karbantartás típusa",
+          "schedule_type": "Ütemezés típusa",
+          "custom_icon": "Feladat ikonja",
+          "go_back": "Vissza",
+          "reading_unit": "Leolvasás mértékegysége (leolvasási feladatokhoz, pl. kWh)"
+        },
+        "data_description": {
+          "name": "A feladat beszédes neve (pl. „Szűrőtisztítás”, „Olajcsere”).",
+          "type": "A karbantartási munka kategóriája.",
+          "schedule_type": "Hogyan legyen ütemezve ez a feladat.",
+          "custom_icon": "Opcionális egyéni ikon a feladathoz (pl. mdi:oil, mdi:filter-variant).",
+          "go_back": "Visszatérés a főmenübe mentés nélkül."
+        }
+      },
+      "opt_time_based": {
+        "title": "Időalapú ütemezés",
+        "description": "Állítsa be a feladat időintervallumát.",
+        "data": {
+          "interval_days": "Intervallum",
+          "interval_unit": "Intervallum egysége",
+          "last_performed": "Utoljára elvégezve",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "interval_anchor": "Intervallum horgonya"
+        },
+        "data_description": {
+          "interval_days": "Milyen gyakran ismétlődik a karbantartás, az intervallum egységével együtt.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "last_performed": "Mikor végezték el utoljára ezt a karbantartást. Hagyja üresen, ha még soha.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a főmenübe mentés nélkül.",
+          "interval_anchor": "Hogyan számítódik a következő esedékesség az elvégzés után. A „Tervezett” megakadályozza az ütemezés csúszását azzal, hogy az eredeti esedékességhez horgonyoz."
+        }
+      },
+      "opt_one_time": {
+        "title": "Egyszeri feladat",
+        "description": "Egyszeri, nem ismétlődő karbantartási feladat beállítása. Elvégzés után archiválódik.",
+        "data": {
+          "due_date": "Határidő",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "due_date": "Az a dátum, amikor ez az egyszeri feladat esedékes.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a főmenübe mentés nélkül."
+        }
+      },
+      "opt_calendar": {
+        "title": "Naptári ütemezés",
+        "description": "Naptáralapú ismétlődés beállítása (hét napjai, a hónap n. hétnapja vagy a hónap egy napja).",
+        "data": {
+          "weekdays": "Ezeken a napokon",
+          "nth": "Melyik előfordulás",
+          "weekday": "Hét napja",
+          "day": "A hónap napja",
+          "last_performed": "Utoljára elvégezve",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "last_day": "A hónap utolsó napja",
+          "business": "Csak munkanapokon",
+          "offset": "Eltolás (nap)"
+        },
+        "data_description": {
+          "weekdays": "A feladat minden kiválasztott hétnapon ismétlődik.",
+          "nth": "Melyik előfordulás a hónapban (pl. 1. vagy Utolsó).",
+          "weekday": "A hét napja az n. hétnap szabályhoz (pl. szombat).",
+          "day": "A hónap napja (1–31; a hónap hosszához igazítva).",
+          "last_performed": "Mikor végezték el utoljára ezt a karbantartást. Hagyja üresen, ha még soha.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a főmenübe mentés nélkül.",
+          "last_day": "Felülbírálja a nap számát: a feladat a hónap utolsó napján esedékes.",
+          "business": "A hétvégére eső dátum visszalép az azt megelőző péntekre (pl. utolsó munkanap).",
+          "offset": "A kiszámított dátum eltolása ±N nappal (pl. -2 = két nappal korábban)."
+        }
+      },
+      "opt_manual": {
+        "title": "Kézi ütemezés",
+        "description": "Ennek a feladatnak nincs automatikus ütemezése. Kézzel jelölheti esedékesnek.",
+        "data": {
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "notes": "Megjegyzések",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "notes": "További megjegyzések vagy utasítások a feladathoz.",
+          "go_back": "Visszatérés a főmenübe mentés nélkül."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Kiváltó érzékelő kiválasztása",
+        "description": "Válasszon egy figyelendő Home Assistant entitást.",
+        "data": {
+          "trigger_entity": "Figyelendő entitás",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_entity": "Válassza ki az érzékelőentitást, amely kiváltsa ezt a karbantartási feladatot."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Attribútum kiválasztása",
+        "description": "Válassza ki, melyik értéket figyelje innen: {entity_id}. Jelenlegi állapot: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Figyelendő érték",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_attribute": "Válassza ki az entitás állapotát vagy egy adott attribútumot a figyeléshez."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Kiváltó típusa",
+        "description": "Hogyan váltsa ki az érzékelő értéke a karbantartást?",
+        "data": {
+          "trigger_type": "Kiváltó típusa",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_type": "Küszöbérték: akkor vált ki, ha az érték túllépi a határokat. Számláló: egy célérték felhalmozása után vált ki. Állapotváltozás: adott számú állapotátmenet után vált ki."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Küszöbérték beállítása",
+        "description": "Adja meg a küszöbértékeket ehhez: **{entity_id}** ({attribute}).\nJelenlegi: **{current_value} {unit}** | Átlag: {average} | Tartomány: {minimum}–{maximum} ({data_period} nap)\nJavasolt felső: {suggested_above} | Javasolt alsó: {suggested_below}",
+        "data": {
+          "trigger_above": "Kiváltás e fölött",
+          "trigger_below": "Kiváltás ez alatt",
+          "trigger_for_minutes": "Legalább ennyi ideig (perc)",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_above": "A karbantartás kiváltása, ha az érték túllépi ezt a küszöböt.",
+          "trigger_below": "A karbantartás kiváltása, ha az érték e küszöb alá esik.",
+          "trigger_for_minutes": "Az értéknek ennyi percig kell a küszöbön túl lennie a kiváltás előtt.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Számláló beállítása",
+        "description": "Adja meg a számláló célértékét ehhez: {entity_id} ({attribute}). Jelenlegi: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Célérték",
+          "trigger_delta_mode": "Delta mód (változások számolása, nem abszolút érték)",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_target_value": "A karbantartás kiváltása, amikor ez a felhalmozott érték elérésre kerül.",
+          "trigger_delta_mode": "Ha engedélyezve van, az abszolút érték helyett egy kiindulási értékhez képesti különbséget számolja.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum a számlálókiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Állapotváltozás beállítása",
+        "description": "Állapotátmenetek számolása: {entity_id}.",
+        "data": {
+          "trigger_from_state": "Kezdő állapot (opcionális)",
+          "trigger_to_state": "Célállapot (opcionális)",
+          "trigger_target_changes": "Kiváltó változások száma",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_from_state": "Csak az ebből az állapotból induló átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_to_state": "Csak az ebbe az állapotba érkező átmenetek számítanak. Hagyja üresen, ha bármelyik.",
+          "trigger_target_changes": "Az egyező állapotváltozások száma a karbantartás kiváltása előtt.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az állapotváltozás-kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Üzemidő beállítása",
+        "description": "A(z) {entity_id} összesített üzemidejének követése.",
+        "data": {
+          "trigger_runtime_hours": "Cél üzemidő (óra)",
+          "trigger_on_states": "Aktív állapotok (vesszővel elválasztva)",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "A karbantartás kiváltása ennyi óra összesített üzemidő után.",
+          "trigger_on_states": "Mely érzékelőállapotok számítanak „aktívnak”. Hagyja üresen az alapértelmezéshez: on, 1, true. Példa: in_use, running",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az üzemidő-kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
+        }
+      },
+      "object_settings": {
+        "title": "Objektumbeállítások",
+        "description": "Az objektum adatainak szerkesztése.",
+        "data": {
+          "name": "Objektum neve",
+          "manufacturer": "Gyártó",
+          "model": "Modell",
+          "serial_number": "Sorozatszám",
+          "documentation_url": "Kézikönyv / dokumentáció URL",
+          "notes": "Megjegyzések",
+          "area_id": "Terület",
+          "installation_date": "Telepítés dátuma",
+          "warranty_expiry": "Garancia lejárta",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "name": "A karbantartási objektum egyedi neve (pl. „Medenceszivattyú”, „Autó”).",
+          "manufacturer": "Az objektum gyártója.",
+          "model": "A modell neve vagy száma.",
+          "serial_number": "Az objektum sorozatszáma.",
+          "documentation_url": "Opcionális hivatkozás PDF kézikönyvre, gyártói oldalra vagy bármely URL-re, amely referenciainformációt tartalmaz az objektumról.",
+          "notes": "Szabad szöveges megjegyzések az objektumról — cikkszámok, eljárások, beállítási emlékeztetők stb.",
+          "area_id": "Az otthonának az a területe, ahol az objektum található.",
+          "installation_date": "Mikor telepítették vagy vásárolták az objektumot.",
+          "warranty_expiry": "Mikor jár le az objektum gyártói garanciája.",
+          "go_back": "Visszatérés a főmenübe mentés nélkül."
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} elvégzése"
+      },
+      "button_skip": {
+        "name": "{task_name} kihagyása"
+      },
+      "button_reset": {
+        "name": "{task_name} visszaállítása"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Hamarosan esedékes",
+          "overdue": "Lejárt",
+          "triggered": "Aktiválva",
+          "archived": "Archiválva",
+          "paused": "Szüneteltetve"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Karbantartás típusa",
+            "state": {
+              "cleaning": "Tisztítás",
+              "inspection": "Ellenőrzés",
+              "replacement": "Csere",
+              "calibration": "Kalibrálás",
+              "service": "Szerviz",
+              "reading": "Leolvasás",
+              "custom": "Egyéni"
+            }
+          },
+          "schedule_type": {
+            "name": "Ütemezés típusa",
+            "state": {
+              "time_based": "Időalapú",
+              "sensor_based": "Érzékelőalapú",
+              "one_time": "Egyszeri",
+              "manual": "Kézi"
+            }
+          },
+          "interval_days": {
+            "name": "Intervallum"
+          },
+          "interval_unit": {
+            "name": "Intervallum egysége"
+          },
+          "warning_days": {
+            "name": "Figyelmeztetési napok"
+          },
+          "last_performed": {
+            "name": "Utoljára elvégezve"
+          },
+          "next_due": {
+            "name": "Következő esedékesség"
+          },
+          "days_until_due": {
+            "name": "Napok az esedékességig"
+          },
+          "parent_object": {
+            "name": "Szülőobjektum"
+          },
+          "times_performed": {
+            "name": "Elvégzések száma"
+          },
+          "total_cost": {
+            "name": "Összköltség"
+          },
+          "average_duration": {
+            "name": "Átlagos időtartam (perc)"
+          },
+          "notes": {
+            "name": "Megjegyzések"
+          },
+          "documentation_url": {
+            "name": "Dokumentáció URL"
+          },
+          "trigger_entity": {
+            "name": "Kiváltó entitás"
+          },
+          "trigger_attribute": {
+            "name": "Kiváltó attribútum"
+          },
+          "trigger_type": {
+            "name": "Kiváltó típusa",
+            "state": {
+              "threshold": "Küszöbérték",
+              "counter": "Számláló",
+              "state_change": "Állapotváltozás",
+              "runtime": "Üzemidő",
+              "compound": "Összetett"
+            }
+          },
+          "trigger_active": {
+            "name": "Kiváltó aktív"
+          },
+          "trigger_current_value": {
+            "name": "Kiváltó jelenlegi értéke"
+          },
+          "trigger_entity_state": {
+            "name": "Kiváltó entitás állapota",
+            "state": {
+              "available": "Elérhető",
+              "unavailable": "Nem elérhető",
+              "missing": "Hiányzik",
+              "startup": "Indulás"
+            }
+          },
+          "trigger_above": {
+            "name": "Kiváltás e fölött"
+          },
+          "trigger_below": {
+            "name": "Kiváltás ez alatt"
+          },
+          "trigger_for_minutes": {
+            "name": "Kiváltás időtartama (perc)"
+          },
+          "trigger_target_value": {
+            "name": "Kiváltó célértéke"
+          },
+          "trigger_delta_mode": {
+            "name": "Kiváltó delta mód"
+          },
+          "trigger_baseline_value": {
+            "name": "Kiváltó kiindulási értéke"
+          },
+          "trigger_current_delta": {
+            "name": "Kiváltó jelenlegi deltája"
+          },
+          "trigger_from_state": {
+            "name": "Kiváltó kezdő állapota"
+          },
+          "trigger_to_state": {
+            "name": "Kiváltó célállapota"
+          },
+          "trigger_target_changes": {
+            "name": "Kiváltó cél változásszáma"
+          },
+          "trigger_change_count": {
+            "name": "Kiváltó változásszámlálója"
+          },
+          "trigger_runtime_hours": {
+            "name": "Cél üzemidő (óra)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Összesített üzemidő (óra)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Hátralévő üzemidő (óra)"
+          },
+          "last_entry": {
+            "name": "Utolsó bejegyzés"
+          },
+          "suggested_interval": {
+            "name": "Javasolt intervallum"
+          },
+          "interval_confidence": {
+            "name": "Intervallum megbízhatósága",
+            "state": {
+              "low": "Alacsony",
+              "medium": "Közepes",
+              "high": "Magas"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptív ütemezés engedélyezve"
+          },
+          "seasonal_factor": {
+            "name": "Szezonális tényező"
+          },
+          "seasonal_reason": {
+            "name": "Szezonális ok",
+            "state": {
+              "learned": "Tanult",
+              "manual": "Kézi"
+            }
+          },
+          "degradation_rate": {
+            "name": "Romlási ütem"
+          },
+          "degradation_trend": {
+            "name": "Romlási trend",
+            "state": {
+              "rising": "Emelkedő",
+              "falling": "Csökkenő",
+              "stable": "Stabil",
+              "insufficient_data": "Nincs elég adat"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Napok a küszöbértékig"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Előrejelzés megbízhatósága",
+            "state": {
+              "low": "Alacsony",
+              "medium": "Közepes",
+              "high": "Magas"
+            }
+          },
+          "environmental_factor": {
+            "name": "Környezeti tényező"
+          },
+          "environmental_entity": {
+            "name": "Környezeti entitás"
+          },
+          "weibull_beta": {
+            "name": "Weibull alak (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull skála (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Meghibásodási minta",
+            "state": {
+              "early_failures": "Korai meghibásodások",
+              "random_failures": "Véletlen meghibásodások",
+              "wear_out": "Elhasználódás",
+              "highly_predictable": "Jól előrejelezhető"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Konfidenciaintervallum (alsó)"
+          },
+          "confidence_interval_high": {
+            "name": "Konfidenciaintervallum (felső)"
+          },
+          "interval_anchor": {
+            "name": "Intervallum horgonya",
+            "state": {
+              "completion": "Az elvégzéstől",
+              "planned": "A tervezett dátumtól"
+            }
+          },
+          "due_date": {
+            "name": "Határidő"
+          }
+        }
+      },
+      "summary_overdue": {
+        "name": "Lejárt"
+      },
+      "summary_due_soon": {
+        "name": "Hamarosan esedékes"
+      },
+      "summary_triggered": {
+        "name": "Aktiválva"
+      },
+      "summary_needs_attention": {
+        "name": "Figyelmet igényel"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "document_storage": {
+        "name": "Dokumentumtárhely"
+      },
+      "summary_total_tasks": {
+        "name": "Összes feladat"
+      },
+      "next_due": {
+        "name": "{task_name} következő esedékesség"
+      },
+      "days_until_due": {
+        "name": "{task_name} napok az esedékességig"
+      },
+      "parts_to_reorder": {
+        "name": "Újrarendelendő alkatrészek"
+      },
+      "batteries_to_replace": {
+        "name": "Cserélendő elemek"
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Karbantartási ütemterv"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} lejárt",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Karbantartási állapot",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Hamarosan esedékes",
+              "overdue": "Lejárt",
+              "triggered": "Aktiválva",
+              "archived": "Archiválva"
+            }
+          },
+          "days_until_due": {
+            "name": "Napok az esedékességig"
+          },
+          "next_due": {
+            "name": "Következő esedékesség"
+          },
+          "parent_object": {
+            "name": "Szülőobjektum"
+          }
+        }
+      }
+    },
+    "todo": {
+      "maintenance_todo": {
+        "name": "Karbantartás"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Tisztítás",
+        "inspection": "Ellenőrzés",
+        "replacement": "Csere",
+        "calibration": "Kalibrálás",
+        "service": "Szerviz",
+        "reading": "Leolvasás",
+        "custom": "Egyéni"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Időalapú",
+        "weekdays": "Hét napjai",
+        "nth_weekday": "A hónap n. hétnapja",
+        "day_of_month": "A hónap napja",
+        "sensor_based": "Érzékelőalapú",
+        "one_time": "Egyszeri",
+        "manual": "Kézi"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Nap",
+        "weeks": "Hét",
+        "months": "Hónap",
+        "years": "Év"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Küszöbérték",
+        "counter": "Számláló",
+        "state_change": "Állapotváltozás",
+        "runtime": "Üzemidő",
+        "compound": "Összetett (több feltétel)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "ÉS (minden feltételnek teljesülnie kell)",
+        "or": "VAGY (bármely feltétel kivált)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Bármely entitás kivált",
+        "all": "Minden entitásnak ki kell váltania"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Alapértelmezett (állapotonkénti cím)",
+        "object_name": "Objektum neve címként",
+        "task_name": "Feladat neve címként"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Karbantartás elvégzése",
+      "description": "Karbantartási feladat elvégzettként jelölése.",
+      "fields": {
+        "entity_id": {
+          "name": "Entitás",
+          "description": "Az elvégzendő karbantartási érzékelőentitás."
+        },
+        "notes": {
+          "name": "Megjegyzések",
+          "description": "Opcionális megjegyzések az elvégzett karbantartásról."
+        },
+        "cost": {
+          "name": "Költség",
+          "description": "Az elvégzett karbantartás költsége."
+        },
+        "duration": {
+          "name": "Időtartam",
+          "description": "A karbantartás időtartama percben."
+        },
+        "reading_value": {
+          "name": "Leolvasott érték",
+          "description": "A leolvasás típusú feladatokhoz rögzített érték (mérőállás, szintellenőrzés)."
+        }
+      }
+    },
+    "reset": {
+      "name": "Karbantartás visszaállítása",
+      "description": "Karbantartási feladat utolsó elvégzési dátumának visszaállítása.",
+      "fields": {
+        "entity_id": {
+          "name": "Entitás",
+          "description": "A visszaállítandó karbantartási érzékelőentitás."
+        },
+        "date": {
+          "name": "Dátum",
+          "description": "Az utolsó elvégzésként beállítandó dátum. Alapértelmezés: ma."
+        }
+      }
+    },
+    "skip": {
+      "name": "Karbantartás kihagyása",
+      "description": "Az aktuális karbantartási ciklus kihagyása.",
+      "fields": {
+        "entity_id": {
+          "name": "Entitás",
+          "description": "A kihagyandó karbantartási érzékelőentitás."
+        },
+        "reason": {
+          "name": "Indoklás",
+          "description": "A karbantartás kihagyásának opcionális indoklása."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Adatok exportálása",
+      "description": "Az összes karbantartási adat exportálása JSON vagy YAML formátumban.",
+      "fields": {
+        "format": {
+          "name": "Formátum",
+          "description": "Az exportált adatok kimeneti formátuma (json vagy yaml)."
+        },
+        "include_history": {
+          "name": "Előzményekkel együtt",
+          "description": "Belekerüljenek-e a feladatelőzmény-bejegyzések az exportba."
+        }
+      }
+    },
+    "add_object": {
+      "name": "Objektum hozzáadása",
+      "description": "Új karbantartási objektum (eszköz) létrehozása. Visszaadja az új entry_id-t.",
+      "fields": {
+        "name": {
+          "name": "Név",
+          "description": "Az objektum/eszköz neve."
+        },
+        "area_id": {
+          "name": "Terület",
+          "description": "A terület, amelyhez az eszközt rendeli."
+        },
+        "manufacturer": {
+          "name": "Gyártó"
+        },
+        "model": {
+          "name": "Modell"
+        },
+        "serial_number": {
+          "name": "Sorozatszám"
+        },
+        "installation_date": {
+          "name": "Telepítés dátuma"
+        },
+        "warranty_expiry": {
+          "name": "Garancia lejárta",
+          "description": "A garancia lejárati dátuma (vagyonkövetéshez és emlékeztetőkhöz)."
+        },
+        "documentation_url": {
+          "name": "Dokumentáció URL",
+          "description": "Hivatkozás kézikönyvre vagy gyártói oldalra (csak http/https)."
+        },
+        "notes": {
+          "name": "Megjegyzések"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Feladat hozzáadása",
+      "description": "Karbantartási feladat hozzáadása meglévő objektumhoz. Visszaadja az új task_id-t.",
+      "fields": {
+        "entry_id": {
+          "name": "Objektum",
+          "description": "A karbantartási objektum, amelyhez a feladat kerül."
+        },
+        "name": {
+          "name": "Név",
+          "description": "A feladat neve."
+        },
+        "task_type": {
+          "name": "Feladat típusa",
+          "description": "Szabad szöveges kategória (pl. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Ütemezés típusa",
+          "description": "time_based (intervallum) vagy sensor_based. Alapértelmezés: time_based."
+        },
+        "interval_days": {
+          "name": "Intervallum",
+          "description": "Az alkalmak közötti intervallum hossza (időalapú feladatoknál), az interval_unit egységgel együtt."
+        },
+        "interval_unit": {
+          "name": "Intervallum egysége",
+          "description": "Az intervallum egysége: nap, hét, hónap vagy év. Alapértelmezés: nap."
+        },
+        "due_date": {
+          "name": "Határidő",
+          "description": "Egyszeri feladat határideje (ÉÉÉÉ-HH-NN) (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Naptári ütemezés",
+          "description": "Beágyazott ismétlődés a naptári típusokhoz, pl. kind=nth_weekday, nth=1, weekday=5 az 1. szombathoz (weekday 0=hétfő ... 6=vasárnap), kind=weekdays, weekdays=[0, 3] hétfőhöz és csütörtökhöz, vagy kind=day_of_month, day=15. Elsőbbséget élvez az interval_days / schedule_type felett."
+        },
+        "warning_days": {
+          "name": "Figyelmeztetés (nap)",
+          "description": "Hány nappal az esedékesség előtt kezdődjön a hamarosan esedékes időszak."
+        },
+        "enabled": {
+          "name": "Engedélyezve"
+        },
+        "notes": {
+          "name": "Megjegyzések"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Feladat frissítése",
+      "description": "Meglévő karbantartási feladat közös mezőinek frissítése. Csak a megadott mezők változnak.",
+      "fields": {
+        "entry_id": {
+          "name": "Objektum",
+          "description": "A karbantartási objektum, amelyhez a feladat tartozik."
+        },
+        "task_id": {
+          "name": "Feladatazonosító",
+          "description": "A frissítendő feladat azonosítója (lásd list_tasks)."
+        },
+        "name": {
+          "name": "Név",
+          "description": "A feladat új neve."
+        },
+        "task_type": {
+          "name": "Feladat típusa",
+          "description": "Kategória (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Ütemezés típusa",
+          "description": "time_based (intervallum), sensor_based, one_time vagy manual."
+        },
+        "interval_days": {
+          "name": "Intervallum",
+          "description": "Az alkalmak közötti intervallum hossza, az interval_unit egységgel együtt."
+        },
+        "interval_unit": {
+          "name": "Intervallum egysége",
+          "description": "nap, hét, hónap vagy év."
+        },
+        "due_date": {
+          "name": "Határidő",
+          "description": "Egyszeri feladatok határideje (ÉÉÉÉ-HH-NN)."
+        },
+        "schedule": {
+          "name": "Ütemezés (naptári ismétlődés)",
+          "description": "Beágyazott ismétlődési objektum a naptári típusokhoz, pl. kind=day_of_month, day=-1, business=true. Elsőbbséget élvez a sima mezők felett."
+        },
+        "warning_days": {
+          "name": "Figyelmeztetési napok",
+          "description": "Hány nappal az esedékesség előtt váljon a feladat hamarosan esedékessé."
+        },
+        "enabled": {
+          "name": "Engedélyezve",
+          "description": "Aktív-e a feladat."
+        },
+        "notes": {
+          "name": "Megjegyzések",
+          "description": "Szabad szöveges megjegyzések a feladathoz."
+        },
+        "priority": {
+          "name": "Prioritás",
+          "description": "low, normal vagy high."
+        },
+        "labels": {
+          "name": "Címkék",
+          "description": "Címkék listája szűréshez és jelentésekhez."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Feladat törlése",
+      "description": "Karbantartási feladat törlése az előzményeivel együtt. Ez nem vonható vissza — érdemes inkább a panelen archiválni.",
+      "fields": {
+        "entry_id": {
+          "name": "Objektum",
+          "description": "A karbantartási objektum, amelyhez a feladat tartozik."
+        },
+        "task_id": {
+          "name": "Feladatazonosító",
+          "description": "A törlendő feladat azonosítója (lásd list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Feladatok listázása",
+      "description": "Az aktív karbantartási feladatok pillanatképét adja vissza (azonosító, név, állapot, következő esedékesség) automatizálásokhoz, szkriptekhez és hangvezérléshez. Támogatja az objektum és állapot szerinti szűrést.",
+      "fields": {
+        "entry_id": {
+          "name": "Objektum",
+          "description": "Csak ennek a karbantartási objektumnak a feladatai."
+        },
+        "status": {
+          "name": "Állapot",
+          "description": "Csak az ilyen állapotú feladatok."
+        }
+      }
+    }
+  },
+  "issues": {
+    "document_storage_issues": {
+      "title": "A dokumentumtárhely takarítást igényel",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Dokumentumtárhely felszabadítása",
+            "description": "A Maintenance Supporter nem hivatkozott fájlokat és/vagy halott rekordokat talált a dokumentumtárhelyen — ez általában összeomlás, külső fájltörlés vagy részleges visszaállítás következménye.\n\nKattintson a **Küldés** gombra a hely felszabadításához: a nem hivatkozott és elavult fájlok törlődnek, a halott dokumentumrekordok eltávolításra kerülnek. A dokumentum által még hivatkozott fájlokhoz soha nem nyúlunk.\n\n(Ha takarítás nélkül szeretné elvetni, használja a Home Assistant **Mellőzés** gombját a Javítások oldalon.)"
+          }
+        }
+      }
+    },
+    "missing_trigger_entity": {
+      "title": "A kiváltó érzékelő nem található: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Hiányzó kiváltó entitás",
+            "description": "A(z) \"{object_name}\" objektum \"{task_name}\" feladatának kiváltójaként beállított `{entity_id}` érzékelőentitás már nem érhető el.\n\nVálassza ki, hogyan oldja meg a problémát:",
+            "menu_options": {
+              "replace_entity": "Csere másik entitásra",
+              "remove_trigger": "Érzékelős kiváltó eltávolítása",
+              "dismiss": "Elvetés (újra meg fog jelenni)"
+            }
+          },
+          "replace_entity": {
+            "title": "Kiváltó entitás cseréje",
+            "description": "Válasszon új entitást a(z) `{entity_id}` helyére a(z) \"{object_name}\" objektum \"{task_name}\" feladatának kiváltójaként.",
+            "data": {
+              "new_entity_id": "Új kiváltó entitás"
+            },
+            "data_description": {
+              "new_entity_id": "Válassza ki az új érzékelőentitást kiváltóként."
+            }
+          },
+          "remove_trigger": {
+            "title": "Érzékelős kiváltó eltávolítása",
+            "description": "Ez eltávolítja az érzékelős kiváltót a(z) \"{object_name}\" objektum \"{task_name}\" feladatáról, és az ütemezést időalapúra vagy kézire alakítja. A karbantartási előzmények megmaradnak.\n\nKorábbi kiváltó entitás: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "A panel-hozzáférési felhasználó már nem létezik",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Árva felhasználó a panel-hozzáférési listában",
+            "description": "A(z) `{user_id}…` felhasználó szerepel a Maintenance Supporter panel-hozzáférési listájában, de már nem létezik a Home Assistantban. Valószínűleg törölték a felhasználót.\n\nKattintson a **Küldés** gombra a felhasználó eltávolításához a listából. (Ha inkább békén hagyná a problémát, használja a Home Assistant **Mellőzés** gombját a Javítások oldalon.)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "Az elvégzési művelet törölt entitásra hivatkozik",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Elvégzési művelet: {stale_entity} már nem létezik",
+            "description": "A(z) **{task_name}** feladathoz olyan `on_complete_action` van beállítva, amely a(z) `{stale_entity}` entitáson hívna szolgáltatást, de ez az entitás már nincs regisztrálva a Home Assistantban.\n\nVálassza ki a javítás módját:",
+            "menu_options": {
+              "replace_entity": "Csere másik entitásra",
+              "remove_action": "Elvégzési művelet eltávolítása"
+            }
+          },
+          "replace_entity": {
+            "title": "Cél entitás cseréje",
+            "description": "Válassza ki az entitást, amelyet a(z) `{stale_entity}` helyett használjon a(z) **{task_name}** feladat.",
+            "data": {
+              "new_entity": "Új cél entitás"
+            }
+          },
+          "remove_action": {
+            "title": "Elvégzési művelet eltávolítása",
+            "description": "Az `on_complete_action` teljes törlése a(z) **{task_name}** feladatról. Magát a feladatot nem érinti — csak az elvégzéskori szolgáltatáshívás kerül eltávolításra."
+          }
+        }
+      }
+    },
+    "notify_service_missing": {
+      "title": "A(z) `{service}` értesítési szolgáltatás nem található",
+      "description": "A Maintenance Supporter úgy van beállítva, hogy a(z) `{service}` szolgáltatáson keresztül küldjön értesítéseket, de ez a szolgáltatás jelenleg nem létezik a Home Assistantban, így az emlékeztetők csendben meghiúsulnak.\n\nEz általában azt jelenti, hogy a szolgáltatást átnevezték, vagy a mögötte álló integrációt (mobilalkalmazás, notify csoport, …) eltávolították. Javítás: állítsa helyre a szolgáltatást, vagy nyissa meg a **Beállítások → Eszközök és szolgáltatások → Maintenance Supporter → Beállítás → Általános beállítások** menüt, és válasszon érvényes `notify.*` szolgáltatást.\n\nMegjegyzés: ez csak magát a beállított szolgáltatást ellenőrzi. Ha az értesítések egyes eszközökre megérkeznek, másokra nem, valószínűleg a notify csoport egy *belső* tagja van rosszul beállítva — ez itt nem látható; nézze meg a Home Assistant **rendszernaplóját** (Beállítások → Rendszer → Naplók)."
+    },
+    "missing_global_entry": {
+      "title": "A Maintenance Supporter globális konfigurációja hiányzik",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "A globális konfiguráció helyreállítása",
+            "description": "A karbantartási objektumai még megvannak, de a globális „Maintenance Supporter” bejegyzést törölték — így az összegző érzékelők, az oldalsáv-panel és az irányítópult számlálói eltűntek, a KPI-lapkák pedig „unknown” értéket mutatnak.\n\nKattintson a **Küldés** gombra a globális konfiguráció alapértelmezett beállításokkal történő újralétrehozásához. Az objektumai és feladatai érintetlenek maradnak. Az értesítéseket és az alapértelmezéseket utólag a Beállítások → Eszközök és szolgáltatások alatt módosíthatja.\n\n(Ha mindent úgy hagyna, ahogy van, használja a Home Assistant **Mellőzés** gombját.)"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Nem található karbantartás-koordinátor a(z) {entity_id} entitáshoz."
+    },
+    "no_task_for_entity": {
+      "message": "Nem található karbantartási feladat a(z) {entity_id} entitáshoz."
+    }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Egy karbantartási feladat lejárt",
+      "description": "Akkor aktiválódik, amikor egy karbantartási feladat állapota lejártra vált.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Egy karbantartási feladat hamarosan esedékessé vált",
+      "description": "Akkor aktiválódik, amikor egy karbantartási feladat a figyelmeztetési időszakába lép.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Egy érzékelős kiváltó aktiválódott",
+      "description": "Akkor aktiválódik, amikor egy érzékelőalapú karbantartási feladat aktívvá válik.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Egy karbantartási feladat visszatért OK állapotba",
+      "description": "Akkor aktiválódik, amikor egy karbantartási feladat már nem igényel figyelmet.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Egy karbantartási feladat lejárt",
+      "description": "Azt vizsgálja, hogy egy karbantartási feladat lejárt-e.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Egy karbantartási feladat hamarosan esedékes",
+      "description": "Azt vizsgálja, hogy egy karbantartási feladat a figyelmeztetési időszakában van-e.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Egy érzékelős kiváltó aktív",
+      "description": "Azt vizsgálja, hogy egy érzékelőalapú karbantartási feladat aktiválva van-e.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Egy karbantartási feladat figyelmet igényel",
+      "description": "Azt vizsgálja, hogy egy karbantartási feladat lejárt vagy aktiválva van-e.",
+      "fields": {
+        "behavior": {
+          "name": "Viselkedés"
+        },
+        "for": {
+          "name": "Ennyi ideig"
+        }
+      }
+    }
+  }
+}

@@ -164,6 +164,34 @@ _STRINGS: dict[str, dict[str, str]] = {
         "trigger_on": "传感器触发器已激活",
         "trigger_off": "传感器触发器已清除",
     },
+    "pt-br": {
+        "completed": "foi concluída",
+        "skipped": "foi pulada",
+        "reset": "foi redefinida para {date}",
+        "trigger_on": "gatilho de sensor ativado",
+        "trigger_off": "gatilho de sensor desativado",
+    },
+    "hu": {
+        "completed": "elkészült",
+        "skipped": "kihagyva",
+        "reset": "visszaállítva erre: {date}",
+        "trigger_on": "érzékelő-trigger aktiválódott",
+        "trigger_off": "érzékelő-trigger megszűnt",
+    },
+    "ko": {
+        "completed": "완료됨",
+        "skipped": "건너뜀",
+        "reset": "{date}(으)로 재설정됨",
+        "trigger_on": "센서 트리거 활성화됨",
+        "trigger_off": "센서 트리거 해제됨",
+    },
+    "tr": {
+        "completed": "tamamlandı",
+        "skipped": "atlandı",
+        "reset": "{date} tarihine sıfırlandı",
+        "trigger_on": "sensör tetikleyicisi etkinleşti",
+        "trigger_off": "sensör tetikleyicisi temizlendi",
+    },
 }
 
 

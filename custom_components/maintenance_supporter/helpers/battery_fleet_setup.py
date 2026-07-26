@@ -49,10 +49,10 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
     """
     from ..websocket.objects import async_create_object
     from ..websocket.tasks_persist import async_persist_task
-    from .i18n import normalize_language
+    from .i18n import normalize_language, normalize_language_code
     from .parts import normalize_part
 
-    lang = (language or normalize_language(hass))[:2].lower()
+    lang = normalize_language_code(language) if language else normalize_language(hass)
     types = discover_battery_types(hass)  # {TYPE: total_qty}
 
     existing = find_fleet_entry(hass)

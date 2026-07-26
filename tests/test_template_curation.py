@@ -163,13 +163,13 @@ async def test_from_template_auto_numbers_duplicate_names(
 
 
 def test_every_category_name_fully_localized() -> None:
-    """Tripwire: every TEMPLATE_CATEGORIES entry carries name_xx for ALL 18
+    """Tripwire: every TEMPLATE_CATEGORIES entry carries name_xx for ALL 22
     languages — a new category copying an old partial pattern fails here
     (found 2026-07-18: six categories silently fell back to English for 8+
     languages)."""
     from custom_components.maintenance_supporter.templates import TEMPLATE_CATEGORIES
 
-    langs = ("en", "de", "es", "fr", "it", "nl", "pt", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh")
+    langs = ("en", "de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
     for cat, spec in TEMPLATE_CATEGORIES.items():
         gaps = [lg for lg in langs if not spec.get(f"name_{lg}")]
         assert not gaps, f"category {cat} missing {gaps}"

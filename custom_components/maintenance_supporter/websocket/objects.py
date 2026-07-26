@@ -523,7 +523,7 @@ async def ws_create_from_template(
     """
     from uuid import uuid4
 
-    from ..helpers.i18n import normalize_language
+    from ..helpers.i18n import normalize_language, normalize_language_code
     from ..templates import get_template_by_id, localize_template_text
 
     template = get_template_by_id(msg["template_id"])
@@ -531,7 +531,7 @@ async def ws_create_from_template(
         connection.send_error(msg["id"], "not_found", "Template not found")
         return
 
-    lang = (msg.get("language") or normalize_language(hass))[:2].lower()
+    lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
     default_name = localize_template_text(template.name, lang) or template.name
     name = (msg.get("name") or default_name).strip() or default_name
     # Auto-number on collision: applying the same template twice (or owning

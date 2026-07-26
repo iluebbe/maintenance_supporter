@@ -25,7 +25,9 @@ const REST = "http://127.0.0.1:8125";
 const PW_WS = "ws://127.0.0.1:3000/";
 // Longest-label languages measured in the 2026-07 full sweep (worst rows:
 // uk 385px, hi 380px, de 378px at 412px viewport) + en as the baseline.
-const LANGS = ["de", "uk", "hi", "en"];
+// hu joined with the 22-language round — agglutinative labels run long.
+// Override the set ad hoc: MS_LANGS="pt-BR,hu,ko,tr" node e2e/live-overflow-sweep.mjs
+const LANGS = process.env.MS_LANGS ? process.env.MS_LANGS.split(",") : ["de", "uk", "hi", "hu", "en"];
 const VIEWPORTS = [
   { name: "phone", width: 412, height: 915 },
   { name: "tablet", width: 768, height: 1024 },
@@ -109,7 +111,7 @@ try {
 
       const surfaces = [
         ["dashboard", async () => {}],
-        ["settings", () => clickTab(p, "settings|einstell|налаштування|सेटिंग")],
+        ["settings", () => clickTab(p, "settings|einstell|налаштування|सेटिंग|beállít|configura|ayarlar|설정")],
         ["task-detail", () => clickTab(p, ".").then(() => p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" })).then(() => p.waitForTimeout(3500)).then(() => clickFirstTaskRow(p))],
         ["object-detail", () => clickObjectBreadcrumb(p)],
       ];

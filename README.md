@@ -126,7 +126,7 @@ for you — always previewing before it writes.
 | **Spare parts** | Per-object parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags, on-complete service calls back to the device | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
 | **Dashboards** | Sidebar panel (Today view, `/` command palette, bulk actions, saved filter views), Lovelace card, calendar card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
-| **Localization** | Full UI in 18 languages across panel, config flow, and notifications | [Features → Frontend](docs/FEATURES.md#frontend) |
+| **Localization** | Full UI in 22 languages across panel, config flow, and notifications | [Features → Frontend](docs/FEATURES.md#frontend) |
 
 ## Entities & automation hooks
 

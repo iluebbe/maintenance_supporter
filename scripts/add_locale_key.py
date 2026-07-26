@@ -36,7 +36,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCALES = os.path.join(HERE, "..", "custom_components", "maintenance_supporter", "frontend-src", "locales")
 
-LANGUAGES = ["en", "de", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi"]
+LANGUAGES = ["en", "de", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr"]
 
 # Mirrors tests/test_i18n.py — languages written in a non-Latin script.
 NATIVE_SCRIPTS = {

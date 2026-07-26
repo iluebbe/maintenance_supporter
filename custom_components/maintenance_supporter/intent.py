@@ -158,9 +158,11 @@ _SPEECH: dict[str, dict[str, str]] = {
 
 
 def _sp(key: str, language: str | None, **fmt: Any) -> str:
-    # Per-request language (intent_obj.language, e.g. "de-DE") → bare 2-letter
-    # key, same normalization rule as helpers/i18n (which is hass-bound).
-    lang = (language or "en")[:2].lower()
+    # Per-request language (intent_obj.language, e.g. "de-DE") → table key,
+    # same normalization rule as helpers/i18n (which is hass-bound).
+    from .helpers.i18n import normalize_language_code
+
+    lang = normalize_language_code(language)
     table = _SPEECH[key]
     return table.get(lang, table["en"]).format(**fmt)
 
