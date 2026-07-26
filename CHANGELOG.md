@@ -2,10 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.41.0] - 2026-07-26
 
 ### ✨ Added
 
+- **Stale-frontend detection**: the panel now compares the version baked into
+  its JavaScript bundle with the installed integration version (new
+  `version` WS command) and shows a one-click **Reload** banner when the
+  browser is still running an old cached frontend — the failure mode behind
+  several "it's still broken after updating" reports (HA's service worker
+  refreshes stale-while-revalidate, so a restart alone often isn't enough).
 - **Days-until-due countdown sensor per task** (forum request): a numeric
   companion entity whose state is the plain number of days until the task
   is due — negative once overdue — for gauge and progress-bar cards, which
@@ -59,14 +65,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   caught by the new automated overflow sweep; narrow-screen tabs now use
   tighter padding.
 
-### ✨ Added
+### 🧰 Quality / internal
 
-- **Stale-frontend detection**: the panel now compares the version baked into
-  its JavaScript bundle with the installed integration version (new
-  `version` WS command) and shows a one-click **Reload** banner when the
-  browser is still running an old cached frontend — the failure mode behind
-  several "it's still broken after updating" reports (HA's service worker
-  refreshes stale-while-revalidate, so a restart alone often isn't enough).
+- Four new regression-class guards from an 854-commit history audit: a
+  task-contract roundtrip fixture (backend field map ↔ frontend dialog),
+  an 18-language / 412-px automated overflow sweep (which caught the
+  Ukrainian tab bar above), the stale-bundle handshake powering the Reload
+  banner, and a `scripts/preflight.sh` that replicates the CI gates
+  locally.
 
 ### 📚 Documentation
 
