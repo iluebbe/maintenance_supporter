@@ -222,6 +222,17 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    entry could additionally display the *informational* value of the parts
    used (qty × unit price at purchase) without double-counting it into any
    budget total.
+5a. 💡 **Numeric countdown entities (opt-in)** — forum ask (riiam,
+   2026-06-14): "include the remaining days count down … rather than OK
+   statuses to use it in bars". The task sensor's STATE is the status
+   string; `days_until_due` rides only as an attribute — but HA's gauge and
+   progress-bar cards need a numeric state. Plan: an **opt-in** per-task (or
+   per-object) companion sensor exposing days-until-due as a number
+   (deliberately opt-in — always-on would double the entity count for 30+
+   task setups), plus a template-sensor recipe in EXAMPLES.md as the
+   zero-code interim. Competitive note: this is one of the two "still open"
+   items a competitor's research file lists for us — cheap to close.
+
 6. 💡 **Persisted checklist progress without completing (#73)** — checklist
    ticks currently live only in the completion dialog and are stored on the
    history entry at completion. A "partially done" workflow would persist
