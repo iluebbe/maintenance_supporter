@@ -230,8 +230,7 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    per-object) companion sensor exposing days-until-due as a number
    (deliberately opt-in — always-on would double the entity count for 30+
    task setups), plus a template-sensor recipe in EXAMPLES.md as the
-   zero-code interim. Competitive note: this is one of the two "still open"
-   items a competitor's research file lists for us — cheap to close.
+   zero-code interim.
 
 6. 💡 **Persisted checklist progress without completing (#73)** — checklist
    ticks currently live only in the completion dialog and are stored on the
