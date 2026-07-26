@@ -179,13 +179,16 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    SIGNATURES) in the referenced upstream sources and auto-files a drift
    issue — never PR-blocking. Runtime side already existed: the
    `missing_trigger_entity` HA Repair covers adopted tasks natively.
-   **Follow-up candidate from the re-audit:** one source entity can only
-   feed ONE signature today (matcher breaks after first match +
-   already-watched exclusion) — blocks multi-duty proposals like
-   "Clean Undercarriage every 25 mowing-hours" alongside the blade task
-   from the same usage source; needs per-duty entity claims. Also open:
-   Miele washer tub-clean via status-entity runtime (verify status values
-   first).
+   ~~**Follow-up candidate from the re-audit:** one source entity can only
+   feed ONE signature today — needs per-duty entity claims.~~ ✅ **Shipped
+   2026-07-26** — discovery's entity claim is now per DUTY: a task already
+   watching an entity blocks only its own duty (recognised by catalog name
+   in any of the 18 languages), so a mower's hours counter still proposes
+   "Clean Undercarriage" after "Replace Mower Blades" was adopted, and a
+   deselected duty stays adoptable later. A watcher with a custom/renamed
+   name conservatively keeps claiming the whole entity — re-discovery never
+   re-proposes against a rename. Still open: Miele washer tub-clean via
+   status-entity runtime (verify status values first).
 
 5. ~~**Bambu Lab: model-aware 3D-printer maintenance**~~ ✅ **Shipped
    2026-07-18 (post-v2.30)** — via the signature layer, where the model is
@@ -222,15 +225,15 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    entry could additionally display the *informational* value of the parts
    used (qty × unit price at purchase) without double-counting it into any
    budget total.
-5a. 💡 **Numeric countdown entities (opt-in)** — forum ask (riiam,
-   2026-06-14): "include the remaining days count down … rather than OK
-   statuses to use it in bars". The task sensor's STATE is the status
-   string; `days_until_due` rides only as an attribute — but HA's gauge and
-   progress-bar cards need a numeric state. Plan: an **opt-in** per-task (or
-   per-object) companion sensor exposing days-until-due as a number
-   (deliberately opt-in — always-on would double the entity count for 30+
-   task setups), plus a template-sensor recipe in EXAMPLES.md as the
-   zero-code interim.
+5a. ~~**Numeric countdown entities (opt-in)**~~ ✅ **Shipped 2026-07-26** —
+   forum ask (riiam, 2026-06-14): "include the remaining days count down …
+   rather than OK statuses to use it in bars". Every task now registers a
+   **days-until-due countdown sensor** (numeric state in days, negative
+   once overdue; unknown for archived/never-scheduled tasks), disabled by
+   default like the next-due timestamp twin — enabling it per task in the
+   entity registry IS the opt-in, so the extra entity costs nothing for
+   30+-task setups. Translated in all 18 languages; EXAMPLES.md carries a
+   gauge-card recipe plus the template-sensor fallback for older versions.
 
 6. 💡 **Persisted checklist progress without completing (#73)** — checklist
    ticks currently live only in the completion dialog and are stored on the

@@ -13,6 +13,13 @@ All notable changes to Maintenance Supporter are documented in this file.
   default like the next-due timestamp twin (enable it per task in the
   entity registry), translated in all 18 languages, with a gauge-card
   recipe in EXAMPLES.md.
+- **One usage sensor can now propose several maintenance duties over time**:
+  discovery's "already wired" exclusion is per duty instead of per entity.
+  Adopting "Replace Mower Blades" from the mower's hours counter no longer
+  hides "Clean Undercarriage" (same counter) from every later discovery
+  run — deselected duties stay adoptable. A task renamed away from its
+  catalog name still claims the whole entity, so re-discovery never
+  re-proposes against a rename.
 - **Three more templates from the new template-worthiness research lens**
   (catalog now 45): **Fire Safety Equipment** (extinguisher self-check,
   professional service every 2 years, first-aid kit), **Aquarium** (partial

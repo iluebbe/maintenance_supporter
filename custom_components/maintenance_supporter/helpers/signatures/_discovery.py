@@ -19,23 +19,56 @@ from ._model import (
 from ._registry import SIGNATURES
 
 
+def _entity_watchers(hass: HomeAssistant) -> dict[str, set[str]]:
+    """entity_id → lowercased names of the tasks watching it via a trigger."""
+    from ...const import CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+    from ...entity.triggers import normalize_entity_ids
+
+    out: dict[str, set[str]] = {}
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        for task in entry.data.get(CONF_TASKS, {}).values():
+            tc = task.get("trigger_config")
+            if isinstance(tc, dict):
+                name = str(task.get("name", "")).lower()
+                for eid in normalize_entity_ids(tc):
+                    out.setdefault(eid, set()).add(name)
+    return out
+
+
+def _catalog_name_variants() -> set[str]:
+    """Every catalog task name in every language, lowercased — to recognise
+    whether an existing watcher task is one of OUR duties or a custom one."""
+    variants: set[str] = set()
+    for catalog in SIGNATURES.values():
+        for sig in catalog.tasks:
+            variants.update(task_name_variants(sig.task_name))
+    return variants
+
+
 def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Devices of catalogued integrations with their matchable task wiring.
 
     Groups matched entities per device; carries the maintenance object already
     attached to the device (if any) so adoption can extend it instead of
-    creating a duplicate. Entities already watched by some task's trigger are
-    skipped — re-running discovery never proposes what is already wired.
+    creating a duplicate. Entity claims are per DUTY, not per entity: a task
+    already watching an entity blocks only its own duty (recognised by
+    catalog name in any language), so a mower's hours counter still proposes
+    "Clean Undercarriage" after "Replace Mower Blades" was adopted. A watcher
+    with a custom/renamed name conservatively claims the whole entity —
+    re-running discovery never re-proposes against a rename.
     """
     from ...templates import localize_template_text
     from ..i18n import normalize_language
-    from ..problem_sensors import _adopted_entity_ids, _object_by_device
+    from ..problem_sensors import _object_by_device
 
     lang = normalize_language(hass)
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
     area_reg = ar.async_get(hass)
-    already_watched = _adopted_entity_ids(hass)
+    watchers = _entity_watchers(hass)
+    known_variants = _catalog_name_variants()
     by_device = _object_by_device(hass)
 
     # Collect the enabled registry entities of cataloged integrations per
@@ -69,10 +102,16 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                 any(_entity_matches(e, key) for key in sig.require_sibling_keys) for e in entries
             ):
                 continue
+            variants = task_name_variants(sig.task_name)
             for entry in entries:
                 if entry.domain != sig.entity_domain:
                     continue
-                if entry.entity_id in already_watched:
+                # Per-duty claims: a watcher task named as THIS duty (any
+                # language) blocks it; watchers named as other catalog duties
+                # leave the remaining duties adoptable; a custom/renamed
+                # watcher claims the whole entity.
+                watcher_names = watchers.get(entry.entity_id)
+                if watcher_names and (watcher_names & variants or watcher_names - known_variants):
                     continue
                 if not _unit_compatible(sig.direction, _entity_unit(hass, entry)):
                     continue
@@ -86,9 +125,9 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                 )
                 group["entity_ids"].append(entry.entity_id)
                 # One source entity may back SEVERAL duties (a mower's hours
-                # counter drives blades AND undercarriage). Adopting any duty
-                # marks the entity watched — adopt-all is the default,
-                # deselecting a duty forfeits its later proposal.
+                # counter drives blades AND undercarriage) — both within one
+                # run and across runs: the per-duty claim above keeps a
+                # deselected duty proposable after its sibling was adopted.
 
     out: list[dict[str, Any]] = []
     for device_id, sig_map in matched.items():
