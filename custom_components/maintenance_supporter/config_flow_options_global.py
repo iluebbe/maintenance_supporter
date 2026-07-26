@@ -202,6 +202,34 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "failed": "❌ 测试通知发送失败。请验证您的服务配置。",
         "push_message": "🔧 测试通知 — 您的通知设置已生效！",
     },
+    "pt-br": {
+        "success": "✅ Notificação de teste enviada — seu serviço funciona. Se um dispositivo específico não receber nada, verifique esse dispositivo dentro do seu grupo de notificação (e os logs do Home Assistant).",
+        "no_service": "⚠️ Nenhum serviço de notificação configurado. Configure um serviço primeiro em Configurações Gerais.",
+        "invalid_service": "❌ O formato do serviço de notificação é inválido. Use 'notify.nome_do_servico'.",
+        "failed": "❌ Falha ao enviar a notificação de teste. Verifique a configuração do serviço.",
+        "push_message": "🔧 Notificação de teste — sua configuração de notificações está funcionando!",
+    },
+    "hu": {
+        "success": "✅ Tesztértesítés elküldve — a szolgáltatás működik. Ha egy adott eszközre nem érkezik semmi, ellenőrizze az eszközt az értesítési csoportban (és a Home Assistant naplóit).",
+        "no_service": "⚠️ Nincs értesítési szolgáltatás beállítva. Először állítson be egyet az Általános beállításokban.",
+        "invalid_service": "❌ Az értesítési szolgáltatás formátuma érvénytelen. Használja a 'notify.szolgaltatas_nev' formát.",
+        "failed": "❌ A tesztértesítés küldése nem sikerült. Ellenőrizze a szolgáltatás beállításait.",
+        "push_message": "🔧 Tesztértesítés — az értesítési rendszere működik!",
+    },
+    "ko": {
+        "success": "✅ 테스트 알림을 보냈습니다 — 서비스가 작동합니다. 특정 기기에 알림이 오지 않으면 알림 그룹 내 해당 기기와 Home Assistant 로그를 확인하세요.",
+        "no_service": "⚠️ 알림 서비스가 설정되지 않았습니다. 먼저 일반 설정에서 서비스를 설정하세요.",
+        "invalid_service": "❌ 알림 서비스 형식이 잘못되었습니다. 'notify.service_name' 형식을 사용하세요.",
+        "failed": "❌ 테스트 알림 전송에 실패했습니다. 서비스 설정을 확인하세요.",
+        "push_message": "🔧 테스트 알림 — 알림 설정이 정상 작동합니다!",
+    },
+    "tr": {
+        "success": "✅ Test bildirimi gönderildi — servisiniz çalışıyor. Belirli bir cihaza bildirim gelmiyorsa bildirim grubunuzdaki o cihazı (ve Home Assistant günlüklerini) kontrol edin.",
+        "no_service": "⚠️ Yapılandırılmış bildirim servisi yok. Önce Genel Ayarlar'da bir servis yapılandırın.",
+        "invalid_service": "❌ Bildirim servisi biçimi geçersiz. 'notify.servis_adi' kullanın.",
+        "failed": "❌ Test bildirimi gönderilemedi. Servis yapılandırmanızı kontrol edin.",
+        "push_message": "🔧 Test bildirimi — bildirim kurulumunuz çalışıyor!",
+    },
 }
 
 

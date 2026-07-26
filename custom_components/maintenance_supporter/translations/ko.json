@@ -1,0 +1,1927 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "유지보수 관리 시스템을 설정합니다.",
+        "menu_options": {
+          "create_object": "유지보수 대상 만들기",
+          "create_from_template": "템플릿에서 만들기",
+          "global_setup": "전역 설정"
+        }
+      },
+      "create_from_template": {
+        "title": "템플릿 카테고리 선택",
+        "description": "미리 정의된 유지보수 템플릿을 살펴볼 카테고리를 선택하세요.",
+        "data": {
+          "template_category": "카테고리",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다."
+        }
+      },
+      "template_select": {
+        "title": "템플릿 선택",
+        "description": "시작점으로 사용할 유지보수 템플릿을 선택하세요.",
+        "data": {
+          "template_id": "템플릿",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "go_back": "저장하지 않고 카테고리 선택으로 돌아갑니다."
+        }
+      },
+      "template_customize": {
+        "title": "템플릿 사용자 지정",
+        "description": "{template_name} 템플릿을 사용자 지정합니다. 이 템플릿에는 {task_count}개의 작업이 포함되어 있습니다: {task_list}.",
+        "data": {
+          "name": "대상 이름",
+          "area_id": "구역",
+          "manufacturer": "제조사",
+          "model": "모델",
+          "serial_number": "일련번호",
+          "documentation_url": "설명서 / 문서 URL",
+          "notes": "메모",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "name": "이 유지보수 대상의 이름입니다.",
+          "area_id": "이 대상이 위치한 구역입니다.",
+          "manufacturer": "대상의 제조사입니다.",
+          "model": "모델명 또는 모델 번호입니다.",
+          "serial_number": "대상의 일련번호입니다.",
+          "documentation_url": "PDF 설명서, 제조사 페이지 등 이 대상의 참고 정보가 있는 URL 링크입니다(선택 사항).",
+          "notes": "대상에 대한 자유 형식 메모입니다 — 부품 번호, 절차, 설정 참고 사항 등.",
+          "go_back": "저장하지 않고 템플릿 선택으로 돌아갑니다."
+        }
+      },
+      "global_setup": {
+        "title": "전역 설정",
+        "description": "전역 유지보수 설정을 구성합니다.",
+        "data": {
+          "default_warning_days": "기본 기한 전 경고 일수",
+          "notifications_enabled": "알림 사용",
+          "notify_service": "알림 서비스"
+        },
+        "data_description": {
+          "default_warning_days": "유지보수 작업의 기한 전에 경고를 표시할 일수입니다.",
+          "notifications_enabled": "유지보수 작업의 기한이 되면 알림을 보냅니다.",
+          "notify_service": "사용할 알림 서비스입니다(예: notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "유지보수 대상 만들기",
+        "description": "유지보수를 관리할 기기나 자산을 정의합니다.",
+        "data": {
+          "name": "대상 이름",
+          "area_id": "구역",
+          "manufacturer": "제조사",
+          "model": "모델",
+          "serial_number": "일련번호",
+          "documentation_url": "설명서 / 문서 URL",
+          "notes": "메모",
+          "installation_date": "설치일",
+          "warranty_expiry": "보증 만료일",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "name": "이 유지보수 대상의 고유한 이름입니다(예: '수영장 펌프', '자동차').",
+          "area_id": "이 대상이 위치한 집 안의 구역입니다.",
+          "manufacturer": "대상의 제조사입니다.",
+          "model": "모델명 또는 모델 번호입니다.",
+          "serial_number": "대상의 일련번호입니다.",
+          "documentation_url": "PDF 설명서, 제조사 페이지 등 이 대상의 참고 정보가 있는 URL 링크입니다(선택 사항).",
+          "notes": "대상에 대한 자유 형식 메모입니다 — 부품 번호, 절차, 설정 참고 사항 등.",
+          "installation_date": "이 대상을 설치했거나 구입한 날짜입니다.",
+          "warranty_expiry": "이 대상의 제조사 보증이 만료되는 날짜입니다.",
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다."
+        }
+      },
+      "task_menu": {
+        "title": "유지보수 작업",
+        "description": "{object_name}의 유지보수 작업을 추가하세요. 현재 {task_count}개의 작업이 정의되어 있습니다.",
+        "menu_options": {
+          "add_task": "유지보수 작업 추가",
+          "finish": "설정 완료"
+        }
+      },
+      "add_task": {
+        "title": "유지보수 작업 추가",
+        "description": "{object_name}의 유지보수 작업을 정의합니다.",
+        "data": {
+          "name": "작업 이름",
+          "type": "유지보수 유형",
+          "schedule_type": "일정 유형",
+          "custom_icon": "작업 아이콘",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "name": "이 작업을 설명하는 이름입니다(예: '필터 청소', '엔진 오일 교환').",
+          "type": "유지보수 작업의 범주입니다.",
+          "schedule_type": "이 작업의 일정을 정하는 방식입니다.",
+          "custom_icon": "이 작업의 사용자 지정 아이콘입니다(선택 사항, 예: mdi:oil, mdi:filter-variant).",
+          "go_back": "저장하지 않고 작업 메뉴로 돌아갑니다."
+        }
+      },
+      "time_based": {
+        "title": "시간 기반 일정",
+        "description": "이 유지보수 작업의 시간 주기를 구성합니다.",
+        "data": {
+          "interval_days": "주기",
+          "interval_unit": "주기 단위",
+          "last_performed": "마지막 수행일",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "interval_anchor": "주기 기준점"
+        },
+        "data_description": {
+          "interval_days": "주기 단위와 함께 이 유지보수가 반복되는 빈도를 정합니다.",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "last_performed": "이 유지보수를 마지막으로 수행한 시점입니다. 수행한 적이 없으면 비워 두세요.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 작업 만들기로 돌아갑니다.",
+          "interval_anchor": "완료 후 다음 기한을 계산하는 방식입니다. '계획일 기준'은 원래 기한에 고정하여 일정이 밀리는 것을 방지합니다."
+        }
+      },
+      "one_time": {
+        "title": "일회성 작업",
+        "description": "반복되지 않는 단일 유지보수 작업을 구성합니다. 완료되면 보관 처리됩니다.",
+        "data": {
+          "due_date": "기한",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "due_date": "이 일회성 작업의 기한입니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 작업 만들기로 돌아갑니다."
+        }
+      },
+      "calendar": {
+        "title": "달력 일정",
+        "description": "달력 기반 반복(요일, 매월 n번째 요일 또는 매월 특정 일)을 구성합니다.",
+        "data": {
+          "weekdays": "반복할 요일",
+          "nth": "몇 번째",
+          "weekday": "요일",
+          "day": "일(날짜)",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "last_day": "월의 마지막 날",
+          "business": "영업일만",
+          "offset": "오프셋(일)"
+        },
+        "data_description": {
+          "weekdays": "선택한 각 요일마다 작업이 반복됩니다.",
+          "nth": "그 달의 몇 번째인지 지정합니다(예: 첫째 또는 마지막).",
+          "weekday": "n번째 요일 규칙에 사용할 요일입니다(예: 토요일).",
+          "day": "월의 일입니다(1-31; 해당 월의 길이에 맞게 조정됨).",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 작업 만들기로 돌아갑니다.",
+          "last_day": "일 숫자를 무시하고 해당 월의 마지막 날을 기한으로 합니다.",
+          "business": "주말 날짜를 직전 금요일로 앞당깁니다(예: 마지막 영업일).",
+          "offset": "계산된 날짜를 ±N일만큼 이동합니다(예: -2 = 이틀 전)."
+        }
+      },
+      "sensor_select": {
+        "title": "트리거 센서 선택",
+        "description": "이 유지보수 작업에서 모니터링할 Home Assistant 엔티티를 선택하세요.",
+        "data": {
+          "trigger_entity": "모니터링할 엔티티",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_entity": "이 유지보수 작업을 트리거할 센서 엔티티를 선택하세요.",
+          "go_back": "저장하지 않고 작업 만들기로 돌아갑니다."
+        }
+      },
+      "sensor_attribute": {
+        "title": "속성 선택",
+        "description": "{entity_id}에서 모니터링할 값을 선택하세요. 현재 상태: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "모니터링할 값",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_attribute": "모니터링할 엔티티 상태 또는 특정 속성을 선택하세요.",
+          "go_back": "저장하지 않고 엔티티 선택으로 돌아갑니다."
+        }
+      },
+      "trigger_type": {
+        "title": "트리거 유형",
+        "description": "센서 값이 어떤 방식으로 유지보수를 트리거해야 하나요?",
+        "data": {
+          "trigger_type": "트리거 유형",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_type": "임계값: 값이 한계를 넘으면 트리거됩니다. 카운터: 목표 값이 누적되면 트리거됩니다. 상태 변경: 일정 횟수의 상태 전환 후 트리거됩니다.",
+          "go_back": "저장하지 않고 속성 선택으로 돌아갑니다."
+        }
+      },
+      "trigger_threshold": {
+        "title": "임계값 구성",
+        "description": "**{entity_id}** ({attribute})의 임계값을 설정하세요.\n현재: **{current_value} {unit}** | 평균: {average} | 범위: {minimum}–{maximum} ({data_period}일)\n권장 상한: {suggested_above} | 권장 하한: {suggested_below}",
+        "data": {
+          "trigger_above": "이 값 초과 시 트리거",
+          "trigger_below": "이 값 미만 시 트리거",
+          "trigger_for_minutes": "최소 지속 시간(분)",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_above": "값이 이 임계값을 초과하면 유지보수를 트리거합니다.",
+          "trigger_below": "값이 이 임계값 아래로 떨어지면 유지보수를 트리거합니다.",
+          "trigger_for_minutes": "트리거되기 전에 값이 이 시간(분) 동안 임계값을 넘어야 합니다.",
+          "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+        }
+      },
+      "trigger_counter": {
+        "title": "카운터 구성",
+        "description": "{entity_id} ({attribute})의 카운터 목표를 설정하세요. 현재: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "목표 값",
+          "trigger_delta_mode": "델타 모드(절대값이 아닌 변화량 계산)",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_target_value": "이 누적 값에 도달하면 유지보수를 트리거합니다.",
+          "trigger_delta_mode": "사용하면 절대값 대신 기준값과의 차이를 계산합니다.",
+          "interval_days": "카운터 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+        }
+      },
+      "trigger_state_change": {
+        "title": "상태 변경 구성",
+        "description": "{entity_id}의 상태 전환 횟수를 셉니다.",
+        "data": {
+          "trigger_from_state": "이전 상태(선택 사항)",
+          "trigger_to_state": "이후 상태(선택 사항)",
+          "trigger_target_changes": "트리거까지의 변경 횟수",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_from_state": "이 상태에서의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_to_state": "이 상태로의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_target_changes": "유지보수를 트리거하기까지 일치해야 하는 상태 변경 횟수입니다.",
+          "interval_days": "상태 변경 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+        }
+      },
+      "trigger_runtime": {
+        "title": "가동 시간 구성",
+        "description": "{entity_id}의 누적 가동 시간을 추적합니다. 총 켜짐 시간이 목표 시간에 도달하면 유지보수가 트리거됩니다.",
+        "data": {
+          "trigger_runtime_hours": "목표 가동 시간(시간)",
+          "trigger_on_states": "활성 상태(쉼표로 구분)",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 유지보수를 트리거합니다.",
+          "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값(on, 1, true)을 사용합니다. 예: in_use, running",
+          "interval_days": "가동 시간 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+        }
+      },
+      "compound_logic": {
+        "title": "복합 트리거",
+        "description": "여러 조건을 결합하는 방식을 선택하세요.",
+        "data": {
+          "compound_logic": "논리",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "compound_logic": "AND = 모든 조건이 트리거되어야 합니다. OR = 어느 한 조건만 트리거되면 됩니다.",
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "조건 #{condition_num} — 엔티티",
+        "description": "이 조건에 사용할 엔티티를 선택하세요.",
+        "data": {
+          "trigger_entity": "엔티티",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_entity": "이 조건에서 모니터링할 센서 엔티티입니다.",
+          "go_back": "저장하지 않고 이전 단계로 돌아갑니다."
+        }
+      },
+      "compound_condition_type": {
+        "title": "조건 #{condition_num} — 유형",
+        "description": "이 조건이 센서를 어떻게 평가해야 하나요?",
+        "data": {
+          "trigger_type": "트리거 유형",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_type": "이 조건이 트리거되는 시점을 판단하는 방식입니다.",
+          "go_back": "저장하지 않고 엔티티 선택으로 돌아갑니다."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "조건 — 임계값",
+        "data": {
+          "trigger_above": "초과 시 트리거",
+          "trigger_below": "미만 시 트리거",
+          "trigger_for_minutes": "지속 시간(분)",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_above": "값이 이 임계값을 초과하면 트리거됩니다.",
+          "trigger_below": "값이 이 임계값 아래로 떨어지면 트리거됩니다.",
+          "trigger_for_minutes": "값이 이 시간 동안 임계값을 벗어난 상태를 유지해야 합니다.",
+          "go_back": "저장하지 않고 조건 유형 선택으로 돌아갑니다."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "조건 — 카운터",
+        "data": {
+          "trigger_target_value": "목표 값",
+          "trigger_delta_mode": "델타 모드",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_target_value": "누적 값이 이 목표에 도달하면 트리거됩니다.",
+          "trigger_delta_mode": "절대값 대신 기준값과의 변화량을 계산합니다.",
+          "go_back": "저장하지 않고 조건 유형 선택으로 돌아갑니다."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "조건 — 상태 변경",
+        "data": {
+          "trigger_from_state": "이전 상태",
+          "trigger_to_state": "이후 상태",
+          "trigger_target_changes": "변경 횟수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_from_state": "이 상태에서의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_to_state": "이 상태로의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_target_changes": "트리거되기까지 일치해야 하는 상태 변경 횟수입니다.",
+          "go_back": "저장하지 않고 조건 유형 선택으로 돌아갑니다."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "조건 — 가동 시간",
+        "data": {
+          "trigger_runtime_hours": "목표 가동 시간(시간)",
+          "trigger_on_states": "활성 상태",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 트리거됩니다.",
+          "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값을 사용합니다.",
+          "go_back": "저장하지 않고 조건 유형 선택으로 돌아갑니다."
+        }
+      },
+      "compound_review": {
+        "title": "복합 트리거 검토",
+        "description": "{compound_logic} 논리로 {condition_count}개의 조건이 구성되었습니다.",
+        "data": {
+          "compound_action": "동작",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "go_back": "저장하지 않고 논리 선택으로 돌아갑니다."
+        }
+      },
+      "manual": {
+        "title": "수동 일정",
+        "description": "이 작업에는 자동 일정이 없습니다. 필요할 때 수동으로 기한 도래 상태로 표시할 수 있습니다.",
+        "data": {
+          "warning_days": "기한 전 경고 일수",
+          "notes": "메모",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "notes": "이 작업에 대한 추가 메모나 지침입니다.",
+          "go_back": "저장하지 않고 작업 만들기로 돌아갑니다."
+        }
+      },
+      "reconfigure": {
+        "title": "{name} 재구성",
+        "description": "이 유지보수 대상의 설정을 업데이트합니다.",
+        "data": {
+          "name": "대상 이름",
+          "area_id": "구역",
+          "manufacturer": "제조사",
+          "model": "모델",
+          "serial_number": "일련번호",
+          "documentation_url": "설명서 / 문서 URL",
+          "notes": "메모",
+          "installation_date": "설치일",
+          "warranty_expiry": "보증 만료일"
+        },
+        "data_description": {
+          "name": "이 유지보수 대상의 이름입니다.",
+          "area_id": "이 대상이 위치한 구역입니다.",
+          "manufacturer": "이 대상의 제조사입니다.",
+          "model": "이 대상의 모델입니다.",
+          "serial_number": "이 대상의 일련번호입니다.",
+          "documentation_url": "PDF 설명서, 제조사 페이지 등 이 대상의 참고 정보가 있는 URL 링크입니다(선택 사항).",
+          "notes": "대상에 대한 자유 형식 메모입니다 — 부품 번호, 절차, 설정 참고 사항 등.",
+          "installation_date": "이 대상을 설치한 날짜입니다.",
+          "warranty_expiry": "이 대상의 제조사 보증이 만료되는 날짜입니다."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "같은 이름의 유지보수 대상이 이미 있습니다.",
+      "no_tasks": "최소 한 개의 유지보수 작업이 필요합니다.",
+      "invalid_entity": "선택한 엔티티가 존재하지 않거나 숫자 데이터가 없습니다.",
+      "invalid_attribute": "선택한 속성은 이 엔티티에서 사용할 수 없습니다.",
+      "invalid_threshold": "최소 하나의 임계값(초과 또는 미만)을 설정해야 합니다.",
+      "invalid_due_date": "일회성 작업에는 기한이 필요합니다.",
+      "invalid_interval": "주기는 양수여야 합니다.",
+      "min_exceeds_max": "최소 주기는 최대 주기를 초과할 수 없습니다.",
+      "invalid_notify_service": "알림 서비스 형식이 잘못되었습니다. 'notify.service_name' 형식을 사용하세요(예: notify.mobile_app_phone).",
+      "notify_service_not_found": "이 알림 서비스를 Home Assistant에서 찾을 수 없습니다. 서비스 이름을 확인해 주세요.",
+      "nfc_tag_duplicate": "이 NFC 태그는 이미 다른 작업에 연결되어 있습니다."
+    },
+    "abort": {
+      "already_configured": "이 유지보수 대상은 이미 구성되어 있습니다.",
+      "global_already_exists": "전역 설정이 이미 구성되어 있습니다.",
+      "template_not_found": "선택한 템플릿을 찾을 수 없습니다.",
+      "missing_data": "필수 데이터가 제공되지 않았습니다.",
+      "reconfigure_successful": "구성이 성공적으로 업데이트되었습니다.",
+      "reconfigure_cancelled": "재구성이 취소되었습니다."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "유지보수 옵션",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "작업 관리",
+          "add_task": "새 작업 추가",
+          "object_settings": "대상 설정",
+          "done": "완료"
+        }
+      },
+      "global_init": {
+        "title": "전역 설정",
+        "description": "전역 유지보수 설정을 구성합니다.",
+        "menu_options": {
+          "general_settings": "일반 설정",
+          "advanced_features": "고급 기능",
+          "panel_access": "패널 접근 권한",
+          "budget_settings": "예산 설정",
+          "manage_groups": "그룹 관리",
+          "notification_settings": "알림 설정",
+          "notification_actions": "대화형 동작",
+          "test_notification": "테스트 알림 보내기",
+          "done": "완료"
+        }
+      },
+      "advanced_features": {
+        "title": "고급 기능",
+        "description": "UI에 표시할 고급 기능을 선택하세요. 기능을 끄면 인터페이스에서 숨겨질 뿐 데이터가 삭제되지는 않습니다.",
+        "data": {
+          "advanced_adaptive_visible": "적응형 일정",
+          "advanced_predictions_visible": "센서 예측",
+          "advanced_seasonal_visible": "계절 조정",
+          "advanced_environmental_visible": "환경 상관관계",
+          "advanced_budget_visible": "예산 추적",
+          "advanced_groups_visible": "그룹",
+          "advanced_checklists_visible": "체크리스트",
+          "advanced_schedule_time_visible": "시간대 지정 일정"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "작업에 대한 EWA, Weibull 분석 및 주기 제안을 표시합니다.",
+          "advanced_predictions_visible": "센서 열화 분석과 임계값 예측 차트를 표시합니다.",
+          "advanced_seasonal_visible": "계절 계수 차트와 월별 조정 데이터를 표시합니다.",
+          "advanced_environmental_visible": "환경(온도, 습도) 상관관계 조정을 표시합니다.",
+          "advanced_budget_visible": "월별/연간 예산 추적과 경보를 표시합니다.",
+          "advanced_groups_visible": "유지보수 그룹 관리를 표시합니다.",
+          "advanced_checklists_visible": "단계별 완료를 위한 작업 체크리스트를 표시합니다.",
+          "advanced_schedule_time_visible": "작업이 자정이 아닌 특정 시각에 기한 초과가 되도록 허용합니다."
+        }
+      },
+      "panel_access": {
+        "title": "패널 접근 권한",
+        "description": "관리자는 항상 전체 접근 권한을 가집니다. 특정 비관리자에게 생성, 편집, 삭제를 위임하려면 아래 옵션을 켜고 해당 사용자를 선택하세요 — 나머지 사용자에게는 완료와 건너뛰기만 표시됩니다. {user_count}명의 비관리자 사용자를 찾았습니다.",
+        "data": {
+          "operator_write_enabled": "선택한 사용자에게 생성, 편집, 삭제 허용",
+          "admin_panel_user_ids": "전체 패널 접근 권한이 있는 사용자"
+        },
+        "data_description": {
+          "operator_write_enabled": "꺼짐(기본값): 관리자만 콘텐츠를 수정할 수 있습니다. 켜짐: 아래에서 선택한 사용자도 전체 생성/편집/삭제 권한을 갖습니다.",
+          "admin_panel_user_ids": "목록에 있는 사용자는 전체 패널을 볼 수 있고, 나머지 사용자에게는 각 작업의 완료와 건너뛰기만 표시됩니다."
+        }
+      },
+      "general_settings": {
+        "title": "일반 설정",
+        "description": "Maintenance Supporter의 기본 설정을 구성합니다.",
+        "data": {
+          "default_warning_days": "기본 기한 전 경고 일수",
+          "notifications_enabled": "알림 사용",
+          "notify_service": "알림 서비스",
+          "panel_enabled": "사이드바 패널 표시",
+          "panel_title": "사이드바 패널 제목"
+        },
+        "data_description": {
+          "default_warning_days": "유지보수 작업의 기한 전에 경고를 표시할 일수입니다.",
+          "notifications_enabled": "유지보수 작업의 기한이 되거나 기한을 초과하면 알림을 보냅니다.",
+          "notify_service": "사용할 알림 서비스입니다(예: notify.mobile_app_phone).",
+          "panel_enabled": "사이드바에 Maintenance Supporter 패널을 표시합니다.",
+          "panel_title": "사이드바 항목의 사용자 지정 이름입니다. 비워 두면 \"유지보수\"를 사용합니다. Home Assistant 기본 유지보수 대시보드와 이름이 겹치지 않게 할 때 유용합니다."
+        }
+      },
+      "notification_settings": {
+        "title": "알림 설정",
+        "description": "각 상태별로 알림을 언제, 얼마나 자주 보낼지 구성합니다.",
+        "data": {
+          "notify_due_soon_enabled": "기한 임박 시 알림",
+          "notify_due_soon_interval_hours": "기한 임박 알림 반복 간격(시간)",
+          "notify_overdue_enabled": "기한 초과 시 알림",
+          "notify_overdue_interval_hours": "기한 초과 알림 반복 간격(시간)",
+          "notify_triggered_enabled": "트리거 시 알림",
+          "notify_triggered_interval_hours": "트리거 알림 반복 간격(시간)",
+          "quiet_hours_enabled": "방해 금지 시간 사용",
+          "quiet_hours_start": "방해 금지 시작",
+          "quiet_hours_end": "방해 금지 종료",
+          "max_notifications_per_day": "하루 최대 알림 수",
+          "notification_bundling_enabled": "알림 묶어 보내기",
+          "notification_bundle_threshold": "묶음 기준 수",
+          "notification_title_style": "알림 제목 스타일"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "기한 임박 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
+          "notify_overdue_interval_hours": "기한 초과 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
+          "notify_triggered_interval_hours": "트리거 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
+          "quiet_hours_enabled": "방해 금지 시간 동안 알림을 보내지 않습니다.",
+          "max_notifications_per_day": "하루에 보낼 최대 알림 수입니다. 0으로 설정하면 무제한입니다.",
+          "notification_bundling_enabled": "여러 작업이 주의가 필요할 때 하나의 요약 알림으로 보냅니다.",
+          "notification_bundle_threshold": "묶음 알림을 보내기 위한 최소 작업 수입니다.",
+          "notification_title_style": "알림의 제목으로 표시할 내용입니다. 기본값은 상태별 문구(예: '유지보수 기한 초과!')를 유지합니다. 휴대폰에 알림이 쌓일 때는 대상 이름/작업 이름이 도움이 됩니다."
+        }
+      },
+      "notification_actions": {
+        "title": "대화형 동작",
+        "description": "모바일 알림에 표시되는 동작 버튼을 구성합니다(Companion 앱 필요).",
+        "data": {
+          "action_complete_enabled": "'완료' 버튼 표시",
+          "action_skip_enabled": "'건너뛰기' 버튼 표시",
+          "action_snooze_enabled": "'다시 알림' 버튼 표시",
+          "snooze_duration_hours": "다시 알림 시간(시간)"
+        },
+        "data_description": {
+          "action_complete_enabled": "알림에서 바로 작업을 완료로 표시하는 버튼을 추가합니다.",
+          "action_skip_enabled": "알림에서 현재 유지보수 주기를 건너뛰는 버튼을 추가합니다.",
+          "action_snooze_enabled": "알림을 뒤로 미루는 버튼을 추가합니다.",
+          "snooze_duration_hours": "다시 알림을 누르면 알림을 미루는 시간입니다."
+        }
+      },
+      "budget_settings": {
+        "title": "예산 설정",
+        "description": "지출을 추적할 월별 및 연간 유지보수 예산을 설정하세요.",
+        "data": {
+          "budget_currency": "통화",
+          "budget_monthly": "월 예산",
+          "budget_yearly": "연 예산",
+          "budget_alerts_enabled": "예산 경보 사용",
+          "budget_alert_threshold": "경보 기준(%)"
+        },
+        "data_description": {
+          "budget_currency": "예산 표시와 알림에 사용할 통화입니다.",
+          "budget_monthly": "월별 최대 유지보수 지출입니다. 0으로 설정하면 사용하지 않습니다.",
+          "budget_yearly": "연간 최대 유지보수 지출입니다. 0으로 설정하면 사용하지 않습니다.",
+          "budget_alerts_enabled": "지출이 경보 기준을 넘으면 알림을 보냅니다.",
+          "budget_alert_threshold": "경보를 보낼 예산 대비 비율(%)입니다."
+        }
+      },
+      "test_notification": {
+        "title": "테스트 알림",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "그룹 관리",
+        "description": "관리할 그룹을 선택하거나 새로 만드세요.",
+        "data": {
+          "selected_group": "그룹 선택"
+        }
+      },
+      "add_group": {
+        "title": "그룹 추가",
+        "description": "관련 작업을 정리할 새 유지보수 그룹을 만듭니다.",
+        "data": {
+          "group_name": "그룹 이름",
+          "group_description": "설명"
+        },
+        "data_description": {
+          "group_name": "이 그룹의 이름입니다(예: '봄철 유지보수').",
+          "group_description": "이 그룹에 대한 설명입니다(선택 사항)."
+        }
+      },
+      "manage_tasks": {
+        "title": "작업 관리",
+        "description": "편집하거나 제거할 작업을 선택하세요.",
+        "data": {
+          "selected_task": "작업 선택",
+          "go_back": "뒤로 가기"
+        }
+      },
+      "task_action": {
+        "title": "작업 동작",
+        "description": "작업: {task_name} — 동작을 선택하세요.\n\n다음 기한: {next_dates}",
+        "menu_options": {
+          "edit_task": "작업 편집",
+          "edit_trigger": "트리거 편집",
+          "remove_trigger": "트리거 제거",
+          "edit_checklist": "체크리스트 편집",
+          "adaptive_scheduling": "적응형 일정",
+          "delete_task": "작업 삭제",
+          "manage_tasks": "뒤로"
+        }
+      },
+      "edit_task": {
+        "title": "작업 편집",
+        "description": "**{task_name}**의 설정을 편집합니다.",
+        "data": {
+          "name": "작업 이름",
+          "type": "유지보수 유형",
+          "interval_days": "주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "due_date": "기한",
+          "enabled": "사용",
+          "notes": "메모",
+          "documentation_url": "문서 URL",
+          "last_performed": "마지막 수행일",
+          "responsible_user_id": "담당 사용자",
+          "custom_icon": "작업 아이콘",
+          "nfc_tag_id": "NFC 태그 ID",
+          "go_back": "뒤로 가기",
+          "interval_anchor": "주기 기준점",
+          "reading_unit": "측정 단위(측정형 작업용, 예: kWh)",
+          "season_months": "계절 기간(월)",
+          "ends_count": "종료 횟수(반복 횟수)",
+          "ends_until": "종료 날짜"
+        },
+        "data_description": {
+          "name": "이 작업을 설명하는 이름입니다(예: '필터 청소', '엔진 오일 교환').",
+          "type": "유지보수 작업의 범주입니다.",
+          "interval_days": "주기 단위와 함께 이 유지보수가 반복되는 빈도를 정합니다.",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "due_date": "이 일회성 작업의 기한입니다.",
+          "enabled": "끄면 일정과 트리거가 일시 중지됩니다. 작업이 삭제되지는 않습니다.",
+          "notes": "이 작업에 대한 추가 메모나 지침입니다.",
+          "documentation_url": "이 작업의 외부 문서나 설명서 링크입니다.",
+          "last_performed": "이 유지보수를 마지막으로 수행한 시점입니다. 수행한 적이 없으면 비워 두세요.",
+          "responsible_user_id": "이 작업을 담당하는 Home Assistant 사용자입니다.",
+          "custom_icon": "이 작업의 사용자 지정 아이콘입니다(선택 사항, 예: mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "이 작업에 NFC 태그를 연결합니다. 태그를 스캔하면 작업이 자동으로 완료 처리됩니다.",
+          "go_back": "저장하지 않고 작업 동작으로 돌아갑니다.",
+          "interval_anchor": "완료 후 다음 기한을 계산하는 방식입니다. '계획일 기준'은 원래 기한에 고정하여 일정이 밀리는 것을 방지합니다.",
+          "season_months": "선택한 월에만 기한이 됩니다. 비활성 기간의 날짜는 다음 활성 월로 이월됩니다. 비워 두면 연중 내내 적용됩니다.",
+          "ends_count": "이 횟수만큼 완료한 후 반복을 멈춥니다(유한 반복). 비워 두면 제한이 없습니다.",
+          "ends_until": "다음 반복이 이 날짜 이후가 되면 반복을 멈춥니다. '종료 횟수'가 설정되어 있으면 무시됩니다."
+        }
+      },
+      "edit_checklist": {
+        "title": "체크리스트 편집",
+        "description": "{task_name}의 체크리스트 단계를 정의하세요. 한 줄에 하나씩 입력하세요.",
+        "data": {
+          "checklist_text": "체크리스트 단계",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "checklist_text": "각 체크리스트 단계를 한 줄에 하나씩 입력하세요. 작업을 완료할 때 이 단계들이 표시됩니다.",
+          "go_back": "저장하지 않고 작업 동작으로 돌아갑니다."
+        }
+      },
+      "compound_logic": {
+        "title": "복합 트리거",
+        "description": "여러 조건을 결합하는 방식을 선택하세요.",
+        "data": {
+          "compound_logic": "논리",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "compound_logic": "AND = 모든 조건이 트리거되어야 합니다. OR = 어느 한 조건만 트리거되면 됩니다."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "조건 #{condition_num} — 엔티티",
+        "description": "이 조건에 사용할 엔티티를 선택하세요.",
+        "data": {
+          "trigger_entity": "엔티티",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_entity": "이 조건에서 모니터링할 센서 엔티티입니다."
+        }
+      },
+      "compound_condition_type": {
+        "title": "조건 #{condition_num} — 유형",
+        "description": "이 조건이 센서를 어떻게 평가해야 하나요?",
+        "data": {
+          "trigger_type": "트리거 유형",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_type": "이 조건이 트리거되는 시점을 판단하는 방식입니다."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "조건 — 임계값",
+        "data": {
+          "trigger_above": "초과 시 트리거",
+          "trigger_below": "미만 시 트리거",
+          "trigger_for_minutes": "지속 시간(분)",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_above": "값이 이 임계값을 초과하면 트리거됩니다.",
+          "trigger_below": "값이 이 임계값 아래로 떨어지면 트리거됩니다.",
+          "trigger_for_minutes": "값이 이 시간 동안 임계값을 벗어난 상태를 유지해야 합니다."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "조건 — 카운터",
+        "data": {
+          "trigger_target_value": "목표 값",
+          "trigger_delta_mode": "델타 모드",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_target_value": "누적 값이 이 목표에 도달하면 트리거됩니다.",
+          "trigger_delta_mode": "절대값 대신 기준값과의 변화량을 계산합니다."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "조건 — 상태 변경",
+        "data": {
+          "trigger_from_state": "이전 상태",
+          "trigger_to_state": "이후 상태",
+          "trigger_target_changes": "변경 횟수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_from_state": "이 상태에서의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_to_state": "이 상태로의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_target_changes": "트리거되기까지 일치해야 하는 상태 변경 횟수입니다."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "조건 — 가동 시간",
+        "data": {
+          "trigger_runtime_hours": "목표 가동 시간(시간)",
+          "trigger_on_states": "활성 상태",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 트리거됩니다.",
+          "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값을 사용합니다."
+        }
+      },
+      "compound_review": {
+        "title": "복합 트리거 검토",
+        "description": "{compound_logic} 논리로 {condition_count}개의 조건이 구성되었습니다.",
+        "data": {
+          "compound_action": "동작",
+          "go_back": "뒤로 가기"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "적응형 일정",
+        "description": "{task_name}의 스마트 주기 적응을 구성합니다. 시스템이 완료 피드백을 학습하여 더 나은 주기를 제안합니다.",
+        "data": {
+          "adaptive_enabled": "적응형 일정 사용",
+          "ewa_alpha": "학습률(alpha)",
+          "min_interval_days": "최소 주기(일)",
+          "max_interval_days": "최대 주기(일)",
+          "seasonal_enabled": "계절 인식 사용",
+          "sensor_prediction_enabled": "센서 기반 예측 사용",
+          "environmental_entity": "환경 센서(선택 사항)",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "adaptive_enabled": "사용하면 시스템이 피드백을 학습하여 최적의 유지보수 주기를 제안합니다.",
+          "ewa_alpha": "알고리즘이 새 데이터에 적응하는 속도입니다. 높을수록 민감하고, 낮을수록 안정적입니다.",
+          "min_interval_days": "시스템이 제안할 수 있는 가장 짧은 주기입니다.",
+          "max_interval_days": "시스템이 제안할 수 있는 가장 긴 주기입니다.",
+          "seasonal_enabled": "유지보수 이력에서 학습한 계절 패턴에 따라 제안을 조정합니다.",
+          "sensor_prediction_enabled": "센서 추세를 분석하여 임계값 도달 시점을 예측하고 필요하면 더 이른 유지보수를 제안합니다.",
+          "environmental_entity": "온도, 습도 또는 압력 센서를 연결하여 환경 조건과 유지보수 주기의 상관관계를 분석합니다.",
+          "go_back": "저장하지 않고 작업 동작으로 돌아갑니다."
+        }
+      },
+      "delete_task": {
+        "title": "작업 삭제",
+        "description": "작업 {task_name}을(를) 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.",
+        "data": {
+          "confirm": "삭제 확인",
+          "go_back": "뒤로 가기"
+        }
+      },
+      "remove_trigger": {
+        "title": "트리거 제거",
+        "description": "**{task_name}**에서 트리거를 제거할까요?\n\n**엔티티:** {entity_ids}\n**유형:** {trigger_type}\n**구성:** {config_details}\n\n모든 엔티티가 제거되면 일정이 시간 기반으로 되돌아갑니다.",
+        "data": {
+          "entities_to_remove": "제거할 엔티티",
+          "confirm": "제거 확인",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "entities_to_remove": "이 트리거에서 제거할 엔티티를 선택하세요. 모두 제거하면 트리거 전체가 삭제됩니다.",
+          "go_back": "저장하지 않고 작업 동작으로 돌아갑니다."
+        }
+      },
+      "trigger_summary": {
+        "title": "현재 트리거",
+        "description": "**{task_name}**의 트리거:\n\n**엔티티:** {entity_ids}\n**현재 상태:** {current_states}\n**유형:** {trigger_type} (속성: {attribute})\n**구성:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "트리거 편집",
+          "task_action": "뒤로"
+        }
+      },
+      "add_task": {
+        "title": "유지보수 작업 추가",
+        "description": "이 대상의 새 유지보수 작업을 정의합니다.",
+        "data": {
+          "name": "작업 이름",
+          "type": "유지보수 유형",
+          "schedule_type": "일정 유형",
+          "custom_icon": "작업 아이콘",
+          "go_back": "뒤로 가기",
+          "reading_unit": "측정 단위(측정형 작업용, 예: kWh)"
+        },
+        "data_description": {
+          "name": "이 작업을 설명하는 이름입니다(예: '필터 청소', '엔진 오일 교환').",
+          "type": "유지보수 작업의 범주입니다.",
+          "schedule_type": "이 작업의 일정을 정하는 방식입니다.",
+          "custom_icon": "이 작업의 사용자 지정 아이콘입니다(선택 사항, 예: mdi:oil, mdi:filter-variant).",
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다."
+        }
+      },
+      "opt_time_based": {
+        "title": "시간 기반 일정",
+        "description": "이 작업의 시간 주기를 구성합니다.",
+        "data": {
+          "interval_days": "주기",
+          "interval_unit": "주기 단위",
+          "last_performed": "마지막 수행일",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "interval_anchor": "주기 기준점"
+        },
+        "data_description": {
+          "interval_days": "주기 단위와 함께 이 유지보수가 반복되는 빈도를 정합니다.",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "last_performed": "이 유지보수를 마지막으로 수행한 시점입니다. 수행한 적이 없으면 비워 두세요.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다.",
+          "interval_anchor": "완료 후 다음 기한을 계산하는 방식입니다. '계획일 기준'은 원래 기한에 고정하여 일정이 밀리는 것을 방지합니다."
+        }
+      },
+      "opt_one_time": {
+        "title": "일회성 작업",
+        "description": "반복되지 않는 단일 유지보수 작업을 구성합니다. 완료되면 보관 처리됩니다.",
+        "data": {
+          "due_date": "기한",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "due_date": "이 일회성 작업의 기한입니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다."
+        }
+      },
+      "opt_calendar": {
+        "title": "달력 일정",
+        "description": "달력 기반 반복(요일, 매월 n번째 요일 또는 매월 특정 일)을 구성합니다.",
+        "data": {
+          "weekdays": "반복할 요일",
+          "nth": "몇 번째",
+          "weekday": "요일",
+          "day": "일(날짜)",
+          "last_performed": "마지막 수행일",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "last_day": "월의 마지막 날",
+          "business": "영업일만",
+          "offset": "오프셋(일)"
+        },
+        "data_description": {
+          "weekdays": "선택한 각 요일마다 작업이 반복됩니다.",
+          "nth": "그 달의 몇 번째인지 지정합니다(예: 첫째 또는 마지막).",
+          "weekday": "n번째 요일 규칙에 사용할 요일입니다(예: 토요일).",
+          "day": "월의 일입니다(1-31; 해당 월의 길이에 맞게 조정됨).",
+          "last_performed": "이 유지보수를 마지막으로 수행한 시점입니다. 수행한 적이 없으면 비워 두세요.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다.",
+          "last_day": "일 숫자를 무시하고 해당 월의 마지막 날을 기한으로 합니다.",
+          "business": "주말 날짜를 직전 금요일로 앞당깁니다(예: 마지막 영업일).",
+          "offset": "계산된 날짜를 ±N일만큼 이동합니다(예: -2 = 이틀 전)."
+        }
+      },
+      "opt_manual": {
+        "title": "수동 일정",
+        "description": "이 작업에는 자동 일정이 없습니다. 필요할 때 수동으로 기한 도래 상태로 표시할 수 있습니다.",
+        "data": {
+          "warning_days": "기한 전 경고 일수",
+          "notes": "메모",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "notes": "이 작업에 대한 추가 메모나 지침입니다.",
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "트리거 센서 선택",
+        "description": "모니터링할 Home Assistant 엔티티를 선택하세요.",
+        "data": {
+          "trigger_entity": "모니터링할 엔티티",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_entity": "이 유지보수 작업을 트리거할 센서 엔티티를 선택하세요."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "속성 선택",
+        "description": "{entity_id}에서 모니터링할 값을 선택하세요. 현재 상태: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "모니터링할 값",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_attribute": "모니터링할 엔티티 상태 또는 특정 속성을 선택하세요."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "트리거 유형",
+        "description": "센서 값이 어떤 방식으로 유지보수를 트리거해야 하나요?",
+        "data": {
+          "trigger_type": "트리거 유형",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_type": "임계값: 값이 한계를 넘으면 트리거됩니다. 카운터: 목표 값이 누적되면 트리거됩니다. 상태 변경: 일정 횟수의 상태 전환 후 트리거됩니다."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "임계값 구성",
+        "description": "**{entity_id}** ({attribute})의 임계값을 설정하세요.\n현재: **{current_value} {unit}** | 평균: {average} | 범위: {minimum}–{maximum} ({data_period}일)\n권장 상한: {suggested_above} | 권장 하한: {suggested_below}",
+        "data": {
+          "trigger_above": "이 값 초과 시 트리거",
+          "trigger_below": "이 값 미만 시 트리거",
+          "trigger_for_minutes": "최소 지속 시간(분)",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_above": "값이 이 임계값을 초과하면 유지보수를 트리거합니다.",
+          "trigger_below": "값이 이 임계값 아래로 떨어지면 유지보수를 트리거합니다.",
+          "trigger_for_minutes": "트리거되기 전에 값이 이 시간(분) 동안 임계값을 넘어야 합니다.",
+          "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "카운터 구성",
+        "description": "{entity_id} ({attribute})의 카운터 목표를 설정하세요. 현재: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "목표 값",
+          "trigger_delta_mode": "델타 모드(절대값이 아닌 변화량 계산)",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_target_value": "이 누적 값에 도달하면 유지보수를 트리거합니다.",
+          "trigger_delta_mode": "사용하면 절대값 대신 기준값과의 차이를 계산합니다.",
+          "interval_days": "카운터 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "상태 변경 구성",
+        "description": "{entity_id}의 상태 전환 횟수를 셉니다.",
+        "data": {
+          "trigger_from_state": "이전 상태(선택 사항)",
+          "trigger_to_state": "이후 상태(선택 사항)",
+          "trigger_target_changes": "트리거까지의 변경 횟수",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_from_state": "이 상태에서의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_to_state": "이 상태로의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
+          "trigger_target_changes": "유지보수를 트리거하기까지 일치해야 하는 상태 변경 횟수입니다.",
+          "interval_days": "상태 변경 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "가동 시간 구성",
+        "description": "{entity_id}의 누적 가동 시간을 추적합니다.",
+        "data": {
+          "trigger_runtime_hours": "목표 가동 시간(시간)",
+          "trigger_on_states": "활성 상태(쉼표로 구분)",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 유지보수를 트리거합니다.",
+          "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값(on, 1, true)을 사용합니다. 예: in_use, running",
+          "interval_days": "가동 시간 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다."
+        }
+      },
+      "object_settings": {
+        "title": "대상 설정",
+        "description": "대상 정보를 편집합니다.",
+        "data": {
+          "name": "대상 이름",
+          "manufacturer": "제조사",
+          "model": "모델",
+          "serial_number": "일련번호",
+          "documentation_url": "설명서 / 문서 URL",
+          "notes": "메모",
+          "area_id": "구역",
+          "installation_date": "설치일",
+          "warranty_expiry": "보증 만료일",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "name": "이 유지보수 대상의 고유한 이름입니다(예: '수영장 펌프', '자동차').",
+          "manufacturer": "대상의 제조사입니다.",
+          "model": "모델명 또는 모델 번호입니다.",
+          "serial_number": "대상의 일련번호입니다.",
+          "documentation_url": "PDF 설명서, 제조사 페이지 등 이 대상의 참고 정보가 있는 URL 링크입니다(선택 사항).",
+          "notes": "대상에 대한 자유 형식 메모입니다 — 부품 번호, 절차, 설정 참고 사항 등.",
+          "area_id": "이 대상이 위치한 집 안의 구역입니다.",
+          "installation_date": "이 대상을 설치했거나 구입한 날짜입니다.",
+          "warranty_expiry": "이 대상의 제조사 보증이 만료되는 날짜입니다.",
+          "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다."
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} 완료"
+      },
+      "button_skip": {
+        "name": "{task_name} 건너뛰기"
+      },
+      "button_reset": {
+        "name": "{task_name} 초기화"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "정상",
+          "due_soon": "기한 임박",
+          "overdue": "기한 초과",
+          "triggered": "트리거됨",
+          "archived": "보관됨",
+          "paused": "일시 중지됨"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "유지보수 유형",
+            "state": {
+              "cleaning": "청소",
+              "inspection": "점검",
+              "replacement": "교체",
+              "calibration": "보정",
+              "service": "정비",
+              "reading": "측정",
+              "custom": "사용자 지정"
+            }
+          },
+          "schedule_type": {
+            "name": "일정 유형",
+            "state": {
+              "time_based": "시간 기반",
+              "sensor_based": "센서 기반",
+              "one_time": "일회성",
+              "manual": "수동"
+            }
+          },
+          "interval_days": {
+            "name": "주기"
+          },
+          "interval_unit": {
+            "name": "주기 단위"
+          },
+          "warning_days": {
+            "name": "경고 일수"
+          },
+          "last_performed": {
+            "name": "마지막 수행일"
+          },
+          "next_due": {
+            "name": "다음 기한"
+          },
+          "days_until_due": {
+            "name": "기한까지 남은 일수"
+          },
+          "parent_object": {
+            "name": "상위 대상"
+          },
+          "times_performed": {
+            "name": "수행 횟수"
+          },
+          "total_cost": {
+            "name": "총 비용"
+          },
+          "average_duration": {
+            "name": "평균 소요 시간(분)"
+          },
+          "notes": {
+            "name": "메모"
+          },
+          "documentation_url": {
+            "name": "문서 URL"
+          },
+          "trigger_entity": {
+            "name": "트리거 엔티티"
+          },
+          "trigger_attribute": {
+            "name": "트리거 속성"
+          },
+          "trigger_type": {
+            "name": "트리거 유형",
+            "state": {
+              "threshold": "임계값",
+              "counter": "카운터",
+              "state_change": "상태 변경",
+              "runtime": "가동 시간",
+              "compound": "복합"
+            }
+          },
+          "trigger_active": {
+            "name": "트리거 활성"
+          },
+          "trigger_current_value": {
+            "name": "트리거 현재 값"
+          },
+          "trigger_entity_state": {
+            "name": "트리거 엔티티 상태",
+            "state": {
+              "available": "사용 가능",
+              "unavailable": "사용 불가",
+              "missing": "없음",
+              "startup": "시작 중"
+            }
+          },
+          "trigger_above": {
+            "name": "초과 시 트리거"
+          },
+          "trigger_below": {
+            "name": "미만 시 트리거"
+          },
+          "trigger_for_minutes": {
+            "name": "트리거 지속 시간(분)"
+          },
+          "trigger_target_value": {
+            "name": "트리거 목표 값"
+          },
+          "trigger_delta_mode": {
+            "name": "트리거 델타 모드"
+          },
+          "trigger_baseline_value": {
+            "name": "트리거 기준값"
+          },
+          "trigger_current_delta": {
+            "name": "트리거 현재 델타"
+          },
+          "trigger_from_state": {
+            "name": "트리거 이전 상태"
+          },
+          "trigger_to_state": {
+            "name": "트리거 이후 상태"
+          },
+          "trigger_target_changes": {
+            "name": "트리거 목표 변경 횟수"
+          },
+          "trigger_change_count": {
+            "name": "트리거 변경 횟수"
+          },
+          "trigger_runtime_hours": {
+            "name": "목표 가동 시간(시간)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "누적 가동 시간(시간)"
+          },
+          "trigger_remaining_hours": {
+            "name": "남은 가동 시간(시간)"
+          },
+          "last_entry": {
+            "name": "마지막 기록"
+          },
+          "suggested_interval": {
+            "name": "제안 주기"
+          },
+          "interval_confidence": {
+            "name": "주기 신뢰도",
+            "state": {
+              "low": "낮음",
+              "medium": "보통",
+              "high": "높음"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "적응형 일정 사용됨"
+          },
+          "seasonal_factor": {
+            "name": "계절 계수"
+          },
+          "seasonal_reason": {
+            "name": "계절 근거",
+            "state": {
+              "learned": "학습됨",
+              "manual": "수동"
+            }
+          },
+          "degradation_rate": {
+            "name": "열화율"
+          },
+          "degradation_trend": {
+            "name": "열화 추세",
+            "state": {
+              "rising": "상승",
+              "falling": "하강",
+              "stable": "안정",
+              "insufficient_data": "데이터 부족"
+            }
+          },
+          "days_until_threshold": {
+            "name": "임계값까지 남은 일수"
+          },
+          "threshold_prediction_confidence": {
+            "name": "예측 신뢰도",
+            "state": {
+              "low": "낮음",
+              "medium": "보통",
+              "high": "높음"
+            }
+          },
+          "environmental_factor": {
+            "name": "환경 계수"
+          },
+          "environmental_entity": {
+            "name": "환경 엔티티"
+          },
+          "weibull_beta": {
+            "name": "Weibull 형상 모수(β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull 척도 모수(η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull 결정계수(R²)"
+          },
+          "weibull_beta_interpretation": {
+            "name": "고장 패턴",
+            "state": {
+              "early_failures": "초기 고장",
+              "random_failures": "무작위 고장",
+              "wear_out": "마모성 고장",
+              "highly_predictable": "매우 예측 가능"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "신뢰 구간(하한)"
+          },
+          "confidence_interval_high": {
+            "name": "신뢰 구간(상한)"
+          },
+          "interval_anchor": {
+            "name": "주기 기준점",
+            "state": {
+              "completion": "완료일 기준",
+              "planned": "계획일 기준"
+            }
+          },
+          "due_date": {
+            "name": "기한"
+          }
+        }
+      },
+      "summary_overdue": {
+        "name": "기한 초과"
+      },
+      "summary_due_soon": {
+        "name": "기한 임박"
+      },
+      "summary_triggered": {
+        "name": "트리거됨"
+      },
+      "summary_needs_attention": {
+        "name": "주의 필요"
+      },
+      "summary_ok": {
+        "name": "정상"
+      },
+      "document_storage": {
+        "name": "문서 저장소"
+      },
+      "summary_total_tasks": {
+        "name": "전체 작업 수"
+      },
+      "next_due": {
+        "name": "{task_name} 다음 기한"
+      },
+      "days_until_due": {
+        "name": "{task_name} 기한까지 남은 일수"
+      },
+      "parts_to_reorder": {
+        "name": "재주문할 부품"
+      },
+      "batteries_to_replace": {
+        "name": "교체할 배터리"
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "유지보수 일정"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} 기한 초과",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "유지보수 상태",
+            "state": {
+              "ok": "정상",
+              "due_soon": "기한 임박",
+              "overdue": "기한 초과",
+              "triggered": "트리거됨",
+              "archived": "보관됨"
+            }
+          },
+          "days_until_due": {
+            "name": "기한까지 남은 일수"
+          },
+          "next_due": {
+            "name": "다음 기한"
+          },
+          "parent_object": {
+            "name": "상위 대상"
+          }
+        }
+      }
+    },
+    "todo": {
+      "maintenance_todo": {
+        "name": "유지보수"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "청소",
+        "inspection": "점검",
+        "replacement": "교체",
+        "calibration": "보정",
+        "service": "정비",
+        "reading": "측정",
+        "custom": "사용자 지정"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "시간 기반",
+        "weekdays": "요일별",
+        "nth_weekday": "매월 n번째 요일",
+        "day_of_month": "매월 특정 일",
+        "sensor_based": "센서 기반",
+        "one_time": "일회성",
+        "manual": "수동"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "일",
+        "weeks": "주",
+        "months": "개월",
+        "years": "년"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "임계값",
+        "counter": "카운터",
+        "state_change": "상태 변경",
+        "runtime": "가동 시간",
+        "compound": "복합(여러 조건)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "AND (모든 조건이 트리거되어야 함)",
+        "or": "OR (어느 한 조건만 트리거되면 됨)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "아무 엔티티나 트리거되면 됨",
+        "all": "모든 엔티티가 트리거되어야 함"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "기본(상태별 제목)",
+        "object_name": "대상 이름을 제목으로",
+        "task_name": "작업 이름을 제목으로"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "유지보수 완료",
+      "description": "유지보수 작업을 완료로 표시합니다.",
+      "fields": {
+        "entity_id": {
+          "name": "엔티티",
+          "description": "완료할 유지보수 센서 엔티티입니다."
+        },
+        "notes": {
+          "name": "메모",
+          "description": "수행한 유지보수에 대한 메모입니다(선택 사항)."
+        },
+        "cost": {
+          "name": "비용",
+          "description": "수행한 유지보수의 비용입니다."
+        },
+        "duration": {
+          "name": "소요 시간",
+          "description": "유지보수에 걸린 시간(분)입니다."
+        },
+        "reading_value": {
+          "name": "측정값",
+          "description": "측정형 작업에 기록할 값입니다(계량기 값, 수위 확인 등)."
+        }
+      }
+    },
+    "reset": {
+      "name": "유지보수 초기화",
+      "description": "유지보수 작업의 마지막 수행일을 초기화합니다.",
+      "fields": {
+        "entity_id": {
+          "name": "엔티티",
+          "description": "초기화할 유지보수 센서 엔티티입니다."
+        },
+        "date": {
+          "name": "날짜",
+          "description": "마지막 수행일로 설정할 날짜입니다. 기본값은 오늘입니다."
+        }
+      }
+    },
+    "skip": {
+      "name": "유지보수 건너뛰기",
+      "description": "현재 유지보수 주기를 건너뜁니다.",
+      "fields": {
+        "entity_id": {
+          "name": "엔티티",
+          "description": "건너뛸 유지보수 센서 엔티티입니다."
+        },
+        "reason": {
+          "name": "사유",
+          "description": "유지보수를 건너뛰는 사유입니다(선택 사항)."
+        }
+      }
+    },
+    "export_data": {
+      "name": "데이터 내보내기",
+      "description": "모든 유지보수 데이터를 JSON 또는 YAML로 내보냅니다.",
+      "fields": {
+        "format": {
+          "name": "형식",
+          "description": "내보낼 데이터의 출력 형식입니다(json 또는 yaml)."
+        },
+        "include_history": {
+          "name": "이력 포함",
+          "description": "내보내기에 작업 이력 항목을 포함할지 여부입니다."
+        }
+      }
+    },
+    "add_object": {
+      "name": "대상 추가",
+      "description": "새 유지보수 대상(기기)을 만듭니다. 새 entry_id를 반환합니다.",
+      "fields": {
+        "name": {
+          "name": "이름",
+          "description": "대상/기기의 이름입니다."
+        },
+        "area_id": {
+          "name": "구역",
+          "description": "기기를 할당할 구역입니다."
+        },
+        "manufacturer": {
+          "name": "제조사"
+        },
+        "model": {
+          "name": "모델"
+        },
+        "serial_number": {
+          "name": "일련번호"
+        },
+        "installation_date": {
+          "name": "설치일"
+        },
+        "warranty_expiry": {
+          "name": "보증 만료일",
+          "description": "보증 만료일입니다(자산 추적과 알림에 사용)."
+        },
+        "documentation_url": {
+          "name": "문서 URL",
+          "description": "설명서나 제조사 페이지 링크입니다(http/https만 가능)."
+        },
+        "notes": {
+          "name": "메모"
+        }
+      }
+    },
+    "add_task": {
+      "name": "작업 추가",
+      "description": "기존 대상에 유지보수 작업을 추가합니다. 새 task_id를 반환합니다.",
+      "fields": {
+        "entry_id": {
+          "name": "대상",
+          "description": "작업을 추가할 유지보수 대상입니다."
+        },
+        "name": {
+          "name": "이름",
+          "description": "작업의 이름입니다."
+        },
+        "task_type": {
+          "name": "작업 유형",
+          "description": "자유 형식 범주입니다(예: inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "일정 유형",
+          "description": "time_based(주기) 또는 sensor_based. 기본값: time_based."
+        },
+        "interval_days": {
+          "name": "주기",
+          "description": "interval_unit과 함께 사용하는 반복 간격입니다(시간 기반 작업용)."
+        },
+        "interval_unit": {
+          "name": "주기 단위",
+          "description": "주기의 단위: days, weeks, months 또는 years. 기본값: days."
+        },
+        "due_date": {
+          "name": "기한",
+          "description": "일회성 작업(schedule_type one_time)의 기한(YYYY-MM-DD)입니다."
+        },
+        "schedule": {
+          "name": "달력 일정",
+          "description": "달력 유형을 위한 중첩 반복 규칙입니다. 예: 첫째 주 토요일은 kind=nth_weekday, nth=1, weekday=5 (weekday 0=월 ... 6=일), 월요일과 목요일은 kind=weekdays, weekdays=[0, 3], 매월 15일은 kind=day_of_month, day=15. interval_days / schedule_type보다 우선합니다."
+        },
+        "warning_days": {
+          "name": "경고(일)",
+          "description": "기한 임박 구간에 들어가는 기한 전 일수입니다."
+        },
+        "enabled": {
+          "name": "사용"
+        },
+        "notes": {
+          "name": "메모"
+        }
+      }
+    },
+    "update_task": {
+      "name": "작업 업데이트",
+      "description": "기존 유지보수 작업의 공통 필드를 업데이트합니다. 제공한 필드만 변경됩니다.",
+      "fields": {
+        "entry_id": {
+          "name": "대상",
+          "description": "작업이 속한 유지보수 대상입니다."
+        },
+        "task_id": {
+          "name": "작업 ID",
+          "description": "업데이트할 작업의 ID입니다(list_tasks 참조)."
+        },
+        "name": {
+          "name": "이름",
+          "description": "작업의 새 이름입니다."
+        },
+        "task_type": {
+          "name": "작업 유형",
+          "description": "범주입니다(cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "일정 유형",
+          "description": "time_based(주기), sensor_based, one_time 또는 manual."
+        },
+        "interval_days": {
+          "name": "주기",
+          "description": "interval_unit과 함께 사용하는 반복 간격입니다."
+        },
+        "interval_unit": {
+          "name": "주기 단위",
+          "description": "days, weeks, months 또는 years 중 하나입니다."
+        },
+        "due_date": {
+          "name": "기한",
+          "description": "일회성 작업의 기한(YYYY-MM-DD)입니다."
+        },
+        "schedule": {
+          "name": "일정(달력 반복)",
+          "description": "달력 유형을 위한 중첩 반복 객체입니다. 예: kind=day_of_month, day=-1, business=true. 평면 필드보다 우선합니다."
+        },
+        "warning_days": {
+          "name": "경고 일수",
+          "description": "작업이 기한 임박으로 바뀌는 기한 전 일수입니다."
+        },
+        "enabled": {
+          "name": "사용",
+          "description": "작업의 활성 여부입니다."
+        },
+        "notes": {
+          "name": "메모",
+          "description": "작업에 대한 자유 형식 메모입니다."
+        },
+        "priority": {
+          "name": "우선순위",
+          "description": "low, normal 또는 high 중 하나입니다."
+        },
+        "labels": {
+          "name": "라벨",
+          "description": "필터링과 보고에 사용할 태그 목록입니다."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "작업 삭제",
+      "description": "유지보수 작업을 이력과 함께 삭제합니다. 되돌릴 수 없습니다 - 대신 패널에서 보관 처리하는 것을 고려하세요.",
+      "fields": {
+        "entry_id": {
+          "name": "대상",
+          "description": "작업이 속한 유지보수 대상입니다."
+        },
+        "task_id": {
+          "name": "작업 ID",
+          "description": "삭제할 작업의 ID입니다(list_tasks 참조)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "작업 목록",
+      "description": "자동화, 스크립트, 음성에서 사용할 수 있도록 활성 유지보수 작업의 스냅숏(ID, 이름, 상태, 다음 기한)을 반환합니다. 대상 및 상태별 필터링을 지원합니다.",
+      "fields": {
+        "entry_id": {
+          "name": "대상",
+          "description": "이 유지보수 대상의 작업만 반환합니다."
+        },
+        "status": {
+          "name": "상태",
+          "description": "이 상태의 작업만 반환합니다."
+        }
+      }
+    }
+  },
+  "issues": {
+    "document_storage_issues": {
+      "title": "문서 저장소 정리가 필요합니다",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "문서 저장 공간 회수",
+            "description": "Maintenance Supporter가 문서 저장소에서 참조되지 않는 파일이나 유효하지 않은 레코드를 발견했습니다 — 보통 비정상 종료, 외부에서의 파일 삭제 또는 부분 복원의 결과입니다.\n\n**제출**을 클릭하면 공간을 회수합니다: 참조되지 않거나 오래된 파일은 삭제되고 유효하지 않은 문서 레코드는 제거됩니다. 문서가 여전히 참조하는 파일은 절대 건드리지 않습니다.\n\n(정리하지 않고 넘어가려면 수리 페이지에서 Home Assistant의 **무시** 버튼을 사용하세요.)"
+          }
+        }
+      }
+    },
+    "missing_trigger_entity": {
+      "title": "트리거 센서를 찾을 수 없음: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "누락된 트리거 엔티티",
+            "description": "대상 \"{object_name}\"의 작업 \"{task_name}\"에 트리거로 구성된 센서 엔티티 `{entity_id}`를 더 이상 사용할 수 없습니다.\n\n이 문제를 해결할 방법을 선택하세요:",
+            "menu_options": {
+              "replace_entity": "다른 엔티티로 교체",
+              "remove_trigger": "센서 트리거 제거",
+              "dismiss": "무시(다시 나타남)"
+            }
+          },
+          "replace_entity": {
+            "title": "트리거 엔티티 교체",
+            "description": "\"{object_name}\"의 작업 \"{task_name}\"에서 `{entity_id}`를 대체할 새 엔티티를 선택하세요.",
+            "data": {
+              "new_entity_id": "새 트리거 엔티티"
+            },
+            "data_description": {
+              "new_entity_id": "트리거로 사용할 새 센서 엔티티를 선택하세요."
+            }
+          },
+          "remove_trigger": {
+            "title": "센서 트리거 제거",
+            "description": "\"{object_name}\"의 작업 \"{task_name}\"에서 센서 트리거를 제거하고 일정을 시간 기반 또는 수동으로 전환합니다. 유지보수 이력은 보존됩니다.\n\n이전 트리거 엔티티: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "패널 접근 권한 사용자가 더 이상 존재하지 않습니다",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "패널 접근 목록에 남아 있는 사용자",
+            "description": "사용자 `{user_id}…`가 Maintenance Supporter 패널 접근 목록에 있지만 Home Assistant에 더 이상 존재하지 않습니다. 해당 사용자가 삭제된 것으로 보입니다.\n\n**제출**을 클릭하면 이 사용자를 목록에서 제거합니다. (그대로 두려면 수리 페이지에서 Home Assistant의 **무시** 버튼을 사용하세요.)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "완료 동작이 삭제된 엔티티를 참조합니다",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "완료 동작: {stale_entity}이(가) 더 이상 존재하지 않음",
+            "description": "작업 **{task_name}**에는 `{stale_entity}`의 서비스를 호출하는 `on_complete_action`이 구성되어 있지만, 해당 엔티티는 더 이상 Home Assistant에 등록되어 있지 않습니다.\n\n수리 방법을 선택하세요:",
+            "menu_options": {
+              "replace_entity": "다른 엔티티로 교체",
+              "remove_action": "완료 동작 제거"
+            }
+          },
+          "replace_entity": {
+            "title": "대상 엔티티 교체",
+            "description": "작업 **{task_name}**에서 `{stale_entity}` 대신 사용할 엔티티를 선택하세요.",
+            "data": {
+              "new_entity": "새 대상 엔티티"
+            }
+          },
+          "remove_action": {
+            "title": "완료 동작 제거",
+            "description": "작업 **{task_name}**에서 `on_complete_action`을 완전히 제거합니다. 작업 자체는 영향을 받지 않으며, 완료 시 서비스 호출만 제거됩니다."
+          }
+        }
+      }
+    },
+    "notify_service_missing": {
+      "title": "알림 서비스 `{service}`를 찾을 수 없습니다",
+      "description": "Maintenance Supporter가 `{service}`를 통해 알림을 보내도록 구성되어 있지만, 해당 서비스가 현재 Home Assistant에 존재하지 않아 알림이 조용히 실패합니다.\n\n보통 서비스 이름이 변경되었거나, 그 서비스를 제공하던 통합구성요소(모바일 앱, 알림 그룹 등)가 제거된 경우입니다. 해결 방법: 해당 서비스를 복원하거나, **설정 → 기기 및 서비스 → Maintenance Supporter → 구성 → 일반 설정**에서 유효한 `notify.*` 서비스를 선택하세요.\n\n참고: 여기서는 구성된 서비스 자체만 확인합니다. 알림이 일부 기기에만 도달한다면 알림 그룹 *내부의* 구성원이 잘못 구성되었을 가능성이 높습니다 — 이는 여기서 확인되지 않으니 Home Assistant의 **시스템 로그**(설정 → 시스템 → 로그)를 확인하세요."
+    },
+    "missing_global_entry": {
+      "title": "Maintenance Supporter 전역 구성이 없습니다",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "전역 구성 복원",
+            "description": "유지보수 대상은 그대로 있지만 전역 \"Maintenance Supporter\" 항목이 삭제되었습니다 — 그래서 요약 센서, 사이드바 패널, 대시보드 카운트가 사라지고 KPI 칩이 \"unknown\"으로 표시됩니다.\n\n**제출**을 클릭하면 기본 설정으로 전역 구성을 다시 만듭니다. 대상과 작업은 그대로 유지됩니다. 이후 설정 → 기기 및 서비스에서 알림과 기본값을 조정할 수 있습니다.\n\n(그대로 두려면 Home Assistant의 **무시** 버튼을 사용하세요.)"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "엔티티 {entity_id}에 대한 유지보수 코디네이터를 찾을 수 없습니다."
+    },
+    "no_task_for_entity": {
+      "message": "엔티티 {entity_id}에 대한 유지보수 작업을 찾을 수 없습니다."
+    }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "유지보수 작업이 기한을 초과함",
+      "description": "유지보수 작업의 상태가 기한 초과로 바뀌면 트리거됩니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "유지보수 작업의 기한이 임박함",
+      "description": "유지보수 작업이 경고 구간에 들어가면 트리거됩니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "센서 트리거가 활성화됨",
+      "description": "센서 기반 유지보수 작업이 활성화되면 트리거됩니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "유지보수 작업이 정상으로 돌아옴",
+      "description": "유지보수 작업에 더 이상 주의가 필요 없게 되면 트리거됩니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "유지보수 작업이 기한 초과 상태임",
+      "description": "유지보수 작업이 기한을 초과했는지 검사합니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "유지보수 작업이 기한 임박 상태임",
+      "description": "유지보수 작업이 경고 구간에 있는지 검사합니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "센서 트리거가 활성 상태임",
+      "description": "센서 기반 유지보수 작업이 트리거되었는지 검사합니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "유지보수 작업에 주의가 필요함",
+      "description": "유지보수 작업이 기한 초과 또는 트리거 상태인지 검사합니다.",
+      "fields": {
+        "behavior": {
+          "name": "동작"
+        },
+        "for": {
+          "name": "지속 시간"
+        }
+      }
+    }
+  }
+}

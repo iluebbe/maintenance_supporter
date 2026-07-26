@@ -50,6 +50,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fi": "Ajoneuvo",
         "name_ja": "乗り物",
         "name_hi": "वाहन",
+        "name_pt-br": "Veículos",
+        "name_hu": "Járművek",
+        "name_ko": "차량",
+        "name_tr": "Araç",
     },
     "home": {
         "icon": "mdi:home",
@@ -71,6 +75,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fi": "Koti ja LVI",
         "name_ja": "住宅設備",
         "name_hi": "घर और HVAC",
+        "name_pt-br": "Casa e HVAC",
+        "name_hu": "Otthon és HVAC",
+        "name_ko": "주택 및 HVAC",
+        "name_tr": "Ev ve HVAC",
     },
     # v2.27: two extra top-level groups keep the growing catalog scannable —
     # recurring HOUSEHOLD routines split from device-centric "home", and
@@ -96,6 +104,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_ja": "家事・ルーティン",
         "name_hi": "गृहकार्य और दिनचर्या",
         "name_zh": "家务与日常",
+        "name_pt-br": "Lar e rotinas",
+        "name_hu": "Háztartás és rutinok",
+        "name_ko": "가사 및 루틴",
+        "name_tr": "Ev İşleri ve Rutinler",
     },
     "garden": {
         "icon": "mdi:tree",
@@ -117,6 +129,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_ja": "庭・屋外",
         "name_hi": "बगीचा और बाहरी क्षेत्र",
         "name_zh": "花园与户外",
+        "name_pt-br": "Jardim e área externa",
+        "name_hu": "Kert és szabadtér",
+        "name_ko": "정원 및 야외",
+        "name_tr": "Bahçe ve Dış Mekân",
     },
     "pool": {
         "icon": "mdi:pool",
@@ -138,6 +154,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fi": "Uima-allas",
         "name_ja": "プール",
         "name_hi": "पूल",
+        "name_pt-br": "Piscina",
+        "name_hu": "Medence",
+        "name_ko": "수영장",
+        "name_tr": "Havuz",
     },
     "appliance": {
         "icon": "mdi:washing-machine",
@@ -159,6 +179,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fi": "Kodinkoneet",
         "name_ja": "家電",
         "name_hi": "उपकरण",
+        "name_pt-br": "Eletrodomésticos",
+        "name_hu": "Háztartási gépek",
+        "name_ko": "가전제품",
+        "name_tr": "Ev Aletleri",
     },
     "pets": {
         "icon": "mdi:paw",
@@ -180,6 +204,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fi": "Lemmikit",
         "name_ja": "ペット",
         "name_hi": "पालतू जानवर",
+        "name_pt-br": "Pets",
+        "name_hu": "Háziállatok",
+        "name_ko": "반려동물",
+        "name_tr": "Evcil Hayvanlar",
     },
     "tech": {
         "icon": "mdi:server",
@@ -201,6 +229,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fi": "Tekniikka ja IT",
         "name_ja": "テクノロジー・IT",
         "name_hi": "टेक और IT",
+        "name_pt-br": "Tecnologia e TI",
+        "name_hu": "Technika és IT",
+        "name_ko": "기술 및 IT",
+        "name_tr": "Teknoloji ve BT",
     },
     "health": {
         "icon": "mdi:heart-pulse",
@@ -222,6 +254,10 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fi": "Terveys",
         "name_ja": "健康",
         "name_hi": "स्वास्थ्य",
+        "name_pt-br": "Saúde",
+        "name_hu": "Egészség",
+        "name_ko": "건강",
+        "name_tr": "Sağlık",
     },
 }
 

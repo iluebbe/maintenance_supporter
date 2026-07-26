@@ -124,7 +124,7 @@ async def ws_get_templates(
     curation): the pickers hide disabled ones client-side, while the Settings
     section needs the full list to render the toggles.
     """
-    from ..helpers.i18n import normalize_language
+    from ..helpers.i18n import normalize_language, normalize_language_code
     from ..templates import (
         TEMPLATE_CATEGORIES,
         TEMPLATES,
@@ -133,7 +133,7 @@ async def ws_get_templates(
     )
 
     disabled = get_disabled_template_ids(hass)
-    lang = (msg.get("language") or normalize_language(hass))[:2].lower()
+    lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
 
     result = {
         "categories": {cat_id: {k: v for k, v in cat.items()} for cat_id, cat in TEMPLATE_CATEGORIES.items()},

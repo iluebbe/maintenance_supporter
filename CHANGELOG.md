@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🌍 Localization
+
+- **Four new languages — the catalog grows from 18 to 22**: Brazilian
+  Portuguese (`pt-BR`), Hungarian, Korean and Turkish, fully translated
+  across all surfaces (panel + cards, HA config flow & Repairs UI,
+  notification messages, template/task-name catalog, calendar and logbook
+  strings). Brazilian Portuguese is a first: the one regional variant with
+  its own tables — `pt-BR` users no longer silently receive the European
+  Portuguese UI. Turkish and Brazilian users also get their local Amazon
+  storefront as the default spare-part search. All CI language gates
+  (key parity, value completeness incl. a Hangul check, placeholder
+  parity) now enforce the 22-language set.
+
 ## [2.41.0] - 2026-07-26
 
 ### ✨ Added

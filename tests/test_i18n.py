@@ -33,13 +33,17 @@ _TRANSLATIONS = _COMPONENT / "translations"
 # codes (zh, not zh-Hans) match the frontend t() table keys.
 _FRONTEND_LOCALES = _COMPONENT / "frontend-src" / "locales"
 _FRONTEND_LANGUAGES = frozenset(
-    {"de", "en", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi"}
+    {"de", "en", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr"}
 )
 
-# The shipped UI languages. Mirrors the frontend guard's set (which uses "zh");
-# HA's on-disk convention is the regional file name "zh-Hans".
+# The shipped UI languages. Mirrors the frontend guard's set (which uses "zh"
+# and "pt-br"); HA's on-disk convention is the regional file name ("zh-Hans",
+# "pt-BR").
 _EXPECTED_LANGUAGES = frozenset(
-    {"cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk", "zh-Hans", "da", "fi", "nb", "ja", "hi"}
+    {
+        "cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "pt-BR", "ru", "sv", "uk",
+        "zh-Hans", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr",
+    }
 )
 
 # HA/Python ``str.format`` placeholder, e.g. ``{task_name}``.
@@ -93,7 +97,8 @@ def _non_en_files() -> list[Path]:
         ("de", "de"),
         ("zh-Hans", "zh"),  # HA's only Simplified-Chinese code
         ("zh-Hant", "zh"),
-        ("pt-BR", "pt"),
+        ("pt-BR", "pt-br"),  # the one regional variant with its own tables
+        ("pt-PT", "pt"),
         ("en-GB", "en"),
         ("es-419", "es"),
         ("ES", "es"),  # case-folded
@@ -247,6 +252,7 @@ _NATIVE_SCRIPTS = {
     "zh-Hans": re.compile(r"[一-鿿]"),  # backend file-name variant
     "ja": re.compile(r"[぀-ヿ一-鿿]"),  # Kana + Han
     "hi": re.compile(r"[ऀ-ॿ]"),  # Devanagari
+    "ko": re.compile(r"[가-힣ᄀ-ᇿ]"),  # Hangul
 }
 
 # Values that are language-neutral everywhere (acronyms, formats, symbols).
@@ -262,20 +268,20 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "qr_print_actions": frozenset({"fr"}),
     "area": frozenset({"it"}),
     "sort_area": frozenset({"it"}),
-    "battery_fleet_offline": frozenset({"de", "it", "nl", "pl", "pt", "sv", "da", "fi", "cs"}),
-    "checklist": frozenset({"fr", "it", "nl"}),
-    "feat_checklists": frozenset({"fr", "nl"}),
+    "battery_fleet_offline": frozenset({"de", "it", "nl", "pl", "pt", "sv", "da", "fi", "cs", "pt-br", "hu"}),
+    "checklist": frozenset({"fr", "it", "nl", "pt-br"}),
+    "feat_checklists": frozenset({"fr", "nl", "pt-br"}),
     "compound_condition": frozenset({"fr"}),
     "dashboard": frozenset({"de", "it", "nl"}),
-    "degradation_trend": frozenset({"de", "nl", "pl", "sv", "nb", "cs"}),
-    "doc_cat_manual": frozenset({"es", "pt", "sv"}),
-    "documentation_url_label": frozenset({"es", "pt", "sv", "da"}),
-    "manual": frozenset({"es", "pt"}),
-    "seasonal_manual": frozenset({"es", "pt"}),
+    "degradation_trend": frozenset({"de", "nl", "pl", "sv", "nb", "cs", "hu"}),
+    "doc_cat_manual": frozenset({"es", "pt", "sv", "pt-br"}),
+    "documentation_url_label": frozenset({"es", "pt", "sv", "da", "pt-br"}),
+    "manual": frozenset({"es", "pt", "pt-br"}),
+    "seasonal_manual": frozenset({"es", "pt", "pt-br"}),
     "doc_cat_photo": frozenset({"fr"}),
     "doc_download": frozenset({"da"}),
     "qr_download": frozenset({"da"}),
-    "doc_link_badge": frozenset({"de", "it", "nl", "pl", "da"}),
+    "doc_link_badge": frozenset({"de", "it", "nl", "pl", "da", "pt-br"}),
     "doc_link_url": "*",  # "URL (https://…)" — syntax hint, neutral
     "doc_page": frozenset({"fr"}),
     "documentation_label": frozenset({"fr"}),
@@ -288,11 +294,11 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "label_filter": frozenset({"de", "nl"}),
     "labels": frozenset({"de", "nl"}),
     "maintenance": frozenset({"fr"}),
-    "model": frozenset({"nl", "pl", "da", "cs"}),
+    "model": frozenset({"nl", "pl", "da", "cs", "tr"}),
     "name": frozenset({"de"}),
     "part_name": frozenset({"de"}),
-    "normal": frozenset({"de", "fr", "es", "pt", "sv", "da", "nb"}),
-    "priority_normal": frozenset({"de", "es", "pt", "sv", "da", "nb"}),
+    "normal": frozenset({"de", "fr", "es", "pt", "sv", "da", "nb", "pt-br", "tr"}),
+    "priority_normal": frozenset({"de", "es", "pt", "sv", "da", "nb", "pt-br", "tr"}),
     "notes_label": frozenset({"fr"}),
     "object_notes_label": frozenset({"fr"}),
     "report_notes": frozenset({"fr"}),
@@ -302,10 +308,10 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "service": frozenset({"de", "fr", "nl", "sv", "da", "nb"}),
     "part_stock": frozenset({"fr"}),
     "qr_mode_companion": "*",  # "Companion App" — HA product name
-    "qr_mode_local": frozenset({"fr", "es", "pt"}),
+    "qr_mode_local": frozenset({"fr", "es", "pt", "pt-br"}),
     "recurrence_occurrence": frozenset({"fr"}),
     "report_button": frozenset({"it"}),
-    "report_col_status": frozenset({"de", "nl", "pl", "sv", "da", "nb"}),
+    "report_col_status": frozenset({"de", "nl", "pl", "sv", "da", "nb", "pt-br"}),
     "report_col_type": frozenset({"fr", "nl", "da", "nb"}),
     "sort_type": frozenset({"fr", "nl", "da", "nb"}),
     "reset": frozenset({"cs"}),
@@ -372,7 +378,7 @@ def test_frontend_locale_value_completeness(path: Path) -> None:
 _BACKEND_VALUE_OK: dict[str, frozenset[str] | str] = {
     "Action": frozenset({"fr"}),
     "Area": frozenset({"it"}),
-    "Checklists": frozenset({"nl"}),
+    "Checklists": frozenset({"nl", "pt-BR"}),
     "Condition #{condition_num} — Type": frozenset({"fr"}),
     "Date": frozenset({"fr"}),
     "Description": frozenset({"fr"}),
@@ -382,14 +388,14 @@ _BACKEND_VALUE_OK: dict[str, frozenset[str] | str] = {
     "Labels": frozenset({"de", "nl"}),
     "Maintenance": frozenset({"fr"}),
     "Maintenance Supporter": "*",  # brand
-    "Manual": frozenset({"es", "pt"}),
-    "Model": frozenset({"cs", "da", "nl", "pl"}),
+    "Manual": frozenset({"es", "pt", "pt-BR"}),
+    "Model": frozenset({"cs", "da", "nl", "pl", "tr"}),
     "Name": frozenset({"de"}),
     "Notes": frozenset({"fr"}),
     "Object": frozenset({"nl"}),
     "Service": frozenset({"da", "de", "fr", "nb", "nl", "sv"}),
     "Stable": frozenset({"fr"}),
-    "Status": frozenset({"da", "de", "nb", "nl", "pl", "sv"}),
+    "Status": frozenset({"da", "de", "nb", "nl", "pl", "pt-BR", "sv"}),
     "Weibull R²": "*",  # statistical term
 }
 
@@ -463,3 +469,18 @@ def test_buy_name_templates_cover_every_ui_language() -> None:
         "extra": sorted(set(_BUY_NAME_TEMPLATES) - _FRONTEND_LANGUAGES),
     }
     assert all("{name}" in tpl for tpl in _BUY_NAME_TEMPLATES.values()), "every template must keep the {name} placeholder"
+
+
+def test_normalize_language_code_regional_variants() -> None:
+    """pt-BR is the one regional variant with its OWN tables — every other
+    regional code collapses to its 2-letter prefix. A bare [:2] anywhere
+    would silently hand Brazilian users the European Portuguese UI."""
+    from custom_components.maintenance_supporter.helpers.i18n import normalize_language_code
+
+    assert normalize_language_code("pt-BR") == "pt-br"
+    assert normalize_language_code("pt_BR") == "pt-br"
+    assert normalize_language_code("pt") == "pt"
+    assert normalize_language_code("pt-PT") == "pt"
+    assert normalize_language_code("de-DE") == "de"
+    assert normalize_language_code("zh-Hans") == "zh"
+    assert normalize_language_code(None) == "en"

@@ -1,0 +1,1927 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Bakım yönetim sisteminizi kurun.",
+        "menu_options": {
+          "create_object": "Bakım Nesnesi Oluştur",
+          "create_from_template": "Şablondan Oluştur",
+          "global_setup": "Genel Ayarlar"
+        }
+      },
+      "create_from_template": {
+        "title": "Şablon Kategorisi Seç",
+        "description": "Önceden tanımlanmış bakım şablonlarına göz atmak için bir kategori seçin.",
+        "data": {
+          "template_category": "Kategori",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "go_back": "Kaydetmeden ana menüye dönün."
+        }
+      },
+      "template_select": {
+        "title": "Şablon Seç",
+        "description": "Başlangıç noktası olarak kullanılacak bir bakım şablonu seçin.",
+        "data": {
+          "template_id": "Şablon",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "go_back": "Kaydetmeden kategori seçimine dönün."
+        }
+      },
+      "template_customize": {
+        "title": "Şablonu Özelleştir",
+        "description": "{template_name} şablonunu özelleştirin. {task_count} görev içerir: {task_list}.",
+        "data": {
+          "name": "Nesne adı",
+          "area_id": "Alan",
+          "manufacturer": "Üretici",
+          "model": "Model",
+          "serial_number": "Seri numarası",
+          "documentation_url": "Kılavuz / dokümantasyon URL'si",
+          "notes": "Notlar",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "name": "Bu bakım nesnesi için bir ad.",
+          "area_id": "Bu nesnenin bulunduğu alan.",
+          "manufacturer": "Nesnenin üreticisi.",
+          "model": "Model adı veya numarası.",
+          "serial_number": "Nesnenin seri numarası.",
+          "documentation_url": "PDF kılavuza, satıcı sayfasına veya bu nesneyle ilgili referans bilgisi içeren herhangi bir URL'ye isteğe bağlı bağlantı.",
+          "notes": "Nesne hakkında serbest biçimli notlar — parça numaraları, prosedürler, ayar hatırlatmaları vb.",
+          "go_back": "Kaydetmeden şablon seçimine dönün."
+        }
+      },
+      "global_setup": {
+        "title": "Genel Ayarlar",
+        "description": "Genel bakım ayarlarını yapılandırın.",
+        "data": {
+          "default_warning_days": "Vadeden önce varsayılan uyarı günleri",
+          "notifications_enabled": "Bildirimleri etkinleştir",
+          "notify_service": "Bildirim servisi"
+        },
+        "data_description": {
+          "default_warning_days": "Bir bakım görevinin vadesinden kaç gün önce uyarı gösterileceği.",
+          "notifications_enabled": "Bakım görevlerinin vadesi geldiğinde bildirim gönder.",
+          "notify_service": "Kullanılacak bildirim servisi (örn. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Bakım Nesnesi Oluştur",
+        "description": "Bakımı yönetilecek bir cihaz veya varlık tanımlayın.",
+        "data": {
+          "name": "Nesne adı",
+          "area_id": "Alan",
+          "manufacturer": "Üretici",
+          "model": "Model",
+          "serial_number": "Seri numarası",
+          "documentation_url": "Kılavuz / dokümantasyon URL'si",
+          "notes": "Notlar",
+          "installation_date": "Kurulum tarihi",
+          "warranty_expiry": "Garanti bitişi",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "name": "Bu bakım nesnesi için benzersiz bir ad (örn. 'Havuz Pompası', 'Araba').",
+          "area_id": "Bu nesnenin evinizde bulunduğu alan.",
+          "manufacturer": "Nesnenin üreticisi.",
+          "model": "Model adı veya numarası.",
+          "serial_number": "Nesnenin seri numarası.",
+          "documentation_url": "PDF kılavuza, satıcı sayfasına veya bu nesneyle ilgili referans bilgisi içeren herhangi bir URL'ye isteğe bağlı bağlantı.",
+          "notes": "Nesne hakkında serbest biçimli notlar — parça numaraları, prosedürler, ayar hatırlatmaları vb.",
+          "installation_date": "Bu nesnenin kurulduğu veya satın alındığı tarih.",
+          "warranty_expiry": "Bu nesnenin üretici garantisinin sona erdiği tarih.",
+          "go_back": "Kaydetmeden ana menüye dönün."
+        }
+      },
+      "task_menu": {
+        "title": "Bakım Görevleri",
+        "description": "{object_name} için bakım görevleri ekleyin. Şu anda {task_count} görev tanımlı.",
+        "menu_options": {
+          "add_task": "Bakım Görevi Ekle",
+          "finish": "Kurulumu Bitir"
+        }
+      },
+      "add_task": {
+        "title": "Bakım Görevi Ekle",
+        "description": "{object_name} için bir bakım görevi tanımlayın.",
+        "data": {
+          "name": "Görev adı",
+          "type": "Bakım türü",
+          "schedule_type": "Zamanlama türü",
+          "custom_icon": "Görev simgesi",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "name": "Bu görev için açıklayıcı bir ad (örn. 'Filtre Temizliği', 'Yağ Değişimi').",
+          "type": "Bakım işinin kategorisi.",
+          "schedule_type": "Bu görevin nasıl zamanlanacağı.",
+          "custom_icon": "Bu görev için isteğe bağlı özel simge (örn. mdi:oil, mdi:filter-variant).",
+          "go_back": "Kaydetmeden görev menüsüne dönün."
+        }
+      },
+      "time_based": {
+        "title": "Zamana Dayalı Zamanlama",
+        "description": "Bu bakım görevi için zaman aralığını yapılandırın.",
+        "data": {
+          "interval_days": "Aralık",
+          "interval_unit": "Aralık birimi",
+          "last_performed": "Son yapılma",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "interval_anchor": "Aralık dayanağı"
+        },
+        "data_description": {
+          "interval_days": "Bu bakımın, aralık birimiyle birlikte ne sıklıkta tekrarlanacağı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "last_performed": "Bu bakımın en son ne zaman yapıldığı. Hiç yapılmadıysa boş bırakın.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden görev oluşturmaya dönün.",
+          "interval_anchor": "Tamamlamadan sonra bir sonraki vade tarihinin nasıl hesaplanacağı. 'Planlanan', orijinal vade tarihine bağlanarak zamanlama kaymasını önler."
+        }
+      },
+      "one_time": {
+        "title": "Tek Seferlik Görev",
+        "description": "Tek seferlik, tekrarlanmayan bir bakım görevi yapılandırın. Tamamlandığında arşivlenir.",
+        "data": {
+          "due_date": "Vade tarihi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "due_date": "Bu tek seferlik görevin vade tarihi.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden görev oluşturmaya dönün."
+        }
+      },
+      "calendar": {
+        "title": "Takvim Zamanlaması",
+        "description": "Takvime dayalı bir tekrar yapılandırın (haftanın günleri, ayın n. haftaiçi günü veya ayın bir günü).",
+        "data": {
+          "weekdays": "Bu günlerde",
+          "nth": "Hangi tekrar",
+          "weekday": "Haftanın günü",
+          "day": "Ayın günü",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "last_day": "Ayın son günü",
+          "business": "Yalnızca iş günleri",
+          "offset": "Kaydırma (gün)"
+        },
+        "data_description": {
+          "weekdays": "Görev, seçilen her haftanın gününde tekrarlanır.",
+          "nth": "Ay içindeki hangi tekrar (örn. 1. veya Son).",
+          "weekday": "N. gün kuralı için haftanın günü (örn. Cumartesi).",
+          "day": "Ayın günü (1-31; ayın uzunluğuna göre sınırlanır).",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden görev oluşturmaya dönün.",
+          "last_day": "Gün numarasını geçersiz kılar: görevin vadesi ayın son günüdür.",
+          "business": "Hafta sonuna denk gelen tarihi önceki Cumaya çeker (örn. son iş günü).",
+          "offset": "Hesaplanan tarihi ±N gün kaydırır (örn. -2 = iki gün önce)."
+        }
+      },
+      "sensor_select": {
+        "title": "Tetikleyici Sensör Seç",
+        "description": "Bu bakım görevi için izlenecek bir Home Assistant varlığı seçin.",
+        "data": {
+          "trigger_entity": "İzlenecek varlık",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_entity": "Bu bakım görevini tetiklemesi gereken sensör varlığını seçin.",
+          "go_back": "Kaydetmeden görev oluşturmaya dönün."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Öznitelik Seç",
+        "description": "{entity_id} varlığından hangi değerin izleneceğini seçin. Mevcut durum: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "İzlenecek değer",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_attribute": "İzlenecek varlık durumunu veya belirli bir özniteliği seçin.",
+          "go_back": "Kaydetmeden varlık seçimine dönün."
+        }
+      },
+      "trigger_type": {
+        "title": "Tetikleyici Türü",
+        "description": "Sensör değeri bakımı nasıl tetiklemeli?",
+        "data": {
+          "trigger_type": "Tetikleyici türü",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_type": "Eşik: değer sınırları aştığında tetiklenir. Sayaç: bir hedef değer biriktiğinde tetiklenir. Durum Değişikliği: belirli sayıda durum geçişinden sonra tetiklenir.",
+          "go_back": "Kaydetmeden öznitelik seçimine dönün."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Eşik Yapılandırması",
+        "description": "**{entity_id}** ({attribute}) için eşik değerlerini ayarlayın.\nMevcut: **{current_value} {unit}** | Ort: {average} | Aralık: {minimum}–{maximum} ({data_period}g)\nÖnerilen üst: {suggested_above} | Önerilen alt: {suggested_below}",
+        "data": {
+          "trigger_above": "Şunun üzerinde tetikle",
+          "trigger_below": "Şunun altında tetikle",
+          "trigger_for_minutes": "En az (dakika)",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_above": "Değer bu eşiği aştığında bakımı tetikle.",
+          "trigger_below": "Değer bu eşiğin altına düştüğünde bakımı tetikle.",
+          "trigger_for_minutes": "Tetiklenmeden önce değer bu kadar dakika boyunca eşiği aşmalıdır.",
+          "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+        }
+      },
+      "trigger_counter": {
+        "title": "Sayaç Yapılandırması",
+        "description": "{entity_id} ({attribute}) için sayaç hedefini ayarlayın. Mevcut: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Hedef değer",
+          "trigger_delta_mode": "Delta modu (mutlak değil, değişiklikleri say)",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_target_value": "Bu birikmiş değere ulaşıldığında bakımı tetikle.",
+          "trigger_delta_mode": "Etkinleştirilirse, mutlak değer yerine bir referans noktasından farkı sayar.",
+          "interval_days": "Sayaç tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Durum Değişikliği Yapılandırması",
+        "description": "{entity_id} varlığının durum geçişlerini say.",
+        "data": {
+          "trigger_from_state": "Kaynak durum (isteğe bağlı)",
+          "trigger_to_state": "Hedef durum (isteğe bağlı)",
+          "trigger_target_changes": "Tetikleme için değişiklik sayısı",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_from_state": "Yalnızca bu durumdan yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_to_state": "Yalnızca bu duruma yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_target_changes": "Bakım tetiklenmeden önce eşleşen durum değişikliği sayısı.",
+          "interval_days": "Durum değişikliği tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Çalışma Süresi Yapılandırması",
+        "description": "{entity_id} varlığının birikmiş çalışma süresini izleyin. Toplam açık kalma süresi hedef saate ulaştığında bakım tetiklenir.",
+        "data": {
+          "trigger_runtime_hours": "Hedef çalışma süresi (saat)",
+          "trigger_on_states": "Etkin durumlar (virgülle ayrılmış)",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra bakımı tetikle.",
+          "trigger_on_states": "Hangi sensör durumlarının 'etkin' sayılacağı. Varsayılan için boş bırakın: on, 1, true. Örnek: in_use, running",
+          "interval_days": "Çalışma süresi tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+        }
+      },
+      "compound_logic": {
+        "title": "Bileşik Tetikleyici",
+        "description": "Birden çok koşulun nasıl birleştirileceğini seçin.",
+        "data": {
+          "compound_logic": "Mantık",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "compound_logic": "VE = tüm koşullar tetiklenmelidir. VEYA = herhangi bir koşul tetikler.",
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Koşul #{condition_num} — Varlık",
+        "description": "Bu koşul için varlığı seçin.",
+        "data": {
+          "trigger_entity": "Varlık",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_entity": "Bu koşul için izlenecek sensör varlığı.",
+          "go_back": "Kaydetmeden önceki adıma dönün."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Koşul #{condition_num} — Tür",
+        "description": "Bu koşul sensörü nasıl değerlendirmeli?",
+        "data": {
+          "trigger_type": "Tetikleyici türü",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_type": "Bu koşulun ne zaman tetikleneceğini belirlemek için kullanılan yöntem.",
+          "go_back": "Kaydetmeden varlık seçimine dönün."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Koşul — Eşik",
+        "data": {
+          "trigger_above": "Üzerinde tetikle",
+          "trigger_below": "Altında tetikle",
+          "trigger_for_minutes": "Süre (dakika)",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_above": "Değer bu eşiği aştığında tetikle.",
+          "trigger_below": "Değer bu eşiğin altına düştüğünde tetikle.",
+          "trigger_for_minutes": "Değer bu süre boyunca eşiğin ötesinde kalmalıdır.",
+          "go_back": "Kaydetmeden koşul türü seçimine dönün."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Koşul — Sayaç",
+        "data": {
+          "trigger_target_value": "Hedef değer",
+          "trigger_delta_mode": "Delta modu",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_target_value": "Birikmiş değer bu hedefe ulaştığında tetikle.",
+          "trigger_delta_mode": "Mutlak değer yerine bir referans noktasından değişiklikleri say.",
+          "go_back": "Kaydetmeden koşul türü seçimine dönün."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Koşul — Durum Değişikliği",
+        "data": {
+          "trigger_from_state": "Kaynak durum",
+          "trigger_to_state": "Hedef durum",
+          "trigger_target_changes": "Değişiklik sayısı",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_from_state": "Yalnızca bu durumdan yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_to_state": "Yalnızca bu duruma yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_target_changes": "Tetiklenmeden önce eşleşen durum değişikliği sayısı.",
+          "go_back": "Kaydetmeden koşul türü seçimine dönün."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Koşul — Çalışma Süresi",
+        "data": {
+          "trigger_runtime_hours": "Hedef çalışma süresi (saat)",
+          "trigger_on_states": "Etkin durumlar",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra tetikle.",
+          "trigger_on_states": "'Etkin' sayılan sensör durumları. Varsayılan için boş bırakın.",
+          "go_back": "Kaydetmeden koşul türü seçimine dönün."
+        }
+      },
+      "compound_review": {
+        "title": "Bileşik Tetikleyici İncelemesi",
+        "description": "{condition_count} koşul {compound_logic} mantığıyla yapılandırıldı.",
+        "data": {
+          "compound_action": "Eylem",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "go_back": "Kaydetmeden mantık seçimine dönün."
+        }
+      },
+      "manual": {
+        "title": "Manuel Zamanlama",
+        "description": "Bu görevin otomatik zamanlaması yok. Görevi manuel olarak vadesi gelmiş şeklinde işaretleyebilirsiniz.",
+        "data": {
+          "warning_days": "Vadeden önce uyarı günleri",
+          "notes": "Notlar",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "notes": "Bu görev için ek notlar veya talimatlar.",
+          "go_back": "Kaydetmeden görev oluşturmaya dönün."
+        }
+      },
+      "reconfigure": {
+        "title": "{name} nesnesini yeniden yapılandır",
+        "description": "Bu bakım nesnesinin ayarlarını güncelleyin.",
+        "data": {
+          "name": "Nesne adı",
+          "area_id": "Alan",
+          "manufacturer": "Üretici",
+          "model": "Model",
+          "serial_number": "Seri numarası",
+          "documentation_url": "Kılavuz / dokümantasyon URL'si",
+          "notes": "Notlar",
+          "installation_date": "Kurulum tarihi",
+          "warranty_expiry": "Garanti bitişi"
+        },
+        "data_description": {
+          "name": "Bu bakım nesnesinin adı.",
+          "area_id": "Bu nesnenin bulunduğu alan.",
+          "manufacturer": "Bu nesnenin üreticisi.",
+          "model": "Bu nesnenin modeli.",
+          "serial_number": "Bu nesnenin seri numarası.",
+          "documentation_url": "PDF kılavuza, satıcı sayfasına veya bu nesneyle ilgili referans bilgisi içeren herhangi bir URL'ye isteğe bağlı bağlantı.",
+          "notes": "Nesne hakkında serbest biçimli notlar — parça numaraları, prosedürler, ayar hatırlatmaları vb.",
+          "installation_date": "Bu nesnenin kurulduğu tarih.",
+          "warranty_expiry": "Bu nesnenin üretici garantisinin sona erdiği tarih."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Bu ada sahip bir bakım nesnesi zaten var.",
+      "no_tasks": "En az bir bakım görevi gereklidir.",
+      "invalid_entity": "Seçilen varlık mevcut değil veya sayısal verisi yok.",
+      "invalid_attribute": "Seçilen öznitelik bu varlıkta mevcut değil.",
+      "invalid_threshold": "En az bir eşik (üst veya alt) ayarlanmalıdır.",
+      "invalid_due_date": "Tek seferlik görevler için bir vade tarihi gereklidir.",
+      "invalid_interval": "Aralık pozitif bir sayı olmalıdır.",
+      "min_exceeds_max": "Minimum aralık, maksimum aralığı aşmamalıdır.",
+      "invalid_notify_service": "Geçersiz bildirim servisi biçimi. 'notify.servis_adi' kullanın (örn. notify.mobile_app_phone).",
+      "notify_service_not_found": "Bu bildirim servisi Home Assistant'ta bulunamadı. Lütfen servis adını doğrulayın.",
+      "nfc_tag_duplicate": "Bu NFC etiketi zaten başka bir göreve bağlı."
+    },
+    "abort": {
+      "already_configured": "Bu bakım nesnesi zaten yapılandırılmış.",
+      "global_already_exists": "Genel ayarlar zaten yapılandırılmış.",
+      "template_not_found": "Seçilen şablon bulunamadı.",
+      "missing_data": "Gerekli veriler sağlanmadı.",
+      "reconfigure_successful": "Yapılandırma başarıyla güncellendi.",
+      "reconfigure_cancelled": "Yeniden yapılandırma iptal edildi."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Bakım Seçenekleri",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Görevleri Yönet",
+          "add_task": "Yeni Görev Ekle",
+          "object_settings": "Nesne Ayarları",
+          "done": "Bitti"
+        }
+      },
+      "global_init": {
+        "title": "Genel Ayarlar",
+        "description": "Genel bakım ayarlarını yapılandırın.",
+        "menu_options": {
+          "general_settings": "Genel Ayarlar",
+          "advanced_features": "Gelişmiş Özellikler",
+          "panel_access": "Panel Erişimi",
+          "budget_settings": "Bütçe Ayarları",
+          "manage_groups": "Grupları Yönet",
+          "notification_settings": "Bildirim Ayarları",
+          "notification_actions": "Etkileşimli Eylemler",
+          "test_notification": "Test Bildirimi Gönder",
+          "done": "Bitti"
+        }
+      },
+      "advanced_features": {
+        "title": "Gelişmiş Özellikler",
+        "description": "Arayüzde hangi gelişmiş özelliklerin gösterileceğini seçin. Bir özelliği devre dışı bırakmak onu arayüzden gizler ancak hiçbir veriyi silmez.",
+        "data": {
+          "advanced_adaptive_visible": "Uyarlanabilir Zamanlama",
+          "advanced_predictions_visible": "Sensör Tahminleri",
+          "advanced_seasonal_visible": "Mevsimsel Ayarlamalar",
+          "advanced_environmental_visible": "Çevresel Korelasyon",
+          "advanced_budget_visible": "Bütçe Takibi",
+          "advanced_groups_visible": "Gruplar",
+          "advanced_checklists_visible": "Kontrol Listeleri",
+          "advanced_schedule_time_visible": "Günün saatine göre zamanlama"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Görevler için EWA, Weibull analizi ve aralık önerilerini göster.",
+          "advanced_predictions_visible": "Sensör bozulma analizini ve eşik tahmin grafiklerini göster.",
+          "advanced_seasonal_visible": "Mevsimsel faktör grafiklerini ve aylık ayarlama verilerini göster.",
+          "advanced_environmental_visible": "Çevresel korelasyon (sıcaklık, nem) ayarlamalarını göster.",
+          "advanced_budget_visible": "Aylık/yıllık bütçe takibini ve uyarıları göster.",
+          "advanced_groups_visible": "Bakım grubu yönetimini göster.",
+          "advanced_checklists_visible": "Adım adım tamamlama için görev kontrol listelerini göster.",
+          "advanced_schedule_time_visible": "Görevlerin gece yarısı yerine günün belirli bir saatinde gecikmiş duruma geçmesine izin ver."
+        }
+      },
+      "panel_access": {
+        "title": "Panel Erişimi",
+        "description": "Yöneticiler her zaman tam erişime sahiptir. Oluşturma, düzenleme ve silmeyi belirli yönetici olmayan kullanıcılara devretmek için aşağıdaki seçeneği açın ve onları seçin — diğer herkes yalnızca Tamamla ve Atla görür. {user_count} yönetici olmayan kullanıcı bulundu.",
+        "data": {
+          "operator_write_enabled": "Seçilen kullanıcıların oluşturmasına, düzenlemesine ve silmesine izin ver",
+          "admin_panel_user_ids": "Tam panel erişimine sahip kullanıcılar"
+        },
+        "data_description": {
+          "operator_write_enabled": "Kapalı (varsayılan): yalnızca yöneticiler içeriği değiştirebilir. Açık: aşağıda seçilen kullanıcılar da tam oluşturma/düzenleme/silme erişimi alır.",
+          "admin_panel_user_ids": "Listelenen kullanıcılar tam paneli görür; diğer herkes her görevde yalnızca Tamamla ve Atla görür."
+        }
+      },
+      "general_settings": {
+        "title": "Genel Ayarlar",
+        "description": "Maintenance Supporter için temel ayarları yapılandırın.",
+        "data": {
+          "default_warning_days": "Vadeden önce varsayılan uyarı günleri",
+          "notifications_enabled": "Bildirimleri etkinleştir",
+          "notify_service": "Bildirim servisi",
+          "panel_enabled": "Kenar çubuğu panelini göster",
+          "panel_title": "Kenar çubuğu paneli başlığı"
+        },
+        "data_description": {
+          "default_warning_days": "Bir bakım görevinin vadesinden kaç gün önce uyarı gösterileceği.",
+          "notifications_enabled": "Bakım görevlerinin vadesi geldiğinde veya geciktiğinde bildirim gönder.",
+          "notify_service": "Kullanılacak bildirim servisi (örn. notify.mobile_app_phone).",
+          "panel_enabled": "Kenar çubuğunda bir Maintenance Supporter paneli göster.",
+          "panel_title": "Kenar çubuğu girdisi için özel ad. \"Bakım\" kullanmak için boş bırakın. Home Assistant'ın yerleşik Bakım panosuyla çakışmayı önlemek için kullanışlıdır."
+        }
+      },
+      "notification_settings": {
+        "title": "Bildirim Ayarları",
+        "description": "Her durum için bildirimlerin ne zaman ve ne sıklıkta gönderileceğini yapılandırın.",
+        "data": {
+          "notify_due_soon_enabled": "Vade yaklaştığında bildir",
+          "notify_due_soon_interval_hours": "Vadesi yaklaşan hatırlatma aralığı (saat)",
+          "notify_overdue_enabled": "Geciktiğinde bildir",
+          "notify_overdue_interval_hours": "Gecikme hatırlatma aralığı (saat)",
+          "notify_triggered_enabled": "Tetiklendiğinde bildir",
+          "notify_triggered_interval_hours": "Tetiklenme hatırlatma aralığı (saat)",
+          "quiet_hours_enabled": "Sessiz saatleri etkinleştir",
+          "quiet_hours_start": "Sessiz saatler başlangıcı",
+          "quiet_hours_end": "Sessiz saatler bitişi",
+          "max_notifications_per_day": "Günlük en fazla bildirim",
+          "notification_bundling_enabled": "Bildirimleri grupla",
+          "notification_bundle_threshold": "Gruplama eşiği",
+          "notification_title_style": "Bildirim başlığı stili"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Vadesi yaklaşan hatırlatmasının ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
+          "notify_overdue_interval_hours": "Gecikme hatırlatmasının ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
+          "notify_triggered_interval_hours": "Tetiklenme bildiriminin ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
+          "quiet_hours_enabled": "Sessiz saatler sırasında bildirimleri bastır.",
+          "max_notifications_per_day": "Günlük en fazla bildirim sayısı. Sınırsız için 0 yapın.",
+          "notification_bundling_enabled": "Birden çok görev ilgi gerektirdiğinde tek bir özet bildirimi gönder.",
+          "notification_bundle_threshold": "Gruplanmış bildirimi tetiklemek için gereken en az görev sayısı.",
+          "notification_title_style": "Bildirimin BAŞLIĞI olarak ne görüneceği. Varsayılan, duruma özgü metni korur (örn. 'Bakım gecikti!'). Nesne adı / Görev adı, telefon bildirimleri üst üste yığıldığında yardımcı olur."
+        }
+      },
+      "notification_actions": {
+        "title": "Etkileşimli Eylemler",
+        "description": "Mobil bildirimlerde gösterilen eylem düğmelerini yapılandırın (Companion App gerektirir).",
+        "data": {
+          "action_complete_enabled": "'Tamamla' düğmesini göster",
+          "action_skip_enabled": "'Atla' düğmesini göster",
+          "action_snooze_enabled": "'Ertele' düğmesini göster",
+          "snooze_duration_hours": "Erteleme süresi (saat)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Görevi doğrudan bildirimden tamamlandı olarak işaretlemek için bir düğme ekler.",
+          "action_skip_enabled": "Mevcut bakım döngüsünü bildirimden atlamak için bir düğme ekler.",
+          "action_snooze_enabled": "Bildirim hatırlatmasını ertelemek için bir düğme ekler.",
+          "snooze_duration_hours": "Ertele düğmesine basıldığında bildirimlerin ne kadar süre erteleneceği."
+        }
+      },
+      "budget_settings": {
+        "title": "Bütçe Ayarları",
+        "description": "Harcamaları takip etmek için aylık ve yıllık bakım bütçeleri belirleyin.",
+        "data": {
+          "budget_currency": "Para birimi",
+          "budget_monthly": "Aylık bütçe",
+          "budget_yearly": "Yıllık bütçe",
+          "budget_alerts_enabled": "Bütçe uyarılarını etkinleştir",
+          "budget_alert_threshold": "Uyarı eşiği (%)"
+        },
+        "data_description": {
+          "budget_currency": "Bütçe gösterimi ve bildirimler için kullanılan para birimi.",
+          "budget_monthly": "En yüksek aylık bakım harcaması. Devre dışı bırakmak için 0 yapın.",
+          "budget_yearly": "En yüksek yıllık bakım harcaması. Devre dışı bırakmak için 0 yapın.",
+          "budget_alerts_enabled": "Harcama uyarı eşiğini aştığında bir bildirim gönder.",
+          "budget_alert_threshold": "Uyarı gönderilecek bütçe yüzdesi."
+        }
+      },
+      "test_notification": {
+        "title": "Test Bildirimi",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Grupları Yönet",
+        "description": "Yönetilecek bir grup seçin veya yeni bir grup oluşturun.",
+        "data": {
+          "selected_group": "Grup seç"
+        }
+      },
+      "add_group": {
+        "title": "Grup Ekle",
+        "description": "İlgili görevleri düzenlemek için yeni bir bakım grubu oluşturun.",
+        "data": {
+          "group_name": "Grup adı",
+          "group_description": "Açıklama"
+        },
+        "data_description": {
+          "group_name": "Bu grup için bir ad (örn. 'Bahar Bakımı').",
+          "group_description": "Bu grup için isteğe bağlı açıklama."
+        }
+      },
+      "manage_tasks": {
+        "title": "Görevleri Yönet",
+        "description": "Düzenlenecek veya kaldırılacak bir görev seçin.",
+        "data": {
+          "selected_task": "Görev seç",
+          "go_back": "Geri dön"
+        }
+      },
+      "task_action": {
+        "title": "Görev Eylemleri",
+        "description": "Görev: {task_name} — Bir eylem seçin.\n\nSonraki vade tarihleri: {next_dates}",
+        "menu_options": {
+          "edit_task": "Görevi Düzenle",
+          "edit_trigger": "Tetikleyiciyi Düzenle",
+          "remove_trigger": "Tetikleyiciyi Kaldır",
+          "edit_checklist": "Kontrol Listesini Düzenle",
+          "adaptive_scheduling": "Uyarlanabilir Zamanlama",
+          "delete_task": "Görevi Sil",
+          "manage_tasks": "Geri"
+        }
+      },
+      "edit_task": {
+        "title": "Görevi Düzenle",
+        "description": "**{task_name}** görevinin ayarlarını düzenleyin.",
+        "data": {
+          "name": "Görev adı",
+          "type": "Bakım türü",
+          "interval_days": "Aralık",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "due_date": "Vade tarihi",
+          "enabled": "Etkin",
+          "notes": "Notlar",
+          "documentation_url": "Dokümantasyon URL'si",
+          "last_performed": "Son yapılma",
+          "responsible_user_id": "Sorumlu kullanıcı",
+          "custom_icon": "Görev simgesi",
+          "nfc_tag_id": "NFC etiket kimliği",
+          "go_back": "Geri dön",
+          "interval_anchor": "Aralık dayanağı",
+          "reading_unit": "Okuma birimi (okuma görevleri için, örn. kWh)",
+          "season_months": "Mevsimsel pencere (aylar)",
+          "ends_count": "Şu kadar tekrardan sonra biter",
+          "ends_until": "Şu tarihte biter"
+        },
+        "data_description": {
+          "name": "Bu görev için açıklayıcı bir ad (örn. 'Filtre Temizliği', 'Yağ Değişimi').",
+          "type": "Bakım işinin kategorisi.",
+          "interval_days": "Bu bakımın, aralık birimiyle birlikte ne sıklıkta tekrarlanacağı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "due_date": "Bu tek seferlik görevin vade tarihi.",
+          "enabled": "Devre dışı bırakıldığında zamanlama ve tetikleyiciler duraklatılır. Görev silinmez.",
+          "notes": "Bu görev için ek notlar veya talimatlar.",
+          "documentation_url": "Bu görev için harici dokümantasyon veya kılavuz bağlantısı.",
+          "last_performed": "Bu bakımın en son ne zaman yapıldığı. Hiç yapılmadıysa boş bırakın.",
+          "responsible_user_id": "Bu görevden sorumlu Home Assistant kullanıcısı.",
+          "custom_icon": "Bu görev için isteğe bağlı özel simge (örn. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Bu göreve bir NFC etiketi bağlayın. Etiketin taranması görevi otomatik olarak tamamlandı olarak işaretler.",
+          "go_back": "Kaydetmeden görev eylemlerine dönün.",
+          "interval_anchor": "Tamamlamadan sonra bir sonraki vade tarihinin nasıl hesaplanacağı. 'Planlanan', orijinal vade tarihine bağlanarak zamanlama kaymasını önler.",
+          "season_months": "Yalnızca seçilen aylarda vadesi gelir; sezon dışı tarihler bir sonraki etkin aya kayar. Tüm yıl için boş bırakın.",
+          "ends_count": "Bu kadar tamamlamadan sonra tekrarı durdur (sonlu bir seri). Sınırsız için boş bırakın.",
+          "ends_until": "Bir sonraki tekrar bu tarihten sonraya denk geldiğinde tekrarı durdur. 'Şu kadar tekrardan sonra biter' ayarlıysa yok sayılır."
+        }
+      },
+      "edit_checklist": {
+        "title": "Kontrol Listesini Düzenle",
+        "description": "{task_name} için kontrol listesi adımlarını tanımlayın. Her satıra bir adım girin.",
+        "data": {
+          "checklist_text": "Kontrol listesi adımları",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "checklist_text": "Her kontrol listesi adımını ayrı bir satıra girin. Bu adımlar görev tamamlanırken gösterilecektir.",
+          "go_back": "Kaydetmeden görev eylemlerine dönün."
+        }
+      },
+      "compound_logic": {
+        "title": "Bileşik Tetikleyici",
+        "description": "Birden çok koşulun nasıl birleştirileceğini seçin.",
+        "data": {
+          "compound_logic": "Mantık",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "compound_logic": "VE = tüm koşullar tetiklenmelidir. VEYA = herhangi bir koşul tetikler."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Koşul #{condition_num} — Varlık",
+        "description": "Bu koşul için varlığı seçin.",
+        "data": {
+          "trigger_entity": "Varlık",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_entity": "Bu koşul için izlenecek sensör varlığı."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Koşul #{condition_num} — Tür",
+        "description": "Bu koşul sensörü nasıl değerlendirmeli?",
+        "data": {
+          "trigger_type": "Tetikleyici türü",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_type": "Bu koşulun ne zaman tetikleneceğini belirlemek için kullanılan yöntem."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Koşul — Eşik",
+        "data": {
+          "trigger_above": "Üzerinde tetikle",
+          "trigger_below": "Altında tetikle",
+          "trigger_for_minutes": "Süre (dakika)",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_above": "Değer bu eşiği aştığında tetikle.",
+          "trigger_below": "Değer bu eşiğin altına düştüğünde tetikle.",
+          "trigger_for_minutes": "Değer bu süre boyunca eşiğin ötesinde kalmalıdır."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Koşul — Sayaç",
+        "data": {
+          "trigger_target_value": "Hedef değer",
+          "trigger_delta_mode": "Delta modu",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_target_value": "Birikmiş değer bu hedefe ulaştığında tetikle.",
+          "trigger_delta_mode": "Mutlak değer yerine bir referans noktasından değişiklikleri say."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Koşul — Durum Değişikliği",
+        "data": {
+          "trigger_from_state": "Kaynak durum",
+          "trigger_to_state": "Hedef durum",
+          "trigger_target_changes": "Değişiklik sayısı",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_from_state": "Yalnızca bu durumdan yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_to_state": "Yalnızca bu duruma yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_target_changes": "Tetiklenmeden önce eşleşen durum değişikliği sayısı."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Koşul — Çalışma Süresi",
+        "data": {
+          "trigger_runtime_hours": "Hedef çalışma süresi (saat)",
+          "trigger_on_states": "Etkin durumlar",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra tetikle.",
+          "trigger_on_states": "'Etkin' sayılan sensör durumları. Varsayılan için boş bırakın."
+        }
+      },
+      "compound_review": {
+        "title": "Bileşik Tetikleyici İncelemesi",
+        "description": "{condition_count} koşul {compound_logic} mantığıyla yapılandırıldı.",
+        "data": {
+          "compound_action": "Eylem",
+          "go_back": "Geri dön"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Uyarlanabilir Zamanlama",
+        "description": "{task_name} için akıllı aralık uyarlamasını yapılandırın. Sistem, daha iyi aralıklar önermek için tamamlama geri bildirimlerinizden öğrenir.",
+        "data": {
+          "adaptive_enabled": "Uyarlanabilir zamanlamayı etkinleştir",
+          "ewa_alpha": "Öğrenme hızı (alfa)",
+          "min_interval_days": "Minimum aralık (gün)",
+          "max_interval_days": "Maksimum aralık (gün)",
+          "seasonal_enabled": "Mevsimsel farkındalığı etkinleştir",
+          "sensor_prediction_enabled": "Sensör tabanlı tahminleri etkinleştir",
+          "environmental_entity": "Çevresel sensör (isteğe bağlı)",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "adaptive_enabled": "Etkinleştirildiğinde sistem, geri bildirimlerinizden öğrenerek en uygun bakım aralıklarını önerir.",
+          "ewa_alpha": "Algoritmanın yeni verilere ne kadar hızlı uyum sağlayacağı. Yüksek = daha duyarlı, düşük = daha kararlı.",
+          "min_interval_days": "Sistemin önereceği en kısa aralık.",
+          "max_interval_days": "Sistemin önereceği en uzun aralık.",
+          "seasonal_enabled": "Önerileri, bakım geçmişinizden öğrenilen mevsimsel örüntülere göre ayarla.",
+          "sensor_prediction_enabled": "Eşiklere ne zaman ulaşılacağını tahmin etmek için sensör eğilimlerini analiz et ve gerekirse daha erken bakım öner.",
+          "environmental_entity": "Çevresel koşulları bakım aralıklarıyla ilişkilendirmek için bir sıcaklık, nem veya basınç sensörü bağlayın.",
+          "go_back": "Kaydetmeden görev eylemlerine dönün."
+        }
+      },
+      "delete_task": {
+        "title": "Görevi Sil",
+        "description": "{task_name} görevini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "data": {
+          "confirm": "Silmeyi onayla",
+          "go_back": "Geri dön"
+        }
+      },
+      "remove_trigger": {
+        "title": "Tetikleyiciyi Kaldır",
+        "description": "**{task_name}** görevinden tetikleyici kaldırılsın mı?\n\n**Varlık:** {entity_ids}\n**Tür:** {trigger_type}\n**Yapılandırma:** {config_details}\n\nTüm varlıklar kaldırılırsa zamanlama, zamana dayalı biçime geri döner.",
+        "data": {
+          "entities_to_remove": "Kaldırılacak varlıklar",
+          "confirm": "Kaldırmayı onayla",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "entities_to_remove": "Bu tetikleyiciden hangi varlıkların kaldırılacağını seçin. Tümü kaldırılırsa tetikleyicinin tamamı silinir.",
+          "go_back": "Kaydetmeden görev eylemlerine dönün."
+        }
+      },
+      "trigger_summary": {
+        "title": "Mevcut Tetikleyici",
+        "description": "**{task_name}** için tetikleyici:\n\n**Varlık:** {entity_ids}\n**Mevcut durum:** {current_states}\n**Tür:** {trigger_type} (öznitelik: {attribute})\n**Yapılandırma:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Tetikleyiciyi Düzenle",
+          "task_action": "Geri"
+        }
+      },
+      "add_task": {
+        "title": "Bakım Görevi Ekle",
+        "description": "Bu nesne için yeni bir bakım görevi tanımlayın.",
+        "data": {
+          "name": "Görev adı",
+          "type": "Bakım türü",
+          "schedule_type": "Zamanlama türü",
+          "custom_icon": "Görev simgesi",
+          "go_back": "Geri dön",
+          "reading_unit": "Okuma birimi (okuma görevleri için, örn. kWh)"
+        },
+        "data_description": {
+          "name": "Bu görev için açıklayıcı bir ad (örn. 'Filtre Temizliği', 'Yağ Değişimi').",
+          "type": "Bakım işinin kategorisi.",
+          "schedule_type": "Bu görevin nasıl zamanlanacağı.",
+          "custom_icon": "Bu görev için isteğe bağlı özel simge (örn. mdi:oil, mdi:filter-variant).",
+          "go_back": "Kaydetmeden ana menüye dönün."
+        }
+      },
+      "opt_time_based": {
+        "title": "Zamana Dayalı Zamanlama",
+        "description": "Bu görev için zaman aralığını yapılandırın.",
+        "data": {
+          "interval_days": "Aralık",
+          "interval_unit": "Aralık birimi",
+          "last_performed": "Son yapılma",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "interval_anchor": "Aralık dayanağı"
+        },
+        "data_description": {
+          "interval_days": "Bu bakımın, aralık birimiyle birlikte ne sıklıkta tekrarlanacağı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "last_performed": "Bu bakımın en son ne zaman yapıldığı. Hiç yapılmadıysa boş bırakın.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden ana menüye dönün.",
+          "interval_anchor": "Tamamlamadan sonra bir sonraki vade tarihinin nasıl hesaplanacağı. 'Planlanan', orijinal vade tarihine bağlanarak zamanlama kaymasını önler."
+        }
+      },
+      "opt_one_time": {
+        "title": "Tek Seferlik Görev",
+        "description": "Tek seferlik, tekrarlanmayan bir bakım görevi yapılandırın. Tamamlandığında arşivlenir.",
+        "data": {
+          "due_date": "Vade tarihi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "due_date": "Bu tek seferlik görevin vade tarihi.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden ana menüye dönün."
+        }
+      },
+      "opt_calendar": {
+        "title": "Takvim Zamanlaması",
+        "description": "Takvime dayalı bir tekrar yapılandırın (haftanın günleri, ayın n. haftaiçi günü veya ayın bir günü).",
+        "data": {
+          "weekdays": "Bu günlerde",
+          "nth": "Hangi tekrar",
+          "weekday": "Haftanın günü",
+          "day": "Ayın günü",
+          "last_performed": "Son yapılma",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "last_day": "Ayın son günü",
+          "business": "Yalnızca iş günleri",
+          "offset": "Kaydırma (gün)"
+        },
+        "data_description": {
+          "weekdays": "Görev, seçilen her haftanın gününde tekrarlanır.",
+          "nth": "Ay içindeki hangi tekrar (örn. 1. veya Son).",
+          "weekday": "N. gün kuralı için haftanın günü (örn. Cumartesi).",
+          "day": "Ayın günü (1-31; ayın uzunluğuna göre sınırlanır).",
+          "last_performed": "Bu bakımın en son ne zaman yapıldığı. Hiç yapılmadıysa boş bırakın.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden ana menüye dönün.",
+          "last_day": "Gün numarasını geçersiz kılar: görevin vadesi ayın son günüdür.",
+          "business": "Hafta sonuna denk gelen tarihi önceki Cumaya çeker (örn. son iş günü).",
+          "offset": "Hesaplanan tarihi ±N gün kaydırır (örn. -2 = iki gün önce)."
+        }
+      },
+      "opt_manual": {
+        "title": "Manuel Zamanlama",
+        "description": "Bu görevin otomatik zamanlaması yok. Görevi manuel olarak vadesi gelmiş şeklinde işaretleyebilirsiniz.",
+        "data": {
+          "warning_days": "Vadeden önce uyarı günleri",
+          "notes": "Notlar",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "notes": "Bu görev için ek notlar veya talimatlar.",
+          "go_back": "Kaydetmeden ana menüye dönün."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Tetikleyici Sensör Seç",
+        "description": "İzlenecek bir Home Assistant varlığı seçin.",
+        "data": {
+          "trigger_entity": "İzlenecek varlık",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_entity": "Bu bakım görevini tetiklemesi gereken sensör varlığını seçin."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Öznitelik Seç",
+        "description": "{entity_id} varlığından hangi değerin izleneceğini seçin. Mevcut durum: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "İzlenecek değer",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_attribute": "İzlenecek varlık durumunu veya belirli bir özniteliği seçin."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Tetikleyici Türü",
+        "description": "Sensör değeri bakımı nasıl tetiklemeli?",
+        "data": {
+          "trigger_type": "Tetikleyici türü",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_type": "Eşik: değer sınırları aştığında tetiklenir. Sayaç: bir hedef değer biriktiğinde tetiklenir. Durum Değişikliği: belirli sayıda durum geçişinden sonra tetiklenir."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Eşik Yapılandırması",
+        "description": "**{entity_id}** ({attribute}) için eşik değerlerini ayarlayın.\nMevcut: **{current_value} {unit}** | Ort: {average} | Aralık: {minimum}–{maximum} ({data_period}g)\nÖnerilen üst: {suggested_above} | Önerilen alt: {suggested_below}",
+        "data": {
+          "trigger_above": "Şunun üzerinde tetikle",
+          "trigger_below": "Şunun altında tetikle",
+          "trigger_for_minutes": "En az (dakika)",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_above": "Değer bu eşiği aştığında bakımı tetikle.",
+          "trigger_below": "Değer bu eşiğin altına düştüğünde bakımı tetikle.",
+          "trigger_for_minutes": "Tetiklenmeden önce değer bu kadar dakika boyunca eşiği aşmalıdır.",
+          "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Sayaç Yapılandırması",
+        "description": "{entity_id} ({attribute}) için sayaç hedefini ayarlayın. Mevcut: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Hedef değer",
+          "trigger_delta_mode": "Delta modu (mutlak değil, değişiklikleri say)",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_target_value": "Bu birikmiş değere ulaşıldığında bakımı tetikle.",
+          "trigger_delta_mode": "Etkinleştirilirse, mutlak değer yerine bir referans noktasından farkı sayar.",
+          "interval_days": "Sayaç tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Durum Değişikliği Yapılandırması",
+        "description": "{entity_id} varlığının durum geçişlerini say.",
+        "data": {
+          "trigger_from_state": "Kaynak durum (isteğe bağlı)",
+          "trigger_to_state": "Hedef durum (isteğe bağlı)",
+          "trigger_target_changes": "Tetikleme için değişiklik sayısı",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_from_state": "Yalnızca bu durumdan yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_to_state": "Yalnızca bu duruma yapılan geçişleri say. Herhangi biri için boş bırakın.",
+          "trigger_target_changes": "Bakım tetiklenmeden önce eşleşen durum değişikliği sayısı.",
+          "interval_days": "Durum değişikliği tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Çalışma Süresi Yapılandırması",
+        "description": "{entity_id} varlığının birikmiş çalışma süresini izleyin.",
+        "data": {
+          "trigger_runtime_hours": "Hedef çalışma süresi (saat)",
+          "trigger_on_states": "Etkin durumlar (virgülle ayrılmış)",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra bakımı tetikle.",
+          "trigger_on_states": "Hangi sensör durumlarının 'etkin' sayılacağı. Varsayılan için boş bırakın: on, 1, true. Örnek: in_use, running",
+          "interval_days": "Çalışma süresi tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
+        }
+      },
+      "object_settings": {
+        "title": "Nesne Ayarları",
+        "description": "Nesne ayrıntılarını düzenleyin.",
+        "data": {
+          "name": "Nesne adı",
+          "manufacturer": "Üretici",
+          "model": "Model",
+          "serial_number": "Seri numarası",
+          "documentation_url": "Kılavuz / dokümantasyon URL'si",
+          "notes": "Notlar",
+          "area_id": "Alan",
+          "installation_date": "Kurulum tarihi",
+          "warranty_expiry": "Garanti bitişi",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "name": "Bu bakım nesnesi için benzersiz bir ad (örn. 'Havuz Pompası', 'Araba').",
+          "manufacturer": "Nesnenin üreticisi.",
+          "model": "Model adı veya numarası.",
+          "serial_number": "Nesnenin seri numarası.",
+          "documentation_url": "PDF kılavuza, satıcı sayfasına veya bu nesneyle ilgili referans bilgisi içeren herhangi bir URL'ye isteğe bağlı bağlantı.",
+          "notes": "Nesne hakkında serbest biçimli notlar — parça numaraları, prosedürler, ayar hatırlatmaları vb.",
+          "area_id": "Bu nesnenin evinizde bulunduğu alan.",
+          "installation_date": "Bu nesnenin kurulduğu veya satın alındığı tarih.",
+          "warranty_expiry": "Bu nesnenin üretici garantisinin sona erdiği tarih.",
+          "go_back": "Kaydetmeden ana menüye dönün."
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} Tamamla"
+      },
+      "button_skip": {
+        "name": "{task_name} Atla"
+      },
+      "button_reset": {
+        "name": "{task_name} Sıfırla"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "Tamam",
+          "due_soon": "Vadesi Yaklaşıyor",
+          "overdue": "Gecikmiş",
+          "triggered": "Tetiklendi",
+          "archived": "Arşivlendi",
+          "paused": "Duraklatıldı"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Bakım türü",
+            "state": {
+              "cleaning": "Temizlik",
+              "inspection": "Kontrol",
+              "replacement": "Değişim",
+              "calibration": "Kalibrasyon",
+              "service": "Servis",
+              "reading": "Okuma",
+              "custom": "Özel"
+            }
+          },
+          "schedule_type": {
+            "name": "Zamanlama türü",
+            "state": {
+              "time_based": "Zamana dayalı",
+              "sensor_based": "Sensöre dayalı",
+              "one_time": "Tek seferlik",
+              "manual": "Manuel"
+            }
+          },
+          "interval_days": {
+            "name": "Aralık"
+          },
+          "interval_unit": {
+            "name": "Aralık birimi"
+          },
+          "warning_days": {
+            "name": "Uyarı günleri"
+          },
+          "last_performed": {
+            "name": "Son yapılma"
+          },
+          "next_due": {
+            "name": "Sonraki vade"
+          },
+          "days_until_due": {
+            "name": "Vadeye kalan gün"
+          },
+          "parent_object": {
+            "name": "Üst nesne"
+          },
+          "times_performed": {
+            "name": "Yapılma sayısı"
+          },
+          "total_cost": {
+            "name": "Toplam maliyet"
+          },
+          "average_duration": {
+            "name": "Ortalama süre (dk)"
+          },
+          "notes": {
+            "name": "Notlar"
+          },
+          "documentation_url": {
+            "name": "Dokümantasyon URL'si"
+          },
+          "trigger_entity": {
+            "name": "Tetikleyici varlık"
+          },
+          "trigger_attribute": {
+            "name": "Tetikleyici öznitelik"
+          },
+          "trigger_type": {
+            "name": "Tetikleyici türü",
+            "state": {
+              "threshold": "Eşik",
+              "counter": "Sayaç",
+              "state_change": "Durum değişikliği",
+              "runtime": "Çalışma süresi",
+              "compound": "Bileşik"
+            }
+          },
+          "trigger_active": {
+            "name": "Tetikleyici etkin"
+          },
+          "trigger_current_value": {
+            "name": "Tetikleyici mevcut değer"
+          },
+          "trigger_entity_state": {
+            "name": "Tetikleyici varlık durumu",
+            "state": {
+              "available": "Kullanılabilir",
+              "unavailable": "Kullanılamıyor",
+              "missing": "Eksik",
+              "startup": "Başlatılıyor"
+            }
+          },
+          "trigger_above": {
+            "name": "Üzerinde tetikle"
+          },
+          "trigger_below": {
+            "name": "Altında tetikle"
+          },
+          "trigger_for_minutes": {
+            "name": "Tetikleme süresi (dakika)"
+          },
+          "trigger_target_value": {
+            "name": "Tetikleyici hedef değer"
+          },
+          "trigger_delta_mode": {
+            "name": "Tetikleyici delta modu"
+          },
+          "trigger_baseline_value": {
+            "name": "Tetikleyici referans değeri"
+          },
+          "trigger_current_delta": {
+            "name": "Tetikleyici mevcut delta"
+          },
+          "trigger_from_state": {
+            "name": "Tetikleyici kaynak durum"
+          },
+          "trigger_to_state": {
+            "name": "Tetikleyici hedef durum"
+          },
+          "trigger_target_changes": {
+            "name": "Tetikleyici hedef değişiklik sayısı"
+          },
+          "trigger_change_count": {
+            "name": "Tetikleyici değişiklik sayısı"
+          },
+          "trigger_runtime_hours": {
+            "name": "Hedef çalışma süresi (saat)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Birikmiş çalışma süresi (saat)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Kalan çalışma süresi (saat)"
+          },
+          "last_entry": {
+            "name": "Son kayıt"
+          },
+          "suggested_interval": {
+            "name": "Önerilen aralık"
+          },
+          "interval_confidence": {
+            "name": "Aralık güven düzeyi",
+            "state": {
+              "low": "Düşük",
+              "medium": "Orta",
+              "high": "Yüksek"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Uyarlanabilir zamanlama etkin"
+          },
+          "seasonal_factor": {
+            "name": "Mevsimsel faktör"
+          },
+          "seasonal_reason": {
+            "name": "Mevsimsel neden",
+            "state": {
+              "learned": "Öğrenildi",
+              "manual": "Manuel"
+            }
+          },
+          "degradation_rate": {
+            "name": "Bozulma hızı"
+          },
+          "degradation_trend": {
+            "name": "Bozulma eğilimi",
+            "state": {
+              "rising": "Yükseliyor",
+              "falling": "Düşüyor",
+              "stable": "Kararlı",
+              "insufficient_data": "Yetersiz veri"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Eşiğe kalan gün"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Tahmin güven düzeyi",
+            "state": {
+              "low": "Düşük",
+              "medium": "Orta",
+              "high": "Yüksek"
+            }
+          },
+          "environmental_factor": {
+            "name": "Çevresel faktör"
+          },
+          "environmental_entity": {
+            "name": "Çevresel varlık"
+          },
+          "weibull_beta": {
+            "name": "Weibull şekil (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull ölçek (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Arıza örüntüsü",
+            "state": {
+              "early_failures": "Erken arızalar",
+              "random_failures": "Rastgele arızalar",
+              "wear_out": "Aşınma",
+              "highly_predictable": "Yüksek öngörülebilirlik"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Güven aralığı (alt)"
+          },
+          "confidence_interval_high": {
+            "name": "Güven aralığı (üst)"
+          },
+          "interval_anchor": {
+            "name": "Aralık dayanağı",
+            "state": {
+              "completion": "Tamamlamadan itibaren",
+              "planned": "Planlanan tarihten itibaren"
+            }
+          },
+          "due_date": {
+            "name": "Vade tarihi"
+          }
+        }
+      },
+      "summary_overdue": {
+        "name": "Gecikmiş"
+      },
+      "summary_due_soon": {
+        "name": "Vadesi yaklaşıyor"
+      },
+      "summary_triggered": {
+        "name": "Tetiklendi"
+      },
+      "summary_needs_attention": {
+        "name": "İlgi gerektiriyor"
+      },
+      "summary_ok": {
+        "name": "Tamam"
+      },
+      "document_storage": {
+        "name": "Belge depolama"
+      },
+      "summary_total_tasks": {
+        "name": "Toplam görev"
+      },
+      "next_due": {
+        "name": "{task_name} Sonraki vade"
+      },
+      "days_until_due": {
+        "name": "{task_name} Vadeye kalan gün"
+      },
+      "parts_to_reorder": {
+        "name": "Yeniden sipariş edilecek parçalar"
+      },
+      "batteries_to_replace": {
+        "name": "Değiştirilecek piller"
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Bakım Takvimi"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} gecikmiş",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Bakım durumu",
+            "state": {
+              "ok": "Tamam",
+              "due_soon": "Vadesi Yaklaşıyor",
+              "overdue": "Gecikmiş",
+              "triggered": "Tetiklendi",
+              "archived": "Arşivlendi"
+            }
+          },
+          "days_until_due": {
+            "name": "Vadeye kalan gün"
+          },
+          "next_due": {
+            "name": "Sonraki vade"
+          },
+          "parent_object": {
+            "name": "Üst nesne"
+          }
+        }
+      }
+    },
+    "todo": {
+      "maintenance_todo": {
+        "name": "Bakım"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Temizlik",
+        "inspection": "Kontrol",
+        "replacement": "Değişim",
+        "calibration": "Kalibrasyon",
+        "service": "Servis",
+        "reading": "Okuma",
+        "custom": "Özel"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Zamana dayalı",
+        "weekdays": "Haftanın günleri",
+        "nth_weekday": "Ayın n. haftaiçi günü",
+        "day_of_month": "Ayın günü",
+        "sensor_based": "Sensöre dayalı",
+        "one_time": "Tek seferlik",
+        "manual": "Manuel"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Gün",
+        "weeks": "Hafta",
+        "months": "Ay",
+        "years": "Yıl"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Eşik",
+        "counter": "Sayaç",
+        "state_change": "Durum Değişikliği",
+        "runtime": "Çalışma Süresi",
+        "compound": "Bileşik (Birden Çok Koşul)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "VE (tüm koşullar tetiklenmelidir)",
+        "or": "VEYA (herhangi bir koşul tetikler)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Herhangi bir varlık tetikler",
+        "all": "Tüm varlıklar tetiklenmelidir"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Varsayılan (duruma özgü başlık)",
+        "object_name": "Başlık olarak nesne adı",
+        "task_name": "Başlık olarak görev adı"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Bakımı Tamamla",
+      "description": "Bir bakım görevini tamamlandı olarak işaretle.",
+      "fields": {
+        "entity_id": {
+          "name": "Varlık",
+          "description": "Tamamlanacak bakım sensörü varlığı."
+        },
+        "notes": {
+          "name": "Notlar",
+          "description": "Yapılan bakım hakkında isteğe bağlı notlar."
+        },
+        "cost": {
+          "name": "Maliyet",
+          "description": "Yapılan bakımın maliyeti."
+        },
+        "duration": {
+          "name": "Süre",
+          "description": "Bakımın dakika cinsinden süresi."
+        },
+        "reading_value": {
+          "name": "Okuma değeri",
+          "description": "Okuma türü görevler için kaydedilen değer (sayaç okuması, seviye kontrolü)."
+        }
+      }
+    },
+    "reset": {
+      "name": "Bakımı Sıfırla",
+      "description": "Bir bakım görevinin son yapılma tarihini sıfırla.",
+      "fields": {
+        "entity_id": {
+          "name": "Varlık",
+          "description": "Sıfırlanacak bakım sensörü varlığı."
+        },
+        "date": {
+          "name": "Tarih",
+          "description": "Son yapılma olarak ayarlanacak tarih. Varsayılan bugündür."
+        }
+      }
+    },
+    "skip": {
+      "name": "Bakımı Atla",
+      "description": "Mevcut bakım döngüsünü atla.",
+      "fields": {
+        "entity_id": {
+          "name": "Varlık",
+          "description": "Atlanacak bakım sensörü varlığı."
+        },
+        "reason": {
+          "name": "Neden",
+          "description": "Bakımı atlamanın isteğe bağlı nedeni."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Verileri Dışa Aktar",
+      "description": "Tüm bakım verilerini JSON veya YAML olarak dışa aktar.",
+      "fields": {
+        "format": {
+          "name": "Biçim",
+          "description": "Dışa aktarılan veriler için çıktı biçimi (json veya yaml)."
+        },
+        "include_history": {
+          "name": "Geçmişi Dahil Et",
+          "description": "Dışa aktarmaya görev geçmişi kayıtlarının dahil edilip edilmeyeceği."
+        }
+      }
+    },
+    "add_object": {
+      "name": "Nesne Ekle",
+      "description": "Yeni bir bakım nesnesi (cihaz) oluştur. Yeni entry_id değerini döndürür.",
+      "fields": {
+        "name": {
+          "name": "Ad",
+          "description": "Nesnenin/cihazın adı."
+        },
+        "area_id": {
+          "name": "Alan",
+          "description": "Cihazın atanacağı alan."
+        },
+        "manufacturer": {
+          "name": "Üretici"
+        },
+        "model": {
+          "name": "Model"
+        },
+        "serial_number": {
+          "name": "Seri numarası"
+        },
+        "installation_date": {
+          "name": "Kurulum tarihi"
+        },
+        "warranty_expiry": {
+          "name": "Garanti bitişi",
+          "description": "Garanti bitiş tarihi (varlık takibi ve hatırlatmalar için kullanılır)."
+        },
+        "documentation_url": {
+          "name": "Dokümantasyon URL'si",
+          "description": "Bir kılavuza veya satıcı sayfasına bağlantı (yalnızca http/https)."
+        },
+        "notes": {
+          "name": "Notlar"
+        }
+      }
+    },
+    "add_task": {
+      "name": "Görev Ekle",
+      "description": "Mevcut bir nesneye bakım görevi ekle. Yeni task_id değerini döndürür.",
+      "fields": {
+        "entry_id": {
+          "name": "Nesne",
+          "description": "Görevin ekleneceği bakım nesnesi."
+        },
+        "name": {
+          "name": "Ad",
+          "description": "Görevin adı."
+        },
+        "task_type": {
+          "name": "Görev türü",
+          "description": "Serbest biçimli kategori (örn. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Zamanlama türü",
+          "description": "time_based (aralık) veya sensor_based. Varsayılan: time_based."
+        },
+        "interval_days": {
+          "name": "Aralık",
+          "description": "Tekrarlar arasındaki aralık uzunluğu (zamana dayalı görevler için), interval_unit ile birlikte."
+        },
+        "interval_unit": {
+          "name": "Aralık birimi",
+          "description": "Aralık birimi: gün, hafta, ay veya yıl. Varsayılan: gün."
+        },
+        "due_date": {
+          "name": "Vade tarihi",
+          "description": "Tek seferlik bir görev için vade tarihi (YYYY-AA-GG) (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Takvim zamanlaması",
+          "description": "Takvim türleri için iç içe tekrar nesnesi, örn. 1. Cumartesi için kind=nth_weekday, nth=1, weekday=5 (weekday 0=Pzt ... 6=Paz), Pzt ve Per için kind=weekdays, weekdays=[0, 3] veya kind=day_of_month, day=15. interval_days / schedule_type üzerinde önceliklidir."
+        },
+        "warning_days": {
+          "name": "Uyarı (gün)",
+          "description": "Vadesi yaklaşan penceresine girmeden önceki gün sayısı."
+        },
+        "enabled": {
+          "name": "Etkin"
+        },
+        "notes": {
+          "name": "Notlar"
+        }
+      }
+    },
+    "update_task": {
+      "name": "Görevi Güncelle",
+      "description": "Mevcut bir bakım görevinin ortak alanlarını güncelle. Yalnızca sağlanan alanlar değişir.",
+      "fields": {
+        "entry_id": {
+          "name": "Nesne",
+          "description": "Görevin ait olduğu bakım nesnesi."
+        },
+        "task_id": {
+          "name": "Görev kimliği",
+          "description": "Güncellenecek görevin kimliği (bkz. list_tasks)."
+        },
+        "name": {
+          "name": "Ad",
+          "description": "Görevin yeni adı."
+        },
+        "task_type": {
+          "name": "Görev türü",
+          "description": "Kategori (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Zamanlama türü",
+          "description": "time_based (aralık), sensor_based, one_time veya manual."
+        },
+        "interval_days": {
+          "name": "Aralık",
+          "description": "Tekrarlar arasındaki aralık uzunluğu, interval_unit ile birlikte."
+        },
+        "interval_unit": {
+          "name": "Aralık birimi",
+          "description": "gün, hafta, ay veya yıl."
+        },
+        "due_date": {
+          "name": "Vade tarihi",
+          "description": "Tek seferlik görevler için vade tarihi (YYYY-AA-GG)."
+        },
+        "schedule": {
+          "name": "Zamanlama (takvim tekrarı)",
+          "description": "Takvim türleri için iç içe tekrar nesnesi, örn. kind=day_of_month, day=-1, business=true. Düz alanlar üzerinde önceliklidir."
+        },
+        "warning_days": {
+          "name": "Uyarı günleri",
+          "description": "Görevin vadesi yaklaşıyor durumuna geçmesinden önceki gün sayısı."
+        },
+        "enabled": {
+          "name": "Etkin",
+          "description": "Görevin etkin olup olmadığı."
+        },
+        "notes": {
+          "name": "Notlar",
+          "description": "Görevle ilgili serbest biçimli notlar."
+        },
+        "priority": {
+          "name": "Öncelik",
+          "description": "low, normal veya high."
+        },
+        "labels": {
+          "name": "Etiketler",
+          "description": "Filtreleme ve raporlama için etiket listesi."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Görevi Sil",
+      "description": "Bir bakım görevini geçmişiyle birlikte sil. Bu işlem geri alınamaz - bunun yerine panel üzerinden arşivlemeyi düşünün.",
+      "fields": {
+        "entry_id": {
+          "name": "Nesne",
+          "description": "Görevin ait olduğu bakım nesnesi."
+        },
+        "task_id": {
+          "name": "Görev kimliği",
+          "description": "Silinecek görevin kimliği (bkz. list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Görevleri Listele",
+      "description": "Otomasyonlar, betikler ve sesli komutlar için etkin bakım görevlerinin anlık görüntüsünü (kimlik, ad, durum, sonraki vade) döndür. Nesneye ve duruma göre filtrelemeyi destekler.",
+      "fields": {
+        "entry_id": {
+          "name": "Nesne",
+          "description": "Yalnızca bu bakım nesnesinin görevlerini döndür."
+        },
+        "status": {
+          "name": "Durum",
+          "description": "Yalnızca bu duruma sahip görevleri döndür."
+        }
+      }
+    }
+  },
+  "issues": {
+    "document_storage_issues": {
+      "title": "Belge depolamanın temizlenmesi gerekiyor",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Belge depolama alanını geri kazan",
+            "description": "Maintenance Supporter, belge depolamada referanssız dosyalar ve/veya ölü kayıtlar buldu — genellikle bir çökme, harici dosya silme veya kısmi geri yükleme sonucudur.\n\nAlanı geri kazanmak için **Gönder**'e tıklayın: referanssız ve bayat dosyalar silinir, ölü belge kayıtları kaldırılır. Hâlâ bir belge tarafından referans verilen dosyalara asla dokunulmaz.\n\n(Temizlemeden kapatmak için Onarımlar sayfasındaki Home Assistant **Yoksay** düğmesini kullanın.)"
+          }
+        }
+      }
+    },
+    "missing_trigger_entity": {
+      "title": "Tetikleyici sensör bulunamadı: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Eksik tetikleyici varlık",
+            "description": "\"{object_name}\" nesnesindeki \"{task_name}\" görevi için tetikleyici olarak yapılandırılan `{entity_id}` sensör varlığı artık kullanılabilir değil.\n\nBu sorunu nasıl çözeceğinizi seçin:",
+            "menu_options": {
+              "replace_entity": "Farklı bir varlıkla değiştir",
+              "remove_trigger": "Sensör tetikleyicisini kaldır",
+              "dismiss": "Yoksay (yeniden görünecek)"
+            }
+          },
+          "replace_entity": {
+            "title": "Tetikleyici varlığı değiştir",
+            "description": "\"{object_name}\" üzerindeki \"{task_name}\" görevi için tetikleyici olarak `{entity_id}` yerine geçecek yeni bir varlık seçin.",
+            "data": {
+              "new_entity_id": "Yeni tetikleyici varlık"
+            },
+            "data_description": {
+              "new_entity_id": "Tetikleyici olarak kullanılacak yeni sensör varlığını seçin."
+            }
+          },
+          "remove_trigger": {
+            "title": "Sensör tetikleyicisini kaldır",
+            "description": "Bu işlem, \"{object_name}\" üzerindeki \"{task_name}\" görevinden sensör tetikleyicisini kaldırır ve zamanlamayı zamana dayalı veya manuel biçime dönüştürür. Bakım geçmişi korunacaktır.\n\nÖnceki tetikleyici varlık: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Panel erişimli kullanıcı artık mevcut değil",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Panel erişim listesinde sahipsiz kullanıcı",
+            "description": "`{user_id}…` kullanıcısı Maintenance Supporter panel erişim listesinde ancak artık Home Assistant'ta mevcut değil. Muhtemelen kullanıcı silinmiş.\n\nBu kullanıcıyı listeden kaldırmak için **Gönder**'e tıklayın. (Sorunu olduğu gibi bırakmak için bunun yerine Onarımlar sayfasındaki Home Assistant **Yoksay** düğmesini kullanın.)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "Tamamlama eylemi silinmiş bir varlığa başvuruyor",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Tamamlama eylemi: {stale_entity} artık mevcut değil",
+            "description": "**{task_name}** görevinde `{stale_entity}` üzerinde bir servis çağırmak üzere yapılandırılmış bir `on_complete_action` var, ancak bu varlık artık Home Assistant'ta kayıtlı değil.\n\nNasıl onarılacağını seçin:",
+            "menu_options": {
+              "replace_entity": "Farklı bir varlıkla değiştir",
+              "remove_action": "Tamamlama eylemini kaldır"
+            }
+          },
+          "replace_entity": {
+            "title": "Hedef varlığı değiştir",
+            "description": "**{task_name}** görevi için `{stale_entity}` yerine kullanılacak varlığı seçin.",
+            "data": {
+              "new_entity": "Yeni hedef varlık"
+            }
+          },
+          "remove_action": {
+            "title": "Tamamlama eylemini kaldır",
+            "description": "**{task_name}** görevindeki `on_complete_action` tamamen temizlensin. Görevin kendisi etkilenmez — yalnızca tamamlama sonrası servis çağrısı kaldırılır."
+          }
+        }
+      }
+    },
+    "notify_service_missing": {
+      "title": "`{service}` bildirim servisi bulunamadı",
+      "description": "Maintenance Supporter, bildirimleri `{service}` üzerinden gönderecek şekilde yapılandırılmış, ancak bu servis şu anda Home Assistant'ta mevcut değil; bu yüzden hatırlatmalar sessizce başarısız oluyor.\n\nBu genellikle servisin yeniden adlandırıldığı veya arkasındaki entegrasyonun (bir mobil uygulama, bir bildirim grubu, …) kaldırıldığı anlamına gelir. Düzeltmek için: o servisi geri yükleyin veya **Ayarlar → Cihazlar ve Servisler → Maintenance Supporter → Yapılandır → Genel ayarlar** bölümünü açıp geçerli bir `notify.*` servisi seçin.\n\nNot: burada yalnızca yapılandırılan servisin kendisi denetlenir. Bildirimler bazı cihazlara ulaşıp bazılarına ulaşmıyorsa, bildirim grubunuzun *içindeki* bir üye büyük olasılıkla yanlış yapılandırılmıştır — bu burada görünmez; Home Assistant **sistem günlüğünü** kontrol edin (Ayarlar → Sistem → Günlükler)."
+    },
+    "missing_global_entry": {
+      "title": "Maintenance Supporter genel yapılandırması eksik",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Genel yapılandırmayı geri yükle",
+            "description": "Bakım nesneleriniz hâlâ mevcut, ancak genel \"Maintenance Supporter\" girdisi silinmiş — bu yüzden özet sensörler, kenar çubuğu paneli ve pano sayıları kayboldu ve KPI çipleri \"bilinmiyor\" gösteriyor.\n\nGenel yapılandırmayı varsayılan ayarlarla yeniden oluşturmak için **Gönder**'e tıklayın. Nesneleriniz ve görevleriniz olduğu gibi kalır. Bildirimleri ve varsayılanları daha sonra Ayarlar → Cihazlar ve Servisler altından düzenleyebilirsiniz.\n\n(Her şeyi olduğu gibi bırakmak için Home Assistant **Yoksay** düğmesini kullanın.)"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "{entity_id} varlığı için bakım koordinatörü bulunamadı."
+    },
+    "no_task_for_entity": {
+      "message": "{entity_id} varlığı için bakım görevi bulunamadı."
+    }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Bir bakım görevi gecikti",
+      "description": "Bir bakım görevinin durumu gecikmişe değiştiğinde tetiklenir.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Bir bakım görevinin vadesi yaklaştı",
+      "description": "Bir bakım görevi uyarı penceresine girdiğinde tetiklenir.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Bir sensör tetikleyicisi etkinleşti",
+      "description": "Sensöre dayalı bir bakım görevi etkinleştiğinde tetiklenir.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Bir bakım görevi Tamam durumuna döndü",
+      "description": "Bir bakım görevi artık ilgi gerektirmediğinde tetiklenir.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Bir bakım görevi gecikmiş",
+      "description": "Bir bakım görevinin gecikmiş olup olmadığını test eder.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Bir bakım görevinin vadesi yaklaşıyor",
+      "description": "Bir bakım görevinin uyarı penceresinde olup olmadığını test eder.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Bir sensör tetikleyicisi etkin",
+      "description": "Sensöre dayalı bir bakım görevinin tetiklenmiş olup olmadığını test eder.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Bir bakım görevi ilgi gerektiriyor",
+      "description": "Bir bakım görevinin gecikmiş veya tetiklenmiş olup olmadığını test eder.",
+      "fields": {
+        "behavior": {
+          "name": "Davranış"
+        },
+        "for": {
+          "name": "Süre"
+        }
+      }
+    }
+  }
+}

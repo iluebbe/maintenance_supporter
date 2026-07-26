@@ -253,7 +253,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                            Service definitions
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es,pt,ru,uk,pl,cs,sv,da,fi,nb,ja,hi,zh-Hans}.json  18 languages (HA config flow + Repairs UI), all fully translated. Panel/card UI strings live in frontend-src/locales/<lang>.json (same 18 languages; keyed 2-letter, Chinese as `zh`) — only en.json is bundled into the JS, the other 17 are served from frontend/locales/ and fetched at runtime in the user's language.
+└── translations/{en,de,nl,fr,it,es,pt,pt-BR,ru,uk,pl,cs,sv,da,fi,nb,ja,hi,hu,ko,tr,zh-Hans}.json  22 languages (HA config flow + Repairs UI), all fully translated. Panel/card UI strings live in frontend-src/locales/<lang>.json (same 22 languages; keyed 2-letter, Chinese as `zh`, Brazilian Portuguese as `pt-br`) — only en.json is bundled into the JS, the others are served from frontend/locales/ and fetched at runtime in the user's language.
 ```
 
 ---
@@ -433,7 +433,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 **Build:** esbuild (TypeScript → ESM, minified)
 **Framework:** LitElement 3 with decorators
-**Four single-file bundles** — `maintenance-panel.js` (~343KB), `maintenance-card.js` (~204KB), `maintenance-calendar-card.js` (~82KB), `maintenance-strategy-shim.js` (~3KB, the dashboard-strategy self-heal shim) — plus the code-split `maintenance-dashboard-strategy.js` entry (output to `strategy/` with content-hashed chunks). UI translations are no longer bundled (only `en.json` is); the other 17 languages load at runtime from `frontend/locales/`, which is what shrank these bundles ~50–80%.
+**Four single-file bundles** — `maintenance-panel.js` (~343KB), `maintenance-card.js` (~204KB), `maintenance-calendar-card.js` (~82KB), `maintenance-strategy-shim.js` (~3KB, the dashboard-strategy self-heal shim) — plus the code-split `maintenance-dashboard-strategy.js` entry (output to `strategy/` with content-hashed chunks). UI translations are no longer bundled (only `en.json` is); the other 21 languages load at runtime from `frontend/locales/`, which is what shrank these bundles ~50–80%.
 
 ### Panel Views
 1. **Overview (Dashboard tab)**: Statistics dashboard, group list, budget status, sparklines, user filter

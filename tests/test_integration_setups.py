@@ -44,7 +44,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
     catalog entry without its 17 translations fails here."""
     from custom_components.maintenance_supporter.templates_i18n import _T
 
-    langs = ("de", "es", "fr", "it", "nl", "pt", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh")
+    langs = ("de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
     missing = []
     for domain, cat in SIGNATURES.items():
         for sig in cat.tasks:

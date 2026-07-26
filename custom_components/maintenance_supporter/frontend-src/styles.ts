@@ -52,8 +52,8 @@ if (!STORE.en) STORE.en = EN as Translations;
 
 /** Languages available as runtime-loaded JSON. Keep in sync with locales/. */
 const SUPPORTED_LANGS = new Set<string>([
-  "de", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh",
-  "da", "fi", "nb", "ja", "hi",
+  "de", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "zh",
+  "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr",
 ]);
 
 /** Served base for the runtime locale files (mirrors LOCALES_URL in const.py). */
@@ -61,9 +61,16 @@ const LOCALES_BASE = "/maintenance_supporter_locales";
 
 const _localeInflight = _localeGlobals.inflight;
 
-/** Normalize an HA language code to our 2-letter table key. */
+/** Normalize an HA language code to our table key.
+ *
+ * Brazilian Portuguese is the one regional variant with its OWN table
+ * ("pt-br") — it must not collapse into European "pt". Mirrors
+ * normalize_language_code in helpers/i18n.py.
+ */
 function normLang(lang?: string): string {
-  return (lang || DEFAULT_LANG).substring(0, 2).toLowerCase();
+  const l = (lang || DEFAULT_LANG).toLowerCase();
+  if (l.startsWith("pt") && l.endsWith("br")) return "pt-br";
+  return l.substring(0, 2);
 }
 
 /** Get a localized string. Falls back to English, then to the key itself. */
@@ -117,15 +124,16 @@ export function setLocale(lang: string, table: Translations): void {
   STORE[normLang(lang)] = table;
 }
 
-/** Map language prefix to BCP-47 locale for date formatting. */
+/** Map language table key to BCP-47 locale for date formatting. */
 function langToLocale(lang?: string): string {
-  const l = (lang || "en").substring(0, 2).toLowerCase();
+  const l = normLang(lang);
   const map: Record<string, string> = {
     de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT", ru: "ru-RU", uk: "uk-UA", zh: "zh-CN",
     da: "da-DK", fi: "fi-FI", nb: "nb-NO", ja: "ja-JP", hi: "hi-IN",
     // pl/cs/sv were missing and silently fell back to en-US — Polish users
     // saw MM/DD dates (caught by the live multi-language check, 2026-07-19).
     pl: "pl-PL", cs: "cs-CZ", sv: "sv-SE",
+    "pt-br": "pt-BR", hu: "hu-HU", ko: "ko-KR", tr: "tr-TR",
   };
   return map[l] ?? "en-US";
 }
@@ -224,8 +232,7 @@ export function formatInterval(
 /** Localized weekday name (0=Mon … 6=Sun) via Intl — 2024-01-01 is a Monday.
  *  Single source for the dialog selectors AND formatRecurrence (DRY). */
 export function weekdayName(i: number, lang?: string, style: "long" | "short" = "long"): string {
-  const locale = (lang || "en").substring(0, 2);
-  return new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(locale, { weekday: style, timeZone: "UTC" });
+  return new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(langToLocale(lang), { weekday: style, timeZone: "UTC" });
 }
 
 /** Recurrence shape carried on the WS payload (see types.TaskSchedule). */

@@ -466,7 +466,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
 - **Custom sidebar panel title** (2.8.0+) — rename the panel in Settings → Options → General Settings or the panel's Settings tab (blank = default "Maintenance"); avoids clashing with HA's built-in Maintenance dashboard
-- Localized UI in **all 18 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
+- Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
 - 72 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
