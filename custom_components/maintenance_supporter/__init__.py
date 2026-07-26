@@ -969,8 +969,12 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     into a single nested ``schedule`` object. Behaviour is identical — readers
     accept both shapes — this just makes storage canonical and unblocks the
     calendar recurrence kinds (nth-weekday etc.).
+
+    minor_version 3 → 4 (discussion #49): seed ``responsible_user_id`` on
+    rotation tasks that were configured without an initial assignee — those
+    were invisible to every user filter until their first completion.
     """
-    if entry.version > 1 or entry.minor_version >= 3:
+    if entry.version > 1 or entry.minor_version >= 4:
         return True
 
     is_object_entry = entry.unique_id != GLOBAL_UNIQUE_ID
@@ -1013,6 +1017,21 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if tasks_data:
                 data[CONF_TASKS] = {task_id: normalize_task_storage(td) for task_id, td in tasks_data.items()}
         minor = 3
+
+    # 3 → 4: rotation tasks without an initial assignee get one (discussion #49)
+    if minor < 4:
+        if is_object_entry:
+            from .helpers.sanitize import seed_rotation_assignee
+
+            tasks_data = data.get(CONF_TASKS, {})
+            if tasks_data:
+                new_tasks = {}
+                for task_id, td in tasks_data.items():
+                    new_td = dict(td)
+                    seed_rotation_assignee(new_td)
+                    new_tasks[task_id] = new_td
+                data[CONF_TASKS] = new_tasks
+        minor = 4
 
     hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
     _LOGGER.info("Migrated entry %s to minor_version %s", entry.entry_id, minor)

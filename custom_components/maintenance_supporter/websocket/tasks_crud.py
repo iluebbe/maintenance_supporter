@@ -283,6 +283,9 @@ async def ws_create_task(
         task_data["assignee_pool"] = sanitize_assignee_pool(msg["assignee_pool"])
     if msg.get("rotation_strategy"):
         task_data["rotation_strategy"] = msg["rotation_strategy"]
+    from ..helpers.sanitize import seed_rotation_assignee
+
+    seed_rotation_assignee(task_data)
     if msg.get("entity_slug") is not None:
         slug = msg["entity_slug"]
         if not re.fullmatch(r"[a-z0-9_]+", slug):
@@ -537,6 +540,7 @@ async def ws_update_task(
         cap_quick_complete_defaults_field,
         sanitize_assignee_pool,
         sanitize_labels,
+        seed_rotation_assignee,
     )
 
     cap_action_field(task)
@@ -545,6 +549,7 @@ async def ws_update_task(
         task["labels"] = sanitize_labels(task["labels"])
     if "assignee_pool" in task:
         task["assignee_pool"] = sanitize_assignee_pool(task["assignee_pool"])
+    seed_rotation_assignee(task)
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:

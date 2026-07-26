@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Rotation tasks without an initial assignee were invisible to user
+  filters** (discussion #49): a rotation (assignee pool + strategy) resolves
+  who is on duty via the task's responsible user — but configuring a
+  rotation without picking a starting assignee left that field empty until
+  the first completion, hiding the task from the user filter on the panel,
+  Lovelace card, calendar card, saved views and per-user notifications.
+  The first pool member is now seeded automatically on create/edit/import,
+  a one-time migration repairs existing tasks, and editing the current
+  assignee out of the pool hands the task to the next member instead of
+  leaving a dangling assignment.
+
 ## [2.42.0] - 2026-07-26
 
 ### 🌍 Localization

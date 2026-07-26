@@ -570,6 +570,11 @@ async def ws_import_json(
             wd = task_data.get("warning_days")
             if not isinstance(wd, int) or wd < 0 or wd > 365:
                 task_data["warning_days"] = get_default_warning_days(hass)
+            # A rotation task must carry its effective assignee (imports from
+            # pre-seeding exports may lack one) — same rule as create/update.
+            from ..helpers.sanitize import seed_rotation_assignee
+
+            seed_rotation_assignee(task_data)
             # Sanitize checklist: only keep string items within length budget,
             # cap total items. Drops malformed entries silently rather than
             # rejecting the whole import — same forgiving model as the other
