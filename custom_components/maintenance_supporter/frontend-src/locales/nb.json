@@ -805,5 +805,7 @@
   "battery_fleet_include": "Følg igjen",
   "battery_fleet_total": "{n} batterier spores",
   "battery_fleet_setup_button": "Batteriflåte",
-  "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene."
+  "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene.",
+  "update_banner": "En nyere versjon av Maintenance Supporter er på serveren — last inn på nytt for å oppdatere panelet.",
+  "update_reload": "Last inn på nytt"
 }

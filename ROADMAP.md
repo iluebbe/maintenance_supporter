@@ -640,7 +640,11 @@ target what's left:
    re-open the class, and the two sides cannot drift apart unnoticed — the
    exact hole #106 slipped through (the old round-trip test fed idealized
    payloads, not the real summary shape).
-2. 💡 **Stale-bundle version handshake** (kills the invisible-stale-cache
+2. ✅ **Stale-bundle version handshake** — **shipped 2026-07-26**: esbuild
+   stamps the manifest version into every bundle (helpers/bundle-version.ts),
+   the panel compares it against the new read-tier `version` WS command once
+   per lifetime and renders a dismiss-free reload banner on mismatch (18
+   languages; dev builds never flag). Original: (kills the invisible-stale-cache
    confusion of the #106 follow-up and the #86 family). esbuild stamps the
    manifest version into the bundles; the panel compares it against the
    backend version at load and shows a discreet "new version on the server —

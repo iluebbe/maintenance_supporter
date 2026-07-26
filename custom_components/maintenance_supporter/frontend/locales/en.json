@@ -805,5 +805,7 @@
   "battery_fleet_include": "Track again",
   "battery_fleet_total": "{n} batteries tracked",
   "battery_fleet_setup_button": "Battery fleet",
-  "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries."
+  "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries.",
+  "update_banner": "A newer version of Maintenance Supporter is on the server — reload to update the panel.",
+  "update_reload": "Reload"
 }

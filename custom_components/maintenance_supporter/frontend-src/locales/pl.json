@@ -805,5 +805,7 @@
   "battery_fleet_include": "Śledź ponownie",
   "battery_fleet_total": "Śledzone baterie: {n}",
   "battery_fleet_setup_button": "Flota baterii",
-  "battery_fleet_setup_done": "Flota baterii skonfigurowana — jedno zadanie śledzi wszystkie."
+  "battery_fleet_setup_done": "Flota baterii skonfigurowana — jedno zadanie śledzi wszystkie.",
+  "update_banner": "Na serwerze jest nowsza wersja Maintenance Supporter — załaduj ponownie, aby zaktualizować panel.",
+  "update_reload": "Załaduj ponownie"
 }

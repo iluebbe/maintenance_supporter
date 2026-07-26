@@ -805,5 +805,7 @@
   "battery_fleet_include": "Spåra igen",
   "battery_fleet_total": "{n} batterier spåras",
   "battery_fleet_setup_button": "Batteriflotta",
-  "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier."
+  "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier.",
+  "update_banner": "En nyare version av Maintenance Supporter finns på servern — ladda om för att uppdatera panelen.",
+  "update_reload": "Ladda om"
 }

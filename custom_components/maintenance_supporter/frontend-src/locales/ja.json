@@ -805,5 +805,7 @@
   "battery_fleet_include": "再び追跡",
   "battery_fleet_total": "{n} 個の電池を監視",
   "battery_fleet_setup_button": "電池フリート",
-  "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。"
+  "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。",
+  "update_banner": "サーバーに新しいバージョンの Maintenance Supporter があります — 再読み込みしてパネルを更新してください。",
+  "update_reload": "再読み込み"
 }

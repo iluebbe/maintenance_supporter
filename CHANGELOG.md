@@ -13,6 +13,15 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Stale-frontend detection**: the panel now compares the version baked into
+  its JavaScript bundle with the installed integration version (new
+  `version` WS command) and shows a one-click **Reload** banner when the
+  browser is still running an old cached frontend — the failure mode behind
+  several "it's still broken after updating" reports (HA's service worker
+  refreshes stale-while-revalidate, so a restart alone often isn't enough).
+
 ### 📚 Documentation
 
 - **Animated "see it in action" clips**: three reproducible GIFs (create an

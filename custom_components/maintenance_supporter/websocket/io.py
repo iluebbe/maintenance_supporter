@@ -88,6 +88,22 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
     return out
 
 
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/version"})
+@websocket_api.async_response
+async def ws_version(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """The installed integration version (manifest).
+
+    Roadmap guard 2 — stale-bundle handshake: the panel compares this against
+    the version esbuild stamped into its bundle and offers a reload when a
+    cached old frontend is talking to a newer backend (HA's service worker
+    updates stale-while-revalidate, so this happens routinely after updates).
+    """
+    from homeassistant.loader import async_get_integration
+
+    integration = await async_get_integration(hass, DOMAIN)
+    connection.send_result(msg["id"], {"version": integration.version})
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/templates",

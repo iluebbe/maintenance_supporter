@@ -805,5 +805,7 @@
   "battery_fleet_include": "重新跟踪",
   "battery_fleet_total": "已跟踪 {n} 个电池",
   "battery_fleet_setup_button": "电池群",
-  "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。"
+  "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。",
+  "update_banner": "服务器上有更新版本的 Maintenance Supporter——请重新加载以更新面板。",
+  "update_reload": "重新加载"
 }

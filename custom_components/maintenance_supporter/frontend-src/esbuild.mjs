@@ -7,6 +7,14 @@ import { cpSync, mkdirSync, rmSync } from "fs";
 // this — every frontend change left orphans behind).
 rmSync("../frontend/strategy/chunks", { recursive: true, force: true });
 
+// Stamp the integration version into every bundle (helpers/bundle-version.ts
+// reads it) — the panel compares it against the backend at runtime and shows
+// a "reload" banner when a stale cached bundle is running (roadmap guard 2;
+// the #106 follow-up class: HA's service worker serves stale-while-revalidate,
+// so "I updated and restarted" routinely still runs old frontend code).
+import { readFileSync } from "node:fs";
+const manifestVersion = JSON.parse(readFileSync("../manifest.json", "utf-8")).version;
+
 const common = {
   bundle: true,
   format: "esm",
@@ -14,6 +22,7 @@ const common = {
   minify: true,
   sourcemap: false,
   external: [],
+  define: { __MS_BUNDLE_VERSION__: JSON.stringify(manifestVersion) },
 };
 
 // Panel

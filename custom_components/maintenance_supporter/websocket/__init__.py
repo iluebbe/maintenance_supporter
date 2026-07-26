@@ -468,6 +468,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_get_templates,
         ws_import_csv,
         ws_import_json,
+        ws_version,
     )
     from .objects import (
         ws_archive_object,
@@ -557,6 +558,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_restock_part)
     websocket_api.async_register_command(hass, ws_update_history_entry)
     websocket_api.async_register_command(hass, ws_get_templates)
+    websocket_api.async_register_command(hass, ws_version)
     websocket_api.async_register_command(hass, ws_export_data)
     websocket_api.async_register_command(hass, ws_get_budget_status)
     websocket_api.async_register_command(hass, ws_schedule_preview)

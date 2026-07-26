@@ -805,5 +805,7 @@
   "battery_fleet_include": "Acompanhar novamente",
   "battery_fleet_total": "{n} baterias monitorizadas",
   "battery_fleet_setup_button": "Frota de baterias",
-  "battery_fleet_setup_done": "Frota de baterias configurada — uma tarefa acompanha todas."
+  "battery_fleet_setup_done": "Frota de baterias configurada — uma tarefa acompanha todas.",
+  "update_banner": "Há uma versão mais recente do Maintenance Supporter no servidor — recarregue para atualizar o painel.",
+  "update_reload": "Recarregar"
 }
