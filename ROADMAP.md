@@ -138,7 +138,15 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    → **verified, no signature**; record the verdict as an INTEGRATIONS.md
    row pointing at the template.
 
-3b. 💡 **Second research lens: template-worthiness sweep** (method change —
+3b. ✅ **Second research lens: template-worthiness sweep** — **shipped
+   2026-07-26**: the lens is now Step 6 of
+   docs/design/signature-evaluation-scheme.md (every sweep must ask it).
+   First pass: the ENTIRE parked "no wear sensors" list resolved to
+   existing templates (jura→Espresso, eufy/dahua→Security Camera,
+   indego/zcsmower→Robot Mower, …), and never-walked classes yielded THREE
+   new templates (catalog 42→45): Fire Safety Equipment, Aquarium,
+   Hearing Aids. Parked as niche: e-scooters, piano tuning, dumb
+   dehumidifiers. Original: (method change —
    the CPAP lesson). All 13 signature rounds grep integration SOURCES for
    wear signals (`filter_life`, `*_time_left`, odometers, cycle counts…) —
    so a device CLASS with genuine maintenance needs whose integration

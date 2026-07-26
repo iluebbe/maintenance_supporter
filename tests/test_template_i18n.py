@@ -98,6 +98,7 @@ def test_every_catalog_value_is_actually_translated() -> None:
     value_ok: dict[str, set[str]] = {
         "E-Bike": {"de"},
         "Printer": {"nl", "da"},
+        "Aquarium": {"de", "fr", "nl"},
     }
     bad: list[str] = []
     for source, per_lang in _T.items():

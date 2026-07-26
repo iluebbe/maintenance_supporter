@@ -179,3 +179,33 @@ user's adopted tasks, the Action for the catalog maintainer.
   with `usage_delta` and `runtime_hours`), all existing entries are walked
   again — tracked as a ROADMAP item, results recorded per entry in the
   research doc.
+
+## Step 6 — the template-worthiness lens (added 2026-07-26, roadmap 3b)
+
+Every research sweep MUST also ask the complementary question the signature
+greps can never answer:
+
+> **Is this a device CLASS with manufacturer- or guideline-specified
+> maintenance, regardless of what its integration exposes?**
+
+A class with real upkeep but no wear signals (the CPAP lesson: resmed_myair
+ships only therapy metrics) never surfaces through source greps — it feeds
+the **template catalog** instead. Checklist per candidate class:
+
+1. Does a manufacturer/guideline interval exist (manual, DIN, community
+   consensus)? No interval → no template.
+2. Does calendar time track real usage acceptably (daily/nightly-use
+   devices: yes; sporadic-use devices: weaker)?
+3. Is an EXISTING template already covering the class? (2026-07-26 first
+   pass: the entire parked "no wear sensors" list resolved to existing
+   templates — jura→Espresso Machine, eufy/dahua→Security Camera,
+   indego/zcsmower→Robot Lawn Mower, bhyve/opensprinkler→Lawn Irrigation,
+   astrandb-miele→appliance templates, bosch_shc→Smoke & CO Detectors.)
+4. Meaningful audience? (fire extinguishers/first-aid: universal;
+   aquarium: large hobby; hearing aids: huge demographic; piano tuning:
+   parked as niche.)
+
+Record the verdict either as a new template (+ full _T translations) or as
+a "covered by template X" note here; integrations reviewed with NO usable
+signals additionally get a row in INTEGRATIONS.md → "Reviewed — no usable
+signals".

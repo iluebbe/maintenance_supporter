@@ -35,7 +35,7 @@ clips (completing a task, filtering the calendar) in
 ## What can it do for you?
 
 **"The HVAC filter is due every 3 months."**
-Create the object once (or pick it from 42 ready-made templates), give it a
+Create the object once (or pick it from 45 ready-made templates), give it a
 task with an interval — days, weeks, months, or specific patterns like *first
 Saturday* or *last business day of the month*. You get a reminder before it's
 due, and completing it takes one tap — optionally with notes, cost, duration,

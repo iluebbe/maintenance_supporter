@@ -861,6 +861,84 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Annual Service", "inspection", "time_based", 365, 30),
         ],
     ),
+    ObjectTemplate(
+        id="health_hearing_aids",
+        name="Hearing Aids",
+        category="health",
+        tasks=[
+            TaskTemplate(
+                "Deep Clean & Dry",
+                "cleaning",
+                "time_based",
+                7,
+                2,
+                "Brush off earwax and use a drying capsule or electronic dryer overnight.",
+            ),
+            TaskTemplate("Replace Wax Guards", "replacement", "time_based", 30, 7),
+            TaskTemplate("Replace Domes", "replacement", "time_based", 90, 14),
+            TaskTemplate("Professional Check & Adjustment", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    # --- Template-worthiness lens (roadmap 3b): device classes with real,
+    # manufacturer/guideline-specified maintenance and NO smart signals at
+    # all — the class the signature sweeps can never surface. ---
+    ObjectTemplate(
+        id="home_fire_safety",
+        name="Fire Safety Equipment",
+        category="home",
+        tasks=[
+            TaskTemplate(
+                "Inspect Fire Extinguisher",
+                "inspection",
+                "time_based",
+                180,
+                14,
+                "Check the pressure gauge, seal and pin; make sure it is accessible and undamaged.",
+            ),
+            TaskTemplate(
+                "Fire Extinguisher Service",
+                "service",
+                "time_based",
+                730,
+                60,
+                "Professional inspection per the label — commonly every 2 years; replace the unit after 10-15 years.",
+            ),
+            TaskTemplate(
+                "Check First-Aid Kit",
+                "inspection",
+                "time_based",
+                180,
+                14,
+                "Replace expired sterile items and restock anything used.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="pets_aquarium",
+        name="Aquarium",
+        category="pets",
+        tasks=[
+            TaskTemplate(
+                "Partial Water Change",
+                "cleaning",
+                "time_based",
+                14,
+                3,
+                "Change 20-30 % of the water; match temperature and treat tap water with conditioner.",
+            ),
+            TaskTemplate("Test Water Values", "inspection", "time_based", 14, 3),
+            TaskTemplate(
+                "Clean Filter Media",
+                "cleaning",
+                "time_based",
+                30,
+                7,
+                "Rinse media in removed tank water - never under the tap, that kills the bacteria culture.",
+            ),
+            TaskTemplate("Replace Activated Carbon", "replacement", "time_based", 30, 7),
+            TaskTemplate("Clean Glass & Decor", "cleaning", "time_based", 30, 7),
+        ],
+    ),
 ]
 
 

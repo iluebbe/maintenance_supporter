@@ -15,6 +15,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Three more templates from the new template-worthiness research lens**
+  (catalog now 45): **Fire Safety Equipment** (extinguisher self-check,
+  professional service every 2 years, first-aid kit), **Aquarium** (partial
+  water change, water tests, filter-media rinse — never under the tap —,
+  activated carbon, glass), and **Hearing Aids** (deep clean & dry, wax
+  guards, domes, professional check) — all fully translated into 18
+  languages.
 - **CPAP / sleep-therapy template** (the 42nd, opening a new *Health*
   category): weekly mask & humidifier-tub cleaning, monthly mask cushion
   and air filter, tubing every 3 months, humidifier tub and

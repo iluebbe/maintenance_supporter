@@ -1090,3 +1090,25 @@ live running state (myAir syncs once daily) → nothing for any trigger
 direction. Verdict: **verified, no signature**; the `health_cpap` template
 covers the real maintenance (nightly use ⇒ calendar ≈ usage). This case
 created the template-worthiness lens (roadmap 3b).
+
+## Template-worthiness lens, first pass (2026-07-26, roadmap 3b)
+
+Parked "no wear sensors" list re-walked under the lens — ALL resolved to
+existing templates: jura→Espresso Machine, eufy/dahua→Security Camera,
+indego/zcsmower→Robot Lawn Mower, bhyve/opensprinkler→Lawn Irrigation
+System, astrandb-miele→Washing Machine/Dishwasher, bosch_shc→Smoke & CO
+Detectors, garmin→no meaningful upkeep (skip).
+
+Never-walked classes yielded THREE new templates (catalog 42→45):
+- **home_fire_safety** "Fire Safety Equipment" — extinguisher self-check
+  180 d, professional service 730 d (label/DIN 14406 rhythm), first-aid kit
+  180 d. Universal audience, zero smart signals by nature.
+- **pets_aquarium** "Aquarium" — partial water change + water tests 14 d,
+  filter-media rinse / activated carbon / glass 30 d. eheimdigital's
+  runtime signature only covers SMART filters; the class is calendar-run.
+- **health_hearing_aids** "Hearing Aids" — weekly deep clean/dry, wax
+  guards 30 d, domes 90 d, professional check 365 d. Second entry in the
+  new Health category.
+
+Parked as niche for a later pass: e-scooters, musical instruments (piano
+tuning), dumb dehumidifiers.
