@@ -202,6 +202,27 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_ja": "テクノロジー・IT",
         "name_hi": "टेक और IT",
     },
+    "health": {
+        "icon": "mdi:heart-pulse",
+        "name_en": "Health",
+        "name_de": "Gesundheit",
+        "name_nl": "Gezondheid",
+        "name_fr": "Santé",
+        "name_it": "Salute",
+        "name_es": "Salud",
+        "name_ru": "Здоровье",
+        "name_uk": "Здоров'я",
+        "name_pt": "Saúde",
+        "name_zh": "健康",
+        "name_pl": "Zdrowie",
+        "name_cs": "Zdraví",
+        "name_sv": "Hälsa",
+        "name_da": "Sundhed",
+        "name_nb": "Helse",
+        "name_fi": "Terveys",
+        "name_ja": "健康",
+        "name_hi": "स्वास्थ्य",
+    },
 }
 
 
@@ -803,6 +824,41 @@ TEMPLATES: list[ObjectTemplate] = [
                 14,
                 "Moist filament pops and strings — hygroscopic materials (PETG, PA, TPU) need drying well before PLA does.",
             ),
+        ],
+    ),
+    # --- Health ---
+    # Roadmap 3a (the resmed_myair lesson): CPAP machines have real,
+    # manufacturer-specified upkeep but their integrations expose only
+    # therapy metrics — no wear sensors. Because a CPAP runs every night,
+    # calendar intervals track usage almost perfectly, so a static template
+    # IS the right trigger here. Intervals follow ResMed's replacement
+    # guidance; they suit other brands (Löwenstein, Philips) too.
+    ObjectTemplate(
+        id="health_cpap",
+        name="CPAP Machine",
+        category="health",
+        tasks=[
+            TaskTemplate(
+                "Clean Mask & Humidifier Tub",
+                "cleaning",
+                "time_based",
+                7,
+                2,
+                "Wash the mask cushion and humidifier tub in warm soapy water; air-dry away from direct sunlight.",
+            ),
+            TaskTemplate("Replace Mask Cushion", "replacement", "time_based", 30, 7),
+            TaskTemplate(
+                "Air Filter",
+                "replacement",
+                "time_based",
+                30,
+                7,
+                "Replace sooner if it looks discolored or dusty.",
+            ),
+            TaskTemplate("Replace Tubing", "replacement", "time_based", 90, 14),
+            TaskTemplate("Replace Humidifier Tub", "replacement", "time_based", 180, 21),
+            TaskTemplate("Replace Headgear & Frame", "replacement", "time_based", 180, 21),
+            TaskTemplate("Annual Service", "inspection", "time_based", 365, 30),
         ],
     ),
 ]

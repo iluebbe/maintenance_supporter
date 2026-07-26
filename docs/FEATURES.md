@@ -11,7 +11,7 @@ see [EXAMPLES.md](EXAMPLES.md).
 Short clips of the key flows (recorded reproducibly against the demo
 instance — `e2e/gifs-demo.mjs` refreshes them per release):
 
-**Create an object from a template** — pick one of 41 templates and get an
+**Create an object from a template** — pick one of 42 templates and get an
 object with typical tasks pre-configured:
 
 ![Create from template](images/gifs/create-from-template.gif)
