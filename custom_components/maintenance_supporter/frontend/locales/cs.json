@@ -805,5 +805,7 @@
   "battery_fleet_include": "Znovu sledovat",
   "battery_fleet_total": "Sledováno baterií: {n}",
   "battery_fleet_setup_button": "Flotila baterií",
-  "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny."
+  "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny.",
+  "update_banner": "Na serveru je novější verze Maintenance Supporter — načtěte znovu pro aktualizaci panelu.",
+  "update_reload": "Načíst znovu"
 }

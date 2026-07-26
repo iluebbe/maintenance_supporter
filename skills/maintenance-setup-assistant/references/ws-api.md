@@ -236,6 +236,11 @@ For most setup work, `interval_days` + `interval_unit` is all you need.
 
 ## Read & settings
 
+### `version`
+→ `{version:"2.40.0"}` — the installed integration (manifest) version. The
+panel uses it for the stale-bundle handshake; useful for the assistant to
+report/verify what is running.
+
 ### `statistics`
 → `{total_objects,total_tasks,overdue,due_soon,triggered,total_cost}`. Use to
 verify counts before/after.

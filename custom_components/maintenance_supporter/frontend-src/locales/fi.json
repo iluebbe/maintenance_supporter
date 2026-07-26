@@ -805,5 +805,7 @@
   "battery_fleet_include": "Seuraa uudelleen",
   "battery_fleet_total": "{n} paristoa seurannassa",
   "battery_fleet_setup_button": "Paristokanta",
-  "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia."
+  "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia.",
+  "update_banner": "Palvelimella on uudempi Maintenance Supporter -versio — lataa uudelleen päivittääksesi paneelin.",
+  "update_reload": "Lataa uudelleen"
 }

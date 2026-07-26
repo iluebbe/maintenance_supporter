@@ -2,6 +2,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
+import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs } from "./styles";
 import { LS_KEYS } from "./helpers/storage-keys";
@@ -142,6 +143,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   // Battery Fleet: offer one-click setup only when Battery Notes is present
   // and the fleet isn't set up yet.
   @state() private _batteryFleetSetupAvailable = false;
+  @state() private _staleBundle = false;
+  private _staleChecked = false;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _dismissedSuggestions = new Set<string>();
 
@@ -392,6 +395,21 @@ export class MaintenanceSupporterPanel extends LitElement {
       .catch(() => {
         this._batteryFleetSetupAvailable = false;
       });
+    // Stale-bundle handshake (roadmap guard 2): compare the version esbuild
+    // stamped into this bundle with the backend's — a mismatch means the
+    // browser/service worker is still serving an OLD cached frontend, and no
+    // amount of HA restarts fixes that. Checked once per panel lifetime.
+    if (!this._staleChecked) {
+      this._staleChecked = true;
+      this.hass.connection
+        .sendMessagePromise<{ version: string }>({ type: "maintenance_supporter/version" })
+        .then((v) => {
+          this._staleBundle = isStaleBundle(v?.version);
+        })
+        .catch(() => {
+          /* backend too old to answer — no banner */
+        });
+    }
     if (statsResult) this._stats = statsResult as StatisticsResponse;
     if (budgetResult) this._budget = budgetResult as BudgetStatus;
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
@@ -1827,6 +1845,17 @@ export class MaintenanceSupporterPanel extends LitElement {
   render() {
     return html`
       <div class="panel">
+        ${this._staleBundle
+          ? html`
+              <div class="update-banner" role="status">
+                <ha-icon icon="mdi:update"></ha-icon>
+                <span>${t("update_banner", this._lang)}</span>
+                <ha-button appearance="plain" @click=${() => location.reload()}>
+                  ${t("update_reload", this._lang)}
+                </ha-button>
+              </div>
+            `
+          : nothing}
         ${this.narrow || this._view !== "overview" ? this._renderHeader() : nothing}
         <div class="content">
           ${this._view === "overview"

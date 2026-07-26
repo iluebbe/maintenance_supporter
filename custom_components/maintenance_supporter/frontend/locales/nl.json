@@ -805,5 +805,7 @@
   "battery_fleet_include": "Opnieuw volgen",
   "battery_fleet_total": "{n} batterijen gevolgd",
   "battery_fleet_setup_button": "Batterijvloot",
-  "battery_fleet_setup_done": "Batterijvloot ingesteld — één taak volgt al je batterijen."
+  "battery_fleet_setup_done": "Batterijvloot ingesteld — één taak volgt al je batterijen.",
+  "update_banner": "Er staat een nieuwere versie van Maintenance Supporter op de server — herlaad om het paneel bij te werken.",
+  "update_reload": "Herladen"
 }

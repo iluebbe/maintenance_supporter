@@ -805,5 +805,7 @@
   "battery_fleet_include": "Снова отслеживать",
   "battery_fleet_total": "Отслеживается батарей: {n}",
   "battery_fleet_setup_button": "Парк батарей",
-  "battery_fleet_setup_done": "Парк батарей настроен — одна задача следит за всеми."
+  "battery_fleet_setup_done": "Парк батарей настроен — одна задача следит за всеми.",
+  "update_banner": "На сервере более новая версия Maintenance Supporter — перезагрузите, чтобы обновить панель.",
+  "update_reload": "Перезагрузить"
 }

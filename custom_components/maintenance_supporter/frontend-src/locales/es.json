@@ -805,5 +805,7 @@
   "battery_fleet_include": "Seguir de nuevo",
   "battery_fleet_total": "{n} baterías monitorizadas",
   "battery_fleet_setup_button": "Flota de baterías",
-  "battery_fleet_setup_done": "Flota de baterías configurada — una tarea controla todas."
+  "battery_fleet_setup_done": "Flota de baterías configurada — una tarea controla todas.",
+  "update_banner": "Hay una versión más reciente de Maintenance Supporter en el servidor — recarga para actualizar el panel.",
+  "update_reload": "Recargar"
 }

@@ -735,6 +735,20 @@ export const panelStyles = css`
     position: relative;
   }
 
+  /* Stale-bundle handshake banner (roadmap guard 2) */
+  .update-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: color-mix(in srgb, var(--primary-color) 14%, var(--card-background-color, #fff));
+    border-bottom: 1px solid var(--divider-color);
+    font-size: 14px;
+  }
+  .update-banner span {
+    flex: 1;
+  }
+
   .popup-menu {
     position: absolute;
     top: 100%;

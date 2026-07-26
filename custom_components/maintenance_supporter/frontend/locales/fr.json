@@ -805,5 +805,7 @@
   "battery_fleet_include": "Suivre à nouveau",
   "battery_fleet_total": "{n} piles suivies",
   "battery_fleet_setup_button": "Parc de piles",
-  "battery_fleet_setup_done": "Parc de piles configuré — une tâche suit toutes vos piles."
+  "battery_fleet_setup_done": "Parc de piles configuré — une tâche suit toutes vos piles.",
+  "update_banner": "Une version plus récente de Maintenance Supporter est sur le serveur — rechargez pour mettre à jour le panneau.",
+  "update_reload": "Recharger"
 }

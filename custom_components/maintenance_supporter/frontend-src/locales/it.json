@@ -805,5 +805,7 @@
   "battery_fleet_include": "Traccia di nuovo",
   "battery_fleet_total": "{n} batterie monitorate",
   "battery_fleet_setup_button": "Parco batterie",
-  "battery_fleet_setup_done": "Parco batterie configurato — un'attività monitora tutte."
+  "battery_fleet_setup_done": "Parco batterie configurato — un'attività monitora tutte.",
+  "update_banner": "Sul server è presente una versione più recente di Maintenance Supporter — ricarica per aggiornare il pannello.",
+  "update_reload": "Ricarica"
 }

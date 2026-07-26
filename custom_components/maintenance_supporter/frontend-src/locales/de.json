@@ -805,5 +805,7 @@
   "battery_fleet_include": "Wieder aufnehmen",
   "battery_fleet_total": "{n} Batterien überwacht",
   "battery_fleet_setup_button": "Batterie-Flotte",
-  "battery_fleet_setup_done": "Batterie-Flotte eingerichtet — ein Task überwacht alle Batterien."
+  "battery_fleet_setup_done": "Batterie-Flotte eingerichtet — ein Task überwacht alle Batterien.",
+  "update_banner": "Auf dem Server läuft eine neuere Version von Maintenance Supporter — neu laden, um das Panel zu aktualisieren.",
+  "update_reload": "Neu laden"
 }
