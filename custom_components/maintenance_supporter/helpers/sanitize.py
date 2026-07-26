@@ -147,6 +147,8 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
         if rs not in ROTATION_STRATEGIES:
             task_data.pop("rotation_strategy", None)
 
+    seed_rotation_assignee(task_data)
+
     # v1.3.0: per-task on_complete_action — embedded HA service-call config.
     # Strict shape: {service: "domain.name", target?: dict, data?: dict}.
     # Drops the field entirely on any structural problem; the action layer
@@ -188,6 +190,25 @@ def sanitize_labels(value: object) -> list[str]:
             seen.add(v)
             out.append(v)
     return out[:MAX_LABELS]
+
+
+def seed_rotation_assignee(task_data: dict[str, Any]) -> None:
+    """Ensure a rotation task always carries an effective assignee.
+
+    The rotation resolves "who is on duty" by writing the next pool member
+    into ``responsible_user_id`` on completion — the field EVERY user filter
+    reads (panel, Lovelace card, calendar card, saved views, per-user
+    notifications). But a rotation could be configured without an initial
+    assignee, leaving the task invisible to all of those until its first
+    completion ran ``advance_rotation`` (discussion #49). Seed the first
+    pool member when the assignee is missing — or no longer in the pool
+    (the pool was edited out from under the current assignee).
+    """
+    pool = [u for u in task_data.get("assignee_pool") or [] if u]
+    if len(pool) < 2 or not task_data.get("rotation_strategy"):
+        return
+    if task_data.get("responsible_user_id") not in pool:
+        task_data["responsible_user_id"] = pool[0]
 
 
 def sanitize_assignee_pool(value: object) -> list[str]:
