@@ -2172,3 +2172,58 @@ async def test_round13_sunseeker_blades_and_stromer_ebike(
     by_name = {t["task_name"]: t for t in setups[bike]["tasks"]}
     assert set(by_name) == {"Lubricate Chain", "Bike Service"}
     assert by_name["Bike Service"]["threshold"] == 2000.0
+
+
+async def test_multi_duty_per_duty_entity_claims(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """One source entity backs several duties (Kia odometer: Annual Service +
+    Tire Rotation). Adopting ONE duty must keep the OTHER proposable on
+    re-discovery — the entity claim is per duty, not per entity. A watcher
+    renamed to something outside the catalog conservatively claims the whole
+    entity (discovery never re-proposes against a rename)."""
+    import copy
+
+    from custom_components.maintenance_supporter.templates import localize_template_text
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    kia = await _seed_sensor(
+        hass, "kia_uvo", "ev6", "Kia EV6",
+        [("odometer", "odometer", "km")],
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {"id": 1, "type": "x", "selections": [{"device_id": kia, "task_names": ["Annual Service"]}]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    assert conn.send_result.call_args[0][1]["tasks_created"] == 1
+
+    # The odometer is now watched by "Annual Service" — Tire Rotation must
+    # STILL be proposed (the flat entity exclusion used to hide it forever).
+    (setup,) = discover_integration_setups(hass)
+    assert [t["task_name"] for t in setup["tasks"]] == ["Tire Rotation"]
+
+    def rename_watcher(new_name: str) -> None:
+        obj = next(
+            e for e in hass.config_entries.async_entries(DOMAIN)
+            if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Kia EV6"
+        )
+        data = copy.deepcopy(dict(obj.data))
+        (task,) = data[CONF_TASKS].values()
+        task["name"] = new_name
+        hass.config_entries.async_update_entry(obj, data=data)
+
+    # A watcher named in ANOTHER catalog language claims the same duty:
+    # the German twin still blocks only Annual Service.
+    rename_watcher(localize_template_text("Annual Service", "de"))
+    (setup,) = discover_integration_setups(hass)
+    assert [t["task_name"] for t in setup["tasks"]] == ["Tire Rotation"]
+
+    # A custom rename is unrecognizable — it claims the WHOLE entity.
+    rename_watcher("Roberts große Inspektion")
+    assert discover_integration_setups(hass) == []

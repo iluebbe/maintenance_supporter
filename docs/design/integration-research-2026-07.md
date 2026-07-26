@@ -281,8 +281,9 @@ of per-entity) before per-usage-source task bundles can ship.
 Second pass with the opposite question: which NEW tasks do the derived
 directions make possible? Prerequisite shipped first: the matcher's
 one-signature-per-entity `break` was removed — **one source entity may now
-back several duties** (adopting any duty marks the entity watched, so
-adopt-all is the default and a deselected duty forfeits its later proposal).
+back several duties**. (Since 2026-07-26 the exclusion is per duty too: a
+deselected duty stays adoptable on later discovery runs; only a watcher
+renamed away from its catalog name claims the whole entity.)
 
 **Added (8 signatures, all names already localized):**
 - **Clean Undercarriage by mowing time** on all four mower integrations:
