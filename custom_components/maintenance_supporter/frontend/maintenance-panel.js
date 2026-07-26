@@ -2530,8 +2530,10 @@ ${H(n.notes)}</div>`:""}
   }
 
   :host([narrow]) .tab {
-    padding: 12px 16px;
-    font-size: 14px;
+    /* Tight enough that the four tabs fit 412px in the longest languages —
+       Ukrainian ("Налаштування") overflowed at 12px 16px (overflow sweep). */
+    padding: 12px 8px;
+    font-size: 13px;
   }
 
   :host([narrow]) .task-header {
@@ -2742,7 +2744,7 @@ ${H(n.notes)}</div>`:""}
     .kpi-value { font-size: 14px; }
     .kpi-value-large { font-size: 18px; }
     .two-column-layout { grid-template-columns: 1fr; }
-    .tab { padding: 12px 16px; font-size: 14px; }
+    .tab { padding: 12px 8px; font-size: 13px; }
     .task-header { flex-direction: column; align-items: flex-start; }
     .task-header-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     .filter-bar { flex-wrap: wrap; }
