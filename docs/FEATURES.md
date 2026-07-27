@@ -278,7 +278,11 @@ Companion app.
 
 ### Lovelace Card
 The `custom:maintenance-supporter-card` on a regular dashboard, filtered to
-actionable tasks.
+actionable tasks. Each row also shows **who is responsible** (2.43+) — for a
+rotating chore that is whoever is up next, following the rotation on every
+completion. Rows with nobody assigned are unchanged, and `show_assignee:
+false` (or the editor toggle) hides it. Names are resolved through a
+read-tier command, so household members without admin rights see them too.
 
 ![Lovelace Card](images/lovelace-card.png)
 
@@ -471,7 +475,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 
 ### Frontend
 - **Sidebar panel** with dashboard overview, object details, task history, analytics, and in-panel **settings editor**
-- **Lovelace card** for dashboard integration
+- **Lovelace card** for dashboard integration — with the responsible user per row (2.43+), so a household reads a rotation straight off the dashboard
 - **Calendar** integration with status-emoji events
 - **Binary sensor** entities for automation triggers
 - **Clickable entity IDs**: entity IDs in trigger sections, compound conditions, and environmental correlations open HA's "More Info" dialog on click

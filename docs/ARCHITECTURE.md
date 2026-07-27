@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.43.0 | 188 source files (124 Python + 64 TypeScript) | **98% test coverage** (2,967 backend tests + 291 frontend tests)
+**Version:** 2.43.0 | 188 source files (124 Python + 64 TypeScript) | **98% test coverage** (2,967 backend tests + 296 frontend tests)
 
 ---
 
@@ -269,7 +269,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-panel.ts     (3,339 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects
 │   ├── maintenance-dashboard-strategy.ts (1,221)  Auto-generated dashboard strategy
-│   ├── maintenance-card.ts        (486 lines)  Lovelace card
+│   ├── maintenance-card.ts        (564 lines)  Lovelace card
 │   ├── maintenance-calendar-card.ts (646 lines)  Calendar card (object filter, #83)
 │   ├── maintenance-card-editor.ts (325 lines)
 │   ├── maintenance-strategy-shim.ts (348 lines)  Scoped-registry self-heal shim
@@ -798,7 +798,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,967 tests** across **174 test files** with **98% code coverage** (plus a 291-test frontend suite in real Chromium across 52 spec files, the journey suite A–S, and the live e2e scripts under `e2e/`).
+**2,967 tests** across **174 test files** with **98% code coverage** (plus a 296-test frontend suite in real Chromium across 53 spec files, the journey suite A–S, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 
