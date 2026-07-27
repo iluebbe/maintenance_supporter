@@ -281,7 +281,9 @@ automation:
 
 ![Lovelace card](images/lovelace-card.png)
 
-When you add the card from the Lovelace card picker (1.0.45+), it auto-fills with sensible defaults — `filter_status: ["overdue", "triggered", "due_soon"]` + `max_items: 10` — so the first impression is "the 10 things that need attention" rather than every task. The visual editor exposes status chips, an object multi-checkbox, an HA-native entity picker, and the usual show_header / show_actions / compact / max_items toggles.
+When you add the card from the Lovelace card picker (1.0.45+), it auto-fills with sensible defaults — `filter_status: ["overdue", "triggered", "due_soon"]` + `max_items: 10` — so the first impression is "the 10 things that need attention" rather than every task. The visual editor exposes status chips, an object multi-checkbox, an HA-native entity picker, and the usual show_header / show_actions / show_assignee / compact / max_items toggles.
+
+Each row shows **who is responsible** when a user is assigned — for a rotating chore that is whose turn it is next. Switch it off with `show_assignee: false`.
 
 ```yaml
 type: custom:maintenance-supporter-card

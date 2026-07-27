@@ -324,6 +324,10 @@ export interface CardConfig {
   filter_due_max_days?: number;
   compact?: boolean;
   show_actions?: boolean;
+  // Whose turn is it (v2.43): show the task's responsible user on each row.
+  // Defaults to ON — with rotations the row is the only place a household
+  // sees who is up next. Rows without an assignee simply render nothing.
+  show_assignee?: boolean;
   // Saved-view scope (v2.26): apply a saved view's task-selecting filters
   // (status / user / label) ON TOP of the card's own filters. The view's
   // sort/group dimensions are panel display state and are not applied here.

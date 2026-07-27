@@ -4,6 +4,15 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **The Lovelace card now shows whose turn it is** (forum request): each task
+  row displays its responsible user, which for a rotating chore is whoever is
+  up next. Rows without an assignee stay unchanged, and `show_assignee: false`
+  (or the toggle in the visual editor) turns it off. The name is resolved via
+  a read-tier command, so non-admin household members see it too — and the
+  card only asks for the user list when a task actually has an assignee.
+
 ### 🐛 Fixed
 
 - **The days-until-due countdown sensor now has a language-independent

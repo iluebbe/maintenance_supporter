@@ -510,6 +510,7 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | `title` | string | `"Maintenance"` (i18n) | Card header |
 | `show_header` | bool | `true` | Show the count badges (Overdue / Due Soon / Triggered) |
 | `show_actions` | bool | `true` | Show the "Complete" button on each task row |
+| `show_assignee` | bool | `true` | Show the responsible user on each task row — with a rotation this is whose turn it is. Rows without an assignee show nothing; the name is resolved via `users/list` (a read-tier command, so non-admin household members see it too) |
 | `compact` | bool | `false` | Hide task metadata (interval, last performed) |
 | `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |
