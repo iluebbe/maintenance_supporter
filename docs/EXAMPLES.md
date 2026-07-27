@@ -290,17 +290,27 @@ show_header: true
 # All filters are optional and additive. Empty / unset = show all.
 filter_status: [overdue, triggered, due_soon]
 filter_objects: [Family Car, Electric Car]
-entity_ids: [sensor.hvac_system_filter_change, binary_sensor.family_car_oil_change_overdue]
+entity_ids: [sensor.hvac_system_filter_replacement, binary_sensor.family_car_oil_change_overdue]
 max_items: 10
 ```
+
+> **Non-English Home Assistant?** The per-task *status* sensor
+> (`sensor.<object>_<task>`) and the global `sensor.maintenance_supporter_*`
+> sensors keep the ids shown here in every language. The per-task
+> **companions** — the `_overdue` binary sensor, the next-due and
+> days-until-due sensors, and the complete / skip / reset buttons — get their
+> name from a **translated** string, so their suffix is localized as well (on
+> a German install the countdown reads `sensor.<object>_<task>_tage_bis_fallig`,
+> not `_days_until_due`). Look the exact id up under *Developer Tools → States*
+> or on the object's device page — see [Entity naming](#entity-naming).
 
 ### Gauge / Progress-Bar Countdown
 
 Each task registers a **days-until-due countdown sensor** (disabled by
-default — enable it under *Settings → Devices → your object → entities*).
-Its state is the plain number of days until the task is due, negative once
-overdue — exactly what gauge and progress-style cards need, since they
-cannot read the status sensor's `days_until_due` attribute:
+default — enable it under *Settings → Devices & Services → Devices → your
+object → entities*). Its state is the plain number of days until the task is
+due, negative once overdue — exactly what gauge and progress-style cards
+need, since they cannot read the status sensor's `days_until_due` attribute:
 
 ```yaml
 type: gauge
@@ -318,6 +328,11 @@ segments:
     color: green
 ```
 
+The countdown sensor's name is translated, so **its entity id is localized**
+too — the `_days_until_due` suffix above only holds on an English Home
+Assistant (German: `_tage_bis_fallig`). Copy the real id from *Developer
+Tools → States* before pasting the card.
+
 On older versions (or for one-off needs) the same number is available
 without the sensor via a template:
 
@@ -333,7 +348,7 @@ template:
 
 <a id="dashboard-strategy"></a>
 
-On Home Assistant **2026.5+**, *Settings → Dashboards → Add Dashboard → "Maintenance Supporter"* spins up a complete dashboard. Pick a layout from the strategy editor or YAML — every mode prepends an **Overview** view with the actionable tasks (overdue + triggered + due_soon), then groups the rest:
+*Settings → Dashboards → Add Dashboard → "Maintenance Supporter"* spins up a complete dashboard. Pick a layout from the strategy editor or YAML — every mode prepends an **Overview** view with the actionable tasks (overdue + triggered + due_soon), then groups the rest:
 
 | `group_by` | Resulting views |
 |---|---|
@@ -341,11 +356,12 @@ On Home Assistant **2026.5+**, *Settings → Dashboards → Add Dashboard → "M
 | `status` | *Overdue / Triggered / Due Soon / OK* — empty statuses skipped. |
 | `floor` | One view per floor (uses HA's floor registry, sorted by `level`), plus *Other* for objects whose area has no floor. |
 | `due_date` | *Overdue / Today / This Week / This Month / Later* — empty buckets skipped. |
+| `calendar` | Four calendar-card views — *week / fortnight / month / year* — see [Calendar Card](#calendar-card). |
 
 ```yaml
 strategy:
   type: custom:maintenance-supporter
-  group_by: due_date   # area | status | floor | due_date
+  group_by: due_date   # area | status | floor | due_date | calendar
 ```
 
 Card configs are generated dynamically from the `maintenance_supporter/objects` WebSocket feed, so adding objects or changing areas / floors / statuses is reflected on the next dashboard load — no YAML edits to keep things in sync. The strategy ships a small **visual editor** (registered via `getConfigElement`) so the picker can offer a dropdown instead of YAML for users who'd rather click.
@@ -390,7 +406,7 @@ show_object_filter: true              # default true; dropdown appears with 2+ o
 object_filter: ""                     # "" | "<entry_id>" | "<object name>" — pre-select one object
 ```
 
-Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Click on an event opens the task editor in-place — no panel navigation.
+Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Clicking an event opens the task editor **in-place** where the dashboard-strategy bundle is loaded to catch it; otherwise the card falls back to deep-linking into the panel on that task.
 
 The dashboard strategy's `group_by: calendar` mode wraps four instances of this card (week / fortnight / month / year) as separate views, with the chips hidden because the tab bar already serves as the window selector.
 
@@ -398,7 +414,7 @@ The dashboard strategy's `group_by: calendar` mode wraps four instances of this 
 
 <a id="entity-naming"></a>
 
-Each task becomes one sensor. Home Assistant builds its `entity_id` from the **object** (the device) plus the **task** name — there is **no shared `maintenance_` prefix**:
+Every task gets a **status sensor**. Home Assistant builds its `entity_id` from the **object** (the device) plus the **task** name — there is **no shared `maintenance_` prefix**:
 
 | Object | Task | Entity ID |
 |---|---|---|
@@ -406,15 +422,26 @@ Each task becomes one sensor. Home Assistant builds its `entity_id` from the **o
 | HVAC System | Filter Replacement | `sensor.hvac_system_filter_replacement` |
 | Water Softener | Refill Salt | `sensor.water_softener_refill_salt` |
 
-Because the names vary per setup, **don't filter by entity-id prefix** in templates — filter by integration instead, using `integration_entities('maintenance_supporter')`. Each sensor's state is one of `ok`, `due_soon`, `overdue`, `triggered`.
+Alongside that status sensor each task also registers **companion entities** on the same device:
+
+| Entity | Purpose |
+|---|---|
+| `sensor.<object>_<task>_next_due` | Next due date as a `timestamp` — **disabled by default** |
+| `sensor.<object>_<task>_days_until_due` | Plain day countdown, negative once overdue — **disabled by default** |
+| `binary_sensor.<object>_<task>_overdue` | `device_class: problem`, ON when overdue or triggered |
+| `button.<object>_<task>_complete` / `_skip` / `_reset` | One-press actions (see [Action buttons](#action-buttons)) |
+
+> **The companion suffixes are localized.** Only the status sensor (its name *is* the task name) and the global `sensor.maintenance_supporter_*` sensors carry the same id in every language. The companions above take their name from a translated string, so on a German install the countdown is `sensor.<object>_<task>_tage_bis_fallig` and the binary sensor ends in `_uberfallig`. Read the real ids off *Developer Tools → States*, or from the object's page under *Settings → Devices & Services → Devices*.
+
+Because the names vary per setup, **don't filter by entity-id prefix** in templates — filter by integration instead, using `integration_entities('maintenance_supporter')`. Each status sensor's state is one of `ok`, `due_soon`, `overdue`, `triggered`, `archived`, `paused`.
 
 ### Summary sensors
 
 <a id="summary-sensors"></a>
 
-The integration also exposes **aggregate count sensors** on a global *Maintenance Supporter* device — bind these to chips, badges, or pop-up cards without writing template sensors:
+The integration also exposes **aggregate sensors** on a global *Maintenance Supporter* device — bind these to chips, badges, or pop-up cards without writing template sensors:
 
-| Entity ID | Counts |
+| Entity ID | Reports |
 |---|---|
 | `sensor.maintenance_supporter_overdue` | tasks past due |
 | `sensor.maintenance_supporter_due_soon` | tasks inside their warning window |
@@ -422,8 +449,11 @@ The integration also exposes **aggregate count sensors** on a global *Maintenanc
 | `sensor.maintenance_supporter_needs_attention` | overdue + due-soon + triggered (one number) |
 | `sensor.maintenance_supporter_ok` | tasks not needing attention |
 | `sensor.maintenance_supporter_total_tasks` | all tasks |
+| `sensor.maintenance_supporter_parts_to_reorder` | spare parts at or below their reorder threshold, across all objects |
+| `sensor.maintenance_supporter_batteries_to_replace` | batteries currently low across the whole fleet (grouped shopping needs + forecast as attributes) |
+| `sensor.maintenance_supporter_document_storage` | storage footprint of attached documents (`device_class: data_size` — bytes, not a count), with per-object and per-category attributes |
 
-They update live and are the **same numbers** the panel KPI chips and the dashboard-strategy headline show — one shared aggregator, so they never drift.
+They update live and are the **same numbers** the panel KPI chips and the dashboard-strategy headline show — one shared aggregator, so they never drift. Unlike the per-task entities, these ids are **pinned language-independently**: only the friendly name follows your HA language.
 
 ### Action buttons
 
@@ -435,7 +465,7 @@ Each task also exposes **action buttons** on its object device, so you can act o
 | `button.<object>_<task>_skip` | Skip the current cycle |
 | `button.<object>_<task>_reset` | Reset the task's schedule |
 
-(Entity IDs follow the same per-task naming as the sensors, e.g. `button.family_car_oil_change_complete`.) Buttons for disabled (paused) tasks are unavailable, and every press runs through the same logic as the `maintenance_supporter.complete` / `skip` / `reset` services — so a dashboard tap behaves exactly like the panel.
+(Entity IDs follow the same per-task naming as the sensors, e.g. `button.family_car_oil_change_complete` — but the `_complete` / `_skip` / `_reset` suffix is **translated** on a non-English install, so copy the real id from *Developer Tools → States*; see [Entity naming](#entity-naming).) Buttons for disabled (paused) tasks are unavailable, and every press runs through the same logic as the `maintenance_supporter.complete` / `skip` / `reset` services — so a dashboard tap behaves exactly like the panel.
 
 To export your data, use the **`maintenance_supporter.export_data`** action (service) — it writes a JSON/YAML file to your Home Assistant config folder. (Export isn't a button entity: a button runs on the server and can't trigger a browser download.)
 

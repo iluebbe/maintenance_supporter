@@ -3,6 +3,14 @@
 How to turn a Home Assistant instance into a ranked list of maintenance objects
 and tasks. All discovery is **read-only**. You propose; the user decides.
 
+> **Run the shipped discovery first.**
+> `maintenance_supporter/integration_setups/discover` (123 integrations / 229
+> source-verified signatures, triggers pre-wired) and
+> `maintenance_supporter/problem_sensors/discover` already answer "which device
+> needs what" for everything they cover — server-side, with better wiring than
+> any state heuristic. The heuristics below are for the **remainder**: devices
+> from integrations that aren't catalogued, and signals nobody catalogued yet.
+
 ## What to read (core HA WS commands)
 
 - `config/area_registry/list` → areas → object grouping + `area_id`.
@@ -30,7 +38,7 @@ trigger** when a usable signal exists; fall back to a **time interval** otherwis
 | On/off actuator that runs | `switch.*`, `binary_sensor.* device_class: running/power`, fan/pump | Wear by run-time | `runtime` `trigger_runtime_hours` |
 | Pressure / flow | `sensor.*`, `device_class: pressure`, unit bar/psi; water flow | Check/refill/clean when out of band | `threshold` `trigger_above`/`trigger_below` |
 | Filter / consumable life | `sensor.*_filter_life`, `%` remaining, cycle counters | Replace filter / consumable | `threshold` `trigger_below` (%), or `counter` (cycles) |
-| Battery level | `device_class: battery`, `%` | Replace battery | `threshold` `trigger_below` (e.g. 20) |
+| Battery level | `device_class: battery`, `%` | **Battery Fleet** — one task for the whole house | `battery_fleet/setup` (not one threshold task per battery) |
 | Cleaning/self-clean cycles | robot vac, dishwasher, washer states | Clean/descale after N cycles | `state_change` `trigger_target_changes`, or `counter` |
 | Water hardness / TDS | `sensor.*`, ppm/°dH | Regenerate softener / replace cartridge | `threshold` `trigger_above` |
 | Air quality / dust | `device_class: pm25`, VOC | Clean/replace HVAC or purifier filter | `threshold` `trigger_above` |

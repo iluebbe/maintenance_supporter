@@ -39,9 +39,14 @@ have **no retail barcode** but always a manufacturer part number, so `mpn`
 No price-API scraping (ToS, fragility, keys) — deep links only:
 
 1. `product_url` on the part always wins.
-2. Otherwise the global `part_search_url_template` setting (`{q}` placeholder;
-   default: an Amazon search for the HA UI language) with query precedence
-   **GTIN → "vendor mpn" → name**.
+2. Otherwise a search URL with a `{q}` placeholder and query precedence
+   **GTIN → "vendor mpn" → name**. The template is read from the global option
+   `part_search_url_template` (`parts_runtime.py`), but **nothing currently
+   writes it**: the key is absent from `SETTING_SPECS`, so `global/update`
+   drops it, and there is neither an options-flow nor a panel field for it. In
+   practice every install therefore uses the built-in default — an Amazon
+   search for the HA UI language. Making it configurable means adding the
+   `SettingSpec` plus a UI field; until then the read is a hook, not a setting.
 
 ## Buy-task lifecycle: declarative reconcile
 

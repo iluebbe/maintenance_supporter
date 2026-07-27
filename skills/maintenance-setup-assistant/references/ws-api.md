@@ -13,6 +13,10 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
+All **80** registered commands are covered here. Their authorization tiers are
+frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
+record; this file is its prose companion.
+
 ## Length caps (silently enforced server-side)
 
 `name ≤200`, free text (`notes`, `feedback`, `reason`) `≤2000`, URL `≤2048`,
@@ -28,12 +32,19 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
 
 - `@require_write` (admin **or** allowlisted operator): all object/task
   create/update/delete/duplicate/archive/unarchive, `object/from_template`,
-  `task/assign_user`, `task/history/update`.
+  `task/assign_user`, `task/history/update`, `task/apply_suggestion`,
+  `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
+  `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
+  `views/{save,delete}`, `problem_sensors/adopt`,
+  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded}`.
 - `@require_admin` (admin only): `global/update`, `global/test_notification`,
-  bulk import, vacation writes. **The escalation boundary** — an operator can
-  never enable `operator_write_enabled` or edit `admin_panel_user_ids`.
+  bulk import **and export** (`export`, `csv/export`, `json/import`,
+  `csv/import`), vacation writes (`vacation/update`, `vacation/end_now`).
+  **The escalation boundary** — an operator can never enable
+  `operator_write_enabled` or edit `admin_panel_user_ids`.
 - No gate (any authenticated user): all read commands + `task/complete`,
-  `task/quick_complete`, `task/skip`, `task/reset`.
+  `task/quick_complete`, `task/skip`, `task/reset`, `task/postpone`,
+  `task/snooze`.
 
 Operator writes require: admin set `operator_write_enabled: true` **and** added
 the user to `admin_panel_user_ids`. Otherwise non-admins are denied.
@@ -45,7 +56,12 @@ the user to `admin_panel_user_ids`. Otherwise non-admins are denied.
 An object has **no cost and no icon** field. Stored fields: `id` (server-set),
 `name`, `area_id`, `manufacturer`, `model`, `serial_number`,
 `installation_date`, `warranty_expiry`, `documentation_url`, `notes`,
-`task_ids`, `archived_at?`.
+`ha_device_id` (bind the object to an EXISTING HA device — its entities then
+land on that device's page; also what makes suggested setups recognise the
+object), `parent_entry_id` (nest under another maintenance object, `via_device`),
+`task_ids`, `archived_at?`, `paused_at?`/`paused_until?` (seasonal pause),
+`predecessor_entry_id?`/`replaced_by_entry_id?` (the `object/replace` chain),
+and `parts` (spare parts, see below).
 
 ### `object/create` — `@require_write`
 ```json
@@ -59,6 +75,8 @@ An object has **no cost and no icon** field. Stored fields: `id` (server-set),
   "warranty_expiry": "2026-03-15",     // optional, YYYY-MM-DD
   "documentation_url": "https://…",    // optional, http/https only, else invalid_url
   "notes": "…",                        // optional | null
+  "ha_device_id": "<device_id>",       // optional; bind to an existing HA device
+  "parent_entry_id": "<entry_id>",     // optional; nest under another object
   "dry_run": true }                    // optional; true = validate only
 ```
 Result: `{"entry_id": "<config_entry_id>"}`. Dry-run: `{"valid": true, "entry_id": null}`.
@@ -117,8 +135,27 @@ Link consumption on the task: `task/create|update` accept
 (marker `part_ref`); completing it restocks (`task/complete` accepts
 `restock_quantity`).
 
+### `templates` — read — **the shipped object catalog**
+`{language?}` (BCP-47-ish, ≤10 chars; defaults to the server language) →
+```json
+{ "categories": {"<cat_id>": {…}},
+  "templates": [ { "id": "coffee_machine", "name": "Espresso Machine",
+                   "category": "kitchen", "disabled": false,
+                   "tasks": [ {"name":"Descale","type":"cleaning",
+                               "schedule_type":"time_based",
+                               "interval_days":90,"warning_days":7} ] } ] }
+```
+**Call this before hand-building anything.** The integration ships **45**
+curated object templates (kitchen, heating, garden, vehicle, health, …), each
+with its tasks, types and interval defaults already chosen and localized. It is
+the only way to enumerate the `template_id` values `object/from_template`
+consumes. `disabled: true` = the admin hid it from the pickers in Settings —
+don't propose those. Everything a template creates stays fully editable
+afterwards, so "template + edits" beats a hand-built object nearly every time.
+
 ### `object/from_template` — `@require_write`
-`{template_id (req), name?}` → `{entry_id}`. `object/duplicate` `{entry_id}` → `{entry_id}`.
+`{template_id (req), name?}` → `{entry_id}`. Creates the object **and all of the
+template's tasks** in one call. `object/duplicate` `{entry_id}` → `{entry_id}`.
 
 ---
 
@@ -130,7 +167,7 @@ Link consumption on the task: `task/create|update` accept
   "entry_id": "<object entry_id>",     // REQUIRED
   "name": "Replace filter",            // REQUIRED, 1..200
   "task_type": "replacement",          // wire key; stored as "type". default "custom".
-                                       //   enum: cleaning|inspection|replacement|calibration|service|custom
+                                       //   enum: cleaning|inspection|replacement|calibration|service|reading|custom
   "schedule_type": "time_based",       // default. time_based|sensor_based|manual|one_time
   "interval_days": 90,                 // 1..3650 | null (time interval)
   "interval_unit": "days",             // days|weeks|months|years (default days)
@@ -169,7 +206,43 @@ flat interval edit rebuilds from flat and drops the nested schedule.
 - `task/quick_complete` `{entry_id, task_id}` → `{"success": true, "via": "quick"}` (needs stored `quick_complete_defaults`, else `no_defaults`)
 - `task/skip` `{entry_id, task_id, reason?}`
 - `task/reset` `{entry_id, task_id, date?}` (ISO)
+- `task/postpone` `{entry_id, task_id, until (req, YYYY-MM-DD)}` → `{"success": true}` —
+  defers **this occurrence only** to a chosen date; the recurrence itself is untouched.
+  Bad date → `invalid_date`.
+- `task/snooze` `{entry_id, task_id}` → `{"success": true}` — silences due-soon /
+  overdue / triggered reminders for the configured `snooze_duration_hours`.
+  Changes neither schedule nor status, and is in-memory only (a full HA restart
+  forgets it). Without a configured notifier → `unavailable`.
 - `task/assign_user` `{entry_id, task_id, user_id|null}` — `@require_write`; `null` unassigns; unknown user → `invalid_user`
+
+### `task/list` — read
+`{entry_id?}` → `{tasks:[…]}`. Every task across all objects (or one object's),
+each summary carrying `task_id`, `entry_id`, `object_name` plus the computed
+status fields. The flat counterpart to `objects` when you only care about tasks.
+
+### `tasks/by_user` — read (self) / write (others)
+`{user_id (req)}` → `{tasks:[…]}` — the tasks assigned to that user, with
+`object_name`+`entry_id` on each. A plain user may query **their own** id only;
+another user's assignments need write permission, else `unauthorized`.
+
+### Adaptive scheduling & analysis
+- `task/analyze_interval` — read — `{entry_id, task_id}` →
+  `{current_interval, average_actual_interval, interval_std_dev, ewa_prediction,
+  weibull_prediction, weibull_beta, weibull_eta, weibull_r_squared,
+  recommended_interval, confidence, confidence_interval_low/high, feedback_count,
+  data_points, recommendation_reason, seasonal_factor, seasonal_factors,
+  seasonal_reason}`. Pure analysis of the completion history — nothing is written.
+  Unknown task → `not_found`.
+- `task/apply_suggestion` — `@require_write` — `{entry_id, task_id, interval
+  (1..3650)}` → `{"success": true}`. Writes an analysed interval onto the task.
+- `task/seasonal_overrides` — `@require_write` — `{entry_id, task_id, overrides:
+  {"<month 1..12>": factor 0.1..5.0}}` (≤12 keys; `{}` clears them) →
+  `{"success": true, "overrides": {…}}`. Manual per-month interval multipliers.
+- `task/set_environmental_entity` — `@require_write` — `{entry_id, task_id,
+  environmental_entity?, environmental_attribute?}` → `{"success": true,
+  environmental_entity, environmental_attribute}`. Correlates an outside signal
+  (outdoor temperature…) with the interval; `environmental_entity: null` clears
+  the binding (and drops the attribute with it).
 
 ---
 
@@ -237,13 +310,45 @@ For most setup work, `interval_days` + `interval_unit` is all you need.
 ## Read & settings
 
 ### `version`
-→ `{version:"2.40.0"}` — the installed integration (manifest) version. The
+→ `{version:"2.42.1"}` — the installed integration (manifest) version. The
 panel uses it for the stale-bundle handshake; useful for the assistant to
 report/verify what is running.
 
 ### `statistics`
 → `{total_objects,total_tasks,overdue,due_soon,triggered,total_cost}`. Use to
 verify counts before/after.
+
+### `subscribe` — read — live push
+`{}` → an immediate empty result, then a stream of `event` messages
+`{objects:[…]}` in the same shape as the `objects` read, pushed on every
+coordinator update (and when a new object entry appears). Unsubscribe with HA's
+standard `unsubscribe_events` on the same message id. Useful to watch a trigger
+flip during verification; a plain `objects` re-read is enough for one-shot checks.
+
+### `schedule/preview` — read — "your next three dates"
+`{schedule (req, nested Schedule dict), last_performed?, times_performed?
+(0..100000, default 0), count? (1..10, default 3)}` →
+`{occurrences:["YYYY-MM-DD", …], series_ended: bool}`. Runs a **draft**
+recurrence through the real scheduling engine (nothing is stored), simulating an
+on-time completion per step — so completion-anchored intervals, calendar kinds,
+season windows and finite series all advance exactly as they will in production.
+Use it to show the user concrete dates before `task/create`. Bad
+`last_performed` → `invalid_date`; an unusable schedule → `invalid_input`.
+
+### `budget_status` — read
+`{}` → `{monthly_budget, monthly_spent, yearly_budget, yearly_spent,
+alert_threshold_pct, currency_symbol}` — spend summed from completion history
+costs in the current month/year against the configured budgets.
+
+### `entity/attributes` — read
+`{entity_id}` → the attributes worth monitoring on that entity (domain mapping
+merged with the live state). Call it before putting `attribute` into a
+`trigger_config` so you offer real keys instead of guessing.
+
+### `tags/list` — read
+`{}` → `{tags:[{id,name}]}` — the HA NFC tag registry, for filling a task's
+`nfc_tag_id`. Names are resolved from the entity registry (tags read back as
+bare UUIDs otherwise after a restart).
 
 ### `objects` / `object`
 `objects` → `{objects:[{entry_id, object:{…}, tasks:[…]}]}`. `object`
@@ -271,6 +376,24 @@ values dropped. Keys relevant to setup:
 
 Propose settings changes separately and only after the user opts in; they need
 an admin token.
+
+### `groups` / `group/create` / `group/update` / `group/delete`
+Groups bundle tasks from **different objects** under one name ("Spring
+service"), for grouped panel lists and grouped notifications.
+- `groups` — read — `{}` → `{groups:{"<group_id>":{name,description,task_refs:[{entry_id,task_id}]}}}`.
+- `group/create` — `@require_write` — `{name (req), description?, task_refs?}` → `{group_id}`.
+- `group/update` — `@require_write` — `{group_id (req), name?, description?, task_refs?}` (partial) → `{"success": true}`.
+- `group/delete` — `@require_write` — `{group_id}` → `{"success": true}`. Unknown id → `not_found`.
+
+### QR codes — `qr/generate` / `qr/batch_generate` — read
+- `qr/generate` `{entry_id (req), task_id?, action? (view|complete|quick_complete,
+  default view), url_mode? (server|local|companion, default server), base_url?}`
+  → `{svg_data_uri, url, label:{object_name,manufacturer,model,task_name}}`.
+  A sticker for an object or one task. No HA URL configured → `no_url`.
+- `qr/batch_generate` `{entry_ids?, task_ids?, actions (req, ≥1 of
+  view|complete|skip|quick_complete), url_mode?, base_url?}` →
+  `{qrs:[{entry_id,task_id,object_name,task_name,action,svg}], total}`. Omitted
+  filters mean "all" at that level. Capped at 200 QRs per call (`too_many`).
 
 ## Backup / migration — export & import
 
@@ -307,6 +430,79 @@ then by name for a cross-instance restore; idempotent). This is the one export
 that carries uploaded file *contents* — pair it with a JSON export for a
 complete, portable backup.
 
+## Documents — manuals, invoices, web-links
+
+Everything JSON rides the WebSocket; binary **upload/download** goes through the
+authenticated HTTP views (a websocket frame is a poor fit for a 20 MB PDF). Reads
+are open, mutations are `@require_write` — documents are object content, not
+global config.
+
+### `documents/list` — read
+`{entry_id}` → `{documents:[…]}` — one object's documents, newest first.
+
+### `documents/search` — read
+`{query (req, ≤200)}` → `{results:[{id,entry_id,object_name,kind,title,filename,
+url,size,tags}]}`. Substring match over title / filename / url / mime / tags
+across **all** objects; ≤50 hits. The fastest way to answer "do we already have
+the manual for X?".
+
+### `documents/storage` — read
+`{}` → the global storage summary (physical vs logical bytes, per object and
+category). Blobs are refcounted — the same file on two objects costs bytes once.
+
+### `documents/add_link` — `@require_write`
+`{entry_id (req), url (req, absolute http/https), title?, tags? (≤20 × ≤64)}` →
+the created document. Costs 0 storage and is not carried in backups (it's a
+reference, not a file). A relative or non-http(s) URL → `invalid_url`. This is
+the right home for a manufacturer manual you found in Phase 3.
+
+### `documents/update` — `@require_write`
+`{doc_id (req), title?, tags?, task_ids? (≤100), task_pages? {task_id: page},
+part_ids? (≤100)}` → the updated document. Only present keys change; a present
+but empty `title` clears it. `task_pages` makes "open the manual at the right
+page" work per task (PDF `#page=N`). Unknown id → `not_found`.
+
+### `documents/delete` — `@require_write`
+`{doc_id}` → `{"success": true, "bytes_freed": N}`. Bytes come back only when
+the **last** reference to a blob goes.
+
+## Suggested setups — the shipped signature catalog
+
+**Use this before hand-rolling discovery.** The integration ships a catalog of
+**123 integrations / 229 verified signatures** (`helpers/signatures/`, every
+entry read against the integration's own source) that maps consumable and wear
+entities onto maintenance duties. Discovery runs **server-side**: it walks the
+entity registry, applies the model/sibling/unit gates, hides duties already
+watched by an existing task, and hands back devices with their triggers already
+chosen. You get better wiring than any state heuristic can infer, and adoption
+never trusts client-supplied thresholds.
+
+### `integration_setups/discover` — read
+`{}` → `{setups:[{device_id, device_name, area_name, integration,
+integration_name, suggested_entry_id, suggested_object_name,
+tasks:[{task_name, task_name_localized, entity_ids, threshold, direction}]}]}`.
+
+`suggested_entry_id` is the maintenance object already bound to that device
+(adopt extends it instead of creating a duplicate); it is `null` when the device
+is new to us, and `suggested_object_name` then falls back to the device name.
+`direction` says which shape the duty is (`percent_left`, `duration_left`,
+`usage_above`, `usage_delta`, `runtime_hours`, `event_present`, `alert_above`,
+`value_below`, `cycle_count`) and `threshold` is the adoption-time default in the
+entity's own display unit. `task_name` is the **English catalog key** — adopt
+selections match on it; `task_name_localized` is what you show the user.
+
+### `integration_setups/adopt` — `@require_write`
+`{selections:[{device_id (req), entry_id?, object_name?, task_names?,
+baselines? {task_name: number}}]}` (1..50 selections) →
+`{tasks_created, objects_created, total, errors?}`.
+
+Discovery is re-run server-side on adopt, so the entities and thresholds always
+come from the catalog. Omit `task_names` to adopt every suggested duty. Without
+`entry_id` the suggested/new object is created and bound to the device (an
+existing object picked by `entry_id` gets bound too, so future discovery
+recognises it). `baselines` is the "#102 last service was at reading X" input —
+only meaningful for `usage_delta` duties, where the delta then counts from X, so
+an already-elapsed interval comes due immediately.
 
 ## Problem sensors — adopt HA `device_class: problem` binary sensors
 
@@ -329,15 +525,48 @@ A `part_id` (from discovery's suggestion) links the part as the task's
 `consumes_parts` (qty 1) — completing the task then consumes/restocks it;
 unknown ids are silently dropped.
 
+## Battery Fleet — one task for every battery in the house
+
+Instead of one threshold task per battery, the integration aggregates all
+**Battery Notes** devices into a SINGLE maintenance task plus a per-type
+shopping list (AA, AAA, CR2032 …). Do not propose per-battery threshold tasks —
+offer the fleet.
+
+### `battery_fleet/overview` — read
+`{}` → `{available` (any batteries at all)`, has_battery_notes, configured`
+(the fleet object exists)`, task_ok` (its task + trigger are intact)`, entry_id,
+total, low, soon, needs_now:{type:count}, needs_soon:{…}, types,
+excluded:[{entity_id,device_name}]}`.
+
+### `battery_fleet/setup` — `@require_write`
+`{language?}` → creates (or idempotently reconciles) the fleet object, its
+per-type parts and the one task, with names localized to `language`. Also the
+one-click repair when `task_ok` is false. No batteries found → `not_available`.
+
+### `battery_fleet/mark_replaced` — `@require_write`
+`{entity_ids?}` → marks those batteries replaced (presses their Battery Notes
+button and consumes the matching type-parts). Omit `entity_ids` to mark
+everything currently low.
+
+### `battery_fleet/set_excluded` — `@require_write`
+`{entity_id (req), excluded (req, bool)}` → `{"success": true}`. Keeps a
+self-charging or retired device out of the fleet (and puts it back). Fleet not
+set up → `not_configured`.
+
 ## Saved filter views — shared named panel-list filter combinations
 
-Views bundle the task-list filters (`status`, `user_id`, `archived`) plus
-`sort_mode` + `group_by` under a name. One shared list on the global entry;
+Views bundle the task-list filters (`status`, `user_id`, `label`, `archived`)
+plus `sort_mode` + `group_by` under a name. One shared list on the global entry;
 everything is re-sanitised on read/save (unknown values coerce to the permissive
 default). Note the field is `view_id`, not `id` — `id` is the WS message id.
 
+Views are not display-only: the global setting `notify_scope_view_id` scopes
+**notifications** to one view, and that routing honours the task-selecting
+filters (`label`, `user_id`) while ignoring the display ones (status, archived,
+sort/group). So "only notify about the garden tasks" is a view + that setting.
+
 ### `views/list` — read
-`{}` → `{views:[{id,name,filters:{status,user_id,archived,sort_mode,group_by}}]}`.
+`{}` → `{views:[{id,name,filters:{status,user_id,label,archived,sort_mode,group_by}}]}`.
 
 ### `views/save` — @require_write
 `{name, view_id?, filters?}` → `{views:[...], saved_id}`. Omit `view_id` to
@@ -345,3 +574,26 @@ create; include it to update in place. Rejects past 50 views (`too_many_views`).
 
 ### `views/delete` — @require_write
 `{view_id}` → `{views:[...]}`. No-op if the id doesn't exist.
+
+## Vacation mode — pause reminders for a date window
+
+One global window with a buffer and an exemption list; exempt tasks keep
+notifying (the cat's medication doesn't care that you're away).
+
+### `vacation/state` — read
+`{}` → the current config + `active` flag.
+
+### `vacation/preview` — read
+`{}` → `{rows:[…], window_end}` — the projected impact of the **currently
+stored** dates, even while the toggle is off (that's the "Preview impact"
+button). No start/end stored → `{rows: [], window_end: null}`, so patch the
+dates via `vacation/update` first if you want a live preview.
+
+### `vacation/update` — **admin**
+`{enabled?, start?, end? (YYYY-MM-DD | null), buffer_days? (0..14),
+exempt_task_ids? (≤2000)}` (partial) → the new state. Errors: `invalid_date`,
+`invalid_range` (end before start).
+
+### `vacation/end_now` — **admin**
+`{}` → the new state. Switches vacation off immediately and clamps the end date
+to today, keeping the dates for reuse.

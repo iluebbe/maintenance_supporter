@@ -16,7 +16,7 @@ The repo ships with a Docker Compose setup that boots a real Home Assistant with
 ```bash
 cd docker
 docker compose up -d              # ha-maint container on port 8125
-docker compose --profile testing up -d   # adds playwright-server on port 3000
+docker compose --profile testing up -d   # adds playwright-server (3000) + ha-maint-fresh (8126)
 ```
 
 HA at <http://localhost:8125>. Token in `docker/.env` as `HA_TOKEN=…`.
@@ -45,13 +45,13 @@ Three layers, run independently or together:
 docker exec ha-maint sh -c 'cd /config && python -m pytest tests/'
 ```
 
-~2,300 unit + integration tests. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
+~2,960 unit + integration tests. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
 
-**Faster local runs:** `pytest-xdist` parallelizes the suite ~3× —
-`python -m pytest tests/ -n auto --dist loadfile`. This is a local accelerator
-only; CI runs serially for determinism (the documents feature's blob dir lives
-under pht-cc's shared `testing_config`, so document-writing tests in different
-files can race across workers).
+**Parallel runs:** `pytest-xdist` parallelizes the suite ~3× —
+`python -m pytest tests/ -n auto --dist loadfile`. CI runs the same way; the
+`--dist loadfile` mode is what keeps it deterministic (the documents feature's
+blob dir lives under pht-cc's shared `testing_config`, so document-writing
+tests must stay together on one worker rather than being split across them).
 
 ### 2. Component (Lit, web-test-runner)
 
@@ -61,38 +61,60 @@ npm test               # one-shot
 npm run test:watch     # dev iteration
 ```
 
-~17 component tests, runs in ~3s. Mounts individual Lit components in real Chromium with mocked `hass`. See `__tests__/` for examples.
+~290 component tests across ~52 files, runs in seconds. Mounts individual Lit components in real Chromium with mocked `hass`. See `__tests__/` for examples.
 
 ### 3. End-to-end smoke (Playwright + WS)
 
 ```bash
 # Requires playwright-server profile up (see Docker section above)
-cd custom_components/maintenance_supporter/frontend-src
-node verify-strategy.mjs           # example pattern
+cd e2e
+./run-local.sh                     # the CI lifecycle + onboarding specs
 ```
 
-Drives WS endpoints against a live HA instance via `page.evaluate`. Used for backend smoke verification before release; we deliberately don't try to automate UI clicks through HA's deep shadow DOM.
+`e2e/specs/*.spec.ts` drive the real panel in a real browser — including
+through HA's shadow DOM — and the `e2e-lifecycle` job runs them in CI.
+Alongside them `e2e/` holds a family of scripted checks against the dev
+instance: `live-overflow-sweep.mjs` (layout overflow per language and
+viewport), `live-lang-check.mjs` (panel renders in a given language rather
+than falling back to English), the `shots-*.mjs` screenshot tooling and
+`gifs-demo.mjs`. Several accept `MS_LANGS="pt-BR,hu,ko,tr"` to pick the
+languages to exercise. See `e2e/README.md`.
 
 ## Code quality
 
 ```bash
-docker exec ha-maint sh -c 'cd /config && ruff check custom_components/maintenance_supporter/'
-docker exec ha-maint sh -c 'cd /config && mypy custom_components/maintenance_supporter'
+./scripts/preflight.sh    # replicates the CI gates in one command
 ```
 
-Both must be clean before commit.
+Or individually, mirroring what CI runs:
+
+```bash
+docker exec ha-maint sh -c 'cd /config && ruff check custom_components/maintenance_supporter/ tests/'
+docker exec ha-maint sh -c 'cd /config && ruff format --check custom_components/maintenance_supporter/ tests/'
+docker exec ha-maint sh -c 'cd /config && mypy --config-file mypy.ini custom_components/maintenance_supporter'
+cd custom_components/maintenance_supporter/frontend-src && npx tsc --noEmit   # blocking, baseline 0
+```
+
+All must be clean before commit. CI pins `ruff==0.15.22` — a newer ruff can
+flag different rules, so match the pin when in doubt.
 
 ## Translations
 
-Panel strings live in `custom_components/maintenance_supporter/frontend-src/locales/<lang>.json` (18 languages; runtime-loaded, only `en.json` is bundled). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
+Panel strings live in `custom_components/maintenance_supporter/frontend-src/locales/<lang>.json` (22 languages; runtime-loaded, only `en.json` is bundled). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
 
 When adding a key:
 
-1. Add it to **all 18 languages** ideally. If you can only do a few, that's still useful — missing keys fall back to English silently.
-2. Run the key-parity test:
+1. Add it to **all 22 languages** — this is enforced, not aspirational. CI
+   checks both key parity *and* that the value was actually translated
+   (an English string copied into every file fails the gate).
+2. Use the helper rather than editing 22 files by hand; it refuses to run
+   unless every language has a value:
    ```bash
-   cd custom_components/maintenance_supporter/frontend-src
-   npm test    # __tests__/i18n-parity.test.ts asserts every block has the same keys
+   py -X utf8 scripts/add_locale_key.py my_new_key values.json   # {"en": "…", "de": "…", …}
+   ```
+3. Run the parity + value tests:
+   ```bash
+   docker exec ha-maint sh -c 'cd /config && python -m pytest tests/test_i18n.py'
    ```
 3. If you submitted a translation-only PR, the [Translation correction issue template](.github/ISSUE_TEMPLATE/translation.yml) lists where files live.
 

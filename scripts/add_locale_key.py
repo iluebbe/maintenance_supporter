@@ -1,4 +1,4 @@
-"""Add a frontend locale key to ALL 18 languages in one atomic step.
+"""Add a frontend locale key to ALL 22 languages in one atomic step.
 
 THE canonical way to add a panel/card UI string. Refuses to run unless a value
 is supplied for every language, so the "add to en.json now, translate later"

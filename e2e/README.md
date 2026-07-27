@@ -64,6 +64,31 @@ traces on failure. The hard gate stays the unit suite (`npm test`).
 | `E2E_HA_URL` | URL the **browser** uses (and storageState origin) | `http://localhost:8123` |
 | `E2E_HA_REST_URL` | URL the **setup process** uses for onboarding REST | = `E2E_HA_URL` |
 | `E2E_PW_WS` | `ws://` endpoint of a playwright server; connect instead of launching | _(launch)_ |
+| `HA_PORT` | host port `run-local.sh` maps its throwaway HA to | `8129` |
+| `HA_TOKEN` | long-lived token for the scripted checks below (also in `docker/.env`) | _(required)_ |
+| `MS_LANGS` | comma-separated languages for the language-aware checks | see below |
+
+## Scripted checks against the dev instance
+
+Beside the two specs, `e2e/` holds ~50 single-purpose `.mjs` scripts that drive
+the **running `ha-maint` dev instance** over WebSocket + Playwright. They are
+run by hand (or before a release), not in CI, and share `ws-client.mjs` for
+token auth. The ones worth knowing:
+
+| Script | What it checks |
+|---|---|
+| `live-overflow-sweep.mjs` | Layout overflow on 4 panel surfaces × phone/tablet × the longest-label languages. `MS_LANGS` overrides the set (default `de,uk,hi,hu,en`). |
+| `live-lang-check.mjs` | A language actually renders — fails on a silent English fallback — and saves a screenshot per language. `MS_LANGS` default `pt-BR,hu,ko,tr`. |
+| `live-battery-fleet-check.mjs`, `seed-battery-fleet.mjs` | Battery-fleet aggregation against seeded Battery Notes devices. |
+| `shots-*.mjs` | The committed documentation screenshots (`shots-demo.mjs` is the canonical one). |
+| `gifs-demo.mjs` | The README/FEATURES animations (needs `ffmpeg-static`). |
+
+Run them from the **repo root**, e.g.:
+
+```bash
+docker restart playwright-server        # it wedges after ha-maint restarts
+MS_LANGS="pt-BR,hu,ko,tr" node e2e/live-lang-check.mjs
+```
 
 ## Adding a spec
 

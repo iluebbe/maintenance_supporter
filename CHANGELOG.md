@@ -2,6 +2,47 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **The days-until-due countdown sensor now has a language-independent
+  entity id.** Its id was derived from the *translated* entity name, so a
+  German install got `..._tage_bis_fallig` while the documented gauge recipe
+  used `..._days_until_due` — the recipe only worked in English. The id is
+  now pinned the same way the global summary sensors already are; entities
+  that already exist keep their current id.
+
+### 📚 Documentation
+
+- **Full documentation audit against the code.** Every shipped `.md` was
+  checked claim by claim; roughly 80 corrections landed. The ones that
+  actually misled people: the README promised "no external dependencies"
+  (the integration requires `pypdf`) and advertised two Assist intents
+  (there are six); CONFIGURATION named a calendar entity that does not
+  exist (`calendar.maintenance_schedule` is the real one), documented a
+  spare-part search setting that has no way to be set, claimed the panel
+  needs a restart to appear, inverted the `panel_enabled` default and
+  credited the weekly digest with honouring quiet hours; FEATURES stated
+  that discovery never proposes an already-wired entity — the exact
+  behaviour v2.41 replaced with per-duty claims; and a settings table was
+  malformed enough to hide five real options on GitHub.
+- **Counts across the docs now match the code** — 22 languages, 45 templates
+  in 9 categories, 123 integrations / 229 signatures, 80 WebSocket commands
+  — and a new test keeps them there: it derives each figure from the code
+  and fails on any doc sentence quoting a different one.
+- **The assistant's WebSocket reference documented 44 of 80 commands**;
+  it now covers all of them, including `templates` and
+  `integration_setups/discover` — the two that let an assistant create
+  objects from shipped templates and discover devices server-side instead
+  of rebuilding both by hand.
+- ARCHITECTURE was two refactors behind (file tree, entity inventory,
+  bundle sizes, pinned versions) and never mentioned the signature catalog,
+  Battery Fleet, voice intents, the to-do/logbook platforms or rotation;
+  EXAMPLES now warns that companion entity ids are localized on non-English
+  installs; CONTRIBUTING no longer tells contributors that partial
+  translations are acceptable (CI rejects them) or that CI runs serially.
+
 ## [2.42.1] - 2026-07-26
 
 ### 🐛 Fixed

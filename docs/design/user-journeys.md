@@ -4,7 +4,9 @@ Status: living document (created 2026-07-05).
 
 ## Why this document exists
 
-The test suite (2475 backend tests) is organized **per module/feature**: each
+The test suite (~2,800 backend test functions across ~175 test modules; run
+`pytest --collect-only -q` for the exact figure of the day) is organized
+**per module/feature**: each
 WS command, each helper, each entity platform is tested in isolation, and a
 cloud coverage audit (v2.17) verified per-command coverage. What that
 organization structurally misses are **processes over time** — sequences of
@@ -35,7 +37,7 @@ flow, **W** WS API, **S** services, **E** entities (buttons/todo/calendar),
 | A2 | Empty panel → template gallery → object + tasks in one click | P, F | test_config_flow_template, panel-shell FE tests | deferred — backend steps (template read, object/task create, complete) individually covered; the gallery sequence is a panel-side story for the e2e suite |
 | A3 | Manual first object + first task via dialogs | P, W | test_ws_objects, test_ws_tasks* | — |
 | A4 | Restore from backup: JSON/CSV/YAML import (incl. documents metadata, device links) | P, W | test_ws_io*, test_csv_*, test_journey_lifecycle_complete (import → restart → status/history parity) | closed |
-| A5 | Migration from older versions (flat→nested schedule, panel default) | (upgrade) | test_schedule migrations, test_init | — |
+| A5 | Migration from older versions: `minor_version` 1→2 (backfill `created_at`), 2→3 (flat→nested schedule), 3→4 (seed `responsible_user_id` on rotation tasks configured without an initial assignee — those were invisible to every user filter until their first completion, #49), panel default | (upgrade) | test_schedule migrations, test_init | — |
 
 ### B. Daily use (the happy path)
 
@@ -82,7 +84,7 @@ especially across reload/restart.
 |---|---------|----------|---------------|-----|
 | E1 | Archive task → *Undo* toast → unarchive re-anchors | P, W | test_ws_archive | — |
 | E2 | Archive → restart (stays inert) → unarchive | P, W | test_ws_archive, test_journey_retirement, test_journey_lifecycle_complete (object cascade × restart × unarchive) | closed |
-| E3 | Delete task → all 6 per-task entities + store keys + group refs gone | P, F, W, S | test_entity_removal, test_services_crud, test_journey_groups (grouped task deleted → its group task_ref pruned, sibling ref kept; object deleted → all its refs pruned; group survives member-less; pruning holds across restart) | closed |
+| E3 | Delete task → all 7 per-task entities (status sensor, next-due sensor, days-until-due countdown sensor, overdue binary sensor, 3 action buttons) + store keys + group refs gone | P, F, W, S | test_entity_removal, test_services_crud, test_journey_groups (grouped task deleted → its group task_ref pruned, sibling ref kept; object deleted → all its refs pruned; group survives member-less; pruning holds across restart) | closed |
 | E4 | Delete object → device, entities, documents (refcounted blobs), group refs gone | P, F, W | test_ws_objects, test_journey_retirement, test_journey_lifecycle_complete (blob freed, doc index empty) | closed |
 | E5 | Retention: auto-archive one-offs → auto-delete after N days | (time) | test_archive, test_journey_retention (complete → sweep auto-archives at N days → restart keeps archived → sweep auto-deletes at M days, no orphans; a MANUAL archive is never auto-deleted) | closed |
 | E6 | Uninstall: remove all entries → nothing left in registries/storage | F | test_journey_lifecycle_complete (remove all entries → no devices/entities left) | closed |
@@ -239,20 +241,20 @@ Design rules for journey tests:
   interesting mutation.
 * Journey tests complement — never replace — the per-module tests.
 
-### Implementation order (by risk × user emphasis)
+### Implementation status
 
-1. **C-journeys** (mutations): the proven bug class. `test_journey_mutations.py`
-2. **D-journeys** (corrections): history edit/delete/reset chains. `test_journey_corrections.py`
-3. **E-journeys** (retirement): archive/delete/no-orphan sweeps incl. E6. `test_journey_retirement.py`
-4. **F1 restart hardening** + A4 import-restart parity. `test_journey_repairs_restore.py`
-5. B3 (one task, every completion surface) + B5 (reminder time-lapse). `test_journey_daily_use.py`
+The original build order (C mutations → D corrections → E retirement → F1
+restart hardening → B3/B5 daily use) is **worked off**. The suite now stands at
+**29 `tests/test_journey_*.py` files** on the `tests/journey.py` harness, and
+the per-journey coverage is tracked in the Gap columns above — not here. The one
+planned file that never materialised under its planned name is
+`test_journey_repairs_restore.py`: its content landed split across
+`test_journey_interactions.py` / `test_journey_stale_action.py` (F1/F2) and
+`test_journey_lifecycle_complete.py` / `test_journey_reimport.py` (A4/D5).
 
-Implemented so far (2026-07-05): `tests/journey.py` (harness),
-`test_journey_mutations.py` (C1/C2-partial/C3/C4/C7 + status-across-restart),
-`test_journey_corrections.py` (D1/D3), `test_journey_retirement.py`
-(E1-partial/E3/E4-partial). Next: repairs+restore file, daily-use file.
-
-Keep this table honest: when a journey gains coverage, flip its Gap column.
+Keep the tables honest: when a journey gains coverage, flip its Gap column —
+that is the living record, and this section only says how far the family has
+grown.
 
 2026-07-10: category S added with the spare-parts feature; writing S3/S4/S6
 found three real gaps before any user did (replace didn't carry parts, no
