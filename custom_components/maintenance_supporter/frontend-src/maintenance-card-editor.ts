@@ -211,6 +211,14 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           ></ha-switch>
         </ha-formfield>
 
+        <ha-formfield label="${t("responsible_user", L)}">
+          <ha-switch
+            .checked=${this._config.show_assignee !== false}
+            @change=${(e: Event) =>
+              this._valueChanged("show_assignee", (e.target as HTMLInputElement).checked)}
+          ></ha-switch>
+        </ha-formfield>
+
         <ha-formfield label="${t("card_compact", L)}">
           <ha-switch
             .checked=${this._config.compact || false}

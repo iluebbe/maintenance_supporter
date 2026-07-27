@@ -12,6 +12,7 @@ import type {
   SavedView,
   SavedViewFilters,
 } from "./types";
+import { UserService } from "./user-service";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
 import {
@@ -33,6 +34,11 @@ export class MaintenanceSupporterCard extends LitElement {
   @state() private _stats: StatisticsResponse | null = null;
   @state() private _unsub: (() => void) | null = null;
   @state() private _viewFilters: SavedViewFilters | null = null;
+  /** id → display name for the assignee badge. Empty until users/list
+   *  resolves; the badge stays hidden rather than showing a raw uuid. */
+  @state() private _userNames: Record<string, string> = {};
+  private _userService: UserService | null = null;
+  private _userNamesLoaded = false;
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -95,6 +101,19 @@ export class MaintenanceSupporterCard extends LitElement {
     if (lang && !isLocaleLoaded(lang)) {
       ensureLocale(lang).then(() => this.requestUpdate());
     }
+    // Assignee names: resolved once, only when the config allows it AND some
+    // task actually carries a responsible user. The condition is checked
+    // synchronously here — an unconditional call whose promise triggered a
+    // re-render looped the element forever. Assigning `_userNames` (@state)
+    // is what re-renders once the list arrives.
+    if (
+      this.hass &&
+      !this._userNamesLoaded &&
+      this._config.show_assignee !== false &&
+      this._objects.some((o) => o.tasks.some((tk) => tk.responsible_user_id))
+    ) {
+      this._loadUserNames();
+    }
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
@@ -125,6 +144,35 @@ export class MaintenanceSupporterCard extends LitElement {
       // WS not available yet
     }
     await this._loadViewFilters();
+  }
+
+  /** Resolve display names for the assignee badge (best-effort).
+   *
+   *  `users/list` is a READ-tier command, so the household members this card
+   *  is built for can call it without admin rights. A failure (or a task
+   *  whose user was deleted) leaves the name unresolved and the badge simply
+   *  does not render — never a raw user id. */
+  /** Display name of the task's responsible user, or "" when the badge must
+   *  stay hidden (feature off, nobody assigned, or the name not resolved).
+   *  With a rotation this is whoever is up next — the pointer the engine
+   *  advances on every completion. */
+  private _assigneeName(task: MaintenanceTask): string {
+    if (this._config.show_assignee === false) return "";
+    const id = task.responsible_user_id;
+    if (!id) return "";
+    return this._userNames[id] || "";
+  }
+
+  private async _loadUserNames(): Promise<void> {
+    this._userNamesLoaded = true;
+    if (!this._userService) this._userService = new UserService(this.hass);
+    else this._userService.updateHass(this.hass);
+    try {
+      const users = await this._userService.getUsers();
+      this._userNames = Object.fromEntries(users.map((u) => [u.id, u.name]));
+    } catch {
+      // leave whatever we had; the badge hides for unresolved ids
+    }
   }
 
   /** Resolve the configured saved view's filters (best-effort). A missing or
@@ -322,7 +370,19 @@ export class MaintenanceSupporterCard extends LitElement {
                               ></ha-icon>`
                             : nothing}
                         </div>
-                        ${!compact ? html`<div class="task-meta">${object_name} · ${t(task.type, L)}</div>` : nothing}
+                        ${!compact
+                          ? html`<div class="task-meta">
+                              ${object_name} · ${t(task.type, L)}${this._assigneeName(task)
+                                ? html` · <span class="assignee"
+                                    ><ha-icon icon="mdi:account"></ha-icon>${this._assigneeName(task)}</span
+                                  >`
+                                : nothing}
+                            </div>`
+                          : this._assigneeName(task)
+                            ? html`<div class="task-meta compact-assignee" title="${this._assigneeName(task)}">
+                                <ha-icon icon="mdi:account"></ha-icon>${this._assigneeName(task)}
+                              </div>`
+                            : nothing}
                       </div>
                       <div class="task-due">
                         ${task.days_until_due !== null && task.days_until_due !== undefined
@@ -455,6 +515,24 @@ export class MaintenanceSupporterCard extends LitElement {
       .task-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .postponed-icon { --mdc-icon-size: 14px; color: var(--secondary-text-color); vertical-align: text-bottom; margin-inline-start: 4px; }
       .task-meta { font-size: 12px; color: var(--secondary-text-color); }
+      .assignee, .compact-assignee {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        white-space: nowrap;
+      }
+      .assignee ha-icon, .compact-assignee ha-icon {
+        --mdc-icon-size: 13px;
+        width: 13px;
+        height: 13px;
+      }
+      /* Compact rows have no meta line of their own — keep the name from
+         pushing the due column off a narrow phone card. */
+      .compact-assignee {
+        max-width: 11ch;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
       .task-due { font-size: 13px; color: var(--secondary-text-color); min-width: 40px; text-align: right; }
       .overdue-text { color: var(--error-color); font-weight: 500; }
