@@ -108,6 +108,7 @@
   "trigger_val": "Значення тригера",
   "complete_title": "Виконати: ",
   "checklist": "Чекліст",
+  "require_on_completion": "Вимагати при завершенні",
   "checklist_steps_optional": "Кроки чекліста (необов'язково)",
   "checklist_placeholder": "Очистити фільтр\nЗамінити ущільнювач\nПеревірити тиск",
   "checklist_help": "Один крок на рядок. Макс. 100 елементів.",

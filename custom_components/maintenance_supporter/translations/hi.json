@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "एंटिटी {entity_id} के लिए कोई रखरखाव कार्य नहीं मिला।"
+    },
+    "completion_details_required": {
+      "message": "“{task_name}” पूर्ण करते समय ये विवरण आवश्यक हैं: {fields}। इन्हें भरने के लिए रखरखाव पैनल या कार्ड से पूर्ण करें।"
     }
   },
   "triggers": {

@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "{entity_id} varlığı için bakım görevi bulunamadı."
+    },
+    "completion_details_required": {
+      "message": "“{task_name}” tamamlanırken şu bilgileri gerektirir: {fields}. Bunları girebilmek için görevi bakım panelinden veya karttan tamamlayın."
     }
   },
   "triggers": {

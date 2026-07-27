@@ -252,6 +252,8 @@ export function openCompleteDialog(args: {
   task_name: string;
   checklist?: string[];
   adaptive_enabled?: boolean;
+  /** Details the task demands before it counts as done (v2.44). */
+  required_completion_fields?: string[];
 }): boolean {
   const dlg = getOrCreate<MaintenanceCompleteDialog>(COMPLETE_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
@@ -260,6 +262,7 @@ export function openCompleteDialog(args: {
   dlg.taskName = args.task_name;
   dlg.checklist = args.checklist ?? [];
   dlg.adaptiveEnabled = !!args.adaptive_enabled;
+  dlg.requiredFields = args.required_completion_fields ?? [];
   dlg.lang = (getHass()?.language) || "en";
   dlg.open();
   return true;

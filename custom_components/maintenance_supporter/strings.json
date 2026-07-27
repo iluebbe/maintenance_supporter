@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "No maintenance task found for entity {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "“{task_name}” requires these details when you complete it: {fields}. Complete it from the Maintenance panel or card so you can fill them in."
     }
   },
   "triggers": {

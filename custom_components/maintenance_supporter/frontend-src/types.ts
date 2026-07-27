@@ -164,6 +164,8 @@ export interface MaintenanceTask {
   labels?: string[];
   assignee_pool?: string[];
   rotation_strategy?: string | null;
+  /** Details this task demands on completion (v2.44): notes/cost/duration/photo/user. */
+  required_completion_fields?: string[];
   earliest_completion_days?: number | null;
   // v1.3.0: completion-action + quick-complete (gated by completion_actions feature)
   on_complete_action?: {

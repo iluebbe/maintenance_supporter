@@ -108,6 +108,7 @@
   "trigger_val": "Valeur du déclencheur",
   "complete_title": "Terminé : ",
   "checklist": "Checklist",
+  "require_on_completion": "Exiger à la clôture",
   "checklist_steps_optional": "Étapes de la checklist (optionnel)",
   "checklist_placeholder": "Nettoyer le filtre\nRemplacer le joint\nTester la pression",
   "checklist_help": "Une étape par ligne. Max 100 éléments.",

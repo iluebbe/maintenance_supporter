@@ -147,6 +147,13 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
         if rs not in ROTATION_STRATEGIES:
             task_data.pop("rotation_strategy", None)
 
+    if task_data.get("required_completion_fields") is not None:
+        from .completion_requirements import sanitize_required_completion_fields
+
+        task_data["required_completion_fields"] = sanitize_required_completion_fields(
+            task_data["required_completion_fields"]
+        )
+
     seed_rotation_assignee(task_data)
 
     # v1.3.0: per-task on_complete_action — embedded HA service-call config.

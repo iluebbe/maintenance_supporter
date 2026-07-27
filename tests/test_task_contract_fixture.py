@@ -74,6 +74,7 @@ _MAXIMAL_TASK = {
     "responsible_user_id": "user-uuid-1",
     "assignee_pool": ["user-uuid-1", "user-uuid-2"],
     "rotation_strategy": "round_robin",
+    "required_completion_fields": ["notes", "cost"],
     "entity_slug": "contract_fixture_task",
     "custom_icon": "mdi:test-tube",
     "nfc_tag_id": "contract-nfc-1",

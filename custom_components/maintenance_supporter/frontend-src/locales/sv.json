@@ -108,6 +108,7 @@
   "trigger_val": "Utlösarvärde",
   "complete_title": "Slutför: ",
   "checklist": "Checklista",
+  "require_on_completion": "Kräv vid slutförande",
   "checklist_steps_optional": "Checkliststeg (valfritt)",
   "checklist_placeholder": "Rengör filter\nByt tätning\nTesta tryck",
   "checklist_help": "Ett steg per rad. Max 100 objekt.",

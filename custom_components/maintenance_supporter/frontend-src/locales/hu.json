@@ -109,6 +109,7 @@
   "trigger_val": "Kiváltó érték",
   "complete_title": "Elvégzés: ",
   "checklist": "Ellenőrzőlista",
+  "require_on_completion": "Befejezéskor kötelező",
   "checklist_steps_optional": "Ellenőrzőlista lépései (opcionális)",
   "checklist_placeholder": "Szűrő tisztítása\nTömítés cseréje\nNyomáspróba",
   "checklist_help": "Soronként egy lépés. Legfeljebb 100 elem.",

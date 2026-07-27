@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "找不到实体 {entity_id} 的维护任务。"
+    },
+    "completion_details_required": {
+      "message": "“{task_name}”完成时需要以下信息：{fields}。请在维护面板或卡片中完成以便填写。"
     }
   },
   "triggers": {

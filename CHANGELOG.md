@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **A task can now require details when you complete it** — a note, what it
+  cost, how long it took, a photo, or who did it. Pick them per task under
+  *Require on completion*; the completion dialog then marks those fields and
+  keeps **Complete** disabled until they are filled.
+  The rule is enforced in the backend, at the one point every completion runs
+  through, so it holds on **every surface**: the panel and card dialogs, the
+  QR quick-complete, the one-press button entity, the to-do list, an NFC tag
+  tap, a notification button, a voice command and the `complete` service. The
+  surfaces that cannot ask for anything refuse the completion and say what is
+  missing instead of recording a bare tap.
+  Automatic completions stay exempt — a problem sensor that clears itself has
+  nobody to ask, and a required photo would strand the task overdue.
+
 ## [2.43.0] - 2026-07-27
 
 ### ✨ Added

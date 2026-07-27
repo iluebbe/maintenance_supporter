@@ -108,6 +108,7 @@
   "trigger_val": "Wartość wyzwalacza",
   "complete_title": "Wykonaj: ",
   "checklist": "Lista kontrolna",
+  "require_on_completion": "Wymagaj przy zakończeniu",
   "checklist_steps_optional": "Kroki listy kontrolnej (opcjonalne)",
   "checklist_placeholder": "Wyczyść filtr\nWymień uszczelkę\nSprawdź ciśnienie",
   "checklist_help": "Jeden krok na linię. Maks. 100 elementów.",

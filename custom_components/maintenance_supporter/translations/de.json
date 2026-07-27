@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Keine Wartungsaufgabe für Entität {entity_id} gefunden."
+    },
+    "completion_details_required": {
+      "message": "„{task_name}“ verlangt beim Abschließen diese Angaben: {fields}. Schließe die Aufgabe im Wartungs-Panel oder über die Karte ab, um sie einzutragen."
     }
   },
   "triggers": {

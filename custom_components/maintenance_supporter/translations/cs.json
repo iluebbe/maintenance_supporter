@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Nenalezen úkol údržby pro entitu {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "„{task_name}“ při dokončení vyžaduje tyto údaje: {fields}. Dokončete úlohu v panelu údržby nebo na kartě, abyste je mohli vyplnit."
     }
   },
   "triggers": {

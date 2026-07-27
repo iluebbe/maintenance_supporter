@@ -109,6 +109,7 @@
   "trigger_val": "Trigger value",
   "complete_title": "Complete: ",
   "checklist": "Checklist",
+  "require_on_completion": "Require on completion",
   "checklist_steps_optional": "Checklist steps (optional)",
   "checklist_placeholder": "Clean filter\nReplace seal\nTest pressure",
   "checklist_help": "One step per line. Max 100 items.",

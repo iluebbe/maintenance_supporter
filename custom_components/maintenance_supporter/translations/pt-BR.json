@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Nenhuma tarefa de manutenção encontrada para a entidade {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "“{task_name}” exige estes dados ao concluir: {fields}. Conclua a tarefa pelo painel de manutenção ou pelo cartão para preenchê-los."
     }
   },
   "triggers": {

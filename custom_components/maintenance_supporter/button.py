@@ -115,7 +115,9 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
         if not self._task_data:
             raise HomeAssistantError(f"Task {self._task_id} no longer exists")
         if self._action == "complete":
-            await self.coordinator.complete_maintenance(self._task_id, notes="Completed from dashboard button")
+            await self.coordinator.complete_maintenance(
+                self._task_id, notes="Completed from dashboard button", unattended=True
+            )
         elif self._action == "skip":
             await self.coordinator.skip_maintenance(self._task_id, reason="Skipped from dashboard button")
         elif self._action == "reset":

@@ -169,5 +169,7 @@ class MaintenanceTodoList(TodoListEntity):
         td = coordinator._get_merged_tasks_data().get(task_id)
         if td and not MaintenanceTask.from_dict(td).can_complete_now:
             return
-        await coordinator.complete_maintenance(task_id, notes="Completed from the To-do list")
+        await coordinator.complete_maintenance(
+            task_id, notes="Completed from the To-do list", unattended=True
+        )
         self.async_write_ha_state()

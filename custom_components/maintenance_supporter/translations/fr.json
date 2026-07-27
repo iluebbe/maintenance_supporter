@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Aucune tâche de maintenance trouvée pour l'entité {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "« {task_name} » exige ces informations à la clôture : {fields}. Terminez la tâche depuis le panneau de maintenance ou la carte pour les saisir."
     }
   },
   "triggers": {

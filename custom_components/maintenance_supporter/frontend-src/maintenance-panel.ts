@@ -1804,6 +1804,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       ?.tasks.find((tsk) => tsk.id === taskId);
     dlg.taskType = tk?.type || "";
     dlg.readingUnit = tk?.reading_unit || "";
+    dlg.requiredFields = tk?.required_completion_fields || [];
     // Spare parts: a buy task gets an editable restock-qty field; a consuming
     // task shows what it will decrement (incl. the storage location).
     const objParts = this._objects.find((o) => o.entry_id === entryId)?.parts || [];

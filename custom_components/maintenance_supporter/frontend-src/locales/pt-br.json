@@ -109,6 +109,7 @@
   "trigger_val": "Valor do gatilho",
   "complete_title": "Concluir: ",
   "checklist": "Checklist",
+  "require_on_completion": "Exigir ao concluir",
   "checklist_steps_optional": "Etapas do checklist (opcional)",
   "checklist_placeholder": "Limpar o filtro\nTrocar a vedação\nTestar a pressão",
   "checklist_help": "Uma etapa por linha. Máx. 100 itens.",

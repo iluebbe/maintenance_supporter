@@ -71,6 +71,10 @@
     "notes": "quick note"
   },
   "reading_unit": "kWh",
+  "required_completion_fields": [
+    "notes",
+    "cost"
+  ],
   "responsible_user_id": "user-uuid-1",
   "rotation_strategy": "round_robin",
   "schedule": {

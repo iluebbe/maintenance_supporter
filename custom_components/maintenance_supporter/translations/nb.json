@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Ingen vedlikeholdsoppgave funnet for enhet {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "«{task_name}» krever disse opplysningene når du fullfører den: {fields}. Fullfør oppgaven fra vedlikeholdspanelet eller kortet for å fylle dem ut."
     }
   },
   "triggers": {

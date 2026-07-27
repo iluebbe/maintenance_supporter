@@ -222,6 +222,9 @@ export class MaintenanceTaskDialog extends LitElement {
 
   // Checklist (newline-separated steps, one per line)
   @state() private _checklistText = "";
+  /** Details this task demands on completion — enforced by the backend on
+   *  every surface, so a button press or voice command cannot bypass it. */
+  @state() private _requiredCompletion: string[] = [];
 
   // Schedule time (HH:MM, advanced feature)
   @state() private _scheduleTime = "";
@@ -327,6 +330,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._rotationStrategy = task.rotation_strategy || "";
 
     this._checklistText = (task.checklist || []).join("\n");
+    this._requiredCompletion = [...(task.required_completion_fields || [])];
     this._scheduleTime = task.schedule_time || "";
 
     // v1.3.0: hydrate on_complete_action + quick_complete_defaults
@@ -434,6 +438,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._assigneePool = [];
     this._rotationStrategy = "";
     this._checklistText = "";
+    this._requiredCompletion = [];
     this._scheduleTime = "";
     this._environmentalEntity = "";
     this._environmentalAttribute = "";
@@ -773,6 +778,13 @@ export class MaintenanceTaskDialog extends LitElement {
     }
   }
 
+  private _toggleRequired(field: string, on: boolean): void {
+    const next = new Set(this._requiredCompletion);
+    if (on) next.add(field);
+    else next.delete(field);
+    this._requiredCompletion = [...next];
+  }
+
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
     if (!this._name.trim()) return;
@@ -844,6 +856,7 @@ export class MaintenanceTaskDialog extends LitElement {
       }
       data.responsible_user_id = this._responsibleUserId;
       data.assignee_pool = this._assigneePool;
+      data.required_completion_fields = this._requiredCompletion;
       data.rotation_strategy =
         this._assigneePool.length >= 2 && this._rotationStrategy
           ? this._rotationStrategy
@@ -1879,6 +1892,19 @@ export class MaintenanceTaskDialog extends LitElement {
             ></textarea>
             <div class="field-help">${t("checklist_help", L)}</div>
           ` : nothing}
+          <h3>${t("require_on_completion", L)}</h3>
+          <div class="required-completion">
+            ${["notes", "cost", "duration", "photo", "user"].map((field) => html`
+              <label class="req-option">
+                <input
+                  type="checkbox"
+                  .checked=${this._requiredCompletion.includes(field)}
+                  @change=${(e: Event) => this._toggleRequired(field, (e.target as HTMLInputElement).checked)}
+                />
+                <span>${t(field, L)}</span>
+              </label>
+            `)}
+          </div>
           <ms-textfield
             label="${t("last_performed_optional", L)}"
             type="date"

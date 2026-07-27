@@ -144,6 +144,7 @@ def _build_task_summary(
         "archived_reason": task_data.get("archived_reason"),
         "responsible_user_id": task_data.get("responsible_user_id"),
         "assignee_pool": task_data.get("assignee_pool", []),
+        "required_completion_fields": task_data.get("required_completion_fields", []),
         "rotation_strategy": task_data.get("rotation_strategy"),
         "earliest_completion_days": task_data.get("earliest_completion_days"),
         "entity_slug": task_data.get("entity_slug"),

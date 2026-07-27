@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Nie znaleziono zadania konserwacji dla encji {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "„{task_name}” wymaga tych danych przy zakończeniu: {fields}. Zakończ zadanie w panelu konserwacji lub na karcie, aby je wypełnić."
     }
   },
   "triggers": {

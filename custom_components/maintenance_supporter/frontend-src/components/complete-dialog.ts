@@ -25,6 +25,10 @@ export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public consumesParts: Array<{ part_id: string; quantity: number }> = [];
   /** "Consumes: 1× HEPA-Filter (Shelf B)" hint lines for consuming tasks. */
   @property({ type: Array }) public consumesInfo: string[] = [];
+  /** Details this task demands before it counts as done (v2.44). The backend
+   *  enforces the same list at every completion surface; blocking Save here
+   *  just means the user never has to meet that rejection. */
+  @property({ type: Array }) public requiredFields: string[] = [];
   @state() private _open = false;
   @state() private _notes = "";
   @state() private _cost = "";
@@ -164,6 +168,25 @@ export class MaintenanceCompleteDialog extends LitElement {
     }
   }
 
+  /** Required details the user has not supplied yet (drives Save + markers). */
+  private get _missingRequired(): string[] {
+    const filled: Record<string, boolean> = {
+      notes: this._notes.trim() !== "",
+      cost: this._cost.trim() !== "",
+      duration: this._duration.trim() !== "",
+      photo: this._photoDocId !== "",
+      // "who did it" is recorded server-side from the calling user, so the
+      // dialog cannot be missing it.
+      user: true,
+    };
+    return this.requiredFields.filter((f) => !filled[f]);
+  }
+
+  /** Marker appended to a required field's label. */
+  private _req(field: string) {
+    return this.requiredFields.includes(field) ? html`<span class="req-mark" aria-hidden="true">*</span>` : nothing;
+  }
+
   private _close(): void {
     this._open = false;
   }
@@ -245,25 +268,25 @@ export class MaintenanceCompleteDialog extends LitElement {
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
           <label class="field">
-            <span class="field-label">${t("notes_optional", L)}</span>
+            <span class="field-label">${t("notes_optional", L)}${this._req("notes")}</span>
             <input type="text" class="field-input"
               .value=${this._notes}
               @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)} />
           </label>
           <label class="field">
-            <span class="field-label">${t("cost_optional", L)}</span>
+            <span class="field-label">${t("cost_optional", L)}${this._req("cost")}</span>
             <input type="number" step="0.01" min="0" class="field-input"
               .value=${this._cost}
               @input=${(e: Event) => (this._cost = (e.target as HTMLInputElement).value)} />
           </label>
           <label class="field">
-            <span class="field-label">${t("duration_minutes", L)}</span>
+            <span class="field-label">${t("duration_minutes", L)}${this._req("duration")}</span>
             <input type="number" step="0.01" min="0" class="field-input"
               .value=${this._duration}
               @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
           </label>
           <div class="field">
-            <span class="field-label">${t("completion_photo_optional", L)}</span>
+            <span class="field-label">${t("completion_photo_optional", L)}${this._req("photo")}</span>
             ${this._photoPreview
               ? html`
                 <div class="photo-preview">
@@ -306,7 +329,10 @@ export class MaintenanceCompleteDialog extends LitElement {
           </ha-button>
           <ha-button
             @click=${this._complete}
-            .disabled=${this._loading}
+            .disabled=${this._loading || this._missingRequired.length > 0}
+            title=${this._missingRequired.length
+              ? this._missingRequired.map((f) => t("err_required", L).replace("{field}", t(f, L))).join(" · ")
+              : ""}
           >
             ${this._loading ? t("completing", L) : t("complete", L)}
           </ha-button>
@@ -316,6 +342,11 @@ export class MaintenanceCompleteDialog extends LitElement {
   }
 
   static styles = [nativeFieldStyles, css`
+    .req-mark {
+      color: var(--error-color, #f44336);
+      margin-left: 2px;
+      font-weight: 600;
+    }
     .dialog-title {
       font-size: 18px;
       font-weight: 500;

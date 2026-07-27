@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Ingen underhållsuppgift hittades för entiteten {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "”{task_name}” kräver dessa uppgifter när du slutför den: {fields}. Slutför uppgiften från underhållspanelen eller kortet för att fylla i dem."
     }
   },
   "triggers": {

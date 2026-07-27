@@ -109,6 +109,7 @@
   "trigger_val": "触发值",
   "complete_title": "完成: ",
   "checklist": "检查清单",
+  "require_on_completion": "完成时必填",
   "checklist_steps_optional": "检查步骤 (可选)",
   "checklist_placeholder": "清理过滤器\n更换密封圈\n测试压力",
   "checklist_help": "每行一个步骤。最多 100 项。",

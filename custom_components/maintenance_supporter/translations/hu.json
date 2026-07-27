@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Nem található karbantartási feladat a(z) {entity_id} entitáshoz."
+    },
+    "completion_details_required": {
+      "message": "A(z) „{task_name}” befejezésekor meg kell adni ezeket: {fields}. Fejezd be a feladatot a karbantartási panelen vagy a kártyán, hogy kitölthesd őket."
     }
   },
   "triggers": {

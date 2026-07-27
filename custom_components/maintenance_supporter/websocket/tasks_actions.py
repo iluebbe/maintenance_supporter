@@ -7,6 +7,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 
 from ..const import (
     CONF_TASKS,
@@ -146,18 +147,25 @@ async def ws_complete_task(
 
         used_parts = sanitize_consumes_parts(used_parts, set(_entry.data.get("parts") or {}))
 
-    await rd.coordinator.complete_maintenance(
-        task_id=msg["task_id"],
-        notes=msg.get("notes"),
-        cost=msg.get("cost"),
-        duration=msg.get("duration"),
-        checklist_state=msg.get("checklist_state"),
-        feedback=msg.get("feedback"),
-        photo_doc_id=msg.get("photo_doc_id"),
-        reading_value=msg.get("reading_value"),
-        restock_quantity=msg.get("restock_quantity"),
-        used_parts=used_parts,
-    )
+    try:
+        await rd.coordinator.complete_maintenance(
+            task_id=msg["task_id"],
+            notes=msg.get("notes"),
+            cost=msg.get("cost"),
+            duration=msg.get("duration"),
+            checklist_state=msg.get("checklist_state"),
+            feedback=msg.get("feedback"),
+            photo_doc_id=msg.get("photo_doc_id"),
+            reading_value=msg.get("reading_value"),
+            restock_quantity=msg.get("restock_quantity"),
+            used_parts=used_parts,
+        )
+    except ServiceValidationError as err:
+        # Required completion details are missing. The dialog normally
+        # prevents this, so reaching here means an older/cached frontend or a
+        # scripted call — answer with the field list rather than a traceback.
+        connection.send_error(msg["id"], "completion_details_required", str(err))
+        return
     connection.send_result(msg["id"], {"success": True})
 
 
@@ -212,13 +220,19 @@ async def ws_quick_complete_task(
         )
         return
 
-    await rd.coordinator.complete_maintenance(
-        task_id=msg["task_id"],
-        notes=defaults.get("notes"),
-        cost=defaults.get("cost"),
-        duration=defaults.get("duration"),
-        feedback=defaults.get("feedback"),
-    )
+    try:
+        await rd.coordinator.complete_maintenance(
+            task_id=msg["task_id"],
+            notes=defaults.get("notes"),
+            cost=defaults.get("cost"),
+            duration=defaults.get("duration"),
+            feedback=defaults.get("feedback"),
+        )
+    except ServiceValidationError as err:
+        # The task demands details the quick-complete defaults do not cover —
+        # same fallback as `no_defaults`: the caller opens the full dialog.
+        connection.send_error(msg["id"], "completion_details_required", str(err))
+        return
     connection.send_result(msg["id"], {"success": True, "via": "quick"})
 
 

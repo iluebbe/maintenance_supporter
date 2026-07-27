@@ -108,6 +108,7 @@
   "trigger_val": "Hodnota spouštěče",
   "complete_title": "Dokončit: ",
   "checklist": "Kontrolní seznam",
+  "require_on_completion": "Vyžadovat při dokončení",
   "checklist_steps_optional": "Kroky kontrolního seznamu (volitelné)",
   "checklist_placeholder": "Vyčistit filtr\nVyměnit těsnění\nOtestovat tlak",
   "checklist_help": "Jeden krok na řádek. Max 100 položek.",

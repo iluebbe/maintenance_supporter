@@ -702,7 +702,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         try:
             if action_type == "complete":
                 _LOGGER.info("Completing task %s via notification action", task_id)
-                await runtime_data.coordinator.complete_maintenance(task_id=task_id)
+                await runtime_data.coordinator.complete_maintenance(task_id=task_id, unattended=True)
             elif action_type == "skip":
                 _LOGGER.info("Skipping task %s via notification action", task_id)
                 await runtime_data.coordinator.skip_maintenance(task_id=task_id, reason="Skipped from notification")
@@ -711,6 +711,17 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 if nm is not None:
                     nm.snooze_task(entry_id, task_id)
                 return  # Snooze: keep notification visible for later reminder
+        except ServiceValidationError as err:
+            # The task demands details a notification button cannot capture.
+            # Not an error in our code — log it plainly and deliberately do
+            # NOT dismiss the notification, so the reminder survives until the
+            # user completes the task properly in the panel.
+            _LOGGER.warning(
+                "Notification completion of task %s rejected: %s",
+                task_id,
+                err,
+            )
+            return
         except Exception:
             _LOGGER.exception(
                 "Failed to handle notification action %s for task %s",
@@ -755,11 +766,18 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                     tag_id,
                 )
                 user_id = event.context.user_id if event.context else None
-                await runtime_data.coordinator.complete_maintenance(
-                    task_id=task_id,
-                    completed_by=user_id,
-                    notes="Completed via NFC tag",
-                )
+                try:
+                    await runtime_data.coordinator.complete_maintenance(
+                        task_id=task_id,
+                        completed_by=user_id,
+                        notes="Completed via NFC tag",
+                        unattended=True,
+                    )
+                except ServiceValidationError as err:
+                    # A tag tap cannot capture a cost or a photo. Log it
+                    # plainly and leave the task open so the user finishes it
+                    # in the panel — the honest outcome, not a silent no-op.
+                    _LOGGER.warning("NFC completion of task %s rejected: %s", task_id, err)
                 return
 
         # No match found — not our tag, ignore silently

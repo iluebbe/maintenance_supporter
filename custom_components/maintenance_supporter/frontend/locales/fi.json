@@ -109,6 +109,7 @@
   "trigger_val": "Laukaisuarvo",
   "complete_title": "Suorita: ",
   "checklist": "Tarkistuslista",
+  "require_on_completion": "Vaadi valmistuessa",
   "checklist_steps_optional": "Tarkistuslistan vaiheet (valinnainen)",
   "checklist_placeholder": "Puhdista suodatin\nVaihda tiiviste\nTarkista paine",
   "checklist_help": "Yksi vaihe riviä kohden. Enintään 100 kohdetta.",

@@ -475,6 +475,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 
 ### Frontend
 - **Sidebar panel** with dashboard overview, object details, task history, analytics, and in-panel **settings editor**
+- **Required completion details** (2.44+) — a task can demand a note, cost, duration, photo or the person who did it before it counts as done; enforced on every completion surface, not just in the dialog
 - **Lovelace card** for dashboard integration — with the responsible user per row (2.43+), so a household reads a rotation straight off the dashboard
 - **Calendar** integration with status-emoji events
 - **Binary sensor** entities for automation triggers
