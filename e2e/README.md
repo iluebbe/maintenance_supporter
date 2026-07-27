@@ -79,6 +79,7 @@ token auth. The ones worth knowing:
 |---|---|
 | `live-overflow-sweep.mjs` | Layout overflow on 4 panel surfaces × phone/tablet × the longest-label languages. `MS_LANGS` overrides the set (default `de,uk,hi,hu,en`). |
 | `live-lang-check.mjs` | A language actually renders — fails on a silent English fallback — and saves a screenshot per language. `MS_LANGS` default `pt-BR,hu,ko,tr`. |
+| `live-card-assignee-check.mjs` | Renders the Lovelace card in a throwaway dashboard and asserts the responsible user shows up on the row (and that `show_assignee: false` hides it). |
 | `live-battery-fleet-check.mjs`, `seed-battery-fleet.mjs` | Battery-fleet aggregation against seeded Battery Notes devices. |
 | `shots-*.mjs` | The committed documentation screenshots (`shots-demo.mjs` is the canonical one). |
 | `gifs-demo.mjs` | The README/FEATURES animations (needs `ffmpeg-static`). |
