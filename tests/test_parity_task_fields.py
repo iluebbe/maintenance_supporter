@@ -61,6 +61,13 @@ PANEL_ONLY = {
     # task-side link selector lives panel-only too — a config-flow multi-select
     # of parts+quantities without the parts CRUD around it would be a stub.
     "consumes_parts",
+    # Required completion details (2.44): the same class as the two above —
+    # an advanced completion feature the legacy config-flow never grew. It is
+    # also the one field whose ENFORCEMENT is surface-independent (the
+    # coordinator rejects a completion missing them no matter where it came
+    # from), so a config-flow editor would only duplicate the picker, not
+    # close a behavioural gap.
+    "required_completion_fields",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by

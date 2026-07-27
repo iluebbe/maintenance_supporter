@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Entiteetille {entity_id} ei löytynyt huoltotehtävää."
+    },
+    "completion_details_required": {
+      "message": "”{task_name}” vaatii nämä tiedot valmistuessaan: {fields}. Merkitse tehtävä valmiiksi huoltopaneelista tai kortista, jotta voit täyttää ne."
     }
   },
   "triggers": {

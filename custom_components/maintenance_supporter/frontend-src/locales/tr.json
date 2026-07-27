@@ -109,6 +109,7 @@
   "trigger_val": "Tetikleme değeri",
   "complete_title": "Tamamla: ",
   "checklist": "Kontrol listesi",
+  "require_on_completion": "Tamamlarken zorunlu tut",
   "checklist_steps_optional": "Kontrol listesi adımları (isteğe bağlı)",
   "checklist_placeholder": "Filtreyi temizle\nContayı değiştir\nBasıncı test et",
   "checklist_help": "Her satıra bir adım. En fazla 100 madde.",

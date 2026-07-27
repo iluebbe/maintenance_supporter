@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
@@ -965,12 +966,62 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         restock_quantity: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
+        unattended: bool = False,
     ) -> None:
-        """Mark a task as completed and persist."""
+        """Mark a task as completed and persist.
+
+        ``unattended`` marks a surface that cannot ask a human for anything —
+        a button press, a to-do tick, an NFC tap, a notification button, a
+        voice command. Those paths attach a canned provenance note
+        ("Completed via NFC tag"), which must NOT be mistaken for the note a
+        task demands: the point of a required note is that somebody wrote it.
+        """
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
+
+        # Required completion details. Checked HERE — the one point every
+        # surface funnels through — so a task demanding a note cannot be
+        # closed out from a button, the to-do list, an NFC tag, a
+        # notification action, voice or a service call.
+        #
+        # Deliberately BEFORE the double-complete guard below: a rejected
+        # attempt must not stamp that guard, or the corrected completion the
+        # user makes seconds later (after filling in the dialog) would be
+        # silently swallowed as a duplicate.
+        #
+        # Automatic completions are exempt — a self-clearing problem sensor
+        # has nobody to ask, and a required photo would strand the task.
+        if not auto:
+            from .helpers.completion_requirements import (
+                missing_completion_fields,
+                required_completion_fields,
+            )
+
+            if unattended:
+                # Nobody was asked, so nothing the caller attached counts as
+                # an answer — a canned "Completed from the To-do list" note is
+                # provenance, not the note the task demands.
+                missing = required_completion_fields(merged[task_id])
+            else:
+                missing = missing_completion_fields(
+                    merged[task_id],
+                    notes=notes,
+                    cost=cost,
+                    duration=duration,
+                    photo_doc_id=photo_doc_id,
+                    completed_by=completed_by,
+                )
+            if missing:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="completion_details_required",
+                    translation_placeholders={
+                        "task_name": str(merged[task_id].get("name", task_id)),
+                        "fields": ", ".join(missing),
+                    },
+                )
 
         # Household double-complete guard (journey M1): two people seeing the
         # same overdue task and both tapping Complete within seconds would

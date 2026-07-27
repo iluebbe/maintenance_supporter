@@ -52,6 +52,7 @@ from ..helpers.task_fields import (
     EARLIEST_COMPLETION_RANGE,
     INTERVAL_ANCHORS,
     INTERVAL_DAYS_RANGE,
+    REQUIRABLE_COMPLETION_FIELDS,
     ROTATION_STRATEGY_VALUES,
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
@@ -94,6 +95,7 @@ TASK_UPDATE_FIELD_MAP = {
     "documentation_url": "documentation_url",
     "responsible_user_id": "responsible_user_id",
     "assignee_pool": "assignee_pool",
+    "required_completion_fields": "required_completion_fields",
     "rotation_strategy": "rotation_strategy",
     "entity_slug": "entity_slug",
     "custom_icon": "custom_icon",
@@ -140,6 +142,7 @@ TASK_UPDATE_FIELD_MAP = {
         vol.Optional("assignee_pool"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None
         ),
+        vol.Optional("required_completion_fields"): vol.Any([vol.In(REQUIRABLE_COMPLETION_FIELDS)], None),
         vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
@@ -283,6 +286,12 @@ async def ws_create_task(
         task_data["assignee_pool"] = sanitize_assignee_pool(msg["assignee_pool"])
     if msg.get("rotation_strategy"):
         task_data["rotation_strategy"] = msg["rotation_strategy"]
+    if msg.get("required_completion_fields"):
+        from ..helpers.completion_requirements import sanitize_required_completion_fields
+
+        task_data["required_completion_fields"] = sanitize_required_completion_fields(
+            msg["required_completion_fields"]
+        )
     from ..helpers.sanitize import seed_rotation_assignee
 
     seed_rotation_assignee(task_data)
@@ -392,6 +401,7 @@ async def ws_create_task(
         vol.Optional("assignee_pool"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None
         ),
+        vol.Optional("required_completion_fields"): vol.Any([vol.In(REQUIRABLE_COMPLETION_FIELDS)], None),
         vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
@@ -549,6 +559,10 @@ async def ws_update_task(
         task["labels"] = sanitize_labels(task["labels"])
     if "assignee_pool" in task:
         task["assignee_pool"] = sanitize_assignee_pool(task["assignee_pool"])
+    if "required_completion_fields" in task:
+        from ..helpers.completion_requirements import sanitize_required_completion_fields
+
+        task["required_completion_fields"] = sanitize_required_completion_fields(task["required_completion_fields"])
     seed_rotation_assignee(task)
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes

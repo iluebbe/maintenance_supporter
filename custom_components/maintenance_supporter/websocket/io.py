@@ -525,6 +525,7 @@ async def ws_import_json(
                 "on_complete_action",
                 "quick_complete_defaults",
                 "assignee_pool",
+                "required_completion_fields",
                 "rotation_strategy",
                 "reading_unit",
                 # spare parts (ids remapped below)

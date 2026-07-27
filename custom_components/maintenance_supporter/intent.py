@@ -33,6 +33,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 
@@ -352,7 +353,18 @@ class CompleteTaskIntent(intent.IntentHandler):
             )
             return response
 
-        await coordinator.complete_maintenance(task_id=target["task_id"], completed_by="assist")
+        try:
+            await coordinator.complete_maintenance(
+                task_id=target["task_id"], completed_by="assist", unattended=True
+            )
+        except ServiceValidationError as err:
+            # The task demands details voice cannot capture (a photo, a cost).
+            # Say so plainly instead of failing with a generic error.
+            response.async_set_error(
+                intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
+                str(err),
+            )
+            return response
         response.async_set_speech(
             _sp("completed", lang, task=target["name"], object=target["object_name"])
         )

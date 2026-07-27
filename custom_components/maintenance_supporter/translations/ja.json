@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "エンティティ {entity_id} のメンテナンスタスクが見つかりません。"
+    },
+    "completion_details_required": {
+      "message": "「{task_name}」の完了には次の入力が必要です: {fields}。メンテナンスパネルまたはカードから完了して入力してください。"
     }
   },
   "triggers": {

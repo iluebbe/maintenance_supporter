@@ -108,6 +108,7 @@
   "trigger_val": "Triggerwaarde",
   "complete_title": "Voltooid: ",
   "checklist": "Checklist",
+  "require_on_completion": "Vereisen bij afronden",
   "checklist_steps_optional": "Checklist-stappen (optioneel)",
   "checklist_placeholder": "Filter schoonmaken\nPakking vervangen\nDruk testen",
   "checklist_help": "Eén stap per regel. Max. 100 items.",

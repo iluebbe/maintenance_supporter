@@ -108,6 +108,7 @@
   "trigger_val": "Valor del disparador",
   "complete_title": "Completada: ",
   "checklist": "Lista de verificación",
+  "require_on_completion": "Exigir al completar",
   "checklist_steps_optional": "Pasos de la lista de verificación (opcional)",
   "checklist_placeholder": "Limpiar filtro\nReemplazar junta\nProbar presión",
   "checklist_help": "Un paso por línea. Máx. 100 elementos.",

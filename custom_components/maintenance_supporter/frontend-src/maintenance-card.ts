@@ -146,12 +146,6 @@ export class MaintenanceSupporterCard extends LitElement {
     await this._loadViewFilters();
   }
 
-  /** Resolve display names for the assignee badge (best-effort).
-   *
-   *  `users/list` is a READ-tier command, so the household members this card
-   *  is built for can call it without admin rights. A failure (or a task
-   *  whose user was deleted) leaves the name unresolved and the badge simply
-   *  does not render — never a raw user id. */
   /** Display name of the task's responsible user, or "" when the badge must
    *  stay hidden (feature off, nobody assigned, or the name not resolved).
    *  With a rotation this is whoever is up next — the pointer the engine
@@ -163,6 +157,12 @@ export class MaintenanceSupporterCard extends LitElement {
     return this._userNames[id] || "";
   }
 
+  /** Resolve display names for the assignee badge (best-effort).
+   *
+   *  `users/list` is a READ-tier command, so the household members this card
+   *  is built for can call it without admin rights. A failure (or a task
+   *  whose user was deleted) leaves the name unresolved and the badge simply
+   *  does not render — never a raw user id. */
   private async _loadUserNames(): Promise<void> {
     this._userNamesLoaded = true;
     if (!this._userService) this._userService = new UserService(this.hass);
@@ -411,6 +411,7 @@ export class MaintenanceSupporterCard extends LitElement {
                                 dlg.adaptiveEnabled = !!task.adaptive_config?.enabled;
                                 dlg.taskType = task.type || "";
                                 dlg.readingUnit = (task as any).reading_unit || "";
+                                dlg.requiredFields = task.required_completion_fields || [];
                                 dlg.lang = L;
                                 // #99: editable per-completion parts selection
                                 // (skip on buy tasks — those restock instead).

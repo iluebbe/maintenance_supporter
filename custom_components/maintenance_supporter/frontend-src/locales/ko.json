@@ -109,6 +109,7 @@
   "trigger_val": "트리거 값",
   "complete_title": "완료: ",
   "checklist": "체크리스트",
+  "require_on_completion": "완료 시 필수 입력",
   "checklist_steps_optional": "체크리스트 단계 (선택)",
   "checklist_placeholder": "필터 청소\n씰 교체\n압력 테스트",
   "checklist_help": "한 줄에 한 단계씩 입력하세요. 최대 100개.",

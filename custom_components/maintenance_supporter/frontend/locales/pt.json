@@ -108,6 +108,7 @@
   "trigger_val": "Valor do acionador",
   "complete_title": "Concluída: ",
   "checklist": "Lista de verificação",
+  "require_on_completion": "Exigir ao concluir",
   "checklist_steps_optional": "Passos da lista de verificação (opcional)",
   "checklist_placeholder": "Limpar filtro\nSubstituir vedação\nTestar pressão",
   "checklist_help": "Um passo por linha. Máx. 100 itens.",

@@ -22,6 +22,9 @@ from ..const import (
     ROTATION_STRATEGIES,
     TaskPriority,
 )
+from .completion_requirements import (
+    REQUIRABLE_COMPLETION_FIELDS as _REQUIRABLE_COMPLETION_FIELDS,
+)
 
 # ─── Enum option sets ────────────────────────────────────────────────────────
 
@@ -36,6 +39,10 @@ INTERVAL_ANCHORS: tuple[str, ...] = ("completion", "planned")
 # Shared-task rotation strategies (defined in const; re-exported here so all
 # task-field consumers import from one module).
 ROTATION_STRATEGY_VALUES: tuple[str, ...] = ROTATION_STRATEGIES
+
+# Details a task can demand on completion (re-exported so every task-field
+# consumer imports its enums from this one module).
+REQUIRABLE_COMPLETION_FIELDS: tuple[str, ...] = _REQUIRABLE_COMPLETION_FIELDS
 
 # ─── Numeric bounds (inclusive) ─────────────────────────────────────────────
 

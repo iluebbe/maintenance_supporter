@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "No se encontró tarea de mantenimiento para la entidad {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "“{task_name}” requiere estos datos al completarla: {fields}. Complétala desde el panel de mantenimiento o la tarjeta para introducirlos."
     }
   },
   "triggers": {

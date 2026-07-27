@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Nessuna attività di manutenzione trovata per l'entità {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "“{task_name}” richiede questi dettagli al completamento: {fields}. Completa l'attività dal pannello manutenzione o dalla scheda per inserirli."
     }
   },
   "triggers": {

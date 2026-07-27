@@ -42,6 +42,7 @@ const EDITABLE: Record<string, string> = {
   responsible_user_id: "responsible_user_id",
   assignee_pool: "assignee_pool",
   rotation_strategy: "rotation_strategy",
+  required_completion_fields: "required_completion_fields",
   trigger_config: "trigger_config",
   on_complete_action: "on_complete_action",
   quick_complete_defaults: "quick_complete_defaults",

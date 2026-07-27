@@ -109,6 +109,7 @@
   "trigger_val": "トリガー値",
   "complete_title": "完了: ",
   "checklist": "チェックリスト",
+  "require_on_completion": "完了時に必須",
   "checklist_steps_optional": "チェックリストの手順（任意）",
   "checklist_placeholder": "フィルター清掃\nシール交換\n圧力テスト",
   "checklist_help": "1行に1手順。最大100項目。",

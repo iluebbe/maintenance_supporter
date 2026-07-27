@@ -109,6 +109,7 @@
   "trigger_val": "Udløserværdi",
   "complete_title": "Fuldfør: ",
   "checklist": "Tjekliste",
+  "require_on_completion": "Kræv ved fuldførelse",
   "checklist_steps_optional": "Tjeklistetrin (valgfrit)",
   "checklist_placeholder": "Rengør filter\nUdskift pakning\nTest tryk",
   "checklist_help": "Ét trin pr. linje. Maks. 100 elementer.",

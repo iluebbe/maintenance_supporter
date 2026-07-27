@@ -109,6 +109,7 @@
   "trigger_val": "ट्रिगर मान",
   "complete_title": "पूर्ण करें: ",
   "checklist": "चेकलिस्ट",
+  "require_on_completion": "पूर्ण करते समय आवश्यक",
   "checklist_steps_optional": "चेकलिस्ट चरण (वैकल्पिक)",
   "checklist_placeholder": "फ़िल्टर साफ़ करें\nसील बदलें\nदबाव जाँचें",
   "checklist_help": "प्रति पंक्ति एक चरण। अधिकतम 100 आइटम।",

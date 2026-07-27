@@ -108,6 +108,7 @@
   "trigger_val": "Valore trigger",
   "complete_title": "Completato: ",
   "checklist": "Checklist",
+  "require_on_completion": "Richiedi al completamento",
   "checklist_steps_optional": "Passaggi della checklist (opzionale)",
   "checklist_placeholder": "Pulire il filtro\nSostituire la guarnizione\nTestare la pressione",
   "checklist_help": "Un passaggio per riga. Max 100 elementi.",

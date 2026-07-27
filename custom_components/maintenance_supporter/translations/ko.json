@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "엔티티 {entity_id}에 대한 유지보수 작업을 찾을 수 없습니다."
+    },
+    "completion_details_required": {
+      "message": "“{task_name}”을(를) 완료하려면 다음 항목이 필요합니다: {fields}. 유지보수 패널 또는 카드에서 완료하여 입력하세요."
     }
   },
   "triggers": {

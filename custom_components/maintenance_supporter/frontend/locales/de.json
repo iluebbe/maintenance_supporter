@@ -109,6 +109,7 @@
   "trigger_val": "Trigger-Wert",
   "complete_title": "Erledigt: ",
   "checklist": "Checkliste",
+  "require_on_completion": "Beim Abschließen verlangen",
   "checklist_steps_optional": "Checkliste-Schritte (optional)",
   "checklist_placeholder": "Filter reinigen\nDichtung ersetzen\nDruck testen",
   "checklist_help": "Ein Schritt pro Zeile. Max. 100 Einträge.",

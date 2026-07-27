@@ -1822,6 +1822,9 @@
     },
     "no_task_for_entity": {
       "message": "Geen onderhoudstaak gevonden voor entiteit {entity_id}."
+    },
+    "completion_details_required": {
+      "message": "“{task_name}” vereist deze gegevens bij het afronden: {fields}. Rond de taak af via het onderhoudspaneel of de kaart om ze in te vullen."
     }
   },
   "triggers": {

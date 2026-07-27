@@ -186,7 +186,8 @@ async def test_notification_action_complete(
     hass.bus.async_fire("mobile_app_notification_action", {"action": action})
     await hass.async_block_till_done()
 
-    runtime_data.coordinator.complete_maintenance.assert_called_once_with(task_id=TASK_ID_1)
+    # unattended=True: a notification button cannot ask for required details.
+    runtime_data.coordinator.complete_maintenance.assert_called_once_with(task_id=TASK_ID_1, unattended=True)
 
 
 async def test_notification_action_skip(
