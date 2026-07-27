@@ -42,7 +42,7 @@ due, and completing it takes one tap — optionally with notes, cost, duration,
 and a photo of the work.
 
 **"My vacuum already knows when its filter is worn."**
-**Suggested setups** (Beta) discovers devices of 100 supported integrations —
+**Suggested setups** (Beta) discovers devices of 123 supported integrations —
 vacuums, robotic mowers, printers, kitchen appliances, heating, 3D printers,
 cars — and sets them up in one click with **sensor triggers pre-wired**:
 percent remaining, countdowns, wear counters, usage intervals (service every
@@ -114,7 +114,7 @@ for you — always previewing before it writes.
 
 | Area | What you get | Details |
 |---|---|---|
-| **Suggested setups** | 100 integrations / 190 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more | [Supported integrations](docs/INTEGRATIONS.md) |
+| **Suggested setups** | 123 integrations / 229 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more | [Supported integrations](docs/INTEGRATIONS.md) |
 | **Battery fleet** | One task for all 30–70+ batteries — grouped shopping list, forecast, mark-all-replaced, spare-part stock. Best with [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes); native `device_class: battery` devices work too (degraded) | [Features → Battery Fleet](docs/FEATURES.md#battery-fleet-battery-notes-or-native) |
 | **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision; live "next three dates" preview while editing | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery; adopt HA `device_class: problem` sensors as tasks | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |
@@ -130,17 +130,22 @@ for you — always previewing before it writes.
 
 ## Entities & automation hooks
 
-Each task is a **sensor** (`ok / due_soon / overdue / triggered`) plus a
-**binary sensor** (`device_class: problem`) and **complete/skip/reset
-buttons**. Global **summary sensors** count what needs attention, spare parts get
-**stock sensors** (plus a global *parts to reorder* counter), a
-**calendar** entity feeds your calendar cards, and a **to-do** entity mirrors
-open work. Lifecycle **events** (`…_task_completed`, `…_trigger_activated`, …)
-fire on every path, and nine **services** — `complete` / `skip` / `reset` /
-`export_data` plus full task CRUD (`add_object`, `add_task`, `update_task`,
-`delete_task`, `list_tasks`) — cover scripting. Two **Assist intents** answer
-*"what maintenance is due?"* and complete tasks by voice — LLM-based Assist
-picks them up automatically; classic Assist uses the shipped sentence files
+Each task is a **sensor** (`ok / due_soon / overdue / triggered`, plus
+`paused` / `archived`) with a **binary sensor** (`device_class: problem`),
+**complete/skip/reset buttons** and two opt-in companions — a **next-due
+timestamp** and a numeric **days-until-due countdown** for gauge and
+progress-bar cards (both disabled by default). Global **summary sensors**
+count what needs attention, alongside *parts to reorder*, *batteries to
+replace* and *document storage*; spare parts get their own **stock
+sensors**, a **calendar** entity feeds your calendar cards, and a **to-do**
+entity mirrors open work. Lifecycle **events** (`…_task_completed`,
+`…_trigger_activated`, …) fire on every path, and nine **services** —
+`complete` / `skip` / `reset` / `export_data` plus full task CRUD
+(`add_object`, `add_task`, `update_task`, `delete_task`, `list_tasks`) —
+cover scripting. Six **Assist intents** answer *"what maintenance is due?"*,
+complete or snooze tasks, read out instructions and check spare-part stock
+by voice — LLM-based Assist picks them up automatically; classic Assist uses
+the shipped sentence files
 ([Features → Voice & Assist](docs/FEATURES.md#voice--assist-226)).
 
 On HA 2026.7+ the new automation editor additionally offers ready-made
@@ -160,14 +165,15 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Every configurable parameter (global, per-object, per-task, triggers) |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Use-case recipes, automation YAML, cards & dashboard strategies |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Known limitations, common issues, debug logging, uninstalling |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (72 commands), tests |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (80 commands), tests |
 | [ROADMAP.md](ROADMAP.md) | What's planned and what shipped — ideas welcome via [Discussions](https://github.com/iluebbe/maintenance_supporter/discussions) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
 ## Requirements
 
 - Home Assistant **2025.7.0** or newer
-- No external dependencies
+- One Python dependency, installed automatically by Home Assistant: `pypdf`
+  (used to cut a single page out of a linked manual for the work sheet)
 
 ## Development
 

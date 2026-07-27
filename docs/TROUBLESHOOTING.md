@@ -5,7 +5,7 @@
 ### Trigger Not Activating
 
 1. Verify the `trigger_entity` is correct — check **Developer Tools > States** for the entity ID, and confirm the source entity has a usable state there
-2. Check per-entity availability (`available`, `unavailable`, `missing`) — this is the `trigger_entity_state` live value shown on the task in the panel (it comes from the WebSocket `subscribe` feed, not from a sensor attribute)
+2. Check per-entity availability (`available`, `unavailable`, `missing`, `startup`) — this is the `trigger_entity_state` live value shown on the task in the panel (it comes from the WebSocket `subscribe` feed, not from a sensor attribute). `startup` is the 5-minute grace period after a Home Assistant restart: the source integration may not have published its states yet, so nothing is flagged as missing until the grace period is over — wait it out before troubleshooting further
 3. For threshold triggers with `trigger_for_minutes` > 0, the condition must hold continuously for that duration
 4. For compound triggers, check each sub-condition's status individually on the task in the panel
 
@@ -19,9 +19,9 @@
 
 ### Sidebar Panel Not Visible
 
-1. Ensure `panel_enabled` is `true` in global settings
-2. **Restart Home Assistant** — panel registration requires a restart
-3. Clear browser cache (Ctrl+Shift+F5) after restart
+1. Ensure `panel_enabled` is `true` in global settings (it defaults to `true`)
+2. **No restart needed** — the panel is registered / unregistered the moment the option changes. If the sidebar entry is still missing, reload the page first
+3. Clear browser cache (Ctrl+Shift+F5) — a cached frontend is the usual reason the entry doesn't appear
 
 ### Dashboard Strategy: "Timeout waiting for strategy element ll-strategy-dashboard-maintenance-supporter to be registered"
 

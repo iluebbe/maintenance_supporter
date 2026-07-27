@@ -507,6 +507,12 @@ class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):
     the task is due (negative once overdue), which is what gauge and
     progress-bar cards need; the status sensor only carries this as an
     attribute. Manual, archived and trigger-only tasks read unknown.
+
+    Its entity_id is pinned language-independently (same reasoning as the
+    global summary sensors): with ``has_entity_name`` the slug would
+    otherwise derive from the TRANSLATED entity name, so a German install
+    would get ``..._tage_bis_faellig`` and the documented gauge recipe would
+    only work in English. The friendly name stays localized.
     """
 
     _attr_translation_key = "days_until_due"
@@ -528,6 +534,14 @@ class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
         self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_days_until_due"
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
+        # Pin the documented, language-independent entity_id. Only NEW entities
+        # are affected — an already-registered one keeps its registry id.
+        task_slug = task_data.get("entity_slug") or slugify_object_name(task_data.get("name", task_id))
+        self.entity_id = async_generate_entity_id(
+            ENTITY_ID_FORMAT,
+            f"{object_slug}_{task_slug}_days_until_due",
+            hass=coordinator.hass,
+        )
 
     @property
     def native_value(self) -> int | None:

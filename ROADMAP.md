@@ -183,7 +183,7 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    feed ONE signature today — needs per-duty entity claims.~~ ✅ **Shipped
    2026-07-26** — discovery's entity claim is now per DUTY: a task already
    watching an entity blocks only its own duty (recognised by catalog name
-   in any of the 18 languages), so a mower's hours counter still proposes
+   in any of the 22 languages), so a mower's hours counter still proposes
    "Clean Undercarriage" after "Replace Mower Blades" was adopted, and a
    deselected duty stays adoptable later. A watcher with a custom/renamed
    name conservatively keeps claiming the whole entity — re-discovery never
@@ -207,7 +207,7 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    device, so the model is known at adoption time.
 
 4. ~~**Seed the counting baseline from the last real service (#102)**~~ ✅
-   **Shipped (unreleased, 47acbc3)** — every usage_delta duty in the
+   **Shipped in v2.32.0 (47acbc3)** — every usage_delta duty in the
    suggested-setups dialog offers an optional *"reading at last service"*
    input, and the task dialog exposes an editable start value on delta-mode
    counter triggers (empty = count from the current reading; editing
@@ -232,7 +232,7 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    once overdue; unknown for archived/never-scheduled tasks), disabled by
    default like the next-due timestamp twin — enabling it per task in the
    entity registry IS the opt-in, so the extra entity costs nothing for
-   30+-task setups. Translated in all 18 languages; EXAMPLES.md carries a
+   30+-task setups. Translated in all 22 languages; EXAMPLES.md carries a
    gauge-card recipe plus the template-sensor fallback for older versions.
 
 6. 💡 **Persisted checklist progress without completing (#73)** — checklist
@@ -242,7 +242,7 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    reset on completion), letting users tick off steps across several days
    before closing the task.
 
-7. ~~**Live schedule preview — "your next three dates" (#83)**~~ ✅ **Shipped (unreleased)** — implemented exactly as designed below, incl. an engine fix the work surfaced (seasonal window now preserves calendar patterns instead of rolling to the 1st). — while
+7. ~~**Live schedule preview — "your next three dates" (#83)**~~ ✅ **Shipped in v2.34.0** — implemented exactly as designed below, incl. an engine fix the work surfaced (seasonal window now preserves calendar patterns instead of rolling to the 1st). — while
    editing a task's recurrence, show the next 3 concrete occurrences the
    CURRENT settings produce, updating live as fields change. This is the
    schedule-side twin of the trigger live-hint (v2.25) and would have
@@ -301,7 +301,7 @@ welcome via issues/Discussions.
 4. ~~**Live "what happens next" hint on sensor-based triggers**~~ ✅ **Shipped
    in v2.25.0** — the trigger form explains itself against the *live* sensor
    ("the sensor reads 660 h now — due at 760 h, +100 h, restarting after each
-   completion"); covers threshold/counter/runtime/state-change, 18 languages.
+   completion"); covers threshold/counter/runtime/state-change, 22 languages.
 5. ~~**Suggest a spare part when adopting a problem sensor**~~ ✅ **Shipped in
    v2.26.0** — discovery suggests the target object's name-matching part;
    adoption pre-links it as the task's consumed part, closing the

@@ -80,21 +80,50 @@ admin) — do not try to change the allowlist yourself.
    `create_failed` on a collision).
 
 ### Phase 2 — Discover maintenance candidates
-Enumerate the user's HA using core registry commands (read-only):
+
+**Ask the integration first — it ships its own discovery.** Two read-only
+commands do server-side what you would otherwise infer from raw registries, and
+they do it better because their wiring is verified against each integration's
+source:
+
+1. `maintenance_supporter/integration_setups/discover` → `{setups:[…]}`. A
+   catalog of **123 integrations / 229 signatures** matched against the entity
+   registry: each hit is a device with concrete duties, the exact `entity_ids`,
+   a `direction` and a default `threshold` — i.e. **triggers already chosen**.
+   Adopt with `integration_setups/adopt` (it re-runs discovery server-side and
+   creates or extends the object); pass `baselines` for "the last service was
+   at reading X". Duties already covered by an existing task are filtered out,
+   so re-running is safe.
+2. `maintenance_supporter/problem_sensors/discover` → `{sensors:[…]}`. Adoptable
+   `device_class: problem` binary sensors, with a suggested object (and spare
+   part, when one matches by name). `problem_sensors/adopt` turns each into a
+   task that triggers while the sensor is on and auto-completes on recovery.
+
+Present both as proposals like anything else — the user still decides. Only
+**what these two don't cover** needs the manual pass below.
+
+Then enumerate the rest of the user's HA using core registry commands (read-only):
 - `config/area_registry/list` — areas (for grouping + `area_id`).
 - `config/device_registry/list` — devices (name, manufacturer, model, area_id).
 - `config/entity_registry/list` — entities (entity_id, device_id, device_class…).
 - `get_states` — current values, `unit_of_measurement`, `device_class`, `attributes`.
 
 Then apply the heuristics in **[references/discovery.md](references/discovery.md)**
-to turn signals into candidates: which devices plausibly need upkeep, which
-sensor becomes which **trigger type** (threshold / counter-delta / runtime /
-state_change), and what a sensible *default* interval would be. Group candidates
-by area/device and rank by confidence.
+to turn the *remaining* signals into candidates: which devices plausibly need
+upkeep, which sensor becomes which **trigger type** (threshold / counter-delta /
+runtime / state_change), and what a sensible *default* interval would be. Group
+candidates by area/device and rank by confidence.
 
-**Also propose non-smart items.** Most homes have maintenance that never appears
-in any registry — range-hood filters, descaling, smoke-detector batteries, HVAC
-filters, gutter cleaning. Offer these from the curated catalog in
+**Also propose non-smart items — from the shipped templates first.** Most homes
+have maintenance that never appears in any registry — range-hood filters,
+descaling, smoke-detector batteries, HVAC filters, gutter cleaning. Call
+`maintenance_supporter/templates` (pass the user's `language`): the integration
+ships **45 curated object templates**, each with its tasks, types and interval
+defaults already chosen and localized, and `object/from_template` creates the
+object plus all of its tasks in one call. Match a candidate to a template
+whenever one fits and propose the template; skip templates flagged
+`disabled: true` (the admin hid those). Only for classes with **no** template do
+you hand-build from the curated catalog in
 **[references/non-smart-catalog.md](references/non-smart-catalog.md)** as
 time-based tasks. Where a smart signal *can* stand in for usage (a smart plug's
 power draw, a presence sensor), that same file has **derived-usage-sensor**
@@ -113,8 +142,18 @@ it goes on the object's `documentation_url` (http/https only) or via the
 Documents feature. Do not fabricate model numbers or intervals.
 
 ### Phase 4 — Create via the public WS API
-1. Build the full batch of `object/create` + `task/create` calls from the
-   confirmed proposal. Map each candidate to its exact payload using
+0. **Prefer the server-side creators over hand-built payloads**, in this order:
+   `integration_setups/adopt` (device with pre-wired triggers) →
+   `problem_sensors/adopt` (problem binaries) → `object/from_template`
+   (a matching template, tasks included) → hand-built `object/create` +
+   `task/create`. Everything they create stays fully editable, so a template
+   plus two edits beats a hand-built object. `battery_fleet/setup` covers all
+   batteries at once (see the trigger table below). None of the server-side
+   creators support `dry_run` (only `object/create` / `task/create` do) — for
+   them the *discovery result or template listing you already showed the user*
+   IS the preview, so get the explicit yes on that before calling them.
+1. Build the full batch of `object/create` + `task/create` calls for whatever is
+   left. Map each candidate to its exact payload using
    **[references/ws-api.md](references/ws-api.md)**. Remember:
    - Objects have **no cost/icon** field. Per-task icon is `custom_icon`.
    - A **time interval** is NOT a `trigger_config` — it's `interval_days` +
@@ -152,7 +191,17 @@ Documents feature. Do not fabricate model numbers or intervals.
 | Pump/HVAC/compressor wear | on/off entity | `runtime` | `trigger_runtime_hours` (+ `trigger_on_states`) |
 | "Cleaning cycle finished" event | state that flips | `state_change` | `trigger_from_state`/`trigger_to_state`, `trigger_target_changes` |
 | Any two of the above together | multiple sensors | `compound` | `compound_logic` + `conditions[]` (≥2, no nesting) |
-| Battery / consumable level low | `%` sensor | `threshold` | `trigger_below` |
+| Consumable level low (ink, toner, filter %) | `%` sensor | `threshold` | `trigger_below` |
+| **Household batteries** | Battery Notes devices | *(none — use the Battery Fleet)* | `battery_fleet/setup`, not a task per battery |
+
+**Do not propose one threshold task per battery.** The integration ships the
+**Battery Fleet**: `battery_fleet/setup` creates ONE task plus a per-type
+shopping list (AA, AAA, CR2032 …) covering every Battery Notes device in the
+house, so a 40-battery home gets one reminder instead of 40. Check
+`battery_fleet/overview` first (`available` / `has_battery_notes` /
+`configured`); `task_ok: false` means the fleet exists but its task or trigger
+was damaged — re-running `setup` is the idempotent repair. Individual batteries
+can be kept out with `battery_fleet/set_excluded` (self-charging devices).
 
 Everything with no usable sensor → a **time-based** task (`interval_days` +
 `interval_unit`), optionally upgraded via a derived-usage sensor recipe.

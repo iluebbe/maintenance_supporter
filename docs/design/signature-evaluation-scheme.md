@@ -29,11 +29,16 @@ the `lawn_mower` platform and the engine's own runtime accumulation).
 | Countdown (hours/days left) | `duration_left` | threshold below 24 h (unit-converted), auto-resolve |
 | Wear counter **with a device reset** (blade hours, tub-clean cycles) | `usage_above` | **delta counter from explicit 0 baseline** — absolute at adoption; manual completion re-baselines (no instant re-fire); device reset auto-completes |
 | Actionable event/enum state (`present`/`off`) | `event_present` | state latch, auto-resolve when the appliance clears it |
+| Measurement that signals the duty while it is **high** (AMS humidity → desiccant saturated; NAS volume % used) | `alert_above` | plain threshold above N **in the entity's own unit** (no conversion), auto-resolve — the maintenance genuinely lowers the value |
+| Measurement that signals the duty while it is **low** (heating-loop pressure, pool salt ppm, a car's "km to next service") | `value_below` | plain threshold below N in the entity's own unit, auto-resolve — the maintenance raises the value back |
 
 Notes:
 - A plain `trigger_above` threshold is **wrong** for wear counters — after a
   manual completion the counter still reads past the mark and would re-fire
-  immediately. Always the delta-baseline form.
+  immediately. Always the delta-baseline form. The plain threshold is right
+  only for the two MEASUREMENT directions (`alert_above` / `value_below`),
+  where doing the maintenance actually moves the value back across the mark —
+  that is the whole test for which of the two families a signal belongs to.
 - Events beat counters when both exist for the same duty (Home Connect
   descale events vs. its coffee counters): the event is the appliance's own
   calibrated signal, and two rows for one duty is a duplicate.
@@ -43,7 +48,7 @@ Notes:
 | Signal shape | Direction | Trigger wired |
 |---|---|---|
 | **Lifetime counter, no reset anywhere** (print hours, burner hours, odometer) | `usage_delta` | counter in delta mode — fires every N canonical units (hours / km, unit-converted incl. mi) since the last completion; completion re-baselines; no auto-complete (the counter never recovers) |
-| Value in an **attribute** rather than the state | any numeric direction + `attribute` in the trigger config | supported by every numeric trigger; no catalog case yet — judge whether the attribute tracks *device wear* (usable) or *consumable stock on a swappable part* (noisy — Bambu tray `remain` resets on every spool swap → skipped) |
+| Value in an **attribute** rather than the state | any numeric direction (or `runtime_hours`) + `attribute` in the trigger config | shipped: the Daikin/Gree AC signatures accumulate runtime on the `climate` entity's `hvac_action` attribute because the state only reports the standby mode (`helpers/signatures/air.py`). Judge whether the attribute tracks *device wear* (usable) or *consumable stock on a swappable part* (noisy — Bambu tray `remain` resets on every spool swap → skipped) |
 
 "TOTAL_INCREASING with no reset" is a **reason to use `usage_delta`**, never a
 reason to decline. Semantics check first: a counter of *performed maintenance*
@@ -56,7 +61,7 @@ The engine can measure usage itself; no integration counter is required.
 | Signal shape | Direction | Trigger wired |
 |---|---|---|
 | Time spent in a state (`mowing`, `cleaning`, `on`) | `runtime_hours` | runtime trigger with `trigger_on_states` — the engine accumulates hours (persisted 5-min, restart-safe, paused while unavailable); fires at N hours; completion resets the count |
-| Number of duty cycles (mows, washes) | *(no catalog direction yet)* | `state_change` with `trigger_target_changes: N` — available manually in the task dialog; add a catalog direction when a case prefers counts over hours |
+| Number of duty cycles (mows, washes, lock turns) | `cycle_count` | `state_change` with `trigger_target_changes: N` — the engine counts every transition INTO `on_states[0]`; completing the task resets the count; no auto-complete (cycles don't recover). Shipped for smart locks (`helpers/signatures/locks.py`): no lock has a wear sensor, but every transition to `locked` is one mechanical cycle |
 
 Catalog mechanics for state targets: set `entity_domain` (+ `on_states`);
 empty `keys` means "the device's single entity of that domain" and is
@@ -73,7 +78,7 @@ binaries need no signature — problem-sensor adoption covers them generically.
 
 ## Device-type gates
 
-Two optional per-signature gates restrict a match to the right appliance when
+Three optional per-signature gates restrict a match to the right appliance when
 the entity key alone can't:
 - **`require_sibling_keys`** — the device must ALSO carry an entity matching
   one of these keys. Identifies the appliance type from its own entity set:
@@ -85,7 +90,11 @@ the entity key alone can't:
   registry's `model`. Bambu sets model to the printer type (X1C/P1S/A1…), so
   the chamber-filter duty gates to enclosed models and an open-frame A1 next
   to an X1C gets only the lubrication task.
-When neither gate can express the distinction (no identifying sibling, no
+- **`models_exclude`** — substring exclusion applied AFTER `models`, for the
+  cases where the positive match is too generous: `("AMS",)` also matches
+  "AMS Lite", which has no desiccant compartment, so that duty excludes it
+  explicitly.
+When no gate can express the distinction (no identifying sibling, no
 model string), the signature must NOT ship — mis-proposing on the wrong
 appliance type is worse than a missing proposal.
 
@@ -104,8 +113,9 @@ appliance type is worse than a missing proposal.
 - **Thresholds are defaults, not promises**: 10 % / 24 h / 100 h / 15,000 km
   are adoption-time defaults; users tune them on the task afterwards.
 - Method contract stays: nothing enters the catalog without reading the
-  integration's actual source (`source` + `verified` fields, i18n ×17 for
-  task names — all tripwire-enforced in `tests/test_integration_setups.py`).
+  integration's actual source (`source` + `verified` fields, i18n for task
+  names in all **21 non-English** languages — all tripwire-enforced in
+  `tests/test_integration_setups.py`).
 
 ## Catalog governance — extensibility, freshness, upstream changes
 
@@ -113,9 +123,9 @@ appliance type is worse than a missing proposal.
 Both catalogs are plain in-repo data structures — `SIGNATURES`
 (dict of `IntegrationSignature`) and `TEMPLATES` (list of `ObjectTemplate`) —
 with their invariants enforced by tripwire tests rather than convention:
-direction whitelist, non-empty `source`/`verified`, full ×17 localization of
-every task name, empty-keys-only-for-non-sensor-domains, template curation
-count pins. **Adding an entry is one dict/list literal plus i18n**; nothing
+direction whitelist, non-empty `source`/`verified`, full localization of every
+task name into all 21 non-English languages (22 with English),
+empty-keys-only-for-non-sensor-domains, template curation count pins. **Adding an entry is one dict/list literal plus i18n**; nothing
 else in the pipeline changes, because discovery, trigger building and the
 dialog are all driven off the data. That is the extensibility contract:
 new integrations and templates must never require touching the engine.

@@ -8,6 +8,14 @@ signal *can* stand in for usage, upgrade the task with a **derived-usage sensor*
 Confidence on every interval below is **rule-of-thumb** — present them that way
 and invite the user to adjust for their household. Safety items first.
 
+> **Check the shipped templates first.** `maintenance_supporter/templates`
+> returns **45** curated object templates (smoke detectors, espresso machine,
+> aquarium, robot mower, security camera, CPAP …) with their tasks and interval
+> defaults already chosen and localized; `object/from_template` creates the
+> object and all its tasks in one call. Hand-build from the table below only
+> where no template fits — and note that the **Replace battery** rows are
+> covered house-wide by `battery_fleet/setup`, not by a task per device.
+
 ## Curated catalog
 
 | Object / area | Task | Typical interval | Notes |

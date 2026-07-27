@@ -164,7 +164,7 @@ warning-lamp families.
 
 The **Suggested setups** button discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **100 integrations with 190 verified
+click. The catalog currently covers **123 integrations with 229 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,
@@ -179,8 +179,14 @@ lifetime hour meters (every N hours of use, re-baselined on completion).
 Replacing the consumable, resetting the wear counter, or the appliance clearing
 its event resolves the task automatically. Every signature in
 the catalog is **verified against the integration's source code** (a tripwire
-enforces the source reference and full localization), and discovery never
-proposes entities already wired to a task.
+enforces the source reference and full localization). Discovery claims are
+**per duty, not per entity** (2.41+): one source entity can back several duties
+— a mower's hours counter drives both *Replace blades* and *Clean
+undercarriage* — so adopting one duty leaves its siblings proposable, while a
+task already watching that entity under the *same* catalog duty (in any
+language) is never proposed twice. Only a watcher whose task was **renamed**
+away from its catalog name conservatively claims the whole entity, so a
+re-run never proposes against your rename.
 
 ### Battery Fleet (Battery Notes or native)
 If you have many battery devices, 30–70+ of them would mean 30–70 maintenance
@@ -216,7 +222,16 @@ The fleet task's detail view is the whole surface:
 - **A grouped shopping list** — *"Buy now: 1× 9V · 2× AA · 4× AAA · …"* — so you
   know exactly what to pick up, not which device needs what.
 - **A "needed soon" forecast** grouped by type, predicted from each battery's
-  last-replaced date and its typical service life, so you can order ahead.
+  last-replaced date and its typical service life, so you can order ahead —
+  the soonest (already past their expected life first) at the top. A Battery
+  Note that carries **only** a replacement date and no level sensor — its
+  state reads *unknown* forever — is kept for exactly this: the date is all
+  the forecast needs, so those batteries surface here instead of dropping out
+  unseen.
+- **Exclude a battery by hand** — the eye-off action on any row takes a
+  device out of the fleet for good (count, shopping list and forecast), for
+  the cases the automatic skips don't cover. Excluded batteries are listed
+  separately and can be brought back the same way.
 - **Mark all replaced** in one tap: this presses each battery's Battery Notes
   *replaced* button (resetting the forecast) and consumes the matching spares
   from stock. The task clears itself once the devices report fresh batteries.
@@ -305,10 +320,12 @@ native HA UI.
 
 ### Mobile
 On phones and portrait tablets the dashboard keeps the task list above the
-fold: the six filter controls and the five create/setup actions collapse
+fold: the six filter controls and the up-to-six create/setup actions collapse
 behind two compact toggles — **Filter** (showing how many filters are
 actively narrowing the list) and **+ Add** (a menu with *New task*, *New
-object*, *From template*, *Suggested setups* and *Adopt problem sensors*).
+object*, *From template*, *Suggested setups*, *Adopt problem sensors* and —
+only while a battery fleet is available and not yet set up — *Battery
+fleet*).
 The KPI chips at the top remain the one-tap filter path, and the budget
 bars compact to a single line. Desktop and landscape layouts render all
 controls inline.
@@ -349,7 +366,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
   ![Live schedule preview](images/schedule-preview.png)
 - **Finite recurring series** (2.22+): a recurring task can end on its own — after **N completions** and/or **on a date** ("descale weekly, 8 times, done"; "quarterly checks until the warranty ends"). When the series ends the task reads *done* like a completed one-off. The *Ends* selector (never / after N times / on date) lives in the task dialog and the config-flow edit form
 - **Postpone a single occurrence** (2.22+): *Postpone…* in the task ⋮-menu defers **only the current due date** to a picked date — the next completion returns to the normal cadence. Distinct from snooze (notifications only) and reset (re-anchors the whole schedule). A *postponed to …* badge shows on the task; dashboard card rows carry a small calendar-clock indicator
-- Task status tracking: OK, Due Soon, Overdue, Triggered, Paused
+- Task status tracking: OK, Due Soon, Overdue, Triggered, Paused, Archived
 - **One-time tasks**: schedule a non-recurring job with an explicit due date; completing it marks it *done* (hidden from the card, shown as *Completed* in the panel)
 - **Archive & retention** (2.10.0+): archive any task or object to retire it without deleting — archived items are **hidden by default** (a *Show archived* toggle reveals them) and go **inert** (no triggers, notifications, calendar entries, or active status counts), but keep their full history and cost (budget still counts). Archiving an object cascades to its tasks; unarchiving a recurring task starts a fresh cycle. Optionally **auto-archive** completed one-off tasks N days after completion, and opt-in **auto-delete** auto-archived one-offs after a further N days (manual archives are never auto-deleted)
 - **Task work sheet** (2.21+): a printable one-pager per task from the ⋮-menu — details, the checklist as tick boxes, notes, and a QR pair (open / complete); if a linked PDF manual has a page hint for the task, a server-cut excerpt ("from page X, 4 pages") prints alongside
@@ -362,7 +379,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Labels / tags** (2.17+): lightweight comma-separated tags per task (e.g. `safety`, `seasonal`), shown as chips and searchable in the command palette
 - **Completion photos** (2.17+): attach a photo when completing a task (camera capture supported); stored via the documents engine and shown in the history timeline
 - **Missed status + completion window** (2.17+): skipping an overdue task records it as *Missed* (distinct from a deliberate skip); an optional per-task *earliest completion* window blocks signing tasks off too early
-- **Shared maintenance & rotation** (2.17+): assign a task to several household members and rotate responsibility on each completion (round-robin / least-completed / random)
+- **Shared maintenance & rotation** (2.17+): assign a task to several household members and rotate responsibility on each completion (round-robin / least-completed / random). Since 2.42.1 a rotation task **always carries an effective assignee** (discussion #49): the first pool member is seeded whenever the task is created, edited or imported, a storage migration repaired existing tasks on upgrade, and editing the current assignee out of the pool hands the duty to the next member. Before that, a pool configured without an initial assignee left the task invisible to every user filter (panel, card, calendar card, saved views, per-user notifications) until its first completion
 - **Native To-do entity** (2.17+): a global `todo.maintenance` list mirrors every active task; checking an item off completes the task — works with the To-do card and Assist/voice
 - **Snooze from the panel** (2.17+): the notification snooze is also available in the task ⋮ menu
 - **Virtualized task table** (2.17+): with hundreds of tasks, only the visible window is rendered — large installs stay snappy
@@ -374,7 +391,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - NFC tag linking — scan an NFC tag to complete a task
 - Checklists for multi-step procedures — editable in the panel task dialog (and in the Integration Options)
 - Task grouping for logical organization — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
-- **Sort & group-by** in the Tasks/Objects views — sort by due date, area, assigned user, or group; group into collapsible sections by area, group, or user (1.0.44+)
+- **Sort & group-by** in the Tasks/Objects views — sort by due date, object name, task type, task name, area, assigned user, or group; group into collapsible sections by area, group, or user (1.0.44+)
 - **Overdue indicator** — object cards show a red dot the moment any of their tasks is overdue (1.0.44+)
 - **Quick task creation** — `New Maintenance Task` button on the Tasks view opens the task dialog with an Object selector dropdown, no need to navigate into the parent first (1.0.44+)
 - **Operator mode** for non-admin HA users — non-admins get a read-only view (Complete / Skip / QR) so household members can run tasks without changing anything. Admins can **optionally delegate** create/edit/delete to selected non-admins via the **Panel Access** section — off by default, enforced server-side, toggled from the Settings tab or config flow. Orphaned ids surface as a fixable repair issue. Useful for shared/family/hotel setups (1.0.44+; server-enforced + opt-in 2.8.4)
@@ -382,7 +399,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Per-object notes** (1.4.10+) — free-form multiline notes attached to each object: part numbers, replacement procedures, settings reminders, "spare key in garage drawer". Rendered with `white-space: pre-wrap` so newlines and indentation survive intact
 - **Calendar tab** (1.5.0+) — rolling-list view of upcoming maintenance with a window chip toggle (**7 / 14 / 30 days, plus "1 year" since 1.5.2**; the year view collapses empty days so only the actually-eventful rows render). Time-based recurring tasks project up to 5 occurrences within the window at 55 % opacity to mark them as "hypothetical assuming you stay on schedule"; sensor-triggered tasks show only their current `next_due` since predicting the next sensor firing would be a guess. Each event row carries (1.5.1+): a small **source icon** — `mdi:clock-outline` for time-based or `mdi:trending-up` (HA primary color) for sensor-based — and, for sensor-based events, a *"predicted · {high|medium|low} confidence"* pill below the title (green / amber / red border) sourced from the `threshold_prediction_confidence` returned by the predictor. Visible in operator mode. Independent of the HA Calendar entity — stays inside the panel for the *"what's due soon?"* glance, with status pills and avg-cost per event
 - **Attach objects to existing HA devices** (2.19+): link an object to a device another integration already provides — its maintenance entities land on that device's page (the smart washing machine gets its descaling task right where its other entities live). **Object hierarchy**: nest objects under each other (anode rod under water heater) via HA's native device hierarchy
-- 32 object templates in 6 groups — Vehicle, Home & HVAC, Household & Routines, Garden & Outdoor, Pool, Appliances (car, e-bike, HVAC, smoke detectors, bathroom/bedroom/kitchen routines, robot vacuums, espresso machine, RO water filter, irrigation, …) — fully localized, curatable via Settings → Template gallery
+- 45 object templates in 9 categories — Vehicle, Home & HVAC, Household & Routines, Garden & Outdoor, Pool, Appliances, Pets, Tech & IT, Health (car, e-bike, HVAC, smoke detectors, bathroom/bedroom/kitchen routines, robot vacuums, espresso machine, RO water filter, irrigation, litter box, aquarium, printer, NAS, wallbox, CPAP, hearing aids, …) — fully localized, curatable via Settings → Template gallery
 
 ### Sensor-Based Triggers
 - **Threshold**: trigger when a sensor value exceeds or falls below a limit (with optional duration)
@@ -443,7 +460,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Categories + tags** — file each document as *Manual / Warranty / Invoice / Spare parts / Photo / Other* (localized) plus optional free tags, driving filtering and the storage-by-category breakdown
 - **Open in place** — click a document to open it: images pop into an in-app lightbox, PDFs and other files open inline in a new tab; image documents show a thumbnail in the list. Separate download button, and inline **edit** of title/category
 - **Fast capture** — multi-file upload, drag & drop onto the object, and **camera capture** on mobile; optional **web-links** (zero storage, not part of the backup) for manuals that live online
-- **Storage overview** — a collapsible **Document storage** card on the panel overview shows the real backup footprint, the space saved by dedup, and a per-object breakdown; click any object row to jump straight to it, or **search every document** across all objects from the card. Backed by a `sensor.<config>_document_storage` (`device_class: data_size`) with per-object and per-category attributes so you can automate on storage growth
+- **Storage overview** — a collapsible **Document storage** card on the panel overview shows the real backup footprint, the space saved by dedup, and a per-object breakdown; click any object row to jump straight to it, or **search every document** across all objects from the card. Backed by a `sensor.maintenance_supporter_document_storage` (`device_class: data_size`) with per-object and per-category attributes so you can automate on storage growth
 - **Documents at the task** — link an object's documents to a specific task so the right manual sits on the task-detail page where the work happens; each task row shows a **paperclip badge** with its document count, and the link **survives a backup/restore** (task ids are remapped like the spare-part links). For a PDF you can set a **jump-to page** so opening it lands on the relevant section (`#page=N`)
 - **Lifecycle & hygiene** — deleting a document frees its bytes only when the *last* reference goes; archiving an object keeps its documents (inert); a boot-time **storage-hygiene repair issue** flags orphaned or dangling blobs after a crash or partial restore and cleans them up in one click
 - **Complete, portable backup** — the JSON/YAML/CSV export carries settings + document metadata; a dedicated **documents archive** (a ZIP of the file contents) downloads/restores the blobs on top, matching objects by id then by name for a cross-instance move. Exports can be **limited to selected objects** to migrate a single asset
@@ -461,34 +478,38 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Serial number** field on objects — displayed in panel, Device Registry, and export/import
 - **Warranty tracking** (#67): per-object `warranty_expiry` date with a colour-coded status chip (valid until / expiring within 60 days / expired) in the object detail and objects table
 - **Objects table view** (#67): toggle the *All Objects* view between cards and a sortable table; columns are configurable (Settings → Objects table columns) from known object fields; mobile falls back to cards; export all objects as CSV
-- **Task sorting**: sort by due date, object name, type, or task name (persisted)
+- **Task sorting**: seven sort modes — due date, object name, task type, task name, area, assigned user, or group (persisted)
 - **All Objects view**: clickable KPI card shows all objects including empty ones
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
 - **Custom sidebar panel title** (2.8.0+) — rename the panel in Settings → Options → General Settings or the panel's Settings tab (blank = default "Maintenance"); avoids clashing with HA's built-in Maintenance dashboard
+- **Reload banner for a stale frontend** (2.41+) — the panel compares the version esbuild stamped into its JS bundle with the installed integration version (via the `maintenance_supporter/version` WebSocket command) and, when the browser or its service worker is still serving an old cached bundle, shows a banner with a one-click **Reload**. No amount of Home Assistant restarts fixes a cached bundle, so the panel says so instead of looking broken
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 72 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 80 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
 - Statistics, budget status, and interval analysis
-- See [Architecture](docs/ARCHITECTURE.md) for the complete command reference
+- See [Architecture](ARCHITECTURE.md) for the complete command reference
 
 
 ## Supported Functions
 
 ### Platforms
 
-- **Sensor** — one entity per maintenance task. State is an enum: `ok`, `due_soon`, `overdue`, `triggered`
+- **Sensor** — one entity per maintenance task. State is an enum: `ok`, `due_soon`, `overdue`, `triggered`, `archived`, `paused`
 - **Binary Sensor** — one entity per maintenance task (`device_class: problem`). ON when overdue or triggered, ideal for HA automations
 - **Button** — one-press complete/skip/reset per task (`button.<object>_<task>_complete` / `_skip` / `_reset`)
 - **Calendar** — one global entity showing upcoming maintenance events for all tasks
-- **Document storage sensor** (2.11.0+) — one global entity `sensor.<config>_document_storage` (`device_class: data_size`) reporting the physical footprint of attached documents, with `dedup_savings_bytes`, `document_count`, and per-object / per-category breakdowns as attributes
+- **To-do** — one global list entity `todo.maintenance` (2.17+) mirroring every active task; checking an item off completes the task, including via the To-do card and Assist/voice
+- **Summary sensors** — six global count entities on the *Maintenance Supporter* hub device (`sensor.maintenance_supporter_overdue` / `_due_soon` / `_triggered` / `_needs_attention` / `_ok` / `_total_tasks`), fed by the same aggregator as the panel KPI chips. Their entity ids are pinned language-independently; only the friendly name is localized
+- **Document storage sensor** (2.11.0+) — one global entity `sensor.maintenance_supporter_document_storage` (`device_class: data_size`) reporting the physical footprint of attached documents, with `dedup_savings_bytes`, `document_count`, and per-object / per-category breakdowns as attributes
 - **Part stock sensors** (2.23+) — one per spare part on the object's device (`sensor.<object>_<part>_stock`): state is the tracked on-hand count (`unavailable` for catalog-only parts), attributes carry the reorder threshold, storage location and `is_low`. Plus one global `sensor.maintenance_supporter_parts_to_reorder` counting parts at/below their threshold across all objects
 - **Next-due timestamp sensor** (2.19+) — one per task (`device_class: timestamp`), **disabled by default**; enable it for relative-time displays ("in 2 days") on tile/entities cards and plain timestamp automations. Honours the task's time-of-day when that feature is on
 - **Days-until-due countdown sensor** (2.41+) — one per task, **disabled by default**; its state is the plain number of days until the task is due (negative once overdue) for gauge/progress-bar cards, which cannot read the status sensor's `days_until_due` attribute. See the [gauge recipe](EXAMPLES.md#gauge--progress-bar-countdown)
+- **Battery-fleet count sensor** (2.38+) — one global entity `sensor.maintenance_supporter_batteries_to_replace` on the hub device, counting the batteries that are low across the whole fleet. It is the ordinary threshold source behind the single *Replace low batteries* task; the grouped shopping needs and the forecast ride along as attributes
 
 ### Sensor Attributes
 
@@ -518,7 +539,7 @@ activity timeline (logbook) — *"Oil Change (Family Car) was completed —
 
 On Home Assistant 2026.7+ the integration contributes **purpose-specific
 building blocks** to the new intent-based automation editor — no entity
-naming or event names to know, localized in all 18 languages:
+naming or event names to know, localized in all 22 languages:
 
 - **Triggers**: *A maintenance task became overdue*, *…became due soon*,
   *A sensor trigger activated*, *A maintenance task returned to OK* — each
@@ -545,7 +566,7 @@ Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
 `add_task`, `update_task`, `delete_task`, and `list_tasks` (returns a
 response — id, name, status, next due per task, filterable by object and
 status) join the long-standing `complete` / `skip` / `reset` /
-`export_data`. For the full WebSocket API (72 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+`export_data`. For the full WebSocket API (80 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

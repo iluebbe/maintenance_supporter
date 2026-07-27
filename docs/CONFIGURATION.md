@@ -20,11 +20,19 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `budget_currency` (1.4.9+ in General; 1.4.8+ added 7 currencies; NZD in 2.25/#96) | enum | `EUR` | EUR, USD, GBP, JPY, CHF, CAD, AUD, NZD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH | Display currency for **all** monetary values — `Avg cost` KPI, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs in the config flow. The corresponding symbol (e.g. `€`, `$`, `Kč`, `zł`) propagates everywhere. Storage key is still `budget_currency` for backwards-compat |
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
-| `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately |
+| `panel_enabled` | bool | `true` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately (no restart). The panel is the integration's hub — QR codes, notification links and the auto-dashboard button all point at it — so it defaults **on**; an explicit `false` is honoured |
 | `panel_title` | string | `""` (→ "Maintenance") | max 50 chars | Override for the sidebar panel title. Trimmed and capped at 50 characters on save. Leave blank to clear the override and fall back to the default title "Maintenance" |
-| `part_search_url_template` (2.23+) | string | *(Amazon by UI language)* | `{q}` placeholder | Shopping-search URL used for spare parts without a `product_url` (buy-task link + panel part rows). Any search engine works — e.g. `https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q={q}`. Query precedence: GTIN → "vendor MPN" → part name |
 | `objects_table_columns` (#67) | list[string] | *(9 defaults)* | known column keys | Ordered columns shown in the panel **Objects table** view (the cards/table toggle in *All objects*). Selectable from known object fields only: `name` (always on), `manufacturer`, `model`, `serial_number`, `installation_date`, `warranty_expiry`, `area_id`, `documentation_url`, `notes`, `task_count`, `actions`. Defaults to all of those except `documentation_url`/`notes`. Unknown keys are dropped server-side. Edited under **Settings tab → Objects table columns** |
 | `disabled_template_ids` (2.21+) | list[string] | `[]` | built-in template ids | Built-in templates hidden from the *"From template"* pickers (panel gallery + config-flow). The templates stay functional (a direct `object/from_template` still works); they're only removed from the pickers so a growing catalog doesn't clutter the UI. Toggled under **Settings tab → Template gallery** |
+
+> **`part_search_url_template` (2.23+) is not user-settable.** The key exists and is
+> *read* when building the shopping-search link for spare parts without a
+> `product_url` (buy-task link + panel part rows) — a URL with a `{q}`
+> placeholder, query precedence GTIN → "vendor MPN" → part name. But there is no
+> way to write it: it has no field in the options flow or the panel Settings
+> view, and `global/update` ignores the key. The effective value is always the
+> built-in default — Amazon for the HA UI language (`amazon.de`, `.fr`, `.it`,
+> `.es`, `.nl`, `.com.br`, `.com.tr`; `amazon.com` for every other language).
 
 ### Advanced Feature Visibility
 
@@ -78,10 +86,14 @@ Visible only when `notifications_enabled` is `true`.
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
 | `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |
 
+Scheduled (non-reactive) reminders and notification scoping:
+
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
 | `reminder_lead_days` (2.17+) | list[int] | `[]` | each 0–365, max 10 | Extra lead-time reminders: one additional reminder fires on each day where a task's days-until-due matches a listed value (e.g. `[14, 3, 0]` = 14 days before, 3 days before, and on the due date). Empty = off. Honours quiet hours, vacation mode, snooze, per-user routing, and the daily limit |
 | `notify_scope_view_id` (2.26+) | string | `""` | max 64 chars | Restrict **all** status-change notifications to tasks matching a saved view's **label and user filters** (pick the view under Settings → Notifications → *"Notify only for view"*). Display-only view dimensions (status, sorting, grouping, archived) are ignored; a *"current user"* filter can't be resolved server-side and imposes no restriction; if the referenced view was deleted, notifications fall back to all tasks. Empty = notify for everything |
-| `weekly_digest_enabled` (2.15+) | bool | `false` | — | Send a Monday-morning digest summarising the week's due / overdue / triggered tasks through the notify service. Honours quiet hours and the daily limit |
-| `warranty_reminder_enabled` (2.17+) | bool | `false` | — | Remind once when an object's `warranty_expiry` is exactly `warranty_reminder_days` away |
+| `weekly_digest_enabled` (2.15+) | bool | `false` | — | Send a Monday-morning digest summarising the week's due / overdue / triggered tasks through the notify service. Being a scheduled once-a-week send at a fixed morning hour, it **deliberately bypasses quiet hours and the daily limit** — enabling the digest *is* the consent to receive it |
+| `warranty_reminder_enabled` (2.17+) | bool | `false` | — | Remind once when an object's `warranty_expiry` is exactly `warranty_reminder_days` away. Like the digest, this scheduled send bypasses quiet hours and the daily limit |
 | `warranty_reminder_days` (2.17+) | int | 30 | 1–365 | Lead time for the warranty reminder |
 
 Also exposed: a **"Send test"** button next to the notify service field. It calls `maintenance_supporter/global/test_notification` and surfaces the backend message as a toast — useful for verifying the notify service without waiting for a real due event.
@@ -151,6 +163,10 @@ Each maintenance object is a separate config entry. Accessible via **Settings > 
 | `documentation_url` (1.4.0+) | string (URL) | `""` | Link to PDF manual / vendor page / setup guide for this object. Only `http://` and `https://` URLs are accepted; `javascript:`, `data:`, and protocol-relative URLs are rejected. Shown as a clickable link in the panel object-detail header AND on every task-detail page belonging to this object (1.4.1+) so the manual is always one click away from any maintenance task |
 | `ha_device_id` (2.19+) | string (device id) | `""` | Attach the object to an **existing HA device**: its task entities (sensor / binary sensor / buttons) then appear on that device's page instead of an own virtual device, and the owning integration's device metadata stays untouched. If the linked device disappears, the object falls back to its own device. Set via the panel object dialog ("Link to existing device") |
 | `parent_entry_id` (2.19+) | string (entry id) | `""` | Nest the object under **another maintenance object** (HA `via_device` hierarchy) — e.g. the *anode rod* under the *water heater*. Cycles are rejected at save time. Set via the panel object dialog ("Parent object") |
+| `paused_at` (2.20+) | string (ISO timestamp) | *(unset)* | **Seasonal pause** marker — set = the object is paused. A paused object stays fully visible, but all of its tasks freeze at status `paused`: no due computation, no trigger evaluation, no notifications, nothing on the calendar. Resuming re-anchors every active recurring task to a fresh cycle (the pool pump doesn't come back five months overdue). Set via the panel object actions (*Pause*), not by hand |
+| `paused_until` (2.20+) | date | *(unset)* | Optional auto-resume date for the pause — the coordinator resumes the object on its first refresh on/after that day. Unset = paused until you resume manually |
+| `predecessor_entry_id` (2.20+) | string (entry id) | *(unset)* | Set on the **successor** created by *Replace object*: points at the retired unit whose history, costs and documents stay browsable. Written by the `object/replace` flow |
+| `replaced_by_entry_id` (2.20+) | string (entry id) | *(unset)* | The mirror image, set on the **predecessor** when it is retired by *Replace object*: points at its successor entry |
 | `notes` (1.4.10+) | string (multiline, ≤2000 chars) | `""` | Free-form notes about the object — part numbers, replacement procedures, settings reminders, "spare key in garage drawer", etc. Newlines and indentation are preserved (`white-space: pre-wrap`). Shown in a dedicated, left-bordered block under the object meta in the panel object-detail header. Editable via panel object dialog or *Object settings* in the config flow |
 
 ---
@@ -173,10 +189,10 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `interval_unit` | enum | `days` | — | Unit for `interval_days`: `days`, `weeks`, `months`, `years`. Months/years use real calendar arithmetic (last-day clamping, leap years). Only values other than `days` change pre-2.6.0 behaviour |
 | `due_date` | date | *(none)* | — | Due date for a `one_time` task. The task stays active until completed, then becomes **done** (`is_done` — hidden from the card, shown as *Completed* in the panel; distinct from the **archived** retire-state, see *Archive & Retention*). Required for `one_time`; ignored for other modes |
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
-| `schedule` | object | *(derived)* | — | Nested recurrence object — the canonical storage form since v2.7. Calendar kinds (only expressible here): `{"kind": "weekdays", "weekdays": [0,3]}` (0=Mon … 6=Sun), `{"kind": "nth_weekday", "nth": 1, "weekday": 5, "months": [1,4,7,10]}` (nth 1–5 or -1=last; e.g. "1st Saturday"; `months` optional), `{"kind": "day_of_month", "day": 15}` (1–31, clamped to month length; `day: -1` = **last day of the month**, add `"business": true` to roll back to the previous business day — plain Mon–Fri, or the **Workday integration's** calendar (public holidays, custom working weekdays) when one is configured — 2.18+, #83). Every calendar kind also accepts `"offset": ±N` (clamped ±15) to shift the computed date, e.g. `{"kind": "day_of_month", "day": -1, "business": true, "offset": -2}` = *two days before the last business day*. The flat `schedule_type`/`interval_days`/`interval_unit`/`due_date` above are still accepted on create/import for the `time_based`/`one_time` kinds and are always echoed in API responses; the nested `schedule` is echoed alongside them. **Recurrence extras** (2.22+, any recurring kind): `"season_months": [4,5,…,10]` restricts the schedule to those months — an off-season due date rolls forward to the 1st of the next active month; `"ends": {"count": N}` and/or `"ends": {"until": "YYYY-MM-DD"}` make the series finite — after N completions (or once the next occurrence would fall past the date) the task stops re-arming and reads *done* (`count` wins when both are set). Both round-trip through export/import. |
+| `schedule` | object | *(derived)* | — | Nested recurrence object — the canonical storage form since v2.7. Calendar kinds (only expressible here): `{"kind": "weekdays", "weekdays": [0,3]}` (0=Mon … 6=Sun), `{"kind": "nth_weekday", "nth": 1, "weekday": 5, "months": [1,4,7,10]}` (nth 1–5 or -1=last; e.g. "1st Saturday"; `months` optional), `{"kind": "day_of_month", "day": 15}` (1–31, clamped to month length; `day: -1` = **last day of the month**, add `"business": true` to roll back to the previous business day — plain Mon–Fri, or the **Workday integration's** calendar (public holidays, custom working weekdays) when one is configured — 2.18+, #83). Every calendar kind also accepts `"offset": ±N` (clamped ±15) to shift the computed date, e.g. `{"kind": "day_of_month", "day": -1, "business": true, "offset": -2}` = *two days before the last business day*. The flat `schedule_type`/`interval_days`/`interval_unit`/`due_date` above are still accepted on create/import for the `time_based`/`one_time` kinds and are always echoed in API responses; the nested `schedule` is echoed alongside them. **Recurrence extras** (2.22+, any recurring kind): `"season_months": [4,5,…,10]` restricts the schedule to those months — an off-season due date rolls forward into the next active month: **interval** kinds land on the 1st of that month ("due once the season starts"), while **calendar** kinds keep their pattern inside the window (a *2nd Saturday* task comes due on the 2nd Saturday of the active month, not on the 1st; if the pattern misses that month, the search continues into the next one); `"ends": {"count": N}` and/or `"ends": {"until": "YYYY-MM-DD"}` make the series finite — after N completions (or once the next occurrence would fall past the date) the task stops re-arming and reads *done* (`count` wins when both are set). Both round-trip through export/import. |
 | `due_override` (2.22+) | date | *(none)* | — | **Postpone a single occurrence** — a one-shot due-date override for the current cycle, set via the panel's *Postpone…* action or the `maintenance_supporter/task/postpone` WS command (`entry_id`, `task_id`, `until`). The next completion consumes it and the normal cadence resumes. Dynamic state (lives in the Store, not the config entry); exposed on the task's WS payload. Distinct from snooze (notifications only) and reset (re-anchors the recurrence). |
 | `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on `time_based` tasks only. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |
-| `warning_days` | int | 7 | 0–365 | Days before due date when status changes to `due_soon`. Per-task minimum is `0` (`0` = warn only on the due date itself); the global `default_warning_days` has a minimum of `1` |
+| `warning_days` | int | 7 | 0–365 | Days before due date when status changes to `due_soon`. Per-task minimum is `0` (`0` = warn only on the due date itself); the global `default_warning_days` has a minimum of `1`. **Capped by the schedule's own span**: the effective warning window is `min(warning_days, interval span in days)`, so 14 warning days on a 7-day task behave as 7 (a task can never be "due soon" for longer than one whole cycle) |
 | `last_performed` | date | *(none)* | — | Date the task was last completed. When unset, `next_due` is anchored on `created_at` (set to today on creation), so the task transitions to OVERDUE after `interval_days` instead of being due "today" forever. |
 | `created_at` | date | *(today on create)* | — | Anchor date for `next_due` when `last_performed` is unset. Set automatically; serialized in ConfigEntry. Migrated from earliest history timestamp for pre-v1.0.34 entries. |
 | `notes` | string | `""` | — | General notes about the task |
@@ -191,6 +207,8 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `custom_icon` | string (mdi) | `""` | — | Custom `mdi:` icon for the task's entities, overriding the type-based default. Max 100 chars. Picked via the icon selector in the task dialog |
 | `nfc_tag_id` | string | `""` | — | NFC tag identifier linked to the task (scanning the tag opens / completes it). Max 256 chars; checked for uniqueness — re-using a tag already linked to another task is rejected on save |
 | `entity_slug` | string | `""` | — | Override for the slug used in this task's `entity_id`s. Must match `[a-z0-9_]+` (lowercase letters, digits, underscores), max 64 chars. When unset, the slug is derived from the object and task names |
+
+> **Rotations always have someone on duty (2.42.1+).** Saving a task with a pool of ≥2 members *and* a `rotation_strategy` immediately seeds `responsible_user_id` with the first pool member — the rotation no longer waits for the first completion to name an assignee. Without the seed a fresh rotation task was invisible to every user filter (panel, Lovelace card, calendar card, saved views, per-user notifications) until someone completed it once. The same re-seed happens when the current assignee is edited out of the pool, and existing tasks were repaired by a one-off storage migration.
 
 ### Checklist
 
@@ -215,6 +233,7 @@ is dynamic state (Store). Parts round-trip through JSON export/import
 | `mpn` | string | `""` | ≤64 | Manufacturer part number — spares often have no retail barcode, so this is usually the sharpest identifier |
 | `gtin` | string | *(none)* | 8/12/13/14 digits | Barcode number, validated against the GS1 **GTIN** family check digit — covers **EAN-13** (worldwide), **UPC-A** (North America), EAN-8 and GTIN-14 |
 | `storage_location` | string | `""` | ≤120 | Where the part physically lives ("basement shelf B, box 3") — shown before the job (task detail / work sheet) and on the buy task |
+| `notes` | string | `""` | ≤500 | Free-form notes about the part (compatible models, "order two, one always fails") |
 | `product_url` | string | `""` | http(s), ≤500 | Direct link to buy the part — wins over the shopping search |
 | `unit` | string | `""` | ≤16 | Display unit for the stock ("pcs", "kg", "L") |
 | `cost` | number | *(none)* | 0–100000 | Unit price; completing a buy task prefills cost = quantity × price |
@@ -225,13 +244,16 @@ is dynamic state (Store). Parts round-trip through JSON export/import
 | `doc_id` | string | *(none)* | — | Receipt/datasheet attached via the documents engine |
 
 **Task link:** `task.consumes_parts = [{"part_id", "quantity"}]` (≤10 parts per
-task, quantity 1–999; edited via the task dialog's *Consumes parts*
+task, quantity >0 up to 999; edited via the task dialog's *Consumes parts*
 checkboxes) — completing the task decrements each linked part's tracked stock.
+**Decimal quantities are allowed** (#98) — `0.5` litres of oil, `1.5` metres of
+hose; values are rounded to 2 decimals and whole numbers collapse back to
+integers, while zero or negative input falls back to `1`.
 
-**Shopping search:** parts without a `product_url` link to a search — the
-global setting `part_search_url_template` (a URL with a `{q}` placeholder;
-default: Amazon for the HA UI language) with query precedence **GTIN →
-"vendor MPN" → name**.
+**Shopping search:** parts without a `product_url` link to a search — built
+from the internal `part_search_url_template` (a URL with a `{q}` placeholder;
+Amazon for the HA UI language, and **not user-settable** — see the note under
+*General Settings*) with query precedence **GTIN → "vendor MPN" → name**.
 
 **Entities:** one stock sensor per part on the object device
 (`sensor.<object>_<part>_stock`, attributes: threshold, storage location,
@@ -272,9 +294,20 @@ Available when `advanced_completion_actions_visible` is enabled globally. Config
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `on_complete_action.service` | string | HA service in `domain.name` form (regex `[a-z][a-z0-9_]*\.[a-z0-9_]+`, max 100 chars). Examples: `light.turn_on`, `notify.mobile_app_phone`, `counter.increment` |
+| `on_complete_action.service` | string | HA service in `domain.name` form (regex `[a-z][a-z0-9_]*\.[a-z0-9_]+`, max 100 chars). Examples: `light.turn_on`, `notify.mobile_app_phone`, `counter.increment`. Privileged domains are refused — see below |
 | `on_complete_action.target` | dict | Optional HA target. Supported keys: `entity_id`, `device_id`, `area_id`, `label_id`, `floor_id`. Each value is a string or list of strings (max 200 chars per entry, max 50 entries per list) |
 | `on_complete_action.data` | dict | Optional service data. Capped at 1 KB JSON-serialised. Anything not JSON-serialisable is dropped |
+
+**Forbidden service domains** — a completion action may nudge devices and send
+messages, but it may not run code or control the host. Services in these
+domains are rejected: **`shell_command`, `python_script`, `hassio`,
+`homeassistant`, `recorder`, `backup`**. This closes an operator→admin
+escalation (a delegated operator otherwise setting an action that runs with
+system rights). Domain-specific equivalents stay available — use
+`light.turn_on` instead of the generic `homeassistant.turn_on`. Note that the
+rejection is **silent**: the whole `on_complete_action` is dropped on save
+rather than reported as an error, so re-open the task and check the section if
+your action didn't stick.
 
 **Test button** — fires the configured action immediately so you can verify the wiring. Doesn't persist anything; result indicator (✓ / ✗) auto-clears after 3 s.
 
@@ -287,7 +320,7 @@ Available when `advanced_completion_actions_visible` is enabled globally. Config
 | `quick_complete_defaults.notes` | string | ≤ 2000 chars | Notes to record |
 | `quick_complete_defaults.cost` | float | 0–1,000,000 | Cost to record |
 | `quick_complete_defaults.duration` | int (minutes) | 0–525,600 | Duration to record |
-| `quick_complete_defaults.feedback` | enum | `needed` / `not_needed` | Adaptive scheduling feedback |
+| `quick_complete_defaults.feedback` | enum | `needed` / `not_needed` / `not_sure` | Adaptive scheduling feedback (the full feedback enum) |
 
 If a task has **no** `quick_complete_defaults`, scanning a `quick_complete` QR routes back to the regular complete dialog (`no_defaults` error → frontend fallback) — the QR is never a dead-end.
 
@@ -372,10 +405,17 @@ Triggers are configured per task when `schedule_type` is `sensor_based` or when 
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `trigger_entity` / `entity_ids` | string / list | *(required)* | One or more entity IDs to monitor |
-| `trigger_attribute` | string | `""` | Monitor a specific attribute instead of the entity state |
-| `trigger_type` | enum | *(required)* | Trigger type: `threshold`, `counter`, `state_change`, `runtime`, `compound` |
+| `entity_id` / `entity_ids` | string / list | *(required)* | The entity to monitor (`entity_id`), or several at once (`entity_ids`) |
+| `attribute` | string | `""` | Monitor a specific attribute instead of the entity state |
+| `type` | enum | *(required)* | Trigger type: `threshold`, `counter`, `state_change`, `runtime`, `compound` |
 | `entity_logic` | enum | `any` | Multi-entity aggregation: `any` (one entity suffices) or `all` (all must match) |
+| `auto_complete_on_recovery` (#53) | bool | `false` | Opt-in per trigger: when the sensor recovers on its own — salt refilled, filter swapped, water level back up — the recovery **is** the maintenance, so a real completion is recorded (`last_performed` and the time-between-services statistics stay honest) instead of the trigger just clearing. Ticked in the task dialog's trigger section. Only the automatic evaluation path records it; a manual Complete / Skip resets the trigger without double-recording |
+
+> **Form ids vs stored keys:** the options-flow trigger form labels its first two
+> fields `trigger_entity` and `trigger_attribute`, but those ids never reach
+> storage — they are translated into `entity_id` / `entity_ids` and `attribute`
+> before the trigger config is saved. Use the stored names above when writing a
+> trigger through the WebSocket API, an import file, or YAML-style tooling.
 
 A multi-entity threshold in the task dialog — one rule watching several sensors:
 
@@ -429,7 +469,7 @@ Combines multiple trigger conditions with AND/OR logic.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `compound_logic` | enum | `and` | How to combine conditions: `and` (all must be active) or `or` (any suffices) |
+| `compound_logic` | enum | `AND` | How to combine conditions: `AND` (all must be active) or `OR` (any suffices). The value is upper-cased when the trigger is built, so a stored `and` works too — but the sensor attribute always reports `"AND"` / `"OR"` |
 | `conditions` | list | *(required)* | List of trigger conditions, each with its own type, entity, and parameters |
 
 Each condition in the list is a complete trigger configuration (entity, type, type-specific parameters). Nested compound triggers are not supported.
@@ -440,11 +480,12 @@ Each condition in the list is a complete trigger configuration (entity, type, ty
 
 ## Calendar Tab (panel — 1.5.0+)
 
-A third tab in the Maintenance panel — between *Dashboard* and *Settings* — shows upcoming maintenance as a chronological list rather than a grid. Designed for *"what's coming up?"* glances; the Dashboard tab is status-grouped and answers a different question. Independent of the HA Calendar entity (`calendar.maintenance_supporter`) — that one is still exposed for HA-native consumers, the panel tab adds status pills + cost + sensor-prediction confidence.
+One of the four tabs in the Maintenance panel (*Today · Dashboard · Calendar · Settings*) — between *Dashboard* and *Settings* — it shows upcoming maintenance as a chronological list rather than a grid. Designed for *"what's coming up?"* glances; the Dashboard tab is status-grouped and answers a different question. Independent of the HA Calendar entity (`calendar.maintenance_schedule`) — that one is still exposed for HA-native consumers, the panel tab adds status pills + cost + sensor-prediction confidence.
 
 | Control | Values | Description |
 |---|---|---|
-| **Window chips** | `7 days` / `14 days` / `30 days` / `1 year` *(1.5.2+)* | How far forward to look. Default `30 days`. The 1-year view collapses empty days so 365 rows don't drown the few real events. |
+| **Window chips** | `7 days` / `14 days` / `30 days` / `1 year` *(1.5.2+)* | How far forward to look. Default `30 days`. The 1-year view collapses empty days so 365 rows don't drown the few real events. Config key on the calendar card: `window_days: 7 \| 14 \| 30 \| 365`. |
+| **Past-window chips** | `30 days` / `90 days` back | Switch the list from "what's coming" to "what happened": the rows come from the completion/skip history instead of `next_due`, labelled by event type, and clicking one opens the history entry for editing. Mutually exclusive with the forward window. Config key: `past_days: 30 \| 90` (set it and the card starts in past mode; empty days are always collapsed here). |
 | **User filter** | `All Users` / `My Tasks` | Same dropdown as the Dashboard's *User* filter; resolves *current_user* against `hass.user.id`. |
 | **Source icon** *(1.5.1+)* | `mdi:clock-outline` (time-based), `mdi:clock-time-four-outline` (time-based with adaptive interval), `mdi:trending-up` (sensor-based, HA primary color) | Tells you at a glance whether the date is a hard schedule or a sensor regression estimate. |
 | **Prediction confidence pill** *(1.5.1+)* | `predicted · high confidence` (green border), `medium` (amber), `low` (red) | Sourced from `threshold_prediction_confidence`; only renders for sensor-based events that aren't already `triggered`. |
@@ -473,12 +514,14 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |
 | `filter_objects` | string[] | `[]` | Show only tasks whose parent object name is in the list |
+| `filter_due_min_days` | int | unset | Lower bound on `days_until_due` (inclusive). E.g. `1` hides everything due today or overdue |
+| `filter_due_max_days` | int | unset | Upper bound on `days_until_due` (inclusive). E.g. `0` = today and overdue only, `-1` = overdue only. Combined with `filter_due_min_days` this expresses a window (`min: 1, max: 7` = "this week"); it is what the auto-dashboard's due-date buckets use. Tasks without a computed `days_until_due` (e.g. a sensor-triggered task with no next due date) are excluded as soon as either bound is set |
 | `entity_ids` | string[] | `[]` | **(1.0.45+)** HA-native filter — show only tasks whose `sensor_entity_id` or `binary_sensor_entity_id` matches. Combines additively with the other filters. |
 | `view_id` | string | unset | **(2.26+)** Scope the card to a **saved view**: the view's status/user/label filters apply **on top of** the card's own filters (AND). The view's `current_user` filter resolves against the logged-in user; its sorting/grouping are panel display settings and are not applied on the card. A deleted view id degrades to "no view filter" rather than an empty card |
 
 **Adding the card from the picker (1.0.45+)** auto-populates `filter_status: ["overdue", "triggered", "due_soon"]` and `max_items: 10` so the new card immediately shows the actionable subset rather than every task.
 
-**Visual editor** lets you set all of the above without touching YAML — status chip-row, object multi-checkbox-list, HA-native entity-multi-picker, and (2.26+) a saved-view dropdown (shown once any views exist; views are created in the panel toolbar).
+**Visual editor** covers the everyday keys without touching YAML — title, header/actions/compact toggles, max items, status chip-row, object multi-checkbox-list, HA-native entity-multi-picker, and (2.26+) a saved-view dropdown (shown once any views exist; views are created in the panel toolbar). The two due-window keys (`filter_due_min_days` / `filter_due_max_days`) have **no editor controls** — set them in YAML; they survive a round-trip through the visual editor.
 
 ## Constants & Internal Defaults
 
@@ -495,6 +538,6 @@ These values are not user-configurable but affect behavior:
 | Weibull reliability target | 90% | Reliability level used for Weibull interval recommendations |
 | Seasonal factor range | 0.3x – 3.0x | Floor and ceiling for seasonal interval multipliers |
 | Environmental factor range | 0.5x – 2.0x | Floor and ceiling for environmental adjustment factors |
-| Environmental correlation minimum | |r| >= 0.3 | Pearson correlation threshold before applying environmental adjustment |
+| Environmental correlation minimum | \|r\| >= 0.3 | Pearson correlation threshold before applying environmental adjustment |
 | Degradation min data points | 10 | Minimum hourly recorder data points for regression analysis |
 | Budget alert rate limit | 24 hours | Minimum interval between repeated budget alerts |
