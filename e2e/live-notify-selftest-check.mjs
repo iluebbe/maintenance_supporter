@@ -112,8 +112,8 @@ check(
 log("\n[5] settings page");
 const browser = await chromium.connect(PW_WS);
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+await ctx.addInitScript(hassTokensInit, { t: token, ha: HA });
 const page = await ctx.newPage();
-await hassTokensInit(page, HA, token);
 
 let rows = null;
 await page.goto(`${HA}/maintenance-supporter`, { waitUntil: "domcontentloaded" });
