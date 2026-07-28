@@ -731,6 +731,140 @@ target what's left:
 
 ---
 
+## Voice, second pass — and voice with a screen (proposed 2026-07)
+
+Maintenance is one of the few domains where voice is not a gimmick: the moment
+you need the information is the moment your hands are dirty, gloved, or holding
+the filter. The six intents shipped in v2.26–v2.28 proved the plumbing. What
+they still do not know is **who is asking** and **which room they are standing
+in** — the two facts that turn a generic answer into the right one.
+
+Home Assistant already hands both to every intent handler
+(`Intent.context.user_id`, `Intent.device_id`, `Intent.satellite_id`,
+`Intent.assistant`, verified against core 2026.7). `intent.py` reads none of
+them today — only `language`. That is the whole opportunity in one sentence.
+
+### A. Close the gaps in what already ships
+
+1. **The sentence files never reach a HACS install.** 🔴
+   `assist/custom_sentences/` lives outside `custom_components/`, and
+   `hacs.json` ships `zip_release` with `maintenance_supporter.zip` — so the
+   archive contains the integration only. FEATURES calls them *"the shipped
+   sentence files"* and links a repo-relative path; a HACS user has neither
+   the file nor that path, and the classic Assist agent therefore matches
+   none of our sentences. Two steps, and the second is the actual fix:
+   - immediately: say plainly that the file has to be fetched from GitHub and
+     link the raw URL instead of a relative one;
+   - properly: **write the sentences ourselves** on setup into
+     `config/custom_sentences/<lang>/maintenance_supporter.yaml`, behind an
+     opt-in setting, then call `conversation.reload`. Verified: the default
+     agent loads custom sentences *only* from that directory
+     (`default_agent.py:1073`) — there is no integration-provided path — but
+     nothing stops us from writing the file the user would otherwise copy.
+     Needs a content hash so a file the user edited is never overwritten, and
+     removal on uninstall.
+2. **Nothing checks the sentence YAML against the intents.** A seventh intent
+   can ship with no sentences and no test fails. A tripwire comparing the
+   `INTENT_*` constants in `intent.py` against the keys in both YAML files is
+   an hour of work and closes a silent-regression class.
+3. **Postpone (and skip) by voice** — the standing candidate from the 2.28
+   wave, still open because it needs a spoken date slot. The postpone
+   mechanics (`task/postpone`, `due_override`) already exist; only the slot
+   and the sentence patterns are missing.
+4. **Spoken responses cover en/de; the UI covers 22 languages.** The `_SPEECH`
+   table is 31 keys × 2 languages. LLM pipelines re-phrase anyway, so this
+   only hurts classic-agent users — but for them it is total. Extending the
+   table is mechanical and can reuse the `add_locale_key.py` discipline; the
+   sentence *patterns* are the expensive half and should follow demand rather
+   than ambition.
+
+### B. Teach the intents who and where (the high-value half)
+
+5. **"What do I need to do?"** — resolve `Intent.context.user_id` to the
+   speaker and answer with *their* tasks: assignee, current rotation duty,
+   nothing else. It is the most-asked household question and every piece
+   already exists (assignee pool, rotation, the per-person notification
+   routing shipped in 2.44). Unknown speaker falls back to the full list.
+6. **"What needs doing in here?"** — resolve `Intent.device_id` /
+   `satellite_id` to its area and filter objects by `area_id`. A satellite in
+   the utility room reciting the whole house's list is the wrong answer when
+   we know exactly where it is standing.
+7. **Disambiguate by room instead of giving up.** `_resolve_single` currently
+   reads back up to four candidates and stops. With the asking device's area
+   known, *"complete the filter change"* in a room with exactly one match
+   should simply work — and name what it completed. This is a correctness
+   measure, not a convenience one: voice completion writes real history
+   through the coordinator, so a misheard name is a real wrong entry.
+
+### C. Make the spoken answer displayable (framework-agnostic)
+
+8. **`filter_area` on the card.** It has `filter_objects` and `filter_labels`
+   but not areas, although every object carries `area_id`. Small addition,
+   and the precondition for anything that shows *"the tasks for this room"* on
+   a wall tablet.
+9. **A binding primitive.** So that any display layer can react to a spoken
+   maintenance question, an intent should leave behind what it just answered —
+   subject, area, matched tasks, and the satellite that asked. Deliberately
+   not a View-Assist API: the same primitive serves browser_mod, a plain wall
+   dashboard, or an automation.
+
+### D. View Assist — a recipe, never a dependency
+
+[View Assist](https://dinki.github.io/View-Assist/) turns tablets and ESPHome
+satellites into voice devices *with a screen*, which is exactly the missing
+half of a maintenance answer: you want to be shown the checklist, not have it
+read to you. It ships its own HACS integration (`view_assist`), and the
+display primitive we would need already exists on their side:
+
+- `view_assist.navigate(device, path, revert_timeout)` — show a dashboard path
+  on a specific satellite, auto-reverting after N seconds (default 20).
+- `view_assist.add_status_item` / `toggle_menu` — an ambient status bar and
+  menu on every satellite.
+- `view_assist.set_timer(type: Alarm|Timer|Reminder|Command, name, time)` plus
+  `cancel_timer` / `get_timers` / `snooze_timer` / `sound_alarm`.
+- `view_assist.load_asset(asset_class: dashboard|views|blueprints, name,
+  download_from_repo)` — an asset system for distributing views and blueprints.
+- `view_assist.broadcast_event(event_name, event_data)` — a generic event bus.
+
+What follows from that:
+
+10. **Nothing needs to be built into our integration for this to work.** A
+    Lovelace view holding our card plus one `view_assist.navigate` call is
+    already a maintenance screen. The gap is on *our* side, and it is items 6
+    and 8: an intent that knows which room asked, and a card that can be
+    pointed at that room.
+11. **Ship a documented View Assist recipe** — a ready-made view (our card,
+    area-filtered) plus a blueprint that hears the maintenance sentence, gets
+    the spoken answer from our intent, and calls `view_assist.navigate` on the
+    satellite that heard it. `Intent.satellite_id` is what makes that last
+    step target the right device instead of every tablet in the house.
+12. **An ambient badge is the cheapest native-feeling touch.**
+    `view_assist.add_status_item` can carry *"2 overdue"* in the satellite's
+    status bar, driven by the `sensor.maintenance_supporter_overdue` we
+    already publish. No new backend at all.
+13. **Do not duplicate their timers.** `view_assist.set_timer` covers ad-hoc
+    spoken alarms; ours are schedule-driven and survive restarts. The
+    complement worth having runs the other way: a task step with a duration
+    (*"descale for 20 minutes"*) setting a View Assist timer on the satellite
+    in that room.
+
+Still to verify before committing to 11: whether `load_asset` can pull views
+from a third-party repository or only from theirs (which decides between a
+publishable asset and a copy-paste recipe), and how their blueprints relay an
+arbitrary intent's response verbatim.
+
+### What this deliberately does not become
+
+- **A hard dependency on any display project.** No import of `view_assist`,
+  no soft-fail branches in our code. The integration stays fully useful with a
+  phone and no satellite; everything in D is automation-level and lives in
+  docs.
+- **A promise of 22 spoken languages.** Sentence patterns are per-language
+  work with real upkeep. Ship what can be maintained, and say which languages
+  those are.
+
+---
+
 ## Exploratory (longer-term ideas)
 
 - **Voice / Assist task creation** — create a task by natural language through
