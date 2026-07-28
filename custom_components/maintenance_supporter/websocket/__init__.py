@@ -437,6 +437,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_get_budget_status,
         ws_get_settings,
         ws_get_statistics,
+        ws_notify_user_targets,
         ws_schedule_preview,
         ws_subscribe,
         ws_test_notification,
@@ -591,6 +592,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_settings)
     websocket_api.async_register_command(hass, ws_update_global_settings)
     websocket_api.async_register_command(hass, ws_test_notification)
+    websocket_api.async_register_command(hass, ws_notify_user_targets)
     websocket_api.async_register_command(hass, ws_list_users)
     websocket_api.async_register_command(hass, ws_assign_user)
     websocket_api.async_register_command(hass, ws_tasks_by_user)

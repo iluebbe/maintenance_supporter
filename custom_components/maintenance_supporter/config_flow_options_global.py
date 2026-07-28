@@ -138,6 +138,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Das Format des Benachrichtigungsdienstes ist ungültig. Verwenden Sie 'notify.dienstname'.",
         "failed": "❌ Testbenachrichtigung konnte nicht gesendet werden. Bitte prüfen Sie Ihre Konfiguration.",
         "push_message": "🔧 Testbenachrichtigung — Ihre Benachrichtigungseinrichtung funktioniert!",
+        "user_no_device": "ℹ️ Diesem Nutzer ist kein Companion-Gerät zugeordnet — seine Erinnerungen gehen an den Haushalts-Dienst.",
     },
     "nl": {
         "success": "✅ Testmelding verzonden — uw service werkt. Krijgt een specifiek apparaat niets, controleer dat apparaat in uw notify-groep (en het HA-logboek).",
@@ -145,6 +146,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Het formaat van de meldingsservice is ongeldig. Gebruik 'notify.servicenaam'.",
         "failed": "❌ Testmelding kon niet worden verzonden. Controleer uw configuratie.",
         "push_message": "🔧 Testmelding — uw meldingsinstellingen werken!",
+        "user_no_device": "ℹ️ Aan deze gebruiker is geen Companion-apparaat gekoppeld — hun herinneringen gaan naar de huishoudelijke dienst.",
     },
     "fr": {
         "success": "✅ Notification de test envoyée — votre service fonctionne. Si un appareil précis ne reçoit rien, vérifiez-le dans votre groupe notify (et les journaux HA).",
@@ -152,6 +154,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Le format du service de notification est invalide. Utilisez 'notify.nom_du_service'.",
         "failed": "❌ Impossible d'envoyer la notification de test. Veuillez vérifier votre configuration.",
         "push_message": "🔧 Notification de test — votre configuration de notifications fonctionne !",
+        "user_no_device": "ℹ️ Aucun appareil Companion n'est lié à cet utilisateur — ses rappels partent vers le service du foyer.",
     },
     "it": {
         "success": "✅ Notifica di test inviata — il servizio funziona. Se un dispositivo specifico non riceve nulla, controllalo nel tuo gruppo notify (e nei log di HA).",
@@ -159,6 +162,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Il formato del servizio di notifica non è valido. Usa 'notify.nome_servizio'.",
         "failed": "❌ Impossibile inviare la notifica di test. Verifica la tua configurazione.",
         "push_message": "🔧 Notifica di test — la configurazione delle notifiche funziona!",
+        "user_no_device": "ℹ️ Nessun dispositivo Companion è collegato a questo utente — i suoi promemoria vanno al servizio della casa.",
     },
     "es": {
         "success": "✅ Notificación de prueba enviada — tu servicio funciona. Si un dispositivo concreto no recibe nada, revísalo en tu grupo notify (y los registros de HA).",
@@ -166,6 +170,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ El formato del servicio de notificación no es válido. Use 'notify.nombre_servicio'.",
         "failed": "❌ No se pudo enviar la notificación de prueba. Verifique su configuración.",
         "push_message": "🔧 Notificación de prueba — ¡su configuración de notificaciones funciona!",
+        "user_no_device": "ℹ️ Este usuario no tiene ningún dispositivo Companion vinculado — sus recordatorios van al servicio del hogar.",
     },
     "en": {
         "success": "✅ Test notification sent — your service works. If a specific device gets nothing, check that device inside your notify group (and Home Assistant's logs).",
@@ -173,6 +178,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ The notification service format is invalid. Use 'notify.service_name'.",
         "failed": "❌ Failed to send the test notification. Please verify your service configuration.",
         "push_message": "🔧 Test notification — your notification setup is working!",
+        "user_no_device": "ℹ️ No Companion device is linked to this user — their reminders go to the household service.",
     },
     "ru": {
         "success": "✅ Тестовое уведомление отправлено — сервис работает. Если конкретное устройство ничего не получает, проверьте его в вашей notify-группе (и в журналах HA).",
@@ -180,6 +186,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Неверный формат сервиса уведомлений. Используйте 'notify.имя_сервиса'.",
         "failed": "❌ Не удалось отправить тестовое уведомление. Проверьте настройки сервиса.",
         "push_message": "🔧 Тестовое уведомление — ваша система уведомлений работает!",
+        "user_no_device": "ℹ️ К этому пользователю не привязано устройство Companion — его напоминания уходят в общий сервис.",
     },
     "uk": {
         "success": "✅ Тестове сповіщення надіслано — служба працює. Якщо певний пристрій нічого не отримує, перевірте його у вашій notify-групі (та в журналах HA).",
@@ -187,6 +194,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Невірний формат служби сповіщень. Використовуйте 'notify.service_name'.",
         "failed": "❌ Не вдалося надіслати тестове сповіщення. Перевірте конфігурацію служби.",
         "push_message": "🔧 Тестове сповіщення — ваші сповіщення працюють!",
+        "user_no_device": "ℹ️ До цього користувача не прив'язано пристрій Companion — його нагадування надходять до загальної служби.",
     },
     "pt": {
         "success": "✅ Notificação de teste enviada — o seu serviço funciona. Se um dispositivo específico não receber nada, verifique-o no seu grupo notify (e nos registos do HA).",
@@ -194,6 +202,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Formato inválido do serviço de notificação. Use 'notify.nome_do_servico'.",
         "failed": "❌ Falha ao enviar a notificação de teste. Verifique a configuração do serviço.",
         "push_message": "🔧 Notificação de teste — as suas notificações estão a funcionar!",
+        "user_no_device": "ℹ️ Este utilizador não tem nenhum dispositivo Companion associado — os lembretes seguem para o serviço da casa.",
     },
     "zh": {
         "success": "✅ 测试通知已发送 — 您的服务正常。如果某个设备未收到，请在您的 notify 群组中检查该设备（以及 HA 日志）。",
@@ -201,6 +210,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ 通知服务格式无效。请使用 'notify.服务名称' 格式。",
         "failed": "❌ 测试通知发送失败。请验证您的服务配置。",
         "push_message": "🔧 测试通知 — 您的通知设置已生效！",
+        "user_no_device": "ℹ️ 该用户未关联 Companion 设备 — 其提醒将发送到家庭通知服务。",
     },
     "pt-br": {
         "success": "✅ Notificação de teste enviada — seu serviço funciona. Se um dispositivo específico não receber nada, verifique esse dispositivo dentro do seu grupo de notificação (e os logs do Home Assistant).",
@@ -208,6 +218,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ O formato do serviço de notificação é inválido. Use 'notify.nome_do_servico'.",
         "failed": "❌ Falha ao enviar a notificação de teste. Verifique a configuração do serviço.",
         "push_message": "🔧 Notificação de teste — sua configuração de notificações está funcionando!",
+        "user_no_device": "ℹ️ Este usuário não tem nenhum dispositivo Companion vinculado — os lembretes vão para o serviço da casa.",
     },
     "hu": {
         "success": "✅ Tesztértesítés elküldve — a szolgáltatás működik. Ha egy adott eszközre nem érkezik semmi, ellenőrizze az eszközt az értesítési csoportban (és a Home Assistant naplóit).",
@@ -215,6 +226,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Az értesítési szolgáltatás formátuma érvénytelen. Használja a 'notify.szolgaltatas_nev' formát.",
         "failed": "❌ A tesztértesítés küldése nem sikerült. Ellenőrizze a szolgáltatás beállításait.",
         "push_message": "🔧 Tesztértesítés — az értesítési rendszere működik!",
+        "user_no_device": "ℹ️ Ehhez a felhasználóhoz nincs Companion eszköz rendelve — az emlékeztetői a háztartási szolgáltatásra mennek.",
     },
     "ko": {
         "success": "✅ 테스트 알림을 보냈습니다 — 서비스가 작동합니다. 특정 기기에 알림이 오지 않으면 알림 그룹 내 해당 기기와 Home Assistant 로그를 확인하세요.",
@@ -222,6 +234,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ 알림 서비스 형식이 잘못되었습니다. 'notify.service_name' 형식을 사용하세요.",
         "failed": "❌ 테스트 알림 전송에 실패했습니다. 서비스 설정을 확인하세요.",
         "push_message": "🔧 테스트 알림 — 알림 설정이 정상 작동합니다!",
+        "user_no_device": "ℹ️ 이 사용자에게 연결된 Companion 기기가 없습니다 — 알림은 가정 서비스로 전송됩니다.",
     },
     "tr": {
         "success": "✅ Test bildirimi gönderildi — servisiniz çalışıyor. Belirli bir cihaza bildirim gelmiyorsa bildirim grubunuzdaki o cihazı (ve Home Assistant günlüklerini) kontrol edin.",
@@ -229,6 +242,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "invalid_service": "❌ Bildirim servisi biçimi geçersiz. 'notify.servis_adi' kullanın.",
         "failed": "❌ Test bildirimi gönderilemedi. Servis yapılandırmanızı kontrol edin.",
         "push_message": "🔧 Test bildirimi — bildirim kurulumunuz çalışıyor!",
+        "user_no_device": "ℹ️ Bu kullanıcıya bağlı bir Companion cihazı yok — hatırlatıcıları ev servisine gider.",
     },
 }
 
@@ -240,14 +254,36 @@ def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
     return texts.get(key, texts.get("failed", key))
 
 
-async def send_test_notification(hass: HomeAssistant, options: dict[str, Any]) -> str:
-    """Send a test notification using the configured notify service.
+async def send_test_notification(
+    hass: HomeAssistant,
+    options: dict[str, Any],
+    user_id: str | None = None,
+) -> str:
+    """Send a test notification, optionally to ONE household member.
 
-    Returns a result key ("success", "no_service", "invalid_service", "failed")
-    that callers map to localized text. Action buttons are included whenever
-    the corresponding action-feature toggles are enabled, so the rendered
-    notification matches the real layout users see for actual tasks.
+    Returns a result key ("success", "no_service", "invalid_service",
+    "failed", "user_no_device") that callers map to localized text. Action
+    buttons are included whenever the corresponding action-feature toggles are
+    enabled, so the rendered notification matches the real layout users see
+    for actual tasks.
+
+    With ``user_id`` the target is resolved through the SAME lookup the real
+    per-task routing uses (``get_user_notify_services``). That is the whole
+    point of a per-user test: one that took its own path could report success
+    while real reminders still went somewhere else — which is exactly how the
+    wrong-service bug behind #75 stayed invisible.
     """
+    if user_id:
+        from .helpers.notification_manager import get_user_notify_services
+
+        user_services = await get_user_notify_services(hass, user_id)
+        if not user_services:
+            # Not a failure: this member simply has no Companion device, so
+            # their reminders fall back to the household service. Saying so is
+            # more useful than sending a test that proves nothing.
+            return "user_no_device"
+        return await _send_test_to(hass, options, user_services)
+
     notify_service = str(options.get(CONF_NOTIFY_SERVICE, ""))
     if not notify_service:
         return "no_service"
@@ -258,6 +294,15 @@ async def send_test_notification(hass: HomeAssistant, options: dict[str, Any]) -
     if error:
         return "invalid_service"
 
+    return await _send_test_to(hass, options, [normalized])
+
+
+async def _send_test_to(
+    hass: HomeAssistant,
+    options: dict[str, Any],
+    services: list[str],
+) -> str:
+    """Send the test payload to every resolved service; "success" if any went."""
     try:
         from .helpers.notification_manager import async_dispatch_notify
 
@@ -279,11 +324,13 @@ async def send_test_notification(hass: HomeAssistant, options: dict[str, Any]) -
                 test_actions.append({"action": "MS_TEST_SNOOZE", "title": "\U0001f4a4 Snooze"})
             service_data["data"] = {"actions": test_actions}
         # Dual-path: legacy notify service OR notify entity (send_message).
-        if not await async_dispatch_notify(hass, normalized, service_data, blocking=True):
-            return "failed"
-        return "success"
+        sent_any = False
+        for service in services:
+            if await async_dispatch_notify(hass, service, service_data, blocking=True):
+                sent_any = True
+        return "success" if sent_any else "failed"
     except Exception:  # noqa: BLE001 - any failure mode reports "failed" to the UI
-        _LOGGER.debug("Test notification failed for %s", notify_service, exc_info=True)
+        _LOGGER.debug("Test notification failed for %s", services, exc_info=True)
         return "failed"
 
 

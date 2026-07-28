@@ -16,6 +16,7 @@ from ..const import (
     CONF_TASKS,
     MAX_ID_LENGTH,
 )
+from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task
 from ..helpers.permissions import require_write
 from . import (
     _build_task_summary,
@@ -128,13 +129,14 @@ async def ws_unarchive_task(
     # class, bug audit 2026-07-11).
     rd = _get_runtime_data(hass, entry.entry_id)
     store = getattr(rd, "store", None) if rd else None
+    recurring = _is_recurring_schedule(td)
     legacy_anchor = False
-    if _is_recurring_schedule(td):
+    if recurring:
         today_iso = dt_util.now().date().isoformat()
         if store is not None:
-            store.set_last_performed(task_id, today_iso)
-            state = store._ensure_task(task_id)
-            state.pop("last_planned_due", None)
+            # Dynamic half only — the static half runs after the fresh re-read
+            # below, so the await stays BEFORE that read (see the note above).
+            reanchor_recurring_task(task_id, store=store, today_iso=today_iso)
             await store.async_save()
         else:
             legacy_anchor = True
@@ -148,8 +150,13 @@ async def ws_unarchive_task(
     td.pop("archived_at", None)
     td.pop("archived_reason", None)
     if legacy_anchor:
-        td["last_performed"] = dt_util.now().date().isoformat()
-        td.pop("last_planned_due", None)
+        reanchor_recurring_task(
+            task_id, store=None, today_iso=dt_util.now().date().isoformat(), task_data=td
+        )
+    elif recurring:
+        # The Store already holds the fresh anchor; scrub the static shadow too
+        # so an imported due_override can't out-rank it in merge_task_data.
+        clear_cycle_modifiers(td)
 
     new_data = dict(entry.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))

@@ -1,11 +1,20 @@
-"""Defensive sanitization for config-flow input.
+"""Defensive sanitization for the non-WebSocket write paths.
 
 The WebSocket schemas enforce length and range caps on every str/int field at
-the boundary. Config-flow forms accept arbitrary lengths because HA's selectors
-don't enforce them. To keep both paths at parity (and prevent a malicious or
-buggy programmatic config-flow caller from bloating ConfigEntry.data), every
-config-flow save handler runs the relevant cap helper below right before
-persisting.
+the boundary, so the WS handlers need no sanitiser (they reject rather than
+truncate). The other two write paths have no such guarantee and DO call the cap
+helpers below right before persisting:
+
+* **Config flow** — HA's selectors don't enforce lengths, so a malicious or
+  buggy programmatic flow caller could otherwise bloat ConfigEntry.data. Every
+  save handler caps.
+* **Services** (``add_task`` / ``update_task``) — their voluptuous schemas
+  mirror the WS caps, but ``websocket/tasks_persist.py``'s
+  ``async_create_task_simple`` / ``async_update_task_simple`` are plain Python
+  reachable in-process without going through a schema at all, so they cap too.
+
+Keeping all three at parity is the point: a value one surface rejects must not
+be writable through another.
 """
 
 from __future__ import annotations

@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **80** registered commands are covered here. Their authorization tiers are
+All **81** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -38,6 +38,7 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
   `views/{save,delete}`, `problem_sensors/adopt`,
   `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded}`.
 - `@require_admin` (admin only): `global/update`, `global/test_notification`,
+  `notify/user_targets`,
   bulk import **and export** (`export`, `csv/export`, `json/import`,
   `csv/import`), vacation writes (`vacation/update`, `vacation/end_now`).
   **The escalation boundary** — an operator can never enable
@@ -376,6 +377,18 @@ values dropped. Keys relevant to setup:
 
 Propose settings changes separately and only after the user opts in; they need
 an admin token.
+
+### `global/test_notification` / `notify/user_targets` — admin
+- `global/test_notification` `{user_id?}` → `{success, result, message}`.
+  Without `user_id` the household service is tested. With one, the send is
+  resolved exactly like a real reminder for that person, so a green result
+  actually proves their phone is reachable. `result` is `success`,
+  `no_service`, `invalid_service`, `failed`, or `user_no_device` (that member
+  has no Companion device, so nothing was sent and their reminders fall back
+  to the household service).
+- `notify/user_targets` `{}` → `{targets:[{user_id,name,services}]}` — which
+  notify services each household member resolves to, empty list meaning the
+  fallback applies. Admin-only because the service names carry device names.
 
 ### `groups` / `group/create` / `group/update` / `group/delete`
 Groups bundle tasks from **different objects** under one name ("Spring

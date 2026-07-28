@@ -33,6 +33,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
+from ..helpers.pause import reanchor_recurring_task
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields
 from . import (
@@ -691,15 +692,10 @@ async def ws_unarchive_object(
             td.pop("archived_at", None)
             td.pop("archived_reason", None)
             # Fresh cycle for recurring tasks (D2); last_performed is dynamic →
-            # Store when present, else the static dict (legacy).
+            # Store when present, else the static dict (legacy). Shared core so
+            # this path can't drift from resume/task-unarchive.
             if _is_recurring_schedule(td):
-                if store is not None:
-                    store.set_last_performed(tid, today_iso)
-                    state = store._ensure_task(tid)
-                    state.pop("last_planned_due", None)
-                else:
-                    td["last_performed"] = today_iso
-                    td.pop("last_planned_due", None)
+                reanchor_recurring_task(tid, store=store, today_iso=today_iso, task_data=td)
         new_tasks[tid] = td
 
     new_data = dict(entry.data)

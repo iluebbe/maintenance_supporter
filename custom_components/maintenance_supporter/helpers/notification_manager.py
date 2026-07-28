@@ -582,7 +582,7 @@ def _notif_t(key: str, lang: str, **kwargs: str) -> str:
     return text
 
 
-async def _get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[str]:
+async def get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[str]:
     """Find all notify services for a user via mobile_app config entries.
 
     Discovery strategy:
@@ -940,7 +940,7 @@ class NotificationManager:
         # Determine target services: user-specific or global
         target_services = []
         if responsible_user_id:
-            user_services = await _get_user_notify_services(self.hass, responsible_user_id)
+            user_services = await get_user_notify_services(self.hass, responsible_user_id)
             if user_services:
                 target_services = user_services
                 _LOGGER.debug(
@@ -1271,7 +1271,7 @@ class NotificationManager:
 
         target_services: list[str] = []
         if responsible_user_id:
-            user_services = await _get_user_notify_services(self.hass, responsible_user_id)
+            user_services = await get_user_notify_services(self.hass, responsible_user_id)
             if user_services:
                 target_services = user_services
         if not target_services and self.notify_service:

@@ -159,6 +159,11 @@ async def ws_complete_task(
             reading_value=msg.get("reading_value"),
             restock_quantity=msg.get("restock_quantity"),
             used_parts=used_parts,
+            # Who did it: taken from the authenticated connection, never from
+            # the payload — a client must not be able to credit someone else.
+            # This is also what feeds the `least_completed` rotation strategy
+            # and what satisfies a task requiring the "user" detail.
+            completed_by=connection.user.id if connection.user else None,
         )
     except ServiceValidationError as err:
         # Required completion details are missing. The dialog normally
@@ -227,6 +232,7 @@ async def ws_quick_complete_task(
             cost=defaults.get("cost"),
             duration=defaults.get("duration"),
             feedback=defaults.get("feedback"),
+            completed_by=connection.user.id if connection.user else None,
         )
     except ServiceValidationError as err:
         # The task demands details the quick-complete defaults do not cover —

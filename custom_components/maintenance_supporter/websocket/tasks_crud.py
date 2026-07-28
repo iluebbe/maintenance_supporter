@@ -542,9 +542,18 @@ async def ws_update_task(
         # schedule; drop the stray flat schedule_type so normalize stays clean.
         task.pop("schedule_type", None)
 
-    # Validate/cap newly-applied v1.3.0 fields. cap_task_fields runs the
-    # full task sanitize (caches, lengths, action shape) so update-path
-    # behaves identically to create-path.
+    # Validate/cap the newly-applied fields. NOTE: this deliberately does NOT
+    # call cap_task_fields() — the `task/update` schema above already
+    # length/range-caps every scalar field the sanitiser covers (name,
+    # task_type, schedule_type, interval_days, warning_days, notes,
+    # documentation_url, priority, checklist, labels, …), which is the
+    # WS-boundary contract documented in helpers/sanitize. What the schema
+    # *can't* express is the shape of the loose dicts and the dedup/trim/seed
+    # rules on the list fields — exactly the sub-helpers called below. Adding
+    # cap_task_fields here would be a no-op on everything else and would swap
+    # the WS layer's reject-at-boundary semantics for silent clamping.
+    # (The service path in tasks_persist.py DOES call cap_task_fields: those
+    # functions are reachable directly from Python, not only behind a schema.)
     from ..helpers.sanitize import (
         cap_action_field,
         cap_quick_complete_defaults_field,

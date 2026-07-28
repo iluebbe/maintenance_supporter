@@ -22,6 +22,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from custom_components.maintenance_supporter.helpers.completion_requirements import (
+    REQUIRABLE_COMPLETION_FIELDS,
     missing_completion_fields,
     sanitize_required_completion_fields,
 )
@@ -329,3 +330,63 @@ async def test_ws_create_and_update_persist_the_requirement(
     assert not conn2.send_error.called, conn2.send_error.call_args
     stored2 = hass.config_entries.async_get_entry(obj.entry_id).data[CONF_TASKS][new_id]
     assert stored2["required_completion_fields"] == []
+
+
+# ── Every requirable field must actually be satisfiable ────────────────────
+
+
+@pytest.mark.parametrize("field", list(REQUIRABLE_COMPLETION_FIELDS))
+async def test_every_requirable_field_can_be_satisfied(
+    hass: HomeAssistant, global_entry: MockConfigEntry, field: str
+) -> None:
+    """A field the UI offers must be closable from the surface built for it.
+
+    `user` shipped broken: nothing passed `completed_by`, so ticking "who did
+    it" bricked the task on every surface while the dialog kept Save enabled.
+    Parametrising over the enum means a NEW requirable field cannot be added
+    without proving the completion dialog can satisfy it.
+    """
+    from custom_components.maintenance_supporter.websocket.tasks_actions import ws_complete_task
+
+    obj = _object_entry(hass, required=[field])
+    await setup_integration(hass, global_entry, obj)
+
+    # What the completion dialog sends when the user filled that one field.
+    payload: dict[str, Any] = {"id": 1, "type": "x", "entry_id": obj.entry_id, "task_id": TASK_ID_1}
+    payload.update(
+        {
+            "notes": {"notes": "did it"},
+            "cost": {"cost": 12.5},
+            "duration": {"duration": 30},
+            "photo": {"photo_doc_id": "doc-1"},
+            "user": {},  # server-side: taken from the authenticated connection
+        }[field]
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_complete_task, hass, conn, payload)
+    assert not conn.send_error.called, (
+        f"requiring {field!r} makes the task unclosable: {conn.send_error.call_args}"
+    )
+    assert len(_history(hass, obj)) == 1
+
+
+async def test_completion_is_attributed_to_the_calling_user(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The WS completion records WHO completed it, from the connection — not
+    from the payload (a client must not credit someone else). This is also
+    what feeds the `least_completed` rotation strategy."""
+    from custom_components.maintenance_supporter.websocket.tasks_actions import ws_complete_task
+
+    obj = _object_entry(hass, required=None)
+    await setup_integration(hass, global_entry, obj)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_complete_task, hass, conn,
+        {"id": 1, "type": "x", "entry_id": obj.entry_id, "task_id": TASK_ID_1},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    entry = _history(hass, obj)[0]
+    assert entry.get("completed_by") == conn.user.id

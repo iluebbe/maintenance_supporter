@@ -24,6 +24,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   missing instead of recording a bare tap.
   Automatic completions stay exempt — a problem sensor that clears itself has
   nobody to ask, and a required photo would strand the task overdue.
+- **Check whether each household member will actually get their reminders.**
+  Settings → Notifications now lists every member next to the notify services
+  they resolve to, each with its own *Send test*. Tasks assigned to a person
+  notify that person's Companion device rather than the household service, so
+  the existing household test could report success while a housemate received
+  nothing. A member with no Companion device is named as such — *"No own
+  device — uses the household service"* — and their button stays disabled,
+  because sending would go to the household service and land on the admin's
+  own phone, which looks exactly like success. Targets are resolved through
+  the same helper the real reminder path uses, so what the page shows is what
+  reminders will use.
 
 ## [2.43.0] - 2026-07-27
 

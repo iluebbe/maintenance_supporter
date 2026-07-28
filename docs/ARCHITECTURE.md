@@ -31,7 +31,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |    +-------------------+
 |   WebSocket API   |--->|                   +--->|  Button Entities  |
-| (80 commands)     |    +--------+----------+    | (complete / skip /|
+| (81 commands)     |    +--------+----------+    | (complete / skip /|
 | - CRUD objects    |             |          |    |  reset, per task) |
 | - statistics      |             |          |    +-------------------+
 | - subscribe       |             |          |    +-------------------+
@@ -226,7 +226,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (338 lines)  Accumulated operating hours trigger
 │       └── compound.py            (282 lines)  AND/OR compound trigger
 │
-├── websocket/                   (7,135 lines)  80 WS commands, split by domain
+├── websocket/                   (7,135 lines)  81 WS commands, split by domain
 │   ├── __init__.py                (607 lines)  Shared helpers + registration
 │   ├── objects.py                 (994 lines)  Object CRUD + archive/pause/replace + entity introspection (13)
 │   ├── tasks.py                    (74 lines)  Backward-compat re-export shim (no handlers of its own)
@@ -698,7 +698,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-80 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
+81 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
 
 | Category | Commands |
 |----------|----------|
@@ -736,7 +736,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 80 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 81 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

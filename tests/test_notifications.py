@@ -965,7 +965,7 @@ async def test_user_targeted_notification(
         mock_hass.config_entries = hass.config_entries
 
         with patch(
-            "custom_components.maintenance_supporter.helpers.notification_manager._get_user_notify_services",
+            "custom_components.maintenance_supporter.helpers.notification_manager.get_user_notify_services",
             return_value=["notify.mobile_app_user_phone"],
         ):
             await nm.async_task_status_changed(
@@ -998,7 +998,7 @@ async def test_user_fallback_to_global(
         mock_hass.config_entries = hass.config_entries
 
         with patch(
-            "custom_components.maintenance_supporter.helpers.notification_manager._get_user_notify_services",
+            "custom_components.maintenance_supporter.helpers.notification_manager.get_user_notify_services",
             return_value=[],
         ):
             await nm.async_task_status_changed(

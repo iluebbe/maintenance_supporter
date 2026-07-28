@@ -98,6 +98,8 @@ Scheduled (non-reactive) reminders and notification scoping:
 
 Also exposed: a **"Send test"** button next to the notify service field. It calls `maintenance_supporter/global/test_notification` and surfaces the backend message as a toast — useful for verifying the notify service without waiting for a real due event.
 
+**Per-person delivery** (2.44+): below that button, Settings → Notifications lists every household member together with the notify services they actually resolve to, and gives each one its own *"Send test"*. This answers the question the household test cannot — *"will Bob get his reminders?"* — because tasks assigned to a person route to that person's Companion device rather than to the household service. A member with no Companion device is shown as *"No own device — uses the household service"* and their button is disabled: nothing is sent, since a send to the household service would land on the admin's phone and falsely suggest the member is reachable. Resolution runs through the same helper the real reminder path uses, so what the list shows is what reminders will use.
+
 ### Notification Actions
 
 Mobile actionable notification buttons (requires HA Companion App).
