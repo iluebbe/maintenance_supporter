@@ -14,6 +14,23 @@ intents:
           - "was ist [an Wartung] (fällig|überfällig)"
           - "steht [eine] Wartung an"
           - "was muss gewartet werden"
+      # Bezug: die fragende Person. HA übergibt dem Handler, wer gesprochen
+      # hat — damit antwortet dies mit deren Aufgaben (inkl. Rotationsdienst).
+      - sentences:
+          - "was muss ich (machen|erledigen|tun)"
+          - "was sind meine (Aufgaben|Pflichten|Wartungen)"
+          - "(habe|hab) ich [noch] (was|etwas) zu (tun|erledigen)"
+          - "bin ich [gerade] (dran|zuständig)"
+        slots:
+          scope: "mine"
+      # Bezug: der Raum, aus dem gefragt wurde — über den Bereich des
+      # Satelliten aufgelöst, damit ein Wandtablet für seinen Raum antwortet.
+      - sentences:
+          - "was ist hier [drin] (fällig|zu tun)"
+          - "welche Wartung ist (hier|in diesem Raum) fällig"
+          - "(gibt es|steht) hier [drin] (etwas|was) an"
+        slots:
+          scope: "here"
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:

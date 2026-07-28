@@ -35,6 +35,36 @@ All notable changes to Maintenance Supporter are documented in this file.
   own phone, which looks exactly like success. Targets are resolved through
   the same helper the real reminder path uses, so what the page shows is what
   reminders will use.
+- **Ask for your own tasks, or for the room you are standing in.** *"What do I
+  need to do?"* now answers with the tasks assigned to whoever is speaking —
+  including whose turn it currently is on a rotating chore — and *"what needs
+  doing in here?"* answers for the room the voice satellite is in. When the
+  speaker or the room cannot be determined, Assist says so instead of reciting
+  the whole house's list, because a plausible-sounding wrong answer is worse
+  than none.
+  The room also settles ambiguity: two tasks called *"change filter"* used to
+  end in a read-back of both, and now the one in the room you asked from simply
+  wins. That is a correctness fix as much as a convenience — completion by
+  voice writes real history, so the wrong match is a wrong entry in the log.
+  Two candidates in the *same* room still ask.
+- **Filter a card by area** — `filter_areas` on the Lovelace card, in the
+  visual editor next to the object and label filters, so a card can show one
+  room's tasks.
+
+### 🐛 Fixed
+
+- **The voice sentence files never reached a HACS install.** They lived outside
+  `custom_components/`, and the release archive carries only the integration —
+  so the file the documentation told you to copy did not exist on your disk,
+  and the classic (non-LLM) Assist agent matched none of the six intents. It
+  failed silently: LLM-based pipelines pick the intents up as tools regardless,
+  so only people using the built-in agent were affected, and nothing errored.
+  The sentences now ship inside the integration, and **Settings → General →
+  *Install Assist sentences*** copies them into `config/custom_sentences/` and
+  reloads the conversation agent — no restart, no manual copying. Turning it
+  off removes them again. A file you edited yourself is never overwritten or
+  deleted: each installed file carries a checksum of its own content, and one
+  that no longer matches is left alone.
 
 ## [2.43.0] - 2026-07-27
 

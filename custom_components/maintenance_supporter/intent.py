@@ -56,6 +56,22 @@ _SPEECH: dict[str, dict[str, str]] = {
         "en": "Everything is OK — no maintenance needs attention.",
         "de": "Alles in Ordnung — keine Wartung fällig.",
     },
+    "none_due_mine": {
+        "en": "Nothing is assigned to you right now.",
+        "de": "Dir ist gerade nichts zugewiesen.",
+    },
+    "none_due_here": {
+        "en": "Nothing needs maintenance in this room.",
+        "de": "In diesem Raum ist keine Wartung fällig.",
+    },
+    "unknown_user": {
+        "en": "I don't know who is asking, so I can't tell which tasks are yours.",
+        "de": "Ich weiß nicht, wer fragt, und kann deine Aufgaben deshalb nicht bestimmen.",
+    },
+    "unknown_area": {
+        "en": "I don't know which room this device is in — assign it to an area first.",
+        "de": "Ich weiß nicht, in welchem Raum dieses Gerät steht — ordne es zuerst einem Bereich zu.",
+    },
     "tasks_due": {
         "en": "{count} maintenance tasks need attention: {items}.",
         "de": "{count} Wartungsaufgaben brauchen Aufmerksamkeit: {items}.",
@@ -182,7 +198,8 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
         coordinator = getattr(rd, "coordinator", None) if rd else None
         if coordinator is None or not coordinator.data:
             continue
-        object_name = ce.data.get(CONF_OBJECT, {}).get("name", ce.title)
+        obj = ce.data.get(CONF_OBJECT, {})
+        object_name = obj.get("name", ce.title)
         for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
             status = str(task.get("_status", ""))
             if status == "archived":
@@ -192,13 +209,55 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
                     "entry_id": ce.entry_id,
                     "task_id": task_id,
                     "object_name": object_name,
+                    # The object's room, so a satellite can answer for where it
+                    # is standing rather than for the whole house.
+                    "area_id": obj.get("area_id") or None,
                     "name": str(task.get("name") or ""),
+                    # Whose turn it is — for a rotation this is the current duty.
+                    "responsible_user_id": task.get("responsible_user_id") or None,
                     "status": status,
                     "days_until_due": task.get("_days_until_due"),
                     "next_due": task.get("_next_due"),
                 }
             )
     return tasks
+
+
+def _asking_area(intent_obj: intent.Intent) -> str | None:
+    """Which area the request came from, or None if we cannot tell.
+
+    Home Assistant hands the handler both the device that captured the speech
+    and (for voice satellites) the satellite entity. Either can carry the area:
+    an entity's own area override wins, otherwise its device's.
+    """
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    hass = intent_obj.hass
+
+    satellite_id = getattr(intent_obj, "satellite_id", None)
+    if satellite_id:
+        entry = er.async_get(hass).async_get(satellite_id)
+        if entry is not None:
+            if entry.area_id:
+                return entry.area_id
+            if entry.device_id:
+                device = dr.async_get(hass).async_get(entry.device_id)
+                if device is not None and device.area_id:
+                    return device.area_id
+
+    if intent_obj.device_id:
+        device = dr.async_get(hass).async_get(intent_obj.device_id)
+        if device is not None and device.area_id:
+            return device.area_id
+
+    return None
+
+
+def _asking_user(intent_obj: intent.Intent) -> str | None:
+    """The Home Assistant user who spoke, when the pipeline knows one."""
+    context = getattr(intent_obj, "context", None)
+    return getattr(context, "user_id", None) if context else None
 
 
 def _match_tasks(query: str, snapshot: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -257,6 +316,15 @@ def _resolve_single(
         )
         return None, response
     if len(matches) > 1:
+        # Before giving up, let the room decide. "Complete the filter change"
+        # spoken at the utility-room satellite means the one in the utility
+        # room — and getting this right matters more than convenience, because
+        # a voice completion writes real history through the coordinator.
+        area = _asking_area(intent_obj)
+        if area:
+            local = [t for t in matches if t.get("area_id") == area]
+            if len(local) == 1:
+                return local[0], None
         candidates = ", ".join(
             _sp("item_on", lang, task=t["name"], object=t["object_name"]) for t in matches[:4]
         )
@@ -284,24 +352,56 @@ class ListTasksIntent(intent.IntentHandler):
     intent_type = INTENT_LIST_TASKS
     description = (
         "Lists the user's home-maintenance tasks that need attention "
-        "(overdue, due soon or sensor-triggered), or filtered by a status. "
-        "Use for questions like 'what maintenance is due?'"
+        "(overdue, due soon or sensor-triggered), optionally filtered by a "
+        "status. Use for questions like 'what maintenance is due?'. Set scope "
+        "to 'mine' for the tasks assigned to the person asking (including "
+        "whose turn it is on a rotating chore), or 'here' for the tasks "
+        "belonging to the room the request came from."
     )
-    slot_schema = {vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered"])}
+    slot_schema = {
+        vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered"]),
+        vol.Optional("scope"): vol.In(["all", "mine", "here"]),
+    }
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         """Handle the intent."""
         slots = self.async_validate_slots(intent_obj.slots)
         wanted = slots.get("status", {}).get("value")
+        scope = slots.get("scope", {}).get("value") or "all"
         statuses = (wanted,) if wanted else _ACTIONABLE
         tasks = [t for t in _task_snapshot(intent_obj.hass) if t["status"] in statuses]
-        # Most urgent first: overdue (most days) → due today → due soon.
-        tasks.sort(key=lambda t: (t["days_until_due"] is None, t["days_until_due"] or 0))
 
         response = intent_obj.create_response()
         lang = intent_obj.language
+
+        # A scope we cannot resolve is answered honestly rather than silently
+        # widened: "everything in the house" is a plausible-sounding wrong
+        # answer to "what needs doing in here?".
+        if scope == "mine":
+            user_id = _asking_user(intent_obj)
+            if not user_id:
+                response.async_set_error(
+                    intent.IntentResponseErrorCode.NO_VALID_TARGETS,
+                    _sp("unknown_user", lang),
+                )
+                return response
+            tasks = [t for t in tasks if t.get("responsible_user_id") == user_id]
+        elif scope == "here":
+            area = _asking_area(intent_obj)
+            if not area:
+                response.async_set_error(
+                    intent.IntentResponseErrorCode.NO_VALID_TARGETS,
+                    _sp("unknown_area", lang),
+                )
+                return response
+            tasks = [t for t in tasks if t.get("area_id") == area]
+
+        # Most urgent first: overdue (most days) → due today → due soon.
+        tasks.sort(key=lambda t: (t["days_until_due"] is None, t["days_until_due"] or 0))
+
         if not tasks:
-            response.async_set_speech(_sp("none_due", lang))
+            empty = {"mine": "none_due_mine", "here": "none_due_here"}.get(scope, "none_due")
+            response.async_set_speech(_sp(empty, lang))
             return response
         items = ", ".join(_describe(t, lang) for t in tasks[:8])
         key = "task_due_one" if len(tasks) == 1 else "tasks_due"

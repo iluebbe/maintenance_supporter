@@ -603,11 +603,27 @@ Six Assist intents let you **query, complete and manage tasks by voice**:
 
 **LLM-based Assist pipelines** (OpenAI, Claude, Gemini, local LLMs) pick all
 intents up **automatically as tools** in any language — nothing to configure.
-The **classic sentence-matching agent** needs the shipped sentence files: copy
-[`assist/custom_sentences/en/maintenance_supporter.yaml`](../assist/custom_sentences/en/maintenance_supporter.yaml)
-(or `de/`) into `config/custom_sentences/<lang>/` and reload Home Assistant.
+
+The **classic sentence-matching agent** reads sentences from one place only:
+`config/custom_sentences/<lang>/`. Turn on **Settings → General → *Install
+Assist sentences*** and the integration copies its shipped files
+(`custom_components/maintenance_supporter/assist_sentences/{en,de}/`) there and
+reloads the conversation agent — no restart, no manual copying. Turning the
+setting off removes them again.
+
+A file you have edited yourself is **never** overwritten or deleted: every file
+the integration writes carries a checksum of its own content, and one that no
+longer matches is left alone. If you would rather do it by hand, copy the
+shipped file into `config/custom_sentences/<lang>/` yourself and leave the
+setting off.
+
 Spoken responses are localised for en/de; other languages fall back to English
 on the classic agent (LLM agents answer in your language regardless).
+
+> **Before 2.44** the sentence files lived outside `custom_components/` and the
+> HACS release archive did not contain them, so the file the documentation
+> pointed at did not exist in a HACS install and the classic agent matched none
+> of these intents. They now ship inside the integration.
 
 
 ## Data Updates

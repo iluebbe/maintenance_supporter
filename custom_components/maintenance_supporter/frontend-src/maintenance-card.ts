@@ -298,6 +298,7 @@ export class MaintenanceSupporterCard extends LitElement {
       filter_due_min_days,
       filter_due_max_days,
       filter_labels,
+      filter_areas,
       max_items,
     } = this._config;
     const entityFilter = entity_ids?.length ? new Set(entity_ids) : null;
@@ -314,6 +315,13 @@ export class MaintenanceSupporterCard extends LitElement {
 
     for (const obj of this._objects) {
       if (filter_objects?.length && !filter_objects.includes(obj.object.name)) continue;
+      // Areas (C8): object-level, so it selects whole objects like
+      // filter_objects does — "the tasks for this room". An object with no
+      // area_id can never satisfy a non-empty list.
+      if (filter_areas?.length) {
+        const areaId = obj.object.area_id;
+        if (!areaId || !filter_areas.includes(areaId)) continue;
+      }
       for (const task of obj.tasks) {
         // Completed one-time tasks ("done") are hidden from the active list.
         if (task.is_done) continue;

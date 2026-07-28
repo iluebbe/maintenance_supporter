@@ -12,6 +12,23 @@ intents:
           - "which maintenance [tasks] (are|is) (due|overdue|pending)"
           - "is [there] any maintenance due"
           - "what needs (maintenance|servicing)"
+      # Scope: the person asking. HA tells the handler who spoke, so this
+      # answers with that user's tasks (and their turn on a rotating chore).
+      - sentences:
+          - "what [maintenance] do I (need to|have to) do"
+          - "what (is|are) my (chores|tasks|maintenance [tasks])"
+          - "(is|are) [there] anything [assigned] for me [to do]"
+          - "what am I (due|responsible) for"
+        slots:
+          scope: "mine"
+      # Scope: the room the request came from, resolved from the satellite's
+      # area — so a wall tablet answers for where it is standing.
+      - sentences:
+          - "what needs (doing|maintenance|servicing) (in here|here)"
+          - "what maintenance is due (in here|here|in this room)"
+          - "is [there] anything [to do] (in here|in this room)"
+        slots:
+          scope: "here"
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:

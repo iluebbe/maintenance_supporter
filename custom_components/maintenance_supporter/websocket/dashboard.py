@@ -36,6 +36,7 @@ from ..const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
@@ -150,6 +151,10 @@ def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str
             "notify_targets": notify_targets or [],
             "panel_enabled": options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED),
             "panel_title": options.get(CONF_PANEL_TITLE, ""),
+            # Opt-in copy of the shipped Assist sentences into
+            # <config>/custom_sentences/ (the only place the classic
+            # conversation agent reads them from).
+            "install_assist_sentences": options.get(CONF_INSTALL_ASSIST_SENTENCES, False),
         },
         "notifications": {
             "due_soon_enabled": options.get(CONF_NOTIFY_DUE_SOON_ENABLED, True),

@@ -87,6 +87,12 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     this._valueChanged("filter_labels", [...current]);
   }
 
+  private _toggleArea(areaId: string, on: boolean): void {
+    const current = new Set(this._config.filter_areas || []);
+    if (on) current.add(areaId); else current.delete(areaId);
+    this._valueChanged("filter_areas", [...current]);
+  }
+
   private _onEntitiesChanged = (e: CustomEvent<{ value: string[] }>): void => {
     this._valueChanged("entity_ids", e.detail.value || []);
   };
@@ -98,6 +104,24 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     const objectNames = [...this._objects]
       .map((o) => o.object.name)
       .sort((a, b) => a.localeCompare(b));
+    // Areas (C8): offer exactly the areas that actually hold an object — an
+    // area with nothing in it could only ever empty the card. Names resolve
+    // through hass.areas; an area HA no longer knows falls back to its raw id
+    // so an existing config stays visible (and un-checkable) instead of
+    // vanishing silently.
+    const selectedAreas = new Set(this._config.filter_areas || []);
+    const areaIds = [
+      ...new Set(
+        this._objects
+          .map((o) => o.object.area_id)
+          .filter((a): a is string => !!a)
+          .concat([...selectedAreas]),
+      ),
+    ];
+    const areaName = (id: string): string => this.hass?.areas?.[id]?.name || id;
+    const areas = areaIds
+      .map((id) => ({ id, name: areaName(id) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
     const selectedLabels = new Set(this._config.filter_labels || []);
     // Labels are free-form per task, so the picker offers exactly the ones in
     // use — an empty list simply hides the section.
@@ -164,6 +188,24 @@ export class MaintenanceSupporterCardEditor extends LitElement {
               `
           }
         </div>
+        <!-- Area filter (C8): selects whole objects by the room they sit in.
+             Hidden while no object has an area — the section would be an
+             empty box otherwise. -->
+        ${areas.length ? html`
+        <div class="field">
+          <div class="field-label">${t("card_filter_areas", L)}</div>
+          <div class="object-list">
+            ${areas.map((a) => html`
+              <label class="object-row">
+                <input type="checkbox"
+                  .checked=${selectedAreas.has(a.id)}
+                  @change=${(e: Event) => this._toggleArea(a.id, (e.target as HTMLInputElement).checked)} />
+                <span>${a.name}</span>
+              </label>
+            `)}
+          </div>
+          <div class="field-help">${t("card_filter_areas_help", L)}</div>
+        </div>` : nothing}
         ${labelNames.length ? html`
         <div class="field">
           <div class="field-label">${t("labels", L)}</div>

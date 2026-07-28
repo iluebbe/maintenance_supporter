@@ -47,6 +47,7 @@ from .const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_GROUPS,
+    CONF_INSTALL_ASSIST_SENTENCES,
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
     CONF_TASKS,
@@ -86,6 +87,7 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
+from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.documents import DocumentStore
 from .helpers.notification_manager import NotificationManager
@@ -1112,6 +1114,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # Listen for options changes (panel toggle)
         entry.async_on_unload(entry.add_update_listener(_async_global_options_updated))
 
+        # Keep <config>/custom_sentences/ in step with the opt-in setting. Runs
+        # on every setup, not just on change, so an upgrade that ships new
+        # sentences reaches an install that already opted in.
+        await async_sync_assist_sentences(
+            hass, entry.options.get(CONF_INSTALL_ASSIST_SENTENCES, False)
+        )
+
         # Initial orphan check for admin_panel_user_ids (HA users deleted
         # while the integration was offline land here as repair issues).
         await _check_admin_panel_user_orphans(hass, entry)
@@ -1343,6 +1352,10 @@ async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry)
     await _check_admin_panel_user_orphans(hass, entry)
     # The notify service may have just been (re)configured — re-check it.
     _verify_notify_service(hass)
+    # Install or remove the Assist sentence files to match the setting.
+    await async_sync_assist_sentences(
+        hass, entry.options.get(CONF_INSTALL_ASSIST_SENTENCES, False)
+    )
 
 
 _ORPHAN_ISSUE_PREFIX = "orphan_admin_panel_user_"

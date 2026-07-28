@@ -249,6 +249,11 @@ CONF_SNOOZE_DURATION_HOURS = "snooze_duration_hours"
 
 # v2.15.0: opt-in weekly digest — a single Monday-morning summary notification.
 CONF_WEEKLY_DIGEST_ENABLED = "weekly_digest_enabled"
+
+# v2.44: opt-in copy of the shipped Assist sentence files into
+# <config>/custom_sentences/. The classic conversation agent reads sentences
+# from there and nowhere else, and the HACS release ZIP never carried them.
+CONF_INSTALL_ASSIST_SENTENCES = "install_assist_sentences"
 CONF_WARRANTY_REMINDER_ENABLED = "warranty_reminder_enabled"
 CONF_WARRANTY_REMINDER_DAYS = "warranty_reminder_days"
 DEFAULT_WARRANTY_REMINDER_DAYS = 30
