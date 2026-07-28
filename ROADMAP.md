@@ -811,47 +811,71 @@ them today — only `language`. That is the whole opportunity in one sentence.
 ### D. View Assist — a recipe, never a dependency
 
 [View Assist](https://dinki.github.io/View-Assist/) turns tablets and ESPHome
-satellites into voice devices *with a screen*, which is exactly the missing
-half of a maintenance answer: you want to be shown the checklist, not have it
-read to you. It ships its own HACS integration (`view_assist`), and the
-display primitive we would need already exists on their side:
+satellites into voice devices *with a screen* — exactly the missing half of a
+maintenance answer, because you want the checklist shown, not read aloud. It
+is two HACS-default repositories: the `view_assist` integration (~1.2k
+installs) and a companion Android app with its own `vaca` integration
+(~1.3k). It moved from YAML packages to a real integration in 2025.4 and
+re-architected again in 2025.11, so anything written against it should be
+pinned to a version.
 
-- `view_assist.navigate(device, path, revert_timeout)` — show a dashboard path
+The display primitive already exists on their side, and the surfaces relevant
+to us are:
+
+- `view_assist.navigate(device, path, revert_timeout)` — put a dashboard path
   on a specific satellite, auto-reverting after N seconds (default 20).
-- `view_assist.add_status_item` / `toggle_menu` — an ambient status bar and
-  menu on every satellite.
-- `view_assist.set_timer(type: Alarm|Timer|Reminder|Command, name, time)` plus
-  `cancel_timer` / `get_timers` / `snooze_timer` / `sound_alarm`.
+  Crucially, `path` is **not** restricted to their own views: at least one
+  third-party integration already uses it to show its own dashboard.
+- `view_assist.add_status_item` / `toggle_menu` — an ambient status bar, whose
+  item DSL supports `entity:…`, `view:<name>|<icon>` and `action:script.x|icon`.
+- `view_assist.set_state` — an open-schema entity service
+  (`{str: cv.match_all}`): any key/value becomes an attribute on the
+  satellite's VA sensor.
 - `view_assist.load_asset(asset_class: dashboard|views|blueprints, name,
-  download_from_repo)` — an asset system for distributing views and blueprints.
-- `view_assist.broadcast_event(event_name, event_data)` — a generic event bus.
+  download_from_repo)` — their asset installer.
+- `view_assist.broadcast_event`, plus timers (`set_timer` with class
+  Alarm|Timer|Reminder|Command, `snooze_timer`, `cancel_timer`) firing
+  `va_timer_<action>` events.
+- Jinja globals `view_assist_entity(<device_id>)` and `view_assist_entities(…)`
+  — the canonical way a blueprint turns the triggering device into the VA
+  sensor it should act on.
 
-What follows from that:
+What follows:
 
-10. **Nothing needs to be built into our integration for this to work.** A
+10. **Nothing needs to be built into our integration for the basic case.** A
     Lovelace view holding our card plus one `view_assist.navigate` call is
-    already a maintenance screen. The gap is on *our* side, and it is items 6
-    and 8: an intent that knows which room asked, and a card that can be
-    pointed at that room.
-11. **Ship a documented View Assist recipe** — a ready-made view (our card,
-    area-filtered) plus a blueprint that hears the maintenance sentence, gets
-    the spoken answer from our intent, and calls `view_assist.navigate` on the
-    satellite that heard it. `Intent.satellite_id` is what makes that last
-    step target the right device instead of every tablet in the house.
+    already a maintenance screen, and `navigate` accepts our own path. The gap
+    is on *our* side, and it is items 6 and 8: an intent that knows which room
+    asked, and a card that can be pointed at that room.
+11. **Ship a blueprint, and only later a view.** The blueprint hears the
+    maintenance sentence, gets the spoken answer from our intent, and calls
+    `view_assist.navigate` on the satellite that heard it — resolved with
+    `view_assist_entity(trigger.device_id)` on their side, or with
+    `Intent.satellite_id` on ours, which is what keeps the answer on the
+    tablet that was actually spoken to instead of every tablet in the house.
+    Blueprints install through HA's own blueprint store under our namespace;
+    they do not need View Assist at all.
 12. **An ambient badge is the cheapest native-feeling touch.**
-    `view_assist.add_status_item` can carry *"2 overdue"* in the satellite's
-    status bar, driven by the `sensor.maintenance_supporter_overdue` we
-    already publish. No new backend at all.
+    `view_assist.add_status_item` can carry *"2 overdue"* in every satellite's
+    status bar, driven by the `sensor.maintenance_supporter_overdue` we already
+    publish — and the `view:` item form makes that badge a launcher into the
+    maintenance screen rather than a dead label. No new backend at all.
 13. **Do not duplicate their timers.** `view_assist.set_timer` covers ad-hoc
     spoken alarms; ours are schedule-driven and survive restarts. The
     complement worth having runs the other way: a task step with a duration
     (*"descale for 20 minutes"*) setting a View Assist timer on the satellite
     in that room.
-
-Still to verify before committing to 11: whether `load_asset` can pull views
-from a third-party repository or only from theirs (which decides between a
-publishable asset and a copy-paste recipe), and how their blueprints relay an
-arbitrary intent's response verbatim.
+14. **If we ever ship a VA-native view, the working pattern is known.**
+    `load_asset` downloads only from *their* repository, so a third party
+    cannot publish a view for it to fetch. The proven route (already done by
+    at least one other integration) is: write the view YAML into
+    `config/view_assist/views/<name>/`, then call `load_asset` with
+    `download_from_repo: false`, guarded by `hass.services.has_service`, with
+    `after_dependencies: ["view_assist"]` in the manifest. Their community
+    gallery is *not* a viable channel: the asset manager explicitly skips the
+    community directory, so those views are manual copy-paste. This is the
+    heaviest option here and should stay last — a plain dashboard path plus
+    `navigate` gets most of the value for none of the coupling.
 
 ### What this deliberately does not become
 
@@ -862,6 +886,11 @@ arbitrary intent's response verbatim.
 - **A promise of 22 spoken languages.** Sentence patterns are per-language
   work with real upkeep. Ship what can be maintained, and say which languages
   those are.
+- **Anything pinned to an unstable surface.** View Assist has re-architected
+  twice with breaking changes (2025.4, 2025.11) and its own docs still
+  document three services that no longer exist. A blueprint and a dashboard
+  path age gracefully across that; code that reaches into their internals does
+  not.
 
 ---
 
