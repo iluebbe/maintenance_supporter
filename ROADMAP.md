@@ -472,12 +472,49 @@ What genuinely has to change, and nothing beyond it:
 - Export/import remaps part ids **per object** (`websocket/io.py:432`), and
   `object/replace` regenerates them (`websocket/objects.py:869`) — a
   cross-entry link has to survive both, as task↔part links already do.
-- Archive/delete of the owner must make dependent links read as *broken*, not
-  as zero stock. `parts_runtime.py:230` already zeroes an archived object's
-  parts to silence its buy tasks; borrowers must not silently inherit that.
+- Archive of the owner: `parts_runtime.py:230` zeroes an archived object's
+  parts to silence its buy tasks. Borrowers must not silently inherit that
+  zero — an archived pool is unavailable, which is not the same as empty.
 - The stock events (`EVENT_PART_STOCK_LOW/OUT/RESTOCKED`, `const.py:495`)
   carry one owning `object_id` — fine, but automations written against them
   should be told the pool's owner is the one that fires.
+
+**Deleting the owner is the hard question, and it has a good answer.**
+As designed above the link would dangle, and today's consume path skips a part
+it cannot resolve (`parts_runtime.py:158`: `if part is None: continue`) — so
+the task would complete and quietly decrement nothing. That is the one outcome
+this must not have.
+
+The codebase already handles exactly this shape, in exactly the right place:
+- `async_remove_entry` (`__init__.py:1511`) is the single choke point that
+  fires for **all three** delete paths — the panel's WS delete, HA's own
+  *Configure → Delete* UI and the service. Its own comments say why that
+  matters: the Configure-UI path bypasses `ws_delete_object`, so a warning
+  dialog in the panel can never be enough on its own.
+- **Documents are the precedent for a shared thing outliving its owner**: the
+  same hook removes an object's documents refcount-aware, and a blob another
+  object still uses survives.
+- **`object/replace` already transfers a pool**: it carries parts to another
+  object with fresh ids, copies their stock and remaps the task links
+  (`websocket/objects.py:866-956`).
+
+So the answer is to **transfer rather than orphan**. In `async_remove_entry`,
+before `store.async_remove()` throws the stock away: if any other entry's tasks
+link to this object's parts, move those parts and their stock to one of the
+borrowers, rewrite the borrowers' links, and raise a repair issue naming what
+moved where ("the dust-bag pool now lives on Vacuum 2 — move it if you would
+rather"). Nothing is lost, no link is ever left dangling, and the user is told
+rather than left to discover it.
+
+Pick the destination deterministically (the oldest borrowing entry) so the
+outcome does not depend on dict order; the repair issue exists precisely
+because that pick is arbitrary and the user may want a different one.
+
+Belt-and-braces regardless of the transfer: the consume path must stop
+treating an unresolvable link as "nothing to do". A link that cannot be
+resolved should record the completion and surface the problem, never pass
+silently — the same reasoning behind refusing a completion that is missing its
+required details.
 
 **Precedent worth copying.** Battery Fleet already runs one pool for many
 consumers, and notably does it *above* the part model rather than inside it: a
