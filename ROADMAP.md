@@ -421,67 +421,79 @@ sheet lists required parts; everything round-trips through export/import.
 ### 💡 One stock pool for several objects (#111)
 
 Several identical appliances share a consumable — three robot vacuums and one
-box of dust bags, two printers and one cartridge, a shelf of AA cells. Today a
-part belongs to exactly one object, so the same physical pile has to be split
-across three inventories: no number is the real number, each object judges its
-own reorder threshold, and enabling auto-buy gives you three "Buy dust bags"
-reminders for one purchase.
+box of dust bags, two printers and one cartridge. Today a part belongs to
+exactly one object, so the same physical pile is split across three
+inventories: no number is the real number, each object judges its own reorder
+threshold, and auto-buy gives three "Buy dust bags" reminders for one purchase.
 
-**What blocks it today.** A task's `consumes_parts` is `[{part_id, quantity}]`
-with no entry reference, and `sanitize_consumes_parts`
-(`helpers/parts.py:221`) drops any id that is not in the owning object's own
-part list. So consumption is object-scoped by construction, not by accident.
+Not an oversight — a documented trade-off. `docs/design/spare-parts.md:118`
+already records it: *parts are per-object by design (entry-data locality,
+export simplicity)*, with the uuid part ids left as the migration path "if that
+ever matters". This is the request that says it matters.
 
-**Two precedents already in the codebase**, which say a shared pool is not
-alien here:
-- **Documents** are content-addressed with a `refcount`
-  (`helpers/documents.py:54`) and genuinely shared across objects.
-- **Battery Fleet** already solves the same shape: one part per battery *type*
-  on a single fleet object, many devices drawing on it, and `auto_buy_task`
-  deliberately left **off** so setup never spawns competing buy-tasks — the
-  fleet task's detail is the shopping surface
-  (`helpers/battery_fleet_setup.py:149`).
+**Do NOT make stock itself multi-object.** Stock rows live in a per-entry Store
+(`storage.py:184`), and on every setup `prune_part_orphans`
+(`storage.py:213`, called from `__init__.py:1178`) **deletes any stock row
+whose part id is not in that entry's own `data["parts"]`**. A pooled stock row
+parked on a borrowing entry would be silently eaten on the next restart — and
+the Store has no version/migration mechanism at all (`STORE_VERSION` has never
+been bumped; drift is handled defensively in `_sanitize_loaded`). That single
+path rules out the obvious designs.
 
-**Three shapes, cheapest first:**
+**The cheap shape that works: keep one owner, let only the LINK cross.**
+The pool stays a normal part on one object — a "Vacuum consumables" shelf, or
+simply the first vacuum. What becomes cross-entry is the task's reference:
+`consumes_parts` grows from `[{part_id, quantity}]` to
+`[{entry_id?, part_id, quantity}]`, defaulting to the task's own object.
 
-1. **Cross-object link** — extend `consumes_parts` to `{entry_id?, part_id,
-   quantity}` so a vacuum's task can consume the bag pool owned by whichever
-   object holds it. Smallest change, matches the request's own wording
-   ("share stock from another object"), no migration of existing parts.
-   Costs: a picker that can reach other objects, and a clear answer to "who
-   owns this".
-2. **An alias part** that appears on each object's shelf but delegates stock,
-   threshold and restock to a source part. Keeps every existing surface
-   working unchanged, at the price of two places showing one number — the
-   shelf must make the delegation obvious or people will edit the wrong row.
-3. **Household-level parts** on the global entry, referenced by objects. The
-   honest model — a box of bags is not owned by vacuum #1 — but it migrates
-   every part that already exists, and every consumer listed below.
+Most of what looks hard then solves itself, because the pool still has exactly
+one owner:
+- the buy-task reconciler is entry-local (`parts_runtime.py:202`), so one owner
+  means **one** "Buy …" task by construction — no dedup needed;
+- `is_low` and the reorder threshold are evaluated once, on the owner;
+- `PartStockSensor`'s unique_id embeds the object slug (`sensor.py:624`), so one
+  owner means one sensor rather than N reading the same pool;
+- `PartsToReorderSensor` (`sensor.py:680`) and the voice `_part_snapshot`
+  (`intent.py:564`) already scan every entry — with one owner they count the
+  pool once instead of N times;
+- `prune_part_orphans` stays happy: the part really is in its owner's data.
 
-**What any of them has to get right**, and where the work actually is:
-- **Exactly one buy reminder.** `auto_buy_task` creates a "Buy {part}" task
-  marked with `part_ref` (`helpers/parts.py:50`), reconciled by diffing
-  desired-vs-existing. With N consumers that reconciliation must still yield
-  one task, and completing it must restock the one pool.
-- **One threshold, one low state.** `is_low` and the reorder counter are
-  computed per part today; they must not be evaluated N times.
-- **Consumption from every completion path** — the panel and card dialogs,
-  quick-complete with `restock_quantity`, the to-do list, NFC, voice, the
-  service, and the automatic completion of an adopted problem sensor.
-- **Per-object stock sensors.** `sensor.<object>_<part>_stock` would exist N
-  times for one pool. Decide deliberately: only the owner publishes, or all
-  publish the same value.
-- **Object lifecycle.** `object/replace` carries parts to the successor, and
-  archive/delete must not silently strand a pool other objects still draw on
-  — a dangling link has to read as broken, not as zero stock.
-- **Export/import** must round-trip the link, as task↔part links already do.
+What genuinely has to change, and nothing beyond it:
+- `sanitize_consumes_parts` (`helpers/parts.py:221`) validates ids against the
+  owning object's set — it must resolve the referenced entry instead of
+  dropping foreign ids, and refuse a link to an entry that no longer exists.
+- `async_handle_completion_parts` (`parts_runtime.py:119`) reads parts and
+  Store from the completing task's entry — it must resolve the target entry
+  per link, and keep the immediate (non-debounced) save it already relies on.
+- The task dialog's part picker (`task-dialog.ts:724`) loads only its own
+  object's parts, and the panel resolves ids against `obj.parts`
+  (`maintenance-panel.ts:3161`) — an unresolved id currently renders empty, so
+  a cross-object link needs the name to come from somewhere.
+- Export/import remaps part ids **per object** (`websocket/io.py:432`), and
+  `object/replace` regenerates them (`websocket/objects.py:869`) — a
+  cross-entry link has to survive both, as task↔part links already do.
+- Archive/delete of the owner must make dependent links read as *broken*, not
+  as zero stock. `parts_runtime.py:230` already zeroes an archived object's
+  parts to silence its buy tasks; borrowers must not silently inherit that.
+- The stock events (`EVENT_PART_STOCK_LOW/OUT/RESTOCKED`, `const.py:495`)
+  carry one owning `object_id` — fine, but automations written against them
+  should be told the pool's owner is the one that fires.
 
-**Available today, worth documenting either way**: create one object that owns
-the shared consumables (the Battery Fleet pattern), put the buy-task there, and
-leave the individual appliances' tasks unlinked. It loses the automatic
-decrement per use, which is exactly what the request is asking for.
+**Precedent worth copying.** Battery Fleet already runs one pool for many
+consumers, and notably does it *above* the part model rather than inside it: a
+dedicated owning object, deterministic part ids (`batt_aa`), a global
+`find_fleet_entry` lookup, and an external aggregator calling
+`async_change_part_stock(hass, fleet_entry, pid, delta=-qty)`
+(`helpers/battery_fleet_setup.py:209`). It also leaves `auto_buy_task` **off**
+on purpose so the pool cannot spawn competing buy tasks — the aggregate task's
+detail is the shopping surface instead.
 
-Reported as niche by its author; likely not — identical appliances sharing a
+**Available today, and worth documenting either way**: make one object own the
+shared consumables and put the buy-task there, as the battery fleet does. What
+it does not give you is the automatic decrement when each appliance's own task
+is completed — which is precisely what this request is about.
+
+Reported as niche by its author; probably not — identical appliances sharing a
 consumable is the same pattern Battery Fleet exists for.
 
 ### ✅ Documents linked to tasks
