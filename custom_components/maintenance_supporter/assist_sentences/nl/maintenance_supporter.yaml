@@ -1,0 +1,96 @@
+# Assist-zinnen voor Maintenance Supporter (Nederlands).
+#
+# Handmatig kopiëren hoeft niet: zet Instellingen -> Algemeen ->
+# "Assist-zinnen installeren" aan, dan schrijft de integratie dit bestand naar
+# config/custom_sentences/nl/maintenance_supporter.yaml en herlaadt de
+# gespreksagent. Alleen uit die map leest de klassieke (niet-LLM) agent zijn
+# zinnen. Op een LLM gebaseerde Assist-pijplijnen hebben dit niet nodig: die
+# krijgen de intents automatisch als tools.
+#
+# Je eigen kopie aanpassen mag: zodra de inhoud niet meer overeenkomt met wat
+# wij geschreven hebben, blijven updates ervan af (en de instelling weer
+# uitzetten verwijdert hem ook niet).
+language: "nl"
+intents:
+  MaintenanceSupporterListTasks:
+    data:
+      - sentences:
+          - "welk onderhoud (staat open|moet er gebeuren|is er nodig)"
+          - "wat moet er onderhouden worden"
+          - "is er [nog] onderhoud te doen"
+          - "welke (klusjes|klussen|taken) staan open"
+      # Bereik: degene die vraagt. HA geeft aan de handler door wie er sprak,
+      # dus dit antwoordt met DIENS taken (inclusief zijn beurt in de rotatie).
+      - sentences:
+          - "wat moet ik [nog] doen"
+          - "wat zijn mijn (taken|klusjes|klussen)"
+          - "ben ik aan de beurt"
+          - "heb ik [nog] (iets|wat) te doen"
+        slots:
+          scope: "mine"
+      # Bereik: de kamer waaruit gevraagd wordt, afgeleid uit het gebied van de
+      # satelliet — zo antwoordt een wandtablet voor zijn eigen kamer.
+      - sentences:
+          - "wat moet er hier gebeuren"
+          - "welk onderhoud is (hier|in deze kamer) nodig"
+          - "is hier [nog] (iets|wat) te doen"
+        slots:
+          scope: "here"
+  MaintenanceSupporterCompleteTask:
+    data:
+      - sentences:
+          - "ik heb [de|het] {task_name:name} (gedaan|afgerond)"
+          - "markeer [de|het] {task_name:name} als (gedaan|klaar|afgerond)"
+          - "[de|het] {task_name:name} is (klaar|gedaan)"
+  MaintenanceSupporterTaskInstructions:
+    data:
+      - sentences:
+          - "hoe doe ik [de|het] {task_name:name}"
+          - "(instructies|uitleg) voor [de|het] {task_name:name}"
+          - "wat heb ik nodig voor [de|het] {task_name:name}"
+  MaintenanceSupporterTaskDue:
+    data:
+      - sentences:
+          - "wanneer moet [de|het] {task_name:name} (gebeuren|gedaan worden)"
+          - "wanneer is [de|het] {task_name:name} aan de beurt"
+  MaintenanceSupporterSnoozeTask:
+    data:
+      - sentences:
+          - "zet [de|het] {task_name:name} op stil"
+          - "(pauzeer|stop) de herinneringen voor [de|het] {task_name:name}"
+  MaintenanceSupporterPartStock:
+    data:
+      - sentences:
+          - "hoeveel {part_name:name} hebben we [nog]"
+          - "hoeveel {part_name:name} (is|zijn) er nog"
+          - "wat is de voorraad [van] [de|het] {part_name:name}"
+  MaintenanceSupporterPostponeTask:
+    data:
+      - sentences:
+          - "stel [de|het] {task_name:name} {days} dag[en] uit"
+          - "schuif [de|het] {task_name:name} {days} dag[en] op"
+          - "verplaats [de|het] {task_name:name} met {days} dag[en]"
+      - sentences:
+          - "stel [de|het] {task_name:name} een week uit"
+          - "schuif [de|het] {task_name:name} een week op"
+        slots:
+          days: 7
+  MaintenanceSupporterSkipTask:
+    data:
+      - sentences:
+          - "sla [de|het] {task_name:name} [deze keer] over"
+          - "sla deze (ronde|beurt) van [de|het] {task_name:name} over"
+lists:
+  # NIET "name": dat is de ingebouwde lijst met ENTITEITSnamen van Home
+  # Assistant, die de standaardagent al oplost voordat onze handler draait —
+  # elke zin die hem gebruikte antwoordde "ik ken geen apparaat dat zo heet…"
+  # in plaats van ons te bereiken. Het alias {lijst:slot} laat de waarde
+  # alsnog in het slot "name" aankomen.
+  task_name:
+    wildcard: true
+  part_name:
+    wildcard: true
+  days:
+    range:
+      from: 1
+      to: 365

@@ -1,8 +1,15 @@
 # Assist sentences for Maintenance Supporter (English).
 #
-# The classic (non-LLM) Assist agent only loads sentences from your HA config
-# directory — copy this file to:  config/custom_sentences/en/maintenance_supporter.yaml
-# (LLM-based Assist pipelines don't need it: they pick the intents up as tools.)
+# You do not need to copy this by hand: turn on Settings -> General ->
+# "Install Assist sentences" and the integration writes it to
+# config/custom_sentences/en/maintenance_supporter.yaml and reloads the
+# conversation agent. That is the only directory the classic (non-LLM) agent
+# reads sentences from. LLM-based Assist pipelines need none of this — they
+# pick the intents up as tools automatically.
+#
+# Editing your own copy is fine and expected: once its content no longer
+# matches what we wrote, upgrades leave it alone (and so does turning the
+# setting back off).
 language: "en"
 intents:
   MaintenanceSupporterListTasks:
@@ -32,30 +39,57 @@ intents:
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:
-          - "complete [the] [maintenance] [task] {name}"
-          - "mark [the] [maintenance] [task] {name} [as] (done|completed)"
-          - "I (did|finished) [the] {name}"
+          - "complete [the] [maintenance] [task] {task_name:name}"
+          - "mark [the] [maintenance] [task] {task_name:name} [as] (done|completed)"
+          - "I (did|finished) [the] {task_name:name}"
   MaintenanceSupporterTaskInstructions:
     data:
       - sentences:
-          - "how do I (do|perform) [the] {name}"
-          - "(instructions|guidance) for [the] {name}"
-          - "what do I need for [the] {name}"
+          - "how do I (do|perform) [the] {task_name:name}"
+          - "(instructions|guidance) for [the] {task_name:name}"
+          - "what do I need for [the] {task_name:name}"
   MaintenanceSupporterTaskDue:
     data:
       - sentences:
-          - "when is [the] {name} due"
-          - "when do I (need|have) to (do|perform) [the] {name}"
+          - "when is [the] {task_name:name} due"
+          - "when do I (need|have) to (do|perform) [the] {task_name:name}"
   MaintenanceSupporterSnoozeTask:
     data:
       - sentences:
-          - "snooze [the] [maintenance] [task] {name}"
-          - "(mute|silence) [the] reminders for [the] {name}"
+          - "snooze [the] [maintenance] [task] {task_name:name}"
+          - "(mute|silence) [the] reminders for [the] {task_name:name}"
   MaintenanceSupporterPartStock:
     data:
       - sentences:
-          - "how (many|much) {name} (do we have|are left|is left)"
-          - "what is the stock of [the] {name}"
+          - "how (many|much) {part_name:name} (do we have|are left|is left)"
+          - "what is the stock of [the] {part_name:name}"
+  MaintenanceSupporterPostponeTask:
+    data:
+      - sentences:
+          - "postpone [the] {part_name:name} by {days} day[s]"
+          - "push [the] {part_name:name} back [by] {days} day[s]"
+          - "delay [the] {part_name:name} [by] {days} day[s]"
+      - sentences:
+          - "postpone [the] {part_name:name} by a week"
+          - "push [the] {part_name:name} back [by] a week"
+        slots:
+          days: 7
+  MaintenanceSupporterSkipTask:
+    data:
+      - sentences:
+          - "skip [the] {part_name:name} [this time]"
+          - "skip this (cycle|round) of [the] {part_name:name}"
 lists:
-  name:
+  # NOT called 'name': that is Home Assistant's built-in list of exposed
+  # ENTITY names, and the default agent resolves it against the registry
+  # before the handler runs — every sentence using it answered 'I am not
+  # aware of any device called ...' instead of reaching us. The
+  # {list:slot} alias keeps the value arriving in the 'name' slot.
+  task_name:
     wildcard: true
+  part_name:
+    wildcard: true
+  days:
+    range:
+      from: 1
+      to: 365

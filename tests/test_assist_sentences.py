@@ -14,6 +14,7 @@ destroys work the user did by hand.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -247,3 +248,60 @@ async def test_an_unwritable_config_directory_is_survivable(
         written, _ = await async_sync(hass, enabled)
 
     assert written == [] or not enabled
+
+
+def test_sentences_never_use_home_assistants_reserved_name_list() -> None:
+    """`{name}` is NOT a free-text placeholder.
+
+    It references Home Assistant's built-in list of exposed ENTITY names, and
+    the default agent resolves it against the registry before dispatching — so
+    every sentence using it answered *"Sorry, I am not aware of any device
+    called ..."* and our handler never ran. Five intents shipped that way from
+    v2.26 until it was caught by asking a live agent; nothing in the unit
+    suite could see it, because the tests drive `intent.async_handle` directly
+    and never go through sentence matching.
+
+    hassil's `{our_list:name}` alias is the fix: our own wildcard list supplies
+    the text, and it still arrives in the `name` slot, so the REST and LLM
+    contracts are unchanged.
+    """
+    placeholder = re.compile(r"\{(\w+)(?::(\w+))?\}")
+    offenders: list[str] = []
+    for language in available_languages():
+        parsed = yaml.safe_load(
+            (_PACKAGE_DIR / language / "maintenance_supporter.yaml").read_text(encoding="utf-8")
+        )
+        declared = set(parsed.get("lists", {}))
+        assert "name" not in declared, (
+            f"{language}: a list called 'name' cannot override Home Assistant's built-in one"
+        )
+        for intent_name, cfg in parsed["intents"].items():
+            for group in cfg["data"]:
+                for sentence in group["sentences"]:
+                    for match in placeholder.finditer(sentence):
+                        list_name = match.group(1)
+                        if list_name == "name":
+                            offenders.append(f"{language}/{intent_name}: {sentence!r}")
+                        elif list_name not in declared:
+                            offenders.append(
+                                f"{language}/{intent_name}: undeclared list "
+                                f"{{{list_name}}} in {sentence!r}"
+                            )
+    assert not offenders, (
+        "sentences referencing the reserved entity-name list (use "
+        "{task_name:name} instead): " + "; ".join(offenders)
+    )
+
+
+def test_the_responses_directory_is_not_mistaken_for_a_language() -> None:
+    """`assist_sentences/` holds one directory per language AND the
+    `responses/` directory of spoken texts. The language scan must not offer
+    to install "responses" as a language — it would look for a sentence file
+    that does not exist and, worse, could create a bogus
+    `config/custom_sentences/responses/` directory.
+
+    Guarded rather than assumed: the two live under one parent for cohesion,
+    which is exactly the arrangement that invites this mistake later.
+    """
+    assert (_PACKAGE_DIR / "responses").is_dir(), "the responses directory moved"
+    assert "responses" not in available_languages()

@@ -50,8 +50,48 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Filter a card by area** — `filter_areas` on the Lovelace card, in the
   visual editor next to the object and label filters, so a card can show one
   room's tasks.
+- **Postpone and skip by voice.** *"Postpone the oil change by a week"* defers
+  **this occurrence only** — the recurring cadence, the history and the
+  completion count stay untouched, which is what separates it from completing
+  and from snoozing. On a task that is already overdue the days count from
+  today, so *"by three days"* cannot land on a date that is still in the past.
+  Without a duration it asks for one instead of guessing, and a date in the
+  past is refused. *"Skip the lawn mowing this time"* moves to the next cycle
+  without recording work, and answers with the new due date rather than just
+  acknowledging the command.
 
 ### 🐛 Fixed
+
+- **The assistant now answers in your language, in all 22.** The spoken
+  responses existed in English and German only; every other language heard
+  English even where the intent itself worked. All 38 response texts are now
+  translated, and they moved out of the code into
+  `assist_sentences/responses/<lang>.json` so a translator never has to edit
+  Python. A missing line falls back to English on its own, so a partial
+  translation costs one sentence rather than the whole answer.
+  **Which languages the assistant UNDERSTANDS is a separate, smaller list**
+  (English, German and French so far): sentence patterns are grammar, not
+  translation — a placeholder cannot take the case ending or particle a
+  language demands of the task name inserted into it — so they ship only for
+  languages verified against a live agent, and the docs say which.
+- **"1 days overdue".** Shipped in English and German alike since the first
+  voice release, because one string cannot inflect for the number put into it.
+  Surfaced by translating into Czech, Russian and Ukrainian, where the numeral
+  governs the noun's *case* and the problem is impossible to ignore. A single
+  day now has its own wording in every language.
+
+- **Every spoken command with a task name was answered by the wrong thing.**
+  Our sentences used `{name}`, which is not a free-text placeholder: it is
+  Home Assistant's built-in list of exposed **entity** names, and the built-in
+  Assist agent resolves it against the entity registry before an integration's
+  handler ever runs. So *"complete the oil change"*, *"how do I descale the
+  coffee machine"*, *"when is the filter due"*, *"snooze the …"* and *"how many
+  … do we have"* all replied *"Sorry, I am not aware of any device called …"*
+  — on the classic agent, since v2.26. LLM-based pipelines were never
+  affected, which is why it went unnoticed. The sentences now use their own
+  wildcard list, and the value still arrives in the same slot, so nothing
+  about the API changed. A test refuses any sentence that reaches for the
+  reserved list again.
 
 - **The voice sentence files never reached a HACS install.** They lived outside
   `custom_components/`, and the release archive carries only the integration —

@@ -1,10 +1,15 @@
 # Assist-Sätze für Maintenance Supporter (Deutsch).
 #
-# Der klassische (Nicht-LLM-)Assist-Agent lädt Sätze nur aus dem HA-Config-
-# Verzeichnis — diese Datei kopieren nach:
-#   config/custom_sentences/de/maintenance_supporter.yaml
-# (LLM-basierte Assist-Pipelines brauchen sie nicht: dort sind die Intents
-# automatisch als Tools verfügbar.)
+# Handkopieren ist nicht nötig: Einstellungen -> Allgemein -> "Assist-Sätze
+# installieren" einschalten, dann schreibt die Integration diese Datei nach
+# config/custom_sentences/de/maintenance_supporter.yaml und lädt den
+# Konversations-Agenten neu. Nur aus diesem Verzeichnis liest der klassische
+# (Nicht-LLM-)Agent Sätze. LLM-basierte Assist-Pipelines brauchen davon
+# nichts — dort sind die Intents automatisch als Tools verfügbar.
+#
+# Eine eigene Bearbeitung ist ausdrücklich vorgesehen: sobald der Inhalt nicht
+# mehr dem entspricht, was wir geschrieben haben, fassen Aktualisierungen die
+# Datei nicht mehr an (und das Abschalten der Einstellung ebenso wenig).
 language: "de"
 intents:
   MaintenanceSupporterListTasks:
@@ -34,30 +39,57 @@ intents:
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:
-          - "[die] Wartung[saufgabe] {name} (erledigen|abschließen)"
-          - "markiere [die] [Wartung[saufgabe]] {name} als erledigt"
-          - "ich habe [die] {name} (erledigt|gemacht|abgeschlossen)"
+          - "[die] Wartung[saufgabe] {task_name:name} (erledigen|abschließen)"
+          - "markiere [die] [Wartung[saufgabe]] {task_name:name} als erledigt"
+          - "ich habe [die] {task_name:name} (erledigt|gemacht|abgeschlossen)"
   MaintenanceSupporterTaskInstructions:
     data:
       - sentences:
-          - "wie (mache|erledige) ich [die] {name}"
-          - "(Anleitung|Anweisungen) für [die] {name}"
-          - "was brauche ich für [die] {name}"
+          - "wie (mache|erledige) ich [die] {task_name:name}"
+          - "(Anleitung|Anweisungen) für [die] {task_name:name}"
+          - "was brauche ich für [die] {task_name:name}"
   MaintenanceSupporterTaskDue:
     data:
       - sentences:
-          - "wann ist [die] {name} fällig"
-          - "wann muss ich [die] {name} (machen|erledigen)"
+          - "wann ist [die] {task_name:name} fällig"
+          - "wann muss ich [die] {task_name:name} (machen|erledigen)"
   MaintenanceSupporterSnoozeTask:
     data:
       - sentences:
-          - "[die] {name} (snoozen|stummschalten)"
-          - "Erinnerungen für [die] {name} (stummschalten|pausieren)"
+          - "[die] {task_name:name} (snoozen|stummschalten)"
+          - "Erinnerungen für [die] {task_name:name} (stummschalten|pausieren)"
   MaintenanceSupporterPartStock:
     data:
       - sentences:
-          - "wie viele {name} haben wir [noch]"
-          - "wie ist der Bestand (von|an) {name}"
+          - "wie viele {part_name:name} haben wir [noch]"
+          - "wie ist der Bestand (von|an) {part_name:name}"
+  MaintenanceSupporterPostponeTask:
+    data:
+      - sentences:
+          - "verschiebe [die|das|den] {part_name:name} um {days} Tag[e]"
+          - "[die|das|den] {part_name:name} um {days} Tag[e] verschieben"
+          - "schiebe [die|das|den] {part_name:name} um {days} Tag[e] nach hinten"
+      - sentences:
+          - "verschiebe [die|das|den] {part_name:name} um eine Woche"
+          - "[die|das|den] {part_name:name} um eine Woche verschieben"
+        slots:
+          days: 7
+  MaintenanceSupporterSkipTask:
+    data:
+      - sentences:
+          - "überspringe [die|das|den] {part_name:name} [diesmal]"
+          - "[die|das|den] {part_name:name} [diesmal] überspringen"
 lists:
-  name:
+  # NOT called 'name': that is Home Assistant's built-in list of exposed
+  # ENTITY names, and the default agent resolves it against the registry
+  # before the handler runs — every sentence using it answered 'I am not
+  # aware of any device called ...' instead of reaching us. The
+  # {list:slot} alias keeps the value arriving in the 'name' slot.
+  task_name:
     wildcard: true
+  part_name:
+    wildcard: true
+  days:
+    range:
+      from: 1
+      to: 365

@@ -1,0 +1,85 @@
+# Phrases Assist pour Maintenance Supporter (français).
+#
+# Pas besoin de copier ce fichier à la main : activez Paramètres -> Général ->
+# « Installer les phrases Assist » et l'intégration l'écrit dans
+# config/custom_sentences/fr/maintenance_supporter.yaml puis recharge l'agent
+# conversationnel. C'est le seul dossier où l'agent classique (non-LLM) lit ses
+# phrases. Les pipelines Assist basées sur un LLM n'en ont pas besoin : elles
+# récupèrent les intentions comme outils.
+#
+# Vous pouvez modifier votre copie : dès que son contenu ne correspond plus à
+# ce que nous avons écrit, les mises à jour n'y touchent plus (et désactiver le
+# réglage ne la supprime pas non plus).
+language: "fr"
+intents:
+  MaintenanceSupporterListTasks:
+    data:
+      - sentences:
+          - "quel[le]s (entretien|entretiens|maintenances|tâches) (est|sont) (dû|due|dues|prévus|prévues)"
+          - "qu'est-ce qui est à (faire|entretenir)"
+          - "y a-t-il [de] l'entretien à faire"
+      # Portée : la personne qui parle. HA transmet au gestionnaire qui a parlé,
+      # donc ceci répond avec SES tâches (y compris son tour de rotation).
+      - sentences:
+          - "qu'est-ce que je dois faire"
+          - "quelles sont mes tâches"
+          - "c'est à moi de faire quelque chose"
+        slots:
+          scope: "mine"
+      # Portée : la pièce d'où vient la demande, résolue via la zone du
+      # satellite — une tablette murale répond ainsi pour sa propre pièce.
+      - sentences:
+          - "qu'est-ce qu'il y a à faire ici"
+          - "quel entretien est (dû|prévu) (ici|dans cette pièce)"
+        slots:
+          scope: "here"
+  MaintenanceSupporterCompleteTask:
+    data:
+      - sentences:
+          - "j'ai (fait|terminé|fini) [le|la|les|l'] {task_name:name}"
+          - "marque [le|la|les|l'] {task_name:name} comme (fait|faite|terminé|terminée)"
+  MaintenanceSupporterTaskInstructions:
+    data:
+      - sentences:
+          - "comment (faire|je fais) [le|la|les|l'] {task_name:name}"
+          - "(instructions|consignes) pour [le|la|les|l'] {task_name:name}"
+  MaintenanceSupporterTaskDue:
+    data:
+      - sentences:
+          - "quand est-ce que [le|la|les|l'] {task_name:name} est (dû|due|prévu|prévue)"
+          - "quand faut-il faire [le|la|les|l'] {task_name:name}"
+  MaintenanceSupporterSnoozeTask:
+    data:
+      - sentences:
+          - "mets [le|la|les|l'] {task_name:name} en pause"
+  MaintenanceSupporterPartStock:
+    data:
+      - sentences:
+          - "combien de {part_name:name} (reste-t-il|il reste|avons-nous)"
+  MaintenanceSupporterPostponeTask:
+    data:
+      - sentences:
+          - "reporte [le|la|les|l'] {task_name:name} de {days} jour[s]"
+          - "repousse [le|la|les|l'] {task_name:name} de {days} jour[s]"
+      - sentences:
+          - "reporte [le|la|les|l'] {task_name:name} d'une semaine"
+          - "repousse [le|la|les|l'] {task_name:name} d'une semaine"
+        slots:
+          days: 7
+  MaintenanceSupporterSkipTask:
+    data:
+      - sentences:
+          - "(saute|passe) [le|la|les|l'] {task_name:name} [cette fois]"
+lists:
+  # PAS « name » : c'est la liste intégrée des noms d'ENTITÉS de Home Assistant,
+  # que l'agent par défaut résout avant d'appeler le gestionnaire — toute phrase
+  # l'utilisant répondait « je ne connais aucun appareil… » au lieu de nous
+  # atteindre. L'alias {liste:slot} garde la valeur dans le slot « name ».
+  task_name:
+    wildcard: true
+  part_name:
+    wildcard: true
+  days:
+    range:
+      from: 1
+      to: 365
