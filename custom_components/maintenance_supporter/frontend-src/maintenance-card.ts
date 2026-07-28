@@ -21,6 +21,13 @@ import {
   openTaskQuickActions,
 } from "./dialog-mount";
 
+interface CardDoc {
+  id: string;
+  title: string;
+  kind: string;
+  url?: string | null;
+}
+
 interface FlatTask {
   entry_id: string;
   object_name: string;
@@ -39,6 +46,9 @@ export class MaintenanceSupporterCard extends LitElement {
   @state() private _userNames: Record<string, string> = {};
   private _userService: UserService | null = null;
   private _userNamesLoaded = false;
+  /** entry_id → (task_id → documents) for the row chips. */
+  @state() private _taskDocs: Record<string, Record<string, CardDoc[]>> = {};
+  private _docsLoadedFor = new Set<string>();
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -114,6 +124,15 @@ export class MaintenanceSupporterCard extends LitElement {
     ) {
       this._loadUserNames();
     }
+    // Documents: same shape of guard — fetch per object, once, and only for
+    // objects that actually have a document attached to one of their tasks.
+    if (this.hass && this._config.show_documents !== false) {
+      for (const obj of this._objects) {
+        if (this._docsLoadedFor.has(obj.entry_id)) continue;
+        if (!obj.tasks.some((tk) => (tk.document_count ?? 0) > 0)) continue;
+        this._loadDocuments(obj.entry_id);
+      }
+    }
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
@@ -175,6 +194,62 @@ export class MaintenanceSupporterCard extends LitElement {
     }
   }
 
+  /** Fetch one object's documents and index them by task.
+   *
+   *  `documents/list` is READ tier, like `users/list` — the household members
+   *  this card is for may call it. A failure leaves the row without chips
+   *  rather than breaking the card. */
+  private async _loadDocuments(entryId: string): Promise<void> {
+    this._docsLoadedFor.add(entryId);
+    try {
+      const res = (await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/documents/list",
+        entry_id: entryId,
+      })) as { documents: Array<CardDoc & { task_ids?: string[] }> };
+      const byTask: Record<string, CardDoc[]> = {};
+      for (const doc of res.documents || []) {
+        for (const taskId of doc.task_ids || []) {
+          (byTask[taskId] ||= []).push({ id: doc.id, title: doc.title, kind: doc.kind, url: doc.url });
+        }
+      }
+      this._taskDocs = { ...this._taskDocs, [entryId]: byTask };
+    } catch {
+      // no chips for this object; the card is unaffected otherwise
+    }
+  }
+
+  /** Chips to render on a row: linked documents plus the task's own manual
+   *  link, which is the same "the manual is one tap away" affordance. */
+  private _docsFor(entryId: string, task: MaintenanceTask): CardDoc[] {
+    if (this._config.show_documents === false) return [];
+    const linked = this._taskDocs[entryId]?.[task.id] || [];
+    const out = [...linked];
+    if (task.documentation_url) {
+      out.push({ id: `url:${task.id}`, title: t("documentation_label", this._lang), kind: "weblink", url: task.documentation_url });
+    }
+    return out;
+  }
+
+  /** Open a chip: a web link directly, a stored file through a signed path
+   *  (the same route the panel uses, so it works in the Companion app). */
+  private async _openDoc(doc: CardDoc): Promise<void> {
+    if (doc.kind === "weblink" && doc.url) {
+      window.open(doc.url, "_blank", "noopener");
+      return;
+    }
+    const win = window.open("about:blank", "_blank");
+    try {
+      const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
+        type: "auth/sign_path",
+        path: `/api/maintenance_supporter/document/${doc.id}`,
+        expires: 300,
+      });
+      if (win) win.location.href = new URL(signed.path, window.location.origin).href;
+    } catch {
+      if (win) win.close();
+    }
+  }
+
   /** Resolve the configured saved view's filters (best-effort). A missing or
    *  deleted view degrades to "no view filter" — same fallback semantics as
    *  the backend's notification routing, never an inexplicably empty card. */
@@ -222,6 +297,7 @@ export class MaintenanceSupporterCard extends LitElement {
       entity_ids,
       filter_due_min_days,
       filter_due_max_days,
+      filter_labels,
       max_items,
     } = this._config;
     const entityFilter = entity_ids?.length ? new Set(entity_ids) : null;
@@ -245,6 +321,8 @@ export class MaintenanceSupporterCard extends LitElement {
         // never shown on the Lovelace card.
         if (task.archived || obj.object.archived) continue;
         if (filter_status?.length && !filter_status.includes(task.status)) continue;
+        // Labels: a task passes when it carries at least one configured label.
+        if (filter_labels?.length && !(task.labels || []).some((lb) => filter_labels.includes(lb))) continue;
         // entity_ids: HA-native filter — match the task's sensor or
         // binary_sensor entity_id. Both fields come pre-resolved from the
         // backend WS response (see _build_task_summary in websocket/__init__.py).
@@ -384,6 +462,21 @@ export class MaintenanceSupporterCard extends LitElement {
                               </div>`
                             : nothing}
                       </div>
+                      ${this._docsFor(entry_id, task).length
+                        ? html`<div class="doc-chips">
+                            ${this._docsFor(entry_id, task).map((doc) => html`
+                              <button
+                                type="button"
+                                class="doc-chip"
+                                title="${doc.title}"
+                                @click=${(e: Event) => { e.stopPropagation(); void this._openDoc(doc); }}
+                              >
+                                <ha-icon icon=${doc.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline"}></ha-icon>
+                                <span>${doc.title}</span>
+                              </button>
+                            `)}
+                          </div>`
+                        : nothing}
                       <div class="task-due">
                         ${task.days_until_due !== null && task.days_until_due !== undefined
                           ? task.days_until_due < 0
@@ -535,6 +628,32 @@ export class MaintenanceSupporterCard extends LitElement {
         text-overflow: ellipsis;
       }
 
+      .doc-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-right: 6px;
+        max-width: 45%;
+      }
+      .doc-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        max-width: 14ch;
+        padding: 1px 6px;
+        border: 1px solid var(--divider-color, #e0e0e0);
+        border-radius: 10px;
+        background: none;
+        color: var(--secondary-text-color);
+        font: inherit;
+        font-size: 11px;
+        cursor: pointer;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .doc-chip:hover { color: var(--primary-color); border-color: var(--primary-color); }
+      .doc-chip ha-icon { --mdc-icon-size: 12px; width: 12px; height: 12px; }
       .task-due { font-size: 13px; color: var(--secondary-text-color); min-width: 40px; text-align: right; }
       .overdue-text { color: var(--error-color); font-weight: 500; }
 

@@ -81,6 +81,12 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     this._valueChanged("filter_objects", [...current]);
   }
 
+  private _toggleLabel(label: string, on: boolean): void {
+    const current = new Set(this._config.filter_labels || []);
+    if (on) current.add(label); else current.delete(label);
+    this._valueChanged("filter_labels", [...current]);
+  }
+
   private _onEntitiesChanged = (e: CustomEvent<{ value: string[] }>): void => {
     this._valueChanged("entity_ids", e.detail.value || []);
   };
@@ -92,6 +98,12 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     const objectNames = [...this._objects]
       .map((o) => o.object.name)
       .sort((a, b) => a.localeCompare(b));
+    const selectedLabels = new Set(this._config.filter_labels || []);
+    // Labels are free-form per task, so the picker offers exactly the ones in
+    // use — an empty list simply hides the section.
+    const labelNames = [
+      ...new Set(this._objects.flatMap((o) => o.tasks.flatMap((tk) => tk.labels || []))),
+    ].sort((a, b) => a.localeCompare(b));
     // Build the list of OUR sensor + binary_sensor entity_ids so the
     // ha-entities-picker only shows maintenance_supporter entities, not
     // every sensor in HA.
@@ -152,6 +164,20 @@ export class MaintenanceSupporterCardEditor extends LitElement {
               `
           }
         </div>
+        ${labelNames.length ? html`
+        <div class="field">
+          <div class="field-label">${t("labels", L)}</div>
+          <div class="object-list">
+            ${labelNames.map((name) => html`
+              <label class="object-row">
+                <input type="checkbox"
+                  .checked=${selectedLabels.has(name)}
+                  @change=${(e: Event) => this._toggleLabel(name, (e.target as HTMLInputElement).checked)} />
+                <span>${name}</span>
+              </label>
+            `)}
+          </div>
+        </div>` : nothing}
 
         <!-- Entity-id filter (HA-native pattern). Limited to our integration's
              sensor + binary_sensor entities via includeEntities so the picker
@@ -216,6 +242,14 @@ export class MaintenanceSupporterCardEditor extends LitElement {
             .checked=${this._config.show_assignee !== false}
             @change=${(e: Event) =>
               this._valueChanged("show_assignee", (e.target as HTMLInputElement).checked)}
+          ></ha-switch>
+        </ha-formfield>
+
+        <ha-formfield label="${t("documents", L)}">
+          <ha-switch
+            .checked=${this._config.show_documents !== false}
+            @change=${(e: Event) =>
+              this._valueChanged("show_documents", (e.target as HTMLInputElement).checked)}
           ></ha-switch>
         </ha-formfield>
 
