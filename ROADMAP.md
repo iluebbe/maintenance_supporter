@@ -418,6 +418,72 @@ store; per-part stock sensors + a global "parts to reorder" counter feed
 automations (edge-triggered low/out/restocked events); the printable work
 sheet lists required parts; everything round-trips through export/import.
 
+### 💡 One stock pool for several objects (#111)
+
+Several identical appliances share a consumable — three robot vacuums and one
+box of dust bags, two printers and one cartridge, a shelf of AA cells. Today a
+part belongs to exactly one object, so the same physical pile has to be split
+across three inventories: no number is the real number, each object judges its
+own reorder threshold, and enabling auto-buy gives you three "Buy dust bags"
+reminders for one purchase.
+
+**What blocks it today.** A task's `consumes_parts` is `[{part_id, quantity}]`
+with no entry reference, and `sanitize_consumes_parts`
+(`helpers/parts.py:221`) drops any id that is not in the owning object's own
+part list. So consumption is object-scoped by construction, not by accident.
+
+**Two precedents already in the codebase**, which say a shared pool is not
+alien here:
+- **Documents** are content-addressed with a `refcount`
+  (`helpers/documents.py:54`) and genuinely shared across objects.
+- **Battery Fleet** already solves the same shape: one part per battery *type*
+  on a single fleet object, many devices drawing on it, and `auto_buy_task`
+  deliberately left **off** so setup never spawns competing buy-tasks — the
+  fleet task's detail is the shopping surface
+  (`helpers/battery_fleet_setup.py:149`).
+
+**Three shapes, cheapest first:**
+
+1. **Cross-object link** — extend `consumes_parts` to `{entry_id?, part_id,
+   quantity}` so a vacuum's task can consume the bag pool owned by whichever
+   object holds it. Smallest change, matches the request's own wording
+   ("share stock from another object"), no migration of existing parts.
+   Costs: a picker that can reach other objects, and a clear answer to "who
+   owns this".
+2. **An alias part** that appears on each object's shelf but delegates stock,
+   threshold and restock to a source part. Keeps every existing surface
+   working unchanged, at the price of two places showing one number — the
+   shelf must make the delegation obvious or people will edit the wrong row.
+3. **Household-level parts** on the global entry, referenced by objects. The
+   honest model — a box of bags is not owned by vacuum #1 — but it migrates
+   every part that already exists, and every consumer listed below.
+
+**What any of them has to get right**, and where the work actually is:
+- **Exactly one buy reminder.** `auto_buy_task` creates a "Buy {part}" task
+  marked with `part_ref` (`helpers/parts.py:50`), reconciled by diffing
+  desired-vs-existing. With N consumers that reconciliation must still yield
+  one task, and completing it must restock the one pool.
+- **One threshold, one low state.** `is_low` and the reorder counter are
+  computed per part today; they must not be evaluated N times.
+- **Consumption from every completion path** — the panel and card dialogs,
+  quick-complete with `restock_quantity`, the to-do list, NFC, voice, the
+  service, and the automatic completion of an adopted problem sensor.
+- **Per-object stock sensors.** `sensor.<object>_<part>_stock` would exist N
+  times for one pool. Decide deliberately: only the owner publishes, or all
+  publish the same value.
+- **Object lifecycle.** `object/replace` carries parts to the successor, and
+  archive/delete must not silently strand a pool other objects still draw on
+  — a dangling link has to read as broken, not as zero stock.
+- **Export/import** must round-trip the link, as task↔part links already do.
+
+**Available today, worth documenting either way**: create one object that owns
+the shared consumables (the Battery Fleet pattern), put the buy-task there, and
+leave the individual appliances' tasks unlinked. It loses the automatic
+decrement per use, which is exactly what the request is asking for.
+
+Reported as niche by its author; likely not — identical appliances sharing a
+consumable is the same pattern Battery Fleet exists for.
+
 ### ✅ Documents linked to tasks
 **Shipped** (v2.23.1). A document can belong to a specific task, not just the
 object: each task row carries a **paperclip badge** with its document count,
@@ -792,37 +858,44 @@ them today — only `language`. That is the whole opportunity in one sentence.
    task the days count from today, so "by three days" cannot land in the past.
    No duration means it asks rather than guesses. `SkipTaskIntent` moves to the
    next cycle without recording work and names the new due date.
-4. **Spoken responses cover en/de; the UI covers 22 languages.** The `_SPEECH`
-   table is 31 keys × 2 languages. LLM pipelines re-phrase anyway, so this
-   only hurts classic-agent users — but for them it is total. Extending the
-   table is mechanical and can reuse the `add_locale_key.py` discipline; the
-   sentence *patterns* are the expensive half and should follow demand rather
-   than ambition.
+4. ~~**Spoken responses cover en/de; the UI covers 22 languages.**~~ ✅
+   **Shipped in 2.44**, and the split it forced is the lasting part: **what the
+   assistant SAYS is text and now exists in all 22**, moved out of `intent.py`
+   into `assist_sentences/responses/<lang>.json` (loaded once in the executor,
+   English fallback per key); **what it UNDERSTANDS is grammar** and ships only
+   for languages whose every phrasing was probed against a live agent — en, de,
+   fr, es, it, nl. A placeholder cannot carry the case ending, particle or
+   article a language demands of the name inserted into it, so the translations
+   restructure around it (Finnish apposition, Hungarian cataphoric colon,
+   Turkish head noun, Korean batchim-free particles, Hindi `को` forcing default
+   agreement). Adding a language is now one JSON file, with parity gates on
+   keys, placeholders and formatting.
+   It also exposed a defect in the original: **"1 days overdue"**, shipped in en
+   AND de since the first voice release. Slavic case government made it
+   impossible to ignore; a single day now has its own wording everywhere.
 
 ### B. Teach the intents who and where (the high-value half)
 
-5. **"What do I need to do?"** — resolve `Intent.context.user_id` to the
-   speaker and answer with *their* tasks: assignee, current rotation duty,
-   nothing else. It is the most-asked household question and every piece
-   already exists (assignee pool, rotation, the per-person notification
-   routing shipped in 2.44). Unknown speaker falls back to the full list.
-6. **"What needs doing in here?"** — resolve `Intent.device_id` /
-   `satellite_id` to its area and filter objects by `area_id`. A satellite in
-   the utility room reciting the whole house's list is the wrong answer when
-   we know exactly where it is standing.
-7. **Disambiguate by room instead of giving up.** `_resolve_single` currently
-   reads back up to four candidates and stops. With the asking device's area
-   known, *"complete the filter change"* in a room with exactly one match
-   should simply work — and name what it completed. This is a correctness
-   measure, not a convenience one: voice completion writes real history
-   through the coordinator, so a misheard name is a real wrong entry.
+5. ~~**"What do I need to do?"**~~ ✅ **Shipped in 2.44** as the `scope: mine`
+   slot on `ListTasks`: resolves `Intent.context.user_id` and answers with that
+   person's tasks, following the current rotation duty. An unknown speaker is
+   told so rather than handed the whole house's list — a plausible-sounding
+   wrong answer is worse than none.
+6. ~~**"What needs doing in here?"**~~ ✅ **Shipped in 2.44** as `scope: here`,
+   resolving `Intent.satellite_id` (the entity's own area first, then its
+   device's) and falling back to `Intent.device_id`. A device with no area says
+   so instead of widening.
+7. ~~**Disambiguate by room instead of giving up.**~~ ✅ **Shipped in 2.44** —
+   two candidates in different rooms resolve to the one in the asking room; two
+   in the SAME room still read back rather than guess. Correctness, not
+   convenience: voice completion writes real history, so a misheard name is a
+   real wrong entry.
 
 ### C. Make the spoken answer displayable (framework-agnostic)
 
-8. **`filter_area` on the card.** It has `filter_objects` and `filter_labels`
-   but not areas, although every object carries `area_id`. Small addition,
-   and the precondition for anything that shows *"the tasks for this room"* on
-   a wall tablet.
+8. ~~**`filter_area` on the card.**~~ ✅ **Shipped in 2.44** as `filter_areas`,
+   with a picker in the visual editor offering only areas that actually hold an
+   object.
 9. **A binding primitive.** So that any display layer can react to a spoken
    maintenance question, an intent should leave behind what it just answered —
    subject, area, matched tasks, and the satellite that asked. Deliberately
