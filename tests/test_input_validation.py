@@ -19,12 +19,22 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
+    MAX_LABEL_LENGTH,
+    MAX_LABELS,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
+    MAX_TYPE_LENGTH,
+    SERVICE_ADD_TASK,
+    SERVICE_UPDATE_TASK,
 )
 from custom_components.maintenance_supporter.helpers.csv_handler import (
     _csv_safe,
     export_objects_csv,
+)
+from custom_components.maintenance_supporter.helpers.schedule import read_legacy_fields
+from custom_components.maintenance_supporter.helpers.task_fields import (
+    INTERVAL_DAYS_RANGE,
+    WARNING_DAYS_RANGE,
 )
 from custom_components.maintenance_supporter.websocket.dashboard import (
     ws_update_global_settings,
@@ -41,6 +51,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    make_ws_connection as _mock_connection,
     TASK_ID_1,
     build_global_entry_data,
     build_object_entry_data,
@@ -48,14 +59,6 @@ from .conftest import (
     call_ws_handler,
     setup_integration,
 )
-
-
-def _mock_connection() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 # ─── String Length Schema Validation ──────────────────────────────────
@@ -334,6 +337,193 @@ async def test_task_name_whitespace_only_rejected(hass: HomeAssistant) -> None:
 
     conn.send_error.assert_called_once()
     assert "empty" in conn.send_error.call_args[0][2].lower()
+
+
+# ─── Service-Path Validation (mirror of the WS caps) ──────────────────
+#
+# The `add_task` / `update_task` services are a third UI onto the same
+# storage as the panel and the config flow. Their schemas used to disagree
+# with the canonical bounds (name max=255 vs MAX_NAME_LENGTH=200,
+# interval_days/warning_days with no max at all) AND the handlers ran no
+# sanitiser, so an automation could write values every other surface
+# rejects. These tests pin both halves of the fix: the schema rejects at the
+# boundary, and the persist helpers cap for direct Python callers.
+
+
+async def _service_object(hass: HomeAssistant, unique_id: str) -> MockConfigEntry:
+    """Set up a global entry + one object entry ready for service calls."""
+    global_entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+
+    obj_entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: build_task_data(last_performed="2024-06-01")}),
+        source="user",
+        unique_id=unique_id,
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+    return obj_entry
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("name", "A" * (MAX_NAME_LENGTH + 1)),
+        ("interval_days", INTERVAL_DAYS_RANGE[1] + 1),
+        ("interval_days", INTERVAL_DAYS_RANGE[0] - 1),
+        ("warning_days", WARNING_DAYS_RANGE[1] + 1),
+        ("warning_days", WARNING_DAYS_RANGE[0] - 1),
+        ("notes", "n" * (MAX_TEXT_LENGTH + 1)),
+        ("task_type", "t" * (MAX_TYPE_LENGTH + 1)),
+        ("schedule_type", "s" * (MAX_TYPE_LENGTH + 1)),
+    ],
+)
+async def test_service_add_task_rejects_out_of_canonical_range(
+    hass: HomeAssistant,
+    field: str,
+    value: object,
+) -> None:
+    """add_task must reject what the WS `task/create` schema rejects."""
+    obj_entry = await _service_object(hass, "maintenance_supporter_svc_add_bounds")
+
+    data: dict[str, object] = {"entry_id": obj_entry.entry_id, "name": "Valid Name", field: value}
+    with pytest.raises(vol.Invalid):
+        await hass.services.async_call(DOMAIN, SERVICE_ADD_TASK, data, blocking=True)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("name", "A" * (MAX_NAME_LENGTH + 1)),
+        ("interval_days", INTERVAL_DAYS_RANGE[1] + 1),
+        ("interval_days", INTERVAL_DAYS_RANGE[0] - 1),
+        ("warning_days", WARNING_DAYS_RANGE[1] + 1),
+        ("warning_days", WARNING_DAYS_RANGE[0] - 1),
+        ("notes", "n" * (MAX_TEXT_LENGTH + 1)),
+        ("task_type", "t" * (MAX_TYPE_LENGTH + 1)),
+        ("schedule_type", "s" * (MAX_TYPE_LENGTH + 1)),
+        ("labels", ["x" * (MAX_LABEL_LENGTH + 1)]),
+        ("labels", [f"label{i}" for i in range(MAX_LABELS + 1)]),
+    ],
+)
+async def test_service_update_task_rejects_out_of_canonical_range(
+    hass: HomeAssistant,
+    field: str,
+    value: object,
+) -> None:
+    """update_task must reject what the WS `task/update` schema rejects."""
+    obj_entry = await _service_object(hass, "maintenance_supporter_svc_upd_bounds")
+
+    data: dict[str, object] = {
+        "entry_id": obj_entry.entry_id,
+        "task_id": TASK_ID_1,
+        field: value,
+    }
+    with pytest.raises(vol.Invalid):
+        await hass.services.async_call(DOMAIN, SERVICE_UPDATE_TASK, data, blocking=True)
+
+
+async def test_service_add_task_accepts_canonical_maximums(hass: HomeAssistant) -> None:
+    """The exact canonical maxima must still be accepted (off-by-one guard)."""
+    obj_entry = await _service_object(hass, "maintenance_supporter_svc_add_max")
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_ADD_TASK,
+        {
+            "entry_id": obj_entry.entry_id,
+            "name": "A" * MAX_NAME_LENGTH,
+            "interval_days": INTERVAL_DAYS_RANGE[1],
+            "warning_days": WARNING_DAYS_RANGE[1],
+            "notes": "n" * MAX_TEXT_LENGTH,
+        },
+        blocking=True,
+    )
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    stored = [t for t in entry.data[CONF_TASKS].values() if t["name"].startswith("A" * 10)]
+    assert len(stored) == 1
+    assert read_legacy_fields(stored[0])["interval_days"] == INTERVAL_DAYS_RANGE[1]
+    assert stored[0]["warning_days"] == WARNING_DAYS_RANGE[1]
+
+
+async def test_create_task_simple_caps_fields_for_direct_callers(hass: HomeAssistant) -> None:
+    """`async_create_task_simple` sanitises like the config-flow save handlers.
+
+    The service schema is the boundary for service callers, but this helper is
+    plain Python that anything in-process can call — it used to persist
+    whatever it was handed. It now runs `cap_task_fields` (truncate/clamp),
+    matching every other non-WS write path.
+    """
+    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+        async_create_task_simple,
+    )
+
+    obj_entry = await _service_object(hass, "maintenance_supporter_svc_direct_create")
+
+    task_id = await async_create_task_simple(
+        hass,
+        entry_id=obj_entry.entry_id,
+        name="N" * (MAX_NAME_LENGTH + 100),
+        task_type="t" * (MAX_TYPE_LENGTH + 100),
+        interval_days=INTERVAL_DAYS_RANGE[1] + 5000,
+        warning_days=WARNING_DAYS_RANGE[1] + 100,
+        notes="x" * (MAX_TEXT_LENGTH + 100),
+    )
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    stored = entry.data[CONF_TASKS][task_id]
+    assert len(stored["name"]) == MAX_NAME_LENGTH
+    assert len(stored["type"]) == MAX_TYPE_LENGTH
+    assert len(stored["notes"]) == MAX_TEXT_LENGTH
+    assert stored["warning_days"] == WARNING_DAYS_RANGE[1]
+    assert read_legacy_fields(stored)["interval_days"] == INTERVAL_DAYS_RANGE[1]
+
+
+async def test_update_task_simple_caps_fields_for_direct_callers(hass: HomeAssistant) -> None:
+    """`async_update_task_simple` sanitises the merged task before persisting."""
+    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+        async_update_task_simple,
+    )
+
+    obj_entry = await _service_object(hass, "maintenance_supporter_svc_direct_update")
+
+    await async_update_task_simple(
+        hass,
+        entry_id=obj_entry.entry_id,
+        task_id=TASK_ID_1,
+        updates={
+            "name": "N" * (MAX_NAME_LENGTH + 100),
+            "interval_days": INTERVAL_DAYS_RANGE[1] + 5000,
+            "warning_days": WARNING_DAYS_RANGE[1] + 100,
+            "notes": "x" * (MAX_TEXT_LENGTH + 100),
+            "labels": ["l" * (MAX_LABEL_LENGTH + 10)] + [f"tag{i}" for i in range(MAX_LABELS + 5)],
+        },
+    )
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    stored = entry.data[CONF_TASKS][TASK_ID_1]
+    assert len(stored["name"]) == MAX_NAME_LENGTH
+    assert len(stored["notes"]) == MAX_TEXT_LENGTH
+    assert stored["warning_days"] == WARNING_DAYS_RANGE[1]
+    assert read_legacy_fields(stored)["interval_days"] == INTERVAL_DAYS_RANGE[1]
+    assert len(stored["labels"]) == MAX_LABELS
+    assert all(len(label) <= MAX_LABEL_LENGTH for label in stored["labels"])
 
 
 async def test_object_name_stripped_on_create(hass: HomeAssistant) -> None:

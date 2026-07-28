@@ -357,6 +357,7 @@ async def test_non_admin_rejected(
 
     conn = make_ws_connection()
     conn.user = MagicMock(is_admin=False)
+    conn.user.id = "mock-ws-user"
 
     # Call the outer (decorated) function — it should raise Unauthorized
     with pytest.raises(Unauthorized):

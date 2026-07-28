@@ -58,6 +58,11 @@ from .const import (
     GLOBAL_UNIQUE_ID,
     MAX_COST,
     MAX_DURATION_MINUTES,
+    MAX_LABEL_LENGTH,
+    MAX_LABELS,
+    MAX_NAME_LENGTH,
+    MAX_TEXT_LENGTH,
+    MAX_TYPE_LENGTH,
     PLATFORMS,
     SERVICE_ADD_OBJECT,
     SERVICE_ADD_TASK,
@@ -85,6 +90,11 @@ from .helpers.dates import INTERVAL_UNITS
 from .helpers.documents import DocumentStore
 from .helpers.notification_manager import NotificationManager
 from .helpers.schedule import normalize_task_storage
+from .helpers.task_fields import (
+    INTERVAL_DAYS_RANGE,
+    TASK_PRIORITIES,
+    WARNING_DAYS_RANGE,
+)
 from .panel import async_register_panel, async_unregister_panel
 from .storage import MaintenanceStore, async_migrate_to_store
 from .websocket import async_register_commands
@@ -158,21 +168,29 @@ SERVICE_ADD_OBJECT_SCHEMA = vol.Schema(
     }
 )
 
+# The service task schemas mirror the WS `task/create` / `task/update` schemas
+# field-for-field, consuming the SAME constants + ranges (const.py /
+# helpers.task_fields) rather than restating literals — the service path is
+# just a third UI onto the same storage, so a value the WS API rejects must not
+# be reachable from an automation. `vol.Coerce` stays (unlike the WS schemas)
+# because YAML/templated service data arrives as strings.
 SERVICE_ADD_TASK_SCHEMA = vol.Schema(
     {
         vol.Required("entry_id"): cv.string,
-        vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=255)),
-        vol.Optional("task_type"): cv.string,
-        vol.Optional("schedule_type"): cv.string,
-        vol.Optional("interval_days"): vol.All(vol.Coerce(int), vol.Range(min=1)),
+        vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        vol.Optional("task_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
+        vol.Optional("schedule_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
+        vol.Optional("interval_days"): vol.All(
+            vol.Coerce(int), vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])
+        ),
         vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): cv.string,
         # Nested recurrence for the calendar kinds (weekdays / nth_weekday /
         # day_of_month); takes precedence over the flat fields above.
         vol.Optional("schedule"): dict,
-        vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
         vol.Optional("enabled"): cv.boolean,
-        vol.Optional("notes"): cv.string,
+        vol.Optional("notes"): vol.All(cv.string, vol.Length(max=MAX_TEXT_LENGTH)),
     }
 )
 
@@ -180,18 +198,20 @@ SERVICE_UPDATE_TASK_SCHEMA = vol.Schema(
     {
         vol.Required("entry_id"): cv.string,
         vol.Required("task_id"): cv.string,
-        vol.Optional("name"): vol.All(cv.string, vol.Length(min=1, max=255)),
-        vol.Optional("task_type"): cv.string,
-        vol.Optional("schedule_type"): cv.string,
-        vol.Optional("interval_days"): vol.All(vol.Coerce(int), vol.Range(min=1)),
+        vol.Optional("name"): vol.All(cv.string, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        vol.Optional("task_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
+        vol.Optional("schedule_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
+        vol.Optional("interval_days"): vol.All(
+            vol.Coerce(int), vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])
+        ),
         vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): cv.string,
         vol.Optional("schedule"): dict,
-        vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
         vol.Optional("enabled"): cv.boolean,
-        vol.Optional("notes"): cv.string,
-        vol.Optional("priority"): vol.In(["low", "normal", "high"]),
-        vol.Optional("labels"): [cv.string],
+        vol.Optional("notes"): vol.All(cv.string, vol.Length(max=MAX_TEXT_LENGTH)),
+        vol.Optional("priority"): vol.In(TASK_PRIORITIES),
+        vol.Optional("labels"): vol.All([vol.All(cv.string, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)),
     }
 )
 

@@ -17,7 +17,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, MAX_ID_LENGTH, MAX_NAME_LENGTH
+from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, MAX_ID_LENGTH, MAX_NAME_LENGTH
 from ..helpers.integration_signatures import (
     SIGNATURES,
     build_setup_trigger,
@@ -115,7 +115,11 @@ async def ws_adopt_integration_setups(
                 objects_created += 1
 
             entry = hass.config_entries.async_get_entry(entry_id)
-            if entry is None or entry.domain != DOMAIN:
+            # Same three-part guard as websocket._load_object_entry: the global
+            # settings entry is NOT a valid adoption target — async_persist_task
+            # writes CONF_TASKS + CONF_OBJECT["task_ids"] into whatever entry it
+            # is handed, so a client-supplied global entry_id would corrupt it.
+            if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
                 errors.append({"device_id": device_id, "reason": "target object not found"})
                 continue
 

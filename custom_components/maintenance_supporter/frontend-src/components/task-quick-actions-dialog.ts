@@ -14,7 +14,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatRecurrence } from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
@@ -294,7 +294,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         task_id: this._taskId,
       });
       this._toast = r.recommended_interval
-        ? `${t("reanalyze_result", this._lang) || "Recomputed"}: ${r.recommended_interval}d (${r.data_points} pts)`
+        // The analyzer always works in DAYS (helpers/interval_analyzer.py), so
+        // the unit is pinned here rather than taken from the task's own unit.
+        ? `${t("reanalyze_result", this._lang) || "Recomputed"}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} pts)`
         : (t("reanalyze_insufficient_data", this._lang) || "Not enough data");
       await this._loadTask();
       setTimeout(() => { this._toast = ""; }, 3500);

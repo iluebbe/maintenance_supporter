@@ -17,6 +17,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     MAX_TASKS_PER_OBJECT,
 )
+from ..helpers.sanitize import cap_task_fields
 from ..helpers.schedule import (
     normalize_task_storage,
 )
@@ -109,6 +110,11 @@ async def async_create_task_simple(
 
     Raises ValueError if the entry_id is not a maintenance object or the name
     is empty.
+
+    Like the config-flow save handlers (see ``helpers/sanitize``), this runs
+    :func:`cap_task_fields` before persisting: the ``add_task`` *service*
+    schema is the boundary for service callers, but this function is also
+    reachable directly from Python, so the caps can't live only in the schema.
     """
     entry = hass.config_entries.async_get_entry(entry_id)
     if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
@@ -138,6 +144,10 @@ async def async_create_task_simple(
         task_data["due_date"] = due_date
     if notes:
         task_data["notes"] = notes
+    # Same sanitising as the config-flow create path, applied BEFORE the
+    # storage normalisation inside async_persist_task so a capped
+    # interval_days/warning_days is what the schedule model sees.
+    cap_task_fields(task_data)
     await async_persist_task(hass, entry, task_data)
     return task_data["id"]
 
@@ -172,6 +182,10 @@ async def async_update_task_simple(
     :func:`normalize_task_storage`, so partial edits keep the unit/anchor
     semantics of the storage model (issue #58 class).
 
+    Runs :func:`cap_task_fields` over the MERGED task before persisting —
+    mirroring the options-flow edit path — so a direct Python caller can't
+    write past the caps the ``update_task`` service schema enforces.
+
     Raises ValueError for an unknown entry/task or an empty name.
     """
     entry = hass.config_entries.async_get_entry(entry_id)
@@ -196,6 +210,7 @@ async def async_update_task_simple(
     if updates.get("schedule"):
         task["schedule"] = updates["schedule"]
 
+    cap_task_fields(task)
     new_tasks[task_id] = normalize_task_storage(task)
     new_data[CONF_TASKS] = new_tasks
     hass.config_entries.async_update_entry(entry, data=new_data)

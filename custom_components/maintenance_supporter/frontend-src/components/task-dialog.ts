@@ -7,6 +7,7 @@ import { formatDate, t, weekdayName } from "../styles";
 import { UserService } from "../user-service";
 
 import { describeWsError } from "../ws-errors";
+import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "reading", "custom"];
@@ -799,7 +800,16 @@ export class MaintenanceTaskDialog extends LitElement {
         name: this._name,
         task_type: this._type,
         schedule_type: this._scheduleType,
-        warning_days: parseInt(this._warningDays, 10) || 7,
+        // `0` is a legal, meaningful value — "no due-soon window, go straight
+        // from ok to overdue" (backend range is 0–365). The old
+        // `parseInt(...) || 7` treated it as falsy and silently rewrote a
+        // stored 0 to 7 on EVERY save, even when the user never touched the
+        // field. Same class as bug #42, but worse: it needed no user action.
+        // Only a genuinely unparseable field falls back, and to the
+        // configured default rather than a hardcoded 7.
+        warning_days: Number.isNaN(parseInt(this._warningDays, 10))
+          ? this.defaultWarningDays
+          : Math.max(0, parseInt(this._warningDays, 10)),
       };
       const ecd = this._earliestCompletionDays.trim();
       data.earliest_completion_days = ecd === "" ? null : Math.max(0, parseInt(ecd, 10) || 0);
@@ -1870,6 +1880,8 @@ export class MaintenanceTaskDialog extends LitElement {
           <ms-textfield
             label="${t("warning_days", L)}"
             type="number"
+            min="0"
+            max="365"
             .value=${this._warningDays}
             @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
@@ -1894,14 +1906,14 @@ export class MaintenanceTaskDialog extends LitElement {
           ` : nothing}
           <h3>${t("require_on_completion", L)}</h3>
           <div class="required-completion">
-            ${["notes", "cost", "duration", "photo", "user"].map((field) => html`
+            ${REQUIRED_COMPLETION_KEYS.map((field) => html`
               <label class="req-option">
                 <input
                   type="checkbox"
                   .checked=${this._requiredCompletion.includes(field)}
                   @change=${(e: Event) => this._toggleRequired(field, (e.target as HTMLInputElement).checked)}
                 />
-                <span>${t(field, L)}</span>
+                <span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>
               </label>
             `)}
           </div>

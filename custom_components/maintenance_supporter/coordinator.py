@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Mapping
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -50,6 +50,7 @@ from .const import (
     ScheduleType,
     TriggerEntityState,
 )
+from .helpers.budget import compute_spend
 from .helpers.schedule import normalize_task_storage, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
@@ -787,53 +788,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         Stores the result in hass.data[DOMAIN][BUDGET_CACHE_KEY] so that
         every coordinator reads from the same cache instead of each one
         re-scanning all entries on every 5-minute refresh.
+
+        The scan itself lives in :func:`helpers.budget.compute_spend`, shared
+        with the ``budget_status`` WS command — this method only owns the
+        *caching* around it. The two used to hold divergent copies of the same
+        loop, so the alert and the panel could report different spend.
         """
-        now = dt_util.now()
-        monthly = 0.0
-        yearly = 0.0
-
-        for ce in self.hass.config_entries.async_entries(DOMAIN):
-            if ce.unique_id == GLOBAL_UNIQUE_ID:
-                continue
-
-            rd = getattr(ce, "runtime_data", None)
-            ce_store = getattr(rd, "store", None) if rd else None
-
-            for tid in ce.data.get(CONF_TASKS, {}):
-                if ce_store is not None:
-                    history = ce_store.get_history(tid)
-                else:
-                    history = ce.data.get(CONF_TASKS, {}).get(tid, {}).get("history", [])
-
-                for h_entry in history:
-                    if h_entry.get("type") != "completed":
-                        continue
-                    cost = h_entry.get("cost")
-                    if cost is None:
-                        continue
-                    try:
-                        cost_val = float(cost)
-                    except (ValueError, TypeError):
-                        continue
-                    ts = h_entry.get("timestamp", "")
-                    try:
-                        entry_dt = datetime.fromisoformat(ts)
-                    except (ValueError, TypeError):
-                        continue
-                    # Ensure TZ-aware so year/month boundaries are evaluated
-                    # in HA's local timezone (otherwise off-by-one near midnight).
-                    if entry_dt.tzinfo is None:
-                        entry_dt = entry_dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
-                    entry_dt = dt_util.as_local(entry_dt)
-                    if entry_dt.year == now.year:
-                        yearly += cost_val
-                        if entry_dt.month == now.month:
-                            monthly += cost_val
+        monthly, yearly = compute_spend(self.hass)
 
         self.hass.data.setdefault(DOMAIN, {})[BUDGET_CACHE_KEY] = {
             "monthly_spent": monthly,
             "yearly_spent": yearly,
-            "last_updated": now,
+            "last_updated": dt_util.now(),
         }
 
     async def _async_check_budget(self, task_results: dict[str, Any]) -> None:

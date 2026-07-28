@@ -294,6 +294,7 @@ async def test_ws_unarchive_object_rejects_active_object(hass: HomeAssistant, gl
     await setup_integration(hass, global_entry, obj_entry)
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_unarchive_object,
         hass,
@@ -327,6 +328,7 @@ async def test_ws_archive_and_unarchive_unknown_task(hass: HomeAssistant, global
     ):
         conn = MagicMock()
         conn.user = MagicMock(is_admin=True)
+        conn.user.id = "mock-ws-user"
         await call_ws_handler(
             handler,
             hass,
@@ -355,6 +357,7 @@ async def test_ws_quick_complete_guards(hass: HomeAssistant, global_entry: MockC
     # Unknown object and unknown task.
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_quick_complete_task,
         hass,
@@ -370,6 +373,7 @@ async def test_ws_quick_complete_guards(hass: HomeAssistant, global_entry: MockC
 
     conn2 = MagicMock()
     conn2.user = MagicMock(is_admin=True)
+    conn2.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_quick_complete_task,
         hass,
@@ -401,6 +405,7 @@ async def test_ws_complete_blocked_by_earliest_completion_window(hass: HomeAssis
 
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_complete_task,
         hass,
@@ -430,6 +435,7 @@ async def test_ws_snooze_without_notification_manager(hass: HomeAssistant, globa
     try:
         conn = MagicMock()
         conn.user = MagicMock(is_admin=True)
+        conn.user.id = "mock-ws-user"
         await call_ws_handler(
             ws_snooze_task,
             hass,
@@ -477,6 +483,7 @@ async def test_vacation_update_edge_inputs(hass: HomeAssistant, global_entry: Mo
     await setup_integration(hass, global_entry)
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_vacation_update,
         hass,
@@ -520,6 +527,7 @@ async def test_ws_duplicate_object_strips_unique_and_dynamic_fields(hass: HomeAs
 
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_duplicate_object,
         hass,
@@ -554,6 +562,7 @@ async def test_ws_duplicate_object_flow_failure(hass: HomeAssistant, global_entr
 
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     with patch.object(
         hass.config_entries.flow,
         "async_init",
@@ -594,6 +603,7 @@ async def test_parent_chain_walk_terminates_on_long_chain(hass: HomeAssistant, g
 
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     # Attaching a NEW object under c walks c -> b -> a and terminates fine.
     assert _validate_device_link(
         hass,

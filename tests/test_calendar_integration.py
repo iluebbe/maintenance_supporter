@@ -21,6 +21,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    make_ws_connection as _mock_connection,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -35,14 +36,6 @@ TASK_ID_3 = "d" * 32
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
-
-
-def _mock_connection() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────
