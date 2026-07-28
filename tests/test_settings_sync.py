@@ -52,6 +52,7 @@ def _mock_connection() -> MagicMock:
     conn.send_message = MagicMock()
     conn.subscriptions = {}
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     return conn
 
 

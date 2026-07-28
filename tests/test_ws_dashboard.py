@@ -62,6 +62,7 @@ def _mock_connection() -> MagicMock:
     conn.send_message = MagicMock()
     conn.subscriptions = {}
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     return conn
 
 
@@ -617,6 +618,66 @@ async def test_budget_status_with_costs(
     # monthly: 50 + 75 = 125; yearly: 50 + 75 + 100 = 225
     assert result["monthly_spent"] == 125.0
     assert result["yearly_spent"] == 225.0
+
+
+async def test_budget_ws_agrees_with_coordinator_cache(
+    hass: HomeAssistant,
+    global_entry_with_budget: MockConfigEntry,
+    object_entry_with_cost: MockConfigEntry,
+) -> None:
+    """The panel's budget figure and the ALERT's budget figure must be one number.
+
+    Regression guard: ``coordinator._recalculate_budget_cache`` (which feeds the
+    budget-alert notification) and ``ws_get_budget_status`` (which draws the
+    panel bars) each carried their own copy of the same ~35-line history scan,
+    and the copies used DIFFERENT cost predicates — ``float(cost)`` in the
+    coordinator vs ``isinstance(cost, (int, float))`` in the WS handler. A cost
+    stored as the string ``"12.50"`` therefore counted toward the alert but was
+    invisible in the panel. Both now delegate to
+    ``helpers.budget.compute_spend``, so the history below — deliberately
+    seeded with the values the two used to disagree about — must produce one
+    identical answer on both surfaces.
+    """
+    await setup_integration(hass, global_entry_with_budget, object_entry_with_cost)
+
+    entry = hass.config_entries.async_get_entry(object_entry_with_cost.entry_id)
+    assert entry is not None
+    store = entry.runtime_data.store
+    assert store is not None
+
+    now = dt_util.now()
+    history = list(store.get_history(TASK_ID_1))
+    history.extend(
+        [
+            # The exact divergence case: a numeric string.
+            {"timestamp": now.isoformat(), "type": "completed", "cost": "12.50"},
+            # Non-finite smuggled in as a string — float() would make it inf.
+            {"timestamp": now.isoformat(), "type": "completed", "cost": "Infinity"},
+            # A genuine number: must count on both surfaces.
+            {"timestamp": now.isoformat(), "type": "completed", "cost": 10.0},
+        ]
+    )
+    store.set_history(TASK_ID_1, history)
+
+    coordinator = entry.runtime_data.coordinator
+    coordinator._recalculate_budget_cache()
+    cache = hass.data[DOMAIN]["_budget_cache"]
+
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_get_budget_status,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/budget_status"},
+    )
+    result = conn.send_result.call_args[0][1]
+
+    assert result["monthly_spent"] == pytest.approx(round(cache["monthly_spent"], 2))
+    assert result["yearly_spent"] == pytest.approx(round(cache["yearly_spent"], 2))
+    # And the shared rule is the strict one: only the real 10.0 is added to the
+    # fixture's 125 / 225 — the strings are skipped, so no inf leaks in.
+    assert result["monthly_spent"] == 135.0
+    assert result["yearly_spent"] == 235.0
 
 
 # ─── ws_get_settings expanded response ───────────────────────────────────
@@ -1217,6 +1278,7 @@ def _covws_conn() -> MagicMock:
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     conn.subscriptions = {}
     conn.send_message = MagicMock()
     return conn
@@ -1383,6 +1445,7 @@ def _c97_conn() -> MagicMock:
     conn.send_message = MagicMock()
     conn.subscriptions = {}
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     return conn
 
 

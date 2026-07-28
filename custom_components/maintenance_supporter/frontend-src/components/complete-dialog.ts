@@ -5,6 +5,7 @@ import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
 import { t, nativeFieldStyles } from "../styles";
 import { describeWsError } from "../ws-errors";
+import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -175,9 +176,12 @@ export class MaintenanceCompleteDialog extends LitElement {
       cost: this._cost.trim() !== "",
       duration: this._duration.trim() !== "",
       photo: this._photoDocId !== "",
-      // "who did it" is recorded server-side from the calling user, so the
-      // dialog cannot be missing it.
-      user: true,
+      // "Who did it" is filled in server-side from the authenticated
+      // connection (websocket/tasks_actions.py), so the dialog satisfies it
+      // as long as we ARE a logged-in user. Claiming it is always satisfied
+      // was how a task requiring "user" ended up unclosable: Save stayed
+      // enabled and the backend rejected the completion every time.
+      user: !!this.hass?.user,
     };
     return this.requiredFields.filter((f) => !filled[f]);
   }
@@ -331,7 +335,7 @@ export class MaintenanceCompleteDialog extends LitElement {
             @click=${this._complete}
             .disabled=${this._loading || this._missingRequired.length > 0}
             title=${this._missingRequired.length
-              ? this._missingRequired.map((f) => t("err_required", L).replace("{field}", t(f, L))).join(" · ")
+              ? this._missingRequired.map((f) => t("err_required", L).replace("{field}", t(REQUIRED_COMPLETION_LABELS[f] ?? f, L))).join(" · ")
               : ""}
           >
             ${this._loading ? t("completing", L) : t("complete", L)}

@@ -1857,6 +1857,7 @@ def _covws_conn() -> MagicMock:
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     conn.subscriptions = {}
     conn.send_message = MagicMock()
     return conn
@@ -2467,6 +2468,7 @@ def _c97_conn() -> MagicMock:
     conn.send_message = MagicMock()
     conn.subscriptions = {}
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     return conn
 
 

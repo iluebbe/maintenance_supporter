@@ -73,6 +73,7 @@ async def test_issue86_entry_sets_up_and_computes_status(hass: HomeAssistant, gl
 
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_get_statistics,
         hass,
@@ -143,6 +144,7 @@ async def test_issue86_missing_global_entry_keeps_chips_unknown(hass: HomeAssist
     # the strategy chips have no entity to read and render "unknown".
     conn = MagicMock()
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     await call_ws_handler(
         ws_get_statistics,
         hass,

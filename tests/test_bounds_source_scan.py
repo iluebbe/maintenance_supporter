@@ -60,3 +60,29 @@ def test_shared_ranges_still_match_const() -> None:
     assert INTERVAL_DAYS_RANGE == (1, MAX_INTERVAL_DAYS)
     assert WARNING_DAYS_RANGE[0] == 0
     assert WARNING_DAYS_RANGE[1] <= MAX_INTERVAL_DAYS
+
+
+def test_mocked_ws_users_carry_a_real_id() -> None:
+    """A mocked `connection.user` must have a REAL string id.
+
+    WS completions record `completed_by` from the connection, and that value
+    is persisted. A bare `MagicMock()` id survives every in-memory assertion
+    and only explodes deep inside `Store.async_save` as
+    `TypeError: <MagicMock name='mock.user.id'>` — far from the test that
+    caused it. Six modules carrying a stale copy of the connection helper
+    failed exactly that way; this keeps the seventh from being written.
+
+    Use `conftest.make_ws_connection()` instead of hand-rolling the mock.
+    """
+    assign = re.compile(r"^(?P<indent>[ \t]*)(?P<var>[\w.]+)\.user = MagicMock\(", re.M)
+    offenders: list[str] = []
+    for path in sorted(Path(__file__).parent.glob("test_*.py")):
+        src = path.read_text(encoding="utf-8")
+        for m in assign.finditer(src):
+            tail = src[m.end() : m.end() + 160]
+            if not re.search(r"\n[ \t]*" + re.escape(m.group("var")) + r"\.user\.id = ", tail):
+                line = src[: m.start()].count("\n") + 1
+                offenders.append(f"{path.name}:{line}")
+    assert not offenders, (
+        "mocked connection.user without a string .user.id (use make_ws_connection()): " + ", ".join(offenders)
+    )

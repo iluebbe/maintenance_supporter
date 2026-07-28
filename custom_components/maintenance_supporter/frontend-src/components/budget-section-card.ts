@@ -11,17 +11,13 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, DEFAULT_CURRENCY_SYMBOL } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
-import type { HomeAssistant } from "../types";
-
-interface BudgetStatus {
-  monthly_budget?: number;
-  monthly_spent?: number;
-  yearly_budget?: number;
-  yearly_spent?: number;
-  currency_symbol?: string;
-}
+import type { BudgetStatus, HomeAssistant } from "../types";
 
 interface CardConfig { type: string; title?: string; }
+
+/** Backend default for budget_alert_threshold (const.py / settings_registry).
+ *  Only reached if an older core omits the field from budget_status. */
+const DEFAULT_ALERT_THRESHOLD_PCT = 80;
 
 export class MaintenanceBudgetSectionCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -109,10 +105,21 @@ export class MaintenanceBudgetSectionCard extends LitElement {
       return html`<ha-card><div class="loading">${t("loading", L) || "Loading…"}</div></ha-card>`;
     }
     const sym = s.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
-    const mPct = s.monthly_budget ? Math.min(100, ((s.monthly_spent || 0) / s.monthly_budget) * 100) : 0;
-    const yPct = s.yearly_budget ? Math.min(100, ((s.yearly_spent || 0) / s.yearly_budget) * 100) : 0;
-    const mWarn = mPct >= 100 ? "danger" : mPct >= 80 ? "warning" : "ok";
-    const yWarn = yPct >= 100 ? "danger" : yPct >= 80 ? "warning" : "ok";
+    // The amber step is the CONFIGURED budget_alert_threshold, not a literal 80
+    // — same rule the panel's budget bar uses (maintenance-panel._renderBudgetBar).
+    const threshold = s.alert_threshold_pct ?? DEFAULT_ALERT_THRESHOLD_PCT;
+    const tracks = [
+      {
+        label: t("budget_monthly", L) || "Monthly",
+        spent: s.monthly_spent || 0,
+        budget: s.monthly_budget || 0,
+      },
+      {
+        label: t("budget_yearly", L) || "Yearly",
+        spent: s.yearly_spent || 0,
+        budget: s.yearly_budget || 0,
+      },
+    ];
 
     return html`
       <ha-card>
@@ -127,25 +134,34 @@ export class MaintenanceBudgetSectionCard extends LitElement {
 
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
-          <div class="track">
-            <div class="track-label-row">
-              <label>${t("budget_monthly", L) || "Monthly"}</label>
-              <span class="track-numbers ${mWarn}">
-                ${(s.monthly_spent || 0).toFixed(0)} / ${(s.monthly_budget || 0).toFixed(0)} ${sym}
-              </span>
-            </div>
-            <div class="bar"><div class="bar-fill ${mWarn}" style="width:${mPct}%"></div></div>
-          </div>
-
-          <div class="track">
-            <div class="track-label-row">
-              <label>${t("budget_yearly", L) || "Yearly"}</label>
-              <span class="track-numbers ${yWarn}">
-                ${(s.yearly_spent || 0).toFixed(0)} / ${(s.yearly_budget || 0).toFixed(0)} ${sym}
-              </span>
-            </div>
-            <div class="bar"><div class="bar-fill ${yWarn}" style="width:${yPct}%"></div></div>
-          </div>
+          ${tracks.map((track) => {
+            // #104: budget tracking without a maximum — a bar needs a
+            // denominator, so show the plain spent total instead of "9 / 0 €"
+            // over an always-empty bar. Mirrors the panel's spent-only lines.
+            if (!(track.budget > 0)) {
+              return html`
+                <div class="track spent-only">
+                  <div class="track-label-row">
+                    <label>${track.label}</label>
+                    <span class="track-numbers ok">${track.spent.toFixed(0)} ${sym}</span>
+                  </div>
+                </div>
+              `;
+            }
+            const pct = Math.min(100, Math.max(0, (track.spent / track.budget) * 100));
+            const warn = pct >= 100 ? "danger" : pct >= threshold ? "warning" : "ok";
+            return html`
+              <div class="track">
+                <div class="track-label-row">
+                  <label>${track.label}</label>
+                  <span class="track-numbers ${warn}">
+                    ${track.spent.toFixed(0)} / ${track.budget.toFixed(0)} ${sym}
+                  </span>
+                </div>
+                <div class="bar"><div class="bar-fill ${warn}" style="width:${pct}%"></div></div>
+              </div>
+            `;
+          })}
 
           ${this._isAdmin
             ? html`

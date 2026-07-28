@@ -32,7 +32,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs } from "./styles";
+import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -267,7 +267,7 @@ export class MaintenanceCalendarCard extends LitElement {
       const statusClass = `cal-status-${ev.status}`;
       const projClass = ev.projected ? "cal-event-projected" : "";
       const overdueLabel = ev.status === "overdue" && ev.days_until_due != null
-        ? ` (${Math.abs(ev.days_until_due)}d ${t("overdue", L).toLowerCase()})`
+        ? ` (${formatDueDays(ev.days_until_due, L)})`
         : "";
       const recurEvery = ev.projected && ev.interval_days
         ? html`<span class="cal-event-recur">${

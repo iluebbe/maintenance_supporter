@@ -2,7 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs } from "./styles";
+import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -480,10 +480,8 @@ export class MaintenanceSupporterCard extends LitElement {
                       <div class="task-due">
                         ${task.days_until_due !== null && task.days_until_due !== undefined
                           ? task.days_until_due < 0
-                            ? html`<span class="overdue-text">${Math.abs(task.days_until_due)}${L.startsWith("de") ? "T" : "d"}</span>`
-                            : task.days_until_due === 0
-                            ? t("today", L)
-                            : `${task.days_until_due}${L.startsWith("de") ? "T" : "d"}`
+                            ? html`<span class="overdue-text">${formatDueDays(task.days_until_due, L)}</span>`
+                            : formatDueDays(task.days_until_due, L)
                           : task.trigger_active
                           ? "⚡"
                           : "—"}
@@ -654,7 +652,11 @@ export class MaintenanceSupporterCard extends LitElement {
       }
       .doc-chip:hover { color: var(--primary-color); border-color: var(--primary-color); }
       .doc-chip ha-icon { --mdc-icon-size: 12px; width: 12px; height: 12px; }
-      .task-due { font-size: 13px; color: var(--secondary-text-color); min-width: 40px; text-align: right; }
+      /* nowrap: the due label is localized via formatDueDays ("5 d overdue",
+         "5 T überfällig") — without it a narrow phone card wraps that onto a
+         second line and the row grows taller. The name column ellipsizes
+         instead, which it already does by design. */
+      .task-due { font-size: 13px; color: var(--secondary-text-color); min-width: 40px; text-align: right; white-space: nowrap; }
       .overdue-text { color: var(--error-color); font-weight: 500; }
 
       .complete-btn {

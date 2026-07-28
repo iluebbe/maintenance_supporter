@@ -376,7 +376,11 @@ def make_ws_connection() -> MagicMock:
     conn = MagicMock()
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
+    # A REAL string id, not a bare MagicMock: WS completions now record
+    # `completed_by` from the connection, and a MagicMock there is
+    # unserializable — the Store raises TypeError on save.
     conn.user = MagicMock(is_admin=True)
+    conn.user.id = "mock-ws-user"
     return conn
 
 
