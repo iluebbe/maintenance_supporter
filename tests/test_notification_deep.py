@@ -30,7 +30,7 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.helpers.notification_manager import (
     _NOTIFY_SERVICE_MISSING_ISSUE_ID,
     NotificationManager,
-    _get_user_notify_services,
+    get_user_notify_services,
     _notif_t,
 )
 
@@ -482,7 +482,7 @@ async def test_build_message_unknown_status(hass: HomeAssistant) -> None:
 
 async def test_user_notify_services_no_mobile_app(hass: HomeAssistant) -> None:
     """Test user notify discovery returns empty when no mobile_app entries."""
-    services = await _get_user_notify_services(hass, "user123")
+    services = await get_user_notify_services(hass, "user123")
     assert services == []
 
 
@@ -515,7 +515,7 @@ async def test_user_notify_services_with_mobile_app(hass: HomeAssistant) -> None
     # The real service name is the slugified device name.
     hass.services.async_register("notify", "mobile_app_test_phone", AsyncMock())
 
-    services = await _get_user_notify_services(hass, "user123")
+    services = await get_user_notify_services(hass, "user123")
     assert services == ["notify.mobile_app_test_phone"]
 
 
@@ -543,7 +543,7 @@ async def test_user_notify_services_renamed_device(hass: HomeAssistant) -> None:
     # Service still follows the original registration name.
     hass.services.async_register("notify", "mobile_app_original_name", AsyncMock())
 
-    services = await _get_user_notify_services(hass, "user123")
+    services = await get_user_notify_services(hass, "user123")
     assert "notify.mobile_app_original_name" in services
 
 
@@ -556,7 +556,7 @@ async def test_user_notify_services_wrong_user(hass: HomeAssistant) -> None:
     )
     mobile_entry.add_to_hass(hass)
 
-    services = await _get_user_notify_services(hass, "user123")
+    services = await get_user_notify_services(hass, "user123")
     assert services == []
 
 

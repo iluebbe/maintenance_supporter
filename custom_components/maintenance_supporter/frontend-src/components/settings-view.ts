@@ -9,6 +9,15 @@ import { UserService } from "../user-service";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
 
+/** One household member and the notify services they actually resolve to.
+ *  Empty `services` means no Companion device is linked, so their reminders
+ *  fall back to the household notification service. */
+interface PersonNotifyTarget {
+  user_id: string;
+  name: string;
+  services: string[];
+}
+
 /* Settings response shape from WS maintenance_supporter/settings */
 interface SettingsResponse {
   features: AdvancedFeatures;
@@ -108,6 +117,8 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _includeHistory = true;
   @state() private _toast = "";
   @state() private _testingNotification = false;
+  @state() private _personTargets: PersonNotifyTarget[] = [];
+  @state() private _testingUser = "";
   @state() private _users: HAUser[] = [];
   @state() private _savedViews: Array<{ id: string; name: string }> = [];
 
@@ -169,6 +180,23 @@ export class MaintenanceSettingsView extends LitElement {
     } catch {
       this._users = [];
     }
+    this._loadNotifyTargets();
+  }
+
+  /** Which notify services each household member resolves to.
+   *
+   *  Resolved by the backend through the same helper the reminder path uses,
+   *  so the list shown here is the list that will actually be used.
+   */
+  private async _loadNotifyTargets(): Promise<void> {
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{ targets: PersonNotifyTarget[] }>({
+        type: "maintenance_supporter/notify/user_targets",
+      });
+      this._personTargets = res.targets || [];
+    } catch {
+      this._personTargets = [];
+    }
   }
 
   private async _loadSettings(): Promise<void> {
@@ -220,11 +248,13 @@ export class MaintenanceSettingsView extends LitElement {
     }
   }
 
-  private _sendTestNotification = async (): Promise<void> => {
-    this._testingNotification = true;
+  private _sendTestNotification = async (userId?: string): Promise<void> => {
+    if (userId) this._testingUser = userId;
+    else this._testingNotification = true;
     try {
       const res = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/global/test_notification",
+        ...(userId ? { user_id: userId } : {}),
       }) as { success: boolean; message?: string };
       const msg = res.message
         || (res.success ? t("test_notification_success", this._lang) : t("test_notification_failed", this._lang));
@@ -232,7 +262,8 @@ export class MaintenanceSettingsView extends LitElement {
     } catch {
       this._showToast(t("test_notification_failed", this._lang));
     } finally {
-      this._testingNotification = false;
+      if (userId) this._testingUser = "";
+      else this._testingNotification = false;
     }
   };
 
@@ -588,10 +619,28 @@ export class MaintenanceSettingsView extends LitElement {
             <span class="setting-label">${t("test_notification", L)}</span>
             <button class="ha-button secondary"
               ?disabled=${!g.notify_service || this._testingNotification}
-              @click=${this._sendTestNotification}>
+              @click=${() => this._sendTestNotification()}>
               ${this._testingNotification ? t("testing", L) : t("send_test", L)}
             </button>
           </div>
+          ${this._personTargets.length ? html`
+            <div class="notify-per-person">
+              <span class="setting-label">${t("notify_per_person", L)}</span>
+              ${this._personTargets.map((target) => html`
+                <div class="notify-person-row">
+                  <span class="notify-person-name">${target.name}</span>
+                  <span class="notify-person-target ${target.services.length ? "" : "muted"}">
+                    ${target.services.length ? target.services.join(", ") : t("notify_no_own_device", L)}
+                  </span>
+                  <button class="ha-button secondary"
+                    ?disabled=${!target.services.length || this._testingUser === target.user_id}
+                    @click=${() => this._sendTestNotification(target.user_id)}>
+                    ${this._testingUser === target.user_id ? t("testing", L) : t("send_test", L)}
+                  </button>
+                </div>
+              `)}
+            </div>
+          ` : nothing}
         ` : nothing}
       </div>
     `;
@@ -1605,6 +1654,31 @@ export class MaintenanceSettingsView extends LitElement {
       border-bottom: 1px solid var(--divider-color, #e0e0e0);
       cursor: pointer;
       gap: 12px;
+    }
+    .notify-per-person {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--divider-color, #e0e0e0);
+    }
+    .notify-person-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 0 0;
+      flex-wrap: wrap;
+    }
+    .notify-person-name {
+      font-weight: 500;
+      min-width: 120px;
+    }
+    .notify-person-target {
+      flex: 1;
+      min-width: 160px;
+      font-size: 0.9em;
+      word-break: break-word;
+      color: var(--secondary-text-color, #727272);
+    }
+    .notify-person-target.muted {
+      font-style: italic;
     }
     /* v2.27: template gallery clustered by category */
     .tpl-group { margin-top: 14px; }

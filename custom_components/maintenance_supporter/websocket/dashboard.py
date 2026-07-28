@@ -407,9 +407,7 @@ async def ws_get_budget_status(
     msg: dict[str, Any],
 ) -> None:
     """Return current budget status (monthly/yearly spent vs budget)."""
-    from datetime import datetime as dt_cls
-
-    from homeassistant.util import dt as dt_util
+    from ..helpers.budget import compute_spend
 
     global_entry = _get_global_entry(hass)
     global_options: Mapping[str, Any] = (global_entry.options or global_entry.data) if global_entry else {}
@@ -418,41 +416,10 @@ async def ws_get_budget_status(
     yearly_budget = float(global_options.get(CONF_BUDGET_YEARLY, 0))
     threshold_pct = int(global_options.get(CONF_BUDGET_ALERT_THRESHOLD, 80))
 
-    now = dt_util.now()
-    monthly_spent = 0.0
-    yearly_spent = 0.0
-
-    entries = _get_object_entries(hass)
-    for entry in entries:
-        rd = _get_runtime_data(hass, entry.entry_id)
-        store = getattr(rd, "store", None) if rd else None
-
-        for tid in entry.data.get("tasks", {}):
-            if store is not None:
-                history = store.get_history(tid)
-            else:
-                history = entry.data.get("tasks", {}).get(tid, {}).get("history", [])
-
-            for h_entry in history:
-                if h_entry.get("type") != "completed":
-                    continue
-                cost = h_entry.get("cost")
-                if not isinstance(cost, (int, float)):
-                    continue
-                ts = h_entry.get("timestamp", "")
-                try:
-                    entry_dt = dt_cls.fromisoformat(ts)
-                except (ValueError, TypeError):
-                    continue
-                # Naive timestamps from older entries: treat as HA local TZ,
-                # then normalise so year/month boundaries match `now`.
-                if entry_dt.tzinfo is None:
-                    entry_dt = entry_dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
-                entry_dt = dt_util.as_local(entry_dt)
-                if entry_dt.year == now.year:
-                    yearly_spent += cost
-                    if entry_dt.month == now.month:
-                        monthly_spent += cost
+    # Shared with the coordinator's budget cache (which drives the ALERT), so
+    # the number the panel draws and the number that triggers the notification
+    # are the same number by construction.
+    monthly_spent, yearly_spent = compute_spend(hass)
 
     currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
     currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
@@ -651,7 +618,12 @@ async def ws_update_global_settings(
 # ---------------------------------------------------------------------------
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/global/test_notification"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/global/test_notification",
+        vol.Optional("user_id"): vol.Any(str, None),
+    }
+)
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_test_notification(
@@ -659,7 +631,12 @@ async def ws_test_notification(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Send a test notification using the configured service."""
+    """Send a test notification to the household service or to ONE member.
+
+    With ``user_id`` the send goes through the same per-user resolution the
+    real reminders use, so a green result actually proves that member's phone
+    is reachable.
+    """
     from ..config_flow_options_global import (
         _get_test_result_text,
         send_test_notification,
@@ -671,11 +648,47 @@ async def ws_test_notification(
         return
 
     options = dict(global_entry.options or global_entry.data)
-    result_key = await send_test_notification(hass, options)
+    result_key = await send_test_notification(hass, options, user_id=msg.get("user_id"))
     connection.send_result(
         msg["id"],
         {
             "success": result_key == "success",
+            "result": result_key,
             "message": _get_test_result_text(hass, result_key),
         },
     )
+
+
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/notify/user_targets"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_notify_user_targets(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Report which notify services each household member resolves to.
+
+    Answers the question the settings page could not previously answer: "will
+    Bob actually get his reminders?". Resolution runs through the very same
+    helper the reminder path uses, so what is shown is what will be used — a
+    separate lookup here would be able to disagree with reality, which is the
+    failure mode that made the wrong-service bug behind #75 invisible.
+
+    Admin-only: the resolved service names carry members' device names.
+    """
+    from ..helpers.notification_manager import get_user_notify_services
+
+    targets: list[dict[str, Any]] = []
+    for user in await hass.auth.async_get_users():
+        if not user.is_active or user.system_generated:
+            continue
+        targets.append(
+            {
+                "user_id": user.id,
+                "name": user.name,
+                "services": await get_user_notify_services(hass, user.id),
+            }
+        )
+
+    connection.send_result(msg["id"], {"targets": targets})

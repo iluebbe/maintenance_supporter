@@ -46,13 +46,17 @@ export async function wsClient(restUrl, token) {
   });
   let id = 1;
   const pend = new Map();
+  const subs = new Map();
   await new Promise((res, rej) => {
     ws.onmessage = (ev) => {
       const m = JSON.parse(ev.data);
       if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
       else if (m.type === "auth_ok") res();
       else if (m.type === "auth_invalid") rej(new Error("ws auth invalid"));
-      else if (m.type === "result") {
+      else if (m.type === "event") {
+        const handler = subs.get(m.id);
+        if (handler) handler(m.event);
+      } else if (m.type === "result") {
         const p = pend.get(m.id);
         if (p) {
           pend.delete(m.id);
@@ -61,11 +65,30 @@ export async function wsClient(restUrl, token) {
       }
     };
   });
+  const send = (msg) =>
+    new Promise((res, rej) => {
+      const i = id++;
+      pend.set(i, { res, rej });
+      ws.send(JSON.stringify({ ...msg, id: i }));
+    });
   return {
-    send: (msg) =>
+    send,
+    /** Subscribe to HA events; resolves to an unsubscribe function.
+     *  Lets a live check assert on what HA ACTUALLY did (which service was
+     *  called) rather than on what a command claims it did. */
+    subscribe: (msg, onEvent) =>
       new Promise((res, rej) => {
         const i = id++;
-        pend.set(i, { res, rej });
+        pend.set(i, {
+          res: () => {
+            subs.set(i, onEvent);
+            res(async () => {
+              subs.delete(i);
+              await send({ type: "unsubscribe_events", subscription: i }).catch(() => {});
+            });
+          },
+          rej,
+        });
         ws.send(JSON.stringify({ ...msg, id: i }));
       }),
     close: () => ws.close(),

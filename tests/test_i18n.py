@@ -297,6 +297,8 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "model": frozenset({"nl", "pl", "da", "cs", "tr"}),
     "name": frozenset({"de"}),
     "part_name": frozenset({"de"}),
+    # "Photo" is the French word too.
+    "photo_label": frozenset({"fr"}),
     "normal": frozenset({"de", "fr", "es", "pt", "sv", "da", "nb", "pt-br", "tr"}),
     "priority_normal": frozenset({"de", "es", "pt", "sv", "da", "nb", "pt-br", "tr"}),
     "notes_label": frozenset({"fr"}),

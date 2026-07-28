@@ -1097,16 +1097,27 @@ async def test_budget_string_cost_no_crash(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
 ) -> None:
-    """Budget calculation handles string cost values without TypeError."""
+    """Budget calculation ignores string costs — and never raises on them.
+
+    A string cost is not producible by any supported write path (the WS
+    schemas coerce to float, the importer drops non-numerics), so it can only
+    come from a hand-edited .storage file. ``helpers/budget.is_countable_cost``
+    skips it rather than ``float()``-ing it: the lenient version also accepted
+    ``"Infinity"``/``"nan"``, which is exactly the budget poison
+    ``websocket/io.py::_sanitize_history`` was written to keep out, and it made
+    the ALERT total disagree with the panel's ``budget_status`` total.
+    """
     from datetime import datetime
 
     now = datetime.now()
     ts = now.isoformat()
     task = build_task_data(last_performed="2024-06-01")
     task["history"] = [
-        {"type": "completed", "timestamp": ts, "cost": "50.00"},  # string!
+        {"type": "completed", "timestamp": ts, "cost": "50.00"},  # string → skipped
         {"type": "completed", "timestamp": ts, "cost": 25.0},  # normal float
         {"type": "completed", "timestamp": ts, "cost": "invalid"},  # unparseable
+        {"type": "completed", "timestamp": ts, "cost": "Infinity"},  # would be inf
+        {"type": "completed", "timestamp": ts, "cost": True},  # bool is not money
     ]
     obj_entry = MockConfigEntry(
         version=1,
@@ -1127,5 +1138,5 @@ async def test_budget_string_cost_no_crash(
     # Should not raise TypeError
     coord._recalculate_budget_cache()
     cache = hass.data.get(DOMAIN, {}).get("_budget_cache", {})
-    # 50.00 (string) + 25.0 (float) = 75.0 — "invalid" skipped
-    assert cache.get("yearly_spent", 0) == pytest.approx(75.0)
+    # Only the real float counts; no NaN/inf can leak in via a string.
+    assert cache.get("yearly_spent", 0) == pytest.approx(25.0)
