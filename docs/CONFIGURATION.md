@@ -512,6 +512,8 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | `show_header` | bool | `true` | Show the count badges (Overdue / Due Soon / Triggered) |
 | `show_actions` | bool | `true` | Show the "Complete" button on each task row |
 | `show_assignee` | bool | `true` | Show the responsible user on each task row — with a rotation this is whose turn it is. Rows without an assignee show nothing; the name is resolved via `users/list` (a read-tier command, so non-admin household members see it too) |
+| `filter_labels` | list | — | Limit the card to tasks carrying at least one of these labels (OR semantics, like `filter_objects`) |
+| `show_documents` | bool | `true` | Show the task's linked documents and its documentation link as chips on the row; a web link opens directly, a stored file through a signed URL. Rows without documents render nothing |
 | `compact` | bool | `false` | Hide task metadata (interval, last performed) |
 | `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |

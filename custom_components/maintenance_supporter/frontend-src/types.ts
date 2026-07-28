@@ -330,6 +330,13 @@ export interface CardConfig {
   // Defaults to ON — with rotations the row is the only place a household
   // sees who is up next. Rows without an assignee simply render nothing.
   show_assignee?: boolean;
+  // Labels to limit the card to (v2.44). A task passes when it carries at
+  // least one of them — same OR semantics as filter_status / filter_objects.
+  filter_labels?: string[];
+  // Show the task's linked documents (and its documentation link) as chips
+  // on the row, so the manual is one tap away. Defaults to ON; rows without
+  // a document render nothing extra.
+  show_documents?: boolean;
   // Saved-view scope (v2.26): apply a saved view's task-selecting filters
   // (status / user / label) ON TOP of the card's own filters. The view's
   // sort/group dimensions are panel display state and are not applied here.

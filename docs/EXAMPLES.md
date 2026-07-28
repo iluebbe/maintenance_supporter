@@ -292,6 +292,8 @@ show_header: true
 # All filters are optional and additive. Empty / unset = show all.
 filter_status: [overdue, triggered, due_soon]
 filter_objects: [Family Car, Electric Car]
+filter_labels: [garden]        # one card per subject
+# show_documents: false        # hide the document chips on each row
 entity_ids: [sensor.hvac_system_filter_replacement, binary_sensor.family_car_oil_change_overdue]
 max_items: 10
 ```

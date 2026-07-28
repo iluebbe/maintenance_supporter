@@ -6,6 +6,12 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Card: one card per subject, and the manual one tap away** — `filter_labels`
+  limits a card to tasks carrying a given label (previously only reachable
+  through a saved view), and each row shows its linked documents plus the
+  task's documentation link as chips that open them. Both are in the visual
+  editor; `show_documents: false` turns the chips off. The card only asks the
+  backend for documents when a visible task actually has one.
 - **A task can now require details when you complete it** — a note, what it
   cost, how long it took, a photo, or who did it. Pick them per task under
   *Require on completion*; the completion dialog then marks those fields and
