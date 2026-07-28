@@ -581,6 +581,11 @@ Six Assist intents let you **query, complete and manage tasks by voice**:
   actionable tasks (overdue / due soon / triggered), most urgent first, e.g.
   *"2 maintenance tasks need attention: Oil Change on Family Car (5 days
   overdue), Filter Cleaning on Pool Pump (due today)."*
+  Since 2.44 it also takes a **scope**: *"what do I need to do?"* answers
+  with the tasks assigned to whoever is speaking (following the current
+  rotation duty), and *"what needs doing in here?"* with the tasks of the
+  room the voice satellite stands in. If the speaker or the room cannot be
+  determined, Assist says so instead of reciting the whole house.
 - **`MaintenanceSupporterCompleteTask`** — *"Complete the oil change"* — matches
   the spoken name (the object name counts too: *"oil change on the car"*),
   records a **real completion** (history, rotation, part consumption,
@@ -600,6 +605,16 @@ Six Assist intents let you **query, complete and manage tasks by voice**:
 - **`MaintenanceSupporterPartStock`** (2.28+) — *"How many water filters do we
   have left?"* — answers with the live stock, the storage location, and a
   warning when the part is at or below its reorder threshold.
+- **`MaintenanceSupporterPostponeTask`** (2.44+) — *"Postpone the oil change by
+  a week."* — defers **this occurrence only**; the recurring cadence, the
+  history and the completion count are untouched. Give days or an explicit
+  date. On a task that is already overdue the days are counted from today, so
+  *"by three days"* cannot land on a date that is still in the past. Without a
+  duration it asks for one rather than guessing, and a date in the past is
+  refused.
+- **`MaintenanceSupporterSkipTask`** (2.44+) — *"Skip the lawn mowing this
+  time."* — moves to the next cycle **without** recording work, and the answer
+  names the new due date rather than merely acknowledging the command.
 
 **LLM-based Assist pipelines** (OpenAI, Claude, Gemini, local LLMs) pick all
 intents up **automatically as tools** in any language — nothing to configure.
@@ -617,8 +632,20 @@ longer matches is left alone. If you would rather do it by hand, copy the
 shipped file into `config/custom_sentences/<lang>/` yourself and leave the
 setting off.
 
-Spoken responses are localised for en/de; other languages fall back to English
-on the classic agent (LLM agents answer in your language regardless).
+**What the assistant SAYS is translated everywhere; what it UNDERSTANDS is a
+shorter list.** The spoken responses exist in every language the panel does.
+Sentence patterns do not, and deliberately so: they are grammar rather than
+text — a placeholder cannot carry the case ending, particle or article a
+language demands of the task name inserted into it — so they ship only where
+the phrasings have been checked against a live agent, phrase by phrase.
+
+Today the classic agent understands **English, German, French, Spanish,
+Italian and Dutch**. In any other language it matches nothing at all — not
+"answers in English", but no match to answer.
+
+**LLM-based Assist pipelines are unaffected in all 22 languages**: they pick
+the intents up as tools and both ask and answer in your language, with no
+sentence files involved.
 
 > **Before 2.44** the sentence files lived outside `custom_components/` and the
 > HACS release archive did not contain them, so the file the documentation

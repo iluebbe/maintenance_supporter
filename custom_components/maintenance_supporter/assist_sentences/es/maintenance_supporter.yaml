@@ -1,0 +1,92 @@
+# Frases de Assist para Maintenance Supporter (español).
+#
+# No hace falta copiar este archivo a mano: activa Ajustes -> General ->
+# «Instalar las frases de Assist» y la integración lo escribe en
+# config/custom_sentences/es/maintenance_supporter.yaml y recarga el agente de
+# conversación. Ese es el único directorio del que el agente clásico (sin LLM)
+# lee sus frases. Las canalizaciones de Assist basadas en un LLM no necesitan
+# nada de esto: reciben las intenciones como herramientas.
+#
+# Puedes editar tu copia: en cuanto su contenido deje de coincidir con lo que
+# escribimos, las actualizaciones ya no la tocan (y desactivar el ajuste
+# tampoco la borra).
+language: "es"
+intents:
+  MaintenanceSupporterListTasks:
+    data:
+      - sentences:
+          - "qué mantenimiento (toca|hay que hacer|está pendiente)"
+          - "qué (tareas|mantenimientos) [de mantenimiento] (hay|están) pendientes"
+          - "hay (algo|algún mantenimiento) pendiente"
+          - "qué hay que (revisar|mantener)"
+      # Ámbito: quien pregunta. HA le indica al gestor quién ha hablado, así
+      # que esto responde con SUS tareas (incluido su turno en la rotación).
+      - sentences:
+          - "qué me toca [a mí] [hacer]"
+          - "qué tengo que hacer [yo]"
+          - "cuáles son mis (tareas|mantenimientos)"
+          - "tengo algo pendiente"
+        slots:
+          scope: "mine"
+      # Ámbito: la habitación desde la que se pregunta, deducida de la zona del
+      # satélite — así una tableta de pared responde por su propia habitación.
+      - sentences:
+          - "qué hay que hacer aquí"
+          - "qué mantenimiento (toca|hay) (aquí|en esta habitación)"
+          - "hay algo pendiente (aquí|en esta habitación)"
+        slots:
+          scope: "here"
+  MaintenanceSupporterCompleteTask:
+    data:
+      - sentences:
+          - "[ya] he (hecho|terminado|completado) [el|la|los|las] {task_name:name}"
+          - "marca [el|la|los|las] {task_name:name} como (hecho|hecha|terminado|terminada|completado|completada)"
+  MaintenanceSupporterTaskInstructions:
+    data:
+      - sentences:
+          - "cómo (hago|se hace) [el|la|los|las] {task_name:name}"
+          - "(instrucciones|indicaciones) para [el|la|los|las] {task_name:name}"
+          - "qué necesito para [el|la|los|las] {task_name:name}"
+  MaintenanceSupporterTaskDue:
+    data:
+      - sentences:
+          - "cuándo toca [el|la|los|las] {task_name:name}"
+          - "cuándo (hay que|tengo que) hacer [el|la|los|las] {task_name:name}"
+  MaintenanceSupporterSnoozeTask:
+    data:
+      - sentences:
+          - "(silencia|pausa) [el|la|los|las] {task_name:name}"
+          - "(silencia|pausa) los avisos (de|del|de la) {task_name:name}"
+  MaintenanceSupporterPartStock:
+    data:
+      - sentences:
+          - "cuántos {part_name:name} (nos quedan|tenemos|quedan)"
+          - "cuánto stock (hay|tenemos) de {part_name:name}"
+  MaintenanceSupporterPostponeTask:
+    data:
+      - sentences:
+          - "(aplaza|retrasa|pospón) [el|la|los|las] {task_name:name} {days} día[s]"
+          - "deja [el|la|los|las] {task_name:name} para dentro de {days} día[s]"
+      - sentences:
+          - "(aplaza|retrasa|pospón) [el|la|los|las] {task_name:name} una semana"
+        slots:
+          days: 7
+  MaintenanceSupporterSkipTask:
+    data:
+      - sentences:
+          - "(salta|sáltate) [el|la|los|las] {task_name:name} [esta vez]"
+          - "(salta|sáltate) esta (ronda|vuelta) (de|del|de la|de los|de las) {task_name:name}"
+lists:
+  # NO uses «name»: es la lista integrada de nombres de ENTIDADES de Home
+  # Assistant, que el agente por defecto resuelve antes de llamar al gestor —
+  # cualquier frase que la usara respondía «no conozco ningún dispositivo…» en
+  # vez de llegar hasta nosotros. El alias {lista:slot} mantiene el valor en el
+  # slot «name».
+  task_name:
+    wildcard: true
+  part_name:
+    wildcard: true
+  days:
+    range:
+      from: 1
+      to: 365

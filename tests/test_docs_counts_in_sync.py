@@ -74,6 +74,19 @@ def _signature_counts() -> tuple[int, int]:
     return len(SIGNATURES), sum(len(cat.tasks) for cat in SIGNATURES.values())
 
 
+def _intent_count() -> int:
+    """Registered Assist intents, read from the handler module's constants."""
+    from custom_components.maintenance_supporter import intent as intent_module
+
+    return len(
+        {
+            value
+            for name, value in vars(intent_module).items()
+            if name.startswith("INTENT_") and isinstance(value, str)
+        }
+    )
+
+
 def _ws_command_count() -> int:
     """Distinct WS command types, read from the frozen permission matrix."""
     matrix = (_ROOT / "tests" / "test_ws_permission_matrix.py").read_text(encoding="utf-8")
@@ -111,6 +124,13 @@ def test_documented_integration_and_signature_counts() -> None:
     integrations, signatures = _signature_counts()
     _assert_quoted_numbers(r"\b(\d+) integrations\b", integrations, "integrations")
     _assert_quoted_numbers(r"\b(\d+) (?:verified )?signatures\b", signatures, "signatures")
+
+
+def test_documented_intent_count() -> None:
+    """The intent list rots the same way every other count does: v2.44 added
+    two and the prose still said "six", which is the kind of claim a reader
+    checks the docs FOR."""
+    _assert_quoted_numbers(r"\b(\d+) (?:Assist |voice )?intents\b", _intent_count(), "intents")
 
 
 def test_documented_ws_command_count() -> None:

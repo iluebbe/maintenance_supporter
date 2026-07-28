@@ -85,8 +85,8 @@ native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
    itself, so LLM pipelines relay it instead of inventing steps (the tool
    description reinforces the contract). Plus `TaskDue` ("when is X due?"),
    `SnoozeTask` and `PartStock` ("how many {part} left?" — with
-   reorder-threshold warning). Still a candidate: postpone-by-voice (needs a
-   spoken date slot).
+   reorder-threshold warning). The remaining candidate from this wave,
+   postpone-by-voice, shipped in 2.44 together with skip-by-voice.
 2. ~~**Integration-aware discovery: verified entity signatures**~~ ✅
    **Shipped in v2.28.0** — a source-verified catalog
    (`helpers/integration_signatures`, method contract: every entry carries a
@@ -731,6 +731,34 @@ target what's left:
 
 ---
 
+### 🐞 Postponing an ASSIGNED task looks like it did nothing (found 2026-07-28, live-reproduced)
+
+Postpone a task that has a responsible user and the panel keeps showing it
+**overdue for ~15 seconds**. The data is correct throughout — `due_override`
+is stored immediately — but the coordinator's computed `_next_due` /
+`_status`, which every surface reads, lag behind. A user who postpones and
+sees no change will reasonably postpone again.
+
+Reproduced on a live instance, deterministic, and **not** voice-specific: the
+plain `task/postpone` WS command the panel itself uses shows it.
+
+```
+no assignee   -> next_due=2026-09-15 override=2026-09-15   (immediate)
+with assignee -> next_due=2020-01-31 override=2026-09-15   (still overdue)
+              -> converges at ~15 s, or instantly after any other task edit
+```
+
+Suspected cause: `ws_assign_user` ends with a **debounced**
+`async_request_refresh()`; the postpone's own refresh lands inside that
+cooldown and is coalesced away, so the recompute waits for the next scheduled
+poll. If that is right, the fix is for a mutation that changes the schedule to
+refresh immediately rather than share the debounce with a metadata edit —
+but the interaction deserves its own look rather than a quick patch, since
+every mutation path shares this coordinator.
+
+Worth checking at the same time whether other mutations that follow an
+assignment (skip, reset, complete) have the same lag.
+
 ## Voice, second pass — and voice with a screen (proposed 2026-07)
 
 Maintenance is one of the few domains where voice is not a gimmick: the moment
@@ -758,10 +786,12 @@ them today — only `language`. That is the whole opportunity in one sentence.
    2.44** — `test_assist_sentences.py` compares the `INTENT_*` constants
    against the keys in every shipped language file, in both directions, so a
    new intent without sentences now fails instead of shipping mute.
-3. **Postpone (and skip) by voice** — the standing candidate from the 2.28
-   wave, still open because it needs a spoken date slot. The postpone
-   mechanics (`task/postpone`, `due_override`) already exist; only the slot
-   and the sentence patterns are missing.
+3. ~~**Postpone (and skip) by voice**~~ ✅ **Shipped in 2.44** — the standing
+   candidate from the 2.28 wave. `PostponeTaskIntent` takes days or an
+   explicit date and defers only the current occurrence; on an already-overdue
+   task the days count from today, so "by three days" cannot land in the past.
+   No duration means it asks rather than guesses. `SkipTaskIntent` moves to the
+   next cycle without recording work and names the new due date.
 4. **Spoken responses cover en/de; the UI covers 22 languages.** The `_SPEECH`
    table is 31 keys × 2 languages. LLM pipelines re-phrase anyway, so this
    only hurts classic-agent users — but for them it is total. Extending the

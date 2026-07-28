@@ -45,143 +45,26 @@ INTENT_TASK_INSTRUCTIONS = "MaintenanceSupporterTaskInstructions"
 INTENT_TASK_DUE = "MaintenanceSupporterTaskDue"
 INTENT_SNOOZE_TASK = "MaintenanceSupporterSnoozeTask"
 INTENT_PART_STOCK = "MaintenanceSupporterPartStock"
+INTENT_POSTPONE_TASK = "MaintenanceSupporterPostponeTask"
+INTENT_SKIP_TASK = "MaintenanceSupporterSkipTask"
 
 _ACTIONABLE = ("due_soon", "overdue", "triggered")
 
-# Spoken responses. The LLM path re-phrases in the user's language anyway; the
-# classic sentence agent speaks these verbatim, so the languages we ship
-# sentence files for (en, de) are fully localised here — others fall back to en.
-_SPEECH: dict[str, dict[str, str]] = {
-    "none_due": {
-        "en": "Everything is OK — no maintenance needs attention.",
-        "de": "Alles in Ordnung — keine Wartung fällig.",
-    },
-    "none_due_mine": {
-        "en": "Nothing is assigned to you right now.",
-        "de": "Dir ist gerade nichts zugewiesen.",
-    },
-    "none_due_here": {
-        "en": "Nothing needs maintenance in this room.",
-        "de": "In diesem Raum ist keine Wartung fällig.",
-    },
-    "unknown_user": {
-        "en": "I don't know who is asking, so I can't tell which tasks are yours.",
-        "de": "Ich weiß nicht, wer fragt, und kann deine Aufgaben deshalb nicht bestimmen.",
-    },
-    "unknown_area": {
-        "en": "I don't know which room this device is in — assign it to an area first.",
-        "de": "Ich weiß nicht, in welchem Raum dieses Gerät steht — ordne es zuerst einem Bereich zu.",
-    },
-    "tasks_due": {
-        "en": "{count} maintenance tasks need attention: {items}.",
-        "de": "{count} Wartungsaufgaben brauchen Aufmerksamkeit: {items}.",
-    },
-    "task_due_one": {
-        "en": "One maintenance task needs attention: {items}.",
-        "de": "Eine Wartungsaufgabe braucht Aufmerksamkeit: {items}.",
-    },
-    "completed": {
-        "en": "Completed '{task}' on {object}.",
-        "de": "'{task}' an {object} als erledigt eingetragen.",
-    },
-    "not_found": {
-        "en": "I couldn't find a maintenance task matching '{name}'.",
-        "de": "Ich habe keine Wartungsaufgabe zu '{name}' gefunden.",
-    },
-    "ambiguous": {
-        "en": "That matches several tasks: {candidates}. Please be more specific.",
-        "de": "Das passt auf mehrere Aufgaben: {candidates}. Bitte formuliere genauer.",
-    },
-    "too_early": {
-        "en": "'{task}' can only be completed closer to its due date.",
-        "de": "'{task}' kann erst näher am Fälligkeitstermin erledigt werden.",
-    },
-    # status descriptors for list items
-    "st_overdue": {"en": "{days} days overdue", "de": "seit {days} Tagen überfällig"},
-    "st_due_today": {"en": "due today", "de": "heute fällig"},
-    "st_due_in": {"en": "due in {days} days", "de": "fällig in {days} Tagen"},
-    "st_triggered": {"en": "triggered", "de": "ausgelöst"},
-    "item_on": {"en": "{task} on {object}", "de": "{task} an {object}"},
-    # task due (single-task query)
-    "due_date_suffix": {
-        "en": " The next due date is {date}.",
-        "de": " Der nächste Fälligkeitstermin ist der {date}.",
-    },
-    # grounded task guidance
-    "guide_header": {
-        "en": "Stored guidance for '{task}' on {object}: {segments}.",
-        "de": "Hinterlegte Informationen zu '{task}' an {object}: {segments}.",
-    },
-    "guide_none": {
-        "en": (
-            "There are no stored instructions, documents or spare parts for "
-            "'{task}' on {object}. I can offer general, non-verified advice "
-            "instead — would you like that?"
-        ),
-        "de": (
-            "Zu '{task}' an {object} sind keine Anleitungen, Dokumente oder "
-            "Ersatzteile hinterlegt. Ich kann stattdessen allgemeine, "
-            "ungeprüfte Hinweise geben — möchtest du das?"
-        ),
-    },
-    "guide_notes": {"en": "notes: {notes}", "de": "Notizen: {notes}"},
-    "guide_checklist": {
-        "en": "{count} checklist steps: {steps}",
-        "de": "{count} Checklisten-Schritte: {steps}",
-    },
-    "guide_doc": {"en": "linked document '{title}'", "de": "verknüpftes Dokument '{title}'"},
-    "guide_doc_page": {
-        "en": "linked document '{title}', page {page}",
-        "de": "verknüpftes Dokument '{title}', Seite {page}",
-    },
-    "guide_url": {
-        "en": "a documentation link is on file",
-        "de": "ein Dokumentations-Link ist hinterlegt",
-    },
-    "guide_part": {
-        "en": "{qty} × {part} needed{extras}",
-        "de": "{qty} × {part} benötigt{extras}",
-    },
-    "guide_part_loc": {"en": "stored at {loc}", "de": "Lagerort {loc}"},
-    "guide_part_stock": {"en": "{stock} in stock", "de": "{stock} auf Lager"},
-    # snooze
-    "snoozed": {
-        "en": "Snoozed reminders for '{task}' on {object} for {hours} hours.",
-        "de": "Erinnerungen für '{task}' an {object} für {hours} Stunden stummgeschaltet.",
-    },
-    "snooze_unavailable": {
-        "en": "Notifications aren't configured, so there is nothing to snooze.",
-        "de": "Benachrichtigungen sind nicht eingerichtet — es gibt nichts stummzuschalten.",
-    },
-    # part stock
-    "stock_line": {
-        "en": "{stock} × {part} in stock{loc}{low}.",
-        "de": "{stock} × {part} auf Lager{loc}{low}.",
-    },
-    "stock_loc": {"en": " (stored at {loc})", "de": " (Lagerort: {loc})"},
-    "stock_low": {
-        "en": " — at or below the reorder threshold",
-        "de": " — an oder unter der Nachbestellgrenze",
-    },
-    "stock_untracked": {
-        "en": "Stock isn't tracked for {part}.",
-        "de": "Für {part} wird kein Bestand geführt.",
-    },
-    "part_not_found": {
-        "en": "I couldn't find a spare part matching '{name}'.",
-        "de": "Ich habe kein Ersatzteil zu '{name}' gefunden.",
-    },
-}
+# Spoken responses live in assist_sentences/responses/<lang>.json — 38 keys
+# across 22 languages is far too much to read past on the way to the
+# handlers, and a translator should not have to edit Python. The loader and
+# the English-per-key fallback live in helpers/intent_speech.
 
 
 def _sp(key: str, language: str | None, **fmt: Any) -> str:
-    # Per-request language (intent_obj.language, e.g. "de-DE") → table key,
-    # same normalization rule as helpers/i18n (which is hass-bound).
-    from .helpers.i18n import normalize_language_code
+    """Spoken text for *key*, in the requesting language.
 
-    lang = normalize_language_code(language)
-    table = _SPEECH[key]
-    return table.get(lang, table["en"]).format(**fmt)
+    Thin seam on purpose: every handler already calls ``_sp``, so the move
+    to per-language files needed no changes at the call sites.
+    """
+    from .helpers.intent_speech import speak
+
+    return speak(key, language, **fmt)
 
 
 def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
@@ -288,11 +171,17 @@ def _describe(task: dict[str, Any], language: str | None) -> str:
     if task["status"] == "triggered":
         desc = _sp("st_triggered", language)
     elif isinstance(days, int) and days < 0:
-        desc = _sp("st_overdue", language, days=-days)
+        # "1 days overdue" was shipped in English and German alike; a single
+        # string cannot inflect, so the singular is its own key. Several
+        # languages need it far more than English does — Czech, Russian and
+        # Ukrainian govern the noun's case by the numeral.
+        key = "st_overdue_one" if days == -1 else "st_overdue"
+        desc = _sp(key, language, days=-days)
     elif days == 0:
         desc = _sp("st_due_today", language)
     elif isinstance(days, int):
-        desc = _sp("st_due_in", language, days=days)
+        key = "st_due_in_one" if days == 1 else "st_due_in"
+        desc = _sp(key, language, days=days)
     else:
         desc = task["status"]
     return f"{_sp('item_on', language, task=task['name'], object=task['object_name'])} ({desc})"
@@ -338,12 +227,20 @@ def _resolve_single(
 
 async def async_setup_intents(hass: HomeAssistant) -> None:
     """Register the Maintenance Supporter intents."""
+    # Read the response texts now, in the executor: a handler answering a
+    # spoken question must not block the event loop on disk.
+    from .helpers.intent_speech import async_load
+
+    await async_load(hass)
+
     intent.async_register(hass, ListTasksIntent())
     intent.async_register(hass, CompleteTaskIntent())
     intent.async_register(hass, TaskInstructionsIntent())
     intent.async_register(hass, TaskDueIntent())
     intent.async_register(hass, SnoozeTaskIntent())
     intent.async_register(hass, PartStockIntent())
+    intent.async_register(hass, PostponeTaskIntent())
+    intent.async_register(hass, SkipTaskIntent())
 
 
 class ListTasksIntent(intent.IntentHandler):
@@ -740,5 +637,166 @@ class PartStockIntent(intent.IntentHandler):
         )
         response.async_set_speech(
             _sp("stock_line", lang, stock=part["stock"], part=part["name"], loc=loc, low=low)
+        )
+        return response
+
+
+def _resolve_coordinator(
+    intent_obj: intent.Intent, target: dict[str, Any], name: str
+) -> tuple[Any, intent.IntentResponse | None]:
+    """The coordinator behind a matched task, or a spoken failure."""
+    entry = intent_obj.hass.config_entries.async_get_entry(target["entry_id"])
+    rd = getattr(entry, "runtime_data", None)
+    coordinator = getattr(rd, "coordinator", None) if rd else None
+    if coordinator is None:
+        response = intent_obj.create_response()
+        response.async_set_error(
+            intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
+            _sp("not_found", intent_obj.language, name=name),
+        )
+        return None, response
+    return coordinator, None
+
+
+class PostponeTaskIntent(intent.IntentHandler):
+    """Defer just this occurrence of a task, spoken."""
+
+    intent_type = INTENT_POSTPONE_TASK
+    description = (
+        "Postpones the CURRENT occurrence of a home-maintenance task to a later "
+        "date without completing it; the recurring cadence is untouched. Give "
+        "either days (how many days to push it back) or date (YYYY-MM-DD). Use "
+        "for 'postpone the oil change by a week'. This is not the same as "
+        "snoozing, which only mutes reminders."
+    )
+    slot_schema = {
+        vol.Required("name"): cv.string,
+        vol.Optional("days"): vol.Coerce(int),
+        vol.Optional("date"): cv.string,
+    }
+
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
+        """Handle the intent."""
+        from datetime import date as date_cls
+        from datetime import timedelta
+
+        from homeassistant.util import dt as dt_util
+
+        hass = intent_obj.hass
+        slots = self.async_validate_slots(intent_obj.slots)
+        name = str(slots["name"]["value"]).strip()
+        lang = intent_obj.language
+
+        target, err = _resolve_single(intent_obj, name, _task_snapshot(hass))
+        if err is not None:
+            return err
+        assert target is not None
+        response = intent_obj.create_response()
+
+        today = dt_util.now().date()
+        spoken_date = slots.get("date", {}).get("value")
+        days = slots.get("days", {}).get("value")
+
+        if spoken_date:
+            try:
+                until = date_cls.fromisoformat(str(spoken_date))
+            except ValueError:
+                response.async_set_error(
+                    intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
+                    _sp("postpone_needs_when", lang),
+                )
+                return response
+        elif days is not None:
+            # Counted from the due date, or from today when that has already
+            # passed: "postpone by three days" on a task that went overdue last
+            # month must not land on a date that is still in the past.
+            base = today
+            next_due = target.get("next_due")
+            if next_due:
+                try:
+                    base = max(date_cls.fromisoformat(str(next_due)[:10]), today)
+                except ValueError:
+                    base = today
+            until = base + timedelta(days=int(days))
+        else:
+            response.async_set_error(
+                intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
+                _sp("postpone_needs_when", lang),
+            )
+            return response
+
+        if until <= today:
+            response.async_set_error(
+                intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
+                _sp("postpone_past", lang, task=target["name"]),
+            )
+            return response
+
+        coordinator, err = _resolve_coordinator(intent_obj, target, name)
+        if err is not None:
+            return err
+
+        await coordinator.async_postpone_task(target["task_id"], until)
+        response.async_set_speech(
+            _sp(
+                "postponed",
+                lang,
+                task=target["name"],
+                object=target["object_name"],
+                date=until.isoformat(),
+            )
+        )
+        return response
+
+
+class SkipTaskIntent(intent.IntentHandler):
+    """Skip the current cycle of a task, spoken."""
+
+    intent_type = INTENT_SKIP_TASK
+    description = (
+        "Skips the CURRENT cycle of a home-maintenance task: the task is not "
+        "recorded as done, and the schedule moves on to the next occurrence. "
+        "Use for 'skip the lawn mowing this time'."
+    )
+    slot_schema = {vol.Required("name"): cv.string}
+
+    async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
+        """Handle the intent."""
+        hass = intent_obj.hass
+        slots = self.async_validate_slots(intent_obj.slots)
+        name = str(slots["name"]["value"]).strip()
+        lang = intent_obj.language
+
+        target, err = _resolve_single(intent_obj, name, _task_snapshot(hass))
+        if err is not None:
+            return err
+        assert target is not None
+
+        coordinator, err = _resolve_coordinator(intent_obj, target, name)
+        if err is not None:
+            return err
+
+        await coordinator.skip_maintenance(target["task_id"])
+
+        # Read the new due date back so the answer says what actually happened
+        # rather than just acknowledging the command.
+        fresh = next(
+            (
+                t
+                for t in _task_snapshot(hass)
+                if t["entry_id"] == target["entry_id"] and t["task_id"] == target["task_id"]
+            ),
+            None,
+        )
+        due = str((fresh or {}).get("next_due") or "")[:10]
+        response = intent_obj.create_response()
+        response.async_set_speech(
+            _sp(
+                "skipped",
+                lang,
+                task=target["name"],
+                object=target["object_name"],
+                date=due or "?",
+            )
         )
         return response
