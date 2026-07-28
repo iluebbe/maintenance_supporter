@@ -333,6 +333,11 @@ export interface CardConfig {
   // Labels to limit the card to (v2.44). A task passes when it carries at
   // least one of them — same OR semantics as filter_status / filter_objects.
   filter_labels?: string[];
+  // HA area ids to limit the card to (C8). A task passes when its parent
+  // OBJECT sits in one of these areas — same OR semantics as filter_objects,
+  // and ANDed with every other filter. Objects without an area never match a
+  // non-empty list. Empty / unset = no area filtering.
+  filter_areas?: string[];
   // Show the task's linked documents (and its documentation link) as chips
   // on the row, so the manual is one tap away. Defaults to ON; rows without
   // a document render nothing extra.

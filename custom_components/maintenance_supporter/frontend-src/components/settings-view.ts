@@ -36,6 +36,8 @@ interface SettingsResponse {
     notify_targets?: string[];
     panel_enabled: boolean;
     panel_title: string;
+    /** Opt-in copy of the shipped Assist sentences into the config dir. */
+    install_assist_sentences?: boolean;
   };
   notifications: {
     due_soon_enabled: boolean;
@@ -601,6 +603,12 @@ export class MaintenanceSettingsView extends LitElement {
               @change=${(e: Event) => this._updateSetting("panel_title", (e.target as HTMLInputElement).value.trim())} />
           </label>
         ` : ""}
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_install_assist_sentences", L)}</span>
+          <input type="checkbox" .checked=${g.install_assist_sentences ?? false}
+            @change=${(e: Event) => this._updateSetting("install_assist_sentences", (e.target as HTMLInputElement).checked)} />
+        </label>
+        <div class="setting-hint">${t("settings_install_assist_sentences_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_notifications", L)}</span>
           <input type="checkbox" .checked=${g.notifications_enabled}

@@ -746,27 +746,18 @@ them today — only `language`. That is the whole opportunity in one sentence.
 
 ### A. Close the gaps in what already ships
 
-1. **The sentence files never reach a HACS install.** 🔴
-   `assist/custom_sentences/` lives outside `custom_components/`, and
-   `hacs.json` ships `zip_release` with `maintenance_supporter.zip` — so the
-   archive contains the integration only. FEATURES calls them *"the shipped
-   sentence files"* and links a repo-relative path; a HACS user has neither
-   the file nor that path, and the classic Assist agent therefore matches
-   none of our sentences. Two steps, and the second is the actual fix:
-   - immediately: say plainly that the file has to be fetched from GitHub and
-     link the raw URL instead of a relative one;
-   - properly: **write the sentences ourselves** on setup into
-     `config/custom_sentences/<lang>/maintenance_supporter.yaml`, behind an
-     opt-in setting, then call `conversation.reload`. Verified: the default
-     agent loads custom sentences *only* from that directory
-     (`default_agent.py:1073`) — there is no integration-provided path — but
-     nothing stops us from writing the file the user would otherwise copy.
-     Needs a content hash so a file the user edited is never overwritten, and
-     removal on uninstall.
-2. **Nothing checks the sentence YAML against the intents.** A seventh intent
-   can ship with no sentences and no test fails. A tripwire comparing the
-   `INTENT_*` constants in `intent.py` against the keys in both YAML files is
-   an hour of work and closes a silent-regression class.
+1. ~~**The sentence files never reach a HACS install.**~~ ✅ **Fixed in 2.44** —
+   they lived outside `custom_components/`, so the `zip_release` archive never
+   carried them and the classic Assist agent matched none of our intents (LLM
+   pipelines were unaffected, which is why nobody noticed). They now ship
+   inside the integration, and the opt-in `install_assist_sentences` setting
+   copies them into `config/custom_sentences/<lang>/` and reloads the
+   conversation agent. Every installed file carries a checksum of its own
+   content, so a file the user edited is never overwritten or deleted.
+2. ~~**Nothing checks the sentence YAML against the intents.**~~ ✅ **Fixed in
+   2.44** — `test_assist_sentences.py` compares the `INTENT_*` constants
+   against the keys in every shipped language file, in both directions, so a
+   new intent without sentences now fails instead of shipping mute.
 3. **Postpone (and skip) by voice** — the standing candidate from the 2.28
    wave, still open because it needs a spoken date slot. The postpone
    mechanics (`task/postpone`, `due_override`) already exist; only the slot

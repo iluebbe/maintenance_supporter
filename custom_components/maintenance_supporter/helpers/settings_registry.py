@@ -42,6 +42,7 @@ from ..const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
@@ -135,6 +136,7 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_ACTION_SNOOZE_ENABLED, bool),
     SettingSpec(CONF_SNOOZE_DURATION_HOURS, int, int_range=(1, 168)),
     SettingSpec(CONF_WEEKLY_DIGEST_ENABLED, bool),
+    SettingSpec(CONF_INSTALL_ASSIST_SENTENCES, bool),
     SettingSpec(CONF_WARRANTY_REMINDER_ENABLED, bool),
     SettingSpec(CONF_WARRANTY_REMINDER_DAYS, int, int_range=(1, 365)),
     # List of days-before-due (bespoke int-list sanitiser in the WS handler).

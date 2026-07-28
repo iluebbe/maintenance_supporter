@@ -25,6 +25,12 @@ jobs:
       - name: Verify zip structure
         run: |
           unzip -l maintenance_supporter.zip | grep -q " manifest.json$" || { echo "manifest.json not at zip root"; exit 1; }
+          # The Assist sentence files once lived outside custom_components/ and
+          # so were absent from every release, leaving the classic conversation
+          # agent unable to match any of our intents — silently, because LLM
+          # pipelines were unaffected. Fail the release rather than ship that again.
+          unzip -l maintenance_supporter.zip | grep -q "assist_sentences/en/maintenance_supporter.yaml$" \
+            || { echo "Assist sentence files missing from the release ZIP"; exit 1; }
       - name: Upload release asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
