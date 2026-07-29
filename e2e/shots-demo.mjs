@@ -396,10 +396,41 @@ const seed = preSeeded ? null : await (async () => {
           type: "maintenance_supporter/task/update", entry_id: em.entry_id,
           task_id: descTask.id, name: descTask.name, task_type: descTask.type,
           consumes_parts: [{ part_id: desc.part_id, quantity: 1 }],
+          // (2.44) Demands a note and the cost before it counts as done — the
+          // required-completion GIF records the Complete button staying
+          // disabled until they are filled. Deliberately NOT the first overdue
+          // row, which flowComplete in gifs-demo.mjs completes in one tap.
+          required_completion_fields: ["notes", "cost"],
         });
       }
     }
   } catch (e) { log("parts seed skipped:", String(e && e.message || e)); }
+
+  // A pool-pump cartridge sitting ONE above its reorder threshold, consumed by
+  // the overdue Impeller Cleaning. Completing that task therefore crosses the
+  // threshold live and the "Buy ..." reminder appears on its own — which is
+  // the whole point of the parts-auto-buy GIF. It has to be its own part:
+  // the Espresso Machine's stock feeds parts-section.png, and dropping that
+  // to 2 would rewrite a screenshot to serve a recording.
+  try {
+    const pump = objs.objects.find((x) => x.object.name === "Pool Pump");
+    if (pump) {
+      const cart = await send({
+        type: "maintenance_supporter/part/create", entry_id: pump.entry_id,
+        name: "Pump filter cartridge", vendor: "Intex", mpn: "29005",
+        storage_location: "Garden shed, shelf A", unit: "pcs", cost: 12.4,
+        stock: 2, reorder_threshold: 1, restock_quantity: 4, auto_buy_task: true,
+      });
+      const impeller = pump.tasks.find((x) => /impeller/i.test(x.name));
+      if (impeller) {
+        await send({
+          type: "maintenance_supporter/task/update", entry_id: pump.entry_id,
+          task_id: impeller.id, name: impeller.name, task_type: impeller.type,
+          consumes_parts: [{ part_id: cart.part_id, quantity: 1 }],
+        });
+      }
+    }
+  } catch (e) { log("pump part seed skipped:", String(e && e.message || e)); }
 
   return { patched, objects: objs.objects.length, carEntry: car && car.entry_id, oilTaskId: oil && oil.id };
 })();
