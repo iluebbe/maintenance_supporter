@@ -21,7 +21,10 @@ import { wsClient, watchdog } from "./ws-client.mjs";
 const REST = "http://127.0.0.1:8131";           // host-side REST
 const HA = "http://ha-shots:8123";              // browser-side (docker net)
 const PW_WS = "ws://127.0.0.1:3000/";
-const CID = REST + "/";
+// The client_id must be the origin the BROWSER uses, not the host-side REST
+// one: the frontend stores clientId next to the token and bounces to
+// /auth/authorize when they disagree, which reads as "panel never mounted".
+const CID = HA + "/";
 const USER = "demo", PASS = "demo-pass-1";
 const OUT = new URL("../docs/images/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 

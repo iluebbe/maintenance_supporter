@@ -25,7 +25,11 @@ import { watchdog } from "./ws-client.mjs";
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
 const PW_WS = "ws://127.0.0.1:3000/";
-const CID = REST + "/";
+// The client_id must be the origin the BROWSER will use, not the host-side
+// REST one: the frontend stores `clientId` alongside the token and bounces to
+// /auth/authorize when the two disagree, which looks exactly like "the panel
+// never mounted".
+const CID = HA + "/";
 const VIDEO_DIR = join(process.cwd(), "..", "docs", "images", "gifs", ".video-tmp");
 const GIF_DIR = join(process.cwd(), "..", "docs", "images", "gifs");
 const log = (...a) => console.log(...a);
