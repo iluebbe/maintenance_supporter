@@ -29,36 +29,39 @@ from custom_components.maintenance_supporter.helpers.assist_sentences import (
 )
 
 
+_INSTALL_ROOT: Path | None = None
+
+
 def _installed(hass: HomeAssistant, language: str) -> Path:
-    return Path(hass.config.path("custom_sentences", language, "maintenance_supporter.yaml"))
+    assert _INSTALL_ROOT is not None, "the isolation fixture did not run"
+    return _INSTALL_ROOT / language / "maintenance_supporter.yaml"
 
 
 @pytest.fixture(autouse=True)
-def _clean_config_sentences(hass: HomeAssistant):
-    """Give every test an empty ``custom_sentences/``.
+def _isolated_install_dir(tmp_path, monkeypatch):
+    """Install into a per-test directory, never the shared test config.
 
-    The test ``hass`` fixture hands out a FIXED config directory, so anything
-    written here outlives the test that wrote it — and this module deliberately
-    leaves edited files behind. Without this, one test's leftovers made the
-    next one skip its install and fail for the wrong reason, and the repo's
-    testing_config directory slowly filled with generated YAML.
+    The `hass` fixture hands out a FIXED config directory shared by every
+    worker. Under `pytest -n auto` that made this module race with
+    `test_ws_roundtrip`, which sets `install_assist_sentences: True` and so
+    triggers a real install into the same place — the failure showed up as
+    "installing twice is a no-op" seeing a file it had not written.
+
+    A per-test root removes the shared state entirely, which is better than
+    cleaning up after it: nothing to leak, and nothing to collide with.
     """
+    from custom_components.maintenance_supporter.helpers import assist_sentences
 
-    def _wipe() -> None:
-        for language in available_languages():
-            target = _installed(hass, language)
-            if target.exists():
-                target.unlink()
-            # Remove the language dir too when we emptied it.
-            if target.parent.is_dir() and not any(target.parent.iterdir()):
-                target.parent.rmdir()
-        root = Path(hass.config.path("custom_sentences"))
-        if root.is_dir() and not any(root.iterdir()):
-            root.rmdir()
-
-    _wipe()
+    global _INSTALL_ROOT
+    root = tmp_path / "custom_sentences"
+    _INSTALL_ROOT = root
+    monkeypatch.setattr(
+        assist_sentences,
+        "_target",
+        lambda hass, language: root / language / assist_sentences._FILENAME,
+    )
     yield
-    _wipe()
+    _INSTALL_ROOT = None
 
 
 # ─── the packaging defect itself ──────────────────────────────────────────
@@ -305,3 +308,48 @@ def test_the_responses_directory_is_not_mistaken_for_a_language() -> None:
     """
     assert (_PACKAGE_DIR / "responses").is_dir(), "the responses directory moved"
     assert "responses" not in available_languages()
+
+
+# ─── the defensive paths ──────────────────────────────────────────────────
+
+
+def test_no_package_directory_means_no_languages(tmp_path, monkeypatch) -> None:
+    from custom_components.maintenance_supporter.helpers import assist_sentences
+
+    monkeypatch.setattr(assist_sentences, "_PACKAGE_DIR", tmp_path / "missing")
+    assert assist_sentences.available_languages() == []
+
+
+def test_an_unreadable_shipped_file_is_reported_as_no_body(tmp_path, monkeypatch) -> None:
+    from custom_components.maintenance_supporter.helpers import assist_sentences
+
+    monkeypatch.setattr(assist_sentences, "_PACKAGE_DIR", tmp_path)
+    assert assist_sentences._body("nope") is None
+
+
+async def test_an_unremovable_file_does_not_raise(hass: HomeAssistant) -> None:
+    """Turning the setting off on a read-only config dir must not blow up
+    setup — it is a cleanup, not a correctness step.
+
+    Patched as a context manager rather than via monkeypatch: unlink is what
+    this module's own cleanup fixture uses, so a patch outliving the call
+    breaks the teardown instead of the code under test.
+    """
+    from unittest.mock import patch as mock_patch
+
+    await async_sync(hass, True)
+    with mock_patch(
+        "custom_components.maintenance_supporter.helpers.assist_sentences.Path.unlink",
+        side_effect=OSError("read-only"),
+    ):
+        written, _skipped = await async_sync(hass, False)
+    assert written == []
+
+
+def test_a_file_without_our_stamp_is_not_ours() -> None:
+    from custom_components.maintenance_supporter.helpers.assist_sentences import _is_ours, _stamped
+
+    body = "language: en\nintents: {}\n"
+    assert _is_ours(_stamped(body))
+    assert not _is_ours(body)
+    assert not _is_ours("# maintenance_supporter:managed deadbeef\n" + body)
