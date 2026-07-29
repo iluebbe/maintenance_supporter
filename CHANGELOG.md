@@ -2,6 +2,41 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.44.1] - 2026-07-29
+
+### 🐛 Fixed
+
+- **The "reload to update the panel" notice would not go away** (#112) — 2.44.0
+  shipped a frontend bundle built *before* the version was bumped, so the panel
+  compared the version the integration reports against the older one stamped
+  into the JavaScript, concluded the browser was holding a stale cached file,
+  and said so permanently. Reloading or clearing caches could not help: the
+  served bundle really did carry the older version. Nothing was actually
+  missing — the bundle's *contents* were the 2.44 frontend all along, so the
+  warning was a false alarm about an otherwise correct install.
+  Two guards now make this class of mistake fail the build: every bundle
+  carries a readable version banner that a test compares against
+  `manifest.json`, and CI diffs a fresh build against the committed one, so a
+  fix that lives only in the source and never reaches a browser is caught too.
+- **The printable object report was unreadable on a dark phone** — the report
+  and the work sheet are self-contained documents handed to the operating
+  system, and in the Companion app that means a WebView, which on a dark theme
+  paints a dark page. Both set a dark text colour and left the background to
+  the viewer, so the report arrived black-on-black with only the pale row
+  borders showing as stripes (measured contrast 1.08:1). They now declare their
+  own light scheme and paint their own background — a printed sheet has no
+  theme — which puts both schemes at 17.4:1. The QR print sheet got the same
+  treatment; its codes carry their own quiet zone and stayed scannable.
+
+### 📚 Documentation
+
+- All screenshots and explainer GIFs regenerated, and six new clips: the sensor
+  threshold behind a *Triggered* task, a spare part crossing its reorder point
+  and creating its own *"Buy …"* reminder, the Complete button refusing to
+  enable until a task's required details are filled, the schedule preview
+  recomputing as the cadence changes, a shared chore rotating to the next
+  person, and the per-object report.
+
 ## [2.44.0] - 2026-07-29
 
 ### ✨ Added
