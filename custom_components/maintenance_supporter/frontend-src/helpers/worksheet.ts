@@ -83,11 +83,17 @@ export function buildTaskWorksheetHtml(
       : "";
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>${esc(task.name)} — ${esc(L.title)}</title>
+<html><head><meta charset="utf-8"><meta name="color-scheme" content="light">
+<title>${esc(task.name)} — ${esc(L.title)}</title>
 <style>
+  /* A work sheet is meant to be printed or read as a sheet, so it must not
+     inherit the phone's dark theme: the Companion app opens it in a WebView
+     that paints a dark canvas, and this dark text would vanish against it.
+     See the same note in report.ts. */
+  :root { color-scheme: light; }
   @page { size: A4; margin: 14mm; }
   * { box-sizing: border-box; }
-  body { font: 13px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; color: #111; margin: 0; }
+  body { font: 13px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; color: #111; background: #fff; margin: 0; }
   header { display: flex; justify-content: space-between; align-items: flex-start;
            border-bottom: 3px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
   h1 { font-size: 22px; margin: 0 0 2px; }

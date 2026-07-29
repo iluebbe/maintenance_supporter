@@ -73,10 +73,19 @@ export function buildObjectReportHtml(
   const totalCost = tasks.reduce((n, t) => n + (t.total_cost ?? 0), 0);
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <title>${esc(labels.title)} — ${esc(obj.name)}</title>
 <style>
+  /* This is a PRINTABLE sheet, not part of the app's theme: it opens as a
+     blob in whatever viewer the OS supplies. In the Companion app that is a
+     WebView, and a WebView on a dark-themed phone paints a DARK default
+     canvas — against which the dark body text below disappeared completely,
+     leaving only the pale row borders showing as stripes. Declaring the
+     scheme AND painting the background keeps the sheet identical everywhere,
+     and matches what comes out of a printer. */
+  :root { color-scheme: light; }
   * { box-sizing: border-box; }
-  body { font: 13px/1.5 -apple-system, Segoe UI, Roboto, sans-serif; color: #1a1a1a; margin: 32px; }
+  body { font: 13px/1.5 -apple-system, Segoe UI, Roboto, sans-serif; color: #1a1a1a; background: #fff; margin: 32px; }
   h1 { font-size: 22px; margin: 0 0 2px; }
   .sub { color: #666; margin: 0 0 20px; }
   .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px 24px; margin-bottom: 20px; }
