@@ -1,5 +1,5 @@
-/*! maintenance_supporter frontend 2.44.0 */
-import{a as r}from"./chunk-ZIUIMIVN.js";var a=r`
+/*! maintenance_supporter frontend 2.44.1 */
+import{a as r}from"./chunk-RLJYCMAK.js";var a=r`
   ha-card { overflow: hidden; }
   .card-content {
     padding: 16px;
