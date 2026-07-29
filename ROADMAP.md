@@ -11,14 +11,20 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
-### 🐞 Battery Fleet: silent under-reporting (found 2026-07-22, live-audited)
+### ✅ Battery Fleet: silent under-reporting (found 2026-07-22) — all four causes fixed
 
 **Correctness before features.** A live audit against a 27-note production
 fleet found the fleet reporting **0 batteries to replace** while **11 were
 already overdue** (up to 272 days) and **2 more sat below the native low
 threshold**. Four independent causes, all in
-`helpers/battery_fleet.py::read_batteries`. B1 + B3 are small, low-risk edits
-with the largest effect.
+`helpers/battery_fleet.py::read_batteries` — **B1-B4 all shipped** (2026-07-25
+and -26); the detail is kept below because the reasoning is what makes the
+regression tests legible.
+
+**One open question, not a bug** (B1's follow-up): a battery that is overdue
+only by *forecast* lands in `needs_soon` and does not raise the low-count
+sensor, so the fleet task still does not trigger on it. Whether "forecast
+overdue" should count as due is a design decision, not a defect.
 
 B1. ✅ **Forecast-only notes are dropped before the forecast can run** (the
    big one) — **shipped 2026-07-25**: the drop check became
@@ -30,10 +36,8 @@ B1. ✅ **Forecast-only notes are dropped before the forecast can run** (the
    Battery Notes entries WITHOUT a `source_entity_id` carrying only
    `battery_type` + `battery_last_replaced` were discarded before
    `build_overview()`; in the audited fleet this hid **15 of 27 notes**,
-   **11 of them already overdue** (worst case 272 days). Open follow-up
-   (💡): forecast-overdue batteries land in `needs_soon` — they do NOT
-   raise the low-count sensor, so the fleet task still doesn't trigger on
-   them; decide whether "forecast overdue" should count as due.
+   **11 of them already overdue** (worst case 272 days). Its follow-up
+   question is stated once at the top of this section.
 
 B2. ✅ **Two different low thresholds** — **shipped 2026-07-26**: the
    NATIVE_LOW_PERCENT floor (20 %) is OR-ed into the Battery-Notes branch;
@@ -69,9 +73,9 @@ B4. ✅ **Rechargeables are treated as replaceable batteries** — **shipped
    paired through non-Companion integrations, other rechargeables (BLE
    trackers, toothbrushes).
 
-**Regression guard:** (a) forecast-only note ✅ and (c) dead note + live
-native sensor ✅ shipped with B1/B3 above; (b) a note at 11.5 % against a
-10 % threshold belongs to B2 and stays open with it.
+**Regression guard:** all three audit cases are covered — (a) forecast-only
+note and (c) dead note + live native sensor shipped with B1/B3, and (b) a note
+at 11.5 % against a 10 % threshold shipped with B2.
 
 ### Next wave (proposed 2026-07)
 
@@ -880,7 +884,7 @@ every mutation path shares this coordinator.
 Worth checking at the same time whether other mutations that follow an
 assignment (skip, reset, complete) have the same lag.
 
-## Voice, second pass — and voice with a screen (proposed 2026-07)
+## Voice, second pass — and voice with a screen (A + B + C8 shipped 2.44/2.45; C9 + D open)
 
 Maintenance is one of the few domains where voice is not a gimmick: the moment
 you need the information is the moment your hands are dirty, gloved, or holding
