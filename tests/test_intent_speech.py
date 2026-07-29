@@ -210,3 +210,77 @@ def test_the_singular_keys_take_no_placeholder() -> None:
         texts = load_language(language)
         for key in ("st_overdue_one", "st_due_in_one"):
             assert not _PLACEHOLDER.findall(texts[key]), f"{language}/{key}: {texts[key]!r}"
+
+
+# ─── the paths that only run when something is wrong ──────────────────────
+
+
+def test_a_missing_response_directory_degrades_to_the_key(tmp_path, monkeypatch) -> None:
+    """A partial install must not take every spoken answer down with it."""
+    from custom_components.maintenance_supporter.helpers import intent_speech
+
+    monkeypatch.setattr(intent_speech, "_RESPONSE_DIR", tmp_path / "gone")
+    monkeypatch.setattr(intent_speech, "_TABLE", {})
+    assert intent_speech.available_languages() == []
+    assert intent_speech._load_all() == {}
+    assert intent_speech.speak("none_due", "en") == "none_due"
+
+
+def test_an_unreadable_response_file_is_skipped_not_fatal(tmp_path, monkeypatch) -> None:
+    """One corrupt file must cost that language, not the whole table."""
+    from custom_components.maintenance_supporter.helpers import intent_speech
+
+    (tmp_path / "en.json").write_text('{"none_due": "All good."}', encoding="utf-8")
+    (tmp_path / "de.json").write_text("{ this is not json", encoding="utf-8")
+    monkeypatch.setattr(intent_speech, "_RESPONSE_DIR", tmp_path)
+
+    table = intent_speech._load_all()
+    assert set(table) == {"en"}, "a broken file took a good one with it"
+
+
+def test_a_non_object_response_file_is_ignored(tmp_path, monkeypatch) -> None:
+    from custom_components.maintenance_supporter.helpers import intent_speech
+
+    (tmp_path / "en.json").write_text('["not", "a", "map"]', encoding="utf-8")
+    monkeypatch.setattr(intent_speech, "_RESPONSE_DIR", tmp_path)
+    assert intent_speech._load_all() == {}
+
+
+def test_a_stray_placeholder_falls_back_instead_of_raising(monkeypatch) -> None:
+    """`str.format` raises on an unknown placeholder, and it would raise while
+    answering a spoken question. The parity gate keeps this unreachable; this
+    proves what happens if it ever is reached."""
+    from custom_components.maintenance_supporter.helpers import intent_speech
+
+    monkeypatch.setattr(
+        intent_speech,
+        "_TABLE",
+        {"de": {"k": "{nonexistent} kaputt"}, "en": {"k": "{task} is fine"}},
+    )
+    assert intent_speech.speak("k", "de", task="Descale") == "Descale is fine"
+
+
+def test_a_stray_placeholder_in_english_too_returns_the_raw_text(monkeypatch) -> None:
+    from custom_components.maintenance_supporter.helpers import intent_speech
+
+    monkeypatch.setattr(
+        intent_speech,
+        "_TABLE",
+        {"de": {"k": "{nope} x"}, "en": {"k": "{alsonope} y"}},
+    )
+    assert intent_speech.speak("k", "de", task="X") == "{alsonope} y"
+
+
+async def test_async_load_is_idempotent(hass) -> None:
+    """It is called on every intent registration; re-reading 22 files each
+    time would be waste."""
+    from custom_components.maintenance_supporter.helpers import intent_speech
+
+    intent_speech._TABLE.clear()
+    await intent_speech.async_load(hass)
+    first = dict(intent_speech._TABLE)
+    assert first
+    intent_speech._TABLE["marker"] = {"x": "y"}
+    await intent_speech.async_load(hass)
+    assert "marker" in intent_speech._TABLE, "async_load re-read an already-loaded table"
+    intent_speech._TABLE.pop("marker", None)
