@@ -149,7 +149,13 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         return
 
     heirs = borrowers_of(hass, owner_id)
-    if not heirs:
+    if not heirs:  # pragma: no cover - unreachable while the two scans agree
+        # ``borrowed_part_ids`` above already found a link, and it matches on
+        # exactly the same condition as ``borrowers_of`` (same owner skip, same
+        # entry_id compare), so a non-empty ``wanted`` implies a non-empty
+        # ``heirs``. Kept because the two are separate functions: if one filter
+        # ever grows a condition the other lacks, this returns instead of
+        # raising IndexError on the next line.
         return
     heir = heirs[0]
 
