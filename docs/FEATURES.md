@@ -20,6 +20,39 @@ object with typical tasks pre-configured:
 
 ![Complete a task](images/gifs/complete-task.gif)
 
+**Why is this task due? Because a sensor said so** — the threshold behind the
+*Triggered* badge, with the live reading next to it:
+
+![Sensor trigger](images/gifs/sensor-trigger.gif)
+
+**Parts that reorder themselves** — completing a task consumes its parts; when
+the stock crosses the reorder threshold, the *"Buy …"* reminder appears on its
+own, no automation involved:
+
+![Spare part crossing its threshold](images/gifs/parts-auto-buy.gif)
+
+**A task can demand details before it counts as done** (2.44) — *Complete*
+stays disabled until the required fields are filled, on every surface:
+
+![Required completion details](images/gifs/required-details.gif)
+
+**The next dates while you type** — change the cadence and the preview
+recomputes, so a schedule is right before it is saved:
+
+![Schedule preview](images/gifs/schedule-preview.gif)
+
+**Shared chores hand over** — completing one moves the duty to the next person
+in the rotation:
+
+![Duty rotation](images/gifs/duty-rotation.gif)
+
+**A printable report per object**, in the object's ⋮ menu — print it or save it
+as a PDF:
+
+![Object report](images/gifs/object-report.gif)
+
+![The printable maintenance report](images/object-report.png)
+
 **Calendar card, filtered to one object** (`object_filter`, v2.40):
 
 ![Calendar object filter](images/gifs/calendar-object-filter.gif)
