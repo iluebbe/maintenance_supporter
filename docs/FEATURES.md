@@ -94,6 +94,21 @@ Completing the auto-created *Buy…* reminder asks for the **quantity bought**
 
 ![Buy-task complete dialog](images/parts-buy-dialog.png)
 
+**One stock for several appliances (2.45+, #111).** Three robot vacuums and one
+box of dust bags: the box lives on one object and every appliance's task links
+to *it*, so each completion draws on the same number instead of three private
+copies of a pile that only exists once. In the task dialog those show up under
+*Parts from other objects*, grouped by the object that owns them, and a linked
+row reads *"Dust bags (Shelf)"* so it is never ambiguous which shelf drains.
+
+Because the pool keeps a single owner, there is exactly **one** reorder
+threshold, **one** low badge, **one** stock sensor and **one** *Buy…* reminder
+for one purchase — not one per appliance. Deleting the owning object does not
+strand the rest: the part and its current stock **move** to the appliance that
+has been drawing on it longest, the other links follow, and a notification
+tells you what went where so you can move it somewhere better. A deleted
+object's *unshared* parts stay private and are removed with it.
+
 ### Task Dialog — Reading Type + End-of-Month Scheduling (2.18+)
 The *Reading* task type for recording meter values, scheduled for the *last
 business day of the month* with an optional ±N-day offset.
@@ -378,7 +393,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Meter readings** (2.20+): the *Reading* task type records a value on every completion — set a per-task unit (kWh, m³, …), enter the reading in the complete dialog, and the history timeline shows each value with its delta vs the previous reading. Also available on the `complete` service for automations (`reading_value`)
 - **Seasonal pause** (2.20+): pause a whole object (pool, lawn mower, AC) for the off-season — tasks read *Paused*, schedules freeze, nothing notifies, the calendar and To-do list skip them, but the object and its history stay fully visible. Optionally set an auto-resume date; resuming (manually or automatically) restarts every recurring task with a fresh cycle instead of months of fake overdue
 - **Replace an object** (2.20+): when a machine dies, *Replace…* retires it in place (archived, history and costs stay browsable, marked with its successor) and creates the new unit pre-filled — same tasks (fresh counters), documents carried over, installation date set to today, serial number and warranty cleared for the new machine's own data
-- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import
+- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.45 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted
 - **Priorities** (2.17+): Low / Normal / High per task, shown as a badge (▲/▼) on task rows
 - **Labels / tags** (2.17+): lightweight comma-separated tags per task (e.g. `safety`, `seasonal`), shown as chips and searchable in the command palette
 - **Completion photos** (2.17+): attach a photo when completing a task (camera capture supported); stored via the documents engine and shown in the history timeline
