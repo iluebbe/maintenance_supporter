@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Peças partilhadas movidas para {new_owner}",
+      "description": "Vários objetos de manutenção partilhavam o mesmo stock de peças sobressalentes, que estava em **{deleted_object}**, e esse objeto acaba de ser eliminado. Em vez de deixar os restantes objetos a apontar para um stock que já não existe, o Maintenance Supporter moveu as peças partilhadas ({parts}) — juntamente com o stock atual — para **{new_owner}** e voltou a ligar-lhes as tarefas de todos os outros objetos. Não se perdeu nada.\n\n**{new_owner}** foi escolhido automaticamente: é o objeto mais antigo que usava esse stock. Se outro objeto for o sítio mais adequado, mova lá as peças no painel de Manutenção.\n\nNão é preciso mais nada — dispense esta notificação depois de a ter verificado."
+    },
+    "broken_part_link": {
+      "title": "Ligações a peças inválidas em {object_name}",
+      "description": "Uma tarefa de **{object_name}** acabou de ser concluída, mas {count} ligações a peças não puderam ser resolvidas — a peça, ou o objeto a que pertence, já não existe.\n\nA conclusão em si foi registada, por isso o trabalho não se perdeu. O que não aconteceu foi a baixa de stock: nada foi descontado do stock de nenhuma peça nesta conclusão.\n\nPara corrigir: abra a tarefa no painel de Manutenção e remova as ligações obsoletas, ou aponte-as para as peças que usa agora. Dispense esta notificação quando estiver feito."
     }
   },
   "exceptions": {

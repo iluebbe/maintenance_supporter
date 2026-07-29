@@ -418,13 +418,19 @@ store; per-part stock sensors + a global "parts to reorder" counter feed
 automations (edge-triggered low/out/restocked events); the printable work
 sheet lists required parts; everything round-trips through export/import.
 
-### 💡 One stock pool for several objects (#111)
+### ✅ One stock pool for several objects (#111) — shipped 2.45
 
-Several identical appliances share a consumable — three robot vacuums and one
-box of dust bags, two printers and one cartridge. Today a part belongs to
-exactly one object, so the same physical pile is split across three
-inventories: no number is the real number, each object judges its own reorder
-threshold, and auto-buy gives three "Buy dust bags" reminders for one purchase.
+**Shipped.** A task's `consumes_parts` link may name another object's pool
+(`{entry_id, part_id, quantity}`; absent `entry_id` still means the task's own
+object, so nothing already stored changed shape). The pool keeps exactly one
+owner, which is what makes one buy task, one low state and one stock sensor
+fall out with no deduplication anywhere. Deleting the owner **moves** the pool
+and its stock to the longest-standing borrower, repoints every other link and
+raises a repair issue naming what went where; only genuinely borrowed parts
+move. An unresolvable link is surfaced instead of silently deducting nothing.
+Replacing a borrower keeps its link; import keeps one whose object exists here.
+
+The reasoning below is kept because it is why the design looks like this.
 
 Not an oversight — a documented trade-off. `docs/design/spare-parts.md:118`
 already records it: *parts are per-object by design (entry-data locality,

@@ -13,6 +13,7 @@ import type {
   SavedViewFilters,
 } from "./types";
 import { UserService } from "./user-service";
+import { partsForCompletion } from "./helpers/shared-parts";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
 import {
@@ -514,10 +515,13 @@ export class MaintenanceSupporterCard extends LitElement {
                                 dlg.lang = L;
                                 // #99: editable per-completion parts selection
                                 // (skip on buy tasks — those restock instead).
-                                const obj = this._objects.find((o) => o.entry_id === entry_id);
+                                // #111: the list also carries the shared pools
+                                // this task draws on, each named after its
+                                // owner — resolving against the object's own
+                                // parts alone left a foreign link invisible.
                                 const isBuy = !!(task as any).part_ref;
-                                dlg.parts = isBuy ? [] : (obj?.parts || []);
-                                dlg.consumesParts = isBuy ? [] : ((task as any).consumes_parts || []);
+                                dlg.parts = isBuy ? [] : partsForCompletion(task, entry_id, this._objects, L);
+                                dlg.consumesParts = isBuy ? [] : (task.consumes_parts || []);
                                 dlg.open();
                               }}
                             >

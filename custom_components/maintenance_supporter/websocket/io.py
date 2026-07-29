@@ -539,11 +539,23 @@ async def ws_import_json(
             # Remap part links to the regenerated part ids; drop dangling ones.
             links = task_data.get("consumes_parts")
             if isinstance(links, list):
-                remapped = [
-                    {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
-                    for link in links
-                    if isinstance(link, dict) and link.get("part_id") in part_id_map
-                ]
+                remapped = []
+                for link in links:
+                    if not isinstance(link, dict):
+                        continue
+                    foreign = str(link.get("entry_id") or "").strip()
+                    if foreign:
+                        # A link to another object's pool (#111). Import mints
+                        # new entry ids, so the reference only means anything
+                        # if that object is present in THIS instance — keep it
+                        # then, drop it otherwise rather than restore a link
+                        # that points nowhere.
+                        if hass.config_entries.async_get_entry(foreign) is not None:
+                            remapped.append(dict(link))
+                    elif link.get("part_id") in part_id_map:
+                        remapped.append(
+                            {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
+                        )
                 if remapped:
                     task_data["consumes_parts"] = remapped
                 else:

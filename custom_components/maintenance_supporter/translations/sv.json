@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Delade reservdelar flyttade till {new_owner}",
+      "description": "Flera underhållsobjekt delade på ett och samma reservdelslager som låg på **{deleted_object}**, och det objektet har just raderats. I stället för att låta de övriga objekten peka på ett lager som inte längre finns flyttade Maintenance Supporter de delade delarna ({parts}) — med sitt nuvarande saldo — till **{new_owner}** och riktade om alla andra objekts uppgiftskopplingar dit. Ingenting gick förlorat.\n\n**{new_owner}** valdes automatiskt: det är det äldsta objektet som använde lagret. Passar ett annat objekt bättre, flytta delarna dit i underhållspanelen.\n\nMer än så behöver du inte göra — stäng den här aviseringen när du har kontrollerat den."
+    },
+    "broken_part_link": {
+      "title": "Trasiga reservdelskopplingar på {object_name}",
+      "description": "En uppgift på **{object_name}** slutfördes nyss, men {count} reservdelskopplingar kunde inte slås upp — delen, eller objektet som äger den, finns inte längre.\n\nSjälva slutförandet registrerades, så arbetet är inte förlorat. Det som inte hände är lageravdraget: ingenting drogs av från någon dels saldo för det här slutförandet.\n\nSå åtgärdar du det: öppna uppgiften i underhållspanelen och ta bort de föråldrade delkopplingarna, eller peka om dem till de delar du använder nu. Stäng den här aviseringen när det är klart."
     }
   },
   "exceptions": {

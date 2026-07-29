@@ -608,3 +608,20 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_documents_update)
     websocket_api.async_register_command(hass, ws_documents_delete)
     websocket_api.async_register_command(hass, ws_documents_search)
+
+
+def foreign_part_resolver(hass):
+    """Callback for ``sanitize_consumes_parts``: which parts an entry owns.
+
+    Returns None for an entry that does not exist or is not a maintenance
+    object, so a link to it is dropped rather than trusted.
+    """
+    from ..const import CONF_PARTS, DOMAIN, GLOBAL_UNIQUE_ID
+
+    def _resolve(entry_id: str):
+        entry = hass.config_entries.async_get_entry(entry_id)
+        if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+            return None
+        return set(entry.data.get(CONF_PARTS) or {})
+
+    return _resolve

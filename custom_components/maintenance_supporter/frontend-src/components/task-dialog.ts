@@ -2,9 +2,10 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../types";
+import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TaskPartLink, TriggerConfig, HAUser } from "../types";
 import { formatDate, t, weekdayName } from "../styles";
 import { UserService } from "../user-service";
+import { partLinkKey } from "../helpers/shared-parts";
 
 import { describeWsError } from "../ws-errors";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
@@ -123,6 +124,14 @@ export class MaintenanceTaskDialog extends LitElement {
   @property({ type: Number, attribute: "default-warning-days" }) public defaultWarningDays = 7;
   /** The object's spare parts — offered as "consumes parts" checkboxes. */
   @state() private parts: Array<{ id: string; name: string; unit?: string }> = [];
+  /** #111: OTHER objects that own spare parts, so a task can draw on a shared
+   *  pool (three vacuums, one box of dust bags). Grouped by owner in the UI —
+   *  which pool a link means must never be a guess. */
+  @state() private _foreignOwners: Array<{
+    entry_id: string;
+    name: string;
+    parts: Array<{ id: string; name: string; unit?: string }>;
+  }> = [];
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
@@ -211,7 +220,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _nfcTagId = "";
   // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
   @state() private _readingUnit = "";
-  @state() private _consumesParts: Record<string, number> = {};
+  /** The picked links, keyed by `partLinkKey` — the (entry_id, part_id) pair,
+   *  since the same part id can exist on two objects (battery fleet). */
+  @state() private _consumesParts: Record<string, TaskPartLink> = {};
   @state() private _partsLoadFailed = false;
   @state() private _availableTags: Array<{id: string; name: string}> = [];
 
@@ -275,7 +286,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._objectChoices = [];
     }
     this._resetFields();
-    await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts()]);
+    await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts(), this._loadForeignPools()]);
     this._open = true;
   }
 
@@ -325,7 +336,11 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
     this._readingUnit = task.reading_unit || "";
-    this._consumesParts = Object.fromEntries((task.consumes_parts || []).map((l) => [l.part_id, l.quantity]));
+    // Whole link, entry_id included — hydrating only part_id would turn every
+    // shared-pool link into an own-part link on the next save (#111).
+    this._consumesParts = Object.fromEntries(
+      (task.consumes_parts || []).map((l) => [partLinkKey(l), { ...l }]),
+    );
     this._responsibleUserId = task.responsible_user_id || null;
     this._assigneePool = [...(task.assignee_pool || [])];
     this._rotationStrategy = task.rotation_strategy || "";
@@ -400,7 +415,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._fetchEntityAttributes(this._triggerEntityId);
     }
 
-    await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts()]);
+    await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts(), this._loadForeignPools()]);
     this._open = true;
   }
 
@@ -742,6 +757,40 @@ export class MaintenanceTaskDialog extends LitElement {
     }
   }
 
+  /** #111: the other objects' spare-part pools this task could draw on.
+   *
+   *  A sibling of `_loadParts`, run in the SAME Promise.all rather than nested
+   *  inside it: chaining it after the own-parts fetch delays the dialog opening
+   *  by a further round trip for a list that is secondary to it.
+   *
+   *  Failure is soft on purpose — the own-parts picker is the primary path and
+   *  must not disappear because this second call did not come back. */
+  private async _loadForeignPools(): Promise<void> {
+    this._foreignOwners = [];
+    if (!this._entryId) return;
+    try {
+      const result = (await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/objects",
+      })) as {
+        objects?: Array<{
+          entry_id: string;
+          object?: { name?: string };
+          parts?: Array<{ id: string; name: string; unit?: string }>;
+        }>;
+      };
+      this._foreignOwners = (result.objects || [])
+        .filter((o) => o.entry_id !== this._entryId && (o.parts || []).length > 0)
+        .map((o) => ({
+          entry_id: o.entry_id,
+          name: o.object?.name || o.entry_id,
+          parts: o.parts || [],
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    } catch {
+      this._foreignOwners = [];
+    }
+  }
+
   private async _loadTags(): Promise<void> {
     try {
       const result = await this.hass.connection.sendMessagePromise({
@@ -777,6 +826,62 @@ export class MaintenanceTaskDialog extends LitElement {
       this._availableAttributes = [];
       this._entityDomain = "";
     }
+  }
+
+  /** A task already drawing on a shared pool opens that section expanded — a
+   *  collapsed disclosure would hide a link that is very much active. */
+  private get _hasForeignPick(): boolean {
+    return Object.values(this._consumesParts).some((l) => !!l.entry_id);
+  }
+
+  /** One "consumes parts" checkbox + quantity.
+   *
+   *  `ownerEntryId` is undefined for the object's own parts and set for a pool
+   *  owned by another object (#111) — that argument is the ONLY difference
+   *  between the two lists, which is why they share this renderer. */
+  private _renderConsumesRow(
+    part: { id: string; name: string; unit?: string },
+    ownerEntryId?: string,
+  ) {
+    const key = partLinkKey({ part_id: part.id, entry_id: ownerEntryId });
+    const link = this._consumesParts[key];
+    const base: TaskPartLink = ownerEntryId
+      ? { part_id: part.id, quantity: 1, entry_id: ownerEntryId }
+      : { part_id: part.id, quantity: 1 };
+    return html`
+      <div class="consumes-row">
+        <label class="consumes-check">
+          <input
+            type="checkbox"
+            .checked=${link !== undefined}
+            @change=${(e: Event) => {
+              const next = { ...this._consumesParts };
+              if ((e.target as HTMLInputElement).checked) next[key] = next[key] || base;
+              else delete next[key];
+              this._consumesParts = next;
+            }}
+          />
+          <span>${part.name}${part.unit ? ` (${part.unit})` : ""}</span>
+        </label>
+        ${link !== undefined
+          ? html`<input
+              class="consumes-qty"
+              type="number"
+              min="0.01"
+              max="999"
+              step="0.01"
+              .value=${String(link.quantity)}
+              @input=${(e: Event) => {
+                const v = parseFloat((e.target as HTMLInputElement).value);
+                this._consumesParts = {
+                  ...this._consumesParts,
+                  [key]: { ...base, quantity: Number.isFinite(v) && v >= 0.01 ? v : 1 },
+                };
+              }}
+            />`
+          : nothing}
+      </div>
+    `;
   }
 
   private _toggleRequired(field: string, on: boolean): void {
@@ -858,11 +963,16 @@ export class MaintenanceTaskDialog extends LitElement {
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
       data.reading_unit = this._readingUnit.trim() || null;
-      if (this.parts.length) {
-        data.consumes_parts = Object.entries(this._consumesParts).map(([part_id, quantity]) => ({
-          part_id,
-          quantity,
-        }));
+      // Only send when a picker was actually rendered. A failed parts load
+      // leaves both lists empty, and sending [] then would silently wipe links
+      // the user never saw. entry_id is written ONLY for a foreign pick, so an
+      // own-parts task saves byte-identically to before (#111).
+      if (this.parts.length || this._foreignOwners.length) {
+        data.consumes_parts = Object.values(this._consumesParts).map((l) =>
+          l.entry_id
+            ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
+            : { part_id: l.part_id, quantity: l.quantity },
+        );
       }
       data.responsible_user_id = this._responsibleUserId;
       data.assignee_pool = this._assigneePool;
@@ -1723,6 +1833,9 @@ export class MaintenanceTaskDialog extends LitElement {
                   this._entryId = (e.target as HTMLSelectElement).value;
                   this._consumesParts = {};
                   this._loadParts();
+                  // The new owner drops out of the shared-pool list and the old
+                  // one joins it, so this has to be recomputed too (#111).
+                  this._loadForeignPools();
                 }}
               >
                 ${this._objectChoices.map(
@@ -1761,44 +1874,27 @@ export class MaintenanceTaskDialog extends LitElement {
           ${this._partsLoadFailed
             ? html`<div class="field-help parts-load-failed">${t("parts_load_failed", L)}</div>`
             : nothing}
-          ${this.parts.length
+          ${this.parts.length || this._foreignOwners.length
             ? html`
                 <div class="field">
                   <label>${t("consumes_parts_label", L)}</label>
-                  ${this.parts.map((part) => {
-                    const qty = this._consumesParts[part.id];
-                    return html`
-                      <div class="consumes-row">
-                        <label class="consumes-check">
-                          <input
-                            type="checkbox"
-                            .checked=${qty !== undefined}
-                            @change=${(e: Event) => {
-                              const next = { ...this._consumesParts };
-                              if ((e.target as HTMLInputElement).checked) next[part.id] = next[part.id] || 1;
-                              else delete next[part.id];
-                              this._consumesParts = next;
-                            }}
-                          />
-                          <span>${part.name}${part.unit ? ` (${part.unit})` : ""}</span>
-                        </label>
-                        ${qty !== undefined
-                          ? html`<input
-                              class="consumes-qty"
-                              type="number"
-                              min="0.01"
-                              max="999"
-                              step="0.01"
-                              .value=${String(qty)}
-                              @input=${(e: Event) => {
-                                const v = parseFloat((e.target as HTMLInputElement).value);
-                                this._consumesParts = { ...this._consumesParts, [part.id]: Number.isFinite(v) && v >= 0.01 ? v : 1 };
-                              }}
-                            />`
-                          : nothing}
-                      </div>
-                    `;
-                  })}
+                  ${this.parts.map((part) => this._renderConsumesRow(part))}
+                  ${this._foreignOwners.length
+                    ? html`
+                        <details class="shared-pools" ?open=${this._hasForeignPick}>
+                          <summary>${t("shared_parts_other_objects", L)}</summary>
+                          <div class="field-help">${t("shared_parts_help", L)}</div>
+                          ${this._foreignOwners.map(
+                            (owner) => html`
+                              <div class="shared-pool-owner">${owner.name}</div>
+                              ${owner.parts.map((part) =>
+                                this._renderConsumesRow(part, owner.entry_id),
+                              )}
+                            `,
+                          )}
+                        </details>
+                      `
+                    : nothing}
                 </div>
               `
             : nothing}
@@ -2164,6 +2260,24 @@ export class MaintenanceTaskDialog extends LitElement {
       border-radius: 4px;
       background: var(--card-background-color);
       color: var(--primary-text-color);
+    }
+    /* #111: other objects' pools sit behind a disclosure so the object's OWN
+       parts stay the primary list; each group is headed by the owning object's
+       name, so which pool a checkbox means is never a guess. */
+    .shared-pools {
+      margin-top: 6px;
+    }
+    .shared-pools > summary {
+      cursor: pointer;
+      padding: 2px 0;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .shared-pool-owner {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--secondary-text-color);
     }
     .field-help {
       font-size: 12px;

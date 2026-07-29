@@ -22,7 +22,7 @@ is passed in here as a plain ``{part_id: stock}`` map.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import date
 from typing import Any
 from urllib.parse import quote_plus
@@ -218,21 +218,46 @@ def normalize_part(raw: Mapping[str, Any]) -> dict[str, Any]:
     return part
 
 
-def sanitize_consumes_parts(raw: Any, valid_part_ids: set[str] | None = None) -> list[dict[str, Any]]:
-    """Cap/clean a task's ``consumes_parts`` list ([{part_id, quantity}]).
+def sanitize_consumes_parts(
+    raw: Any,
+    valid_part_ids: set[str] | None = None,
+    *,
+    foreign_part_ids: Callable[[str], set[str] | None] | None = None,
+) -> list[dict[str, Any]]:
+    """Cap/clean a task's ``consumes_parts`` list.
 
-    Unknown part ids are dropped when ``valid_part_ids`` is given; quantity is
-    clamped to 1..MAX_CONSUME_QUANTITY; duplicates collapse (last wins).
+    Shape is ``[{part_id, quantity, entry_id?}]``. A link WITHOUT ``entry_id``
+    consumes a part of the task's own object, which is every link written
+    before 2.45 and stays the default. With ``entry_id`` it consumes a pool
+    owned by another object (#111) — several appliances drawing on one box of
+    filters — and ``foreign_part_ids`` is asked whether that entry really has
+    that part. Without the callback, foreign links are dropped rather than
+    trusted.
+
+    Unknown ids are dropped when the corresponding validator is given; quantity
+    is clamped to 1..MAX_CONSUME_QUANTITY; duplicates collapse (last wins).
+
+    The dedupe key is the (entry_id, part_id) PAIR, not the id alone: part ids
+    are uuid4 in general but the battery fleet mints deterministic ones
+    (``batt_aa``), so two objects genuinely can carry the same id.
     """
     if not isinstance(raw, list):
         return []
-    out: dict[str, dict[str, Any]] = {}
+    out: dict[tuple[str | None, str], dict[str, Any]] = {}
     for item in raw[:MAX_CONSUMES_PER_TASK]:
         if not isinstance(item, Mapping):
             continue
         part_id = str(item.get("part_id") or "").strip()
-        if not part_id or (valid_part_ids is not None and part_id not in valid_part_ids):
+        if not part_id:
             continue
+        entry_id = str(item.get("entry_id") or "").strip() or None
+        if entry_id is None:
+            if valid_part_ids is not None and part_id not in valid_part_ids:
+                continue
+        else:
+            known = foreign_part_ids(entry_id) if foreign_part_ids else None
+            if known is None or part_id not in known:
+                continue
         try:
             qty = float(item.get("quantity", 1))
         except (TypeError, ValueError):
@@ -241,7 +266,15 @@ def sanitize_consumes_parts(raw: Any, valid_part_ids: set[str] | None = None) ->
         # invalid input (falls back to 1), matching the old integer clamp.
         if qty <= 0:
             qty = 1.0
-        out[part_id] = {"part_id": part_id, "quantity": round_qty(min(qty, MAX_CONSUME_QUANTITY))}
+        link: dict[str, Any] = {
+            "part_id": part_id,
+            "quantity": round_qty(min(qty, MAX_CONSUME_QUANTITY)),
+        }
+        # Only written when the pool lives elsewhere, so a same-object link is
+        # byte-identical to what every earlier version wrote.
+        if entry_id is not None:
+            link["entry_id"] = entry_id
+        out[(entry_id, part_id)] = link
     return list(out.values())
 
 

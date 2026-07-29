@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Sdílené náhradní díly přesunuty na {new_owner}",
+      "description": "Několik objektů údržby sdílelo jednu zásobu náhradních dílů, která byla u objektu **{deleted_object}**, a ten byl právě smazán. Aby ostatní objekty neodkazovaly na zásobu, která už neexistuje, přesunul Maintenance Supporter sdílené díly ({parts}) — i s aktuálním stavem — na **{new_owner}** a přesměroval na ně vazby úkolů všech ostatních objektů. Nic se neztratilo.\n\n**{new_owner}** byl vybrán automaticky: je to nejstarší objekt, který zásobu používal. Pokud se lépe hodí jiný objekt, přesuňte díly tam v panelu údržby.\n\nNic dalšího dělat nemusíte — po kontrole toto oznámení zavřete."
+    },
+    "broken_part_link": {
+      "title": "Neplatné vazby na díly u {object_name}",
+      "description": "Úkol u objektu **{object_name}** byl právě dokončen, ale {count} vazeb na náhradní díly se nepodařilo vyhodnotit — díl nebo objekt, kterému patří, už neexistuje.\n\nSamotné dokončení bylo zaznamenáno, o práci tedy nepřijdete. Neproběhl jen odpis ze skladu: za toto dokončení se z žádného dílu nic neodečetlo.\n\nNáprava: otevřete úkol v panelu údržby a odstraňte zastaralé vazby na díly, nebo je nasměrujte na díly, které používáte teď. Po vyřízení toto oznámení zavřete."
     }
   },
   "exceptions": {

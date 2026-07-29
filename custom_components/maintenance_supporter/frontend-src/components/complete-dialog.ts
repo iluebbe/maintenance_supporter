@@ -2,9 +2,10 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { HomeAssistant } from "../types";
+import type { HomeAssistant, TaskPartLink } from "../types";
 import { t, nativeFieldStyles } from "../styles";
 import { describeWsError } from "../ws-errors";
+import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 
 export class MaintenanceCompleteDialog extends LitElement {
@@ -20,10 +21,14 @@ export class MaintenanceCompleteDialog extends LitElement {
   @property() public readingUnit = "";
   /** Buy task (part_ref): default restock quantity — shows an editable qty field. */
   @property({ attribute: false }) public restockDefault: number | null = null;
-  /** #99: the object's parts — enables the editable "parts used" section. */
-  @property({ attribute: false }) public parts: Array<{ id: string; name: string; unit?: string | null; stock?: number | null }> = [];
-  /** #99: the task's fixed consumes_parts links (prefill for the section). */
-  @property({ attribute: false }) public consumesParts: Array<{ part_id: string; quantity: number }> = [];
+  /** #99: the parts offered on completion — enables the editable "parts used"
+   *  section. Built by `partsForCompletion`: the object's own inventory plus
+   *  every shared pool this task links to (#111), each tagged with its owner. */
+  @property({ attribute: false }) public parts: LinkedPart[] = [];
+  /** #99: the task's fixed consumes_parts links (prefill for the section).
+   *  A link may carry an `entry_id` (#111) and MUST keep it through the edit —
+   *  without it the completion would decrement the wrong inventory, or none. */
+  @property({ attribute: false }) public consumesParts: TaskPartLink[] = [];
   /** "Consumes: 1× HEPA-Filter (Shelf B)" hint lines for consuming tasks. */
   @property({ type: Array }) public consumesInfo: string[] = [];
   /** Details this task demands before it counts as done (v2.44). The backend
@@ -43,7 +48,9 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _photoUploading = false;
   @state() private _readingValue = "";
   @state() private _restockQty = "";
-  @state() private _usedParts: Record<string, number> = {};
+  /** Keyed by `partLinkKey` — the (entry_id, part_id) pair — because two
+   *  objects can carry the same part id, so part_id alone would merge pools. */
+  @state() private _usedParts: Record<string, TaskPartLink> = {};
 
   public open(): void {
     if (this._open) return;
@@ -60,8 +67,9 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._readingValue = "";
     this._restockQty = this.restockDefault !== null ? String(this.restockDefault) : "";
     // #99: prefill "parts used" with the task's fixed links — the user can
-    // untick or adjust before completing.
-    this._usedParts = Object.fromEntries(this.consumesParts.map((l) => [l.part_id, l.quantity]));
+    // untick or adjust before completing. The whole link is kept, entry_id
+    // included, so a shared pool survives the edit (#111).
+    this._usedParts = Object.fromEntries(this.consumesParts.map((l) => [partLinkKey(l), { ...l }]));
   }
 
   private _toggleCheck(idx: number): void {
@@ -154,10 +162,16 @@ export class MaintenanceCompleteDialog extends LitElement {
       }
       // #99: with a parts section shown, send the explicit selection — it
       // replaces the automatic consumes_parts deduction (empty = none used).
+      // entry_id travels only when the pool is somebody else's (#111), so an
+      // own-part payload is byte-identical to what shipped before.
       if (this.parts.length > 0) {
-        data.used_parts = Object.entries(this._usedParts)
-          .filter(([, qty]) => Number.isFinite(qty) && qty > 0)
-          .map(([part_id, quantity]) => ({ part_id, quantity }));
+        data.used_parts = Object.values(this._usedParts)
+          .filter((l) => Number.isFinite(l.quantity) && l.quantity > 0)
+          .map((l) =>
+            l.entry_id
+              ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
+              : { part_id: l.part_id, quantity: l.quantity },
+          );
       }
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
@@ -227,25 +241,36 @@ export class MaintenanceCompleteDialog extends LitElement {
             ? html`<div class="used-parts">
                 <span class="field-label">${t("complete_parts_used", L)}</span>
                 ${this.parts.map((pt) => {
-                  const qty = this._usedParts[pt.id];
-                  const checked = qty !== undefined;
+                  const key = partLinkKey({ part_id: pt.id, entry_id: pt.entry_id });
+                  const link = this._usedParts[key];
+                  const checked = link !== undefined;
+                  const base: TaskPartLink = pt.entry_id
+                    ? { part_id: pt.id, quantity: 1, entry_id: pt.entry_id }
+                    : { part_id: pt.id, quantity: 1 };
                   return html`<div class="used-part-row">
                     <label class="used-part-check">
                       <input type="checkbox" .checked=${checked}
                         @change=${(e: Event) => {
                           const next = { ...this._usedParts };
-                          if ((e.target as HTMLInputElement).checked) next[pt.id] = next[pt.id] || 1;
-                          else delete next[pt.id];
+                          if ((e.target as HTMLInputElement).checked) next[key] = next[key] || base;
+                          else delete next[key];
                           this._usedParts = next;
                         }} />
-                      <span>${pt.name}${pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : ""}</span>
+                      <span
+                        >${pt.name}${pt.owner_name
+                          ? html`<span class="used-part-owner"> (${pt.owner_name})</span>`
+                          : nothing}${pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : ""}</span
+                      >
                     </label>
                     ${checked
                       ? html`<input class="used-part-qty" type="number" min="0.01" max="999" step="0.01"
-                          .value=${String(qty)}
+                          .value=${String(link.quantity)}
                           @input=${(e: Event) => {
                             const v = parseFloat((e.target as HTMLInputElement).value);
-                            this._usedParts = { ...this._usedParts, [pt.id]: Number.isFinite(v) && v >= 0.01 ? v : 1 };
+                            this._usedParts = {
+                              ...this._usedParts,
+                              [key]: { ...base, quantity: Number.isFinite(v) && v >= 0.01 ? v : 1 },
+                            };
                           }} />`
                       : nothing}
                   </div>`;
@@ -383,6 +408,9 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-size: 13px; cursor: pointer;
     }
     .used-part-check input { cursor: pointer; }
+    /* #111: whose stock this row draws on. Muted but never omitted — an
+       unlabelled foreign pool is indistinguishable from an own part. */
+    .used-part-owner { color: var(--secondary-text-color); }
     .used-part-qty {
       width: 76px; padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 13px;
       border: 1px solid var(--divider-color);

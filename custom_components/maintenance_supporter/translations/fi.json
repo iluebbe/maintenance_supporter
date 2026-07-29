@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Jaetut varaosat siirretty kohteeseen {new_owner}",
+      "description": "Useat huoltokohteet käyttivät samaa varaosavarastoa, joka oli kohteessa **{deleted_object}**, ja kyseinen kohde poistettiin juuri. Sen sijaan että muut kohteet jäisivät osoittamaan varastoon jota ei enää ole, Maintenance Supporter siirsi jaetut osat ({parts}) nykyisine saldoineen kohteeseen **{new_owner}** ja ohjasi kaikkien muiden kohteiden tehtävälinkit siihen. Mitään ei menetetty.\n\n**{new_owner}** valittiin automaattisesti: se on vanhin varastoa käyttänyt kohde. Jos jokin toinen kohde sopii paremmin, siirrä osat sinne huoltopaneelissa.\n\nMuuta ei tarvita — sulje tämä ilmoitus, kun olet tarkistanut asian."
+    },
+    "broken_part_link": {
+      "title": "Rikkinäisiä varaosalinkkejä kohteessa {object_name}",
+      "description": "Kohteen **{object_name}** tehtävä merkittiin juuri tehdyksi, mutta {count} varaosalinkkiä ei voitu selvittää — osaa tai sen omistavaa kohdetta ei enää ole.\n\nItse suoritus kuitenkin tallennettiin, joten työ ei kadonnut. Tekemättä jäi varastosta vähentäminen: tästä suorituksesta ei vähennetty mitään minkään osan saldosta.\n\nKorjaaminen: avaa tehtävä huoltopaneelissa ja poista vanhentuneet osalinkit tai osoita ne niihin osiin, joita nyt käytät. Sulje tämä ilmoitus, kun asia on kunnossa."
     }
   },
   "exceptions": {

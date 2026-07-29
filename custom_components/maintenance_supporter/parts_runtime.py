@@ -152,25 +152,57 @@ async def async_handle_completion_parts(
     # including the empty selection ("nothing used this time"). None keeps the
     # automatic consumes_parts behaviour.
     links = used_parts if used_parts is not None else (task_data.get(CONF_TASK_CONSUMES_PARTS) or [])
+    # #111: a link may name another object's pool. Every touched entry has its
+    # own parts dict and its own Store, so collect them per entry and save each.
+    touched: dict[str, tuple[ConfigEntry, Any]] = {}
+    if changed:
+        touched[entry.entry_id] = (entry, store)
+    broken: list[str] = []
+
     for link in links:
         if not isinstance(link, dict):
             continue
-        part = parts.get(link.get("part_id"))
+        target_entry = entry
+        target_parts = parts
+        target_store = store
+        foreign_id = str(link.get("entry_id") or "").strip()
+        if foreign_id and foreign_id != entry.entry_id:
+            resolved = hass.config_entries.async_get_entry(foreign_id)
+            if resolved is None:
+                broken.append(str(link.get("part_id") or "?"))
+                continue
+            target_entry = resolved
+            target_parts = resolved.data.get(CONF_PARTS) or {}
+            resolved_store = _get_store(hass, resolved)
+            if resolved_store is None:
+                broken.append(str(link.get("part_id") or "?"))
+                continue
+            target_store = resolved_store
+
+        part = target_parts.get(link.get("part_id"))
         if part is None:
+            # The pool is gone (owner deleted, or the part removed from it).
+            # Silence here would record a completion that consumed nothing and
+            # tell nobody — surface it instead.
+            broken.append(str(link.get("part_id") or "?"))
             continue
-        old = store.get_part_stock(part["id"])
+        old = target_store.get_part_stock(part["id"])
         if old is None:
             continue  # catalog-only part — nothing to decrement
         qty = float(link.get("quantity", 1) or 1)
         new = max(0, old - qty)
-        store.set_part_stock(part["id"], new)
-        _fire_transition(hass, entry, part, new, stock_transition(part, old, new))
+        target_store.set_part_stock(part["id"], new)
+        _fire_transition(hass, target_entry, part, new, stock_transition(part, old, new))
+        touched[target_entry.entry_id] = (target_entry, target_store)
         changed = True
 
-    if changed:
-        await store.async_save()  # reconcile may reload — see async_change_part_stock
-        _signal_parts_updated(hass, entry)
-        schedule_buy_task_reconcile(hass, entry)
+    if broken:
+        _raise_broken_link_issue(hass, entry, broken)
+
+    for target_entry, target_store in touched.values():
+        await target_store.async_save()  # reconcile may reload — see async_change_part_stock
+        _signal_parts_updated(hass, target_entry)
+        schedule_buy_task_reconcile(hass, target_entry)
 
 
 def schedule_buy_task_reconcile(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -299,3 +331,37 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         # Entities for created/removed tasks appear/vanish on reload.
         await hass.config_entries.async_reload(entry.entry_id)
     return True
+
+
+BROKEN_LINK_ISSUE_PREFIX = "broken_part_link_"
+
+
+def _raise_broken_link_issue(hass: HomeAssistant, entry: ConfigEntry, part_ids: list[str]) -> None:
+    """Tell the user a completion could not decrement what it was linked to.
+
+    Deliberately a repair issue rather than a refused completion: the work WAS
+    done, and losing the history entry would be the bigger harm. What must not
+    happen is the silent version — a tick that consumed nothing and said so
+    nowhere.
+    """
+    from homeassistant.helpers import issue_registry as ir
+
+    object_name = str((entry.data.get(CONF_OBJECT) or {}).get("name") or entry.title)
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        f"{BROKEN_LINK_ISSUE_PREFIX}{entry.entry_id}",
+        is_fixable=False,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="broken_part_link",
+        translation_placeholders={
+            "object_name": object_name,
+            "count": str(len(part_ids)),
+        },
+    )
+    _LOGGER.warning(
+        "Completion on %s referenced %d spare part(s) that no longer exist: %s",
+        object_name,
+        len(part_ids),
+        ", ".join(part_ids),
+    )

@@ -322,8 +322,13 @@ async def ws_create_task(
     if msg.get("consumes_parts") is not None:
         from ..const import CONF_PARTS
         from ..helpers.parts import sanitize_consumes_parts
+        from . import foreign_part_resolver
 
-        links = sanitize_consumes_parts(msg["consumes_parts"], set(entry.data.get(CONF_PARTS) or {}))
+        links = sanitize_consumes_parts(
+            msg["consumes_parts"],
+            set(entry.data.get(CONF_PARTS) or {}),
+            foreign_part_ids=foreign_part_resolver(hass),
+        )
         if links:
             task_data["consumes_parts"] = links
     if msg.get("checklist"):
@@ -509,6 +514,22 @@ async def ws_update_task(
     for msg_key, data_key in TASK_UPDATE_FIELD_MAP.items():
         if msg_key in msg:
             task[data_key] = msg[msg_key]
+
+    # The loop above copies values verbatim, which is wrong for part links:
+    # `task/create` validates them and `task/update` did not, so an edit could
+    # persist a link to a part — or, since #111, to an OBJECT — that does not
+    # exist. Nothing complained: the consume path simply skipped it. Sanitize
+    # here so both write paths agree.
+    if "consumes_parts" in msg:
+        from ..const import CONF_PARTS
+        from ..helpers.parts import sanitize_consumes_parts
+        from . import foreign_part_resolver
+
+        task["consumes_parts"] = sanitize_consumes_parts(
+            msg["consumes_parts"],
+            set(entry.data.get(CONF_PARTS) or {}),
+            foreign_part_ids=foreign_part_resolver(hass),
+        )
 
     # Recurrence resolution: an explicit nested `schedule` wins (calendar kinds
     # and kind-switches). Otherwise rebuild from the flat view ONLY when a real

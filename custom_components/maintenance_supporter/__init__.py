@@ -1517,6 +1517,16 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # as a fixable repair issue so the user can restore it (#86).
         _sync_missing_global_entry_issue(hass)
         return
+    # #111: hand any shared spare-part pool to a borrower BEFORE the Store goes
+    # — the stock numbers exist nowhere else. Must happen here rather than in
+    # the panel's delete: HA's own Configure-UI removal never reaches that path.
+    from .helpers.shared_parts import async_transfer_pools_on_removal
+
+    try:
+        await async_transfer_pools_on_removal(hass, entry)
+    except Exception:
+        _LOGGER.exception("Could not transfer shared spare parts from %s", entry.title)
+
     store = hass.data.get(STORES_CACHE_KEY, {}).pop(entry.entry_id, None)
     if store is None:
         store = MaintenanceStore(hass, entry.entry_id)

@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Paylaşılan yedek parçalar {new_owner} nesnesine taşındı",
+      "description": "Birden fazla bakım nesnesi, **{deleted_object}** üzerinde tutulan tek bir yedek parça stoğunu paylaşıyordu ve bu nesne az önce silindi. Diğer nesnelerin artık var olmayan bir stoğu göstermesi yerine Maintenance Supporter, paylaşılan parçaları ({parts}) mevcut stoklarıyla birlikte **{new_owner}** üzerine taşıdı ve diğer tüm nesnelerin görev bağlantılarını buraya yönlendirdi. Hiçbir şey kaybolmadı.\n\n**{new_owner}** otomatik olarak seçildi: stoğu kullanan en eski nesne odur. Başka bir nesne daha uygunsa, parçaları Bakım panelinden oraya taşıyın.\n\nBaşka bir şey yapmanız gerekmiyor — kontrol ettikten sonra bu bildirimi kapatın."
+    },
+    "broken_part_link": {
+      "title": "{object_name} üzerinde bozuk parça bağlantıları",
+      "description": "**{object_name}** üzerindeki bir görev az önce tamamlandı, ancak {count} yedek parça bağlantısı çözümlenemedi — parça ya da parçanın ait olduğu nesne artık mevcut değil.\n\nTamamlama kaydedildi, yani yapılan iş kaybolmadı. Gerçekleşmeyen şey stok düşümü: bu tamamlama için hiçbir parçanın stoğundan düşülmedi.\n\nDüzeltmek için: görevi Bakım panelinde açıp eski parça bağlantılarını kaldırın veya şu anda kullandığınız parçalara yönlendirin. İşiniz bitince bu bildirimi kapatın."
     }
   },
   "exceptions": {

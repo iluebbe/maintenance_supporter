@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Wspólne części zamienne przeniesione do {new_owner}",
+      "description": "Kilka obiektów konserwacji korzystało ze wspólnego zapasu części zamiennych, który znajdował się przy **{deleted_object}**, a ten obiekt został właśnie usunięty. Zamiast zostawiać pozostałe obiekty wskazujące na zapas, którego już nie ma, Maintenance Supporter przeniósł wspólne części ({parts}) — wraz z bieżącym stanem — do **{new_owner}** i przepiął na nie powiązania zadań wszystkich innych obiektów. Nic nie zostało utracone.\n\n**{new_owner}** został wybrany automatycznie: to najstarszy obiekt korzystający z tego zapasu. Jeśli lepszym miejscem jest inny obiekt, przenieś tam części w panelu konserwacji.\n\nNic więcej nie trzeba robić — zamknij to powiadomienie po sprawdzeniu."
+    },
+    "broken_part_link": {
+      "title": "Nieprawidłowe powiązania części w {object_name}",
+      "description": "Zadanie obiektu **{object_name}** zostało właśnie ukończone, ale {count} powiązań z częściami nie udało się rozwiązać — części albo obiektu, do którego należy, już nie ma.\n\nSamo ukończenie zostało zapisane, więc praca nie przepadła. Nie doszło natomiast do zdjęcia ze stanu: za to ukończenie nie odjęto niczego z zapasu żadnej części.\n\nAby to naprawić: otwórz zadanie w panelu konserwacji i usuń nieaktualne powiązania części albo wskaż nimi części, których używasz teraz. Zamknij to powiadomienie, gdy skończysz."
     }
   },
   "exceptions": {
