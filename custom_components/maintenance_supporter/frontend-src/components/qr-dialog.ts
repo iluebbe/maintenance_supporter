@@ -155,9 +155,15 @@ export class MaintenanceQrDialog extends LitElement {
     const completeLabel = escapeHtml(t("qr_action_complete", L));
 
     w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <title>${safeTitle}</title>
 <style>
-  body{font-family:sans-serif;text-align:center;padding:20px}
+  /* Printable sheet — must not inherit the phone's dark theme. The QR images
+     carry their own white quiet zone and stay scannable either way, but the
+     labels below are explicit dark greys and would vanish on a WebView's dark
+     canvas. Same reasoning as helpers/report.ts. */
+  :root{color-scheme:light}
+  body{font-family:sans-serif;text-align:center;padding:20px;background:#fff;color:#1a1a1a}
   h2{margin:0 0 4px}
   .sub{color:#666;font-size:14px;margin-bottom:16px}
   .qr-row{display:flex;justify-content:center;gap:24px;margin:12px 0}
