@@ -252,7 +252,7 @@ is dynamic state (Store). Parts round-trip through JSON export/import
 *Consumes parts* checkboxes) — completing the task decrements each linked
 part's tracked stock.
 
-**Sharing one stock across objects (2.45+, #111):** with an `entry_id` the
+**Sharing one stock across objects (2.44+, #111):** with an `entry_id` the
 link points at a part owned by a *different* object — three robot vacuums
 drawing on one box of dust bags, so the number you see is the number on the
 shelf. Pick those under *Parts from other objects* in the task dialog; without

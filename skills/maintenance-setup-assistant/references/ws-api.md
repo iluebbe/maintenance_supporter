@@ -130,7 +130,7 @@ stored values; `stock: null` untracks). `part/delete` `{entry_id, part_id}`
 (also prunes task links + any open buy reminder). `part/restock`
 `{entry_id, part_id, delta | absolute}` → `{stock}`.
 Link consumption on the task: `task/create|update` accept
-`consumes_parts: [{part_id, quantity, entry_id?}]`. **`entry_id` (2.45+, #111)
+`consumes_parts: [{part_id, quantity, entry_id?}]`. **`entry_id` (2.44+, #111)
 names another object that owns the pool** — several appliances sharing one box
 of filters; omit it for a part of the task's own object. Both write paths
 validate the reference and drop a link whose object or part does not exist, and
