@@ -54,6 +54,24 @@ jobs:
           test -f custom_components/maintenance_supporter/frontend/maintenance-panel.js || exit 1
           test -f custom_components/maintenance_supporter/frontend/maintenance-card.js || exit 1
 
+      # Checking the files EXIST is not the same as checking they are CURRENT.
+      # v2.44.0 shipped a bundle built before the version bump: the panel then
+      # told every user to reload a stale frontend, and reloading could not
+      # help because the served bundle really was the older one (#112). The
+      # build above rebuilt it and threw the result away.
+      #
+      # tests/test_frontend_bundle_version.py catches the version-stamp case
+      # from the committed files alone. This catches the wider one: any source
+      # change whose rebuild was never committed, so a fix that exists in
+      # frontend-src/ but never reaches a user's browser fails the build here.
+      - name: Committed bundle matches the source
+        run: |
+          if ! git diff --exit-code --stat -- custom_components/maintenance_supporter/frontend/; then
+            echo "::error::The committed frontend bundle differs from a fresh build."
+            echo "Run 'node esbuild.mjs' in custom_components/maintenance_supporter/frontend-src/ and commit the result."
+            exit 1
+          fi
+
       # Run the frontend unit suite in real Chromium. This is the gate that
       # catches contract bugs like #69 — the ll-custom payload tripwire fires
       # HA's real nested fire-dom-event shape and fails if the handler regresses.

@@ -23,6 +23,14 @@ const common = {
   sourcemap: false,
   external: [],
   define: { __MS_BUNDLE_VERSION__: JSON.stringify(manifestVersion) },
+  // A readable banner as well as the define. After the minifier is done the
+  // stamped version survives only as `var xy="2.44.1"` with a generated name,
+  // which nothing outside the bundle can reliably find — so 2.44.0 shipped a
+  // bundle built before the version bump and every install showed a permanent
+  // "reload the panel" banner (#112). This line is what
+  // tests/test_frontend_bundle_version.py checks, and it also lets anyone read
+  // the built version straight out of devtools.
+  banner: { js: `/*! maintenance_supporter frontend ${manifestVersion} */` },
 };
 
 // Panel
