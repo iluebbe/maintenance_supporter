@@ -13,6 +13,7 @@ testing hardest: the stock exists only in that object's store.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 
 import pytest
@@ -740,3 +741,376 @@ async def test_clearing_the_links_on_update_still_works(hass: HomeAssistant) -> 
     stored = hass.config_entries.async_get_entry(obj.entry_id)
     assert stored is not None
     assert (stored.data[CONF_TASKS][TASK_ID].get(CONF_TASK_CONSUMES_PARTS) or []) == []
+
+
+# ─── the branches that only run when things are unusual ───────────────────
+
+
+async def test_a_link_to_a_part_the_owner_no_longer_has_moves_nothing(
+    hass: HomeAssistant,
+) -> None:
+    """The borrower points at the right object but a part it has since lost —
+    there is nothing to transfer, and the completion path surfaces the dead
+    link on its own."""
+    g = await _global(hass)
+    shelf = _object(hass, name="Shelf", slug="shelf", parts={BAGS: _part()})
+    vacuum = _object(
+        hass,
+        name="Vacuum",
+        slug="vacuum",
+        consumes=[{"entry_id": shelf.entry_id, "part_id": "vanished", "quantity": 1}],
+        created_at="2026-02-01",
+    )
+    await setup_integration(hass, g, shelf, vacuum)
+
+    await hass.config_entries.async_remove(shelf.entry_id)
+    await hass.async_block_till_done()
+
+    survivor = hass.config_entries.async_get_entry(vacuum.entry_id)
+    assert survivor is not None
+    assert not (survivor.data.get(CONF_PARTS) or {}), "an unrelated part was inherited"
+
+
+async def test_an_id_clash_on_the_heir_is_given_a_new_one(hass: HomeAssistant) -> None:
+    """Part ids are uuid4 in general, but the battery fleet mints deterministic
+    ones — the heir may already own the very id being moved onto it."""
+    g = await _global(hass)
+    shelf = _object(hass, name="Shelf", slug="shelf", parts={BAGS: _part(name="Shared bags")})
+    vacuum = _object(
+        hass,
+        name="Vacuum",
+        slug="vacuum",
+        parts={BAGS: _part(name="Its own bags")},
+        consumes=[{"entry_id": shelf.entry_id, "part_id": BAGS, "quantity": 1}],
+        created_at="2026-02-01",
+    )
+    await setup_integration(hass, g, shelf, vacuum)
+
+    await hass.config_entries.async_remove(shelf.entry_id)
+    await hass.async_block_till_done()
+
+    survivor = hass.config_entries.async_get_entry(vacuum.entry_id)
+    assert survivor is not None
+    parts = survivor.data.get(CONF_PARTS) or {}
+    assert len(parts) == 2, f"the clash overwrote something: {list(parts)}"
+    names = {p["name"] for p in parts.values()}
+    assert names == {"Its own bags", "Shared bags"}
+
+
+async def test_borrowers_ignore_a_task_with_no_links_at_all(hass: HomeAssistant) -> None:
+    g = await _global(hass)
+    shelf = _object(hass, name="Shelf", slug="shelf", parts={BAGS: _part()})
+    plain = _object(hass, name="Plain", slug="plain", consumes=[{"quantity": 1}])
+    await setup_integration(hass, g, shelf, plain)
+    assert borrowers_of(hass, shelf.entry_id) == []
+    assert borrowed_part_ids(hass, shelf.entry_id) == set()
+
+
+# ─── guards on the write paths ────────────────────────────────────────────
+
+
+async def test_assigning_to_a_task_deleted_mid_lookup_is_refused(
+    hass: HomeAssistant,
+) -> None:
+    """`ws_assign_user` re-reads the task AFTER awaiting the user lookup,
+    precisely so a concurrent delete during that await cannot be written back
+    by a stale snapshot. This exercises that re-read."""
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.websocket.users import ws_assign_user
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+    user = await hass.auth.async_create_user("Alice")
+
+    async def _delete_the_task_meanwhile(_user_id):
+        entry = hass.config_entries.async_get_entry(obj.entry_id)
+        data = dict(entry.data)
+        data[CONF_TASKS] = {}
+        hass.config_entries.async_update_entry(entry, data=data)
+        return user
+
+    conn = make_ws_connection()
+    with patch.object(hass.auth, "async_get_user", new=AsyncMock(side_effect=_delete_the_task_meanwhile)):
+        await call_ws_handler(
+            ws_assign_user,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": f"{DOMAIN}/task/assign_user",
+                "entry_id": obj.entry_id,
+                "task_id": TASK_ID,
+                "user_id": user.id,
+            },
+        )
+
+    assert conn.send_error.called, "a task deleted mid-await was assigned anyway"
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+async def test_persisting_an_edit_to_a_missing_task_raises(hass: HomeAssistant) -> None:
+    """The service path shares this helper with the WS one; an unknown task has
+    to be an error rather than a silently created one."""
+    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+        async_update_task_simple,
+    )
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+
+    with pytest.raises(ValueError, match="No task"):
+        await async_update_task_simple(hass, entry_id=obj.entry_id, task_id="no_such_task", updates={"name": "x"})
+
+    with pytest.raises(ValueError, match="No maintenance object"):
+        await async_update_task_simple(hass, entry_id="not_an_entry", task_id=TASK_ID, updates={"name": "x"})
+
+
+async def test_an_edit_that_blanks_the_name_is_refused(hass: HomeAssistant) -> None:
+    """A whitespace-only name would leave an unnameable task in every list."""
+    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+        async_update_task_simple,
+    )
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+
+    with pytest.raises(ValueError, match="must not be empty"):
+        await async_update_task_simple(hass, entry_id=obj.entry_id, task_id=TASK_ID, updates={"name": "   "})
+
+
+# ─── archive / unarchive guards ───────────────────────────────────────────
+
+
+async def test_archiving_an_unknown_object_is_refused(hass: HomeAssistant) -> None:
+    """Every task command resolves its object first; an unknown entry has to
+    be an error rather than a silent no-op that looks like success."""
+    from custom_components.maintenance_supporter.websocket.tasks_lifecycle import (
+        ws_archive_task,
+    )
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        conn,
+        {"id": 1, "type": f"{DOMAIN}/task/archive", "entry_id": "no_such_entry", "task_id": TASK_ID},
+    )
+    assert conn.send_error.called
+    assert not conn.send_result.called
+
+
+async def test_unarchiving_an_unknown_object_is_refused(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.websocket.tasks_lifecycle import (
+        ws_unarchive_task,
+    )
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_unarchive_task,
+        hass,
+        conn,
+        {"id": 1, "type": f"{DOMAIN}/task/unarchive", "entry_id": "no_such_entry", "task_id": TASK_ID},
+    )
+    assert conn.send_error.called
+
+
+async def test_unarchiving_a_task_deleted_mid_flight_is_refused(hass: HomeAssistant) -> None:
+    """Unarchive re-reads the task from a FRESH copy after its await, so a
+    delete landing in between cannot be resurrected by a stale snapshot. This
+    drives that re-read: the task is gone by the time it happens."""
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.websocket.tasks_lifecycle import (
+        ws_unarchive_task,
+    )
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+
+    # archive it first so unarchive has something to act on
+    entry = hass.config_entries.async_get_entry(obj.entry_id)
+    data = dict(entry.data)
+    tasks = dict(data[CONF_TASKS])
+    tasks[TASK_ID] = {**tasks[TASK_ID], "archived_at": "2026-01-01", "archived_reason": "manual"}
+    data[CONF_TASKS] = tasks
+    hass.config_entries.async_update_entry(entry, data=data)
+
+    async def _delete_meanwhile(*_args, **_kwargs):
+        ce = hass.config_entries.async_get_entry(obj.entry_id)
+        fresh = dict(ce.data)
+        fresh[CONF_TASKS] = {}
+        hass.config_entries.async_update_entry(ce, data=fresh)
+
+    conn = make_ws_connection()
+    with patch(
+        "custom_components.maintenance_supporter.storage.MaintenanceStore.async_save",
+        new=AsyncMock(side_effect=_delete_meanwhile),
+    ):
+        await call_ws_handler(
+            ws_unarchive_task,
+            hass,
+            conn,
+            {"id": 1, "type": f"{DOMAIN}/task/unarchive", "entry_id": obj.entry_id, "task_id": TASK_ID},
+        )
+
+    assert conn.send_error.called, "a task deleted mid-flight was unarchived anyway"
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+# ─── vacation window guards ───────────────────────────────────────────────
+
+
+async def test_the_exempt_task_list_is_capped(hass: HomeAssistant) -> None:
+    """The exemption list is user-supplied and unbounded on the wire; without a
+    cap a single call could park a hundred thousand ids in the config entry."""
+    from custom_components.maintenance_supporter.const import CONF_VACATION_EXEMPT_TASK_IDS
+    from custom_components.maintenance_supporter.websocket.vacation import ws_vacation_update
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_vacation_update,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/vacation/update",
+            "exempt_task_ids": [f"task_{n}" for n in range(2500)],
+        },
+    )
+    assert conn.send_error.call_count == 0, conn.send_error.call_args
+
+    stored = hass.config_entries.async_get_entry(g.entry_id).options
+    assert len(stored[CONF_VACATION_EXEMPT_TASK_IDS]) == 2000
+
+
+async def test_the_transfer_leaves_everything_else_alone(hass: HomeAssistant) -> None:
+    """Repointing links is a rewrite of the heir's whole task dict, so the risk
+    is collateral: a task that consumes nothing, or a link to the heir's *own*
+    part, must come out the other side byte-for-byte."""
+    g = await _global(hass)
+    shelf = _object(hass, name="Shelf", slug="shelf", parts={BAGS: _part()})
+    vacuum = _object(
+        hass,
+        name="Vacuum",
+        slug="vacuum",
+        parts={"own": _part("own", "Own filter")},
+        consumes=[
+            {"entry_id": shelf.entry_id, "part_id": BAGS, "quantity": 1},
+            {"part_id": "own", "quantity": 2},
+        ],
+        created_at="2026-02-01",
+    )
+    # A second task on the heir that consumes nothing at all.
+    data = dict(vacuum.data)
+    tasks = dict(data[CONF_TASKS])
+    untouched = {**tasks[TASK_ID], "name": "Wipe the lid"}
+    untouched.pop(CONF_TASK_CONSUMES_PARTS, None)
+    tasks["task_no_parts"] = untouched
+    data[CONF_TASKS] = tasks
+    vacuum.add_to_hass(hass)
+    hass.config_entries.async_update_entry(vacuum, data=data)
+
+    await setup_integration(hass, g, shelf, vacuum)
+
+    # Snapshot AFTER setup: setup normalises tasks, so the pre-setup dict is not
+    # what the transfer will be handed. What matters is that deletion changes
+    # nothing about this task, whatever shape it settled into.
+    before = deepcopy(hass.config_entries.async_get_entry(vacuum.entry_id).data[CONF_TASKS]["task_no_parts"])
+
+    await hass.config_entries.async_remove(shelf.entry_id)
+    await hass.async_block_till_done()
+
+    survivor = hass.config_entries.async_get_entry(vacuum.entry_id)
+    assert survivor is not None
+
+    # The part-less task survived untouched.
+    assert survivor.data[CONF_TASKS]["task_no_parts"] == before
+
+    links = survivor.data[CONF_TASKS][TASK_ID][CONF_TASK_CONSUMES_PARTS]
+    borrowed = [link for link in links if link["part_id"] == BAGS]
+    own = [link for link in links if link["part_id"] == "own"]
+    assert len(borrowed) == 1 and "entry_id" not in borrowed[0], "the pool link was not repointed"
+    assert own == [{"part_id": "own", "quantity": 2}], "a link to the heir's own part was rewritten"
+
+
+async def test_the_pool_moves_even_when_no_store_is_open(hass: HomeAssistant) -> None:
+    """Deletion can reach this path with neither store cached — Home Assistant
+    is free to have unloaded them, and the stock lives only on disk. Loading
+    them is what makes the number survive, so read it back from a fresh store
+    rather than from the cache the transfer happened to leave behind."""
+    from custom_components.maintenance_supporter.storage import MaintenanceStore
+
+    g = await _global(hass)
+    shelf = _object(hass, name="Shelf", slug="shelf", parts={BAGS: _part()})
+    vacuum = _object(
+        hass,
+        name="Vacuum",
+        slug="vacuum",
+        consumes=[{"entry_id": shelf.entry_id, "part_id": BAGS, "quantity": 1}],
+        created_at="2026-02-01",
+    )
+    await setup_integration(hass, g, shelf, vacuum)
+    await _set_stock(hass, shelf, 7)
+
+    # Evict both stores: the transfer has to reopen them itself.
+    hass.data[STORES_CACHE_KEY].pop(shelf.entry_id, None)
+    hass.data[STORES_CACHE_KEY].pop(vacuum.entry_id, None)
+
+    await hass.config_entries.async_remove(shelf.entry_id)
+    await hass.async_block_till_done()
+
+    survivor = hass.config_entries.async_get_entry(vacuum.entry_id)
+    assert survivor is not None
+    assert BAGS in (survivor.data.get(CONF_PARTS) or {}), "the pool was not inherited"
+
+    fresh = MaintenanceStore(hass, vacuum.entry_id)
+    await fresh.async_load()
+    assert fresh.get_part_stock(BAGS) == 7, "the stock did not reach disk"
+
+
+async def test_ending_vacation_survives_a_corrupted_start_date(hass: HomeAssistant) -> None:
+    """`end_now` clamps the end date to today, which means parsing whatever is
+    stored as the start. That value can predate validation (an old entry, a
+    hand-edited config, an import), and a person pressing *I'm back* must not
+    be stranded in vacation mode because of it: the clamp is a nicety, ending
+    the vacation is the point."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_START,
+    )
+    from custom_components.maintenance_supporter.websocket.vacation import ws_vacation_end_now
+
+    g = await _global(hass)
+    obj = _object(hass, name="Solo", slug="solo")
+    await setup_integration(hass, g, obj)
+
+    entry = hass.config_entries.async_get_entry(g.entry_id)
+    hass.config_entries.async_update_entry(
+        entry,
+        options={**dict(entry.options), CONF_VACATION_ENABLED: True, CONF_VACATION_START: "not-a-date"},
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_vacation_end_now, hass, conn, {"id": 1, "type": f"{DOMAIN}/vacation/end_now"}
+    )
+
+    assert conn.send_error.call_count == 0, conn.send_error.call_args
+    assert hass.config_entries.async_get_entry(g.entry_id).options[CONF_VACATION_ENABLED] is False
