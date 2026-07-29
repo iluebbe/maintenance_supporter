@@ -424,7 +424,7 @@ store; per-part stock sensors + a global "parts to reorder" counter feed
 automations (edge-triggered low/out/restocked events); the printable work
 sheet lists required parts; everything round-trips through export/import.
 
-### ✅ One stock pool for several objects (#111) — shipped 2.45
+### ✅ One stock pool for several objects (#111) — shipped 2.44
 
 **Shipped.** A task's `consumes_parts` link may name another object's pool
 (`{entry_id, part_id, quantity}`; absent `entry_id` still means the task's own
@@ -894,7 +894,7 @@ is exactly what the window is for. A source scan fails any new user-facing
 mutation that reaches for the debounced call
 (`tests/test_refresh_after_user_action.py`).
 
-## Voice, second pass — and voice with a screen (A + B + C8 shipped 2.44/2.45; C9 + D open)
+## Voice, second pass — and voice with a screen (A + B + C8 shipped 2.44; C9 + D open)
 
 Maintenance is one of the few domains where voice is not a gimmick: the moment
 you need the information is the moment your hands are dirty, gloved, or holding
