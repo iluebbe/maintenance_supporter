@@ -1,12 +1,25 @@
 /** Explainer/onboarding GIFs — reproducible, like the docs screenshots.
  *
- * Records three key flows against the seeded ha-shots demo instance
- * (port 8131, dark mode, faketime-pinned dates; see shots-demo.mjs for the
- * seed) and converts them to looping GIFs under docs/images/gifs/:
+ * Records the key flows against the seeded ha-shots demo instance (port 8131,
+ * dark mode, faketime-pinned dates; see shots-demo.mjs for the seed) and
+ * converts them to looping GIFs under docs/images/gifs/:
  *
  *   create-from-template.gif   From template → gallery → object created
  *   complete-task.gif          overdue task → Complete → done
  *   calendar-object-filter.gif Calendar tab → filter to one object
+ *   sensor-trigger.gif         WHY a task is due: the threshold behind it
+ *   schedule-preview.gif       change the cadence, next dates recompute live
+ *   object-report.gif          the printable report, hidden in the ⋮ menu
+ *   required-details.gif       Complete stays disabled until details are given
+ *   parts-auto-buy.gif         stock crosses its threshold → "Buy ..." appears
+ *   duty-rotation.gif          a shared chore hands over to the next person
+ *
+ * A clip earns its place by showing a CAUSAL CHAIN or a hiding place — not by
+ * filming a form being filled in, which a screenshot says better.
+ *
+ * Two of these need seed ingredients from shots-demo.mjs that exist only for
+ * them: a part stocked ONE above its reorder threshold (so a single completion
+ * crosses it) and a task with required_completion_fields.
  *
  * Prereqs: ha-shots + playwright-server running, demo seed present
  * (node e2e/shots-demo.mjs seeds a wiped instance). Re-run per release to
@@ -52,8 +65,10 @@ async function findFfmpeg() {
 async function toGif(videoPath, name, trimSeconds) {
   const out = join(GIF_DIR, `${name}.gif`);
   // Cut everything before the measured action start (login/loading), then
-  // 9 fps, 960px wide, 128-color palette.
-  const filters = "fps=9,scale=960:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3";
+  // 8 fps and a 100-colour palette; the width stays 960 because these are
+  // documentation clips and the UI text must stay readable — the saving has to
+  // come from frame rate and palette, not from scaling the text down.
+  const filters = "fps=8,scale=960:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=100[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3";
   execFileSync(await findFfmpeg(), ["-y", "-ss", trimSeconds.toFixed(1), "-i", videoPath, "-vf", filters, "-loop", "0", out], { stdio: "pipe" });
   log(`  gif -> ${out} (trim ${trimSeconds.toFixed(1)}s)`);
 }
@@ -144,6 +159,11 @@ async function record(token, name, flow) {
   const browser = await chromium.connect(PW_WS, { timeout: 20000 });
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 800 },
+    // Every flow gets a FRESH browser profile, and HA's default theme mode is
+    // "auto" — it follows the OS. Without this the recordings came out light
+    // while all 30 screenshots are dark, because shots-demo.mjs sets
+    // colorScheme on its contexts and this one did not.
+    colorScheme: "dark",
     recordVideo: { dir: VIDEO_DIR, size: { width: 1280, height: 800 } },
   });
   const p = await ctx.newPage();
@@ -282,6 +302,262 @@ const flowCalendarFilter = async (p, mark) => {
   await p.waitForTimeout(3000);
 };
 
+// ── helpers shared by the flows below ──────────────────────────────────────
+
+/** Scroll a task row into view by name; optionally press its row action. */
+async function onRow(p, nameRe, action = "show") {
+  const r = await p.evaluate(({ fnStr, nameRe, action }) => {
+    const panel = eval(`(${fnStr})`)();
+    const re = new RegExp(nameRe, "i");
+    const row = [...panel.shadowRoot.querySelectorAll(".task-row")]
+      .find((el) => re.test(el.querySelector(".task-name")?.textContent || ""));
+    if (!row) return "no row " + nameRe;
+    row.scrollIntoView({ block: "center" });
+    if (action === "show") return "showed";
+    const btn = row.querySelector(action === "complete" ? ".btn-complete" : ".btn-skip");
+    if (!btn) return "no " + action + " button";
+    btn.click();
+    return action + "d";
+  }, { fnStr: panelOf.toString(), nameRe, action });
+  log(`  row /${nameRe}/ ${action} -> ${r}`);
+  return r;
+}
+
+/** Open a task's EDIT dialog through the panel's own dialog API.
+ *  Clicking through detail views is far more brittle, and shots-demo.mjs
+ *  already drives the panel this way. */
+async function openTaskEditor(p, objectRe, taskRe) {
+  const r = await p.evaluate(async ({ fnStr, objectRe, taskRe }) => {
+    const panel = eval(`(${fnStr})`)();
+    const oRe = new RegExp(objectRe, "i"), tRe = new RegExp(taskRe, "i");
+    const obj = (panel._objects || []).find((o) => oRe.test(o.object?.name || ""));
+    if (!obj) return "no object " + objectRe;
+    const task = (obj.tasks || []).find((t) => tRe.test(t.name || ""));
+    if (!task) return "no task " + taskRe;
+    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
+    if (!dlg) return "no task dialog";
+    await dlg.openEdit(obj.entry_id, task);
+    return "opened " + task.name;
+  }, { fnStr: panelOf.toString(), objectRe, taskRe });
+  log("  " + r);
+  return r.startsWith("opened");
+}
+
+/** Scroll something inside the task dialog's shadow root into view. */
+async function revealInTaskDialog(p, selector) {
+  const r = await p.evaluate(({ fnStr, selector }) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
+    const el = dlg?.shadowRoot?.querySelector(selector);
+    if (!el) return "not found " + selector;
+    el.scrollIntoView({ block: "center" });
+    return "revealed " + selector;
+  }, { fnStr: panelOf.toString(), selector });
+  log("  " + r);
+  return r.startsWith("revealed");
+}
+
+/** Scroll the trigger CONFIGURATION into view — the entity and the threshold
+ *  that make a sensor-based task come due. Anchored on the heading text so it
+ *  cannot land on an unrelated select row. */
+async function revealTriggerConfig(p) {
+  const r = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const root = panel.shadowRoot.querySelector("maintenance-task-dialog")?.shadowRoot;
+    if (!root) return "no dialog";
+    const head = [...root.querySelectorAll("h3")]
+      .find((h) => /trigger/i.test(h.textContent || ""));
+    const target = head || root.querySelector(".trigger-live-hint");
+    if (!target) return "no trigger section";
+    target.scrollIntoView({ block: "start" });
+    return "revealed " + (target.textContent || "").trim().slice(0, 40);
+  }, panelOf.toString());
+  log("  " + r);
+  return r.startsWith("revealed");
+}
+
+/** Type into the complete dialog's Nth native input (notes=0, cost=1). */
+async function fillCompleteField(p, index, value) {
+  const r = await p.evaluate(({ fnStr, index, value }) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-complete-dialog");
+    const inputs = [...(dlg?.shadowRoot?.querySelectorAll("input.field-input") || [])];
+    const el = inputs[index];
+    if (!el) return "no input " + index;
+    el.scrollIntoView({ block: "center" });
+    el.focus();
+    el.value = value;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    return "filled " + index;
+  }, { fnStr: panelOf.toString(), index, value });
+  log("  " + r);
+  return r.startsWith("filled");
+}
+
+/** Is the complete dialog's submit button currently disabled? */
+async function completeDisabled(p) {
+  return p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-complete-dialog");
+    const btn = [...(dlg?.shadowRoot?.querySelectorAll("ha-button, button, mwc-button") || [])]
+      .find((b) => /^(complete|save|confirm)/i.test((b.textContent || "").trim()));
+    return btn ? !!(btn.disabled || btn.hasAttribute("disabled")) : null;
+  }, panelOf.toString());
+}
+
+async function submitComplete(p) {
+  const r = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-complete-dialog");
+    const btn = [...(dlg?.shadowRoot?.querySelectorAll("ha-button, button, mwc-button") || [])]
+      .find((b) => /^(complete|save|confirm)/i.test((b.textContent || "").trim()));
+    if (!btn) return "no submit";
+    btn.click();
+    return "submitted";
+  }, panelOf.toString());
+  log("  " + r);
+  return r === "submitted";
+}
+
+// ── the five flows added for the v2.44 docs round ──────────────────────────
+
+/** WHY is this task due? Because a sensor says so. The differentiator that
+ *  text explains worst: start on the triggered row, then reveal the threshold
+ *  that produced it. */
+const flowSensorTrigger = async (p, mark) => {
+  await openPanel(p);
+  // These flows reach the panel through the UI-login fallback, and a dialog
+  // opened too soon after that renders before the theme has settled — it came
+  // out light against a dark panel. Give it a moment.
+  await p.waitForTimeout(4000);
+  mark();
+  await onRow(p, "filter replacement");
+  await p.waitForTimeout(2200);           // let the reader see "Triggered"
+  await openTaskEditor(p, "HVAC", "filter replacement");
+  await p.waitForTimeout(2500);
+  // The trigger configuration is what explains the Triggered badge. Anchor on
+  // its heading, NOT on .select-row — that matched "Maintenance type", the
+  // first select in the dialog, and the payoff never came into frame.
+  await revealTriggerConfig(p);
+  await p.waitForTimeout(3400);
+};
+
+/** The best causal chain in the product: completing a task eats a part, the
+ *  stock crosses its reorder threshold, and the "Buy ..." reminder appears by
+ *  itself. Seeded at stock 2 / threshold 1 so one completion crosses it. */
+const flowPartsAutoBuy = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  await onRow(p, "impeller cleaning");
+  await p.waitForTimeout(1400);
+  await onRow(p, "impeller cleaning", "complete");
+  await p.waitForTimeout(2200);
+  await submitComplete(p);
+  await p.waitForTimeout(4500);           // reconcile + list refresh
+  await onRow(p, "buy pump filter");      // the reminder that created itself
+  await p.waitForTimeout(3000);
+};
+
+/** A task can demand details before it counts as done (2.44). The Complete
+ *  button stays disabled until they are there — that is the whole story. */
+const flowRequiredDetails = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  await onRow(p, "descaling", "complete");
+  await p.waitForTimeout(2400);
+  log("  complete disabled before filling: " + (await completeDisabled(p)));
+  await fillCompleteField(p, 0, "Ran two descaling cycles, rinsed twice");
+  await p.waitForTimeout(1200);
+  await fillCompleteField(p, 1, "8.90");
+  await p.waitForTimeout(1400);
+  log("  complete disabled after filling: " + (await completeDisabled(p)));
+  await submitComplete(p);
+  await p.waitForTimeout(3000);
+};
+
+/** Changing the cadence recomputes the next dates live — the moment people
+ *  get wrong when setting a schedule up. */
+const flowSchedulePreview = async (p, mark) => {
+  await openPanel(p);
+  await p.waitForTimeout(4000);           // theme settle — see flowSensorTrigger
+  mark();
+  await openTaskEditor(p, "Family Car", "oil change");
+  await p.waitForTimeout(2500);
+  await revealInTaskDialog(p, ".schedule-preview");
+  await p.waitForTimeout(1800);
+  const changed = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
+    const root = dlg?.shadowRoot;
+    // The interval box is an <ms-textfield> — a custom element with its OWN
+    // shadow root, so a plain input[type=number] query on the dialog finds
+    // nothing. Drive the inner input: its event is composed, so it reaches
+    // the @input listener bound on the host.
+    const host = [...(root?.querySelectorAll("ms-textfield") || [])]
+      .find((el) => /interval/i.test(el.getAttribute("label") || ""));
+    if (!host) return "no interval field";
+    const el = host.shadowRoot?.querySelector("input");
+    if (!el) return "interval field has no inner input";
+    host.scrollIntoView({ block: "center" });
+    el.focus();
+    el.value = "90";
+    el.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    return "interval -> 90";
+  }, panelOf.toString());
+  log("  " + changed);
+  // Bring the recomputed dates back into frame — the interval box and the
+  // preview line are far enough apart that typing scrolled the payoff away,
+  // and the payoff IS the point of this clip.
+  await p.waitForTimeout(900);
+  await revealInTaskDialog(p, ".schedule-preview");
+  await p.waitForTimeout(3400);           // hold on the recomputed dates
+};
+
+/** The printable per-object report — a feature nobody finds, because it sits
+ *  in the object's ⋮ menu. window.open is redirected into THIS tab so the
+ *  sheet lands in the recording (Playwright videos are per page). */
+const flowObjectReport = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  const shown = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const obj = (panel._objects || []).find((o) => /family car/i.test(o.object?.name || ""));
+    if (!obj) return "no object";
+    panel._showObject(obj.entry_id);
+    return "opened " + obj.object.name;
+  }, panelOf.toString());
+  log("  " + shown);
+  await p.waitForTimeout(2600);
+  await p.evaluate(() => { window.open = (url) => { window.location.href = url; return null; }; });
+  const menu = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const btn = panel.shadowRoot.querySelector(".more-menu-wrapper ha-icon-button");
+    if (!btn) return "no ⋮";
+    btn.scrollIntoView({ block: "center" });
+    btn.click();
+    return "menu open";
+  }, panelOf.toString());
+  log("  " + menu);
+  await p.waitForTimeout(1600);
+  await clickInPanel(p, "^report$");
+  await p.waitForTimeout(4000);           // the sheet renders in this tab
+};
+
+/** Shared chores rotate: completing one hands the duty to the next person. */
+const flowDutyRotation = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  await onRow(p, "door seal wipe");
+  await p.waitForTimeout(2400);           // the current duty badge is readable
+  await onRow(p, "door seal wipe", "complete");
+  await p.waitForTimeout(2000);
+  await submitComplete(p);
+  await p.waitForTimeout(4000);
+  await onRow(p, "door seal wipe");       // badge now names the next person
+  await p.waitForTimeout(3000);
+};
+
 // ── demo-cards dashboard: ensure BOTH cards (task card + calendar card) ─────
 async function ensureDemoCards(token) {
   const ws = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
@@ -314,6 +590,15 @@ const FLOWS = {
   "create-from-template": flowTemplate,
   "complete-task": flowComplete,
   "calendar-object-filter": flowCalendarFilter,
+  // Order matters: parts-auto-buy and duty-rotation COMPLETE tasks, which
+  // changes the state the other flows record against. Each flow gets a fresh
+  // browser but the same HA instance, so the mutating ones go last.
+  "sensor-trigger": flowSensorTrigger,
+  "schedule-preview": flowSchedulePreview,
+  "object-report": flowObjectReport,
+  "required-details": flowRequiredDetails,
+  "parts-auto-buy": flowPartsAutoBuy,
+  "duty-rotation": flowDutyRotation,
 };
 const only = process.argv[2];
 for (const [name, flow] of Object.entries(FLOWS)) {
