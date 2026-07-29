@@ -130,7 +130,13 @@ stored values; `stock: null` untracks). `part/delete` `{entry_id, part_id}`
 (also prunes task links + any open buy reminder). `part/restock`
 `{entry_id, part_id, delta | absolute}` → `{stock}`.
 Link consumption on the task: `task/create|update` accept
-`consumes_parts: [{part_id, quantity}]`. Parts ride the `objects` payload
+`consumes_parts: [{part_id, quantity, entry_id?}]`. **`entry_id` (2.45+, #111)
+names another object that owns the pool** — several appliances sharing one box
+of filters; omit it for a part of the task's own object. Both write paths
+validate the reference and drop a link whose object or part does not exist, and
+`task/complete`'s `used_parts` takes the same shape. Deleting an object that
+owns a shared pool moves the part and its stock to the longest-standing
+borrower and repoints the other links. Parts ride the `objects` payload
 (each with merged `stock`, `is_low`, `shopping_url`). While a part with
 `auto_buy_task` is at/below its threshold, a one-off "Buy {part}" task exists
 (marker `part_ref`); completing it restocks (`task/complete` accepts

@@ -247,9 +247,21 @@ is dynamic state (Store). Parts round-trip through JSON export/import
 | `auto_buy_task` | bool | `false` | — | Auto-create a one-off **"Buy {part}"** task while the part is low; it clears itself once restocked above the threshold. A *completed* reminder keeps its cost history and blocks duplicates while the part stays low |
 | `doc_id` | string | *(none)* | — | Receipt/datasheet attached via the documents engine |
 
-**Task link:** `task.consumes_parts = [{"part_id", "quantity"}]` (≤10 parts per
-task, quantity >0 up to 999; edited via the task dialog's *Consumes parts*
-checkboxes) — completing the task decrements each linked part's tracked stock.
+**Task link:** `task.consumes_parts = [{"part_id", "quantity", "entry_id"?}]`
+(≤10 parts per task, quantity >0 up to 999; edited via the task dialog's
+*Consumes parts* checkboxes) — completing the task decrements each linked
+part's tracked stock.
+
+**Sharing one stock across objects (2.45+, #111):** with an `entry_id` the
+link points at a part owned by a *different* object — three robot vacuums
+drawing on one box of dust bags, so the number you see is the number on the
+shelf. Pick those under *Parts from other objects* in the task dialog; without
+`entry_id` the part belongs to the task's own object, as before. The pool keeps
+a single owner, so there is exactly one reorder threshold, one low state, one
+stock sensor and one *"Buy …"* reminder for one purchase. Deleting the owning
+object does not strand the others: the part and its stock move to the object
+that has been drawing on it longest, the remaining links are repointed, and a
+repair notification says what went where.
 **Decimal quantities are allowed** (#98) — `0.5` litres of oil, `1.5` metres of
 hose; values are rounded to 2 decimals and whole numbers collapse back to
 integers, while zero or negative input falls back to `1`.
