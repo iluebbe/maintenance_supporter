@@ -151,7 +151,7 @@ async def ws_update_history_entry(
     # Refresh coordinator + budget cache so the UI reflects the change
     if rd and rd.coordinator:
         rd.coordinator._recalculate_budget_cache()
-        await rd.coordinator.async_request_refresh()
+        await rd.coordinator.async_refresh_now()
 
     connection.send_result(
         msg["id"],

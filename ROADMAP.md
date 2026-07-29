@@ -313,8 +313,10 @@ welcome via issues/Discussions.
 6. ~~**Voice/Assist intents**~~ ✅ **Shipped in v2.26.0** — two intents
    (`MaintenanceSupporterListTasks`, `MaintenanceSupporterCompleteTask`):
    LLM-based Assist pipelines pick them up automatically as tools in any
-   language; the classic agent uses the shipped en/de sentence files
-   (`assist/custom_sentences/`). Completion goes through the real coordinator
+   language; the classic agent used the shipped en/de sentence files, then at
+   `assist/custom_sentences/`. (Both moved in 2.44: six languages, shipped
+   inside the integration at `assist_sentences/` — the old path no longer
+   exists, so it is corrected here rather than left as history.) Completion goes through the real coordinator
    path (history, rotation, parts, completion window).
 7. **Form generation from field specs** (🟡, internal) — the long-term
    parity-by-construction step for the two hand-written task/trigger forms
@@ -692,7 +694,7 @@ one-off date on the object, not a schedule.
 
 ---
 
-## Usability & design wave (planned, 2026-07)
+## ✅ Usability & design wave (2026-07) — worked off
 
 Smaller, high-frequency wins first; each ships independently.
 
@@ -856,7 +858,7 @@ target what's left:
 
 ---
 
-### 🐞 Postponing an ASSIGNED task looks like it did nothing (found 2026-07-28, live-reproduced)
+### ✅ A second user action showed stale state for up to ten seconds (found 2026-07-28, fixed)
 
 Postpone a task that has a responsible user and the panel keeps showing it
 **overdue for ~15 seconds**. The data is correct throughout — `due_override`
@@ -873,16 +875,24 @@ with assignee -> next_due=2020-01-31 override=2026-09-15   (still overdue)
               -> converges at ~15 s, or instantly after any other task edit
 ```
 
-Suspected cause: `ws_assign_user` ends with a **debounced**
-`async_request_refresh()`; the postpone's own refresh lands inside that
-cooldown and is coalesced away, so the recompute waits for the next scheduled
-poll. If that is right, the fix is for a mutation that changes the schedule to
-refresh immediately rather than share the debounce with a metadata edit —
-but the interaction deserves its own look rather than a quick patch, since
-every mutation path shares this coordinator.
+**Cause, measured rather than guessed.** The suspicion above was right in
+direction and wrong in scale: `async_request_refresh()` is debounced, and Home
+Assistant's default window is **ten seconds**
+(`REQUEST_REFRESH_DEFAULT_COOLDOWN`), not the fraction of a second the first
+write assumed. Tracing the coordinator showed the second request returning
+without a recompute at all — the first action had opened the window and the
+second was coalesced into its end.
 
-Worth checking at the same time whether other mutations that follow an
-assignment (skip, reset, complete) have the same lag.
+**So it was never about assigning, or about postponing.** Any two user actions
+on one object inside ten seconds hit it: two completions, an edit then a skip,
+and every bulk action beyond its first item.
+
+**Fixed** by giving user actions `async_refresh_now()` — an immediate
+recompute of that one object, which is cheap — while the trigger path keeps
+`async_request_refresh()`, since a counter entity changing many times a minute
+is exactly what the window is for. A source scan fails any new user-facing
+mutation that reaches for the debounced call
+(`tests/test_refresh_after_user_action.py`).
 
 ## Voice, second pass — and voice with a screen (A + B + C8 shipped 2.44/2.45; C9 + D open)
 

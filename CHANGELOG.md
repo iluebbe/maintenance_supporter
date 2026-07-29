@@ -78,6 +78,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **A second change in quick succession looked like it had done nothing.** Any
+  two actions on the same object within ten seconds — assign someone and then
+  postpone, complete two tasks, or any bulk action past its first item — left
+  the panel showing the *old* status for up to ten seconds. The data was
+  correct the whole time; only the computed view lagged, which is worse,
+  because the obvious response is to do it again.
+  The recompute request every user action made is coalesced into a
+  ten-second window that exists to protect against sensor-driven churn. User
+  actions now recompute immediately; sensor triggers keep the window.
+
 - **The assistant now answers in your language, in all 22.** The spoken
   responses existed in English and German only; every other language heard
   English even where the intent itself worked. All 38 response texts are now

@@ -1258,6 +1258,28 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._lifecycle_event_payload(task, task_id, reason=reason),
         )
 
+
+    async def async_refresh_now(self) -> None:
+        """Recompute immediately — for changes a person just made.
+
+        ``async_request_refresh`` is debounced, and Home Assistant's default
+        window is **ten seconds** (``REQUEST_REFRESH_DEFAULT_COOLDOWN``). That
+        is right for trigger-driven churn — a noisy sensor must not recompute
+        the object on every state change — and wrong for a user action: any
+        second action within that window had its request coalesced to the end
+        of it, so the panel kept showing the old computed status for up to ten
+        seconds and the change looked like it had done nothing.
+
+        Assigning a user and then postponing the task was the reported case
+        (#111 review, 2026-07-28), but nothing about it is specific to those
+        two: completing two tasks on one object in quick succession, or any
+        bulk action, hit the same window.
+
+        The recompute covers one object's tasks, so doing it per user action is
+        cheap; the debounced path stays exactly as it was for triggers.
+        """
+        await self.async_refresh()
+
     async def _persist_and_signal_task_change(
         self,
         task_id: str,
@@ -1278,7 +1300,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.hass,
             SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
         )
-        await self.async_request_refresh()
+        await self.async_refresh_now()
 
     def _lifecycle_event_payload(
         self,
@@ -1338,7 +1360,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         new_data = dict(self.entry.data)
         new_data[CONF_TASKS] = tasks_data
         self.hass.config_entries.async_update_entry(self.entry, data=new_data)
-        await self.async_request_refresh()
+        await self.async_refresh_now()
 
     async def async_persist_trigger_runtime(
         self,

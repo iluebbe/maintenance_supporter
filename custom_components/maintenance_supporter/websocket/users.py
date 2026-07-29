@@ -117,7 +117,7 @@ async def ws_assign_user(
     # Refresh coordinator
     rd = _get_runtime_data(hass, entry.entry_id)
     if rd and rd.coordinator:
-        await rd.coordinator.async_request_refresh()
+        await rd.coordinator.async_refresh_now()
 
     connection.send_result(msg["id"], {"success": True, "user_id": user_id})
 

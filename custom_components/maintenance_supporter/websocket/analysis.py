@@ -192,7 +192,7 @@ async def ws_seasonal_overrides(
 
     # Refresh coordinator
     if rd and rd.coordinator:
-        await rd.coordinator.async_request_refresh()
+        await rd.coordinator.async_refresh_now()
 
     connection.send_result(msg["id"], {"success": True, "overrides": validated})
 
@@ -262,7 +262,7 @@ async def ws_set_environmental_entity(
 
     # Refresh coordinator
     if rd and rd.coordinator:
-        await rd.coordinator.async_request_refresh()
+        await rd.coordinator.async_refresh_now()
 
     connection.send_result(
         msg["id"],

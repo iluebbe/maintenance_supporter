@@ -165,6 +165,9 @@ class CounterTrigger(BaseTrigger):
             # falls back to the RAW counter value — a 27,000 km odometer reads
             # as "27000/15000, overdue" (issue #102). Debounced upstream, and
             # the periodic refresh never writes baselines, so no loop.
+            # Debounced ON PURPOSE: a counter entity can change many times
+            # a minute, and this is the path the ten-second coalescing
+            # window exists for. User actions use async_refresh_now.
             await self._coordinator.async_request_refresh()
 
     def reset(self) -> None:
