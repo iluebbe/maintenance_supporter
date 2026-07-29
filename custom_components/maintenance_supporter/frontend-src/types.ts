@@ -238,9 +238,23 @@ export interface MaintenanceTask {
   sensor_entity_id?: string | null;
   binary_sensor_entity_id?: string | null;
   /** Spare parts consumed by completing this task. */
-  consumes_parts?: Array<{ part_id: string; quantity: number }> | null;
+  consumes_parts?: TaskPartLink[] | null;
   /** Present on an auto-created "buy" reminder: the owning part. */
   part_ref?: { part_id: string } | null;
+}
+
+/** One entry of a task's `consumes_parts`.
+ *
+ *  `entry_id` ABSENT = the part belongs to the task's own object. That is what
+ *  every link written before #111 looks like and what is still written for own
+ *  parts — nothing emits an entry_id for them. PRESENT = the task draws on a
+ *  stock pool owned by that other object (three vacuums, one box of dust bags),
+ *  and completing the task decrements the other object's stock.
+ */
+export interface TaskPartLink {
+  part_id: string;
+  quantity: number;
+  entry_id?: string;
 }
 
 /** A spare part / consumable on an object (full definition + derived state). */

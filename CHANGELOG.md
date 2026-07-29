@@ -60,6 +60,22 @@ All notable changes to Maintenance Supporter are documented in this file.
   without recording work, and answers with the new due date rather than just
   acknowledging the command.
 
+- **Several objects can share one stock of spare parts** (#111). Three robot
+  vacuums and one box of dust bags: link each appliance's task to the pool and
+  every completion draws on the same number, instead of splitting the pile
+  across three inventories where none of them is the real one. The pool keeps a
+  single owner, so there is exactly **one** reorder threshold, **one** low
+  state, **one** stock sensor and **one** "Buy …" reminder for one purchase.
+  Deleting the object that owns a shared pool does not strand the others: the
+  part and its current stock **move** to the appliance that has been using it
+  longest, every other task is repointed at the new home, and a notification
+  tells you what went where so you can move it somewhere better. Only parts
+  that are actually shared move — a deleted object's private inventory stays
+  private. Replacing a borrowing appliance keeps it drawing on the pool.
+  If a link ever cannot be resolved, the completion is still recorded (the work
+  was done) and the failure is raised as a notification rather than silently
+  deducting nothing.
+
 ### 🐛 Fixed
 
 - **The assistant now answers in your language, in all 22.** The spoken

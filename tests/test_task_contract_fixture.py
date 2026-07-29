@@ -108,6 +108,30 @@ async def _build_contract_summary(hass: HomeAssistant) -> dict:
 
     entry_id = await async_create_object(hass, name="Contract Object")
     entry = hass.config_entries.async_get_entry(entry_id)
+
+    # The maximal task consumes `part_1`, so the object has to own it. It did
+    # not, which made the fixture describe a state the product now refuses:
+    # `task/update` validates part links (it used to copy them through raw), so
+    # replaying the fixture dropped the link and the no-op round-trip stopped
+    # being a no-op. The fixture was wrong, not the check.
+    hass.config_entries.async_update_entry(
+        entry,
+        data={
+            **entry.data,
+            "parts": {
+                "part_1": {
+                    "id": "part_1",
+                    "name": "Contract Part",
+                    "unit": "pcs",
+                    "reorder_threshold": 1,
+                    "restock_quantity": 2,
+                    "auto_buy_task": False,
+                }
+            },
+        },
+    )
+    entry = hass.config_entries.async_get_entry(entry_id)
+
     task = dict(_MAXIMAL_TASK)
     task["object_id"] = entry.data["object"]["id"]
     await async_persist_task(hass, entry, task)

@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Peças compartilhadas movidas para {new_owner}",
+      "description": "Vários objetos de manutenção compartilhavam um mesmo estoque de peças, que ficava em **{deleted_object}**, e esse objeto acaba de ser excluído. Em vez de deixar os outros objetos apontando para um estoque que não existe mais, o Maintenance Supporter moveu as peças compartilhadas ({parts}) — junto com o estoque atual — para **{new_owner}** e reapontou para elas os vínculos das tarefas de todos os demais objetos. Nada foi perdido.\n\n**{new_owner}** foi escolhido automaticamente: é o objeto mais antigo que usava esse estoque. Se outro objeto for o lugar mais adequado, mova as peças para lá no painel de Manutenção.\n\nNão é preciso fazer mais nada — dispense esta notificação depois de conferir."
+    },
+    "broken_part_link": {
+      "title": "Vínculos de peça quebrados em {object_name}",
+      "description": "Uma tarefa de **{object_name}** acabou de ser concluída, mas {count} vínculos de peça não puderam ser resolvidos — a peça, ou o objeto dono dela, não existe mais.\n\nA conclusão em si foi registrada, então o trabalho não se perdeu. O que não aconteceu foi a baixa no estoque: nada foi descontado do estoque de nenhuma peça nesta conclusão.\n\nPara corrigir: abra a tarefa no painel de Manutenção e remova os vínculos obsoletos, ou aponte-os para as peças que você usa agora. Dispense esta notificação quando terminar."
     }
   },
   "exceptions": {

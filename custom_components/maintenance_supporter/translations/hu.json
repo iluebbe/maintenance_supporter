@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "A megosztott alkatrészek átkerültek ide: {new_owner}",
+      "description": "Több karbantartási objektum ugyanazt az alkatrészkészletet használta, amely a(z) **{deleted_object}** objektumon volt, és ezt az objektumot most törölték. Ahelyett, hogy a többi objektum egy már nem létező készletre mutatna, a Maintenance Supporter átmozgatta a megosztott alkatrészeket ({parts}) — a jelenlegi készlettel együtt — a(z) **{new_owner}** objektumra, és minden más objektum feladat-hivatkozását erre irányította át. Semmi nem veszett el.\n\nA(z) **{new_owner}** választása automatikus volt: ez a legrégebbi objektum, amely a készletet használta. Ha egy másik objektum alkalmasabb, mozgassa oda az alkatrészeket a karbantartási panelen.\n\nMás teendő nincs — a megtekintés után zárja be ezt az értesítést."
+    },
+    "broken_part_link": {
+      "title": "Hibás alkatrész-hivatkozások itt: {object_name}",
+      "description": "A(z) **{object_name}** egyik feladata épp elkészült, de {count} alkatrész-hivatkozást nem sikerült feloldani — az alkatrész vagy az azt birtokló objektum már nem létezik.\n\nMagát az elvégzést rögzítettük, tehát a munka nem veszett el. Ami elmaradt, az a készletcsökkentés: ehhez az elvégzéshez egyetlen alkatrész készletéből sem vontunk le semmit.\n\nA javításhoz nyissa meg a feladatot a karbantartási panelen, és távolítsa el az elavult alkatrész-hivatkozásokat, vagy irányítsa őket a most használt alkatrészekre. Ha kész, zárja be ezt az értesítést."
     }
   },
   "exceptions": {

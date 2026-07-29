@@ -116,8 +116,15 @@ movements.
   parts, links and any open reminder; deleting a part prunes task links and
   its stock state.
 - Parts are **per-object** by design (entry-data locality, export simplicity).
-  Known limit: a consumable shared between two objects has two stocks; the
-  uuid part ids leave a migration path to a global store if that ever matters.
+  Former known limit — *"a consumable shared between two objects has two
+  stocks"* — closed in 2.45 (#111) WITHOUT moving to a global store: a task's
+  `consumes_parts` link may carry an `entry_id` and draw on a pool owned by
+  another object. Ownership stays singular, so the reconciler, the threshold
+  and the stock sensor stay entry-local and nothing needed deduplicating.
+  Deleting an owner transfers the pool to its longest-standing borrower rather
+  than orphaning it (`helpers/shared_parts.py`), because stock lives in a
+  per-entry Store that is destroyed with the entry — and `prune_part_orphans`
+  would delete a stock row parked anywhere else on the next setup.
 
 ## Testing
 

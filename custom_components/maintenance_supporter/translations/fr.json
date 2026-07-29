@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Pièces de rechange partagées déplacées vers {new_owner}",
+      "description": "Plusieurs objets de maintenance partageaient un même stock de pièces de rechange rattaché à **{deleted_object}**, et cet objet vient d'être supprimé. Plutôt que de laisser les autres objets pointer vers un stock qui n'existe plus, Maintenance Supporter a déplacé les pièces partagées ({parts}) — avec leur stock actuel — vers **{new_owner}**, et a redirigé vers elles les liens des tâches de tous les autres objets. Rien n'a été perdu.\n\n**{new_owner}** a été choisi automatiquement : c'est le plus ancien objet qui utilisait ce stock. Si un autre objet convient mieux, déplacez-y les pièces depuis le panneau Maintenance.\n\nIl n'y a rien d'autre à faire — fermez cette notification une fois que vous l'avez vérifiée."
+    },
+    "broken_part_link": {
+      "title": "Liens de pièces invalides sur {object_name}",
+      "description": "Une tâche de **{object_name}** vient d'être terminée, mais {count} liens vers des pièces de rechange n'ont pas pu être résolus — la pièce, ou l'objet auquel elle appartient, n'existe plus.\n\nL'achèvement lui-même a bien été enregistré : le travail n'est pas perdu. Ce qui n'a pas eu lieu, c'est le décompte du stock : rien n'a été retiré du stock d'aucune pièce pour cet achèvement.\n\nPour corriger : ouvrez la tâche dans le panneau Maintenance et supprimez les liens de pièces obsolètes, ou faites-les pointer vers les pièces que vous utilisez aujourd'hui. Fermez cette notification une fois que c'est fait."
     }
   },
   "exceptions": {

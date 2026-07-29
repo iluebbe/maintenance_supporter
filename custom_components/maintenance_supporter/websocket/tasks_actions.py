@@ -106,6 +106,11 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
                     vol.Schema(
                         {
                             vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                            # #111: the pool may live on another object. The
+                            # schema has to allow it or voluptuous rejects the
+                            # completion before the handler (which already
+                            # validates the reference) ever runs.
+                            vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
                             vol.Optional("quantity", default=1): vol.All(
                                 vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=999)
                             ),
@@ -144,8 +149,13 @@ async def ws_complete_task(
     used_parts = msg.get("used_parts")
     if used_parts is not None:
         from ..helpers.parts import sanitize_consumes_parts
+        from . import foreign_part_resolver
 
-        used_parts = sanitize_consumes_parts(used_parts, set(_entry.data.get("parts") or {}))
+        used_parts = sanitize_consumes_parts(
+            used_parts,
+            set(_entry.data.get("parts") or {}),
+            foreign_part_ids=foreign_part_resolver(hass),
+        )
 
     try:
         await rd.coordinator.complete_maintenance(

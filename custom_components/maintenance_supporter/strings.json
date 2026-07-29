@@ -1814,6 +1814,14 @@
     "notify_service_missing": {
       "title": "Notification service `{service}` not found",
       "description": "Maintenance Supporter is configured to send notifications via `{service}`, but that service does not currently exist in Home Assistant, so reminders fail silently.\n\nThis usually means the service was renamed, or the integration behind it (a mobile app, a notify group, …) was removed. To fix it: restore that service, or open **Settings → Devices & Services → Maintenance Supporter → Configure → General settings** and pick a valid `notify.*` service.\n\nNote: this only checks the configured service itself. If notifications reach some devices but not others, a member *inside* your notify group is likely misconfigured — that is not visible here; check Home Assistant's **system log** (Settings → System → Logs)."
+    },
+    "shared_parts_moved": {
+      "title": "Shared spare parts moved to {new_owner}",
+      "description": "Several maintenance objects were sharing one spare-part stock pool that lived on **{deleted_object}**, and that object has just been deleted. Rather than leave the others pointing at a pool that no longer exists, Maintenance Supporter moved the shared parts ({parts}) — together with their current stock — onto **{new_owner}**, and repointed every other object's task links at them. Nothing was lost.\n\n**{new_owner}** was picked automatically: it is the oldest object that was using the pool. If a different object is the better home for these parts, move them there in the Maintenance panel.\n\nNothing else needs doing — dismiss this notification once you have checked it."
+    },
+    "broken_part_link": {
+      "title": "Broken spare-part links on {object_name}",
+      "description": "A task on **{object_name}** was just completed, but {count} spare-part links on it could not be resolved — the part, or the object that owns it, no longer exists.\n\nThe completion itself was recorded, so the work is not lost. What did not happen is the stock deduction: nothing was taken off any part's stock for this completion.\n\nTo fix it, open the task in the Maintenance panel and remove the stale part links, or point them at the parts you use now. Dismiss this notification once that is done."
     }
   },
   "exceptions": {

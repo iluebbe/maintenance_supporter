@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Ricambi condivisi spostati su {new_owner}",
+      "description": "Più oggetti di manutenzione condividevano un'unica scorta di ricambi che si trovava su **{deleted_object}**, e quell'oggetto è appena stato eliminato. Invece di lasciare gli altri oggetti collegati a una scorta che non esiste più, Maintenance Supporter ha spostato i ricambi condivisi ({parts}) — insieme alla scorta attuale — su **{new_owner}**, e ha ricollegato a essi le attività di tutti gli altri oggetti. Non è andato perso nulla.\n\n**{new_owner}** è stato scelto automaticamente: è l'oggetto più vecchio che usava quella scorta. Se un altro oggetto è la sede più adatta, sposta lì i ricambi dal pannello Manutenzione.\n\nNon serve altro — chiudi questa notifica dopo averla verificata."
+    },
+    "broken_part_link": {
+      "title": "Collegamenti ai ricambi non validi su {object_name}",
+      "description": "Un'attività su **{object_name}** è appena stata completata, ma {count} collegamenti ai ricambi non sono stati risolti — il ricambio, o l'oggetto a cui appartiene, non esiste più.\n\nIl completamento è stato comunque registrato, quindi il lavoro non è perso. Ciò che non è avvenuto è lo scarico della scorta: per questo completamento non è stato sottratto nulla da nessun ricambio.\n\nPer sistemarlo: apri l'attività nel pannello Manutenzione ed elimina i collegamenti obsoleti, oppure indirizzali ai ricambi che usi ora. Chiudi questa notifica quando hai finito."
     }
   },
   "exceptions": {

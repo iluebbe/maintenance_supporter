@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Gedeelde reserveonderdelen verplaatst naar {new_owner}",
+      "description": "Meerdere onderhoudsobjecten deelden één voorraad reserveonderdelen die bij **{deleted_object}** stond, en dat object is zojuist verwijderd. Om te voorkomen dat de andere objecten naar een voorraad wijzen die niet meer bestaat, heeft Maintenance Supporter de gedeelde onderdelen ({parts}) — inclusief de huidige voorraad — naar **{new_owner}** verplaatst en de taakkoppelingen van alle andere objecten daarop aangepast. Er is niets verloren gegaan.\n\n**{new_owner}** is automatisch gekozen: het is het oudste object dat de voorraad gebruikte. Past een ander object beter, verplaats de onderdelen dan daarheen in het onderhoudspaneel.\n\nVerder hoef je niets te doen — sluit deze melding zodra je het gecontroleerd hebt."
+    },
+    "broken_part_link": {
+      "title": "Ongeldige onderdeelkoppelingen bij {object_name}",
+      "description": "Een taak bij **{object_name}** is zojuist afgerond, maar {count} onderdeelkoppelingen konden niet worden opgezocht — het onderdeel, of het object waar het bij hoort, bestaat niet meer.\n\nDe afronding zelf is wel opgeslagen, dus het werk is niet verloren. Wat niet is gebeurd, is de voorraadafboeking: er is voor deze afronding niets van de voorraad afgehaald.\n\nOplossen doe je zo: open de taak in het onderhoudspaneel en verwijder de verouderde onderdeelkoppelingen, of laat ze verwijzen naar de onderdelen die je nu gebruikt. Sluit deze melding zodra dat gedaan is."
     }
   },
   "exceptions": {

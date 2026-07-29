@@ -900,11 +900,19 @@ async def ws_replace_object(
             task["trigger_config"].pop("_trigger_state", None)
         links = task.get("consumes_parts")
         if isinstance(links, list):
-            remapped = [
-                {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
-                for link in links
-                if isinstance(link, dict) and link.get("part_id") in part_id_map
-            ]
+            remapped = []
+            for link in links:
+                if not isinstance(link, dict):
+                    continue
+                if link.get("entry_id"):
+                    # A pool owned by ANOTHER object (#111) is untouched by
+                    # replacing this one — carry the link across verbatim, ids
+                    # and all, or the successor silently stops consuming it.
+                    remapped.append(dict(link))
+                elif link.get("part_id") in part_id_map:
+                    remapped.append(
+                        {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
+                    )
             if remapped:
                 task["consumes_parts"] = remapped
             else:

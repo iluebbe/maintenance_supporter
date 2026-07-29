@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Delte reservedele flyttet til {new_owner}",
+      "description": "Flere vedligeholdelsesobjekter delte ét og samme reservedelslager, som lå på **{deleted_object}**, og det objekt er netop blevet slettet. I stedet for at lade de øvrige objekter pege på et lager, der ikke længere findes, flyttede Maintenance Supporter de delte dele ({parts}) — med deres nuværende beholdning — til **{new_owner}** og pegede alle andre objekters opgavelinks derhen. Intet gik tabt.\n\n**{new_owner}** blev valgt automatisk: det er det ældste objekt, der brugte lageret. Passer et andet objekt bedre, så flyt delene derhen i vedligeholdelsespanelet.\n\nDer skal ikke gøres mere — luk denne notifikation, når du har set den efter."
+    },
+    "broken_part_link": {
+      "title": "Ugyldige reservedelslinks på {object_name}",
+      "description": "En opgave på **{object_name}** blev netop udført, men {count} reservedelslinks kunne ikke slås op — delen, eller det objekt der ejer den, findes ikke længere.\n\nSelve udførelsen blev registreret, så arbejdet er ikke gået tabt. Det, der ikke skete, er lagertrækket: der blev ikke trukket noget fra nogen dels beholdning for denne udførelse.\n\nSådan retter du det: åbn opgaven i vedligeholdelsespanelet og fjern de forældede dellinks, eller peg dem mod de dele, du bruger nu. Luk denne notifikation, når det er gjort."
     }
   },
   "exceptions": {

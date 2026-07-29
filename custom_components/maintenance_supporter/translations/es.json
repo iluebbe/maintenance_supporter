@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Repuestos compartidos movidos a {new_owner}",
+      "description": "Varios objetos de mantenimiento compartían un mismo stock de repuestos que estaba en **{deleted_object}**, y ese objeto acaba de eliminarse. En lugar de dejar a los demás objetos apuntando a un stock que ya no existe, Maintenance Supporter movió los repuestos compartidos ({parts}) — junto con su stock actual — a **{new_owner}**, y reenlazó a ellos las tareas de todos los demás objetos. No se ha perdido nada.\n\n**{new_owner}** se eligió automáticamente: es el objeto más antiguo que usaba ese stock. Si otro objeto encaja mejor, mueve allí los repuestos desde el panel de Mantenimiento.\n\nNo hay nada más que hacer — descarta esta notificación cuando la hayas revisado."
+    },
+    "broken_part_link": {
+      "title": "Enlaces de repuesto rotos en {object_name}",
+      "description": "Una tarea de **{object_name}** acaba de completarse, pero {count} enlaces a repuestos no se pudieron resolver — el repuesto, o el objeto al que pertenece, ya no existe.\n\nLa finalización sí se registró, así que el trabajo no se ha perdido. Lo que no ocurrió es el descuento de stock: no se restó nada del stock de ningún repuesto por esta finalización.\n\nPara arreglarlo: abre la tarea en el panel de Mantenimiento y elimina los enlaces obsoletos, o apúntalos a los repuestos que usas ahora. Descarta esta notificación cuando esté hecho."
     }
   },
   "exceptions": {

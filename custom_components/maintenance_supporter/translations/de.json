@@ -1814,6 +1814,14 @@
           }
         }
       }
+    },
+    "shared_parts_moved": {
+      "title": "Gemeinsame Ersatzteile auf {new_owner} verschoben",
+      "description": "Mehrere Wartungsobjekte haben sich einen Ersatzteil-Bestand geteilt, der bei **{deleted_object}** lag — und dieses Objekt wurde gerade gelöscht. Damit die übrigen Objekte nicht auf einen Bestand zeigen, den es nicht mehr gibt, hat Maintenance Supporter die gemeinsamen Teile ({parts}) samt aktuellem Bestand auf **{new_owner}** verschoben und die Aufgaben-Verknüpfungen aller anderen Objekte darauf umgestellt. Es ist nichts verloren gegangen.\n\n**{new_owner}** wurde automatisch gewählt: Es ist das älteste Objekt, das den Bestand genutzt hat. Wenn ein anderes Objekt besser passt, verschiebe die Teile im Wartungs-Panel dorthin.\n\nMehr ist nicht zu tun — schließe diese Meldung, sobald du sie geprüft hast."
+    },
+    "broken_part_link": {
+      "title": "Ungültige Ersatzteil-Verknüpfungen bei {object_name}",
+      "description": "Eine Aufgabe bei **{object_name}** wurde gerade abgeschlossen, aber {count} Ersatzteil-Verknüpfungen ließen sich nicht auflösen — das Teil oder das Objekt, dem es gehört, existiert nicht mehr.\n\nDer Abschluss selbst wurde gespeichert, die Arbeit ist also nicht verloren. Nicht passiert ist die Bestandsbuchung: Für diesen Abschluss wurde von keinem Teil etwas abgezogen.\n\nZum Beheben: Öffne die Aufgabe im Wartungs-Panel und entferne die veralteten Teile-Verknüpfungen oder richte sie auf die Teile aus, die du jetzt nutzt. Schließe diese Meldung, sobald das erledigt ist."
     }
   },
   "exceptions": {

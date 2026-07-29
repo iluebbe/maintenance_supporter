@@ -12,6 +12,7 @@ import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
 import { downloadTextFile } from "./helpers/download";
 import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
+import { describePartLink, partsForCompletion } from "./helpers/shared-parts";
 import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
 import type {
@@ -1759,17 +1760,13 @@ export class MaintenanceSupporterPanel extends LitElement {
         statusLabel: (st: string) => t(st, L),
         parts: t("consumes_parts_label", L),
       };
-      // Required parts as checkable lines: qty × name (stock unit) — location.
-      const wsParts = obj.parts || [];
-      const partsLines = (task.consumes_parts || [])
-        .map((link) => {
-          const pt = wsParts.find((x) => x.id === link.part_id);
-          if (!pt) return "";
-          const stock = pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : "";
-          const loc = pt.storage_location ? ` — ${pt.storage_location}` : "";
-          return `${link.quantity}× ${pt.name}${stock}${loc}`;
-        })
-        .filter(Boolean);
+      // Required parts as checkable lines: qty × name (owner) (stock unit) —
+      // location. A pool owned by another object (#111) names that object, and
+      // a link that resolves to nothing prints "Unknown part" rather than the
+      // blank line the old own-parts-only lookup produced.
+      const partsLines = (task.consumes_parts || []).map((link) =>
+        describePartLink(link, obj.entry_id, this._objects, L),
+      );
       const html = buildTaskWorksheetHtml(
         task, obj.object.name, labels,
         (iso) => formatDate(iso, L),
@@ -1808,21 +1805,18 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Spare parts: a buy task gets an editable restock-qty field; a consuming
     // task shows what it will decrement (incl. the storage location).
     const objParts = this._objects.find((o) => o.entry_id === entryId)?.parts || [];
-    const partById = new Map(objParts.map((pt) => [pt.id, pt]));
-    const refPart = tk?.part_ref ? partById.get(tk.part_ref.part_id) : undefined;
+    const refPart = tk?.part_ref ? objParts.find((pt) => pt.id === tk.part_ref!.part_id) : undefined;
     dlg.restockDefault = tk?.part_ref ? (refPart?.restock_quantity ?? 1) : null;
-    dlg.consumesInfo = (tk?.consumes_parts || [])
-      .map((link) => {
-        const pt = partById.get(link.part_id);
-        if (!pt) return "";
-        const loc = pt.storage_location ? ` — ${pt.storage_location}` : "";
-        const stock = pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : "";
-        return `${link.quantity}× ${pt.name}${stock}${loc}`;
-      })
-      .filter(Boolean);
+    // #111: a link may point at another object's pool — name that object, and
+    // never drop a line that fails to resolve (the old .filter(Boolean) hid it).
+    dlg.consumesInfo = (tk?.consumes_parts || []).map((link) =>
+      describePartLink(link, entryId, this._objects, this._lang),
+    );
     // #99: editable per-completion parts selection (not on buy tasks — those
-    // RESTOCK via the qty field instead of consuming).
-    dlg.parts = tk?.part_ref ? [] : objParts;
+    // RESTOCK via the qty field instead of consuming). The list carries the
+    // object's own parts plus the shared pools this task draws on, so a foreign
+    // link is visible and untickable rather than silently absent.
+    dlg.parts = tk?.part_ref ? [] : partsForCompletion(tk, entryId, this._objects, this._lang);
     dlg.consumesParts = tk?.part_ref ? [] : (tk?.consumes_parts || []);
     dlg.open();
   }
