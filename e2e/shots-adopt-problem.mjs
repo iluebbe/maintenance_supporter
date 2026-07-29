@@ -4,7 +4,8 @@
 import { chromium } from "@playwright/test";
 
 const REST = "http://127.0.0.1:8131", HA = "http://ha-shots:8123", PW_WS = "ws://127.0.0.1:3000/";
-const CID = REST + "/", USER = "demo", PASS = "demo-pass-1";
+// browser-side origin, not the host REST one (see shots-demo.mjs)
+const CID = HA + "/", USER = "demo", PASS = "demo-pass-1";
 const OUT = new URL("../docs/images/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const j = (r) => r.json();
 const log = (...a) => console.log(...a);
