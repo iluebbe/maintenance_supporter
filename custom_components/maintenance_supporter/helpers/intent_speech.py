@@ -75,7 +75,10 @@ def available_languages() -> list[str]:
 def load_language(language: str) -> dict[str, str]:
     """The raw texts for one language (test helper; blocking)."""
     path = _RESPONSE_DIR / f"{language}.json"
-    return json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
+    # Coerce like the loader does rather than returning json's Any: the
+    # annotation is what every caller relies on, and mypy --strict says so.
+    return {str(key): str(value) for key, value in data.items()}
 
 
 def speak(key: str, language: str | None, **fmt: Any) -> str:
