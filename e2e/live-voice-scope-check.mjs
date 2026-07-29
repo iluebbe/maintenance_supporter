@@ -248,24 +248,18 @@ const post = await ask("MaintenanceSupporterPostponeTask", {
   days: 9,
 });
 check(!post.error, `postpone answered: ${post.speech.slice(0, 80)}`);
-// The stored override is the postpone; the computed due date follows it only
-// after the coordinator recomputes, which lags by ~15 s when the task has a
-// responsible user (see ROADMAP "Postponing an ASSIGNED task looks like it did
-// nothing"). Assert the override at once, and give the recompute a bounded
-// window so this check measures the FEATURE rather than that known lag.
-const afterPostpone = await currentDue();
+// This used to poll for up to 30 s, because a second user action within ten
+// seconds had its recompute coalesced away (HA's REQUEST_REFRESH_DEFAULT_
+// COOLDOWN). That is fixed — user actions recompute immediately — so the wait
+// is not just unnecessary, it would hide the bug coming back. Read once.
+const settled = await currentDue();
 check(
-  !!afterPostpone.override && afterPostpone.override > start.due,
-  `the postpone was stored (override ${afterPostpone.override})`,
+  !!settled.override && settled.override > start.due,
+  `the postpone was stored (override ${settled.override})`,
 );
-let settled = afterPostpone;
-for (let i = 0; i < 12 && !(settled.due > start.due); i++) {
-  await new Promise((r) => setTimeout(r, 2500));
-  settled = await currentDue();
-}
 check(
   settled.due > start.due,
-  `the due date caught up (${start.due} -> ${settled.due})`,
+  `and the computed due date moved with it, at once (${start.due} -> ${settled.due})`,
 );
 // The seeded task is deliberately long overdue, so "by 9 days" must count
 // from TODAY — not from a due date in 2020, which would still be in the past.

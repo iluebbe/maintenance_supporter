@@ -29,8 +29,24 @@ jobs:
           # so were absent from every release, leaving the classic conversation
           # agent unable to match any of our intents — silently, because LLM
           # pipelines were unaffected. Fail the release rather than ship that again.
-          unzip -l maintenance_supporter.zip | grep -q "assist_sentences/en/maintenance_supporter.yaml$" \
-            || { echo "Assist sentence files missing from the release ZIP"; exit 1; }
+          # Checked per language: guarding only English would have let five of
+          # the six drop out unnoticed.
+          found=0
+          missing=""
+          for f in custom_components/maintenance_supporter/assist_sentences/*/maintenance_supporter.yaml; do
+            [ -f "$f" ] || continue
+            found=$((found + 1))
+            rel="${f#custom_components/maintenance_supporter/}"
+            unzip -l maintenance_supporter.zip | grep -q "${rel}$" || missing="$missing $rel"
+          done
+          [ "$found" -gt 0 ] || { echo "no Assist sentence files found in the checkout"; exit 1; }
+          [ -z "$missing" ] || { echo "Assist sentence files missing from the release ZIP:$missing"; exit 1; }
+          echo "Assist sentences present for $found language(s)"
+
+          # The spoken responses ride along the same way and are just as silent
+          # when absent: a missing file falls back to English per key.
+          unzip -l maintenance_supporter.zip | grep -q "assist_sentences/responses/en.json$" \
+            || { echo "Assist response texts missing from the release ZIP"; exit 1; }
       - name: Upload release asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
