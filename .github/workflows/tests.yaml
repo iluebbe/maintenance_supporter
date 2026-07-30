@@ -101,22 +101,11 @@ jobs:
         # `holidays` is the Workday integration's own dependency; we install it
         # so the real-`holidays` loop-safety tests (#87) run here instead of
         # skipping (they assert the country calendar is built off the event loop).
-        # HA-PIN-EXPIRES: 2026-08-15
-        #
-        # Pinned to the Home Assistant 2026.7 line, which is what users run and
-        # what the dev container has. Unpinned, this pulls whatever is newest —
-        # on 2026-07-30 that was the 2026.8.0b0 BETA, whose device registry
-        # (storage 1.12 → 3.2) splits any device shared by several config
-        # entries into one device per entry. That breaks object↔device linking
-        # (2.19): our entities land on our own split instead of the appliance's
-        # device. Every push went red on a beta, so the gate stopped meaning
-        # anything.
-        #
-        # The pin is deliberately temporary: tests/test_ha_pin_expiry.py fails
-        # once the date above passes, so adapting to 2026.8 is scheduled work
-        # rather than something a green tick lets us forget. Raise the pin and
-        # the date together, or drop both once the adaptation lands.
-        run: pip install pytest pytest-cov pytest-xdist "pytest-homeassistant-custom-component==0.13.346" mypy babel pypdf holidays
+        # Unpinned on purpose: this pulls the newest Home Assistant, including
+        # betas, which is how the 2026.8 device-registry change surfaced here
+        # before it reached a single user. The pin that briefly stood here came
+        # off once object↔device linking was adapted to it.
+        run: pip install pytest pytest-cov pytest-xdist pytest-homeassistant-custom-component mypy babel pypdf holidays
       - name: Type check
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       # Parallel via pytest-xdist. The old blocker — the documents feature's

@@ -11,7 +11,24 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
-### 🛠️ Home Assistant 2026.8 splits shared devices — object↔device linking must adapt
+### ✅ Home Assistant 2026.8 splits shared devices — object↔device linking adapted
+
+**Shipped.** The entity is now pointed at the linked device (`device_entry`)
+instead of describing it, which is Home Assistant's documented pattern and
+works on 2026.7 and 2026.8 alike; existing installs shed the old association in
+the `minor_version` 4 → 5 migration. Verified live on 2026.8.0b0: every entity
+on the appliance's device, our config entry absent from it, no nameless
+duplicate. CI runs unpinned again, so the next such change surfaces the same
+way this one did.
+
+**Still open from the same area:** `device_info["suggested_area"]`
+(`entity/entity_base.py`) is deprecated and disappears in **2026.9**. It only
+ever applies at first device creation, and `_async_sync_obj_to_device` already
+sets the area explicitly afterwards, so this is likely a deletion rather than a
+replacement — to be confirmed, then removed.
+
+<details>
+<summary>What the problem was (kept for the reasoning)</summary>
 
 **Deadline-bound, and the only item here with a hard external clock.** HA
 2026.8 rewrites the device registry (storage `1.12` → `3.2`): a device shared
@@ -90,11 +107,13 @@ before the pin is lifted rather than after.
    prints the verdict, so the fix is done when it says the entities sit on the
    appliance's device.
 
-**Meanwhile** CI pins `pytest-homeassistant-custom-component==0.13.346` (the
-2026.7 line users actually run), because a gate that is red on every push has
-stopped being a gate. The pin carries an `HA-PIN-EXPIRES` marker and
-`tests/test_ha_pin_expiry.py` fails once that date passes, so this cannot
-quietly become a permanent pin.
+CI was pinned to the 2026.7 line while this was open, because a gate that is
+red on every push has stopped being a gate. The pin carried an
+`HA-PIN-EXPIRES` marker enforced by `tests/test_ha_pin_expiry.py` so it could
+not quietly become permanent — it came off with the fix, well inside its date.
+That tripwire stays for the next time a pin is needed.
+
+</details>
 
 ### ✅ Battery Fleet: silent under-reporting (found 2026-07-22) — all four causes fixed
 
