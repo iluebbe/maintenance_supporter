@@ -50,17 +50,45 @@ produced:
 So the user-visible result is two regressions, not one: the appliance's page
 loses the maintenance entities, **and** an unnamed extra device appears.
 
+**Home Assistant documents exactly what to do instead**, and has since
+[2025-07-18](https://developers.home-assistant.io/blog/2025/07/18/updated-pattern-for-helpers-linking-to-devices/)
+— a helper integration must **not** add its config entry to another
+integration's device, and must **not** return `DeviceInfo` built from that
+device's identifiers, which is precisely what we do. The replacement is to set
+the entity's `device_entry` directly:
+
+```python
+self.device_entry = dr.async_get(hass).async_get(device_id)   # None if it is gone
+```
+
+The guidance covers a **user-selected** device, not just a source entity, so it
+is our case exactly. `2026.8` is the release where the old pattern stops
+working ([announcement](https://developers.home-assistant.io/blog/2026/07/21/device-registry-single-config-entry/)).
+
+**This is not blocked on 2026.8.** `Entity.device_entry` exists in 2026.7
+(`helpers/entity.py`) and `entity_platform` already uses a pre-set value when
+`device_info` returns nothing (`entity_platform.py:951-953`, the `else`
+branch). So the correct implementation runs on both versions and can land
+before the pin is lifted rather than after.
+
 **What has to happen**
 
-1. Decide what "linked to a device" should mean once devices cannot be shared —
-   most likely `via_device_id` pointing at the appliance, so our device is a
-   child rather than a merge, and the UI still groups them.
-2. Rework `entity/entity_base.py::device_info` and the object→device
-   forward-sync accordingly, plus the unlink path. Whatever the shape, our
-   device now needs a **name** — the metadata omission only made sense while
-   the entry belonged to somebody else.
-3. Check the upgrade path for users who already linked objects on 2026.7:
-   their merged device is what 2026.8's migration splits.
+1. In `entity/entity_base.py::device_info`, return `None` for a linked object
+   instead of the foreign identifiers, and set `self.device_entry` to the
+   linked device in the entity constructor. Handle the device having been
+   removed — `async_get` returns `None`, which is the documented behaviour and
+   what most core helpers fall back to.
+2. Clean up the association we already created on users' systems:
+   `homeassistant.helpers.helper_integration.async_remove_helper_config_entry_from_source_device`
+   exists in **both** 2026.7 and 2026.8 and is meant to be called from a config
+   entry migration step.
+3. Two neighbouring deprecations to fix while in there:
+   `async_get_device()` → `async_get_device_by_identifier()` /
+   `async_get_device_by_connection()`, and `add_config_entry_id` /
+   `remove_config_entry_id` → `async_update_device(..., new_config_entry_id=…)`.
+4. Re-run `e2e/beta-device-split-check.mjs` against `ha-beta` — it already
+   prints the verdict, so the fix is done when it says the entities sit on the
+   appliance's device.
 
 **Meanwhile** CI pins `pytest-homeassistant-custom-component==0.13.346` (the
 2026.7 line users actually run), because a gate that is red on every push has
