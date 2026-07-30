@@ -30,18 +30,37 @@ Found on 2026-07-30 because CI installs the newest Home Assistant and picked up
 `2026.8.0b0`: `test_device_link.py` and `test_journey_lifecycle_complete.py`
 both failed on the shared-device assertion, with no change on our side.
 
+**Confirmed on a real 2026.8.0b0 instance** (`e2e/beta-device-split-check.mjs`
+against the throwaway `ha-beta` container, HA's `demo` integration supplying a
+foreign device). Linking an object to the demo device "Basement Floor Wet"
+produced:
+
+- All 7 of our entities on a **separate device**, none on the appliance's.
+- That device carries the **same identifiers** (`["demo", "binary_1"]`) as the
+  appliance's, but is owned solely by our config entry. Identifiers are no
+  longer globally unique — they are scoped per config entry, so the same pair
+  now yields two devices instead of merging into one.
+- Our device has **`name: null`** (also manufacturer, model). `device_info`
+  deliberately omits those so a merge cannot overwrite the appliance's
+  metadata — correct while merging, but on its own device it leaves a nameless
+  entry in the device list.
+- No `composite_device_id` markers: nothing was migrated, because the merge
+  never happened in the first place.
+
+So the user-visible result is two regressions, not one: the appliance's page
+loses the maintenance entities, **and** an unnamed extra device appears.
+
 **What has to happen**
 
 1. Decide what "linked to a device" should mean once devices cannot be shared —
    most likely `via_device_id` pointing at the appliance, so our device is a
    child rather than a merge, and the UI still groups them.
 2. Rework `entity/entity_base.py::device_info` and the object→device
-   forward-sync accordingly, plus the unlink path.
-3. Verify against a real 2026.8 instance, not only the test harness: whether
-   the appliance's page still surfaces our entities is a UI question the
-   registry tests cannot answer.
-4. Check the migration for users who already linked objects — their existing
-   composite devices get split on upgrade.
+   forward-sync accordingly, plus the unlink path. Whatever the shape, our
+   device now needs a **name** — the metadata omission only made sense while
+   the entry belonged to somebody else.
+3. Check the upgrade path for users who already linked objects on 2026.7:
+   their merged device is what 2026.8's migration splits.
 
 **Meanwhile** CI pins `pytest-homeassistant-custom-component==0.13.346` (the
 2026.7 line users actually run), because a gate that is red on every push has

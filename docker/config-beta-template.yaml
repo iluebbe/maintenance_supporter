@@ -1,0 +1,18 @@
+# Config for the throwaway HA 2026.8-beta instance (ha-beta, port 8132).
+#
+# Purpose: check what the 2026.8 device-registry split does to object↔device
+# linking (2.19) on a REAL instance, which the test harness cannot answer —
+# whether the appliance's device page still shows our maintenance entities.
+#
+# `demo` is what makes this possible without hardware: it registers real
+# devices owned by a foreign config entry, which is exactly what a linked
+# object needs to attach to.
+default_config:
+
+demo:
+
+logger:
+  default: warning
+  logs:
+    custom_components.maintenance_supporter: info
+    homeassistant.helpers.device_registry: debug
