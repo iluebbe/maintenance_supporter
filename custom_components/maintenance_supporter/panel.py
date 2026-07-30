@@ -7,7 +7,14 @@ import logging
 from pathlib import Path
 
 from homeassistant.components import frontend, panel_custom
-from homeassistant.components.http import StaticPathConfig
+
+# HA 2026.8 moved StaticPathConfig into http/server.py and keeps a deliberate
+# re-export in the package root, so this import is valid at runtime on 2026.7
+# and 2026.8 alike. Strict mypy rejects re-exported names regardless; importing
+# from .server would satisfy it but break every user still on 2026.7, which has
+# no such module. Reads as unused under the older HA in the dev container —
+# three other ignores in this codebase share that fate.
+from homeassistant.components.http import StaticPathConfig  # type: ignore[attr-defined]
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, PANEL_ICON, PANEL_NAME, PANEL_URL
