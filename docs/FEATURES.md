@@ -276,10 +276,16 @@ The fleet task's detail view is the whole surface:
   state reads *unknown* forever — is kept for exactly this: the date is all
   the forecast needs, so those batteries surface here instead of dropping out
   unseen.
-- **Exclude a battery by hand** — the eye-off action on any row takes a
-  device out of the fleet for good (count, shopping list and forecast), for
-  the cases the automatic skips don't cover. Excluded batteries are listed
-  separately and can be brought back the same way.
+- **Every tracked battery, behind *All tracked batteries*** — the full roster,
+  each row tagged *Low*, *Soon* or *Healthy*, collapsed by default so the
+  section still opens on what needs doing.
+- **Exclude a battery by hand** — the eye-off action takes a device out of the
+  fleet for good (count, shopping list and forecast), for the cases the
+  automatic skips don't cover. It sits on the low rows **and on every row of
+  the roster**, so a device can be dismissed *before* it ever reports low — a
+  robot vacuum that recharges itself, or a phone that already warns you on its
+  own. Excluded batteries are listed separately and can be brought back the
+  same way.
 - **Mark all replaced** in one tap: this presses each battery's Battery Notes
   *replaced* button (resetting the forecast) and consumes the matching spares
   from stock. The task clears itself once the devices report fresh batteries.

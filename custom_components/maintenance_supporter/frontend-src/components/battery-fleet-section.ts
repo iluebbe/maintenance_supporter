@@ -19,6 +19,9 @@ interface BatteryRow {
   days_until: number | null;
   available?: boolean;
 }
+interface RosterRow extends BatteryRow {
+  status: "low" | "soon" | "ok";
+}
 interface Overview {
   available: boolean;
   configured: boolean;
@@ -26,6 +29,9 @@ interface Overview {
   total: number;
   low: BatteryRow[];
   soon: BatteryRow[];
+  // Every tracked battery, whatever its state. Optional so an older backend
+  // simply renders no roster instead of throwing.
+  all?: RosterRow[];
   needs_now: Record<string, number>;
   needs_soon: Record<string, number>;
   types: string[];
@@ -220,6 +226,34 @@ export class MaintenanceBatteryFleetSection extends LitElement {
               </div>
             `
           : nothing}
+        ${ov.all?.length
+          ? html`
+              <details class="bf-roster">
+                <summary>${t("battery_fleet_all", L)} (${ov.all.length})</summary>
+                <div class="bf-rows">
+                  ${ov.all.map(
+                    (b) => html`
+                      <div class="bf-row">
+                        <span class="bf-dev">${b.device_name}</span>
+                        <span class="bf-status bf-${b.status}">${t("battery_fleet_status_" + b.status, L)}</span>
+                        <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
+                        ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
+                        <button
+                          class="bf-mark bf-exclude"
+                          title=${t("battery_fleet_exclude", L)}
+                          .disabled=${this._marking}
+                          @click=${() => this._setExcluded(b.entity_id, true)}
+                        >
+                          <ha-icon icon="mdi:eye-off-outline"></ha-icon>
+                        </button>
+                      </div>
+                    `,
+                  )}
+                </div>
+                <div class="bf-roster-hint">${t("battery_fleet_all_hint", L)}</div>
+              </details>
+            `
+          : nothing}
         ${ov.excluded?.length
           ? html`
               <div class="bf-excluded">
@@ -362,6 +396,35 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       width: 100%;
       font-size: 12px;
       color: var(--secondary-text-color);
+    }
+    /* The roster is a lookup list, not the headline — collapsed by default so
+       the section still opens on what actually needs doing. */
+    .bf-roster > summary {
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      padding: 2px 0;
+    }
+    .bf-roster-hint {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      padding-top: 6px;
+    }
+    .bf-status {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 9px;
+      white-space: nowrap;
+      background: var(--secondary-background-color, rgba(127, 127, 127, 0.15));
+      color: var(--secondary-text-color);
+    }
+    .bf-status.bf-low {
+      background: var(--error-color, #f44336);
+      color: #fff;
+    }
+    .bf-status.bf-soon {
+      background: var(--warning-color, #ff9800);
+      color: #fff;
     }
     .bf-total {
       font-size: 12px;

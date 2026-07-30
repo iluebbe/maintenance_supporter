@@ -53,6 +53,43 @@ try {
   const part = fleet2.parts.find((p) => p.id === pid);
   assert(part.stock === 20 - target.quantity, `stock decremented to ${part.stock}`);
 
+  // 4) the full roster (discussion #113): a device that is neither low nor
+  //    forecast-soon must still be listed, because the exclude control lives
+  //    on roster rows. Excluding it has to take it out of the fleet for good —
+  //    not only until it next goes quiet.
+  const ov2 = await api.send({ type: `${D}/battery_fleet/overview` });
+  assert(Array.isArray(ov2.all), "overview carries the full roster");
+  assert(ov2.all.length === ov2.total, `roster covers every tracked battery (${ov2.all.length}/${ov2.total})`);
+
+  const categorised = new Set([...ov2.low, ...ov2.soon].map((r) => r.entity_id));
+  const healthy = ov2.all.filter((r) => r.status === "ok" && !categorised.has(r.entity_id));
+  assert(healthy.length > 0, `healthy devices are listed too (${healthy.length} of ${ov2.total})`);
+  assert(
+    healthy.every((r) => r.entity_id && r.device_name),
+    "every roster row carries the entity_id the exclude button needs",
+  );
+
+  const victim = healthy[0];
+  log(`  excluding a HEALTHY device: ${victim.device_name} (${victim.entity_id})`);
+  await api.send({ type: `${D}/battery_fleet/set_excluded`, entity_id: victim.entity_id, excluded: true });
+  const ov3 = await api.send({ type: `${D}/battery_fleet/overview` });
+  assert(
+    !ov3.all.some((r) => r.entity_id === victim.entity_id),
+    "the excluded healthy device left the roster",
+  );
+  assert(ov3.total === ov2.total - 1, `total dropped ${ov2.total} → ${ov3.total}`);
+  assert(
+    ov3.excluded.some((x) => x.entity_id === victim.entity_id),
+    "it shows up in the restore list with its name",
+  );
+
+  // Put it back — this check is idempotent and must not leave the dev fleet
+  // one device short on every run.
+  await api.send({ type: `${D}/battery_fleet/set_excluded`, entity_id: victim.entity_id, excluded: false });
+  const ov4 = await api.send({ type: `${D}/battery_fleet/overview` });
+  assert(ov4.total === ov2.total, "restoring brings it back into the fleet");
+  assert(ov4.all.some((r) => r.entity_id === victim.entity_id), "and back into the roster");
+
   log("\nBATTERY FLEET LIVE CHECK PASSED");
 } finally {
   api.close();

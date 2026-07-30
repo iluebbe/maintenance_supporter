@@ -45,6 +45,12 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             "total": ov.total,
             "low": ov.low,
             "soon": ov.soon,
+            # The full roster, each row tagged low/soon/ok. The detail section
+            # lists it behind a disclosure so a device can be excluded before
+            # it ever goes low — previously the exclude control existed only on
+            # low rows, so a self-recharging vacuum could be dismissed only
+            # while it was already nagging (discussion #113).
+            "all": ov.all,
             "needs_now": dict(ov.needs_now),
             "needs_soon": dict(ov.needs_soon),
             "types": ov.types,
