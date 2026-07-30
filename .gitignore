@@ -66,3 +66,4 @@ custom_components/battery_notes/
 # gif pipeline intermediate videos (e2e/gifs-demo.mjs)
 docs/images/gifs/.video-tmp/
 e2e/lang-check-shots/
+docker/.beta-config/
