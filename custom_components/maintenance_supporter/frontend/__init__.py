@@ -1,11 +1,16 @@
-"""Frontend module registration for the Maintenance Supporter integration."""
+"""Frontend module registration for the Maintenance Supporter integration.
+
+The ``StaticPathConfig`` import is valid at runtime on HA 2026.7 and 2026.8
+alike; see the note in ``../panel.py`` for why the re-export has to be silenced
+rather than imported from a different path.
+"""
 
 from __future__ import annotations
 
 import logging
 from pathlib import Path
 
-from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.http import StaticPathConfig  # type: ignore[attr-defined]
 from homeassistant.core import HomeAssistant
 
 from ..const import (
