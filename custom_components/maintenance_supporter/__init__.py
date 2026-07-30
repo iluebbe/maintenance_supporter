@@ -820,6 +820,38 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # dashboard area and the HA device area in sync after the initial creation
     # (DeviceInfo.suggested_area only fires once, on first device creation).
     @callback
+    def _object_entries_for_device(
+        hass: HomeAssistant, device: dr.DeviceEntry
+    ) -> list[ConfigEntry]:
+        """Our object entries that live on this device.
+
+        Two ways an object reaches a device page, and they need different
+        lookups:
+
+        * its OWN device — our config entry is listed on it;
+        * a LINKED device owned by another integration — we deliberately do
+          NOT add our config entry there any more (HA 2026.8 forbids it), so
+          the only record of the link is ``obj["ha_device_id"]``. Matching on
+          ``device.config_entries`` alone would silently stop syncing exactly
+          the objects the user attached by hand.
+
+        Several objects may point at the same device; all of them follow it.
+        """
+        found: list[ConfigEntry] = []
+        seen: set[str] = set()
+        for ce_id in device.config_entries:
+            ce = hass.config_entries.async_get_entry(ce_id)
+            if ce is not None and ce.domain == DOMAIN and ce.unique_id != GLOBAL_UNIQUE_ID:
+                found.append(ce)
+                seen.add(ce.entry_id)
+        for ce in hass.config_entries.async_entries(DOMAIN):
+            if ce.entry_id in seen or ce.unique_id == GLOBAL_UNIQUE_ID:
+                continue
+            if (ce.data.get(CONF_OBJECT) or {}).get("ha_device_id") == device.id:
+                found.append(ce)
+        return found
+
+    @callback
     def _on_device_registry_update(
         event: Event[dr.EventDeviceRegistryUpdatedData],
     ) -> None:
@@ -832,17 +864,12 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         device = dr.async_get(hass).async_get(device_id)
         if device is None:
             return
-        for ce_id in device.config_entries:
-            ce = hass.config_entries.async_get_entry(ce_id)
-            if ce is None or ce.domain != DOMAIN or ce.unique_id == GLOBAL_UNIQUE_ID:
-                continue
+        for ce in _object_entries_for_device(hass, device):
             obj = dict(ce.data.get(CONF_OBJECT, {}))
             if obj.get("area_id") == device.area_id:
-                return  # already in sync — break the loop with the forward listener
+                continue  # already in sync — breaks the loop with the forward listener
             obj["area_id"] = device.area_id
-            new_data = {**ce.data, CONF_OBJECT: obj}
-            hass.config_entries.async_update_entry(ce, data=new_data)
-            return
+            hass.config_entries.async_update_entry(ce, data={**ce.data, CONF_OBJECT: obj})
 
     unsub_device = hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, _on_device_registry_update)
 
@@ -1014,7 +1041,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     rotation tasks that were configured without an initial assignee — those
     were invisible to every user filter until their first completion.
     """
-    if entry.version > 1 or entry.minor_version >= 4:
+    if entry.version > 1 or entry.minor_version >= 5:
         return True
 
     is_object_entry = entry.unique_id != GLOBAL_UNIQUE_ID
@@ -1072,6 +1099,25 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     new_tasks[task_id] = new_td
                 data[CONF_TASKS] = new_tasks
         minor = 4
+
+    # 4 → 5: stop co-owning a linked device. Until now, attaching an object to
+    # an existing device also put OUR config entry on that device. Home
+    # Assistant forbids that from 2026.8 and splits such a device into one per
+    # config entry on upgrade — leaving a nameless extra device holding our
+    # entities while the appliance's page shows none. Removing the association
+    # here means the split never has anything to split.
+    if minor < 5:
+        if is_object_entry and (device_id := (data.get(CONF_OBJECT) or {}).get("ha_device_id")):
+            from homeassistant.helpers.helper_integration import (
+                async_remove_helper_config_entry_from_source_device,
+            )
+
+            async_remove_helper_config_entry_from_source_device(
+                hass,
+                helper_config_entry_id=entry.entry_id,
+                source_device_id=device_id,
+            )
+        minor = 5
 
     hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
     _LOGGER.info("Migrated entry %s to minor_version %s", entry.entry_id, minor)

@@ -26,25 +26,46 @@ const USER = "demo", PASS = "demo-pass-1";
 const log = (...a) => console.log(...a);
 watchdog(240e3, "beta device split check");
 
-const j = (r) => r.json();
+/** Parse JSON, but say what came back instead of dying inside JSON.parse.
+ *  A 401 body ("401: Unauthorized") used to surface as a syntax error four
+ *  frames deep, which says nothing about the actual problem. */
+async function j(r) {
+  const text = await r.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${r.status} ${r.url.replace(REST, "")} -> ${text.slice(0, 120)}`);
+  }
+}
 
 async function tokenFor() {
   const status = await fetch(REST + "/api/onboarding").then(j).catch(() => null);
-  const done = status === null || (Array.isArray(status) && status.every((x) => x.done));
-  if (!done) {
+  // Only the USER step decides whether we can log in. The later steps are
+  // wizard bookkeeping and one of them stays `done: false` unless finished
+  // with the right body — treating that as "not onboarded" sent this script
+  // down the create-user path on every run, which then handed `undefined`
+  // along as the token.
+  const haveUser =
+    status === null || (Array.isArray(status) && status.some((x) => x.step === "user" && x.done));
+  if (!haveUser) {
     const u = await fetch(REST + "/api/onboarding/users", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ client_id: CID, name: "Demo", username: USER, password: PASS, language: "en" }),
     }).then(j);
+    if (!u.auth_code) throw new Error("onboarding returned no auth code: " + JSON.stringify(u).slice(0, 200));
     const t = await fetch(REST + "/auth/token", {
       method: "POST",
       body: new URLSearchParams({ grant_type: "authorization_code", code: u.auth_code, client_id: CID }),
     }).then(j);
-    // Finish onboarding so the rest of the API behaves normally.
     const auth = { Authorization: "Bearer " + t.access_token, "Content-Type": "application/json" };
-    for (const step of ["core_config", "analytics", "integration"]) {
+    for (const step of ["core_config", "analytics"]) {
       await fetch(`${REST}/api/onboarding/${step}`, { method: "POST", headers: auth, body: "{}" }).catch(() => {});
     }
+    // The integration step wants the client it should mint a code for.
+    await fetch(`${REST}/api/onboarding/integration`, {
+      method: "POST", headers: auth,
+      body: JSON.stringify({ client_id: CID, redirect_uri: CID }),
+    }).catch(() => {});
     return t.access_token;
   }
   const f = await fetch(REST + "/auth/login_flow", {
@@ -55,10 +76,14 @@ async function tokenFor() {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
   }).then(j);
+  if (!s.result) throw new Error("login step returned no auth code: " + JSON.stringify(s).slice(0, 200));
   const t = await fetch(REST + "/auth/token", {
     method: "POST",
     body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
   }).then(j);
+  // Failing here rather than handing `undefined` on means the next call reports
+  // a real 401 instead of "Bearer undefined" four frames deeper.
+  if (!t.access_token) throw new Error("token exchange returned no token: " + JSON.stringify(t).slice(0, 200));
   return t.access_token;
 }
 
@@ -82,7 +107,7 @@ async function ensureIntegration(token) {
 }
 
 const token = await tokenFor();
-log("authenticated");
+log("authenticated, token length " + String(token && token.length));
 await ensureIntegration(token);
 log("integration set up");
 
@@ -99,11 +124,22 @@ try {
   log(`foreign device: "${foreign.name}" id=${foreign.id} owner=demo`);
 
   // ── link a maintenance object to it ──────────────────────────────────────
-  const created = await api.send({
-    type: `${D}/object/create`, name: "Linked Appliance", ha_device_id: foreign.id,
-  });
-  const entryId = created.entry_id;
-  log(`linked object created: entry ${entryId}`);
+  // Reuse the object from a previous run rather than failing on
+  // "already_configured" — this check is meant to be re-run after every
+  // change to the attachment code.
+  const existing = (await api.send({ type: `${D}/objects` })).objects || [];
+  const already = existing.find((o) => (o.object || {}).name === "Linked Appliance");
+  let entryId;
+  if (already) {
+    entryId = already.entry_id;
+    log(`reusing linked object: entry ${entryId}`);
+  } else {
+    const created = await api.send({
+      type: `${D}/object/create`, name: "Linked Appliance", ha_device_id: foreign.id,
+    });
+    entryId = created.entry_id;
+    log(`linked object created: entry ${entryId}`);
+  }
   await new Promise((r) => setTimeout(r, 4000));
 
   await api.send({

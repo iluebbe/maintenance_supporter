@@ -27,16 +27,37 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
         self._task_id = task_id
         self._object_data = coordinator.entry.data.get(CONF_OBJECT, {})
 
+        # 2.19 device attachment — an object can live on an EXISTING device
+        # owned by another integration. Home Assistant's documented way to do
+        # that is to point the entity at the device and nothing else:
+        # https://developers.home-assistant.io/blog/2025/07/18/updated-pattern-for-helpers-linking-to-devices/
+        #
+        # We used to return the device's own identifiers from `device_info`,
+        # which made the registry merge our config entry onto it. HA 2026.8
+        # scopes identifiers PER CONFIG ENTRY, so that no longer merges — it
+        # creates a second, nameless device holding our entities while the
+        # appliance's page shows none of them. Setting `device_entry` attaches
+        # the entities without claiming any ownership, and works on 2026.7 too
+        # (`entity_platform` uses a pre-set value when `device_info` is None).
+        #
+        # Resolved ONCE here so `device_info` below and the entity's device
+        # cannot disagree; re-evaluated when the entry reloads, which a
+        # link change already triggers.
+        self._linked_device: dr.DeviceEntry | None = None
+        if device_id := self._object_data.get("ha_device_id"):
+            self._linked_device = dr.async_get(coordinator.hass).async_get(device_id)
+        if self._linked_device is not None:
+            self.device_entry = self._linked_device
+
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device info for this maintenance object.
 
         Three shapes (2.19, device attachment):
 
-        * ``ha_device_id`` set → attach to that EXISTING device: return only
-          its identifiers/connections so the registry merges us onto it — no
-          name/manufacturer, which would overwrite the owning integration's
-          metadata (the obj→device forward-sync skips linked objects too).
+        * linked to an existing device → ``None``. The entity is already
+          attached via ``device_entry`` (see ``__init__``); describing a device
+          here would create one of our own instead.
         * ``parent_entry_id`` set → our own device, nested under the parent
           object's device via ``via_device``.
         * neither → our own stand-alone device (the historical shape).
@@ -44,17 +65,13 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
         obj = self._object_data
         hass = self.coordinator.hass
 
-        if device_id := obj.get("ha_device_id"):
-            device = dr.async_get(hass).async_get(device_id)
-            if device is not None and (device.identifiers or device.connections):
-                info = DeviceInfo()
-                if device.identifiers:
-                    info["identifiers"] = device.identifiers
-                if device.connections:
-                    info["connections"] = device.connections
-                return info
-            # Linked device vanished → fall through to an own device so the
-            # entities never end up device-less.
+        if self._linked_device is not None:
+            return None
+        # A linked device that no longer exists falls through to an own device,
+        # so the entities are never left device-less. Core helpers drop to no
+        # device at all here; keeping the fallback preserves what this
+        # integration already did, and an object with its own device page reads
+        # better than one with none.
 
         identifiers = {(DOMAIN, self.coordinator.entry.unique_id or "")}
 
