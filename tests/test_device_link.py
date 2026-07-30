@@ -213,3 +213,109 @@ async def test_ws_response_exposes_link_fields(hass: HomeAssistant, global_entry
     resp = _build_object_response(hass, obj_entry, None)
     assert resp[CONF_OBJECT]["parent_entry_id"] == parent_entry.entry_id
     assert resp[CONF_OBJECT]["ha_device_id"] is None
+
+
+# ─── the reworked attachment: point at the device, do not co-own it ────────
+
+
+async def test_linking_does_not_put_our_config_entry_on_the_foreign_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The whole point of the rework.
+
+    Returning the device's own identifiers from `device_info` used to make the
+    registry add OUR config entry to somebody else's device. Home Assistant
+    forbids that from 2026.8 and scopes identifiers per config entry, so the
+    same trick then produces a SECOND, nameless device instead of a merge.
+    Attaching via `device_entry` reaches the same device page without claiming
+    any ownership.
+    """
+    device = _foreign_device(hass)
+    obj_entry = _make_entry(hass, "linked", name="Washer Maintenance", extra_obj={"ha_device_id": device.id})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    after = dr.async_get(hass).async_get(device.id)
+    assert after is not None, "the appliance's device disappeared"
+    assert obj_entry.entry_id not in after.config_entries, (
+        "we are listed as an owner of another integration's device — the exact "
+        "thing HA 2026.8 stops supporting"
+    )
+
+    # …and the entities are on it anyway, which is what the user cares about.
+    ent_reg = er.async_get(hass)
+    sensors = [e for e in er.async_entries_for_config_entry(ent_reg, obj_entry.entry_id) if e.domain == "sensor"]
+    assert sensors and all(e.device_id == device.id for e in sensors)
+
+
+async def test_a_linked_object_creates_no_device_of_its_own(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """`device_info` must return None while linked.
+
+    If it described a device instead, we would get one of our own — under the
+    old code carrying the appliance's identifiers and no name at all, which is
+    what 2026.8 turns into a nameless duplicate in the device list.
+    """
+    device = _foreign_device(hass)
+    obj_entry = _make_entry(hass, "linked2", name="Washer Maintenance", extra_obj={"ha_device_id": device.id})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    ours = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert ours == [], f"a device was created for a linked object: {[d.name for d in ours]}"
+
+
+async def test_a_linked_device_that_no_longer_exists_falls_back_to_an_own_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Core helpers leave the entity device-less here. We keep the historical
+    fallback instead: an object with its own device page reads better than one
+    with none, and this is what the integration already did."""
+    obj_entry = _make_entry(hass, "dangling", name="Orphan", extra_obj={"ha_device_id": "does-not-exist"})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    ours = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert len(ours) == 1, "expected the object to fall back to its own device"
+    assert ours[0].name == "Orphan"
+
+
+async def test_the_area_of_a_linked_device_still_reaches_the_object(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The reverse area sync used to find the object through the foreign
+    device's `config_entries` — which only worked BECAUSE we wrongly sat there.
+    Removing that association would have silently stopped area sync for exactly
+    the objects a user attached by hand, so the lookup now follows the stored
+    link instead."""
+    from homeassistant.helpers import area_registry as ar
+
+    device = _foreign_device(hass)
+    obj_entry = _make_entry(hass, "areal", name="Washer Maintenance", extra_obj={"ha_device_id": device.id})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    area = ar.async_get(hass).async_get_or_create("Laundry")
+    dr.async_get(hass).async_update_device(device.id, area_id=area.id)
+    await hass.async_block_till_done()
+
+    obj = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
+    assert obj.get("area_id") == area.id, "moving the appliance did not move the object"
+
+
+async def test_migrating_an_existing_install_drops_the_co_ownership(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Entries written before this change have our config entry on the linked
+    device. Left alone, HA 2026.8's upgrade splits that device and strands the
+    entities on a nameless copy — so the migration removes the association
+    before setup ever runs."""
+    device = _foreign_device(hass)
+    obj_entry = _make_entry(hass, "legacy", name="Washer Maintenance", extra_obj={"ha_device_id": device.id})
+
+    # Recreate the pre-migration state: our entry co-owns the device.
+    dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
+    assert obj_entry.entry_id in dr.async_get(hass).async_get(device.id).config_entries
+
+    await setup_integration(hass, global_entry, obj_entry)
+
+    after = dr.async_get(hass).async_get(device.id)
+    assert obj_entry.entry_id not in after.config_entries, "the stale co-ownership survived the migration"
+    assert hass.config_entries.async_get_entry(obj_entry.entry_id).minor_version >= 5

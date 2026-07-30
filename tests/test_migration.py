@@ -438,7 +438,7 @@ async def test_migrate_entry_backfills_created_at_for_new_task(
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
     assert refreshed is not None
-    assert refreshed.minor_version == 4
+    assert refreshed.minor_version == 5
     migrated_task = refreshed.data[CONF_TASKS][TASK_ID_1]
     assert migrated_task["created_at"] == dt_util.now().date().isoformat()
 
@@ -501,7 +501,7 @@ async def test_migrate_entry_skips_tasks_with_last_performed(
     assert refreshed is not None
     # last_performed is the anchor, so created_at is not added
     assert "created_at" not in refreshed.data[CONF_TASKS][TASK_ID_1]
-    assert refreshed.minor_version == 4
+    assert refreshed.minor_version == 5
 
 
 async def test_migrate_entry_idempotent(
@@ -564,7 +564,7 @@ async def test_migrate_entry_v2_to_v3_nests_schedule(
     assert await async_migrate_entry(hass, entry) is True
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
     assert refreshed is not None
-    assert refreshed.minor_version == 4
+    assert refreshed.minor_version == 5
 
     migrated = refreshed.data[CONF_TASKS][TASK_ID_1]
     # Flat recurrence fields are gone; the nested schedule carries them.

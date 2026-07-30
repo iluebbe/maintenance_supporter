@@ -273,6 +273,6 @@ async def test_migration_seeds_stored_rotation_tasks(hass: HomeAssistant, global
 
     migrated = hass.config_entries.async_get_entry(entry.entry_id)
     assert migrated is not None
-    assert migrated.minor_version == 4
+    assert migrated.minor_version == 5
     assert migrated.data[CONF_TASKS][TASK_ID_1]["responsible_user_id"] == a.id
     assert migrated.data[CONF_TASKS]["task2"].get("responsible_user_id") is None

@@ -4,6 +4,24 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixed
+
+- **Objects linked to an existing device keep working on Home Assistant
+  2026.8.** Attaching an object to an appliance's device used to work by
+  claiming part-ownership of that device. Home Assistant scopes device
+  identifiers per integration from 2026.8, so the old approach stopped merging
+  and instead produced a **second, nameless device** holding the maintenance
+  entities while the appliance's own page showed none of them. The entities are
+  now attached to the device directly, which is
+  [what Home Assistant documents](https://developers.home-assistant.io/blog/2025/07/18/updated-pattern-for-helpers-linking-to-devices/)
+  and works on 2026.7 just as well — nothing changes for you on the current
+  release, and nothing breaks on the next one.
+  Existing links are repaired automatically on upgrade, so the split never has
+  anything to split. Two side-effects worth naming: the area of a linked device
+  still follows through to the object (that sync used to depend on the
+  part-ownership), and a linked device that no longer exists still falls back
+  to the object's own device rather than leaving its entities homeless.
+
 ### ✨ Added
 
 - **Every battery in the fleet is now listed, not just the ones that need
