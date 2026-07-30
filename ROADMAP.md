@@ -11,6 +11,44 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### 🛠️ Home Assistant 2026.8 splits shared devices — object↔device linking must adapt
+
+**Deadline-bound, and the only item here with a hard external clock.** HA
+2026.8 rewrites the device registry (storage `1.12` → `3.2`): a device shared
+by several config entries is **split into one device per entry**, each with a
+fresh id, related through a new `composite_device_id`. `add_config_entry_id` /
+`remove_config_entry_id` are on their way out, replaced by an explicit
+pending-move mechanism.
+
+Object↔device linking (2.19) depends on exactly the behaviour that changed. An
+object with `ha_device_id` returns only the foreign device's identifiers from
+`device_info` so the registry merges our entities onto the appliance's device.
+After the split they land on **our own** split instead, so the appliance page
+no longer shows the maintenance sensors — the point of the feature.
+
+Found on 2026-07-30 because CI installs the newest Home Assistant and picked up
+`2026.8.0b0`: `test_device_link.py` and `test_journey_lifecycle_complete.py`
+both failed on the shared-device assertion, with no change on our side.
+
+**What has to happen**
+
+1. Decide what "linked to a device" should mean once devices cannot be shared —
+   most likely `via_device_id` pointing at the appliance, so our device is a
+   child rather than a merge, and the UI still groups them.
+2. Rework `entity/entity_base.py::device_info` and the object→device
+   forward-sync accordingly, plus the unlink path.
+3. Verify against a real 2026.8 instance, not only the test harness: whether
+   the appliance's page still surfaces our entities is a UI question the
+   registry tests cannot answer.
+4. Check the migration for users who already linked objects — their existing
+   composite devices get split on upgrade.
+
+**Meanwhile** CI pins `pytest-homeassistant-custom-component==0.13.346` (the
+2026.7 line users actually run), because a gate that is red on every push has
+stopped being a gate. The pin carries an `HA-PIN-EXPIRES` marker and
+`tests/test_ha_pin_expiry.py` fails once that date passes, so this cannot
+quietly become a permanent pin.
+
 ### ✅ Battery Fleet: silent under-reporting (found 2026-07-22) — all four causes fixed
 
 **Correctness before features.** A live audit against a 27-note production
