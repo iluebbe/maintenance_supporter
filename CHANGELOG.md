@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Every battery in the fleet is now listed, not just the ones that need
+  something** — the fleet task's detail gains an *All tracked batteries*
+  disclosure, each row tagged *Low*, *Soon* or *Healthy*, collapsed by default.
+  The eye-off **exclude** action sits on every one of those rows, so a device
+  can be dropped from the fleet *before* it ever reports low — a robot vacuum
+  that recharges itself, or a phone that already warns you on its own.
+  Previously the control existed only on rows in the *low* list, which meant a
+  device could be excluded solely while it was already nagging — and not at all
+  once the fleet task had auto-completed and dropped it from that list again
+  (reported in discussion #113). On a 30-battery fleet that left more than half
+  the devices with no way to opt out.
+
 ## [2.44.1] - 2026-07-29
 
 ### 🐛 Fixed

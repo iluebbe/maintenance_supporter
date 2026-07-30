@@ -365,3 +365,58 @@ async def test_manual_exclusion_filters_both_passes(hass):
     )
     fleet.add_to_hass(hass)
     assert read_batteries(hass) == []
+
+
+# ─── the full roster (discussion #113) ────────────────────────────────────
+
+
+def test_a_healthy_device_is_still_listed_so_it_can_be_excluded():
+    """The gap this closes: `low` and `soon` answer "what needs doing", and a
+    device that needs nothing appeared in NEITHER — so the exclude control,
+    which only ever rendered on a low row, could not reach it. A robot vacuum
+    that recharges itself has to be dismissable BEFORE it starts nagging."""
+    today = date(2026, 7, 20)
+    healthy = _bat("Robot Vacuum", "Li-ion", low=False, last=today)
+    ov = build_overview([healthy], today=today)
+
+    assert ov.low == [] and ov.soon == [], "a fresh battery should need nothing"
+    assert [r["device_name"] for r in ov.all] == ["Robot Vacuum"]
+    assert ov.all[0]["status"] == "ok"
+    assert ov.all[0]["entity_id"] == healthy.entity_id, "exclusion needs the entity_id"
+
+
+def test_the_roster_holds_every_battery_exactly_once_with_its_status():
+    today = date(2026, 7, 20)
+    bats = [
+        _bat("Lock", "AA", qty=2, low=True),
+        _bat("Doorbell", "AA", low=False, last=date(2024, 8, 1)),   # long past → soon
+        _bat("Remote", "AAA", low=False, last=today),               # fresh → ok
+    ]
+    ov = build_overview(bats, today=today)
+
+    assert len(ov.all) == ov.total == 3
+    by_name = {r["device_name"]: r["status"] for r in ov.all}
+    assert by_name == {"Lock": "low", "Doorbell": "soon", "Remote": "ok"}
+
+    # The roster must agree with the categorised lists rather than drift from
+    # them — two places deriving the same fact is how they disagree later.
+    assert {r["device_name"] for r in ov.low} == {n for n, s in by_name.items() if s == "low"}
+    assert {r["device_name"] for r in ov.soon} == {n for n, s in by_name.items() if s == "soon"}
+
+
+def test_the_roster_is_sorted_by_device_name():
+    """It is a lookup list — a person scans it for one device."""
+    today = date(2026, 7, 20)
+    bats = [_bat("Zeta", "AA", last=today), _bat("alpha", "AA", last=today), _bat("Mid", "AA", last=today)]
+    ov = build_overview(bats, today=today)
+    assert [r["device_name"] for r in ov.all] == ["alpha", "Mid", "Zeta"]
+
+
+def test_a_battery_without_a_replacement_date_is_ok_not_soon():
+    """Native battery entities carry no last_replaced, so there is no forecast.
+    They must still be listed — they are exactly the phones and vacuums people
+    want out of the fleet."""
+    today = date(2026, 7, 20)
+    ov = build_overview([_bat("Phone", "unknown", low=False, last=None)], today=today)
+    assert ov.soon == []
+    assert [(r["status"], r["days_until"]) for r in ov.all] == [("ok", None)]

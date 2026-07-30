@@ -131,6 +131,14 @@ class BatteryOverview:
     total: int = 0
     low: list[dict[str, Any]] = field(default_factory=list)
     soon: list[dict[str, Any]] = field(default_factory=list)
+    # EVERY tracked battery, each tagged low / soon / ok, device-name sorted.
+    #
+    # low and soon answer "what needs doing"; this answers "what is the fleet
+    # watching". Without it a device that is perfectly healthy appears nowhere
+    # in the payload, so it could only be excluded once it had already gone low
+    # — which is exactly when it is being noisy, and after the fleet task may
+    # have auto-completed and dropped it from the list again (discussion #113).
+    all: list[dict[str, Any]] = field(default_factory=list)
     # Grouped quantities by canonical type.
     needs_now: OrderedDict[str, int] = field(default_factory=OrderedDict)
     needs_soon: OrderedDict[str, int] = field(default_factory=OrderedDict)
@@ -167,6 +175,8 @@ def build_overview(
       A battery already low is never double-counted into soon.
     * ``needs_now`` / ``needs_soon`` = summed quantities per type — the shopping
       grouping ("2× AA, 4× AAA").
+    * ``all`` = every battery with its status, so a healthy device can be
+      excluded BEFORE it ever becomes noisy.
     """
     ov = BatteryOverview(total=len(batteries))
     types_seen: OrderedDict[str, None] = OrderedDict()
@@ -174,16 +184,20 @@ def build_overview(
     for bat in sorted(batteries, key=lambda b: b.device_name.lower()):
         t = _norm_type(bat.battery_type)
         types_seen[t] = None
+        pred = _predicted_date(bat)
+        days = (pred - today).days if pred is not None else None
         if bat.low:
             ov.low.append(_row(bat, t, None))
             ov.needs_now[t] = ov.needs_now.get(t, 0) + bat.quantity
+            # A battery reported low has no meaningful forecast left to show.
+            ov.all.append({**_row(bat, t, None), "status": "low"})
             continue
-        pred = _predicted_date(bat)
-        if pred is not None:
-            days = (pred - today).days
-            if days <= horizon_days:
-                ov.soon.append(_row(bat, t, days))
-                ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
+        if days is not None and days <= horizon_days:
+            ov.soon.append(_row(bat, t, days))
+            ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
+            ov.all.append({**_row(bat, t, days), "status": "soon"})
+            continue
+        ov.all.append({**_row(bat, t, days), "status": "ok"})
 
     ov.soon.sort(key=lambda r: r["days_until"] if r["days_until"] is not None else 1 << 30)
     ov.types = sorted(types_seen)
