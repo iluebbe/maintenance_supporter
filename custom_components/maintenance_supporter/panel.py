@@ -1,12 +1,4 @@
-"""Sidebar panel registration for the Maintenance Supporter integration.
-
-``StaticPathConfig`` note: HA 2026.8 moved the class into ``http/server.py``
-and keeps a deliberate re-export in the package root, so importing it from
-``homeassistant.components.http`` is valid at runtime on 2026.7 and 2026.8
-alike. Strict mypy rejects re-exported names regardless, hence the targeted
-ignore below — importing from ``.server`` would satisfy mypy but break every
-user still on 2026.7, which has no such module.
-"""
+"""Sidebar panel registration for the Maintenance Supporter integration."""
 
 from __future__ import annotations
 
@@ -15,7 +7,7 @@ import logging
 from pathlib import Path
 
 from homeassistant.components import frontend, panel_custom
-from homeassistant.components.http import StaticPathConfig  # type: ignore[attr-defined]
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, PANEL_ICON, PANEL_NAME, PANEL_URL
