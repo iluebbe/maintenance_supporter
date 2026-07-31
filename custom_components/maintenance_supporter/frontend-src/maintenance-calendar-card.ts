@@ -20,7 +20,9 @@
  *   show_user_filter: true           # default true
  *   user_filter: ""                  # "" | "current_user" | "<uuid>"
  *   show_object_filter: true         # default true; dropdown appears with 2+ objects
- *   object_filter: ""                # "" | "<entry_id>" | "<object name>" (Discussion #83)
+ *   object_filter: ""                # "" | "<entry_id>" | "<object name>" — or a LIST of
+ *                                    # them to restrict the card to several objects; the
+ *                                    # dropdown then narrows within that set (Discussion #83)
  */
 
 import { LitElement, html, css, nothing } from "lit";
@@ -51,7 +53,7 @@ interface CalendarCardConfig {
   user_filter?: string;
   /** Discussion #83 — in-card object dropdown + optional preselect. */
   show_object_filter?: boolean;
-  object_filter?: string;
+  object_filter?: string | string[];
   /** v2.2.0 — when set, the card renders past N days from history instead
    *  of forward N days from next_due. Mutually exclusive with window_days. */
   past_days?: PastDays;
@@ -68,6 +70,8 @@ export class MaintenanceCalendarCard extends LitElement {
   @state() private _pastDays: PastDays | 0 = 0; // 0 = forward mode
   @state() private _userFilter = "";
   @state() private _objectFilter = "";
+  // 2+ configured object_filter values — restricts the card to this set.
+  private _configuredObjects: string[] = [];
   @state() private _unsub: (() => void) | null = null;
 
   private _dataLoaded = false;
@@ -100,6 +104,15 @@ export class MaintenanceCalendarCard extends LitElement {
     }
     if (typeof config.object_filter === "string") {
       this._objectFilter = config.object_filter;
+      this._configuredObjects = [];
+    } else if (Array.isArray(config.object_filter)) {
+      const values = config.object_filter.filter((v): v is string => typeof v === "string" && v !== "");
+      // One entry behaves exactly like the string form (pre-select, dropdown
+      // over all objects); two or more RESTRICT the card to that set and the
+      // dropdown narrows within it — the multi-object parity with the task
+      // card's filter_objects that #83 asked for.
+      this._objectFilter = values.length === 1 ? values[0] : "";
+      this._configuredObjects = values.length > 1 ? values : [];
     }
   }
 
@@ -236,16 +249,28 @@ export class MaintenanceCalendarCard extends LitElement {
     // Object filter (#83): the config value may be an entry_id or an object
     // NAME (friendlier in hand-written YAML) — resolve against the loaded
     // objects; an unknown value falls back to "all" instead of a blank card.
-    const showObjectFilter = this._config.show_object_filter !== false && this._objects.length > 1;
-    let filterEntryId: string | null = null;
-    if (this._objectFilter) {
-      const needle = this._objectFilter.toLowerCase();
+    const resolve = (value: string): string | null => {
+      const needle = value.toLowerCase();
       const match = this._objects.find(
-        (o) => o.entry_id === this._objectFilter || o.object.name.toLowerCase() === needle,
+        (o) => o.entry_id === value || o.object.name.toLowerCase() === needle,
       );
-      filterEntryId = match?.entry_id ?? null;
-    }
-    const objects = filterEntryId ? this._objects.filter((o) => o.entry_id === filterEntryId) : this._objects;
+      return match?.entry_id ?? null;
+    };
+    // A configured LIST restricts the card to that set; unknown names resolve
+    // to nothing and an entirely-unresolved list falls back to all objects
+    // rather than a blank card (same rule the single value always had).
+    const configuredIds = new Set(
+      this._configuredObjects.map(resolve).filter((id): id is string => id !== null),
+    );
+    const base = configuredIds.size
+      ? this._objects.filter((o) => configuredIds.has(o.entry_id))
+      : this._objects;
+    const showObjectFilter = this._config.show_object_filter !== false && base.length > 1;
+    const filterEntryId = this._objectFilter ? resolve(this._objectFilter) : null;
+    const objects =
+      filterEntryId && base.some((o) => o.entry_id === filterEntryId)
+        ? base.filter((o) => o.entry_id === filterEntryId)
+        : base;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -394,7 +419,7 @@ export class MaintenanceCalendarCard extends LitElement {
                           this._objectFilter = (e.target as HTMLSelectElement).value;
                         }}>
                         <option value="">${t("all_objects", L)}</option>
-                        ${[...this._objects]
+                        ${[...base]
                           .sort((a, b) => a.object.name.localeCompare(b.object.name))
                           .map(
                             (o) => html`<option value=${o.entry_id} ?selected=${o.entry_id === filterEntryId}>${o.object.name}</option>`,
@@ -569,7 +594,8 @@ class MaintenanceCalendarCardEditor extends LitElement {
           />
         </div>
         <div class="hint">
-          Pre-select one object via YAML: object_filter: "&lt;object name&gt;".
+          Pre-select one object via YAML: object_filter: "&lt;object name&gt;" — or a
+          list of names to restrict the card to several objects.
         </div>
       </div>
     `;

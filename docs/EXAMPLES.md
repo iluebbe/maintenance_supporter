@@ -407,7 +407,10 @@ show_window_chips: true               # default true; hide for embedded use
 show_user_filter: true                # default true
 user_filter: ""                       # "" | "current_user" | "<uuid>"
 show_object_filter: true              # default true; dropdown appears with 2+ objects
-object_filter: ""                     # "" | "<entry_id>" | "<object name>" — pre-select one object
+object_filter: ""                     # "" | "<entry_id>" | "<object name>" — pre-select one object.
+                                      # A LIST of 2+ names/ids restricts the card to those objects
+                                      # and the dropdown narrows within that set:
+                                      #   object_filter: ["Pool Pump", "Family Car"]
 ```
 
 Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Clicking an event opens the task editor **in-place** where the dashboard-strategy bundle is loaded to catch it; otherwise the card falls back to deep-linking into the panel on that task.
