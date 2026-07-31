@@ -21,11 +21,15 @@ on the appliance's device, our config entry absent from it, no nameless
 duplicate. CI runs unpinned again, so the next such change surfaces the same
 way this one did.
 
-**Still open from the same area:** `device_info["suggested_area"]`
-(`entity/entity_base.py`) is deprecated and disappears in **2026.9**. It only
-ever applies at first device creation, and `_async_sync_obj_to_device` already
-sets the area explicitly afterwards, so this is likely a deletion rather than a
-replacement — to be confirmed, then removed.
+**Nothing open from the same area after checking.** I had noted
+`suggested_area` as the next break; reading
+[the deprecation notice](https://developers.home-assistant.io/blog/2025/08/01/suggested-area-removed-from-deviceentry/)
+shows it does not apply to us. What 2026.9 removes is the **read** side —
+`DeviceEntry.suggested_area` as an attribute, and its presence in
+`EVENT_DEVICE_REGISTRY_UPDATED`. **Setting** `suggested_area` in `DeviceInfo`
+stays supported and keeps influencing a new device's area, which is the only
+way we use it (`entity/entity_base.py`); we never read the attribute. Worth
+re-checking if that "may change in the future" ever becomes a date.
 
 <details>
 <summary>What the problem was (kept for the reasoning)</summary>
