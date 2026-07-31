@@ -2,7 +2,13 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.45.0] - 2026-07-31
+
+**This release makes the integration ready for Home Assistant 2026.8** ahead
+of its stable release. If you use *Link to existing device*, update the
+integration before (or right after) that Home Assistant update — every update
+order was tested and ends well, but the one state that misbehaves is Home
+Assistant 2026.8 with an older integration still installed.
 
 ### 🐛 Fixed
 
@@ -44,6 +50,27 @@ All notable changes to Maintenance Supporter are documented in this file.
   once the fleet task had auto-completed and dropped it from that list again
   (reported in discussion #113). On a 30-battery fleet that left more than half
   the devices with no way to opt out.
+- **A lost device link now says so.** When the device an object was attached
+  to is gone for good — deleted, or its integration removed — the object falls
+  back to a device of its own, which used to happen silently. A **Repairs**
+  notice now names the object and explains where to re-link; it clears itself
+  the moment the link works again, and the stored link is kept so a device
+  that returns re-attaches on its own. In all 22 languages.
+
+### 🧰 Under the hood
+
+- Restoring a JSON backup on a **different** Home Assistant instance keeps a
+  device link inert rather than wrong: the foreign id attaches to nothing and
+  the object uses its own device, while the id survives the round-trip so the
+  same backup restored at home links up again. Pinned by tests in both
+  directions.
+- When a device was shared by **several** integrations before 2026.8, the
+  upgrade repair now re-attaches to the split of the integration that actually
+  provides the appliance, rather than an arbitrary one.
+- Continuous checks against the Home Assistant **2026.8 beta** are part of CI
+  and the e2e suite now: an update-order matrix replays every combination of
+  updating Home Assistant and this integration, and a tripwire fails the build
+  whenever Home Assistant reports the integration using a deprecated API.
 
 ## [2.44.1] - 2026-07-29
 
