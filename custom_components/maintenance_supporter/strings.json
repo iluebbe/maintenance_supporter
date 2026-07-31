@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Broken spare-part links on {object_name}",
       "description": "A task on **{object_name}** was just completed, but {count} spare-part links on it could not be resolved — the part, or the object that owns it, no longer exists.\n\nThe completion itself was recorded, so the work is not lost. What did not happen is the stock deduction: nothing was taken off any part's stock for this completion.\n\nTo fix it, open the task in the Maintenance panel and remove the stale part links, or point them at the parts you use now. Dismiss this notification once that is done."
+    },
+    "device_link_lost": {
+      "title": "{object} lost its device link",
+      "description": "**{object}** was attached to a Home Assistant device, so its maintenance entities appeared on that device's page. That device no longer exists — deleted, or its integration removed — and the object now shows a device of its own. Nothing else changed: its tasks and their history are untouched.\n\nPick a device again in the Maintenance panel under *Link to existing device*, or ignore this if an own device is fine. The stored link is deliberately kept, so the attachment resumes by itself if the device comes back."
     }
   },
   "exceptions": {

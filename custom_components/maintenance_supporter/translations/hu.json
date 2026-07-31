@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Hibás alkatrész-hivatkozások itt: {object_name}",
       "description": "A(z) **{object_name}** egyik feladata épp elkészült, de {count} alkatrész-hivatkozást nem sikerült feloldani — az alkatrész vagy az azt birtokló objektum már nem létezik.\n\nMagát az elvégzést rögzítettük, tehát a munka nem veszett el. Ami elmaradt, az a készletcsökkentés: ehhez az elvégzéshez egyetlen alkatrész készletéből sem vontunk le semmit.\n\nA javításhoz nyissa meg a feladatot a karbantartási panelen, és távolítsa el az elavult alkatrész-hivatkozásokat, vagy irányítsa őket a most használt alkatrészekre. Ha kész, zárja be ezt az értesítést."
+    },
+    "device_link_lost": {
+      "title": "{object} elvesztette az eszközkapcsolatát",
+      "description": "**{object}** egy Home Assistant eszközhöz volt kapcsolva, így a karbantartási entitásai annak az eszköznek az oldalán jelentek meg. Az az eszköz már nem létezik — törölték, vagy eltávolították az integrációját — és az objektum most saját eszközt mutat. Más nem változik: a feladatok és az előzményeik érintetlenek.\n\nVálasszon újra eszközt a Karbantartás panelen a *Kapcsolás meglévő eszközhöz* alatt, vagy hagyja figyelmen kívül, ha a saját eszköz is megfelel. A mentett kapcsolat szándékosan megmarad: ha az eszköz visszatér, a kapcsolat magától újra él."
     }
   },
   "exceptions": {

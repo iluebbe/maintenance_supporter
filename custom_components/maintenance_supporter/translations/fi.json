@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Rikkinäisiä varaosalinkkejä kohteessa {object_name}",
       "description": "Kohteen **{object_name}** tehtävä merkittiin juuri tehdyksi, mutta {count} varaosalinkkiä ei voitu selvittää — osaa tai sen omistavaa kohdetta ei enää ole.\n\nItse suoritus kuitenkin tallennettiin, joten työ ei kadonnut. Tekemättä jäi varastosta vähentäminen: tästä suorituksesta ei vähennetty mitään minkään osan saldosta.\n\nKorjaaminen: avaa tehtävä huoltopaneelissa ja poista vanhentuneet osalinkit tai osoita ne niihin osiin, joita nyt käytät. Sulje tämä ilmoitus, kun asia on kunnossa."
+    },
+    "device_link_lost": {
+      "title": "{object} menetti laitelinkityksensä",
+      "description": "**{object}** oli linkitetty Home Assistant -laitteeseen, joten sen huoltoentiteetit näkyivät kyseisen laitteen sivulla. Laitetta ei enää ole — se poistettiin tai sen integraatio poistettiin — ja kohde näyttää nyt oman laitteensa. Muu ei muutu: tehtävät ja niiden historia säilyvät koskemattomina.\n\nValitse laite uudelleen Huolto-paneelissa kohdasta *Linkitä olemassa olevaan laitteeseen*, tai jätä tämä huomiotta, jos oma laite riittää. Tallennettu linkitys säilytetään tarkoituksella: jos laite palaa, linkitys toimii taas itsestään."
     }
   },
   "exceptions": {

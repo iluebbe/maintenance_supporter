@@ -1261,6 +1261,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             # carries it to a foreign instance where it dangles until the backup
             # comes home, and a device can return when its integration is
             # re-added or re-enabled.
+            #
+            # Falling back is quiet, though, and a link the user set on purpose
+            # is worth telling them about rather than letting the object drift
+            # onto a device of its own unannounced. The issue clears itself the
+            # moment the link resolves again.
+            from homeassistant.helpers import issue_registry as ir
+
+            issue_id = f"device_link_lost_{entry.entry_id}"
+            if resolved is None:
+                ir.async_create_issue(
+                    hass,
+                    DOMAIN,
+                    issue_id,
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="device_link_lost",
+                    translation_placeholders={"object": obj_data.get("name") or entry.title},
+                )
+            else:
+                ir.async_delete_issue(hass, DOMAIN, issue_id)
 
             # A linked object owns no device. If it does, this install predates
             # the rework — either it co-owned the appliance's device (split on
@@ -1599,6 +1619,13 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # as a fixable repair issue so the user can restore it (#86).
         _sync_missing_global_entry_issue(hass)
         return
+
+    # A "lost its device link" notice belongs to the object; deleting the object
+    # answers it, so it must not outlive it as an orphan in the Repairs list.
+    from homeassistant.helpers import issue_registry as ir
+
+    ir.async_delete_issue(hass, DOMAIN, f"device_link_lost_{entry.entry_id}")
+
     # #111: hand any shared spare-part pool to a borrower BEFORE the Store goes
     # — the stock numbers exist nowhere else. Must happen here rather than in
     # the panel's delete: HA's own Configure-UI removal never reaches that path.

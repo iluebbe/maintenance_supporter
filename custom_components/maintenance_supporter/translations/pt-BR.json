@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Vínculos de peça quebrados em {object_name}",
       "description": "Uma tarefa de **{object_name}** acabou de ser concluída, mas {count} vínculos de peça não puderam ser resolvidos — a peça, ou o objeto dono dela, não existe mais.\n\nA conclusão em si foi registrada, então o trabalho não se perdeu. O que não aconteceu foi a baixa no estoque: nada foi descontado do estoque de nenhuma peça nesta conclusão.\n\nPara corrigir: abra a tarefa no painel de Manutenção e remova os vínculos obsoletos, ou aponte-os para as peças que você usa agora. Dispense esta notificação quando terminar."
+    },
+    "device_link_lost": {
+      "title": "{object} perdeu o vínculo com o dispositivo",
+      "description": "**{object}** estava vinculado a um dispositivo do Home Assistant, então suas entidades de manutenção apareciam na página daquele dispositivo. Esse dispositivo não existe mais — excluído, ou sua integração removida — e o objeto agora mostra um dispositivo próprio. Nada mais muda: as tarefas e o histórico permanecem intactos.\n\nEscolha um dispositivo novamente no painel de Manutenção em *Vincular a um dispositivo existente*, ou ignore este aviso se um dispositivo próprio servir. O vínculo salvo é mantido de propósito: se o dispositivo voltar, o vínculo volta a valer sozinho."
     }
   },
   "exceptions": {

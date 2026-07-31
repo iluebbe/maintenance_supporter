@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Liens de pièces invalides sur {object_name}",
       "description": "Une tâche de **{object_name}** vient d'être terminée, mais {count} liens vers des pièces de rechange n'ont pas pu être résolus — la pièce, ou l'objet auquel elle appartient, n'existe plus.\n\nL'achèvement lui-même a bien été enregistré : le travail n'est pas perdu. Ce qui n'a pas eu lieu, c'est le décompte du stock : rien n'a été retiré du stock d'aucune pièce pour cet achèvement.\n\nPour corriger : ouvrez la tâche dans le panneau Maintenance et supprimez les liens de pièces obsolètes, ou faites-les pointer vers les pièces que vous utilisez aujourd'hui. Fermez cette notification une fois que c'est fait."
+    },
+    "device_link_lost": {
+      "title": "{object} a perdu son lien vers l'appareil",
+      "description": "**{object}** était rattaché à un appareil Home Assistant, si bien que ses entités de maintenance apparaissaient sur la page de cet appareil. Cet appareil n'existe plus — supprimé, ou son intégration retirée — et l'objet affiche désormais un appareil qui lui est propre. Rien d'autre ne change : ses tâches et leur historique sont intacts.\n\nChoisissez à nouveau un appareil dans le panneau Maintenance sous *Lier à un appareil existant*, ou ignorez ceci si un appareil propre convient. Le lien enregistré est volontairement conservé : si l'appareil revient, le rattachement reprend de lui-même."
     }
   },
   "exceptions": {

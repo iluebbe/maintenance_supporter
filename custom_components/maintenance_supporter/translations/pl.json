@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Nieprawidłowe powiązania części w {object_name}",
       "description": "Zadanie obiektu **{object_name}** zostało właśnie ukończone, ale {count} powiązań z częściami nie udało się rozwiązać — części albo obiektu, do którego należy, już nie ma.\n\nSamo ukończenie zostało zapisane, więc praca nie przepadła. Nie doszło natomiast do zdjęcia ze stanu: za to ukończenie nie odjęto niczego z zapasu żadnej części.\n\nAby to naprawić: otwórz zadanie w panelu konserwacji i usuń nieaktualne powiązania części albo wskaż nimi części, których używasz teraz. Zamknij to powiadomienie, gdy skończysz."
+    },
+    "device_link_lost": {
+      "title": "{object} utracił powiązanie z urządzeniem",
+      "description": "**{object}** był powiązany z urządzeniem Home Assistant, dzięki czemu jego encje konserwacji pojawiały się na stronie tego urządzenia. Tego urządzenia już nie ma — usunięto je albo usunięto jego integrację — i obiekt pokazuje teraz własne urządzenie. Poza tym nic się nie zmienia: zadania i ich historia pozostają nienaruszone.\n\nWybierz urządzenie ponownie w panelu Konserwacji w sekcji *Powiąż z istniejącym urządzeniem* albo zignoruj ten komunikat, jeśli własne urządzenie wystarczy. Zapisane powiązanie celowo pozostaje: gdy urządzenie wróci, powiązanie zadziała samo."
     }
   },
   "exceptions": {

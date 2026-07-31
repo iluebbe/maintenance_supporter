@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "{object_name} üzerinde bozuk parça bağlantıları",
       "description": "**{object_name}** üzerindeki bir görev az önce tamamlandı, ancak {count} yedek parça bağlantısı çözümlenemedi — parça ya da parçanın ait olduğu nesne artık mevcut değil.\n\nTamamlama kaydedildi, yani yapılan iş kaybolmadı. Gerçekleşmeyen şey stok düşümü: bu tamamlama için hiçbir parçanın stoğundan düşülmedi.\n\nDüzeltmek için: görevi Bakım panelinde açıp eski parça bağlantılarını kaldırın veya şu anda kullandığınız parçalara yönlendirin. İşiniz bitince bu bildirimi kapatın."
+    },
+    "device_link_lost": {
+      "title": "{object} cihaz bağlantısını kaybetti",
+      "description": "**{object}** bir Home Assistant cihazına bağlıydı; bu sayede bakım varlıkları o cihazın sayfasında görünüyordu. O cihaz artık yok — silindi ya da entegrasyonu kaldırıldı — ve nesne şimdi kendine ait bir cihaz gösteriyor. Başka bir şey değişmedi: görevler ve geçmişleri olduğu gibi duruyor.\n\nBakım panelinde *Mevcut cihaza bağla* altından yeniden bir cihaz seçin ya da kendi cihazı yeterliyse bunu yok sayın. Kayıtlı bağlantı bilerek korunuyor: cihaz geri gelirse bağlantı kendiliğinden yeniden çalışır."
     }
   },
   "exceptions": {

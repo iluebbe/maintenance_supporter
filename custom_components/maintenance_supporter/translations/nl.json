@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Ongeldige onderdeelkoppelingen bij {object_name}",
       "description": "Een taak bij **{object_name}** is zojuist afgerond, maar {count} onderdeelkoppelingen konden niet worden opgezocht — het onderdeel, of het object waar het bij hoort, bestaat niet meer.\n\nDe afronding zelf is wel opgeslagen, dus het werk is niet verloren. Wat niet is gebeurd, is de voorraadafboeking: er is voor deze afronding niets van de voorraad afgehaald.\n\nOplossen doe je zo: open de taak in het onderhoudspaneel en verwijder de verouderde onderdeelkoppelingen, of laat ze verwijzen naar de onderdelen die je nu gebruikt. Sluit deze melding zodra dat gedaan is."
+    },
+    "device_link_lost": {
+      "title": "{object} is de apparaatkoppeling kwijt",
+      "description": "**{object}** was gekoppeld aan een Home Assistant-apparaat, zodat de onderhoudsentiteiten op die apparaatpagina stonden. Dat apparaat bestaat niet meer — verwijderd, of de integratie ervan weggehaald — en het object toont nu een eigen apparaat. Verder verandert er niets: taken en geschiedenis blijven ongemoeid.\n\nKies opnieuw een apparaat in het onderhoudspaneel onder *Koppelen aan bestaand apparaat*, of negeer dit als een eigen apparaat prima is. De opgeslagen koppeling blijft bewust bewaard, dus als het apparaat terugkomt werkt ze vanzelf weer."
     }
   },
   "exceptions": {

@@ -346,3 +346,48 @@ async def test_an_unresolvable_link_is_kept_not_erased(
     # …and the object still gets a device of its own, so nothing is homeless.
     ours = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
     assert len(ours) == 1
+
+
+async def test_a_lost_device_link_is_reported_as_a_repair(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Falling back to an own device is quiet, and a link the user set on
+    purpose is worth saying something about — otherwise the object drifts off
+    the appliance's page and nobody finds out why."""
+    from homeassistant.helpers import issue_registry as ir
+
+    obj_entry = _make_entry(hass, "lostlink", name="Orphan", extra_obj={"ha_device_id": "gone-for-good"})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"device_link_lost_{obj_entry.entry_id}")
+    assert issue is not None, "a lost device link went unreported"
+    assert issue.translation_placeholders == {"object": "Orphan"}
+
+
+async def test_a_working_device_link_reports_nothing(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from homeassistant.helpers import issue_registry as ir
+
+    device = _foreign_device(hass)
+    obj_entry = _make_entry(hass, "goodlink", name="Washer", extra_obj={"ha_device_id": device.id})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, f"device_link_lost_{obj_entry.entry_id}") is None
+
+
+async def test_deleting_the_object_takes_its_repair_with_it(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """An issue about an object that no longer exists is just clutter."""
+    from homeassistant.helpers import issue_registry as ir
+
+    obj_entry = _make_entry(hass, "lostlink2", name="Orphan", extra_obj={"ha_device_id": "gone-for-good"})
+    await setup_integration(hass, global_entry, obj_entry)
+    issue_id = f"device_link_lost_{obj_entry.entry_id}"
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
+
+    await hass.config_entries.async_remove(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
