@@ -68,3 +68,5 @@ docs/images/gifs/.video-tmp/
 e2e/lang-check-shots/
 docker/.beta-config/
 docker/.upgrade-config/
+docker/.scn-base/
+docker/.scn-work/
