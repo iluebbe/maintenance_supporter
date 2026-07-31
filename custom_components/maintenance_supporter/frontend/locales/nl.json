@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "Laag",
   "battery_fleet_status_soon": "Binnenkort",
   "battery_fleet_status_ok": "In orde",
+  "battery_fleet_predicted_on": "Verwacht rond {date}",
   "battery_fleet_total": "{n} batterijen gevolgd",
   "battery_fleet_setup_button": "Batterijvloot",
   "battery_fleet_setup_done": "Batterijvloot ingesteld — één taak volgt al je batterijen.",

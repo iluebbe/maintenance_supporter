@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "Baja",
   "battery_fleet_status_soon": "Pronto",
   "battery_fleet_status_ok": "Correcta",
+  "battery_fleet_predicted_on": "Previsto hacia {date}",
   "battery_fleet_total": "{n} baterías monitorizadas",
   "battery_fleet_setup_button": "Flota de baterías",
   "battery_fleet_setup_done": "Flota de baterías configurada — una tarea controla todas.",

@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "Låg",
   "battery_fleet_status_soon": "Snart",
   "battery_fleet_status_ok": "I ordning",
+  "battery_fleet_predicted_on": "Väntas omkring {date}",
   "battery_fleet_total": "{n} batterier spåras",
   "battery_fleet_setup_button": "Batteriflotta",
   "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier.",

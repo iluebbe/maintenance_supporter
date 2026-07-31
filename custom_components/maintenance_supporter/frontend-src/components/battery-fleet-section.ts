@@ -139,6 +139,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
   }
 
+  /** The forecast as a date a person can plan with, not a day count.
+   *  `days_until` comes from last-replaced + typical lifetime, so it is an
+   *  estimate — the tilde in the template says so. Negative values (past the
+   *  typical lifetime but not reported low yet) render as past dates, which
+   *  is honest: the battery is living on borrowed time. */
+  private _predictedDate(daysUntil: number): string {
+    const when = new Date(Date.now() + daysUntil * 864e5);
+    return new Intl.DateTimeFormat(this._lang, { day: "numeric", month: "numeric", year: "numeric" }).format(when);
+  }
+
   private _shoppingLine(needs: Record<string, number>): string {
     return Object.entries(needs)
       .map(([type, qty]) => `${qty}× ${type}`)
@@ -238,6 +248,13 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         <span class="bf-status bf-${b.status}">${t("battery_fleet_status_" + b.status, L)}</span>
                         <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
+                        ${b.days_until != null
+                          ? html`<span
+                              class="bf-predicted"
+                              title=${t("battery_fleet_predicted_on", L).replace("{date}", this._predictedDate(b.days_until))}
+                              >~${this._predictedDate(b.days_until)}</span
+                            >`
+                          : nothing}
                         <button
                           class="bf-mark bf-exclude"
                           title=${t("battery_fleet_exclude", L)}
@@ -425,6 +442,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-status.bf-soon {
       background: var(--warning-color, #ff9800);
       color: #fff;
+    }
+    .bf-predicted {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      white-space: nowrap;
     }
     .bf-total {
       font-size: 12px;

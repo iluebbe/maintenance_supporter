@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "부족",
   "battery_fleet_status_soon": "곧",
   "battery_fleet_status_ok": "정상",
+  "battery_fleet_predicted_on": "{date}쯤 예상",
   "battery_fleet_total": "배터리 {n}개 추적 중",
   "battery_fleet_setup_button": "배터리 플릿",
   "battery_fleet_setup_done": "배터리 플릿이 설정되었습니다 — 하나의 작업이 모든 배터리를 추적합니다.",
