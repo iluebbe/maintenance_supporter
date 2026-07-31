@@ -68,12 +68,24 @@ def resolve_linked_device_id(
     get_splits = getattr(dev_reg, "async_get_devices_for_composite_device_id", None)
     splits: list[dr.DeviceEntry] = list(get_splits(device_id) or []) if get_splits else []
 
-    # Prefer a split that is not ours. Ours only exists because the older code
-    # claimed part-ownership of somebody else's device; the appliance's own
-    # split is the device the user actually picked.
-    for device in splits:
-        if not _is_ours(device, own_entry_id):
+    # Only splits that are not ours count. Ours exists solely because the older
+    # code claimed part-ownership of somebody else's device; the appliance's
+    # own split is the device the user actually picked.
+    foreign = [device for device in splits if not _is_ours(device, own_entry_id)]
+
+    # A device can have been shared by SEVERAL integrations (the Shelly that
+    # also appeared in UniFi — the motivating example for the whole split), so
+    # there may be more than one foreign split. Prefer the one that owned the
+    # composite before the migration: each split records the former
+    # `primary_config_entry` as `composite_primary_config_entry`, and the
+    # primary is the integration that actually provides the appliance rather
+    # than one that merely annotated it.
+    for device in foreign:
+        primary = getattr(device, "composite_primary_config_entry", None)
+        if primary is not None and primary == getattr(device, "config_entry_id", None):
             return device.id
+    if foreign:
+        return foreign[0].id
 
     # Only our own split survived — the appliance's integration is gone. Better
     # to report no link than to attach to a leftover of our own making.
