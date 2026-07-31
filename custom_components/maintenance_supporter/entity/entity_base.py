@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import CONF_OBJECT, DOMAIN, GLOBAL_UNIQUE_ID
 from ..coordinator import MaintenanceCoordinator
+from ..helpers import device_link
 
 
 class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
@@ -43,9 +44,21 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
         # Resolved ONCE here so `device_info` below and the entity's device
         # cannot disagree; re-evaluated when the entry reloads, which a
         # link change already triggers.
+        #
+        # Resolution goes through helpers.device_link, NOT a raw
+        # `async_get(stored_id)`: on HA 2026.8 `async_get` still ANSWERS for a
+        # pre-migration composite id by synthesising a read-only device that
+        # carries that dead id — attaching to it makes the entity registry
+        # refuse the link and log a "please create a bug report" warning. The
+        # resolver returns a live id or None, never the synthetic. (Called via
+        # the module so tests can substitute the resolver.)
         self._linked_device: dr.DeviceEntry | None = None
         if device_id := self._object_data.get("ha_device_id"):
-            self._linked_device = dr.async_get(coordinator.hass).async_get(device_id)
+            resolved = device_link.resolve_linked_device_id(
+                coordinator.hass, device_id, own_entry_id=coordinator.entry.entry_id
+            )
+            if resolved is not None:
+                self._linked_device = dr.async_get(coordinator.hass).async_get(resolved)
         if self._linked_device is not None:
             self.device_entry = self._linked_device
 

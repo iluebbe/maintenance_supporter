@@ -158,6 +158,15 @@ try {
   ok(own.length === 1 && deviceOf(ents, linked2).join() === own[0].id, "entities moved onto it");
   ok(own.length === 1 && !!own[0].name, `and it has a name: "${own[0]?.name}"`);
 
+  // ── 6b. relink after living unlinked: no empty leftover device ──────────
+  log("\n6b. relink the unlinked object — its empty own device must go");
+  await api.send({ type: `${D}/object/update`, entry_id: linked2, ha_device_id: devA.id });
+  await settle(8000);
+  ({ ents, devs } = await reg());
+  ok(deviceOf(ents, linked2).join() === devA.id, "entities moved back onto the appliance");
+  ok(ownDevices(devs, linked2).length === 0,
+    "the own device from its unlinked life was cleaned up");
+
   // ── 7. nesting under another object (via_device) ─────────────────────────
   log("\n7. nest one object under another");
   const parent = await newObject("Matrix Parent");

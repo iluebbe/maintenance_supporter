@@ -839,7 +839,13 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         """
         found: list[ConfigEntry] = []
         seen: set[str] = set()
-        for ce_id in device.config_entries:
+        # 2026.8 gives a device exactly one config entry (`config_entry_id`);
+        # the plural `config_entries` is a silently-deprecated compat shim
+        # there — no report_usage, so the deprecation gate cannot see it — and
+        # the only spelling 2026.7 has. Prefer the singular where it exists.
+        single = getattr(device, "config_entry_id", None)
+        owner_ids = (single,) if single is not None else tuple(getattr(device, "config_entries", ()) or ())
+        for ce_id in owner_ids:
             ce = hass.config_entries.async_get_entry(ce_id)
             if ce is not None and ce.domain == DOMAIN and ce.unique_id != GLOBAL_UNIQUE_ID:
                 found.append(ce)
@@ -1128,6 +1134,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         await _async_setup_shared(hass)
 
     is_global = entry.unique_id == GLOBAL_UNIQUE_ID
+    # True once the object's stored device link resolved to a live device this
+    # setup — drives the post-platform cleanup of empty leftover own devices.
+    linked_device_live = False
 
     if is_global:
         # Global entry: no per-object coordinator, but a summary coordinator
@@ -1290,6 +1299,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             if has_own_devices(hass, entry.entry_id):
                 _LOGGER.info("Shedding device(s) %s should not own after linking", entry.title)
                 shed_owned_devices(hass, own_entry_id=entry.entry_id, source_device_id=resolved)
+            linked_device_live = resolved is not None
 
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)
@@ -1324,6 +1334,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    if linked_device_live:
+        # The entities of a linked object live on the appliance'''s device, so a
+        # device of our own with nothing on it is a leftover — of the object'''s
+        # earlier unlinked life, or of the 2026.8 split — and shows up as an
+        # empty duplicate named after the object. The targeted shed above only
+        # removes duplicates of the SOURCE device, so an old own device (our
+        # identifiers, not a fork) survives it on both HA versions. Decidable
+        # only now: the platform setup above has re-attached the entities.
+        dev_reg = dr.async_get(hass)
+        ent_reg = er.async_get(hass)
+        for device in dr.async_entries_for_config_entry(dev_reg, entry.entry_id):
+            if not er.async_entries_for_device(ent_reg, device.id, include_disabled_entities=True):
+                _LOGGER.info("Removing empty leftover device %s of linked object %s", device.id, entry.title)
+                dev_reg.async_remove_device(device.id)
+
     return True
 
 

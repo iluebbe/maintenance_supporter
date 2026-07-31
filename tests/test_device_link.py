@@ -391,3 +391,78 @@ async def test_deleting_the_object_takes_its_repair_with_it(
     await hass.async_block_till_done()
 
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_entities_never_attach_through_a_dead_link(
+    hass: HomeAssistant, global_entry: MockConfigEntry, monkeypatch
+) -> None:
+    """The entity constructor must route the stored id through the resolver.
+
+    On HA 2026.8 a raw `async_get(stored_id)` still ANSWERS for a
+    pre-migration composite id — it synthesises a read-only device carrying
+    that dead id, the entity registry then refuses the link and asks the user
+    to file a bug against us. The resolver returns a live id or None, never
+    the synthetic. Simulated here by forcing the resolver to None: every
+    entity must land on the object's own fallback device, none may go
+    device-less, and the stored link must survive untouched.
+    """
+    from custom_components.maintenance_supporter.helpers import device_link
+
+    calls: list[str] = []
+
+    def _recording_resolver(_hass, device_id, *, own_entry_id):
+        calls.append(device_id)
+        return None
+
+    monkeypatch.setattr(device_link, "resolve_linked_device_id", _recording_resolver)
+
+    obj_entry = _make_entry(hass, "deadlink", name="Orphan", extra_obj={"ha_device_id": "old-composite"})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # On a registry without real composites, raw `async_get` and the resolver
+    # happen to agree, so the outcome alone cannot tell them apart. The call
+    # count can: setup resolves once, and every entity constructor must resolve
+    # again — a constructor bypassing the resolver leaves exactly one call.
+    assert len(calls) > 1, (
+        f"the entity constructor did not route the stored id through the resolver "
+        f"({len(calls)} call(s) recorded — expected setup + one per entity)"
+    )
+
+    own = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert len(own) == 1, "expected the fallback own device"
+    ours = er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id)
+    assert ours and all(e.device_id == own[0].id for e in ours), (
+        "an entity attached through the dead link instead of the fallback"
+    )
+    stored = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
+    assert stored.get("ha_device_id") == "old-composite"
+
+
+async def test_linking_a_previously_unlinked_object_removes_its_empty_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The transition nobody had tested: an object lives unlinked (own device),
+    then the user links it to an appliance. Its entities move to the
+    appliance's device — and the old own device must not stay behind as an
+    empty duplicate named after the object. The targeted shed only removes
+    duplicates of the SOURCE, so this needs its own cleanup on both HA
+    versions."""
+    obj_entry = _make_entry(hass, "transition", name="Washer Maintenance")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    own_before = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert len(own_before) == 1, "the unlinked object should own a device"
+
+    device = _foreign_device(hass)
+    data = dict(obj_entry.data)
+    data[CONF_OBJECT] = {**data[CONF_OBJECT], "ha_device_id": device.id}
+    hass.config_entries.async_update_entry(obj_entry, data=data)
+    await hass.config_entries.async_reload(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    ours = er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id)
+    assert ours and all(e.device_id == device.id for e in ours), "entities did not move to the appliance"
+    leftovers = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert leftovers == [], (
+        f"empty leftover device(s) remain: {[d.name for d in leftovers]}"
+    )

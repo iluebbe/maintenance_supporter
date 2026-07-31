@@ -28,10 +28,11 @@ from custom_components.maintenance_supporter.helpers.device_link import (
 
 
 class _Device:
-    def __init__(self, device_id: str, entries: tuple[str, ...]) -> None:
+    def __init__(self, device_id: str, entries: tuple[str, ...], primary: str | None = None) -> None:
         self.id = device_id
         self.config_entries = frozenset(entries)
         self.config_entry_id = entries[0] if entries else None
+        self.composite_primary_config_entry = primary
 
 
 class _LegacyRegistry:
@@ -133,3 +134,30 @@ def test_older_home_assistant_has_no_composites(monkeypatch) -> None:
     assert not hasattr(reg, "async_is_composite_device_id")
     assert resolve_linked_device_id(None, "dev1", own_entry_id="ours") == "dev1"
     assert resolve_linked_device_id(None, "gone", own_entry_id="ours") is None
+
+
+def test_among_several_foreign_splits_the_former_primary_wins(monkeypatch) -> None:
+    """A device can have been shared by SEVERAL integrations (the Shelly that
+    also showed up in UniFi). After the split there are two foreign devices and
+    list order is arbitrary — the split of the composite's former PRIMARY
+    config entry is the integration that actually provides the appliance."""
+    reg = _Registry(
+        live={},
+        composites={"old": [
+            _Device("split_ours", ("ours",), primary="unifi"),
+            _Device("split_unifi", ("unifi",), primary="unifi"),
+            _Device("split_shelly", ("shelly",), primary="unifi"),
+        ]},
+    )
+    _patch(monkeypatch, reg)
+    # split_unifi is the former primary (its owner == composite primary).
+    assert resolve_linked_device_id(None, "old", own_entry_id="ours") == "split_unifi"
+
+
+def test_without_primary_information_the_first_foreign_split_wins(monkeypatch) -> None:
+    reg = _Registry(
+        live={},
+        composites={"old": [_Device("split_a", ("a",)), _Device("split_b", ("b",))]},
+    )
+    _patch(monkeypatch, reg)
+    assert resolve_linked_device_id(None, "old", own_entry_id="ours") == "split_a"
