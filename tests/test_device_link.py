@@ -324,3 +324,25 @@ async def test_migrating_an_existing_install_drops_the_co_ownership(
     after = dr.async_get(hass).async_get(device.id)
     assert obj_entry.entry_id not in after.config_entries, "the stale co-ownership survived the migration"
     assert hass.config_entries.async_get_entry(obj_entry.entry_id).minor_version >= 5
+
+
+async def test_an_unresolvable_link_is_kept_not_erased(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Setup repoints a link the 2026.8 split moved, but must never CLEAR one.
+
+    Clearing gains nothing — a missing device already falls back to an own
+    device when the entities render — and it would destroy the user's choice
+    permanently. The id can become meaningful again: a JSON export carries it
+    to another instance where it dangles until the backup comes home, and a
+    device returns when its integration is re-added or re-enabled.
+    """
+    obj_entry = _make_entry(hass, "dangling2", name="Orphan", extra_obj={"ha_device_id": "not-a-device"})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    stored = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
+    assert stored.get("ha_device_id") == "not-a-device", "the stored link was erased"
+
+    # …and the object still gets a device of its own, so nothing is homeless.
+    ours = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert len(ours) == 1

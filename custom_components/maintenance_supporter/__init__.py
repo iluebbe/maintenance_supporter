@@ -1243,17 +1243,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             )
 
             resolved = resolve_linked_device_id(hass, stored_device_id, own_entry_id=entry.entry_id)
-            if resolved != stored_device_id:
+            if resolved and resolved != stored_device_id:
                 _LOGGER.info(
-                    "Object %s was linked to device %s, which no longer exists as such; %s",
+                    "Object %s was linked to device %s, which the 2026.8 split replaced; repointed to %s",
                     entry.title,
                     stored_device_id,
-                    f"repointed to {resolved}" if resolved else "dropping the link",
+                    resolved,
                 )
                 hass.config_entries.async_update_entry(
                     entry,
                     data={**entry.data, CONF_OBJECT: {**obj_data, "ha_device_id": resolved}},
                 )
+            # An id we cannot resolve is deliberately LEFT ALONE. Clearing it
+            # would gain nothing — a missing device already falls back to an own
+            # device at render time — and would destroy the user's choice for
+            # good. The id may well be meaningful again later: a JSON export
+            # carries it to a foreign instance where it dangles until the backup
+            # comes home, and a device can return when its integration is
+            # re-added or re-enabled.
 
             # A linked object owns no device. If it does, this install predates
             # the rework — either it co-owned the appliance's device (split on
