@@ -67,3 +67,4 @@ custom_components/battery_notes/
 docs/images/gifs/.video-tmp/
 e2e/lang-check-shots/
 docker/.beta-config/
+docker/.upgrade-config/
