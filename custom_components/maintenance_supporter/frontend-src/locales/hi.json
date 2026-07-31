@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "कम",
   "battery_fleet_status_soon": "जल्द",
   "battery_fleet_status_ok": "ठीक",
+  "battery_fleet_predicted_on": "{date} के आसपास अपेक्षित",
   "battery_fleet_total": "{n} बैटरियाँ ट्रैक की गईं",
   "battery_fleet_setup_button": "बैटरी फ्लीट",
   "battery_fleet_setup_done": "बैटरी फ्लीट सेट — एक कार्य सभी बैटरियों को ट्रैक करता है।",

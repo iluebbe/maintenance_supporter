@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "Lav",
   "battery_fleet_status_soon": "Snart",
   "battery_fleet_status_ok": "I orden",
+  "battery_fleet_predicted_on": "Forventes rundt {date}",
   "battery_fleet_total": "{n} batterier spores",
   "battery_fleet_setup_button": "Batteriflåte",
   "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene.",

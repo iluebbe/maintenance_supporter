@@ -96,6 +96,26 @@ describe("battery fleet roster", () => {
     expect((roster(el) as HTMLDetailsElement).open).to.equal(false);
   });
 
+it("shows the predicted replacement date where a forecast exists (#114)", async () => {
+    const soon = { ...HEALTHY, entity_id: "sensor.doorbell_battery_plus", device_name: "Doorbell", days_until: 12 };
+    const { el } = await mount(overview({
+      total: 3,
+      all: [
+        { ...LOW, status: "low" },          // no forecast left — nothing to show
+        { ...soon, status: "soon" },
+        { ...HEALTHY, status: "ok" },       // days_until null — nothing to show
+      ],
+    }));
+    const rows = [...roster(el)!.querySelectorAll(".bf-row")];
+    const withDate = rows.filter((r) => r.querySelector(".bf-predicted"));
+    expect(withDate).to.have.lengthOf(1);
+    expect(withDate[0].textContent).to.contain("Doorbell");
+    const chip = withDate[0].querySelector(".bf-predicted")!;
+    // Starts with the estimate tilde and contains a plausible year.
+    expect(chip.textContent!.trim().startsWith("~")).to.equal(true);
+    expect(chip.getAttribute("title")).to.match(/Expected around/);
+  });
+
   it("renders nothing when an older backend sends no roster", async () => {
     const { all, ...withoutRoster } = overview() as Record<string, unknown>;
     void all;

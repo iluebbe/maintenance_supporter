@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "Alacsony",
   "battery_fleet_status_soon": "Hamarosan",
   "battery_fleet_status_ok": "Rendben",
+  "battery_fleet_predicted_on": "Várhatóan {date} körül",
   "battery_fleet_total": "{n} elem követve",
   "battery_fleet_setup_button": "Elemflotta",
   "battery_fleet_setup_done": "Elemflotta beállítva — egyetlen feladat követi az összes elemet.",

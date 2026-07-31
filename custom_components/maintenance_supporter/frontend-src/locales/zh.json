@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "电量低",
   "battery_fleet_status_soon": "即将",
   "battery_fleet_status_ok": "正常",
+  "battery_fleet_predicted_on": "预计在 {date} 前后",
   "battery_fleet_total": "已跟踪 {n} 个电池",
   "battery_fleet_setup_button": "电池群",
   "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。",

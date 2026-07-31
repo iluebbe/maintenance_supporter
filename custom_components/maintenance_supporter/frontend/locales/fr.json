@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "Faible",
   "battery_fleet_status_soon": "Bientôt",
   "battery_fleet_status_ok": "Bon état",
+  "battery_fleet_predicted_on": "Prévu vers {date}",
   "battery_fleet_total": "{n} piles suivies",
   "battery_fleet_setup_button": "Parc de piles",
   "battery_fleet_setup_done": "Parc de piles configuré — une tâche suit toutes vos piles.",

@@ -819,6 +819,7 @@
   "battery_fleet_status_low": "Low",
   "battery_fleet_status_soon": "Soon",
   "battery_fleet_status_ok": "Healthy",
+  "battery_fleet_predicted_on": "Expected around {date}",
   "battery_fleet_total": "{n} batteries tracked",
   "battery_fleet_setup_button": "Battery fleet",
   "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries.",
