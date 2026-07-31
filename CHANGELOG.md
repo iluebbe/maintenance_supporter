@@ -16,11 +16,20 @@ All notable changes to Maintenance Supporter are documented in this file.
   [what Home Assistant documents](https://developers.home-assistant.io/blog/2025/07/18/updated-pattern-for-helpers-linking-to-devices/)
   and works on 2026.7 just as well — nothing changes for you on the current
   release, and nothing breaks on the next one.
-  Existing links are repaired automatically on upgrade, so the split never has
-  anything to split. Two side-effects worth naming: the area of a linked device
-  still follows through to the object (that sync used to depend on the
-  part-ownership), and a linked device that no longer exists still falls back
-  to the object's own device rather than leaving its entities homeless.
+  Existing links are repaired automatically. On 2026.8 the upgrade renumbers
+  the device, so a link stored earlier points at an id that no longer names
+  anything — those are repointed at the appliance's surviving device on the
+  first start after the update, and any device the integration should never
+  have owned is handed back. Nothing to do by hand, in either update order.
+  Three side-effects worth naming: the area of a linked device still follows
+  through to the object (that sync used to depend on the part-ownership); a
+  linked device that no longer exists still falls back to the object's own
+  device rather than leaving its entities homeless; and a link that cannot be
+  resolved is **kept**, not cleared, so a JSON backup restored on another
+  instance still works when it comes home.
+  If you update Home Assistant to 2026.8 **before** this release, the
+  maintenance entities disappear from the appliance's page until you update —
+  after which they return on their own.
 
 ### ✨ Added
 

@@ -21,6 +21,16 @@ on the appliance's device, our config entry absent from it, no nameless
 duplicate. CI runs unpinned again, so the next such change surfaces the same
 way this one did.
 
+**💡 Open question found while reviewing the same area:** *Replace object* resets
+what it calls unit-specific identity — serial number, warranty, installation
+date — but **keeps `ha_device_id`**. A device link is arguably the most
+unit-specific field there is: it names one physical appliance. So the successor
+of a replaced washing machine currently puts its entities on the retired
+machine's device page. The same question applies more weakly to *Duplicate*,
+which also carries the link. Both predate the attachment rework and neither
+changed with it; whether the link should survive a replacement is a product
+decision, not a defect to fix quietly.
+
 **One thing left, with a long fuse:** `device_info["via_device"]`
 (`entity/entity_base.py`, used when an object is nested under a parent) is
 deprecated in favour of `via_device_id` and disappears in **2027.8**. It needs
