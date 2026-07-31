@@ -170,6 +170,113 @@ def _type_part(btype: str, total_qty: int, lang: str) -> dict[str, Any]:
     }
 
 
+# ── retranslating the seeded texts (issue #115) ────────────────────────────
+#
+# Setup writes the object/task/part names and notes ONCE, in the language that
+# happened to be current — and nothing ever touched them again, so a fleet set
+# up before localized seeding existed (v2.38) keeps English notes forever while
+# every runtime string around them is translated. The panel's runtime strings
+# follow the UI language; these stored ones can only follow it if something
+# rewrites them.
+#
+# The rule that makes rewriting safe: a stored text is only replaced when it
+# EXACTLY matches one of the known template variants (any language), i.e. the
+# user never edited it. Anything the user typed stays.
+
+
+def _template_variants(text_en: str) -> set[str]:
+    """The English template plus every translation of it."""
+    from ..templates_i18n import _T
+
+    return {text_en} | set(_T.get(text_en, {}).values())
+
+
+def _extract_placeholder(stored: str, text_en: str, placeholder: str) -> str | None:
+    """The placeholder's value, if ``stored`` matches any variant of the template.
+
+    ``"AA-batteri"`` against ``"{type} battery"`` finds the Danish variant
+    ``"{type}-batteri"``, matches prefix/suffix and returns ``"AA"``. Returns
+    None when no variant matches — the user rewrote the text.
+    """
+    token = "{" + placeholder + "}"
+    for variant in _template_variants(text_en):
+        prefix, sep, suffix = variant.partition(token)
+        if not sep:
+            continue
+        if stored.startswith(prefix) and stored.endswith(suffix) and len(stored) > len(prefix) + len(suffix):
+            return stored[len(prefix) : len(stored) - len(suffix)]
+    return None
+
+
+def retranslate_seeded_texts(hass: HomeAssistant, entry: ConfigEntry, lang: str) -> bool:
+    """Bring untouched seeded texts into ``lang``. Returns True when changed.
+
+    Runs at every fleet-entry setup: cheap string comparisons, and idempotent —
+    once the texts are in the current language they match that language's
+    variant and are rewritten to themselves.
+
+    The boot-time caller passes the SERVER language, so untouched seeded texts
+    converge on it — the same convention notifications and digests follow,
+    because stored data is shared by every user of the instance. Seeding still
+    honours the caller's UI language for the immediate result; if the two
+    differ, the next reload converges.
+    """
+    from ..templates import localize_template_text
+
+    changed = False
+    data = dict(entry.data)
+
+    def _localized(text_en: str) -> str:
+        return localize_template_text(text_en, lang) or text_en
+
+    obj = dict(data.get(CONF_OBJECT) or {})
+    if obj.get("name") in _template_variants("Battery Fleet") and obj.get("name") != _localized("Battery Fleet"):
+        obj["name"] = _localized("Battery Fleet")
+        data[CONF_OBJECT] = obj
+        changed = True
+
+    tasks = dict(data.get(CONF_TASKS) or {})
+    for task_id, task in tasks.items():
+        if not task.get(TASK_FLAG):
+            continue
+        new_task = dict(task)
+        if new_task.get("name") in _template_variants("Replace low batteries"):
+            new_task["name"] = _localized("Replace low batteries")
+        notes_en = (
+            "Aggregate battery check. The detail view lists which devices are low "
+            "and which battery types to buy."
+        )
+        if new_task.get("notes") in _template_variants(notes_en):
+            new_task["notes"] = _localized(notes_en)
+        if new_task != task:
+            tasks[task_id] = new_task
+            data[CONF_TASKS] = tasks
+            changed = True
+
+    parts = dict(data.get(CONF_PARTS) or {})
+    for part_id, part in parts.items():
+        if not str(part_id).startswith("batt_"):
+            continue
+        new_part = dict(part)
+        btype = _extract_placeholder(str(new_part.get("name") or ""), "{type} battery", "type")
+        if btype is not None:
+            new_part["name"] = (_localized("{type} battery")).format(type=btype)
+        months = _extract_placeholder(
+            str(new_part.get("notes") or ""), "Typical service life ~{months} months.", "months"
+        )
+        if months is not None:
+            new_part["notes"] = (_localized("Typical service life ~{months} months.")).format(months=months)
+        if new_part != part:
+            parts[part_id] = new_part
+            data[CONF_PARTS] = parts
+            changed = True
+
+    if changed:
+        title = (data.get(CONF_OBJECT) or {}).get("name") or entry.title
+        hass.config_entries.async_update_entry(entry, data=data, title=title)
+    return changed
+
+
 def replaced_button_for(battery_plus_entity_id: str) -> str:
     """The Battery Notes 'replaced' button entity id for a battery_plus sensor.
 

@@ -1301,6 +1301,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
                 shed_owned_devices(hass, own_entry_id=entry.entry_id, source_device_id=resolved)
             linked_device_live = resolved is not None
 
+        # #115: the battery fleet's seeded name/notes/part texts are stored
+        # snapshots — a fleet set up before localized seeding existed (or under
+        # a different UI language) keeps English notes forever while every
+        # runtime string around them is translated. Rewrite the ones the user
+        # never touched into the instance's language; edited texts stay.
+        if obj_data.get("battery_fleet"):
+            from .helpers.battery_fleet_setup import retranslate_seeded_texts
+            from .helpers.i18n import normalize_language
+
+            if retranslate_seeded_texts(hass, entry, normalize_language(hass)):
+                _LOGGER.info("Retranslated the battery fleet's seeded texts for %s", entry.title)
+
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)
         await coordinator.async_config_entry_first_refresh()
