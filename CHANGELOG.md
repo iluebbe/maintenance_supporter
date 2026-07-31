@@ -2,6 +2,29 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Predicted replacement date in the battery roster** (#114 follow-up) — every
+  battery with a forecast now shows *~date* next to its charge level in *All
+  tracked batteries*, computed from the last replacement and the type's typical
+  service life. The tilde is deliberate: it is an estimate. A battery already
+  reported low shows no date — it is due now.
+- **Calendar card: restrict to several objects** (discussion #83) —
+  `object_filter` now also takes a list (`["Pool Pump", "Family Car"]`); the
+  card then shows only those objects and its dropdown narrows within that set.
+  A single value behaves exactly as before.
+
+### 🐛 Fixed
+
+- **Battery-fleet texts stored in the wrong language now catch up** (#115) —
+  the fleet's object/task/part names and notes are written once at setup, so a
+  fleet created before localized seeding existed (v2.38) kept English notes
+  forever while everything around them was translated. Untouched seeded texts
+  now follow the instance's server language on every start; anything you edited
+  yourself is never rewritten.
+
 ## [2.45.0] - 2026-07-31
 
 **This release makes the integration ready for Home Assistant 2026.8** ahead
