@@ -1108,15 +1108,9 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # here means the split never has anything to split.
     if minor < 5:
         if is_object_entry and (device_id := (data.get(CONF_OBJECT) or {}).get("ha_device_id")):
-            from homeassistant.helpers.helper_integration import (
-                async_remove_helper_config_entry_from_source_device,
-            )
+            from .helpers.device_link import shed_owned_devices
 
-            async_remove_helper_config_entry_from_source_device(
-                hass,
-                helper_config_entry_id=entry.entry_id,
-                source_device_id=device_id,
-            )
+            shed_owned_devices(hass, own_entry_id=entry.entry_id, source_device_id=device_id)
         minor = 5
 
     hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
@@ -1234,6 +1228,41 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
                 entry.title,
             )
             await store.async_save()
+
+        # A device link stored before HA 2026.8 may now point at a
+        # pre-migration composite id, which names no registered device — HA
+        # refuses to attach entities to it and tells the user to file a bug
+        # against us. Repoint it at the surviving device and write that back,
+        # so the repair happens once rather than on every start.
+        obj_data = entry.data.get(CONF_OBJECT) or {}
+        if stored_device_id := obj_data.get("ha_device_id"):
+            from .helpers.device_link import (
+                has_own_devices,
+                resolve_linked_device_id,
+                shed_owned_devices,
+            )
+
+            resolved = resolve_linked_device_id(hass, stored_device_id, own_entry_id=entry.entry_id)
+            if resolved != stored_device_id:
+                _LOGGER.info(
+                    "Object %s was linked to device %s, which no longer exists as such; %s",
+                    entry.title,
+                    stored_device_id,
+                    f"repointed to {resolved}" if resolved else "dropping the link",
+                )
+                hass.config_entries.async_update_entry(
+                    entry,
+                    data={**entry.data, CONF_OBJECT: {**obj_data, "ha_device_id": resolved}},
+                )
+
+            # A linked object owns no device. If it does, this install predates
+            # the rework — either it co-owned the appliance's device (split on
+            # upgrade) or it forked one carrying the appliance's identity. Hand
+            # that to Home Assistant's own repair, which also relinks the
+            # entities, rather than deleting devices by hand.
+            if has_own_devices(hass, entry.entry_id):
+                _LOGGER.info("Shedding device(s) %s should not own after linking", entry.title)
+                shed_owned_devices(hass, own_entry_id=entry.entry_id, source_device_id=resolved)
 
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)
