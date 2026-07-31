@@ -152,6 +152,10 @@ async def test_setup_seeds_localized_names(
 ) -> None:
     # The created object/task/part names + notes follow the caller's UI
     # language (the #106 reporter translated them manually — now unneeded).
+    # The server language matches here: since #115, untouched seeded texts
+    # CONVERGE on the server language at every reload, so a mismatch would be
+    # rewritten — deliberately, and covered by the retranslation tests below.
+    hass.config.language = "de"
     await setup_integration(hass, global_entry)
     _battery(hass, "lock", "AA", 4, low=True)
 
@@ -464,3 +468,108 @@ async def test_overview_reports_low_and_grouped_needs(
     assert res["available"] is True and res["configured"] is False
     assert res["total"] == 3 and len(res["low"]) == 3
     assert res["needs_now"] == {"AA": 5, "CR2032": 1}
+
+
+# ─── retranslating seeded texts (issue #115) ──────────────────────────────
+
+
+def test_untouched_english_seed_texts_follow_the_language() -> None:
+    """The report: a Danish UI showing Danish everywhere except the task notes
+    — a stored snapshot from before localized seeding existed. Untouched
+    seeded texts must follow the instance language."""
+    from unittest.mock import MagicMock
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import (
+        retranslate_seeded_texts,
+    )
+
+    entry = MagicMock()
+    entry.title = "Battery Fleet"
+    entry.data = {
+        "object": {"name": "Battery Fleet", "battery_fleet": True},
+        "tasks": {
+            "t1": {
+                "battery_fleet_task": True,
+                "name": "Replace low batteries",
+                "notes": (
+                    "Aggregate battery check. The detail view lists which devices are low "
+                    "and which battery types to buy."
+                ),
+            }
+        },
+        "parts": {
+            "batt_aa": {"name": "AA battery", "notes": "Typical service life ~12 months."},
+        },
+    }
+    hass = MagicMock()
+
+    assert retranslate_seeded_texts(hass, entry, "da") is True
+    (_, kwargs) = hass.config_entries.async_update_entry.call_args
+    data = kwargs["data"]
+    assert data["object"]["name"] == "Batteriflåde"
+    assert data["tasks"]["t1"]["name"] == "Udskift svage batterier"
+    assert "Samlet batteritjek" in data["tasks"]["t1"]["notes"]
+    assert data["parts"]["batt_aa"]["name"] == "AA-batteri"
+    assert "12" in data["parts"]["batt_aa"]["notes"]
+    assert kwargs["title"] == "Batteriflåde"
+
+
+def test_a_user_edited_note_is_never_rewritten() -> None:
+    """The safety rule: only texts that exactly match a known template variant
+    are touched. Anything the user typed stays, whatever the language."""
+    from unittest.mock import MagicMock
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import (
+        retranslate_seeded_texts,
+    )
+
+    entry = MagicMock()
+    entry.title = "Batteriflåde"
+    entry.data = {
+        "object": {"name": "Kellerbatterien", "battery_fleet": True},  # renamed by hand
+        "tasks": {
+            "t1": {
+                "battery_fleet_task": True,
+                "name": "Udskift svage batterier",
+                "notes": "Nur die Funk-Sensoren, NICHT die Rauchmelder!",  # user's own words
+            }
+        },
+        "parts": {"batt_aa": {"name": "Eneloop Vorrat", "notes": "im Flurschrank"}},
+    }
+    hass = MagicMock()
+
+    assert retranslate_seeded_texts(hass, entry, "da") is False
+    hass.config_entries.async_update_entry.assert_not_called()
+
+
+def test_retranslation_matches_foreign_variants_and_placeholders() -> None:
+    """Danish part names round-trip: "AA-batteri" must be recognised as the
+    {type} template with type "AA" and rewritten into the new language —
+    including a hyphenated type like Li-ion."""
+    from unittest.mock import MagicMock
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import (
+        retranslate_seeded_texts,
+    )
+
+    entry = MagicMock()
+    entry.title = "Batteriflåde"
+    entry.data = {
+        "object": {"name": "Batteriflåde", "battery_fleet": True},
+        "tasks": {},
+        "parts": {
+            "batt_aa": {"name": "AA-batteri", "notes": ""},
+            "batt_li-ion": {"name": "Li-ion-batteri", "notes": ""},
+        },
+    }
+    hass = MagicMock()
+
+    assert retranslate_seeded_texts(hass, entry, "de") is True
+    (_, kwargs) = hass.config_entries.async_update_entry.call_args
+    parts = kwargs["data"]["parts"]
+    assert parts["batt_aa"]["name"] == "AA-Batterie"
+    assert parts["batt_li-ion"]["name"] == "Li-ion-Batterie"
+    # Already-current texts are a no-op on the second run (idempotent).
+    entry.data = kwargs["data"]
+    hass2 = MagicMock()
+    assert retranslate_seeded_texts(hass2, entry, "de") is False
