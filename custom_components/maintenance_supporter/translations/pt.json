@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Ligações a peças inválidas em {object_name}",
       "description": "Uma tarefa de **{object_name}** acabou de ser concluída, mas {count} ligações a peças não puderam ser resolvidas — a peça, ou o objeto a que pertence, já não existe.\n\nA conclusão em si foi registada, por isso o trabalho não se perdeu. O que não aconteceu foi a baixa de stock: nada foi descontado do stock de nenhuma peça nesta conclusão.\n\nPara corrigir: abra a tarefa no painel de Manutenção e remova as ligações obsoletas, ou aponte-as para as peças que usa agora. Dispense esta notificação quando estiver feito."
+    },
+    "device_link_lost": {
+      "title": "{object} perdeu a ligação ao dispositivo",
+      "description": "**{object}** estava ligado a um dispositivo do Home Assistant, pelo que as suas entidades de manutenção apareciam na página desse dispositivo. Esse dispositivo já não existe — apagado, ou removida a sua integração — e o objeto mostra agora um dispositivo próprio. Nada mais muda: as tarefas e o respetivo histórico ficam intactos.\n\nEscolha novamente um dispositivo no painel de Manutenção em *Ligar a um dispositivo existente*, ou ignore este aviso se um dispositivo próprio servir. A ligação guardada é mantida de propósito: se o dispositivo voltar, a ligação retoma sozinha."
     }
   },
   "exceptions": {

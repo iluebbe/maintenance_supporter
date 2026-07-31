@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Collegamenti ai ricambi non validi su {object_name}",
       "description": "Un'attività su **{object_name}** è appena stata completata, ma {count} collegamenti ai ricambi non sono stati risolti — il ricambio, o l'oggetto a cui appartiene, non esiste più.\n\nIl completamento è stato comunque registrato, quindi il lavoro non è perso. Ciò che non è avvenuto è lo scarico della scorta: per questo completamento non è stato sottratto nulla da nessun ricambio.\n\nPer sistemarlo: apri l'attività nel pannello Manutenzione ed elimina i collegamenti obsoleti, oppure indirizzali ai ricambi che usi ora. Chiudi questa notifica quando hai finito."
+    },
+    "device_link_lost": {
+      "title": "{object} ha perso il collegamento al dispositivo",
+      "description": "**{object}** era collegato a un dispositivo di Home Assistant, così le sue entità di manutenzione comparivano nella pagina di quel dispositivo. Quel dispositivo non esiste più — eliminato, o rimossa la sua integrazione — e l'oggetto ora mostra un dispositivo proprio. Nient'altro cambia: le attività e la loro cronologia restano intatte.\n\nScegli di nuovo un dispositivo nel pannello Manutenzione sotto *Collega a un dispositivo esistente*, oppure ignora questo avviso se un dispositivo proprio va bene. Il collegamento salvato viene mantenuto di proposito: se il dispositivo torna, il collegamento riprende da solo."
     }
   },
   "exceptions": {

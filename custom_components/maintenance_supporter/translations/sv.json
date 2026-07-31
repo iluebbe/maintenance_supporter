@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Trasiga reservdelskopplingar på {object_name}",
       "description": "En uppgift på **{object_name}** slutfördes nyss, men {count} reservdelskopplingar kunde inte slås upp — delen, eller objektet som äger den, finns inte längre.\n\nSjälva slutförandet registrerades, så arbetet är inte förlorat. Det som inte hände är lageravdraget: ingenting drogs av från någon dels saldo för det här slutförandet.\n\nSå åtgärdar du det: öppna uppgiften i underhållspanelen och ta bort de föråldrade delkopplingarna, eller peka om dem till de delar du använder nu. Stäng den här aviseringen när det är klart."
+    },
+    "device_link_lost": {
+      "title": "{object} förlorade sin enhetskoppling",
+      "description": "**{object}** var kopplat till en Home Assistant-enhet, så dess underhållsentiteter visades på den enhetens sida. Den enheten finns inte längre — borttagen, eller dess integration avinstallerad — och objektet visar nu en egen enhet. Inget annat ändras: uppgifterna och deras historik är orörda.\n\nVälj en enhet igen i underhållspanelen under *Koppla till befintlig enhet*, eller strunta i detta om en egen enhet duger. Den sparade kopplingen behålls med flit: kommer enheten tillbaka återupptas kopplingen av sig själv."
     }
   },
   "exceptions": {

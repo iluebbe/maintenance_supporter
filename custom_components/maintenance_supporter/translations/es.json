@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Enlaces de repuesto rotos en {object_name}",
       "description": "Una tarea de **{object_name}** acaba de completarse, pero {count} enlaces a repuestos no se pudieron resolver — el repuesto, o el objeto al que pertenece, ya no existe.\n\nLa finalización sí se registró, así que el trabajo no se ha perdido. Lo que no ocurrió es el descuento de stock: no se restó nada del stock de ningún repuesto por esta finalización.\n\nPara arreglarlo: abre la tarea en el panel de Mantenimiento y elimina los enlaces obsoletos, o apúntalos a los repuestos que usas ahora. Descarta esta notificación cuando esté hecho."
+    },
+    "device_link_lost": {
+      "title": "{object} ha perdido su vínculo con el dispositivo",
+      "description": "**{object}** estaba vinculado a un dispositivo de Home Assistant, de modo que sus entidades de mantenimiento aparecían en la página de ese dispositivo. Ese dispositivo ya no existe — eliminado, o retirada su integración — y el objeto muestra ahora un dispositivo propio. Nada más cambia: sus tareas y su historial siguen intactos.\n\nElige de nuevo un dispositivo en el panel de Mantenimiento en *Vincular a un dispositivo existente*, o ignora este aviso si te vale un dispositivo propio. El vínculo guardado se conserva a propósito: si el dispositivo vuelve, la vinculación se restablece sola."
     }
   },
   "exceptions": {

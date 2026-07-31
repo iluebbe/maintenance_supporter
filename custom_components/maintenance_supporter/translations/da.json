@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Ugyldige reservedelslinks på {object_name}",
       "description": "En opgave på **{object_name}** blev netop udført, men {count} reservedelslinks kunne ikke slås op — delen, eller det objekt der ejer den, findes ikke længere.\n\nSelve udførelsen blev registreret, så arbejdet er ikke gået tabt. Det, der ikke skete, er lagertrækket: der blev ikke trukket noget fra nogen dels beholdning for denne udførelse.\n\nSådan retter du det: åbn opgaven i vedligeholdelsespanelet og fjern de forældede dellinks, eller peg dem mod de dele, du bruger nu. Luk denne notifikation, når det er gjort."
+    },
+    "device_link_lost": {
+      "title": "{object} mistede sin enhedstilknytning",
+      "description": "**{object}** var tilknyttet en Home Assistant-enhed, så dets vedligeholdelsesenheder blev vist på den enheds side. Den enhed findes ikke længere — slettet, eller dens integration fjernet — og objektet viser nu sin egen enhed. Intet andet ændrer sig: opgaverne og deres historik er urørte.\n\nVælg en enhed igen i vedligeholdelsespanelet under *Tilknyt eksisterende enhed*, eller se bort fra dette, hvis en egen enhed er fin. Den gemte tilknytning bevares med vilje: kommer enheden tilbage, virker tilknytningen af sig selv igen."
     }
   },
   "exceptions": {

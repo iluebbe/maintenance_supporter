@@ -1822,6 +1822,10 @@
     "broken_part_link": {
       "title": "Neplatné vazby na díly u {object_name}",
       "description": "Úkol u objektu **{object_name}** byl právě dokončen, ale {count} vazeb na náhradní díly se nepodařilo vyhodnotit — díl nebo objekt, kterému patří, už neexistuje.\n\nSamotné dokončení bylo zaznamenáno, o práci tedy nepřijdete. Neproběhl jen odpis ze skladu: za toto dokončení se z žádného dílu nic neodečetlo.\n\nNáprava: otevřete úkol v panelu údržby a odstraňte zastaralé vazby na díly, nebo je nasměrujte na díly, které používáte teď. Po vyřízení toto oznámení zavřete."
+    },
+    "device_link_lost": {
+      "title": "{object} přišel o propojení se zařízením",
+      "description": "**{object}** byl propojen se zařízením Home Assistant, takže se jeho údržbové entity zobrazovaly na stránce tohoto zařízení. Zařízení už neexistuje — bylo smazáno nebo byla odebrána jeho integrace — a objekt nyní ukazuje vlastní zařízení. Nic dalšího se nemění: úkoly i jejich historie zůstávají nedotčené.\n\nVyberte zařízení znovu v panelu Údržba v části *Propojit s existujícím zařízením*, nebo toto upozornění ignorujte, pokud vlastní zařízení stačí. Uložené propojení je záměrně zachováno: vrátí-li se zařízení, propojení začne fungovat samo."
     }
   },
   "exceptions": {
