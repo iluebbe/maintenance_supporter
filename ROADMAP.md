@@ -21,6 +21,15 @@ on the appliance's device, our config entry absent from it, no nameless
 duplicate. CI runs unpinned again, so the next such change surfaces the same
 way this one did.
 
+**One thing left, with a long fuse:** `device_info["via_device"]`
+(`entity/entity_base.py`, used when an object is nested under a parent) is
+deprecated in favour of `via_device_id` and disappears in **2027.8**. It needs
+the parent's device **id** rather than its identifiers, so it is a small lookup
+rather than a rename. Home Assistant does **not** report this one at runtime —
+it is a comment in the signature, not a `report_usage` — so
+`tests/test_no_ha_deprecation_reports.py` cannot catch it and the dev-blog
+cross-check is what found it.
+
 **Nothing open from the same area after checking.** I had noted
 `suggested_area` as the next break; reading
 [the deprecation notice](https://developers.home-assistant.io/blog/2025/08/01/suggested-area-removed-from-deviceentry/)
