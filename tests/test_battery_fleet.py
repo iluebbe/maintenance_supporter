@@ -112,6 +112,59 @@ async def test_native_battery_degraded_pickup(hass):
     assert phone.low is False and phone.level == 55.0
 
 
+async def test_battery_notes_low_binary_preserves_type(hass):
+    """A low-only Battery Notes entity should enrich its native battery sibling."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(domain="test", data={})
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={("test", "level_lock")},
+        name="Back Door Lock",
+    )
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "binary_sensor",
+        "matter",
+        "level_lock_battery",
+        suggested_object_id="level_lock_matter_battery",
+        device_id=device.id,
+    )
+    ent_reg.async_get_or_create(
+        "binary_sensor",
+        "battery_notes",
+        "level_lock_battery_plus_low",
+        suggested_object_id="level_lock_matter_battery_plus_low",
+        device_id=device.id,
+    )
+    hass.states.async_set(
+        "binary_sensor.level_lock_matter_battery",
+        "off",
+        {"device_class": "battery", "friendly_name": "Back Door Lock Battery"},
+    )
+    hass.states.async_set(
+        "binary_sensor.level_lock_matter_battery_plus_low",
+        "off",
+        {
+            "device_class": "battery",
+            "battery_low": False,
+            "battery_quantity": 1,
+            "battery_type": "Lithium 3-volt CR2",
+            "device_name": "Back Door Lock",
+        },
+    )
+
+    bats = read_batteries(hass)
+    assert len(bats) == 1
+    assert bats[0].source == "battery_notes"
+    assert bats[0].battery_type == "Lithium 3-volt CR2"
+    assert bats[0].level is None and bats[0].low is False and bats[0].available is True
+    assert has_battery_notes(hass) is True
+
+
 async def test_native_low_binary_wins_over_percent(hass):
     # A battery-low binary present → it decides low, not the % heuristic.
     hass.states.async_set("binary_sensor.door_battery_low", "on", {"device_class": "battery"})

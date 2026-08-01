@@ -6,11 +6,11 @@ sensor into ONE fleet view: which batteries are low now, grouped by battery
 type (so you know *what to buy*), plus a simple deterministic forecast of what
 will be needed soon (so you can order in time).
 
-Battery Notes exposes everything we need as ATTRIBUTES on the single
-``battery_plus`` sensor (device_class ``battery``): ``battery_type``,
-``battery_quantity``, ``battery_low``, ``battery_low_threshold``,
-``battery_last_replaced``. We read that one sensor kind — no dependency on the
-(optional, often-disabled) battery-low binary.
+Battery Notes exposes everything we need as attributes on a ``battery_plus``
+entity (device_class ``battery``): ``battery_type``, ``battery_quantity``,
+``battery_low``, ``battery_low_threshold``, and ``battery_last_replaced``. Most
+devices expose a percentage sensor, while low-only devices expose a binary
+sensor with the same metadata.
 
 The pure builder ``build_overview`` takes plain battery dicts + an injected
 ``today`` so the forecast is unit-testable with synthetic dates; ``read_batteries``
@@ -22,6 +22,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from itertools import chain
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -280,7 +281,7 @@ def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
 def read_batteries(hass: HomeAssistant) -> list[Battery]:
     """Read the battery fleet from HA state — Battery Notes AND native.
 
-    * **Battery Notes** ``battery_plus`` sensors (device_class ``battery`` + a
+    * **Battery Notes** ``battery_plus`` entities (device_class ``battery`` + a
       ``battery_type`` attribute) give the rich view: type, quantity, low,
       last-replaced. When the source goes offline the sensor reads
       unavailable/unknown but RETAINS its last-known ``battery_low`` — so a
@@ -311,19 +312,25 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     covered_devices: set[str] = set()
 
     # ── Pass 1: Battery Notes battery_plus ──────────────────────────────────
-    for state in hass.states.async_all("sensor"):
+    states = chain(hass.states.async_all("sensor"), hass.states.async_all("binary_sensor"))
+    for state in states:
         attrs = state.attributes
         if attrs.get("device_class") != "battery" or "battery_type" not in attrs:
             continue
+        is_binary = state.entity_id.startswith("binary_sensor.")
         level = _level_of(state.state)
-        available = state.state not in _NO_READING and level is not None
+        available = state.state not in _NO_READING and (is_binary or level is not None)
         # B2 (roadmap 2026-07-22 audit): ONE low floor across both passes.
         # Battery Notes' own threshold (default 10 %) still counts via its
         # battery_low flag, but the fleet-wide NATIVE_LOW_PERCENT floor is
         # OR-ed in — a CR2032 at 11.5 % was "healthy" here while the same
         # level counted low in the native pass. A HIGHER Battery Notes
         # threshold (e.g. 30 %) still wins through battery_low.
-        low = bool(attrs.get("battery_low")) or (level is not None and level <= NATIVE_LOW_PERCENT)
+        low = (
+            bool(attrs.get("battery_low"))
+            or (is_binary and str(state.state).lower() in ("on", "true", "1"))
+            or (level is not None and level <= NATIVE_LOW_PERCENT)
+        )
         last_replaced = _parse_last_replaced(attrs.get("battery_last_replaced"))
         # B1 (roadmap 2026-07-22 audit): a forecast-only note — no level
         # sensor, so the state reads unknown forever — must SURVIVE when it
@@ -446,7 +453,8 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
 
 def has_battery_notes(hass: HomeAssistant) -> bool:
     """Whether the Battery Notes integration is present (any battery_plus)."""
-    for state in hass.states.async_all("sensor"):
+    states = chain(hass.states.async_all("sensor"), hass.states.async_all("binary_sensor"))
+    for state in states:
         a = state.attributes
         if a.get("device_class") == "battery" and "battery_type" in a:
             return True

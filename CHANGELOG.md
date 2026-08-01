@@ -2,6 +2,13 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Battery Fleet now preserves Battery Notes type metadata for devices that
+  expose only a low-battery binary sensor, instead of showing `UNKNOWN` (#121).
+
 ## [2.46.0] - 2026-07-31
 
 ### ✨ Added
