@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "pdfjs-dist": "^4.10.38",
-    "playwright": "1.61"
+    "playwright": "1.62"
   },
   "overrides": {
     "esbuild": "$esbuild",
