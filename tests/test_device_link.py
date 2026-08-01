@@ -466,3 +466,49 @@ async def test_linking_a_previously_unlinked_object_removes_its_empty_device(
     assert leftovers == [], (
         f"empty leftover device(s) remain: {[d.name for d in leftovers]}"
     )
+
+
+async def test_the_production_update_path_keeps_a_live_link(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The exact path a production install takes when updating from <=2.44:
+    a linked object that CO-OWNS a live appliance device (the old merge),
+    minor_version 4, then the new code runs — twice, because the first boot
+    migrates and the second is an ordinary restart.
+
+    Contract: the link survives, the entities stay on the appliance's device,
+    no repair issue is raised, and the appliance's device is never removed.
+    """
+    from homeassistant.helpers import issue_registry as ir
+
+    device = _foreign_device(hass)
+    obj_entry = _make_entry(
+        hass, "prodpath", name="Roborock Maintenance", extra_obj={"ha_device_id": device.id}
+    )
+    # Pre-update reality: the old code merged us onto the appliance's device.
+    dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
+    if obj_entry.entry_id not in dr.async_get(hass).async_get(device.id).config_entries:
+        pytest.skip("this HA cannot stage the legacy co-owned state (2026.8+)")
+
+    await setup_integration(hass, global_entry, obj_entry)
+
+    for round_no in (1, 2):
+        after = dr.async_get(hass).async_get(device.id)
+        assert after is not None, f"round {round_no}: the appliance's device was removed"
+        assert obj_entry.entry_id not in after.config_entries, f"round {round_no}: co-ownership survived"
+        stored = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
+        assert stored.get("ha_device_id") == device.id, f"round {round_no}: the stored link changed"
+        ours = [
+            e for e in er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id)
+            if e.domain == "sensor"
+        ]
+        assert ours and all(e.device_id == device.id for e in ours), (
+            f"round {round_no}: entities left the appliance's device"
+        )
+        issue = ir.async_get(hass).async_get_issue(DOMAIN, f"device_link_lost_{obj_entry.entry_id}")
+        assert issue is None, f"round {round_no}: a repair issue fired for a LIVE device"
+        assert hass.config_entries.async_get_entry(obj_entry.entry_id).minor_version >= 5
+
+        if round_no == 1:
+            await hass.config_entries.async_reload(obj_entry.entry_id)
+            await hass.async_block_till_done()
