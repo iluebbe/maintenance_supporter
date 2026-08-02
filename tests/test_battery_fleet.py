@@ -142,6 +142,26 @@ async def test_trend_predictions_cache_and_filters(hass):
     assert fake.await_count == 1, "the 6 h cache must absorb the second call"
 
 
+async def test_far_out_trends_fall_back_to_the_table(hass):
+    """A 30 d regression extrapolated years out is guesswork — prod produced
+    'empty in 1142 d' for a barely-draining sensor. Beyond _TREND_MAX_DAYS the
+    trend is dropped and the type table answers."""
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+
+    bats = [Battery(entity_id="sensor.slow_battery_plus", device_name="Slow", battery_type="AA",
+                    quantity=1, low=False, level=90.0, last_replaced=None)]
+    fake = AsyncMock(return_value=type("P", (), {
+        "days_until_threshold": 1142.0, "confidence": "medium"})())
+    with patch(
+        "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor.async_predict_below",
+        fake,
+    ):
+        out = await bf.async_trend_predictions(hass, bats)
+    assert out == {}, "a 1142 d extrapolation must not become a trend date"
+
+
 def test_lifetime_table_and_unknown_fallback():
     assert lifetime_months("cr2450") == 24
     assert lifetime_months("AA") == 12

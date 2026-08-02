@@ -554,6 +554,10 @@ def compute_overview(hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON
 _TREND_CACHE_KEY = "maintenance_supporter_battery_trend_cache"
 _TREND_CACHE_TTL = timedelta(hours=6)
 _TREND_MIN_CONFIDENCE = ("medium", "high")
+# Beyond this the regression extrapolates >12x its 30 d observation window —
+# a real prod evaluation produced "empty in 1142 d" at medium confidence for a
+# barely-draining motion sensor, where the type table is the honest answer.
+_TREND_MAX_DAYS = 365
 
 
 async def async_trend_predictions(
@@ -564,8 +568,9 @@ async def async_trend_predictions(
     Reuses the SensorPredictor's recorder regression, asking "when does this
     level sensor fall below its low threshold?". Only batteries with a live
     percentage reading are analysed (low-only binaries have no level to
-    regress); low-confidence and non-falling trends are dropped so the caller
-    can fall back to the type-lifetime table.
+    regress); low-confidence, non-falling, and far-out trends (beyond
+    ``_TREND_MAX_DAYS``) are dropped so the caller can fall back to the
+    type-lifetime table.
 
     Cached for 6 h per entity (misses included) — batteries drain over weeks,
     and the overview is fetched on every panel visit; 30+ recorder regressions
@@ -604,6 +609,7 @@ async def async_trend_predictions(
                 pred is not None
                 and pred.days_until_threshold is not None
                 and pred.confidence in _TREND_MIN_CONFIDENCE
+                and pred.days_until_threshold <= _TREND_MAX_DAYS
             ):
                 result = (int(pred.days_until_threshold), pred.confidence)
         except Exception:  # noqa: BLE001 - a recorder hiccup must never break the overview
