@@ -155,8 +155,15 @@ async function clickInPanel(p, regexSrc, scope = "") {
  *  at that measured offset. */
 async function record(token, name, flow) {
   try { execSync("docker restart playwright-server", { stdio: "pipe" }); } catch { /* not fatal */ }
-  await new Promise((r) => setTimeout(r, 6000));
-  const browser = await chromium.connect(PW_WS, { timeout: 20000 });
+  // Docker's port proxy ACCEPTS before the npx run-server inside is actually
+  // listening ("socket hang up" on connect), and the startup time varies —
+  // retry the connect instead of trusting a fixed wait.
+  let browser = null;
+  for (let i = 0; i < 12 && !browser; i++) {
+    await new Promise((r) => setTimeout(r, 5000));
+    browser = await chromium.connect(PW_WS, { timeout: 15000 }).catch(() => null);
+  }
+  if (!browser) throw new Error("playwright-server never came back after restart");
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 800 },
     // Every flow gets a FRESH browser profile, and HA's default theme mode is

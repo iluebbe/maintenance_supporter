@@ -12,7 +12,11 @@ import fs from "fs";
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
 const PW_WS = "ws://127.0.0.1:3000/";
-const CID = REST + "/";
+// The client_id must be the origin the BROWSER uses (ha-shots:8123), not the
+// host-side REST one — the frontend stores clientId next to the token and
+// bounces to /auth/authorize when they disagree, which renders as a black
+// page that then OVERWRITES a good screenshot. Caught 2026-08-02.
+const CID = HA + "/";
 const USER = "demo", PASS = "demo-pass-1";
 const OUT = new URL("../docs/images/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 
@@ -52,6 +56,33 @@ const deepFindPanel = `
   window.__panel = deep((el) => el.tagName === "MAINTENANCE-SUPPORTER-PANEL")[0];
 `;
 
+// Poll until the panel is mounted WITH data — the faketime dev image renders
+// slowly and a fixed wait was exactly what made this script clobber a good
+// screenshot with a blank frame (2026-08-02).
+async function waitMounted(page, seconds = 30) {
+  for (let i = 0; i < seconds; i++) {
+    const ok = await page.evaluate(({ finder }) => {
+      eval(finder);
+      return !!window.__panel && Array.isArray(window.__panel._objects) && window.__panel._objects.length > 0;
+    }, { finder: deepFindPanel }).catch(() => false);
+    if (ok) return;
+    await page.waitForTimeout(1000);
+  }
+  throw new Error("panel never mounted");
+}
+
+async function waitHass(page, seconds = 20) {
+  for (let i = 0; i < seconds; i++) {
+    const ok = await page.evaluate(() => {
+      const el = document.querySelector("home-assistant");
+      return !!(el && el.hass && el.hass.states);
+    }).catch(() => false);
+    if (ok) return;
+    await page.waitForTimeout(1000);
+  }
+  throw new Error("hass never ready");
+}
+
 const failures = [];
 async function step(name, fn) {
   log("STEP", name);
@@ -76,7 +107,8 @@ const mp = await mctx.newPage();
 
 await step("mobile-overview.png", async () => {
   await mp.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
-  await mp.waitForTimeout(6000);
+  await waitMounted(mp);
+  await mp.waitForTimeout(1500);
   await mp.screenshot({ path: OUT + "mobile-overview.png" });
 });
 
@@ -98,7 +130,8 @@ const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorS
 await ctx.addInitScript(...initScript("dashboard"));
 const p = await ctx.newPage();
 await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
-await p.waitForTimeout(5000);
+await waitMounted(p);
+await p.waitForTimeout(1500);
 
 // Open the task dialog and expand + scroll to a <details> section whose
 // summary text matches.
@@ -134,6 +167,7 @@ await step("task-dialog-quick-complete.png", () =>
 
 // Entity attributes: more-info dialog with the Attributes panel expanded.
 await step("entity-attributes.png", async () => {
+  await waitHass(p);
   await p.evaluate(() => {
     const haEl = document.querySelector("home-assistant");
     const id = Object.keys(haEl.hass.states).find((k) => k.startsWith("sensor.") && k.includes("oil_change"));
@@ -163,6 +197,7 @@ await step("entity-attributes.png", async () => {
 // Lovelace card: save the dashboard config, then a hard reload so the saved
 // (storage-mode) config replaces the auto strategy dashboard.
 await step("lovelace-card.png", async () => {
+  await waitHass(p);
   await p.evaluate(async () => {
     const hass = document.querySelector("home-assistant").hass;
     await hass.connection.sendMessagePromise({
