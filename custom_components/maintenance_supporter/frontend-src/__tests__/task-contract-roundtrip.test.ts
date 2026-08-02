@@ -59,6 +59,9 @@ const EDITABLE: Record<string, string> = {
 
 const READONLY = new Set([
   "id",
+  // #73: in-cycle checklist ticks — written via task/checklist_progress,
+  // never through the edit dialog.
+  "checklist_progress",
   "schedule_type", // derived label (sensor_based when a trigger exists)
   "schedule", // canonical nested recurrence — rebuilt server-side from flat
   "adaptive_config",

@@ -14,6 +14,7 @@
     "step one",
     "step two"
   ],
+  "checklist_progress": {},
   "consumes_parts": [
     {
       "part_id": "part_1",

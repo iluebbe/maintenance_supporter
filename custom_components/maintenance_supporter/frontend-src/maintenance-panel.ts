@@ -1809,6 +1809,29 @@ export class MaintenanceSupporterPanel extends LitElement {
       .catch(() => win?.close());
   }
 
+  /** #73: persist one checklist tick. Sends the FULL current state (the
+   *  server replaces, not merges — idempotent) and reloads so the progress
+   *  header and any other open surface agree. */
+  private async _setChecklistItem(entryId: string, taskId: string, item: string, done: boolean): Promise<void> {
+    const obj = this._getObject(entryId);
+    const task = obj?.tasks.find((x) => x.id === taskId);
+    if (!task) return;
+    const state: Record<string, boolean> = {};
+    for (const step of task.checklist || []) {
+      const current = task.checklist_progress?.[step] ?? false;
+      state[step] = step === item ? done : current;
+    }
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/checklist_progress",
+        entry_id: entryId, task_id: taskId, checklist_state: state,
+      });
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
   private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
     const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog");
     if (!dlg) return;
@@ -1825,6 +1848,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       ?.tasks.find((tsk) => tsk.id === taskId);
     dlg.taskType = tk?.type || "";
     dlg.readingUnit = tk?.reading_unit || "";
+    // #73: ticks recorded during the cycle prefill the dialog's checklist.
+    dlg.checklistPrefill = tk?.checklist_progress || {};
     dlg.requiredFields = tk?.required_completion_fields || [];
     // Spare parts: a buy task gets an editable restock-qty field; a consuming
     // task shows what it will decrement (incl. the storage location).
@@ -3199,6 +3224,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           .entryId=${obj.entry_id}
           .parts=${obj.parts || []}
           .canWrite=${!isOperator}
+          .currencySymbol=${this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL}
           @parts-changed=${() => this._loadData()}
         ></maintenance-parts-section>
       </div>
@@ -3300,6 +3326,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       objectDocUrl: obj?.object?.documentation_url ?? null,
       objectManualDocs: obj?.object?.manual_docs ?? [],
       openManualDoc: (doc) => this._openManualDoc(doc),
+      setChecklistItem: (item, done) => this._setChecklistItem(entryId, taskId, item, done),
       isOperator: this._isOperator,
       actionLoading: this._actionLoading,
       moreMenuOpen: this._moreMenuOpen,

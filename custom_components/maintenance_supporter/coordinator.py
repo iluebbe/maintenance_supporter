@@ -1050,6 +1050,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             used_parts=enriched_used,
             auto=auto,
         )
+        # #73: a completed cycle retires its in-cycle checklist ticks — the
+        # snapshot that matters is in the history entry above.
+        self._store.clear_checklist_progress(task_id)
 
         # Link the completion photo to this task so it also surfaces under the
         # object's documents and is deref'd correctly on cleanup. Best-effort:
@@ -1248,6 +1251,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # (not a deliberate skip). An explicit as_missed=True always wins.
         missed = as_missed or task.status == MaintenanceStatus.OVERDUE
         task.skip(reason=reason, as_missed=missed)
+        # #73: skipping restarts the cycle — the ticks belong to the old one.
+        self._store.clear_checklist_progress(task_id)
 
         await self._persist_and_signal_task_change(task_id, task)
 

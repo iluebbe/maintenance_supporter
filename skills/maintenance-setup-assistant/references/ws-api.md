@@ -45,7 +45,7 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
   `operator_write_enabled` or edit `admin_panel_user_ids`.
 - No gate (any authenticated user): all read commands + `task/complete`,
   `task/quick_complete`, `task/skip`, `task/reset`, `task/postpone`,
-  `task/snooze`.
+  `task/snooze`, `task/checklist_progress`.
 
 Operator writes require: admin set `operator_write_enabled: true` **and** added
 the user to `admin_panel_user_ids`. Otherwise non-admins are denied.
@@ -220,6 +220,11 @@ flat interval edit rebuilds from flat and drops the nested schedule.
 ### Task actions (no write gate)
 - `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure)}` → `{"success": true}`
 - `task/quick_complete` `{entry_id, task_id}` → `{"success": true, "via": "quick"}` (needs stored `quick_complete_defaults`, else `no_defaults`)
+- `task/checklist_progress` `{entry_id, task_id, checklist_state (req, {item text: bool})}` →
+  `{"success": true, "checklist_state": {...}}` — persists in-cycle ticks WITHOUT
+  completing (#73). The dict REPLACES the stored progress; unknown items are
+  dropped; completing or skipping clears it. Echoed on every task as
+  `checklist_progress`.
 - `task/skip` `{entry_id, task_id, reason?}`
 - `task/reset` `{entry_id, task_id, date?}` (ISO)
 - `task/postpone` `{entry_id, task_id, until (req, YYYY-MM-DD)}` → `{"success": true}` —

@@ -8,6 +8,7 @@ production modules. ``__all__`` makes the re-exports explicit for mypy --strict.
 """
 
 from .tasks_actions import (
+    ws_checklist_progress,
     ws_complete_task,
     ws_postpone_task,
     ws_quick_complete_task,
@@ -58,6 +59,7 @@ __all__ = [
     "async_delete_task",
     "async_persist_task",
     "ws_archive_task",
+    "ws_checklist_progress",
     "ws_complete_task",
     "ws_create_task",
     "ws_delete_task",

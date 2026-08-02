@@ -59,6 +59,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     objectDocUrl: null,
     objectManualDocs: [],
     openManualDoc: () => {},
+    setChecklistItem: () => {},
     isOperator: false,
     actionLoading: false,
     moreMenuOpen: false,
@@ -238,6 +239,31 @@ describe("task-detail renderer", () => {
       .find((a) => a.textContent?.includes("Pool Pump")) as HTMLElement | undefined;
     expect(link, "manual row rendered").to.exist;
     expect(link!.getAttribute("href")).to.equal("https://vendor.example/manual");
+  });
+
+  it("checklist ticks render from progress and fire setChecklistItem (#73)", () => {
+    const calls: Array<[string, boolean]> = [];
+    const host = mount(
+      task({ checklist: ["Drain", "Clean", "Refill"], checklist_progress: { Clean: true } }),
+      ctx({
+        features: {
+          adaptive: false, predictions: false, seasonal: false,
+          environmental: false, budget: false, groups: false,
+          checklists: true, schedule_time: false, completion_actions: false,
+        },
+        setChecklistItem: (item, done) => calls.push([item, done]),
+      }),
+    );
+    const header = host.querySelector(".checklist-preview-header")!;
+    expect(header.textContent).to.include("1/3");
+    const boxes = [...host.querySelectorAll<HTMLInputElement>(".checklist-preview-list input")];
+    expect(boxes.length).to.equal(3);
+    expect(boxes[1].checked).to.be.true;
+    expect(boxes[0].checked).to.be.false;
+    expect(host.querySelectorAll(".checklist-preview-list li.checked").length).to.equal(1);
+
+    boxes[0].click();
+    expect(calls).to.deep.equal([["Drain", true]]);
   });
 
   it("KPI bar shows warning days and currency symbol", () => {

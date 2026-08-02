@@ -382,3 +382,46 @@ async def ws_snooze_task(
         return
     nm.snooze_task(msg["entry_id"], msg["task_id"])
     connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/checklist_progress",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        # Same shape/caps as task/complete's checklist_state.
+        vol.Required("checklist_state"): vol.All(
+            {vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH)): bool},
+            vol.Length(max=MAX_CHECKLIST_ITEMS),
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_checklist_progress(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """#73: persist in-cycle checklist ticks WITHOUT completing the task.
+
+    The dict REPLACES the stored progress (the client sends the full current
+    state — idempotent, no per-item race). Keys are the item TEXTS, so ticks
+    survive reordering and a renamed step drops its tick. Unknown keys (items
+    no longer on the checklist) are dropped on write; completing or skipping
+    the task clears the progress for the next cycle.
+
+    Deliberately the same tier as task/complete (plain authenticated): ticking
+    a step IS doing the work — the same household member who may complete the
+    task must be able to record partial progress.
+    """
+    ctx = _load_task_context(hass, connection, msg)
+    if ctx is None:
+        return
+    rd, entry = ctx
+    task_items = set(entry.data[CONF_TASKS][msg["task_id"]].get("checklist") or [])
+    state = {item: bool(done) for item, done in msg["checklist_state"].items() if item in task_items}
+    rd.store.set_checklist_progress(msg["task_id"], state)
+    await rd.store.async_save()
+    # A user action must be visible immediately — never the 10 s debounce.
+    await rd.coordinator.async_refresh_now()
+    connection.send_result(msg["id"], {"success": True, "checklist_state": state})

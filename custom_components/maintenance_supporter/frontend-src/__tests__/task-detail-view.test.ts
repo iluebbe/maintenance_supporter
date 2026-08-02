@@ -56,6 +56,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     objectDocUrl: null,
     objectManualDocs: [],
     openManualDoc: () => {},
+    setChecklistItem: () => {},
     isOperator: false,
     actionLoading: false,
     moreMenuOpen: false,

@@ -52,6 +52,10 @@ export class MaintenanceCompleteDialog extends LitElement {
    *  objects can carry the same part id, so part_id alone would merge pools. */
   @state() private _usedParts: Record<string, TaskPartLink> = {};
 
+  /** #73: in-cycle ticks (keyed by item TEXT) recorded on the task detail —
+   *  prefill the dialog so nobody re-ticks what is already done. */
+  @property({ attribute: false }) public checklistPrefill: Record<string, boolean> = {};
+
   public open(): void {
     if (this._open) return;
     this._open = true;
@@ -59,7 +63,13 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._cost = "";
     this._duration = "";
     this._error = "";
-    this._checklistState = {};
+    // The dialog's own state is INDEX-keyed (historical shape, flows into the
+    // history entry as-is) — map the text-keyed in-cycle ticks onto indices.
+    this._checklistState = Object.fromEntries(
+      this.checklist
+        .map((item, i) => [String(i), !!this.checklistPrefill[item]] as const)
+        .filter(([, done]) => done),
+    );
     this._feedback = "needed";
     this._photoDocId = "";
     this._photoPreview = "";

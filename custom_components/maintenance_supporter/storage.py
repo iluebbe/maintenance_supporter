@@ -165,6 +165,25 @@ class MaintenanceStore:
         """Remove all state for a deleted task."""
         self._data.get("tasks", {}).pop(task_id, None)
 
+    # --- in-cycle checklist progress (#73) -----------------------------------
+
+    def set_checklist_progress(self, task_id: str, state: dict[str, bool]) -> None:
+        """Replace the in-cycle checklist ticks (keys = item texts).
+
+        Keyed by item TEXT, not index: reordering the checklist keeps the
+        ticks with their steps, and renaming a step deliberately drops its
+        tick (the wording changed — re-confirm it). An empty dict clears.
+        """
+        task_state = self._ensure_task(task_id)
+        if state:
+            task_state["checklist_progress"] = dict(state)
+        else:
+            task_state.pop("checklist_progress", None)
+
+    def clear_checklist_progress(self, task_id: str) -> None:
+        """Drop the in-cycle ticks — a completed/skipped cycle starts fresh."""
+        self._data.get("tasks", {}).get(task_id, {}).pop("checklist_progress", None)
+
     def prune_orphans(self, valid_task_ids: set[str]) -> int:
         """Drop task states whose ids are not in *valid_task_ids*.
 

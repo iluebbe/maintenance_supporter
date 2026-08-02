@@ -40,7 +40,16 @@ def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
     rd = getattr(entry, "runtime_data", None)
     store = getattr(rd, "store", None) if rd else None
     if store is not None:
-        return store.merge_all_tasks(tasks_data)
+        merged = store.merge_all_tasks(tasks_data)
+        # #73: overlay the in-cycle checklist ticks HERE rather than via the
+        # merge whitelist — merged dicts feed MaintenanceTask.from_dict all
+        # over the coordinator, and this field is presentation state the model
+        # never needs.
+        for tid, td in merged.items():
+            progress = store.get_task_state(tid).get("checklist_progress")
+            if progress:
+                td["checklist_progress"] = progress
+        return merged
     return tasks_data
 
 
@@ -177,6 +186,10 @@ def _build_task_summary(
         "trigger_entity_info": trigger_entity_info,
         "trigger_entity_infos": trigger_entity_infos,
         "checklist": task_data.get("checklist", []),
+        # #73: in-cycle ticks ({item text: bool}, store-merged) — lets the
+        # detail view show progress without completing, and the complete
+        # dialog prefill what was already done.
+        "checklist_progress": task_data.get("checklist_progress", {}),
         "labels": task_data.get("labels", []),
         "history": task_data.get("history", []),
         # v1.3.0 — both fields are persisted by ws_create_task / ws_update_task
@@ -519,6 +532,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     from .tags import ws_list_tags
     from .tasks import (
         ws_archive_task,
+        ws_checklist_progress,
         ws_complete_task,
         ws_create_task,
         ws_delete_task,
@@ -564,6 +578,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_list_tasks)
     websocket_api.async_register_command(hass, ws_complete_task)
     websocket_api.async_register_command(hass, ws_quick_complete_task)
+    websocket_api.async_register_command(hass, ws_checklist_progress)
     websocket_api.async_register_command(hass, ws_skip_task)
     websocket_api.async_register_command(hass, ws_reset_task)
     websocket_api.async_register_command(hass, ws_snooze_task)

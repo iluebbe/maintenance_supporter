@@ -1012,6 +1012,21 @@ export const panelStyles = css`
   .checklist-preview-list li {
     padding: 1px 0;
   }
+  /* #73: interactive in-cycle ticks. */
+  .checklist-preview-list label {
+    display: inline-flex;
+    gap: 8px;
+    align-items: baseline;
+    cursor: pointer;
+  }
+  .checklist-preview-list input[type="checkbox"] {
+    accent-color: var(--primary-color);
+    cursor: pointer;
+  }
+  .checklist-preview-list li.checked label span {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
 
   /* Recommendation Card */
   .recommendation-card {

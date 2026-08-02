@@ -37,6 +37,8 @@ export interface TaskDetailContext {
   objectManualDocs: ManualDocRef[];
   /** Opens a manual document (signed path / weblink) — panel-owned. */
   openManualDoc: (doc: ManualDocRef) => void;
+  /** #73: persist one checklist tick (panel sends the full state via WS). */
+  setChecklistItem: (item: string, done: boolean) => void;
   isOperator: boolean;
   actionLoading: boolean;
   moreMenuOpen: boolean;
@@ -183,22 +185,38 @@ function collapsible(key: string, titleKey: string, body: unknown, ctx: TaskDeta
   `;
 }
 
-/** Read-only preview of the configured checklist steps so users can see
- *  the steps without having to open the Edit or Complete dialog. Only
- *  rendered when the Checklists feature is enabled and steps are set. */
+/** Interactive checklist (#73): steps can be ticked off DURING the cycle
+ *  without completing the task — progress persists server-side (survives
+ *  reloads, prefills the complete dialog) and resets when the task is
+ *  completed or skipped. Only rendered when the Checklists feature is
+ *  enabled and steps are set. */
 function renderChecklistCard(task: MaintenanceTask, ctx: TaskDetailContext) {
   if (!ctx.features.checklists) return nothing;
   const items = task.checklist || [];
   if (items.length === 0) return nothing;
   const L = ctx.lang;
+  const progress = task.checklist_progress || {};
+  const done = items.filter((item) => progress[item]).length;
   return html`
     <div class="checklist-preview-card">
       <div class="checklist-preview-header">
         <ha-icon icon="mdi:format-list-checks"></ha-icon>
-        <span>${t("checklist", L)} (${items.length})</span>
+        <span>${t("checklist", L)} (${done}/${items.length})</span>
       </div>
       <ol class="checklist-preview-list">
-        ${items.map((item) => html`<li>${item}</li>`)}
+        ${items.map((item) => html`
+          <li class=${progress[item] ? "checked" : ""}>
+            <label>
+              <input
+                type="checkbox"
+                .checked=${!!progress[item]}
+                @change=${(e: Event) =>
+                  ctx.setChecklistItem(item, (e.target as HTMLInputElement).checked)}
+              />
+              <span>${item}</span>
+            </label>
+          </li>
+        `)}
       </ol>
     </div>
   `;

@@ -172,6 +172,9 @@ export interface MaintenanceTask {
   notes?: string | null;
   documentation_url?: string | null;
   checklist?: string[];
+  /** #73: in-cycle ticks ({item text: bool}); persists server-side, resets on
+   *  complete/skip. */
+  checklist_progress?: Record<string, boolean>;
   labels?: string[];
   assignee_pool?: string[];
   rotation_strategy?: string | null;
