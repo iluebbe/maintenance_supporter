@@ -2,6 +2,49 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.47.0] - 2026-08-02
+
+### ✨ Added
+
+- **The device-link repair notice is now fixable.** *Fix* offers two paths:
+  pick the appliance's device — the best name/manufacturer match is
+  pre-selected when one exists — or remove the link so the object keeps a
+  device of its own. Covers both a vanished device and the new self-link case
+  below.
+- **Uploaded manuals count as the object's manual.** The objects-table
+  "manual" column and the object header used to render only the legacy
+  documentation-URL field — an object whose handbook was *attached* as a
+  document (category "manual") showed a dash next to one that merely stored a
+  link. Both places now fall back to the attached manuals and open them
+  directly (found on a production install: one Epson with a URL looked
+  "complete", one Easee with two uploaded handbooks looked "missing").
+
+### 🐛 Fixed
+
+- **Battery fleet: low-only batteries now show their real type** (#121) — a
+  device that reports its battery only through a low binary (e.g. a Matter
+  lock) gets no percentage sensor from Battery Notes, so its type metadata
+  lives solely on the low binary, which the fleet never read: the roster
+  showed "1× UNKNOWN" next to a device that plainly announces "Lithium
+  3-volt CR2". The fleet now reads those binaries for exactly the devices
+  that have no percentage note — devices with both stay one row, and roster
+  exclusions stay airtight. Thanks to @liblit for the meticulous report and
+  @happykawayigt for the draft fix that pointed at the right spot (#122).
+- **An object can no longer be linked to its own maintenance device.** The
+  device picker lists every device, including the object's own — which carries
+  the appliance's exact name, so picking the wrong twin was easy and looked
+  identical afterwards. Saving such a link is now rejected with a clear
+  message, and existing self-links (three were found on a production install,
+  months old) are detected at startup and reported as their own repair notice
+  — *"linked to its own maintenance device"* — instead of the misleading
+  *"device no longer exists"*. The 4→5 migration also skips shedding such a
+  device: it previously deleted and restored the very device the entities
+  live on, which is what made the misleading notice appear.
+- **The create/setup action buttons are left-aligned again on desktop.** The
+  v2.37 mobile rework packed *New Maintenance Task*, *New Object* & co. to the
+  right edge, which on wide screens strands them across an otherwise empty
+  row.
+
 ## [2.46.0] - 2026-07-31
 
 ### ✨ Added
