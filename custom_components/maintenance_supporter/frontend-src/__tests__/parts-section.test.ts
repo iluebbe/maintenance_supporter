@@ -38,6 +38,31 @@ async function mount(canWrite: boolean): Promise<MaintenancePartsSection> {
 }
 
 describe("parts-section", () => {
+  it("shows the inventory value only when a part has price AND tracked stock (#104)", async () => {
+    // PARTS as-is: p1 has stock but no cost, p2 no stock → chip hidden.
+    const bare = await mount(false);
+    expect(bare.shadowRoot!.querySelector(".inventory-value")).to.equal(null);
+
+    const priced: MaintenancePart[] = [
+      { id: "p1", name: "Filter", cost: 12.5, stock: 3, is_low: false },
+      { id: "p2", name: "Brush", cost: 4, stock: null, is_low: false },   // untracked → no contribution
+      { id: "p3", name: "Seal", cost: null, stock: 5, is_low: false },    // unpriced → no contribution
+    ];
+    const el = await fixture<MaintenancePartsSection>(html`
+      <maintenance-parts-section
+        .hass=${{ language: "en", connection: { sendMessagePromise: async () => ({}) } } as never}
+        .entryId=${"e1"}
+        .parts=${priced}
+        .currencySymbol=${"€"}
+      ></maintenance-parts-section>
+    `);
+    await el.updateComplete;
+    const chip = el.shadowRoot!.querySelector(".inventory-value")!;
+    expect(chip, "value chip rendered").to.exist;
+    expect(chip.textContent).to.include("37.50");
+    expect(chip.textContent).to.include("€");
+  });
+
   it("renders a row per part with stock badge, identifiers and location", async () => {
     const el = await mount(false);
     const rows = el.shadowRoot!.querySelectorAll(".part-row");

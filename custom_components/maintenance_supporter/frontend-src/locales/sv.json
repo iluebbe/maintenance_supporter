@@ -716,6 +716,7 @@
   "series_end_count_label": "Antal gånger",
   "series_end_until_label": "Slutdatum",
   "parts_section": "Delar & förbrukning",
+  "parts_inventory_value": "Lagervärde",
   "part_add": "Lägg till del",
   "part_name": "Namn",
   "part_vendor": "Tillverkare",

@@ -59,6 +59,7 @@ export class MaintenancePartsSection extends LitElement {
   @property({ attribute: false }) public entryId!: string;
   @property({ attribute: false }) public parts: MaintenancePart[] = [];
   @property({ type: Boolean }) public canWrite = false;
+  @property({ attribute: false }) public currencySymbol = "€";
 
   @state() private _editing: PartForm | null = null;
   @state() private _busy = false;
@@ -335,6 +336,19 @@ export class MaintenancePartsSection extends LitElement {
     `;
   }
 
+  /** Inventory value = Σ unit cost × tracked stock (#104). Parts without a
+   *  price or without tracked stock contribute nothing; null = no part has
+   *  both, so the chip stays hidden rather than showing a misleading 0. */
+  private _inventoryValue(): number | null {
+    let sum = 0, any = false;
+    for (const p of this.parts) {
+      const cost = typeof p.cost === "number" ? p.cost : null;
+      const stock = typeof p.stock === "number" ? p.stock : null;
+      if (cost !== null && stock !== null) { sum += cost * stock; any = true; }
+    }
+    return any ? sum : null;
+  }
+
   protected render() {
     const L = this._lang;
     if (!this.parts.length && !this.canWrite) return nothing;
@@ -343,6 +357,11 @@ export class MaintenancePartsSection extends LitElement {
         <h3>
           <ha-icon icon="mdi:package-variant"></ha-icon>
           ${t("parts_section", L)} (${this.parts.length})
+          ${this._inventoryValue() !== null
+            ? html`<span class="inventory-value" title=${t("parts_inventory_value", L)}
+                >${t("parts_inventory_value", L)}:
+                ${this._inventoryValue()!.toFixed(2)}&nbsp;${this.currencySymbol}</span>`
+            : nothing}
         </h3>
         ${this.canWrite && !this._editing
           ? html`<ha-button appearance="plain" @click=${() => this._openAdd()}>
@@ -360,6 +379,13 @@ export class MaintenancePartsSection extends LitElement {
     :host {
       display: block;
       margin: 12px 0;
+    }
+    .inventory-value {
+      margin-left: 8px;
+      font-size: 0.75em;
+      font-weight: 400;
+      color: var(--secondary-text-color);
+      white-space: nowrap;
     }
     .section-head {
       display: flex;

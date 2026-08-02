@@ -716,6 +716,7 @@
   "series_end_count_label": "Liczba razy",
   "series_end_until_label": "Data końcowa",
   "parts_section": "Części i materiały",
+  "parts_inventory_value": "Wartość zapasów",
   "part_add": "Dodaj część",
   "part_name": "Nazwa",
   "part_vendor": "Producent",

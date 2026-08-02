@@ -722,6 +722,7 @@
   "series_end_count_label": "횟수",
   "series_end_until_label": "종료일",
   "parts_section": "부품 및 소모품",
+  "parts_inventory_value": "재고 가치",
   "part_add": "부품 추가",
   "part_name": "이름",
   "part_vendor": "제조사",

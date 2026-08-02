@@ -716,6 +716,7 @@
   "series_end_count_label": "Počet opakování",
   "series_end_until_label": "Datum konce",
   "parts_section": "Díly a spotřební materiál",
+  "parts_inventory_value": "Hodnota zásob",
   "part_add": "Přidat díl",
   "part_name": "Název",
   "part_vendor": "Výrobce",

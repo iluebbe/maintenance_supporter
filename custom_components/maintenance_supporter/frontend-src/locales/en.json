@@ -722,6 +722,7 @@
   "series_end_count_label": "Number of times",
   "series_end_until_label": "End date",
   "parts_section": "Parts & consumables",
+  "parts_inventory_value": "Inventory value",
   "part_add": "Add part",
   "part_name": "Name",
   "part_vendor": "Manufacturer",

@@ -716,6 +716,7 @@
   "series_end_count_label": "Nombre de fois",
   "series_end_until_label": "Date de fin",
   "parts_section": "Pièces & consommables",
+  "parts_inventory_value": "Valeur du stock",
   "part_add": "Ajouter une pièce",
   "part_name": "Nom",
   "part_vendor": "Fabricant",

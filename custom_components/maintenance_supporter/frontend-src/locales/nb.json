@@ -716,6 +716,7 @@
   "series_end_count_label": "Antall ganger",
   "series_end_until_label": "Sluttdato",
   "parts_section": "Deler & forbruksvarer",
+  "parts_inventory_value": "Lagerverdi",
   "part_add": "Legg til del",
   "part_name": "Navn",
   "part_vendor": "Produsent",

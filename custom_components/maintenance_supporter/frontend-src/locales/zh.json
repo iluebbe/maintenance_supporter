@@ -716,6 +716,7 @@
   "series_end_count_label": "次数",
   "series_end_until_label": "结束日期",
   "parts_section": "配件与耗材",
+  "parts_inventory_value": "库存价值",
   "part_add": "添加配件",
   "part_name": "名称",
   "part_vendor": "制造商",

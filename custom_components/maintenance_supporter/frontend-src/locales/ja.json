@@ -716,6 +716,7 @@
   "series_end_count_label": "回数",
   "series_end_until_label": "終了日",
   "parts_section": "部品・消耗品",
+  "parts_inventory_value": "在庫金額",
   "part_add": "部品を追加",
   "part_name": "名前",
   "part_vendor": "メーカー",

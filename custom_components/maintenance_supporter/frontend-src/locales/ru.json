@@ -716,6 +716,7 @@
   "series_end_count_label": "Число раз",
   "series_end_until_label": "Дата окончания",
   "parts_section": "Детали и расходники",
+  "parts_inventory_value": "Стоимость запасов",
   "part_add": "Добавить деталь",
   "part_name": "Название",
   "part_vendor": "Производитель",

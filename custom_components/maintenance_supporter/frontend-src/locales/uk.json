@@ -716,6 +716,7 @@
   "series_end_count_label": "Кількість разів",
   "series_end_until_label": "Дата завершення",
   "parts_section": "Деталі та витратні матеріали",
+  "parts_inventory_value": "Вартість запасів",
   "part_add": "Додати деталь",
   "part_name": "Назва",
   "part_vendor": "Виробник",

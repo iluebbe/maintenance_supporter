@@ -722,6 +722,7 @@
   "series_end_count_label": "Alkalmak száma",
   "series_end_until_label": "Befejezés dátuma",
   "parts_section": "Alkatrészek és fogyóeszközök",
+  "parts_inventory_value": "Készletérték",
   "part_add": "Alkatrész hozzáadása",
   "part_name": "Név",
   "part_vendor": "Gyártó",
