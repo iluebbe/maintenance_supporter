@@ -6,11 +6,18 @@ sensor into ONE fleet view: which batteries are low now, grouped by battery
 type (so you know *what to buy*), plus a simple deterministic forecast of what
 will be needed soon (so you can order in time).
 
-Battery Notes exposes everything we need as ATTRIBUTES on the single
-``battery_plus`` sensor (device_class ``battery``): ``battery_type``,
-``battery_quantity``, ``battery_low``, ``battery_low_threshold``,
-``battery_last_replaced``. We read that one sensor kind — no dependency on the
-(optional, often-disabled) battery-low binary.
+Battery Notes exposes everything we need as ATTRIBUTES on its entities
+(device_class ``battery``): ``battery_type``, ``battery_quantity``,
+``battery_low``, ``battery_low_threshold``, ``battery_last_replaced``. The
+percentage sensor is the primary source; LOW-ONLY sources (a Matter lock with
+just a battery-low binary, #121) are read from their ``…_battery_plus_low``
+binary instead.
+
+Forecast (#114 + follow-up): the ~replacement date comes from the DISCHARGE
+TREND where recorder data supports it (``async_trend_predictions`` — the
+SensorPredictor regression asking "when does the level fall below the low
+threshold?", medium/high confidence only, cached 6 h) and falls back to
+``battery_last_replaced`` + the type-lifetime table everywhere else.
 
 The pure builder ``build_overview`` takes plain battery dicts + an injected
 ``today`` so the forecast is unit-testable with synthetic dates; ``read_batteries``
@@ -19,6 +26,7 @@ is the thin HA-reading adapter.
 
 from __future__ import annotations
 
+import logging
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -26,6 +34,8 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
+
+_LOGGER = logging.getLogger(__name__)
 
 # Editorial typical service life per battery type, in MONTHS — the forecast
 # anchor (battery_last_replaced + lifetime = predicted replacement). These are
@@ -166,6 +176,7 @@ def build_overview(
     *,
     today: date,
     horizon_days: int = DEFAULT_HORIZON_DAYS,
+    trend_predictions: dict[str, tuple[int, str]] | None = None,
 ) -> BatteryOverview:
     """Aggregate batteries into the fleet view.
 
@@ -184,8 +195,18 @@ def build_overview(
     for bat in sorted(batteries, key=lambda b: b.device_name.lower()):
         t = _norm_type(bat.battery_type)
         types_seen[t] = None
-        pred = _predicted_date(bat)
-        days = (pred - today).days if pred is not None else None
+        # Blend (#114 follow-up): the DISCHARGE TREND wins where the recorder
+        # data supports it (medium/high confidence, filtered upstream) — it is
+        # device-specific and usage-aware; the type's typical lifetime is the
+        # prior everything else falls back to.
+        trend = (trend_predictions or {}).get(bat.entity_id)
+        if trend is not None:
+            days: int | None = max(0, trend[0])
+            source, confidence = "trend", trend[1]
+        else:
+            pred = _predicted_date(bat)
+            days = (pred - today).days if pred is not None else None
+            source, confidence = "typical", None
         if bat.low:
             ov.low.append(_row(bat, t, None))
             ov.needs_now[t] = ov.needs_now.get(t, 0) + bat.quantity
@@ -193,11 +214,11 @@ def build_overview(
             ov.all.append({**_row(bat, t, None), "status": "low"})
             continue
         if days is not None and days <= horizon_days:
-            ov.soon.append(_row(bat, t, days))
+            ov.soon.append(_row(bat, t, days, source, confidence))
             ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
-            ov.all.append({**_row(bat, t, days), "status": "soon"})
+            ov.all.append({**_row(bat, t, days, source, confidence), "status": "soon"})
             continue
-        ov.all.append({**_row(bat, t, days), "status": "ok"})
+        ov.all.append({**_row(bat, t, days, source, confidence), "status": "ok"})
 
     ov.soon.sort(key=lambda r: r["days_until"] if r["days_until"] is not None else 1 << 30)
     ov.types = sorted(types_seen)
@@ -206,7 +227,13 @@ def build_overview(
     return ov
 
 
-def _row(bat: Battery, canon_type: str, days_until: int | None) -> dict[str, Any]:
+def _row(
+    bat: Battery,
+    canon_type: str,
+    days_until: int | None,
+    predicted_source: str = "typical",
+    prediction_confidence: str | None = None,
+) -> dict[str, Any]:
     return {
         "entity_id": bat.entity_id,
         "device_name": bat.device_name,
@@ -215,6 +242,10 @@ def _row(bat: Battery, canon_type: str, days_until: int | None) -> dict[str, Any
         "level": bat.level,
         "days_until": days_until,
         "available": bat.available,
+        # #114 follow-up: where the ~date comes from — "trend" (discharge
+        # regression, with confidence) or "typical" (type-lifetime table).
+        "predicted_source": predicted_source,
+        "prediction_confidence": prediction_confidence,
     }
 
 
@@ -508,9 +539,90 @@ def has_batteries(hass: HomeAssistant) -> bool:
 
 
 def compute_overview(hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON_DAYS) -> BatteryOverview:
-    """Read + aggregate in one call (HA-side entry point)."""
+    """Read + aggregate in one call (SYNC entry point — table forecast only).
+
+    The summary sensors call this from their update path; recorder-backed
+    trend regression stays out of it deliberately. The panel goes through
+    :func:`async_compute_overview` instead.
+    """
     today = dt_util.now().date()
     return build_overview(read_batteries(hass), today=today, horizon_days=horizon_days)
+
+
+# ── discharge-trend forecast (#114 follow-up) ───────────────────────────────
+
+_TREND_CACHE_KEY = "maintenance_supporter_battery_trend_cache"
+_TREND_CACHE_TTL = timedelta(hours=6)
+_TREND_MIN_CONFIDENCE = ("medium", "high")
+
+
+async def async_trend_predictions(
+    hass: HomeAssistant, batteries: list[Battery]
+) -> dict[str, tuple[int, str]]:
+    """Per-battery discharge-trend forecast: {entity_id: (days_until, confidence)}.
+
+    Reuses the SensorPredictor's recorder regression, asking "when does this
+    level sensor fall below its low threshold?". Only batteries with a live
+    percentage reading are analysed (low-only binaries have no level to
+    regress); low-confidence and non-falling trends are dropped so the caller
+    can fall back to the type-lifetime table.
+
+    Cached for 6 h per entity (misses included) — batteries drain over weeks,
+    and the overview is fetched on every panel visit; 30+ recorder regressions
+    per click would be waste.
+    """
+    from .sensor_predictor import SensorPredictor
+
+    cache: dict[str, tuple[Any, tuple[int, str] | None]] = hass.data.setdefault(_TREND_CACHE_KEY, {})
+    now = dt_util.utcnow()
+    predictor = SensorPredictor(hass)
+    out: dict[str, tuple[int, str]] = {}
+
+    for bat in batteries:
+        if bat.level is None or not bat.available or bat.low:
+            continue
+        cached = cache.get(bat.entity_id)
+        if cached is not None and now - cached[0] < _TREND_CACHE_TTL:
+            if cached[1] is not None:
+                out[bat.entity_id] = cached[1]
+            continue
+
+        # The replacement moment is the fleet's low signal: Battery Notes' own
+        # threshold (attr, default 10 %) OR the fleet-wide floor — whichever
+        # crosses first on the way down, i.e. the higher of the two.
+        threshold = float(NATIVE_LOW_PERCENT)
+        state = hass.states.get(bat.entity_id)
+        if state is not None:
+            raw = state.attributes.get("battery_low_threshold")
+            if isinstance(raw, (int, float)):
+                threshold = float(max(raw, NATIVE_LOW_PERCENT))
+
+        result: tuple[int, str] | None = None
+        try:
+            pred = await predictor.async_predict_below(bat.entity_id, threshold)
+            if (
+                pred is not None
+                and pred.days_until_threshold is not None
+                and pred.confidence in _TREND_MIN_CONFIDENCE
+            ):
+                result = (int(pred.days_until_threshold), pred.confidence)
+        except Exception:  # noqa: BLE001 - a recorder hiccup must never break the overview
+            _LOGGER.debug("Trend prediction failed for %s", bat.entity_id, exc_info=True)
+        cache[bat.entity_id] = (now, result)
+        if result is not None:
+            out[bat.entity_id] = result
+    return out
+
+
+async def async_compute_overview(
+    hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON_DAYS
+) -> BatteryOverview:
+    """Read + trend-enrich + aggregate (the panel's entry point)."""
+    batteries = read_batteries(hass)
+    trends = await async_trend_predictions(hass, batteries)
+    return build_overview(
+        batteries, today=dt_util.now().date(), horizon_days=horizon_days, trend_predictions=trends
+    )
 
 
 def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
@@ -528,6 +640,8 @@ __all__ = [
     "TYPICAL_LIFETIME_MONTHS",
     "Battery",
     "BatteryOverview",
+    "async_compute_overview",
+    "async_trend_predictions",
     "build_overview",
     "compute_overview",
     "discover_battery_types",

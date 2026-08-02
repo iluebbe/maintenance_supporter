@@ -821,6 +821,7 @@
   "battery_fleet_status_soon": "Yakında",
   "battery_fleet_status_ok": "İyi durumda",
   "battery_fleet_predicted_on": "Yaklaşık {date} tarihinde bekleniyor",
+  "battery_fleet_predicted_trend": "Bu pilin deşarj eğiliminden tahmin edildi: yaklaşık {date} ({confidence})",
   "battery_fleet_total": "{n} pil takip ediliyor",
   "battery_fleet_setup_button": "Pil filosu",
   "battery_fleet_setup_done": "Pil filosu kuruldu — tek bir görev tüm pillerinizi takip ediyor.",

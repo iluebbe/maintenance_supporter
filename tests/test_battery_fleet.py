@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
+
+from homeassistant.util import dt as dt_util
 
 from custom_components.maintenance_supporter.helpers.battery_fleet import (
     Battery,
@@ -65,6 +67,79 @@ def test_forecast_ignores_batteries_without_last_replaced():
     today = date(2026, 7, 20)
     ov = build_overview([_bat("NoDate", "AA", low=False, last=None)], today=today)
     assert ov.needs_soon == {} and ov.soon == []
+
+
+def test_trend_prediction_beats_the_table():
+    # #114 follow-up (c): the discharge trend is device-specific — where it
+    # exists it replaces the type-lifetime date; everything else falls back.
+    today = date(2026, 8, 1)
+    bats = [
+        _bat("Lock", "AA", low=False, last=date(2026, 7, 1)),      # table: ~11 months out
+        _bat("Sensor", "AA", low=False, last=date(2026, 7, 1)),
+    ]
+    trends = {"sensor.Lock_battery_plus": (12, "high")}
+    ov = build_overview(bats, today=today, trend_predictions=trends)
+    lock = next(r for r in ov.all if r["device_name"] == "Lock")
+    sensor = next(r for r in ov.all if r["device_name"] == "Sensor")
+    assert lock["days_until"] == 12
+    assert lock["predicted_source"] == "trend" and lock["prediction_confidence"] == "high"
+    assert lock["status"] == "soon", "a 12-day trend must land in the forecast bucket"
+    assert sensor["predicted_source"] == "typical" and sensor["prediction_confidence"] is None
+    assert sensor["days_until"] > 300
+    # The shopping forecast follows the blended date.
+    assert ov.needs_soon.get("AA") == 1
+
+
+def test_trend_never_resurrects_a_low_battery():
+    today = date(2026, 8, 1)
+    bats = [_bat("Dead", "AA", low=True)]
+    ov = build_overview(bats, today=today, trend_predictions={"sensor.Dead_battery_plus": (90, "high")})
+    assert ov.all[0]["status"] == "low" and ov.all[0]["days_until"] is None
+
+
+async def test_async_predict_below_reuses_the_regression(hass):
+    """The entity-level predictor entry point: a cleanly falling series
+    crosses the threshold on schedule, with high confidence."""
+    from unittest.mock import patch
+
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import SensorPredictor
+
+    now = dt_util.utcnow()
+    # 60 %, falling 0.5 %/day over 30 days → 45 % today; below 20 % in ~50 days.
+    points = [((now - timedelta(days=30 - i)).timestamp(), 60.0 - 0.5 * i) for i in range(31)]
+    predictor = SensorPredictor(hass)
+    with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
+        pred = await predictor.async_predict_below("sensor.probe_battery_plus", 20.0)
+    assert pred is not None
+    assert pred.threshold_direction == "below"
+    assert 45 <= pred.days_until_threshold <= 55
+    assert pred.confidence == "high"
+
+
+async def test_trend_predictions_cache_and_filters(hass):
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+
+    bats = [
+        Battery(entity_id="sensor.a_battery_plus", device_name="A", battery_type="AA",
+                quantity=1, low=False, level=55.0, last_replaced=None),
+        Battery(entity_id="binary_sensor.b_battery_plus_low", device_name="B", battery_type="CR2",
+                quantity=1, low=False, level=None, last_replaced=None),  # no level → skipped
+        Battery(entity_id="sensor.c_battery_plus", device_name="C", battery_type="AA",
+                quantity=1, low=True, level=5.0, last_replaced=None),    # low → skipped
+    ]
+    fake = AsyncMock(return_value=type("P", (), {
+        "days_until_threshold": 42.0, "confidence": "medium"})())
+    with patch(
+        "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor.async_predict_below",
+        fake,
+    ):
+        out1 = await bf.async_trend_predictions(hass, bats)
+        out2 = await bf.async_trend_predictions(hass, bats)
+    assert out1 == {"sensor.a_battery_plus": (42, "medium")}
+    assert out2 == out1
+    assert fake.await_count == 1, "the 6 h cache must absorb the second call"
 
 
 def test_lifetime_table_and_unknown_fallback():

@@ -14,7 +14,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
-from ..helpers.battery_fleet import compute_overview, fleet_excluded_entities, has_batteries, has_battery_notes
+from ..helpers.battery_fleet import async_compute_overview, fleet_excluded_entities, has_batteries, has_battery_notes
 from ..helpers.battery_fleet_setup import (
     async_mark_replaced,
     async_setup_battery_fleet,
@@ -28,8 +28,12 @@ from ..helpers.permissions import require_write
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/battery_fleet/overview"})
 @websocket_api.async_response
 async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
-    """Return the live fleet overview (low now, needs grouped, forecast)."""
-    ov = compute_overview(hass)
+    """Return the live fleet overview (low now, needs grouped, forecast).
+
+    Goes through the ASYNC path so the ~dates use the discharge-trend
+    regression where the recorder data supports it (type table otherwise).
+    """
+    ov = await async_compute_overview(hass)
     fleet = find_fleet_entry(hass)
     connection.send_result(
         msg["id"],

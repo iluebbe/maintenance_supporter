@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Battery fleet: predicted dates now use each battery's real discharge
+  trend where the data supports it.** The ~date in the roster (and the
+  "needed soon" shopping forecast) is regressed from the battery's recorded
+  level history — the same prediction engine sensor-triggered tasks use —
+  asking "when does this level cross the low threshold?". Trend dates show a
+  dotted underline; the tooltip names the source and confidence. Where the
+  history is too thin, flat, or the battery reports no percentage, the
+  familiar last-replaced + typical-lifetime estimate remains. Predictions are
+  cached for six hours; a battery already reported low is never resurrected
+  by a friendly trend.
+
 ## [2.49.0] - 2026-08-02
 
 ### ✨ Added

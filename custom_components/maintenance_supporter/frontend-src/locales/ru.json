@@ -821,6 +821,7 @@
   "battery_fleet_status_soon": "Скоро",
   "battery_fleet_status_ok": "В норме",
   "battery_fleet_predicted_on": "Ожидается примерно {date}",
+  "battery_fleet_predicted_trend": "Прогноз по тренду разряда этой батареи: примерно {date} ({confidence})",
   "battery_fleet_total": "Отслеживается батарей: {n}",
   "battery_fleet_setup_button": "Парк батарей",
   "battery_fleet_setup_done": "Парк батарей настроен — одна задача следит за всеми.",

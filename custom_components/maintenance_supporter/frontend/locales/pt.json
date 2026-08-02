@@ -821,6 +821,7 @@
   "battery_fleet_status_soon": "Em breve",
   "battery_fleet_status_ok": "Em bom estado",
   "battery_fleet_predicted_on": "Previsto por volta de {date}",
+  "battery_fleet_predicted_trend": "Previsto pela tendência de descarga desta pilha: por volta de {date} ({confidence})",
   "battery_fleet_total": "{n} baterias monitorizadas",
   "battery_fleet_setup_button": "Frota de baterias",
   "battery_fleet_setup_done": "Frota de baterias configurada — uma tarefa acompanha todas.",

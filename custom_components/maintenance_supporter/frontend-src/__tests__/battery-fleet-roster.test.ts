@@ -116,6 +116,29 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     expect(chip.getAttribute("title")).to.match(/Expected around/);
   });
 
+  it("marks a trend-based date and names source + confidence in the tooltip (#114 c)", async () => {
+    const trendRow = {
+      ...HEALTHY, entity_id: "sensor.cam_battery_plus", device_name: "Yard Cam",
+      days_until: 21, predicted_source: "trend", prediction_confidence: "high",
+    };
+    const tableRow = {
+      ...HEALTHY, entity_id: "sensor.bell_battery_plus", device_name: "Doorbell",
+      days_until: 25, predicted_source: "typical", prediction_confidence: null,
+    };
+    const { el } = await mount(overview({
+      total: 2,
+      all: [{ ...trendRow, status: "soon" }, { ...tableRow, status: "soon" }],
+    }));
+    const chips = [...roster(el)!.querySelectorAll(".bf-predicted")];
+    expect(chips).to.have.lengthOf(2);
+    const trend = chips.find((c) => c.classList.contains("bf-trend"))!;
+    expect(trend, "trend chip carries the marker class").to.exist;
+    expect(trend.getAttribute("title")).to.match(/discharge trend/);
+    expect(trend.getAttribute("title")).to.match(/high confidence/);
+    const table = chips.find((c) => !c.classList.contains("bf-trend"))!;
+    expect(table.getAttribute("title")).to.match(/Expected around/);
+  });
+
   it("renders nothing when an older backend sends no roster", async () => {
     const { all, ...withoutRoster } = overview() as Record<string, unknown>;
     void all;

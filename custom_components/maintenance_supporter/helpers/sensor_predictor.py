@@ -109,6 +109,25 @@ class SensorPredictor:
     # Public entry point
     # ------------------------------------------------------------------
 
+    async def async_predict_below(
+        self,
+        entity_id: str,
+        threshold: float,
+        lookback_days: int = DEFAULT_DEGRADATION_LOOKBACK_DAYS,
+    ) -> ThresholdPrediction | None:
+        """Entity-level convenience: when does this sensor FALL BELOW threshold?
+
+        Reuses the task machinery (recorder statistics → linear regression →
+        threshold crossing with r²-based confidence) without needing a task
+        shape around it. Built for the battery fleet's discharge-trend
+        forecast; returns ``None`` when the trend is flat, rising, or the
+        statistics are too thin to regress.
+        """
+        degradation = await self._async_compute_degradation(entity_id, None, lookback_days)
+        return self._compute_threshold_prediction(
+            degradation, {"type": "threshold", "trigger_below": threshold}
+        )
+
     async def async_analyze(
         self,
         task_data: dict[str, Any],

@@ -18,6 +18,10 @@ interface BatteryRow {
   level: number | null;
   days_until: number | null;
   available?: boolean;
+  /** Where the ~date comes from: "trend" (discharge regression) or "typical"
+   *  (type-lifetime table). */
+  predicted_source?: "trend" | "typical";
+  prediction_confidence?: "medium" | "high" | null;
 }
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
@@ -250,8 +254,12 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                         ${b.days_until != null
                           ? html`<span
-                              class="bf-predicted"
-                              title=${t("battery_fleet_predicted_on", L).replace("{date}", this._predictedDate(b.days_until))}
+                              class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""}"
+                              title=${b.predicted_source === "trend"
+                                ? t("battery_fleet_predicted_trend", L)
+                                    .replace("{date}", this._predictedDate(b.days_until))
+                                    .replace("{confidence}", t("cal_confidence_" + (b.prediction_confidence || "medium"), L))
+                                : t("battery_fleet_predicted_on", L).replace("{date}", this._predictedDate(b.days_until))}
                               >~${this._predictedDate(b.days_until)}</span
                             >`
                           : nothing}
@@ -447,6 +455,12 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       font-size: 12px;
       color: var(--secondary-text-color);
       white-space: nowrap;
+    }
+    /* Trend-based dates (discharge regression) get a dotted underline — the
+       tooltip carries source + confidence. */
+    .bf-predicted.bf-trend {
+      text-decoration: underline dotted;
+      text-underline-offset: 2px;
     }
     .bf-total {
       font-size: 12px;

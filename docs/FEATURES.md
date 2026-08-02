@@ -273,13 +273,17 @@ The fleet task's detail view is the whole surface:
   charge level, and a per-device *mark replaced* action.
 - **A grouped shopping list** — *"Buy now: 1× 9V · 2× AA · 4× AAA · …"* — so you
   know exactly what to pick up, not which device needs what.
-- **A "needed soon" forecast** grouped by type, predicted from each battery's
-  last-replaced date and its typical service life, so you can order ahead —
-  the soonest (already past their expected life first) at the top. A Battery
-  Note that carries **only** a replacement date and no level sensor — its
-  state reads *unknown* forever — is kept for exactly this: the date is all
-  the forecast needs, so those batteries surface here instead of dropping out
-  unseen.
+- **A "needed soon" forecast** grouped by type, so you can order ahead —
+  the soonest (already past their expected life first) at the top. Where the
+  recorder holds enough level history, the date is **regressed from the
+  battery's real discharge trend** (2.50+ — the same prediction engine
+  sensor-triggered tasks use, asking *"when does this level cross the low
+  threshold?"*; trend dates get a dotted underline and the tooltip names
+  source + confidence). Everywhere else it falls back to the last-replaced
+  date plus the type's typical service life. A Battery Note that carries
+  **only** a replacement date and no level sensor — its state reads *unknown*
+  forever — is kept for exactly this: the date is all the fallback needs, so
+  those batteries surface here instead of dropping out unseen.
 - **Every tracked battery, behind *All tracked batteries*** — the full roster,
   each row tagged *Low*, *Soon* or *Healthy*, collapsed by default so the
   section still opens on what needs doing.
