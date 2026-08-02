@@ -12,7 +12,7 @@
 import { html, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { t, formatDate, formatDateTime, formatRecurrence } from "../styles";
-import type { AdvancedFeatures, HomeAssistant, MaintenanceTask } from "../types";
+import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
 import { renderPredictionSection } from "./prediction";
 import { renderWeibullSection } from "./weibull";
@@ -32,6 +32,11 @@ export interface TaskDetailContext {
   objectName: string;
   /** Parent object's documentation_url (raw; sanitised here). */
   objectDocUrl: string | null | undefined;
+  /** Parent object's manual-tagged documents — the fallback for the manual
+   *  row when documentation_url is empty (same rule as the objects table). */
+  objectManualDocs: ManualDocRef[];
+  /** Opens a manual document (signed path / weblink) — panel-owned. */
+  openManualDoc: (doc: ManualDocRef) => void;
   isOperator: boolean;
   actionLoading: boolean;
   moreMenuOpen: boolean;
@@ -206,7 +211,10 @@ function renderTaskMeta(task: MaintenanceTask, ctx: TaskDetailContext) {
   const safeTaskUrl = isSafeHttpUrl(task.documentation_url)
     ? task.documentation_url : null;
   const safeObjUrl = isSafeHttpUrl(ctx.objectDocUrl) ? ctx.objectDocUrl : null;
-  if (!task.notes && !safeTaskUrl && !safeObjUrl) return nothing;
+  // Same fallback rule as the objects table: an UPLOADED manual (category
+  // "manual") stands in when the object's URL field is empty.
+  const manualDoc = safeObjUrl ? null : (ctx.objectManualDocs || [])[0];
+  if (!task.notes && !safeTaskUrl && !safeObjUrl && !manualDoc) return nothing;
   const L = ctx.lang;
   return html`
     <div class="task-meta-card">
@@ -226,6 +234,13 @@ function renderTaskMeta(task: MaintenanceTask, ctx: TaskDetailContext) {
         <div class="task-meta-row task-meta-link">
           <ha-icon icon="mdi:book-open-variant"></ha-icon>
           <a href="${safeObjUrl}" target="_blank" rel="noopener noreferrer">${t("documentation_url_label", L)} (${ctx.objectName})</a>
+        </div>
+      ` : manualDoc ? html`
+        <div class="task-meta-row task-meta-link">
+          <ha-icon icon="mdi:book-open-variant"></ha-icon>
+          <a href="#" title=${manualDoc.title}
+            @click=${(e: Event) => { e.preventDefault(); ctx.openManualDoc(manualDoc); }}
+            >${t("documentation_url_label", L)} (${ctx.objectName})</a>
         </div>
       ` : nothing}
     </div>

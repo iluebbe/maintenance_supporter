@@ -57,6 +57,8 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     taskId: "t1",
     objectName: "Pool Pump",
     objectDocUrl: null,
+    objectManualDocs: [],
+    openManualDoc: () => {},
     isOperator: false,
     actionLoading: false,
     moreMenuOpen: false,
@@ -210,6 +212,32 @@ describe("task-detail renderer", () => {
     }), ctx({ activeTab: "history" }));
     expect(host2.querySelector(".history-timeline")).to.not.be.null;
     expect(host2.querySelector(".kpi-bar")).to.be.null;
+  });
+
+  it("object-manual row falls back to an attached manual when the URL is empty", () => {
+    let opened: unknown = null;
+    const host = mount(task(), ctx({
+      objectDocUrl: null,
+      objectManualDocs: [{ id: "d1", title: "Pump Handbook", kind: "file" }],
+      openManualDoc: (d) => { opened = d; },
+    }));
+    const link = [...host.querySelectorAll(".task-meta-link a")]
+      .find((a) => a.textContent?.includes("Pool Pump")) as HTMLElement | undefined;
+    expect(link, "fallback manual link rendered").to.exist;
+    expect(link!.getAttribute("title")).to.equal("Pump Handbook");
+    link!.click();
+    expect((opened as { id?: string })?.id).to.equal("d1");
+  });
+
+  it("the URL field still wins over attached manuals", () => {
+    const host = mount(task(), ctx({
+      objectDocUrl: "https://vendor.example/manual",
+      objectManualDocs: [{ id: "d1", title: "Pump Handbook", kind: "file" }],
+    }));
+    const link = [...host.querySelectorAll(".task-meta-link a")]
+      .find((a) => a.textContent?.includes("Pool Pump")) as HTMLElement | undefined;
+    expect(link, "manual row rendered").to.exist;
+    expect(link!.getAttribute("href")).to.equal("https://vendor.example/manual");
   });
 
   it("KPI bar shows warning days and currency symbol", () => {

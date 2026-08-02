@@ -3298,6 +3298,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       taskId,
       objectName: obj?.object.name || "",
       objectDocUrl: obj?.object?.documentation_url ?? null,
+      objectManualDocs: obj?.object?.manual_docs ?? [],
+      openManualDoc: (doc) => this._openManualDoc(doc),
       isOperator: this._isOperator,
       actionLoading: this._actionLoading,
       moreMenuOpen: this._moreMenuOpen,

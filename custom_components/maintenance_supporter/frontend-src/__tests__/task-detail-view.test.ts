@@ -54,6 +54,8 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     taskId: "t1",
     objectName: "Pool Pump",
     objectDocUrl: null,
+    objectManualDocs: [],
+    openManualDoc: () => {},
     isOperator: false,
     actionLoading: false,
     moreMenuOpen: false,
