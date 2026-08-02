@@ -168,6 +168,39 @@ async def test_object_response_includes_document_count(
     assert conn.send_result.call_args[0][1]["object"]["document_count"] == 2
 
 
+async def test_object_response_exposes_manual_docs(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """The response lists manual-tagged documents (id/title/kind/url) so the
+    "manual" column can fall back to an UPLOADED manual when documentation_url
+    is empty — an object with its handbook attached must not render "—"
+    (prod finding 2026-08-02, one Easee vs one Epson)."""
+    from custom_components.maintenance_supporter.websocket.objects import ws_get_object
+
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    manual = await store.async_add_file(
+        OBJECT_ID_1, content=b"x", filename="handbook.pdf", mime="application/pdf", tags=["manual"]
+    )
+    # Non-manual documents must NOT appear.
+    await store.async_add_file(OBJECT_ID_1, content=b"y", filename="invoice.pdf", mime="application/pdf", tags=["invoice"])
+    await store.async_add_weblink(OBJECT_ID_1, url="https://x")
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/object", "entry_id": object_entry.entry_id},
+    )
+    manual_docs = conn.send_result.call_args[0][1]["object"]["manual_docs"]
+    assert [d["id"] for d in manual_docs] == [manual["id"]]
+    assert manual_docs[0]["title"] == "handbook.pdf"
+    assert manual_docs[0]["kind"] == "file"
+
+
 async def test_export_import_roundtrips_documents(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,

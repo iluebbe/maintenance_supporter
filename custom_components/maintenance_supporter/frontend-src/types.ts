@@ -31,6 +31,17 @@ export interface MaintenanceObject {
   /** (roadmap P2) number of attached documents (files + web-links); drives the
    *  objects-table paperclip badge. Computed server-side, not persisted. */
   document_count?: number;
+  /** Attached documents tagged as manuals — the fallback for the "manual"
+   *  column/header when documentation_url is unset. Computed server-side. */
+  manual_docs?: ManualDocRef[];
+}
+
+/** Slim reference to a manual-tagged document (subset of MaintenanceDocument). */
+export interface ManualDocRef {
+  id: string;
+  title: string;
+  kind: string; // "file" | "weblink"
+  url?: string | null;
 }
 
 export interface TriggerConfig {

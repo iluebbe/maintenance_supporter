@@ -312,6 +312,20 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             # (roadmap P2) count of attached documents (files + web-links) for
             # the objects-table paperclip badge; computed, not persisted.
             "document_count": document_count,
+            # An UPLOADED manual (category tag "manual") is the same affordance
+            # as documentation_url — expose them so the "manual" column and the
+            # object header can fall back instead of rendering "—" next to an
+            # object that plainly has its manual attached.
+            "manual_docs": [
+                {
+                    "id": d.get("id"),
+                    "title": d.get("title") or d.get("filename") or "",
+                    "kind": d.get("kind"),
+                    "url": d.get("url"),
+                }
+                for d in object_docs
+                if "manual" in (d.get("tags") or [])
+            ],
         },
         "tasks": tasks,
         "parts": parts_payload,

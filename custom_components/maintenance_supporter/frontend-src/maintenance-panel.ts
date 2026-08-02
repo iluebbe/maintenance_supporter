@@ -29,6 +29,7 @@ import type {
   StatisticsPoint,
   SavedView,
   SavedViewFilters,
+  ManualDocRef,
 } from "./types";
 import { StatisticsService } from "./statistics-service";
 import { UserService } from "./user-service";
@@ -1785,6 +1786,29 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  /** Open a manual-tagged document from the objects table / object header:
+   *  web-links directly, stored files through a signed path (the same
+   *  Companion-safe recipe as the documents section). */
+  private _openManualDoc(doc: ManualDocRef): void {
+    if (doc.kind !== "file") {
+      if (isSafeHttpUrl(doc.url)) window.open(doc.url!, "_blank", "noopener");
+      return;
+    }
+    // Open the tab synchronously (inside the click gesture) so it isn't
+    // popup-blocked, then point it at the freshly signed URL.
+    const win = window.open("about:blank", "_blank");
+    void this.hass.connection
+      .sendMessagePromise<{ path: string }>({
+        type: "auth/sign_path",
+        path: `/api/maintenance_supporter/document/${doc.id}`,
+        expires: 300,
+      })
+      .then((signed) => {
+        if (win) win.location.href = new URL(signed.path, window.location.origin).href;
+      })
+      .catch(() => win?.close());
+  }
+
   private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
     const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog");
     if (!dlg) return;
@@ -2765,13 +2789,22 @@ export class MaintenanceSupporterPanel extends LitElement {
         const area = o.area_id ? (this.hass?.areas?.[o.area_id]?.name || o.area_id) : "—";
         return html`<td class="oc-area_id">${area}</td>`;
       }
-      case "documentation_url":
+      case "documentation_url": {
+        // Fallback: an UPLOADED manual (category "manual") is the object's
+        // manual just as much as the legacy URL field — an object with its
+        // handbook attached must not render "—" here (prod: Easee vs Epson).
+        const manualDoc = (o.manual_docs || [])[0];
         return html`<td class="oc-documentation_url">${
           isSafeHttpUrl(o.documentation_url)
             ? html`<a href=${o.documentation_url} target="_blank" rel="noopener noreferrer"
                 @click=${(e: Event) => e.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`
-            : "—"
+            : manualDoc
+              ? html`<a href="#" title=${manualDoc.title}
+                  @click=${(e: Event) => { e.preventDefault(); e.stopPropagation(); this._openManualDoc(manualDoc); }}
+                  ><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`
+              : "—"
         }</td>`;
+      }
       case "notes":
         return html`<td class="oc-notes" title=${o.notes || ""}>${o.notes || "—"}</td>`;
       case "task_count":
@@ -3085,7 +3118,16 @@ export class MaintenanceSupporterPanel extends LitElement {
           ? html`<p class="meta">${t("documentation_url_label", L)}:
               <a href=${o.documentation_url} target="_blank" rel="noopener noreferrer">${o.documentation_url}</a>
             </p>`
-          : nothing}
+          : (o.manual_docs || []).length
+            ? html`<p class="meta">${t("documentation_url_label", L)}:
+                ${o.manual_docs!.slice(0, 3).map(
+                  (m, i) => html`${i > 0 ? " · " : ""}<a href="#"
+                    @click=${(e: Event) => { e.preventDefault(); this._openManualDoc(m); }}>${m.title}</a>`,
+                )}${o.manual_docs!.length > 3
+                  ? html` … +${o.manual_docs!.length - 3}`
+                  : nothing}
+              </p>`
+            : nothing}
         ${o.installation_date ? html`<p class="meta">${t("installed", L)}: ${formatDate(o.installation_date, L)}</p>` : nothing}
         ${o.warranty_expiry ? this._renderWarrantyMeta(o.warranty_expiry, L) : nothing}
         ${o.notes
