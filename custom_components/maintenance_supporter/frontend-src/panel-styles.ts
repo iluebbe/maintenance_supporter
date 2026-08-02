@@ -81,7 +81,10 @@ export const panelStyles = css`
     flex-wrap: wrap;
     gap: 8px;
     padding: 4px 0 8px;
-    justify-content: flex-end;
+    /* Left-aligned on purpose: flex-end mimicked the pre-v2.37 look (buttons
+       trailing the filter row), but on wide desktops it strands the primary
+       "new task" action at the far right of an otherwise empty row. */
+    justify-content: flex-start;
   }
 
   :host([narrow]) .actions-bar {
