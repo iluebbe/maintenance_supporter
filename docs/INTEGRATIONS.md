@@ -327,7 +327,9 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Filter Cleaning | below 10 % remaining |  |
 |  |  | Clean Tub | every 30 units (counter delta) |  |
 | Whirlpool | `whirlpool` | Clean Tub | every 60 h counted by the engine | active: running_maincycle |
-| WashData (smart-plug cycles) | `ha_washdata` | Clean Tub | every 30 units (counter delta) |  |
+| WashData (smart-plug cycles) | `ha_washdata` | Descaling | every 30 units (counter delta) |  |
+|  |  | Filter Cleaning | every 50 units (counter delta) |  |
+|  |  | Clean Tub | every 100 units (counter delta) |  |
 | Traeger grill | `traeger` | Clean Grease Trap | every 5 units (counter delta) |  |
 |  |  | Clean Appliance | every 20 units (counter delta) |  |
 
@@ -416,6 +418,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**123 integrations / 229 verified signatures.**
+**123 integrations / 231 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

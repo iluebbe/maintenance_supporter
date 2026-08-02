@@ -2119,9 +2119,14 @@ async def test_round12_hacs_sweep_wave(
     (nd,) = setups[dyson_new]["tasks"]
     assert nd["direction"] == "percent_left"  # % routed despite _filter_life suffix
 
-    (wc,) = setups[washer]["tasks"]
-    assert wc["task_name"] == "Clean Tub"
-    assert wc["direction"] == "usage_delta" and wc["threshold"] == 30.0
+    # 2026-08: mirrors WashData's OWN maintenance taxonomy (const.py
+    # DEFAULT_MAINTENANCE_REMINDER_CYCLES) — descale 30 / filter 50 / drum 100.
+    washer_tasks = {t["task_name"]: t for t in setups[washer]["tasks"]}
+    assert set(washer_tasks) == {"Descaling", "Filter Cleaning", "Clean Tub"}
+    assert all(t["direction"] == "usage_delta" for t in washer_tasks.values())
+    assert washer_tasks["Descaling"]["threshold"] == 30.0
+    assert washer_tasks["Filter Cleaning"]["threshold"] == 50.0
+    assert washer_tasks["Clean Tub"]["threshold"] == 100.0
 
     (sl,) = setups[softener]["tasks"]
     assert sl["task_name"] == "Refill Softener Salt" and sl["threshold"] == 10.0

@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **WashData signature now mirrors the integration's own maintenance
+  taxonomy.** WashData (smart-plug cycle detection, HACS default) ships its
+  own maintenance types with cycle defaults — descale 30, filter clean 50,
+  drum clean 100 — but shows them only inside its panel: no entity, no
+  notification. The suggested setup for a WashData appliance now offers
+  exactly those three tasks (previously one generic 30-cycle tub clean), so
+  what its panel counts silently becomes a real reminder with assignees,
+  history, parts and voice. Catalog: 123 integrations / 231 signatures.
+
 ## [2.50.0] - 2026-08-02
 
 ### ✨ Added

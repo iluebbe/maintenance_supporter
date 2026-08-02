@@ -212,7 +212,7 @@ warning-lamp families.
 
 The **Suggested setups** button discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **123 integrations with 229 verified
+click. The catalog currently covers **123 integrations with 231 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,

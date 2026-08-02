@@ -233,14 +233,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ha_washdata": IntegrationSignature(
         name="WashData (smart-plug cycles)",
-        verified="2026-07-20 @ 3dg1luk43/ha_washdata main sensor.py (HACS default)",
+        verified="2026-08-02 @ 3dg1luk43/ha_washdata main sensor.py + const.py (HACS default)",
         source=(
             "HACS ha_washdata: tk 'cycle_count' (unit 'cycles') — lifetime "
             "count of appliance cycles DETECTED from smart-plug power "
-            "monitoring. Brings the tub-clean cadence to washers with no "
-            "smarts at all (LG's official 30-cycle interval)."
+            "monitoring. The integration ships its OWN maintenance taxonomy "
+            "(MAINTENANCE_EVENT_TYPES + DEFAULT_MAINTENANCE_REMINDER_CYCLES: "
+            "descale 30 / filter_clean 50 / drum_clean 100), but shows it "
+            "only inside its panel — no due-entity, no notifications. These "
+            "tasks mirror that taxonomy 1:1, so what its panel counts "
+            "silently becomes a real reminder here; type-agnostic on purpose "
+            "because WashData offers the types for every appliance class "
+            "itself (washer, dryer, dishwasher, air fryer, …)."
         ),
-        tasks=(ConsumableSignature(("cycle_count",), "Clean Tub", "usage_delta", delta_units=30),),
+        tasks=(
+            ConsumableSignature(("cycle_count",), "Descaling", "usage_delta", delta_units=30),
+            ConsumableSignature(("cycle_count",), "Filter Cleaning", "usage_delta", delta_units=50),
+            ConsumableSignature(("cycle_count",), "Clean Tub", "usage_delta", delta_units=100),
+        ),
     ),
     "traeger": IntegrationSignature(
         name="Traeger grill",
