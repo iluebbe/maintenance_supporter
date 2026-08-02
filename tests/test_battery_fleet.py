@@ -162,6 +162,33 @@ async def test_far_out_trends_fall_back_to_the_table(hass):
     assert out == {}, "a 1142 d extrapolation must not become a trend date"
 
 
+async def test_recovery_in_the_window_rejects_the_trend(hass):
+    """A cold-dipped voltage percentage falls AND bounces back — a regression
+    over the dip yields a confident false 'empty soon'. A recovery larger than
+    the guard (10 %) rejects the series; a small relaxation bounce (+4 %, seen
+    on a real LYWSD03MMC) does not."""
+    from unittest.mock import patch
+
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import SensorPredictor
+
+    now = dt_util.utcnow().timestamp()
+
+    def series(values):
+        return [(now - (len(values) - 1 - i) * 86400.0, v) for i, v in enumerate(values)]
+
+    predictor = SensorPredictor(hass)
+    # 90 → 60 dip, then recovery to 85: not a discharge.
+    dip = series([90, 80, 70, 60, 65, 75, 85, 85, 85, 84])
+    with patch.object(predictor, "_async_fetch_statistics_points", return_value=dip):
+        assert await predictor.async_predict_below("sensor.x", 20.0, max_recovery=10.0) is None
+
+    # Steady discharge with a +4 % relaxation bounce: prediction survives.
+    steady = series([80 - 1.5 * i + (4 if i == 20 else 0) for i in range(30)])
+    with patch.object(predictor, "_async_fetch_statistics_points", return_value=steady):
+        pred = await predictor.async_predict_below("sensor.x", 20.0, max_recovery=10.0)
+    assert pred is not None and pred.days_until_threshold is not None
+
+
 def test_lifetime_table_and_unknown_fallback():
     assert lifetime_months("cr2450") == 24
     assert lifetime_months("AA") == 12

@@ -558,6 +558,12 @@ _TREND_MIN_CONFIDENCE = ("medium", "high")
 # a real prod evaluation produced "empty in 1142 d" at medium confidence for a
 # barely-draining motion sensor, where the type table is the honest answer.
 _TREND_MAX_DAYS = 365
+# Reject a series whose level ROSE by more than this (percent points) after a
+# minimum inside the window: real discharges are monotone-ish, big recoveries
+# mean the percentage tracks something else (cold-dip voltage bounce on a
+# CR2032 is the classic). Small relaxation bounces (+3-4 %, seen on a real
+# LYWSD03MMC) stay below it.
+_TREND_MAX_RECOVERY_PCT = 10.0
 
 
 async def async_trend_predictions(
@@ -604,7 +610,9 @@ async def async_trend_predictions(
 
         result: tuple[int, str] | None = None
         try:
-            pred = await predictor.async_predict_below(bat.entity_id, threshold)
+            pred = await predictor.async_predict_below(
+                bat.entity_id, threshold, max_recovery=_TREND_MAX_RECOVERY_PCT
+            )
             if (
                 pred is not None
                 and pred.days_until_threshold is not None

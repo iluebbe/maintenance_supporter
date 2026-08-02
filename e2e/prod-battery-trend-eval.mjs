@@ -58,6 +58,11 @@ try {
     const pts = (stats[s.entity_id] || [])
       .filter((r) => r.mean != null)
       .map((r) => [r.start / 864e5, r.mean]);
+    // Recovery guard (mirrors the shipped logic): a rise > 10 % after a
+    // window minimum means the percentage tracks something other than
+    // discharge (cold-dip voltage bounce) — no trend.
+    let minSeen = Infinity, maxRecovery = 0;
+    for (const [, v] of pts) { minSeen = Math.min(minSeen, v); maxRecovery = Math.max(maxRecovery, v - minSeen); }
     const reg = regress(pts);
     const thr = Math.max(typeof a.battery_low_threshold === "number" ? a.battery_low_threshold : 10, FLOOR);
     let verdict = "fallback (table)";
@@ -66,7 +71,13 @@ try {
       const conf = reg.r2 >= 0.7 ? "high" : reg.r2 >= 0.3 ? "medium" : "low";
       const days = Math.min((level - thr) / -reg.slope, 3650);
       extra = `slope=${reg.slope.toFixed(3)}%/d r2=${reg.r2.toFixed(2)} -> ${conf}`;
-      if (conf !== "low" && level > thr && !a.battery_low) {
+      if (maxRecovery > 10) {
+        verdict = "fallback (recovered +" + maxRecovery.toFixed(1) + "%)";
+        fallback++;
+      } else if (days > 365) {
+        verdict = 'fallback (>365 d extrapolation)';
+        fallback++;
+      } else if (conf !== "low" && level > thr && !a.battery_low) {
         verdict = `TREND: empty in ~${Math.round(days)} d (${new Date(Date.now() + days * 864e5).toISOString().slice(0, 10)})`;
         trend++;
       } else {

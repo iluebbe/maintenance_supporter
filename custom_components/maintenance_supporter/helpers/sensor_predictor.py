@@ -114,6 +114,7 @@ class SensorPredictor:
         entity_id: str,
         threshold: float,
         lookback_days: int = DEFAULT_DEGRADATION_LOOKBACK_DAYS,
+        max_recovery: float | None = None,
     ) -> ThresholdPrediction | None:
         """Entity-level convenience: when does this sensor FALL BELOW threshold?
 
@@ -122,8 +123,24 @@ class SensorPredictor:
         shape around it. Built for the battery fleet's discharge-trend
         forecast; returns ``None`` when the trend is flat, rising, or the
         statistics are too thin to regress.
+
+        ``max_recovery``: reject the series when the value ROSE by more than
+        this (same unit as the sensor) after a minimum within the window. A
+        real discharge is monotone-ish; a big recovery means the readings
+        track something else — the classic case is a voltage-derived battery
+        percentage dipping in the cold and bouncing back, which a regression
+        happily turns into a confident false "empty soon".
         """
-        degradation = await self._async_compute_degradation(entity_id, None, lookback_days)
+        points = await self._async_fetch_statistics_points(entity_id, lookback_days)
+        if max_recovery is not None and points:
+            min_seen = math.inf
+            for _, value in points:
+                min_seen = min(min_seen, value)
+                if value - min_seen > max_recovery:
+                    return None
+        degradation = await self._async_compute_degradation(
+            entity_id, None, lookback_days, points=points
+        )
         return self._compute_threshold_prediction(
             degradation, {"type": "threshold", "trigger_below": threshold}
         )
@@ -187,9 +204,15 @@ class SensorPredictor:
         entity_id: str,
         attribute: str | None,
         lookback_days: int,
+        points: list[tuple[float, float]] | None = None,
     ) -> DegradationAnalysis:
-        """Compute degradation rate using linear regression on recorder data."""
-        points = await self._async_fetch_statistics_points(entity_id, lookback_days)
+        """Compute degradation rate using linear regression on recorder data.
+
+        ``points`` lets a caller that already fetched the series (to inspect
+        it) avoid a second recorder query.
+        """
+        if points is None:
+            points = await self._async_fetch_statistics_points(entity_id, lookback_days)
 
         if len(points) < DEFAULT_DEGRADATION_MIN_POINTS:
             return DegradationAnalysis(
