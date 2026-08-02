@@ -112,6 +112,140 @@ async def test_native_battery_degraded_pickup(hass):
     assert phone.low is False and phone.level == 55.0
 
 
+def _binary_note_device(hass, slug, *, with_percent_sensor):
+    """Registry device with a native battery binary + a Battery Notes low
+    binary (and optionally the percentage battery_plus sensor). The shape of
+    #121: a Matter lock reports no percentage, so Battery Notes creates ONLY
+    the low binary — which carries all the type metadata."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(domain="test", data={})
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={("test", slug)},
+        name=slug.title(),
+    )
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "binary_sensor", "matter", f"{slug}_batt", suggested_object_id=f"{slug}_battery", device_id=device.id
+    )
+    ent_reg.async_get_or_create(
+        "binary_sensor",
+        "battery_notes",
+        f"{slug}_plus_low",
+        suggested_object_id=f"{slug}_battery_plus_low",
+        device_id=device.id,
+    )
+    if with_percent_sensor:
+        ent_reg.async_get_or_create(
+            "sensor", "battery_notes", f"{slug}_plus", suggested_object_id=f"{slug}_battery_plus", device_id=device.id
+        )
+    return device
+
+
+def _set_note_binary(hass, slug, state="off", **extra):
+    attrs = {
+        "device_class": "battery",
+        "battery_type": "Lithium 3-volt CR2",
+        "battery_quantity": 1,
+        "battery_last_replaced": "2026-05-22T13:46:23+00:00",
+        "device_name": slug.replace("_", " ").title(),
+    }
+    attrs.update(extra)
+    hass.states.async_set(f"binary_sensor.{slug}_battery_plus_low", state, attrs)
+
+
+async def test_low_only_binary_note_supplies_the_type(hass):
+    # #121: a device whose battery reports ONLY through a low binary (Matter
+    # lock). Battery Notes creates no percentage sensor — the type must come
+    # from the low binary, ONE row, and the native binary must not surface as
+    # a second "Unknown" row.
+    _binary_note_device(hass, "back_door_lock", with_percent_sensor=False)
+    hass.states.async_set(
+        "binary_sensor.back_door_lock_battery", "off", {"device_class": "battery"}
+    )
+    _set_note_binary(hass, "back_door_lock", "off")
+
+    bats = read_batteries(hass)
+    assert len(bats) == 1, [b.entity_id for b in bats]
+    bat = bats[0]
+    assert bat.source == "battery_notes"
+    assert bat.battery_type == "Lithium 3-volt CR2"
+    assert bat.level is None and bat.available is True and bat.low is False
+    assert bat.last_replaced == date(2026, 5, 22)
+    assert has_battery_notes(hass) is True
+    # discover_battery_types canonicalizes labels (upper-case grouping).
+    assert dict(discover_battery_types(hass))["LITHIUM 3-VOLT CR2"] == 1
+
+
+async def test_low_only_binary_note_reports_low_when_on(hass):
+    _binary_note_device(hass, "shed_lock", with_percent_sensor=False)
+    _set_note_binary(hass, "shed_lock", "on")
+    bats = read_batteries(hass)
+    assert len(bats) == 1
+    assert bats[0].low is True and bats[0].battery_type == "Lithium 3-volt CR2"
+
+
+async def test_percentage_and_binary_note_stay_one_row(hass):
+    # The regression a naive "also scan binaries" fix would ship (reviewed on
+    # PR #122): a percentage note's OWN low binary carries the same metadata
+    # attributes — sweeping it too would put every battery in the roster
+    # twice. The sensor row (with the level) must be the only one.
+    _binary_note_device(hass, "hall_motion", with_percent_sensor=True)
+    _set_note(hass, "hall_motion", battery_type="CR2450", _state="42", battery_low=False)
+    _set_note_binary(hass, "hall_motion", "off", battery_type="CR2450")
+
+    bats = read_batteries(hass)
+    assert len(bats) == 1, [b.entity_id for b in bats]
+    assert bats[0].entity_id == "sensor.hall_motion_battery_plus"
+    assert bats[0].level == 42.0 and bats[0].battery_type == "CR2450"
+
+
+async def test_registry_less_note_pair_stays_one_row(hass):
+    # Caught LIVE in the dev fleet (2026-08-02): state-only entities have no
+    # entity-registry entry, so device-based dedupe finds nothing and every
+    # battery doubled. The Battery Notes naming contract
+    # (sensor.X_battery_plus ↔ binary_sensor.X_battery_plus_low) must carry
+    # the dedupe when the registry cannot.
+    _set_note(hass, "camper_door", battery_type="AA", _state="77", battery_low=False)
+    hass.states.async_set(
+        "binary_sensor.camper_door_battery_plus_low",
+        "off",
+        {"device_class": "battery", "battery_type": "AA", "battery_quantity": 1, "device_name": "Camper Door"},
+    )
+    bats = read_batteries(hass)
+    assert len(bats) == 1, [b.entity_id for b in bats]
+    assert bats[0].entity_id == "sensor.camper_door_battery_plus"
+    assert bats[0].level == 77.0
+
+
+async def test_excluded_percentage_note_does_not_resurrect_via_its_binary(hass):
+    # Excluding the sensor row must hide the battery COMPLETELY — the sibling
+    # low binary (same metadata) must not bring it back.
+    from custom_components.maintenance_supporter.const import CONF_OBJECT, DOMAIN
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    _binary_note_device(hass, "porch_cam", with_percent_sensor=True)
+    _set_note(hass, "porch_cam", battery_type="AA", _state="55", battery_low=False)
+    _set_note_binary(hass, "porch_cam", "off", battery_type="AA")
+    fleet = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_OBJECT: {
+                "id": "obj1",
+                "name": "Fleet",
+                "battery_fleet": True,
+                "battery_fleet_excluded": ["sensor.porch_cam_battery_plus"],
+            }
+        },
+    )
+    fleet.add_to_hass(hass)
+    assert read_batteries(hass) == []
+
+
 async def test_native_low_binary_wins_over_percent(hass):
     # A battery-low binary present → it decides low, not the % heuristic.
     hass.states.async_set("binary_sensor.door_battery_low", "on", {"device_class": "battery"})

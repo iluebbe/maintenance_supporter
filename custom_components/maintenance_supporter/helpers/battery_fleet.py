@@ -284,7 +284,13 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       ``battery_type`` attribute) give the rich view: type, quantity, low,
       last-replaced. When the source goes offline the sensor reads
       unavailable/unknown but RETAINS its last-known ``battery_low`` — so a
-      dead battery that took its device offline stays visible.
+      dead battery that took its device offline stays visible. A device whose
+      source reports no percentage at all (a Matter lock with only a
+      battery-low binary, #121) gets NO percentage sensor from Battery Notes —
+      its metadata lives solely on the ``…_battery_plus_low`` BINARY, so a
+      second sweep picks those up for devices the sensor sweep did not cover.
+      Devices with BOTH stay one row (the binary carries the same attributes
+      and would otherwise duplicate every battery and dodge exclusions).
     * **Native** ``device_class: battery`` entities (a %-sensor and/or a
       battery-low binary) — plus %-sensors matching the strict battery-name
       heuristic for devices that ship no device class — grouped per device,
@@ -311,54 +317,90 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     covered_devices: set[str] = set()
 
     # ── Pass 1: Battery Notes battery_plus ──────────────────────────────────
-    for state in hass.states.async_all("sensor"):
-        attrs = state.attributes
-        if attrs.get("device_class") != "battery" or "battery_type" not in attrs:
-            continue
-        level = _level_of(state.state)
-        available = state.state not in _NO_READING and level is not None
-        # B2 (roadmap 2026-07-22 audit): ONE low floor across both passes.
-        # Battery Notes' own threshold (default 10 %) still counts via its
-        # battery_low flag, but the fleet-wide NATIVE_LOW_PERCENT floor is
-        # OR-ed in — a CR2032 at 11.5 % was "healthy" here while the same
-        # level counted low in the native pass. A HIGHER Battery Notes
-        # threshold (e.g. 30 %) still wins through battery_low.
-        low = bool(attrs.get("battery_low")) or (level is not None and level <= NATIVE_LOW_PERCENT)
-        last_replaced = _parse_last_replaced(attrs.get("battery_last_replaced"))
-        # B1 (roadmap 2026-07-22 audit): a forecast-only note — no level
-        # sensor, so the state reads unknown forever — must SURVIVE when it
-        # carries a replacement date: that date is all `_predicted_date`
-        # needs, and dropping these hid 11 overdue batteries in a live fleet.
-        # Offline AND not low AND no date = pure connectivity noise → drop.
-        if not available and not low and last_replaced is None:
-            continue
-        # B3: only a KEPT note covers its source/device — a dropped dead note
-        # must not suppress the native fallback for its own device (a device
-        # with a dead note and a working level sensor was invisible in BOTH
-        # passes).
-        src = attrs.get("source_entity_id")
-        if src:
-            covered_sources.add(src)
-        reg = ent_reg.async_get(state.entity_id)
-        if reg and reg.device_id:
-            covered_devices.add(reg.device_id)
-        # An EXCLUDED note still covers (above): exclusion hides the battery —
-        # it must not resurrect as a degraded native "Unknown" row.
-        if state.entity_id in excluded:
-            continue
-        out.append(
-            Battery(
-                entity_id=state.entity_id,
-                device_name=attrs.get("device_name") or attrs.get("friendly_name") or state.entity_id,
-                battery_type=str(attrs.get("battery_type") or "Unknown"),
-                quantity=int(attrs.get("battery_quantity") or 1),
-                low=low,
-                level=level,
-                last_replaced=last_replaced,
-                available=available,
-                source="battery_notes",
+    # Percentage SENSORS first, then LOW-ONLY BINARIES (#121): a source with
+    # no percentage (a Matter lock's plain battery-low binary) gets no
+    # ``battery_plus`` sensor from Battery Notes, so the type/quantity/
+    # last-replaced metadata exists only on the ``…_battery_plus_low`` binary.
+    # The binary sweep is restricted to devices the sensor sweep did NOT
+    # cover: a percentage note's own low binary carries the SAME attributes,
+    # and taking it too would put every battery in the roster twice — and let
+    # an exclusion set on the sensor row resurrect through the binary.
+    note_sensor_ids: set[str] = set()
+    for domain, binary_pass in (("sensor", False), ("binary_sensor", True)):
+        for state in hass.states.async_all(domain):
+            attrs = state.attributes
+            if attrs.get("device_class") != "battery" or "battery_type" not in attrs:
+                continue
+            if not binary_pass:
+                # EVERY matching percentage note counts as sibling coverage —
+                # kept, dropped or excluded: its low binary describes the same
+                # battery and must never become a second (or resurrected) row.
+                note_sensor_ids.add(state.entity_id)
+            reg = ent_reg.async_get(state.entity_id)
+            dev_id = reg.device_id if reg else None
+            if binary_pass:
+                if dev_id and dev_id in covered_devices:
+                    continue
+                # Registry-based dedupe is not enough on its own (caught live:
+                # state-only entities have no registry entry, and every fleet
+                # battery doubled). Two fallbacks: the shared source entity,
+                # and Battery Notes' naming contract —
+                # ``sensor.X_battery_plus`` ↔ ``binary_sensor.X_battery_plus_low``.
+                src_attr = attrs.get("source_entity_id")
+                if src_attr and src_attr in covered_sources:
+                    continue
+                object_id = state.entity_id.split(".", 1)[1]
+                if object_id.endswith("_low") and f"sensor.{object_id[: -len('_low')]}" in note_sensor_ids:
+                    continue
+                # No percentage to read — the binary state IS the low signal.
+                level = None
+                available = state.state not in _NO_READING
+                low = bool(attrs.get("battery_low")) or str(state.state).lower() == "on"
+            else:
+                level = _level_of(state.state)
+                available = state.state not in _NO_READING and level is not None
+                # B2 (roadmap 2026-07-22 audit): ONE low floor across both
+                # passes. Battery Notes' own threshold (default 10 %) still
+                # counts via its battery_low flag, but the fleet-wide
+                # NATIVE_LOW_PERCENT floor is OR-ed in — a CR2032 at 11.5 %
+                # was "healthy" here while the same level counted low in the
+                # native pass. A HIGHER Battery Notes threshold (e.g. 30 %)
+                # still wins through battery_low.
+                low = bool(attrs.get("battery_low")) or (level is not None and level <= NATIVE_LOW_PERCENT)
+            last_replaced = _parse_last_replaced(attrs.get("battery_last_replaced"))
+            # B1 (roadmap 2026-07-22 audit): a forecast-only note — no level
+            # sensor, so the state reads unknown forever — must SURVIVE when it
+            # carries a replacement date: that date is all `_predicted_date`
+            # needs, and dropping these hid 11 overdue batteries in a live fleet.
+            # Offline AND not low AND no date = pure connectivity noise → drop.
+            if not available and not low and last_replaced is None:
+                continue
+            # B3: only a KEPT note covers its source/device — a dropped dead note
+            # must not suppress the native fallback for its own device (a device
+            # with a dead note and a working level sensor was invisible in BOTH
+            # passes).
+            src = attrs.get("source_entity_id")
+            if src:
+                covered_sources.add(src)
+            if dev_id:
+                covered_devices.add(dev_id)
+            # An EXCLUDED note still covers (above): exclusion hides the battery —
+            # it must not resurrect as a degraded native "Unknown" row.
+            if state.entity_id in excluded:
+                continue
+            out.append(
+                Battery(
+                    entity_id=state.entity_id,
+                    device_name=attrs.get("device_name") or attrs.get("friendly_name") or state.entity_id,
+                    battery_type=str(attrs.get("battery_type") or "Unknown"),
+                    quantity=int(attrs.get("battery_quantity") or 1),
+                    low=low,
+                    level=level,
+                    last_replaced=last_replaced,
+                    available=available,
+                    source="battery_notes",
+                )
             )
-        )
 
     # ── Pass 2: native battery entities, grouped per device ─────────────────
     # {group_key: {"level_state": s, "low_state": s, "name": ..., "device_id": ..., "eid": ...}}
@@ -445,11 +487,16 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
 
 
 def has_battery_notes(hass: HomeAssistant) -> bool:
-    """Whether the Battery Notes integration is present (any battery_plus)."""
-    for state in hass.states.async_all("sensor"):
-        a = state.attributes
-        if a.get("device_class") == "battery" and "battery_type" in a:
-            return True
+    """Whether the Battery Notes integration is present (any battery_plus).
+
+    Binaries count too (#121): an install whose only noted devices are
+    low-only sources has no ``battery_plus`` sensor at all.
+    """
+    for domain in ("sensor", "binary_sensor"):
+        for state in hass.states.async_all(domain):
+            a = state.attributes
+            if a.get("device_class") == "battery" and "battery_type" in a:
+                return True
     return False
 
 
