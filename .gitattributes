@@ -1,0 +1,5 @@
+# The shipped frontend bundle is esbuild output of frontend-src/ (TypeScript),
+# committed because HACS serves the repo content as-is and CI byte-verifies it
+# (git diff, unaffected by this attribute). Marking it generated keeps it out
+# of GitHub's language statistics and collapses it in pull-request diffs.
+custom_components/maintenance_supporter/frontend/** linguist-generated=true
