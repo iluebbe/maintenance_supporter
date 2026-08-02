@@ -62,7 +62,10 @@ land on that device's page; also what makes suggested setups recognise the
 object), `parent_entry_id` (nest under another maintenance object, `via_device`),
 `task_ids`, `archived_at?`, `paused_at?`/`paused_until?` (seasonal pause),
 `predecessor_entry_id?`/`replaced_by_entry_id?` (the `object/replace` chain),
-and `parts` (spare parts, see below).
+and `parts` (spare parts, see below). The `objects` / `object` responses add
+two computed (never stored) fields: `document_count` and `manual_docs`
+(attached documents tagged "manual" as `{id, title, kind, url?}` — the panel's
+manual-column fallback when `documentation_url` is empty).
 
 ### `object/create` — `@require_write`
 ```json
@@ -81,7 +84,11 @@ and `parts` (spare parts, see below).
   "dry_run": true }                    // optional; true = validate only
 ```
 Result: `{"entry_id": "<config_entry_id>"}`. Dry-run: `{"valid": true, "entry_id": null}`.
-Errors: `invalid_input` (empty name), `invalid_date`, `invalid_url`, `create_failed`.
+Errors: `invalid_input` (empty name), `invalid_date`, `invalid_url`, `create_failed`,
+`invalid_device` (unknown `ha_device_id`), `self_link_device` (the device belongs
+to Maintenance Supporter itself — the object's own twin or a sibling object's
+device; pick the appliance integration's device, for hierarchy use
+`parent_entry_id`).
 
 **Uniqueness:** the name is slugified (lowercase, non-alphanumeric → `_`) into a
 `unique_id`; a duplicate (case-insensitive) name aborts as `create_failed`.
@@ -89,7 +96,8 @@ Read `maintenance_supporter/objects` first to avoid collisions.
 
 ### `object/update` — `@require_write`
 `{entry_id (req), + any create field}`. Partial: only present keys change.
-Result: `{"success": true}`.
+Result: `{"success": true}`. Same field errors as create, incl.
+`invalid_device` / `self_link_device` for `ha_device_id`.
 
 ### `object/delete` — `@require_write`
 `{entry_id}`. Result `{"success": true}`.

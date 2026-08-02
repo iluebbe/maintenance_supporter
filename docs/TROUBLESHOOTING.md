@@ -36,6 +36,28 @@ Fix: **hard-reload the browser** (`Ctrl+Shift+F5` or `Cmd+Shift+R` on macOS). Th
 1. Enable action buttons in **Notification Actions** settings (`action_complete_enabled`, etc.)
 2. Verify you are using the HA Companion App (action buttons require the mobile app notification platform)
 
+### Repair Notice: Device Link Lost / Linked to Its Own Device
+
+An object linked to another integration's device can raise one of two Repairs
+notices at startup:
+
+- **"… lost its device link"** — the linked device no longer exists (deleted,
+  re-paired under a new id, or its integration removed). The object falls back
+  to a device of its own; tasks and history are untouched.
+- **"… is linked to its own maintenance device"** — the stored link points at
+  the twin device Maintenance Supporter created for the object. The twin
+  carries the appliance's exact name, so it was easy to pick by mistake in
+  older versions (newer versions reject that choice at save time). Nothing is
+  broken, but the appliance's real device page never shows the maintenance
+  entities until the link is corrected.
+
+Both notices have a **Fix** button: it offers the best name match among real
+devices (pre-selected when one exists — verify it), or removes the link so the
+object keeps a device of its own. Completing the fix clears the notice; a
+*lost* link also clears itself if the device simply comes back (re-enabled
+integration, restored backup). A *self-link* never resolves on its own — the
+Fix button is the way out.
+
 ### Damaged Storage File
 
 Each object stores its dynamic state (history, last-performed dates, trigger
