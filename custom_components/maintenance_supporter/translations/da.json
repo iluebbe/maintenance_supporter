@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} mistede sin enhedstilknytning",
-      "description": "**{object}** var tilknyttet en Home Assistant-enhed, så dets vedligeholdelsesenheder blev vist på den enheds side. Den enhed findes ikke længere — slettet, eller dens integration fjernet — og objektet viser nu sin egen enhed. Intet andet ændrer sig: opgaverne og deres historik er urørte.\n\nTryk på REPARER for at vælge en enhed igen (det bedste match er forvalgt) eller for at fjerne koblingen. Indtil da bevares den gemte kobling: vender enheden tilbage, genoptages tilknytningen af sig selv.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Reparer enhedskoblingen for {object}",
-            "description": "Vælg fremgangsmåde. Bedste bud på den tilsigtede enhed: **{suggestion}**.",
+            "description": "**{object}** var tilknyttet en Home Assistant-enhed, så dets vedligeholdelsesenheder blev vist på den enheds side. Den enhed findes ikke længere — slettet, eller dens integration fjernet — og objektet viser nu sin egen enhed. Intet andet ændrer sig: opgaverne og deres historik er urørte.\n\nVælg fremgangsmåde. Bedste bud på den tilsigtede enhed: **{suggestion}**.",
             "menu_options": {
               "relink": "Kobl det rigtige apparat",
               "unlink": "Fjern koblingen"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} er koblet til sin egen vedligeholdelsesenhed",
-      "description": "Enhedskoblingen for **{object}** peger på den tvillingeenhed, som Maintenance Supporter selv oprettede til objektet — den bærer apparatets navn, og vælgeren tilbød den tidligere. Apparatets rigtige enhedsside viste derfor aldrig vedligeholdelsesentiteterne.\n\nTryk på REPARER for at koble det rigtige apparat (det bedste match er forvalgt) eller for at fjerne koblingen.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Reparer enhedskoblingen for {object}",
-            "description": "Vælg fremgangsmåde. Bedste bud på den tilsigtede enhed: **{suggestion}**.",
+            "description": "Enhedskoblingen for **{object}** peger på den tvillingeenhed, som Maintenance Supporter selv oprettede til objektet — den bærer apparatets navn, og vælgeren tilbød den tidligere. Apparatets rigtige enhedsside viste derfor aldrig vedligeholdelsesentiteterne.\n\nVælg fremgangsmåde. Bedste bud på den tilsigtede enhed: **{suggestion}**.",
             "menu_options": {
               "relink": "Kobl det rigtige apparat",
               "unlink": "Fjern koblingen"

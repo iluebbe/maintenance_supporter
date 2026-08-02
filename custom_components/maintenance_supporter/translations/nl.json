@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} is de apparaatkoppeling kwijt",
-      "description": "**{object}** was gekoppeld aan een Home Assistant-apparaat, zodat de onderhoudsentiteiten op die apparaatpagina stonden. Dat apparaat bestaat niet meer — verwijderd, of de integratie ervan weggehaald — en het object toont nu een eigen apparaat. Verder verandert er niets: taken en geschiedenis blijven ongemoeid.\n\nDruk op REPAREREN om opnieuw een apparaat te kiezen (de beste match is voorgeselecteerd) of om de koppeling te verwijderen. Tot die tijd blijft de opgeslagen koppeling bewaard: komt het apparaat terug, dan herstelt de koppeling zichzelf.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Apparaatkoppeling van {object} repareren",
-            "description": "Kies hoe verder te gaan. Beste match voor het bedoelde apparaat: **{suggestion}**.",
+            "description": "**{object}** was gekoppeld aan een Home Assistant-apparaat, zodat de onderhoudsentiteiten op die apparaatpagina stonden. Dat apparaat bestaat niet meer — verwijderd, of de integratie ervan weggehaald — en het object toont nu een eigen apparaat. Verder verandert er niets: taken en geschiedenis blijven ongemoeid.\n\nKies hoe verder te gaan. Beste match voor het bedoelde apparaat: **{suggestion}**.",
             "menu_options": {
               "relink": "Echt apparaat koppelen",
               "unlink": "Koppeling verwijderen"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} is gekoppeld aan zijn eigen onderhoudsapparaat",
-      "description": "De apparaatkoppeling van **{object}** wijst naar het tweelingapparaat dat Maintenance Supporter zelf voor het object heeft aangemaakt — het draagt de naam van het echte apparaat en de kiezer bood het vroeger aan. De echte apparaatpagina toonde de onderhoudsentiteiten daardoor nooit.\n\nDruk op REPAREREN om het echte apparaat te koppelen (de beste match is voorgeselecteerd) of om de koppeling te verwijderen.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Apparaatkoppeling van {object} repareren",
-            "description": "Kies hoe verder te gaan. Beste match voor het bedoelde apparaat: **{suggestion}**.",
+            "description": "De apparaatkoppeling van **{object}** wijst naar het tweelingapparaat dat Maintenance Supporter zelf voor het object heeft aangemaakt — het draagt de naam van het echte apparaat en de kiezer bood het vroeger aan. De echte apparaatpagina toonde de onderhoudsentiteiten daardoor nooit.\n\nKies hoe verder te gaan. Beste match voor het bedoelde apparaat: **{suggestion}**.",
             "menu_options": {
               "relink": "Echt apparaat koppelen",
               "unlink": "Koppeling verwijderen"

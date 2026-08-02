@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} perdeu a ligação ao dispositivo",
-      "description": "**{object}** estava ligado a um dispositivo do Home Assistant, pelo que as suas entidades de manutenção apareciam na página desse dispositivo. Esse dispositivo já não existe — apagado, ou removida a sua integração — e o objeto mostra agora um dispositivo próprio. Nada mais muda: as tarefas e o respetivo histórico ficam intactos.\n\nPrima CORRIGIR para escolher novamente um dispositivo (a melhor correspondência está pré-selecionada) ou para remover a ligação. Até lá, a ligação guardada mantém-se: se o dispositivo voltar, a associação retoma sozinha.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Reparar a ligação de dispositivo de {object}",
-            "description": "Escolha como proceder. Melhor palpite para o dispositivo pretendido: **{suggestion}**.",
+            "description": "**{object}** estava ligado a um dispositivo do Home Assistant, pelo que as suas entidades de manutenção apareciam na página desse dispositivo. Esse dispositivo já não existe — apagado, ou removida a sua integração — e o objeto mostra agora um dispositivo próprio. Nada mais muda: as tarefas e o respetivo histórico ficam intactos.\n\nEscolha como proceder. Melhor palpite para o dispositivo pretendido: **{suggestion}**.",
             "menu_options": {
               "relink": "Ligar o aparelho real",
               "unlink": "Remover a ligação"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} está ligado ao seu próprio dispositivo de manutenção",
-      "description": "A ligação de dispositivo de **{object}** aponta para o dispositivo gémeo que o Maintenance Supporter criou para o objeto — tem o nome do aparelho real e o seletor oferecia-o antigamente. Por isso, a página real do aparelho nunca mostrou as entidades de manutenção.\n\nPrima CORRIGIR para ligar o aparelho real (a melhor correspondência está pré-selecionada) ou para remover a ligação.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Reparar a ligação de dispositivo de {object}",
-            "description": "Escolha como proceder. Melhor palpite para o dispositivo pretendido: **{suggestion}**.",
+            "description": "A ligação de dispositivo de **{object}** aponta para o dispositivo gémeo que o Maintenance Supporter criou para o objeto — tem o nome do aparelho real e o seletor oferecia-o antigamente. Por isso, a página real do aparelho nunca mostrou as entidades de manutenção.\n\nEscolha como proceder. Melhor palpite para o dispositivo pretendido: **{suggestion}**.",
             "menu_options": {
               "relink": "Ligar o aparelho real",
               "unlink": "Remover a ligação"

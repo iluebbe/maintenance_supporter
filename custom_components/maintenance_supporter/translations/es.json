@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} ha perdido su vínculo con el dispositivo",
-      "description": "**{object}** estaba vinculado a un dispositivo de Home Assistant, de modo que sus entidades de mantenimiento aparecían en la página de ese dispositivo. Ese dispositivo ya no existe — eliminado, o retirada su integración — y el objeto muestra ahora un dispositivo propio. Nada más cambia: sus tareas y su historial siguen intactos.\n\nPulsa REPARAR para elegir de nuevo un dispositivo (la mejor coincidencia está preseleccionada) o para quitar el vínculo. Hasta entonces el vínculo guardado se conserva: si el dispositivo vuelve, la conexión se retoma sola.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Reparar el vínculo de dispositivo de {object}",
-            "description": "Elige cómo proceder. Mejor coincidencia para el dispositivo previsto: **{suggestion}**.",
+            "description": "**{object}** estaba vinculado a un dispositivo de Home Assistant, de modo que sus entidades de mantenimiento aparecían en la página de ese dispositivo. Ese dispositivo ya no existe — eliminado, o retirada su integración — y el objeto muestra ahora un dispositivo propio. Nada más cambia: sus tareas y su historial siguen intactos.\n\nElige cómo proceder. Mejor coincidencia para el dispositivo previsto: **{suggestion}**.",
             "menu_options": {
               "relink": "Vincular el dispositivo real",
               "unlink": "Quitar el vínculo"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} está vinculado a su propio dispositivo de mantenimiento",
-      "description": "El vínculo de dispositivo de **{object}** apunta al dispositivo gemelo que Maintenance Supporter creó para el objeto: lleva el nombre del aparato real y el selector lo ofrecía antes. Por eso la página real del aparato nunca mostró las entidades de mantenimiento.\n\nPulsa REPARAR para vincular el dispositivo real (la mejor coincidencia está preseleccionada) o para quitar el vínculo.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Reparar el vínculo de dispositivo de {object}",
-            "description": "Elige cómo proceder. Mejor coincidencia para el dispositivo previsto: **{suggestion}**.",
+            "description": "El vínculo de dispositivo de **{object}** apunta al dispositivo gemelo que Maintenance Supporter creó para el objeto: lleva el nombre del aparato real y el selector lo ofrecía antes. Por eso la página real del aparato nunca mostró las entidades de mantenimiento.\n\nElige cómo proceder. Mejor coincidencia para el dispositivo previsto: **{suggestion}**.",
             "menu_options": {
               "relink": "Vincular el dispositivo real",
               "unlink": "Quitar el vínculo"

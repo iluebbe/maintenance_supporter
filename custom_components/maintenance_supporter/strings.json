@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} lost its device link",
-      "description": "**{object}** was attached to a Home Assistant device, so its maintenance entities appeared on that device's page. That device no longer exists — deleted, or its integration removed — and the object now shows a device of its own. Nothing else changed: its tasks and their history are untouched.\n\nPress FIX to pick a device again (a best match is pre-selected) or to remove the link. The stored link is kept until then, so the attachment resumes by itself if the device comes back.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Repair the device link of {object}",
-            "description": "Choose how to proceed. Best guess for the intended device: **{suggestion}**.",
+            "description": "**{object}** was attached to a Home Assistant device, so its maintenance entities appeared on that device's page. That device no longer exists — deleted, or its integration removed — and the object now shows a device of its own. Nothing else changed: its tasks and their history are untouched.\n\nChoose how to proceed. Best guess for the intended device: **{suggestion}**.",
             "menu_options": {
               "relink": "Link the appliance's device",
               "unlink": "Remove the link"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} is linked to its own maintenance device",
-      "description": "**{object}**'s device link points at the twin device Maintenance Supporter created for the object — it carries the appliance's name, and the device picker used to offer it. The appliance's real device page never showed the maintenance entities.\n\nPress FIX to link the appliance's actual device (a best match is pre-selected), or to remove the link.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Repair the device link of {object}",
-            "description": "Choose how to proceed. Best guess for the intended device: **{suggestion}**.",
+            "description": "**{object}**'s device link points at the twin device Maintenance Supporter created for the object — it carries the appliance's name, and the device picker used to offer it. The appliance's real device page never showed the maintenance entities.\n\nChoose how to proceed. Best guess for the intended device: **{suggestion}**.",
             "menu_options": {
               "relink": "Link the appliance's device",
               "unlink": "Remove the link"

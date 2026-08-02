@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} a perdu son lien vers l'appareil",
-      "description": "**{object}** était rattaché à un appareil Home Assistant, si bien que ses entités de maintenance apparaissaient sur la page de cet appareil. Cet appareil n'existe plus — supprimé, ou son intégration retirée — et l'objet affiche désormais un appareil qui lui est propre. Rien d'autre ne change : ses tâches et leur historique sont intacts.\n\nAppuyez sur CORRIGER pour choisir à nouveau un appareil (la meilleure correspondance est présélectionnée) ou pour supprimer le lien. Le lien enregistré est conservé d'ici là : si l'appareil revient, l'attache reprend d'elle-même.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Réparer le lien d'appareil de {object}",
-            "description": "Choisissez comment procéder. Meilleure correspondance pour l'appareil visé : **{suggestion}**.",
+            "description": "**{object}** était rattaché à un appareil Home Assistant, si bien que ses entités de maintenance apparaissaient sur la page de cet appareil. Cet appareil n'existe plus — supprimé, ou son intégration retirée — et l'objet affiche désormais un appareil qui lui est propre. Rien d'autre ne change : ses tâches et leur historique sont intacts.\n\nChoisissez comment procéder. Meilleure correspondance pour l'appareil visé : **{suggestion}**.",
             "menu_options": {
               "relink": "Lier le véritable appareil",
               "unlink": "Supprimer le lien"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} est lié à son propre appareil de maintenance",
-      "description": "Le lien d'appareil de **{object}** pointe vers l'appareil jumeau que Maintenance Supporter a créé pour l'objet — il porte le nom de l'appareil réel, et le sélecteur le proposait autrefois. La vraie page de l'appareil n'a donc jamais affiché les entités de maintenance.\n\nAppuyez sur CORRIGER pour lier le véritable appareil (la meilleure correspondance est présélectionnée) ou pour supprimer le lien.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Réparer le lien d'appareil de {object}",
-            "description": "Choisissez comment procéder. Meilleure correspondance pour l'appareil visé : **{suggestion}**.",
+            "description": "Le lien d'appareil de **{object}** pointe vers l'appareil jumeau que Maintenance Supporter a créé pour l'objet — il porte le nom de l'appareil réel, et le sélecteur le proposait autrefois. La vraie page de l'appareil n'a donc jamais affiché les entités de maintenance.\n\nChoisissez comment procéder. Meilleure correspondance pour l'appareil visé : **{suggestion}**.",
             "menu_options": {
               "relink": "Lier le véritable appareil",
               "unlink": "Supprimer le lien"

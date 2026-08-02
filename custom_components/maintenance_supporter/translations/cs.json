@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} přišel o propojení se zařízením",
-      "description": "**{object}** byl propojen se zařízením Home Assistant, takže se jeho údržbové entity zobrazovaly na stránce tohoto zařízení. Zařízení už neexistuje — bylo smazáno nebo byla odebrána jeho integrace — a objekt nyní ukazuje vlastní zařízení. Nic dalšího se nemění: úkoly i jejich historie zůstávají nedotčené.\n\nStiskněte OPRAVIT a vyberte zařízení znovu (nejlepší shoda je předvybraná), nebo propojení odeberte. Do té doby uložené propojení zůstává: pokud se zařízení vrátí, připojení se obnoví samo.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Opravit propojení zařízení objektu {object}",
-            "description": "Zvolte postup. Nejlepší odhad zamýšleného zařízení: **{suggestion}**.",
+            "description": "**{object}** byl propojen se zařízením Home Assistant, takže se jeho údržbové entity zobrazovaly na stránce tohoto zařízení. Zařízení už neexistuje — bylo smazáno nebo byla odebrána jeho integrace — a objekt nyní ukazuje vlastní zařízení. Nic dalšího se nemění: úkoly i jejich historie zůstávají nedotčené.\n\nZvolte postup. Nejlepší odhad zamýšleného zařízení: **{suggestion}**.",
             "menu_options": {
               "relink": "Propojit skutečný přístroj",
               "unlink": "Odebrat propojení"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} je propojen se svým vlastním údržbovým zařízením",
-      "description": "Propojení objektu **{object}** ukazuje na dvojníka, kterého Maintenance Supporter pro objekt sám vytvořil — nese název skutečného přístroje a výběr zařízení jej dříve nabízel. Na skutečné stránce přístroje se proto údržbové entity nikdy nezobrazovaly.\n\nStiskněte OPRAVIT a propojte skutečný přístroj (nejlepší shoda je předvybraná), nebo propojení odeberte.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Opravit propojení zařízení objektu {object}",
-            "description": "Zvolte postup. Nejlepší odhad zamýšleného zařízení: **{suggestion}**.",
+            "description": "Propojení objektu **{object}** ukazuje na dvojníka, kterého Maintenance Supporter pro objekt sám vytvořil — nese název skutečného přístroje a výběr zařízení jej dříve nabízel. Na skutečné stránce přístroje se proto údržbové entity nikdy nezobrazovaly.\n\nZvolte postup. Nejlepší odhad zamýšleného zařízení: **{suggestion}**.",
             "menu_options": {
               "relink": "Propojit skutečný přístroj",
               "unlink": "Odebrat propojení"

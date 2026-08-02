@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} cihaz bağlantısını kaybetti",
-      "description": "**{object}** bir Home Assistant cihazına bağlıydı; bu sayede bakım varlıkları o cihazın sayfasında görünüyordu. O cihaz artık yok — silindi ya da entegrasyonu kaldırıldı — ve nesne şimdi kendine ait bir cihaz gösteriyor. Başka bir şey değişmedi: görevler ve geçmişleri olduğu gibi duruyor.\n\nCihazı yeniden seçmek (en iyi eşleşme önceden seçilidir) veya bağlantıyı kaldırmak için DÜZELT'e basın. O zamana kadar kayıtlı bağlantı korunur: cihaz geri dönerse bağlantı kendiliğinden devam eder.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "{object} cihaz bağlantısını onar",
-            "description": "Nasıl ilerleyeceğinizi seçin. Amaçlanan cihaz için en iyi tahmin: **{suggestion}**.",
+            "description": "**{object}** bir Home Assistant cihazına bağlıydı; bu sayede bakım varlıkları o cihazın sayfasında görünüyordu. O cihaz artık yok — silindi ya da entegrasyonu kaldırıldı — ve nesne şimdi kendine ait bir cihaz gösteriyor. Başka bir şey değişmedi: görevler ve geçmişleri olduğu gibi duruyor.\n\nNasıl ilerleyeceğinizi seçin. Amaçlanan cihaz için en iyi tahmin: **{suggestion}**.",
             "menu_options": {
               "relink": "Gerçek cihazı bağla",
               "unlink": "Bağlantıyı kaldır"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} kendi bakım cihazına bağlı",
-      "description": "**{object}** nesnesinin cihaz bağlantısı, Maintenance Supporter'ın nesne için kendisinin oluşturduğu ikiz cihazı gösteriyor — gerçek cihazın adını taşır ve seçici onu eskiden sunuyordu. Bu yüzden gerçek cihaz sayfasında bakım varlıkları hiç görünmedi.\n\nGerçek cihazı bağlamak (en iyi eşleşme önceden seçilidir) veya bağlantıyı kaldırmak için DÜZELT'e basın.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "{object} cihaz bağlantısını onar",
-            "description": "Nasıl ilerleyeceğinizi seçin. Amaçlanan cihaz için en iyi tahmin: **{suggestion}**.",
+            "description": "**{object}** nesnesinin cihaz bağlantısı, Maintenance Supporter'ın nesne için kendisinin oluşturduğu ikiz cihazı gösteriyor — gerçek cihazın adını taşır ve seçici onu eskiden sunuyordu. Bu yüzden gerçek cihaz sayfasında bakım varlıkları hiç görünmedi.\n\nNasıl ilerleyeceğinizi seçin. Amaçlanan cihaz için en iyi tahmin: **{suggestion}**.",
             "menu_options": {
               "relink": "Gerçek cihazı bağla",
               "unlink": "Bağlantıyı kaldır"

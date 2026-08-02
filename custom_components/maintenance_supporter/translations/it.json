@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} ha perso il collegamento al dispositivo",
-      "description": "**{object}** era collegato a un dispositivo di Home Assistant, così le sue entità di manutenzione comparivano nella pagina di quel dispositivo. Quel dispositivo non esiste più — eliminato, o rimossa la sua integrazione — e l'oggetto ora mostra un dispositivo proprio. Nient'altro cambia: le attività e la loro cronologia restano intatte.\n\nPremi CORREGGI per scegliere di nuovo un dispositivo (la corrispondenza migliore è preselezionata) o per rimuovere il collegamento. Fino ad allora il collegamento salvato resta: se il dispositivo torna, l'aggancio riprende da solo.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Ripara il collegamento dispositivo di {object}",
-            "description": "Scegli come procedere. Miglior corrispondenza per il dispositivo inteso: **{suggestion}**.",
+            "description": "**{object}** era collegato a un dispositivo di Home Assistant, così le sue entità di manutenzione comparivano nella pagina di quel dispositivo. Quel dispositivo non esiste più — eliminato, o rimossa la sua integrazione — e l'oggetto ora mostra un dispositivo proprio. Nient'altro cambia: le attività e la loro cronologia restano intatte.\n\nScegli come procedere. Miglior corrispondenza per il dispositivo inteso: **{suggestion}**.",
             "menu_options": {
               "relink": "Collega il dispositivo reale",
               "unlink": "Rimuovi il collegamento"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} è collegato al proprio dispositivo di manutenzione",
-      "description": "Il collegamento di **{object}** punta al dispositivo gemello creato da Maintenance Supporter per l'oggetto: porta il nome dell'apparecchio reale e in passato il selettore lo proponeva. Per questo la pagina reale dell'apparecchio non ha mai mostrato le entità di manutenzione.\n\nPremi CORREGGI per collegare il dispositivo reale (la corrispondenza migliore è preselezionata) o per rimuovere il collegamento.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Ripara il collegamento dispositivo di {object}",
-            "description": "Scegli come procedere. Miglior corrispondenza per il dispositivo inteso: **{suggestion}**.",
+            "description": "Il collegamento di **{object}** punta al dispositivo gemello creato da Maintenance Supporter per l'oggetto: porta il nome dell'apparecchio reale e in passato il selettore lo proponeva. Per questo la pagina reale dell'apparecchio non ha mai mostrato le entità di manutenzione.\n\nScegli come procedere. Miglior corrispondenza per il dispositivo inteso: **{suggestion}**.",
             "menu_options": {
               "relink": "Collega il dispositivo reale",
               "unlink": "Rimuovi il collegamento"

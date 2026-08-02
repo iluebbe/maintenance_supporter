@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} hat seine Geräteverknüpfung verloren",
-      "description": "**{object}** war mit einem Home-Assistant-Gerät verknüpft, sodass seine Wartungsentitäten auf dessen Geräteseite erschienen. Dieses Gerät existiert nicht mehr — gelöscht oder seine Integration entfernt — und das Objekt zeigt jetzt ein eigenes Gerät. Sonst ändert sich nichts: Aufgaben und Verlauf bleiben unberührt.\n\nKlicke auf REPARIEREN, um erneut ein Gerät zu wählen (der beste Treffer ist vorausgewählt) oder die Verknüpfung zu entfernen. Bis dahin bleibt die gespeicherte Verknüpfung erhalten — kehrt das Gerät zurück, greift sie von selbst wieder.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Geräteverknüpfung von {object} reparieren",
-            "description": "Wähle das Vorgehen. Bester Treffer für das gemeinte Gerät: **{suggestion}**.",
+            "description": "**{object}** war mit einem Home-Assistant-Gerät verknüpft, sodass seine Wartungsentitäten auf dessen Geräteseite erschienen. Dieses Gerät existiert nicht mehr — gelöscht oder seine Integration entfernt — und das Objekt zeigt jetzt ein eigenes Gerät. Sonst ändert sich nichts: Aufgaben und Verlauf bleiben unberührt.\n\nWähle das Vorgehen. Bester Treffer für das gemeinte Gerät: **{suggestion}**.",
             "menu_options": {
               "relink": "Echtes Gerät verknüpfen",
               "unlink": "Verknüpfung entfernen"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} ist mit seinem eigenen Wartungsgerät verknüpft",
-      "description": "Die Geräteverknüpfung von **{object}** zeigt auf das Zwillingsgerät, das Maintenance Supporter selbst für das Objekt angelegt hat — es trägt denselben Namen wie das eigentliche Gerät, und die Geräteauswahl hat es früher mit angeboten. Auf der echten Geräteseite erschienen die Wartungsentitäten dadurch nie.\n\nKlicke auf REPARIEREN, um das echte Gerät zu verknüpfen (der beste Treffer ist vorausgewählt) oder die Verknüpfung zu entfernen.",
       "fix_flow": {
         "step": {
           "init": {
             "title": "Geräteverknüpfung von {object} reparieren",
-            "description": "Wähle das Vorgehen. Bester Treffer für das gemeinte Gerät: **{suggestion}**.",
+            "description": "Die Geräteverknüpfung von **{object}** zeigt auf das Zwillingsgerät, das Maintenance Supporter selbst für das Objekt angelegt hat — es trägt denselben Namen wie das eigentliche Gerät, und die Geräteauswahl hat es früher mit angeboten. Auf der echten Geräteseite erschienen die Wartungsentitäten dadurch nie.\n\nWähle das Vorgehen. Bester Treffer für das gemeinte Gerät: **{suggestion}**.",
             "menu_options": {
               "relink": "Echtes Gerät verknüpfen",
               "unlink": "Verknüpfung entfernen"

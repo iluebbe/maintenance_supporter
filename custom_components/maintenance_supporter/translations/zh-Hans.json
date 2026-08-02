@@ -1825,12 +1825,11 @@
     },
     "device_link_lost": {
       "title": "{object} 的设备关联已失效",
-      "description": "**{object}** 曾关联到一个 Home Assistant 设备，因此它的维护实体显示在该设备页面上。该设备已不存在——被删除，或其集成被移除——对象现在显示自己的设备。其他一切不变：任务及其历史记录未受影响。\n\n按“修复”重新选择设备(已预选最佳匹配)或移除关联。在此之前,已保存的关联会保留:设备回来后会自动恢复连接。",
       "fix_flow": {
         "step": {
           "init": {
             "title": "修复 {object} 的设备关联",
-            "description": "选择处理方式。最可能的目标设备:**{suggestion}**。",
+            "description": "**{object}** 曾关联到一个 Home Assistant 设备，因此它的维护实体显示在该设备页面上。该设备已不存在——被删除，或其集成被移除——对象现在显示自己的设备。其他一切不变：任务及其历史记录未受影响。\n\n选择处理方式。最可能的目标设备:**{suggestion}**。",
             "menu_options": {
               "relink": "关联真实设备",
               "unlink": "移除关联"
@@ -1859,12 +1858,11 @@
     },
     "device_link_self": {
       "title": "{object} 关联到了它自己的维护设备",
-      "description": "**{object}** 的设备关联指向 Maintenance Supporter 为该对象自行创建的孪生设备——它与真实设备同名,设备选择器以前会将其列出。因此真实设备页面从未显示过维护实体。\n\n按“修复”关联真实设备(已预选最佳匹配)或移除关联。",
       "fix_flow": {
         "step": {
           "init": {
             "title": "修复 {object} 的设备关联",
-            "description": "选择处理方式。最可能的目标设备:**{suggestion}**。",
+            "description": "**{object}** 的设备关联指向 Maintenance Supporter 为该对象自行创建的孪生设备——它与真实设备同名,设备选择器以前会将其列出。因此真实设备页面从未显示过维护实体。\n\n选择处理方式。最可能的目标设备:**{suggestion}**。",
             "menu_options": {
               "relink": "关联真实设备",
               "unlink": "移除关联"
