@@ -722,6 +722,7 @@
   "series_end_count_label": "Número de vezes",
   "series_end_until_label": "Data final",
   "parts_section": "Peças e consumíveis",
+  "parts_inventory_value": "Valor do estoque",
   "part_add": "Adicionar peça",
   "part_name": "Nome",
   "part_vendor": "Fabricante",

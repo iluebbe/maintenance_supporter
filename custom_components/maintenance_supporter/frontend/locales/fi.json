@@ -716,6 +716,7 @@
   "series_end_count_label": "Kertojen määrä",
   "series_end_until_label": "Päättymispäivä",
   "parts_section": "Osat ja tarvikkeet",
+  "parts_inventory_value": "Varaston arvo",
   "part_add": "Lisää osa",
   "part_name": "Nimi",
   "part_vendor": "Valmistaja",

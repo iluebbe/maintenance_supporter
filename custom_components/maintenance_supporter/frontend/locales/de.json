@@ -716,6 +716,7 @@
   "series_end_count_label": "Anzahl",
   "series_end_until_label": "Enddatum",
   "parts_section": "Teile & Verbrauchsmaterial",
+  "parts_inventory_value": "Lagerwert",
   "part_add": "Teil hinzufügen",
   "part_name": "Name",
   "part_vendor": "Hersteller",

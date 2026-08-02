@@ -722,6 +722,7 @@
   "series_end_count_label": "Tekrar sayısı",
   "series_end_until_label": "Bitiş tarihi",
   "parts_section": "Parçalar ve sarf malzemeleri",
+  "parts_inventory_value": "Stok değeri",
   "part_add": "Parça ekle",
   "part_name": "Ad",
   "part_vendor": "Üretici",

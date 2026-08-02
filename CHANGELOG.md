@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Checklist steps can be ticked off without completing the task**
+  (discussion #73). The task-detail checklist is interactive now: ticks
+  persist server-side (`task/checklist_progress`), survive restarts, show as
+  *n/m* progress, and prefill the completion dialog — stop halfway, come back
+  later, finish where you left off. Completing or skipping the cycle resets
+  the list; the ticked state at completion time lands in the history entry
+  exactly as before. Any authenticated household member can tick, same as
+  completing.
+- **Inventory value in the parts section** (discussion #104). The section
+  header shows Σ unit price × tracked stock across the parts that have both —
+  purely informational, it never enters any budget total.
+
 ## [2.48.0] - 2026-08-02
 
 ### ✨ Added

@@ -716,6 +716,7 @@
   "series_end_count_label": "Numero di volte",
   "series_end_until_label": "Data di fine",
   "parts_section": "Ricambi e consumabili",
+  "parts_inventory_value": "Valore delle scorte",
   "part_add": "Aggiungi ricambio",
   "part_name": "Nome",
   "part_vendor": "Produttore",

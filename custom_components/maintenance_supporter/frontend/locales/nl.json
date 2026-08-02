@@ -716,6 +716,7 @@
   "series_end_count_label": "Aantal keer",
   "series_end_until_label": "Einddatum",
   "parts_section": "Onderdelen & verbruiksartikelen",
+  "parts_inventory_value": "Voorraadwaarde",
   "part_add": "Onderdeel toevoegen",
   "part_name": "Naam",
   "part_vendor": "Fabrikant",
