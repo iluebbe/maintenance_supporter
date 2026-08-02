@@ -568,8 +568,14 @@ offer the fleet.
 ### `battery_fleet/overview` — read
 `{}` → `{available` (any batteries at all)`, has_battery_notes, configured`
 (the fleet object exists)`, task_ok` (its task + trigger are intact)`, entry_id,
-total, low, soon, needs_now:{type:count}, needs_soon:{…}, types,
-excluded:[{entity_id,device_name}]}`.
+total, low, soon, all, needs_now:{type:count}, needs_soon:{…}, types,
+excluded:[{entity_id,device_name}]}`. `all` is the full roster (#113): every
+tracked battery as `{entity_id, device_name, battery_type, quantity, level,
+days_until, available, predicted_source, prediction_confidence, status}` with
+status `low|soon|ok`. `predicted_source` (2.50+) is `"trend"` when
+`days_until` comes from the discharge-trend regression (then
+`prediction_confidence` is `medium|high`) or `"typical"` for the
+last-replaced + type-lifetime table.
 
 ### `battery_fleet/setup` — `@require_write`
 `{language?}` → creates (or idempotently reconciles) the fleet object, its

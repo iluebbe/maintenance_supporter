@@ -279,7 +279,12 @@ The fleet task's detail view is the whole surface:
   battery's real discharge trend** (2.50+ — the same prediction engine
   sensor-triggered tasks use, asking *"when does this level cross the low
   threshold?"*; trend dates get a dotted underline and the tooltip names
-  source + confidence). Everywhere else it falls back to the last-replaced
+  source + confidence). Three guards keep it honest: only medium/high
+  confidence counts, extrapolations beyond a year are dropped, and a series
+  that *recovers* by more than 10 % inside the window is rejected — real
+  discharges are monotone-ish; big bounces mean the percentage tracks
+  something else (a cold-dipped voltage reading, a self-charging device).
+  Everywhere else it falls back to the last-replaced
   date plus the type's typical service life. A Battery Note that carries
   **only** a replacement date and no level sensor — its state reads *unknown*
   forever — is kept for exactly this: the date is all the fallback needs, so
