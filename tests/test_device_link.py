@@ -750,3 +750,49 @@ async def test_fix_flow_dispatch_routes_device_link_issues(
 
     flow = await async_create_fix_flow(hass, "device_link_lost_abc123", {"entry_id": "abc123"})
     assert isinstance(flow, DeviceLinkRepairFlow)
+
+
+# ─── parent nesting via explicit via_device_id (2027.8 deprecation) ─────────
+
+
+async def test_nesting_survives_child_before_parent_boot_order(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """With DeviceInfo's identifier tuple, a child registering BEFORE its
+    parent stayed un-nested. The explicit registry write runs both directions,
+    so the parent's setup re-points its already-booted children."""
+    parent_entry = _make_entry(hass, "order_parent", name="Water Heater")
+    child_entry = _make_entry(
+        hass, "order_child", name="Anode Rod", extra_obj={"parent_entry_id": parent_entry.entry_id}
+    )
+    # Child FIRST, parent second.
+    await setup_integration(hass, global_entry, child_entry, parent_entry)
+
+    reg = dr.async_get(hass)
+    parent_dev = reg.async_get_device(identifiers={(DOMAIN, parent_entry.unique_id or "")})
+    child_dev = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
+    assert parent_dev is not None and child_dev is not None
+    assert child_dev.via_device_id == parent_dev.id
+
+
+async def test_clearing_the_parent_clears_the_nesting(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    parent_entry = _make_entry(hass, "unnest_parent", name="Water Heater")
+    child_entry = _make_entry(
+        hass, "unnest_child", name="Anode Rod", extra_obj={"parent_entry_id": parent_entry.entry_id}
+    )
+    await setup_integration(hass, global_entry, parent_entry, child_entry)
+    reg = dr.async_get(hass)
+    child_dev = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
+    assert child_dev is not None and child_dev.via_device_id is not None
+
+    data = dict(child_entry.data)
+    data[CONF_OBJECT] = {**data[CONF_OBJECT], "parent_entry_id": None}
+    hass.config_entries.async_update_entry(child_entry, data=data)
+    await hass.config_entries.async_reload(child_entry.entry_id)
+    await hass.async_block_till_done()
+
+    refreshed = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
+    assert refreshed is not None
+    assert refreshed.via_device_id is None, "the stale nesting pointer survived un-nesting"

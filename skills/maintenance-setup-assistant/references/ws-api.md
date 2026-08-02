@@ -59,7 +59,8 @@ An object has **no cost and no icon** field. Stored fields: `id` (server-set),
 `installation_date`, `warranty_expiry`, `documentation_url`, `notes`,
 `ha_device_id` (bind the object to an EXISTING HA device — its entities then
 land on that device's page; also what makes suggested setups recognise the
-object), `parent_entry_id` (nest under another maintenance object, `via_device`),
+object), `parent_entry_id` (nest under another maintenance object — written to the
+device registry as `via_device_id` after setup),
 `task_ids`, `archived_at?`, `paused_at?`/`paused_until?` (seasonal pause),
 `predecessor_entry_id?`/`replaced_by_entry_id?` (the `object/replace` chain),
 and `parts` (spare parts, see below). The `objects` / `object` responses add

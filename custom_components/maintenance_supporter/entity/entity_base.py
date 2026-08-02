@@ -8,7 +8,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import CONF_OBJECT, DOMAIN, GLOBAL_UNIQUE_ID
+from ..const import CONF_OBJECT, DOMAIN
 from ..coordinator import MaintenanceCoordinator
 from ..helpers import device_link
 
@@ -71,12 +71,14 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
         * linked to an existing device → ``None``. The entity is already
           attached via ``device_entry`` (see ``__init__``); describing a device
           here would create one of our own instead.
-        * ``parent_entry_id`` set → our own device, nested under the parent
-          object's device via ``via_device``.
-        * neither → our own stand-alone device (the historical shape).
+        * otherwise → our own device. Parent nesting (``parent_entry_id``) is
+          NOT declared here: DeviceInfo's ``via_device`` identifier tuple is
+          deprecated (removal HA 2027.8) and resolves identifiers across
+          config entries — exactly what 2026.8's registry scoping ends.
+          Setup writes ``via_device_id`` into the registry after the platforms
+          load (``device_link.sync_via_device_links``).
         """
         obj = self._object_data
-        hass = self.coordinator.hass
 
         if self._linked_device is not None:
             return None
@@ -101,11 +103,6 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
             device_info["serial_number"] = obj["serial_number"]
         if obj.get("area_id"):
             device_info["suggested_area"] = obj["area_id"]
-
-        if parent_entry_id := obj.get("parent_entry_id"):
-            parent = hass.config_entries.async_get_entry(parent_entry_id)
-            if parent is not None and parent.domain == DOMAIN and parent.unique_id and parent.unique_id != GLOBAL_UNIQUE_ID:
-                device_info["via_device"] = (DOMAIN, parent.unique_id)
 
         return device_info
 

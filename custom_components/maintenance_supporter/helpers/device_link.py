@@ -29,6 +29,8 @@ there are no composite ids and nothing to resolve.
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
@@ -163,6 +165,46 @@ def is_self_link(hass: HomeAssistant, device_id: str, *, own_entry_id: str) -> b
     return device is not None and _only_ours(device, own_entry_id)
 
 
+def sync_via_device_links(hass: HomeAssistant, entry: Any) -> None:
+    """Write parent nesting as an explicit registry ``via_device_id``.
+
+    DeviceInfo's ``via_device`` identifier tuple is deprecated (removal HA
+    2027.8), and it resolves identifiers ACROSS config entries — the exact
+    lookup the 2026.8 registry scoping ends. Setting the id directly after
+    platform setup works identically on both versions.
+
+    Both directions run so boot order doesn't matter: this entry's own device
+    is pointed at its parent's, and any CHILD object naming this entry as
+    parent is (re)pointed here — with the old identifier tuple, a child that
+    registered before its parent simply stayed un-nested. A cleared
+    ``parent_entry_id`` clears the pointer again. Only OWN devices are ever
+    touched; a linked object owns none and is skipped.
+    """
+    from ..const import CONF_OBJECT, DOMAIN, GLOBAL_UNIQUE_ID
+
+    dev_reg = dr.async_get(hass)
+
+    def own_device(e: Any) -> dr.DeviceEntry | None:
+        if e is None or e.domain != DOMAIN or not e.unique_id or e.unique_id == GLOBAL_UNIQUE_ID:
+            return None
+        return dev_reg.async_get_device(identifiers={(DOMAIN, e.unique_id)})
+
+    def apply(child_entry: Any) -> None:
+        child_dev = own_device(child_entry)
+        if child_dev is None:
+            return
+        parent_id = (child_entry.data.get(CONF_OBJECT) or {}).get("parent_entry_id")
+        parent_dev = own_device(hass.config_entries.async_get_entry(parent_id)) if parent_id else None
+        target = parent_dev.id if parent_dev else None
+        if child_dev.via_device_id != target:
+            dev_reg.async_update_device(child_dev.id, via_device_id=target)
+
+    apply(entry)
+    for other in hass.config_entries.async_entries(DOMAIN):
+        if other.entry_id != entry.entry_id and (other.data.get(CONF_OBJECT) or {}).get("parent_entry_id") == entry.entry_id:
+            apply(other)
+
+
 def has_own_devices(hass: HomeAssistant, own_entry_id: str) -> bool:
     """Whether our config entry owns any device. A linked object owns none."""
     return bool(dr.async_entries_for_config_entry(dr.async_get(hass), own_entry_id))
@@ -208,4 +250,5 @@ __all__ = [
     "is_self_link",
     "resolve_linked_device_id",
     "shed_owned_devices",
+    "sync_via_device_links",
 ]

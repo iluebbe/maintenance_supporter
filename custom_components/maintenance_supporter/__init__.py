@@ -1363,6 +1363,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    if not is_global:
+        # Parent nesting is written as an explicit registry `via_device_id`
+        # AFTER the platforms created the devices — DeviceInfo's `via_device`
+        # identifier tuple is deprecated (removal HA 2027.8) and its
+        # cross-entry identifier lookup is what 2026.8's scoping ends. Runs
+        # both directions, so a child that boots before its parent still nests.
+        from .helpers.device_link import sync_via_device_links
+
+        sync_via_device_links(hass, entry)
+
     if linked_device_live:
         # The entities of a linked object live on the appliance'''s device, so a
         # device of our own with nothing on it is a leftover — of the object'''s

@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Attached manuals now also reach task-detail pages.** The object-manual row
+  there rendered only the legacy documentation-URL field; it now falls back to
+  the object's manual-category documents, same rule as the objects table and
+  the object header (completes the v2.47.0 fallback).
+
+### 🔧 Changed
+
+- **Object nesting is written as an explicit registry pointer.** The parent
+  link used DeviceInfo's `via_device` identifier tuple, which Home Assistant
+  deprecates (removal 2027.8) and which resolves identifiers across config
+  entries — the lookup the 2026.8 registry scoping ends. The pointer is now
+  set directly after setup, in both directions, so a child object that boots
+  before its parent nests correctly too (it previously stayed un-nested for
+  that boot), and removing the parent link now also clears the pointer.
+
 ## [2.47.0] - 2026-08-02
 
 ### ✨ Added
