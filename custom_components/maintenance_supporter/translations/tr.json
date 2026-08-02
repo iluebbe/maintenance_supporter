@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} cihaz bağlantısını kaybetti",
-      "description": "**{object}** bir Home Assistant cihazına bağlıydı; bu sayede bakım varlıkları o cihazın sayfasında görünüyordu. O cihaz artık yok — silindi ya da entegrasyonu kaldırıldı — ve nesne şimdi kendine ait bir cihaz gösteriyor. Başka bir şey değişmedi: görevler ve geçmişleri olduğu gibi duruyor.\n\nBakım panelinde *Mevcut cihaza bağla* altından yeniden bir cihaz seçin ya da kendi cihazı yeterliyse bunu yok sayın. Kayıtlı bağlantı bilerek korunuyor: cihaz geri gelirse bağlantı kendiliğinden yeniden çalışır."
+      "description": "**{object}** bir Home Assistant cihazına bağlıydı; bu sayede bakım varlıkları o cihazın sayfasında görünüyordu. O cihaz artık yok — silindi ya da entegrasyonu kaldırıldı — ve nesne şimdi kendine ait bir cihaz gösteriyor. Başka bir şey değişmedi: görevler ve geçmişleri olduğu gibi duruyor.\n\nCihazı yeniden seçmek (en iyi eşleşme önceden seçilidir) veya bağlantıyı kaldırmak için DÜZELT'e basın. O zamana kadar kayıtlı bağlantı korunur: cihaz geri dönerse bağlantı kendiliğinden devam eder.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "{object} cihaz bağlantısını onar",
+            "description": "Nasıl ilerleyeceğinizi seçin. Amaçlanan cihaz için en iyi tahmin: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Gerçek cihazı bağla",
+              "unlink": "Bağlantıyı kaldır"
+            }
+          },
+          "relink": {
+            "title": "Gerçek cihazı seç",
+            "description": "**{object}** nesnesinin ait olduğu cihazı seçin. En iyi eşleşme — **{suggestion}** — önceden seçilidir; kaydetmeden önce kontrol edin. Maintenance Supporter'ın kendi cihazları reddedilir.",
+            "data": {
+              "device": "Cihaz"
+            }
+          },
+          "unlink": {
+            "title": "Cihaz bağlantısını kaldır",
+            "description": "**{object}** kendi cihazını korur. Görevler ve geçmiş etkilenmez; bakım panelinden istediğiniz zaman yeniden bir cihaz bağlayabilirsiniz."
+          }
+        },
+        "error": {
+          "self_link": "Bu, Maintenance Supporter'ın kendi cihazı (nesnenin ikizi, gerçek cihaz değil) — asıl entegrasyonun cihazını seçin.",
+          "device_gone": "Bu cihaz (artık) yok."
+        },
+        "abort": {
+          "entry_gone": "Bu nesne artık yok — onarılacak bir şey kalmadı."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} kendi bakım cihazına bağlı",
+      "description": "**{object}** nesnesinin cihaz bağlantısı, Maintenance Supporter'ın nesne için kendisinin oluşturduğu ikiz cihazı gösteriyor — gerçek cihazın adını taşır ve seçici onu eskiden sunuyordu. Bu yüzden gerçek cihaz sayfasında bakım varlıkları hiç görünmedi.\n\nGerçek cihazı bağlamak (en iyi eşleşme önceden seçilidir) veya bağlantıyı kaldırmak için DÜZELT'e basın.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "{object} cihaz bağlantısını onar",
+            "description": "Nasıl ilerleyeceğinizi seçin. Amaçlanan cihaz için en iyi tahmin: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Gerçek cihazı bağla",
+              "unlink": "Bağlantıyı kaldır"
+            }
+          },
+          "relink": {
+            "title": "Gerçek cihazı seç",
+            "description": "**{object}** nesnesinin ait olduğu cihazı seçin. En iyi eşleşme — **{suggestion}** — önceden seçilidir; kaydetmeden önce kontrol edin. Maintenance Supporter'ın kendi cihazları reddedilir.",
+            "data": {
+              "device": "Cihaz"
+            }
+          },
+          "unlink": {
+            "title": "Cihaz bağlantısını kaldır",
+            "description": "**{object}** kendi cihazını korur. Görevler ve geçmiş etkilenmez; bakım panelinden istediğiniz zaman yeniden bir cihaz bağlayabilirsiniz."
+          }
+        },
+        "error": {
+          "self_link": "Bu, Maintenance Supporter'ın kendi cihazı (nesnenin ikizi, gerçek cihaz değil) — asıl entegrasyonun cihazını seçin.",
+          "device_gone": "Bu cihaz (artık) yok."
+        },
+        "abort": {
+          "entry_gone": "Bu nesne artık yok — onarılacak bir şey kalmadı."
+        }
+      }
     }
   },
   "exceptions": {

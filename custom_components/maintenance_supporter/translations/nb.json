@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} mistet enhetskoblingen sin",
-      "description": "**{object}** var koblet til en Home Assistant-enhet, slik at vedlikeholdsentitetene lå på den enhetens side. Den enheten finnes ikke lenger — slettet, eller integrasjonen fjernet — og objektet viser nå sin egen enhet. Ellers er ingenting endret: oppgavene og historikken er urørt.\n\nVelg en enhet på nytt i vedlikeholdspanelet under *Koble til eksisterende enhet*, eller overse dette hvis en egen enhet holder. Den lagrede koblingen beholdes med vilje: kommer enheten tilbake, virker koblingen av seg selv igjen."
+      "description": "**{object}** var koblet til en Home Assistant-enhet, slik at vedlikeholdsentitetene lå på den enhetens side. Den enheten finnes ikke lenger — slettet, eller integrasjonen fjernet — og objektet viser nå sin egen enhet. Ellers er ingenting endret: oppgavene og historikken er urørt.\n\nTrykk på REPARER for å velge en enhet på nytt (beste treff er forhåndsvalgt) eller for å fjerne koblingen. Inntil da beholdes den lagrede koblingen: kommer enheten tilbake, gjenopptas tilknytningen av seg selv.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Reparer enhetskoblingen for {object}",
+            "description": "Velg fremgangsmåte. Beste gjetning for den tiltenkte enheten: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Koble det egentlige apparatet",
+              "unlink": "Fjern koblingen"
+            }
+          },
+          "relink": {
+            "title": "Velg det egentlige apparatet",
+            "description": "Velg enheten som **{object}** hører til. Beste treff — **{suggestion}** — er forhåndsvalgt; kontroller det før du lagrer. Maintenance Supporters egne enheter avvises.",
+            "data": {
+              "device": "Enhet"
+            }
+          },
+          "unlink": {
+            "title": "Fjern enhetskoblingen",
+            "description": "**{object}** beholder en egen enhet. Oppgaver og historikk berøres ikke; du kan når som helst koble en enhet igjen i vedlikeholdspanelet."
+          }
+        },
+        "error": {
+          "self_link": "Det er en Maintenance Supporter-enhet (objektets tvilling, ikke apparatet) — velg apparatets egen enhet.",
+          "device_gone": "Den enheten finnes ikke (lenger)."
+        },
+        "abort": {
+          "entry_gone": "Objektet finnes ikke lenger — ingenting å reparere."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} er koblet til sin egen vedlikeholdsenhet",
+      "description": "Enhetskoblingen for **{object}** peker på tvillingenheten som Maintenance Supporter selv opprettet for objektet — den bærer apparatets navn, og velgeren tilbød den tidligere. Apparatets egentlige enhetsside viste derfor aldri vedlikeholdsentitetene.\n\nTrykk på REPARER for å koble det egentlige apparatet (beste treff er forhåndsvalgt) eller for å fjerne koblingen.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Reparer enhetskoblingen for {object}",
+            "description": "Velg fremgangsmåte. Beste gjetning for den tiltenkte enheten: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Koble det egentlige apparatet",
+              "unlink": "Fjern koblingen"
+            }
+          },
+          "relink": {
+            "title": "Velg det egentlige apparatet",
+            "description": "Velg enheten som **{object}** hører til. Beste treff — **{suggestion}** — er forhåndsvalgt; kontroller det før du lagrer. Maintenance Supporters egne enheter avvises.",
+            "data": {
+              "device": "Enhet"
+            }
+          },
+          "unlink": {
+            "title": "Fjern enhetskoblingen",
+            "description": "**{object}** beholder en egen enhet. Oppgaver og historikk berøres ikke; du kan når som helst koble en enhet igjen i vedlikeholdspanelet."
+          }
+        },
+        "error": {
+          "self_link": "Det er en Maintenance Supporter-enhet (objektets tvilling, ikke apparatet) — velg apparatets egen enhet.",
+          "device_gone": "Den enheten finnes ikke (lenger)."
+        },
+        "abort": {
+          "entry_gone": "Objektet finnes ikke lenger — ingenting å reparere."
+        }
+      }
     }
   },
   "exceptions": {

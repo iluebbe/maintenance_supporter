@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} ha perso il collegamento al dispositivo",
-      "description": "**{object}** era collegato a un dispositivo di Home Assistant, così le sue entità di manutenzione comparivano nella pagina di quel dispositivo. Quel dispositivo non esiste più — eliminato, o rimossa la sua integrazione — e l'oggetto ora mostra un dispositivo proprio. Nient'altro cambia: le attività e la loro cronologia restano intatte.\n\nScegli di nuovo un dispositivo nel pannello Manutenzione sotto *Collega a un dispositivo esistente*, oppure ignora questo avviso se un dispositivo proprio va bene. Il collegamento salvato viene mantenuto di proposito: se il dispositivo torna, il collegamento riprende da solo."
+      "description": "**{object}** era collegato a un dispositivo di Home Assistant, così le sue entità di manutenzione comparivano nella pagina di quel dispositivo. Quel dispositivo non esiste più — eliminato, o rimossa la sua integrazione — e l'oggetto ora mostra un dispositivo proprio. Nient'altro cambia: le attività e la loro cronologia restano intatte.\n\nPremi CORREGGI per scegliere di nuovo un dispositivo (la corrispondenza migliore è preselezionata) o per rimuovere il collegamento. Fino ad allora il collegamento salvato resta: se il dispositivo torna, l'aggancio riprende da solo.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Ripara il collegamento dispositivo di {object}",
+            "description": "Scegli come procedere. Miglior corrispondenza per il dispositivo inteso: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Collega il dispositivo reale",
+              "unlink": "Rimuovi il collegamento"
+            }
+          },
+          "relink": {
+            "title": "Scegli il dispositivo reale",
+            "description": "Scegli il dispositivo a cui appartiene **{object}**. La corrispondenza migliore — **{suggestion}** — è preselezionata; verificala prima di salvare. I dispositivi propri di Maintenance Supporter vengono rifiutati.",
+            "data": {
+              "device": "Dispositivo"
+            }
+          },
+          "unlink": {
+            "title": "Rimuovi il collegamento dispositivo",
+            "description": "**{object}** mantiene un dispositivo proprio. Attività e cronologia restano intatte; puoi collegare di nuovo un dispositivo in qualsiasi momento dal pannello di manutenzione."
+          }
+        },
+        "error": {
+          "self_link": "Questo è un dispositivo di Maintenance Supporter (il gemello dell'oggetto, non l'apparecchio reale): scegli il dispositivo dell'integrazione originale.",
+          "device_gone": "Questo dispositivo non esiste (più)."
+        },
+        "abort": {
+          "entry_gone": "Questo oggetto non esiste più: niente da riparare."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} è collegato al proprio dispositivo di manutenzione",
+      "description": "Il collegamento di **{object}** punta al dispositivo gemello creato da Maintenance Supporter per l'oggetto: porta il nome dell'apparecchio reale e in passato il selettore lo proponeva. Per questo la pagina reale dell'apparecchio non ha mai mostrato le entità di manutenzione.\n\nPremi CORREGGI per collegare il dispositivo reale (la corrispondenza migliore è preselezionata) o per rimuovere il collegamento.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Ripara il collegamento dispositivo di {object}",
+            "description": "Scegli come procedere. Miglior corrispondenza per il dispositivo inteso: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Collega il dispositivo reale",
+              "unlink": "Rimuovi il collegamento"
+            }
+          },
+          "relink": {
+            "title": "Scegli il dispositivo reale",
+            "description": "Scegli il dispositivo a cui appartiene **{object}**. La corrispondenza migliore — **{suggestion}** — è preselezionata; verificala prima di salvare. I dispositivi propri di Maintenance Supporter vengono rifiutati.",
+            "data": {
+              "device": "Dispositivo"
+            }
+          },
+          "unlink": {
+            "title": "Rimuovi il collegamento dispositivo",
+            "description": "**{object}** mantiene un dispositivo proprio. Attività e cronologia restano intatte; puoi collegare di nuovo un dispositivo in qualsiasi momento dal pannello di manutenzione."
+          }
+        },
+        "error": {
+          "self_link": "Questo è un dispositivo di Maintenance Supporter (il gemello dell'oggetto, non l'apparecchio reale): scegli il dispositivo dell'integrazione originale.",
+          "device_gone": "Questo dispositivo non esiste (più)."
+        },
+        "abort": {
+          "entry_gone": "Questo oggetto non esiste più: niente da riparare."
+        }
+      }
     }
   },
   "exceptions": {

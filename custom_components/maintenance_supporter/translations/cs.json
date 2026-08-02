@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} přišel o propojení se zařízením",
-      "description": "**{object}** byl propojen se zařízením Home Assistant, takže se jeho údržbové entity zobrazovaly na stránce tohoto zařízení. Zařízení už neexistuje — bylo smazáno nebo byla odebrána jeho integrace — a objekt nyní ukazuje vlastní zařízení. Nic dalšího se nemění: úkoly i jejich historie zůstávají nedotčené.\n\nVyberte zařízení znovu v panelu Údržba v části *Propojit s existujícím zařízením*, nebo toto upozornění ignorujte, pokud vlastní zařízení stačí. Uložené propojení je záměrně zachováno: vrátí-li se zařízení, propojení začne fungovat samo."
+      "description": "**{object}** byl propojen se zařízením Home Assistant, takže se jeho údržbové entity zobrazovaly na stránce tohoto zařízení. Zařízení už neexistuje — bylo smazáno nebo byla odebrána jeho integrace — a objekt nyní ukazuje vlastní zařízení. Nic dalšího se nemění: úkoly i jejich historie zůstávají nedotčené.\n\nStiskněte OPRAVIT a vyberte zařízení znovu (nejlepší shoda je předvybraná), nebo propojení odeberte. Do té doby uložené propojení zůstává: pokud se zařízení vrátí, připojení se obnoví samo.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Opravit propojení zařízení objektu {object}",
+            "description": "Zvolte postup. Nejlepší odhad zamýšleného zařízení: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Propojit skutečný přístroj",
+              "unlink": "Odebrat propojení"
+            }
+          },
+          "relink": {
+            "title": "Vybrat skutečný přístroj",
+            "description": "Vyberte zařízení, ke kterému **{object}** patří. Nejlepší shoda — **{suggestion}** — je předvybraná; před uložením ji zkontrolujte. Vlastní zařízení Maintenance Supporteru jsou odmítnuta.",
+            "data": {
+              "device": "Zařízení"
+            }
+          },
+          "unlink": {
+            "title": "Odebrat propojení zařízení",
+            "description": "**{object}** si ponechá vlastní zařízení. Úkoly a historie zůstávají beze změny; zařízení můžete kdykoli znovu propojit v panelu údržby."
+          }
+        },
+        "error": {
+          "self_link": "To je zařízení Maintenance Supporteru (dvojník objektu, ne skutečný přístroj) — vyberte zařízení původní integrace.",
+          "device_gone": "Toto zařízení (už) neexistuje."
+        },
+        "abort": {
+          "entry_gone": "Tento objekt už neexistuje — není co opravovat."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} je propojen se svým vlastním údržbovým zařízením",
+      "description": "Propojení objektu **{object}** ukazuje na dvojníka, kterého Maintenance Supporter pro objekt sám vytvořil — nese název skutečného přístroje a výběr zařízení jej dříve nabízel. Na skutečné stránce přístroje se proto údržbové entity nikdy nezobrazovaly.\n\nStiskněte OPRAVIT a propojte skutečný přístroj (nejlepší shoda je předvybraná), nebo propojení odeberte.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Opravit propojení zařízení objektu {object}",
+            "description": "Zvolte postup. Nejlepší odhad zamýšleného zařízení: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Propojit skutečný přístroj",
+              "unlink": "Odebrat propojení"
+            }
+          },
+          "relink": {
+            "title": "Vybrat skutečný přístroj",
+            "description": "Vyberte zařízení, ke kterému **{object}** patří. Nejlepší shoda — **{suggestion}** — je předvybraná; před uložením ji zkontrolujte. Vlastní zařízení Maintenance Supporteru jsou odmítnuta.",
+            "data": {
+              "device": "Zařízení"
+            }
+          },
+          "unlink": {
+            "title": "Odebrat propojení zařízení",
+            "description": "**{object}** si ponechá vlastní zařízení. Úkoly a historie zůstávají beze změny; zařízení můžete kdykoli znovu propojit v panelu údržby."
+          }
+        },
+        "error": {
+          "self_link": "To je zařízení Maintenance Supporteru (dvojník objektu, ne skutečný přístroj) — vyberte zařízení původní integrace.",
+          "device_gone": "Toto zařízení (už) neexistuje."
+        },
+        "abort": {
+          "entry_gone": "Tento objekt už neexistuje — není co opravovat."
+        }
+      }
     }
   },
   "exceptions": {

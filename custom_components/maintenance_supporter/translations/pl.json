@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} utracił powiązanie z urządzeniem",
-      "description": "**{object}** był powiązany z urządzeniem Home Assistant, dzięki czemu jego encje konserwacji pojawiały się na stronie tego urządzenia. Tego urządzenia już nie ma — usunięto je albo usunięto jego integrację — i obiekt pokazuje teraz własne urządzenie. Poza tym nic się nie zmienia: zadania i ich historia pozostają nienaruszone.\n\nWybierz urządzenie ponownie w panelu Konserwacji w sekcji *Powiąż z istniejącym urządzeniem* albo zignoruj ten komunikat, jeśli własne urządzenie wystarczy. Zapisane powiązanie celowo pozostaje: gdy urządzenie wróci, powiązanie zadziała samo."
+      "description": "**{object}** był powiązany z urządzeniem Home Assistant, dzięki czemu jego encje konserwacji pojawiały się na stronie tego urządzenia. Tego urządzenia już nie ma — usunięto je albo usunięto jego integrację — i obiekt pokazuje teraz własne urządzenie. Poza tym nic się nie zmienia: zadania i ich historia pozostają nienaruszone.\n\nNaciśnij NAPRAW, aby ponownie wybrać urządzenie (najlepsze dopasowanie jest wstępnie wybrane) lub usunąć powiązanie. Do tego czasu zapisane powiązanie pozostaje: jeśli urządzenie wróci, połączenie wznowi się samo.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Napraw powiązanie urządzenia dla {object}",
+            "description": "Wybierz sposób postępowania. Najlepszy typ zamierzonego urządzenia: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Powiąż prawdziwe urządzenie",
+              "unlink": "Usuń powiązanie"
+            }
+          },
+          "relink": {
+            "title": "Wybierz prawdziwe urządzenie",
+            "description": "Wybierz urządzenie, do którego należy **{object}**. Najlepsze dopasowanie — **{suggestion}** — jest wstępnie wybrane; sprawdź je przed zapisaniem. Własne urządzenia Maintenance Supporter są odrzucane.",
+            "data": {
+              "device": "Urządzenie"
+            }
+          },
+          "unlink": {
+            "title": "Usuń powiązanie urządzenia",
+            "description": "**{object}** zachowa własne urządzenie. Zadania i historia pozostają nietknięte; w panelu konserwacji możesz w każdej chwili ponownie powiązać urządzenie."
+          }
+        },
+        "error": {
+          "self_link": "To urządzenie należy do Maintenance Supporter (bliźniak obiektu, nie prawdziwy sprzęt) — wybierz urządzenie oryginalnej integracji.",
+          "device_gone": "To urządzenie (już) nie istnieje."
+        },
+        "abort": {
+          "entry_gone": "Ten obiekt już nie istnieje — nie ma czego naprawiać."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} jest powiązany z własnym urządzeniem konserwacyjnym",
+      "description": "Powiązanie urządzenia dla **{object}** wskazuje na bliźniacze urządzenie, które Maintenance Supporter sam utworzył dla obiektu — nosi ono nazwę prawdziwego sprzętu, a selektor kiedyś je oferował. Dlatego na prawdziwej stronie urządzenia encje konserwacyjne nigdy się nie pojawiały.\n\nNaciśnij NAPRAW, aby powiązać prawdziwe urządzenie (najlepsze dopasowanie jest wstępnie wybrane) lub usunąć powiązanie.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Napraw powiązanie urządzenia dla {object}",
+            "description": "Wybierz sposób postępowania. Najlepszy typ zamierzonego urządzenia: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Powiąż prawdziwe urządzenie",
+              "unlink": "Usuń powiązanie"
+            }
+          },
+          "relink": {
+            "title": "Wybierz prawdziwe urządzenie",
+            "description": "Wybierz urządzenie, do którego należy **{object}**. Najlepsze dopasowanie — **{suggestion}** — jest wstępnie wybrane; sprawdź je przed zapisaniem. Własne urządzenia Maintenance Supporter są odrzucane.",
+            "data": {
+              "device": "Urządzenie"
+            }
+          },
+          "unlink": {
+            "title": "Usuń powiązanie urządzenia",
+            "description": "**{object}** zachowa własne urządzenie. Zadania i historia pozostają nietknięte; w panelu konserwacji możesz w każdej chwili ponownie powiązać urządzenie."
+          }
+        },
+        "error": {
+          "self_link": "To urządzenie należy do Maintenance Supporter (bliźniak obiektu, nie prawdziwy sprzęt) — wybierz urządzenie oryginalnej integracji.",
+          "device_gone": "To urządzenie (już) nie istnieje."
+        },
+        "abort": {
+          "entry_gone": "Ten obiekt już nie istnieje — nie ma czego naprawiać."
+        }
+      }
     }
   },
   "exceptions": {

@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} 的设备关联已失效",
-      "description": "**{object}** 曾关联到一个 Home Assistant 设备，因此它的维护实体显示在该设备页面上。该设备已不存在——被删除，或其集成被移除——对象现在显示自己的设备。其他一切不变：任务及其历史记录未受影响。\n\n请在维护面板的*关联到现有设备*中重新选择一个设备，或者如果自有设备也可以，就忽略此提示。保存的关联被有意保留：设备若回来，关联会自动恢复。"
+      "description": "**{object}** 曾关联到一个 Home Assistant 设备，因此它的维护实体显示在该设备页面上。该设备已不存在——被删除，或其集成被移除——对象现在显示自己的设备。其他一切不变：任务及其历史记录未受影响。\n\n按“修复”重新选择设备(已预选最佳匹配)或移除关联。在此之前,已保存的关联会保留:设备回来后会自动恢复连接。",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "修复 {object} 的设备关联",
+            "description": "选择处理方式。最可能的目标设备:**{suggestion}**。",
+            "menu_options": {
+              "relink": "关联真实设备",
+              "unlink": "移除关联"
+            }
+          },
+          "relink": {
+            "title": "选择真实设备",
+            "description": "选择 **{object}** 所属的设备。最佳匹配——**{suggestion}**——已预选,保存前请核对。Maintenance Supporter 自身的设备会被拒绝。",
+            "data": {
+              "device": "设备"
+            }
+          },
+          "unlink": {
+            "title": "移除设备关联",
+            "description": "**{object}** 将保留自己的设备。任务和历史记录不受影响;之后可随时在维护面板中重新关联设备。"
+          }
+        },
+        "error": {
+          "self_link": "这是 Maintenance Supporter 自身的设备(对象的孪生设备,不是真实设备)——请选择原集成的设备。",
+          "device_gone": "该设备(已)不存在。"
+        },
+        "abort": {
+          "entry_gone": "该对象已不存在——无需修复。"
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} 关联到了它自己的维护设备",
+      "description": "**{object}** 的设备关联指向 Maintenance Supporter 为该对象自行创建的孪生设备——它与真实设备同名,设备选择器以前会将其列出。因此真实设备页面从未显示过维护实体。\n\n按“修复”关联真实设备(已预选最佳匹配)或移除关联。",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "修复 {object} 的设备关联",
+            "description": "选择处理方式。最可能的目标设备:**{suggestion}**。",
+            "menu_options": {
+              "relink": "关联真实设备",
+              "unlink": "移除关联"
+            }
+          },
+          "relink": {
+            "title": "选择真实设备",
+            "description": "选择 **{object}** 所属的设备。最佳匹配——**{suggestion}**——已预选,保存前请核对。Maintenance Supporter 自身的设备会被拒绝。",
+            "data": {
+              "device": "设备"
+            }
+          },
+          "unlink": {
+            "title": "移除设备关联",
+            "description": "**{object}** 将保留自己的设备。任务和历史记录不受影响;之后可随时在维护面板中重新关联设备。"
+          }
+        },
+        "error": {
+          "self_link": "这是 Maintenance Supporter 自身的设备(对象的孪生设备,不是真实设备)——请选择原集成的设备。",
+          "device_gone": "该设备(已)不存在。"
+        },
+        "abort": {
+          "entry_gone": "该对象已不存在——无需修复。"
+        }
+      }
     }
   },
   "exceptions": {

@@ -512,3 +512,241 @@ async def test_the_production_update_path_keeps_a_live_link(
         if round_no == 1:
             await hass.config_entries.async_reload(obj_entry.entry_id)
             await hass.async_block_till_done()
+
+
+# ─── self-links: the doppelgänger trap (prod 2026-08) ──────────────────────
+#
+# The old picker offered the object's OWN device — which carries the
+# appliance's exact name — as a link target, and three production objects
+# spent months "linked" to themselves. Every layer now handles it: the WS
+# write path rejects it, the resolver treats it as unlinked, setup raises a
+# distinct notice, and the migration must not shed the very device the
+# entities live on.
+
+
+async def test_resolver_treats_an_own_device_as_no_link(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.helpers.device_link import (
+        resolve_linked_device_id,
+    )
+
+    obj_entry = _make_entry(hass, "resself", name="Vacuum")
+    await setup_integration(hass, global_entry, obj_entry)
+    own = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)[0]
+
+    assert resolve_linked_device_id(hass, own.id, own_entry_id=obj_entry.entry_id) is None
+    # A foreign device still resolves.
+    foreign = _foreign_device(hass)
+    assert resolve_linked_device_id(hass, foreign.id, own_entry_id=obj_entry.entry_id) == foreign.id
+
+
+async def test_validate_rejects_maintenance_devices_as_link_targets(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Both the object's own device and a SIBLING object's device are refused —
+    for hierarchy there is parent_entry_id. A foreign device still passes."""
+    a = _make_entry(hass, "valself_a", name="A")
+    b = _make_entry(hass, "valself_b", name="B")
+    await setup_integration(hass, global_entry, a, b)
+
+    own_a = dr.async_entries_for_config_entry(dr.async_get(hass), a.entry_id)[0]
+    own_b = dr.async_entries_for_config_entry(dr.async_get(hass), b.entry_id)[0]
+
+    conn = _FakeConnection()
+    assert not _validate_device_link(hass, conn, {"id": 1, "ha_device_id": own_a.id}, self_entry_id=a.entry_id)
+    assert conn.errors[-1][0] == "self_link_device"
+    assert not _validate_device_link(hass, conn, {"id": 2, "ha_device_id": own_b.id}, self_entry_id=a.entry_id)
+    assert conn.errors[-1][0] == "self_link_device"
+    assert _validate_device_link(
+        hass, conn, {"id": 3, "ha_device_id": _foreign_device(hass).id}, self_entry_id=a.entry_id
+    )
+
+
+async def test_a_self_link_raises_its_own_notice_and_keeps_the_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """An object whose stored link names its OWN device: setup must raise the
+    device_link_self notice (fixable), keep the entities on that device, and
+    neither delete nor duplicate it — the prod update did the delete/restore
+    dance exactly here."""
+    from homeassistant.helpers import issue_registry as ir
+
+    obj_entry = _make_entry(hass, "selflink", name="Robot Vacuum")
+    await setup_integration(hass, global_entry, obj_entry)
+    own = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)[0]
+
+    data = dict(obj_entry.data)
+    data[CONF_OBJECT] = {**data[CONF_OBJECT], "ha_device_id": own.id}
+    hass.config_entries.async_update_entry(obj_entry, data=data)
+    await hass.config_entries.async_reload(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"device_link_lost_{obj_entry.entry_id}")
+    assert issue is not None, "no notice for a self-link"
+    assert issue.translation_key == "device_link_self"
+    assert issue.is_fixable
+
+    owned = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert [d.id for d in owned] == [own.id], "the own device was removed or duplicated"
+    ours = er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id)
+    assert ours and all(e.device_id == own.id for e in ours)
+
+    # The stored (nonsensical) link is left alone — the fix flow, not setup,
+    # is the place that rewrites it.
+    stored = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
+    assert stored.get("ha_device_id") == own.id
+
+
+async def test_migrating_a_self_linked_install_does_not_shed_its_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The prod 2026-08-01 path: minor_version < 5 with a stored SELF-link.
+    The 4→5 shed must skip it — its 'source' is the very device the entities
+    live on, and shedding deleted + restored it in one boot."""
+    from homeassistant.helpers import issue_registry as ir
+
+    obj_entry = _make_entry(hass, "migself", name="Roborock EG")
+    # Stage the pre-update reality: the own device exists and the stored link
+    # points at it (written by the old picker months ago).
+    own = dr.async_get(hass).async_get_or_create(
+        config_entry_id=obj_entry.entry_id,
+        identifiers={(DOMAIN, obj_entry.unique_id or "")},
+        name="Roborock EG",
+    )
+    data = dict(obj_entry.data)
+    data[CONF_OBJECT] = {**data[CONF_OBJECT], "ha_device_id": own.id}
+    hass.config_entries.async_update_entry(obj_entry, data=data)
+
+    await setup_integration(hass, global_entry, obj_entry)
+
+    assert hass.config_entries.async_get_entry(obj_entry.entry_id).minor_version >= 5
+    refreshed = dr.async_get(hass).async_get(own.id)
+    assert refreshed is not None, "the migration shed the object's own device"
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"device_link_lost_{obj_entry.entry_id}")
+    assert issue is not None and issue.translation_key == "device_link_self"
+    ours = er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id)
+    assert ours and all(e.device_id == own.id for e in ours)
+
+
+# ─── the fixable repair flow ────────────────────────────────────────────────
+
+
+def _link_flow(hass: HomeAssistant, entry_id: str) -> Any:
+    from custom_components.maintenance_supporter.repairs import DeviceLinkRepairFlow
+
+    flow = DeviceLinkRepairFlow()
+    flow.hass = hass
+    flow.data = {"entry_id": entry_id}
+    return flow
+
+
+async def test_link_repair_menu_and_best_match_suggestion(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The menu names the object and suggests the best foreign name match —
+    NEVER one of our own devices, however well their names match."""
+    foreign = _foreign_device(hass)  # "Washing Machine" / Miele
+    obj_entry = _make_entry(
+        hass, "flowmenu", name="Washing Machine", extra_obj={"ha_device_id": "no_such_device"}
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _link_flow(hass, obj_entry.entry_id)
+    result = await flow.async_step_init()
+    assert result["type"] == "menu"
+    assert set(result["menu_options"]) == {"relink", "unlink"}
+    placeholders = result["description_placeholders"]
+    assert placeholders["object"] == "Washing Machine"
+    assert placeholders["suggestion"] == "Washing Machine"
+
+    form = await flow.async_step_relink()
+    assert form["type"] == "form"
+    # The best match is pre-selected in the device picker.
+    schema_keys = {str(key): key for key in form["data_schema"].schema}
+    assert schema_keys["device"].default() == foreign.id
+
+
+async def test_link_repair_relink_rewrites_the_link_and_reloads(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    foreign = _foreign_device(hass)
+    obj_entry = _make_entry(
+        hass, "flowrelink", name="Orphan", extra_obj={"ha_device_id": "no_such_device"}
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _link_flow(hass, obj_entry.entry_id)
+    result = await flow.async_step_relink({"device": foreign.id})
+    assert result["type"] == "create_entry"
+    await hass.async_block_till_done()
+
+    stored = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
+    assert stored.get("ha_device_id") == foreign.id
+    ours = er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id)
+    assert ours and all(e.device_id == foreign.id for e in ours), "reload did not re-attach"
+
+
+async def test_link_repair_relink_refuses_our_own_devices(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The flow applies the same guard as the WS write path — picking the
+    doppelgänger inside the REPAIR for picking the doppelgänger would be
+    a bitter loop."""
+    obj_entry = _make_entry(
+        hass, "flowguard", name="Guarded", extra_obj={"ha_device_id": "no_such_device"}
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+    own = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)[0]
+
+    flow = _link_flow(hass, obj_entry.entry_id)
+    result = await flow.async_step_relink({"device": own.id})
+    assert result["type"] == "form"
+    assert result["errors"] == {"device": "self_link"}
+
+    result = await flow.async_step_relink({"device": "gone_entirely"})
+    assert result["type"] == "form"
+    assert result["errors"] == {"device": "device_gone"}
+
+
+async def test_link_repair_unlink_clears_the_link(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    obj_entry = _make_entry(
+        hass, "flowunlink", name="Standalone", extra_obj={"ha_device_id": "no_such_device"}
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _link_flow(hass, obj_entry.entry_id)
+    confirm = await flow.async_step_unlink()
+    assert confirm["type"] == "form"
+    result = await flow.async_step_unlink({})
+    assert result["type"] == "create_entry"
+    await hass.async_block_till_done()
+
+    stored = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
+    assert stored.get("ha_device_id") is None
+    # Unlinked objects live on an own device.
+    own = dr.async_entries_for_config_entry(dr.async_get(hass), obj_entry.entry_id)
+    assert len(own) == 1
+
+
+async def test_link_repair_aborts_when_the_object_is_gone(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    flow = _link_flow(hass, "does_not_exist")
+    result = await flow.async_step_init()
+    assert result["type"] == "abort"
+    assert result["reason"] == "entry_gone"
+
+
+async def test_fix_flow_dispatch_routes_device_link_issues(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.repairs import (
+        DeviceLinkRepairFlow,
+        async_create_fix_flow,
+    )
+
+    flow = await async_create_fix_flow(hass, "device_link_lost_abc123", {"entry_id": "abc123"})
+    assert isinstance(flow, DeviceLinkRepairFlow)

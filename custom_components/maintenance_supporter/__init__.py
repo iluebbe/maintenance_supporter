@@ -1114,9 +1114,15 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # here means the split never has anything to split.
     if minor < 5:
         if is_object_entry and (device_id := (data.get(CONF_OBJECT) or {}).get("ha_device_id")):
-            from .helpers.device_link import shed_owned_devices
+            from .helpers.device_link import is_self_link, shed_owned_devices
 
-            shed_owned_devices(hass, own_entry_id=entry.entry_id, source_device_id=device_id)
+            # A SELF-link (the stored id names our own device — the old picker
+            # offered the object's doppelgänger) must not be shed: the "source"
+            # is the very device the entities live on, and shedding it deletes
+            # and restores it in one boot (prod 2026-08-01, three Roborocks).
+            # Setup raises the device_link_self notice for these instead.
+            if not is_self_link(hass, device_id, own_entry_id=entry.entry_id):
+                shed_owned_devices(hass, own_entry_id=entry.entry_id, source_device_id=device_id)
         minor = 5
 
     hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
@@ -1277,16 +1283,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             # moment the link resolves again.
             from homeassistant.helpers import issue_registry as ir
 
+            from .helpers.device_link import is_self_link
+
             issue_id = f"device_link_lost_{entry.entry_id}"
             if resolved is None:
+                # Two distinct stories share one issue id (so resolve/delete
+                # stays single-path): the linked device is GONE, or the link
+                # points at the object's own doppelgänger device — the old
+                # picker offered it under the appliance's exact name. The
+                # advice differs, so the translation key does too. Both are
+                # fixable: the flow relinks to the device the user picks.
+                self_link = is_self_link(hass, stored_device_id, own_entry_id=entry.entry_id)
                 ir.async_create_issue(
                     hass,
                     DOMAIN,
                     issue_id,
-                    is_fixable=False,
+                    is_fixable=True,
                     severity=ir.IssueSeverity.WARNING,
-                    translation_key="device_link_lost",
+                    translation_key="device_link_self" if self_link else "device_link_lost",
                     translation_placeholders={"object": obj_data.get("name") or entry.title},
+                    data={"entry_id": entry.entry_id},
                 )
             else:
                 ir.async_delete_issue(hass, DOMAIN, issue_id)

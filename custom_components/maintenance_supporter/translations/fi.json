@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} menetti laitelinkityksensä",
-      "description": "**{object}** oli linkitetty Home Assistant -laitteeseen, joten sen huoltoentiteetit näkyivät kyseisen laitteen sivulla. Laitetta ei enää ole — se poistettiin tai sen integraatio poistettiin — ja kohde näyttää nyt oman laitteensa. Muu ei muutu: tehtävät ja niiden historia säilyvät koskemattomina.\n\nValitse laite uudelleen Huolto-paneelissa kohdasta *Linkitä olemassa olevaan laitteeseen*, tai jätä tämä huomiotta, jos oma laite riittää. Tallennettu linkitys säilytetään tarkoituksella: jos laite palaa, linkitys toimii taas itsestään."
+      "description": "**{object}** oli linkitetty Home Assistant -laitteeseen, joten sen huoltoentiteetit näkyivät kyseisen laitteen sivulla. Laitetta ei enää ole — se poistettiin tai sen integraatio poistettiin — ja kohde näyttää nyt oman laitteensa. Muu ei muutu: tehtävät ja niiden historia säilyvät koskemattomina.\n\nPaina KORJAA valitaksesi laitteen uudelleen (paras osuma on esivalittu) tai poistaaksesi linkityksen. Siihen asti tallennettu linkitys säilyy: jos laite palaa, kiinnitys jatkuu itsestään.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Korjaa kohteen {object} laitelinkitys",
+            "description": "Valitse toimintatapa. Paras arvaus tarkoitetusta laitteesta: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Linkitä oikea laite",
+              "unlink": "Poista linkitys"
+            }
+          },
+          "relink": {
+            "title": "Valitse oikea laite",
+            "description": "Valitse laite, johon **{object}** kuuluu. Paras osuma — **{suggestion}** — on esivalittu; tarkista se ennen tallennusta. Maintenance Supporterin omat laitteet hylätään.",
+            "data": {
+              "device": "Laite"
+            }
+          },
+          "unlink": {
+            "title": "Poista laitelinkitys",
+            "description": "**{object}** säilyttää oman laitteensa. Tehtävät ja historia eivät muutu; voit linkittää laitteen uudelleen milloin tahansa huoltopaneelissa."
+          }
+        },
+        "error": {
+          "self_link": "Tuo on Maintenance Supporterin laite (kohteen kaksonen, ei oikea laite) — valitse laitteen oman integraation laite.",
+          "device_gone": "Tuota laitetta ei (enää) ole."
+        },
+        "abort": {
+          "entry_gone": "Tätä kohdetta ei enää ole — ei korjattavaa."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} on linkitetty omaan huoltolaitteeseensa",
+      "description": "Kohteen **{object}** laitelinkitys osoittaa kaksoislaitteeseen, jonka Maintenance Supporter itse loi kohteelle — sillä on oikean laitteen nimi, ja valitsin tarjosi sitä aiemmin. Oikean laitteen sivulla huoltoentiteetit eivät siksi koskaan näkyneet.\n\nPaina KORJAA linkittääksesi oikean laitteen (paras osuma on esivalittu) tai poistaaksesi linkityksen.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Korjaa kohteen {object} laitelinkitys",
+            "description": "Valitse toimintatapa. Paras arvaus tarkoitetusta laitteesta: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Linkitä oikea laite",
+              "unlink": "Poista linkitys"
+            }
+          },
+          "relink": {
+            "title": "Valitse oikea laite",
+            "description": "Valitse laite, johon **{object}** kuuluu. Paras osuma — **{suggestion}** — on esivalittu; tarkista se ennen tallennusta. Maintenance Supporterin omat laitteet hylätään.",
+            "data": {
+              "device": "Laite"
+            }
+          },
+          "unlink": {
+            "title": "Poista laitelinkitys",
+            "description": "**{object}** säilyttää oman laitteensa. Tehtävät ja historia eivät muutu; voit linkittää laitteen uudelleen milloin tahansa huoltopaneelissa."
+          }
+        },
+        "error": {
+          "self_link": "Tuo on Maintenance Supporterin laite (kohteen kaksonen, ei oikea laite) — valitse laitteen oman integraation laite.",
+          "device_gone": "Tuota laitetta ei (enää) ole."
+        },
+        "abort": {
+          "entry_gone": "Tätä kohdetta ei enää ole — ei korjattavaa."
+        }
+      }
     }
   },
   "exceptions": {

@@ -38,7 +38,10 @@ def resolve_linked_device_id(
 ) -> str | None:
     """Return the device id to attach to, or ``None`` if there is none left.
 
-    * a live device id is returned unchanged — the ordinary case;
+    * a live FOREIGN device id is returned unchanged — the ordinary case;
+    * a live device that is OURS returns ``None``: the old picker offered the
+      object's own doppelgänger (same name as the appliance) as a link target,
+      and "linked to itself" is not a link (prod 2026-08: three Roborocks);
     * a pre-migration composite id resolves to the split we actually meant,
       namely the one owned by somebody else;
     * anything else (deleted device, unknown id) returns ``None``, which the
@@ -53,11 +56,17 @@ def resolve_linked_device_id(
     # entity registry refuse the link. Ask whether the id is composite first.
     is_composite = getattr(dev_reg, "async_is_composite_device_id", None)
     if is_composite is None:
-        # HA < 2026.8: no composites, so a live device or nothing.
-        return device_id if dev_reg.async_get(device_id) is not None else None
+        # HA < 2026.8: no composites, so a live foreign device or nothing.
+        device = dev_reg.async_get(device_id)
+        if device is None or _only_ours(device, own_entry_id):
+            return None
+        return device_id
 
     state = is_composite(device_id)  # False = live device, True = composite, None = unknown
     if state is False:
+        device = dev_reg.async_get(device_id)
+        if device is not None and _only_ours(device, own_entry_id):
+            return None
         return device_id
     if state is not True:
         return None
@@ -104,6 +113,56 @@ def _is_ours(device: dr.DeviceEntry, own_entry_id: str) -> bool:
     return bool(getattr(device, "config_entry_id", None) == own_entry_id)
 
 
+def _only_ours(device: dr.DeviceEntry, own_entry_id: str) -> bool:
+    """Whether OUR entry is the device's sole owner — the self-link shape.
+
+    The distinction matters: a legacy CO-OWNED appliance device (the appliance's
+    integration + us, the pre-2.45 merge) is a real link that migration must
+    still clean up; the doppelgänger the old picker offered is owned by our
+    entry alone.
+    """
+    owners = set(getattr(device, "config_entries", None) or ())
+    if single := getattr(device, "config_entry_id", None):
+        owners.add(single)
+    return owners == {own_entry_id}
+
+
+def is_maintenance_device(hass: HomeAssistant, device: dr.DeviceEntry) -> bool:
+    """Whether a device belongs to Maintenance Supporter (identifiers or owner).
+
+    Our own devices always carry a ``(DOMAIN, …)`` identifier; the owning-entry
+    check additionally catches forks that copied a foreign identity. Both the
+    plural ``config_entries`` (classic) and the singular ``config_entry_id``
+    (HA 2026.8) spellings are consulted. Used to keep such devices out of the
+    device-link surfaces: linking an object to a maintenance device is never
+    meaningful (object hierarchy has ``parent_entry_id``).
+    """
+    from ..const import DOMAIN
+
+    if any(ident[0] == DOMAIN for ident in (getattr(device, "identifiers", None) or ())):
+        return True
+    owner_ids = list(getattr(device, "config_entries", None) or ())
+    if single := getattr(device, "config_entry_id", None):
+        owner_ids.append(single)
+    return any(
+        (ce := hass.config_entries.async_get_entry(ce_id)) is not None and ce.domain == DOMAIN
+        for ce_id in owner_ids
+    )
+
+
+def is_self_link(hass: HomeAssistant, device_id: str, *, own_entry_id: str) -> bool:
+    """Whether the stored id names a device our entry SOLELY owns (a self-link).
+
+    Distinguishes "the linked device is gone" from "the link points at the
+    object's own maintenance doppelgänger" so setup can tell the user which of
+    the two actually happened — the repair advice differs. A CO-owned device
+    (the legacy merge onto a live appliance) is deliberately NOT a self-link:
+    that one migration must still clean up.
+    """
+    device = dr.async_get(hass).async_get(device_id)
+    return device is not None and _only_ours(device, own_entry_id)
+
+
 def has_own_devices(hass: HomeAssistant, own_entry_id: str) -> bool:
     """Whether our config entry owns any device. A linked object owns none."""
     return bool(dr.async_entries_for_config_entry(dr.async_get(hass), own_entry_id))
@@ -123,17 +182,30 @@ def shed_owned_devices(hass: HomeAssistant, *, own_entry_id: str, source_device_
     that exists, and it is not deprecated there. Preferring the newer function
     where it exists is also what stops Home Assistant logging a deprecation
     notice that asks the user to file a bug against us.
+
+    Targeted mode only: without a source there is nothing to relink the
+    entities to, and "drop every own device" is never what a caller wants here
+    (an unlinked/unresolved object is actively USING its own device) — so a
+    missing source is an explicit no-op on both HA versions.
     """
+    if not source_device_id:
+        return
+
     from homeassistant.helpers import helper_integration
 
     modern = getattr(helper_integration, "async_remove_helper_devices", None)
     if modern is not None:
         modern(hass, helper_config_entry_id=own_entry_id, source_device_id=source_device_id)
         return
-    if source_device_id:
-        helper_integration.async_remove_helper_config_entry_from_source_device(
-            hass, helper_config_entry_id=own_entry_id, source_device_id=source_device_id
-        )
+    helper_integration.async_remove_helper_config_entry_from_source_device(
+        hass, helper_config_entry_id=own_entry_id, source_device_id=source_device_id
+    )
 
 
-__all__ = ["has_own_devices", "resolve_linked_device_id", "shed_owned_devices"]
+__all__ = [
+    "has_own_devices",
+    "is_maintenance_device",
+    "is_self_link",
+    "resolve_linked_device_id",
+    "shed_owned_devices",
+]

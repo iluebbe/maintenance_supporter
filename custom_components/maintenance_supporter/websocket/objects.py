@@ -85,8 +85,25 @@ def _validate_device_link(
     if device_id := msg.get("ha_device_id"):
         from homeassistant.helpers import device_registry as dr
 
-        if dr.async_get(hass).async_get(device_id) is None:
+        device = dr.async_get(hass).async_get(device_id)
+        if device is None:
             connection.send_error(msg["id"], "invalid_device", f"No HA device {device_id!r}")
+            return False
+        # A device of our own domain is never a valid link target: it is this
+        # object's own maintenance device (or a sibling object's). The picker
+        # cannot exclude them, and ours carries the SAME NAME as the appliance
+        # — three prod objects spent months linked to their own doppelgänger
+        # before anyone noticed. For object hierarchy there is parent_entry_id.
+        from ..helpers.device_link import is_maintenance_device
+
+        if is_maintenance_device(hass, device):
+            connection.send_error(
+                msg["id"],
+                "self_link_device",
+                "That device belongs to Maintenance Supporter itself (the object's "
+                "maintenance twin, not the appliance) — pick the device owned by the "
+                "appliance's integration; it usually carries the same name",
+            )
             return False
 
     if parent_id := msg.get("parent_entry_id"):

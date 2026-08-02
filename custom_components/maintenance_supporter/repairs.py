@@ -655,6 +655,140 @@ class MissingGlobalEntryRepairFlow(RepairsFlow):
         return self.async_show_form(step_id="init", data_schema=vol.Schema({}))
 
 
+class DeviceLinkRepairFlow(RepairsFlow):
+    """Relink or unlink an object whose stored device link is unusable.
+
+    One flow serves both translation keys behind the ``device_link_lost_…``
+    issue id: the linked device VANISHED (``device_link_lost``), and the link
+    points at the object's own doppelgänger device (``device_link_self`` —
+    the old picker offered it under the appliance's exact name).
+
+    Two menu options:
+
+    1. Relink — a device picker, pre-filled with the best name/manufacturer
+       match among devices that are NOT ours; Maintenance Supporter devices
+       are rejected on submit (the same guard the WS write path applies).
+    2. Unlink — clear the stored link; the object keeps a device of its own.
+
+    ``self.data`` carries ``{"entry_id": str}``.
+    """
+
+    _match_cached = False
+    _match: Any = None
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+        entry = _entry_for_issue(self.hass, self.data)
+        if entry is None:
+            return self.async_abort(reason="entry_gone")
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["relink", "unlink"],
+            description_placeholders=self._placeholders(entry),
+        )
+
+    async def async_step_relink(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+        from homeassistant.helpers import device_registry as dr
+
+        from .helpers.device_link import is_maintenance_device
+
+        entry = _entry_for_issue(self.hass, self.data)
+        if entry is None:
+            return self.async_abort(reason="entry_gone")
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            device_id = str(user_input.get("device", "")).strip()
+            device = dr.async_get(self.hass).async_get(device_id) if device_id else None
+            if device is None:
+                errors["device"] = "device_gone"
+            elif is_maintenance_device(self.hass, device):
+                errors["device"] = "self_link"
+            else:
+                self._set_link(entry, device_id)
+                return self.async_create_entry(data={})
+
+        suggestion = self._best_match(entry)
+        device_key = vol.Required("device", default=suggestion.id) if suggestion else vol.Required("device")
+        return self.async_show_form(
+            step_id="relink",
+            data_schema=vol.Schema({device_key: selector.DeviceSelector()}),
+            errors=errors,
+            description_placeholders=self._placeholders(entry),
+        )
+
+    async def async_step_unlink(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+        entry = _entry_for_issue(self.hass, self.data)
+        if entry is None:
+            return self.async_abort(reason="entry_gone")
+        if user_input is not None:
+            self._set_link(entry, None)
+            return self.async_create_entry(data={})
+        return self.async_show_form(
+            step_id="unlink",
+            data_schema=vol.Schema({}),
+            description_placeholders=self._placeholders(entry),
+        )
+
+    # ── helpers ──────────────────────────────────────────────────────────
+
+    def _placeholders(self, entry: Any) -> dict[str, str]:
+        from .const import CONF_OBJECT
+
+        obj = entry.data.get(CONF_OBJECT, {}) or {}
+        best = self._best_match(entry)
+        return {
+            "object": str(obj.get("name") or entry.title),
+            "suggestion": str((best.name_by_user or best.name) if best else "—"),
+        }
+
+    def _best_match(self, entry: Any) -> Any:
+        """The non-maintenance device whose identity best matches the object.
+
+        Same scoring the prod diagnosis used: count the object's name /
+        manufacturer / model words appearing in the device's name-plus-model
+        string. A device RE-CREATED under a new id (the usual reason a link
+        dies) keeps its name, so it surfaces as the natural suggestion.
+        """
+        if self._match_cached:
+            return self._match
+        self._match_cached = True
+
+        from homeassistant.helpers import device_registry as dr
+
+        from .const import CONF_OBJECT
+        from .helpers.device_link import is_maintenance_device
+
+        def norm(value: Any) -> str:
+            import re
+
+            return re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
+
+        obj = entry.data.get(CONF_OBJECT, {}) or {}
+        words = {w for w in norm(obj.get("name")).split() if len(w) > 2}
+        words |= {w for w in (norm(obj.get("manufacturer")), norm(obj.get("model"))) if w}
+
+        best, best_score = None, 0
+        for device in dr.async_get(self.hass).devices.values():
+            if is_maintenance_device(self.hass, device):
+                continue
+            hay = norm(f"{device.name_by_user or ''} {device.name or ''} {device.manufacturer or ''} {device.model or ''}")
+            score = sum(1 for w in words if w and w in hay)
+            if score > best_score:
+                best, best_score = device, score
+        self._match = best
+        return best
+
+    def _set_link(self, entry: Any, device_id: str | None) -> None:
+        """Write the new link and reload — the entity→device attachment only
+        changes on entity re-add (the same reason the WS update path reloads)."""
+        from .const import CONF_OBJECT
+
+        obj = dict(entry.data.get(CONF_OBJECT, {}) or {})
+        obj["ha_device_id"] = device_id
+        self.hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_OBJECT: obj})
+        self.hass.config_entries.async_schedule_reload(entry.entry_id)
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
@@ -665,6 +799,8 @@ async def async_create_fix_flow(
         return OrphanAdminPanelUserRepairFlow()
     if issue_id.startswith("stale_action_entity_"):
         return StaleActionEntityRepairFlow()
+    if issue_id.startswith("device_link_lost_"):
+        return DeviceLinkRepairFlow()
     if issue_id == "document_storage_issues":
         return DocumentStorageRepairFlow()
     if issue_id == "missing_global_entry":

@@ -1825,7 +1825,71 @@
     },
     "device_link_lost": {
       "title": "{object} elvesztette az eszközkapcsolatát",
-      "description": "**{object}** egy Home Assistant eszközhöz volt kapcsolva, így a karbantartási entitásai annak az eszköznek az oldalán jelentek meg. Az az eszköz már nem létezik — törölték, vagy eltávolították az integrációját — és az objektum most saját eszközt mutat. Más nem változik: a feladatok és az előzményeik érintetlenek.\n\nVálasszon újra eszközt a Karbantartás panelen a *Kapcsolás meglévő eszközhöz* alatt, vagy hagyja figyelmen kívül, ha a saját eszköz is megfelel. A mentett kapcsolat szándékosan megmarad: ha az eszköz visszatér, a kapcsolat magától újra él."
+      "description": "**{object}** egy Home Assistant eszközhöz volt kapcsolva, így a karbantartási entitásai annak az eszköznek az oldalán jelentek meg. Az az eszköz már nem létezik — törölték, vagy eltávolították az integrációját — és az objektum most saját eszközt mutat. Más nem változik: a feladatok és az előzményeik érintetlenek.\n\nNyomd meg a JAVÍTÁS gombot, hogy újra eszközt válassz (a legjobb találat előre ki van választva), vagy hogy eltávolítsd az összekapcsolást. Addig a mentett összekapcsolás megmarad: ha az eszköz visszatér, a kapcsolat magától helyreáll.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "{object} eszköz-összekapcsolásának javítása",
+            "description": "Válaszd ki a teendőt. A legjobb tipp a szánt eszközre: **{suggestion}**.",
+            "menu_options": {
+              "relink": "A valódi készülék összekapcsolása",
+              "unlink": "Összekapcsolás eltávolítása"
+            }
+          },
+          "relink": {
+            "title": "A valódi készülék kiválasztása",
+            "description": "Válaszd ki azt az eszközt, amelyhez **{object}** tartozik. A legjobb találat — **{suggestion}** — előre ki van választva; mentés előtt ellenőrizd. A Maintenance Supporter saját eszközeit a rendszer elutasítja.",
+            "data": {
+              "device": "Eszköz"
+            }
+          },
+          "unlink": {
+            "title": "Eszköz-összekapcsolás eltávolítása",
+            "description": "**{object}** saját eszközt tart meg. A feladatok és az előzmények érintetlenek maradnak; a karbantartási panelen bármikor újra összekapcsolhatsz egy eszközt."
+          }
+        },
+        "error": {
+          "self_link": "Ez a Maintenance Supporter saját eszköze (az objektum ikertestvére, nem a valódi készülék) — válaszd az eredeti integráció eszközét.",
+          "device_gone": "Ez az eszköz (már) nem létezik."
+        },
+        "abort": {
+          "entry_gone": "Ez az objektum már nem létezik — nincs mit javítani."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} a saját karbantartási eszközéhez van kapcsolva",
+      "description": "A(z) **{object}** eszköz-összekapcsolása arra az ikereszközre mutat, amelyet a Maintenance Supporter maga hozott létre az objektumhoz — a valódi készülék nevét viseli, és a választó korábban felkínálta. Ezért a készülék valódi eszközoldalán a karbantartási entitások sosem jelentek meg.\n\nNyomd meg a JAVÍTÁS gombot a valódi készülék összekapcsolásához (a legjobb találat előre ki van választva), vagy az összekapcsolás eltávolításához.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "{object} eszköz-összekapcsolásának javítása",
+            "description": "Válaszd ki a teendőt. A legjobb tipp a szánt eszközre: **{suggestion}**.",
+            "menu_options": {
+              "relink": "A valódi készülék összekapcsolása",
+              "unlink": "Összekapcsolás eltávolítása"
+            }
+          },
+          "relink": {
+            "title": "A valódi készülék kiválasztása",
+            "description": "Válaszd ki azt az eszközt, amelyhez **{object}** tartozik. A legjobb találat — **{suggestion}** — előre ki van választva; mentés előtt ellenőrizd. A Maintenance Supporter saját eszközeit a rendszer elutasítja.",
+            "data": {
+              "device": "Eszköz"
+            }
+          },
+          "unlink": {
+            "title": "Eszköz-összekapcsolás eltávolítása",
+            "description": "**{object}** saját eszközt tart meg. A feladatok és az előzmények érintetlenek maradnak; a karbantartási panelen bármikor újra összekapcsolhatsz egy eszközt."
+          }
+        },
+        "error": {
+          "self_link": "Ez a Maintenance Supporter saját eszköze (az objektum ikertestvére, nem a valódi készülék) — válaszd az eredeti integráció eszközét.",
+          "device_gone": "Ez az eszköz (már) nem létezik."
+        },
+        "abort": {
+          "entry_gone": "Ez az objektum már nem létezik — nincs mit javítani."
+        }
+      }
     }
   },
   "exceptions": {
