@@ -230,6 +230,16 @@ roster's presentation can now catch up. In recommended order:
    4× AAA?" without scanning.
 5. **Level bars instead of bare percentages** (mini battery-fill glyph) —
    purely cosmetic, lowest priority.
+6. **Unregistered-replacement detector.** A real fleet had a sensor sit at
+   16 % for three weeks, get fresh cells, and jump to 100 % — while Battery
+   Notes' `last_replaced` stayed 21 months old, because nobody pressed the
+   *battery replaced* button. The signature is unmistakable in the recorder
+   (a large upward level jump), so the fleet can detect it and offer a
+   one-click *record this replacement* that calls
+   `battery_notes.set_battery_replaced` with the **detected** jump time —
+   fixing the forecast anchor retroactively instead of silently computing
+   from the dead battery's date. Detection can ride the same statistics
+   fetch as the sparklines (item 1).
 
 ### Next wave (proposed 2026-07)
 
