@@ -586,6 +586,14 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       flex: 0 0 auto;
       cursor: help;
     }
+    /* On phones the row cannot fit name + chips + curve + bar + date: the
+     * decorations yield (the percentage still carries the number). */
+    @media (max-width: 640px) {
+      .bf-spark,
+      .bf-bar {
+        display: none;
+      }
+    }
     .bf-spark-line {
       fill: none;
       stroke: var(--primary-color);
