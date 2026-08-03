@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **81** registered commands are covered here. Their authorization tiers are
+All **83** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -579,6 +579,13 @@ last-replaced + type-lifetime table. `rechargeable` (2.51+) marks types that
 are charged rather than bought (Rechargeable, Li-ion, packs): the row stays
 for low tracking but never counts into `needs_now`/`needs_soon` and only a
 trend can date it.
+
+### `battery_fleet/overview_history` — read
+`{}` → `{series: {entity_id: {points: [[epoch_s, level]…], threshold}}}` —
+per-battery 30-day downsampled level history (≤60 points) plus the low
+threshold the trend forecast regresses toward. Backs the roster sparklines
+(2.51+); fetched lazily when the roster is expanded, recorder work 6 h-cached
+per entity. Batteries without a level series (low-only binaries) are absent.
 
 ### `battery_fleet/setup` — `@require_write`
 `{language?}` → creates (or idempotently reconciles) the fleet object, its

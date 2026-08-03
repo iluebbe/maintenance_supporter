@@ -90,6 +90,45 @@ await fetch(`${REST}/api/states/binary_sensor.back_door_lock_battery_plus_low`, 
 log("SEEDED battery states");
 
 const api = await wsClient(REST, token);
+
+// ── 30 d discharge statistics for the roster sparklines (2.51) ─────────────
+// Falling hourly series → the trend regression dates these rows and the
+// sparkline draws a dotted projection to the threshold. Values END at the
+// seeded state so line and number agree. Import flushes asynchronously on
+// the recorder worker — poll until visible, or the first overview call
+// caches the miss for 6 h and the shot shows no sparklines.
+const SPARK = [
+  ["kitchen_smoke", 60, 34],   // ~16 d to the 20 % floor → trend "soon"
+  ["video_doorbell", 85, 64],  // rechargeable: trend stays, table never dates it
+  ["front_door_lock", 68, 61], // barely draining → line without a trend date
+];
+const hours = 30 * 24;
+for (const [slug, from, to] of SPARK) {
+  const sid = `sensor.${slug}_battery_plus`;
+  const stats = [];
+  for (let i = 0; i <= hours; i += 1) {
+    const start = new Date(Date.now() - (hours - i) * 3600e3);
+    start.setMinutes(0, 0, 0);
+    stats.push({ start: start.toISOString(), mean: from + ((to - from) * i) / hours });
+  }
+  await api.send({
+    type: "recorder/import_statistics",
+    metadata: { has_mean: true, has_sum: false, name: null, source: "recorder", statistic_id: sid, unit_of_measurement: "%" },
+    stats,
+  });
+}
+for (let i = 0; i < 30; i++) {
+  const res = await api.send({
+    type: "recorder/statistics_during_period",
+    start_time: new Date(Date.now() - 3 * 86400e3).toISOString(),
+    statistic_ids: SPARK.map(([s]) => `sensor.${s}_battery_plus`),
+    period: "hour",
+    types: ["mean"],
+  });
+  if (Object.keys(res).length === SPARK.length) break;
+  await new Promise((r) => setTimeout(r, 1000));
+}
+log("SEEDED discharge statistics");
 let fleetEntry = null;
 const existing = (await api.send({ type: "maintenance_supporter/objects" })).objects;
 fleetEntry = existing.find((o) => o.object.battery_fleet || /battery fleet/i.test(o.object.name))?.entry_id;
@@ -107,7 +146,7 @@ api.close();
 
 // ── Browser ────────────────────────────────────────────────────────────────
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
-const ctx = await b.newContext({ viewport: { width: 1600, height: 1150 }, colorScheme: "dark" });
+const ctx = await b.newContext({ viewport: { width: 1600, height: 1460 }, colorScheme: "dark" });
 await ctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("hassTokens", JSON.stringify({
     access_token: t, token_type: "Bearer", expires_in: 1800,
@@ -149,7 +188,8 @@ await p.evaluate(({ finder }) => {
       for (const k of (el.children || [])) st.push(k); } return out; };
   for (const d of deep2(window.__panel, (el) => el.tagName === "DETAILS")) d.open = true;
 }, { finder: deepFindPanel });
-await p.waitForTimeout(1200);
+// Opening the roster lazily fetches the sparkline history — give it a beat.
+await p.waitForTimeout(2500);
 await p.screenshot({ path: OUT + "battery-fleet.png" });
 log("SHOT battery-fleet.png");
 

@@ -38,11 +38,12 @@ function overview(extra: Record<string, unknown> = {}) {
   };
 }
 
-async function mount(ov: unknown = overview()) {
+async function mount(ov: unknown = overview(), history: Record<string, unknown> = {}) {
   const calls: Array<Record<string, unknown>> = [];
   const { hass } = createMockHass({
     handlers: {
       "maintenance_supporter/battery_fleet/overview": () => ov,
+      "maintenance_supporter/battery_fleet/overview_history": () => ({ series: history }),
       "maintenance_supporter/battery_fleet/set_excluded": (msg: Record<string, unknown>) => {
         calls.push(msg);
         return { success: true };
@@ -144,5 +145,83 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     void all;
     const { el } = await mount(withoutRoster);
     expect(roster(el)).to.equal(null);
+  });
+
+  async function openRoster(el: MaintenanceBatteryFleetSection) {
+    const details = roster(el) as HTMLDetailsElement;
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+  }
+
+  it("draws a sparkline from the lazy history, with a dotted trend projection", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const trendRow = {
+      ...HEALTHY, entity_id: "sensor.cam_battery_plus", device_name: "Yard Cam",
+      days_until: 21, predicted_source: "trend", prediction_confidence: "high",
+    };
+    const points: [number, number][] = Array.from({ length: 30 }, (_, i) => [now - (30 - i) * 86400, 90 - i]);
+    const { el } = await mount(
+      overview({ total: 2, all: [{ ...trendRow, status: "soon" }, { ...HEALTHY, status: "ok" }] }),
+      {
+        "sensor.cam_battery_plus": { points, threshold: 20 },
+        // The healthy row has history but NO trend — line yes, projection no.
+        "sensor.vacuum_battery_plus": { points, threshold: 20 },
+      },
+    );
+    await openRoster(el);
+    const sparks = [...roster(el)!.querySelectorAll("svg.bf-spark")];
+    expect(sparks).to.have.lengthOf(2);
+    const camRow = [...roster(el)!.querySelectorAll(".bf-row")].find((r) => /Yard Cam/.test(r.textContent || ""))!;
+    expect(camRow.querySelector(".bf-spark-line"), "the level line").to.not.equal(null);
+    expect(camRow.querySelector(".bf-spark-proj"), "trend rows project to the threshold").to.not.equal(null);
+    const vacuumRow = [...roster(el)!.querySelectorAll(".bf-row")].find((r) => /Robot Vacuum/.test(r.textContent || ""))!;
+    expect(vacuumRow.querySelector(".bf-spark-proj"), "no trend, no projection").to.equal(null);
+  });
+
+  it("renders rows unchanged when a battery has no history", async () => {
+    const { el } = await mount(overview(), {});
+    await openRoster(el);
+    expect(roster(el)!.querySelectorAll("svg.bf-spark")).to.have.lengthOf(0);
+    expect(roster(el)!.querySelectorAll(".bf-row")).to.have.lengthOf(2);
+  });
+
+  it("sorts by urgency on toggle: low first, then soonest forecast", async () => {
+    const soonRow = {
+      ...HEALTHY, entity_id: "sensor.bell_battery_plus", device_name: "Aaa Doorbell",
+      days_until: 12, status: "soon",
+    };
+    const { el } = await mount(overview({
+      total: 3,
+      // Name order: Aaa Doorbell, Front Lock, Robot Vacuum.
+      all: [{ ...soonRow }, { ...LOW, status: "low" }, { ...HEALTHY, status: "ok" }],
+    }));
+    await openRoster(el);
+    const names = () => [...roster(el)!.querySelectorAll(".bf-dev")].map((n) => n.textContent?.trim());
+    expect(names()).to.deep.equal(["Aaa Doorbell", "Front Lock", "Robot Vacuum"]);
+
+    const buttons = [...roster(el)!.querySelectorAll<HTMLButtonElement>("button.bf-sort")];
+    expect(buttons).to.have.lengthOf(2);
+    buttons[1].click();
+    await el.updateComplete;
+    expect(names(), "low first, then the 12-day forecast").to.deep.equal(["Front Lock", "Aaa Doorbell", "Robot Vacuum"]);
+    buttons[0].click();
+    await el.updateComplete;
+    expect(names()).to.deep.equal(["Aaa Doorbell", "Front Lock", "Robot Vacuum"]);
+  });
+
+  it("labels the mark action on a low rechargeable as recharging, not replacing", async () => {
+    const lowPack = { ...LOW, entity_id: "sensor.cam2_battery_plus", device_name: "Yard Cam 2", battery_type: "BATTERY PACK", rechargeable: true };
+    const { el } = await mount(overview({
+      total: 2,
+      low: [LOW, lowPack],
+      all: [{ ...LOW, status: "low" }, { ...lowPack, status: "low" }],
+    }));
+    const lowRows = [...el.shadowRoot!.querySelectorAll(".bf-rows")[0].querySelectorAll(".bf-row")];
+    const packRow = lowRows.find((r) => /Yard Cam 2/.test(r.textContent || ""))!;
+    const plainRow = lowRows.find((r) => /Front Lock/.test(r.textContent || ""))!;
+    expect(packRow.querySelector("button.bf-mark:not(.bf-exclude)")!.getAttribute("title")).to.match(/recharged/i);
+    expect(plainRow.querySelector("button.bf-mark:not(.bf-exclude)")!.getAttribute("title")).to.not.match(/recharged/i);
   });
 });

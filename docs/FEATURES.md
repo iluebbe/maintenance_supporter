@@ -299,7 +299,14 @@ The fleet task's detail view is the whole surface:
   those batteries surface here instead of dropping out unseen.
 - **Every tracked battery, behind *All tracked batteries*** — the full roster,
   each row tagged *Low*, *Soon* or *Healthy*, collapsed by default so the
-  section still opens on what needs doing.
+  section still opens on what needs doing. Each row draws a **30-day
+  discharge sparkline** (2.51+) from the recorder — with a faint line at the
+  low threshold, and on trend-dated rows a **dotted projection** from the
+  last reading down to that threshold, so the ~date is something you can
+  *see*. The history is fetched only when the roster is opened and cached
+  for 6 hours. A **name ⇄ urgency toggle** re-sorts the same list for
+  planning (low first, soonest forecast next), and on a low rechargeable
+  the mark action reads *mark as recharged*.
 - **Exclude a battery by hand** — the eye-off action takes a device out of the
   fleet for good (count, shopping list and forecast), for the cases the
   automatic skips don't cover. It sits on the low rows **and on every row of
@@ -567,7 +574,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 82 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 83 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -646,7 +653,7 @@ Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
 `add_task`, `update_task`, `delete_task`, and `list_tasks` (returns a
 response — id, name, status, next due per task, filterable by object and
 status) join the long-standing `complete` / `skip` / `reset` /
-`export_data`. For the full WebSocket API (82 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+`export_data`. For the full WebSocket API (83 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

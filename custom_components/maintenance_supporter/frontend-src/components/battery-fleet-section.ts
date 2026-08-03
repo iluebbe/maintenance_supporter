@@ -29,6 +29,10 @@ interface BatteryRow {
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
 }
+/** 30 d downsampled level history per battery, for the roster sparklines.
+ *  threshold = the same low threshold the trend forecast regresses toward,
+ *  so the dotted projection ends exactly where the ~date comes from. */
+type HistorySeries = Record<string, { points: [number, number][]; threshold: number }>;
 interface Overview {
   available: boolean;
   configured: boolean;
@@ -52,6 +56,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   @state() private _loading = false;
   @state() private _marking = false;
   @state() private _error = "";
+  @state() private _history: HistorySeries | null = null;
+  @state() private _rosterSort: "name" | "urgency" = "name";
+  private _historyRequested = false;
   private _localeReady = false;
 
   private get _lang(): string {
@@ -146,6 +153,73 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
   }
 
+  /** Lazy: the recorder-backed history is fetched once, when the roster is
+   *  first expanded — most panel visits never open it. */
+  private _loadHistory = async (e: Event): Promise<void> => {
+    if (!(e.target as HTMLDetailsElement).open || this._historyRequested) return;
+    this._historyRequested = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{ series: HistorySeries }>({
+        type: "maintenance_supporter/battery_fleet/overview_history",
+      });
+      this._history = res.series;
+    } catch {
+      this._history = null; // sparklines are an enhancement — rows render without them
+    }
+  };
+
+  /** Inline-SVG sparkline: 30 d level line, a faint threshold line, and —
+   *  where the ~date comes from the discharge trend — a dotted projection
+   *  from the last reading down to the threshold, so the date is visible
+   *  instead of merely stated. */
+  private _sparkline(b: RosterRow) {
+    const h = this._history?.[b.entity_id];
+    if (!h || h.points.length < 2) return nothing;
+    const W = 110, H = 24, P = 2;
+    const t0 = h.points[0][0];
+    const tLast = h.points[h.points.length - 1][0];
+    const nowSec = Date.now() / 1000;
+    const projEnd =
+      b.status !== "low" && b.predicted_source === "trend" && b.days_until != null
+        ? nowSec + b.days_until * 86400
+        : null;
+    const tMax = Math.max(tLast, projEnd ?? tLast);
+    const x = (t: number) => (tMax === t0 ? P : P + ((t - t0) / (tMax - t0)) * (W - 2 * P));
+    const y = (v: number) => P + (1 - Math.min(100, Math.max(0, v)) / 100) * (H - 2 * P);
+    const line = h.points.map(([t, v]) => `${x(t).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    const vLast = h.points[h.points.length - 1][1];
+    const yTh = y(h.threshold).toFixed(1);
+    return html`<svg
+      class="bf-spark"
+      viewBox="0 0 ${W} ${H}"
+      role="img"
+      aria-label=${t("battery_fleet_sparkline_hint", this._lang)}
+    >
+      <title>${t("battery_fleet_sparkline_hint", this._lang)}</title>
+      <line class="bf-spark-th" x1="0" y1=${yTh} x2=${W} y2=${yTh}></line>
+      <polyline class="bf-spark-line" points=${line}></polyline>
+      ${projEnd !== null
+        ? html`<line
+            class="bf-spark-proj"
+            x1=${x(tLast).toFixed(1)}
+            y1=${y(vLast).toFixed(1)}
+            x2=${x(projEnd).toFixed(1)}
+            y2=${yTh}
+          ></line>`
+        : nothing}
+    </svg>`;
+  }
+
+  /** The roster stays a name-sorted lookup list by default; urgency mode
+   *  turns the same list into a planning view (low first, soonest next). */
+  private _sortedRoster(rows: RosterRow[]): RosterRow[] {
+    if (this._rosterSort === "name") return rows;
+    const rank = (r: RosterRow) => (r.status === "low" ? -1 : (r.days_until ?? Infinity));
+    return [...rows].sort(
+      (a, b) => rank(a) - rank(b) || a.device_name.localeCompare(b.device_name),
+    );
+  }
+
   /** The forecast as a date a person can plan with, not a day count.
    *  `days_until` comes from last-replaced + typical lifetime, so it is an
    *  estimate — the tilde in the template says so. Negative values (past the
@@ -214,7 +288,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                       ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                       <button
                         class="bf-mark"
-                        title=${t("battery_fleet_mark_one", L)}
+                        title=${b.rechargeable ? t("battery_fleet_mark_recharged", L) : t("battery_fleet_mark_one", L)}
                         .disabled=${this._marking}
                         @click=${() => this._mark([b.entity_id])}
                       >
@@ -250,10 +324,24 @@ export class MaintenanceBatteryFleetSection extends LitElement {
           : nothing}
         ${ov.all?.length
           ? html`
-              <details class="bf-roster">
+              <details class="bf-roster" @toggle=${this._loadHistory}>
                 <summary>${t("battery_fleet_all", L)} (${ov.all.length})</summary>
+                <div class="bf-roster-tools">
+                  <button
+                    class="bf-sort ${this._rosterSort === "name" ? "bf-sort-active" : ""}"
+                    @click=${() => (this._rosterSort = "name")}
+                  >
+                    ${t("battery_fleet_sort_name", L)}
+                  </button>
+                  <button
+                    class="bf-sort ${this._rosterSort === "urgency" ? "bf-sort-active" : ""}"
+                    @click=${() => (this._rosterSort = "urgency")}
+                  >
+                    ${t("battery_fleet_sort_urgency", L)}
+                  </button>
+                </div>
                 <div class="bf-rows">
-                  ${ov.all.map(
+                  ${this._sortedRoster(ov.all).map(
                     (b) => html`
                       <div class="bf-row">
                         <span class="bf-dev">${b.device_name}</span>
@@ -264,6 +352,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                               ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
                             ></span>`
                           : nothing}
+                        ${this._sparkline(b)}
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                         ${b.days_until != null
                           ? html`<span
@@ -413,6 +502,47 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
     .bf-recharge ha-icon {
       --mdc-icon-size: 16px;
+    }
+    .bf-spark {
+      width: 110px;
+      height: 24px;
+      flex: 0 0 auto;
+      cursor: help;
+    }
+    .bf-spark-line {
+      fill: none;
+      stroke: var(--primary-color);
+      stroke-width: 1.5;
+      stroke-linejoin: round;
+    }
+    .bf-spark-proj {
+      stroke: var(--primary-color);
+      stroke-width: 1.2;
+      stroke-dasharray: 2 3;
+      opacity: 0.7;
+    }
+    .bf-spark-th {
+      stroke: var(--error-color, #f44336);
+      stroke-width: 1;
+      opacity: 0.35;
+    }
+    .bf-roster-tools {
+      display: flex;
+      gap: 6px;
+      margin: 8px 0 2px;
+    }
+    .bf-sort {
+      background: none;
+      border: 1px solid var(--divider-color);
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      cursor: pointer;
+    }
+    .bf-sort-active {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
     }
     .bf-level {
       font-size: 12px;

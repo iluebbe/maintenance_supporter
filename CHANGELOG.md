@@ -14,6 +14,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   exactly those three tasks (previously one generic 30-cycle tub clean), so
   what its panel counts silently becomes a real reminder with assignees,
   history, parts and voice. Catalog: 123 integrations / 231 signatures.
+- **Battery fleet: discharge sparklines in the roster.** Every roster row now
+  draws its battery's last 30 days from the recorder — a small inline curve
+  with a faint line at the low threshold, and where the ~date comes from the
+  discharge trend, a **dotted projection** from the last reading down to that
+  threshold: the predicted date becomes something you can see, not something
+  you must believe. History is fetched lazily when the roster is expanded
+  (new read-tier WS `battery_fleet/overview_history`, ≤60 points per battery,
+  recorder work cached 6 h like the trend). The roster also gained a
+  **name ⇄ urgency sort toggle** (low first, soonest forecast next), and the
+  mark action on a low rechargeable now reads **"Mark as recharged"** —
+  same button, honest words. All strings in 22 languages.
 
 ### 🔧 Fixed
 

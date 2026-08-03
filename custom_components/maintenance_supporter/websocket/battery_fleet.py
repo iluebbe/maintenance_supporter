@@ -14,7 +14,14 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
-from ..helpers.battery_fleet import async_compute_overview, fleet_excluded_entities, has_batteries, has_battery_notes
+from ..helpers.battery_fleet import (
+    async_compute_overview,
+    async_level_history,
+    fleet_excluded_entities,
+    has_batteries,
+    has_battery_notes,
+    read_batteries,
+)
 from ..helpers.battery_fleet_setup import (
     async_mark_replaced,
     async_setup_battery_fleet,
@@ -73,6 +80,22 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             ],
         },
     )
+
+
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/battery_fleet/overview_history"})
+@websocket_api.async_response
+async def ws_battery_fleet_history(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Per-battery 30 d level history for the roster sparklines (read tier,
+    like overview — it renders the same data a user already sees as numbers).
+
+    Fetched lazily by the panel when the roster is expanded; the recorder
+    work behind it is 6 h-cached per entity (misses included), so repeated
+    opens are cheap. ``{series: {entity_id: {points: [[epoch_s, level]…],
+    threshold}}}`` — the threshold is the same one the trend forecast asks
+    about, so the frontend can draw the projection down to it.
+    """
+    series = await async_level_history(hass, read_batteries(hass))
+    connection.send_result(msg["id"], {"series": series})
 
 
 @websocket_api.websocket_command(

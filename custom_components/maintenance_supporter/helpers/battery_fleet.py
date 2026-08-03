@@ -646,15 +646,9 @@ async def async_trend_predictions(hass: HomeAssistant, batteries: list[Battery])
                 out[bat.entity_id] = cached[1]
             continue
 
-        # The replacement moment is the fleet's low signal: Battery Notes' own
-        # threshold (attr, default 10 %) OR the fleet-wide floor — whichever
-        # crosses first on the way down, i.e. the higher of the two.
-        threshold = float(NATIVE_LOW_PERCENT)
-        state = hass.states.get(bat.entity_id)
-        if state is not None:
-            raw = state.attributes.get("battery_low_threshold")
-            if isinstance(raw, (int, float)):
-                threshold = float(max(raw, NATIVE_LOW_PERCENT))
+        # The replacement moment is the fleet's low signal — see
+        # battery_low_threshold (shared with the sparkline threshold line).
+        threshold = battery_low_threshold(hass, bat.entity_id)
 
         result: tuple[int, str] | None = None
         try:
@@ -681,6 +675,84 @@ async def async_compute_overview(hass: HomeAssistant, *, horizon_days: int = DEF
     return build_overview(batteries, today=dt_util.now().date(), horizon_days=horizon_days, trend_predictions=trends)
 
 
+# ── level history for the roster sparklines ────────────────────────────────
+
+_HISTORY_CACHE_KEY = "maintenance_supporter_battery_history_cache"
+_HISTORY_CACHE_TTL = timedelta(hours=6)
+# ~60 points draw a smooth 30 d line; hourly stats would be 720.
+_HISTORY_MAX_POINTS = 60
+
+
+def _downsample(points: list[tuple[float, float]], max_points: int = _HISTORY_MAX_POINTS) -> list[tuple[float, float]]:
+    """Bucket-mean a point series down to at most ``max_points``.
+
+    Mean per bucket (not every-Nth) so a short voltage dip still leaves a
+    visible dent instead of being skipped entirely.
+    """
+    if len(points) <= max_points:
+        return points
+    size = (len(points) + max_points - 1) // max_points
+    out: list[tuple[float, float]] = []
+    for i in range(0, len(points), size):
+        bucket = points[i : i + size]
+        out.append((bucket[-1][0], sum(v for _, v in bucket) / len(bucket)))
+    return out
+
+
+def battery_low_threshold(hass: HomeAssistant, entity_id: str) -> float:
+    """The level at which this battery counts low — Battery Notes' own
+    threshold (attr) or the fleet-wide floor, whichever is higher (the one
+    that crosses first on the way down). Shared by the trend forecast and
+    the sparkline threshold line."""
+    threshold = float(NATIVE_LOW_PERCENT)
+    state = hass.states.get(entity_id)
+    if state is not None:
+        raw = state.attributes.get("battery_low_threshold")
+        if isinstance(raw, (int, float)):
+            threshold = float(max(raw, NATIVE_LOW_PERCENT))
+    return threshold
+
+
+async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> dict[str, dict[str, Any]]:
+    """Per-battery downsampled level history: {entity_id: {points, threshold}}.
+
+    Feeds the roster sparklines. Same 30 d recorder window the trend
+    regression sees (so the drawn line IS what the forecast reasoned about),
+    same 6 h cache-including-misses discipline as the trend — the roster is
+    opened per panel visit and batteries drain over weeks. Low batteries are
+    included (unlike the trend): the dive INTO low is exactly what the
+    sparkline should show.
+    """
+    from .sensor_predictor import SensorPredictor
+
+    cache: dict[str, tuple[Any, list[tuple[float, float]]]] = hass.data.setdefault(_HISTORY_CACHE_KEY, {})
+    now = dt_util.utcnow()
+    predictor = SensorPredictor(hass)
+    out: dict[str, dict[str, Any]] = {}
+
+    for bat in batteries:
+        if bat.level is None and not bat.low:
+            continue  # low-only binaries have no level series to draw
+        cached = cache.get(bat.entity_id)
+        if cached is not None and now - cached[0] < _HISTORY_CACHE_TTL:
+            points = cached[1]
+        else:
+            try:
+                # Deliberate reuse of the predictor's fetch so the sparkline
+                # and the regression see the same series.
+                points = _downsample(await predictor._async_fetch_statistics_points(bat.entity_id, 30))
+            except Exception:  # noqa: BLE001 - a recorder hiccup must never break the roster
+                _LOGGER.debug("Level history failed for %s", bat.entity_id, exc_info=True)
+                points = []
+            cache[bat.entity_id] = (now, points)
+        if points:
+            out[bat.entity_id] = {
+                "points": [[round(ts), round(v, 1)] for ts, v in points],
+                "threshold": battery_low_threshold(hass, bat.entity_id),
+            }
+    return out
+
+
 def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
     """Battery types present across the fleet → total quantity, for part setup.
 
@@ -703,7 +775,9 @@ __all__ = [
     "Battery",
     "BatteryOverview",
     "async_compute_overview",
+    "async_level_history",
     "async_trend_predictions",
+    "battery_low_threshold",
     "build_overview",
     "compute_overview",
     "discover_battery_types",

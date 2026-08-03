@@ -31,7 +31,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |    +-------------------+
 |   WebSocket API   |--->|                   +--->|  Button Entities  |
-| (82 commands)     |    +--------+----------+    | (complete / skip /|
+| (83 commands)     |    +--------+----------+    | (complete / skip /|
 | - CRUD objects    |             |          |    |  reset, per task) |
 | - statistics      |             |          |    +-------------------+
 | - subscribe       |             |          |    +-------------------+
@@ -226,7 +226,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (338 lines)  Accumulated operating hours trigger
 │       └── compound.py            (282 lines)  AND/OR compound trigger
 │
-├── websocket/                   (7,135 lines)  82 WS commands, split by domain
+├── websocket/                   (7,135 lines)  83 WS commands, split by domain
 │   ├── __init__.py                (627 lines)  Shared helpers + registration
 │   ├── objects.py                 (998 lines)  Object CRUD + archive/pause/replace + entity introspection (13)
 │   ├── tasks.py                    (74 lines)  Backward-compat re-export shim (no handlers of its own)
@@ -580,7 +580,7 @@ Battery Notes-style setups have 30–70+ battery devices. One maintenance task p
 - **48 h native retention.** A dead battery often takes its device offline, which would make the entity vanish exactly when it matters most. For the native path a battery last seen *low* stays in the fleet from its last-known snapshot for `_NATIVE_RETENTION = 48 h` before it drops out. (The Battery Notes path gets this for free — its sensor keeps reporting.)
 - **Forecast.** `TYPICAL_LIFETIME_MONTHS` holds editorial service-life estimates per type (AA 12, D 24, CR2032 18, …; `DEFAULT_LIFETIME_MONTHS = 12` for unknown types); predicted replacement is `battery_last_replaced + lifetime`, and "needed soon" looks `DEFAULT_HORIZON_DAYS = 28` ahead. `build_overview` is a pure builder taking plain dicts plus an injected `today`, so the forecast is unit-testable against synthetic dates; `read_batteries` is the thin HA-reading adapter.
 - **Setup is one click and idempotent.** `helpers/battery_fleet_setup.py` creates ONE object whose **parts** are the battery types present (so the existing stock/reorder machinery handles ordering) and ONE task, "Replace low batteries", hanging off the fixed aggregate sensor `sensor.maintenance_supporter_batteries_to_replace` via an ordinary threshold trigger. `OBJECT_FLAG` / `TASK_FLAG` markers make the panel render the fleet section and guarantee a second fleet is never created.
-- Self-charging devices (vacuums, mowers, `mobile_app` phones/tablets — `_is_self_charging`, #107) are skipped entirely — in BOTH passes: a Battery Notes note no longer overrides the skip, because Battery Notes auto-discovers such devices from its library. Rechargeable battery TYPES (`is_rechargeable_type`: Rechargeable/Li-ion/NiMH/power- and battery-packs) stay in the roster for low tracking but never enter `needs_now`/`needs_soon`, never become a type-part at setup (`discover_battery_types` skips them), and get no type-lifetime date — only a trend-earned one. Any battery can be manually excluded (`battery_fleet/set_excluded`). WS: `battery_fleet/overview | setup | mark_replaced | set_excluded`; UI: `components/battery-fleet-section.ts`, rendered **first** inside the task detail view.
+- Self-charging devices (vacuums, mowers, `mobile_app` phones/tablets — `_is_self_charging`, #107) are skipped entirely — in BOTH passes: a Battery Notes note no longer overrides the skip, because Battery Notes auto-discovers such devices from its library. Rechargeable battery TYPES (`is_rechargeable_type`: Rechargeable/Li-ion/NiMH/power- and battery-packs) stay in the roster for low tracking but never enter `needs_now`/`needs_soon`, never become a type-part at setup (`discover_battery_types` skips them), and get no type-lifetime date — only a trend-earned one. Any battery can be manually excluded (`battery_fleet/set_excluded`). WS: `battery_fleet/overview | overview_history | setup | mark_replaced | set_excluded`; UI: `components/battery-fleet-section.ts`, rendered **first** inside the task detail view. The roster draws per-battery **sparklines** from `battery_fleet/overview_history` (30 d downsampled level series + the shared low threshold via `battery_low_threshold`, fetched lazily on roster expand, recorder work 6 h-cached like the trend): a solid level line, a faint threshold line, and — on trend-dated rows — a dotted projection from the last reading down to the threshold, ending exactly where the ~date comes from. The roster offers a name ⇄ urgency sort toggle; low rechargeable rows label the mark action "recharged".
 
 ### Object ↔ device attachment
 
@@ -719,7 +719,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-82 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
+83 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
 
 | Category | Commands |
 |----------|----------|
@@ -757,7 +757,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 82 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 83 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

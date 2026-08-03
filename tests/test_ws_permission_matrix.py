@@ -114,6 +114,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/integration_setups/discover": "read",
     "maintenance_supporter/problem_sensors/discover": "read",
     "maintenance_supporter/battery_fleet/overview": "read",
+    "maintenance_supporter/battery_fleet/overview_history": "read",
     "maintenance_supporter/version": "read",
     "maintenance_supporter/views/list": "read",
     "maintenance_supporter/tags/list": "read",

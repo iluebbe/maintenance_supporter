@@ -764,3 +764,64 @@ async def test_discover_battery_types_skips_rechargeables(hass):
     _set_note(hass, "hall_motion", battery_type="CR2450")
     _set_note(hass, "front_lock", battery_type="Nuki Battery Pack")
     assert dict(discover_battery_types(hass)) == {"CR2450": 1}
+
+
+# ─── level history for the roster sparklines ──────────────────────────────
+
+
+def test_downsample_bucket_means_keep_a_dip_visible():
+    from custom_components.maintenance_supporter.helpers.battery_fleet import _downsample
+
+    # 720 hourly points at 80 %, with a 12 h dip to 40 %.
+    points = [(float(i * 3600), 40.0 if 300 <= i < 312 else 80.0) for i in range(720)]
+    out = _downsample(points)
+    assert len(out) <= 60
+    assert min(v for _, v in out) < 80.0, "bucket means must keep the dip visible"
+    assert out[0][1] == 80.0 and out[-1][1] == 80.0
+
+
+async def test_level_history_caches_and_covers_low_batteries(hass):
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+
+    bats = [
+        _bat("Healthy", "AA", level=55.0),
+        _bat("Dying", "CR2032", low=True, level=8.0),  # unlike the trend: included
+        Battery(
+            entity_id="binary_sensor.lock_battery_plus_low",
+            device_name="Lock",
+            battery_type="CR2",
+            quantity=1,
+            low=False,
+            level=None,
+            last_replaced=None,
+        ),
+    ]
+    fake = AsyncMock(return_value=[(1000.0 + i, 50.0) for i in range(10)])
+    with patch(
+        "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor._async_fetch_statistics_points",
+        fake,
+    ):
+        out1 = await bf.async_level_history(hass, bats)
+        out2 = await bf.async_level_history(hass, bats)
+    assert set(out1) == {"sensor.Healthy_battery_plus", "sensor.Dying_battery_plus"}
+    assert out1["sensor.Dying_battery_plus"]["threshold"] == 20.0
+    assert out1["sensor.Healthy_battery_plus"]["points"][0] == [1000, 50.0]
+    assert out2 == out1
+    assert fake.await_count == 2, "the 6 h cache must absorb the second sweep"
+
+
+async def test_level_history_threshold_follows_the_note(hass):
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+
+    _set_note(hass, "thermo", battery_type="AA", battery_low=False, battery_low_threshold=35, _state="80")
+    bats = read_batteries(hass)
+    with patch(
+        "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor._async_fetch_statistics_points",
+        AsyncMock(return_value=[(1.0, 80.0)]),
+    ):
+        out = await bf.async_level_history(hass, bats)
+    assert out["sensor.thermo_battery_plus"]["threshold"] == 35.0
