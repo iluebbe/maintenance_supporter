@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Sorter etter hastegrad",
   "battery_fleet_mark_recharged": "Merk som oppladet",
   "battery_fleet_sparkline_hint": "Batterinivå de siste 30 dagene — stiplet: fremskrevet ned til lavnivåterskelen",
+  "battery_fleet_filter_type": "Vis bare denne batteritypen",
+  "battery_fleet_record_replacement": "Nivået hoppet rundt {date} — registrer dette byttet i Battery Notes",
   "battery_fleet_total": "{n} batterier spores",
   "battery_fleet_setup_button": "Batteriflåte",
   "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene.",

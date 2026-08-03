@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Sort by urgency",
   "battery_fleet_mark_recharged": "Mark as recharged",
   "battery_fleet_sparkline_hint": "Battery level over the last 30 days — dotted: projected until the low threshold",
+  "battery_fleet_filter_type": "Show only this battery type",
+  "battery_fleet_record_replacement": "The level jumped around {date} — record this replacement in Battery Notes",
   "battery_fleet_total": "{n} batteries tracked",
   "battery_fleet_setup_button": "Battery fleet",
   "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries.",

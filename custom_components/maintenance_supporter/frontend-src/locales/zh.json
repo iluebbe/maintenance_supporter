@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "按紧急程度排序",
   "battery_fleet_mark_recharged": "标记为已充电",
   "battery_fleet_sparkline_hint": "过去 30 天的电池电量——虚线：外推至低电量阈值",
+  "battery_fleet_filter_type": "仅显示此电池类型",
+  "battery_fleet_record_replacement": "电量在 {date} 前后跳升——将此次更换记录到 Battery Notes",
   "battery_fleet_total": "已跟踪 {n} 个电池",
   "battery_fleet_setup_button": "电池群",
   "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。",

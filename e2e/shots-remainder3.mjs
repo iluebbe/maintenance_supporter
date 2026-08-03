@@ -103,13 +103,23 @@ const SPARK = [
   ["front_door_lock", 68, 61], // barely draining → line without a trend date
 ];
 const hours = 30 * 24;
-for (const [slug, from, to] of SPARK) {
+const level = (slug, from, to, i) => {
+  // Patio Door demos the unrecorded-swap detector: a week at ~14 %, fresh
+  // cells (jump to 100), then normal decline to today's 55 % — while its
+  // seeded last_replaced stays 5 months old.
+  if (slug === "patio_door") {
+    if (i < 7 * 24) return 14 + Math.sin(i / 9) * 1.5;
+    return 100 - ((100 - 55) * (i - 7 * 24)) / (hours - 7 * 24);
+  }
+  return from + ((to - from) * i) / hours;
+};
+for (const [slug, from, to] of [...SPARK, ["patio_door", 14, 55]]) {
   const sid = `sensor.${slug}_battery_plus`;
   const stats = [];
   for (let i = 0; i <= hours; i += 1) {
     const start = new Date(Date.now() - (hours - i) * 3600e3);
     start.setMinutes(0, 0, 0);
-    stats.push({ start: start.toISOString(), mean: from + ((to - from) * i) / hours });
+    stats.push({ start: start.toISOString(), mean: level(slug, from, to, i) });
   }
   await api.send({
     type: "recorder/import_statistics",
@@ -121,11 +131,11 @@ for (let i = 0; i < 30; i++) {
   const res = await api.send({
     type: "recorder/statistics_during_period",
     start_time: new Date(Date.now() - 3 * 86400e3).toISOString(),
-    statistic_ids: SPARK.map(([s]) => `sensor.${s}_battery_plus`),
+    statistic_ids: [...SPARK.map(([s]) => `sensor.${s}_battery_plus`), "sensor.patio_door_battery_plus"],
     period: "hour",
     types: ["mean"],
   });
-  if (Object.keys(res).length === SPARK.length) break;
+  if (Object.keys(res).length === SPARK.length + 1) break;
   await new Promise((r) => setTimeout(r, 1000));
 }
 log("SEEDED discharge statistics");

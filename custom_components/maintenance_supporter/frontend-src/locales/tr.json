@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Aciliyete göre sırala",
   "battery_fleet_mark_recharged": "Şarj edildi olarak işaretle",
   "battery_fleet_sparkline_hint": "Son 30 günün pil seviyesi — noktalı: düşük eşiğe kadar projeksiyon",
+  "battery_fleet_filter_type": "Yalnızca bu pil türünü göster",
+  "battery_fleet_record_replacement": "Seviye {date} civarında sıçradı — bu değişimi Battery Notes'a kaydet",
   "battery_fleet_total": "{n} pil takip ediliyor",
   "battery_fleet_setup_button": "Pil filosu",
   "battery_fleet_setup_done": "Pil filosu kuruldu — tek bir görev tüm pillerinizi takip ediyor.",

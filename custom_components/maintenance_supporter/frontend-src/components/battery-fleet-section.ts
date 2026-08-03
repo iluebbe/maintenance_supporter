@@ -31,8 +31,18 @@ interface RosterRow extends BatteryRow {
 }
 /** 30 d downsampled level history per battery, for the roster sparklines.
  *  threshold = the same low threshold the trend forecast regresses toward,
- *  so the dotted projection ends exactly where the ~date comes from. */
-type HistorySeries = Record<string, { points: [number, number][]; threshold: number }>;
+ *  so the dotted projection ends exactly where the ~date comes from.
+ *  jump = an upward step that looks like a swap nobody recorded in Battery
+ *  Notes (the forecast still anchors on the dead battery's date) — with the
+ *  device to call `battery_notes.set_battery_replaced` on. */
+type HistorySeries = Record<
+  string,
+  {
+    points: [number, number][];
+    threshold: number;
+    jump?: { at: number; from: number; to: number; device_id: string };
+  }
+>;
 interface Overview {
   available: boolean;
   configured: boolean;
@@ -58,6 +68,8 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   @state() private _error = "";
   @state() private _history: HistorySeries | null = null;
   @state() private _rosterSort: "name" | "urgency" = "name";
+  @state() private _typeFilter: string | null = null;
+  @state() private _recorded: string[] = [];
   private _historyRequested = false;
   private _localeReady = false;
 
@@ -213,9 +225,10 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   /** The roster stays a name-sorted lookup list by default; urgency mode
    *  turns the same list into a planning view (low first, soonest next). */
   private _sortedRoster(rows: RosterRow[]): RosterRow[] {
-    if (this._rosterSort === "name") return rows;
+    const filtered = this._typeFilter === null ? rows : rows.filter((r) => r.battery_type === this._typeFilter);
+    if (this._rosterSort === "name") return filtered;
     const rank = (r: RosterRow) => (r.status === "low" ? -1 : (r.days_until ?? Infinity));
-    return [...rows].sort(
+    return [...filtered].sort(
       (a, b) => rank(a) - rank(b) || a.device_name.localeCompare(b.device_name),
     );
   }
@@ -226,14 +239,64 @@ export class MaintenanceBatteryFleetSection extends LitElement {
    *  typical lifetime but not reported low yet) render as past dates, which
    *  is honest: the battery is living on borrowed time. */
   private _predictedDate(daysUntil: number): string {
-    const when = new Date(Date.now() + daysUntil * 864e5);
-    return new Intl.DateTimeFormat(this._lang, { day: "numeric", month: "numeric", year: "numeric" }).format(when);
+    return this._fmtDate(Date.now() + daysUntil * 864e5);
   }
 
-  private _shoppingLine(needs: Record<string, number>): string {
-    return Object.entries(needs)
-      .map(([type, qty]) => `${qty}× ${type}`)
-      .join(" · ");
+  private _fmtDate(epochMs: number): string {
+    return new Intl.DateTimeFormat(this._lang, { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(epochMs));
+  }
+
+  /** The grouped shopping quantities as CLICKABLE chips: a type filters the
+   *  roster to the devices that need it — "which devices need those 4× AAA?"
+   *  without scanning. Clicking the active chip clears the filter. */
+  private _shoppingLine(needs: Record<string, number>) {
+    return Object.entries(needs).map(
+      ([type, qty]) => html`<button
+        class="bf-type-chip ${this._typeFilter === type ? "bf-type-chip-active" : ""}"
+        title=${t("battery_fleet_filter_type", this._lang)}
+        @click=${() => this._toggleTypeFilter(type)}
+      >
+        ${qty}× ${type}
+      </button>`,
+    );
+  }
+
+  private _toggleTypeFilter(type: string): void {
+    this._typeFilter = this._typeFilter === type ? null : type;
+    if (this._typeFilter !== null) {
+      const details = this.shadowRoot?.querySelector<HTMLDetailsElement>("details.bf-roster");
+      if (details && !details.open) details.open = true; // fires toggle → history loads
+    }
+  }
+
+  /** One-click fix for a detected-but-unrecorded swap: record the DETECTED
+   *  jump time in Battery Notes, so the forecast re-anchors on the real
+   *  replacement instead of the dead battery's date. */
+  private async _recordJump(entityId: string, jump: { at: number; device_id: string }): Promise<void> {
+    if (this._marking) return;
+    this._marking = true;
+    this._error = "";
+    try {
+      await this.hass.callService("battery_notes", "set_battery_replaced", {
+        device_id: jump.device_id,
+        datetime_replaced: new Date(jump.at * 1000).toISOString(),
+      });
+      this._recorded = [...this._recorded, entityId];
+      await this._load();
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    } finally {
+      this._marking = false;
+    }
+  }
+
+  /** Purely visual level bar next to the number — scannable at a glance. */
+  private _levelBar(level: number | null | undefined) {
+    if (level == null) return nothing;
+    const cls = level <= 20 ? "bad" : level <= 40 ? "warn" : "good";
+    return html`<span class="bf-bar" aria-hidden="true"
+      ><span class="bf-bar-fill bf-bar-${cls}" style="width: ${Math.min(100, Math.max(0, level))}%"></span
+    ></span>`;
   }
 
   render() {
@@ -285,6 +348,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                             ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
                           ></span>`
                         : nothing}
+                      ${this._levelBar(b.level)}
                       ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                       <button
                         class="bf-mark"
@@ -353,7 +417,20 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                             ></span>`
                           : nothing}
                         ${this._sparkline(b)}
+                        ${this._levelBar(b.level)}
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
+                        ${(() => {
+                          const jump = this._history?.[b.entity_id]?.jump;
+                          if (!jump || this._recorded.includes(b.entity_id)) return nothing;
+                          return html`<button
+                            class="bf-mark bf-jump"
+                            title=${t("battery_fleet_record_replacement", L).replace("{date}", this._fmtDate(jump.at * 1000))}
+                            .disabled=${this._marking}
+                            @click=${() => this._recordJump(b.entity_id, jump)}
+                          >
+                            <ha-icon icon="mdi:calendar-sync"></ha-icon>
+                          </button>`;
+                        })()}
                         ${b.days_until != null
                           ? html`<span
                               class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""}"
@@ -525,6 +602,45 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       stroke: var(--error-color, #f44336);
       stroke-width: 1;
       opacity: 0.35;
+    }
+    .bf-type-chip {
+      background: none;
+      border: 1px solid var(--divider-color);
+      border-radius: 10px;
+      padding: 1px 8px;
+      margin: 0 4px 2px 0;
+      font-size: 13px;
+      color: inherit;
+      cursor: pointer;
+    }
+    .bf-type-chip-active {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+    .bf-bar {
+      width: 30px;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--divider-color);
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+    .bf-bar-fill {
+      display: block;
+      height: 100%;
+      border-radius: 3px;
+    }
+    .bf-bar-good {
+      background: var(--success-color, #4caf50);
+    }
+    .bf-bar-warn {
+      background: var(--warning-color, #ff9800);
+    }
+    .bf-bar-bad {
+      background: var(--error-color, #f44336);
+    }
+    .bf-jump ha-icon {
+      color: var(--warning-color, #ff9800);
     }
     .bf-roster-tools {
       display: flex;

@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Sorteren op urgentie",
   "battery_fleet_mark_recharged": "Markeren als opgeladen",
   "battery_fleet_sparkline_hint": "Batterijniveau van de afgelopen 30 dagen — gestippeld: prognose tot de lage drempel",
+  "battery_fleet_filter_type": "Alleen dit batterijtype tonen",
+  "battery_fleet_record_replacement": "Het niveau maakte rond {date} een sprong — deze vervanging vastleggen in Battery Notes",
   "battery_fleet_total": "{n} batterijen gevolgd",
   "battery_fleet_setup_button": "Batterijvloot",
   "battery_fleet_setup_done": "Batterijvloot ingesteld — één taak volgt al je batterijen.",

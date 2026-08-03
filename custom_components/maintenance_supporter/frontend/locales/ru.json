@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Сортировать по срочности",
   "battery_fleet_mark_recharged": "Отметить как заряженную",
   "battery_fleet_sparkline_hint": "Уровень заряда за последние 30 дней — пунктир: прогноз до порога разряда",
+  "battery_fleet_filter_type": "Показать только этот тип батарей",
+  "battery_fleet_record_replacement": "Уровень резко вырос примерно {date} — записать эту замену в Battery Notes",
   "battery_fleet_total": "Отслеживается батарей: {n}",
   "battery_fleet_setup_button": "Парк батарей",
   "battery_fleet_setup_done": "Парк батарей настроен — одна задача следит за всеми.",

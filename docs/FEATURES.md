@@ -306,7 +306,14 @@ The fleet task's detail view is the whole surface:
   *see*. The history is fetched only when the roster is opened and cached
   for 6 hours. A **name ⇄ urgency toggle** re-sorts the same list for
   planning (low first, soonest forecast next), and on a low rechargeable
-  the mark action reads *mark as recharged*.
+  the mark action reads *mark as recharged*. The **shopping quantities are
+  clickable**: tapping "4× AAA" filters the roster to the devices that need
+  them. Every row carries a small **level bar** next to the percentage, and
+  when the history shows a big upward step that was never recorded — fresh
+  cells went in, but nobody pressed Battery Notes' *replaced* button, so the
+  forecast still anchors on the dead battery's date — an amber **record this
+  replacement** action appears that writes the *detected* jump time to
+  Battery Notes in one click.
 - **Exclude a battery by hand** — the eye-off action takes a device out of the
   fleet for good (count, shopping list and forecast), for the cases the
   automatic skips don't cover. It sits on the low rows **and on every row of

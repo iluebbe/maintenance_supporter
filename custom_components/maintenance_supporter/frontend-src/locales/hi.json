@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "तात्कालिकता के अनुसार क्रमबद्ध करें",
   "battery_fleet_mark_recharged": "रिचार्ज हो गई के रूप में चिह्नित करें",
   "battery_fleet_sparkline_hint": "पिछले 30 दिनों का बैटरी स्तर — बिंदीदार: लो थ्रेशोल्ड तक का अनुमान",
+  "battery_fleet_filter_type": "केवल यही बैटरी प्रकार दिखाएँ",
+  "battery_fleet_record_replacement": "स्तर लगभग {date} को उछला — इस बदलाव को Battery Notes में दर्ज करें",
   "battery_fleet_total": "{n} बैटरियाँ ट्रैक की गईं",
   "battery_fleet_setup_button": "बैटरी फ्लीट",
   "battery_fleet_setup_done": "बैटरी फ्लीट सेट — एक कार्य सभी बैटरियों को ट्रैक करता है।",

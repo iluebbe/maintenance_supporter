@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "緊急度順に並べ替え",
   "battery_fleet_mark_recharged": "充電済みにする",
   "battery_fleet_sparkline_hint": "過去30日間のバッテリー残量——点線：低残量しきい値までの予測",
+  "battery_fleet_filter_type": "この電池タイプのみ表示",
+  "battery_fleet_record_replacement": "{date}頃に残量が急上昇——この交換をBattery Notesに記録する",
   "battery_fleet_total": "{n} 個の電池を監視",
   "battery_fleet_setup_button": "電池フリート",
   "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。",

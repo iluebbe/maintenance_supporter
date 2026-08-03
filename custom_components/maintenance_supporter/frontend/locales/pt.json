@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Ordenar por urgência",
   "battery_fleet_mark_recharged": "Marcar como recarregada",
   "battery_fleet_sparkline_hint": "Nível da bateria dos últimos 30 dias — pontilhado: projeção até ao limiar baixo",
+  "battery_fleet_filter_type": "Mostrar apenas este tipo de pilha",
+  "battery_fleet_record_replacement": "O nível deu um salto por volta de {date} — registar esta substituição no Battery Notes",
   "battery_fleet_total": "{n} baterias monitorizadas",
   "battery_fleet_setup_button": "Frota de baterias",
   "battery_fleet_setup_done": "Frota de baterias configurada — uma tarefa acompanha todas.",

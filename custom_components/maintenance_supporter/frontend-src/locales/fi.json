@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Lajittele kiireellisyyden mukaan",
   "battery_fleet_mark_recharged": "Merkitse ladatuksi",
   "battery_fleet_sparkline_hint": "Akun varaustaso viimeisten 30 päivän ajalta — pisteviiva: ennuste alarajaan asti",
+  "battery_fleet_filter_type": "Näytä vain tämä paristotyyppi",
+  "battery_fleet_record_replacement": "Varaustaso hyppäsi noin {date} — kirjaa tämä vaihto Battery Notesiin",
   "battery_fleet_total": "{n} paristoa seurannassa",
   "battery_fleet_setup_button": "Paristokanta",
   "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia.",

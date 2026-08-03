@@ -812,6 +812,66 @@ async def test_level_history_caches_and_covers_low_batteries(hass):
     assert fake.await_count == 2, "the 6 h cache must absorb the second sweep"
 
 
+def test_jump_detector_flags_an_unrecorded_swap():
+    """The real case: three weeks at ~16 %, fresh cells, jump to 100 % —
+    while last_replaced still pointed at the DEAD battery (21 months old),
+    silently anchoring the forecast to it."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet import _detect_unrecorded_jump
+
+    now = dt_util.utcnow().timestamp()
+    points = [(now - (10 - i) * 43200.0, 16.0 if i < 8 else 100.0) for i in range(11)]
+    jump = _detect_unrecorded_jump(points, date(2024, 10, 23))
+    assert jump is not None
+    assert jump["from"] == 16.0 and jump["to"] == 100.0
+
+    # Same jump, but the button WAS pressed that day → nothing to fix.
+    jump_day = dt_util.utc_from_timestamp(points[8][0]).date()
+    assert _detect_unrecorded_jump(points, jump_day) is None
+    # A rechargeable jumps on every routine charge → never flagged.
+    assert _detect_unrecorded_jump(points, date(2024, 10, 23), rechargeable=True) is None
+    # A relaxation bounce (+4) is not a swap.
+    steady = [(now - (10 - i) * 43200.0, 60.0 + (4 if i == 5 else 0)) for i in range(11)]
+    assert _detect_unrecorded_jump(steady, None) is None
+
+
+async def test_level_history_carries_the_jump_with_its_device(hass):
+    from unittest.mock import AsyncMock, patch
+
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+
+    from homeassistant.helpers import device_registry as dr
+
+    entry = MockConfigEntry(domain="battery_notes", data={})
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={("test", "hall_motion")}, name="Hall Motion"
+    )
+    reg = er.async_get(hass).async_get_or_create(
+        "sensor",
+        "battery_notes",
+        "motion_plus",
+        suggested_object_id="hall_motion_battery_plus",
+        config_entry=entry,
+        device_id=device.id,
+    )
+    _set_note(hass, "hall_motion", battery_type="CR2450", battery_low=False, _state="100")
+    bats = read_batteries(hass)
+    now = dt_util.utcnow().timestamp()
+    series = [(now - (10 - i) * 43200.0, 15.0 if i < 8 else 100.0) for i in range(11)]
+    with patch(
+        "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor._async_fetch_statistics_points",
+        AsyncMock(return_value=series),
+    ):
+        out = await bf.async_level_history(hass, bats)
+    jump = out["sensor.hall_motion_battery_plus"].get("jump")
+    assert jump is not None, "an unrecorded swap must surface"
+    assert jump["device_id"] == reg.device_id
+    assert jump["to"] == 100.0
+
+
 async def test_level_history_threshold_follows_the_note(hass):
     from unittest.mock import AsyncMock, patch
 

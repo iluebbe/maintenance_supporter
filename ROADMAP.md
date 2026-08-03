@@ -204,42 +204,32 @@ B4. ✅ **Rechargeables are treated as replaceable batteries** — **shipped
 note and (c) dead note + live native sensor shipped with B1/B3, and (b) a note
 at 11.5 % against a 10 % threshold shipped with B2.
 
-### 💡 Battery Fleet UI: discharge sparklines + roster affordances (proposed 2026-08)
+### ✅ Battery Fleet UI: discharge sparklines + roster affordances (proposed and shipped 2026-08)
 
-The fleet's data side matured (trend forecast, rechargeable handling); the
-roster's presentation can now catch up. In recommended order:
+The fleet's data side matured (trend forecast, rechargeable handling); this
+wave brought the roster's presentation up to it. **All six items shipped**
+(2026-08-03, on master for the next release):
 
-1. **Discharge sparklines with trend projection.** The trend regression
-   already fetches 30 days of hourly recorder statistics per battery
-   (`SensorPredictor`) — downsampled to ~30 points that IS the sparkline. A
-   lazy read-tier WS command (`battery_fleet/history`, fetched only when the
-   roster is expanded, 6 h cache like the trend) feeds a small inline-SVG
-   polyline per row. Where a trend prediction exists, extend the line as a
-   dotted projection down to the low threshold — then the "~date" is
-   something you can *see*, not something you must believe. No charting
-   library; ~40 lines of SVG.
-2. **Roster sort toggle: name ⇄ urgency.** The roster is deliberately
-   name-sorted (it is a lookup list). A second mode sorting by days-until
-   (low first, then soonest forecast) turns the same list into a planning
-   view without a second surface.
-3. **"Recharged" wording on rechargeable rows.** The mark-replaced action on
-   a low rechargeable row (charging icon) should say *mark as recharged* —
-   same Battery Notes button press underneath, honest words on top.
-4. **Type chips as filters.** Clicking "AAA" in the buy-now line filters the
-   roster to the devices that need AAA — answers "WHICH devices need those
-   4× AAA?" without scanning.
-5. **Level bars instead of bare percentages** (mini battery-fill glyph) —
-   purely cosmetic, lowest priority.
-6. **Unregistered-replacement detector.** A real fleet had a sensor sit at
-   16 % for three weeks, get fresh cells, and jump to 100 % — while Battery
-   Notes' `last_replaced` stayed 21 months old, because nobody pressed the
-   *battery replaced* button. The signature is unmistakable in the recorder
-   (a large upward level jump), so the fleet can detect it and offer a
-   one-click *record this replacement* that calls
-   `battery_notes.set_battery_replaced` with the **detected** jump time —
-   fixing the forecast anchor retroactively instead of silently computing
-   from the dead battery's date. Detection can ride the same statistics
-   fetch as the sparklines (item 1).
+1. ✅ **Discharge sparklines with trend projection** — lazy read-tier WS
+   `battery_fleet/overview_history` (≤60 bucket-mean points per battery from
+   the same 30 d recorder window the regression sees, 6 h cache like the
+   trend), inline-SVG line + faint threshold line, and on trend-dated rows a
+   dotted projection from the last reading down to the low threshold — the
+   "~date" is something you can *see*, not something you must believe.
+2. ✅ **Roster sort toggle: name ⇄ urgency** — low first, then soonest
+   forecast; the same lookup list becomes a planning view.
+3. ✅ **"Recharged" wording on rechargeable rows** — the mark action on a low
+   rechargeable says *mark as recharged*; same button underneath.
+4. ✅ **Type chips as filters** — tapping "4× AAA" in the shopping lines
+   filters the roster to the devices that need them.
+5. ✅ **Level bars** — a small color-coded fill bar next to every percentage.
+6. ✅ **Unregistered-replacement detector** — the history response flags a
+   ≥25-point upward step whose date is not within ±2 days of
+   `battery_last_replaced` (the real case: three weeks at 16 %, fresh cells,
+   jump to 100 %, anchor still 21 months old); the row offers a one-click
+   *record this replacement* calling `battery_notes.set_battery_replaced`
+   with the **detected** jump time. Rechargeables are exempt — they jump on
+   every routine charge.
 
 ### Next wave (proposed 2026-07)
 

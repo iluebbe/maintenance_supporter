@@ -581,11 +581,17 @@ for low tracking but never counts into `needs_now`/`needs_soon` and only a
 trend can date it.
 
 ### `battery_fleet/overview_history` — read
-`{}` → `{series: {entity_id: {points: [[epoch_s, level]…], threshold}}}` —
-per-battery 30-day downsampled level history (≤60 points) plus the low
-threshold the trend forecast regresses toward. Backs the roster sparklines
-(2.51+); fetched lazily when the roster is expanded, recorder work 6 h-cached
-per entity. Batteries without a level series (low-only binaries) are absent.
+`{}` → `{series: {entity_id: {points: [[epoch_s, level]…], threshold,
+jump?}}}` — per-battery 30-day downsampled level history (≤60 points) plus
+the low threshold the trend forecast regresses toward. Backs the roster
+sparklines (2.51+); fetched lazily when the roster is expanded, recorder work
+6 h-cached per entity. Batteries without a level series (low-only binaries)
+are absent. `jump` (`{at, from, to, device_id}`) marks an upward step ≥25
+points that looks like a swap nobody recorded (absent when
+`battery_last_replaced` is within ±2 days of the step, and always for
+rechargeable types — they jump on every charge); the panel's one-click fix
+calls `battery_notes.set_battery_replaced` on `device_id` with the detected
+time.
 
 ### `battery_fleet/setup` — `@require_write`
 `{language?}` → creates (or idempotently reconciles) the fleet object, its

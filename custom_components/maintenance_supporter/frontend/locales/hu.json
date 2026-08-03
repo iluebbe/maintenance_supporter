@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Rendezés sürgősség szerint",
   "battery_fleet_mark_recharged": "Megjelölés feltöltöttként",
   "battery_fleet_sparkline_hint": "Akkumulátorszint az elmúlt 30 napban — pontozott: előrejelzés az alacsony küszöbig",
+  "battery_fleet_filter_type": "Csak ez az elemtípus megjelenítése",
+  "battery_fleet_record_replacement": "A szint {date} körül megugrott — rögzítse ezt a cserét a Battery Notes-ban",
   "battery_fleet_total": "{n} elem követve",
   "battery_fleet_setup_button": "Elemflotta",
   "battery_fleet_setup_done": "Elemflotta beállítva — egyetlen feladat követi az összes elemet.",

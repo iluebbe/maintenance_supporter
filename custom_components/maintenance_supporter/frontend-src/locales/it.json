@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Ordina per urgenza",
   "battery_fleet_mark_recharged": "Segna come ricaricata",
   "battery_fleet_sparkline_hint": "Livello batteria degli ultimi 30 giorni — tratteggiato: proiezione fino alla soglia di batteria scarica",
+  "battery_fleet_filter_type": "Mostra solo questo tipo di batteria",
+  "battery_fleet_record_replacement": "Il livello è balzato intorno al {date} — registra questa sostituzione in Battery Notes",
   "battery_fleet_total": "{n} batterie monitorate",
   "battery_fleet_setup_button": "Parco batterie",
   "battery_fleet_setup_done": "Parco batterie configurato — un'attività monitora tutte.",

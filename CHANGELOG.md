@@ -25,6 +25,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   **name ⇄ urgency sort toggle** (low first, soonest forecast next), and the
   mark action on a low rechargeable now reads **"Mark as recharged"** —
   same button, honest words. All strings in 22 languages.
+- **Battery fleet: clickable shopping chips, level bars, and an
+  unrecorded-replacement detector.** Tapping a type in the "buy now / needed
+  soon" line ("4× AAA") filters the roster to the devices that need it.
+  Every row shows a small color-coded level bar next to the percentage. And
+  when a battery's history contains a big upward step that Battery Notes
+  never heard about — fresh cells went in, nobody pressed the *replaced*
+  button, and the forecast silently kept anchoring on the dead battery's
+  date (a real fleet carried a 21-month-old anchor this way) — the row
+  offers a one-click **record this replacement**, writing the *detected*
+  jump time via `battery_notes.set_battery_replaced`. Rechargeables are
+  exempt from detection (they jump on every routine charge).
 
 ### 🔧 Fixed
 

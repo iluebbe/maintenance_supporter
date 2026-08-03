@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Nach Dringlichkeit sortieren",
   "battery_fleet_mark_recharged": "Als aufgeladen markieren",
   "battery_fleet_sparkline_hint": "Batteriestand der letzten 30 Tage — gepunktet: Prognose bis zur Low-Schwelle",
+  "battery_fleet_filter_type": "Nur diesen Batterietyp anzeigen",
+  "battery_fleet_record_replacement": "Der Batteriestand ist um den {date} gesprungen — diesen Wechsel in Battery Notes nachtragen",
   "battery_fleet_total": "{n} Batterien überwacht",
   "battery_fleet_setup_button": "Batterie-Flotte",
   "battery_fleet_setup_done": "Batterie-Flotte eingerichtet — ein Task überwacht alle Batterien.",

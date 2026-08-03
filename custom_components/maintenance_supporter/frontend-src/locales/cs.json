@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Řadit podle naléhavosti",
   "battery_fleet_mark_recharged": "Označit jako nabitou",
   "battery_fleet_sparkline_hint": "Stav baterie za posledních 30 dní — tečkovaně: projekce k prahu vybití",
+  "battery_fleet_filter_type": "Zobrazit pouze tento typ baterie",
+  "battery_fleet_record_replacement": "Stav poskočil kolem {date} — zaznamenat tuto výměnu do Battery Notes",
   "battery_fleet_total": "Sledováno baterií: {n}",
   "battery_fleet_setup_button": "Flotila baterií",
   "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny.",

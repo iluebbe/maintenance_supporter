@@ -699,6 +699,42 @@ def _downsample(points: list[tuple[float, float]], max_points: int = _HISTORY_MA
     return out
 
 
+# A real cell swap shows as a large upward step between adjacent 12 h buckets
+# (+40..+90 typically); relaxation bounces stay under ~5. Between them: 25.
+_JUMP_MIN_RISE = 25.0
+# A jump already recorded within this many days of battery_last_replaced is
+# NOT flagged — the user pressed the button, nothing to fix.
+_JUMP_RECORDED_SLACK_DAYS = 2
+
+
+def _detect_unrecorded_jump(
+    points: list[tuple[float, float]],
+    last_replaced: date | None,
+    *,
+    rechargeable: bool = False,
+) -> dict[str, Any] | None:
+    """An upward level step that looks like a swap nobody recorded.
+
+    A real fleet had a sensor sit at 16 % for three weeks, get fresh cells and
+    jump to 100 % — while ``battery_last_replaced`` stayed 21 months old,
+    silently anchoring the type-lifetime forecast to the DEAD battery. The
+    step is unmistakable in the recorder, so surface it and offer to record
+    it. Rechargeables are exempt: their packs jump on every routine charge.
+    """
+    from itertools import pairwise
+
+    if rechargeable:
+        return None
+    for (_, v_prev), (ts, v) in pairwise(points):
+        if v - v_prev < _JUMP_MIN_RISE:
+            continue
+        jump_date = dt_util.utc_from_timestamp(ts).date()
+        if last_replaced is not None and abs((jump_date - last_replaced).days) <= _JUMP_RECORDED_SLACK_DAYS:
+            continue  # already recorded
+        return {"at": round(ts), "from": round(v_prev, 1), "to": round(v, 1)}
+    return None
+
+
 def battery_low_threshold(hass: HomeAssistant, entity_id: str) -> float:
     """The level at which this battery counts low — Battery Notes' own
     threshold (attr) or the fleet-wide floor, whichever is higher (the one
@@ -746,10 +782,21 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
                 points = []
             cache[bat.entity_id] = (now, points)
         if points:
-            out[bat.entity_id] = {
+            entry: dict[str, Any] = {
                 "points": [[round(ts), round(v, 1)] for ts, v in points],
                 "threshold": battery_low_threshold(hass, bat.entity_id),
             }
+            jump = _detect_unrecorded_jump(points, bat.last_replaced, rechargeable=is_rechargeable_type(bat.battery_type))
+            if jump is not None:
+                # The Battery Notes service that records a replacement takes
+                # the DEVICE — resolve it here so the panel's one-click fix
+                # doesn't need a registry lookup of its own.
+                from homeassistant.helpers import entity_registry as er
+
+                reg = er.async_get(hass).async_get(bat.entity_id)
+                if reg and reg.device_id:
+                    entry["jump"] = {**jump, "device_id": reg.device_id}
+            out[bat.entity_id] = entry
     return out
 
 

@@ -827,6 +827,8 @@
   "battery_fleet_sort_urgency": "Sortera efter angelägenhet",
   "battery_fleet_mark_recharged": "Markera som uppladdad",
   "battery_fleet_sparkline_hint": "Batterinivå de senaste 30 dagarna — prickad: prognos ner till lågnivåtröskeln",
+  "battery_fleet_filter_type": "Visa endast denna batterityp",
+  "battery_fleet_record_replacement": "Nivån hoppade omkring {date} — registrera detta byte i Battery Notes",
   "battery_fleet_total": "{n} batterier spåras",
   "battery_fleet_setup_button": "Batteriflotta",
   "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier.",

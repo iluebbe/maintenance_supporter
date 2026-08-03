@@ -40,7 +40,7 @@ function overview(extra: Record<string, unknown> = {}) {
 
 async function mount(ov: unknown = overview(), history: Record<string, unknown> = {}) {
   const calls: Array<Record<string, unknown>> = [];
-  const { hass } = createMockHass({
+  const { hass, serviceCalls } = createMockHass({
     handlers: {
       "maintenance_supporter/battery_fleet/overview": () => ov,
       "maintenance_supporter/battery_fleet/overview_history": () => ({ series: history }),
@@ -57,7 +57,7 @@ async function mount(ov: unknown = overview(), history: Record<string, unknown> 
   // The overview is fetched asynchronously on first hass update.
   await new Promise((r) => setTimeout(r, 0));
   await el.updateComplete;
-  return { el, calls };
+  return { el, calls, serviceCalls };
 }
 
 const roster = (el: MaintenanceBatteryFleetSection) => el.shadowRoot!.querySelector("details.bf-roster");
@@ -209,6 +209,56 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     buttons[0].click();
     await el.updateComplete;
     expect(names()).to.deep.equal(["Aaa Doorbell", "Front Lock", "Robot Vacuum"]);
+  });
+
+  it("filters the roster via the shopping-line type chips", async () => {
+    const { el } = await mount();
+    const chip = el.shadowRoot!.querySelector<HTMLButtonElement>("button.bf-type-chip")!;
+    expect(chip.textContent).to.contain("AA");
+    chip.click();
+    await el.updateComplete;
+    expect((roster(el) as HTMLDetailsElement).open, "filtering opens the roster").to.equal(true);
+    let names = [...roster(el)!.querySelectorAll(".bf-dev")].map((n) => n.textContent?.trim());
+    expect(names).to.deep.equal(["Front Lock"], "only the AA device remains");
+    chip.click();
+    await el.updateComplete;
+    names = [...roster(el)!.querySelectorAll(".bf-dev")].map((n) => n.textContent?.trim());
+    expect(names).to.deep.equal(["Front Lock", "Robot Vacuum"], "clicking again clears the filter");
+  });
+
+  it("renders a level bar colored by charge", async () => {
+    const { el } = await mount();
+    await openRoster(el);
+    const rows = [...roster(el)!.querySelectorAll(".bf-row")];
+    const lockBar = rows.find((r) => /Front Lock/.test(r.textContent || ""))!.querySelector(".bf-bar-fill")!;
+    const vacuumBar = rows.find((r) => /Robot Vacuum/.test(r.textContent || ""))!.querySelector(".bf-bar-fill")!;
+    expect(lockBar.className).to.contain("bf-bar-bad"); // 8 %
+    expect(vacuumBar.className).to.contain("bf-bar-good"); // 96 %
+    expect((vacuumBar as HTMLElement).style.width).to.equal("96%");
+  });
+
+  it("offers a one-click record for a detected unrecorded swap", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const { el, serviceCalls } = await mount(overview(), {
+      "sensor.vacuum_battery_plus": {
+        points: [[now - 86400, 15], [now - 43200, 100]] as [number, number][],
+        threshold: 20,
+        jump: { at: now - 43200, from: 15, to: 100, device_id: "dev123" },
+      },
+    });
+    await openRoster(el);
+    const btn = roster(el)!.querySelector<HTMLButtonElement>("button.bf-jump");
+    expect(btn, "the jump chip renders").to.not.equal(null);
+    expect(btn!.getAttribute("title")).to.match(/record this replacement/i);
+    btn!.click();
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+    expect(serviceCalls).to.have.lengthOf(1);
+    expect(serviceCalls[0].domain).to.equal("battery_notes");
+    expect(serviceCalls[0].service).to.equal("set_battery_replaced");
+    expect(serviceCalls[0].data!.device_id).to.equal("dev123");
+    expect(String(serviceCalls[0].data!.datetime_replaced)).to.contain("T");
+    expect(roster(el)!.querySelector("button.bf-jump"), "recorded → chip gone").to.equal(null);
   });
 
   it("labels the mark action on a low rechargeable as recharging, not replacing", async () => {
