@@ -56,6 +56,9 @@ const NOTES = [
   ["patio_door",       "Patio Door",           "CR2032", 1, 55, 5],
   ["utility_leak",     "Utility Leak Sensor",  "CR2",    1, 71, 3],
   ["office_remote",    "Office Remote",        "AAA",    2, 18, 11],
+  // Rechargeable pack (2.51): stays for low tracking, charging icon, never
+  // in the shopping groupings, no type-lifetime date.
+  ["video_doorbell",   "Video Doorbell",       "Battery Pack", 1, 64, 6],
 ];
 for (const [slug, name, type, qty, level, ageMonths] of NOTES) {
   await fetch(`${REST}/api/states/sensor.${slug}_battery_plus`, {
