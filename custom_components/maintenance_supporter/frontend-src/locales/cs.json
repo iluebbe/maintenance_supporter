@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "V pořádku",
   "battery_fleet_predicted_on": "Očekáváno kolem {date}",
   "battery_fleet_predicted_trend": "Předpověď z trendu vybíjení této baterie: přibližně {date} ({confidence})",
+  "battery_fleet_rechargeable": "Akumulátor: nabíjí se místo výměny — nikdy na nákupním seznamu",
   "battery_fleet_total": "Sledováno baterií: {n}",
   "battery_fleet_setup_button": "Flotila baterií",
   "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny.",

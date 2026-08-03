@@ -22,6 +22,9 @@ interface BatteryRow {
    *  (type-lifetime table). */
   predicted_source?: "trend" | "typical";
   prediction_confidence?: "medium" | "high" | null;
+  /** Charged, never bought — the row never feeds the shopping groupings and
+   *  a ~date only appears when the discharge trend earned one. */
+  rechargeable?: boolean;
 }
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
@@ -203,6 +206,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         ? html`<span class="bf-offline">${t("battery_fleet_offline", L)}</span>`
                         : nothing}
                       <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
+                      ${b.rechargeable
+                        ? html`<span class="bf-recharge" title=${t("battery_fleet_rechargeable", L)}
+                            ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
+                          ></span>`
+                        : nothing}
                       ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                       <button
                         class="bf-mark"
@@ -251,6 +259,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         <span class="bf-dev">${b.device_name}</span>
                         <span class="bf-status bf-${b.status}">${t("battery_fleet_status_" + b.status, L)}</span>
                         <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
+                        ${b.rechargeable
+                          ? html`<span class="bf-recharge" title=${t("battery_fleet_rechargeable", L)}
+                              ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
+                            ></span>`
+                          : nothing}
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                         ${b.days_until != null
                           ? html`<span
@@ -392,6 +405,14 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-type {
       color: var(--secondary-text-color);
       font-size: 13px;
+    }
+    .bf-recharge {
+      color: var(--secondary-text-color);
+      display: inline-flex;
+      cursor: help;
+    }
+    .bf-recharge ha-icon {
+      --mdc-icon-size: 16px;
     }
     .bf-level {
       font-size: 12px;

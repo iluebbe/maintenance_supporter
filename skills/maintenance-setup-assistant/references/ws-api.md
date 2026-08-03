@@ -571,11 +571,14 @@ offer the fleet.
 total, low, soon, all, needs_now:{type:count}, needs_soon:{…}, types,
 excluded:[{entity_id,device_name}]}`. `all` is the full roster (#113): every
 tracked battery as `{entity_id, device_name, battery_type, quantity, level,
-days_until, available, predicted_source, prediction_confidence, status}` with
-status `low|soon|ok`. `predicted_source` (2.50+) is `"trend"` when
-`days_until` comes from the discharge-trend regression (then
+days_until, available, predicted_source, prediction_confidence, rechargeable,
+status}` with status `low|soon|ok`. `predicted_source` (2.50+) is `"trend"`
+when `days_until` comes from the discharge-trend regression (then
 `prediction_confidence` is `medium|high`) or `"typical"` for the
-last-replaced + type-lifetime table.
+last-replaced + type-lifetime table. `rechargeable` (2.51+) marks types that
+are charged rather than bought (Rechargeable, Li-ion, packs): the row stays
+for low tracking but never counts into `needs_now`/`needs_soon` and only a
+trend can date it.
 
 ### `battery_fleet/setup` — `@require_write`
 `{language?}` → creates (or idempotently reconciles) the fleet object, its

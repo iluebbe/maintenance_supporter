@@ -15,6 +15,27 @@ All notable changes to Maintenance Supporter are documented in this file.
   what its panel counts silently becomes a real reminder with assignees,
   history, parts and voice. Catalog: 123 integrations / 231 signatures.
 
+### 🔧 Fixed
+
+- **Battery fleet: rechargeable batteries are charged, not bought.** Battery
+  types describing rechargeable packs (Rechargeable, Li-ion, NiMH, power/
+  battery packs, …) stay in the roster — a low reading still means "charge
+  it" and still fires the fleet task — but they no longer enter the "buy
+  now / needed soon" shopping groupings, fleet setup no longer mints a
+  spare-part (with a reorder threshold!) for them, and the type-lifetime
+  table no longer dates them: its lifetimes describe primary cells, and
+  Battery Notes seeds `battery_last_replaced` at note creation, which had a
+  real fleet advising to "replace" a vacuum's pack a year after the device
+  was added. The discharge-trend forecast still applies — "charge the lock
+  in ~20 days" is exactly what the roster is for — and rechargeable rows
+  carry a small charging icon explaining why they never join the list.
+- **Battery fleet: self-charging devices are skipped even when noted.** The
+  vacuum/mower/phone skip previously spared Battery Notes entries on the
+  theory that an explicit note is deliberate intent — but Battery Notes
+  auto-discovery proposes notes for such devices straight from its library,
+  so noted robot vacuums showed up as batteries to buy. The skip now applies
+  to both pickup passes.
+
 ## [2.50.0] - 2026-08-02
 
 ### ✨ Added

@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "A posto",
   "battery_fleet_predicted_on": "Previsto intorno al {date}",
   "battery_fleet_predicted_trend": "Previsto dalla tendenza di scarica di questa batteria: intorno al {date} ({confidence})",
+  "battery_fleet_rechargeable": "Ricaricabile: da ricaricare anziché sostituire — mai nella lista della spesa",
   "battery_fleet_total": "{n} batterie monitorate",
   "battery_fleet_setup_button": "Parco batterie",
   "battery_fleet_setup_done": "Parco batterie configurato — un'attività monitora tutte.",

@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "Rendben",
   "battery_fleet_predicted_on": "Várhatóan {date} körül",
   "battery_fleet_predicted_trend": "Az elem merülési trendjéből előrejelezve: kb. {date} ({confidence})",
+  "battery_fleet_rechargeable": "Újratölthető: cserélés helyett töltse fel — soha nem kerül a bevásárlólistára",
   "battery_fleet_total": "{n} elem követve",
   "battery_fleet_setup_button": "Elemflotta",
   "battery_fleet_setup_done": "Elemflotta beállítva — egyetlen feladat követi az összes elemet.",

@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "Kunnossa",
   "battery_fleet_predicted_on": "Odotettavissa noin {date}",
   "battery_fleet_predicted_trend": "Ennustettu tämän pariston purkautumistrendistä: noin {date} ({confidence})",
+  "battery_fleet_rechargeable": "Ladattava: lataa vaihtamisen sijaan — ei koskaan ostoslistalle",
   "battery_fleet_total": "{n} paristoa seurannassa",
   "battery_fleet_setup_button": "Paristokanta",
   "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia.",

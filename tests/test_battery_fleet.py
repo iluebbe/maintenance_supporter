@@ -11,6 +11,7 @@ from custom_components.maintenance_supporter.helpers.battery_fleet import (
     build_overview,
     discover_battery_types,
     has_battery_notes,
+    is_rechargeable_type,
     lifetime_months,
     read_batteries,
 )
@@ -74,7 +75,7 @@ def test_trend_prediction_beats_the_table():
     # exists it replaces the type-lifetime date; everything else falls back.
     today = date(2026, 8, 1)
     bats = [
-        _bat("Lock", "AA", low=False, last=date(2026, 7, 1)),      # table: ~11 months out
+        _bat("Lock", "AA", low=False, last=date(2026, 7, 1)),  # table: ~11 months out
         _bat("Sensor", "AA", low=False, last=date(2026, 7, 1)),
     ]
     trends = {"sensor.Lock_battery_plus": (12, "high")}
@@ -122,15 +123,35 @@ async def test_trend_predictions_cache_and_filters(hass):
     from custom_components.maintenance_supporter.helpers import battery_fleet as bf
 
     bats = [
-        Battery(entity_id="sensor.a_battery_plus", device_name="A", battery_type="AA",
-                quantity=1, low=False, level=55.0, last_replaced=None),
-        Battery(entity_id="binary_sensor.b_battery_plus_low", device_name="B", battery_type="CR2",
-                quantity=1, low=False, level=None, last_replaced=None),  # no level → skipped
-        Battery(entity_id="sensor.c_battery_plus", device_name="C", battery_type="AA",
-                quantity=1, low=True, level=5.0, last_replaced=None),    # low → skipped
+        Battery(
+            entity_id="sensor.a_battery_plus",
+            device_name="A",
+            battery_type="AA",
+            quantity=1,
+            low=False,
+            level=55.0,
+            last_replaced=None,
+        ),
+        Battery(
+            entity_id="binary_sensor.b_battery_plus_low",
+            device_name="B",
+            battery_type="CR2",
+            quantity=1,
+            low=False,
+            level=None,
+            last_replaced=None,
+        ),  # no level → skipped
+        Battery(
+            entity_id="sensor.c_battery_plus",
+            device_name="C",
+            battery_type="AA",
+            quantity=1,
+            low=True,
+            level=5.0,
+            last_replaced=None,
+        ),  # low → skipped
     ]
-    fake = AsyncMock(return_value=type("P", (), {
-        "days_until_threshold": 42.0, "confidence": "medium"})())
+    fake = AsyncMock(return_value=type("P", (), {"days_until_threshold": 42.0, "confidence": "medium"})())
     with patch(
         "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor.async_predict_below",
         fake,
@@ -150,10 +171,18 @@ async def test_far_out_trends_fall_back_to_the_table(hass):
 
     from custom_components.maintenance_supporter.helpers import battery_fleet as bf
 
-    bats = [Battery(entity_id="sensor.slow_battery_plus", device_name="Slow", battery_type="AA",
-                    quantity=1, low=False, level=90.0, last_replaced=None)]
-    fake = AsyncMock(return_value=type("P", (), {
-        "days_until_threshold": 1142.0, "confidence": "medium"})())
+    bats = [
+        Battery(
+            entity_id="sensor.slow_battery_plus",
+            device_name="Slow",
+            battery_type="AA",
+            quantity=1,
+            low=False,
+            level=90.0,
+            last_replaced=None,
+        )
+    ]
+    fake = AsyncMock(return_value=type("P", (), {"days_until_threshold": 1142.0, "confidence": "medium"})())
     with patch(
         "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor.async_predict_below",
         fake,
@@ -286,9 +315,7 @@ async def test_low_only_binary_note_supplies_the_type(hass):
     # from the low binary, ONE row, and the native binary must not surface as
     # a second "Unknown" row.
     _binary_note_device(hass, "back_door_lock", with_percent_sensor=False)
-    hass.states.async_set(
-        "binary_sensor.back_door_lock_battery", "off", {"device_class": "battery"}
-    )
+    hass.states.async_set("binary_sensor.back_door_lock_battery", "off", {"device_class": "battery"})
     _set_note_binary(hass, "back_door_lock", "off")
 
     bats = read_batteries(hass)
@@ -557,9 +584,7 @@ def _device_with_battery(hass, *, slug, extra_domain=None, extra_device_class=No
         name=slug.title(),
     )
     ent_reg = er.async_get(hass)
-    ent_reg.async_get_or_create(
-        "sensor", "test", f"{slug}_batt", suggested_object_id=f"{slug}_battery", device_id=device.id
-    )
+    ent_reg.async_get_or_create("sensor", "test", f"{slug}_batt", suggested_object_id=f"{slug}_battery", device_id=device.id)
     if extra_domain:
         ent_reg.async_get_or_create(
             extra_domain,
@@ -584,8 +609,12 @@ async def test_self_charging_devices_skipped(hass):
     assert [b.entity_id for b in bats] == ["sensor.door_sensor_battery"]
 
 
-async def test_battery_notes_note_wins_over_self_charging_heuristic(hass):
-    # An explicit Battery Notes note on a vacuum is user intent — keep it.
+async def test_a_noted_self_charging_device_is_skipped_too(hass):
+    """#107 follow-up: a Battery Notes note on a mower/vacuum used to win over
+    the self-charging skip ("a note is deliberate intent") — but Battery Notes
+    AUTO-DISCOVERS such devices from its library (type "Rechargeable"), so a
+    real fleet told its owner to buy a RECHARGEABLE for the vacuum. The skip
+    now applies to both passes; the note must not resurrect natively either."""
     from homeassistant.helpers import entity_registry as er
     from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -595,10 +624,8 @@ async def test_battery_notes_note_wins_over_self_charging_heuristic(hass):
     er.async_get(hass).async_get_or_create(
         "sensor", "battery_notes", "mower_plus", suggested_object_id="mower_battery_plus", device_id=device.id
     )
-    _set_note(hass, "mower", battery_type="AA", source_entity_id="sensor.mower_battery")
-    bats = read_batteries(hass)
-    assert len(bats) == 1
-    assert bats[0].source == "battery_notes"
+    _set_note(hass, "mower", battery_type="Rechargeable", source_entity_id="sensor.mower_battery")
+    assert read_batteries(hass) == []
 
 
 async def test_manual_exclusion_filters_both_passes(hass):
@@ -645,8 +672,8 @@ def test_the_roster_holds_every_battery_exactly_once_with_its_status():
     today = date(2026, 7, 20)
     bats = [
         _bat("Lock", "AA", qty=2, low=True),
-        _bat("Doorbell", "AA", low=False, last=date(2024, 8, 1)),   # long past → soon
-        _bat("Remote", "AAA", low=False, last=today),               # fresh → ok
+        _bat("Doorbell", "AA", low=False, last=date(2024, 8, 1)),  # long past → soon
+        _bat("Remote", "AAA", low=False, last=today),  # fresh → ok
     ]
     ov = build_overview(bats, today=today)
 
@@ -676,3 +703,64 @@ def test_a_battery_without_a_replacement_date_is_ok_not_soon():
     ov = build_overview([_bat("Phone", "unknown", low=False, last=None)], today=today)
     assert ov.soon == []
     assert [(r["status"], r["days_until"]) for r in ov.all] == [("ok", None)]
+
+
+# ─── rechargeable types: charged, never bought ────────────────────────────
+
+
+def test_rechargeable_type_detection():
+    assert is_rechargeable_type("Rechargeable")
+    assert is_rechargeable_type("Nuki Battery Pack")
+    assert is_rechargeable_type("Li-ion")
+    assert is_rechargeable_type("18650")
+    # Primary cells stay primary — including primary lithium.
+    assert not is_rechargeable_type("AA")
+    assert not is_rechargeable_type("CR2032")
+    assert not is_rechargeable_type("Lithium 3-Volt CR2")
+    assert not is_rechargeable_type(None)
+
+
+def test_rechargeable_low_is_tracked_but_never_shoppable():
+    """A low Nuki power pack means "charge it" — the row stays in low/all (the
+    fleet task still fires), but "1× NUKI BATTERY PACK" must never appear in
+    the shopping groupings (seen on a real fleet)."""
+    today = date(2026, 8, 1)
+    ov = build_overview(
+        [_bat("Nuki Lock", "Nuki Battery Pack", low=True), _bat("Sensor", "AA", low=True)],
+        today=today,
+    )
+    assert ov.low_count == 2
+    assert dict(ov.needs_now) == {"AA": 1}
+    nuki = next(r for r in ov.all if r["device_name"] == "Nuki Lock")
+    assert nuki["status"] == "low" and nuki["rechargeable"] is True
+
+
+def test_rechargeable_gets_no_table_date_but_keeps_the_trend():
+    """The type-lifetime table describes primary cells; for a rechargeable it
+    produced "replace the vacuum's pack ~1 year after the device was added"
+    (Battery Notes seeds last_replaced at note creation). Only the discharge
+    trend may date a rechargeable — and even then it never enters needs_soon."""
+    today = date(2026, 8, 1)
+    bats = [
+        _bat("Nuki Lock", "Nuki Battery Pack", low=False, last=date(2025, 8, 10)),
+        _bat("Camera", "Battery Pack", low=False, last=date(2025, 8, 10)),
+    ]
+    trends = {"sensor.Camera_battery_plus": (14, "high")}
+    ov = build_overview(bats, today=today, trend_predictions=trends)
+    nuki = next(r for r in ov.all if r["device_name"] == "Nuki Lock")
+    cam = next(r for r in ov.all if r["device_name"] == "Camera")
+    # Table date suppressed: last_replaced + 12 mo would have been "soon".
+    assert nuki["status"] == "ok" and nuki["days_until"] is None
+    # Trend survives — "charge in ~14 days" is useful — but nothing to buy.
+    assert cam["status"] == "soon" and cam["days_until"] == 14
+    assert cam["predicted_source"] == "trend"
+    assert dict(ov.needs_soon) == {}
+    assert [r["device_name"] for r in ov.soon] == ["Camera"]
+
+
+async def test_discover_battery_types_skips_rechargeables(hass):
+    """Fleet setup mints a spare-part per discovered type — a "RECHARGEABLE"
+    part with a reorder threshold is nonsense, so rechargeables stay out."""
+    _set_note(hass, "hall_motion", battery_type="CR2450")
+    _set_note(hass, "front_lock", battery_type="Nuki Battery Pack")
+    assert dict(discover_battery_types(hass)) == {"CR2450": 1}

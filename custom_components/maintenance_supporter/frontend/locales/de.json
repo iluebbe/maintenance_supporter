@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "In Ordnung",
   "battery_fleet_predicted_on": "Voraussichtlich um {date}",
   "battery_fleet_predicted_trend": "Aus dem Entladetrend dieser Batterie vorhergesagt: etwa {date} ({confidence})",
+  "battery_fleet_rechargeable": "Wiederaufladbar: laden statt ersetzen — nie auf der Einkaufsliste",
   "battery_fleet_total": "{n} Batterien überwacht",
   "battery_fleet_setup_button": "Batterie-Flotte",
   "battery_fleet_setup_done": "Batterie-Flotte eingerichtet — ein Task überwacht alle Batterien.",

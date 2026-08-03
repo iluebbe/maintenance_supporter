@@ -260,7 +260,15 @@ as low — for Battery Notes batteries in addition to their own configured
 threshold (a higher Battery Notes threshold still wins). A device covered by
 a Battery Notes note is never double-counted with its own native sensor, and
 self-charging devices (robot vacuums/mowers, devices with a charging sensor,
-Companion-app phones) are skipped entirely. A native battery that was low
+Companion-app phones) are skipped entirely — **even when a Battery Notes note
+exists for them**: Battery Notes auto-discovers such devices from its library,
+so a note is no proof anyone means to swap cells there. **Rechargeable battery
+types** (Rechargeable, Li-ion, NiMH, power/battery packs — a Nuki's pack, a
+camera's quick-release battery) stay in the fleet — a low reading still means
+*charge it* and still fires the fleet task, marked with a small charging icon —
+but they never enter the shopping groupings, never become a spare-part at
+setup, and get no type-lifetime date (only a discharge-trend one, which for a
+rechargeable literally reads "charge it in ~N days"). A native battery that was low
 and then goes **unavailable** (a dead battery takes its device offline)
 stays listed for up to 48 hours instead of vanishing at the exact moment it
 needs replacing.

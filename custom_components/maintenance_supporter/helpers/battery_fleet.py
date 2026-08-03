@@ -27,6 +27,7 @@ is the thin HA-reading adapter.
 from __future__ import annotations
 
 import logging
+import re
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -113,6 +114,24 @@ def _norm_type(raw: Any) -> str:
     return s.upper() if s else "UNKNOWN"
 
 
+# Battery Notes' library labels rechargeable packs with type strings like
+# "Rechargeable", "Nuki Battery Pack" or li-ion cell names. Such a battery is
+# CHARGED, never bought — so it must not enter the shopping groupings, and the
+# type-lifetime table (a primary-cell prior) has nothing honest to say about
+# it. Low tracking and the discharge-trend forecast stay: "charge the lock in
+# ~20 days" is exactly what the roster is for.
+_RECHARGEABLE_TYPE_RE = re.compile(
+    r"rechargeable|akku|accu|li[- ]?ion|li[- ]?po|lifepo|ni[- ]?mh|nicd|18650|21700|"
+    r"power ?pack|battery ?pack|built[- ]?in",
+    re.IGNORECASE,
+)
+
+
+def is_rechargeable_type(battery_type: Any) -> bool:
+    """Whether a battery-type label describes a rechargeable pack/cell."""
+    return bool(_RECHARGEABLE_TYPE_RE.search(str(battery_type or "")))
+
+
 def lifetime_months(battery_type: str) -> int:
     """Typical service life for a (canonicalized) battery type."""
     return TYPICAL_LIFETIME_MONTHS.get(_norm_type(battery_type), DEFAULT_LIFETIME_MONTHS)
@@ -185,7 +204,8 @@ def build_overview(
       ``horizon_days`` (deterministic last_replaced + typical-lifetime forecast).
       A battery already low is never double-counted into soon.
     * ``needs_now`` / ``needs_soon`` = summed quantities per type — the shopping
-      grouping ("2× AA, 4× AAA").
+      grouping ("2× AA, 4× AAA"). Rechargeable types never enter it: a low
+      rechargeable means "charge it", not "buy one".
     * ``all`` = every battery with its status, so a healthy device can be
       excluded BEFORE it ever becomes noisy.
     """
@@ -195,30 +215,37 @@ def build_overview(
     for bat in sorted(batteries, key=lambda b: b.device_name.lower()):
         t = _norm_type(bat.battery_type)
         types_seen[t] = None
+        rechargeable = is_rechargeable_type(bat.battery_type)
         # Blend (#114 follow-up): the DISCHARGE TREND wins where the recorder
         # data supports it (medium/high confidence, filtered upstream) — it is
         # device-specific and usage-aware; the type's typical lifetime is the
-        # prior everything else falls back to.
+        # prior everything else falls back to. For rechargeables the table is
+        # no prior at all (its lifetimes describe primary cells, and Battery
+        # Notes seeds last_replaced at note creation — a real fleet showed
+        # "replace the vacuum's pack" dated from the day the device was added),
+        # so they get a ~date only when the trend has earned one.
         trend = (trend_predictions or {}).get(bat.entity_id)
         if trend is not None:
             days: int | None = max(0, trend[0])
             source, confidence = "trend", trend[1]
         else:
-            pred = _predicted_date(bat)
+            pred = None if rechargeable else _predicted_date(bat)
             days = (pred - today).days if pred is not None else None
             source, confidence = "typical", None
         if bat.low:
-            ov.low.append(_row(bat, t, None))
-            ov.needs_now[t] = ov.needs_now.get(t, 0) + bat.quantity
+            ov.low.append(_row(bat, t, None, rechargeable=rechargeable))
+            if not rechargeable:
+                ov.needs_now[t] = ov.needs_now.get(t, 0) + bat.quantity
             # A battery reported low has no meaningful forecast left to show.
-            ov.all.append({**_row(bat, t, None), "status": "low"})
+            ov.all.append({**_row(bat, t, None, rechargeable=rechargeable), "status": "low"})
             continue
         if days is not None and days <= horizon_days:
-            ov.soon.append(_row(bat, t, days, source, confidence))
-            ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
-            ov.all.append({**_row(bat, t, days, source, confidence), "status": "soon"})
+            ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable))
+            if not rechargeable:
+                ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
+            ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable), "status": "soon"})
             continue
-        ov.all.append({**_row(bat, t, days, source, confidence), "status": "ok"})
+        ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable), "status": "ok"})
 
     ov.soon.sort(key=lambda r: r["days_until"] if r["days_until"] is not None else 1 << 30)
     ov.types = sorted(types_seen)
@@ -233,6 +260,8 @@ def _row(
     days_until: int | None,
     predicted_source: str = "typical",
     prediction_confidence: str | None = None,
+    *,
+    rechargeable: bool = False,
 ) -> dict[str, Any]:
     return {
         "entity_id": bat.entity_id,
@@ -246,6 +275,9 @@ def _row(
         # regression, with confidence) or "typical" (type-lifetime table).
         "predicted_source": predicted_source,
         "prediction_confidence": prediction_confidence,
+        # Charged, never bought: low means "recharge", and the row never
+        # contributes to the shopping groupings.
+        "rechargeable": rechargeable,
     }
 
 
@@ -287,10 +319,15 @@ def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
     """Whether a device recharges itself — its battery is never REPLACED.
 
     Issue #107: a Roborock's native battery sensor reads "low" mid-clean, but
-    nobody swaps its cells. Heuristics (native pickup only — an explicit
-    Battery Notes note always wins): the device also has a vacuum/lawn_mower
-    entity, exposes a ``battery_charging`` binary, or is a Companion-app
-    phone/tablet (``mobile_app`` identifiers).
+    nobody swaps its cells. Heuristics: the device also has a
+    vacuum/lawn_mower entity, exposes a ``battery_charging`` binary, or is a
+    Companion-app phone/tablet (``mobile_app`` identifiers).
+
+    Applied to BOTH passes. This originally spared Battery Notes entries on
+    the theory that an explicit note is deliberate intent — but Battery Notes
+    auto-discovery proposes notes for vacuums straight from its library
+    (type "Rechargeable"), so a real fleet ended up telling its owner to buy
+    a "RECHARGEABLE" for the vacuum.
     """
     if not device_id:
         return False
@@ -303,7 +340,10 @@ def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
     for reg_entry in er.async_entries_for_device(er.async_get(hass), device_id, include_disabled_entities=True):
         if reg_entry.domain in ("vacuum", "lawn_mower"):
             return True
-        if reg_entry.domain == "binary_sensor" and (reg_entry.device_class or reg_entry.original_device_class) == "battery_charging":
+        if (
+            reg_entry.domain == "binary_sensor"
+            and (reg_entry.device_class or reg_entry.original_device_class) == "battery_charging"
+        ):
             return True
     return False
 
@@ -322,6 +362,10 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       second sweep picks those up for devices the sensor sweep did not cover.
       Devices with BOTH stay one row (the binary carries the same attributes
       and would otherwise duplicate every battery and dodge exclusions).
+      Self-charging devices (vacuums, mowers, phones — see
+      :func:`_is_self_charging`) are skipped here too: Battery Notes
+      auto-discovery notes them from its library, so a note is no proof of
+      intent to track a replaceable cell.
     * **Native** ``device_class: battery`` entities (a %-sensor and/or a
       battery-low binary) — plus %-sensors matching the strict battery-name
       heuristic for devices that ship no device class — grouped per device,
@@ -418,6 +462,12 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             # An EXCLUDED note still covers (above): exclusion hides the battery —
             # it must not resurrect as a degraded native "Unknown" row.
             if state.entity_id in excluded:
+                continue
+            # #107 follow-up: the skip covers noted devices too (it covers
+            # above for the same reason exclusion does). Battery Notes
+            # auto-discovers vacuums/phones from its library, so a note is
+            # not evidence anyone means to swap cells there.
+            if _is_self_charging(hass, dev_id):
                 continue
             out.append(
                 Battery(
@@ -566,9 +616,7 @@ _TREND_MAX_DAYS = 365
 _TREND_MAX_RECOVERY_PCT = 10.0
 
 
-async def async_trend_predictions(
-    hass: HomeAssistant, batteries: list[Battery]
-) -> dict[str, tuple[int, str]]:
+async def async_trend_predictions(hass: HomeAssistant, batteries: list[Battery]) -> dict[str, tuple[int, str]]:
     """Per-battery discharge-trend forecast: {entity_id: (days_until, confidence)}.
 
     Reuses the SensorPredictor's recorder regression, asking "when does this
@@ -610,9 +658,7 @@ async def async_trend_predictions(
 
         result: tuple[int, str] | None = None
         try:
-            pred = await predictor.async_predict_below(
-                bat.entity_id, threshold, max_recovery=_TREND_MAX_RECOVERY_PCT
-            )
+            pred = await predictor.async_predict_below(bat.entity_id, threshold, max_recovery=_TREND_MAX_RECOVERY_PCT)
             if (
                 pred is not None
                 and pred.days_until_threshold is not None
@@ -628,21 +674,23 @@ async def async_trend_predictions(
     return out
 
 
-async def async_compute_overview(
-    hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON_DAYS
-) -> BatteryOverview:
+async def async_compute_overview(hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON_DAYS) -> BatteryOverview:
     """Read + trend-enrich + aggregate (the panel's entry point)."""
     batteries = read_batteries(hass)
     trends = await async_trend_predictions(hass, batteries)
-    return build_overview(
-        batteries, today=dt_util.now().date(), horizon_days=horizon_days, trend_predictions=trends
-    )
+    return build_overview(batteries, today=dt_util.now().date(), horizon_days=horizon_days, trend_predictions=trends)
 
 
 def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
-    """Battery types present across the fleet → total quantity, for part setup."""
+    """Battery types present across the fleet → total quantity, for part setup.
+
+    Rechargeable types are left out: nobody stocks a "RECHARGEABLE" spare, so
+    setup must not mint a part (with a reorder threshold!) for one.
+    """
     totals: OrderedDict[str, int] = OrderedDict()
     for bat in read_batteries(hass):
+        if is_rechargeable_type(bat.battery_type):
+            continue
         t = _norm_type(bat.battery_type)
         totals[t] = totals.get(t, 0) + bat.quantity
     return OrderedDict(sorted(totals.items()))
@@ -662,6 +710,7 @@ __all__ = [
     "fleet_excluded_entities",
     "has_batteries",
     "has_battery_notes",
+    "is_rechargeable_type",
     "lifetime_months",
     "read_batteries",
 ]

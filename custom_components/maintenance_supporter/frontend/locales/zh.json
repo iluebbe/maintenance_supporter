@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "正常",
   "battery_fleet_predicted_on": "预计在 {date} 前后",
   "battery_fleet_predicted_trend": "根据此电池的放电趋势预测:约 {date}({confidence})",
+  "battery_fleet_rechargeable": "可充电电池：充电即可，无需更换——不会出现在购物清单中",
   "battery_fleet_total": "已跟踪 {n} 个电池",
   "battery_fleet_setup_button": "电池群",
   "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。",

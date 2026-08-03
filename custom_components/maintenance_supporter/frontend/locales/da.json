@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "I orden",
   "battery_fleet_predicted_on": "Forventes omkring {date}",
   "battery_fleet_predicted_trend": "Forudsagt ud fra batteriets afladningstendens: omkring {date} ({confidence})",
+  "battery_fleet_rechargeable": "Genopladeligt: oplad i stedet for at udskifte — aldrig på indkøbslisten",
   "battery_fleet_total": "{n} batterier overvåges",
   "battery_fleet_setup_button": "Batteriflåde",
   "battery_fleet_setup_done": "Batteriflåde opsat — én opgave følger alle batterier.",

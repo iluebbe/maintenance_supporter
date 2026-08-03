@@ -822,6 +822,7 @@
   "battery_fleet_status_ok": "I ordning",
   "battery_fleet_predicted_on": "Väntas omkring {date}",
   "battery_fleet_predicted_trend": "Förutspått utifrån batteriets urladdningstrend: omkring {date} ({confidence})",
+  "battery_fleet_rechargeable": "Uppladdningsbart: ladda i stället för att byta — aldrig på inköpslistan",
   "battery_fleet_total": "{n} batterier spåras",
   "battery_fleet_setup_button": "Batteriflotta",
   "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier.",
