@@ -57,13 +57,25 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
 
     existing = find_fleet_entry(hass)
     if existing is not None:
-        added = _reconcile_type_parts(hass, existing, types, lang)
+        added_pids = _reconcile_type_parts(hass, existing, types, lang)
+        # Track stock at 0 for the parts just added — the CREATE path below
+        # does, and a part left untracked (stock None) shows no stock line
+        # and never flags for reorder. Found on a real fleet: types added by
+        # a later reconcile sat untracked next to setup-created "0 pcs/2"
+        # siblings, silently disarming their reorder thresholds.
+        if added_pids:
+            rd = getattr(existing, "runtime_data", None)
+            store = getattr(rd, "store", None) if rd else None
+            if store is not None:
+                for pid in added_pids:
+                    store.set_part_stock(pid, 0)
+                await store.async_save()
         repaired = await _reconcile_fleet_task(hass, existing, lang)
         return {
             "entry_id": existing.entry_id,
             "created": False,
             "types": list(types),
-            "parts_added": added,
+            "parts_added": len(added_pids),
             "task_repaired": repaired,
         }
 
@@ -242,10 +254,7 @@ def retranslate_seeded_texts(hass: HomeAssistant, entry: ConfigEntry, lang: str)
         new_task = dict(task)
         if new_task.get("name") in _template_variants("Replace low batteries"):
             new_task["name"] = _localized("Replace low batteries")
-        notes_en = (
-            "Aggregate battery check. The detail view lists which devices are low "
-            "and which battery types to buy."
-        )
+        notes_en = "Aggregate battery check. The detail view lists which devices are low and which battery types to buy."
         if new_task.get("notes") in _template_variants(notes_en):
             new_task["notes"] = _localized(notes_en)
         if new_task != task:
@@ -261,9 +270,7 @@ def retranslate_seeded_texts(hass: HomeAssistant, entry: ConfigEntry, lang: str)
         btype = _extract_placeholder(str(new_part.get("name") or ""), "{type} battery", "type")
         if btype is not None:
             new_part["name"] = (_localized("{type} battery")).format(type=btype)
-        months = _extract_placeholder(
-            str(new_part.get("notes") or ""), "Typical service life ~{months} months.", "months"
-        )
+        months = _extract_placeholder(str(new_part.get("notes") or ""), "Typical service life ~{months} months.", "months")
         if months is not None:
             new_part["notes"] = (_localized("Typical service life ~{months} months.")).format(months=months)
         if new_part != part:
@@ -404,18 +411,19 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: s
     return True
 
 
-def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int], lang: str) -> int:
-    """Add parts for battery types newly seen since setup. Returns count added."""
+def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int], lang: str) -> list[str]:
+    """Add parts for battery types newly seen since setup. Returns added ids
+    (the caller initializes their stock, mirroring the create path)."""
     from .parts import normalize_part
 
     parts = dict(entry.data.get(CONF_PARTS) or {})
     existing_ids = set(parts)
-    added = 0
+    added: list[str] = []
     for btype, total_qty in types.items():
         pid = f"batt_{btype.lower()}"
         if pid not in existing_ids:
             parts[pid] = normalize_part(_type_part(btype, total_qty, lang))
-            added += 1
+            added.append(pid)
     if added:
         new_data = dict(entry.data)
         new_data[CONF_PARTS] = parts

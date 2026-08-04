@@ -14,6 +14,13 @@ All notable changes to Maintenance Supporter are documented in this file.
   Only real types become parts now; give a battery a Battery Notes note and
   it gets a proper one. Existing UNKNOWN parts are left untouched — delete
   the part if you have one.
+- **Battery fleet: reconcile-added type-parts start tracked at 0 stock.**
+  Parts minted by a later fleet reconcile (a new battery type appearing
+  after setup) were created *untracked* — no stock line in the shelf and a
+  reorder threshold that could never fire — while setup-created siblings
+  correctly showed "0 pcs". The reconcile path now initializes stock at 0
+  exactly like the create path. Existing untracked type-parts: set any
+  stock value once (or restock) and they start tracking.
 
 ## [2.51.0] - 2026-08-04
 

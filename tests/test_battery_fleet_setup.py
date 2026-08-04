@@ -103,6 +103,13 @@ async def test_setup_is_idempotent_and_reconciles_new_types(
     assert len(fleets[0].data[CONF_TASKS]) == 1
     assert "batt_9v" in fleets[0].data[CONF_PARTS]
 
+    # The reconciled part is TRACKED at 0 like a setup-created one — an
+    # untracked part (stock None) shows no stock line and never flags for
+    # reorder. Found on a real fleet: reconcile-added types sat untracked
+    # next to their "0 pcs/2" setup-created siblings.
+    rd = fleets[0].runtime_data
+    assert rd.store.get_part_stock("batt_9v") == 0
+
 
 async def test_setup_refuses_without_any_batteries(
     hass: HomeAssistant, global_entry: MockConfigEntry
