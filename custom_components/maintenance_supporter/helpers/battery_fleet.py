@@ -806,13 +806,20 @@ def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
     """Battery types present across the fleet → total quantity, for part setup.
 
     Rechargeable types are left out: nobody stocks a "RECHARGEABLE" spare, so
-    setup must not mint a part (with a reorder threshold!) for one.
+    setup must not mint a part (with a reorder threshold!) for one. The
+    UNKNOWN bucket is left out for the same reason — native batteries without
+    a type once minted an "UNKNOWN battery" part whose buy link was an
+    Amazon search for the literal word UNKNOWN (seen on a real fleet at
+    0 of 22). Give the battery a type (a Battery Notes note) and it gets a
+    real part.
     """
     totals: OrderedDict[str, int] = OrderedDict()
     for bat in read_batteries(hass):
         if is_rechargeable_type(bat.battery_type):
             continue
         t = _norm_type(bat.battery_type)
+        if t == "UNKNOWN":
+            continue
         totals[t] = totals.get(t, 0) + bat.quantity
     return OrderedDict(sorted(totals.items()))
 

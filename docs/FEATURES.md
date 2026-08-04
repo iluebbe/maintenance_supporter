@@ -331,7 +331,11 @@ The fleet task's detail view is the whole surface:
 
 Because battery types are ordinary **spare parts**, the existing stock and
 reorder machinery applies — track how many AA/CR2032/… you keep, and the
-*Parts to reorder* count flags a type before you run out. The single task is
+*Parts to reorder* count flags a type before you run out. Only *real* types
+become parts: rechargeable packs and the *Unknown* bucket of typeless native
+batteries are excluded (an "UNKNOWN battery" spare with a reorder threshold
+and a shopping-search buy link for the literal word UNKNOWN helps no one —
+give the battery a Battery Notes note and it gets a proper part). The single task is
 triggered by a global `sensor.maintenance_supporter_batteries_to_replace`
 (count of low batteries) via an ordinary threshold trigger — no special-casing,
 and it auto-completes when the count returns to zero.

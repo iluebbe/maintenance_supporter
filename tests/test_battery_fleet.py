@@ -758,11 +758,14 @@ def test_rechargeable_gets_no_table_date_but_keeps_the_trend():
     assert [r["device_name"] for r in ov.soon] == ["Camera"]
 
 
-async def test_discover_battery_types_skips_rechargeables(hass):
+async def test_discover_battery_types_skips_rechargeables_and_unknown(hass):
     """Fleet setup mints a spare-part per discovered type — a "RECHARGEABLE"
-    part with a reorder threshold is nonsense, so rechargeables stay out."""
+    or "UNKNOWN battery" part with a reorder threshold is nonsense, so both
+    stay out (the UNKNOWN one shipped an Amazon-search buy link for the
+    literal word UNKNOWN on a real fleet)."""
     _set_note(hass, "hall_motion", battery_type="CR2450")
     _set_note(hass, "front_lock", battery_type="Nuki Battery Pack")
+    hass.states.async_set("sensor.typeless_battery", "80", {"device_class": "battery"})
     assert dict(discover_battery_types(hass)) == {"CR2450": 1}
 
 

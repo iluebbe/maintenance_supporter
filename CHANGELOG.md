@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔧 Fixed
+
+- **Battery fleet setup no longer mints an "UNKNOWN battery" spare-part.**
+  Native batteries without a type fed an UNKNOWN bucket into the type-part
+  discovery, producing a part with a reorder threshold sized to the whole
+  untyped fleet and a shopping-search buy link for the literal word UNKNOWN
+  (a real fleet showed "UNKNOWN-Batterie, 0 pcs/22" with an Amazon link).
+  Only real types become parts now; give a battery a Battery Notes note and
+  it gets a proper one. Existing UNKNOWN parts are left untouched — delete
+  the part if you have one.
+
 ## [2.51.0] - 2026-08-04
 
 ### ✨ Added
