@@ -59,6 +59,9 @@ const EDITABLE: Record<string, string> = {
 
 const READONLY = new Set([
   "id",
+  // Payload diet: total history entries beyond the truncated list window —
+  // pure summary info; the detail fetches the full record via task/history.
+  "history_count",
   // #73: in-cycle checklist ticks — written via task/checklist_progress,
   // never through the edit dialog.
   "checklist_progress",

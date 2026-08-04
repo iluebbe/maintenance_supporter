@@ -2,7 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [2.51.1] - 2026-08-04
+## [Unreleased]
+
+### ⚡ Performance
+
+- **List payloads no longer carry full task histories.** At 150+ tasks the
+  `objects` response was dominated by history entries nobody was looking at
+  (906 KB measured at 40 entries per task — and the store keeps up to 500):
+  every list consumer reads at most the latest few. Task summaries now carry
+  only the **most recent 20 entries** plus a `history_count`, which makes the
+  list payload independent of history depth; the task-detail view fetches
+  the complete record lazily via the new read-tier WS **`task/history`**
+  when a task is actually opened (timeline, filters and charts are unchanged
+  — they just load their data on demand). Measured on the new committed
+  benchmark harness (`e2e/perf-seed.mjs` + `e2e/perf-panel.mjs`): the
+  907 KB heavy-history payload dropped to 640 KB and is now bounded — a
+  fleet at the 500-entry cap would previously have shipped megabytes.
 
 ### 🔧 Fixed
 

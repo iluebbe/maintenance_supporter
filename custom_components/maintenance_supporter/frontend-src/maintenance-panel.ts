@@ -386,6 +386,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     ]);
     if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
     if (objResult) this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
+    // A data refresh means the open task's history may have grown (complete,
+    // history edit) — the truncated list payload can't tell, so refetch.
+    if (this._view === "task" && this._selectedEntryId && this._selectedTaskId) {
+      this._fetchFullHistory(this._selectedEntryId, this._selectedTaskId);
+    }
     // Battery Fleet availability (Battery Notes present + not yet set up).
     this.hass.connection
       .sendMessagePromise<{ available: boolean; configured: boolean }>({
@@ -881,6 +886,9 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._activeTab = "overview";
     this._historyFilter = null;
     this._scrollContentToTop();
+    // Payload diet: list responses carry only the most recent history
+    // window — the detail's full timeline/charts load here, on demand.
+    this._fetchFullHistory(entryId, taskId);
 
     // Lazy-load statistics for the task's trigger entity
     const task = this._getTask(entryId, taskId);
@@ -3364,12 +3372,37 @@ export class MaintenanceSupporterPanel extends LitElement {
     };
   }
 
+  /** Full history for the OPEN task (list payloads are truncated to the
+   *  most recent window). null until loaded; a failure — e.g. an older
+   *  backend without `task/history` — falls back to the truncated list. */
+  @state() private _fullHistory: { entryId: string; taskId: string; entries: HistoryEntry[] } | null = null;
+
+  private async _fetchFullHistory(entryId: string, taskId: string): Promise<void> {
+    try {
+      const res = (await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/history",
+        entry_id: entryId,
+        task_id: taskId,
+      })) as { history: HistoryEntry[] };
+      if (this._selectedEntryId === entryId && this._selectedTaskId === taskId) {
+        this._fullHistory = { entryId, taskId, entries: res.history || [] };
+      }
+    } catch {
+      this._fullHistory = null;
+    }
+  }
+
   private _renderTaskDetail() {
     if (!this._selectedEntryId || !this._selectedTaskId) return nothing;
     const task = this._getTask(this._selectedEntryId, this._selectedTaskId);
     if (!task) return html`<p>Task not found.</p>`;
+    const fh = this._fullHistory;
+    const detailTask =
+      fh && fh.entryId === this._selectedEntryId && fh.taskId === this._selectedTaskId && fh.entries.length > (task.history || []).length
+        ? { ...task, history: fh.entries }
+        : task;
     return html`<maintenance-task-detail-view
-      .task=${task}
+      .task=${detailTask}
       .ctx=${this._taskDetailCtx()}
     ></maintenance-task-detail-view>`;
   }

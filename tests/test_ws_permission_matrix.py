@@ -121,6 +121,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/task/analyze_interval": "read",
     "maintenance_supporter/task/checklist_progress": "read",
     "maintenance_supporter/task/complete": "read",
+    "maintenance_supporter/task/history": "read",
     "maintenance_supporter/task/list": "read",
     "maintenance_supporter/task/postpone": "read",
     "maintenance_supporter/task/quick_complete": "read",

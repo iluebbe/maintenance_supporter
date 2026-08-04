@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **83** registered commands are covered here. Their authorization tiers are
+All **84** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -240,6 +240,16 @@ flat interval edit rebuilds from flat and drops the nested schedule.
 `{entry_id?}` → `{tasks:[…]}`. Every task across all objects (or one object's),
 each summary carrying `task_id`, `entry_id`, `object_name` plus the computed
 status fields. The flat counterpart to `objects` when you only care about tasks.
+
+> **History is truncated in LIST payloads (2.52+, perf).** Task summaries in
+> `objects` and `task/list` carry only the **most recent 20** history entries
+> plus `history_count` (the true total) — at 150+ tasks full histories
+> dominated the payload (906 KB measured at 40 entries/task; the store caps
+> at 500). Need the complete record? `task/history`.
+
+### `task/history` — read
+`{entry_id (req), task_id (req)}` → `{history:[…], count}` — the FULL history
+of one task, oldest first, exactly as stored. Error: `not_found`.
 
 ### `tasks/by_user` — read (self) / write (others)
 `{user_id (req)}` → `{tasks:[…]}` — the tasks assigned to that user, with

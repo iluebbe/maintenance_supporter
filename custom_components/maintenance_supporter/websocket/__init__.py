@@ -53,6 +53,14 @@ def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
     return tasks_data
 
 
+# How many recent history entries ride in the LIST payload. Chosen to cover
+# every non-detail consumer: the quick-actions dialog shows the last 20, the
+# detail header the last 3, the calendar card averages costs (≈stable over
+# 20), the strategy looks up the latest matching entry. The detail view's
+# full timeline/charts fetch everything via `task/history` instead.
+_HISTORY_WINDOW = 20
+
+
 def _build_task_summary(
     hass: HomeAssistant,
     task_id: str,
@@ -191,7 +199,15 @@ def _build_task_summary(
         # dialog prefill what was already done.
         "checklist_progress": task_data.get("checklist_progress", {}),
         "labels": task_data.get("labels", []),
-        "history": task_data.get("history", []),
+        # Payload diet (perf, 2026-08): the LIST response carries only the
+        # most recent entries — at 150+ tasks the full histories dominated
+        # the `objects` payload (407 KB measured at just 8 entries/task) and
+        # every list consumer reads at most the last 20 (quick-dialog) or an
+        # aggregate. The task-detail view fetches the FULL history lazily
+        # via `task/history`; `history_count` tells it (and any badge)
+        # what exists beyond the window.
+        "history": (task_data.get("history") or [])[-_HISTORY_WINDOW:],
+        "history_count": len(task_data.get("history") or []),
         # v1.3.0 — both fields are persisted by ws_create_task / ws_update_task
         # and consumed by helpers/action_listener.py on EVENT_TASK_COMPLETED, but
         # were missing from this response builder until issue #50. Without them
@@ -544,6 +560,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_reset_task,
         ws_skip_task,
         ws_snooze_task,
+        ws_task_history,
         ws_unarchive_task,
         ws_update_history_entry,
         ws_update_task,
@@ -577,6 +594,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_archive_task)
     websocket_api.async_register_command(hass, ws_unarchive_task)
     websocket_api.async_register_command(hass, ws_list_tasks)
+    websocket_api.async_register_command(hass, ws_task_history)
     websocket_api.async_register_command(hass, ws_complete_task)
     websocket_api.async_register_command(hass, ws_quick_complete_task)
     websocket_api.async_register_command(hass, ws_checklist_progress)

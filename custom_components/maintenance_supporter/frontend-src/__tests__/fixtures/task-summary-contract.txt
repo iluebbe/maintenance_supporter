@@ -37,6 +37,7 @@
   "environmental_entity": null,
   "environmental_factor": null,
   "history": [],
+  "history_count": 0,
   "id": "contract_task",
   "interval_analysis": null,
   "interval_anchor": "completion",

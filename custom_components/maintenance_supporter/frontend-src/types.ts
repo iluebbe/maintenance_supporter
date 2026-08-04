@@ -198,7 +198,11 @@ export interface MaintenanceTask {
   trigger_entity_infos?: TriggerEntityInfo[] | null;
   /** Battery Fleet: the single aggregate task renders the battery section. */
   battery_fleet_task?: boolean;
+  /** LIST payloads carry only the most recent window (payload diet) — the
+   *  task detail fetches the full record via `task/history`. */
   history: HistoryEntry[];
+  /** Total entries that exist, including those beyond the list window. */
+  history_count?: number;
   // Computed
   status: string; // "ok" | "due_soon" | "overdue" | "triggered" | "archived"
   /** True for a one-time task that has been completed (done; never re-arms). */

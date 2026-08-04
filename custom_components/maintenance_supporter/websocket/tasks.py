@@ -28,6 +28,7 @@ from .tasks_lifecycle import (
     _is_recurring_schedule,
     ws_archive_task,
     ws_list_tasks,
+    ws_task_history,
     ws_unarchive_task,
 )
 from .tasks_persist import (
@@ -70,6 +71,7 @@ __all__ = [
     "ws_reset_task",
     "ws_skip_task",
     "ws_snooze_task",
+    "ws_task_history",
     "ws_unarchive_task",
     "ws_update_history_entry",
     "ws_update_task",

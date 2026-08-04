@@ -1,0 +1,683 @@
+{
+  "summary": {
+    "instance": {
+      "objects": 0,
+      "tasks": "?",
+      "url": "http://127.0.0.1:8131"
+    },
+    "runs": 5,
+    "coldMs": {
+      "panelInDom": 1052,
+      "dataLoaded": 1348,
+      "firstRowPainted": 1349
+    },
+    "warmFirstRowMs": 0,
+    "bundle": null,
+    "ws": {
+      "maintenance_supporter/objects": {
+        "ms": 146,
+        "kb": 640,
+        "calls": 1
+      },
+      "frontend/get_translations": {
+        "ms": 189,
+        "kb": 58,
+        "calls": 2
+      },
+      "recorder/statistics_during_period": {
+        "ms": 103,
+        "kb": 4,
+        "calls": 1
+      },
+      "maintenance_supporter/settings": {
+        "ms": 146,
+        "kb": 1,
+        "calls": 1
+      },
+      "maintenance_supporter/battery_fleet/overview": {
+        "ms": 103,
+        "kb": 1,
+        "calls": 1
+      },
+      "maintenance_supporter/statistics": {
+        "ms": 146,
+        "kb": 0,
+        "calls": 1
+      },
+      "maintenance_supporter/users/list": {
+        "ms": 170,
+        "kb": 0,
+        "calls": 1
+      },
+      "maintenance_supporter/documents/storage": {
+        "ms": 162,
+        "kb": 0,
+        "calls": 1
+      }
+    },
+    "longTasksLoad": 5,
+    "longestLoadBlockMs": 230,
+    "scroll": {
+      "p50": 0,
+      "p95": 0,
+      "max": null,
+      "framesOver50": 0,
+      "layout": 0,
+      "recalc": 0,
+      "scriptMs": 0
+    },
+    "tabs": {
+      "toToday": 0,
+      "toDashboard": 0
+    },
+    "dom": {
+      "renderedRows": -1,
+      "dataTasks": -1
+    }
+  },
+  "runs": [
+    {
+      "cold": {
+        "marks": {
+          "panelInDom": 1052,
+          "dataLoaded": 1348.0999999940395,
+          "firstRowPainted": 1348.5
+        },
+        "ws": [
+          {
+            "type": "brands/access_token",
+            "ms": 151,
+            "bytes": 76
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 189,
+            "bytes": 59362
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 189,
+            "bytes": 19408
+          },
+          {
+            "type": "maintenance_supporter/objects",
+            "ms": 146,
+            "bytes": 655522
+          },
+          {
+            "type": "maintenance_supporter/statistics",
+            "ms": 146,
+            "bytes": 323
+          },
+          {
+            "type": "maintenance_supporter/budget_status",
+            "ms": 146,
+            "bytes": 133
+          },
+          {
+            "type": "maintenance_supporter/groups",
+            "ms": 146,
+            "bytes": 13
+          },
+          {
+            "type": "maintenance_supporter/settings",
+            "ms": 146,
+            "bytes": 1535
+          },
+          {
+            "type": "maintenance_supporter/views/list",
+            "ms": 146,
+            "bytes": 12
+          },
+          {
+            "type": "maintenance_supporter/users/list",
+            "ms": 170,
+            "bytes": 278
+          },
+          {
+            "type": "maintenance_supporter/documents/storage",
+            "ms": 162,
+            "bytes": 255
+          },
+          {
+            "type": "maintenance_supporter/battery_fleet/overview",
+            "ms": 103,
+            "bytes": 804
+          },
+          {
+            "type": "maintenance_supporter/version",
+            "ms": 103,
+            "bytes": 20
+          },
+          {
+            "type": "recorder/statistics_during_period",
+            "ms": 103,
+            "bytes": 4047
+          }
+        ],
+        "long": [
+          {
+            "start": 114.7999999821186,
+            "dur": 105
+          },
+          {
+            "start": 247.69999998807907,
+            "dur": 76
+          },
+          {
+            "start": 379,
+            "dur": 62
+          },
+          {
+            "start": 576.7999999821186,
+            "dur": 298
+          },
+          {
+            "start": 1117.0999999940395,
+            "dur": 163
+          }
+        ],
+        "bundle": null
+      },
+      "warm": null,
+      "scroll": {
+        "frames": [],
+        "layout": 0,
+        "recalc": 0,
+        "scriptMs": 0
+      },
+      "tabs": {
+        "toToday": null,
+        "toDashboard": null
+      },
+      "dom": {
+        "renderedRows": -1,
+        "dataTasks": -1
+      }
+    },
+    {
+      "cold": {
+        "marks": {
+          "panelInDom": 1211.8999999761581,
+          "dataLoaded": 1473.3999999761581,
+          "firstRowPainted": 1473.7999999821186
+        },
+        "ws": [
+          {
+            "type": "brands/access_token",
+            "ms": 165,
+            "bytes": 76
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 165,
+            "bytes": 59362
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 165,
+            "bytes": 19408
+          },
+          {
+            "type": "maintenance_supporter/objects",
+            "ms": 122,
+            "bytes": 655522
+          },
+          {
+            "type": "maintenance_supporter/statistics",
+            "ms": 122,
+            "bytes": 323
+          },
+          {
+            "type": "maintenance_supporter/budget_status",
+            "ms": 121,
+            "bytes": 133
+          },
+          {
+            "type": "maintenance_supporter/groups",
+            "ms": 121,
+            "bytes": 13
+          },
+          {
+            "type": "maintenance_supporter/settings",
+            "ms": 121,
+            "bytes": 1535
+          },
+          {
+            "type": "maintenance_supporter/views/list",
+            "ms": 121,
+            "bytes": 12
+          },
+          {
+            "type": "maintenance_supporter/users/list",
+            "ms": 138,
+            "bytes": 278
+          },
+          {
+            "type": "maintenance_supporter/documents/storage",
+            "ms": 133,
+            "bytes": 255
+          },
+          {
+            "type": "maintenance_supporter/battery_fleet/overview",
+            "ms": 124,
+            "bytes": 804
+          },
+          {
+            "type": "maintenance_supporter/version",
+            "ms": 124,
+            "bytes": 20
+          },
+          {
+            "type": "recorder/statistics_during_period",
+            "ms": 1398,
+            "bytes": 4047
+          }
+        ],
+        "long": [
+          {
+            "start": 146.5,
+            "dur": 96
+          },
+          {
+            "start": 272,
+            "dur": 56
+          },
+          {
+            "start": 856.8999999761581,
+            "dur": 193
+          },
+          {
+            "start": 1259,
+            "dur": 149
+          },
+          {
+            "start": 2588.7999999821186,
+            "dur": 71
+          },
+          {
+            "start": 2753.699999988079,
+            "dur": 51
+          },
+          {
+            "start": 2853.5999999940395,
+            "dur": 52
+          }
+        ],
+        "bundle": null
+      },
+      "warm": null,
+      "scroll": {
+        "frames": [],
+        "layout": 0,
+        "recalc": 0,
+        "scriptMs": 0
+      },
+      "tabs": {
+        "toToday": null,
+        "toDashboard": null
+      },
+      "dom": {
+        "renderedRows": -1,
+        "dataTasks": -1
+      }
+    },
+    {
+      "cold": {
+        "marks": {
+          "panelInDom": 1007,
+          "dataLoaded": 1334.199999988079,
+          "firstRowPainted": 1335.0999999940395
+        },
+        "ws": [
+          {
+            "type": "brands/access_token",
+            "ms": 163,
+            "bytes": 76
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 193,
+            "bytes": 59362
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 193,
+            "bytes": 19408
+          },
+          {
+            "type": "maintenance_supporter/objects",
+            "ms": 144,
+            "bytes": 655522
+          },
+          {
+            "type": "maintenance_supporter/statistics",
+            "ms": 144,
+            "bytes": 323
+          },
+          {
+            "type": "maintenance_supporter/budget_status",
+            "ms": 144,
+            "bytes": 133
+          },
+          {
+            "type": "maintenance_supporter/groups",
+            "ms": 144,
+            "bytes": 13
+          },
+          {
+            "type": "maintenance_supporter/settings",
+            "ms": 144,
+            "bytes": 1535
+          },
+          {
+            "type": "maintenance_supporter/views/list",
+            "ms": 144,
+            "bytes": 12
+          },
+          {
+            "type": "maintenance_supporter/users/list",
+            "ms": 176,
+            "bytes": 278
+          },
+          {
+            "type": "maintenance_supporter/documents/storage",
+            "ms": 171,
+            "bytes": 255
+          },
+          {
+            "type": "maintenance_supporter/battery_fleet/overview",
+            "ms": 129,
+            "bytes": 804
+          },
+          {
+            "type": "maintenance_supporter/version",
+            "ms": 139,
+            "bytes": 20
+          },
+          {
+            "type": "recorder/statistics_during_period",
+            "ms": 158,
+            "bytes": 4047
+          }
+        ],
+        "long": [
+          {
+            "start": 128.5,
+            "dur": 95
+          },
+          {
+            "start": 251.19999998807907,
+            "dur": 53
+          },
+          {
+            "start": 634.2999999821186,
+            "dur": 190
+          },
+          {
+            "start": 844.5,
+            "dur": 50
+          },
+          {
+            "start": 1044.2999999821186,
+            "dur": 230
+          }
+        ],
+        "bundle": null
+      },
+      "warm": null,
+      "scroll": {
+        "frames": [],
+        "layout": 0,
+        "recalc": 0,
+        "scriptMs": 0
+      },
+      "tabs": {
+        "toToday": null,
+        "toDashboard": null
+      },
+      "dom": {
+        "renderedRows": -1,
+        "dataTasks": -1
+      }
+    },
+    {
+      "cold": {
+        "marks": {
+          "panelInDom": 1266.8999999761581,
+          "dataLoaded": 1537,
+          "firstRowPainted": 1537.3999999761581
+        },
+        "ws": [
+          {
+            "type": "brands/access_token",
+            "ms": 258,
+            "bytes": 76
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 263,
+            "bytes": 59362
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 263,
+            "bytes": 19408
+          },
+          {
+            "type": "maintenance_supporter/objects",
+            "ms": 119,
+            "bytes": 655522
+          },
+          {
+            "type": "maintenance_supporter/statistics",
+            "ms": 119,
+            "bytes": 323
+          },
+          {
+            "type": "maintenance_supporter/budget_status",
+            "ms": 119,
+            "bytes": 133
+          },
+          {
+            "type": "maintenance_supporter/groups",
+            "ms": 119,
+            "bytes": 13
+          },
+          {
+            "type": "maintenance_supporter/settings",
+            "ms": 119,
+            "bytes": 1535
+          },
+          {
+            "type": "maintenance_supporter/views/list",
+            "ms": 119,
+            "bytes": 12
+          },
+          {
+            "type": "maintenance_supporter/users/list",
+            "ms": 141,
+            "bytes": 278
+          },
+          {
+            "type": "maintenance_supporter/documents/storage",
+            "ms": 134,
+            "bytes": 255
+          },
+          {
+            "type": "maintenance_supporter/battery_fleet/overview",
+            "ms": 127,
+            "bytes": 804
+          },
+          {
+            "type": "maintenance_supporter/version",
+            "ms": 127,
+            "bytes": 20
+          },
+          {
+            "type": "recorder/statistics_during_period",
+            "ms": 127,
+            "bytes": 4047
+          }
+        ],
+        "long": [
+          {
+            "start": 120.09999999403954,
+            "dur": 87
+          },
+          {
+            "start": 227.09999999403954,
+            "dur": 92
+          },
+          {
+            "start": 393.7999999821186,
+            "dur": 95
+          },
+          {
+            "start": 721.0999999940395,
+            "dur": 324
+          },
+          {
+            "start": 1177.699999988079,
+            "dur": 68
+          },
+          {
+            "start": 1286.8999999761581,
+            "dur": 164
+          },
+          {
+            "start": 1451.0999999940395,
+            "dur": 63
+          }
+        ],
+        "bundle": null
+      },
+      "warm": null,
+      "scroll": {
+        "frames": [],
+        "layout": 0,
+        "recalc": 0,
+        "scriptMs": 0
+      },
+      "tabs": {
+        "toToday": null,
+        "toDashboard": null
+      },
+      "dom": {
+        "renderedRows": -1,
+        "dataTasks": -1
+      }
+    },
+    {
+      "cold": {
+        "marks": {
+          "panelInDom": 794.3000000119209,
+          "dataLoaded": 999.5999999940395,
+          "firstRowPainted": 999.9000000059605
+        },
+        "ws": [
+          {
+            "type": "brands/access_token",
+            "ms": 67,
+            "bytes": 76
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 67,
+            "bytes": 59362
+          },
+          {
+            "type": "frontend/get_translations",
+            "ms": 67,
+            "bytes": 19408
+          },
+          {
+            "type": "maintenance_supporter/objects",
+            "ms": 81,
+            "bytes": 655522
+          },
+          {
+            "type": "maintenance_supporter/statistics",
+            "ms": 81,
+            "bytes": 323
+          },
+          {
+            "type": "maintenance_supporter/budget_status",
+            "ms": 81,
+            "bytes": 133
+          },
+          {
+            "type": "maintenance_supporter/groups",
+            "ms": 81,
+            "bytes": 13
+          },
+          {
+            "type": "maintenance_supporter/settings",
+            "ms": 81,
+            "bytes": 1535
+          },
+          {
+            "type": "maintenance_supporter/views/list",
+            "ms": 81,
+            "bytes": 12
+          },
+          {
+            "type": "maintenance_supporter/users/list",
+            "ms": 98,
+            "bytes": 278
+          },
+          {
+            "type": "maintenance_supporter/documents/storage",
+            "ms": 94,
+            "bytes": 255
+          },
+          {
+            "type": "maintenance_supporter/battery_fleet/overview",
+            "ms": 89,
+            "bytes": 804
+          },
+          {
+            "type": "maintenance_supporter/version",
+            "ms": 89,
+            "bytes": 20
+          },
+          {
+            "type": "recorder/statistics_during_period",
+            "ms": 89,
+            "bytes": 4046
+          }
+        ],
+        "long": [
+          {
+            "start": 87.80000001192093,
+            "dur": 60
+          },
+          {
+            "start": 461,
+            "dur": 193
+          },
+          {
+            "start": 814,
+            "dur": 135
+          }
+        ],
+        "bundle": null
+      },
+      "warm": null,
+      "scroll": {
+        "frames": [],
+        "layout": 0,
+        "recalc": 0,
+        "scriptMs": 0
+      },
+      "tabs": {
+        "toToday": null,
+        "toDashboard": null
+      },
+      "dom": {
+        "renderedRows": -1,
+        "dataTasks": -1
+      }
+    }
+  ]
+}

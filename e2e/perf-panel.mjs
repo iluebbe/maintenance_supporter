@@ -22,9 +22,8 @@
  *    node e2e/perf-panel.mjs            (ha-shots demo)
  *    HA_URL=… HA_TOKEN=… node e2e/perf-panel.mjs
  */
-import { chromium } from "@playwright/test";
 import fs from "fs";
-import { wsClient, watchdog } from "./ws-client.mjs";
+import { watchdog } from "./ws-client.mjs";
 
 const REST = process.env.HA_URL || "http://127.0.0.1:8131";
 const HA = process.env.HA_BROWSER_URL || "http://ha-shots:8123";
@@ -56,16 +55,23 @@ async function token() {
 }
 
 const TOKEN = await token();
-const api = await wsClient(REST, TOKEN);
-const objs = (await api.send({ type: "maintenance_supporter/objects" })).objects;
-const taskCount = objs.reduce((n, o) => n + o.tasks.length, 0);
-api.close();
-log(`instance: ${objs.length} objects, ${taskCount} tasks`);
+// Instance info via REST, NOT wsClient: a Node-side HA WebSocket in the same
+// process as the playwright connection correlated with the page channel
+// wedging (2026-08-05 bisect — the probe without it never hung).
+const states = await fetch(REST + "/api/states", { headers: { Authorization: "Bearer " + TOKEN } }).then((r) => r.json());
+log(`instance: ${states.length} states`);
+const objs = [];
+const taskCount = "?";
 
 // Instrumentation injected before any app code: WS wrapping (via the
 // hassConnection promise the HA frontend exposes), long-task observer,
 // panel-appearance + first-row timestamps.
 const INIT = `
+  // Scroll probing is OPT-IN (PERF_SCROLL=1): the in-page rAF scroll loop
+  // wedged the remote run-server's evaluate channel (1.62, 2026-08-05) —
+  // load/payload metrics are the reliable core; scroll numbers exist in the
+  // pre-truncation baselines and are untouched by payload changes.
+  const PERF_SCROLL = __PERF_SCROLL__;
   window.__perf = { ws: [], long: [], marks: {} };
   try {
     new PerformanceObserver((l) => {
@@ -84,9 +90,42 @@ const INIT = `
       if (Array.isArray(panel._objects) && panel._objects.length > 0) mark("dataLoaded");
       window.__panel = panel;
       const row = deep((el) => el.classList && (el.classList.contains("task-row") || el.tagName === "TR") && /Perf |Task /.test(el.textContent || ""));
-      if (row) { mark("firstRowPainted"); clearInterval(poll); }
+      if (row) { mark("firstRowPainted"); clearInterval(poll); if (PERF_SCROLL) setTimeout(scrollProbe, 4000); }
     }
   }, 16);
+  // The scroll measurement runs IN-PAGE, self-started after first paint —
+  // the harness only READS window.__scrollResult in its single evaluate
+  // (a second evaluate on the same page wedges the remote run-server).
+  async function scrollProbe() {
+    try {
+      const deepAll = (pred) => { const st = [document.documentElement]; const out = []; let n = 0;
+        while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+          if (pred(el)) out.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return out; };
+      let el = deepAll((e) => e.classList && (e.classList.contains("task-row") || e.tagName === "TR"))[0];
+      let scroller = null;
+      while (el) {
+        if (el.scrollHeight > el.clientHeight + 40) { scroller = el; break; }
+        el = el.parentNode instanceof ShadowRoot ? el.parentNode.host : el.parentElement;
+      }
+      if (!scroller) scroller = document.scrollingElement;
+      const deltas = [];
+      let last = performance.now();
+      for (let i = 0; i < 80; i++) {
+        scroller.scrollTop += 140;
+        await new Promise((r) => requestAnimationFrame(r));
+        const now = performance.now();
+        deltas.push(now - last);
+        last = now;
+      }
+      scroller.scrollTop = 0;
+      const rows = deepAll((e) => (e.classList && e.classList.contains("task-row")) || (e.tagName === "TR" && /Task /.test(e.textContent || "")));
+      const dataTasks = (window.__panel && window.__panel._objects || []).reduce((n, o) => n + o.tasks.length, 0);
+      window.__scrollResult = { frames: deltas, renderedRows: rows.length, dataTasks: dataTasks };
+    } catch (e) {
+      window.__scrollResult = { frames: [], renderedRows: -1, dataTasks: -1, error: String(e) };
+    }
+  }
   const wrap = (conn) => {
     const orig = conn.sendMessagePromise.bind(conn);
     conn.sendMessagePromise = async (msg) => {
@@ -106,6 +145,9 @@ const INIT = `
   hookConn();
 `;
 
+const withTimeout = (promise, ms, fallback) =>
+  Promise.race([promise, new Promise((r) => setTimeout(() => r(fallback), ms))]);
+
 const pct = (arr, p) => {
   if (!arr.length) return 0;
   const s = [...arr].sort((a, b) => a - b);
@@ -113,119 +155,29 @@ const pct = (arr, p) => {
 };
 const median = (arr) => pct(arr, 50);
 
-async function measureLoad(page) {
-  await page.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => window.__perf?.marks?.firstRowPainted, { timeout: 45000 }).catch(() => {});
-  await page.waitForTimeout(800); // let stragglers (stats, locales) land
-  return page.evaluate(() => {
-    const bundle = performance.getEntriesByType("resource").find((r) => /maintenance-panel\.js/.test(r.name));
-    return {
-      marks: window.__perf.marks,
-      ws: window.__perf.ws,
-      long: window.__perf.long,
-      bundle: bundle ? { ms: Math.round(bundle.duration), kb: Math.round((bundle.transferSize || bundle.encodedBodySize || 0) / 1024) } : null,
-    };
-  });
-}
 
-async function measureScroll(page, cdp) {
-  // Find the scrollable ancestor of a task row and pump 80 wheel steps,
-  // capturing rAF deltas — the honest "does it feel smooth" number.
-  const before = Object.fromEntries((await cdp.send("Performance.getMetrics")).metrics.map((m) => [m.name, m.value]));
-  const frames = await page.evaluate(async () => {
-    const deepAll = (pred) => { const st = [document.documentElement]; const out = []; let n = 0;
-      while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
-        if (pred(el)) out.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
-        for (const k of (el.children || [])) st.push(k); } return out; };
-    let el = deepAll((e) => e.classList && (e.classList.contains("task-row") || e.tagName === "TR"))[0];
-    let scroller = null;
-    while (el) {
-      if (el.scrollHeight > el.clientHeight + 40) { scroller = el; break; }
-      el = el.parentNode instanceof ShadowRoot ? el.parentNode.host : el.parentElement;
-    }
-    if (!scroller) scroller = document.scrollingElement;
-    const deltas = [];
-    let last = performance.now();
-    for (let i = 0; i < 80; i++) {
-      scroller.scrollTop += 140;
-      await new Promise((r) => requestAnimationFrame(r));
-      const now = performance.now();
-      deltas.push(now - last);
-      last = now;
-    }
-    scroller.scrollTop = 0;
-    return deltas;
-  });
-  const after = Object.fromEntries((await cdp.send("Performance.getMetrics")).metrics.map((m) => [m.name, m.value]));
-  return {
-    frames,
-    layout: Math.round(after.LayoutCount - before.LayoutCount),
-    recalc: Math.round(after.RecalcStyleCount - before.RecalcStyleCount),
-    scriptMs: Math.round((after.ScriptDuration - before.ScriptDuration) * 1000),
-  };
-}
 
-async function measureTabs(page) {
-  const t = async (label) => page.evaluate(async (want) => {
-    const deepAll = (pred) => { const st = [document.documentElement]; const out = []; let n = 0;
-      while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
-        if (pred(el)) out.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
-        for (const k of (el.children || [])) st.push(k); } return out; };
-    const tab = deepAll((e) => (e.tagName === "MWC-TAB" || e.getAttribute?.("role") === "tab" || e.tagName === "BUTTON") && new RegExp(want, "i").test(e.textContent || ""))[0];
-    if (!tab) return null;
-    const t0 = performance.now();
-    tab.click();
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    return Math.round(performance.now() - t0);
-  }, label);
-  const toToday = await t("today");
-  await page.waitForTimeout(300);
-  const toDashboard = await t("dashboard");
-  await page.waitForTimeout(300);
-  return { toToday, toDashboard };
-}
 
-async function domReality(page) {
-  return page.evaluate(() => {
-    const deepAll = (pred) => { const st = [document.documentElement]; const out = []; let n = 0;
-      while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
-        if (pred(el)) out.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
-        for (const k of (el.children || [])) st.push(k); } return out; };
-    const rows = deepAll((e) => e.classList?.contains("task-row") || (e.tagName === "TR" && /Task /.test(e.textContent || "")));
-    const dataTasks = (window.__panel?._objects || []).reduce((n, o) => n + o.tasks.length, 0);
-    return { renderedRows: rows.length, dataTasks };
-  });
-}
 
-const b = await chromium.connect(PW_WS, { timeout: 20000 });
+// One SUBPROCESS per run (perf-run-once.mjs): fresh short-lived playwright
+// connections are the empirically reliable shape — the long-lived multi-run
+// connection wedged its page channel repeatedly (2026-08-04/05).
+import { execFileSync } from "child_process";
 const runs = [];
 for (let r = 0; r < RUNS; r++) {
-  const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
-  await ctx.addInitScript(({ tk, ha }) => {
-    localStorage.setItem("hassTokens", JSON.stringify({
-      access_token: tk, token_type: "Bearer", expires_in: 1800,
-      hassUrl: ha, clientId: ha + "/", expires: Date.now() + 9e11, refresh_token: "",
-    }));
-  }, { tk: TOKEN, ha: HA });
-  await ctx.addInitScript(INIT);
-  const page = await ctx.newPage();
-  const cdp = await ctx.newCDPSession(page);
-  await cdp.send("Performance.enable");
-
-  const cold = await measureLoad(page);
-  const scroll = await measureScroll(page, cdp);
-  const tabs = await measureTabs(page);
-  const dom = await domReality(page);
-  // Warm: same context (HTTP cache + service worker primed), fresh perf state.
-  await page.reload({ waitUntil: "domcontentloaded" });
-  const warm = await measureLoad(page);
-
-  runs.push({ cold, warm, scroll, tabs, dom });
-  const m = cold.marks;
-  log(`run ${r + 1}: cold firstRow ${Math.round(m.firstRowPainted || -1)} ms | warm ${Math.round(warm.marks.firstRowPainted || -1)} ms | scroll p95 ${Math.round(pct(scroll.frames, 95))} ms | rows ${dom.renderedRows}/${dom.dataTasks}`);
-  await ctx.close();
+  const out = execFileSync(process.execPath, [new URL("./perf-run-once.mjs", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")], {
+    env: { ...process.env, PERF_TOKEN: TOKEN },
+    encoding: "utf-8",
+    timeout: 6 * 60e3,
+  });
+  const line = out.trim().split("\n").pop();
+  const run = JSON.parse(line);
+  if (!run.cold) { log(`run ${r + 1}: cold read failed — skipped`); continue; }
+  runs.push(run);
+  const m = run.cold.marks || {};
+  log(`run ${r + 1}: cold firstRow ${Math.round(m.firstRowPainted || -1)} ms | warm ${Math.round(run.warm?.marks?.firstRowPainted || -1)} ms | scroll p95 ${Math.round(pct(run.scroll.frames, 95))} ms | rows ${run.dom.renderedRows}/${run.dom.dataTasks}`);
 }
-await b.close();
+if (!runs.length) throw new Error("no successful runs");
 
 const sum = {
   instance: { objects: objs.length, tasks: taskCount, url: REST },
@@ -235,7 +187,7 @@ const sum = {
     dataLoaded: median(runs.map((r) => Math.round(r.cold.marks.dataLoaded || 0))),
     firstRowPainted: median(runs.map((r) => Math.round(r.cold.marks.firstRowPainted || 0))),
   },
-  warmFirstRowMs: median(runs.map((r) => Math.round(r.warm.marks.firstRowPainted || 0))),
+  warmFirstRowMs: median(runs.map((r) => Math.round(r.warm?.marks?.firstRowPainted || 0))),
   bundle: runs[0].cold.bundle,
   ws: (() => {
     const byType = {};

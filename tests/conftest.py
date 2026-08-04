@@ -359,11 +359,19 @@ async def call_ws_handler(
     connection: Any,
     msg: dict[str, Any],
 ) -> None:
-    """Call a decorated WS handler, unwrapping @require_admin / @websocket_command."""
+    """Call a decorated WS handler, unwrapping @require_admin / @websocket_command.
+
+    Handles async handlers and plain @callback ones alike (a sync handler
+    returns None, which must not be awaited).
+    """
+    import inspect
+
     unwrapped: Any = handler
     while hasattr(unwrapped, "__wrapped__"):
         unwrapped = unwrapped.__wrapped__
-    await unwrapped(hass, connection, msg)
+    result = unwrapped(hass, connection, msg)
+    if inspect.isawaitable(result):
+        await result
 
 
 def make_ws_connection() -> MagicMock:

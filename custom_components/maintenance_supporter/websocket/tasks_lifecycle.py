@@ -150,9 +150,7 @@ async def ws_unarchive_task(
     td.pop("archived_at", None)
     td.pop("archived_reason", None)
     if legacy_anchor:
-        reanchor_recurring_task(
-            task_id, store=None, today_iso=dt_util.now().date().isoformat(), task_data=td
-        )
+        reanchor_recurring_task(task_id, store=None, today_iso=dt_util.now().date().isoformat(), task_data=td)
     elif recurring:
         # The Store already holds the fresh anchor; scrub the static shadow too
         # so an imported due_override can't out-rank it in merge_task_data.
@@ -207,3 +205,36 @@ def ws_list_tasks(
             tasks.append(summary)
 
     connection.send_result(msg["id"], {"tasks": tasks})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/history",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@callback
+def ws_task_history(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """The FULL history of one task (read tier, like the list it backs).
+
+    Payload diet (perf, 2026-08): the list responses truncate ``history`` to
+    the most recent window — at 150+ tasks the full histories dominated the
+    ``objects`` payload (906 KB measured at 40 entries/task, and the store
+    caps at 500). The detail view's timeline, filters and charts fetch the
+    complete record here, only when a task is actually opened.
+    """
+    for entry in _get_object_entries(hass):
+        if entry.entry_id != msg["entry_id"]:
+            continue
+        task_data = _get_merged_tasks(entry).get(msg["task_id"])
+        if task_data is None:
+            break
+        history = task_data.get("history") or []
+        connection.send_result(msg["id"], {"history": history, "count": len(history)})
+        return
+    connection.send_error(msg["id"], "not_found", "Task not found")
