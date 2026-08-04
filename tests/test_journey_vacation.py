@@ -13,6 +13,7 @@ See docs/design/user-journeys.md (L cross-feature: vacation interplay).
 
 from __future__ import annotations
 
+from datetime import timedelta
 from unittest.mock import AsyncMock
 
 import pytest
@@ -53,6 +54,13 @@ def _global_data(**vacation: object) -> dict[str, object]:
 
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    # The window brackets the REAL run date (the notification manager reads
+    # the wall clock, and this suite runs unfrozen). Hard-coding a month
+    # here rotted once — CI went red on 2026-08-04 when the buffered end of
+    # a literal "July 2026" window slipped into the past.
+    from homeassistant.util import dt as dt_util
+
+    today = dt_util.now().date()
     entry = MockConfigEntry(
         version=1,
         minor_version=1,
@@ -61,8 +69,8 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
         data=_global_data(
             **{
                 CONF_VACATION_ENABLED: True,
-                CONF_VACATION_START: "2026-07-01",
-                CONF_VACATION_END: "2026-07-31",
+                CONF_VACATION_START: (today - timedelta(days=14)).isoformat(),
+                CONF_VACATION_END: (today + timedelta(days=14)).isoformat(),
                 CONF_VACATION_EXEMPT_TASK_IDS: [_EXEMPT],
             }
         ),
@@ -75,17 +83,13 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 async def _overdue(hass: HomeAssistant, task_id: str) -> None:
     nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
-    await nm.async_task_status_changed(
-        "entry_x", task_id, f"Task {task_id}", "Object", "overdue", days_until_due=-3
-    )
+    await nm.async_task_status_changed("entry_x", task_id, f"Task {task_id}", "Object", "overdue", days_until_due=-3)
     await hass.async_block_till_done()
 
 
-async def test_vacation_silences_overdue_except_exempt_then_resumes(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
-    # The freeze-independent anchor is real "today" (the vacation window brackets
-    # July 2026); the suite runs inside it. Guard against a future clock drift.
+async def test_vacation_silences_overdue_except_exempt_then_resumes(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    # The freeze-independent anchor is real "today"; the fixture window is
+    # computed around it (±14 d), so this can only fail on a genuine bug.
     assert get_vacation_state(hass).is_active(), "test fixture window must cover the run date"
 
     mock = AsyncMock()
