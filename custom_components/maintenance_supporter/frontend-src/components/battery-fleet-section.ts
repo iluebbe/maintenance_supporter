@@ -71,7 +71,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   @state() private _marking = false;
   @state() private _error = "";
   @state() private _history: HistorySeries | null = null;
-  @state() private _rosterSort: "name" | "urgency" = "name";
+  // Urgency by default (issue #123: "soon sat in the middle of the list");
+  // the choice is remembered per browser.
+  @state() private _rosterSort: "name" | "urgency" = MaintenanceBatteryFleetSection._storedSort();
   @state() private _typeFilter: string | null = null;
   @state() private _recorded: string[] = [];
   private _historyRequested = false;
@@ -226,12 +228,35 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     </svg>`;
   }
 
-  /** The roster stays a name-sorted lookup list by default; urgency mode
-   *  turns the same list into a planning view (low first, soonest next). */
+  private static readonly _SORT_KEY = "ms_bf_roster_sort";
+
+  private static _storedSort(): "name" | "urgency" {
+    try {
+      const v = localStorage.getItem(MaintenanceBatteryFleetSection._SORT_KEY);
+      return v === "name" ? "name" : "urgency";
+    } catch {
+      return "urgency";
+    }
+  }
+
+  private _setSort(mode: "name" | "urgency"): void {
+    this._rosterSort = mode;
+    try {
+      localStorage.setItem(MaintenanceBatteryFleetSection._SORT_KEY, mode);
+    } catch {
+      // storage unavailable — the toggle still works for this visit
+    }
+  }
+
+  /** Urgency (the default, issue #123): low rows first — emptiest first —
+   *  then the soonest forecast, dateless rows last. Name mode keeps the
+   *  alphabetical lookup list. */
   private _sortedRoster(rows: RosterRow[]): RosterRow[] {
     const filtered = this._typeFilter === null ? rows : rows.filter((r) => r.battery_type === this._typeFilter);
     if (this._rosterSort === "name") return filtered;
-    const rank = (r: RosterRow) => (r.status === "low" ? -1 : (r.days_until ?? Infinity));
+    // Low rows rank far below everything and among themselves by LEVEL
+    // ascending (a 6 % battery before an 18 % one); the rest by days-until.
+    const rank = (r: RosterRow) => (r.status === "low" ? -1000 + (r.level ?? 101) / 101 : (r.days_until ?? Infinity));
     return [...filtered].sort(
       (a, b) => rank(a) - rank(b) || a.device_name.localeCompare(b.device_name),
     );
@@ -400,16 +425,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 <summary>${t("battery_fleet_all", L)} (${ov.all.length})</summary>
                 <div class="bf-roster-tools">
                   <button
-                    class="bf-sort ${this._rosterSort === "name" ? "bf-sort-active" : ""}"
-                    @click=${() => (this._rosterSort = "name")}
-                  >
-                    ${t("battery_fleet_sort_name", L)}
-                  </button>
-                  <button
                     class="bf-sort ${this._rosterSort === "urgency" ? "bf-sort-active" : ""}"
-                    @click=${() => (this._rosterSort = "urgency")}
+                    @click=${() => this._setSort("urgency")}
                   >
                     ${t("battery_fleet_sort_urgency", L)}
+                  </button>
+                  <button
+                    class="bf-sort ${this._rosterSort === "name" ? "bf-sort-active" : ""}"
+                    @click=${() => this._setSort("name")}
+                  >
+                    ${t("battery_fleet_sort_name", L)}
                   </button>
                 </div>
                 <div class="bf-rows">

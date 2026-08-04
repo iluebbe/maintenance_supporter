@@ -304,8 +304,10 @@ The fleet task's detail view is the whole surface:
   low threshold, and on trend-dated rows a **dotted projection** from the
   last reading down to that threshold, so the ~date is something you can
   *see*. The history is fetched only when the roster is opened and cached
-  for 6 hours. A **name ⇄ urgency toggle** re-sorts the same list for
-  planning (low first, soonest forecast next), and on a low rechargeable
+  for 6 hours. The roster sorts by **urgency by default** (#123): low
+  batteries first — emptiest first — then the soonest forecast, dateless
+  rows last; a toggle switches to an alphabetical lookup list, and the
+  choice is remembered per browser. On a low rechargeable
   the mark action reads *mark as recharged*. The **shopping quantities are
   clickable**: tapping "4× AAA" filters the roster to the devices that need
   them. Every row carries a small **level bar** next to the percentage,

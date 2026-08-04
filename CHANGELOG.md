@@ -21,8 +21,10 @@ All notable changes to Maintenance Supporter are documented in this file.
   threshold: the predicted date becomes something you can see, not something
   you must believe. History is fetched lazily when the roster is expanded
   (new read-tier WS `battery_fleet/overview_history`, ≤60 points per battery,
-  recorder work cached 6 h like the trend). The roster also gained a
-  **name ⇄ urgency sort toggle** (low first, soonest forecast next), and the
+  recorder work cached 6 h like the trend). The roster now sorts by
+  **urgency by default** (#123): low batteries first — emptiest first —
+  then the soonest forecast, dateless rows last; a toggle switches to the
+  alphabetical lookup list and the choice is remembered per browser. The
   mark action on a low rechargeable now reads **"Mark as recharged"** —
   same button, honest words. All strings in 22 languages.
 - **Battery fleet: clickable shopping chips, level bars, and an

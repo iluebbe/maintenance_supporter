@@ -216,8 +216,10 @@ wave brought the roster's presentation up to it. **All six items shipped**
    trend), inline-SVG line + faint threshold line, and on trend-dated rows a
    dotted projection from the last reading down to the low threshold — the
    "~date" is something you can *see*, not something you must believe.
-2. ✅ **Roster sort toggle: name ⇄ urgency** — low first, then soonest
-   forecast; the same lookup list becomes a planning view.
+2. ✅ **Roster sort toggle: name ⇄ urgency** — low first (emptiest first),
+   then soonest forecast; **urgency became the default** after issue #123
+   asked for exactly that (the choice is remembered per browser; name mode
+   keeps the alphabetical lookup list).
 3. ✅ **"Recharged" wording on rechargeable rows** — the mark action on a low
    rechargeable says *mark as recharged*; same button underneath.
 4. ✅ **Type chips as filters** — tapping "4× AAA" in the shopping lines

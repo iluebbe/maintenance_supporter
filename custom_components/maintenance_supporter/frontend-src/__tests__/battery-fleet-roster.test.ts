@@ -63,6 +63,8 @@ async function mount(ov: unknown = overview(), history: Record<string, unknown> 
 const roster = (el: MaintenanceBatteryFleetSection) => el.shadowRoot!.querySelector("details.bf-roster");
 
 describe("battery fleet roster", () => {
+  beforeEach(() => localStorage.removeItem("ms_bf_roster_sort"));
+
   it("lists a healthy device that appears in neither low nor soon", async () => {
     const { el } = await mount();
     const names = [...roster(el)!.querySelectorAll(".bf-dev")].map((n) => n.textContent?.trim());
@@ -187,28 +189,43 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     expect(roster(el)!.querySelectorAll(".bf-row")).to.have.lengthOf(2);
   });
 
-  it("sorts by urgency on toggle: low first, then soonest forecast", async () => {
+  it("defaults to urgency (issue #123): emptiest low first, then soonest forecast", async () => {
     const soonRow = {
       ...HEALTHY, entity_id: "sensor.bell_battery_plus", device_name: "Aaa Doorbell",
       days_until: 12, status: "soon",
     };
+    // Two lows: Zz Sensor at 3 % must beat Front Lock at 8 % despite the name.
+    const emptier = { ...LOW, entity_id: "sensor.zz_battery_plus", device_name: "Zz Sensor", level: 3 };
+    // The backend delivers `all` name-sorted — the fixture mirrors that.
     const { el } = await mount(overview({
-      total: 3,
-      // Name order: Aaa Doorbell, Front Lock, Robot Vacuum.
-      all: [{ ...soonRow }, { ...LOW, status: "low" }, { ...HEALTHY, status: "ok" }],
+      total: 4,
+      all: [{ ...soonRow }, { ...LOW, status: "low" }, { ...HEALTHY, status: "ok" }, { ...emptier, status: "low" }],
     }));
     await openRoster(el);
     const names = () => [...roster(el)!.querySelectorAll(".bf-dev")].map((n) => n.textContent?.trim());
-    expect(names()).to.deep.equal(["Aaa Doorbell", "Front Lock", "Robot Vacuum"]);
+    expect(names(), "urgency is the default; lows sort by level").to.deep.equal(
+      ["Zz Sensor", "Front Lock", "Aaa Doorbell", "Robot Vacuum"],
+    );
 
     const buttons = [...roster(el)!.querySelectorAll<HTMLButtonElement>("button.bf-sort")];
     expect(buttons).to.have.lengthOf(2);
-    buttons[1].click();
+    buttons[1].click(); // second chip = name mode
     await el.updateComplete;
-    expect(names(), "low first, then the 12-day forecast").to.deep.equal(["Front Lock", "Aaa Doorbell", "Robot Vacuum"]);
+    expect(names()).to.deep.equal(["Aaa Doorbell", "Front Lock", "Robot Vacuum", "Zz Sensor"]);
+    expect(localStorage.getItem("ms_bf_roster_sort"), "the choice persists").to.equal("name");
     buttons[0].click();
     await el.updateComplete;
-    expect(names()).to.deep.equal(["Aaa Doorbell", "Front Lock", "Robot Vacuum"]);
+    expect(names()[0]).to.equal("Zz Sensor");
+    expect(localStorage.getItem("ms_bf_roster_sort")).to.equal("urgency");
+  });
+
+  it("honours a previously stored sort choice on mount", async () => {
+    localStorage.setItem("ms_bf_roster_sort", "name");
+    const { el } = await mount();
+    await openRoster(el);
+    const active = roster(el)!.querySelector("button.bf-sort-active")!;
+    expect(active.textContent).to.match(/name/i);
+    localStorage.removeItem("ms_bf_roster_sort");
   });
 
   it("filters the roster via the shopping-line type chips", async () => {
