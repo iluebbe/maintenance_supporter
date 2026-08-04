@@ -308,7 +308,9 @@ The fleet task's detail view is the whole surface:
   planning (low first, soonest forecast next), and on a low rechargeable
   the mark action reads *mark as recharged*. The **shopping quantities are
   clickable**: tapping "4× AAA" filters the roster to the devices that need
-  them. Every row carries a small **level bar** next to the percentage, and
+  them. Every row carries a small **level bar** next to the percentage,
+  colored against the battery's **own** low threshold (a sensor whose note
+  warns at 35 % turns red at 35, not at a hard-coded 20), and
   when the history shows a big upward step that was never recorded — fresh
   cells went in, but nobody pressed Battery Notes' *replaced* button, so the
   forecast still anchors on the dead battery's date — an amber **record this

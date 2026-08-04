@@ -58,6 +58,20 @@ object keeps a device of its own. Completing the fix clears the notice; a
 integration, restored backup). A *self-link* never resolves on its own — the
 Fix button is the way out.
 
+### Battery Fleet: No Sparkline or Trend Date on Some Rows
+
+The discharge sparklines and trend-based ~dates (2.51+) are computed from
+Home Assistant's **long-term statistics** (hourly means kept by the
+recorder). A battery shows only the type-lifetime date and no curve when its
+percentage sensor has no statistics: the entity is new (statistics start
+accumulating after about an hour), the recorder excludes it
+(`recorder: exclude`), or the sensor reports no `state_class`. Low-only
+batteries (a lock that exposes just a battery-low binary) have no percentage
+to chart at all. The history is also cached for six hours — freshly imported
+or restored statistics can take one cache cycle to appear. Trend dates
+additionally require the regression to be confident: a barely-draining or
+bouncing series deliberately falls back to the type-lifetime table.
+
 ### Damaged Storage File
 
 Each object stores its dynamic state (history, last-performed dates, trigger
