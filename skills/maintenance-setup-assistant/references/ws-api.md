@@ -572,7 +572,9 @@ total, low, soon, all, needs_now:{type:count}, needs_soon:{…}, types,
 excluded:[{entity_id,device_name}]}`. `all` is the full roster (#113): every
 tracked battery as `{entity_id, device_name, battery_type, quantity, level,
 days_until, available, predicted_source, prediction_confidence, rechargeable,
-status}` with status `low|soon|ok`. `predicted_source` (2.50+) is `"trend"`
+low_threshold, status}` with status `low|soon|ok`. `low_threshold` (2.51+) is
+the battery's own low level — Battery Notes' configured threshold or the
+fleet-wide 20 % floor, whichever is higher. `predicted_source` (2.50+) is `"trend"`
 when `days_until` comes from the discharge-trend regression (then
 `prediction_confidence` is `medium|high`) or `"typical"` for the
 last-replaced + type-lifetime table. `rechargeable` (2.51+) marks types that

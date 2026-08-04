@@ -24,6 +24,19 @@ const check = (ok, label) => { console.log(`${ok ? "PASS" : "FAIL"}  ${label}`);
 
 const api = await wsClient(URL, process.env.HA_TOKEN);
 try {
+  // Ensure the dev fixture integration is set up (device-backed BN-shaped
+  // batteries — see docker/dev_battery_fixtures). Idempotent: the flow
+  // aborts when the entry already exists.
+  const entries = await api.send({ type: "config_entries/get" });
+  if (!entries.some((e) => e.domain === "dev_battery_fixtures")) {
+    const flow = await fetch(`${URL}/api/config/config_entries/flow`, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + process.env.HA_TOKEN, "Content-Type": "application/json" },
+      body: JSON.stringify({ handler: "dev_battery_fixtures", show_advanced_options: false }),
+    }).then((r) => r.json());
+    console.log("fixture entry created:", JSON.stringify(flow).slice(0, 140));
+    await new Promise((r) => setTimeout(r, 3000));
+  }
   const states = await api.send({ type: "get_states" });
   const reg = await api.send({ type: "config/entity_registry/list" });
   const regByEid = new Map(reg.map((e) => [e.entity_id, e]));
@@ -34,9 +47,12 @@ try {
       && "battery_type" in a && !a.battery_low && Number.isFinite(lvl) && lvl >= 40;
   });
   if (healthy.length < 2) throw new Error("need two healthy percentage batteries in the fleet");
-  // Prefer a device-backed entity for the jump case so the one-click fix
-  // payload (device_id) can be asserted too.
-  const jumpCand = healthy.find((x) => regByEid.get(x.entity_id)?.device_id) ?? healthy[1];
+  // Prefer the Hall Motion fixture (device-backed, 21-month-old
+  // last_replaced) for the jump case; any device-backed battery otherwise.
+  const jumpCand =
+    healthy.find((x) => x.entity_id.includes("fixture_hall_motion"))
+    ?? healthy.find((x) => regByEid.get(x.entity_id)?.device_id)
+    ?? healthy[1];
   const fallCand = healthy.find((x) => x !== jumpCand);
   const FALL = fallCand.entity_id, JUMP = jumpCand.entity_id;
   const jumpHasDevice = !!regByEid.get(JUMP)?.device_id;

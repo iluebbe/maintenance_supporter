@@ -872,6 +872,22 @@ async def test_level_history_carries_the_jump_with_its_device(hass):
     assert jump["to"] == 100.0
 
 
+async def test_rows_carry_the_batterys_own_threshold(hass):
+    """The level bars color against the battery's OWN low threshold — a note
+    configured to warn at 35 % must not render green-at-30 like a default-20
+    battery would."""
+    _set_note(hass, "thermo", battery_type="AA", battery_low=False, battery_low_threshold=35, _state="80")
+    _set_note(hass, "plain", battery_type="AA", battery_low=False, _state="80")
+    bats = read_batteries(hass)
+    by_eid = {b.entity_id: b for b in bats}
+    assert by_eid["sensor.thermo_battery_plus"].low_threshold == 35.0
+    assert by_eid["sensor.plain_battery_plus"].low_threshold == 20.0
+    ov = build_overview(bats, today=date(2026, 8, 4))
+    rows = {r["entity_id"]: r for r in ov.all}
+    assert rows["sensor.thermo_battery_plus"]["low_threshold"] == 35.0
+    assert rows["sensor.plain_battery_plus"]["low_threshold"] == 20.0
+
+
 async def test_level_history_threshold_follows_the_note(hass):
     from unittest.mock import AsyncMock, patch
 

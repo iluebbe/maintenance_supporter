@@ -25,6 +25,10 @@ interface BatteryRow {
   /** Charged, never bought — the row never feeds the shopping groupings and
    *  a ~date only appears when the discharge trend earned one. */
   rechargeable?: boolean;
+  /** This battery's own low threshold (Battery Notes' configured value or
+   *  the fleet floor, whichever is higher) — the level bar colors against
+   *  it, not against a fixed 20 %. */
+  low_threshold?: number;
 }
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
@@ -290,10 +294,14 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
   }
 
-  /** Purely visual level bar next to the number — scannable at a glance. */
-  private _levelBar(level: number | null | undefined) {
+  /** Purely visual level bar next to the number — scannable at a glance.
+   *  Colored against the battery's OWN low threshold: red at/below it,
+   *  amber inside a 20-point approach band, green above. */
+  private _levelBar(b: BatteryRow) {
+    const level = b.level;
     if (level == null) return nothing;
-    const cls = level <= 20 ? "bad" : level <= 40 ? "warn" : "good";
+    const t = b.low_threshold ?? 20;
+    const cls = level <= t ? "bad" : level <= t + 20 ? "warn" : "good";
     return html`<span class="bf-bar" aria-hidden="true"
       ><span class="bf-bar-fill bf-bar-${cls}" style="width: ${Math.min(100, Math.max(0, level))}%"></span
     ></span>`;
@@ -348,7 +356,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                             ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
                           ></span>`
                         : nothing}
-                      ${this._levelBar(b.level)}
+                      ${this._levelBar(b)}
                       ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                       <button
                         class="bf-mark"
@@ -417,7 +425,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                             ></span>`
                           : nothing}
                         ${this._sparkline(b)}
-                        ${this._levelBar(b.level)}
+                        ${this._levelBar(b)}
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
                         ${(() => {
                           const jump = this._history?.[b.entity_id]?.jump;

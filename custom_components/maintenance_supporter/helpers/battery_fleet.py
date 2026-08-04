@@ -151,6 +151,11 @@ class Battery:
     last_replaced: date | None
     available: bool = True
     source: str = "battery_notes"
+    # The level at which THIS battery counts low: Battery Notes' configured
+    # threshold or the fleet-wide floor, whichever is higher (the one that
+    # crosses first on the way down). One field feeds the trend regression,
+    # the sparkline threshold line and the level-bar colors alike.
+    low_threshold: float = float(NATIVE_LOW_PERCENT)
 
 
 @dataclass
@@ -278,6 +283,8 @@ def _row(
         # Charged, never bought: low means "recharge", and the row never
         # contributes to the shopping groupings.
         "rechargeable": rechargeable,
+        # This battery's own low threshold — the level bars color against it.
+        "low_threshold": bat.low_threshold,
     }
 
 
@@ -480,6 +487,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                     last_replaced=last_replaced,
                     available=available,
                     source="battery_notes",
+                    low_threshold=_note_low_threshold(attrs),
                 )
             )
 
@@ -646,9 +654,9 @@ async def async_trend_predictions(hass: HomeAssistant, batteries: list[Battery])
                 out[bat.entity_id] = cached[1]
             continue
 
-        # The replacement moment is the fleet's low signal — see
-        # battery_low_threshold (shared with the sparkline threshold line).
-        threshold = battery_low_threshold(hass, bat.entity_id)
+        # The replacement moment is the fleet's low signal — the battery's
+        # own low_threshold (shared with the sparkline and the level bars).
+        threshold = bat.low_threshold
 
         result: tuple[int, str] | None = None
         try:
@@ -735,18 +743,12 @@ def _detect_unrecorded_jump(
     return None
 
 
-def battery_low_threshold(hass: HomeAssistant, entity_id: str) -> float:
-    """The level at which this battery counts low — Battery Notes' own
-    threshold (attr) or the fleet-wide floor, whichever is higher (the one
-    that crosses first on the way down). Shared by the trend forecast and
-    the sparkline threshold line."""
-    threshold = float(NATIVE_LOW_PERCENT)
-    state = hass.states.get(entity_id)
-    if state is not None:
-        raw = state.attributes.get("battery_low_threshold")
-        if isinstance(raw, (int, float)):
-            threshold = float(max(raw, NATIVE_LOW_PERCENT))
-    return threshold
+def _note_low_threshold(attrs: dict[str, Any]) -> float:
+    """The Battery-Notes-configured threshold OR the fleet floor — the higher."""
+    raw = attrs.get("battery_low_threshold")
+    if isinstance(raw, (int, float)):
+        return float(max(raw, NATIVE_LOW_PERCENT))
+    return float(NATIVE_LOW_PERCENT)
 
 
 async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> dict[str, dict[str, Any]]:
@@ -784,7 +786,7 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
         if points:
             entry: dict[str, Any] = {
                 "points": [[round(ts), round(v, 1)] for ts, v in points],
-                "threshold": battery_low_threshold(hass, bat.entity_id),
+                "threshold": bat.low_threshold,
             }
             jump = _detect_unrecorded_jump(points, bat.last_replaced, rechargeable=is_rechargeable_type(bat.battery_type))
             if jump is not None:
@@ -824,7 +826,6 @@ __all__ = [
     "async_compute_overview",
     "async_level_history",
     "async_trend_predictions",
-    "battery_low_threshold",
     "build_overview",
     "compute_overview",
     "discover_battery_types",

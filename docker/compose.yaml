@@ -7,6 +7,10 @@ services:
     volumes:
       - ./config-dev:/config
       - ../custom_components:/config/custom_components
+      # Dev-only fixture integration (device-backed Battery-Notes-shaped
+      # batteries) — nested mount INTO the shipped custom_components tree,
+      # so it exists in the container without ever entering the repo package.
+      - ./dev_battery_fixtures:/config/custom_components/dev_battery_fixtures
       - ../tests:/config/tests:ro
       - ../pytest.ini:/config/pytest.ini:ro
       - ./faketime.txt:/config/faketime.txt:ro

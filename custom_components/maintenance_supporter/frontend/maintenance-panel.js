@@ -5500,8 +5500,8 @@ ${d?`<div class="sub">${d}</div>`:""}
         @click=${()=>this._toggleTypeFilter(t)}
       >
         ${i}× ${t}
-      </button>`)}_toggleTypeFilter(e){if(this._typeFilter=this._typeFilter===e?null:e,this._typeFilter!==null){let t=this.shadowRoot?.querySelector("details.bf-roster");t&&!t.open&&(t.open=!0)}}async _recordJump(e,t){if(!this._marking){this._marking=!0,this._error="";try{await this.hass.callService("battery_notes","set_battery_replaced",{device_id:t.device_id,datetime_replaced:new Date(t.at*1e3).toISOString()}),this._recorded=[...this._recorded,e],await this._load()}catch(i){this._error=j(i,this._lang)}finally{this._marking=!1}}}_levelBar(e){if(e==null)return h;let t=e<=20?"bad":e<=40?"warn":"good";return o`<span class="bf-bar" aria-hidden="true"
-      ><span class="bf-bar-fill bf-bar-${t}" style="width: ${Math.min(100,Math.max(0,e))}%"></span
+      </button>`)}_toggleTypeFilter(e){if(this._typeFilter=this._typeFilter===e?null:e,this._typeFilter!==null){let t=this.shadowRoot?.querySelector("details.bf-roster");t&&!t.open&&(t.open=!0)}}async _recordJump(e,t){if(!this._marking){this._marking=!0,this._error="";try{await this.hass.callService("battery_notes","set_battery_replaced",{device_id:t.device_id,datetime_replaced:new Date(t.at*1e3).toISOString()}),this._recorded=[...this._recorded,e],await this._load()}catch(i){this._error=j(i,this._lang)}finally{this._marking=!1}}}_levelBar(e){let t=e.level;if(t==null)return h;let i=e.low_threshold??20,a=t<=i?"bad":t<=i+20?"warn":"good";return o`<span class="bf-bar" aria-hidden="true"
+      ><span class="bf-bar-fill bf-bar-${a}" style="width: ${Math.min(100,Math.max(0,t))}%"></span
     ></span>`}render(){let e=this._lang;if(this._loading&&this._ov===null)return o`<div class="bf-card"><div class="bf-loading">…</div></div>`;let t=this._ov;if(!t)return this._error?o`<div class="bf-card"><div class="bf-error">${this._error}</div></div>`:h;let i=t.low.length;return o`
       <div class="bf-card">
         <div class="bf-head">
@@ -5534,7 +5534,7 @@ ${d?`<div class="sub">${d}</div>`:""}
                       ${a.rechargeable?o`<span class="bf-recharge" title=${s("battery_fleet_rechargeable",e)}
                             ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
                           ></span>`:h}
-                      ${this._levelBar(a.level)}
+                      ${this._levelBar(a)}
                       ${a.level!=null?o`<span class="bf-level">${a.level}%</span>`:h}
                       <button
                         class="bf-mark"
@@ -5596,7 +5596,7 @@ ${d?`<div class="sub">${d}</div>`:""}
                               ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
                             ></span>`:h}
                         ${this._sparkline(a)}
-                        ${this._levelBar(a.level)}
+                        ${this._levelBar(a)}
                         ${a.level!=null?o`<span class="bf-level">${a.level}%</span>`:h}
                         ${(()=>{let l=this._history?.[a.entity_id]?.jump;return!l||this._recorded.includes(a.entity_id)?h:o`<button
                             class="bf-mark bf-jump"

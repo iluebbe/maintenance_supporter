@@ -237,6 +237,21 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     expect((vacuumBar as HTMLElement).style.width).to.equal("96%");
   });
 
+  it("colors the level bar against the battery's OWN threshold, not a fixed 20", async () => {
+    const at30 = { ...HEALTHY, entity_id: "sensor.t1_battery_plus", device_name: "Thermo High", level: 30, low_threshold: 35 };
+    const at50 = { ...HEALTHY, entity_id: "sensor.t2_battery_plus", device_name: "Thermo Mid", level: 50, low_threshold: 35 };
+    const { el } = await mount(overview({
+      total: 2,
+      all: [{ ...at30, status: "ok" }, { ...at50, status: "ok" }],
+    }));
+    await openRoster(el);
+    const rows = [...roster(el)!.querySelectorAll(".bf-row")];
+    const bar30 = rows.find((r) => /Thermo High/.test(r.textContent || ""))!.querySelector(".bf-bar-fill")!;
+    const bar50 = rows.find((r) => /Thermo Mid/.test(r.textContent || ""))!.querySelector(".bf-bar-fill")!;
+    expect(bar30.className, "30 % is red when the note says low at 35").to.contain("bf-bar-bad");
+    expect(bar50.className, "50 % sits in the 35+20 approach band").to.contain("bf-bar-warn");
+  });
+
   it("offers a one-click record for a detected unrecorded swap", async () => {
     const now = Math.floor(Date.now() / 1000);
     const { el, serviceCalls } = await mount(overview(), {

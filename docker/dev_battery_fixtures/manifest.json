@@ -1,0 +1,10 @@
+{
+  "domain": "dev_battery_fixtures",
+  "name": "Dev Battery Fixtures",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/iluebbe/maintenance_supporter",
+  "integration_type": "hub",
+  "iot_class": "calculated",
+  "version": "1.0.0"
+}

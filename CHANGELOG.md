@@ -28,7 +28,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Battery fleet: clickable shopping chips, level bars, and an
   unrecorded-replacement detector.** Tapping a type in the "buy now / needed
   soon" line ("4× AAA") filters the roster to the devices that need it.
-  Every row shows a small color-coded level bar next to the percentage. And
+  Every row shows a small level bar next to the percentage, colored against
+  the battery's **own** low threshold (Battery Notes' configured value or
+  the fleet floor) — a sensor set to warn at 35 % turns red at 35, not at a
+  hard-coded 20. And
   when a battery's history contains a big upward step that Battery Notes
   never heard about — fresh cells went in, nobody pressed the *replaced*
   button, and the forecast silently kept anchoring on the dead battery's

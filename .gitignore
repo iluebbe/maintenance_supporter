@@ -61,7 +61,8 @@ e2e/shots/
 
 # live-test screenshot output (e2e/live-*.mjs)
 e2e/live-shots/
-custom_components/battery_notes/
+custom_components/battery_notes
+custom_components/dev_battery_fixtures/
 
 # gif pipeline intermediate videos (e2e/gifs-demo.mjs)
 docs/images/gifs/.video-tmp/
