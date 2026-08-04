@@ -1,0 +1,76 @@
+{
+  "instance": {
+    "objects": 29,
+    "tasks": 183,
+    "url": "http://127.0.0.1:8131"
+  },
+  "runs": 3,
+  "coldMs": {
+    "panelInDom": 720,
+    "dataLoaded": 872,
+    "firstRowPainted": 873
+  },
+  "warmFirstRowMs": 372,
+  "bundle": null,
+  "ws": {
+    "maintenance_supporter/objects": {
+      "ms": 72,
+      "kb": 407,
+      "calls": 1
+    },
+    "frontend/get_translations": {
+      "ms": 117,
+      "kb": 58,
+      "calls": 2
+    },
+    "maintenance_supporter/battery_fleet/overview": {
+      "ms": 107,
+      "kb": 5,
+      "calls": 1
+    },
+    "recorder/statistics_during_period": {
+      "ms": 104,
+      "kb": 4,
+      "calls": 1
+    },
+    "maintenance_supporter/settings": {
+      "ms": 72,
+      "kb": 1,
+      "calls": 1
+    },
+    "maintenance_supporter/statistics": {
+      "ms": 72,
+      "kb": 0,
+      "calls": 1
+    },
+    "maintenance_supporter/users/list": {
+      "ms": 95,
+      "kb": 0,
+      "calls": 1
+    },
+    "maintenance_supporter/documents/storage": {
+      "ms": 90,
+      "kb": 0,
+      "calls": 1
+    }
+  },
+  "longTasksLoad": 3,
+  "longestLoadBlockMs": 154,
+  "scroll": {
+    "p50": 17,
+    "p95": 17,
+    "max": 138,
+    "framesOver50": 1,
+    "layout": 46,
+    "recalc": 56,
+    "scriptMs": 11
+  },
+  "tabs": {
+    "toToday": 0,
+    "toDashboard": 0
+  },
+  "dom": {
+    "renderedRows": 37,
+    "dataTasks": 183
+  }
+}
