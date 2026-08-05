@@ -83,11 +83,17 @@ for (let i = existing.length; i < N_OBJECTS; i++) {
   for (let k = 0; k < N_TASKS; k++) {
     // due in: k=0,1 overdue; k=2,3 soon; rest comfortably ok.
     const dueIn = k <= 1 ? -(5 + 7 * k) : k <= 3 ? 2 + 3 * (k - 2) : 20 + 30 * k;
+    // The LAST task per object is a reading-type with a reading in every
+    // entry — deltas across the truncated list window are the regression
+    // case the payload diet must not break (each delta needs its
+    // chronological predecessor, which may lie beyond the window).
+    const isReading = k === N_TASKS - 1;
     const history = [];
     for (let h = N_HISTORY - 1; h >= 0; h--) {
       history.push({
         timestamp: new Date(now - (h + 1) * 11 * 864e5).toISOString(),
         type: "completed",
+        ...(isReading ? { reading_value: 1000 + (N_HISTORY - 1 - h) * 25 } : {}),
         ...(h % 3 === 0 ? { notes: `completion ${h} — routine run, everything nominal` } : {}),
         ...(h % 4 === 0 ? { cost: 12.5 } : {}),
         ...(h % 5 === 0 ? { duration: 25 } : {}),
@@ -95,7 +101,8 @@ for (let i = existing.length; i < N_OBJECTS; i++) {
     }
     tasks.push({
       name: `Task ${String(k + 1).padStart(2, "0")} of ${name}`,
-      type: TYPES[k % TYPES.length],
+      type: isReading ? "reading" : TYPES[k % TYPES.length],
+      ...(isReading ? { reading_unit: "kWh" } : {}),
       enabled: true,
       schedule_type: "time_based",
       interval_days: 30,

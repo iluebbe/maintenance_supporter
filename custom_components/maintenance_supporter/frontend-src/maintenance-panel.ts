@@ -3297,7 +3297,16 @@ export class MaintenanceSupporterPanel extends LitElement {
     const task = this._selectedEntryId && this._selectedTaskId
       ? this._getObject(this._selectedEntryId)?.tasks.find((tk) => tk.id === this._selectedTaskId)
       : undefined;
-    const readings = (task?.history || [])
+    // Payload diet: the summary's history is truncated to the recent window —
+    // the reading DELTAS must come from the full record (the oldest visible
+    // reading would otherwise lose or falsify its delta), which
+    // _fetchFullHistory loads for the open task.
+    const fh = this._fullHistory;
+    const fullHistory =
+      fh && fh.entryId === this._selectedEntryId && fh.taskId === this._selectedTaskId && fh.entries.length > (task?.history || []).length
+        ? fh.entries
+        : task?.history || [];
+    const readings = fullHistory
       .filter((h) => h.reading_value != null)
       .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     return {
