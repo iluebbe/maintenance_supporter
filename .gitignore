@@ -71,3 +71,9 @@ docker/.beta-config/
 docker/.upgrade-config/
 docker/.scn-base/
 docker/.scn-work/
+
+# perf/visual harness run artifacts (baselines ARE committed)
+e2e/visual-results/
+e2e/perf-results/*.json
+e2e/churn-result.json
+e2e/idle5min*.json
