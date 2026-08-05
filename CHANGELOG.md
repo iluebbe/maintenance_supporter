@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ⚡ Performance
+
+- **The panel paints instantly on revisits.** The last known task list (and
+  header stats) are cached in localStorage and rendered the moment the
+  panel mounts — the live payload then replaces them through the normal
+  update path. Previously every visit stared at an empty shell for however
+  long the objects fetch took (~300 ms even on a LAN, much longer on a
+  busy Pi or remote connection). The cache is stamped with the bundle
+  version (an update discards it once), capped at 7 days of age, and all
+  storage access is failure-tolerant (private-mode browsers simply load as
+  before).
+
 ## [2.52.0] - 2026-08-05
 
 ### ⚡ Performance

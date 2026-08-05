@@ -7,6 +7,7 @@ import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs } from "./styles";
 import { LS_KEYS } from "./helpers/storage-keys";
+import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -265,6 +266,15 @@ export class MaintenanceSupporterPanel extends LitElement {
     } catch {
       // storage blocked — keep the defaults
     }
+    // Skeleton from cache: paint the previous visit's task list immediately;
+    // the live payload replaces it through the normal _objects assignment.
+    if (this._objects.length === 0) {
+      const cached = readObjectsCache<MaintenanceObjectResponse, StatisticsResponse>();
+      if (cached) {
+        this._objects = cached.objects;
+        if (cached.stats) this._stats = cached.stats;
+      }
+    }
   }
 
   disconnectedCallback(): void {
@@ -386,7 +396,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/views/list" }).catch(() => null),
     ]);
     if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
-    if (objResult) this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
+    if (objResult) {
+      this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
+      writeObjectsCache(this._objects, (statsResult as StatisticsResponse | null) ?? this._stats ?? null);
+    }
     // A data refresh means the open task's history may have grown (complete,
     // history edit) — the truncated list payload can't tell, so refetch.
     if (this._view === "task" && this._selectedEntryId && this._selectedTaskId) {
@@ -605,7 +618,14 @@ export class MaintenanceSupporterPanel extends LitElement {
             this._objects,
             msg as SubscriptionEvent<MaintenanceObjectResponse>,
           );
-          if (next !== null) this._objects = next;
+          if (next !== null) {
+            this._objects = next;
+            // Full snapshots are rare (subscribe start) — keep the skeleton
+            // cache fresh from them; per-delta writes would churn storage.
+            if ((msg as SubscriptionEvent<MaintenanceObjectResponse>).objects) {
+              writeObjectsCache(next, this._stats ?? null);
+            }
+          }
         },
         // deltas: only entries whose rebuilt response actually changed —
         // no-op timer waves send nothing, a real change ships one object.

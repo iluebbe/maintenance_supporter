@@ -273,10 +273,15 @@ impact order, all backed by measurements:
 5. **Bundle split.** `maintenance-panel.js` is ~593 KB; dialogs and the
    detail view could load as chunks (the strategy already does this),
    cutting cold parse time on slow devices.
-6. **Skeleton from cache (perceived load).** Cold load spends 700–1100 ms
-   in the HA shell + bundle before any data arrives. Rendering the last
-   known task list from localStorage immediately and reconciling when the
-   live payload lands would make the panel *feel* instant on revisits.
+6. ~~**Skeleton from cache (perceived load).**~~ ✅ **Shipped 2026-08** —
+   `helpers/objects-cache.ts`: the last objects payload (+ stats) lives in
+   localStorage, hydrated in `connectedCallback` and replaced by the live
+   load through the normal `_objects` assignment (no separate reconcile
+   path). Version-stamped (bundle update discards it), 7-day age cap,
+   storage-failure tolerant. Measured on the benchmark dataset: warm
+   revisits now have `dataLoaded == panelInDom` (rows painted the moment
+   the panel mounts) where cold visits pay a ~300 ms data gap even on a
+   LAN — the win scales with however slow the data path really is.
 
 Audited and cleared (no action needed): the mini-sparkline statistics are
 fetched as ONE batched, client-cached recorder call; per-task entities
