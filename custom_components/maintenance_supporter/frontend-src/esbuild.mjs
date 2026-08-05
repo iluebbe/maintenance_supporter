@@ -33,11 +33,22 @@ const common = {
   banner: { js: `/*! maintenance_supporter frontend ${manifestVersion} */` },
 };
 
-// Panel
+// Panel — code-split (perf wave 2, item 5): the dialogs + settings view the
+// panel dynamic-imports land in frontend/panel-chunks/ as content-hashed
+// chunks, shrinking the entry's critical parse path. publicPath makes the
+// chunk imports ABSOLUTE, because the entry is served from a versioned
+// file URL (/maintenance_supporter_panel_<hash>) that has no directory for
+// relative imports to resolve against. Cache-safety (#124 class): the
+// entry URL changes with its content hash, and a fresh entry always names
+// exactly its own content-hashed chunks.
+rmSync("../frontend/panel-chunks", { recursive: true, force: true });
 await build({
   ...common,
   entryPoints: ["maintenance-panel.ts"],
-  outfile: "../frontend/maintenance-panel.js",
+  outdir: "../frontend",
+  splitting: true,
+  chunkNames: "panel-chunks/[name]-[hash]",
+  publicPath: "/maintenance_supporter_panelfiles",
 });
 
 // Lovelace Card

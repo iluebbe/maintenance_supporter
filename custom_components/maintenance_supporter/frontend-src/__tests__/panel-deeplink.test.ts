@@ -20,7 +20,9 @@ function setDeepLink(query: string) {
 }
 
 async function settleRaf(el: { updateComplete: Promise<unknown> }) {
-  // Deep-link dialog opens behind a requestAnimationFrame.
+  // Deep-link dialog opens behind a requestAnimationFrame — and since the
+  // dialogs became lazy code-split chunks, behind their dynamic import too.
+  await customElements.whenDefined("maintenance-complete-dialog");
   await new Promise((r) => requestAnimationFrame(() => r(null)));
   await new Promise((r) => setTimeout(r, 20));
   await (el as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete;
@@ -28,6 +30,15 @@ async function settleRaf(el: { updateComplete: Promise<unknown> }) {
 
 function completeDialog(el: HTMLElement): MaintenanceCompleteDialog | null {
   return sr(el).querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog");
+}
+
+/** The dialogs are lazy code-split chunks — the open lands whenever the
+ *  whole lazy-UI group has loaded, so poll instead of guessing a delay. */
+async function waitForOpenCompleteDialog(el: HTMLElement): Promise<void> {
+  for (let i = 0; i < 100; i++) {
+    if (completeDialog(el)?.shadowRoot?.querySelector("ha-dialog")) return;
+    await new Promise((r) => setTimeout(r, 20));
+  }
 }
 
 describe("panel deep links (QR scan routing)", () => {
@@ -52,6 +63,7 @@ describe("panel deep links (QR scan routing)", () => {
     expect(sr(el).querySelector(".task-header"), "task detail rendered").to.exist;
     expect(sr(el).querySelector(".task-name-breadcrumb")!.textContent).to.include("Scan Me");
     // …with the complete dialog open and targeted at the scanned task.
+    await waitForOpenCompleteDialog(el);
     const dlg = completeDialog(el)!;
     expect(dlg.shadowRoot!.querySelector("ha-dialog"), "complete dialog open").to.exist;
     expect(dlg.entryId).to.equal("e1");
@@ -94,6 +106,7 @@ describe("panel deep links (QR scan routing)", () => {
     expect(
       sent.filter((m) => m.type === "maintenance_supporter/task/quick_complete").length,
     ).to.equal(1);
+    await waitForOpenCompleteDialog(el);
     const dlg = completeDialog(el)!;
     expect(dlg.shadowRoot!.querySelector("ha-dialog"), "fallback dialog open").to.exist;
     expect(dlg.taskName).to.equal("No Defaults");

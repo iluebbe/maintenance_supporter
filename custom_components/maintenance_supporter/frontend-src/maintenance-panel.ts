@@ -35,20 +35,18 @@ import type {
 } from "./types";
 import { StatisticsService } from "./statistics-service";
 import { UserService } from "./user-service";
-import "./components/object-dialog";
+// The heavy dialogs + the settings view are NOT imported here: they are
+// esbuild code-split chunks loaded by _ensureLazyUi() right after mount
+// (roadmap perf wave 2, item 5). Only their types are imported — esbuild
+// tree-shakes type-only imports, so they cost the entry bundle nothing.
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
 import "./components/documents-section";
 import "./components/parts-section";
 import "./components/task-documents";
-import "./components/task-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
-import "./components/complete-dialog";
 import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
-import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
-import "./components/adopt-problem-sensors-dialog";
 import type { MaintenanceAdoptProblemSensorsDialog } from "./components/adopt-problem-sensors-dialog";
-import "./components/suggested-setups-dialog";
 import "./components/battery-fleet-section";
 import type { MaintenanceSuggestedSetupsDialog } from "./components/suggested-setups-dialog";
 // v2.0.0: panel uses the extracted Calendar Card instead of its own
@@ -62,7 +60,6 @@ import type {
 } from "./components/history-edit-dialog";
 import "./components/confirm-dialog";
 import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
-import "./components/settings-view";
 import "./components/storage-section-card";
 import "./components/seasonal-overrides-dialog";
 import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
@@ -237,8 +234,45 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _popstateHandler = (e: PopStateEvent) => this._onPopState(e);
 
+  /** Lazy UI chunks (perf wave 2, item 5): the six dialogs + the settings
+   *  view are code-split out of the entry bundle and fetched in parallel
+   *  right after mount — the critical parse path shrinks while every open
+   *  path goes through _ui(), so a click can never race a still-loading
+   *  chunk. */
+  private _lazyUi: Promise<unknown> | null = null;
+
+  private _ensureLazyUi(): Promise<unknown> {
+    if (!this._lazyUi) {
+      this._lazyUi = Promise.all([
+        import("./components/object-dialog"),
+        import("./components/task-dialog"),
+        import("./components/complete-dialog"),
+        import("./components/qr-dialog"),
+        import("./components/adopt-problem-sensors-dialog"),
+        import("./components/suggested-setups-dialog"),
+        import("./components/settings-view"),
+      ]).then(() => this.updateComplete);
+    }
+    return this._lazyUi;
+  }
+
+  /** The requested dialog element, guaranteed upgraded (chunk loaded). */
+  private async _ui<T extends Element>(tag: string): Promise<T | null> {
+    await this._ensureLazyUi();
+    return this.shadowRoot?.querySelector<T>(tag) ?? null;
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
+    // Prefetch the lazy UI chunks AFTER the first paint settles (idle), not
+    // here: an eager prefetch put 7 fetches + ~280 KB of parsing in direct
+    // competition with the initial data load and measurably slowed first
+    // paint. Deep links and early clicks stay safe either way — every open
+    // path awaits _ui().
+    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
+    const kick = () => this._ensureLazyUi();
+    if (idle) idle(kick, { timeout: 3000 });
+    else window.setTimeout(kick, 1500);
     window.addEventListener("popstate", this._popstateHandler);
     window.addEventListener("keydown", this._paletteKeydown);
     window.addEventListener("resize", this._onVirtualScroll, { passive: true });
@@ -483,11 +517,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (msAction === "add_object") {
       this._deepLinkHandled = true;
       cleanMsActionUrl();
-      requestAnimationFrame(() => {
-        this.shadowRoot
-          ?.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")
-          ?.openCreate();
-      });
+      void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog")
+        .then((d) => d?.openCreate());
       return;
     }
     if (msAction === "open_vacation"
@@ -499,14 +530,15 @@ export class MaintenanceSupporterPanel extends LitElement {
       // Switch to the Settings tab — that's where Vacation/Budget/Groups live.
       this._overviewTab = "settings";
       // Hint the settings-view which sub-section to scroll to (its own
-      // settings-view component reads this on attribute change).
-      requestAnimationFrame(() => {
+      // settings-view component reads this on attribute change). The view is
+      // a lazy chunk — wait for it before poking at the element.
+      void this._ensureLazyUi().then(() => requestAnimationFrame(() => {
         const settingsView = this.shadowRoot?.querySelector(
           "maintenance-settings-view",
         ) as (HTMLElement & { scrollToSection?: (s: string) => void }) | null;
         const target = msAction.replace("open_", ""); // "vacation" / "budget" / "groups" / "settings"
         settingsView?.scrollToSection?.(target);
-      });
+      }));
       return;
     }
 
@@ -1071,9 +1103,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   // --- Adopt problem sensors ---
 
   private _openAdoptProblemSensors(): void {
-    this.shadowRoot!
-      .querySelector<MaintenanceAdoptProblemSensorsDialog>("maintenance-adopt-problem-sensors-dialog")
-      ?.open();
+    void this._ui<MaintenanceAdoptProblemSensorsDialog>("maintenance-adopt-problem-sensors-dialog")
+      .then((d) => d?.open());
   }
 
   private async _onProblemSensorsAdopted(e: CustomEvent): Promise<void> {
@@ -1089,7 +1120,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         const obj = this._objects.find((o) => o.entry_id === ref.entry_id);
         const tk = obj?.tasks.find((task) => task.id === ref.task_id);
         if (obj && tk) {
-          this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(ref.entry_id, tk);
+          void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog")
+            .then((d) => d?.openEdit(ref.entry_id, tk));
         }
       });
     } else {
@@ -1120,9 +1152,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _openSuggestedSetups(): void {
-    this.shadowRoot!
-      .querySelector<MaintenanceSuggestedSetupsDialog>("maintenance-suggested-setups-dialog")
-      ?.open();
+    void this._ui<MaintenanceSuggestedSetupsDialog>("maintenance-suggested-setups-dialog")
+      .then((d) => d?.open());
   }
 
   private _onSetupsAdopted(e: CustomEvent): void {
@@ -1870,8 +1901,11 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
-    const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog");
-    if (!dlg) return;
+    void this._ui<MaintenanceCompleteDialog>("maintenance-complete-dialog")
+      .then((dlg) => dlg && this._fillAndOpenCompleteDialog(dlg, entryId, taskId, taskName, checklist, adaptiveEnabled));
+  }
+
+  private _fillAndOpenCompleteDialog(dlg: MaintenanceCompleteDialog, entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
     dlg.entryId = entryId;
     dlg.taskId = taskId;
     dlg.taskName = taskName;
@@ -1908,13 +1942,13 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _openQrForObject(entryId: string, objectName: string): void {
-    const dlg = this.shadowRoot!.querySelector<MaintenanceQrDialog>("maintenance-qr-dialog");
-    dlg?.openForObject(entryId, objectName);
+    void this._ui<MaintenanceQrDialog>("maintenance-qr-dialog")
+      .then((dlg) => dlg?.openForObject(entryId, objectName));
   }
 
   private _openQrForTask(entryId: string, taskId: string, objectName: string, taskName: string): void {
-    const dlg = this.shadowRoot!.querySelector<MaintenanceQrDialog>("maintenance-qr-dialog");
-    dlg?.openForTask(entryId, taskId, objectName, taskName);
+    void this._ui<MaintenanceQrDialog>("maintenance-qr-dialog")
+      .then((dlg) => dlg?.openForTask(entryId, taskId, objectName, taskName));
   }
 
   private _onDialogEvent = async (): Promise<void> => {
@@ -2405,12 +2439,12 @@ export class MaintenanceSupporterPanel extends LitElement {
           @click=${() => { if (this.narrow) this._actionsMenuOpen = false; }}
         >
           <ha-button
-            @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}
+            @click=${() => this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openCreate("", this._objects))}
           >
             ${t("new_task", L)}
           </ha-button>
           <ha-button
-            @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
+            @click=${() => this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate())}
           >
             ${t("new_object", L)}
           </ha-button>
@@ -2442,7 +2476,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <ha-button appearance="filled" @click=${() => this._openTemplateGallery()}>
                     <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
                   </ha-button>
-                  <ha-button appearance="plain" @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}>
+                  <ha-button appearance="plain" @click=${() => this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate())}>
                     ${t("new_object", L)}
                   </ha-button>
                 </div>
@@ -2740,7 +2774,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ` : nothing}
         ${!isOperator ? html`
           <ha-button
-            @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
+            @click=${() => this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate())}
           >
             ${t("new_object", L)}
           </ha-button>
@@ -3135,12 +3169,12 @@ export class MaintenanceSupporterPanel extends LitElement {
           <div class="action-buttons">
             ${!isOperator ? html`
               <ha-button appearance="filled" @click=${() => {
-                const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
-                dlg?.openCreate(obj.entry_id);
+                void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog")
+                  .then((d) => d?.openCreate(obj.entry_id));
               }}>${t("add_task", L)}</ha-button>
               <ha-button appearance="plain" @click=${() => {
-                const dlg = this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog");
-                dlg?.openEdit(obj.entry_id, o);
+                void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog")
+                  .then((d) => d?.openEdit(obj.entry_id, o));
               }}>${t("edit", L)}</ha-button>
             ` : nothing}
             <div class="more-menu-wrapper">
@@ -3212,8 +3246,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           ? html`<div class="empty-state-centered">
               <p class="empty">${t("no_tasks_yet", L)}</p>
               <ha-button appearance="filled" @click=${() => {
-                const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
-                dlg?.openCreate(obj.entry_id);
+                void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog")
+                  .then((d) => d?.openCreate(obj.entry_id));
               }}>${t("add_first_task", L)}</ha-button>
             </div>`
           : html`<div class="task-table">${[...visibleTasks].sort((a, b) => {
@@ -3392,7 +3426,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       showObject: () => this._showObject(entryId),
       toggleMoreMenu: () => this._toggleMoreMenu(),
       closeMoreMenu: () => this._closeMoreMenu(),
-      openEdit: (tk) => { this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(entryId, tk); },
+      openEdit: (tk) => { void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openEdit(entryId, tk)); },
       openComplete: (tk) => this._openCompleteDialog(entryId, taskId, tk.name, this._features.checklists ? tk.checklist : undefined, this._features.adaptive && !!tk.adaptive_config?.enabled),
       promptSkip: () => this._promptSkipTask(entryId, taskId),
       toggleArchive: (archived) => this._toggleArchiveTask(entryId, taskId, archived),

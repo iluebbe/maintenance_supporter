@@ -15,6 +15,7 @@ from ..const import (
     CARD_URL,
     DOMAIN,
     LOCALES_URL,
+    PANEL_CHUNKS_URL,
     STRATEGY_CHUNKS_URL,
     STRATEGY_SHIM_URL,
     STRATEGY_URL,
@@ -76,6 +77,17 @@ async def async_register_card(hass: HomeAssistant) -> None:
         StaticPathConfig(
             CALENDAR_CARD_URL,
             str(frontend_dir / "maintenance-calendar-card.js"),
+            False,
+        ),
+        # Panel code-split chunks (perf wave 2, item 5): the panel entry
+        # imports them by ABSOLUTE URL (esbuild publicPath) because its own
+        # module_url is a versioned file path with no directory to resolve
+        # relative imports against. Chunk names are content-hashed, and the
+        # entry URL re-hashes with every build — a stale entry can never
+        # name a fresh chunk or vice versa (#124 class).
+        StaticPathConfig(
+            PANEL_CHUNKS_URL,
+            str(frontend_dir / "panel-chunks"),
             False,
         ),
         # Runtime-loaded UI translations: a directory of <lang>.json fetched by

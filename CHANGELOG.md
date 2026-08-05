@@ -15,6 +15,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   version (an update discards it once), capped at 7 days of age, and all
   storage access is failure-tolerant (private-mode browsers simply load as
   before).
+- **46 % less JavaScript on the panel's critical path.** The six dialogs
+  and the settings view are now code-split chunks loaded on demand
+  (prefetched during idle right after the first paint): the entry bundle
+  every panel visit must download and parse dropped from 608 to 328 KB.
+  On desktops the difference is within measurement noise; on slower
+  hardware — wall tablets, phones, a busy Pi — parse cost scales with
+  bundle size, so the panel becomes interactive correspondingly sooner.
+  Opening a dialog always waits for its chunk, so nothing can race.
 
 ## [2.52.0] - 2026-08-05
 

@@ -270,9 +270,18 @@ impact order, all backed by measurements:
    nothing left to win on any hardware. The dashboard table still needs
    its `computeWindow` machinery only because CSS subgrid is incompatible
    with containment.
-5. **Bundle split.** `maintenance-panel.js` is ~593 KB; dialogs and the
-   detail view could load as chunks (the strategy already does this),
-   cutting cold parse time on slow devices.
+5. ~~**Bundle split.**~~ ✅ **Shipped 2026-08** — the six dialogs + the
+   settings view are esbuild code-split chunks (`frontend/panel-chunks/`,
+   content-hashed, imported by ABSOLUTE URL via publicPath because the
+   panel entry is served from a versioned file URL with no directory).
+   Entry: 608 → 328 KB (−46 %). Chunks prefetch on idle after first
+   paint; every open path goes through `_ui()`, which awaits the chunk —
+   a click can never race the load. Honest measurement note: on a desktop
+   dev box the wall-clock win is invisible (same-session A/B: unsplit
+   median 1424 ms vs split 1413 ms — parse is ~30 ms there); the −280 KB
+   critical path pays off proportionally on slow devices where JS parse
+   is 5–10× costlier. Cache-safety is #124-class sound: the entry URL
+   re-hashes with content, chunks are content-hashed.
 6. ~~**Skeleton from cache (perceived load).**~~ ✅ **Shipped 2026-08** —
    `helpers/objects-cache.ts`: the last objects payload (+ stats) lives in
    localStorage, hydrated in `connectedCallback` and replaced by the live

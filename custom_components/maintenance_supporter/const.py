@@ -287,6 +287,12 @@ STRATEGY_CHUNKS_URL = f"{STRATEGY_DIR_URL}/chunks"
 # STRATEGY_DIR_URL. The shim has no relative imports, so a flat URL is fine.
 STRATEGY_SHIM_URL = "/maintenance_supporter_strategy_shim.js"
 CALENDAR_CARD_URL = "/maintenance_supporter_calendar_card"
+# Panel code-split chunks (perf wave 2, item 5). The panel entry is served
+# from a versioned FILE url (PANEL_URL + content hash, see panel.py), which
+# gives relative imports nothing to resolve against — so esbuild rewrites
+# its chunk imports to ABSOLUTE urls under this prefix (publicPath in
+# esbuild.mjs; the two values must stay in sync).
+PANEL_CHUNKS_URL = "/maintenance_supporter_panelfiles/panel-chunks"
 # Runtime-loaded UI translations (frontend/locales/<lang>.json), served as a
 # directory so the panel/card fetch the active language on demand. Mirrors
 # LOCALES_BASE in frontend-src/styles.ts: only EN is bundled into the JS (as the
