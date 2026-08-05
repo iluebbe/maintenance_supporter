@@ -799,7 +799,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (98%, 3,183 tests) |
+| test-coverage (>95%) | Silver | Yes (98%, 3,289 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (`PARALLEL_UPDATES = 0` in all five platforms) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -821,7 +821,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,967 tests** across **174 test files** with **98% code coverage** (plus a 296-test frontend suite in real Chromium across 53 spec files, the journey suite A–S, and the live e2e scripts under `e2e/`).
+**3,289 tests** across **192 test files** with **98% code coverage** (plus a 383-test frontend suite in real Chromium across 66 spec files, the 29-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 
