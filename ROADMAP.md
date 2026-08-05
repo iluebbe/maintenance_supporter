@@ -31,14 +31,15 @@ which also carries the link. Both predate the attachment rework and neither
 changed with it; whether the link should survive a replacement is a product
 decision, not a defect to fix quietly.
 
-**One thing left, with a long fuse:** `device_info["via_device"]`
-(`entity/entity_base.py`, used when an object is nested under a parent) is
-deprecated in favour of `via_device_id` and disappears in **2027.8**. It needs
-the parent's device **id** rather than its identifiers, so it is a small lookup
-rather than a rename. Home Assistant does **not** report this one at runtime —
-it is a comment in the signature, not a `report_usage` — so
-`tests/test_no_ha_deprecation_reports.py` cannot catch it and the dev-blog
-cross-check is what found it.
+~~**One thing left, with a long fuse:**~~ ✅ **Done (7b786619, with this
+rework):** `device_info["via_device"]` (deprecated, removal **2027.8**) is
+gone — parent nesting is written as an explicit registry `via_device_id` by
+`device_link.sync_via_device_links` after platform setup, in BOTH
+directions so boot order doesn't matter (with the old identifier tuple, a
+child that registered before its parent stayed un-nested). Pinned by three
+tests in `test_device_link.py` (nesting, child-before-parent boot order,
+clearing the parent clears the pointer). Kept for the record: HA does not
+`report_usage` this one — the dev-blog cross-check is what found it.
 
 **Nothing open from the same area after checking.** I had noted
 `suggested_area` as the next break; reading
