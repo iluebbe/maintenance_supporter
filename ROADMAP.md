@@ -243,15 +243,24 @@ A/B override, subscription push counter) measures every next step. In
 impact order, all backed by measurements:
 
 1. **Per-entry delta pushes.** The coalesced subscription still ships the
-   FULL objects payload (~517 KB) per push. The server knows which
-   coordinator fired — pushing `{entry_id, object}` deltas that the client
-   merges would cut steady-state traffic to ~15 KB per change and shrink
-   the re-render scope with it. Needs a small client merge + a versioned
-   event shape (older clients keep the full-payload behaviour).
-2. **No-op suppression.** A coordinator refresh whose built response is
-   byte-identical to the last push (nothing user-visible changed) should
-   not push at all — a hash per entry makes the 5-minute timer waves
-   mostly silent.
+   FULL objects payload (~517 KB) per push — and it is built **per
+   subscriber, synchronously in the event loop** (~100–150 ms per build on
+   a dev box; a Pi pays several times that, and every open panel/card is
+   its own subscriber: the Lovelace card subscribes to the same channel,
+   so desktop + wall tablet + phone = 3 builds and 1.5 MB per update
+   second). Pushing `{entry_id, object}` deltas that the client merges
+   cuts steady-state traffic to ~15 KB per change, shrinks the re-render
+   scope, and makes the per-subscriber build trivial. Needs a small client
+   merge + a versioned event shape (older clients keep full payloads).
+2. **No-op suppression, both sides.** Server: a coordinator refresh whose
+   built response is byte-identical to the last push should not push —
+   a hash per entry makes the 5-minute timer waves mostly silent.
+   Client (cheap, standalone): panel AND card assign `_objects`
+   unconditionally on every push — hashing the payload and skipping
+   identical ones eliminates no-op re-renders (and the rebuild of all
+   ~150 row view-models) for a few ms of stringify. Also trims GC churn
+   on long-lived wall-tablet sessions, which allocate a full 517 KB
+   object graph per push today.
 3. **Summary boilerplate diet.** ~2.2 KB per task even without history —
    dominated by ~70 always-present keys and nulls. Shrinking is possible
    but touches the #50-class hydration contract; only with the contract
@@ -261,6 +270,16 @@ impact order, all backed by measurements:
 5. **Bundle split.** `maintenance-panel.js` is ~593 KB; dialogs and the
    detail view could load as chunks (the strategy already does this),
    cutting cold parse time on slow devices.
+6. **Skeleton from cache (perceived load).** Cold load spends 700–1100 ms
+   in the HA shell + bundle before any data arrives. Rendering the last
+   known task list from localStorage immediately and reconciling when the
+   live payload lands would make the panel *feel* instant on revisits.
+
+Audited and cleared (no action needed): the mini-sparkline statistics are
+fetched as ONE batched, client-cached recorder call; per-task entities
+expose deliberately stable attributes (fast-changing trigger values ride
+the WS instead), so unchanged coordinator refreshes cause no recorder
+writes.
 
 ### Next wave (proposed 2026-07)
 
