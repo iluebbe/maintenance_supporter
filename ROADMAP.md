@@ -259,8 +259,17 @@ impact order, all backed by measurements:
    dominated by ~70 always-present keys and nulls. Shrinking is possible
    but touches the #50-class hydration contract; only with the contract
    fixture extended first.
-4. **Today-view virtualization.** The dashboard table virtualizes above
-   120 rows; the Today view renders all its buckets unvirtualized.
+4. ~~**Today-view virtualization.**~~ ✅ **Resolved by measurement 2026-08**
+   — the premise ("renders all its buckets unvirtualized") was stale:
+   `.today-row` has carried `content-visibility: auto` +
+   `contain-intrinsic-size` since 2026-07-04 (f2f04f41), which suppresses
+   exactly the N-dependent layout/paint cost that DOM windowing would
+   target. Measured in real Chromium
+   (`__tests__/today-render-perf.probe.ts`): tab-switch ~19 ms and
+   delta re-render ~13 ms, FLAT from 150 to 500 rows — windowing has
+   nothing left to win on any hardware. The dashboard table still needs
+   its `computeWindow` machinery only because CSS subgrid is incompatible
+   with containment.
 5. **Bundle split.** `maintenance-panel.js` is ~593 KB; dialogs and the
    detail view could load as chunks (the strategy already does this),
    cutting cold parse time on slow devices.
