@@ -56,7 +56,9 @@ async def test_card_registered_on_async_setup(hass: HomeAssistant) -> None:
     await setup_integration(hass, entry)
 
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
-    assert CARD_URL in urls
+    # Issue #124: the module URL carries a content-hash query so browsers
+    # can't serve a heuristically-cached bundle across an update.
+    assert any(u.startswith(f"{CARD_URL}?v=") for u in urls)
     hass.http.async_register_static_paths.assert_called()  # type: ignore[attr-defined]
     assert hass.data.get(f"{DOMAIN}_card_registered") is True
 
@@ -73,7 +75,8 @@ async def test_card_registration_idempotent(hass: HomeAssistant) -> None:
 
     assert hass.http.async_register_static_paths.call_count == call_count_before  # type: ignore[attr-defined]
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
-    assert CARD_URL in urls
+    card_urls = [u for u in urls if u.startswith(f"{CARD_URL}?v=")]
+    assert len(card_urls) == 1, "re-registration must not add a second card URL"
 
 
 async def test_card_static_path_points_to_real_file(
@@ -117,6 +120,39 @@ async def test_strategy_shim_static_path_points_to_real_file(
     assert shim_path is not None, "Strategy shim static path not registered"
     assert Path(shim_path).is_file(), f"Shim JS file does not exist: {shim_path}"
     assert shim_path.endswith("maintenance-strategy-shim.js")
+
+
+async def test_module_urls_are_content_hash_busted(hass: HomeAssistant) -> None:
+    """Issue #124: every extra module URL must carry the file's content hash.
+
+    The static files are served without Cache-Control, so browsers cache them
+    heuristically. An unversioned URL let a stale cached strategy entry import
+    chunk names a HACS update had deleted (404 → dashboard gone until a hard
+    refresh). The query hash makes the URL — and thus the cache key — change
+    with the file.
+    """
+    import hashlib
+
+    from custom_components.maintenance_supporter.const import (
+        CALENDAR_CARD_URL,
+        STRATEGY_SHIM_URL,
+    )
+
+    entry = _make_global_entry(hass, panel_enabled=False)
+    await setup_integration(hass, entry)
+
+    frontend_dir = (
+        Path("custom_components") / "maintenance_supporter" / "frontend"
+    )
+    urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
+    for base, filename in (
+        (CARD_URL, "maintenance-card.js"),
+        (STRATEGY_SHIM_URL, "maintenance-strategy-shim.js"),
+        (CALENDAR_CARD_URL, "maintenance-calendar-card.js"),
+    ):
+        expected = hashlib.sha256((frontend_dir / filename).read_bytes()).hexdigest()[:8]
+        assert f"{base}?v={expected}" in urls, f"{base} is not hash-busted"
+        assert base not in urls, f"{base} must not also be registered bare"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -272,7 +308,7 @@ async def test_panel_and_card_registered_together(
         mock_register.assert_called_once()
 
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
-    assert CARD_URL in urls
+    assert any(u.startswith(f"{CARD_URL}?v=") for u in urls)
     assert hass.data.get(f"{DOMAIN}_card_registered") is True
     assert hass.data[DOMAIN].get("_panel_registered") is True
 
@@ -453,14 +489,16 @@ async def test_panel_url_contains_version_hash(hass: HomeAssistant) -> None:
     assert all(c in "0123456789abcdef" for c in hash_part)
 
 
-async def test_card_url_is_unversioned(hass: HomeAssistant) -> None:
-    """Card URLs do NOT contain any version hash or query parameter.
+async def test_heavy_strategy_bundle_not_autoloaded(hass: HomeAssistant) -> None:
+    """The heavy strategy bundle stays out of extra_module_url.
 
-    v1.9.0 added the calendar card and dashboard strategy as additional
-    extra-module URLs — both must follow the same unversioned policy.
-    v2.8.1: the dashboard strategy is now auto-loaded via the tiny
-    STRATEGY_SHIM_URL (not the heavy STRATEGY_URL bundle), which wins HA's
-    whenDefined race and lazy-loads the bundle on first use.
+    v2.8.1: the dashboard strategy is auto-loaded via the tiny
+    STRATEGY_SHIM_URL, which wins HA's whenDefined race and lazy-imports the
+    bundle on first use. Only the shim (plus the two cards) may be
+    auto-loaded — all three content-hash versioned since issue #124 (see
+    test_module_urls_are_content_hash_busted; this file used to pin the
+    opposite, unversioned policy, which is what let a stale cached strategy
+    entry outlive an update and 404 on the renamed chunks).
     """
     from custom_components.maintenance_supporter.const import (
         CALENDAR_CARD_URL,
@@ -472,14 +510,8 @@ async def test_card_url_is_unversioned(hass: HomeAssistant) -> None:
     await setup_integration(hass, entry)
 
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
-    expected = {CARD_URL, STRATEGY_SHIM_URL, CALENDAR_CARD_URL}
-    assert expected.issubset(urls), f"Missing expected URLs: {expected - urls}"
-
-    # The heavy strategy bundle must NOT be auto-loaded — it is lazy-imported
-    # by the shim, not registered as an extra-module URL.
-    assert STRATEGY_URL not in urls, "heavy strategy bundle should not be in extra_module_url; the shim loads it lazily"
-
-    # Every registered Maintenance-Supporter URL must be unversioned.
-    for url in urls & expected:
-        assert "?v=" not in url, f"{url} unexpectedly carries a version query"
-        assert url in expected, f"{url} is not one of the expected constants"
+    assert not any(u.startswith(STRATEGY_URL) for u in urls), (
+        "heavy strategy bundle should not be in extra_module_url; the shim loads it lazily"
+    )
+    for base in (CARD_URL, STRATEGY_SHIM_URL, CALENDAR_CARD_URL):
+        assert any(u.startswith(f"{base}?v=") for u in urls), f"{base} missing"

@@ -51,6 +51,21 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🔧 Fixed
 
+- **Updates can no longer strand the dashboard card/strategy behind a stale
+  browser cache** (#124). The card, strategy shim and calendar card were
+  auto-loaded from unversioned URLs served without `Cache-Control`, so
+  browsers cached them heuristically — after an update, a stale cached
+  strategy entry kept importing chunk files the update had deleted
+  (their names are content-hashed and change every release), the import
+  404ed and the strategy dashboard rendered nothing until a hard refresh;
+  rolling back "fixed" it by putting the old chunks back. Reproduced
+  end-to-end in a container harness (`e2e/cache-repro-124.mjs`). All three
+  module URLs now carry a content-hash query (`?v=<hash>`, the same
+  busting the panel has used since #112) and the shim imports the strategy
+  bundle version-stamped, so every release starts from a fresh entry point
+  and pulls exactly its own chunks. Anyone currently stuck on 2.51: one
+  hard refresh (Ctrl+Shift+F5, or "Reset frontend cache" in the Companion
+  app) after updating clears it for good.
 - **Battery fleet setup no longer mints an "UNKNOWN battery" spare-part.**
   Native batteries without a type fed an UNKNOWN bucket into the type-part
   discovery, producing a part with a reorder threshold sized to the whole

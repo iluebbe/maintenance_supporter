@@ -31,14 +31,25 @@
  * (all of which only matter once a dashboard is actually being generated).
  */
 
+import { BUNDLE_VERSION } from "./helpers/bundle-version";
+
 const STRATEGY_TYPE = "maintenance-supporter";
 const STRATEGY_TAG = `ll-strategy-dashboard-${STRATEGY_TYPE}`;
 const EDITOR_TAG = "hui-maintenance-supporter-strategy-editor";
 
 // Absolute URL of the full strategy bundle (served at STRATEGY_URL by the
 // integration). The shim's only dependency, loaded on demand.
+//
+// Version-busted (issue #124): the bundle's chunk names are content-hashed
+// and change every release, but browsers heuristically cache this entry
+// (static serving sends no Cache-Control). A stale cached entry then imports
+// chunk names the update deleted → 404 → the strategy dashboard dies until
+// a hard refresh. The `?v=` makes the URL change with the release, so a
+// fresh entry always pulls its matching chunks. BUNDLE_VERSION is inlined
+// by esbuild — the built shim keeps its zero-import guarantee.
 const BUNDLE_URL =
-  "/maintenance_supporter_strategy/maintenance-dashboard-strategy.js";
+  "/maintenance_supporter_strategy/maintenance-dashboard-strategy.js" +
+  `?v=${BUNDLE_VERSION}`;
 
 let _bundle: Promise<unknown> | null = null;
 function loadBundle(): Promise<unknown> {

@@ -20,6 +20,7 @@ from ..const import (
     STRATEGY_URL,
     VENDOR_URL,
 )
+from ..panel import _async_file_hash
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -93,10 +94,24 @@ async def async_register_card(hass: HomeAssistant) -> None:
     # whenDefined race even under heavy HACS plugin load (the bundle is loaded
     # lazily by the shim). The heavy bundle's static path stays mounted above
     # so the shim's import() can fetch it on demand.
+    #
+    # Every URL carries a content-hash query (issue #124): these module
+    # scripts are served without Cache-Control, so browsers cache them
+    # heuristically. After an update a stale cached strategy entry kept
+    # importing chunk names the update had deleted → 404 → the strategy
+    # dashboard rendered nothing until a hard refresh (and a rollback
+    # "fixed" it by putting the old chunks back). A hash-busted URL changes
+    # with the file, so each release starts from a fresh entry point; the
+    # chunk layer below is content-hashed already. Same trick the panel has
+    # used since #112.
     extra = hass.data.setdefault(DATA_EXTRA_MODULE_URL, set())
-    extra.add(CARD_URL)
-    extra.add(STRATEGY_SHIM_URL)
-    extra.add(CALENDAR_CARD_URL)
+    for url, filename in (
+        (CARD_URL, "maintenance-card.js"),
+        (STRATEGY_SHIM_URL, "maintenance-strategy-shim.js"),
+        (CALENDAR_CARD_URL, "maintenance-calendar-card.js"),
+    ):
+        digest = await _async_file_hash(hass, frontend_dir / filename)
+        extra.add(f"{url}?v={digest}")
 
     hass.data[_CARD_REGISTERED_KEY] = True
     _LOGGER.debug(
