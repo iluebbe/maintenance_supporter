@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs } from "./styles";
 import { LS_KEYS } from "./helpers/storage-keys";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
+import { hydrateObjects } from "./helpers/hydrate-objects";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -422,7 +423,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _loadData(): Promise<void> {
     const [objResult, statsResult, budgetResult, groupsResult, settingsResult, viewsResult] = await Promise.all([
-      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects" }).catch(() => null),
+      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects", compact: true }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/budget_status" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/groups" }).catch(() => null),
@@ -431,7 +432,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     ]);
     if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
     if (objResult) {
-      this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
+      this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
       writeObjectsCache(this._objects, (statsResult as StatisticsResponse | null) ?? this._stats ?? null);
     }
     // A data refresh means the open task's history may have grown (complete,
@@ -646,10 +647,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
-          const next = mergeSubscriptionEvent(
-            this._objects,
-            msg as SubscriptionEvent<MaintenanceObjectResponse>,
-          );
+          const ev = msg as SubscriptionEvent<MaintenanceObjectResponse>;
+          // Compact payloads: hydrate incoming entries before merging so
+          // everything downstream keeps seeing the full shape.
+          if (ev.objects) hydrateObjects(ev.objects);
+          if (ev.delta) hydrateObjects(ev.delta);
+          const next = mergeSubscriptionEvent(this._objects, ev);
           if (next !== null) {
             this._objects = next;
             // Full snapshots are rare (subscribe start) — keep the skeleton
@@ -661,7 +664,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         },
         // deltas: only entries whose rebuilt response actually changed —
         // no-op timer waves send nothing, a real change ships one object.
-        { type: "maintenance_supporter/subscribe", deltas: true }
+        // compact: empty keys stripped server-side, hydrated above.
+        { type: "maintenance_supporter/subscribe", deltas: true, compact: true }
       );
       // If the element was detached while the subscribe was in flight, drop the
       // now-orphaned subscription instead of storing it on a dead component.

@@ -350,7 +350,9 @@ report/verify what is running.
 verify counts before/after.
 
 ### `subscribe` — read — live push
-`{deltas?}` → an immediate empty result, then a stream of `event` messages.
+`{deltas?, compact?}` → an immediate empty result, then a stream of `event`
+messages. `compact: true` applies the same empty-key stripping as the
+`objects` read to every snapshot and delta.
 Without `deltas` (legacy default): every event is `{objects:[…]}` in the same
 shape as the `objects` read, pushed on every coordinator update (and when a
 new object entry appears). With `deltas: true` (v2.52): the first event is a
@@ -388,11 +390,14 @@ merged with the live state). Call it before putting `attribute` into a
 bare UUIDs otherwise after a restart).
 
 ### `objects` / `object`
-`objects` → `{objects:[{entry_id, object:{…}, tasks:[…]}]}`. `object`
-`{entry_id}` → one such record. Task summaries include the computed
+`objects` `{compact?}` → `{objects:[{entry_id, object:{…}, tasks:[…]}]}`.
+`object` `{entry_id}` → one such record. Task summaries include the computed
 `status,is_done,days_until_due,next_due,trigger_active,trigger_current_value,
 trigger_entity_info` plus both flat and nested schedule views — use these in
-Phase 5 to confirm triggers resolved to real entities.
+Phase 5 to confirm triggers resolved to real entities. `compact: true`
+(v2.53) strips keys whose value is null/[]/{} from the response/object/task
+levels (−52 % payload); read absent keys as their empty value. Without the
+flag every field is always present — assistants should simply omit it.
 
 ### `users/list`
 → `{users:[{id,name}]}` (admins also get `is_admin`,`is_owner`). Use to map a

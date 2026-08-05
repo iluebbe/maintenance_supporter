@@ -128,7 +128,16 @@ def _validate_device_link(
     return True
 
 
-@websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/objects"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/objects",
+        # Opt-in (perf wave 2 #3): strip keys whose value is None/[]/{} from
+        # the object + task summaries. Own panel/card pass this and hydrate
+        # the list/dict keys back; consumers that don't ask keep the full,
+        # every-field shape (#50 contract untouched).
+        vol.Optional("compact", default=False): bool,
+    }
+)
 @websocket_api.async_response
 async def ws_get_objects(
     hass: HomeAssistant,
@@ -136,12 +145,13 @@ async def ws_get_objects(
     msg: dict[str, Any],
 ) -> None:
     """Return all maintenance objects with tasks and computed status."""
+    compact = bool(msg.get("compact", False))
     entries = _get_object_entries(hass)
     result = []
     for entry in entries:
         rd = _get_runtime_data(hass, entry.entry_id)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None
-        result.append(_build_object_response(hass, entry, coord_data))
+        result.append(_build_object_response(hass, entry, coord_data, compact=compact))
 
     connection.send_result(msg["id"], {"objects": result})
 

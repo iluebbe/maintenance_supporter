@@ -292,6 +292,10 @@ async def ws_get_statistics(
         vol.Required("type"): "maintenance_supporter/subscribe",
         # 2.52 delta protocol opt-in — see the handler docstring.
         vol.Optional("deltas", default=False): bool,
+        # Compact payloads (perf wave 2 #3): same opt-in + hydration contract
+        # as the `objects` read — empty keys stripped from every snapshot and
+        # delta this subscription ships.
+        vol.Optional("compact", default=False): bool,
     }
 )
 @websocket_api.async_response
@@ -320,6 +324,7 @@ async def ws_subscribe(
     import json
 
     deltas: bool = msg.get("deltas", False)
+    compact: bool = msg.get("compact", False)
     attached_entry_ids: set[str] = set()
     unsub_callbacks: list[Callable[[], None]] = []
     dirty: set[str] = set()
@@ -330,7 +335,7 @@ async def ws_subscribe(
     def _build(entry: Any) -> dict[str, Any]:
         rd = _get_runtime_data(hass, entry.entry_id)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None
-        return _build_object_response(hass, entry, coord_data)
+        return _build_object_response(hass, entry, coord_data, compact=compact)
 
     def _hash(resp: dict[str, Any]) -> int:
         return hash(json.dumps(resp, sort_keys=True, default=str))

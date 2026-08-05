@@ -261,8 +261,33 @@ def _build_task_summary(
     }
 
 
-def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_data: dict[str, Any] | None) -> dict[str, Any]:
-    """Build a full object response dict."""
+_EMPTY_LIST: list[Any] = []
+_EMPTY_DICT: dict[str, Any] = {}
+
+
+def _strip_empty(d: dict[str, Any]) -> dict[str, Any]:
+    """Drop keys whose value is None, [] or {} (compact mode, perf wave 2 #3).
+
+    Measured on a 121-task instance: 52 % of the objects payload was keys
+    carrying one of these three empties. Only clients that OPT IN via
+    ``compact: true`` get stripped responses — they hydrate the handful of
+    list/dict-typed keys back client-side (helpers/hydrate-objects.ts; the
+    two lists are pinned against each other by test_ws_compact_mode).
+    Scalars stay droppable without a table because absent and null read the
+    same through JS ``== null`` / ``||`` access. False, 0 and "" are kept —
+    they are meaningful values, not absences.
+    """
+    return {k: v for k, v in d.items() if not (v is None or v in (_EMPTY_LIST, _EMPTY_DICT))}
+
+
+def _build_object_response(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    coordinator_data: dict[str, Any] | None,
+    *,
+    compact: bool = False,
+) -> dict[str, Any]:
+    """Build a full object response dict (compact: empty keys stripped)."""
     from ..const import slugify_object_name
 
     obj_data = entry.data.get(CONF_OBJECT, {})
@@ -311,7 +336,7 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             }
         )
 
-    return {
+    resp: dict[str, Any] = {
         "entry_id": entry.entry_id,
         "object": {
             "id": obj_data.get("id", ""),
@@ -365,6 +390,11 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
         "tasks": tasks,
         "parts": parts_payload,
     }
+    if compact:
+        resp["object"] = _strip_empty(resp["object"])
+        resp["tasks"] = [_strip_empty(t) for t in tasks]
+        resp = _strip_empty(resp)
+    return resp
 
 
 def _get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:

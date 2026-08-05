@@ -255,10 +255,16 @@ impact order, all backed by measurements:
    prod-analog dataset: the 5.5-minute idle window that shipped 72.7 MB
    before wave 1 (1.3 MB after coalescing) is now one 325 KB snapshot
    plus 21 KB of deltas.
-3. **Summary boilerplate diet.** ~2.2 KB per task even without history —
-   dominated by ~70 always-present keys and nulls. Shrinking is possible
-   but touches the #50-class hydration contract; only with the contract
-   fixture extended first.
+3. ~~**Summary boilerplate diet.**~~ ✅ **Shipped 2026-08** — opt-in
+   `compact: true` on the `objects` read and the subscription strips keys
+   whose value is null/[]/{} (measured live: **325 → 157 KB, −52 %**;
+   per-task 2,199 → 1,079 B on a 121-task instance). The #50 hydration
+   contract is intact by construction: consumers that don't opt in keep
+   the full every-field shape; panel + card hydrate the six list/dict
+   task keys (+ response/object containers) via
+   `helpers/hydrate-objects.ts`, and `test_ws_compact_mode.py` pins the
+   server's []/{},-defaulted keys against that table — a new container
+   field fails CI until both sides know it.
 4. ~~**Today-view virtualization.**~~ ✅ **Resolved by measurement 2026-08**
    — the premise ("renders all its buckets unvirtualized") was stale:
    `.today-row` has carried `content-visibility: auto` +

@@ -15,6 +15,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   version (an update discards it once), capped at 7 days of age, and all
   storage access is failure-tolerant (private-mode browsers simply load as
   before).
+- **52 % smaller list payloads via compact mode.** Task summaries carry
+  ~70 always-present keys, and on a real 121-task instance more than half
+  the `objects` payload was keys whose value was just null/empty
+  (measured live: 325 → 157 KB, per-task 2,199 → 1,079 bytes). Panel and
+  card now request `compact: true` — the server strips those keys, the
+  clients hydrate the handful of list/dict-typed ones back, and a contract
+  test pins the two sides against each other. Everything else (your
+  automations, scripts, third-party consumers) keeps the full every-field
+  shape unless it asks for compact — nothing changes without the flag.
 - **46 % less JavaScript on the panel's critical path.** The six dialogs
   and the settings view are now code-split chunks loaded on demand
   (prefetched during idle right after the first paint): the entry bundle

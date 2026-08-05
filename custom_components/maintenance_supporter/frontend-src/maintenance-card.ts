@@ -2,6 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { mergeSubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
+import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays } from "./styles";
 import type {
@@ -156,10 +157,10 @@ export class MaintenanceSupporterCard extends LitElement {
   private async _loadData(): Promise<void> {
     try {
       const [objResult, statsResult] = await Promise.all([
-        this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects" }),
+        this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects", compact: true }),
         this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }),
       ]);
-      this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
+      this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
       this._stats = statsResult as StatisticsResponse;
     } catch {
       // WS not available yet
@@ -275,14 +276,16 @@ export class MaintenanceSupporterCard extends LitElement {
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
-          const next = mergeSubscriptionEvent(
-            this._objects,
-            msg as SubscriptionEvent<MaintenanceObjectResponse>,
-          );
+          const ev = msg as SubscriptionEvent<MaintenanceObjectResponse>;
+          // Compact payloads: hydrate before merging (helpers/hydrate-objects).
+          if (ev.objects) hydrateObjects(ev.objects);
+          if (ev.delta) hydrateObjects(ev.delta);
+          const next = mergeSubscriptionEvent(this._objects, ev);
           if (next !== null) this._objects = next;
         },
         // deltas: only changed entries arrive — see helpers/subscription-merge.
-        { type: "maintenance_supporter/subscribe", deltas: true }
+        // compact: empty keys stripped server-side, hydrated above.
+        { type: "maintenance_supporter/subscribe", deltas: true, compact: true }
       );
       // Detached mid-subscribe → drop the orphaned subscription.
       if (!this.isConnected) {

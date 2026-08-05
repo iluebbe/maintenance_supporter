@@ -591,8 +591,8 @@ async def test_subscribe_deltas_suppress_noops_and_ship_only_changes(
 
     real_build = dash_mod._build_object_response
 
-    def _changed_build(hass_, entry, coord_data):
-        resp = real_build(hass_, entry, coord_data)
+    def _changed_build(hass_, entry, coord_data, **kwargs):
+        resp = real_build(hass_, entry, coord_data, **kwargs)
         if entry.entry_id == object_entry.entry_id:
             resp["object"] = {**resp["object"], "notes": "changed!"}
         return resp
