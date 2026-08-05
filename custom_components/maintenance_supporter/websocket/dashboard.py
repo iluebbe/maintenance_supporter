@@ -287,34 +287,101 @@ async def ws_get_statistics(
     )
 
 
-@websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/subscribe"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/subscribe",
+        # 2.52 delta protocol opt-in — see the handler docstring.
+        vol.Optional("deltas", default=False): bool,
+    }
+)
 @websocket_api.async_response
 async def ws_subscribe(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Subscribe to real-time maintenance updates."""
+    """Subscribe to real-time maintenance updates.
+
+    Two protocols, chosen by the subscriber:
+
+    * legacy (default): every event carries the FULL ``{objects: [...]}``
+      payload — exactly the pre-2.52 behaviour, kept for stale-cached
+      frontends that predate the delta merge.
+    * ``deltas: true``: events carry ``{delta: [<object response>...],
+      removed: [entry_id...]}`` — only entries whose coordinator fired AND
+      whose rebuilt response actually differs (hash suppression), so the
+      5-minute timer waves that change nothing send NOTHING, a real change
+      ships ~one object instead of the whole install, and the per-push
+      server build touches one entry instead of all of them.
+
+    Both protocols share the 1 s coalescing window and an immediate full
+    snapshot on subscribe.
+    """
+    import json
+
+    deltas: bool = msg.get("deltas", False)
     attached_entry_ids: set[str] = set()
     unsub_callbacks: list[Callable[[], None]] = []
+    dirty: set[str] = set()
+    last_hash: dict[str, int] = {}
 
     debounce_unsub: Callable[[], None] | None = None
 
+    def _build(entry: Any) -> dict[str, Any]:
+        rd = _get_runtime_data(hass, entry.entry_id)
+        coord_data = rd.coordinator.data if rd and rd.coordinator else None
+        return _build_object_response(hass, entry, coord_data)
+
+    def _hash(resp: dict[str, Any]) -> int:
+        return hash(json.dumps(resp, sort_keys=True, default=str))
+
     @callback
     def _send_now(_now: Any = None) -> None:
-        """Build and push the full objects payload once."""
+        """Build and push once — full payload or suppressed per-entry delta."""
         nonlocal debounce_unsub
         debounce_unsub = None
         entries = _get_object_entries(hass)
+
+        if not deltas:
+            connection.send_message(
+                websocket_api.event_message(msg["id"], {"objects": [_build(e) for e in entries]})
+            )
+            return
+
+        current_ids = {e.entry_id for e in entries}
+        removed = sorted(eid for eid in last_hash if eid not in current_ids)
+        for eid in removed:
+            last_hash.pop(eid, None)
+        changed: list[dict[str, Any]] = []
+        for entry in entries:
+            known = entry.entry_id in last_hash
+            if known and entry.entry_id not in dirty:
+                continue
+            resp = _build(entry)
+            h = _hash(resp)
+            if not known or last_hash[entry.entry_id] != h:
+                last_hash[entry.entry_id] = h
+                changed.append(resp)
+        dirty.clear()
+        if changed or removed:
+            connection.send_message(
+                websocket_api.event_message(msg["id"], {"delta": changed, "removed": removed})
+            )
+
+    @callback
+    def _send_snapshot() -> None:
+        """The immediate full state a fresh subscriber renders from."""
+        entries = _get_object_entries(hass)
         result = []
         for entry in entries:
-            rd = _get_runtime_data(hass, entry.entry_id)
-            coord_data = rd.coordinator.data if rd and rd.coordinator else None
-            result.append(_build_object_response(hass, entry, coord_data))
+            resp = _build(entry)
+            if deltas:
+                last_hash[entry.entry_id] = _hash(resp)
+            result.append(resp)
         connection.send_message(websocket_api.event_message(msg["id"], {"objects": result}))
 
     @callback
-    def _forward_update() -> None:
+    def _forward_update(entry_id: str | None = None) -> None:
         """Coalesce coordinator updates into one push per second.
 
         Every object entry runs its OWN coordinator on the same 5-minute
@@ -325,6 +392,8 @@ async def ws_subscribe(
         the same final state; the payload is rebuilt at send time.
         """
         nonlocal debounce_unsub
+        if entry_id is not None:
+            dirty.add(entry_id)
         if debounce_unsub is None:
             debounce_unsub = async_call_later(hass, 1.0, _send_now)
 
@@ -334,7 +403,12 @@ async def ws_subscribe(
             return
         rd = _get_runtime_data(hass, entry_id)
         if rd and rd.coordinator:
-            unsub_callbacks.append(rd.coordinator.async_add_listener(_forward_update))
+
+            @callback
+            def _on_update(eid: str = entry_id) -> None:
+                _forward_update(eid)
+
+            unsub_callbacks.append(rd.coordinator.async_add_listener(_on_update))
             attached_entry_ids.add(entry_id)
 
     # Register listeners on all existing coordinators
@@ -346,7 +420,7 @@ async def ws_subscribe(
     @callback
     def _on_new_entry(entry_id: str) -> None:
         _attach_entry(entry_id)
-        _forward_update()
+        _forward_update(entry_id)
 
     unsub_callbacks.append(async_dispatcher_connect(hass, SIGNAL_NEW_OBJECT_ENTRY, _on_new_entry))
 
@@ -364,7 +438,7 @@ async def ws_subscribe(
     # Send initial data IMMEDIATELY — the debounce is for update storms,
     # not for the snapshot a fresh subscriber renders from.
     connection.send_result(msg["id"])
-    _send_now()
+    _send_snapshot()
 
 
 @websocket_api.websocket_command(

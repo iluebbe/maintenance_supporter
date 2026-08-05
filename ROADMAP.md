@@ -242,25 +242,19 @@ harness (`e2e/perf-seed.mjs`, `e2e/perf-panel.mjs`, `MS_HISTORY_WINDOW`
 A/B override, subscription push counter) measures every next step. In
 impact order, all backed by measurements:
 
-1. **Per-entry delta pushes.** The coalesced subscription still ships the
-   FULL objects payload (~517 KB) per push — and it is built **per
-   subscriber, synchronously in the event loop** (~100–150 ms per build on
-   a dev box; a Pi pays several times that, and every open panel/card is
-   its own subscriber: the Lovelace card subscribes to the same channel,
-   so desktop + wall tablet + phone = 3 builds and 1.5 MB per update
-   second). Pushing `{entry_id, object}` deltas that the client merges
-   cuts steady-state traffic to ~15 KB per change, shrinks the re-render
-   scope, and makes the per-subscriber build trivial. Needs a small client
-   merge + a versioned event shape (older clients keep full payloads).
-2. **No-op suppression, both sides.** Server: a coordinator refresh whose
-   built response is byte-identical to the last push should not push —
-   a hash per entry makes the 5-minute timer waves mostly silent.
-   Client (cheap, standalone): panel AND card assign `_objects`
-   unconditionally on every push — hashing the payload and skipping
-   identical ones eliminates no-op re-renders (and the rebuild of all
-   ~150 row view-models) for a few ms of stringify. Also trims GC churn
-   on long-lived wall-tablet sessions, which allocate a full 517 KB
-   object graph per push today.
+1. ~~**Per-entry delta pushes.**~~ ✅ **Shipped 2026-08** — `subscribe`
+   accepts `deltas: true`; after a full snapshot the server pushes
+   `{delta, removed}` with only the entries whose rebuilt response
+   changed, and panel + card merge via a shared helper
+   (`helpers/subscription-merge.ts`). Older clients that subscribe
+   without the flag keep the full-payload events unchanged.
+2. ~~**No-op suppression.**~~ ✅ **Shipped 2026-08** with (1) — the server
+   hashes each entry's built response and drops byte-identical rebuilds,
+   so the 5-minute coordinator waves go silent; a `null` merge result
+   means the client skips the re-render entirely. Measured on the
+   prod-analog dataset: the 5.5-minute idle window that shipped 72.7 MB
+   before wave 1 (1.3 MB after coalescing) is now one 325 KB snapshot
+   plus 21 KB of deltas.
 3. **Summary boilerplate diet.** ~2.2 KB per task even without history —
    dominated by ~70 always-present keys and nulls. Shrinking is possible
    but touches the #50-class hydration contract; only with the contract

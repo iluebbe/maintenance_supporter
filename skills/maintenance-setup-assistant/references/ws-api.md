@@ -350,11 +350,17 @@ report/verify what is running.
 verify counts before/after.
 
 ### `subscribe` — read — live push
-`{}` → an immediate empty result, then a stream of `event` messages
-`{objects:[…]}` in the same shape as the `objects` read, pushed on every
-coordinator update (and when a new object entry appears). Unsubscribe with HA's
-standard `unsubscribe_events` on the same message id. Useful to watch a trigger
-flip during verification; a plain `objects` re-read is enough for one-shot checks.
+`{deltas?}` → an immediate empty result, then a stream of `event` messages.
+Without `deltas` (legacy default): every event is `{objects:[…]}` in the same
+shape as the `objects` read, pushed on every coordinator update (and when a
+new object entry appears). With `deltas: true` (v2.52): the first event is a
+full `{objects:[…]}` snapshot, after that events are
+`{delta:[…changed object responses…], removed:[entry_ids]}` carrying only
+entries whose rebuilt response actually changed (byte-identical rebuilds are
+suppressed server-side). Updates are coalesced into one trailing send per
+second either way. Unsubscribe with HA's standard `unsubscribe_events` on the
+same message id. Useful to watch a trigger flip during verification; a plain
+`objects` re-read is enough for one-shot checks.
 
 ### `schedule/preview` — read — "your next three dates"
 `{schedule (req, nested Schedule dict), last_performed?, times_performed?

@@ -36,6 +36,18 @@ All notable changes to Maintenance Supporter are documented in this file.
   benchmark harness (`e2e/perf-seed.mjs` + `e2e/perf-panel.mjs`): the
   907 KB heavy-history payload dropped to 640 KB and is now bounded — a
   fleet at the 500-entry cap would previously have shipped megabytes.
+- **The live subscription now pushes deltas instead of full payloads.**
+  Panel and card subscribe with `deltas: true`: after one full snapshot the
+  server sends only the object entries whose rebuilt response actually
+  changed (`{delta, removed}`), and rebuilds that are byte-identical to the
+  last push are suppressed entirely — the 5-minute coordinator timer waves
+  go silent instead of re-shipping an unchanged world. Clients merge
+  in place via a shared helper, so an idle wall tablet neither downloads
+  nor re-renders anything. Measured on the prod-analog dataset: the idle
+  5.5-minute window that shipped 72.7 MB two releases ago (1.3 MB after
+  coalescing) is now one 325 KB snapshot plus 21 KB of deltas. Third-party
+  consumers are unaffected — subscribing without the flag keeps the
+  full-payload events.
 
 ### 🔧 Fixed
 

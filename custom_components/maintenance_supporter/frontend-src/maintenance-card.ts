@@ -1,6 +1,7 @@
 /** Maintenance Supporter Lovelace Card. */
 
 import { LitElement, html, css, nothing } from "lit";
+import { mergeSubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays } from "./styles";
 import type {
@@ -274,10 +275,14 @@ export class MaintenanceSupporterCard extends LitElement {
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
-          const data = msg as { objects: MaintenanceObjectResponse[] };
-          this._objects = data.objects;
+          const next = mergeSubscriptionEvent(
+            this._objects,
+            msg as SubscriptionEvent<MaintenanceObjectResponse>,
+          );
+          if (next !== null) this._objects = next;
         },
-        { type: "maintenance_supporter/subscribe" }
+        // deltas: only changed entries arrive — see helpers/subscription-merge.
+        { type: "maintenance_supporter/subscribe", deltas: true }
       );
       // Detached mid-subscribe → drop the orphaned subscription.
       if (!this.isConnected) {

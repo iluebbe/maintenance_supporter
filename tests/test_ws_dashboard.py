@@ -536,6 +536,91 @@ async def test_subscribe_coalesces_update_storms(
     assert conn.send_message.call_count == 2
 
 
+async def test_subscribe_deltas_suppress_noops_and_ship_only_changes(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """The 2.52 delta protocol: a timer wave that changes nothing sends
+    NOTHING; a real change ships only the changed entry; removal is named.
+    """
+    from datetime import timedelta
+    from unittest.mock import patch
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    from custom_components.maintenance_supporter.helpers.aggregate import get_runtime_data
+
+    # A second object so the delta can prove it excludes unchanged entries.
+    second = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Second Pump",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Second Pump", object_id="objid_second"),
+            tasks={TASK_ID_2: build_task_data(task_id=TASK_ID_2, last_performed="2024-06-01")},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_second_ws_dash",
+    )
+    second.add_to_hass(hass)
+    await setup_integration(hass, global_entry, object_entry, second)
+
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_subscribe, hass, conn, {"id": 1, "type": "maintenance_supporter/subscribe", "deltas": True}
+    )
+    snapshot = conn.send_message.call_args[0][0]["event"]
+    assert len(snapshot["objects"]) == 2, "the initial snapshot is always full"
+    conn.send_message.reset_mock()
+
+    coordinator = get_runtime_data(hass, object_entry.entry_id).coordinator
+
+    # Timer wave, nothing changed → hash suppression eats the push entirely.
+    for _ in range(5):
+        coordinator.async_update_listeners()
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+    await hass.async_block_till_done()
+    assert conn.send_message.call_count == 0, "a no-op wave must not push"
+
+    # A real change on ONE entry → one delta event carrying only that entry.
+    real_build = None
+    from custom_components.maintenance_supporter.websocket import dashboard as dash_mod
+
+    real_build = dash_mod._build_object_response
+
+    def _changed_build(hass_, entry, coord_data):
+        resp = real_build(hass_, entry, coord_data)
+        if entry.entry_id == object_entry.entry_id:
+            resp["object"] = {**resp["object"], "notes": "changed!"}
+        return resp
+
+    with patch.object(dash_mod, "_build_object_response", side_effect=_changed_build):
+        coordinator.async_update_listeners()
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+        await hass.async_block_till_done()
+    assert conn.send_message.call_count == 1
+    event = conn.send_message.call_args[0][0]["event"]
+    assert "objects" not in event
+    assert [d["entry_id"] for d in event["delta"]] == [object_entry.entry_id]
+    assert event["removed"] == []
+    conn.send_message.reset_mock()
+
+    # Removing the second entry → the next send names it in `removed`.
+    await hass.config_entries.async_remove(second.entry_id)
+    await hass.async_block_till_done()
+    with patch.object(dash_mod, "_build_object_response", side_effect=_changed_build):
+        coordinator.async_update_listeners()
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+        await hass.async_block_till_done()
+    events = [c[0][0]["event"] for c in conn.send_message.call_args_list]
+    assert any(second.entry_id in e.get("removed", []) for e in events)
+
+    conn.subscriptions[1]()
+
+
 async def test_subscribe_unsub_cleans_up(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,

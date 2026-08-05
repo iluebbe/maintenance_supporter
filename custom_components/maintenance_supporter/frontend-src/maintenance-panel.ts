@@ -2,6 +2,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
+import { mergeSubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs } from "./styles";
@@ -600,10 +601,15 @@ export class MaintenanceSupporterPanel extends LitElement {
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
-          const data = msg as { objects: MaintenanceObjectResponse[] };
-          this._objects = data.objects;
+          const next = mergeSubscriptionEvent(
+            this._objects,
+            msg as SubscriptionEvent<MaintenanceObjectResponse>,
+          );
+          if (next !== null) this._objects = next;
         },
-        { type: "maintenance_supporter/subscribe" }
+        // deltas: only entries whose rebuilt response actually changed —
+        // no-op timer waves send nothing, a real change ships one object.
+        { type: "maintenance_supporter/subscribe", deltas: true }
       );
       // If the element was detached while the subscribe was in flight, drop the
       // now-orphaned subscription instead of storing it on a dead component.

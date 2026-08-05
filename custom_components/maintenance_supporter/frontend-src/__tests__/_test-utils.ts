@@ -97,7 +97,10 @@ export type WsHandler = (msg: SentMessage) => Promise<unknown> | unknown;
 export interface CreateMockHassResult {
   hass: {
     language: string;
-    connection: { sendMessagePromise: (msg: SentMessage) => Promise<unknown> };
+    connection: {
+      sendMessagePromise: (msg: SentMessage) => Promise<unknown>;
+      subscribeMessage: (cb: (event: unknown) => void, msg: SentMessage) => Promise<() => void>;
+    };
     callService: (
       domain: string, service: string,
       data?: Record<string, unknown>, target?: Record<string, unknown>,
@@ -107,6 +110,8 @@ export interface CreateMockHassResult {
   };
   sent: SentMessage[];
   serviceCalls: ServiceCall[];
+  /** Captured subscribeMessage registrations — push events via `.push(ev)`. */
+  subscriptions: Array<{ msg: SentMessage; push: (event: unknown) => void }>;
 }
 
 export interface CreateMockHassOptions {
@@ -157,15 +162,31 @@ export function createMockHass(opts: CreateMockHassOptions = {}): CreateMockHass
     serviceCalls.push({ domain, service, data, target });
   };
 
+  // Captured subscriptions: tests push events into components via
+  // `subscriptions.find(...).push(event)`.
+  const subscriptions: Array<{ msg: SentMessage; push: (event: unknown) => void }> = [];
+  const subscribeMessage = async (
+    cb: (event: unknown) => void,
+    msg: SentMessage,
+  ): Promise<() => void> => {
+    const entry = { msg, push: (event: unknown) => cb(event) };
+    subscriptions.push(entry);
+    return () => {
+      const i = subscriptions.indexOf(entry);
+      if (i >= 0) subscriptions.splice(i, 1);
+    };
+  };
+
   return {
     hass: {
       language: opts.language ?? "en",
-      connection: { sendMessagePromise },
+      connection: { sendMessagePromise, subscribeMessage },
       callService,
       services: opts.services,
       states: opts.states,
     },
     sent,
     serviceCalls,
+    subscriptions,
   };
 }
