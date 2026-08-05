@@ -233,6 +233,35 @@ wave brought the roster's presentation up to it. **All six items shipped**
    with the **detected** jump time. Rechargeables are exempt — they jump on
    every routine charge.
 
+### 💡 Panel performance, wave 2 (prepared 2026-08, measured backlog)
+
+Wave 1 shipped the history payload diet (list payloads bounded: 1,088 →
+517 KB on the real production dataset) and subscription coalescing (idle
+push volume −98 %: 72.7 → 1.3 MB per 5 minutes). The committed benchmark
+harness (`e2e/perf-seed.mjs`, `e2e/perf-panel.mjs`, `MS_HISTORY_WINDOW`
+A/B override, subscription push counter) measures every next step. In
+impact order, all backed by measurements:
+
+1. **Per-entry delta pushes.** The coalesced subscription still ships the
+   FULL objects payload (~517 KB) per push. The server knows which
+   coordinator fired — pushing `{entry_id, object}` deltas that the client
+   merges would cut steady-state traffic to ~15 KB per change and shrink
+   the re-render scope with it. Needs a small client merge + a versioned
+   event shape (older clients keep the full-payload behaviour).
+2. **No-op suppression.** A coordinator refresh whose built response is
+   byte-identical to the last push (nothing user-visible changed) should
+   not push at all — a hash per entry makes the 5-minute timer waves
+   mostly silent.
+3. **Summary boilerplate diet.** ~2.2 KB per task even without history —
+   dominated by ~70 always-present keys and nulls. Shrinking is possible
+   but touches the #50-class hydration contract; only with the contract
+   fixture extended first.
+4. **Today-view virtualization.** The dashboard table virtualizes above
+   120 rows; the Today view renders all its buckets unvirtualized.
+5. **Bundle split.** `maintenance-panel.js` is ~593 KB; dialogs and the
+   detail view could load as chunks (the strategy already does this),
+   cutting cold parse time on slow devices.
+
 ### Next wave (proposed 2026-07)
 
 1. ~~**More voice/Assist intents — grounded task guidance**~~ ✅ **Shipped

@@ -495,6 +495,47 @@ async def test_subscribe_registers_listener(
     assert 1 in conn.subscriptions
 
 
+async def test_subscribe_coalesces_update_storms(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """A burst of coordinator updates yields ONE push, not one per update.
+
+    Every object entry runs its own coordinator on the same 5-minute
+    interval and their timers cluster at boot — a live measurement caught a
+    ~60-push wave of the FULL objects payload every 5 minutes (72.7 MB in
+    5.5 idle minutes), each push a complete panel re-render. The subscribe
+    handler coalesces a burst into one trailing send per second.
+    """
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    from custom_components.maintenance_supporter.helpers.aggregate import get_runtime_data
+
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_subscribe, hass, conn, {"id": 1, "type": "maintenance_supporter/subscribe"})
+    conn.send_message.reset_mock()  # drop the immediate initial snapshot
+
+    coordinator = get_runtime_data(hass, object_entry.entry_id).coordinator
+    for _ in range(10):
+        coordinator.async_update_listeners()
+    assert conn.send_message.call_count == 0, "nothing sends inside the debounce window"
+
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+    await hass.async_block_till_done()
+    assert conn.send_message.call_count == 1, "the storm coalesced into one push"
+
+    # A later lone update still gets its own push.
+    coordinator.async_update_listeners()
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+    await hass.async_block_till_done()
+    assert conn.send_message.call_count == 2
+
+
 async def test_subscribe_unsub_cleans_up(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
@@ -1537,8 +1578,18 @@ async def test_subscribe_new_entry_callback(
     await hass.config_entries.async_setup(new_entry.entry_id)
     await hass.async_block_till_done()
 
-    # The _on_new_entry callback should have fired _forward_update
+    # The _on_new_entry callback schedules a (debounced) push — advance
+    # past the coalescing window to observe it.
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+    await hass.async_block_till_done()
     assert conn.send_message.call_count > initial_calls
+    # Unsubscribe so no debounce timer lingers into teardown.
+    conn.subscriptions[next(iter(conn.subscriptions))]()
 
 
 # ─── websocket/dashboard.py: subscribe already attached (line 254) ────
@@ -1576,6 +1627,8 @@ async def test_subscribe_already_attached_entry(
     # _forward_update is still called even for already-attached entries
     # (line 271), but _attach_entry returns early at line 254
     assert conn.send_message.call_count >= msg_count_before
+    # Unsubscribe so the coalescing timer doesn't linger into teardown.
+    conn.subscriptions[next(iter(conn.subscriptions))]()
 
 
 # ─── websocket/dashboard.py: budget_status edge cases ─────────────────

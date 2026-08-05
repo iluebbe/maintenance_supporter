@@ -136,6 +136,17 @@ const INIT = `
       window.__perf.ws.push({ type: msg.type, ms: Math.round(performance.now() - t0), bytes: size });
       return res;
     };
+    // Subscription PUSHES are the suspected steady-state cost: every
+    // coordinator update re-ships the full objects payload. Count them.
+    window.__perf.subs = [];
+    const origSub = conn.subscribeMessage.bind(conn);
+    conn.subscribeMessage = (cb, m, opts) =>
+      origSub((ev) => {
+        let size = 0;
+        try { size = JSON.stringify(ev).length; } catch {}
+        window.__perf.subs.push({ type: m && m.type, at: Math.round(performance.now()), bytes: size });
+        return cb(ev);
+      }, m, opts);
   };
   const hookConn = () => {
     if (window.hassConnection && window.hassConnection.then) {

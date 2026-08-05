@@ -6,6 +6,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ⚡ Performance
 
+- **The live subscription no longer storms the panel.** Every object entry
+  runs its own update coordinator on the same 5-minute interval, and their
+  timers cluster at startup — measured on a live instance, the panel
+  received a wave of ~60 **full-payload pushes within two seconds every
+  five minutes** (72.7 MB in 5.5 *idle* minutes), each one a complete
+  re-render. That wave is the scroll stutter users could feel. Pushes are
+  now coalesced into one trailing send per second: the same idle window
+  measures 4 pushes / 1.3 MB (−98 %), and a lone real change still arrives
+  within a second.
+
 - **List payloads no longer carry full task histories.** At 150+ tasks the
   `objects` response was dominated by history entries nobody was looking at
   (906 KB measured at 40 entries per task — and the store keeps up to 500):

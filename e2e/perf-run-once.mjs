@@ -14,7 +14,8 @@ const HA = process.env.HA_BROWSER_URL || "http://ha-shots:8123";
 const PW_WS = "ws://127.0.0.1:3000/";
 const TOKEN = process.env.PERF_TOKEN;
 const SETTLE = parseInt(process.env.PERF_SETTLE_MS || "15000", 10);
-setTimeout(() => { console.error("run watchdog"); process.exit(3); }, 5 * 60e3).unref();
+// Watchdog scales with the settle window (long idle observations are legal).
+setTimeout(() => { console.error("run watchdog"); process.exit(3); }, SETTLE + 4 * 60e3).unref();
 
 const src = fs.readFileSync(new URL("./perf-panel.mjs", import.meta.url), "utf-8");
 const INIT = src
@@ -45,6 +46,7 @@ async function loadOnce() {
       long: window.__perf.long,
       bundle: bundle ? { ms: Math.round(bundle.duration), kb: Math.round((bundle.transferSize || bundle.encodedBodySize || 0) / 1024) } : null,
       scroll: window.__scrollResult || null,
+      subs: window.__perf.subs || [],
     };
   }), 30000, null);
 }

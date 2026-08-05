@@ -11,6 +11,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.event import async_call_later
 
 from ..const import (
     BUDGET_CURRENCIES,
@@ -297,9 +298,13 @@ async def ws_subscribe(
     attached_entry_ids: set[str] = set()
     unsub_callbacks: list[Callable[[], None]] = []
 
+    debounce_unsub: Callable[[], None] | None = None
+
     @callback
-    def _forward_update() -> None:
-        """Forward coordinator updates to the WebSocket."""
+    def _send_now(_now: Any = None) -> None:
+        """Build and push the full objects payload once."""
+        nonlocal debounce_unsub
+        debounce_unsub = None
         entries = _get_object_entries(hass)
         result = []
         for entry in entries:
@@ -307,6 +312,21 @@ async def ws_subscribe(
             coord_data = rd.coordinator.data if rd and rd.coordinator else None
             result.append(_build_object_response(hass, entry, coord_data))
         connection.send_message(websocket_api.event_message(msg["id"], {"objects": result}))
+
+    @callback
+    def _forward_update() -> None:
+        """Coalesce coordinator updates into one push per second.
+
+        Every object entry runs its OWN coordinator on the same 5-minute
+        interval, and their timers cluster at boot — measured on a live
+        instance: a ~60-push wave of the FULL payload every 5 minutes,
+        72.7 MB in 5.5 idle minutes, each push a complete panel re-render
+        (the scroll jank users feel). One trailing send per window carries
+        the same final state; the payload is rebuilt at send time.
+        """
+        nonlocal debounce_unsub
+        if debounce_unsub is None:
+            debounce_unsub = async_call_later(hass, 1.0, _send_now)
 
     def _attach_entry(entry_id: str) -> None:
         """Attach a coordinator listener for a specific entry."""
@@ -332,14 +352,19 @@ async def ws_subscribe(
 
     @callback
     def _unsub() -> None:
+        nonlocal debounce_unsub
+        if debounce_unsub is not None:
+            debounce_unsub()
+            debounce_unsub = None
         for unsub in unsub_callbacks:
             unsub()
 
     connection.subscriptions[msg["id"]] = _unsub
 
-    # Send initial data
+    # Send initial data IMMEDIATELY — the debounce is for update storms,
+    # not for the snapshot a fresh subscriber renders from.
     connection.send_result(msg["id"])
-    _forward_update()
+    _send_now()
 
 
 @websocket_api.websocket_command(
