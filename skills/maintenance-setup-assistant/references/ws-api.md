@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **84** registered commands are covered here. Their authorization tiers are
+All **85** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -574,6 +574,12 @@ Instead of one threshold task per battery, the integration aggregates all
 **Battery Notes** devices into a SINGLE maintenance task plus a per-type
 shopping list (AA, AAA, CR2032 …). Do not propose per-battery threshold tasks —
 offer the fleet.
+
+### `battery_fleet/status` — read
+`{}` → `{available, configured}` — the cheap check behind the panel's
+one-click-setup button (any trackable battery present / fleet object
+exists). Unlike `overview` it reads NO battery data and never touches the
+trend machinery — use it whenever those two booleans are all you need.
 
 ### `battery_fleet/overview` — read
 `{}` → `{available` (any batteries at all)`, has_battery_notes, configured`

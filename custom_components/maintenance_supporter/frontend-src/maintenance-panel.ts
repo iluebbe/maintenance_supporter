@@ -391,10 +391,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (this._view === "task" && this._selectedEntryId && this._selectedTaskId) {
       this._fetchFullHistory(this._selectedEntryId, this._selectedTaskId);
     }
-    // Battery Fleet availability (Battery Notes present + not yet set up).
+    // Battery Fleet availability (batteries present + not yet set up).
+    // The slim status check, NOT the overview: the full overview runs the
+    // trend machinery server-side (one recorder regression per healthy
+    // battery on a cold cache) — far too expensive for hiding a button.
     this.hass.connection
       .sendMessagePromise<{ available: boolean; configured: boolean }>({
-        type: "maintenance_supporter/battery_fleet/overview",
+        type: "maintenance_supporter/battery_fleet/status",
       })
       .then((ov) => {
         this._batteryFleetSetupAvailable = !!ov.available && !ov.configured;

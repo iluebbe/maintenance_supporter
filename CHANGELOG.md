@@ -15,6 +15,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   now coalesced into one trailing send per second: the same idle window
   measures 4 pushes / 1.3 MB (−98 %), and a lone real change still arrives
   within a second.
+- **The panel no longer runs the battery-trend machinery just to hide a
+  button.** Deciding whether to show the "Battery fleet" one-click-setup
+  button used the full `battery_fleet/overview` on every panel load — which
+  computes discharge-trend regressions server-side (one recorder regression
+  per healthy battery on a cold cache after every Home Assistant restart).
+  The check now uses the new slim `battery_fleet/status` (batteries
+  present / fleet configured — no battery reads at all); the fleet detail
+  section keeps loading the real overview, unchanged.
 
 - **List payloads no longer carry full task histories.** At 150+ tasks the
   `objects` response was dominated by history entries nobody was looking at

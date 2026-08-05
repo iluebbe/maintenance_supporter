@@ -11,7 +11,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 
 from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
 from ..helpers.battery_fleet import (
@@ -79,6 +79,24 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
                 for eid in sorted(fleet_excluded_entities(hass))
             ],
         },
+    )
+
+
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/battery_fleet/status"})
+@callback
+def ws_battery_fleet_status(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """The two booleans behind the panel's one-click-setup button — cheap.
+
+    The panel used to ask the FULL overview on every load just to decide
+    whether to render the button, which runs the trend machinery (one
+    recorder regression per healthy battery on a cold cache after every HA
+    restart). This answers ``available`` (any trackable battery) and
+    ``configured`` (a fleet object exists) without reading the fleet at all.
+    """
+    fleet = find_fleet_entry(hass)
+    connection.send_result(
+        msg["id"],
+        {"available": has_batteries(hass), "configured": fleet is not None},
     )
 
 
