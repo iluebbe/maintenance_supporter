@@ -89,7 +89,7 @@ const INIT = `
       mark("panelInDom");
       if (Array.isArray(panel._objects) && panel._objects.length > 0) mark("dataLoaded");
       window.__panel = panel;
-      const row = deep((el) => el.classList && (el.classList.contains("task-row") || el.tagName === "TR") && /Perf |Task /.test(el.textContent || ""));
+      const row = deep((el) => el.classList && (el.classList.contains("task-row") || (el.tagName === "TR" && (el.textContent || "").trim().length > 10)));
       if (row) { mark("firstRowPainted"); clearInterval(poll); if (PERF_SCROLL) setTimeout(scrollProbe, 4000); }
     }
   }, 16);

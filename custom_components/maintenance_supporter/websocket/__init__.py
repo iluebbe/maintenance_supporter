@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from homeassistant.components import websocket_api
@@ -58,7 +59,12 @@ def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
 # detail header the last 3, the calendar card averages costs (≈stable over
 # 20), the strategy looks up the latest matching entry. The detail view's
 # full timeline/charts fetch everything via `task/history` instead.
-_HISTORY_WINDOW = 20
+#
+# The env override exists ONLY for the benchmark harness: setting
+# MS_HISTORY_WINDOW to a huge value reproduces the pre-diet payload on the
+# same build, so before/after is a measured A/B on identical data instead of
+# an extrapolation. Never documented, never read anywhere else.
+_HISTORY_WINDOW = int(os.environ.get("MS_HISTORY_WINDOW", "20"))
 
 
 def _build_task_summary(
