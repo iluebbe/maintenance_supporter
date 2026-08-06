@@ -462,7 +462,10 @@ async def test_forecast_only_note_reaches_the_forecast(hass):
     ov = build_overview(bats, today=date(2026, 7, 25))
     assert ov.total == 1 and ov.low == []
     assert len(ov.soon) == 1
-    assert ov.soon[0]["days_until"] < 0
+    # B1: a passed prediction clamps to 0 days + carries forecast_overdue —
+    # no negative countdowns, still sorted to the top of `soon`.
+    assert ov.soon[0]["days_until"] == 0
+    assert ov.soon[0]["forecast_overdue"] is True
     assert dict(ov.needs_soon) == {"CR2032": 1}
 
 
@@ -904,3 +907,29 @@ async def test_level_history_threshold_follows_the_note(hass):
     ):
         out = await bf.async_level_history(hass, bats)
     assert out["sensor.thermo_battery_plus"]["threshold"] == 35.0
+
+
+def test_forecast_overdue_stays_soon_never_low():
+    """B1 (decided 2026-08): a PASSED prediction on a still-healthy battery.
+
+    It must NOT count as low (the sensor says fine; only reality fires the
+    fleet task), must NOT show a negative countdown (clamped to 0), and the
+    row carries forecast_overdue so the roster can show the discrepancy
+    (usual cause: an unrecorded swap).
+    """
+    today = date(2026, 8, 6)
+    ancient = today - timedelta(days=5 * 365)  # far past any typical lifetime
+    fresh = _bat("Fresh", "AA", low=False, last=today)
+    stale = _bat("Stale", "AA", qty=2, low=False, last=ancient)
+    ov = build_overview([fresh, stale], today=today)
+
+    assert ov.low_count == 0, "a prediction never becomes low"
+    assert dict(ov.needs_now) == {}, "…and never fires the shopping-NOW group"
+    soon = {r["device_name"]: r for r in ov.soon}
+    assert "Stale" in soon
+    assert soon["Stale"]["days_until"] == 0, "no negative countdowns"
+    assert soon["Stale"]["forecast_overdue"] is True
+    assert dict(ov.needs_soon) == {"AA": 2}
+    # A regular soon/ok row does not carry the flag as True.
+    all_rows = {r["device_name"]: r for r in ov.all}
+    assert all_rows["Fresh"]["forecast_overdue"] is False

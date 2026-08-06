@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Pil filosu",
   "battery_fleet_setup_done": "Pil filosu kuruldu — tek bir görev tüm pillerinizi takip ediyor.",
   "update_banner": "Sunucuda Maintenance Supporter'ın daha yeni bir sürümü var — paneli güncellemek için sayfayı yeniden yükleyin.",
-  "update_reload": "Yeniden yükle"
+  "update_reload": "Yeniden yükle",
+  "battery_fleet_forecast_overdue": "Öngörülen tarih geçti — pil hâlâ sağlıklı görünüyor. Değiştirdiyseniz değişimi kaydedin; aksi halde tahmin yanılmış demektir.",
+  "cost_from_parts": "Parçalardan ≈ {amount} kullan"
 }

@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Batteriflåte",
   "battery_fleet_setup_done": "Batteriflåte satt opp — én oppgave følger alle batteriene.",
   "update_banner": "En nyere versjon av Maintenance Supporter er på serveren — last inn på nytt for å oppdatere panelet.",
-  "update_reload": "Last inn på nytt"
+  "update_reload": "Last inn på nytt",
+  "battery_fleet_forecast_overdue": "Forutsagt dato er passert — batteriet melder fortsatt god tilstand. Hvis du byttet det, registrer byttet; ellers bommet prognosen.",
+  "cost_from_parts": "Bruk ≈ {amount} fra deler"
 }

@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "電池フリート",
   "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。",
   "update_banner": "サーバーに新しいバージョンの Maintenance Supporter があります — 再読み込みしてパネルを更新してください。",
-  "update_reload": "再読み込み"
+  "update_reload": "再読み込み",
+  "battery_fleet_forecast_overdue": "予測日を過ぎましたが、電池はまだ正常と報告しています。交換済みなら交換を記録してください。そうでなければ予測が外れています。",
+  "cost_from_parts": "部品から ≈ {amount} を適用"
 }

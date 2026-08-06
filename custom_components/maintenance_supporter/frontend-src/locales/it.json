@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Parco batterie",
   "battery_fleet_setup_done": "Parco batterie configurato — un'attività monitora tutte.",
   "update_banner": "Sul server è presente una versione più recente di Maintenance Supporter — ricarica per aggiornare il pannello.",
-  "update_reload": "Ricarica"
+  "update_reload": "Ricarica",
+  "battery_fleet_forecast_overdue": "Data prevista superata — la batteria risulta ancora in buono stato. Se l'hai sostituita, registra la sostituzione; altrimenti la previsione era errata.",
+  "cost_from_parts": "Usa ≈ {amount} dai ricambi"
 }

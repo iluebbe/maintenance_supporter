@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Frota de baterias",
   "battery_fleet_setup_done": "Frota de baterias configurada — uma tarefa acompanha todas.",
   "update_banner": "Há uma versão mais recente do Maintenance Supporter no servidor — recarregue para atualizar o painel.",
-  "update_reload": "Recarregar"
+  "update_reload": "Recarregar",
+  "battery_fleet_forecast_overdue": "Data prevista ultrapassada — a bateria continua a reportar bom estado. Se a substituiu, registe a substituição; caso contrário, a previsão falhou.",
+  "cost_from_parts": "Usar ≈ {amount} das peças"
 }

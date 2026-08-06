@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Batteriflotta",
   "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier.",
   "update_banner": "En nyare version av Maintenance Supporter finns på servern — ladda om för att uppdatera panelen.",
-  "update_reload": "Ladda om"
+  "update_reload": "Ladda om",
+  "battery_fleet_forecast_overdue": "Förutsagt datum har passerat — batteriet rapporterar fortfarande god status. Om du bytte det, registrera bytet; annars slog prognosen fel.",
+  "cost_from_parts": "Använd ≈ {amount} från delar"
 }

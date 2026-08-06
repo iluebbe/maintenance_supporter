@@ -369,6 +369,12 @@ def _build_object_response(
             # v2.20 (N1) replace-flow lineage, both directions.
             "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
             "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
+            # Battery-fleet markers (field-completeness audit, #50 class):
+            # the fleet flag existed only task-level in the response while
+            # the OBJECT flag drives find_fleet_entry — consumers (and our
+            # own visual harness) had to detect the fleet via a task.
+            "battery_fleet": obj_data.get("battery_fleet", False),
+            "battery_fleet_excluded": obj_data.get("battery_fleet_excluded", []),
             # (roadmap P2) count of attached documents (files + web-links) for
             # the objects-table paperclip badge; computed, not persisted.
             "document_count": document_count,

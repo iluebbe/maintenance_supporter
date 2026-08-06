@@ -1690,3 +1690,46 @@ async def test_update_object_installation_date(
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
     assert entry.data["object"]["installation_date"] == "2023-01-15"
+
+
+async def test_object_response_carries_battery_fleet_markers(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """The OBJECT-level fleet flag + manual exclusions are echoed (#50 class).
+
+    The flag drives find_fleet_entry server-side, but the response only
+    carried the task-level battery_fleet_task — consumers (and our own
+    visual harness) had to detect the fleet via a task.
+    """
+    fleet = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Battery Fleet",
+        data=build_object_entry_data(
+            object_data={
+                **build_object_data(name="Battery Fleet", object_id="objid_fleet"),
+                "battery_fleet": True,
+                "battery_fleet_excluded": ["sensor.some_battery"],
+            },
+            tasks={TASK_ID_1: build_task_data(task_id=TASK_ID_1)},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_fleet_marker",
+    )
+    fleet.add_to_hass(hass)
+    await setup_integration(hass, global_entry, object_entry, fleet)
+
+    conn = _mock_connection()
+    await call_ws_handler(ws_get_objects, hass, conn, {"id": 1, "type": "maintenance_supporter/objects"})
+    objects = conn.send_result.call_args[0][1]["objects"]
+
+    by_name = {o["object"]["name"]: o["object"] for o in objects}
+    assert by_name["Battery Fleet"]["battery_fleet"] is True
+    assert by_name["Battery Fleet"]["battery_fleet_excluded"] == ["sensor.some_battery"]
+    # A plain object answers the same questions instead of omitting the keys.
+    plain = next(name for name in by_name if name != "Battery Fleet")
+    assert by_name[plain]["battery_fleet"] is False
+    assert by_name[plain]["battery_fleet_excluded"] == []

@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Battery fleet",
   "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries.",
   "update_banner": "A newer version of Maintenance Supporter is on the server — reload to update the panel.",
-  "update_reload": "Reload"
+  "update_reload": "Reload",
+  "battery_fleet_forecast_overdue": "Predicted date passed — the battery still reports healthy. If you swapped it, record the replacement; otherwise the forecast was off.",
+  "cost_from_parts": "Use ≈ {amount} from parts"
 }

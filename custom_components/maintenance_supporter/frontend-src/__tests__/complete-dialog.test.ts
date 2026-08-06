@@ -167,3 +167,74 @@ describe("complete-dialog", () => {
     expect(completedEvent).to.be.false;
   });
 });
+
+describe("complete-dialog cost suggestion from parts (#104 follow-up)", () => {
+  async function mountWithParts(over: Partial<MaintenanceCompleteDialog> = {}) {
+    const { hass } = createMockHass({});
+    const el = await fixture<MaintenanceCompleteDialog>(html`
+      <maintenance-complete-dialog
+        .hass=${hass}
+        .entryId=${"entry1"}
+        .taskId=${"task1"}
+        .taskName=${"Uses Parts"}
+        .lang=${"en"}
+      ></maintenance-complete-dialog>
+    `);
+    Object.assign(el, over);
+    el.open();
+    await el.updateComplete;
+    return el;
+  }
+
+  const chip = (el: MaintenanceCompleteDialog) =>
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".cost-suggestion");
+
+  it("sums selected consumed parts (qty x unit cost) and fills on click", async () => {
+    const el = await mountWithParts({
+      parts: [
+        { id: "p1", name: "Filter", cost: 12.5 },
+        { id: "p2", name: "O-Ring", cost: 2.25 },
+        { id: "p3", name: "Unpriced", cost: null },
+      ] as never,
+      consumesParts: [
+        { part_id: "p1", quantity: 1 },
+        { part_id: "p2", quantity: 2 },
+        { part_id: "p3", quantity: 1 },
+      ] as never,
+      currencySymbol: "€",
+    });
+    const c = chip(el)!;
+    expect(c, "suggestion chip rendered").to.exist;
+    expect(c.textContent).to.include("17.00");
+    expect(c.textContent).to.include("€");
+    c.click();
+    await el.updateComplete;
+    const cost = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")][1];
+    expect(cost.value).to.equal("17.00");
+    expect(chip(el), "chip hides once cost is set").to.equal(null);
+  });
+
+  it("buy task: restock qty x unit cost, follows the qty field", async () => {
+    const el = await mountWithParts({ restockDefault: 2, restockUnitCost: 4.5 });
+    expect(chip(el)!.textContent).to.include("9.00");
+  });
+
+  it("no chip when no involved part carries a price", async () => {
+    const el = await mountWithParts({
+      parts: [{ id: "p1", name: "Filter", cost: null }] as never,
+      consumesParts: [{ part_id: "p1", quantity: 1 }] as never,
+    });
+    expect(chip(el)).to.equal(null);
+  });
+
+  it("no chip once the user typed a cost themselves", async () => {
+    const el = await mountWithParts({
+      parts: [{ id: "p1", name: "Filter", cost: 5 }] as never,
+      consumesParts: [{ part_id: "p1", quantity: 1 }] as never,
+    });
+    expect(chip(el)).to.exist;
+    setInput(el, 1, "3.10");
+    await el.updateComplete;
+    expect(chip(el)).to.equal(null);
+  });
+});

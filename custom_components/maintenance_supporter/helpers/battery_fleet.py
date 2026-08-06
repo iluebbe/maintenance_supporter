@@ -231,12 +231,21 @@ def build_overview(
         # so they get a ~date only when the trend has earned one.
         trend = (trend_predictions or {}).get(bat.entity_id)
         if trend is not None:
-            days: int | None = max(0, trend[0])
+            days_raw: int | None = trend[0]
             source, confidence = "trend", trend[1]
         else:
             pred = None if rechargeable else _predicted_date(bat)
-            days = (pred - today).days if pred is not None else None
+            days_raw = (pred - today).days if pred is not None else None
             source, confidence = "typical", None
+        # B1 (decided 2026-08): a PASSED prediction while the battery still
+        # reports healthy is "forecast overdue" — it stays in `soon` (clamped
+        # to 0 days, no negative countdowns) and NEVER escalates into `low`
+        # or the task trigger: the forecast has error bars, the sensor says
+        # fine, and the usual cause is a swap that was never recorded (the
+        # roster's unrecorded-swap hint covers exactly that). Reality fires
+        # the task; predictions only shop.
+        overdue = days_raw is not None and days_raw < 0
+        days = max(0, days_raw) if days_raw is not None else None
         if bat.low:
             ov.low.append(_row(bat, t, None, rechargeable=rechargeable))
             if not rechargeable:
@@ -245,10 +254,10 @@ def build_overview(
             ov.all.append({**_row(bat, t, None, rechargeable=rechargeable), "status": "low"})
             continue
         if days is not None and days <= horizon_days:
-            ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable))
+            ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue))
             if not rechargeable:
                 ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
-            ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable), "status": "soon"})
+            ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue), "status": "soon"})
             continue
         ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable), "status": "ok"})
 
@@ -267,6 +276,7 @@ def _row(
     prediction_confidence: str | None = None,
     *,
     rechargeable: bool = False,
+    forecast_overdue: bool = False,
 ) -> dict[str, Any]:
     return {
         "entity_id": bat.entity_id,
@@ -285,6 +295,11 @@ def _row(
         "rechargeable": rechargeable,
         # This battery's own low threshold — the level bars color against it.
         "low_threshold": bat.low_threshold,
+        # B1: the predicted date has PASSED while the battery still reports
+        # healthy. Deliberately NOT low and NOT the task trigger — a forecast
+        # carries error bars and the sensor says fine — but the roster shows
+        # the discrepancy (common cause: a swap that was never recorded).
+        "forecast_overdue": forecast_overdue,
     }
 
 

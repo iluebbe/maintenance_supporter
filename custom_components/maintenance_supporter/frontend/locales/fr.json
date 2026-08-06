@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Parc de piles",
   "battery_fleet_setup_done": "Parc de piles configuré — une tâche suit toutes vos piles.",
   "update_banner": "Une version plus récente de Maintenance Supporter est sur le serveur — rechargez pour mettre à jour le panneau.",
-  "update_reload": "Recharger"
+  "update_reload": "Recharger",
+  "battery_fleet_forecast_overdue": "Date prévue dépassée — la batterie se signale toujours en bon état. Si vous l'avez remplacée, enregistrez le remplacement ; sinon la prévision était erronée.",
+  "cost_from_parts": "Reprendre ≈ {amount} des pièces"
 }

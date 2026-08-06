@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Elemflotta",
   "battery_fleet_setup_done": "Elemflotta beállítva — egyetlen feladat követi az összes elemet.",
   "update_banner": "A Maintenance Supporter újabb verziója érhető el a szerveren — töltse újra az oldalt a panel frissítéséhez.",
-  "update_reload": "Újratöltés"
+  "update_reload": "Újratöltés",
+  "battery_fleet_forecast_overdue": "Az előrejelzett dátum elmúlt — az elem továbbra is jó állapotot jelez. Ha kicserélted, rögzítsd a cserét; különben az előrejelzés tévedett.",
+  "cost_from_parts": "≈ {amount} átvétele az alkatrészekből"
 }

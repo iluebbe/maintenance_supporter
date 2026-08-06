@@ -34,6 +34,10 @@ export interface MaintenanceObject {
   /** Attached documents tagged as manuals — the fallback for the "manual"
    *  column/header when documentation_url is unset. Computed server-side. */
   manual_docs?: ManualDocRef[];
+  /** Battery-fleet markers (v2.53 field audit): true on THE fleet object;
+   *  excluded = entity_ids manually excluded from the fleet roster. */
+  battery_fleet?: boolean;
+  battery_fleet_excluded?: string[];
 }
 
 /** Slim reference to a manual-tagged document (subset of MaintenanceDocument). */

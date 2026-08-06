@@ -21,6 +21,11 @@ export class MaintenanceCompleteDialog extends LitElement {
   @property() public readingUnit = "";
   /** Buy task (part_ref): default restock quantity — shows an editable qty field. */
   @property({ attribute: false }) public restockDefault: number | null = null;
+  /** #104 follow-up: the buy task's part unit cost — powers the cost
+   *  suggestion (restock qty × unit cost). */
+  @property({ attribute: false }) public restockUnitCost: number | null = null;
+  /** Currency symbol for the cost suggestion ("" = plain number). */
+  @property() public currencySymbol = "";
   /** #99: the parts offered on completion — enables the editable "parts used"
    *  section. Built by `partsForCompletion`: the object's own inventory plus
    *  every shared pool this task links to (#111), each tagged with its owner. */
@@ -215,6 +220,47 @@ export class MaintenanceCompleteDialog extends LitElement {
     return this.requiredFields.includes(field) ? html`<span class="req-mark" aria-hidden="true">*</span>` : nothing;
   }
 
+  /** #104 follow-up: suggested cost derived from the parts this completion
+   *  touches — the SELECTED "parts used" (qty × each part's unit cost) on a
+   *  consuming task, or restock qty × unit cost on a buy task. Null when no
+   *  involved part carries a price. Follows the live selection, so ticking
+   *  a part off updates the suggestion. */
+  private _partsCostSuggestion(): number | null {
+    if (this.restockDefault !== null) {
+      const qty = parseFloat(this._restockQty);
+      if (this.restockUnitCost == null || !Number.isFinite(qty) || qty <= 0) return null;
+      return Math.round(this.restockUnitCost * qty * 100) / 100;
+    }
+    if (!this.parts.length) return null;
+    let sum = 0;
+    let priced = false;
+    for (const link of Object.values(this._usedParts)) {
+      const def = this.parts.find(
+        (pt) => partLinkKey({ part_id: pt.id, entry_id: pt.entry_id }) === partLinkKey(link),
+      );
+      if (def?.cost != null) {
+        sum += def.cost * (link.quantity || 1);
+        priced = true;
+      }
+    }
+    return priced ? Math.round(sum * 100) / 100 : null;
+  }
+
+  /** The one-click "use ≈ X from parts" chip under the cost field. Hidden
+   *  once the user typed a cost themselves — a suggestion, never an
+   *  overwrite. */
+  private _renderCostSuggestion(L: string) {
+    if (this._cost.trim() !== "") return nothing;
+    const suggestion = this._partsCostSuggestion();
+    if (suggestion == null || suggestion <= 0) return nothing;
+    const amount = `${suggestion.toFixed(2)}${this.currencySymbol ? ` ${this.currencySymbol}` : ""}`;
+    return html`<button
+      type="button"
+      class="cost-suggestion"
+      @click=${() => (this._cost = suggestion.toFixed(2))}
+    >${t("cost_from_parts", L).replace("{amount}", amount)}</button>`;
+  }
+
   private _close(): void {
     this._open = false;
   }
@@ -317,6 +363,7 @@ export class MaintenanceCompleteDialog extends LitElement {
             <input type="number" step="0.01" min="0" class="field-input"
               .value=${this._cost}
               @input=${(e: Event) => (this._cost = (e.target as HTMLInputElement).value)} />
+            ${this._renderCostSuggestion(L)}
           </label>
           <label class="field">
             <span class="field-label">${t("duration_minutes", L)}${this._req("duration")}</span>
@@ -385,6 +432,19 @@ export class MaintenanceCompleteDialog extends LitElement {
       color: var(--error-color, #f44336);
       margin-left: 2px;
       font-weight: 600;
+    }
+    /* #104: one-click cost suggestion from parts — quiet link-style chip. */
+    .cost-suggestion {
+      align-self: flex-start;
+      margin-top: 4px;
+      padding: 0;
+      border: none;
+      background: none;
+      color: var(--primary-color);
+      font-size: 12.5px;
+      cursor: pointer;
+      text-decoration: underline dotted;
+      text-underline-offset: 2px;
     }
     .dialog-title {
       font-size: 18px;

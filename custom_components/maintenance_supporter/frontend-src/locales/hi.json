@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "बैटरी फ्लीट",
   "battery_fleet_setup_done": "बैटरी फ्लीट सेट — एक कार्य सभी बैटरियों को ट्रैक करता है।",
   "update_banner": "सर्वर पर Maintenance Supporter का नया संस्करण है — पैनल अपडेट करने के लिए पुनः लोड करें।",
-  "update_reload": "पुनः लोड करें"
+  "update_reload": "पुनः लोड करें",
+  "battery_fleet_forecast_overdue": "अनुमानित तिथि बीत गई — बैटरी अब भी अच्छी स्थिति बता रही है। यदि आपने इसे बदला है, तो बदलाव दर्ज करें; अन्यथा पूर्वानुमान गलत था।",
+  "cost_from_parts": "पुर्ज़ों से ≈ {amount} लें"
 }

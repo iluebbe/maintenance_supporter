@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Flota de baterías",
   "battery_fleet_setup_done": "Flota de baterías configurada — una tarea controla todas.",
   "update_banner": "Hay una versión más reciente de Maintenance Supporter en el servidor — recarga para actualizar el panel.",
-  "update_reload": "Recargar"
+  "update_reload": "Recargar",
+  "battery_fleet_forecast_overdue": "Fecha prevista superada: la batería sigue informando buen estado. Si la cambiaste, registra el reemplazo; si no, la previsión falló.",
+  "cost_from_parts": "Usar ≈ {amount} de las piezas"
 }

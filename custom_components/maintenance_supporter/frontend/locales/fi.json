@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Paristokanta",
   "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia.",
   "update_banner": "Palvelimella on uudempi Maintenance Supporter -versio — lataa uudelleen päivittääksesi paneelin.",
-  "update_reload": "Lataa uudelleen"
+  "update_reload": "Lataa uudelleen",
+  "battery_fleet_forecast_overdue": "Ennustettu päivä on ohitettu — akku ilmoittaa yhä hyvästä kunnosta. Jos vaihdoit sen, kirjaa vaihto; muuten ennuste oli pielessä.",
+  "cost_from_parts": "Käytä ≈ {amount} osista"
 }

@@ -21,7 +21,7 @@ const TASK_LIST_KEYS = [
 ] as const;
 const TASK_DICT_KEYS = ["checklist_progress"] as const;
 const RESPONSE_LIST_KEYS = ["tasks", "parts"] as const;
-const OBJECT_LIST_KEYS = ["manual_docs"] as const;
+const OBJECT_LIST_KEYS = ["manual_docs", "battery_fleet_excluded"] as const;
 
 type AnyDict = Record<string, unknown>;
 

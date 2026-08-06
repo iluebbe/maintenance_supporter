@@ -57,6 +57,18 @@ as a PDF:
 
 ![Calendar object filter](images/gifs/calendar-object-filter.gif)
 
+**One task for every battery in the house** — the Battery Fleet roster tracks
+each battery with its level, discharge sparkline and predicted replacement
+date; the shopping list groups what to buy by type:
+
+![Battery fleet roster](images/gifs/battery-fleet.gif)
+
+**Scan the printed QR code, task done** — the deep link fires a
+quick-complete with the task's stored defaults (cost, duration, notes); the
+only UI is the confirmation toast:
+
+![QR quick-complete](images/gifs/qr-quick-complete.gif)
+
 ## Screenshots
 
 | Dashboard | Task Detail | Mobile |

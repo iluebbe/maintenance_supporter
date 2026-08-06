@@ -13,6 +13,12 @@
  *   required-details.gif       Complete stays disabled until details are given
  *   parts-auto-buy.gif         stock crosses its threshold → "Buy ..." appears
  *   duty-rotation.gif          a shared chore hands over to the next person
+ *   battery-fleet.gif          the fleet roster: typed rows, sparklines, ~dates
+ *   qr-quick-complete.gif      scanned QR deep link → silent complete + toast
+ *
+ * Still open: suggested-setups needs a signature-matching integration on the
+ * demo instance (the shots seed is template-sensor-only, so discovery finds
+ * nothing) — a dev_battery_fixtures-style fixture would unlock it.
  *
  * A clip earns its place by showing a CAUSAL CHAIN or a hiding place — not by
  * filming a form being filled in, which a screenshot says better.
@@ -43,8 +49,12 @@ const PW_WS = "ws://127.0.0.1:3000/";
 // /auth/authorize when the two disagree, which looks exactly like "the panel
 // never mounted".
 const CID = HA + "/";
-const VIDEO_DIR = join(process.cwd(), "..", "docs", "images", "gifs", ".video-tmp");
-const GIF_DIR = join(process.cwd(), "..", "docs", "images", "gifs");
+// Anchored to THIS FILE, not cwd: run from the repo root or from e2e/, the
+// GIFs land in <repo>/docs/images/gifs either way (a cwd-relative path once
+// wrote them a directory ABOVE the repo).
+const REPO_ROOT = join(new URL(".", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"), "..");
+const VIDEO_DIR = join(REPO_ROOT, "docs", "images", "gifs", ".video-tmp");
+const GIF_DIR = join(REPO_ROOT, "docs", "images", "gifs");
 const log = (...a) => console.log(...a);
 watchdog(12 * 60e3, "gifs-demo");
 
@@ -565,6 +575,72 @@ const flowDutyRotation = async (p, mark) => {
   await p.waitForTimeout(3000);
 };
 
+/** ONE task for the whole battery fleet: the shopping list groups what to
+ *  buy ("2× AA"), and the collapsed roster hides every tracked battery with
+ *  its level bar and predicted date. */
+const flowBatteryFleet = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  const r = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const rows = [...panel.shadowRoot.querySelectorAll(".task-row")];
+    const row = rows.find((el) => /replace low batteries/i.test(el.textContent || ""));
+    if (!row) return "no fleet task row";
+    row.scrollIntoView({ block: "center" });
+    (row.querySelector(".task-name") || row).click();
+    return "opened fleet task";
+  }, panelOf.toString());
+  log("  " + r);
+  await p.waitForTimeout(3500);            // overview + trends load
+  const expanded = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const section = panel.shadowRoot.querySelector("maintenance-battery-fleet-section");
+    const details = section?.shadowRoot?.querySelector("details.bf-roster");
+    if (!details) return "no roster";
+    details.scrollIntoView({ block: "center" });
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    return "roster expanded";
+  }, panelOf.toString());
+  log("  " + expanded);
+  await p.waitForTimeout(2500);
+  await p.evaluate((fnStr) => {            // let the roster's tail scroll by
+    const panel = eval(`(${fnStr})`)();
+    const section = panel.shadowRoot.querySelector("maintenance-battery-fleet-section");
+    const rows = section?.shadowRoot?.querySelectorAll(".bf-roster [class*=bf-]");
+    rows?.[rows.length - 1]?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, panelOf.toString());
+  await p.waitForTimeout(2500);
+};
+
+/** A scanned QR code completes the task hands-free: the deep link carries
+ *  entry+task+action, the stored quick-complete defaults fill cost/duration/
+ *  notes, and the only UI is the confirmation toast. MUTATES (completes the
+ *  HVAC filter task) — keep it last. */
+const flowQrQuickComplete = async (p, mark) => {
+  await openPanel(p);
+  // Resolve the deep link the printed QR encodes (the HVAC filter task ships
+  // quick_complete_defaults in the demo seed).
+  const target = await p.evaluate(async (fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    for (const ob of panel?._objects || []) {
+      for (const tk of ob.tasks || []) {
+        if (tk.quick_complete_defaults) return { entry: ob.entry_id, task: tk.id };
+      }
+    }
+    return null;
+  }, panelOf.toString()).catch(() => null);
+  if (!target) { log("  no quick-complete task"); return; }
+  mark();
+  await p.goto(
+    `${HA}/maintenance-supporter?entry_id=${target.entry}&task_id=${target.task}&action=quick_complete`,
+    { waitUntil: "domcontentloaded", timeout: 30000 },
+  );
+  // The panel routes to the task, fires task/quick_complete silently and
+  // confirms with a toast — hold long enough to read it.
+  await p.waitForTimeout(6000);
+};
+
 // ── demo-cards dashboard: ensure BOTH cards (task card + calendar card) ─────
 async function ensureDemoCards(token) {
   const ws = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
@@ -604,8 +680,12 @@ const FLOWS = {
   "schedule-preview": flowSchedulePreview,
   "object-report": flowObjectReport,
   "required-details": flowRequiredDetails,
+  "battery-fleet": flowBatteryFleet,
   "parts-auto-buy": flowPartsAutoBuy,
   "duty-rotation": flowDutyRotation,
+  // Completes the HVAC filter task via the QR deep link — the most mutating
+  // flow of all, so it records dead last.
+  "qr-quick-complete": flowQrQuickComplete,
 };
 const only = process.argv[2];
 for (const [name, flow] of Object.entries(FLOWS)) {

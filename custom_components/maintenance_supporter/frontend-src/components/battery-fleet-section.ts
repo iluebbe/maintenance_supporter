@@ -29,6 +29,10 @@ interface BatteryRow {
    *  the fleet floor, whichever is higher) — the level bar colors against
    *  it, not against a fixed 20 %. */
   low_threshold?: number;
+  /** B1: the predicted date has passed while the battery still reports
+   *  healthy. Never escalates to low/task — the row just shows the
+   *  discrepancy (usual cause: an unrecorded swap). */
+  forecast_overdue?: boolean;
 }
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
@@ -466,13 +470,15 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         })()}
                         ${b.days_until != null
                           ? html`<span
-                              class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""}"
-                              title=${b.predicted_source === "trend"
-                                ? t("battery_fleet_predicted_trend", L)
-                                    .replace("{date}", this._predictedDate(b.days_until))
-                                    .replace("{confidence}", t("cal_confidence_" + (b.prediction_confidence || "medium"), L))
-                                : t("battery_fleet_predicted_on", L).replace("{date}", this._predictedDate(b.days_until))}
-                              >~${this._predictedDate(b.days_until)}</span
+                              class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
+                              title=${b.forecast_overdue
+                                ? t("battery_fleet_forecast_overdue", L)
+                                : b.predicted_source === "trend"
+                                  ? t("battery_fleet_predicted_trend", L)
+                                      .replace("{date}", this._predictedDate(b.days_until))
+                                      .replace("{confidence}", t("cal_confidence_" + (b.prediction_confidence || "medium"), L))
+                                  : t("battery_fleet_predicted_on", L).replace("{date}", this._predictedDate(b.days_until))}
+                              >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span
                             >`
                           : nothing}
                         <button
@@ -769,6 +775,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-predicted.bf-trend {
       text-decoration: underline dotted;
       text-underline-offset: 2px;
+    }
+    /* B1: passed prediction on a still-healthy battery — warn-tinted with a
+       calendar-alert icon; the tooltip explains (record the swap / forecast
+       was off). Deliberately NOT red: this is a discrepancy, not an alarm. */
+    .bf-predicted.bf-overdue {
+      color: var(--warning-color, #ff9800);
+    }
+    .bf-predicted.bf-overdue ha-icon {
+      --mdc-icon-size: 14px;
+      margin-right: 2px;
     }
     .bf-total {
       font-size: 12px;

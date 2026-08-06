@@ -4,6 +4,27 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Cost suggestion from spare parts.** When a completion consumes parts
+  that carry unit prices (or a buy task restocks a priced part), the
+  complete dialog offers their sum as a one-click cost suggestion under the
+  cost field — following the live parts selection and quantity. A
+  suggestion, never an overwrite: it disappears as soon as you type a cost
+  yourself. (#104 follow-up)
+- **Battery fleet: overdue forecasts are visible — and honest.** A battery
+  whose predicted replacement date has passed while it still reports
+  healthy now shows a warn-tinted calendar hint instead of a negative
+  countdown. Deliberately NOT low and NOT a task trigger: forecasts carry
+  error bars and the sensor says fine — the usual cause is a swap that was
+  never recorded, which the hint's tooltip points at.
+- **Object responses carry the fleet markers.** `object.battery_fleet` and
+  `object.battery_fleet_excluded` are now in the WS objects response — the
+  fleet was previously only detectable via a task-level flag.
+- **Two new explainer GIFs** (README → FEATURES): the battery-fleet roster
+  and the QR quick-complete flow, both recorded reproducibly by the
+  committed harness.
+
 ### ⚡ Performance
 
 - **The panel paints instantly on revisits.** The last known task list (and

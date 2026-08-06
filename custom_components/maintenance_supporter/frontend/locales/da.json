@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Batteriflåde",
   "battery_fleet_setup_done": "Batteriflåde opsat — én opgave følger alle batterier.",
   "update_banner": "En nyere version af Maintenance Supporter er på serveren — genindlæs for at opdatere panelet.",
-  "update_reload": "Genindlæs"
+  "update_reload": "Genindlæs",
+  "battery_fleet_forecast_overdue": "Forudsagt dato er overskredet — batteriet melder stadig god tilstand. Hvis du har skiftet det, registrér udskiftningen; ellers ramte prognosen forbi.",
+  "cost_from_parts": "Brug ≈ {amount} fra dele"
 }

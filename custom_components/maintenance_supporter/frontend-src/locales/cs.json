@@ -833,5 +833,7 @@
   "battery_fleet_setup_button": "Flotila baterií",
   "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny.",
   "update_banner": "Na serveru je novější verze Maintenance Supporter — načtěte znovu pro aktualizaci panelu.",
-  "update_reload": "Načíst znovu"
+  "update_reload": "Načíst znovu",
+  "battery_fleet_forecast_overdue": "Předpovězené datum uplynulo — baterie stále hlásí dobrý stav. Pokud jste ji vyměnili, zaznamenejte výměnu; jinak byla předpověď mylná.",
+  "cost_from_parts": "Použít ≈ {amount} z dílů"
 }

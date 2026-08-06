@@ -931,8 +931,11 @@ Smaller, high-frequency wins first; each ships independently.
   `e2e/gifs-demo.mjs` (create-from-template, complete-task,
   calendar-object-filter; measured-trim recording against ha-shots,
   ffmpeg-static conversion; embedded in README + FEATURES → In action).
-  Remaining flows (suggested setups, battery fleet, QR quick-complete) +
-  dark-mode theming stay open. Original idea: short (10–20 s, looping) screen
+  **Second set shipped 2026-08-06**: battery-fleet (typed roster, sparklines,
+  predicted dates) + qr-quick-complete (deep link → silent complete + toast).
+  Still open: suggested-setups (needs a signature-matching integration on the
+  demo instance — the shots seed is template-sensor-only, so discovery finds
+  nothing). Original idea: short (10–20 s, looping) screen
   recordings of the key flows, embedded in the README and the matching
   FEATURES.md sections, so a prospective user SEES the integration work
   before installing. Candidate flows: first-run → template gallery → object

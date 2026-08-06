@@ -1931,6 +1931,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     const objParts = this._objects.find((o) => o.entry_id === entryId)?.parts || [];
     const refPart = tk?.part_ref ? objParts.find((pt) => pt.id === tk.part_ref!.part_id) : undefined;
     dlg.restockDefault = tk?.part_ref ? (refPart?.restock_quantity ?? 1) : null;
+    // #104 follow-up: parts carry unit costs — the dialog offers their sum
+    // as a one-click cost suggestion (buy task: restock qty × unit cost).
+    dlg.restockUnitCost = tk?.part_ref ? (refPart?.cost ?? null) : null;
+    dlg.currencySymbol = this._budget?.currency_symbol || "";
     // #111: a link may point at another object's pool — name that object, and
     // never drop a line that fails to resolve (the old .filter(Boolean) hid it).
     dlg.consumesInfo = (tk?.consumes_parts || []).map((link) =>
