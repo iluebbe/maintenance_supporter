@@ -666,17 +666,19 @@ await step("task-history.png", async () => {
   await shot("task-history.png");
 });
 
-// 7. Complete dialog (HVAC Filter Replacement — checklist + notes/cost/photo)
+// 7. Complete dialog (Espresso Descaling — required notes+cost, the ticked
+// "parts used" section, and the one-click cost suggestion from the priced
+// descaler tablets under the cost field).
 await step("complete-dialog.png", async () => {
   await openPanel("dashboard");
   await p.evaluate(({ finder }) => {
     eval(finder);
     const panel = window.__panel;
-    const o = panel._objects.find((x) => x.object.name === "HVAC System");
-    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    const o = panel._objects.find((x) => x.object.name === "Espresso Machine");
+    const t2 = o.tasks.find((x) => x.name === "Descaling");
     panel._openCompleteDialog(o.entry_id, t2.id, t2.name, t2.checklist, false);
   }, { finder: deepFindPanel });
-  await p.waitForTimeout(1500);
+  await p.waitForTimeout(2500); // lazy dialog chunk + parts render
   await shot("complete-dialog.png");
   await closeDialogs();
 });

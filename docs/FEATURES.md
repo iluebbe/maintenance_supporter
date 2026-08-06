@@ -105,8 +105,11 @@ documents.
 ![Objects table](images/objects-table.png)
 
 ### Complete Dialog
-Checklist steps, optional notes / cost / duration, and a completion photo
-(camera capture on mobile).
+Optional notes / cost / duration and a completion photo (camera capture on
+mobile); checklist steps tick off right in the dialog. When the task
+consumes spare parts that carry unit prices, their sum appears as a
+**one-click cost suggestion** under the cost field — following your live
+parts selection, and vanishing the moment you type a cost yourself.
 
 ![Complete Dialog](images/complete-dialog.png)
 
@@ -308,7 +311,12 @@ The fleet task's detail view is the whole surface:
   date plus the type's typical service life. A Battery Note that carries
   **only** a replacement date and no level sensor — its state reads *unknown*
   forever — is kept for exactly this: the date is all the fallback needs, so
-  those batteries surface here instead of dropping out unseen.
+  those batteries surface here instead of dropping out unseen. A prediction
+  whose date has **passed while the battery still reports healthy** shows a
+  warn-tinted calendar hint instead of a negative countdown — deliberately
+  never counted as low and never firing the task (forecasts carry error
+  bars; the sensor says fine): the usual cause is a swap that was never
+  recorded, which the hint's tooltip points at.
 - **Every tracked battery, behind *All tracked batteries*** — the full roster,
   each row tagged *Low*, *Soon* or *Healthy*, collapsed by default so the
   section still opens on what needs doing. Each row draws a **30-day
@@ -487,7 +495,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Meter readings** (2.20+): the *Reading* task type records a value on every completion — set a per-task unit (kWh, m³, …), enter the reading in the complete dialog, and the history timeline shows each value with its delta vs the previous reading. Also available on the `complete` service for automations (`reading_value`)
 - **Seasonal pause** (2.20+): pause a whole object (pool, lawn mower, AC) for the off-season — tasks read *Paused*, schedules freeze, nothing notifies, the calendar and To-do list skip them, but the object and its history stay fully visible. Optionally set an auto-resume date; resuming (manually or automatically) restarts every recurring task with a fresh cycle instead of months of fake overdue
 - **Replace an object** (2.20+): when a machine dies, *Replace…* retires it in place (archived, history and costs stay browsable, marked with its successor) and creates the new unit pre-filled — same tasks (fresh counters), documents carried over, installation date set to today, serial number and warranty cleared for the new machine's own data
-- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.44 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted. The parts section header shows the **inventory value** (2.49+, discussion #104): Σ unit price × tracked stock across the parts that have both — purely informational, it never enters any budget total
+- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. On the consumption side (2.53+), the complete dialog offers the **sum of the selected parts' unit prices as a one-click cost suggestion** — following the live selection, never overwriting a cost you typed yourself. Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.44 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted. The parts section header shows the **inventory value** (2.49+, discussion #104): Σ unit price × tracked stock across the parts that have both — purely informational, it never enters any budget total
 - **Priorities** (2.17+): Low / Normal / High per task, shown as a badge (▲/▼) on task rows
 - **Labels / tags** (2.17+): lightweight comma-separated tags per task (e.g. `safety`, `seasonal`), shown as chips and searchable in the command palette
 - **Completion photos** (2.17+): attach a photo when completing a task (camera capture supported); stored via the documents engine and shown in the history timeline
