@@ -2,7 +2,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
-import { mergeSubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
+import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs } from "./styles";
@@ -657,11 +657,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
           const ev = msg as SubscriptionEvent<MaintenanceObjectResponse>;
-          // Compact payloads: hydrate incoming entries before merging so
-          // everything downstream keeps seeing the full shape.
-          if (ev.objects) hydrateObjects(ev.objects);
-          if (ev.delta) hydrateObjects(ev.delta);
-          const next = mergeSubscriptionEvent(this._objects, ev);
+          const next = applySubscriptionEvent(this._objects, ev);
           if (next !== null) {
             this._objects = next;
             // Full snapshots are rare (subscribe start) — keep the skeleton
@@ -3284,7 +3280,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <div class="new-menu-wrapper">
         <ha-button appearance="filled" class="new-menu-button"
           @click=${(e: Event) => { e.stopPropagation(); this._toggleNewMenu(); }}>
-          <ha-icon icon="mdi:plus"></ha-icon> ${t("new_menu", L)}
+          <ha-icon icon="mdi:plus"></ha-icon> ${t("add", L)}
           <ha-icon icon="mdi:menu-down"></ha-icon>
         </ha-button>
         ${this._newMenuOpen ? html`
@@ -3316,14 +3312,23 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
-  private _toggleNewMenu(): void {
-    this._newMenuOpen = !this._newMenuOpen;
-    if (this._newMenuOpen) {
+  /** Shared popup mechanic (DRY audit 2026-08: this closer was copy-pasted
+   *  three times): flip the flag, and while open arm a one-shot document
+   *  click that closes it again. The setTimeout defers past the click that
+   *  opened the menu. */
+  private _togglePopup(get: () => boolean, set: (v: boolean) => void): void {
+    const open = !get();
+    set(open);
+    if (open) {
       setTimeout(() => {
-        const handler = () => { this._newMenuOpen = false; document.removeEventListener("click", handler); };
+        const handler = () => { set(false); document.removeEventListener("click", handler); };
         document.addEventListener("click", handler);
       }, 0);
     }
+  }
+
+  private _toggleNewMenu(): void {
+    this._togglePopup(() => this._newMenuOpen, (v) => { this._newMenuOpen = v; });
   }
 
   private _closeNewMenu(): void {
@@ -3421,13 +3426,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _toggleObjMenu(): void {
-    this._objMenuOpen = !this._objMenuOpen;
-    if (this._objMenuOpen) {
-      setTimeout(() => {
-        const handler = () => { this._objMenuOpen = false; document.removeEventListener("click", handler); };
-        document.addEventListener("click", handler);
-      }, 0);
-    }
+    this._togglePopup(() => this._objMenuOpen, (v) => { this._objMenuOpen = v; });
   }
 
   private _closeObjMenu(): void {
@@ -3435,12 +3434,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _toggleMoreMenu(): void {
-    this._moreMenuOpen = !this._moreMenuOpen;
-    if (this._moreMenuOpen) {
-      // Close menu on next outside click
-      const handler = () => { this._moreMenuOpen = false; document.removeEventListener("click", handler); };
-      setTimeout(() => document.addEventListener("click", handler, { once: true }), 0);
-    }
+    this._togglePopup(() => this._moreMenuOpen, (v) => { this._moreMenuOpen = v; });
   }
 
   private _closeMoreMenu(): void {

@@ -11,6 +11,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 
 from ..const import (
+    BATTERY_FLEET_EXCLUDED,
+    BATTERY_FLEET_OBJECT_FLAG,
     CONF_GROUPS,
     CONF_OBJECT,
     CONF_TASKS,
@@ -373,8 +375,8 @@ def _build_object_response(
             # the fleet flag existed only task-level in the response while
             # the OBJECT flag drives find_fleet_entry — consumers (and our
             # own visual harness) had to detect the fleet via a task.
-            "battery_fleet": obj_data.get("battery_fleet", False),
-            "battery_fleet_excluded": obj_data.get("battery_fleet_excluded", []),
+            "battery_fleet": obj_data.get(BATTERY_FLEET_OBJECT_FLAG, False),
+            "battery_fleet_excluded": obj_data.get(BATTERY_FLEET_EXCLUDED, []),
             # (roadmap P2) count of attached documents (files + web-links) for
             # the objects-table paperclip badge; computed, not persisted.
             "document_count": document_count,

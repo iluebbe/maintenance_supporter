@@ -1,7 +1,7 @@
 /** Maintenance Supporter Lovelace Card. */
 
 import { LitElement, html, css, nothing } from "lit";
-import { mergeSubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
+import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays } from "./styles";
@@ -276,11 +276,10 @@ export class MaintenanceSupporterCard extends LitElement {
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
-          const ev = msg as SubscriptionEvent<MaintenanceObjectResponse>;
-          // Compact payloads: hydrate before merging (helpers/hydrate-objects).
-          if (ev.objects) hydrateObjects(ev.objects);
-          if (ev.delta) hydrateObjects(ev.delta);
-          const next = mergeSubscriptionEvent(this._objects, ev);
+          const next = applySubscriptionEvent(
+            this._objects,
+            msg as SubscriptionEvent<MaintenanceObjectResponse>,
+          );
           if (next !== null) this._objects = next;
         },
         // deltas: only changed entries arrive — see helpers/subscription-merge.

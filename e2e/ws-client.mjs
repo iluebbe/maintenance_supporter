@@ -111,3 +111,14 @@ export function hassTokensInit({ t, ha }) {
     })
   );
 }
+
+/** Deep shadow-DOM accessor for the panel — THE canonical copy (DRY audit
+ *  2026-08: seven live-* scripts carried this chain inline). Runs IN THE
+ *  BROWSER: pass `panelOf.toString()` into page.evaluate and eval it there,
+ *  or reference it from an addInitScript. gifs/shots keep their own
+ *  BFS-based finders on purpose (they survive DOM-order changes).
+ */
+export const panelOf = () => document
+  .querySelector("home-assistant")?.shadowRoot
+  ?.querySelector("home-assistant-main")?.shadowRoot
+  ?.querySelector("ha-drawer partial-panel-resolver ha-panel-custom maintenance-supporter-panel");

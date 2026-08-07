@@ -836,7 +836,6 @@
   "update_reload": "Recargar",
   "battery_fleet_forecast_overdue": "Fecha prevista superada: la batería sigue informando buen estado. Si la cambiaste, registra el reemplazo; si no, la previsión falló.",
   "cost_from_parts": "Usar ≈ {amount} de las piezas",
-  "new_menu": "Nuevo",
   "dismiss": "Descartar",
   "gs_label": "Primeros pasos: estas sugerencias desaparecen a medida que crece tu configuración",
   "gs_setups_chip": "Configuraciones sugeridas: {n} dispositivos con disparadores preconfigurados",

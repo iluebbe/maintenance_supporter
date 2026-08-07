@@ -836,7 +836,6 @@
   "update_reload": "새로 고침",
   "battery_fleet_forecast_overdue": "예측 날짜가 지났지만 배터리는 여전히 정상으로 보고됩니다. 교체했다면 교체를 기록하세요. 아니라면 예측이 빗나간 것입니다.",
   "cost_from_parts": "부품에서 ≈ {amount} 적용",
-  "new_menu": "새로 만들기",
   "dismiss": "닫기",
   "gs_label": "시작하기 — 설정이 늘어나면 이 힌트는 사라집니다",
   "gs_setups_chip": "추천 설정: 트리거가 준비된 기기 {n}대 발견",

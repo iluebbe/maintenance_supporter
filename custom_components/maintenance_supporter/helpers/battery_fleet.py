@@ -328,12 +328,12 @@ def fleet_excluded_entities(hass: HomeAssistant) -> set[str]:
     Inlined lookup (not via battery_fleet_setup.find_fleet_entry) to keep this
     module import-cycle-free — setup imports the aggregation, not vice versa.
     """
-    from ..const import CONF_OBJECT, DOMAIN
+    from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, DOMAIN
 
     for entry in hass.config_entries.async_entries(DOMAIN):
         obj = entry.data.get(CONF_OBJECT, {})
-        if obj.get("battery_fleet"):
-            return set(obj.get("battery_fleet_excluded") or [])
+        if obj.get(BATTERY_FLEET_OBJECT_FLAG):
+            return set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
     return set()
 
 

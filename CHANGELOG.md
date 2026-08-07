@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Changed
+
+- **The dashboard menu is labeled "Add" instead of "New"** — matching Home
+  Assistant's own convention ("Add integration", "Add card") and reading
+  more naturally for the discovery entries it contains. Same menu,
+  same entries, same place.
+
+### 🔧 Internal
+
+- DRY audit follow-up: the battery-fleet object markers became shared
+  constants, the panel's three popup menus share one outside-click closer,
+  panel and card ingest subscription events through one shared helper (the
+  drift the module existed to prevent), and a new tripwire test pins
+  esbuild's chunk `publicPath` to `PANEL_CHUNKS_URL` — the pair whose silent
+  drift would 404 every dialog chunk.
+
 ## [2.54.0] - 2026-08-07
 
 ### ✨ Changed

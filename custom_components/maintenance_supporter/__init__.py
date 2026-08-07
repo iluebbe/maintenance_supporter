@@ -35,6 +35,7 @@ from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    BATTERY_FLEET_OBJECT_FLAG,
     CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
@@ -1322,7 +1323,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # a different UI language) keeps English notes forever while every
         # runtime string around them is translated. Rewrite the ones the user
         # never touched into the instance's language; edited texts stay.
-        if obj_data.get("battery_fleet"):
+        if obj_data.get(BATTERY_FLEET_OBJECT_FLAG):
             from .helpers.battery_fleet_setup import retranslate_seeded_texts
             from .helpers.i18n import normalize_language
 

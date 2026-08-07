@@ -31,15 +31,9 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_ws_connection as _mock_connection,
     setup_integration,
 )
-
-
-def _mock_connection() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    return conn
 
 
 def _is_empty(v: Any) -> bool:

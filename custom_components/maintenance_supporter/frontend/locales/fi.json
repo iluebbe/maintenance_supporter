@@ -836,7 +836,6 @@
   "update_reload": "Lataa uudelleen",
   "battery_fleet_forecast_overdue": "Ennustettu päivä on ohitettu — akku ilmoittaa yhä hyvästä kunnosta. Jos vaihdoit sen, kirjaa vaihto; muuten ennuste oli pielessä.",
   "cost_from_parts": "Käytä ≈ {amount} osista",
-  "new_menu": "Uusi",
   "dismiss": "Hylkää",
   "gs_label": "Aloitus — nämä vihjeet poistuvat asennuksen kasvaessa",
   "gs_setups_chip": "Ehdotetut asetukset löysivät {n} laitetta valmiilla laukaisimilla",

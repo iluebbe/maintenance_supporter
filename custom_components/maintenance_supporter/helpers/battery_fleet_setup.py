@@ -18,7 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
-from ..const import CONF_OBJECT, CONF_PARTS, CONF_TASKS, DOMAIN
+from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, CONF_PARTS, CONF_TASKS, DOMAIN
 from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, read_batteries
 
 # The global aggregate sensor the fleet task triggers on (fixed entity_id).
@@ -26,7 +26,7 @@ LOW_COUNT_ENTITY_ID = "sensor.maintenance_supporter_batteries_to_replace"
 
 # Marker on the object + task so the panel renders the battery detail section
 # and setup is idempotent (never a second fleet).
-OBJECT_FLAG = "battery_fleet"
+OBJECT_FLAG = BATTERY_FLEET_OBJECT_FLAG
 TASK_FLAG = "battery_fleet_task"
 
 
@@ -347,12 +347,12 @@ def set_battery_excluded(hass: HomeAssistant, entity_id: str, excluded: bool) ->
         return False
     new_data = dict(entry.data)
     obj = dict(new_data.get(CONF_OBJECT, {}))
-    current = set(obj.get("battery_fleet_excluded") or [])
+    current = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
     if excluded:
         current.add(entity_id)
     else:
         current.discard(entity_id)
-    obj["battery_fleet_excluded"] = sorted(current)
+    obj[BATTERY_FLEET_EXCLUDED] = sorted(current)
     new_data[CONF_OBJECT] = obj
     hass.config_entries.async_update_entry(entry, data=new_data)
     return True

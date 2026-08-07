@@ -307,3 +307,33 @@ def test_settings_view_keys_subset_of_allowed() -> None:
     assert written, "no _updateSetting(\"key\", …) calls parsed from settings-view.ts"
     unknown = written - set(ALLOWED_SETTING_KEYS)
     assert not unknown, f"settings-view.ts writes keys not in ALLOWED_SETTING_KEYS: {sorted(unknown)}"
+
+
+def test_panel_chunks_public_path_matches_const() -> None:
+    """esbuild's publicPath and PANEL_CHUNKS_URL must stay in sync (DRY audit
+    2026-08).
+
+    The panel entry imports its code-split chunks by ABSOLUTE URL: esbuild
+    rewrites the specifiers to ``<publicPath>/<chunkNames dir>/...`` while the
+    backend mounts the static dir at ``PANEL_CHUNKS_URL``. The build config
+    and the constant live in different files with only a comment tying them
+    together — drift means every dialog chunk 404s in production.
+    """
+    from custom_components.maintenance_supporter.const import PANEL_CHUNKS_URL
+
+    esbuild = (
+        Path(__file__).parent.parent
+        / "custom_components"
+        / "maintenance_supporter"
+        / "frontend-src"
+        / "esbuild.mjs"
+    ).read_text(encoding="utf-8")
+
+    public_path = re.search(r'publicPath:\s*"([^"]+)"', esbuild)
+    chunk_names = re.search(r'chunkNames:\s*"([^"]+)/\[name\]-\[hash\]"', esbuild)
+    assert public_path, "publicPath missing from esbuild.mjs panel build"
+    assert chunk_names, "chunkNames missing from esbuild.mjs panel build"
+    expected = f"{public_path.group(1)}/{chunk_names.group(1)}"
+    assert expected == PANEL_CHUNKS_URL, (
+        f"PANEL_CHUNKS_URL ({PANEL_CHUNKS_URL}) != esbuild publicPath+chunk dir ({expected})"
+    )

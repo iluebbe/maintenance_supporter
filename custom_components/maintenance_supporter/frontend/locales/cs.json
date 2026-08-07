@@ -836,7 +836,6 @@
   "update_reload": "Načíst znovu",
   "battery_fleet_forecast_overdue": "Předpovězené datum uplynulo — baterie stále hlásí dobrý stav. Pokud jste ji vyměnili, zaznamenejte výměnu; jinak byla předpověď mylná.",
   "cost_from_parts": "Použít ≈ {amount} z dílů",
-  "new_menu": "Nový",
   "dismiss": "Skrýt",
   "gs_label": "Začínáme — tyto tipy zmizí, jak vaše nastavení poroste",
   "gs_setups_chip": "Navrhovaná nastavení: nalezeno {n} zařízení s předpřipravenými spouštěči",

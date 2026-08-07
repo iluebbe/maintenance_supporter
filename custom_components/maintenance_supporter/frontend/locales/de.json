@@ -836,7 +836,6 @@
   "update_reload": "Neu laden",
   "battery_fleet_forecast_overdue": "Prognosedatum überschritten — die Batterie meldet sich weiterhin gesund. Falls du sie gewechselt hast, trage den Wechsel nach; andernfalls lag die Prognose daneben.",
   "cost_from_parts": "≈ {amount} aus Teilen übernehmen",
-  "new_menu": "Neu",
   "dismiss": "Ausblenden",
   "gs_label": "Erste Schritte — diese Hinweise verschwinden, wenn dein Setup wächst",
   "gs_setups_chip": "Vorgeschlagene Setups: {n} Geräte mit vorverdrahteten Auslösern gefunden",

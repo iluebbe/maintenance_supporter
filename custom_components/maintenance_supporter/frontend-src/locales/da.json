@@ -836,7 +836,6 @@
   "update_reload": "Genindlæs",
   "battery_fleet_forecast_overdue": "Forudsagt dato er overskredet — batteriet melder stadig god tilstand. Hvis du har skiftet det, registrér udskiftningen; ellers ramte prognosen forbi.",
   "cost_from_parts": "Brug ≈ {amount} fra dele",
-  "new_menu": "Ny",
   "dismiss": "Afvis",
   "gs_label": "Kom godt i gang — disse tips forsvinder, efterhånden som opsætningen vokser",
   "gs_setups_chip": "Foreslåede opsætninger fandt {n} enheder med forudindstillede udløsere",

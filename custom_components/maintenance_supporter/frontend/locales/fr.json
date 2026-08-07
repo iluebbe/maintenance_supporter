@@ -836,7 +836,6 @@
   "update_reload": "Recharger",
   "battery_fleet_forecast_overdue": "Date prévue dépassée — la batterie se signale toujours en bon état. Si vous l'avez remplacée, enregistrez le remplacement ; sinon la prévision était erronée.",
   "cost_from_parts": "Reprendre ≈ {amount} des pièces",
-  "new_menu": "Nouveau",
   "dismiss": "Ignorer",
   "gs_label": "Premiers pas — ces conseils disparaissent à mesure que votre configuration grandit",
   "gs_setups_chip": "Configurations suggérées : {n} appareils avec déclencheurs pré-câblés trouvés",

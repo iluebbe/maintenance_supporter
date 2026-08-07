@@ -836,7 +836,6 @@
   "update_reload": "Recarregar",
   "battery_fleet_forecast_overdue": "Data prevista ultrapassada — a bateria continua a reportar bom estado. Se a substituiu, registe a substituição; caso contrário, a previsão falhou.",
   "cost_from_parts": "Usar ≈ {amount} das peças",
-  "new_menu": "Novo",
   "dismiss": "Dispensar",
   "gs_label": "Primeiros passos — estas dicas desaparecem à medida que a configuração cresce",
   "gs_setups_chip": "Configurações sugeridas: {n} dispositivos com gatilhos pré-configurados",

@@ -323,6 +323,11 @@ CONF_OBJECT_NOTES = "notes"
 # Static part definitions live in entry.data["parts"] (like tasks); the
 # mutable stock count lives in the per-entry Store. See helpers/parts.py.
 CONF_PARTS = "parts"
+# Battery-fleet markers on the OBJECT dict (DRY audit 2026-08: these were
+# string literals in four files; find_fleet_entry, setup, the WS response
+# and the fleet exclusion all key on them).
+BATTERY_FLEET_OBJECT_FLAG = "battery_fleet"
+BATTERY_FLEET_EXCLUDED = "battery_fleet_excluded"
 # Task-side link: task["consumes_parts"] = [{"part_id", "quantity"}] — a
 # completion decrements each linked part's stock.
 CONF_TASK_CONSUMES_PARTS = "consumes_parts"

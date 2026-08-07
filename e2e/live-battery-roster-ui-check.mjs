@@ -10,7 +10,7 @@
  * Usage: node e2e/live-battery-roster-ui-check.mjs
  */
 import { chromium } from "@playwright/test";
-import { loadToken, wsClient, watchdog, hassTokensInit } from "./ws-client.mjs";
+import { loadToken, wsClient, watchdog, hassTokensInit, panelOf } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8125";
 const HA = "http://ha-maint:8123";
@@ -39,10 +39,7 @@ try {
   api.close();
 }
 
-const panelOf = () => document
-  .querySelector("home-assistant")?.shadowRoot
-  ?.querySelector("home-assistant-main")?.shadowRoot
-  ?.querySelector("ha-drawer partial-panel-resolver ha-panel-custom maintenance-supporter-panel");
+// panelOf comes from ws-client.mjs (canonical copy, DRY audit 2026-08).
 
 const browser = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await browser.newContext({ viewport: { width: 1400, height: 1000 }, colorScheme: "dark" });

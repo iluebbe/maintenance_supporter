@@ -225,7 +225,7 @@ warning-lamp families.
 > discovered (or a well-known consumable sensor is missing), please open an
 > issue or discussion with the integration name and entity ids.
 
-**Suggested setups** (in the dashboard's *New ▾* menu) discovers devices of supported integrations
+**Suggested setups** (in the dashboard's *Add ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
 click. The catalog currently covers **123 integrations with 231 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
@@ -440,7 +440,7 @@ native HA UI.
 ![Configuration](images/config-flow.png)
 
 ### Mobile
-Creation and discovery live in **one primary "New ▾" menu** (#125): *New
+Creation and discovery live in **one primary "Add ▾" menu** (#125): *New
 task*, *New object*, *From template*, then *Adopt problem sensors*,
 *Suggested setups* and — only while a battery fleet is available and not
 yet set up — *Battery fleet*. The same menu serves desktop and mobile, so
