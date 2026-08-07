@@ -11,6 +11,36 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### Dashboard header cleanup — one New menu, onboarding chips, budget as KPI (#125)
+
+Six creation/discovery buttons accumulated release by release (task, object,
+template, adopt-problem-sensors, suggested setups, fleet setup) — each right
+on its own, heavy in sum (user report #125, with mockup reply:
+`docs/images/mockups/issue-125-header.png`). Three building blocks:
+
+1. **One primary "New ▾" menu** replacing all six buttons (ha-button-menu,
+   fleet entry stays conditional, operator-gating unchanged). Unifies with
+   the mobile "Add" collapse — the shared menu component should REPLACE the
+   collapsed-actions-bar mechanism, net code reduction. Optional: "n found"
+   hints on the discovery entries (costs a discovery call on open — decide
+   at build time).
+2. **"Getting started" chips for young installs** — the discovery actions
+   additionally appear as individually dismissible hint chips while the
+   instance is young (maturity signal: object/task count, NOT install age;
+   content-driven where cheap). Dismissal persists server-side (one storage
+   key, all devices). Chips are visibly temporary, so nothing ever "moves"
+   — no migration notification, no settings toggle needed (deliberately:
+   a setting can be added later, but never removed).
+3. **Budget as KPI tiles** in the stats strip (monthly/yearly with mini
+   bars) instead of its own full-width row. Tab-independent placement is
+   accepted; narrow layout wraps.
+
+Follow-up costs to plan in: several component tests click the old buttons
+by text, the create-from-template GIF clicks "from template", and all
+dashboard screenshots/visual baselines/GIFs need a refresh afterwards;
+1–2 new locale keys ×22.
+
+
 ### ✅ Home Assistant 2026.8 splits shared devices — object↔device linking adapted
 
 **Shipped.** The entity is now pointed at the linked device (`device_entry`)
