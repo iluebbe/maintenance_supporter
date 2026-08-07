@@ -835,5 +835,11 @@
   "update_banner": "A newer version of Maintenance Supporter is on the server — reload to update the panel.",
   "update_reload": "Reload",
   "battery_fleet_forecast_overdue": "Predicted date passed — the battery still reports healthy. If you swapped it, record the replacement; otherwise the forecast was off.",
-  "cost_from_parts": "Use ≈ {amount} from parts"
+  "cost_from_parts": "Use ≈ {amount} from parts",
+  "new_menu": "New",
+  "dismiss": "Dismiss",
+  "gs_label": "Getting started — these hints retire as your setup grows",
+  "gs_setups_chip": "Suggested setups found {n} devices with pre-wired triggers",
+  "gs_adopt_chip": "{n} problem sensors can become maintenance tasks",
+  "gs_fleet_chip": "One click sets up the battery fleet"
 }

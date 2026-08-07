@@ -835,5 +835,11 @@
   "update_banner": "A Maintenance Supporter újabb verziója érhető el a szerveren — töltse újra az oldalt a panel frissítéséhez.",
   "update_reload": "Újratöltés",
   "battery_fleet_forecast_overdue": "Az előrejelzett dátum elmúlt — az elem továbbra is jó állapotot jelez. Ha kicserélted, rögzítsd a cserét; különben az előrejelzés tévedett.",
-  "cost_from_parts": "≈ {amount} átvétele az alkatrészekből"
+  "cost_from_parts": "≈ {amount} átvétele az alkatrészekből",
+  "new_menu": "Új",
+  "dismiss": "Elrejtés",
+  "gs_label": "Első lépések — a tippek eltűnnek, ahogy a beállítás bővül",
+  "gs_setups_chip": "Javasolt beállítások: {n} eszköz előre bekötött triggerekkel",
+  "gs_adopt_chip": "{n} problémaérzékelő karbantartási feladattá válhat",
+  "gs_fleet_chip": "Egy kattintás beállítja az elemflottát"
 }

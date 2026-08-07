@@ -17,4 +17,5 @@ export const LS_KEYS = {
   groupBy: "maintenance_supporter_groupby",
   objectView: "maintenance_supporter_object_view",
   objectsCache: "msp-objects-cache",
+  gettingStartedDismissed: "msp-gs-dismissed",
 } as const;

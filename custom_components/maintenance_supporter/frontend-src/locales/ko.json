@@ -835,5 +835,11 @@
   "update_banner": "서버에 Maintenance Supporter의 새 버전이 있습니다 — 패널을 업데이트하려면 새로 고침하세요.",
   "update_reload": "새로 고침",
   "battery_fleet_forecast_overdue": "예측 날짜가 지났지만 배터리는 여전히 정상으로 보고됩니다. 교체했다면 교체를 기록하세요. 아니라면 예측이 빗나간 것입니다.",
-  "cost_from_parts": "부품에서 ≈ {amount} 적용"
+  "cost_from_parts": "부품에서 ≈ {amount} 적용",
+  "new_menu": "새로 만들기",
+  "dismiss": "닫기",
+  "gs_label": "시작하기 — 설정이 늘어나면 이 힌트는 사라집니다",
+  "gs_setups_chip": "추천 설정: 트리거가 준비된 기기 {n}대 발견",
+  "gs_adopt_chip": "문제 센서 {n}개를 유지보수 작업으로 만들 수 있습니다",
+  "gs_fleet_chip": "클릭 한 번으로 배터리 플릿 설정"
 }

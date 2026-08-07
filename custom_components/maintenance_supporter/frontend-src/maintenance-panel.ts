@@ -141,7 +141,12 @@ export class MaintenanceSupporterPanel extends LitElement {
   // occasional-use — collapsed behind two toggle buttons so the task list
   // starts above the fold on phones. Desktop renders them inline as before.
   @state() private _filtersOpen = false;
-  @state() private _actionsMenuOpen = false;
+  // #125: the one "New" menu replacing the six action buttons, plus the
+  // getting-started chip discovery counts (fetched once, young installs only).
+  @state() private _newMenuOpen = false;
+  @state() private _gsSetupsCount = 0;
+  @state() private _gsAdoptCount = 0;
+  private _gsLoaded = false;
   // Battery Fleet: offer one-click setup only when Battery Notes is present
   // and the fleet isn't set up yet.
   @state() private _batteryFleetSetupAvailable = false;
@@ -434,6 +439,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (objResult) {
       this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
       writeObjectsCache(this._objects, (statsResult as StatisticsResponse | null) ?? this._stats ?? null);
+      // #125: getting-started discovery runs AFTER the objects are known —
+      // judging youth on the pre-load empty list would bill every mature
+      // install for two discovery calls.
+      this._maybeLoadGettingStarted();
     }
     // A data refresh means the open task's history may have grown (complete,
     // history edit) — the truncated list payload can't tell, so refetch.
@@ -2137,6 +2146,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="stat-value" style="color: #ff5722">${s.triggered}</span>
                 <span class="stat-label">${t("triggered", L)}</span>
               </div>
+              ${this._features.budget ? this._renderBudgetTiles() : nothing}
             </div>
           `
         : nothing}
@@ -2296,7 +2306,6 @@ export class MaintenanceSupporterPanel extends LitElement {
       (this._activeViewId ? 1 : 0);
 
     return html`
-      ${this._features.budget ? this._renderBudgetBar() : nothing}
 
       ${this.narrow ? html`
         <div class="mobile-controls">
@@ -2307,15 +2316,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <ha-icon icon="mdi:filter-variant"></ha-icon>
             ${t("filter_label", L)}${activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </ha-button>
-          ${!isOperator ? html`
-            <ha-button
-              class="mobile-toggle ${this._actionsMenuOpen ? "active" : ""}"
-              @click=${() => { this._actionsMenuOpen = !this._actionsMenuOpen; }}
-            >
-              <ha-icon icon="mdi:plus"></ha-icon>
-              ${t("add", L)}
-            </ha-button>
-          ` : nothing}
+          ${!isOperator ? this._renderNewMenu(L) : nothing}
         </div>
       ` : nothing}
 
@@ -2439,39 +2440,10 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${this._bulkMode ? t("cancel", L) : t("bulk_select", L)}
           </ha-button>
         ` : nothing}
+        ${!isOperator && !this.narrow ? this._renderNewMenu(L) : nothing}
       </div>
 
-      ${!isOperator ? html`
-        <div
-          class="actions-bar ${this.narrow && !this._actionsMenuOpen ? "collapsed" : ""}"
-          @click=${() => { if (this.narrow) this._actionsMenuOpen = false; }}
-        >
-          <ha-button
-            @click=${() => this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openCreate("", this._objects))}
-          >
-            ${t("new_task", L)}
-          </ha-button>
-          <ha-button
-            @click=${() => this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate())}
-          >
-            ${t("new_object", L)}
-          </ha-button>
-          <ha-button @click=${() => this._openTemplateGallery()}>
-            <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
-          </ha-button>
-          <ha-button @click=${() => this._openAdoptProblemSensors()}>
-            <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${t("adopt_problem_button", L)}
-          </ha-button>
-          <ha-button @click=${() => this._openSuggestedSetups()}>
-            <ha-icon icon="mdi:auto-fix"></ha-icon> ${t("setups_button", L)}
-          </ha-button>
-          ${this._batteryFleetSetupAvailable ? html`
-            <ha-button @click=${() => this._setupBatteryFleet()}>
-              <ha-icon icon="mdi:battery-sync"></ha-icon> ${t("battery_fleet_setup_button", L)}
-            </ha-button>
-          ` : nothing}
-        </div>
-      ` : nothing}
+      ${!isOperator ? this._renderGettingStartedChips(L) : nothing}
 
       ${rows.length === 0
         ? html`
@@ -3016,49 +2988,39 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
-  private _renderBudgetBar() {
+  /** Budget as KPI tiles in the stats strip (#125) — replaces the old
+   *  full-width budget row. Same semantics as before, incl. #104: a budget
+   *  WITHOUT a maximum still shows its plain spent total (no denominator,
+   *  no bar), so "what did I spend" always has an answer. Being part of the
+   *  strip, the tiles now show on every tab — budget is a global figure
+   *  like the overdue count. */
+  private _renderBudgetTiles() {
     const b = this._budget;
     if (!b) return nothing;
     const L = this._lang;
     const cs = b.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
-    const bars: { label: string; spent: number; budget: number }[] = [];
-    if (b.monthly_budget > 0) bars.push({ label: t("budget_monthly", L), spent: b.monthly_spent, budget: b.monthly_budget });
-    if (b.yearly_budget > 0) bars.push({ label: t("budget_yearly", L), spent: b.yearly_spent, budget: b.yearly_budget });
-    // #104: budget tracking enabled WITHOUT a maximum — the spent totals were
-    // invisible (a bar needs a denominator). Show plain spent lines instead,
-    // so "what did I spend" always has a dashboard answer.
-    const spentOnly: { label: string; spent: number }[] = [];
-    if (!(b.monthly_budget > 0)) spentOnly.push({ label: t("budget_monthly", L), spent: b.monthly_spent || 0 });
-    if (!(b.yearly_budget > 0)) spentOnly.push({ label: t("budget_yearly", L), spent: b.yearly_spent || 0 });
-
+    const tile = (label: string, spent: number, budget: number | null) => {
+      if (budget !== null) {
+        const pct = Math.min(100, Math.max(0, (spent / budget) * 100));
+        const color = pct >= 100 ? "var(--error-color, #f44336)" : pct >= b.alert_threshold_pct ? "var(--warning-color, #ff9800)" : "var(--success-color, #4caf50)";
+        return html`
+          <div class="stat-item budget-tile" title="${label}: ${spent.toFixed(2)} / ${budget.toFixed(2)} ${cs}">
+            <span class="stat-value budget-tile-value">${spent.toFixed(2)} / ${budget.toFixed(0)} ${cs}</span>
+            <div class="budget-tile-bar"><div style="width:${pct}%; background:${color}"></div></div>
+            <span class="stat-label">${label}</span>
+          </div>
+        `;
+      }
+      return html`
+        <div class="stat-item budget-tile" title="${label}: ${spent.toFixed(2)} ${cs}">
+          <span class="stat-value budget-tile-value">${spent.toFixed(2)} ${cs}</span>
+          <span class="stat-label">${label}</span>
+        </div>
+      `;
+    };
     return html`
-      <div class="budget-bars">
-        ${bars.map((bar) => {
-          const pct = Math.min(100, Math.max(0, (bar.spent / bar.budget) * 100));
-          const color = pct >= 100 ? "var(--error-color, #f44336)" : pct >= b.alert_threshold_pct ? "var(--warning-color, #ff9800)" : "var(--success-color, #4caf50)";
-          return html`
-            <div class="budget-item">
-              <div class="budget-label">
-                <span>${bar.label}</span>
-                <span>${bar.spent.toFixed(2)} / ${bar.budget.toFixed(2)} ${cs}</span>
-              </div>
-              <div class="budget-bar">
-                <div class="budget-bar-fill" style="width:${pct}%; background:${color}"></div>
-              </div>
-            </div>
-          `;
-        })}
-        ${spentOnly.map(
-          (s) => html`
-            <div class="budget-item budget-spent-only">
-              <div class="budget-label">
-                <span>${s.label}</span>
-                <span>${s.spent.toFixed(2)} ${cs}</span>
-              </div>
-            </div>
-          `,
-        )}
-      </div>
+      ${tile(t("budget_monthly", L), b.monthly_spent || 0, b.monthly_budget > 0 ? b.monthly_budget : null)}
+      ${tile(t("budget_yearly", L), b.yearly_spent || 0, b.yearly_budget > 0 ? b.yearly_budget : null)}
     `;
   }
 
@@ -3314,6 +3276,150 @@ export class MaintenanceSupporterPanel extends LitElement {
    * Render compact task header with status chip and action buttons.
    */
   // Object-detail ⋮ menu — same click-away pattern as the task-detail menu.
+  /** #125: the one "New ▾" menu replacing the six action buttons. Same
+   *  popup pattern as the object/task menus; on narrow it lives in the
+   *  mobile-controls row and replaced the old collapsed actions bar. */
+  private _renderNewMenu(L: string) {
+    return html`
+      <div class="new-menu-wrapper">
+        <ha-button appearance="filled" class="new-menu-button"
+          @click=${(e: Event) => { e.stopPropagation(); this._toggleNewMenu(); }}>
+          <ha-icon icon="mdi:plus"></ha-icon> ${t("new_menu", L)}
+          <ha-icon icon="mdi:menu-down"></ha-icon>
+        </ha-button>
+        ${this._newMenuOpen ? html`
+          <div class="popup-menu new-menu-popup" @click=${(e: Event) => e.stopPropagation()}>
+            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openCreate("", this._objects)); }}>
+              <ha-icon icon="mdi:clipboard-plus-outline"></ha-icon> ${t("new_task", L)}
+            </div>
+            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate()); }}>
+              <ha-icon icon="mdi:package-variant-closed-plus"></ha-icon> ${t("new_object", L).replace(/^\+\s*/, "")}
+            </div>
+            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openTemplateGallery(); }}>
+              <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
+            </div>
+            <div class="popup-menu-divider"></div>
+            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openAdoptProblemSensors(); }}>
+              <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${t("adopt_problem_button", L)}
+            </div>
+            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openSuggestedSetups(); }}>
+              <ha-icon icon="mdi:auto-fix"></ha-icon> ${t("setups_button", L)}
+            </div>
+            ${this._batteryFleetSetupAvailable ? html`
+              <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._setupBatteryFleet(); }}>
+                <ha-icon icon="mdi:battery-sync"></ha-icon> ${t("battery_fleet_setup_button", L)}
+              </div>
+            ` : nothing}
+          </div>
+        ` : nothing}
+      </div>
+    `;
+  }
+
+  private _toggleNewMenu(): void {
+    this._newMenuOpen = !this._newMenuOpen;
+    if (this._newMenuOpen) {
+      setTimeout(() => {
+        const handler = () => { this._newMenuOpen = false; document.removeEventListener("click", handler); };
+        document.addEventListener("click", handler);
+      }, 0);
+    }
+  }
+
+  private _closeNewMenu(): void {
+    this._newMenuOpen = false;
+  }
+
+  // ── #125: getting-started chips ──────────────────────────────────────────
+  // Dismissible onboarding hints while the instance is YOUNG (few objects/
+  // tasks — deliberately a maturity signal, not install age). The fleet chip
+  // is content-driven instead (available && not configured), mirroring the
+  // old inline button's own retirement rule. Nothing ever moves: the New
+  // menu is the stable home from day one; these are visibly temporary.
+
+  /** Young = the discovery hints still earn their place. Fleet objects don't
+   *  count — a one-click fleet setup shouldn't age the install by itself. */
+  private _isYoungInstall(): boolean {
+    const objs = this._objects.filter((o) => !o.object?.battery_fleet);
+    const tasks = objs.reduce((n, o) => n + o.tasks.length, 0);
+    return objs.length < 3 && tasks < 8;
+  }
+
+  private _gsDismissed(): Set<string> {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(LS_KEYS.gettingStartedDismissed) || "[]"));
+    } catch {
+      return new Set();
+    }
+  }
+
+  private _dismissGettingStarted(id: string): void {
+    const next = this._gsDismissed();
+    next.add(id);
+    try { localStorage.setItem(LS_KEYS.gettingStartedDismissed, JSON.stringify([...next])); } catch { /* storage blocked */ }
+    this.requestUpdate();
+  }
+
+  /** Discovery counts for the chips — fetched ONCE per panel life and ONLY
+   *  while the install is young, so mature installs pay nothing. */
+  private _maybeLoadGettingStarted(): void {
+    if (this._gsLoaded || !this._isYoungInstall()) return;
+    this._gsLoaded = true;
+    this.hass.connection
+      .sendMessagePromise<{ setups: unknown[] }>({ type: "maintenance_supporter/integration_setups/discover" })
+      .then((r) => { this._gsSetupsCount = (r.setups || []).length; })
+      .catch(() => { this._gsSetupsCount = 0; });
+    this.hass.connection
+      .sendMessagePromise<{ sensors: unknown[] }>({ type: "maintenance_supporter/problem_sensors/discover" })
+      .then((r) => { this._gsAdoptCount = (r.sensors || []).length; })
+      .catch(() => { this._gsAdoptCount = 0; });
+  }
+
+  private _renderGettingStartedChips(L: string) {
+    const dismissed = this._gsDismissed();
+    const young = this._isYoungInstall();
+    const chips: { id: string; icon: string; text: string; run: () => void }[] = [];
+    if (young && this._gsSetupsCount > 0 && !dismissed.has("setups")) {
+      chips.push({
+        id: "setups", icon: "mdi:auto-fix",
+        text: t("gs_setups_chip", L).replace("{n}", String(this._gsSetupsCount)),
+        run: () => this._openSuggestedSetups(),
+      });
+    }
+    if (young && this._gsAdoptCount > 0 && !dismissed.has("adopt")) {
+      chips.push({
+        id: "adopt", icon: "mdi:alert-circle-check-outline",
+        text: t("gs_adopt_chip", L).replace("{n}", String(this._gsAdoptCount)),
+        run: () => this._openAdoptProblemSensors(),
+      });
+    }
+    if (this._batteryFleetSetupAvailable && !dismissed.has("fleet")) {
+      chips.push({
+        id: "fleet", icon: "mdi:battery-sync",
+        text: t("gs_fleet_chip", L),
+        run: () => this._setupBatteryFleet(),
+      });
+    }
+    if (chips.length === 0) return nothing;
+    return html`
+      <div class="gs-chips-wrap">
+        <div class="gs-chips-label">${t("gs_label", L)}</div>
+        <div class="gs-chips">
+          ${chips.map((c) => html`
+            <div class="gs-chip" @click=${() => c.run()}>
+              <ha-icon icon="${c.icon}"></ha-icon>
+              <span>${c.text}</span>
+              <span class="gs-chip-x" title="${t("dismiss", L)}"
+                @click=${(e: Event) => { e.stopPropagation(); this._dismissGettingStarted(c.id); }}>
+                <ha-icon icon="mdi:close"></ha-icon>
+              </span>
+            </div>
+          `)}
+        </div>
+      </div>
+    `;
+  }
+
   private _toggleObjMenu(): void {
     this._objMenuOpen = !this._objMenuOpen;
     if (this._objMenuOpen) {

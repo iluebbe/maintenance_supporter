@@ -1,10 +1,12 @@
 /**
- * Dashboard budget display: spent totals without a maximum (#104).
+ * Budget KPI tiles: spent totals without a maximum (#104, layout #125).
  *
  * With budget tracking enabled but no monthly/yearly maximum configured,
  * the spent totals used to be invisible (a bar needs a denominator).
- * Pins: spent-only lines render without a bar, a configured maximum still
- * renders the classic bar, and the mixed case shows one of each.
+ * Since #125 the budgets render as KPI tiles in the stats strip; the #104
+ * semantics survive the move: a tile without a maximum shows the plain
+ * spent total and no bar, a configured maximum keeps its mini bar, and the
+ * mixed case shows one of each.
  */
 
 import { expect } from "@open-wc/testing";
@@ -25,27 +27,37 @@ function handlers(budget: Record<string, unknown>) {
   };
 }
 
-describe("dashboard budget: spent-only display (#104)", () => {
+describe("budget KPI tiles: spent-only display (#104)", () => {
   beforeEach(() => resetTaskSeq());
 
-  it("no maximum set: renders spent lines without bars", async () => {
+  it("no maximum set: tiles show spent totals without bars", async () => {
     const { el } = await mountPanel([obj("e1", [task()])], handlers({
       monthly_budget: 0, yearly_budget: 0, monthly_spent: 9, yearly_spent: 429.6,
     }));
-    const items = sr(el).querySelectorAll(".budget-spent-only");
-    expect(items.length).to.equal(2);
-    expect(items[0].textContent).to.contain("9.00 €");
-    expect(items[1].textContent).to.contain("429.60 €");
-    expect(sr(el).querySelectorAll(".budget-bar").length).to.equal(0);
+    const tiles = sr(el).querySelectorAll(".budget-tile");
+    expect(tiles.length).to.equal(2);
+    expect(tiles[0].textContent).to.contain("9.00 €");
+    expect(tiles[1].textContent).to.contain("429.60 €");
+    expect(sr(el).querySelectorAll(".budget-tile-bar").length).to.equal(0);
   });
 
-  it("mixed: monthly maximum renders a bar, yearly stays spent-only", async () => {
+  it("mixed: monthly maximum renders a mini bar, yearly stays spent-only", async () => {
     const { el } = await mountPanel([obj("e1", [task()])], handlers({
       monthly_budget: 150, yearly_budget: 0, monthly_spent: 9, yearly_spent: 429.6,
     }));
-    expect(sr(el).querySelectorAll(".budget-bar").length).to.equal(1);
-    const spentOnly = sr(el).querySelectorAll(".budget-spent-only");
-    expect(spentOnly.length).to.equal(1);
-    expect(spentOnly[0].textContent).to.contain("429.60 €");
+    const tiles = sr(el).querySelectorAll(".budget-tile");
+    expect(tiles.length).to.equal(2);
+    expect(sr(el).querySelectorAll(".budget-tile-bar").length).to.equal(1);
+    expect(tiles[0].textContent).to.contain("9.00 / 150 €");
+    expect(tiles[1].textContent).to.contain("429.60 €");
+  });
+
+  it("tiles live INSIDE the stats strip (#125)", async () => {
+    const { el } = await mountPanel([obj("e1", [task()])], handlers({
+      monthly_budget: 150, yearly_budget: 1500, monthly_spent: 9, yearly_spent: 429.6,
+    }));
+    const strip = sr(el).querySelector(".stats-bar");
+    expect(strip, "stats strip rendered").to.exist;
+    expect(strip!.querySelectorAll(".budget-tile").length).to.equal(2);
   });
 });

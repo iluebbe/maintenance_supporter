@@ -835,5 +835,11 @@
   "update_banner": "Há uma versão mais nova do Maintenance Supporter no servidor — recarregue para atualizar o painel.",
   "update_reload": "Recarregar",
   "battery_fleet_forecast_overdue": "Data prevista ultrapassada — a bateria ainda reporta bom estado. Se você a trocou, registre a troca; caso contrário, a previsão errou.",
-  "cost_from_parts": "Usar ≈ {amount} das peças"
+  "cost_from_parts": "Usar ≈ {amount} das peças",
+  "new_menu": "Novo",
+  "dismiss": "Dispensar",
+  "gs_label": "Primeiros passos — estas dicas somem conforme a configuração cresce",
+  "gs_setups_chip": "Configurações sugeridas: {n} dispositivos com gatilhos pré-configurados",
+  "gs_adopt_chip": "{n} sensores de problema podem virar tarefas de manutenção",
+  "gs_fleet_chip": "Um clique configura a frota de pilhas"
 }

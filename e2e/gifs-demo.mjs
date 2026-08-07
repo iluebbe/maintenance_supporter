@@ -224,6 +224,9 @@ async function pollPanel(p, selector, tries = 12) {
 const flowTemplate = async (p, mark) => {
   await openPanel(p);
   mark();
+  // #125: the template gallery lives in the "New" menu now.
+  await clickInPanel(p, "new", ".new-menu-wrapper");
+  await p.waitForTimeout(700);
   await clickInPanel(p, "from template");
   await pollPanel(p, ".template-grid .template-card");
   await p.waitForTimeout(1200); // let the gallery render fully

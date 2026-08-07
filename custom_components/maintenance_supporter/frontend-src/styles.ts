@@ -366,7 +366,10 @@ export const sharedStyles = css`
      label length. */
   .stats-bar {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    /* auto-fit instead of a fixed 5: with the budget feature on, two KPI
+       tiles join the strip (#125) — and on narrow screens the tiles wrap
+       instead of crushing. */
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
     gap: 16px;
     padding: 16px;
   }
@@ -905,38 +908,25 @@ export const sharedStyles = css`
     50% { opacity: 0.7; }
   }
 
-  /* Budget bars */
-  .budget-bars {
-    display: flex;
-    gap: 16px;
-    padding: 8px 16px;
-    flex-wrap: wrap;
+  /* Budget KPI tiles in the stats strip (#125) — replaced the full-width
+     budget-bars row. */
+  .stat-item.budget-tile .budget-tile-value {
+    font-size: 15px;
+    padding-top: 5px;
+    white-space: nowrap;
   }
-
-  .budget-item {
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .budget-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--secondary-text-color);
-    margin-bottom: 4px;
-  }
-
-  .budget-bar {
+  .budget-tile-bar {
     width: 100%;
-    height: 6px;
+    max-width: 130px;
+    height: 4px;
+    border-radius: 2px;
     background: var(--divider-color);
-    border-radius: 3px;
     overflow: hidden;
+    margin-top: 5px;
   }
-
-  .budget-bar-fill {
+  .budget-tile-bar > div {
     height: 100%;
-    border-radius: 3px;
+    border-radius: 2px;
     transition: width 0.3s;
   }
 
@@ -1444,21 +1434,9 @@ export const sharedStyles = css`
 
     .weibull-info-row { flex-direction: column; gap: 8px; }
 
-    /* One compact line instead of two stacked rows — the bars are glanceable
-       info, not the page's main content (UX 2026-07). The label stacks above
-       the value: side-by-side, the yearly pair wrapped raggedly on 360px
-       screens; a uniform two-line stack reads as intended at every width. */
-    .budget-bars { gap: 12px; padding: 6px 8px; }
-    .budget-item { min-width: 0; }
-    .budget-label {
-      font-size: 11px;
-      margin-bottom: 2px;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0;
-    }
-    .budget-label span { white-space: nowrap; }
-    .budget-bar { height: 4px; }
+    /* Budget tiles on narrow screens (#125): slightly smaller value so the
+       "x / y €" pair fits the wrapped grid cell. */
+    .stat-item.budget-tile .budget-tile-value { font-size: 13px; }
 
     .group-card { min-width: 0; max-width: 100%; }
 

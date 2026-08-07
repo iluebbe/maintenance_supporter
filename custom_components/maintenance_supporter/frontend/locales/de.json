@@ -835,5 +835,11 @@
   "update_banner": "Auf dem Server läuft eine neuere Version von Maintenance Supporter — neu laden, um das Panel zu aktualisieren.",
   "update_reload": "Neu laden",
   "battery_fleet_forecast_overdue": "Prognosedatum überschritten — die Batterie meldet sich weiterhin gesund. Falls du sie gewechselt hast, trage den Wechsel nach; andernfalls lag die Prognose daneben.",
-  "cost_from_parts": "≈ {amount} aus Teilen übernehmen"
+  "cost_from_parts": "≈ {amount} aus Teilen übernehmen",
+  "new_menu": "Neu",
+  "dismiss": "Ausblenden",
+  "gs_label": "Erste Schritte — diese Hinweise verschwinden, wenn dein Setup wächst",
+  "gs_setups_chip": "Vorgeschlagene Setups: {n} Geräte mit vorverdrahteten Auslösern gefunden",
+  "gs_adopt_chip": "{n} Problem-Sensoren können zu Wartungsaufgaben werden",
+  "gs_fleet_chip": "Ein Klick richtet die Batterieflotte ein"
 }

@@ -225,7 +225,7 @@ warning-lamp families.
 > discovered (or a well-known consumable sensor is missing), please open an
 > issue or discussion with the integration name and entity ids.
 
-The **Suggested setups** button discovers devices of supported integrations
+**Suggested setups** (in the dashboard's *New ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
 click. The catalog currently covers **123 integrations with 231 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
@@ -440,16 +440,21 @@ native HA UI.
 ![Configuration](images/config-flow.png)
 
 ### Mobile
-On phones and portrait tablets the dashboard keeps the task list above the
-fold: the six filter controls and the up-to-six create/setup actions collapse
-behind two compact toggles — **Filter** (showing how many filters are
-actively narrowing the list) and **+ Add** (a menu with *New task*, *New
-object*, *From template*, *Suggested setups*, *Adopt problem sensors* and —
-only while a battery fleet is available and not yet set up — *Battery
-fleet*).
-The KPI chips at the top remain the one-tap filter path, and the budget
-bars compact to a single line. Desktop and landscape layouts render all
-controls inline.
+Creation and discovery live in **one primary "New ▾" menu** (#125): *New
+task*, *New object*, *From template*, then *Adopt problem sensors*,
+*Suggested setups* and — only while a battery fleet is available and not
+yet set up — *Battery fleet*. The same menu serves desktop and mobile, so
+the dashboard header is a single controls row (filters + Select + New)
+everywhere; on phones the six filter controls still collapse behind the
+compact **Filter** toggle, and the KPI tiles at the top remain the one-tap
+filter path.
+
+**Young installations additionally get "Getting started" chips** — a row of
+individually dismissible discovery hints ("Suggested setups found 3
+devices…", "2 problem sensors can become maintenance tasks", the one-click
+battery-fleet setup). They retire on their own as the setup grows (or the
+moment you dismiss them): the menu is the stable home from day one, the
+chips are visibly temporary. Mature installations never see them.
 
 | Dashboard (collapsed controls) | Task detail |
 |:-:|:-:|

@@ -835,5 +835,11 @@
   "update_banner": "Er staat een nieuwere versie van Maintenance Supporter op de server — herlaad om het paneel bij te werken.",
   "update_reload": "Herladen",
   "battery_fleet_forecast_overdue": "Voorspelde datum verstreken — de batterij meldt zich nog steeds gezond. Heb je hem vervangen, registreer dan de vervanging; anders zat de voorspelling ernaast.",
-  "cost_from_parts": "≈ {amount} uit onderdelen overnemen"
+  "cost_from_parts": "≈ {amount} uit onderdelen overnemen",
+  "new_menu": "Nieuw",
+  "dismiss": "Verbergen",
+  "gs_label": "Aan de slag — deze tips verdwijnen naarmate je installatie groeit",
+  "gs_setups_chip": "Voorgestelde setups: {n} apparaten met vooraf ingestelde triggers gevonden",
+  "gs_adopt_chip": "{n} probleemsensoren kunnen onderhoudstaken worden",
+  "gs_fleet_chip": "Eén klik stelt het batterijpark in"
 }

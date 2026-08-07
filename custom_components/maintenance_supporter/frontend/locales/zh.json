@@ -835,5 +835,11 @@
   "update_banner": "服务器上有更新版本的 Maintenance Supporter——请重新加载以更新面板。",
   "update_reload": "重新加载",
   "battery_fleet_forecast_overdue": "预测日期已过——电池仍报告状态良好。如果您已更换电池，请记录更换；否则说明预测有误。",
-  "cost_from_parts": "采用配件合计 ≈ {amount}"
+  "cost_from_parts": "采用配件合计 ≈ {amount}",
+  "new_menu": "新建",
+  "dismiss": "忽略",
+  "gs_label": "入门提示——随着配置的完善，这些提示会自动消失",
+  "gs_setups_chip": "推荐配置发现 {n} 台设备（含预设触发器）",
+  "gs_adopt_chip": "{n} 个问题传感器可转换为维护任务",
+  "gs_fleet_chip": "一键设置电池车队"
 }

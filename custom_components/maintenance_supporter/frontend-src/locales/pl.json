@@ -835,5 +835,11 @@
   "update_banner": "Na serwerze jest nowsza wersja Maintenance Supporter — załaduj ponownie, aby zaktualizować panel.",
   "update_reload": "Załaduj ponownie",
   "battery_fleet_forecast_overdue": "Przewidywana data minęła — bateria nadal zgłasza dobry stan. Jeśli ją wymieniono, zapisz wymianę; w przeciwnym razie prognoza była błędna.",
-  "cost_from_parts": "Użyj ≈ {amount} z części"
+  "cost_from_parts": "Użyj ≈ {amount} z części",
+  "new_menu": "Nowy",
+  "dismiss": "Odrzuć",
+  "gs_label": "Pierwsze kroki — te wskazówki znikają wraz z rozwojem konfiguracji",
+  "gs_setups_chip": "Sugerowane konfiguracje: znaleziono {n} urządzeń z gotowymi wyzwalaczami",
+  "gs_adopt_chip": "{n} czujników problemów może stać się zadaniami konserwacji",
+  "gs_fleet_chip": "Jedno kliknięcie konfiguruje flotę baterii"
 }

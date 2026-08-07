@@ -835,5 +835,11 @@
   "update_banner": "Palvelimella on uudempi Maintenance Supporter -versio — lataa uudelleen päivittääksesi paneelin.",
   "update_reload": "Lataa uudelleen",
   "battery_fleet_forecast_overdue": "Ennustettu päivä on ohitettu — akku ilmoittaa yhä hyvästä kunnosta. Jos vaihdoit sen, kirjaa vaihto; muuten ennuste oli pielessä.",
-  "cost_from_parts": "Käytä ≈ {amount} osista"
+  "cost_from_parts": "Käytä ≈ {amount} osista",
+  "new_menu": "Uusi",
+  "dismiss": "Hylkää",
+  "gs_label": "Aloitus — nämä vihjeet poistuvat asennuksen kasvaessa",
+  "gs_setups_chip": "Ehdotetut asetukset löysivät {n} laitetta valmiilla laukaisimilla",
+  "gs_adopt_chip": "{n} ongelma-anturia voi muuttua huoltotehtäviksi",
+  "gs_fleet_chip": "Yksi napsautus määrittää akkukannan"
 }

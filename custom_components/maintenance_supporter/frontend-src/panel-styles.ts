@@ -55,10 +55,9 @@ export const panelStyles = css`
     gap: 8px;
   }
 
-  /* Narrow-viewport disclosure (UX 2026-07): the collapsed classes are only
+  /* Narrow-viewport disclosure (UX 2026-07): the collapsed class is only
      ever set when the host is narrow — desktop always renders inline. */
-  .filter-bar.collapsed,
-  .actions-bar.collapsed {
+  .filter-bar.collapsed {
     display: none;
   }
 
@@ -68,29 +67,64 @@ export const panelStyles = css`
     padding: 8px 0 0;
   }
 
-  .mobile-controls .mobile-toggle {
+  .mobile-controls .mobile-toggle,
+  .mobile-controls .new-menu-wrapper {
     flex: 1;
+  }
+
+  .mobile-controls .new-menu-wrapper .new-menu-button {
+    width: 100%;
   }
 
   .mobile-controls .mobile-toggle.active {
     --ha-button-background: var(--primary-color);
   }
 
-  .actions-bar {
+  /* #125: the one "New" menu that replaced the six-button actions bar. */
+  .new-menu-wrapper {
+    position: relative;
+    margin-left: auto;
+  }
+  .new-menu-popup {
+    right: 0;
+    left: auto;
+    min-width: 256px;
+  }
+  .new-menu-popup .popup-menu-item {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 4px 0 8px;
-    /* Left-aligned on purpose: flex-end mimicked the pre-v2.37 look (buttons
-       trailing the filter row), but on wide desktops it strands the primary
-       "new task" action at the far right of an otherwise empty row. */
-    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
   }
+  .new-menu-popup .popup-menu-item ha-icon {
+    --mdc-icon-size: 18px;
+    color: var(--secondary-text-color);
+  }
+  :host([narrow]) .new-menu-popup { right: 0; left: auto; }
 
-  :host([narrow]) .actions-bar {
-    flex-direction: column;
-    align-items: stretch;
+  /* #125: getting-started chips — visibly temporary onboarding hints. */
+  .gs-chips-wrap { margin: 2px 0 12px; }
+  .gs-chips-label {
+    font-size: 11px;
+    color: var(--secondary-text-color);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 7px;
   }
+  .gs-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .gs-chip {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--secondary-background-color);
+    border: 1px dashed var(--divider-color);
+    border-radius: 16px;
+    padding: 7px 8px 7px 13px;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .gs-chip ha-icon { --mdc-icon-size: 16px; color: var(--primary-color); }
+  .gs-chip-x { display: inline-flex; padding: 0 3px; }
+  .gs-chip-x ha-icon { --mdc-icon-size: 14px; color: var(--secondary-text-color); }
 
   .filter-field {
     display: flex;

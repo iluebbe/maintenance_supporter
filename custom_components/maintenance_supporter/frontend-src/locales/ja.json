@@ -835,5 +835,11 @@
   "update_banner": "サーバーに新しいバージョンの Maintenance Supporter があります — 再読み込みしてパネルを更新してください。",
   "update_reload": "再読み込み",
   "battery_fleet_forecast_overdue": "予測日を過ぎましたが、電池はまだ正常と報告しています。交換済みなら交換を記録してください。そうでなければ予測が外れています。",
-  "cost_from_parts": "部品から ≈ {amount} を適用"
+  "cost_from_parts": "部品から ≈ {amount} を適用",
+  "new_menu": "新規",
+  "dismiss": "閉じる",
+  "gs_label": "はじめに — セットアップが進むとこれらのヒントは消えます",
+  "gs_setups_chip": "推奨セットアップ：トリガー設定済みのデバイスを{n}台検出",
+  "gs_adopt_chip": "{n}個の問題センサーをメンテナンスタスクにできます",
+  "gs_fleet_chip": "ワンクリックで電池フリートを設定"
 }

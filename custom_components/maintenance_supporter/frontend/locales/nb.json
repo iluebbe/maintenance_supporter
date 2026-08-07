@@ -835,5 +835,11 @@
   "update_banner": "En nyere versjon av Maintenance Supporter er på serveren — last inn på nytt for å oppdatere panelet.",
   "update_reload": "Last inn på nytt",
   "battery_fleet_forecast_overdue": "Forutsagt dato er passert — batteriet melder fortsatt god tilstand. Hvis du byttet det, registrer byttet; ellers bommet prognosen.",
-  "cost_from_parts": "Bruk ≈ {amount} fra deler"
+  "cost_from_parts": "Bruk ≈ {amount} fra deler",
+  "new_menu": "Ny",
+  "dismiss": "Avvis",
+  "gs_label": "Kom i gang — tipsene forsvinner etter hvert som oppsettet vokser",
+  "gs_setups_chip": "Foreslåtte oppsett fant {n} enheter med ferdigkoblede utløsere",
+  "gs_adopt_chip": "{n} problemsensorer kan bli vedlikeholdsoppgaver",
+  "gs_fleet_chip": "Ett klikk setter opp batteriflåten"
 }

@@ -98,9 +98,9 @@ needed.
    "Maintenance Supporter"*. The short wizard asks for your notification
    service — everything else has sensible defaults.
 3. **Create your first object:** open the new **Maintenance** entry in the
-   sidebar and click **From template** — pick *Car*, *HVAC*, *Washing machine*,
-   *Pool*, … and get an object with typical tasks pre-configured. Or click
-   **New Object** and build your own.
+   sidebar and pick **New ▾ → From template** — choose *Car*, *HVAC*,
+   *Washing machine*, *Pool*, … and get an object with typical tasks
+   pre-configured. Or **New ▾ → New object** and build your own.
 4. **Done.** Tasks show up on the panel dashboard, in the calendar, in the
    To-do list, and as sensors you can automate on. When something is due,
    you'll hear about it.

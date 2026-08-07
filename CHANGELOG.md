@@ -2,6 +2,28 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Changed
+
+- **Dashboard header redesign** (#125, thanks @ph-dekeyser for the report
+  and the direction). The six creation/discovery buttons that had
+  accumulated release by release collapse into **one primary "New ▾"
+  menu** (New task / New object / From template / Adopt problem sensors /
+  Suggested setups / Battery fleet setup while available). The same menu
+  serves desktop and mobile — the old mobile "+ Add" collapse is gone.
+  The **budget row became two KPI tiles** in the stats strip (mini
+  progress bars; the #104 spent-only display survives), so the header is
+  now a single controls row and the task list starts a full row earlier.
+- **"Getting started" chips for young installations.** While an install
+  is young (few objects/tasks — a maturity signal, deliberately not
+  install age), the discovery actions additionally appear as individually
+  dismissible hint chips with live counts ("Suggested setups found 3
+  devices…"). They retire on their own as the setup grows; mature
+  installations never see them and never pay the discovery calls. Nothing
+  ever moves: the New menu is the stable home from day one, the chips are
+  visibly temporary.
+
 ## [2.53.0] - 2026-08-06
 
 ### ✨ Added
