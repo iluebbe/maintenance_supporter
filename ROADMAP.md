@@ -11,7 +11,7 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
-### Dashboard header cleanup — one New menu, onboarding chips, budget as KPI (#125)
+### ✅ Dashboard header cleanup — one New menu, onboarding chips, budget as KPI (#125) — SHIPPED 2026-08-07
 
 Six creation/discovery buttons accumulated release by release (task, object,
 template, adopt-problem-sensors, suggested setups, fleet setup) — each right
