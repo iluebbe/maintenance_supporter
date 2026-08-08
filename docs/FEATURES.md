@@ -11,7 +11,7 @@ see [EXAMPLES.md](EXAMPLES.md).
 Short clips of the key flows (recorded reproducibly against the demo
 instance — `e2e/gifs-demo.mjs` refreshes them per release):
 
-**Create an object from a template** — pick one of 45 templates and get an
+**Create an object from a template** — pick one of 47 templates and get an
 object with typical tasks pre-configured:
 
 ![Create from template](images/gifs/create-from-template.gif)
@@ -525,7 +525,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Per-object notes** (1.4.10+) — free-form multiline notes attached to each object: part numbers, replacement procedures, settings reminders, "spare key in garage drawer". Rendered with `white-space: pre-wrap` so newlines and indentation survive intact
 - **Calendar tab** (1.5.0+) — rolling-list view of upcoming maintenance with a window chip toggle (**7 / 14 / 30 days, plus "1 year" since 1.5.2**; the year view collapses empty days so only the actually-eventful rows render). Time-based recurring tasks project up to 5 occurrences within the window at 55 % opacity to mark them as "hypothetical assuming you stay on schedule"; sensor-triggered tasks show only their current `next_due` since predicting the next sensor firing would be a guess. Each event row carries (1.5.1+): a small **source icon** — `mdi:clock-outline` for time-based or `mdi:trending-up` (HA primary color) for sensor-based — and, for sensor-based events, a *"predicted · {high|medium|low} confidence"* pill below the title (green / amber / red border) sourced from the `threshold_prediction_confidence` returned by the predictor. Visible in operator mode. Independent of the HA Calendar entity — stays inside the panel for the *"what's due soon?"* glance, with status pills and avg-cost per event
 - **Attach objects to existing HA devices** (2.19+): link an object to a device another integration already provides — its maintenance entities land on that device's page (the smart washing machine gets its descaling task right where its other entities live). **Object hierarchy**: nest objects under each other (anode rod under water heater) via HA's native device hierarchy. Linking to one of Maintenance Supporter's own devices — the object's identically-named twin the picker also lists — is rejected at save time (2.47+), and a link that breaks (device gone, or a pre-2.47 self-link) raises a **fixable Repairs notice** whose Fix button suggests the best-matching real device or removes the link
-- 45 object templates in 9 categories — Vehicle, Home & HVAC, Household & Routines, Garden & Outdoor, Pool, Appliances, Pets, Tech & IT, Health (car, e-bike, HVAC, smoke detectors, bathroom/bedroom/kitchen routines, robot vacuums, espresso machine, RO water filter, irrigation, litter box, aquarium, printer, NAS, wallbox, CPAP, hearing aids, …) — fully localized, curatable via Settings → Template gallery
+- 47 object templates in 9 categories — Vehicle, Home & HVAC, Household & Routines, Garden & Outdoor, Pool, Appliances, Pets, Tech & IT, Health (car, e-bike, HVAC, ventilation system, fireplace, smoke detectors, bathroom/bedroom/kitchen routines, robot vacuums, espresso machine, RO water filter, irrigation, litter box, aquarium, printer, NAS, wallbox, CPAP, hearing aids, …) — fully localized, curatable via Settings → Template gallery
 
 ### Sensor-Based Triggers
 - **Threshold**: trigger when a sensor value exceeds or falls below a limit (with optional duration)

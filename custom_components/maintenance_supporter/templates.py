@@ -377,6 +377,67 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
         ],
     ),
+    # v2.55: heat-recovery ventilation + fireplace. Intervals: filters checked
+    # quarterly / replaced <=6 months and full service every 24 months per
+    # manufacturer guidance (Zehnder service plan); chimney sweep cadence is
+    # regulated (DE KÜO: 1-3x/year by usage; US NFPA 211: annual inspection).
+    ObjectTemplate(
+        id="home_ventilation",
+        name="Ventilation System",
+        category="home",
+        tasks=[
+            TaskTemplate(
+                "Replace Ventilation Filters",
+                "replacement",
+                "time_based",
+                180,
+                21,
+                "Check quarterly and replace at the latest every 6 months (manufacturer guidance) — sooner during pollen season or in dusty areas.",
+            ),
+            TaskTemplate("Clean Air Valves", "cleaning", "time_based", 180, 14),
+            TaskTemplate("Check Condensate Drain", "inspection", "time_based", 365, 21),
+            TaskTemplate(
+                "Clean Heat Exchanger",
+                "cleaning",
+                "time_based",
+                730,
+                30,
+                "Part of the full service every 2 years — many manufacturers recommend a professional for this.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_fireplace",
+        name="Fireplace & Wood Stove",
+        category="home",
+        tasks=[
+            TaskTemplate(
+                "Chimney Sweep Appointment",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Legally regulated in many countries — e.g. 1–3 sweeps per year in Germany depending on usage (KÜO), and at least an annual inspection under NFPA 211 in the US.",
+            ),
+            TaskTemplate("Inspect Door Gasket", "inspection", "time_based", 365, 21),
+            TaskTemplate(
+                "Empty Ash Pan",
+                "cleaning",
+                "time_based",
+                7,
+                1,
+                "During the heating season — add a seasonal window (task dialog, e.g. Oct–Apr) or pause the object over summer.",
+            ),
+            TaskTemplate(
+                "Clean Stove Glass",
+                "cleaning",
+                "time_based",
+                30,
+                7,
+                "During the heating season — soot builds up faster when burning at low temperatures or with damp wood.",
+            ),
+        ],
+    ),
     # v2.27 wishlist wave (Discussion #85): RO filter, houseplants, bathroom
     # fan, kitchen knives — the freeze-sensitive garden/appliance ones live in
     # their categories below.

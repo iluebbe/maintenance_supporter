@@ -125,7 +125,7 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 - Entity selector pre-populates existing entity_ids when editing a trigger
 - All 8 compound trigger steps have proper translations in both config and options flows
 - Go-back navigation on all forms for non-linear editing
-- 45 object templates in 9 categories (vehicle, home, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`
+- 47 object templates in 9 categories (vehicle, home, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`
 
 ### Pure Python Helpers
 `interval_analyzer` has zero HA dependencies, enabling isolated unit testing and reuse outside HA. `sensor_predictor` and `entity_analyzer` depend on the HA recorder and state machine for data access, but their core algorithms (linear regression, Pearson correlation, Weibull analysis) are pure Python.
@@ -364,9 +364,9 @@ custom_components/maintenance_supporter/
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                 (1,017 lines)  45 object templates in 9 categories (vehicle, home, household,
+├── templates.py                 (1,078 lines)  47 object templates in 9 categories (vehicle, home, household,
 │                                               appliance, garden, pool, tech, pets, health)
-├── templates_i18n.py            (6,035 lines)  Translations for the template catalog (largest module)
+├── templates_i18n.py            (6,358 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (672 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
 ├── diagnostics.py                 (230 lines)  Integration diagnostics with PII redaction

@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Two new object templates** (template gallery → Home): **Ventilation
+  System** (heat-recovery ventilation — filter replacement, air valves,
+  condensate drain, heat exchanger; intervals follow manufacturer service
+  plans) and **Fireplace & Wood Stove** (chimney sweep appointment —
+  legally mandated in many countries, door gasket, ash pan and stove
+  glass with seasonal-window hints). Fully translated into all 22
+  languages. The catalog now holds 47 templates.
+
 ### ✨ Changed
 
 - **The dashboard menu is labeled "Add" instead of "New"** — matching Home
