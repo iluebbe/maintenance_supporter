@@ -612,6 +612,22 @@ async def test_self_charging_devices_skipped(hass):
     assert [b.entity_id for b in bats] == ["sensor.door_sensor_battery"]
 
 
+async def test_nonconformant_identifier_tuples_do_not_crash(hass):
+    """#127: identifiers are typed (domain, id) but the registry doesn't
+    enforce it — NissanConnect ships ('nissan_connect', 'nissan', VIN)
+    3-tuples. Strict 2-tuple unpacking in _is_self_charging crashed
+    read_batteries and with it every fleet surface (overview sensor every
+    update cycle, WS overview, one-click setup) — fleet configured or not."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet import discover_battery_types
+
+    _device_with_battery(hass, slug="leaf", identifiers={("nissan_connect", "nissan", "VIN-123")})
+    # A 3-tuple mobile_app identifier must still count as self-charging.
+    _device_with_battery(hass, slug="pixel", identifiers={("mobile_app", "pixel10", "extra")})
+    bats = read_batteries(hass)
+    assert [b.entity_id for b in bats] == ["sensor.leaf_battery"]
+    discover_battery_types(hass)  # the reporter's setup path — must not raise
+
+
 async def test_a_noted_self_charging_device_is_skipped_too(hass):
     """#107 follow-up: a Battery Notes note on a mower/vacuum used to win over
     the self-charging skip ("a note is deliberate intent") — but Battery Notes

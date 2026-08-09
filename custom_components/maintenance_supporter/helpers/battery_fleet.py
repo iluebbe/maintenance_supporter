@@ -357,7 +357,10 @@ def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
     from homeassistant.helpers import entity_registry as er
 
     device = dr.async_get(hass).async_get(device_id)
-    if device and any(domain == "mobile_app" for domain, _ in device.identifiers):
+    # #127: identifiers are typed (domain, id) but the registry doesn't enforce
+    # it — NissanConnect ships 3-element tuples, and strict unpacking took the
+    # whole fleet down. Only the domain matters here.
+    if device and any(ident[0] == "mobile_app" for ident in device.identifiers):
         return True
     for reg_entry in er.async_entries_for_device(er.async_get(hass), device_id, include_disabled_entities=True):
         if reg_entry.domain in ("vacuum", "lawn_mower"):

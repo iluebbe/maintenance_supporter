@@ -21,6 +21,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   more naturally for the discovery entries it contains. Same menu,
   same entries, same place.
 
+### 🐛 Fixed
+
+- **Battery Fleet crashed on non-conformant device identifiers** (#127,
+  thanks @f-zappa for the exemplary diagnosis). Device identifiers are
+  typed as `(domain, id)` pairs, but the registry doesn't enforce that —
+  NissanConnect registers 3-element tuples, and strict unpacking in the
+  self-charging check then took down every fleet surface for the whole
+  installation (overview sensor each update cycle, panel overview,
+  one-click setup) — whether or not the fleet was even set up. The check
+  now reads only the domain element.
+
 ### 🔧 Internal
 
 - DRY audit follow-up: the battery-fleet object markers became shared
