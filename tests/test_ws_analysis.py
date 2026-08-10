@@ -814,3 +814,84 @@ async def test_set_adaptive_omitted_optionals_keep_stored_values(
     assert ac["enabled"] is False
     assert ac["ewa_alpha"] == 0.7  # kept
     assert ac["seasonal_enabled"] is False  # kept
+
+
+async def test_set_adaptive_not_found_entry_and_task(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    from custom_components.maintenance_supporter.websocket.analysis import ws_set_adaptive
+
+    await setup_integration(hass, global_entry, object_entry)
+
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_set_adaptive,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_adaptive",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+            "enabled": True,
+        },
+    )
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+    conn2 = _mock_connection()
+    await call_ws_handler(
+        ws_set_adaptive,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/set_adaptive",
+            "entry_id": object_entry.entry_id,
+            "task_id": "no-such-task",
+            "enabled": True,
+        },
+    )
+    conn2.send_error.assert_called_once()
+    assert conn2.send_error.call_args[0][1] == "not_found"
+
+
+async def test_set_adaptive_legacy_path_without_store(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """The store-less write path mirrors set_environmental_entity's legacy branch."""
+    from custom_components.maintenance_supporter.websocket.analysis import ws_set_adaptive
+
+    await setup_integration(hass, global_entry, object_entry)
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    rd = entry.runtime_data
+    original_store = rd.store
+    rd.store = None
+
+    conn = _c97_conn()
+    await call_ws_handler(
+        ws_set_adaptive,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/set_adaptive",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "enabled": True,
+            "min_interval_days": 5,
+            "max_interval_days": 50,
+        },
+    )
+    conn.send_result.assert_called_once()
+
+    rd.store = original_store
+    refreshed = hass.config_entries.async_get_entry(object_entry.entry_id)
+    ac = refreshed.data["tasks"][TASK_ID_1]["adaptive_config"]
+    assert ac["enabled"] is True
+    assert ac["min_interval_days"] == 5
