@@ -230,7 +230,8 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "提前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "trigger_above": "当数值超过此阈值时触发维护。",
@@ -251,7 +252,9 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "提前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成",
+          "trigger_baseline_value": "起始读数（可选）"
         },
         "data_description": {
           "trigger_target_value": "当达到此累计值时触发维护。",
@@ -272,7 +275,8 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "提前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "trigger_from_state": "仅统计从此状态开始的转换。留空表示任意状态。",
@@ -293,7 +297,8 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "提前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "trigger_runtime_hours": "累计运行达到此小时数后触发维护。",
@@ -309,7 +314,8 @@
         "description": "选择如何组合多个条件。",
         "data": {
           "compound_logic": "逻辑关系",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "compound_logic": "AND = 所有条件都必须触发。OR = 任意条件触发即可。",
@@ -720,7 +726,8 @@
         "description": "选择多个条件的组合方式。",
         "data": {
           "compound_logic": "逻辑关系",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "compound_logic": "AND = 所有条件都必须触发。OR = 任意条件触发即可。"
@@ -999,7 +1006,8 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "提前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "trigger_above": "当数值超过此阈值时触发维护。",
@@ -1019,7 +1027,9 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "提前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成",
+          "trigger_baseline_value": "起始读数（可选）"
         },
         "data_description": {
           "trigger_target_value": "当达到此累计值时触发维护。",
@@ -1039,7 +1049,8 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "到期前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "trigger_from_state": "仅统计从此状态开始的转换。留空表示任意状态。",
@@ -1059,7 +1070,8 @@
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "warning_days": "到期前预警天数",
-          "go_back": "返回"
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
         },
         "data_description": {
           "trigger_runtime_hours": "累计运行达到此小时数后触发维护。",

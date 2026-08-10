@@ -230,7 +230,8 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "trigger_above": "値がこのしきい値を超えたときにメンテナンスをトリガーします。",
@@ -251,7 +252,9 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了",
+          "trigger_baseline_value": "開始値（任意）"
         },
         "data_description": {
           "trigger_target_value": "この累積値に達したときにメンテナンスをトリガーします。",
@@ -272,7 +275,8 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "trigger_from_state": "この状態からの遷移のみをカウントします。任意の状態の場合は空欄にします。",
@@ -293,7 +297,8 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらメンテナンスをトリガーします。",
@@ -309,7 +314,8 @@
         "description": "複数の条件をどのように組み合わせるかを選択してください。",
         "data": {
           "compound_logic": "論理",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "compound_logic": "AND = すべての条件がトリガーされる必要があります。OR = いずれかの条件でトリガーされます。",
@@ -720,7 +726,8 @@
         "description": "複数の条件をどのように組み合わせるかを選択してください。",
         "data": {
           "compound_logic": "論理",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "compound_logic": "AND = すべての条件がトリガーされる必要があります。OR = いずれかの条件でトリガーされます。"
@@ -999,7 +1006,8 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "trigger_above": "値がこのしきい値を超えたときにメンテナンスをトリガーします。",
@@ -1019,7 +1027,9 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了",
+          "trigger_baseline_value": "開始値（任意）"
         },
         "data_description": {
           "trigger_target_value": "この累積値に達したときにメンテナンスをトリガーします。",
@@ -1039,7 +1049,8 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "trigger_from_state": "この状態からの遷移のみをカウントします。任意の状態の場合は空欄にします。",
@@ -1059,7 +1070,8 @@
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "warning_days": "期限前の警告日数",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
         },
         "data_description": {
           "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらメンテナンスをトリガーします。",

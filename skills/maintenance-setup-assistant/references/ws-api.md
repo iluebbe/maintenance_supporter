@@ -269,6 +269,12 @@ another user's assignments need write permission, else `unauthorized`.
 - `task/seasonal_overrides` — `@require_write` — `{entry_id, task_id, overrides:
   {"<month 1..12>": factor 0.1..5.0}}` (≤12 keys; `{}` clears them) →
   `{"success": true, "overrides": {…}}`. Manual per-month interval multipliers.
+- `task/set_adaptive` — `@require_write` — `{entry_id, task_id, enabled,
+  ewa_alpha? 0.1..0.9, min_interval_days? 1..365, max_interval_days?,
+  seasonal_enabled?, sensor_prediction_enabled?}` → `{"success": true,
+  adaptive_config}`. Adaptive-scheduling tuning (parity with the options
+  flow's adaptive step); omitted optionals keep stored values, min > max is
+  rejected. The environmental binding stays on its own endpoint below.
 - `task/set_environmental_entity` — `@require_write` — `{entry_id, task_id,
   environmental_entity?, environmental_attribute?}` → `{"success": true,
   environmental_entity, environmental_attribute}`. Correlates an outside signal

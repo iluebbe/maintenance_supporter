@@ -230,7 +230,8 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "trigger_above": "Wyzwalaj konserwację, gdy wartość przekroczy ten próg.",
@@ -251,7 +252,9 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy",
+          "trigger_baseline_value": "Wartość początkowa (opcjonalnie)"
         },
         "data_description": {
           "trigger_target_value": "Wyzwalaj konserwację, gdy ta skumulowana wartość zostanie osiągnięta.",
@@ -272,7 +275,8 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "trigger_from_state": "Zliczaj tylko przejścia z tego stanu. Pozostaw puste dla dowolnego.",
@@ -293,7 +297,8 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "trigger_runtime_hours": "Wyzwalaj konserwację po tylu godzinach skumulowanego czasu pracy.",
@@ -309,7 +314,8 @@
         "description": "Wybierz, w jaki sposób wiele warunków ma być łączonych.",
         "data": {
           "compound_logic": "Logika",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "compound_logic": "ORAZ = wszystkie warunki muszą zostać spełnione. LUB = wystarczy jeden warunek.",
@@ -720,7 +726,8 @@
         "description": "Wybierz, w jaki sposób wiele warunków ma być łączonych.",
         "data": {
           "compound_logic": "Logika",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "compound_logic": "ORAZ = wszystkie warunki muszą zostać spełnione. LUB = wystarczy jeden warunek."
@@ -999,7 +1006,8 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "trigger_above": "Wyzwalaj konserwację, gdy wartość przekroczy ten próg.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy",
+          "trigger_baseline_value": "Wartość początkowa (opcjonalnie)"
         },
         "data_description": {
           "trigger_target_value": "Wyzwalaj konserwację, gdy ta skumulowana wartość zostanie osiągnięta.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "trigger_from_state": "Zliczaj tylko przejścia z tego stanu. Pozostaw puste dla dowolnego.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
         },
         "data_description": {
           "trigger_runtime_hours": "Wyzwalaj konserwację po tylu godzinach skumulowanego czasu pracy.",

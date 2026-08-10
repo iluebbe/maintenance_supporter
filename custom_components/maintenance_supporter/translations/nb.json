@@ -230,7 +230,8 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "trigger_above": "Utløs vedlikehold når verdien overskrider denne terskelen.",
@@ -251,7 +252,9 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres",
+          "trigger_baseline_value": "Startverdi (valgfritt)"
         },
         "data_description": {
           "trigger_target_value": "Utløs vedlikehold når denne akkumulerte verdien nås.",
@@ -272,7 +275,8 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "trigger_from_state": "Tell bare overganger fra denne tilstanden. La feltet stå tomt for hvilken som helst.",
@@ -293,7 +297,8 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "trigger_runtime_hours": "Utløs vedlikehold etter så mange timer akkumulert driftstid.",
@@ -309,7 +314,8 @@
         "description": "Velg hvordan flere betingelser skal kombineres.",
         "data": {
           "compound_logic": "Logikk",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "compound_logic": "OG = alle betingelser må utløses. ELLER = en hvilken som helst betingelse utløser.",
@@ -720,7 +726,8 @@
         "description": "Velg hvordan flere betingelser skal kombineres.",
         "data": {
           "compound_logic": "Logikk",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "compound_logic": "OG = alle betingelser må utløses. ELLER = en hvilken som helst betingelse utløser."
@@ -999,7 +1006,8 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "trigger_above": "Utløs vedlikehold når verdien overskrider denne terskelen.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres",
+          "trigger_baseline_value": "Startverdi (valgfritt)"
         },
         "data_description": {
           "trigger_target_value": "Utløs vedlikehold når denne akkumulerte verdien nås.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "trigger_from_state": "Tell bare overganger fra denne tilstanden. La feltet stå tomt for hvilken som helst.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
         },
         "data_description": {
           "trigger_runtime_hours": "Utløs vedlikehold etter så mange timer akkumulert driftstid.",

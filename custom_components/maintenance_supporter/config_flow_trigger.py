@@ -88,6 +88,22 @@ TRIGGER_ENTITY_DOMAINS = [
 ]
 
 
+def _apply_recovery_flag(tc: dict[str, Any], user_input: dict[str, Any]) -> None:
+    """Write the #53 auto-complete-on-recovery flag from a form submission.
+
+    Editable since the dialog/flow parity round — before that the flow only
+    carried a previously stored value. Absence in trigger_config means off.
+    """
+    if user_input.get("auto_complete_on_recovery"):
+        tc["auto_complete_on_recovery"] = True
+    else:
+        tc.pop("auto_complete_on_recovery", None)
+
+
+def _recovery_default(tc: dict[str, Any] | None) -> bool:
+    return bool((tc or {}).get("auto_complete_on_recovery"))
+
+
 class TriggerConfigMixin:
     """Shared sensor trigger configuration logic for ConfigFlow and OptionsFlow.
 
@@ -381,6 +397,7 @@ class TriggerConfigMixin:
                 if below is not None:
                     tc[CONF_TRIGGER_BELOW] = below
                 tc[CONF_TRIGGER_FOR_MINUTES] = user_input.get(CONF_TRIGGER_FOR_MINUTES, 0)
+                _apply_recovery_flag(tc, user_input)
 
                 # Multi-entity: store entity_logic if multiple entities selected
                 entity_ids = tc.get("entity_ids", [])
@@ -419,6 +436,10 @@ class TriggerConfigMixin:
             vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=0, max=1440, step=1, mode=selector.NumberSelectorMode.BOX)
             ),
+            vol.Optional(
+                "auto_complete_on_recovery",
+                default=_recovery_default(self._current_task.get("trigger_config")),
+            ): selector.BooleanSelector(),
         }
 
         # Add entity_logic selector when multiple entities are selected
@@ -480,6 +501,13 @@ class TriggerConfigMixin:
             tc = self._current_task["trigger_config"]
             tc[CONF_TRIGGER_TARGET_VALUE] = user_input[CONF_TRIGGER_TARGET_VALUE]
             tc[CONF_TRIGGER_DELTA_MODE] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
+            _apply_recovery_flag(tc, user_input)
+            # Counting start value (#102/#103): editable here since the parity
+            # round — an omitted field keeps the value the attribute step
+            # carried over; the backend clears stale Store state on change.
+            baseline = user_input.get("trigger_baseline_value")
+            if baseline is not None and baseline >= 0:
+                tc["trigger_baseline_value"] = baseline
 
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
@@ -510,6 +538,12 @@ class TriggerConfigMixin:
             else:
                 current_value = state.state
 
+        prev_tc = self._current_task.get("trigger_config") or {}
+        baseline_key = (
+            vol.Optional("trigger_baseline_value", default=prev_tc["trigger_baseline_value"])
+            if "trigger_baseline_value" in prev_tc
+            else vol.Optional("trigger_baseline_value")
+        )
         schema_fields: dict[Any, Any] = {
             vol.Required(CONF_TRIGGER_TARGET_VALUE): selector.NumberSelector(
                 selector.NumberSelectorConfig(
@@ -518,6 +552,17 @@ class TriggerConfigMixin:
                 )
             ),
             vol.Optional(CONF_TRIGGER_DELTA_MODE, default=False): selector.BooleanSelector(),
+            baseline_key: selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    mode=selector.NumberSelectorMode.BOX,
+                    step="any",
+                )
+            ),
+            vol.Optional(
+                "auto_complete_on_recovery",
+                default=_recovery_default(prev_tc),
+            ): selector.BooleanSelector(),
         }
 
         # Add entity_logic selector when multiple entities are selected
@@ -590,6 +635,7 @@ class TriggerConfigMixin:
             if to_state:
                 tc[CONF_TRIGGER_TO_STATE] = to_state
             tc[CONF_TRIGGER_TARGET_CHANGES] = user_input.get(CONF_TRIGGER_TARGET_CHANGES, 1)
+            _apply_recovery_flag(tc, user_input)
 
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
@@ -622,6 +668,10 @@ class TriggerConfigMixin:
                     mode=selector.NumberSelectorMode.BOX,
                 )
             ),
+            vol.Optional(
+                "auto_complete_on_recovery",
+                default=_recovery_default(self._current_task.get("trigger_config")),
+            ): selector.BooleanSelector(),
         }
 
         # Add entity_logic selector when multiple entities are selected
@@ -690,6 +740,7 @@ class TriggerConfigMixin:
                 tc[CONF_TRIGGER_ON_STATES] = [s.strip().lower() for s in raw_states.split(",") if s.strip()]
             else:
                 tc.pop(CONF_TRIGGER_ON_STATES, None)
+            _apply_recovery_flag(tc, user_input)
 
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
@@ -727,6 +778,10 @@ class TriggerConfigMixin:
                     type=selector.TextSelectorType.TEXT,
                 )
             ),
+            vol.Optional(
+                "auto_complete_on_recovery",
+                default=_recovery_default(current_tc),
+            ): selector.BooleanSelector(),
         }
 
         # Add entity_logic selector when multiple entities are selected
@@ -791,15 +846,12 @@ class TriggerConfigMixin:
                 return cancel
 
             logic = user_input.get(CONF_COMPOUND_LOGIC, "AND").upper()
-            # Carry over the panel-managed recovery flag (#53) across the
-            # compound rebuild, mirroring the flat-trigger path above.
-            prev_tc = self._current_task.get("trigger_config") or {}
             self._current_task["trigger_config"] = {
                 "type": TriggerType.COMPOUND,
                 CONF_COMPOUND_LOGIC: logic,
                 CONF_COMPOUND_CONDITIONS: [],
-                **({"auto_complete_on_recovery": True} if prev_tc.get("auto_complete_on_recovery") else {}),
             }
+            _apply_recovery_flag(self._current_task["trigger_config"], user_input)
             if not hasattr(self, "_compound_conditions"):
                 self._compound_conditions: list[dict[str, Any]] = []
             self._compound_conditions = []
@@ -823,6 +875,10 @@ class TriggerConfigMixin:
                     translation_key="compound_logic",
                 )
             ),
+            vol.Optional(
+                "auto_complete_on_recovery",
+                default=_recovery_default(self._current_task.get("trigger_config")),
+            ): selector.BooleanSelector(),
         }
         return self.async_show_form(
             step_id=step_id,

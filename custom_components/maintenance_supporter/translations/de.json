@@ -230,7 +230,8 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellwert überschreitet.",
@@ -251,7 +252,9 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen",
+          "trigger_baseline_value": "Startwert (optional)"
         },
         "data_description": {
           "trigger_target_value": "Wartung auslösen, wenn dieser akkumulierte Wert erreicht ist.",
@@ -272,7 +275,8 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
@@ -293,7 +297,8 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
@@ -309,7 +314,8 @@
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
         "data": {
           "compound_logic": "Logik",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt.",
@@ -906,7 +912,8 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellenwert überschreitet.",
@@ -926,7 +933,9 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen",
+          "trigger_baseline_value": "Startwert (optional)"
         },
         "data_description": {
           "trigger_target_value": "Wartung auslösen, wenn dieser kumulierte Wert erreicht ist.",
@@ -946,7 +955,8 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
@@ -966,7 +976,8 @@
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl von Stunden kumulierter Laufzeit.",
@@ -981,7 +992,8 @@
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
         "data": {
           "compound_logic": "Logik",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
         },
         "data_description": {
           "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt."

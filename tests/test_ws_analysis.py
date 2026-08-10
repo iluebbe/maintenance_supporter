@@ -699,3 +699,118 @@ async def test_environmental_entity_legacy_store_none(
     conn.send_result.assert_called_once()
 
     rd.store = original_store
+
+
+# ─── task/set_adaptive (dialog parity round) ────────────────────────────────
+
+
+async def test_set_adaptive_writes_tuning_and_seeds_base_interval(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    from custom_components.maintenance_supporter.websocket.analysis import ws_set_adaptive
+
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_set_adaptive,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_adaptive",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "enabled": True,
+            "ewa_alpha": 0.5,
+            "min_interval_days": 14,
+            "max_interval_days": 90,
+            "seasonal_enabled": False,
+            "sensor_prediction_enabled": True,
+        },
+    )
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["success"] is True
+
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    ac = state.get("adaptive_config", {})
+    assert ac["enabled"] is True
+    assert ac["ewa_alpha"] == 0.5
+    assert ac["min_interval_days"] == 14
+    assert ac["max_interval_days"] == 90
+    assert ac["seasonal_enabled"] is False
+    assert ac["sensor_prediction_enabled"] is True
+    # Same base_interval seeding as the options flow's adaptive step.
+    assert "base_interval" in ac
+
+
+async def test_set_adaptive_rejects_min_over_max(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    from custom_components.maintenance_supporter.websocket.analysis import ws_set_adaptive
+
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_set_adaptive,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_adaptive",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "enabled": True,
+            "min_interval_days": 100,
+            "max_interval_days": 10,
+        },
+    )
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_format"
+
+
+async def test_set_adaptive_omitted_optionals_keep_stored_values(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    from custom_components.maintenance_supporter.websocket.analysis import ws_set_adaptive
+
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_set_adaptive,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_adaptive",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "enabled": True,
+            "ewa_alpha": 0.7,
+            "seasonal_enabled": False,
+        },
+    )
+    conn2 = _mock_connection()
+    await call_ws_handler(
+        ws_set_adaptive,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/set_adaptive",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "enabled": False,
+        },
+    )
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    ac = state.get("adaptive_config", {})
+    assert ac["enabled"] is False
+    assert ac["ewa_alpha"] == 0.7  # kept
+    assert ac["seasonal_enabled"] is False  # kept

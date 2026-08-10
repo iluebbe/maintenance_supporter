@@ -30,6 +30,7 @@ const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
 interface CompoundConditionDraft {
   entityIds: string; // comma-separated raw input
   type: string; // threshold | counter | state_change | runtime
+  attribute: string; // "" = use the entity state
   above: string;
   below: string;
   forMinutes: string;
@@ -47,7 +48,7 @@ interface CompoundConditionDraft {
 
 function emptyCondition(): CompoundConditionDraft {
   return {
-    entityIds: "", type: "threshold", above: "", below: "", forMinutes: "0",
+    entityIds: "", type: "threshold", attribute: "", above: "", below: "", forMinutes: "0",
     targetValue: "", deltaMode: false, fromState: "", toState: "",
     targetChanges: "", runtimeHours: "", onStates: "", carry: {},
   };
@@ -56,7 +57,7 @@ function emptyCondition(): CompoundConditionDraft {
 /** Keys the compound editor owns via its own form fields — everything else
  *  travels through `carry` untouched. */
 const MANAGED_CONDITION_KEYS = new Set([
-  "entity_id", "entity_ids", "type",
+  "entity_id", "entity_ids", "type", "attribute",
   "trigger_above", "trigger_below", "trigger_for_minutes",
   "trigger_target_value", "trigger_delta_mode",
   "trigger_from_state", "trigger_to_state", "trigger_target_changes",
@@ -69,6 +70,7 @@ function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
   return {
     entityIds: ids.join(", "),
     type: c.type || "threshold",
+    attribute: c.attribute || "",
     above: c.trigger_above?.toString() ?? "",
     below: c.trigger_below?.toString() ?? "",
     forMinutes: c.trigger_for_minutes?.toString() ?? "0",
@@ -91,6 +93,7 @@ function draftToCondition(d: CompoundConditionDraft): TriggerConfig | null {
   const ids = d.entityIds.split(",").map((s) => s.trim()).filter(Boolean);
   if (ids.length === 0) return null;
   const c: TriggerConfig = { ...(d.carry || {}), entity_id: ids[0], entity_ids: ids, type: d.type };
+  if (d.attribute) c.attribute = d.attribute;
   if (d.type === "threshold") {
     const a = parseFloat(d.above); if (!isNaN(a)) c.trigger_above = a;
     const b = parseFloat(d.below); if (!isNaN(b)) c.trigger_below = b;
@@ -273,6 +276,22 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _environmentalAttribute = "";
   private _environmentalInitial = ""; // for change detection on save
   private _environmentalAttributeInitial = "";
+  // Adaptive tuning (parity with the options flow's adaptive step) — Store-
+  // managed like the environmental binding, saved through task/set_adaptive.
+  @state() private _adaptiveEnabled = false;
+  @state() private _adaptiveAlpha = "0.3";
+  @state() private _adaptiveMin = "7";
+  @state() private _adaptiveMax = "365";
+  @state() private _adaptiveSeasonal = true;
+  @state() private _adaptivePrediction = true;
+  private _adaptiveInitial = "";
+
+  private _adaptiveSnapshot(): string {
+    return JSON.stringify([
+      this._adaptiveEnabled, this._adaptiveAlpha, this._adaptiveMin,
+      this._adaptiveMax, this._adaptiveSeasonal, this._adaptivePrediction,
+    ]);
+  }
   private _userService: UserService | null = null;
 
   private get _lang(): string {
@@ -384,6 +403,13 @@ export class MaintenanceTaskDialog extends LitElement {
     this._environmentalAttribute = ac.environmental_attribute || "";
     this._environmentalInitial = this._environmentalEntity;
     this._environmentalAttributeInitial = this._environmentalAttribute;
+    this._adaptiveEnabled = !!ac.enabled;
+    this._adaptiveAlpha = (ac.ewa_alpha ?? 0.3).toString();
+    this._adaptiveMin = (ac.min_interval_days ?? 7).toString();
+    this._adaptiveMax = (ac.max_interval_days ?? 365).toString();
+    this._adaptiveSeasonal = ac.seasonal_enabled !== false;
+    this._adaptivePrediction = ac.sensor_prediction_enabled !== false;
+    this._adaptiveInitial = this._adaptiveSnapshot();
 
     if (task.trigger_config) {
       const tc = task.trigger_config;
@@ -470,6 +496,13 @@ export class MaintenanceTaskDialog extends LitElement {
     this._environmentalAttribute = "";
     this._environmentalInitial = "";
     this._environmentalAttributeInitial = "";
+    this._adaptiveEnabled = false;
+    this._adaptiveAlpha = "0.3";
+    this._adaptiveMin = "7";
+    this._adaptiveMax = "365";
+    this._adaptiveSeasonal = true;
+    this._adaptivePrediction = true;
+    this._adaptiveInitial = this._adaptiveSnapshot();
     // v1.3.0
     this._actionService = "";
     this._actionTargetEntity = "";
@@ -812,6 +845,46 @@ export class MaintenanceTaskDialog extends LitElement {
     }
   }
 
+  /** Per-entity attribute options for compound condition rows — keyed by
+   *  entity_id, fetched lazily when a condition's first entity is known.
+   *  (Parity round: the flow's compound path always had an attribute step;
+   *  the dialog only carried a stored attribute without an editor.) */
+  @state() private _conditionAttrOptions: Record<
+    string,
+    { suggested: string[]; available: Array<{ name: string; numeric: boolean }> }
+  > = {};
+  private _conditionAttrPending = new Set<string>();
+
+  private _fetchConditionAttributes(entityId: string): void {
+    if (!entityId || !this.hass) return;
+    if (this._conditionAttrOptions[entityId] || this._conditionAttrPending.has(entityId)) return;
+    this._conditionAttrPending.add(entityId);
+    void this.hass.connection
+      .sendMessagePromise({
+        type: "maintenance_supporter/entity/attributes",
+        entity_id: entityId,
+      })
+      .then((result) => {
+        const r = result as {
+          suggested_attributes: string[];
+          available_attributes: Array<{ name: string; numeric: boolean }>;
+        };
+        this._conditionAttrOptions = {
+          ...this._conditionAttrOptions,
+          [entityId]: {
+            suggested: r.suggested_attributes || [],
+            available: r.available_attributes || [],
+          },
+        };
+      })
+      .catch(() => {
+        this._conditionAttrOptions = {
+          ...this._conditionAttrOptions,
+          [entityId]: { suggested: [], available: [] },
+        };
+      });
+  }
+
   private async _fetchEntityAttributes(entityId: string): Promise<void> {
     if (!entityId || !this.hass) {
       this._suggestedAttributes = [];
@@ -904,6 +977,14 @@ export class MaintenanceTaskDialog extends LitElement {
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
     if (!this._name.trim()) return;
+    if (this._adaptiveSnapshot() !== this._adaptiveInitial) {
+      const minIv = parseInt(this._adaptiveMin, 10);
+      const maxIv = parseInt(this._adaptiveMax, 10);
+      if (!isNaN(minIv) && !isNaN(maxIv) && minIv > maxIv) {
+        this._error = `${t("adaptive_min_interval", this._lang)} > ${t("adaptive_max_interval", this._lang)}`;
+        return;
+      }
+    }
     this._loading = true;
     this._error = "";
     try {
@@ -1126,6 +1207,30 @@ export class MaintenanceTaskDialog extends LitElement {
         }
       }
 
+      // Adaptive tuning is Store-managed like the environmental binding —
+      // dedicated endpoint, only called when something actually changed.
+      if (savedTaskId && this._adaptiveSnapshot() !== this._adaptiveInitial) {
+        const alpha = parseFloat(this._adaptiveAlpha);
+        const minIv = parseInt(this._adaptiveMin, 10);
+        const maxIv = parseInt(this._adaptiveMax, 10);
+        try {
+          await this.hass.connection.sendMessagePromise({
+            type: "maintenance_supporter/task/set_adaptive",
+            entry_id: this._entryId,
+            task_id: savedTaskId,
+            enabled: this._adaptiveEnabled,
+            ...(alpha >= 0.1 && alpha <= 0.9 ? { ewa_alpha: alpha } : {}),
+            ...(!isNaN(minIv) && minIv >= 1 ? { min_interval_days: minIv } : {}),
+            ...(!isNaN(maxIv) && maxIv >= 1 ? { max_interval_days: maxIv } : {}),
+            seasonal_enabled: this._adaptiveSeasonal,
+            sensor_prediction_enabled: this._adaptivePrediction,
+          });
+          this._adaptiveInitial = this._adaptiveSnapshot();
+        } catch {
+          /* non-fatal — task itself saved */
+        }
+      }
+
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-saved"));
     } catch (e) {
@@ -1334,6 +1439,7 @@ export class MaintenanceTaskDialog extends LitElement {
             this._patchCondition(i, { entityIds: ids.join(", ") });
           }}
         ></ha-form>`}
+        ${this._renderConditionAttribute(c, i)}
         <div class="select-row">
           <label>${t("trigger_type", L)}</label>
           <select
@@ -1347,6 +1453,104 @@ export class MaintenanceTaskDialog extends LitElement {
         </div>
         ${this._renderConditionTypeFields(c, i)}
       </div>
+    `;
+  }
+
+  /** Adaptive-scheduling tuning (parity with the options flow's adaptive
+   *  step). Hidden for one-time/manual tasks — there is no recurrence to
+   *  adapt. Collapsed unless adaptive is already enabled. */
+  private _renderAdaptiveSection(L: string) {
+    if (this._scheduleType === "one_time" || this._scheduleType === "manual") return nothing;
+    return html`
+      <details class="adaptive-section" ?open=${this._adaptiveEnabled}>
+        <summary>${t("adaptive_section_title", L)}</summary>
+        <label>
+          <input
+            type="checkbox"
+            .checked=${this._adaptiveEnabled}
+            @change=${(e: Event) => (this._adaptiveEnabled = (e.target as HTMLInputElement).checked)}
+          />
+          ${t("adaptive_enabled", L)}
+        </label>
+        ${this._adaptiveEnabled ? html`
+          <ms-textfield
+            label="${t("adaptive_min_interval", L)}"
+            type="number"
+            min="1"
+            .value=${this._adaptiveMin}
+            @input=${(e: Event) => (this._adaptiveMin = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ms-textfield
+            label="${t("adaptive_max_interval", L)}"
+            type="number"
+            min="1"
+            .value=${this._adaptiveMax}
+            @input=${(e: Event) => (this._adaptiveMax = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ms-textfield
+            label="${t("adaptive_ewa_alpha", L)}"
+            type="number"
+            min="0.1"
+            max="0.9"
+            step="0.1"
+            .value=${this._adaptiveAlpha}
+            @input=${(e: Event) => (this._adaptiveAlpha = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <label>
+            <input
+              type="checkbox"
+              .checked=${this._adaptiveSeasonal}
+              @change=${(e: Event) => (this._adaptiveSeasonal = (e.target as HTMLInputElement).checked)}
+            />
+            ${t("adaptive_seasonal_enabled", L)}
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              .checked=${this._adaptivePrediction}
+              @change=${(e: Event) => (this._adaptivePrediction = (e.target as HTMLInputElement).checked)}
+            />
+            ${t("adaptive_prediction_enabled", L)}
+          </label>
+        ` : nothing}
+      </details>
+    `;
+  }
+
+  /** Attribute selector for one compound condition — the same live-fetched
+   *  dropdown the flat editor has, keyed by the condition's first entity. */
+  private _renderConditionAttribute(c: CompoundConditionDraft, i: number) {
+    const L = this._lang;
+    const firstId = c.entityIds.split(",")[0]?.trim() || "";
+    if (firstId) this._fetchConditionAttributes(firstId);
+    const opts = firstId ? this._conditionAttrOptions[firstId] : undefined;
+    if (opts && opts.available.length > 0) {
+      return html`
+        <div class="select-row">
+          <label>${t("attribute_optional", L)}</label>
+          <select
+            .value=${c.attribute}
+            @change=${(e: Event) => this._patchCondition(i, { attribute: (e.target as HTMLSelectElement).value })}
+          >
+            <option value="" ?selected=${!c.attribute}>${t("use_entity_state", L)}</option>
+            ${opts.suggested.map(
+              (attr) => html`<option value=${attr} ?selected=${attr === c.attribute}>${attr} ★</option>`
+            )}
+            ${opts.available
+              .filter((a) => !opts.suggested.includes(a.name))
+              .map(
+                (a) => html`<option value=${a.name} ?selected=${a.name === c.attribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
+              )}
+          </select>
+        </div>
+      `;
+    }
+    return html`
+      <ms-textfield
+        label="${t("attribute_optional", L)}"
+        .value=${c.attribute}
+        @input=${(e: Event) => this._patchCondition(i, { attribute: (e.target as HTMLInputElement).value.trim() })}
+      ></ms-textfield>
     `;
   }
 
@@ -2208,6 +2412,7 @@ export class MaintenanceTaskDialog extends LitElement {
               ></ms-textfield>
             ` : nothing}
           ` : nothing}
+          ${this._renderAdaptiveSection(L)}
           <ms-textfield
             label="${t("notes_optional", L)}"
             .value=${this._notes}
@@ -2292,16 +2497,28 @@ export class MaintenanceTaskDialog extends LitElement {
       display: block;
       margin: 8px 0;
     }
-    /* v1.3.0: completion-action sections */
-    .ca-section {
+    /* v1.3.0: completion-action sections (.adaptive-section shares the shell
+       but keeps its own class — tests count .ca-section elements) */
+    .ca-section,
+    .adaptive-section {
       border: 1px solid var(--divider-color);
       border-radius: 6px;
       padding: 8px 12px;
       margin-top: 8px;
     }
-    .ca-section > summary {
+    .ca-section > summary,
+    .adaptive-section > summary {
       cursor: pointer;
       font-weight: 500;
+    }
+    .adaptive-section ms-textfield {
+      width: 100%;
+      margin-top: 8px;
+      display: block;
+    }
+    .adaptive-section label {
+      display: block;
+      margin-top: 8px;
     }
     .ca-section ms-textfield,
     .ca-section ha-entity-picker,

@@ -230,7 +230,8 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "trigger_above": "값이 이 임계값을 초과하면 유지보수를 트리거합니다.",
@@ -251,7 +252,9 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료",
+          "trigger_baseline_value": "시작 값 (선택)"
         },
         "data_description": {
           "trigger_target_value": "이 누적 값에 도달하면 유지보수를 트리거합니다.",
@@ -272,7 +275,8 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "trigger_from_state": "이 상태에서의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
@@ -293,7 +297,8 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 유지보수를 트리거합니다.",
@@ -309,7 +314,8 @@
         "description": "여러 조건을 결합하는 방식을 선택하세요.",
         "data": {
           "compound_logic": "논리",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "compound_logic": "AND = 모든 조건이 트리거되어야 합니다. OR = 어느 한 조건만 트리거되면 됩니다.",
@@ -720,7 +726,8 @@
         "description": "여러 조건을 결합하는 방식을 선택하세요.",
         "data": {
           "compound_logic": "논리",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "compound_logic": "AND = 모든 조건이 트리거되어야 합니다. OR = 어느 한 조건만 트리거되면 됩니다."
@@ -999,7 +1006,8 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "trigger_above": "값이 이 임계값을 초과하면 유지보수를 트리거합니다.",
@@ -1019,7 +1027,9 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료",
+          "trigger_baseline_value": "시작 값 (선택)"
         },
         "data_description": {
           "trigger_target_value": "이 누적 값에 도달하면 유지보수를 트리거합니다.",
@@ -1039,7 +1049,8 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "trigger_from_state": "이 상태에서의 전환만 셉니다. 비워 두면 모든 상태가 포함됩니다.",
@@ -1059,7 +1070,8 @@
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "warning_days": "기한 전 경고 일수",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
         },
         "data_description": {
           "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 유지보수를 트리거합니다.",

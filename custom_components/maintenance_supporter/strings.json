@@ -230,7 +230,8 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "trigger_above": "Trigger maintenance when value exceeds this threshold.",
@@ -251,7 +252,9 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers",
+          "trigger_baseline_value": "Start reading (optional)"
         },
         "data_description": {
           "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
@@ -272,7 +275,8 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
@@ -293,7 +297,8 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
@@ -309,7 +314,8 @@
         "description": "Choose how multiple conditions should be combined.",
         "data": {
           "compound_logic": "Logic",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "compound_logic": "AND = all conditions must trigger. OR = any condition triggers.",
@@ -882,7 +888,8 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "trigger_above": "Trigger maintenance when value exceeds this threshold.",
@@ -902,7 +909,9 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers",
+          "trigger_baseline_value": "Start reading (optional)"
         },
         "data_description": {
           "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
@@ -922,7 +931,8 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
@@ -942,7 +952,8 @@
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
@@ -957,7 +968,8 @@
         "description": "Choose how multiple conditions should be combined.",
         "data": {
           "compound_logic": "Logic",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
         },
         "data_description": {
           "compound_logic": "AND = all conditions must trigger. OR = any condition triggers."

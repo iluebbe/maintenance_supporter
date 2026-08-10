@@ -9,6 +9,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import (
+    ADAPTIVE_MIN_INTERVAL_CAP_DAYS,
     CONF_TASKS,
     DOMAIN,
     MAX_ENTITY_ID_LENGTH,
@@ -272,3 +273,81 @@ async def ws_set_environmental_entity(
             "environmental_attribute": env_attribute,
         },
     )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/task/set_adaptive",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("enabled"): bool,
+        vol.Optional("ewa_alpha"): vol.All(vol.Coerce(float), vol.Range(min=0.1, max=0.9)),
+        vol.Optional("min_interval_days"): vol.All(int, vol.Range(min=1, max=ADAPTIVE_MIN_INTERVAL_CAP_DAYS)),
+        vol.Optional("max_interval_days"): vol.All(int, vol.Range(min=1, max=INTERVAL_DAYS_RANGE[1])),
+        vol.Optional("seasonal_enabled"): bool,
+        vol.Optional("sensor_prediction_enabled"): bool,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_set_adaptive(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Set the adaptive-scheduling tuning for a task (dialog parity with the
+    options flow's adaptive step). The environmental binding has its own
+    endpoint above; omitted optional fields keep their stored values."""
+    from ..helpers.schedule import read_legacy_fields
+
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    task_id = msg["task_id"]
+    tasks_data = _get_merged_tasks(entry)
+    if task_id not in tasks_data:
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+
+    adaptive_config = dict(tasks_data[task_id].get("adaptive_config", {}))
+    adaptive_config["enabled"] = msg["enabled"]
+    for src, dst in (
+        ("ewa_alpha", "ewa_alpha"),
+        ("min_interval_days", "min_interval_days"),
+        ("max_interval_days", "max_interval_days"),
+        ("seasonal_enabled", "seasonal_enabled"),
+        ("sensor_prediction_enabled", "sensor_prediction_enabled"),
+    ):
+        if src in msg:
+            adaptive_config[dst] = msg[src]
+
+    min_iv = adaptive_config.get("min_interval_days")
+    max_iv = adaptive_config.get("max_interval_days")
+    if min_iv is not None and max_iv is not None and min_iv > max_iv:
+        connection.send_error(msg["id"], "invalid_format", "min_interval_days exceeds max_interval_days")
+        return
+
+    # Same base_interval seeding as the options flow's adaptive step.
+    if "base_interval" not in adaptive_config:
+        base = read_legacy_fields(tasks_data[task_id])["interval_days"]
+        adaptive_config["base_interval"] = base if base is not None else 30
+
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        store.set_adaptive_config(task_id, adaptive_config)
+        store.async_delay_save()
+    else:
+        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
+        task = dict(static_tasks[task_id])
+        task["adaptive_config"] = adaptive_config
+        static_tasks[task_id] = task
+        new_data = dict(entry.data)
+        new_data[CONF_TASKS] = static_tasks
+        hass.config_entries.async_update_entry(entry, data=new_data)
+
+    if rd and rd.coordinator:
+        await rd.coordinator.async_refresh_now()
+
+    connection.send_result(msg["id"], {"success": True, "adaptive_config": adaptive_config})

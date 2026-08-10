@@ -403,6 +403,9 @@ CONF_ADAPTIVE_ENABLED = "adaptive_enabled"
 CONF_ADAPTIVE_EWA_ALPHA = "ewa_alpha"
 CONF_ADAPTIVE_MIN_INTERVAL = "min_interval_days"
 CONF_ADAPTIVE_MAX_INTERVAL = "max_interval_days"
+# Deliberate cap: a MINIMUM interval above a year defeats adaptive learning.
+# Shared by the options flow's adaptive step and the task/set_adaptive WS.
+ADAPTIVE_MIN_INTERVAL_CAP_DAYS = 365
 
 # --- Config Keys: Seasonal Scheduling ---
 CONF_SEASONAL_ENABLED = "seasonal_enabled"

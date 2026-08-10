@@ -6,6 +6,23 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Changed
 
+- **Dialog ⇄ config-flow parity round.** The task dialog and the
+  integration's config flow are two UIs over the same task — three gaps
+  between them are now closed:
+  - **Adaptive scheduling moved into the dialog**: a collapsible section
+    with the same controls the options flow has offered (enable, learning
+    rate, min/max interval, seasonal awareness, sensor predictions),
+    persisted through a new `task/set_adaptive` WS command (86 commands
+    now). Labels reuse the existing flow translations in all 22 languages.
+  - **The config flow can now edit the recovery flag and the counter
+    baseline**: "Auto-complete when the sensor recovers" (#53) appears on
+    every trigger-type step (and compound), and the counter step gained the
+    counting start value — both used to be carry-only fields the flow
+    preserved but could not change.
+  - **Compound conditions gained an attribute selector in the dialog** —
+    the same live-fetched dropdown the flat trigger editor has, per
+    condition; previously a stored attribute survived edits but could not
+    be changed outside the flow.
 - **Entity pickers for sensor-based tasks** (#129, thanks @byoung79). The
   task dialog's trigger entity field, each compound-condition row, and the
   environmental-entity field now use Home Assistant's native entity picker

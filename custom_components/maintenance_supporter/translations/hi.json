@@ -230,7 +230,8 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "trigger_above": "मान इस थ्रेशोल्ड से अधिक होने पर रखरखाव ट्रिगर करें।",
@@ -251,7 +252,9 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें",
+          "trigger_baseline_value": "प्रारंभिक मान (वैकल्पिक)"
         },
         "data_description": {
           "trigger_target_value": "यह संचित मान पहुँचने पर रखरखाव ट्रिगर करें।",
@@ -272,7 +275,8 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "trigger_from_state": "केवल इस स्थिति से संक्रमण गिनें। किसी भी के लिए खाली छोड़ें।",
@@ -293,7 +297,8 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "trigger_runtime_hours": "इतने घंटे के संचित रनटाइम के बाद रखरखाव ट्रिगर करें।",
@@ -309,7 +314,8 @@
         "description": "चुनें कि कई शर्तों को कैसे संयोजित किया जाना चाहिए।",
         "data": {
           "compound_logic": "तर्क",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "compound_logic": "AND = सभी शर्तों का ट्रिगर होना आवश्यक है। OR = कोई भी शर्त ट्रिगर करती है।",
@@ -720,7 +726,8 @@
         "description": "चुनें कि कई शर्तों को कैसे संयोजित किया जाना चाहिए।",
         "data": {
           "compound_logic": "तर्क",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "compound_logic": "AND = सभी शर्तों का ट्रिगर होना आवश्यक है। OR = कोई भी शर्त ट्रिगर करती है।"
@@ -999,7 +1006,8 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "trigger_above": "मान इस थ्रेशोल्ड से अधिक होने पर रखरखाव ट्रिगर करें।",
@@ -1019,7 +1027,9 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें",
+          "trigger_baseline_value": "प्रारंभिक मान (वैकल्पिक)"
         },
         "data_description": {
           "trigger_target_value": "यह संचित मान पहुँचने पर रखरखाव ट्रिगर करें।",
@@ -1039,7 +1049,8 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "trigger_from_state": "केवल इस स्थिति से संक्रमण गिनें। किसी भी के लिए खाली छोड़ें।",
@@ -1059,7 +1070,8 @@
           "interval_days": "सुरक्षा अंतराल",
           "interval_unit": "अंतराल इकाई",
           "warning_days": "देय होने से पहले चेतावनी दिन",
-          "go_back": "वापस जाएँ"
+          "go_back": "वापस जाएँ",
+          "auto_complete_on_recovery": "सेंसर ठीक होने पर स्वतः पूर्ण करें"
         },
         "data_description": {
           "trigger_runtime_hours": "इतने घंटे के संचित रनटाइम के बाद रखरखाव ट्रिगर करें।",

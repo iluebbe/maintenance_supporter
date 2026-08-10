@@ -230,7 +230,8 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "trigger_above": "A karbantartás kiváltása, ha az érték túllépi ezt a küszöböt.",
@@ -251,7 +252,9 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll",
+          "trigger_baseline_value": "Kezdő leolvasás (opcionális)"
         },
         "data_description": {
           "trigger_target_value": "A karbantartás kiváltása, amikor ez a felhalmozott érték elérésre kerül.",
@@ -272,7 +275,8 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "trigger_from_state": "Csak az ebből az állapotból induló átmenetek számítanak. Hagyja üresen, ha bármelyik.",
@@ -293,7 +297,8 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "trigger_runtime_hours": "A karbantartás kiváltása ennyi óra összesített üzemidő után.",
@@ -309,7 +314,8 @@
         "description": "Válassza ki, hogyan legyenek a feltételek kombinálva.",
         "data": {
           "compound_logic": "Logika",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "compound_logic": "ÉS = minden feltételnek teljesülnie kell. VAGY = bármely feltétel kivált.",
@@ -720,7 +726,8 @@
         "description": "Válassza ki, hogyan legyenek a feltételek kombinálva.",
         "data": {
           "compound_logic": "Logika",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "compound_logic": "ÉS = minden feltételnek teljesülnie kell. VAGY = bármely feltétel kivált."
@@ -999,7 +1006,8 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "trigger_above": "A karbantartás kiváltása, ha az érték túllépi ezt a küszöböt.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll",
+          "trigger_baseline_value": "Kezdő leolvasás (opcionális)"
         },
         "data_description": {
           "trigger_target_value": "A karbantartás kiváltása, amikor ez a felhalmozott érték elérésre kerül.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "trigger_from_state": "Csak az ebből az állapotból induló átmenetek számítanak. Hagyja üresen, ha bármelyik.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
         },
         "data_description": {
           "trigger_runtime_hours": "A karbantartás kiváltása ennyi óra összesített üzemidő után.",

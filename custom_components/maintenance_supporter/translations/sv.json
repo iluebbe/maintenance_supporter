@@ -230,7 +230,8 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "trigger_above": "Utlös underhåll när värdet överskrider denna tröskel.",
@@ -251,7 +252,9 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig",
+          "trigger_baseline_value": "Startvärde (valfritt)"
         },
         "data_description": {
           "trigger_target_value": "Utlös underhåll när detta ackumulerade värde nås.",
@@ -272,7 +275,8 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "trigger_from_state": "Räkna endast övergångar från detta tillstånd. Lämna tomt för alla.",
@@ -293,7 +297,8 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "trigger_runtime_hours": "Utlös underhåll efter så här många timmar ackumulerad körtid.",
@@ -309,7 +314,8 @@
         "description": "Välj hur flera villkor ska kombineras.",
         "data": {
           "compound_logic": "Logik",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "compound_logic": "AND = alla villkor måste utlösa. OR = vilket som helst villkor utlöser.",
@@ -720,7 +726,8 @@
         "description": "Välj hur flera villkor ska kombineras.",
         "data": {
           "compound_logic": "Logik",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "compound_logic": "AND = alla villkor måste utlösa. OR = vilket som helst villkor utlöser."
@@ -999,7 +1006,8 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "trigger_above": "Utlös underhåll när värdet överskrider denna tröskel.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig",
+          "trigger_baseline_value": "Startvärde (valfritt)"
         },
         "data_description": {
           "trigger_target_value": "Utlös underhåll när detta ackumulerade värde nås.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "trigger_from_state": "Räkna endast övergångar från detta tillstånd. Lämna tomt för alla.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
         },
         "data_description": {
           "trigger_runtime_hours": "Utlös underhåll efter så här många timmar ackumulerad körtid.",

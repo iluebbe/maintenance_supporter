@@ -230,7 +230,8 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "trigger_above": "Laukaise huolto, kun arvo ylittää tämän kynnysarvon.",
@@ -251,7 +252,9 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu",
+          "trigger_baseline_value": "Aloitusarvo (valinnainen)"
         },
         "data_description": {
           "trigger_target_value": "Laukaise huolto, kun tämä kertynyt arvo saavutetaan.",
@@ -272,7 +275,8 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "trigger_from_state": "Laske vain siirtymät tästä tilasta. Jätä tyhjäksi, jos mikä tahansa käy.",
@@ -293,7 +297,8 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "trigger_runtime_hours": "Laukaise huolto tämän kertyneen käyntiaikatuntimäärän jälkeen.",
@@ -309,7 +314,8 @@
         "description": "Valitse, miten useat ehdot yhdistetään.",
         "data": {
           "compound_logic": "Logiikka",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "compound_logic": "JA = kaikkien ehtojen on lauettava. TAI = mikä tahansa ehto laukaisee.",
@@ -720,7 +726,8 @@
         "description": "Valitse, miten useat ehdot yhdistetään.",
         "data": {
           "compound_logic": "Logiikka",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "compound_logic": "JA = kaikkien ehtojen on lauettava. TAI = mikä tahansa ehto laukaisee."
@@ -999,7 +1006,8 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "trigger_above": "Laukaise huolto, kun arvo ylittää tämän kynnysarvon.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu",
+          "trigger_baseline_value": "Aloitusarvo (valinnainen)"
         },
         "data_description": {
           "trigger_target_value": "Laukaise huolto, kun tämä kertynyt arvo saavutetaan.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "trigger_from_state": "Laske vain siirtymät tästä tilasta. Jätä tyhjäksi, jos mikä tahansa käy.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
         },
         "data_description": {
           "trigger_runtime_hours": "Laukaise huolto tämän kertyneen käyntiaikatuntimäärän jälkeen.",

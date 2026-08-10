@@ -512,6 +512,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_analyze_interval,
         ws_apply_suggestion,
         ws_seasonal_overrides,
+        ws_set_adaptive,
         ws_set_environmental_entity,
     )
     from .battery_fleet import (
@@ -681,6 +682,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_analyze_interval)
     websocket_api.async_register_command(hass, ws_apply_suggestion)
     websocket_api.async_register_command(hass, ws_seasonal_overrides)
+    websocket_api.async_register_command(hass, ws_set_adaptive)
     websocket_api.async_register_command(hass, ws_set_environmental_entity)
     websocket_api.async_register_command(hass, ws_generate_qr)
     websocket_api.async_register_command(hass, ws_batch_generate_qr)

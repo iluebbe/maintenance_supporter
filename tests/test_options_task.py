@@ -3172,3 +3172,71 @@ async def test_edit_task_sets_season_and_finite_series(
     assert sched.get("every") == 14, sched
     assert sched.get("season_months") == [4, 5, 6, 7, 8, 9, 10]
     assert sched.get("ends") == {"count": 6}
+
+
+# ─── parity round: recovery flag + counter baseline editable in the flow ─────
+
+
+async def test_trigger_counter_recovery_and_baseline_editable(
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
+) -> None:
+    """The #53 recovery flag and the counting start value used to be carry-only
+    in the flow (panel-managed); both are now real form fields."""
+    hass.states.async_set("sensor.cov97b_counter", "50")
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
+
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "add_task"}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "name": "Recovery Counter Task",
+            "type": MaintenanceTypeEnum.INSPECTION,
+            "schedule_type": ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"trigger_entity": ["sensor.cov97b_counter"]}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"trigger_attribute": "_state"}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"trigger_type": "counter"}
+    )
+    assert result["step_id"] == "opt_trigger_counter"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "trigger_target_value": 1000,
+            "trigger_delta_mode": True,
+            "trigger_baseline_value": 500,
+            "auto_complete_on_recovery": True,
+            "interval_days": 90,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    entry = hass.config_entries.async_get_entry(cov97b_object_entry.entry_id)
+    tasks = entry.data.get("tasks", {})
+    task = next(t for t in tasks.values() if t.get("name") == "Recovery Counter Task")
+    tc = task["trigger_config"]
+    assert tc["auto_complete_on_recovery"] is True
+    assert tc["trigger_baseline_value"] == 500
+    assert tc["trigger_delta_mode"] is True
+
+
+def test_apply_recovery_flag_clears_on_unchecked() -> None:
+    """Unchecking the box must REMOVE the stored flag (absence means off) —
+    the old carry-hack would have resurrected it forever."""
+    from custom_components.maintenance_supporter.config_flow_trigger import _apply_recovery_flag
+
+    tc = {"type": "threshold", "auto_complete_on_recovery": True}
+    _apply_recovery_flag(tc, {"auto_complete_on_recovery": False})
+    assert "auto_complete_on_recovery" not in tc
+    _apply_recovery_flag(tc, {"auto_complete_on_recovery": True})
+    assert tc["auto_complete_on_recovery"] is True

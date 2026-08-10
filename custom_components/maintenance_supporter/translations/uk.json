@@ -230,7 +230,8 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "trigger_above": "Запустити обслуговування, коли значення перевищує цей поріг.",
@@ -251,7 +252,9 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика",
+          "trigger_baseline_value": "Початкове значення (необов'язково)"
         },
         "data_description": {
           "trigger_target_value": "Запустити обслуговування, коли досягнуто це накопичене значення.",
@@ -272,7 +275,8 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "trigger_from_state": "Підраховувати лише переходи з цього стану. Залиште порожнім для будь-якого.",
@@ -293,7 +297,8 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "trigger_runtime_hours": "Запустити обслуговування після накопичення цієї кількості годин роботи.",
@@ -309,7 +314,8 @@
         "description": "Оберіть, як поєднувати кілька умов.",
         "data": {
           "compound_logic": "Логіка",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "compound_logic": "AND = всі умови мають спрацювати. OR = достатньо однієї умови.",
@@ -720,7 +726,8 @@
         "description": "Оберіть, як поєднувати кілька умов.",
         "data": {
           "compound_logic": "Логіка",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "compound_logic": "AND = всі умови мають спрацювати. OR = достатньо однієї умови."
@@ -999,7 +1006,8 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "trigger_above": "Запустити обслуговування, коли значення перевищує цей поріг.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика",
+          "trigger_baseline_value": "Початкове значення (необов'язково)"
         },
         "data_description": {
           "trigger_target_value": "Запустити обслуговування, коли досягнуто це накопичене значення.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "trigger_from_state": "Підраховувати лише переходи з цього стану. Залиште порожнім для будь-якого.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Страховий інтервал",
           "interval_unit": "Одиниця інтервалу",
           "warning_days": "Днів попередження до терміну",
-          "go_back": "Назад"
+          "go_back": "Назад",
+          "auto_complete_on_recovery": "Автозавершення при відновленні датчика"
         },
         "data_description": {
           "trigger_runtime_hours": "Запустити обслуговування після накопичення цієї кількості годин роботи.",

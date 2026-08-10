@@ -29,10 +29,9 @@ from .helpers.task_fields import INTERVAL_DAYS_RANGE
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-# UI-only cap for the adaptive MINIMUM interval (one year). Deliberately not a
-# shared const: the adaptive min has no WS/schema twin to drift from — the
-# engine clamps recommendations to the per-task min/max pair itself.
-_ADAPTIVE_MIN_INTERVAL_CAP_DAYS = 365
+# Cap for the adaptive MINIMUM interval (one year). Shared with the
+# task/set_adaptive WS schema since the parity round — same field, two UIs.
+from .const import ADAPTIVE_MIN_INTERVAL_CAP_DAYS as _ADAPTIVE_MIN_INTERVAL_CAP_DAYS
 
 
 class AdaptiveMixin:

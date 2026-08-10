@@ -230,7 +230,8 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "trigger_above": "Değer bu eşiği aştığında bakımı tetikle.",
@@ -251,7 +252,9 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla",
+          "trigger_baseline_value": "Başlangıç okuması (isteğe bağlı)"
         },
         "data_description": {
           "trigger_target_value": "Bu birikmiş değere ulaşıldığında bakımı tetikle.",
@@ -272,7 +275,8 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "trigger_from_state": "Yalnızca bu durumdan yapılan geçişleri say. Herhangi biri için boş bırakın.",
@@ -293,7 +297,8 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra bakımı tetikle.",
@@ -309,7 +314,8 @@
         "description": "Birden çok koşulun nasıl birleştirileceğini seçin.",
         "data": {
           "compound_logic": "Mantık",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "compound_logic": "VE = tüm koşullar tetiklenmelidir. VEYA = herhangi bir koşul tetikler.",
@@ -720,7 +726,8 @@
         "description": "Birden çok koşulun nasıl birleştirileceğini seçin.",
         "data": {
           "compound_logic": "Mantık",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "compound_logic": "VE = tüm koşullar tetiklenmelidir. VEYA = herhangi bir koşul tetikler."
@@ -999,7 +1006,8 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "trigger_above": "Değer bu eşiği aştığında bakımı tetikle.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla",
+          "trigger_baseline_value": "Başlangıç okuması (isteğe bağlı)"
         },
         "data_description": {
           "trigger_target_value": "Bu birikmiş değere ulaşıldığında bakımı tetikle.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "trigger_from_state": "Yalnızca bu durumdan yapılan geçişleri say. Herhangi biri için boş bırakın.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "warning_days": "Vadeden önce uyarı günleri",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
         },
         "data_description": {
           "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra bakımı tetikle.",

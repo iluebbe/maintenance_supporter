@@ -230,7 +230,8 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
@@ -251,7 +252,9 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt",
+          "trigger_baseline_value": "Startwaarde (optioneel)"
         },
         "data_description": {
           "trigger_target_value": "Onderhoud activeren wanneer deze opgetelde waarde bereikt is.",
@@ -272,7 +275,8 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor elke status.",
@@ -293,7 +297,8 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren totale looptijd.",
@@ -309,7 +314,8 @@
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
         "data": {
           "compound_logic": "Logica",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert.",
@@ -720,7 +726,8 @@
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
         "data": {
           "compound_logic": "Logica",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert."
@@ -999,7 +1006,8 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt",
+          "trigger_baseline_value": "Startwaarde (optioneel)"
         },
         "data_description": {
           "trigger_target_value": "Onderhoud activeren wanneer deze gecumuleerde waarde is bereikt.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor alle.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
         },
         "data_description": {
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren gecumuleerde looptijd.",

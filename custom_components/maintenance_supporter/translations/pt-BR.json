@@ -230,7 +230,8 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "trigger_above": "Aciona a manutenção quando o valor ultrapassa este limite.",
@@ -251,7 +252,9 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar",
+          "trigger_baseline_value": "Leitura inicial (opcional)"
         },
         "data_description": {
           "trigger_target_value": "Aciona a manutenção quando este valor acumulado é atingido.",
@@ -272,7 +275,8 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "trigger_from_state": "Conta apenas transições a partir deste estado. Deixe vazio para qualquer um.",
@@ -293,7 +297,8 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "trigger_runtime_hours": "Aciona a manutenção após este número de horas de operação acumulada.",
@@ -309,7 +314,8 @@
         "description": "Escolha como as múltiplas condições devem ser combinadas.",
         "data": {
           "compound_logic": "Lógica",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "compound_logic": "E = todas as condições devem acionar. OU = qualquer condição aciona.",
@@ -720,7 +726,8 @@
         "description": "Escolha como as múltiplas condições devem ser combinadas.",
         "data": {
           "compound_logic": "Lógica",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "compound_logic": "E = todas as condições devem acionar. OU = qualquer condição aciona."
@@ -999,7 +1006,8 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "trigger_above": "Aciona a manutenção quando o valor ultrapassa este limite.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar",
+          "trigger_baseline_value": "Leitura inicial (opcional)"
         },
         "data_description": {
           "trigger_target_value": "Aciona a manutenção quando este valor acumulado é atingido.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "trigger_from_state": "Conta apenas transições a partir deste estado. Deixe vazio para qualquer um.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
         },
         "data_description": {
           "trigger_runtime_hours": "Aciona a manutenção após este número de horas de operação acumulada.",

@@ -230,7 +230,8 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "trigger_above": "Spustit údržbu, když hodnota překročí tento práh.",
@@ -251,7 +252,9 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru",
+          "trigger_baseline_value": "Počáteční hodnota (volitelné)"
         },
         "data_description": {
           "trigger_target_value": "Spustit údržbu, když je dosaženo této kumulované hodnoty.",
@@ -272,7 +275,8 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "trigger_from_state": "Počítat pouze přechody z tohoto stavu. Nechte prázdné pro libovolný.",
@@ -293,7 +297,8 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "trigger_runtime_hours": "Spustit údržbu po tolika hodinách kumulované doby běhu.",
@@ -309,7 +314,8 @@
         "description": "Vyberte, jak mají být kombinovány více podmínek.",
         "data": {
           "compound_logic": "Logika",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "compound_logic": "AND = všechny podmínky musí být splněny. OR = stačí jedna podmínka.",
@@ -720,7 +726,8 @@
         "description": "Vyberte, jak mají být kombinovány více podmínek.",
         "data": {
           "compound_logic": "Logika",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "compound_logic": "AND = všechny podmínky musí být splněny. OR = stačí jedna podmínka."
@@ -999,7 +1006,8 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "trigger_above": "Spustit údržbu, když hodnota překročí tento práh.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru",
+          "trigger_baseline_value": "Počáteční hodnota (volitelné)"
         },
         "data_description": {
           "trigger_target_value": "Spustit údržbu, když je dosaženo této kumulované hodnoty.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "trigger_from_state": "Počítat pouze přechody z tohoto stavu. Nechte prázdné pro libovolný.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
         },
         "data_description": {
           "trigger_runtime_hours": "Spustit údržbu po tolika hodinách kumulované doby běhu.",

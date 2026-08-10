@@ -230,7 +230,8 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "trigger_above": "Déclencher la maintenance lorsque la valeur dépasse ce seuil.",
@@ -251,7 +252,9 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit",
+          "trigger_baseline_value": "Valeur de départ (facultatif)"
         },
         "data_description": {
           "trigger_target_value": "Déclencher la maintenance lorsque cette valeur accumulée est atteinte.",
@@ -272,7 +275,8 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "trigger_from_state": "Compter uniquement les transitions depuis cet état. Laissez vide pour tous.",
@@ -293,7 +297,8 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "trigger_runtime_hours": "Déclencher la maintenance après ce nombre d'heures de fonctionnement cumulé.",
@@ -309,7 +314,8 @@
         "description": "Choisissez comment combiner les conditions multiples.",
         "data": {
           "compound_logic": "Logique",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "compound_logic": "ET = toutes les conditions doivent se déclencher. OU = n'importe quelle condition déclenche.",
@@ -720,7 +726,8 @@
         "description": "Choisissez comment combiner les conditions multiples.",
         "data": {
           "compound_logic": "Logique",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "compound_logic": "ET = toutes les conditions doivent se déclencher. OU = n'importe quelle condition déclenche."
@@ -999,7 +1006,8 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "trigger_above": "Déclencher la maintenance lorsque la valeur dépasse ce seuil.",
@@ -1019,7 +1027,9 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit",
+          "trigger_baseline_value": "Valeur de départ (facultatif)"
         },
         "data_description": {
           "trigger_target_value": "Déclencher la maintenance lorsque cette valeur accumulée est atteinte.",
@@ -1039,7 +1049,8 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "trigger_from_state": "Ne compter que les transitions depuis cet état. Laisser vide pour tous.",
@@ -1059,7 +1070,8 @@
           "interval_days": "Intervalle de sécurité",
           "interval_unit": "Unité d'intervalle",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit"
         },
         "data_description": {
           "trigger_runtime_hours": "Déclencher la maintenance après ce nombre d'heures de temps de fonctionnement cumulé.",
