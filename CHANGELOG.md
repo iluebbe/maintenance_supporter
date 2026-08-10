@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Changed
+
+- **Entity pickers for sensor-based tasks** (#129, thanks @byoung79). The
+  task dialog's trigger entity field, each compound-condition row, and the
+  environmental-entity field now use Home Assistant's native entity picker
+  (search, multi-select, domain filtering) instead of comma-separated text
+  inputs — matching what the config flow has offered all along. The domain
+  filter mirrors the config flow's and is pinned by a parity test. In
+  contexts where HA's picker cannot render (some card-mounted dialogs),
+  the dialog detects the failed layout and falls back to the previous
+  text fields automatically.
+
 ## [2.55.0] - 2026-08-09
 
 ### ✨ Added

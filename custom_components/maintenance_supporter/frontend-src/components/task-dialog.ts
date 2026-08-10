@@ -6,6 +6,11 @@ import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TaskPartLink, Trig
 import { formatDate, t, weekdayName } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
+import {
+  ENVIRONMENTAL_PICKER_DEVICE_CLASSES,
+  ENVIRONMENTAL_PICKER_DOMAINS,
+  TRIGGER_PICKER_DOMAINS,
+} from "../helpers/trigger-domains";
 
 import { describeWsError } from "../ws-errors";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
@@ -133,6 +138,11 @@ export class MaintenanceTaskDialog extends LitElement {
     parts: Array<{ id: string; name: string; unit?: string }>;
   }> = [];
   @state() private _open = false;
+  // #129: flips the trigger entity pickers back to comma text fields when the
+  // HA picker fails to lay out in this mount context (see _probeEntityPickers).
+  @state() private _entityPickerFallback = false;
+  private _pickerProbeTimer: ReturnType<typeof setTimeout> | undefined;
+  private _pickerProbeStrikes = 0;
   @state() private _loading = false;
   @state() private _error = "";
   @state() private _entryId = "";
@@ -1127,6 +1137,11 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private _close(): void {
     this._open = false;
+    if (this._pickerProbeTimer !== undefined) {
+      clearTimeout(this._pickerProbeTimer);
+      this._pickerProbeTimer = undefined;
+    }
+    this._pickerProbeStrikes = 0;
   }
 
   private _renderTriggerFields() {
@@ -1148,17 +1163,40 @@ export class MaintenanceTaskDialog extends LitElement {
         </select>
       </div>
       ${isCompound ? this._renderCompoundEditor() : html`
-        <ms-textfield
-          label="${t("entity_id", L)} (${t("comma_separated", L)})"
-          .value=${this._triggerEntityIds.length > 0 ? this._triggerEntityIds.join(", ") : this._triggerEntityId}
-          @input=${(e: Event) => {
-            const raw = (e.target as HTMLInputElement).value;
-            const ids = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+        ${this._entityPickerFallback ? html`
+          <ms-textfield
+            label="${t("entity_id", L)} (${t("comma_separated", L)})"
+            .value=${this._triggerEntityIds.length > 0 ? this._triggerEntityIds.join(", ") : this._triggerEntityId}
+            @input=${(e: Event) => {
+              const raw = (e.target as HTMLInputElement).value;
+              const ids = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+              this._triggerEntityId = ids[0] || "";
+              this._triggerEntityIds = ids;
+              if (ids[0]) this._fetchEntityAttributes(ids[0]);
+            }}
+          ></ms-textfield>
+        ` : html`
+        <ha-form
+          class="entity-picker-form"
+          .hass=${this.hass}
+          .schema=${[{
+            name: "trigger_entities",
+            selector: { entity: { multiple: true, domain: TRIGGER_PICKER_DOMAINS } },
+          }]}
+          .data=${{
+            trigger_entities: this._triggerEntityIds.length > 0
+              ? this._triggerEntityIds
+              : this._triggerEntityId ? [this._triggerEntityId] : [],
+          }}
+          .computeLabel=${() => t("entity_id", L)}
+          @value-changed=${(e: CustomEvent) => {
+            const ids = ((e.detail.value as { trigger_entities?: string[] }).trigger_entities || []).filter(Boolean);
             this._triggerEntityId = ids[0] || "";
             this._triggerEntityIds = ids;
             if (ids[0]) this._fetchEntityAttributes(ids[0]);
+            else this._fetchEntityAttributes("");
           }}
-        ></ms-textfield>
+        ></ha-form>`}
         ${this._triggerEntityIds.length > 1 ? html`
           <div class="select-row">
             <label>${t("entity_logic", L)}</label>
@@ -1275,11 +1313,27 @@ export class MaintenanceTaskDialog extends LitElement {
             @click=${() => this._removeCondition(i)}
           >✕</button>
         </div>
-        <ms-textfield
-          label="${t("entity_id", L)} (${t("comma_separated", L)})"
-          .value=${c.entityIds}
-          @input=${(e: Event) => this._patchCondition(i, { entityIds: (e.target as HTMLInputElement).value })}
-        ></ms-textfield>
+        ${this._entityPickerFallback ? html`
+          <ms-textfield
+            label="${t("entity_id", L)} (${t("comma_separated", L)})"
+            .value=${c.entityIds}
+            @input=${(e: Event) => this._patchCondition(i, { entityIds: (e.target as HTMLInputElement).value })}
+          ></ms-textfield>
+        ` : html`
+        <ha-form
+          class="entity-picker-form"
+          .hass=${this.hass}
+          .schema=${[{
+            name: "condition_entities",
+            selector: { entity: { multiple: true, domain: TRIGGER_PICKER_DOMAINS } },
+          }]}
+          .data=${{ condition_entities: c.entityIds.split(",").map((s) => s.trim()).filter(Boolean) }}
+          .computeLabel=${() => t("entity_id", L)}
+          @value-changed=${(e: CustomEvent) => {
+            const ids = ((e.detail.value as { condition_entities?: string[] }).condition_entities || []).filter(Boolean);
+            this._patchCondition(i, { entityIds: ids.join(", ") });
+          }}
+        ></ha-form>`}
         <div class="select-row">
           <label>${t("trigger_type", L)}</label>
           <select
@@ -1396,11 +1450,65 @@ export class MaintenanceTaskDialog extends LitElement {
 
   protected updated(changed: Map<PropertyKey, unknown>): void {
     super.updated?.(changed);
+    this._scheduleEntityPickerProbe();
     for (const key of changed.keys()) {
       if (MaintenanceTaskDialog._PREVIEW_RELEVANT.has(String(key))) {
         this._schedulePreviewRefresh();
         return;
       }
+    }
+  }
+
+  /** #129 fallback: HA's entity picker renders an EMPTY shadow root in some
+   *  mount contexts (body-mounted card dialogs — the #50 lesson wearing a new
+   *  coat; the completion-action target picker has the same latent issue
+   *  there). Probe the layout after render: two consecutive zero-height
+   *  measurements of a picker form inside a visible dialog flip the trigger
+   *  fields back to the comma-separated text inputs. */
+  private _scheduleEntityPickerProbe(): void {
+    if (
+      this._entityPickerFallback
+      || this._pickerProbeTimer !== undefined
+      || !this._open
+      || this._scheduleType !== "sensor_based"
+    ) return;
+    this._pickerProbeTimer = setTimeout(() => this._probeEntityPickers(), 1500);
+  }
+
+  private _probeEntityPickers(): void {
+    this._pickerProbeTimer = undefined;
+    if (this._entityPickerFallback || !this._open) return;
+    const form = this.shadowRoot?.querySelector<HTMLElement>("ha-form.entity-picker-form");
+    const dialogVisible = (this.shadowRoot?.querySelector<HTMLElement>(".content")?.offsetHeight ?? 0) > 0;
+    if (!form || !dialogVisible) {
+      this._pickerProbeStrikes = 0;
+      return;
+    }
+    // The broken-context signature is subtle: the form (and even a
+    // ha-entities-picker wrapper) may keep its label height while the
+    // ha-entity-picker LEAVES upgrade to empty shadow roots — so collect the
+    // leaf pickers across ALL picker forms and require every one to lay out.
+    const collectLeaves = (el: Element | null, out: HTMLElement[], depth = 0): void => {
+      if (!el || depth > 10) return;
+      if ((el.tagName?.toLowerCase() ?? "") === "ha-entity-picker") out.push(el as HTMLElement);
+      for (const root of [el.shadowRoot, el]) {
+        if (!root) continue;
+        for (const child of Array.from(root.children ?? [])) collectLeaves(child, out, depth + 1);
+      }
+    };
+    const forms = [...(this.shadowRoot?.querySelectorAll<HTMLElement>("ha-form.entity-picker-form") ?? [])];
+    const leaves: HTMLElement[] = [];
+    for (const f of forms) collectLeaves(f, leaves);
+    const broken = leaves.length === 0 || leaves.some((leaf) => leaf.offsetHeight === 0);
+    if (form.offsetHeight === 0 || broken) {
+      this._pickerProbeStrikes += 1;
+      if (this._pickerProbeStrikes >= 2) {
+        this._entityPickerFallback = true;
+        return;
+      }
+      this._pickerProbeTimer = setTimeout(() => this._probeEntityPickers(), 700);
+    } else {
+      this._pickerProbeStrikes = 0;
     }
   }
 
@@ -2064,12 +2172,31 @@ export class MaintenanceTaskDialog extends LitElement {
           ` : nothing}
           ${this._renderTriggerFields()}
           ${this._scheduleType === "sensor_based" ? html`
-            <ms-textfield
-              label="${t("environmental_entity_optional", L)}"
-              helper="${t("environmental_entity_helper", L)}"
-              .value=${this._environmentalEntity}
-              @input=${(e: Event) => (this._environmentalEntity = (e.target as HTMLInputElement).value.trim())}
-            ></ms-textfield>
+            ${this._entityPickerFallback ? html`
+              <ms-textfield
+                label="${t("environmental_entity_optional", L)}"
+                helper="${t("environmental_entity_helper", L)}"
+                .value=${this._environmentalEntity}
+                @input=${(e: Event) => (this._environmentalEntity = (e.target as HTMLInputElement).value.trim())}
+              ></ms-textfield>
+            ` : html`
+            <ha-form
+              class="entity-picker-form"
+              .hass=${this.hass}
+              .schema=${[{
+                name: "environmental_entity",
+                selector: { entity: {
+                  domain: ENVIRONMENTAL_PICKER_DOMAINS,
+                  device_class: ENVIRONMENTAL_PICKER_DEVICE_CLASSES,
+                } },
+              }]}
+              .data=${{ environmental_entity: this._environmentalEntity }}
+              .computeLabel=${() => t("environmental_entity_optional", L)}
+              .computeHelper=${() => t("environmental_entity_helper", L)}
+              @value-changed=${(e: CustomEvent) => {
+                this._environmentalEntity = ((e.detail.value as { environmental_entity?: string }).environmental_entity || "").trim();
+              }}
+            ></ha-form>`}
             ${this._environmentalEntity ? html`
               <ms-textfield
                 label="${t("environmental_attribute_optional", L)}"
@@ -2156,6 +2283,11 @@ export class MaintenanceTaskDialog extends LitElement {
       font-size: 18px;
       font-weight: 500;
       padding-bottom: 12px;
+    }
+    /* #129: entity pickers in the trigger form (ha-form + entity selector) */
+    .entity-picker-form {
+      display: block;
+      margin: 8px 0;
     }
     /* v1.3.0: completion-action sections */
     .ca-section {
