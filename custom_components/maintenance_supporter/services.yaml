@@ -39,6 +39,12 @@ complete:
         number:
           mode: box
           step: any
+    completed_by:
+      name: Completed by
+      description: Person who performed the maintenance (must be linked to a Home Assistant user). When omitted, the user triggering the call is recorded.
+      selector:
+        entity:
+          domain: person
 
 reset:
   name: Reset Maintenance
@@ -310,6 +316,17 @@ update_task:
       description: List of tags for filtering and reporting.
       selector:
         object:
+    responsible_user:
+      name: Responsible user
+      description: Assign the task to this person (must be linked to a Home Assistant user).
+      selector:
+        entity:
+          domain: person
+    clear_responsible_user:
+      name: Clear responsible user
+      description: Remove the current assignment. Cannot be combined with "Responsible user".
+      selector:
+        boolean:
 
 delete_task:
   name: Delete Task

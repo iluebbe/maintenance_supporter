@@ -258,6 +258,35 @@ data:
   duration: 30
 ```
 
+### Attribute and assign chores from automations (#128)
+
+Both fields take a **person entity** (a validated picker — no free-text user
+names), which must be linked to a Home Assistant user account. When
+`completed_by` is omitted, the user who triggered the call is recorded
+automatically — a dashboard tap attributes itself.
+
+```yaml
+# "Alice did it" — record who completed, e.g. from a per-person dashboard button
+service: maintenance_supporter.complete
+data:
+  entity_id: sensor.kitchen_take_out_trash
+  completed_by: person.alice
+```
+
+```yaml
+# Hand the task to whoever is at home when it becomes due
+service: maintenance_supporter.update_task
+data:
+  entry_id: "{{ trigger.event.data.entry_id }}"
+  task_id: "{{ trigger.event.data.task_id }}"
+  responsible_user: person.bob
+```
+
+To remove an assignment, call `update_task` with `clear_responsible_user: true`
+instead. For tasks with an assignee pool, a manual assignment simply sets the
+current responsible person — rotation continues from there on the next
+completion.
+
 ### Automation: Handle Mobile Notification Actions
 
 ```yaml

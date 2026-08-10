@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Lukema",
           "description": "Kirjattu arvo lukematehtäville (mittarilukema, tason tarkistus)."
+        },
+        "completed_by": {
+          "name": "Suorittaja",
+          "description": "Huollon suorittanut henkilö (on oltava liitetty Home Assistant -käyttäjään). Jos jätetään pois, kirjataan kutsun käynnistänyt käyttäjä."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Tunnisteet",
           "description": "Luettelo tunnisteista suodatusta ja raportointia varten."
+        },
+        "responsible_user": {
+          "name": "Vastuukäyttäjä",
+          "description": "Määrittää tehtävän tälle henkilölle (on oltava liitetty Home Assistant -käyttäjään)."
+        },
+        "clear_responsible_user": {
+          "name": "Poista vastuuhenkilö",
+          "description": "Poistaa nykyisen määrityksen. Ei voi yhdistää kohtaan \"Vastuukäyttäjä\"."
         }
       }
     },

@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Aflæst værdi",
           "description": "Registreret værdi for aflæsningsopgaver (måleraflæsning, niveaukontrol)."
+        },
+        "completed_by": {
+          "name": "Udført af",
+          "description": "Person der udførte vedligeholdelsen (skal være knyttet til en Home Assistant-bruger). Hvis udeladt registreres brugeren der udløste kaldet."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Etiketter",
           "description": "Liste over etiketter til filtrering og rapportering."
+        },
+        "responsible_user": {
+          "name": "Ansvarlig bruger",
+          "description": "Tildeler opgaven til denne person (skal være knyttet til en Home Assistant-bruger)."
+        },
+        "clear_responsible_user": {
+          "name": "Fjern ansvarlig",
+          "description": "Fjerner den aktuelle tildeling. Kan ikke kombineres med \"Ansvarlig bruger\"."
         }
       }
     },

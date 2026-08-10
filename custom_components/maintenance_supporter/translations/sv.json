@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Avläst värde",
           "description": "Registrerat värde för avläsningsuppgifter (mätaravläsning, nivåkontroll)."
+        },
+        "completed_by": {
+          "name": "Slutförd av",
+          "description": "Person som utförde underhållet (måste vara kopplad till en Home Assistant-användare). Om utelämnad registreras användaren som utlöste anropet."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Etiketter",
           "description": "Lista med etiketter för filtrering och rapportering."
+        },
+        "responsible_user": {
+          "name": "Ansvarig användare",
+          "description": "Tilldelar uppgiften till denna person (måste vara kopplad till en Home Assistant-användare)."
+        },
+        "clear_responsible_user": {
+          "name": "Ta bort ansvarig",
+          "description": "Tar bort den aktuella tilldelningen. Kan inte kombineras med \"Ansvarig användare\"."
         }
       }
     },

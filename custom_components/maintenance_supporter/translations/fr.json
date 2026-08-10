@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Valeur relevée",
           "description": "Valeur enregistrée pour les tâches de relevé (relevé de compteur, contrôle de niveau)."
+        },
+        "completed_by": {
+          "name": "Effectué par",
+          "description": "Personne ayant effectué la maintenance (doit être liée à un utilisateur Home Assistant). Si omis, l'utilisateur à l'origine de l'appel est enregistré."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Étiquettes",
           "description": "Liste d'étiquettes pour le filtrage et les rapports."
+        },
+        "responsible_user": {
+          "name": "Utilisateur responsable",
+          "description": "Attribue la tâche à cette personne (doit être liée à un utilisateur Home Assistant)."
+        },
+        "clear_responsible_user": {
+          "name": "Retirer le responsable",
+          "description": "Supprime l'attribution actuelle. Non combinable avec « Utilisateur responsable »."
         }
       }
     },

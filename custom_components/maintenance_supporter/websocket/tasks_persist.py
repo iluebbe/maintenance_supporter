@@ -201,6 +201,14 @@ async def async_update_task_simple(
     for key in _UPDATABLE_FLAT_FIELDS:
         if key in updates and updates[key] is not None:
             task[key] = updates[key]
+    # #128: assignment via the update_task service. "" clears (a user id is
+    # never empty); None keeps the field untouched like everywhere else here.
+    ruid = updates.get("responsible_user_id")
+    if ruid is not None:
+        if ruid:
+            task["responsible_user_id"] = ruid
+        else:
+            task.pop("responsible_user_id", None)
     if isinstance(task.get("name"), str):
         task["name"] = task["name"].strip()
         if not task["name"]:

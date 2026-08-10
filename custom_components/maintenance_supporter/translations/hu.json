@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Leolvasott érték",
           "description": "A leolvasás típusú feladatokhoz rögzített érték (mérőállás, szintellenőrzés)."
+        },
+        "completed_by": {
+          "name": "Elvégezte",
+          "description": "A karbantartást elvégző személy (Home Assistant-felhasználóhoz kell kapcsolódnia). Ha üres, a hívást indító felhasználó kerül rögzítésre."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Címkék",
           "description": "Címkék listája szűréshez és jelentésekhez."
+        },
+        "responsible_user": {
+          "name": "Felelős felhasználó",
+          "description": "A feladatot ehhez a személyhez rendeli (Home Assistant-felhasználóhoz kell kapcsolódnia)."
+        },
+        "clear_responsible_user": {
+          "name": "Felelős törlése",
+          "description": "Eltávolítja a jelenlegi hozzárendelést. Nem kombinálható a „Felelős felhasználó” mezővel."
         }
       }
     },

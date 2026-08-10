@@ -133,6 +133,9 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
         vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)),
         # Meter readings (v2.20, #83): recorded value for `reading` tasks.
         vol.Optional("reading_value"): vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)),
+        # #128: who did it — a person ENTITY (validated picker, no free text);
+        # resolved to the linked HA user id. Omitted -> the calling user.
+        vol.Optional("completed_by"): cv.entity_id,
     }
 )
 
@@ -215,6 +218,10 @@ SERVICE_UPDATE_TASK_SCHEMA = vol.Schema(
         vol.Optional("notes"): vol.All(cv.string, vol.Length(max=MAX_TEXT_LENGTH)),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
         vol.Optional("labels"): vol.All([vol.All(cv.string, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)),
+        # #128: (re)assign via automations — a person ENTITY resolved to the
+        # linked HA user; the boolean clears the assignment instead.
+        vol.Optional("responsible_user"): cv.entity_id,
+        vol.Optional("clear_responsible_user"): cv.boolean,
     }
 )
 
@@ -425,6 +432,25 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     async_register_document_views(hass)
 
+    def _resolve_person_user_id(person_entity_id: str) -> str:
+        """Resolve a person ENTITY to its linked HA user id (#128).
+
+        Person entities are the validated way to reference a user in a
+        service form (HA has no user selector) — the picker rules out typos,
+        and the entity's ``user_id`` attribute carries the account link.
+        """
+        state = hass.states.get(person_entity_id)
+        if state is None or not person_entity_id.startswith("person."):
+            raise ServiceValidationError(
+                f"{person_entity_id!r} is not a known person entity"
+            )
+        user_id = state.attributes.get("user_id")
+        if not user_id:
+            raise ServiceValidationError(
+                f"Person {state.name!r} is not linked to a Home Assistant user account"
+            )
+        return str(user_id)
+
     async def _handle_complete(call: ServiceCall) -> None:
         """Handle the complete service call."""
         entity_id = call.data[ATTR_ENTITY_ID]
@@ -442,12 +468,19 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 translation_key="no_task_for_entity",
                 translation_placeholders={"entity_id": entity_id},
             )
+        # #128: explicit person beats the call context; the context covers the
+        # common case for free (a dashboard tap propagates the tapping user).
+        if call.data.get("completed_by"):
+            completed_by: str | None = _resolve_person_user_id(call.data["completed_by"])
+        else:
+            completed_by = call.context.user_id if call.context else None
         await coordinator.complete_maintenance(
             task_id=task_id,
             notes=call.data.get("notes"),
             cost=call.data.get("cost"),
             duration=call.data.get("duration"),
             reading_value=call.data.get("reading_value"),
+            completed_by=completed_by,
         )
 
     async def _handle_reset(call: ServiceCall) -> None:
@@ -599,6 +632,16 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             "priority": call.data.get("priority"),
             "labels": call.data.get("labels"),
         }
+        # #128: assignment via automations. Person entity -> HA user id; the
+        # clear flag maps to "" (async_update_task_simple pops the key).
+        if call.data.get("responsible_user") and call.data.get("clear_responsible_user"):
+            raise ServiceValidationError(
+                "Provide either responsible_user or clear_responsible_user, not both"
+            )
+        if call.data.get("responsible_user"):
+            updates["responsible_user_id"] = _resolve_person_user_id(call.data["responsible_user"])
+        elif call.data.get("clear_responsible_user"):
+            updates["responsible_user_id"] = ""
         try:
             await async_update_task_simple(
                 hass,

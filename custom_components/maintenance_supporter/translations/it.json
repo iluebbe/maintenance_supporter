@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Valore letto",
           "description": "Valore registrato per attività di lettura (lettura contatore, controllo livello)."
+        },
+        "completed_by": {
+          "name": "Completato da",
+          "description": "Persona che ha eseguito la manutenzione (deve essere collegata a un utente Home Assistant). Se omesso, viene registrato l'utente che ha attivato la chiamata."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Etichette",
           "description": "Elenco di tag per filtri e report."
+        },
+        "responsible_user": {
+          "name": "Utente responsabile",
+          "description": "Assegna l'attività a questa persona (deve essere collegata a un utente Home Assistant)."
+        },
+        "clear_responsible_user": {
+          "name": "Rimuovi responsabile",
+          "description": "Rimuove l'assegnazione attuale. Non combinabile con «Utente responsabile»."
         }
       }
     },

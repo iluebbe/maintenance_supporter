@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Meterstand",
           "description": "Vastgelegde waarde voor aflees-taken (meterstand, niveaucontrole)."
+        },
+        "completed_by": {
+          "name": "Voltooid door",
+          "description": "Persoon die het onderhoud heeft uitgevoerd (moet gekoppeld zijn aan een Home Assistant-gebruiker). Indien weggelaten wordt de aanroepende gebruiker vastgelegd."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Labels",
           "description": "Lijst met labels voor filteren en rapportage."
+        },
+        "responsible_user": {
+          "name": "Verantwoordelijke gebruiker",
+          "description": "Wijst de taak toe aan deze persoon (moet gekoppeld zijn aan een Home Assistant-gebruiker)."
+        },
+        "clear_responsible_user": {
+          "name": "Toewijzing verwijderen",
+          "description": "Verwijdert de huidige toewijzing. Niet te combineren met 'Verantwoordelijke gebruiker'."
         }
       }
     },

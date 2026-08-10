@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Avlest verdi",
           "description": "Registrert verdi for avlesningsoppgaver (måleravlesning, nivåkontroll)."
+        },
+        "completed_by": {
+          "name": "Utført av",
+          "description": "Person som utførte vedlikeholdet (må være knyttet til en Home Assistant-bruker). Hvis utelatt registreres brukeren som utløste kallet."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Etiketter",
           "description": "Liste over etiketter for filtrering og rapportering."
+        },
+        "responsible_user": {
+          "name": "Ansvarlig bruker",
+          "description": "Tildeler oppgaven til denne personen (må være knyttet til en Home Assistant-bruker)."
+        },
+        "clear_responsible_user": {
+          "name": "Fjern ansvarlig",
+          "description": "Fjerner gjeldende tildeling. Kan ikke kombineres med \"Ansvarlig bruker\"."
         }
       }
     },

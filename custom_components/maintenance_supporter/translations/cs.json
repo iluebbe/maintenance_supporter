@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Hodnota odečtu",
           "description": "Zaznamenaná hodnota pro odečtové úkoly (odečet měřiče, kontrola hladiny)."
+        },
+        "completed_by": {
+          "name": "Dokončil(a)",
+          "description": "Osoba, která údržbu provedla (musí být propojena s uživatelem Home Assistant). Pokud není uvedeno, zaznamená se volající uživatel."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Štítky",
           "description": "Seznam štítků pro filtrování a přehledy."
+        },
+        "responsible_user": {
+          "name": "Odpovědný uživatel",
+          "description": "Přiřadí úkol této osobě (musí být propojena s uživatelem Home Assistant)."
+        },
+        "clear_responsible_user": {
+          "name": "Zrušit přiřazení",
+          "description": "Zruší aktuální přiřazení. Nelze kombinovat s „Odpovědný uživatel“."
         }
       }
     },

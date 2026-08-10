@@ -693,7 +693,11 @@ Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
 `add_task`, `update_task`, `delete_task`, and `list_tasks` (returns a
 response — id, name, status, next due per task, filterable by object and
 status) join the long-standing `complete` / `skip` / `reset` /
-`export_data`. For the full WebSocket API (86 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+`export_data`. Household attribution (#128): `complete` takes an optional
+`completed_by` **person entity** (defaulting to the calling user), and
+`update_task` can assign or clear the responsible user — see
+[Examples](EXAMPLES.md#attribute-and-assign-chores-from-automations-128).
+For the full WebSocket API (86 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

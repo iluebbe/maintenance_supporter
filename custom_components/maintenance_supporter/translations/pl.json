@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Wartość odczytu",
           "description": "Zarejestrowana wartość dla zadań odczytu (odczyt licznika, kontrola poziomu)."
+        },
+        "completed_by": {
+          "name": "Wykonane przez",
+          "description": "Osoba, która wykonała konserwację (musi być powiązana z użytkownikiem Home Assistant). W razie pominięcia zapisywany jest użytkownik wywołujący."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Etykiety",
           "description": "Lista tagów do filtrowania i raportowania."
+        },
+        "responsible_user": {
+          "name": "Użytkownik odpowiedzialny",
+          "description": "Przypisuje zadanie tej osobie (musi być powiązana z użytkownikiem Home Assistant)."
+        },
+        "clear_responsible_user": {
+          "name": "Usuń przypisanie",
+          "description": "Usuwa bieżące przypisanie. Nie można łączyć z „Odpowiedzialny użytkownik”."
         }
       }
     },

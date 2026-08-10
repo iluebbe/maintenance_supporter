@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "读数值",
           "description": "读数类任务记录的值（抄表、液位检查）。"
+        },
+        "completed_by": {
+          "name": "完成人",
+          "description": "执行维护的人员（必须关联 Home Assistant 用户）。省略时记录触发调用的用户。"
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "标签",
           "description": "用于筛选和报告的标签列表。"
+        },
+        "responsible_user": {
+          "name": "负责人",
+          "description": "将任务分配给此人（必须关联 Home Assistant 用户）。"
+        },
+        "clear_responsible_user": {
+          "name": "清除负责人",
+          "description": "移除当前分配。不能与\"负责用户\"同时使用。"
         }
       }
     },

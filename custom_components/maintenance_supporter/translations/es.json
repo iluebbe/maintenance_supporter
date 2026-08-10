@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Valor de lectura",
           "description": "Valor registrado para tareas de lectura (lectura de contador, control de nivel)."
+        },
+        "completed_by": {
+          "name": "Completado por",
+          "description": "Persona que realizó el mantenimiento (debe estar vinculada a un usuario de Home Assistant). Si se omite, se registra el usuario que activó la llamada."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Etiquetas",
           "description": "Lista de etiquetas para filtrado e informes."
+        },
+        "responsible_user": {
+          "name": "Usuario responsable",
+          "description": "Asigna la tarea a esta persona (debe estar vinculada a un usuario de Home Assistant)."
+        },
+        "clear_responsible_user": {
+          "name": "Quitar responsable",
+          "description": "Elimina la asignación actual. No se puede combinar con «Usuario responsable»."
         }
       }
     },

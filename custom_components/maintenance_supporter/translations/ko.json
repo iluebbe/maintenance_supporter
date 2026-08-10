@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "측정값",
           "description": "측정형 작업에 기록할 값입니다(계량기 값, 수위 확인 등)."
+        },
+        "completed_by": {
+          "name": "완료자",
+          "description": "정비를 수행한 사람(Home Assistant 사용자와 연결되어 있어야 함). 생략하면 호출을 실행한 사용자가 기록됩니다."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "라벨",
           "description": "필터링과 보고에 사용할 태그 목록입니다."
+        },
+        "responsible_user": {
+          "name": "담당 사용자",
+          "description": "이 사람에게 작업을 할당합니다(Home Assistant 사용자와 연결되어 있어야 함)."
+        },
+        "clear_responsible_user": {
+          "name": "담당자 지우기",
+          "description": "현재 할당을 제거합니다. \"담당 사용자\"와 함께 사용할 수 없습니다."
         }
       }
     },

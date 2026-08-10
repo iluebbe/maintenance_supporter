@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Ablesewert",
           "description": "Erfasster Wert für Ablese-Aufgaben (Zählerstand, Füllstandskontrolle)."
+        },
+        "completed_by": {
+          "name": "Erledigt von",
+          "description": "Person, die die Wartung durchgeführt hat (muss mit einem Home-Assistant-Benutzer verknüpft sein). Ohne Angabe wird der auslösende Benutzer erfasst."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Labels",
           "description": "Liste von Tags für Filterung und Auswertung."
+        },
+        "responsible_user": {
+          "name": "Verantwortlicher Benutzer",
+          "description": "Weist die Aufgabe dieser Person zu (muss mit einem Home-Assistant-Benutzer verknüpft sein)."
+        },
+        "clear_responsible_user": {
+          "name": "Zuweisung entfernen",
+          "description": "Entfernt die aktuelle Zuweisung. Nicht mit „Verantwortlicher Benutzer“ kombinierbar."
         }
       }
     },

@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "Reading value",
           "description": "Recorded value for reading-type tasks (meter reading, level check)."
+        },
+        "completed_by": {
+          "name": "Completed by",
+          "description": "Person who performed the maintenance (must be linked to a Home Assistant user). When omitted, the user triggering the call is recorded."
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "Labels",
           "description": "List of tags for filtering and reporting."
+        },
+        "responsible_user": {
+          "name": "Responsible user",
+          "description": "Assign the task to this person (must be linked to a Home Assistant user)."
+        },
+        "clear_responsible_user": {
+          "name": "Clear responsible user",
+          "description": "Remove the current assignment. Cannot be combined with \"Responsible user\"."
         }
       }
     },

@@ -1512,6 +1512,10 @@
         "reading_value": {
           "name": "検針値",
           "description": "検針タスクで記録する値（メーター読み取り、レベル確認）。"
+        },
+        "completed_by": {
+          "name": "実施者",
+          "description": "メンテナンスを実施した人（Home Assistant ユーザーに関連付けられている必要があります）。省略時は呼び出したユーザーが記録されます。"
         }
       }
     },
@@ -1701,6 +1705,14 @@
         "labels": {
           "name": "ラベル",
           "description": "フィルタリングとレポート用のタグのリスト。"
+        },
+        "responsible_user": {
+          "name": "担当ユーザー",
+          "description": "このタスクをこの人に割り当てます（Home Assistant ユーザーに関連付けられている必要があります）。"
+        },
+        "clear_responsible_user": {
+          "name": "担当者をクリア",
+          "description": "現在の割り当てを解除します。「担当ユーザー」と同時には指定できません。"
         }
       }
     },

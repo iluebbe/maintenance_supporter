@@ -239,3 +239,122 @@ async def test_complete_updates_status_to_ok(
     state = hass.states.get(entity_id)
     if state:
         assert state.state == MaintenanceStatus.OK
+
+
+# ─── #128: completed_by / responsible_user via services ─────────────────
+
+
+async def test_complete_records_completed_by_person(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """A person entity resolves to its linked HA user id in the history."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    hass.states.async_set("person.alice", "home", {"user_id": "user-alice-1", "friendly_name": "Alice"})
+
+    entity_id = _get_sensor_entity_id(hass, object_config_entry)
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_COMPLETE,
+        {"entity_id": entity_id, "completed_by": "person.alice"},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    state = get_task_store_state(hass, object_config_entry.entry_id, TASK_ID_1)
+    completed = [e for e in state.get("history", []) if e.get("type") == HistoryEntryType.COMPLETED]
+    assert completed[-1].get("completed_by") == "user-alice-1"
+
+
+async def test_complete_rejects_person_without_user_link(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    hass.states.async_set("person.guest", "home", {"friendly_name": "Guest"})
+
+    entity_id = _get_sensor_entity_id(hass, object_config_entry)
+    with pytest.raises(HomeAssistantError, match="not linked"):
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_COMPLETE,
+            {"entity_id": entity_id, "completed_by": "person.guest"},
+            blocking=True,
+        )
+
+
+async def test_complete_defaults_to_calling_user_context(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Without the field, the triggering user's context is recorded — a
+    dashboard tap attributes itself."""
+    from homeassistant.core import Context
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    entity_id = _get_sensor_entity_id(hass, object_config_entry)
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_COMPLETE,
+        {"entity_id": entity_id},
+        blocking=True,
+        context=Context(user_id="ctx-user-9"),
+    )
+    await hass.async_block_till_done()
+
+    state = get_task_store_state(hass, object_config_entry.entry_id, TASK_ID_1)
+    completed = [e for e in state.get("history", []) if e.get("type") == HistoryEntryType.COMPLETED]
+    assert completed[-1].get("completed_by") == "ctx-user-9"
+
+
+async def test_update_task_assigns_and_clears_responsible_user(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    hass.states.async_set("person.bob", "home", {"user_id": "user-bob-2", "friendly_name": "Bob"})
+
+    await hass.services.async_call(
+        DOMAIN,
+        "update_task",
+        {
+            "entry_id": object_config_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "responsible_user": "person.bob",
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    entry = hass.config_entries.async_get_entry(object_config_entry.entry_id)
+    assert entry.data["tasks"][TASK_ID_1]["responsible_user_id"] == "user-bob-2"
+
+    await hass.services.async_call(
+        DOMAIN,
+        "update_task",
+        {
+            "entry_id": object_config_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "clear_responsible_user": True,
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    entry = hass.config_entries.async_get_entry(object_config_entry.entry_id)
+    assert "responsible_user_id" not in entry.data["tasks"][TASK_ID_1]
+
+    with pytest.raises(HomeAssistantError, match="not both"):
+        await hass.services.async_call(
+            DOMAIN,
+            "update_task",
+            {
+                "entry_id": object_config_entry.entry_id,
+                "task_id": TASK_ID_1,
+                "responsible_user": "person.bob",
+                "clear_responsible_user": True,
+            },
+            blocking=True,
+        )

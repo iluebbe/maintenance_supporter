@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Responsible user in actions** (#128, thanks @Neflhiem). The `complete`
+  action takes an optional `completed_by` and `update_task` gained
+  `responsible_user` / `clear_responsible_user` — all referencing a
+  **person entity** through a validated picker (no free-text user names),
+  resolved to the linked Home Assistant user. When `completed_by` is
+  omitted, the user triggering the call is recorded automatically, so a
+  dashboard button attributes itself. Manual assignment plays nicely with
+  assignee pools: rotation simply continues from the assigned person.
+
 ### ✨ Changed
 
 - **Dialog ⇄ config-flow parity round.** The task dialog and the
