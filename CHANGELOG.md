@@ -34,6 +34,13 @@ All notable changes to Maintenance Supporter are documented in this file.
     the same live-fetched dropdown the flat trigger editor has, per
     condition; previously a stored attribute survived edits but could not
     be changed outside the flow.
+- **State pickers follow the entity pickers** (#129 follow-up): the
+  state-change trigger's from/to fields and the runtime ON-states — in the
+  dialog (flat and per compound condition) and in the config flow — now use
+  Home Assistant's state selector, suggesting the bound entity's known
+  states instead of free text (typo'd states were a real failure mode).
+  The environmental-entity's attribute field gained the same live-fetched
+  attribute dropdown the trigger attribute has had.
 - **Entity pickers for sensor-based tasks** (#129, thanks @byoung79). The
   task dialog's trigger entity field, each compound-condition row, and the
   environmental-entity field now use Home Assistant's native entity picker

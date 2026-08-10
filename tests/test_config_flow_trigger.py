@@ -221,7 +221,7 @@ async def test_runtime_trigger_custom_on_states(
         result["flow_id"],
         user_input={
             CONF_TRIGGER_RUNTIME_HOURS: 100,
-            CONF_TRIGGER_ON_STATES: "running,active",
+            CONF_TRIGGER_ON_STATES: ["running", "active"],
             CONF_TASK_WARNING_DAYS: 7,
         },
     )

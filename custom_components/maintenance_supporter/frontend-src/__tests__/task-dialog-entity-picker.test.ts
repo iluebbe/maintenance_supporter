@@ -133,6 +133,47 @@ describe("task-dialog entity pickers (#129)", () => {
     expect((comma as any).value).to.equal("sensor.a, sensor.b");
   });
 
+  it("state_change from/to render state selectors bound to the trigger entity", async () => {
+    const el = await mountSensorBased();
+    (el as any)._triggerEntityId = "sensor.pump";
+    (el as any)._triggerEntityIds = ["sensor.pump"];
+    (el as any)._triggerType = "state_change";
+    await el.updateComplete;
+    const stateForms = [...el.shadowRoot!.querySelectorAll<HaFormLike>("ha-form.state-picker-form")];
+    expect(stateForms.length, "from + to state selectors").to.equal(2);
+    const sel = stateForms[0].schema[0].selector as { state: { entity_id: string } };
+    expect(sel.state.entity_id).to.equal("sensor.pump");
+    emitValue(stateForms[1], { s: "off" });
+    await el.updateComplete;
+    expect((el as any)._triggerToState).to.equal("off");
+  });
+
+  it("runtime on-states round-trips the comma string through a multiple state selector", async () => {
+    const el = await mountSensorBased();
+    (el as any)._triggerEntityId = "vacuum.robo";
+    (el as any)._triggerEntityIds = ["vacuum.robo"];
+    (el as any)._triggerType = "runtime";
+    (el as any)._triggerOnStates = "cleaning, returning";
+    await el.updateComplete;
+    const form = [...el.shadowRoot!.querySelectorAll<HaFormLike>("ha-form.state-picker-form")][0];
+    expect(form, "on-states selector rendered").to.exist;
+    const sel = form.schema[0].selector as { state: { entity_id: string; multiple: boolean } };
+    expect(sel.state.multiple).to.equal(true);
+    expect(form.data.s).to.deep.equal(["cleaning", "returning"]);
+    emitValue(form, { s: ["cleaning", "docked"] });
+    await el.updateComplete;
+    expect((el as any)._triggerOnStates).to.equal("cleaning, docked");
+  });
+
+  it("without an entity the state fields stay plain textfields", async () => {
+    const el = await mountSensorBased();
+    (el as any)._triggerType = "state_change";
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector("ha-form.state-picker-form")).to.equal(null);
+    const labels = [...el.shadowRoot!.querySelectorAll("ms-textfield")].map((n) => n.getAttribute("label") || "");
+    expect(labels.some((l) => /from state/i.test(l)), "textfield fallback").to.equal(true);
+  });
+
   it("self-heals: zero-height pickers flip the fallback within ~2.5s (card-context safety net)", async function () {
     this.timeout(6000);
     const el = await mountSensorBased();

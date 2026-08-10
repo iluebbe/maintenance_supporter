@@ -104,6 +104,30 @@ def _recovery_default(tc: dict[str, Any] | None) -> bool:
     return bool((tc or {}).get("auto_complete_on_recovery"))
 
 
+def _state_selector(entity_id: str | None, *, multiple: bool = False) -> Any:
+    """State field bound to the trigger entity (#129 follow-up).
+
+    Suggests the entity's known states instead of free text — typo'd states
+    were a real failure mode. Falls back to a plain text field when no entity
+    is available (defensive; the entity step always runs first).
+    """
+    if entity_id:
+        return selector.StateSelector(
+            selector.StateSelectorConfig(entity_id=entity_id, multiple=multiple)
+        )
+    return selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT))
+
+
+def _parse_states(raw: Any) -> list[str]:
+    """Normalize an on-states submission — list from the state selector,
+    comma string from the legacy text fallback."""
+    if isinstance(raw, list):
+        return [s.strip().lower() for s in raw if isinstance(s, str) and s.strip()]
+    if isinstance(raw, str):
+        return [s.strip().lower() for s in raw.split(",") if s.strip()]
+    return []
+
+
 class TriggerConfigMixin:
     """Shared sensor trigger configuration logic for ConfigFlow and OptionsFlow.
 
@@ -654,12 +678,8 @@ class TriggerConfigMixin:
             return on_complete()
 
         schema_fields: dict[Any, Any] = {
-            vol.Optional(CONF_TRIGGER_FROM_STATE): selector.TextSelector(
-                selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-            ),
-            vol.Optional(CONF_TRIGGER_TO_STATE): selector.TextSelector(
-                selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-            ),
+            vol.Optional(CONF_TRIGGER_FROM_STATE): _state_selector(self._trigger_entity_id),
+            vol.Optional(CONF_TRIGGER_TO_STATE): _state_selector(self._trigger_entity_id),
             vol.Required(CONF_TRIGGER_TARGET_CHANGES, default=1): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=1,
@@ -734,10 +754,9 @@ class TriggerConfigMixin:
             tc = self._current_task["trigger_config"]
             tc[CONF_TRIGGER_RUNTIME_HOURS] = user_input[CONF_TRIGGER_RUNTIME_HOURS]
 
-            # Parse comma-separated ON states
-            raw_states = user_input.get(CONF_TRIGGER_ON_STATES, "")
-            if raw_states and raw_states.strip():
-                tc[CONF_TRIGGER_ON_STATES] = [s.strip().lower() for s in raw_states.split(",") if s.strip()]
+            states = _parse_states(user_input.get(CONF_TRIGGER_ON_STATES))
+            if states:
+                tc[CONF_TRIGGER_ON_STATES] = states
             else:
                 tc.pop(CONF_TRIGGER_ON_STATES, None)
             _apply_recovery_flag(tc, user_input)
@@ -760,8 +779,9 @@ class TriggerConfigMixin:
 
         # Pre-fill existing custom states for editing
         current_tc = self._current_task.get("trigger_config", {})
-        existing_states = current_tc.get(CONF_TRIGGER_ON_STATES)
-        default_states = ", ".join(existing_states) if existing_states else ""
+        existing_states = current_tc.get(CONF_TRIGGER_ON_STATES) or []
+        # The state selector takes/returns a LIST; the text fallback a comma string.
+        default_states: Any = list(existing_states) if self._trigger_entity_id else ", ".join(existing_states)
 
         schema_fields: dict[Any, Any] = {
             vol.Required(CONF_TRIGGER_RUNTIME_HOURS): selector.NumberSelector(
@@ -773,10 +793,8 @@ class TriggerConfigMixin:
                     unit_of_measurement="h",
                 )
             ),
-            vol.Optional(CONF_TRIGGER_ON_STATES, default=default_states): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT,
-                )
+            vol.Optional(CONF_TRIGGER_ON_STATES, default=default_states): _state_selector(
+                self._trigger_entity_id, multiple=True
             ),
             vol.Optional(
                 "auto_complete_on_recovery",
@@ -1017,9 +1035,9 @@ class TriggerConfigMixin:
                 cond["trigger_target_changes"] = user_input.get(CONF_TRIGGER_TARGET_CHANGES, 1)
             elif condition_type == TriggerType.RUNTIME:
                 cond["trigger_runtime_hours"] = user_input[CONF_TRIGGER_RUNTIME_HOURS]
-                raw_states = user_input.get(CONF_TRIGGER_ON_STATES, "")
-                if raw_states and raw_states.strip():
-                    cond["trigger_on_states"] = [s.strip().lower() for s in raw_states.split(",") if s.strip()]
+                states = _parse_states(user_input.get(CONF_TRIGGER_ON_STATES))
+                if states:
+                    cond["trigger_on_states"] = states
 
             entity_ids = cond.get("entity_ids", [])
             if len(entity_ids) > 1 and user_input.get(CONF_TRIGGER_ENTITY_LOGIC):
@@ -1056,13 +1074,10 @@ class TriggerConfigMixin:
                 vol.Optional(CONF_TRIGGER_DELTA_MODE, default=False): selector.BooleanSelector(),
             }
         elif condition_type == TriggerType.STATE_CHANGE:
+            cond_entity = cond.get("entity_id")
             schema_fields = {
-                vol.Optional(CONF_TRIGGER_FROM_STATE): selector.TextSelector(
-                    selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                ),
-                vol.Optional(CONF_TRIGGER_TO_STATE): selector.TextSelector(
-                    selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                ),
+                vol.Optional(CONF_TRIGGER_FROM_STATE): _state_selector(cond_entity),
+                vol.Optional(CONF_TRIGGER_TO_STATE): _state_selector(cond_entity),
                 vol.Required(CONF_TRIGGER_TARGET_CHANGES, default=1): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         min=1,
@@ -1083,9 +1098,10 @@ class TriggerConfigMixin:
                         unit_of_measurement="h",
                     )
                 ),
-                vol.Optional(CONF_TRIGGER_ON_STATES, default=""): selector.TextSelector(
-                    selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                ),
+                vol.Optional(
+                    CONF_TRIGGER_ON_STATES,
+                    default=[] if cond.get("entity_id") else "",
+                ): _state_selector(cond.get("entity_id"), multiple=True),
             }
 
         entity_ids = cond.get("entity_ids", [])

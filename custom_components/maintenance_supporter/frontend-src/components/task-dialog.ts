@@ -845,10 +845,10 @@ export class MaintenanceTaskDialog extends LitElement {
     }
   }
 
-  /** Per-entity attribute options for compound condition rows — keyed by
-   *  entity_id, fetched lazily when a condition's first entity is known.
-   *  (Parity round: the flow's compound path always had an attribute step;
-   *  the dialog only carried a stored attribute without an editor.) */
+  /** Per-entity attribute options — generic entity_id-keyed cache, fetched
+   *  lazily; serves the compound condition rows AND the environmental
+   *  attribute dropdown. (Parity round: the flow's compound path always had
+   *  an attribute step; the dialog only carried it without an editor.) */
   @state() private _conditionAttrOptions: Record<
     string,
     { suggested: string[]; available: Array<{ name: string; numeric: boolean }> }
@@ -1456,6 +1456,65 @@ export class MaintenanceTaskDialog extends LitElement {
     `;
   }
 
+  /** State field bound to an entity (#129 follow-up): HA's state selector
+   *  suggests the entity's known states instead of free text. Falls back to
+   *  the plain textfield without an entity or when the pickers are broken in
+   *  this context (same _entityPickerFallback flag). */
+  private _renderStateField(args: {
+    label: string;
+    value: string;
+    entityId: string;
+    onInput: (v: string) => void;
+  }) {
+    if (this._entityPickerFallback || !args.entityId) {
+      return html`
+        <ms-textfield
+          label=${args.label}
+          .value=${args.value}
+          @input=${(e: Event) => args.onInput((e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+      `;
+    }
+    return html`
+      <ha-form
+        class="state-picker-form"
+        .hass=${this.hass}
+        .schema=${[{ name: "s", selector: { state: { entity_id: args.entityId } } }]}
+        .data=${{ s: args.value }}
+        .computeLabel=${() => args.label}
+        @value-changed=${(e: CustomEvent) =>
+          args.onInput(((e.detail.value as { s?: string }).s || "").trim())}
+      ></ha-form>
+    `;
+  }
+
+  /** Multi-state variant for runtime ON-states — keeps the internal
+   *  comma-string representation so the save path stays unchanged. */
+  private _renderOnStatesField(args: { value: string; entityId: string; onInput: (v: string) => void }) {
+    const L = this._lang;
+    if (this._entityPickerFallback || !args.entityId) {
+      return html`
+        <ms-textfield
+          label="${t("runtime_on_states", L)}"
+          placeholder="on"
+          .value=${args.value}
+          @input=${(e: Event) => args.onInput((e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+      `;
+    }
+    return html`
+      <ha-form
+        class="state-picker-form"
+        .hass=${this.hass}
+        .schema=${[{ name: "s", selector: { state: { entity_id: args.entityId, multiple: true } } }]}
+        .data=${{ s: (args.value || "").split(",").map((x) => x.trim()).filter(Boolean) }}
+        .computeLabel=${() => t("runtime_on_states", L)}
+        @value-changed=${(e: CustomEvent) =>
+          args.onInput((((e.detail.value as { s?: string[] }).s) || []).join(", "))}
+      ></ha-form>
+    `;
+  }
+
   /** Adaptive-scheduling tuning (parity with the options flow's adaptive
    *  step). Hidden for one-time/manual tasks — there is no recurrence to
    *  adapt. Collapsed unless adaptive is already enabled. */
@@ -1514,6 +1573,41 @@ export class MaintenanceTaskDialog extends LitElement {
           </label>
         ` : nothing}
       </details>
+    `;
+  }
+
+  /** Environmental attribute — the same live-fetched dropdown the flat and
+   *  compound attribute fields use, keyed by the environmental entity. */
+  private _renderEnvironmentalAttribute(L: string) {
+    this._fetchConditionAttributes(this._environmentalEntity);
+    const opts = this._conditionAttrOptions[this._environmentalEntity];
+    if (opts && opts.available.length > 0) {
+      return html`
+        <div class="select-row">
+          <label>${t("environmental_attribute_optional", L)}</label>
+          <select
+            .value=${this._environmentalAttribute}
+            @change=${(e: Event) => (this._environmentalAttribute = (e.target as HTMLSelectElement).value)}
+          >
+            <option value="" ?selected=${!this._environmentalAttribute}>${t("use_entity_state", L)}</option>
+            ${opts.suggested.map(
+              (attr) => html`<option value=${attr} ?selected=${attr === this._environmentalAttribute}>${attr} ★</option>`
+            )}
+            ${opts.available
+              .filter((a) => !opts.suggested.includes(a.name))
+              .map(
+                (a) => html`<option value=${a.name} ?selected=${a.name === this._environmentalAttribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
+              )}
+          </select>
+        </div>
+      `;
+    }
+    return html`
+      <ms-textfield
+        label="${t("environmental_attribute_optional", L)}"
+        .value=${this._environmentalAttribute}
+        @input=${(e: Event) => (this._environmentalAttribute = (e.target as HTMLInputElement).value.trim())}
+      ></ms-textfield>
     `;
   }
 
@@ -1580,21 +1674,34 @@ export class MaintenanceTaskDialog extends LitElement {
       `;
     }
     if (c.type === "state_change") {
+      const condEntity = c.entityIds.split(",")[0]?.trim() || "";
       return html`
-        <ms-textfield label="${t("from_state_optional", L)}" .value=${c.fromState}
-          @input=${(e: Event) => this._patchCondition(i, { fromState: (e.target as HTMLInputElement).value })}></ms-textfield>
-        <ms-textfield label="${t("to_state_optional", L)}" .value=${c.toState}
-          @input=${(e: Event) => this._patchCondition(i, { toState: (e.target as HTMLInputElement).value })}></ms-textfield>
+        ${this._renderStateField({
+          label: t("from_state_optional", L),
+          value: c.fromState,
+          entityId: condEntity,
+          onInput: (v) => this._patchCondition(i, { fromState: v }),
+        })}
+        ${this._renderStateField({
+          label: t("to_state_optional", L),
+          value: c.toState,
+          entityId: condEntity,
+          onInput: (v) => this._patchCondition(i, { toState: v }),
+        })}
         <ms-textfield label="${t("target_changes", L)}" type="number" .value=${c.targetChanges}
           @input=${(e: Event) => this._patchCondition(i, { targetChanges: (e.target as HTMLInputElement).value })}></ms-textfield>
       `;
     }
     if (c.type === "runtime") {
+      const condEntity = c.entityIds.split(",")[0]?.trim() || "";
       return html`
         <ms-textfield label="${t("runtime_hours", L)}" type="number" .value=${c.runtimeHours}
           @input=${(e: Event) => this._patchCondition(i, { runtimeHours: (e.target as HTMLInputElement).value })}></ms-textfield>
-        <ms-textfield label="${t("runtime_on_states", L)}" placeholder="on" .value=${c.onStates}
-          @input=${(e: Event) => this._patchCondition(i, { onStates: (e.target as HTMLInputElement).value })}></ms-textfield>
+        ${this._renderOnStatesField({
+          value: c.onStates,
+          entityId: condEntity,
+          onInput: (v) => this._patchCondition(i, { onStates: v }),
+        })}
       `;
     }
     return nothing;
@@ -2088,17 +2195,19 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     if (this._triggerType === "state_change") {
       return html`
-        <ms-textfield
-          label="${t("from_state_optional", L)}"
-          .value=${this._triggerFromState}
-          @input=${(e: Event) => (this._triggerFromState = (e.target as HTMLInputElement).value)}
-        ></ms-textfield>
+        ${this._renderStateField({
+          label: t("from_state_optional", L),
+          value: this._triggerFromState,
+          entityId: this._triggerEntityId,
+          onInput: (v) => (this._triggerFromState = v),
+        })}
         <div class="field-help">${t("state_value_help", L)}</div>
-        <ms-textfield
-          label="${t("to_state_optional", L)}"
-          .value=${this._triggerToState}
-          @input=${(e: Event) => (this._triggerToState = (e.target as HTMLInputElement).value)}
-        ></ms-textfield>
+        ${this._renderStateField({
+          label: t("to_state_optional", L),
+          value: this._triggerToState,
+          entityId: this._triggerEntityId,
+          onInput: (v) => (this._triggerToState = v),
+        })}
         <ms-textfield
           label="${t("target_changes", L)}"
           type="number"
@@ -2118,12 +2227,11 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._triggerRuntimeHours}
           @input=${(e: Event) => (this._triggerRuntimeHours = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
-        <ms-textfield
-          label="${t("runtime_on_states", L)}"
-          placeholder="on"
-          .value=${this._triggerOnStates}
-          @input=${(e: Event) => (this._triggerOnStates = (e.target as HTMLInputElement).value)}
-        ></ms-textfield>
+        ${this._renderOnStatesField({
+          value: this._triggerOnStates,
+          entityId: this._triggerEntityId,
+          onInput: (v) => (this._triggerOnStates = v),
+        })}
         <div class="field-help">${t("runtime_on_states_help", L)}</div>
       `;
     }
@@ -2404,13 +2512,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 this._environmentalEntity = ((e.detail.value as { environmental_entity?: string }).environmental_entity || "").trim();
               }}
             ></ha-form>`}
-            ${this._environmentalEntity ? html`
-              <ms-textfield
-                label="${t("environmental_attribute_optional", L)}"
-                .value=${this._environmentalAttribute}
-                @input=${(e: Event) => (this._environmentalAttribute = (e.target as HTMLInputElement).value.trim())}
-              ></ms-textfield>
-            ` : nothing}
+            ${this._environmentalEntity ? this._renderEnvironmentalAttribute(L) : nothing}
           ` : nothing}
           ${this._renderAdaptiveSection(L)}
           <ms-textfield
@@ -2492,8 +2594,9 @@ export class MaintenanceTaskDialog extends LitElement {
       font-weight: 500;
       padding-bottom: 12px;
     }
-    /* #129: entity pickers in the trigger form (ha-form + entity selector) */
-    .entity-picker-form {
+    /* #129: entity/state pickers in the trigger form (ha-form + selector) */
+    .entity-picker-form,
+    .state-picker-form {
       display: block;
       margin: 8px 0;
     }

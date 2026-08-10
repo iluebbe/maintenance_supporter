@@ -33,9 +33,11 @@ function completeDialog(el: HTMLElement): MaintenanceCompleteDialog | null {
 }
 
 /** The dialogs are lazy code-split chunks — the open lands whenever the
- *  whole lazy-UI group has loaded, so poll instead of guessing a delay. */
+ *  whole lazy-UI group has loaded, so poll instead of guessing a delay.
+ *  Generous window: under full-suite concurrency (70+ files) the 2 s the
+ *  poll originally allowed was load-dependent flaky. */
 async function waitForOpenCompleteDialog(el: HTMLElement): Promise<void> {
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 400; i++) {
     if (completeDialog(el)?.shadowRoot?.querySelector("ha-dialog")) return;
     await new Promise((r) => setTimeout(r, 20));
   }

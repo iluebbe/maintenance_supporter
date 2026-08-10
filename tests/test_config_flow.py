@@ -2077,7 +2077,7 @@ async def test_runtime_empty_on_states(
         result["flow_id"],
         user_input={
             CONF_TRIGGER_RUNTIME_HOURS: 100,
-            CONF_TRIGGER_ON_STATES: "  ",  # whitespace-only = empty
+            CONF_TRIGGER_ON_STATES: ["  "],  # whitespace-only = empty (state selector returns a list)
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
@@ -2280,7 +2280,7 @@ async def test_compound_condition_runtime_flow(
         result["flow_id"],
         user_input={
             CONF_TRIGGER_RUNTIME_HOURS: 500,
-            CONF_TRIGGER_ON_STATES: "running,idle",
+            CONF_TRIGGER_ON_STATES: ["running", "idle"],
         },
     )
     assert result["step_id"] == "compound_review"
