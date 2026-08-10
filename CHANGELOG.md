@@ -11,10 +11,16 @@ All notable changes to Maintenance Supporter are documented in this file.
   environmental-entity field now use Home Assistant's native entity picker
   (search, multi-select, domain filtering) instead of comma-separated text
   inputs — matching what the config flow has offered all along. The domain
-  filter mirrors the config flow's and is pinned by a parity test. In
-  contexts where HA's picker cannot render (some card-mounted dialogs),
-  the dialog detects the failed layout and falls back to the previous
-  text fields automatically.
+  filter mirrors the config flow's and is pinned by a parity test.
+- **Dashboard dialogs now mount inside Home Assistant's own dialog host**
+  (`<home-assistant>`'s shadow root) instead of `document.body`. HA's
+  modern components resolve data through Lit context events that must
+  bubble up to providers on the HA root element — on `document.body`
+  those events went nowhere and components like the entity picker (and,
+  latently, the completion-action target picker) rendered empty in
+  card-opened dialogs. As defense in depth, the dialog also probes the
+  rendered pickers and falls back to the previous comma-separated text
+  fields if they ever fail to lay out in an unknown context.
 
 ## [2.55.0] - 2026-08-09
 

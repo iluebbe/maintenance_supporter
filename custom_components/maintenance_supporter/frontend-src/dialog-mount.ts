@@ -1,8 +1,17 @@
 /** Standalone dialog mounting helper.
  *
- * Mounts the existing MaintenanceObjectDialog / MaintenanceTaskDialog onto
- * document.body so they can be opened from any Lovelace context — without
- * the user navigating to the panel first.
+ * Mounts the existing MaintenanceObjectDialog / MaintenanceTaskDialog into
+ * <home-assistant>'s shadow root — the same place HA's own dialogs live —
+ * so they can be opened from any Lovelace context without the user
+ * navigating to the panel first.
+ *
+ * The mount point matters (#129): HA's modern components (ha-entity-picker
+ * and friends) resolve data through Lit context — `context-request` events
+ * that bubble UP the DOM to providers on the <home-assistant> element. A
+ * dialog on document.body is a SIBLING tree of <home-assistant>, the events
+ * never reach the providers, and such components upgrade to an empty shadow
+ * root. Mounting inside <home-assistant>'s shadow root keeps the provider
+ * chain intact; document.body remains only as a last-resort fallback.
  *
  * Usage from a strategy or card click handler:
  *
@@ -54,11 +63,21 @@ function getHass(): HomeAssistant | undefined {
   return root?.hass;
 }
 
+/** Where dialogs live: <home-assistant>'s shadow root (context providers
+ *  reachable), falling back to document.body if HA's root ever goes away. */
+function dialogHost(): ShadowRoot | HTMLElement {
+  return document.querySelector("home-assistant")?.shadowRoot ?? document.body;
+}
+
 function getOrCreate<T extends HTMLElement>(tag: string): T {
-  let el = document.body.querySelector<T>(tag);
+  const host = dialogHost();
+  let el = host.querySelector<T>(tag) ?? document.body.querySelector<T>(tag);
   if (!el) {
     el = document.createElement(tag) as T;
-    document.body.appendChild(el);
+    host.appendChild(el);
+  } else if (el.parentNode !== host) {
+    // Adopt a dialog mounted by an older bundle onto document.body.
+    host.appendChild(el);
   }
   return el;
 }

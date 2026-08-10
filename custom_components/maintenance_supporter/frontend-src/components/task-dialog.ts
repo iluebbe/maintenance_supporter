@@ -1459,12 +1459,15 @@ export class MaintenanceTaskDialog extends LitElement {
     }
   }
 
-  /** #129 fallback: HA's entity picker renders an EMPTY shadow root in some
-   *  mount contexts (body-mounted card dialogs — the #50 lesson wearing a new
-   *  coat; the completion-action target picker has the same latent issue
-   *  there). Probe the layout after render: two consecutive zero-height
-   *  measurements of a picker form inside a visible dialog flip the trigger
-   *  fields back to the comma-separated text inputs. */
+  /** #129 SAFETY NET (not the primary fix): HA's modern pickers resolve data
+   *  via Lit context — events that must bubble up to providers on the
+   *  <home-assistant> element. A dialog mounted outside that tree gets
+   *  pickers that upgrade to an EMPTY shadow root. The root cause is solved
+   *  by mounting dialogs inside <home-assistant>'s shadow root
+   *  (dialog-mount.ts); this probe remains as defense in depth for unknown
+   *  contexts: two consecutive zero-height measurements of the leaf pickers
+   *  inside a visible dialog flip the trigger fields back to the
+   *  comma-separated text inputs. */
   private _scheduleEntityPickerProbe(): void {
     if (
       this._entityPickerFallback
