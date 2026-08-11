@@ -1,5 +1,5 @@
-/*! maintenance_supporter frontend 2.55.0 */
-import{a as t,b as a,c as i,f as l,g as p,i as r}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-EIU4I72B.js";var e=class extends p{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1}_onInput(n){let o=n.target.value;this.value=o,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:o}}))}render(){return i`
+/*! maintenance_supporter frontend 2.56.0 */
+import{a as t,b as a,c as i,f as l,g as p,i as r}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-C5W5B43R.js";var e=class extends p{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1}_onInput(n){let o=n.target.value;this.value=o,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:o}}))}render(){return i`
       <label class="field">
         ${this.label?i`<span class="label">${this.label}${this.required?i`<span class="req">*</span>`:l}</span>`:l}
         <input
