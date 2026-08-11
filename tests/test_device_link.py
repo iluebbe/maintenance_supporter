@@ -796,3 +796,36 @@ async def test_clearing_the_parent_clears_the_nesting(
     refreshed = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
     assert refreshed is not None
     assert refreshed.via_device_id is None, "the stale nesting pointer survived un-nesting"
+
+
+async def test_via_sync_prefers_per_entry_device_lookup_when_available(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """HA 2027.8 removes DeviceRegistry.async_get_device — sync_via_device_links
+    must use async_get_device_by_identifier((domain, id), entry_id) on cores
+    that have it. Our reference core doesn't yet, so the modern path is pinned
+    through a stub; the legacy fallback is what every other test exercises."""
+    from custom_components.maintenance_supporter.helpers.device_link import sync_via_device_links
+
+    parent_entry = _make_entry(hass, "parent2", name="Boiler")
+    child_entry = _make_entry(
+        hass, "child2", name="Sensor", extra_obj={"parent_entry_id": parent_entry.entry_id}
+    )
+    await setup_integration(hass, global_entry, parent_entry, child_entry)
+
+    reg = dr.async_get(hass)
+    calls: list[tuple[tuple[str, str], str]] = []
+
+    def modern(identifier: tuple[str, str], config_entry_id: str) -> Any:
+        calls.append((identifier, config_entry_id))
+        return reg.async_get_device(identifiers={identifier})
+
+    reg.async_get_device_by_identifier = modern  # type: ignore[attr-defined]
+    try:
+        sync_via_device_links(hass, child_entry)
+    finally:
+        delattr(reg, "async_get_device_by_identifier")
+
+    assert calls, "modern lookup not used although available"
+    assert all(cfg in (parent_entry.entry_id, child_entry.entry_id) for _, cfg in calls)
+    assert any(ident == (DOMAIN, child_entry.unique_id) for ident, _ in calls)

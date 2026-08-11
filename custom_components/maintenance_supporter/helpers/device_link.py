@@ -187,6 +187,14 @@ def sync_via_device_links(hass: HomeAssistant, entry: Any) -> None:
     def own_device(e: Any) -> dr.DeviceEntry | None:
         if e is None or e.domain != DOMAIN or not e.unique_id or e.unique_id == GLOBAL_UNIQUE_ID:
             return None
+        # async_get_device is deprecated (removed HA 2027.8) — identifiers are
+        # only unique per config entry since the 2026.8 device split. Prefer
+        # the per-entry lookup where the core has it; the legacy call remains
+        # the fallback for our minimum-supported cores (same shim pattern as
+        # the helper_integration call below).
+        modern = getattr(dev_reg, "async_get_device_by_identifier", None)
+        if modern is not None:
+            return modern((DOMAIN, e.unique_id), e.entry_id)  # type: ignore[no-any-return]
         return dev_reg.async_get_device(identifiers={(DOMAIN, e.unique_id)})
 
     def apply(child_entry: Any) -> None:
