@@ -30,9 +30,10 @@ from . import (
 # browser between read and write — timestamp is more stable. If multiple
 # entries share a timestamp (rare), the first match is patched.
 #
-# Patchable fields: timestamp, notes, cost, duration, completed_by. Anything
-# else (type, trigger_value, checklist_state, feedback) is intentionally
-# read-only — those carry semantic meaning that shouldn't be silently rewritten.
+# Patchable fields: timestamp, notes, cost, duration, completed_by and — since
+# #130 — used_parts (stock reconciled by the per-part delta). Anything else
+# (type, trigger_value, checklist_state, feedback) is intentionally read-only —
+# those carry semantic meaning that shouldn't be silently rewritten.
 #
 # After the patch we recompute last_performed if the edited entry is the
 # latest type=completed/reset/skipped entry — otherwise the next_due math
@@ -52,6 +53,19 @@ from . import (
         vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
         vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
         vol.Optional("completed_by"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        # #130: edit the entry's part consumption. The stock is reconciled by
+        # the per-part DELTA against the entry's previous used_parts; None (or
+        # []) clears the consumption and returns the old quantities to stock.
+        vol.Optional("used_parts"): vol.Any(
+            [
+                {
+                    vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                    vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0.01, max=999)),
+                    vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                }
+            ],
+            None,
+        ),
     }
 )
 @require_write
@@ -120,6 +134,23 @@ async def ws_update_history_entry(
             patched.pop(field, None)
         else:
             patched[field] = value
+
+    # #130: part consumption on the entry. The stock is adjusted by the
+    # per-part delta between the stored and the submitted selection, so
+    # corrections and backfills keep the shelf honest. Best-effort like the
+    # live completion path — a vanished part skips its stock math.
+    if "used_parts" in msg:
+        from ..parts_runtime import async_apply_history_parts_edit
+        from . import _get_merged_tasks
+
+        old_used = patched.get("used_parts") or []
+        new_used = msg["used_parts"] or []
+        task_data = _get_merged_tasks(entry).get(task_id) or {}
+        enriched = await async_apply_history_parts_edit(hass, entry, task_data, old_used, new_used)
+        if enriched:
+            patched["used_parts"] = enriched
+        else:
+            patched.pop("used_parts", None)
 
     history[target_index] = patched
     store.set_history(task_id, history)

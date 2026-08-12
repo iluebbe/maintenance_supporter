@@ -23,6 +23,19 @@ export interface HistoryEntryDraft {
   cost: number | null;
   duration: number | null;
   completed_by: string | null;
+  // #130: the entry's recorded part consumption ({part_id, name, quantity,
+  // entry_id? for pooled parts}); absent/empty = nothing consumed.
+  used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null;
+}
+
+/** One selectable part option in the edit dialog — the object's own parts
+ *  plus pooled parts this task links to, fetched via parts/overview. */
+interface PartOption {
+  part_id: string;
+  name: string;
+  entry_id: string;      // owning object
+  foreign: boolean;      // pooled (#111) — carried into the saved link
+  object_name: string | null;
 }
 
 export class MaintenanceHistoryEditDialog extends LitElement {
@@ -40,6 +53,12 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     return this.hass?.language || "en";
   }
 
+  // #130: selectable parts + the edited selection (part key -> quantity;
+  // 0/absent = not consumed). Key = `${entry_id}:${part_id}` (pool-safe).
+  @state() private _partOptions: PartOption[] | null = null;
+  @state() private _partQty: Record<string, number> = {};
+  private _partQtyOriginal = "";
+
   /** Open the dialog with the given history-entry data. The caller must
    *  pass `original_timestamp` (the entry's current timestamp before edit)
    *  so the backend can find the entry. */
@@ -48,6 +67,71 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     this._originalSnapshot = { ...draft };
     this._error = "";
     this._open = true;
+    this._partOptions = null;
+    this._partQty = {};
+    this._partQtyOriginal = "";
+    void this._loadPartOptions();
+  }
+
+  /** The object's own parts + pooled parts this task draws on — from the
+   *  instance-wide overview so pooled owners resolve without extra calls. */
+  private async _loadPartOptions(): Promise<void> {
+    const draft = this._draft;
+    if (!draft) return;
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/parts/overview",
+      }) as {
+        parts: Array<{
+          part_id: string; name: string; entry_id: string; object_name: string | null;
+          consumers: Array<{ entry_id: string; task_id: string }>;
+        }>;
+      };
+      const options: PartOption[] = [];
+      for (const row of result.parts || []) {
+        const own = row.entry_id === draft.entry_id;
+        const linked = row.consumers.some((c) => c.entry_id === draft.entry_id && c.task_id === draft.task_id);
+        if (!own && !linked) continue;
+        options.push({
+          part_id: row.part_id,
+          name: row.name,
+          entry_id: row.entry_id,
+          foreign: !own,
+          object_name: row.object_name,
+        });
+      }
+      // Recorded parts whose catalog entry vanished stay selectable so a
+      // correction can still zero them out.
+      for (const link of draft.used_parts || []) {
+        const owner = link.entry_id || draft.entry_id;
+        if (!options.some((o) => o.part_id === link.part_id && o.entry_id === owner)) {
+          options.push({
+            part_id: link.part_id,
+            name: link.name || link.part_id,
+            entry_id: owner,
+            foreign: owner !== draft.entry_id,
+            object_name: null,
+          });
+        }
+      }
+      const qty: Record<string, number> = {};
+      for (const link of draft.used_parts || []) {
+        qty[`${link.entry_id || draft.entry_id}:${link.part_id}`] = link.quantity ?? 1;
+      }
+      this._partOptions = options;
+      this._partQty = qty;
+      this._partQtyOriginal = this._partSelectionKey();
+    } catch {
+      this._partOptions = [];  // parts UI unavailable — the rest still edits
+    }
+  }
+
+  private _partSelectionKey(): string {
+    return JSON.stringify(
+      Object.entries(this._partQty)
+        .filter(([, q]) => q > 0)
+        .sort(([a], [b]) => a.localeCompare(b)),
+    );
   }
 
   public close(): void {
@@ -91,6 +175,17 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       }
       if (this._draft.completed_by !== this._originalSnapshot.completed_by) {
         patch.completed_by = this._draft.completed_by;
+      }
+      // #130: send the parts selection only when it actually changed — the
+      // backend reconciles stock by the delta, so a no-op must stay silent.
+      if (this._partOptions !== null && this._partSelectionKey() !== this._partQtyOriginal) {
+        patch.used_parts = (this._partOptions || [])
+          .filter((o) => (this._partQty[`${o.entry_id}:${o.part_id}`] || 0) > 0)
+          .map((o) => ({
+            part_id: o.part_id,
+            quantity: this._partQty[`${o.entry_id}:${o.part_id}`],
+            ...(o.foreign ? { entry_id: o.entry_id } : {}),
+          }));
       }
       // Nothing changed → close without WS call
       const changedKeys = Object.keys(patch).filter(
@@ -173,6 +268,33 @@ export class MaintenanceHistoryEditDialog extends LitElement {
               }} />
           </label>
         </div>
+        ${this._partOptions && this._partOptions.length > 0 ? html`
+          <div class="parts-block">
+            <span class="parts-title">${t("complete_parts_used", L)}</span>
+            ${this._partOptions.map((o) => {
+              const key = `${o.entry_id}:${o.part_id}`;
+              const qty = this._partQty[key] || 0;
+              return html`
+                <label class="part-row-edit">
+                  <input type="checkbox" .checked=${qty > 0}
+                    @change=${(e: Event) => {
+                      const on = (e.target as HTMLInputElement).checked;
+                      this._partQty = { ...this._partQty, [key]: on ? 1 : 0 };
+                    }} />
+                  <span class="part-label">${o.name}${o.foreign && o.object_name ? ` (${o.object_name})` : ""}</span>
+                  ${qty > 0 ? html`
+                    <input class="part-qty" type="number" min="0.01" max="999" step="0.01"
+                      .value=${String(qty)}
+                      @input=${(e: Event) => {
+                        const v = parseFloat((e.target as HTMLInputElement).value);
+                        if (!isNaN(v) && v > 0) this._partQty = { ...this._partQty, [key]: v };
+                      }} />
+                  ` : nothing}
+                </label>
+              `;
+            })}
+          </div>
+        ` : nothing}
         ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
         <div class="actions">
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
@@ -248,6 +370,20 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       background: rgba(211,47,47,0.1);
       border-radius: 6px;
     }
+    /* #130: parts on the entry */
+    .parts-block {
+      display: flex; flex-direction: column; gap: 6px;
+      border: 1px solid var(--divider-color, #444);
+      border-radius: 6px; padding: 8px;
+    }
+    .parts-title { color: var(--secondary-text-color); font-size: 13px; }
+    .part-row-edit {
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
+      font-size: 14px;
+    }
+    .part-row-edit input[type="checkbox"] { width: auto; }
+    .part-label { flex: 1; color: var(--primary-text-color); }
+    .part-qty { width: 76px; }
   `;
 }
 

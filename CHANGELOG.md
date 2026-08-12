@@ -2,6 +2,31 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **All-parts overview** (#130, thanks @MarcoK89). The All-objects view
+  gained a sibling **All parts** view: every part across the whole
+  instance in one table — owning object, live stock with low indicator,
+  reorder threshold, unit price, storage location, and every consuming
+  task including pooled #111 links (dashed chips) — with CSV export.
+  Backed by the new read-only `parts/overview` WS command (87 commands).
+- **Part consumption on history edits** (#130). The history-entry edit
+  dialog now exposes the same parts inputs as the live completion dialog:
+  correcting a quantity, adding parts to a backfilled entry, or clearing
+  the selection reconciles the stock by the per-part difference — so the
+  shelf follows the corrected history instead of silently drifting.
+  Pooled parts resolve to their owning object; parts recorded on the
+  entry whose catalog entry has since vanished stay visible and can be
+  zeroed out.
+
+### 🔧 Internal
+
+- Deprecation shim for HA 2027.8: the via-device sync prefers
+  `async_get_device_by_identifier` where the core provides it (flagged
+  by the hass-breakage-radar scan).
+
 ## [2.56.0] - 2026-08-11
 
 ### ✨ Added

@@ -605,6 +605,43 @@ export const panelStyles = css`
   }
   .view-toggle-btn ha-icon { --mdc-icon-size: 18px; }
 
+  /* (#130) All-parts view: sibling chip in the breadcrumb + table extras */
+  .sibling-view-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 12px;
+    padding: 4px 10px;
+    border: 1px solid var(--divider-color);
+    border-radius: 14px;
+    background: none;
+    color: var(--secondary-text-color);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .sibling-view-chip:hover {
+    background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+    color: var(--primary-text-color);
+  }
+  .sibling-view-chip ha-icon { --mdc-icon-size: 16px; }
+  .part-low-icon {
+    --mdc-icon-size: 16px;
+    color: var(--warning-color, #ff9800);
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+  .part-consumer-chip {
+    display: inline-block;
+    margin: 1px 4px 1px 0;
+    padding: 1px 8px;
+    border: 1px solid var(--divider-color);
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--secondary-text-color);
+  }
+  .part-consumer-chip.pooled { border-style: dashed; }
+
   /* (#67) Objects table (desktop All-Objects view) */
   .objects-table-wrap {
     overflow-x: auto;

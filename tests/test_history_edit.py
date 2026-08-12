@@ -596,3 +596,153 @@ async def test_response_contains_index_and_new_timestamp(
     assert payload["success"] is True
     assert payload["patched_index"] == 1
     assert payload["new_timestamp"] == new_ts
+
+
+# ─── #130: part consumption on history edits ────────────────────────────────
+
+
+def _entry_with_part_and_history(history: list[dict[str, Any]]) -> MockConfigEntry:
+    task = build_task_data(history=history, last_performed=history[0]["timestamp"][:10])
+    data = build_object_entry_data(
+        object_data=build_object_data(name="PartsHist"),
+        tasks={TASK_ID_1: task},
+    )
+    data["parts"] = {
+        "p_filter": {
+            "id": "p_filter",
+            "name": "Water filter",
+            "unit": "pcs",
+            "reorder_threshold": 1,
+            "auto_buy_task": False,
+        }
+    }
+    return MockConfigEntry(
+        version=1,
+        minor_version=4,
+        domain=DOMAIN,
+        title="PartsHist",
+        data=data,
+        source="user",
+        unique_id="maintenance_supporter_parts_hist",
+    )
+
+
+async def _set_part_stock(hass: HomeAssistant, entry: MockConfigEntry, value: float) -> None:
+    store = _get_store(hass, entry)
+    store.set_part_stock("p_filter", value)
+    await store.async_save()
+
+
+async def test_edit_used_parts_adjusts_stock_by_delta(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Raising a recorded quantity consumes the difference; clearing the
+    selection returns it — the shelf follows the corrected history."""
+    h = _hist_entry(3, notes="live")
+    h["used_parts"] = [{"part_id": "p_filter", "name": "Water filter", "quantity": 1}]
+    obj_entry = _entry_with_part_and_history([h])
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+    await _set_part_stock(hass, obj_entry, 10)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "used_parts": [{"part_id": "p_filter", "quantity": 3}],
+        },
+    )
+    assert_ws_success(conn)
+    store = _get_store(hass, obj_entry)
+    assert store.get_part_stock("p_filter") == 8  # delta +2 consumed
+    saved = store.get_history(TASK_ID_1)[0]
+    assert saved["used_parts"] == [{"part_id": "p_filter", "name": "Water filter", "quantity": 3.0}]
+
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "used_parts": [],
+        },
+    )
+    assert_ws_success(conn2)
+    assert store.get_part_stock("p_filter") == 11  # 3 returned
+    assert "used_parts" not in store.get_history(TASK_ID_1)[0]
+
+
+async def test_backfilled_entry_gains_parts_and_consumes_stock(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """An entry recorded without parts can be corrected to consume them."""
+    h = _hist_entry(10)
+    obj_entry = _entry_with_part_and_history([h])
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+    await _set_part_stock(hass, obj_entry, 5)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "used_parts": [{"part_id": "p_filter", "quantity": 2}],
+        },
+    )
+    assert_ws_success(conn)
+    store = _get_store(hass, obj_entry)
+    assert store.get_part_stock("p_filter") == 3
+    saved = store.get_history(TASK_ID_1)[0]
+    assert saved["used_parts"][0]["name"] == "Water filter"  # enriched from the catalog
+
+
+async def test_vanished_part_is_recorded_but_skips_stock_math(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    h = _hist_entry(2)
+    obj_entry = _entry_with_part_and_history([h])
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+    await _set_part_stock(hass, obj_entry, 5)
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "used_parts": [{"part_id": "p_gone", "quantity": 1}],
+        },
+    )
+    assert_ws_success(conn)
+    store = _get_store(hass, obj_entry)
+    assert store.get_part_stock("p_filter") == 5  # untouched
+    saved = store.get_history(TASK_ID_1)[0]
+    assert saved["used_parts"][0]["part_id"] == "p_gone"  # still recorded

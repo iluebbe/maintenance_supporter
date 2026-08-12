@@ -80,6 +80,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/object/resume": "write",
     "maintenance_supporter/object/unarchive": "write",
     "maintenance_supporter/object/update": "write",
+    "maintenance_supporter/parts/overview": "read",
     "maintenance_supporter/part/create": "write",
     "maintenance_supporter/part/delete": "write",
     "maintenance_supporter/part/restock": "write",

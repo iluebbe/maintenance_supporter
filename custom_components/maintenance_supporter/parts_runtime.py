@@ -205,6 +205,94 @@ async def async_handle_completion_parts(
         schedule_buy_task_reconcile(hass, target_entry)
 
 
+async def async_apply_history_parts_edit(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_data: dict[str, Any],
+    old_used: list[dict[str, Any]],
+    new_used: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Reconcile stock for an edited history entry's parts (#130).
+
+    Applies the per-part difference between the entry's previous and new
+    ``used_parts`` to the owning stocks (consuming more decrements, reducing
+    a quantity returns the difference) and returns the enriched list to store
+    on the entry (``{part_id, name, quantity}`` + ``entry_id`` for pooled
+    parts). Owner resolution per part: an explicit ``entry_id`` on the link,
+    else the task's ``consumes_parts`` link for that part (#111 pools), else
+    the object's own catalog. Best-effort like the completion path — a
+    vanished part skips its stock math but stays recorded by name.
+    """
+    link_owners: dict[str, str] = {}
+    for link in task_data.get(CONF_TASK_CONSUMES_PARTS) or []:
+        if isinstance(link, dict) and link.get("part_id") and link.get("entry_id"):
+            link_owners[str(link["part_id"])] = str(link["entry_id"])
+
+    def resolve(link: dict[str, Any]) -> tuple[ConfigEntry, dict[str, Any], Any] | None:
+        part_id = str(link.get("part_id") or "")
+        owner_id = str(link.get("entry_id") or "") or link_owners.get(part_id) or entry.entry_id
+        owner = entry if owner_id == entry.entry_id else hass.config_entries.async_get_entry(owner_id)
+        if owner is None:
+            return None
+        part = (owner.data.get(CONF_PARTS) or {}).get(part_id)
+        store = _get_store(hass, owner)
+        if part is None or store is None:
+            return None
+        return owner, part, store
+
+    def quantities(links: list[dict[str, Any]]) -> dict[str, float]:
+        out: dict[str, float] = {}
+        for link in links:
+            if isinstance(link, dict) and link.get("part_id"):
+                out[str(link["part_id"])] = out.get(str(link["part_id"]), 0.0) + float(link.get("quantity", 1) or 1)
+        return out
+
+    old_q = quantities(old_used)
+    new_q = quantities(new_used)
+    by_id = {str(link["part_id"]): link for link in new_used if isinstance(link, dict) and link.get("part_id")}
+    for link in old_used:
+        if isinstance(link, dict) and link.get("part_id"):
+            by_id.setdefault(str(link["part_id"]), link)
+
+    touched: dict[str, tuple[ConfigEntry, Any]] = {}
+    for part_id in set(old_q) | set(new_q):
+        delta = new_q.get(part_id, 0.0) - old_q.get(part_id, 0.0)
+        if delta == 0:
+            continue
+        resolved = resolve(by_id.get(part_id) or {"part_id": part_id})
+        if resolved is None:
+            continue
+        owner, part, store = resolved
+        old_stock = store.get_part_stock(part["id"])
+        if old_stock is None:
+            continue  # catalog-only part — nothing to adjust
+        new_stock = max(0.0, old_stock - delta)
+        store.set_part_stock(part["id"], new_stock)
+        _fire_transition(hass, owner, part, new_stock, stock_transition(part, old_stock, new_stock))
+        touched[owner.entry_id] = (owner, store)
+
+    for owner, store in touched.values():
+        await store.async_save()
+        _signal_parts_updated(hass, owner)
+        schedule_buy_task_reconcile(hass, owner)
+
+    enriched: list[dict[str, Any]] = []
+    for link in new_used:
+        if not isinstance(link, dict) or not link.get("part_id"):
+            continue
+        resolved = resolve(link)
+        name = resolved[1].get("name") if resolved else link.get("name")
+        item: dict[str, Any] = {
+            "part_id": str(link["part_id"]),
+            "name": name or str(link["part_id"]),
+            "quantity": float(link.get("quantity", 1) or 1),
+        }
+        if resolved and resolved[0].entry_id != entry.entry_id:
+            item["entry_id"] = resolved[0].entry_id
+        enriched.append(item)
+    return enriched
+
+
 def schedule_buy_task_reconcile(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Run the buy-task reconcile as a background task.
 

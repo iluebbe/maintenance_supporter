@@ -94,6 +94,8 @@ export interface HistoryEntry {
   photo_doc_id?: string | null;
   /** v2.20 (#83): recorded value for `reading`-type tasks. */
   reading_value?: number | null;
+  /** #99/#130: the completion's part consumption (entry_id set for pooled). */
+  used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null;
   /** v2.37: completion recorded by the system itself (trigger recovered),
    *  not performed by a user in the UI. */
   auto?: boolean;

@@ -1034,6 +1034,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "part_id": link["part_id"],
                     "name": (parts_catalog.get(link["part_id"]) or {}).get("name") or link["part_id"],
                     "quantity": link.get("quantity", 1),
+                    # #130: keep the pool owner on the record so a later
+                    # history edit can resolve the part without guessing.
+                    **({"entry_id": link["entry_id"]} if link.get("entry_id") else {}),
                 }
                 for link in used_parts
             ]

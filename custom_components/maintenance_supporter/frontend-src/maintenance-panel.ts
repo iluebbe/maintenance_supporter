@@ -79,7 +79,32 @@ import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail
 import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 
-type View = "overview" | "object" | "task" | "all_objects";
+type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
+
+/** One row of the instance-wide parts overview (#130) — the WS response of
+ *  `parts/overview`: the stored part fields plus owner, live stock and the
+ *  consuming tasks (own + pooled #111 links). */
+interface PartsOverviewRow {
+  part_id: string;
+  entry_id: string;
+  object_name: string | null;
+  name: string;
+  unit?: string | null;
+  cost?: number | null;
+  storage_location?: string | null;
+  vendor?: string | null;
+  reorder_threshold?: number | null;
+  stock: number | null;
+  low: boolean;
+  consumers: Array<{
+    entry_id: string;
+    object_name: string | null;
+    task_id: string;
+    task_name: string | null;
+    quantity: number;
+    pooled: boolean;
+  }>;
+}
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
 type ObjectSortMode = "alphabetical" | "due_soonest" | "task_count";
 type GroupByMode = "none" | "area" | "group" | "user";
@@ -95,6 +120,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
   @state() private _view: View = "overview";
+  // #130: rows of the all-parts view; null until first load.
+  @state() private _allParts: PartsOverviewRow[] | null = null;
   @state() private _selectedEntryId: string | null = null;
   @state() private _selectedTaskId: string | null = null;
   @state() private _filterStatus = "";
@@ -813,6 +840,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedEntryId = s.msp_entry || null;
     this._selectedTaskId = s.msp_task || null;
     this._moreMenuOpen = false;
+    if (s.msp_view === "all_parts") void this._loadAllParts();
     if (s.msp_view === "task" && s.msp_entry && s.msp_task) {
       this._historyFilter = null;
       const task = this._getTask(s.msp_entry, s.msp_task);
@@ -837,6 +865,27 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedEntryId = null;
     this._selectedTaskId = null;
     this._scrollContentToTop();
+  }
+
+  // #130: instance-wide parts inventory, sibling view of All objects.
+  private _showAllParts(): void {
+    this._pushPanelState("all_parts");
+    this._view = "all_parts";
+    this._selectedEntryId = null;
+    this._selectedTaskId = null;
+    this._scrollContentToTop();
+    void this._loadAllParts();
+  }
+
+  private async _loadAllParts(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/parts/overview",
+      }) as { parts: PartsOverviewRow[] };
+      this._allParts = result.parts || [];
+    } catch {
+      this._allParts = [];
+    }
   }
 
   /** v2.1.0 (Discussion #49 — @byoung79): tap a KPI value to auto-filter
@@ -1990,6 +2039,8 @@ export class MaintenanceSupporterPanel extends LitElement {
             ? this._renderOverview()
             : this._view === "all_objects"
             ? this._renderAllObjects()
+            : this._view === "all_parts"
+            ? this._renderAllParts()
             : this._view === "object"
             ? this._renderObjectDetail()
             : this._renderTaskDetail()}
@@ -2703,6 +2754,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
         <span>${t("all_objects", L)}</span>
+        <button class="sibling-view-chip" @click=${() => this._showAllParts()}>
+          <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${t("all_parts", L)}
+        </button>
       </div>
       <div class="filter-bar">
         <label class="filter-field">
@@ -2790,6 +2844,106 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _setObjectViewMode(mode: "cards" | "table"): void {
     this._objectViewMode = mode;
     localStorage.setItem(LS_KEYS.objectView, mode);
+  }
+
+  // ── #130: instance-wide parts overview ────────────────────────────────────
+
+  private _renderAllParts() {
+    const L = this._lang;
+    const rows = this._allParts;
+    const currency = this._budget?.currency_symbol || "";
+    return html`
+      <div class="breadcrumb">
+        <ha-icon-button @click=${() => this._showAllObjects()}>
+          <ha-icon icon="mdi:arrow-left"></ha-icon>
+        </ha-icon-button>
+        <span>${t("all_parts", L)}</span>
+        <button class="sibling-view-chip" @click=${() => this._showAllObjects()}>
+          <ha-icon icon="mdi:devices"></ha-icon> ${t("all_objects", L)}
+        </button>
+      </div>
+      <div class="filter-bar">
+        <ha-button appearance="plain" @click=${() => this._exportPartsCsv()}>
+          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${t("settings_export_csv", L)}
+        </ha-button>
+      </div>
+      ${rows === null
+        ? html`<div class="empty-state">…</div>`
+        : rows.length === 0
+        ? html`<div class="empty-state">${t("parts_section", L)}: 0</div>`
+        : html`
+          <div class="objects-table-wrap">
+            <table class="objects-table">
+              <thead>
+                <tr>
+                  <th>${t("part_name", L)}</th>
+                  <th>${t("object", L)}</th>
+                  <th>${t("part_stock", L)}</th>
+                  <th>${t("part_reorder_threshold", L)}</th>
+                  <th>${t("part_cost", L)}</th>
+                  <th>${t("part_storage_location", L)}</th>
+                  <th>${t("parts_used_by", L)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map((row) => html`
+                  <tr class="objects-table-row" @click=${() => this._showObject(row.entry_id)}>
+                    <td>
+                      <span class="objects-table-name">${row.name}</span>
+                      ${row.low
+                        ? html`<ha-icon class="part-low-icon" icon="mdi:cart-arrow-down"
+                            title="${t("part_reorder_threshold", L)}: ${row.reorder_threshold}"></ha-icon>`
+                        : nothing}
+                    </td>
+                    <td>${row.object_name || "—"}</td>
+                    <td>${row.stock !== null ? `${row.stock}${row.unit ? ` ${row.unit}` : ""}` : "—"}</td>
+                    <td>${row.reorder_threshold ?? "—"}</td>
+                    <td>${row.cost != null ? `${row.cost} ${currency}`.trim() : "—"}</td>
+                    <td>${row.storage_location || "—"}</td>
+                    <td>
+                      ${row.consumers.length === 0
+                        ? "—"
+                        : row.consumers.map((c) => html`
+                            <span
+                              class="part-consumer-chip${c.pooled ? " pooled" : ""}"
+                              title=${`${c.object_name ?? ""}: ${c.task_name ?? c.task_id} (×${c.quantity})`}
+                            >${c.pooled ? `${c.object_name} · ` : ""}${c.task_name ?? c.task_id}</span>
+                          `)}
+                    </td>
+                  </tr>
+                `)}
+              </tbody>
+            </table>
+          </div>
+        `}
+    `;
+  }
+
+  /** Client-side CSV of the loaded overview rows (the objects table's CSV is
+   *  server-built; the parts rows are already fully materialized here). */
+  private _exportPartsCsv(): void {
+    const rows = this._allParts || [];
+    const esc = (v: unknown): string => {
+      const s = v == null ? "" : String(v);
+      return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ["name", "object", "stock", "unit", "reorder_threshold", "unit_cost", "storage_location", "vendor", "used_by"];
+    const lines = [header.join(",")];
+    for (const row of rows) {
+      lines.push([
+        esc(row.name),
+        esc(row.object_name),
+        esc(row.stock),
+        esc(row.unit),
+        esc(row.reorder_threshold),
+        esc(row.cost),
+        esc(row.storage_location),
+        esc(row.vendor),
+        esc(row.consumers.map((c) => `${c.object_name ?? ""}/${c.task_name ?? c.task_id}×${c.quantity}`).join(" | ")),
+      ].join(","));
+    }
+    const ts = new Date().toISOString().slice(0, 10);
+    downloadTextFile(lines.join("\n"), `maintenance_parts_${ts}.csv`, "text/csv;charset=utf-8");
   }
 
   // (#67 / Phase 3) Download all objects as a one-row-per-object CSV.
@@ -3602,6 +3756,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       cost: entry.cost ?? null,
       duration: entry.duration ?? null,
       completed_by: entry.completed_by ?? null,
+      used_parts: entry.used_parts ?? null,
     };
     this.shadowRoot
       ?.querySelector<MaintenanceHistoryEditDialog>("maintenance-history-edit-dialog")

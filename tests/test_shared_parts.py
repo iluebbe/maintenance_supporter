@@ -1114,3 +1114,47 @@ async def test_ending_vacation_survives_a_corrupted_start_date(hass: HomeAssista
 
     assert conn.send_error.call_count == 0, conn.send_error.call_args
     assert hass.config_entries.async_get_entry(g.entry_id).options[CONF_VACATION_ENABLED] is False
+
+
+# ─── #130: instance-wide parts overview ──────────────────────────────────
+
+
+async def test_parts_overview_lists_owner_stock_and_all_consumers(hass: HomeAssistant) -> None:
+    """One row per part with owner, live stock, low state and every consuming
+    task — the owner's own link and the pooled #111 link from the other
+    object, the latter marked as pooled."""
+    from custom_components.maintenance_supporter.websocket.parts import ws_parts_overview
+
+    g = await _global(hass)
+    owner = _object(
+        hass, name="Shelf", slug="shelf",
+        parts={BAGS: _part()},
+        consumes=[{"part_id": BAGS, "quantity": 1}],
+    )
+    drawer = _object(
+        hass, name="Vacuum", slug="vacuum",
+        consumes=[{"part_id": BAGS, "quantity": 2, "entry_id": owner.entry_id}],
+        created_at="2026-01-02",
+    )
+    await setup_integration(hass, g, owner, drawer)
+    await _set_stock(hass, owner, 5)
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_parts_overview, hass, conn, {"id": 1, "type": "maintenance_supporter/parts/overview"})
+    result = conn.send_result.call_args[0][1]
+    assert result["count"] == 1
+    row = result["parts"][0]
+    assert row["part_id"] == BAGS
+    assert row["entry_id"] == owner.entry_id
+    assert row["object_name"] == "Shelf"
+    assert row["stock"] == 5
+    assert row["low"] is False
+    by_obj = {c["object_name"]: c for c in row["consumers"]}
+    assert by_obj["Shelf"]["pooled"] is False and by_obj["Shelf"]["quantity"] == 1
+    assert by_obj["Vacuum"]["pooled"] is True and by_obj["Vacuum"]["quantity"] == 2
+
+    # Below the threshold the row flips to low.
+    await _set_stock(hass, owner, 1)
+    conn2 = make_ws_connection()
+    await call_ws_handler(ws_parts_overview, hass, conn2, {"id": 2, "type": "maintenance_supporter/parts/overview"})
+    assert conn2.send_result.call_args[0][1]["parts"][0]["low"] is True

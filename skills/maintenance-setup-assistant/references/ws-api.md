@@ -138,6 +138,11 @@ restock_quantity?, auto_buy_task?, notes?}` → `{part_id}`.
 stored values; `stock: null` untracks). `part/delete` `{entry_id, part_id}`
 (also prunes task links + any open buy reminder). `part/restock`
 `{entry_id, part_id, delta | absolute}` → `{stock}`.
+`parts/overview` (#130, read tier, no args) → `{parts: [...], count}` — the
+instance-wide inventory: every part with its stored fields plus `part_id`,
+`entry_id` + `object_name` (owner), live `stock`, `low`, and `consumers:
+[{entry_id, object_name, task_id, task_name, quantity, pooled}]` covering the
+owner's own task links AND pooled #111 links from other objects.
 Link consumption on the task: `task/create|update` accept
 `consumes_parts: [{part_id, quantity, entry_id?}]`. **`entry_id` (2.44+, #111)
 names another object that owns the pool** — several appliances sharing one box
@@ -275,6 +280,10 @@ another user's assignments need write permission, else `unauthorized`.
   adaptive_config}`. Adaptive-scheduling tuning (parity with the options
   flow's adaptive step); omitted optionals keep stored values, min > max is
   rejected. The environmental binding stays on its own endpoint below.
+- `task/history/update` also patches `used_parts: [{part_id, quantity,
+  entry_id?}] | null` (#130) — stock is reconciled by the per-part DELTA
+  against the entry's stored consumption; `null`/`[]` clears it and returns
+  the quantities.
 - `task/set_environmental_entity` — `@require_write` — `{entry_id, task_id,
   environmental_entity?, environmental_attribute?}` → `{"success": true,
   environmental_entity, environmental_attribute}`. Correlates an outside signal

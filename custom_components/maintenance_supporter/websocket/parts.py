@@ -251,3 +251,66 @@ async def ws_restock_part(
         connection.send_error(msg["id"], "not_found", "Part not found")
         return
     connection.send_result(msg["id"], {"stock": new})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/parts/overview"})
+@websocket_api.async_response
+async def ws_parts_overview(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Instance-wide parts inventory (#130).
+
+    Every part across all objects with its owner, live stock, low state and
+    every consuming task — the object's own tasks and pooled #111 links from
+    other objects. Read-only; the per-object CRUD stays on part/*.
+    """
+    from ..const import CONF_OBJECT, DOMAIN, GLOBAL_UNIQUE_ID
+    from ..helpers.parts import part_is_low
+    from . import _get_merged_tasks
+
+    entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]
+    names = {e.entry_id: (e.data.get(CONF_OBJECT) or {}).get("name") or e.title for e in entries}
+
+    # (owner_entry_id, part_id) -> consuming task links, own AND pooled.
+    consumers: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for e in entries:
+        for task_id, task in _get_merged_tasks(e).items():
+            for link in task.get("consumes_parts") or []:
+                if not isinstance(link, dict) or not link.get("part_id"):
+                    continue
+                owner = link.get("entry_id") or e.entry_id
+                consumers.setdefault((owner, link["part_id"]), []).append(
+                    {
+                        "entry_id": e.entry_id,
+                        "object_name": names.get(e.entry_id),
+                        "task_id": task_id,
+                        "task_name": task.get("name"),
+                        "quantity": link.get("quantity", 1),
+                        "pooled": owner != e.entry_id,
+                    }
+                )
+
+    rows: list[dict[str, Any]] = []
+    for e in entries:
+        parts = _parts_of(e)
+        if not parts:
+            continue
+        rd = _get_runtime_data(hass, e.entry_id)
+        store = getattr(rd, "store", None) if rd else None
+        for part_id, part in parts.items():
+            stock = store.get_part_stock(part_id) if store is not None else None
+            rows.append(
+                {
+                    **part,
+                    "part_id": part_id,
+                    "entry_id": e.entry_id,
+                    "object_name": names.get(e.entry_id),
+                    "stock": stock,
+                    "low": part_is_low(part, stock),
+                    "consumers": consumers.get((e.entry_id, part_id), []),
+                }
+            )
+    rows.sort(key=lambda r: ((r.get("name") or "").casefold(), r.get("object_name") or ""))
+    connection.send_result(msg["id"], {"parts": rows, "count": len(rows)})
