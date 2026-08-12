@@ -1133,7 +1133,7 @@ async def test_parts_overview_lists_owner_stock_and_all_consumers(hass: HomeAssi
     )
     drawer = _object(
         hass, name="Vacuum", slug="vacuum",
-        consumes=[{"part_id": BAGS, "quantity": 2, "entry_id": owner.entry_id}],
+        consumes=[{"part_id": BAGS, "quantity": 2, "entry_id": owner.entry_id}, {"quantity": 9}],
         created_at="2026-01-02",
     )
     await setup_integration(hass, g, owner, drawer)

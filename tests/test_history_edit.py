@@ -746,3 +746,135 @@ async def test_vanished_part_is_recorded_but_skips_stock_math(
     assert store.get_part_stock("p_filter") == 5  # untouched
     saved = store.get_history(TASK_ID_1)[0]
     assert saved["used_parts"][0]["part_id"] == "p_gone"  # still recorded
+
+
+async def test_pooled_part_edit_resolves_owner_and_records_entry_id(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """A legacy used_parts record without entry_id resolves the pool owner via
+    the task's consumes_parts link; the re-enriched record then carries the
+    owner's entry_id and the OWNER's stock takes the delta."""
+    owner = MockConfigEntry(
+        version=1, minor_version=4, domain=DOMAIN, title="Shelf",
+        data={
+            **build_object_entry_data(object_data=build_object_data(name="Shelf"), tasks={}),
+            "parts": {"p_bags": {"id": "p_bags", "name": "Dust bags", "auto_buy_task": False}},
+        },
+        source="user", unique_id="maintenance_supporter_pool_owner",
+    )
+    owner.add_to_hass(hass)
+
+    h = _hist_entry(4)
+    h["used_parts"] = [{"part_id": "p_bags", "name": "Dust bags", "quantity": 1}]
+    task = build_task_data(history=[h], last_performed=h["timestamp"][:10])
+    task["consumes_parts"] = [{"part_id": "p_bags", "quantity": 1, "entry_id": owner.entry_id}]
+    borrower = MockConfigEntry(
+        version=1, minor_version=4, domain=DOMAIN, title="Vacuum",
+        data=build_object_entry_data(object_data=build_object_data(name="Vacuum"), tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_pool_borrower",
+    )
+    borrower.add_to_hass(hass)
+    await setup_integration(hass, global_entry, owner, borrower)
+
+    owner_store = _get_store(hass, owner)
+    owner_store.set_part_stock("p_bags", 6)
+    await owner_store.async_save()
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": borrower.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "used_parts": [{"part_id": "p_bags", "quantity": 2}],
+        },
+    )
+    assert_ws_success(conn)
+    assert owner_store.get_part_stock("p_bags") == 5  # delta +1 on the OWNER
+    saved = _get_store(hass, borrower).get_history(TASK_ID_1)[0]
+    assert saved["used_parts"] == [
+        {"part_id": "p_bags", "name": "Dust bags", "quantity": 2.0, "entry_id": owner.entry_id}
+    ]
+
+
+async def test_catalog_only_unchanged_and_orphaned_links_skip_stock_math(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Catalog-only parts (no tracked stock), unchanged quantities and links
+    whose owner entry no longer exists all pass through without stock writes."""
+    h = _hist_entry(6)
+    h["used_parts"] = [{"part_id": "p_filter", "name": "Water filter", "quantity": 2}]
+    obj_entry = _entry_with_part_and_history([h])
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+    # NOTE: no stock ever set for p_filter -> catalog-only.
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "used_parts": [
+                {"part_id": "p_filter", "quantity": 5},  # catalog-only: recorded, no stock write
+                {"part_id": "p_far", "quantity": 1, "entry_id": "no-such-entry"},  # owner gone
+            ],
+        },
+    )
+    assert_ws_success(conn)
+    store = _get_store(hass, obj_entry)
+    assert store.get_part_stock("p_filter") is None  # still untracked
+    saved = store.get_history(TASK_ID_1)[0]
+    ids = {u["part_id"]: u for u in saved["used_parts"]}
+    assert ids["p_filter"]["quantity"] == 5.0
+    assert ids["p_far"]["name"] == "p_far"  # fallback name, still recorded
+
+    # Second edit with the SAME selection -> delta 0 everywhere, still success.
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "used_parts": [
+                {"part_id": "p_filter", "quantity": 5},
+                {"part_id": "p_far", "quantity": 1, "entry_id": "no-such-entry"},
+            ],
+        },
+    )
+    assert_ws_success(conn2)
+
+
+async def test_apply_history_parts_edit_skips_malformed_links(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Direct-caller defense: non-dict / part_id-less links are ignored."""
+    from custom_components.maintenance_supporter.parts_runtime import async_apply_history_parts_edit
+
+    h = _hist_entry(1)
+    obj_entry = _entry_with_part_and_history([h])
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    enriched = await async_apply_history_parts_edit(
+        hass, obj_entry, {}, [], ["nonsense", {"quantity": 2}]
+    )
+    assert enriched == []
