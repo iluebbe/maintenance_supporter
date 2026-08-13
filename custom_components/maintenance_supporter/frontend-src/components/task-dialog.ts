@@ -24,6 +24,8 @@ const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 // The type selector additionally offers "compound" (a group of conditions
 // joined by AND/OR); its per-condition sub-type is limited to the flat kinds.
 const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
+// Backend defaults for the adaptive tuning fields (ewa_alpha / min / max days).
+const ADAPTIVE_DEFAULTS = { alpha: "0.3", min: "7", max: "365" } as const;
 
 /** One condition of a compound trigger — a flat trigger the user edits inline.
  *  String-typed like the top-level fields (form inputs); coerced on save. */
@@ -279,9 +281,9 @@ export class MaintenanceTaskDialog extends LitElement {
   // Adaptive tuning (parity with the options flow's adaptive step) — Store-
   // managed like the environmental binding, saved through task/set_adaptive.
   @state() private _adaptiveEnabled = false;
-  @state() private _adaptiveAlpha = "0.3";
-  @state() private _adaptiveMin = "7";
-  @state() private _adaptiveMax = "365";
+  @state() private _adaptiveAlpha: string = ADAPTIVE_DEFAULTS.alpha;
+  @state() private _adaptiveMin: string = ADAPTIVE_DEFAULTS.min;
+  @state() private _adaptiveMax: string = ADAPTIVE_DEFAULTS.max;
   @state() private _adaptiveSeasonal = true;
   @state() private _adaptivePrediction = true;
   private _adaptiveInitial = "";
@@ -404,9 +406,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._environmentalInitial = this._environmentalEntity;
     this._environmentalAttributeInitial = this._environmentalAttribute;
     this._adaptiveEnabled = !!ac.enabled;
-    this._adaptiveAlpha = (ac.ewa_alpha ?? 0.3).toString();
-    this._adaptiveMin = (ac.min_interval_days ?? 7).toString();
-    this._adaptiveMax = (ac.max_interval_days ?? 365).toString();
+    this._adaptiveAlpha = ac.ewa_alpha?.toString() ?? ADAPTIVE_DEFAULTS.alpha;
+    this._adaptiveMin = ac.min_interval_days?.toString() ?? ADAPTIVE_DEFAULTS.min;
+    this._adaptiveMax = ac.max_interval_days?.toString() ?? ADAPTIVE_DEFAULTS.max;
     this._adaptiveSeasonal = ac.seasonal_enabled !== false;
     this._adaptivePrediction = ac.sensor_prediction_enabled !== false;
     this._adaptiveInitial = this._adaptiveSnapshot();
@@ -497,9 +499,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._environmentalInitial = "";
     this._environmentalAttributeInitial = "";
     this._adaptiveEnabled = false;
-    this._adaptiveAlpha = "0.3";
-    this._adaptiveMin = "7";
-    this._adaptiveMax = "365";
+    this._adaptiveAlpha = ADAPTIVE_DEFAULTS.alpha;
+    this._adaptiveMin = ADAPTIVE_DEFAULTS.min;
+    this._adaptiveMax = ADAPTIVE_DEFAULTS.max;
     this._adaptiveSeasonal = true;
     this._adaptivePrediction = true;
     this._adaptiveInitial = this._adaptiveSnapshot();
@@ -1314,34 +1316,13 @@ export class MaintenanceTaskDialog extends LitElement {
             </select>
           </div>
         ` : nothing}
-        ${this._availableAttributes.length > 0
-          ? html`
-            <div class="select-row">
-              <label>${t("attribute_optional", L)}</label>
-              <select
-                .value=${this._triggerAttribute}
-                @change=${(e: Event) => (this._triggerAttribute = (e.target as HTMLSelectElement).value)}
-              >
-                <option value="" ?selected=${!this._triggerAttribute}>${t("use_entity_state", L)}</option>
-                ${this._suggestedAttributes.map(
-                  (attr) => html`<option value=${attr} ?selected=${attr === this._triggerAttribute}>${attr} ★</option>`
-                )}
-                ${this._availableAttributes
-                  .filter((a) => !this._suggestedAttributes.includes(a.name))
-                  .map(
-                    (a) => html`<option value=${a.name} ?selected=${a.name === this._triggerAttribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
-                  )}
-              </select>
-            </div>
-          `
-          : html`
-            <ms-textfield
-              label="${t("attribute_optional", L)}"
-              .value=${this._triggerAttribute}
-              @input=${(e: Event) => (this._triggerAttribute = (e.target as HTMLInputElement).value)}
-            ></ms-textfield>
-          `
-        }
+        ${this._renderAttributeSelect({
+          label: t("attribute_optional", L),
+          value: this._triggerAttribute,
+          suggested: this._suggestedAttributes,
+          available: this._availableAttributes,
+          onSelect: (v) => (this._triggerAttribute = v),
+        })}
         ${this._renderTriggerTypeFields()}
         ${this._renderTriggerLiveHint()}
       `}
@@ -1576,76 +1557,73 @@ export class MaintenanceTaskDialog extends LitElement {
     `;
   }
 
+  /** Shared attribute selector: "use entity state" + suggested★ + remaining
+   *  attributes (non-numeric flagged), textfield fallback when none known. */
+  private _renderAttributeSelect(cfg: {
+    label: string;
+    value: string;
+    suggested: string[];
+    available: { name: string; numeric: boolean }[];
+    onSelect: (value: string) => void;
+  }) {
+    const L = this._lang;
+    if (cfg.available.length > 0) {
+      return html`
+        <div class="select-row">
+          <label>${cfg.label}</label>
+          <select
+            .value=${cfg.value}
+            @change=${(e: Event) => cfg.onSelect((e.target as HTMLSelectElement).value)}
+          >
+            <option value="" ?selected=${!cfg.value}>${t("use_entity_state", L)}</option>
+            ${cfg.suggested.map(
+              (attr) => html`<option value=${attr} ?selected=${attr === cfg.value}>${attr} ★</option>`
+            )}
+            ${cfg.available
+              .filter((a) => !cfg.suggested.includes(a.name))
+              .map(
+                (a) => html`<option value=${a.name} ?selected=${a.name === cfg.value}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
+              )}
+          </select>
+        </div>
+      `;
+    }
+    return html`
+      <ms-textfield
+        label="${cfg.label}"
+        .value=${cfg.value}
+        @input=${(e: Event) => cfg.onSelect((e.target as HTMLInputElement).value.trim())}
+      ></ms-textfield>
+    `;
+  }
+
   /** Environmental attribute — the same live-fetched dropdown the flat and
    *  compound attribute fields use, keyed by the environmental entity. */
   private _renderEnvironmentalAttribute(L: string) {
     this._fetchConditionAttributes(this._environmentalEntity);
     const opts = this._conditionAttrOptions[this._environmentalEntity];
-    if (opts && opts.available.length > 0) {
-      return html`
-        <div class="select-row">
-          <label>${t("environmental_attribute_optional", L)}</label>
-          <select
-            .value=${this._environmentalAttribute}
-            @change=${(e: Event) => (this._environmentalAttribute = (e.target as HTMLSelectElement).value)}
-          >
-            <option value="" ?selected=${!this._environmentalAttribute}>${t("use_entity_state", L)}</option>
-            ${opts.suggested.map(
-              (attr) => html`<option value=${attr} ?selected=${attr === this._environmentalAttribute}>${attr} ★</option>`
-            )}
-            ${opts.available
-              .filter((a) => !opts.suggested.includes(a.name))
-              .map(
-                (a) => html`<option value=${a.name} ?selected=${a.name === this._environmentalAttribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
-              )}
-          </select>
-        </div>
-      `;
-    }
-    return html`
-      <ms-textfield
-        label="${t("environmental_attribute_optional", L)}"
-        .value=${this._environmentalAttribute}
-        @input=${(e: Event) => (this._environmentalAttribute = (e.target as HTMLInputElement).value.trim())}
-      ></ms-textfield>
-    `;
+    return this._renderAttributeSelect({
+      label: t("environmental_attribute_optional", L),
+      value: this._environmentalAttribute,
+      suggested: opts?.suggested ?? [],
+      available: opts?.available ?? [],
+      onSelect: (v) => (this._environmentalAttribute = v),
+    });
   }
 
   /** Attribute selector for one compound condition — the same live-fetched
    *  dropdown the flat editor has, keyed by the condition's first entity. */
   private _renderConditionAttribute(c: CompoundConditionDraft, i: number) {
-    const L = this._lang;
     const firstId = c.entityIds.split(",")[0]?.trim() || "";
     if (firstId) this._fetchConditionAttributes(firstId);
     const opts = firstId ? this._conditionAttrOptions[firstId] : undefined;
-    if (opts && opts.available.length > 0) {
-      return html`
-        <div class="select-row">
-          <label>${t("attribute_optional", L)}</label>
-          <select
-            .value=${c.attribute}
-            @change=${(e: Event) => this._patchCondition(i, { attribute: (e.target as HTMLSelectElement).value })}
-          >
-            <option value="" ?selected=${!c.attribute}>${t("use_entity_state", L)}</option>
-            ${opts.suggested.map(
-              (attr) => html`<option value=${attr} ?selected=${attr === c.attribute}>${attr} ★</option>`
-            )}
-            ${opts.available
-              .filter((a) => !opts.suggested.includes(a.name))
-              .map(
-                (a) => html`<option value=${a.name} ?selected=${a.name === c.attribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
-              )}
-          </select>
-        </div>
-      `;
-    }
-    return html`
-      <ms-textfield
-        label="${t("attribute_optional", L)}"
-        .value=${c.attribute}
-        @input=${(e: Event) => this._patchCondition(i, { attribute: (e.target as HTMLInputElement).value.trim() })}
-      ></ms-textfield>
-    `;
+    return this._renderAttributeSelect({
+      label: t("attribute_optional", this._lang),
+      value: c.attribute,
+      suggested: opts?.suggested ?? [],
+      available: opts?.available ?? [],
+      onSelect: (v) => this._patchCondition(i, { attribute: v }),
+    });
   }
 
   /** Type-specific inputs for a single compound condition (mirrors the flat

@@ -6,6 +6,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import (
@@ -19,6 +20,32 @@ from ..const import (
 from ..helpers.permissions import require_write
 from ..helpers.task_fields import INTERVAL_DAYS_RANGE
 from . import _get_merged_tasks, _get_runtime_data, _load_object_entry
+
+
+async def _persist_adaptive_config(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_id: str,
+    adaptive_config: dict[str, Any],
+) -> None:
+    """Write a task's adaptive_config (store, or legacy entry data) and refresh."""
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        store.set_adaptive_config(task_id, adaptive_config)
+        store.async_delay_save()
+    else:
+        # Legacy: write to ConfigEntry.data
+        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
+        task = dict(static_tasks[task_id])
+        task["adaptive_config"] = adaptive_config
+        static_tasks[task_id] = task
+        new_data = dict(entry.data)
+        new_data[CONF_TASKS] = static_tasks
+        hass.config_entries.async_update_entry(entry, data=new_data)
+
+    if rd and rd.coordinator:
+        await rd.coordinator.async_refresh_now()
 
 
 @websocket_api.websocket_command(
@@ -176,24 +203,7 @@ async def ws_seasonal_overrides(
     else:
         adaptive_config.pop("seasonal_overrides", None)
 
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
-    if store is not None:
-        store.set_adaptive_config(task_id, adaptive_config)
-        store.async_delay_save()
-    else:
-        # Legacy: write to ConfigEntry.data
-        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
-        task = dict(static_tasks[task_id])
-        task["adaptive_config"] = adaptive_config
-        static_tasks[task_id] = task
-        new_data = dict(entry.data)
-        new_data[CONF_TASKS] = static_tasks
-        hass.config_entries.async_update_entry(entry, data=new_data)
-
-    # Refresh coordinator
-    if rd and rd.coordinator:
-        await rd.coordinator.async_refresh_now()
+    await _persist_adaptive_config(hass, entry, task_id, adaptive_config)
 
     connection.send_result(msg["id"], {"success": True, "overrides": validated})
 
@@ -246,24 +256,7 @@ async def ws_set_environmental_entity(
         adaptive_config.pop("environmental_entity", None)
         adaptive_config.pop("environmental_attribute", None)
 
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
-    if store is not None:
-        store.set_adaptive_config(task_id, adaptive_config)
-        store.async_delay_save()
-    else:
-        # Legacy: write to ConfigEntry.data
-        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
-        task = dict(static_tasks[task_id])
-        task["adaptive_config"] = adaptive_config
-        static_tasks[task_id] = task
-        new_data = dict(entry.data)
-        new_data[CONF_TASKS] = static_tasks
-        hass.config_entries.async_update_entry(entry, data=new_data)
-
-    # Refresh coordinator
-    if rd and rd.coordinator:
-        await rd.coordinator.async_refresh_now()
+    await _persist_adaptive_config(hass, entry, task_id, adaptive_config)
 
     connection.send_result(
         msg["id"],
@@ -333,21 +326,6 @@ async def ws_set_adaptive(
         base = read_legacy_fields(tasks_data[task_id])["interval_days"]
         adaptive_config["base_interval"] = base if base is not None else 30
 
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
-    if store is not None:
-        store.set_adaptive_config(task_id, adaptive_config)
-        store.async_delay_save()
-    else:
-        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
-        task = dict(static_tasks[task_id])
-        task["adaptive_config"] = adaptive_config
-        static_tasks[task_id] = task
-        new_data = dict(entry.data)
-        new_data[CONF_TASKS] = static_tasks
-        hass.config_entries.async_update_entry(entry, data=new_data)
-
-    if rd and rd.coordinator:
-        await rd.coordinator.async_refresh_now()
+    await _persist_adaptive_config(hass, entry, task_id, adaptive_config)
 
     connection.send_result(msg["id"], {"success": True, "adaptive_config": adaptive_config})

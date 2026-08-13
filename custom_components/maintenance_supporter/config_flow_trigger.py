@@ -104,6 +104,58 @@ def _recovery_default(tc: dict[str, Any] | None) -> bool:
     return bool((tc or {}).get("auto_complete_on_recovery"))
 
 
+def _recovery_field(tc: dict[str, Any] | None) -> dict[Any, Any]:
+    """The #53 recovery checkbox — one schema entry, six call sites."""
+    return {
+        vol.Optional(
+            "auto_complete_on_recovery",
+            default=_recovery_default(tc),
+        ): selector.BooleanSelector()
+    }
+
+
+def _entity_logic_field(entity_ids: list[Any]) -> dict[Any, Any]:
+    """The any/all selector, shown only with 2+ entities — identical on every
+    trigger-type step (and per compound condition)."""
+    if len(entity_ids) < 2:
+        return {}
+    return {
+        vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(value="any", label="Any entity triggers"),
+                    selector.SelectOptionDict(value="all", label="All entities must trigger"),
+                ],
+                mode=selector.SelectSelectorMode.LIST,
+                translation_key="entity_logic",
+            )
+        )
+    }
+
+
+def _interval_warning_fields(hass: HomeAssistant) -> dict[Any, Any]:
+    """The safety-interval + warning-days tail shared by all four type steps."""
+    return {
+        vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=INTERVAL_DAYS_RANGE[0],
+                max=INTERVAL_DAYS_RANGE[1],
+                step=1,
+                mode=selector.NumberSelectorMode.BOX,
+            )
+        ),
+        vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
+        vol.Optional(
+            CONF_TASK_WARNING_DAYS,
+            default=get_default_warning_days(hass),
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+            )
+        ),
+    }
+
+
 def _state_selector(entity_id: str | None, *, multiple: bool = False) -> Any:
     """State field bound to the trigger entity (#129 follow-up).
 
@@ -460,47 +512,10 @@ class TriggerConfigMixin:
             vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=0, max=1440, step=1, mode=selector.NumberSelectorMode.BOX)
             ),
-            vol.Optional(
-                "auto_complete_on_recovery",
-                default=_recovery_default(self._current_task.get("trigger_config")),
-            ): selector.BooleanSelector(),
+            **_recovery_field(self._current_task.get("trigger_config")),
         }
-
-        # Add entity_logic selector when multiple entities are selected
-        entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
-        if len(entity_ids) > 1:
-            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        selector.SelectOptionDict(value="any", label="Any entity triggers"),
-                        selector.SelectOptionDict(value="all", label="All entities must trigger"),
-                    ],
-                    mode=selector.SelectSelectorMode.LIST,
-                    translation_key="entity_logic",
-                )
-            )
-
-        schema_fields.update(
-            {
-                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=INTERVAL_DAYS_RANGE[0],
-                        max=INTERVAL_DAYS_RANGE[1],
-                        step=1,
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
-                ),
-                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
-                vol.Optional(
-                    CONF_TASK_WARNING_DAYS,
-                    default=get_default_warning_days(self.hass),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-            }
-        )
+        schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
+        schema_fields.update(_interval_warning_fields(self.hass))
 
         return self.async_show_form(
             step_id=step_id,
@@ -583,47 +598,10 @@ class TriggerConfigMixin:
                     step="any",
                 )
             ),
-            vol.Optional(
-                "auto_complete_on_recovery",
-                default=_recovery_default(prev_tc),
-            ): selector.BooleanSelector(),
+            **_recovery_field(prev_tc),
         }
-
-        # Add entity_logic selector when multiple entities are selected
-        entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
-        if len(entity_ids) > 1:
-            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        selector.SelectOptionDict(value="any", label="Any entity triggers"),
-                        selector.SelectOptionDict(value="all", label="All entities must trigger"),
-                    ],
-                    mode=selector.SelectSelectorMode.LIST,
-                    translation_key="entity_logic",
-                )
-            )
-
-        schema_fields.update(
-            {
-                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=INTERVAL_DAYS_RANGE[0],
-                        max=INTERVAL_DAYS_RANGE[1],
-                        step=1,
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
-                ),
-                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
-                vol.Optional(
-                    CONF_TASK_WARNING_DAYS,
-                    default=get_default_warning_days(self.hass),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-            }
-        )
+        schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
+        schema_fields.update(_interval_warning_fields(self.hass))
 
         return self.async_show_form(
             step_id=step_id,
@@ -688,47 +666,10 @@ class TriggerConfigMixin:
                     mode=selector.NumberSelectorMode.BOX,
                 )
             ),
-            vol.Optional(
-                "auto_complete_on_recovery",
-                default=_recovery_default(self._current_task.get("trigger_config")),
-            ): selector.BooleanSelector(),
+            **_recovery_field(self._current_task.get("trigger_config")),
         }
-
-        # Add entity_logic selector when multiple entities are selected
-        entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
-        if len(entity_ids) > 1:
-            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        selector.SelectOptionDict(value="any", label="Any entity triggers"),
-                        selector.SelectOptionDict(value="all", label="All entities must trigger"),
-                    ],
-                    mode=selector.SelectSelectorMode.LIST,
-                    translation_key="entity_logic",
-                )
-            )
-
-        schema_fields.update(
-            {
-                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=INTERVAL_DAYS_RANGE[0],
-                        max=INTERVAL_DAYS_RANGE[1],
-                        step=1,
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
-                ),
-                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
-                vol.Optional(
-                    CONF_TASK_WARNING_DAYS,
-                    default=get_default_warning_days(self.hass),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-            }
-        )
+        schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
+        schema_fields.update(_interval_warning_fields(self.hass))
 
         return self.async_show_form(
             step_id=step_id,
@@ -796,47 +737,10 @@ class TriggerConfigMixin:
             vol.Optional(CONF_TRIGGER_ON_STATES, default=default_states): _state_selector(
                 self._trigger_entity_id, multiple=True
             ),
-            vol.Optional(
-                "auto_complete_on_recovery",
-                default=_recovery_default(current_tc),
-            ): selector.BooleanSelector(),
+            **_recovery_field(current_tc),
         }
-
-        # Add entity_logic selector when multiple entities are selected
-        entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
-        if len(entity_ids) > 1:
-            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        selector.SelectOptionDict(value="any", label="Any entity triggers"),
-                        selector.SelectOptionDict(value="all", label="All entities must trigger"),
-                    ],
-                    mode=selector.SelectSelectorMode.LIST,
-                    translation_key="entity_logic",
-                )
-            )
-
-        schema_fields.update(
-            {
-                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=INTERVAL_DAYS_RANGE[0],
-                        max=INTERVAL_DAYS_RANGE[1],
-                        step=1,
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
-                ),
-                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
-                vol.Optional(
-                    CONF_TASK_WARNING_DAYS,
-                    default=get_default_warning_days(self.hass),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-            }
-        )
+        schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
+        schema_fields.update(_interval_warning_fields(self.hass))
 
         return self.async_show_form(
             step_id=step_id,
@@ -893,10 +797,7 @@ class TriggerConfigMixin:
                     translation_key="compound_logic",
                 )
             ),
-            vol.Optional(
-                "auto_complete_on_recovery",
-                default=_recovery_default(self._current_task.get("trigger_config")),
-            ): selector.BooleanSelector(),
+            **_recovery_field(self._current_task.get("trigger_config")),
         }
         return self.async_show_form(
             step_id=step_id,
@@ -1104,18 +1005,7 @@ class TriggerConfigMixin:
                 ): _state_selector(cond.get("entity_id"), multiple=True),
             }
 
-        entity_ids = cond.get("entity_ids", [])
-        if len(entity_ids) > 1:
-            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        selector.SelectOptionDict(value="any", label="Any entity triggers"),
-                        selector.SelectOptionDict(value="all", label="All entities must trigger"),
-                    ],
-                    mode=selector.SelectSelectorMode.LIST,
-                    translation_key="entity_logic",
-                )
-            )
+        schema_fields.update(_entity_logic_field(cond.get("entity_ids", [])))
 
         return self.async_show_form(
             step_id=step_id,

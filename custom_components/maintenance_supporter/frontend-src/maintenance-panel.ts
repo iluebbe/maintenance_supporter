@@ -145,6 +145,11 @@ export class MaintenanceSupporterPanel extends LitElement {
   })();
   @state() private _historyFilter: string | null = null;
   @state() private _budget: BudgetStatus | null = null;
+
+  private get _currencySymbol(): string {
+    return this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
+  }
+
   @state() private _groups: Record<string, MaintenanceGroup> = {};
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
@@ -1442,7 +1447,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const html = buildObjectReportHtml(
       resp.object, resp.tasks, labels,
       (iso) => (iso ? formatDate(iso, L) : ""),
-      this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL,
+      this._currencySymbol,
       new Date().toISOString(),
     );
     const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
@@ -1988,7 +1993,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // #104 follow-up: parts carry unit costs — the dialog offers their sum
     // as a one-click cost suggestion (buy task: restock qty × unit cost).
     dlg.restockUnitCost = tk?.part_ref ? (refPart?.cost ?? null) : null;
-    dlg.currencySymbol = this._budget?.currency_symbol || "";
+    dlg.currencySymbol = this._currencySymbol;
     // #111: a link may point at another object's pool — name that object, and
     // never drop a line that fails to resolve (the old .filter(Boolean) hid it).
     dlg.consumesInfo = (tk?.consumes_parts || []).map((link) =>
@@ -2851,7 +2856,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderAllParts() {
     const L = this._lang;
     const rows = this._allParts;
-    const currency = this._budget?.currency_symbol || "";
+    const currency = this._currencySymbol;
     return html`
       <div class="breadcrumb">
         <ha-icon-button @click=${() => this._showAllObjects()}>
@@ -3148,7 +3153,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const b = this._budget;
     if (!b) return nothing;
     const L = this._lang;
-    const cs = b.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
+    const cs = this._currencySymbol;
     const tile = (label: string, spent: number, budget: number | null) => {
       if (budget !== null) {
         const pct = Math.min(100, Math.max(0, (spent / budget) * 100));
@@ -3415,7 +3420,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           .entryId=${obj.entry_id}
           .parts=${obj.parts || []}
           .canWrite=${!isOperator}
-          .currencySymbol=${this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL}
+          .currencySymbol=${this._currencySymbol}
           @parts-changed=${() => this._loadData()}
         ></maintenance-parts-section>
       </div>
@@ -3639,7 +3644,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       hass: this.hass,
       filter: this._historyFilter,
       search: this._historySearch,
-      currencySymbol: this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL,
+      currencySymbol: this._currencySymbol,
       setFilter: (f) => { this._historyFilter = f; },
       setSearch: (s) => { this._historySearch = s; },
       openEdit: (entry) => this._openHistoryEdit(entry),
@@ -3674,7 +3679,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       moreMenuOpen: this._moreMenuOpen,
       activeTab: this._activeTab,
       features: this._features,
-      currencySymbol: this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL,
+      currencySymbol: this._currencySymbol,
       collapsedSections: this._collapsedSections,
       costDurationToggle: this._costDurationToggle,
       suggestionDismissed: this._dismissedSuggestions.has(`${entryId}_${taskId}`),
