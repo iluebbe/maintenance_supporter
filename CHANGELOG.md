@@ -26,11 +26,23 @@ All notable changes to Maintenance Supporter are documented in this file.
   owner and its catalog name — so their entries are correctable through
   the history editor exactly like dialog completions.
 
+### 🐛 Fixed
+
+- **Backups round-trip completely again.** `required_completion_fields`
+  (v2.44) was restored by the import but never written by the export —
+  a backup silently dropped which details a task demands before
+  completion. And imported history entries now remap their `used_parts`
+  to the part ids the import generates, so restored entries stay
+  correctable through the history editor.
+
 ### 🔧 Internal
 
 - Deprecation shim for HA 2027.8: the via-device sync prefers
   `async_get_device_by_identifier` where the core provides it (flagged
   by the hass-breakage-radar scan).
+- All 33 documentation screenshots and 11 GIFs re-captured against the
+  current UI; the trigger-dialog shots had silently drifted to the wrong
+  dialog region and now showcase the entity/state pickers.
 
 ## [2.56.0] - 2026-08-11
 
