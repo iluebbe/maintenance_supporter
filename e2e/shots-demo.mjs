@@ -536,12 +536,20 @@ async function openTaskDialog(objName, taskName, scrollToText) {
     dlg.openEdit(o.entry_id, t2);
     if (scrollToText) {
       // The action + quick-complete sections are collapsed <details> — open
-      // the matching one and scroll its summary into view.
+      // the matching one and scroll its summary into view. Plain section
+      // headings (h3, e.g. "Trigger Configuration") match too: since the
+      // dialog grew (entity pickers, adaptive section) the default scroll
+      // position no longer happens to show the trigger area.
       setTimeout(() => {
-        for (const sum of dlg.shadowRoot.querySelectorAll("details > summary")) {
-          if (new RegExp(scrollToText, "i").test(sum.textContent || "")) {
-            sum.parentElement.open = true;
-            sum.scrollIntoView({ block: "start" });
+        const targets = [
+          ...dlg.shadowRoot.querySelectorAll("details > summary"),
+          ...dlg.shadowRoot.querySelectorAll("h3"),
+        ];
+        for (const el of targets) {
+          if (new RegExp(scrollToText, "i").test(el.textContent || "")) {
+            if (el.tagName === "SUMMARY") el.parentElement.open = true;
+            el.scrollIntoView({ block: "start" });
+            break;
           }
         }
       }, 900);
@@ -695,6 +703,16 @@ await step("objects-table.png", async () => {
   await shot("objects-table.png");
 });
 
+// 8b. All-parts view (#130): instance-wide inventory with consumer chips
+await step("all-parts.png", async () => {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    window.__panel._showAllParts();
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(2000);
+  await shot("all-parts.png");
+});
+
 // 9. Settings tab (features, notifications, budget)
 await step("settings-view.png", async () => {
   await openPanel("settings");
@@ -712,14 +730,14 @@ await step("task-dialog-schedule.png", async () => {
 
 // 11. Multi-entity trigger (Smoke Detectors battery — ANY-of-two threshold)
 await step("multi-entity-trigger.png", async () => {
-  await openTaskDialog("Smoke Detectors", "Battery Replacement", "trigger");
+  await openTaskDialog("Smoke Detectors", "Battery Replacement", "trigger config");
   await shot("multi-entity-trigger.png");
   await closeDialogs();
 });
 
 // 12. Compound trigger (Pump Service — runtime OR pressure)
 await step("compound-trigger.png", async () => {
-  await openTaskDialog("Pool Pump", "Pump Service", "trigger");
+  await openTaskDialog("Pool Pump", "Pump Service", "trigger config");
   await shot("compound-trigger.png");
   await closeDialogs();
 });

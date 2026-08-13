@@ -802,7 +802,7 @@
   "setups_baseline_hint": "érték az utolsó szerviznél (opcionális)",
   "baseline_start_help_edit": "Üresen hagyva a meglévő számlálás marad. Érték megadása újrahorgonyozza a számlálást (pl. az utolsó szerviz leolvasott értéke).",
   "baseline_current_effective": "Jelenleg érvényes kezdőérték: {value}",
-  "runtime_on_states": "Aktív állapotok (vesszővel elválasztva)",
+  "runtime_on_states": "Aktív állapotok",
   "runtime_on_states_help": "Működésként számító állapotok — alapértelmezés: on. Pl. mowing, cleaning, printing. Attribútum kiválasztásakor annak értékei számítanak.",
   "setups_target_new": "Új létrehozása: {name}",
   "schedule_preview_title": "Következő dátumok",

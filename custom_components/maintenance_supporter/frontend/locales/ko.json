@@ -802,7 +802,7 @@
   "setups_baseline_hint": "마지막 정비 시점의 값 (선택)",
   "baseline_start_help_edit": "비워두면 기존 계수를 유지합니다. 값을 입력하면 계수 기준이 다시 설정됩니다 (예: 마지막 정비 시점의 값).",
   "baseline_current_effective": "현재 적용 중인 시작 값: {value}",
-  "runtime_on_states": "활성 상태 (쉼표로 구분)",
+  "runtime_on_states": "활성 상태",
   "runtime_on_states_help": "가동 중으로 계산할 상태입니다 — 기본값: on. 예: mowing, cleaning, printing. 속성을 선택한 경우 해당 속성 값과 비교합니다.",
   "setups_target_new": "새로 만들기: {name}",
   "schedule_preview_title": "다음 예정일",

@@ -802,7 +802,7 @@
   "setups_baseline_hint": "Stand beim letzten Service (optional)",
   "baseline_start_help_edit": "Leer lassen, um die bestehende Zählung zu behalten. Ein eingetragener Wert verankert die Zählung neu (z. B. der Stand beim letzten Service).",
   "baseline_current_effective": "Aktuell wirksamer Startwert: {value}",
-  "runtime_on_states": "Aktive Zustände (kommagetrennt)",
+  "runtime_on_states": "Aktive Zustände",
   "runtime_on_states_help": "Zustände, die als Laufzeit zählen — Standard: on. Z. B. mowing, cleaning, printing. Bei gewähltem Attribut werden dessen Werte verglichen.",
   "setups_target_new": "Neu anlegen: {name}",
   "schedule_preview_title": "Nächste Termine",

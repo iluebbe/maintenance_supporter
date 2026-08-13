@@ -157,6 +157,8 @@ And the **history-entry edit dialog** exposes the same parts inputs as the
 live completion dialog, reconciling stock by the per-part difference, so
 backfilled or corrected entries keep the shelf honest.
 
+![All parts view](images/all-parts.png)
+
 Because the pool keeps a single owner, there is exactly **one** reorder
 threshold, **one** low badge, **one** stock sensor and **one** *Buy…* reminder
 for one purchase — not one per appliance. Deleting the owning object does not

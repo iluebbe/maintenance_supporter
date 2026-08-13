@@ -802,7 +802,7 @@
   "setups_baseline_hint": "aflæsning ved sidste service (valgfrit)",
   "baseline_start_help_edit": "Lad feltet stå tomt for at beholde den eksisterende tælling. En indtastet værdi forankrer tællingen på ny (f.eks. aflæsningen ved sidste service).",
   "baseline_current_effective": "Aktuelt gældende startværdi: {value}",
-  "runtime_on_states": "Aktive tilstande (kommaseparerede)",
+  "runtime_on_states": "Aktive tilstande",
   "runtime_on_states_help": "Tilstande der tæller som driftstid — standard: on. F.eks. mowing, cleaning, printing. Med en valgt attribut sammenlignes dens værdier i stedet.",
   "setups_target_new": "Opret ny: {name}",
   "schedule_preview_title": "Kommende datoer",

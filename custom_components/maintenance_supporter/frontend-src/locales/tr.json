@@ -802,7 +802,7 @@
   "setups_baseline_hint": "son servisteki okuma (isteğe bağlı)",
   "baseline_start_help_edit": "Mevcut sayımı korumak için boş bırakın. Bir değer girmek sayımı yeniden sabitler (örn. son servisteki okuma).",
   "baseline_current_effective": "Şu anda geçerli başlangıç değeri: {value}",
-  "runtime_on_states": "Etkin durumlar (virgülle ayrılmış)",
+  "runtime_on_states": "Etkin durumlar",
   "runtime_on_states_help": "Çalışıyor sayılan durumlar — varsayılan: on. Örn. mowing, cleaning, printing. Bir öznitelik seçiliyse onun değerleri eşleştirilir.",
   "setups_target_new": "Yeni oluştur: {name}",
   "schedule_preview_title": "Sonraki tarihler",

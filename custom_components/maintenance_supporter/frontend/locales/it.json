@@ -802,7 +802,7 @@
   "setups_baseline_hint": "lettura all'ultima manutenzione (facoltativo)",
   "baseline_start_help_edit": "Lascia vuoto per mantenere il conteggio esistente. Un valore inserito riancora il conteggio (ad es. la lettura dell'ultima manutenzione).",
   "baseline_current_effective": "Valore iniziale attualmente in vigore: {value}",
-  "runtime_on_states": "Stati attivi (separati da virgole)",
+  "runtime_on_states": "Stati attivi",
   "runtime_on_states_help": "Stati che contano come in funzione — predefinito: on. Ad es. mowing, cleaning, printing. Con un attributo selezionato vengono confrontati i suoi valori.",
   "setups_target_new": "Crea nuovo: {name}",
   "schedule_preview_title": "Prossime date",
