@@ -1025,20 +1025,38 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 actual_interval = None
 
         # #99: enrich the per-completion parts selection with names so the
-        # history entry is readable without a part-id lookup.
+        # history entry is readable without a part-id lookup. Since #130 the
+        # AUTOMATIC path records too: with no explicit selection, the task's
+        # consumes_parts links — exactly what async_handle_completion_parts
+        # will consume below — go on the record, so completions from the
+        # no-dialog surfaces (service, button, QR, to-do, voice, recovery)
+        # stay correctable through the history editor like dialog ones.
+        record_links = (
+            used_parts if used_parts is not None else (merged[task_id].get("consumes_parts") or [])
+        )
         enriched_used: list[dict[str, Any]] | None = None
-        if used_parts is not None:
-            parts_catalog = self.entry.data.get("parts") or {}
+        if used_parts is not None or record_links:
+            own_catalog = self.entry.data.get("parts") or {}
+
+            def _part_name(link: dict[str, Any]) -> str:
+                owner_id = link.get("entry_id")
+                catalog: dict[str, Any] = own_catalog
+                if owner_id and owner_id != self.entry.entry_id:
+                    owner = self.hass.config_entries.async_get_entry(owner_id)
+                    catalog = (owner.data.get("parts") or {}) if owner else {}
+                return (catalog.get(link["part_id"]) or {}).get("name") or link["part_id"]
+
             enriched_used = [
                 {
                     "part_id": link["part_id"],
-                    "name": (parts_catalog.get(link["part_id"]) or {}).get("name") or link["part_id"],
+                    "name": _part_name(link),
                     "quantity": link.get("quantity", 1),
                     # #130: keep the pool owner on the record so a later
                     # history edit can resolve the part without guessing.
                     **({"entry_id": link["entry_id"]} if link.get("entry_id") else {}),
                 }
-                for link in used_parts
+                for link in record_links
+                if isinstance(link, dict) and link.get("part_id")
             ]
 
         task.complete(

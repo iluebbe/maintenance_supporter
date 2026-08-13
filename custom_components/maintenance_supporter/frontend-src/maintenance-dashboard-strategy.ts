@@ -1142,6 +1142,7 @@ function registerLlCustomHandler(): void {
             cost: (histEntry.cost as number | undefined) ?? null,
             duration: (histEntry.duration as number | undefined) ?? null,
             completed_by: (histEntry.completed_by as string) ?? null,
+            used_parts: (histEntry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
           });
         } catch {
           deepLink("/maintenance-supporter");

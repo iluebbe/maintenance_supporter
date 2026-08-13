@@ -320,6 +320,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         cost: entry.cost ?? null,
         duration: entry.duration ?? null,
         completed_by: entry.completed_by ?? null,
+        used_parts: entry.used_parts ?? null,
       });
     });
   }

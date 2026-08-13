@@ -19,7 +19,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   shelf follows the corrected history instead of silently drifting.
   Pooled parts resolve to their owning object; parts recorded on the
   entry whose catalog entry has since vanished stay visible and can be
-  zeroed out.
+  zeroed out. **Every completion surface now records its consumption**:
+  completions without an explicit selection (service call, task button,
+  QR quick-complete, to-do check-off, voice, auto-recovery) record the
+  `consumes_parts` links they automatically consumed — with the pool
+  owner and its catalog name — so their entries are correctable through
+  the history editor exactly like dialog completions.
 
 ### 🔧 Internal
 

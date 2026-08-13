@@ -1158,3 +1158,65 @@ async def test_parts_overview_lists_owner_stock_and_all_consumers(hass: HomeAssi
     conn2 = make_ws_connection()
     await call_ws_handler(ws_parts_overview, hass, conn2, {"id": 2, "type": "maintenance_supporter/parts/overview"})
     assert conn2.send_result.call_args[0][1]["parts"][0]["low"] is True
+
+
+async def test_automatic_completion_records_used_parts_for_later_correction(hass: HomeAssistant) -> None:
+    """#130 parity across completion surfaces: a completion WITHOUT an explicit
+    selection (service/button/QR/voice class) records the consumes_parts links
+    it automatically consumed — own AND pooled with the owner's entry_id and
+    the owner-catalog name — so the entry stays correctable via history edit."""
+    from custom_components.maintenance_supporter.websocket.tasks import ws_update_history_entry
+
+    g = await _global(hass)
+    owner = _object(
+        hass, name="Shelf", slug="shelf2",
+        parts={BAGS: _part()},
+        consumes=[{"part_id": BAGS, "quantity": 1}],
+    )
+    drawer = _object(
+        hass, name="Vacuum", slug="vacuum2",
+        consumes=[{"part_id": BAGS, "quantity": 2, "entry_id": owner.entry_id}],
+        created_at="2026-01-02",
+    )
+    await setup_integration(hass, g, owner, drawer)
+    await _set_stock(hass, owner, 8)
+
+    # Automatic completion on the BORROWER — no used_parts passed.
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": drawer.entry_id,
+            "task_id": TASK_ID,
+        },
+    )
+    await hass.async_block_till_done()
+    assert _stock(hass, owner) == 6  # pooled link qty 2 consumed
+
+    d_store = hass.data[STORES_CACHE_KEY][drawer.entry_id]
+    entry = [h for h in d_store.get_history(TASK_ID) if h.get("type") == "completed"][-1]
+    assert entry["used_parts"] == [
+        {"part_id": BAGS, "name": "Dust bags", "quantity": 2, "entry_id": owner.entry_id}
+    ]
+
+    # ...which makes the automatic entry correctable: lower 2 -> 1 returns one.
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": drawer.entry_id,
+            "task_id": TASK_ID,
+            "original_timestamp": entry["timestamp"],
+            "used_parts": [{"part_id": BAGS, "quantity": 1, "entry_id": owner.entry_id}],
+        },
+    )
+    await hass.async_block_till_done()
+    assert _stock(hass, owner) == 7
