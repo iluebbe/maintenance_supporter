@@ -1044,7 +1044,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if owner_id and owner_id != self.entry.entry_id:
                     owner = self.hass.config_entries.async_get_entry(owner_id)
                     catalog = (owner.data.get("parts") or {}) if owner else {}
-                return (catalog.get(link["part_id"]) or {}).get("name") or link["part_id"]
+                name = (catalog.get(link["part_id"]) or {}).get("name")
+                return str(name) if name else str(link["part_id"])
 
             enriched_used = [
                 {
