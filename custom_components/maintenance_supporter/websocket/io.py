@@ -536,6 +536,24 @@ async def ws_import_json(
                 if val is not None:
                     task_data[key] = val
 
+            # #130: history entries carry used_parts, and since they are
+            # editable (stock reconciled by delta), the part ids must follow
+            # the regenerated ones. Own-part ids remap via part_id_map; links
+            # into another object's pool (entry_id set) are kept verbatim —
+            # if that entry doesn't exist in this instance they degrade to
+            # the safe recorded-only path, name preserved.
+            for hist_entry in task_data.get("history") or []:
+                used = hist_entry.get("used_parts")
+                if not isinstance(used, list):
+                    continue
+                for link in used:
+                    if (
+                        isinstance(link, dict)
+                        and not link.get("entry_id")
+                        and link.get("part_id") in part_id_map
+                    ):
+                        link["part_id"] = part_id_map[link["part_id"]]
+
             # Remap part links to the regenerated part ids; drop dangling ones.
             links = task_data.get("consumes_parts")
             if isinstance(links, list):

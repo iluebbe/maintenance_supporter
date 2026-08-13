@@ -126,6 +126,10 @@ def _build_export_object(
             "on_complete_action": tdata.get("on_complete_action"),
             "quick_complete_defaults": tdata.get("quick_complete_defaults"),
             "assignee_pool": tdata.get("assignee_pool") or [],
+            # v2.44: demanded completion details — the import has mirrored this
+            # key from day one; the export builder lost it (found by the #130
+            # export audit), so backups silently dropped the requirement.
+            "required_completion_fields": tdata.get("required_completion_fields"),
             "rotation_strategy": tdata.get("rotation_strategy"),
             "reading_unit": tdata.get("reading_unit"),
             # Spare parts: consumption links + the auto-buy-task marker.

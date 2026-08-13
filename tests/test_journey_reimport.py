@@ -113,3 +113,60 @@ async def test_reimporting_the_same_backup_does_not_duplicate_objects(
     await simulate_restart(hass, *hass.config_entries.async_entries(DOMAIN))
     assert len(_objects_named(hass, "Boiler")) == 1, "duplicate Boiler resurrected after restart"
     assert len(_objects_named(hass, "Boiler Copy")) == 1
+
+
+async def test_import_remaps_history_used_parts_to_new_part_ids(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """#130: history used_parts are editable (stock delta), so the ids must
+    follow the part ids the import mints. Own-part ids remap; a pooled link
+    whose owner is not in this instance stays verbatim (recorded-only)."""
+    await setup_integration(hass, global_entry)
+    payload = {
+        "objects": [
+            {
+                "object": {"name": "Machine"},
+                "parts": [
+                    {"id": "old_filter", "name": "Filter", "stock": 4},
+                ],
+                "tasks": [
+                    {
+                        "name": "Service",
+                        "type": "custom",
+                        "schedule_type": "time_based",
+                        "interval_days": 30,
+                        "consumes_parts": [{"part_id": "old_filter", "quantity": 1}],
+                        "history": [
+                            {
+                                "timestamp": "2026-05-01T10:00:00",
+                                "type": "completed",
+                                "used_parts": [
+                                    {"part_id": "old_filter", "name": "Filter", "quantity": 2},
+                                    {"part_id": "pool_part", "name": "Pool thing", "quantity": 1, "entry_id": "gone-instance-entry"},
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
+    result = await _import(hass, payload)
+    assert result.get("imported_objects") or result.get("success") or not result.get("error"), result
+
+    entry = _objects_named(hass, "Machine")[0]
+    parts = entry.data.get("parts") or {}
+    new_part_id = next(iter(parts))
+    assert new_part_id != "old_filter"  # ids are minted on import
+
+    from custom_components.maintenance_supporter.const import STORES_CACHE_KEY
+
+    task_id = next(iter(entry.data["tasks"]))
+    store = hass.data[STORES_CACHE_KEY][entry.entry_id]
+    hist_entry = store.get_history(task_id)[0]
+    own_link, pool_link = hist_entry["used_parts"]
+    assert own_link["part_id"] == new_part_id  # remapped
+    assert own_link["quantity"] == 2
+    assert pool_link["part_id"] == "pool_part"  # verbatim (owner not present)
+    assert pool_link["entry_id"] == "gone-instance-entry"

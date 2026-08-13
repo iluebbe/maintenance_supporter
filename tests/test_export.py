@@ -184,3 +184,26 @@ async def test_export_serialize_yaml_fallback(hass: HomeAssistant) -> None:
     # Call real function, yaml should be available in test env
     result = serialize_export(data, "json")
     assert "version" in result
+
+
+def test_export_includes_required_completion_fields() -> None:
+    """v2.44 field, lost by the export builder while the import mirrored it
+    (found by the #130 export audit) — a backup must not drop the requirement."""
+    from custom_components.maintenance_supporter.export import _build_export_object
+
+    entry = MagicMock()
+    entry.entry_id = "test_entry"
+    entry.data = {
+        CONF_OBJECT: {"name": "Test"},
+        CONF_TASKS: {
+            "t1": {
+                "id": "t1",
+                "name": "Strict Task",
+                "interval_days": 30,
+                "required_completion_fields": ["notes", "photo"],
+            }
+        },
+    }
+    entry.runtime_data = None
+    result = _build_export_object(MagicMock(), entry, None, include_history=False)
+    assert result["tasks"][0]["required_completion_fields"] == ["notes", "photo"]
