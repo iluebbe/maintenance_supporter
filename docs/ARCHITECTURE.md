@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.56.0 | 200 source files (129 Python + 71 TypeScript) | **98% test coverage** (3,314 backend tests + 423 frontend tests)
+**Version:** 2.57.0 | 200 source files (130 Python + 70 TypeScript) | **98% test coverage** (3,319 backend tests + 429 frontend tests)
 
 ---
 
