@@ -10,6 +10,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
+import { signDocumentPath } from "../helpers/document-url";
 
 export class MaintenanceHistoryPhoto extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -29,12 +30,7 @@ export class MaintenanceHistoryPhoto extends LitElement {
 
   private async _sign(): Promise<void> {
     try {
-      const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/document/${this.docId}`,
-        expires: 300,
-      });
-      this._url = signed.path;
+      this._url = await signDocumentPath(this.hass, this.docId);
     } catch {
       this._failed = true;
     }

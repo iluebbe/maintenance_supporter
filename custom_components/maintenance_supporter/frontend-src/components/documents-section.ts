@@ -13,6 +13,7 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { downloadUrl } from "../helpers/download";
+import { downloadSignedDocument, openSignedDocument, signDocumentPath } from "../helpers/document-url";
 import { formatBytes } from "../helpers/format-bytes";
 import { CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
 import type { HomeAssistant } from "../types";
@@ -58,12 +59,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   }
 
   private async _sign(doc: MaintenanceDocument): Promise<string> {
-    const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
-      type: "auth/sign_path",
-      path: `/api/maintenance_supporter/document/${doc.id}`,
-      expires: 300,
-    });
-    return signed.path;
+    return signDocumentPath(this.hass, doc.id);
   }
 
   private get _lang(): string {
@@ -201,12 +197,7 @@ export class MaintenanceDocumentsSection extends LitElement {
 
   private async _download(doc: MaintenanceDocument): Promise<void> {
     try {
-      const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/document/${doc.id}`,
-        expires: 30,
-      });
-      downloadUrl(signed.path, doc.filename || doc.title || "document");
+      await downloadSignedDocument(this.hass, doc.id, doc.filename || doc.title || "document");
     } catch (e) {
       this._error = describeWsError(e, this._lang);
     }
@@ -219,15 +210,9 @@ export class MaintenanceDocumentsSection extends LitElement {
       this._lightboxUrl = this._thumbs[doc.id] || (await this._sign(doc));
       return;
     }
-    // Open the tab synchronously (in the click gesture) so it isn't popup-blocked,
-    // then point it at the freshly signed URL once it resolves.
-    const win = window.open("about:blank", "_blank");
     try {
-      const url = await this._sign(doc);
-      // Absolute URL so it always resolves against the blank popup (about:blank).
-      if (win) win.location.href = new URL(url, window.location.origin).href;
+      await openSignedDocument(this.hass, doc.id);
     } catch (e) {
-      if (win) win.close();
       this._error = describeWsError(e, this._lang);
     }
   }

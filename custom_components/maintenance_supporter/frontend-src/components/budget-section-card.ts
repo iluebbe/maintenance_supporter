@@ -9,6 +9,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, DEFAULT_CURRENCY_SYMBOL, langOf } from "../styles";
+import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { BudgetStatus, HomeAssistant } from "../types";
@@ -277,9 +278,7 @@ if (!customElements.get("maintenance-budget-section-card")) {
   );
 }
 
-(window as { customCards?: unknown[] }).customCards =
-  (window as { customCards?: unknown[] }).customCards || [];
-((window as { customCards?: unknown[] }).customCards!).push({
+registerCustomCard({
   type: "maintenance-budget-section-card",
   name: "Maintenance Supporter — Budget",
   description: "Inline monthly + yearly budget editor",

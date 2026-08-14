@@ -5,6 +5,8 @@ import { property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
 import { t, langOf } from "../styles";
+import { signApiPath } from "../helpers/document-url";
+import { downloadUrl } from "../helpers/download";
 import { UserService } from "../user-service";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
@@ -1573,17 +1575,8 @@ export class MaintenanceSettingsView extends LitElement {
     try {
       const raw = this._selectedEntryIds;
       const q = raw ? `?entry_ids=${encodeURIComponent(raw.join(","))}` : "";
-      const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/documents/archive${q}`,
-        expires: 300,
-      });
-      const a = document.createElement("a");
-      a.href = signed.path;
-      a.download = "maintenance-documents.zip";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const signed = await signApiPath(this.hass, `/api/maintenance_supporter/documents/archive${q}`);
+      downloadUrl(signed, "maintenance-documents.zip");
     } catch {
       this._showToast(t("action_error", this._lang));
     }

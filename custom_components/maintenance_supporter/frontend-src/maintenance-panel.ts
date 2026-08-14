@@ -7,6 +7,7 @@ import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs, langOf } from "./styles";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
+import { openSignedDocument, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { daysProgress } from "./helpers/interval";
@@ -1392,6 +1393,29 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // --- Actions ---
 
+  /** Run a mutating WS action: loading state, data reload, and — on failure —
+   *  the SERVER's error message as the toast. The ~16 hand-written action
+   *  methods had drifted (most swallowed the server message behind a generic
+   *  "Action failed", three never set _actionLoading, one skipped the reload).
+   *  Returns the result payload, or null when the call failed (toast shown). */
+  private async _runAction<T = Record<string, unknown>>(
+    msg: Record<string, unknown>,
+    opts?: { successToast?: string },
+  ): Promise<T | null> {
+    this._actionLoading = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<T>(msg);
+      await this._loadData();
+      if (opts?.successToast) this._showToast(opts.successToast);
+      return (res ?? {}) as T;
+    } catch (e) {
+      this._showToast(describeWsError(e, this._lang));
+      return null;
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
   private async _deleteObject(entryId: string): Promise<void> {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
     const ok = await dlg?.confirm({
@@ -1401,16 +1425,11 @@ export class MaintenanceSupporterPanel extends LitElement {
       danger: true,
     });
     if (!ok) return;
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/object/delete",
-        entry_id: entryId,
-      });
-      this._showOverview();
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const res = await this._runAction({
+      type: "maintenance_supporter/object/delete",
+      entry_id: entryId,
+    });
+    if (res) this._showOverview();
   }
 
   /** Open a printable maintenance report for the object in a new tab (the user
@@ -1456,20 +1475,11 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _duplicateObject(entryId: string): Promise<void> {
-    this._actionLoading = true;
-    try {
-      const res = await this.hass.connection.sendMessagePromise<{ entry_id?: string }>({
-        type: "maintenance_supporter/object/duplicate",
-        entry_id: entryId,
-      });
-      await this._loadData();
-      this._showToast(t("object_duplicated", this._lang));
-      if (res?.entry_id) this._showObject(res.entry_id);
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._actionLoading = false;
-    }
+    const res = await this._runAction<{ entry_id?: string }>(
+      { type: "maintenance_supporter/object/duplicate", entry_id: entryId },
+      { successToast: t("object_duplicated", this._lang) },
+    );
+    if (res?.entry_id) this._showObject(res.entry_id);
   }
 
   private async _deleteTask(entryId: string, taskId: string): Promise<void> {
@@ -1481,60 +1491,37 @@ export class MaintenanceSupporterPanel extends LitElement {
       danger: true,
     });
     if (!ok) return;
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/delete",
-        entry_id: entryId,
-        task_id: taskId,
-      });
-      this._showObject(entryId);
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const res = await this._runAction({
+      type: "maintenance_supporter/task/delete",
+      entry_id: entryId,
+      task_id: taskId,
+    });
+    if (res) this._showObject(entryId);
   }
 
   // v2.10.0: archive / unarchive a single task (reversible — no confirm).
   private async _duplicateTask(entryId: string, taskId: string): Promise<void> {
     this._moreMenuOpen = false;
-    this._actionLoading = true;
-    try {
-      const res = await this.hass.connection.sendMessagePromise<{ task_id?: string }>({
-        type: "maintenance_supporter/task/duplicate",
-        entry_id: entryId,
-        task_id: taskId,
-      });
-      await this._loadData();
-      this._showToast(t("task_duplicated", this._lang));
-      // Jump straight to the copy so the user can rename/adjust it.
-      if (res?.task_id) this._showTask(entryId, res.task_id);
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._actionLoading = false;
-    }
+    const res = await this._runAction<{ task_id?: string }>(
+      { type: "maintenance_supporter/task/duplicate", entry_id: entryId, task_id: taskId },
+      { successToast: t("task_duplicated", this._lang) },
+    );
+    // Jump straight to the copy so the user can rename/adjust it.
+    if (res?.task_id) this._showTask(entryId, res.task_id);
   }
 
   private async _toggleArchiveTask(entryId: string, taskId: string, archived: boolean): Promise<void> {
-    this._actionLoading = true;
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: archived
-          ? "maintenance_supporter/task/unarchive"
-          : "maintenance_supporter/task/archive",
-        entry_id: entryId,
-        task_id: taskId,
-      });
-      await this._loadData();
-      // Just archived → offer a one-tap undo (unarchive) instead of a confirm.
-      if (!archived) {
-        this._showUndoToast(t("task_archived", this._lang),
-          () => this._toggleArchiveTask(entryId, taskId, true));
-      }
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._actionLoading = false;
+    const res = await this._runAction({
+      type: archived
+        ? "maintenance_supporter/task/unarchive"
+        : "maintenance_supporter/task/archive",
+      entry_id: entryId,
+      task_id: taskId,
+    });
+    // Just archived → offer a one-tap undo (unarchive) instead of a confirm.
+    if (res && !archived) {
+      this._showUndoToast(t("task_archived", this._lang),
+        () => this._toggleArchiveTask(entryId, taskId, true));
     }
   }
 
@@ -1542,20 +1529,15 @@ export class MaintenanceSupporterPanel extends LitElement {
   // is fully reversible, so instead of a blocking confirm we run it immediately
   // and offer an Undo toast (v2.14.0).
   private async _toggleArchiveObject(entryId: string, archived: boolean): Promise<void> {
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: archived
-          ? "maintenance_supporter/object/unarchive"
-          : "maintenance_supporter/object/archive",
-        entry_id: entryId,
-      });
-      await this._loadData();
-      if (!archived) {
-        this._showUndoToast(t("object_archived", this._lang),
-          () => this._toggleArchiveObject(entryId, true));
-      }
-    } catch {
-      this._showToast(t("action_error", this._lang));
+    const res = await this._runAction({
+      type: archived
+        ? "maintenance_supporter/object/unarchive"
+        : "maintenance_supporter/object/archive",
+      entry_id: entryId,
+    });
+    if (res && !archived) {
+      this._showUndoToast(t("object_archived", this._lang),
+        () => this._toggleArchiveObject(entryId, true));
     }
   }
 
@@ -1572,31 +1554,21 @@ export class MaintenanceSupporterPanel extends LitElement {
         inputType: "date",
       });
       if (!result?.confirmed) return;
-      try {
-        const msg: Record<string, unknown> = {
-          type: "maintenance_supporter/object/pause",
-          entry_id: entryId,
-        };
-        if (result.value) msg.until = result.value;
-        await this.hass.connection.sendMessagePromise(msg);
-        await this._loadData();
+      const msg: Record<string, unknown> = {
+        type: "maintenance_supporter/object/pause",
+        entry_id: entryId,
+      };
+      if (result.value) msg.until = result.value;
+      if (await this._runAction(msg)) {
         this._showUndoToast(t("object_paused", this._lang),
           () => this._togglePauseObject(entryId, true));
-      } catch (e) {
-        this._showToast(describeWsError(e, this._lang));
       }
       return;
     }
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/object/resume",
-        entry_id: entryId,
-      });
-      await this._loadData();
-      this._showToast(t("object_resumed", this._lang));
-    } catch (e) {
-      this._showToast(describeWsError(e, this._lang));
-    }
+    await this._runAction(
+      { type: "maintenance_supporter/object/resume", entry_id: entryId },
+      { successToast: t("object_resumed", this._lang) },
+    );
   }
 
   // v2.20 (N1): replace a worn-out object with a successor — the old one is
@@ -1613,71 +1585,44 @@ export class MaintenanceSupporterPanel extends LitElement {
       inputValue: currentName,
     });
     if (!result?.confirmed) return;
-    this._actionLoading = true;
-    try {
-      const res = await this.hass.connection.sendMessagePromise<{ entry_id?: string }>({
+    const res = await this._runAction<{ entry_id?: string }>(
+      {
         type: "maintenance_supporter/object/replace",
         entry_id: entryId,
         name: result.value || currentName,
-      });
-      await this._loadData();
-      this._showToast(t("object_replaced", this._lang));
-      if (res?.entry_id) this._showObject(res.entry_id);
-    } catch (e) {
-      this._showToast(describeWsError(e, this._lang));
-    } finally {
-      this._actionLoading = false;
-    }
+      },
+      { successToast: t("object_replaced", this._lang) },
+    );
+    if (res?.entry_id) this._showObject(res.entry_id);
   }
 
   private async _skipTask(entryId: string, taskId: string, reason?: string): Promise<void> {
-    this._actionLoading = true;
-    try {
-      const msg: Record<string, unknown> = {
-        type: "maintenance_supporter/task/skip",
-        entry_id: entryId,
-        task_id: taskId,
-      };
-      if (reason) msg.reason = reason;
-      await this.hass.connection.sendMessagePromise(msg);
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._actionLoading = false;
-    }
+    const msg: Record<string, unknown> = {
+      type: "maintenance_supporter/task/skip",
+      entry_id: entryId,
+      task_id: taskId,
+    };
+    if (reason) msg.reason = reason;
+    await this._runAction(msg);
   }
 
   private async _resetTask(entryId: string, taskId: string, resetDate?: string): Promise<void> {
-    this._actionLoading = true;
-    try {
-      const msg: Record<string, unknown> = {
-        type: "maintenance_supporter/task/reset",
-        entry_id: entryId,
-        task_id: taskId,
-      };
-      if (resetDate) msg.date = resetDate;
-      await this.hass.connection.sendMessagePromise(msg);
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._actionLoading = false;
-    }
+    const msg: Record<string, unknown> = {
+      type: "maintenance_supporter/task/reset",
+      entry_id: entryId,
+      task_id: taskId,
+    };
+    if (resetDate) msg.date = resetDate;
+    await this._runAction(msg);
   }
 
   private async _applySuggestion(entryId: string, taskId: string, interval: number): Promise<void> {
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/apply_suggestion",
-        entry_id: entryId,
-        task_id: taskId,
-        interval: interval,
-      });
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    await this._runAction({
+      type: "maintenance_supporter/task/apply_suggestion",
+      entry_id: entryId,
+      task_id: taskId,
+      interval: interval,
+    });
   }
 
   private _openSeasonalOverrides(task: MaintenanceTask): void {
@@ -1688,28 +1633,24 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _reanalyzeInterval(entryId: string, taskId: string): Promise<void> {
-    try {
-      const res = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/analyze_interval",
-        entry_id: entryId,
-        task_id: taskId,
-      }) as {
-        recommended_interval: number | null;
-        confidence: string;
-        data_points: number;
-        recommendation_reason: string | null;
-      };
-      if (res.recommended_interval) {
-        this._showToast(
-          `${t("reanalyze_result", this._lang)}: ${res.recommended_interval} ${t("days", this._lang)} ` +
-          `(${t(`confidence_${res.confidence}`, this._lang)}, ${res.data_points} ${t("data_points", this._lang)})`,
-        );
-      } else {
-        this._showToast(t("reanalyze_insufficient_data", this._lang));
-      }
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
+    const res = await this._runAction<{
+      recommended_interval: number | null;
+      confidence: string;
+      data_points: number;
+      recommendation_reason: string | null;
+    }>({
+      type: "maintenance_supporter/task/analyze_interval",
+      entry_id: entryId,
+      task_id: taskId,
+    });
+    if (!res) return;
+    if (res.recommended_interval) {
+      this._showToast(
+        `${t("reanalyze_result", this._lang)}: ${res.recommended_interval} ${t("days", this._lang)} ` +
+        `(${t(`confidence_${res.confidence}`, this._lang)}, ${res.data_points} ${t("data_points", this._lang)})`,
+      );
+    } else {
+      this._showToast(t("reanalyze_insufficient_data", this._lang));
     }
   }
 
@@ -1742,21 +1683,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _postponeTask(entryId: string, taskId: string, until: string): Promise<void> {
-    this._actionLoading = true;
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/postpone",
-        entry_id: entryId,
-        task_id: taskId,
-        until,
-      });
-      this._showToast(t("postponed", this._lang));
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._actionLoading = false;
-    }
+    await this._runAction(
+      { type: "maintenance_supporter/task/postpone", entry_id: entryId, task_id: taskId, until },
+      { successToast: t("postponed", this._lang) },
+    );
   }
 
   private async _promptPostponeTask(entryId: string, taskId: string): Promise<void> {
@@ -1774,19 +1704,13 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _snoozeTask(entryId: string, taskId: string): Promise<void> {
-    this._actionLoading = true;
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/snooze",
-        entry_id: entryId,
-        task_id: taskId,
-      });
-      this._showToast(t("snoozed", this._lang));
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._actionLoading = false;
-    }
+    // Now reloads like every sibling action — this was the one mutation that
+    // skipped the refresh, leaving the snoozed due date stale until the next
+    // poll.
+    await this._runAction(
+      { type: "maintenance_supporter/task/snooze", entry_id: entryId, task_id: taskId },
+      { successToast: t("snoozed", this._lang) },
+    );
   }
 
   private _dismissSuggestion(entryId?: string, taskId?: string): void {
@@ -1855,11 +1779,13 @@ export class MaintenanceSupporterPanel extends LitElement {
         if (manual) {
           const start = manual.task_pages![taskId];
           const count = 4;
-          const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
-            type: "auth/sign_path",
-            path: `/api/maintenance_supporter/document/${manual.id}/excerpt?start=${start}&count=${count}`,
-            expires: 3600,
-          });
+          const signed = {
+            path: await signApiPath(
+              this.hass,
+              `/api/maintenance_supporter/document/${manual.id}/excerpt?start=${start}&count=${count}`,
+              3600,
+            ),
+          };
           excerpt = {
             title: manual.title || manual.filename || "Manual",
             startPage: start, endPage: start + count - 1,
@@ -1925,19 +1851,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (isSafeHttpUrl(doc.url)) window.open(doc.url!, "_blank", "noopener");
       return;
     }
-    // Open the tab synchronously (inside the click gesture) so it isn't
-    // popup-blocked, then point it at the freshly signed URL.
-    const win = window.open("about:blank", "_blank");
-    void this.hass.connection
-      .sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/document/${doc.id}`,
-        expires: 300,
-      })
-      .then((signed) => {
-        if (win) win.location.href = new URL(signed.path, window.location.origin).href;
-      })
-      .catch(() => win?.close());
+    void openSignedDocument(this.hass, doc.id).catch(() => {
+      /* tab already closed by the helper; the panel toast adds no value here */
+    });
   }
 
   /** #73: persist one checklist tick. Sends the FULL current state (the
@@ -1952,15 +1868,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       const current = task.checklist_progress?.[step] ?? false;
       state[step] = step === item ? done : current;
     }
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/checklist_progress",
-        entry_id: entryId, task_id: taskId, checklist_state: state,
-      });
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    await this._runAction({
+      type: "maintenance_supporter/task/checklist_progress",
+      entry_id: entryId, task_id: taskId, checklist_state: state,
+    });
   }
 
   private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
@@ -3132,15 +3043,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         })
       : confirm(`${t("delete_group_confirm", this._lang).replace("{name}", name)}`);
     if (!ok) return;
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/group/delete",
-        group_id: groupId,
-      });
-      await this._loadData();
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    await this._runAction({
+      type: "maintenance_supporter/group/delete",
+      group_id: groupId,
+    });
   }
 
   /** Budget as KPI tiles in the stats strip (#125) — replaces the old

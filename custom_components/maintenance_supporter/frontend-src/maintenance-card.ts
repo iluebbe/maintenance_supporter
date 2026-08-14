@@ -5,6 +5,8 @@ import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscr
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
+import { openSignedDocument } from "./helpers/document-url";
+import { registerCustomCard } from "./helpers/register-card";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -240,16 +242,10 @@ export class MaintenanceSupporterCard extends LitElement {
       window.open(doc.url, "_blank", "noopener");
       return;
     }
-    const win = window.open("about:blank", "_blank");
     try {
-      const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/document/${doc.id}`,
-        expires: 300,
-      });
-      if (win) win.location.href = new URL(signed.path, window.location.origin).href;
+      await openSignedDocument(this.hass, doc.id);
     } catch {
-      if (win) win.close();
+      /* silent — the card has no error surface */
     }
   }
 
@@ -696,8 +692,7 @@ if (!customElements.get("maintenance-supporter-card")) {
 }
 
 // Register as custom card so the Lovelace card picker lists it.
-(window as any).customCards = (window as any).customCards || [];
-(window as any).customCards.push({
+registerCustomCard({
   type: "maintenance-supporter-card",
   name: "Maintenance Supporter",
   description: "Overview of your maintenance tasks with quick actions.",

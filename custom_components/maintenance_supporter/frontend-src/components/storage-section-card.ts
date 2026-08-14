@@ -10,6 +10,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
+import { openSignedDocument } from "../helpers/document-url";
 import { formatBytes } from "../helpers/format-bytes";
 import type { HomeAssistant } from "../types";
 
@@ -137,17 +138,9 @@ export class MaintenanceStorageSectionCard extends LitElement {
       window.open(doc.url, "_blank", "noopener");
       return;
     }
-    const win = window.open("about:blank", "_blank");
     try {
-      const s = await this.hass.connection.sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/document/${doc.id}`,
-        expires: 300,
-      });
-      // Absolute URL so it navigates the blank popup reliably (about:blank base).
-      if (win) win.location.href = new URL(s.path, window.location.origin).href;
+      await openSignedDocument(this.hass, doc.id);
     } catch (e) {
-      if (win) win.close();
       this._error = describeWsError(e, this._lang);
     }
   }

@@ -14,6 +14,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
+import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { HomeAssistant } from "../types";
@@ -317,9 +318,7 @@ if (!customElements.get("maintenance-vacation-section-card")) {
   );
 }
 
-(window as { customCards?: unknown[] }).customCards =
-  (window as { customCards?: unknown[] }).customCards || [];
-((window as { customCards?: unknown[] }).customCards!).push({
+registerCustomCard({
   type: "maintenance-vacation-section-card",
   name: "Maintenance Supporter — Vacation",
   description: "Inline vacation mode toggle + dates",

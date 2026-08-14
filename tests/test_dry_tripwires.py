@@ -86,6 +86,34 @@ def test_localstorage_only_via_guarded_helper() -> None:
     assert not offenders, f"direct localStorage use in {offenders} — use lsGet/lsSet from helpers/storage-keys"
 
 
+def test_signed_document_urls_single_source() -> None:
+    """The auth/sign_path dance lives ONLY in helpers/document-url.ts — nine
+    hand-copied call sites had drifted (page-fragment handling, popup close,
+    one anchor download bypassing the Companion-safe helper)."""
+    offenders = [
+        p.name
+        for p in _frontend_sources()
+        if p.name != "document-url.ts"
+        and "__tests__" not in p.parts
+        and 'type: "auth/sign_path"' in p.read_text(encoding="utf-8")
+    ]
+    assert not offenders, f"inline auth/sign_path call in {offenders} — use helpers/document-url"
+
+
+def test_custom_card_registration_single_source() -> None:
+    """window.customCards is only touched by registerCustomCard — of the five
+    hand-rolled pushes only the calendar card deduplicated, so a double
+    bundle-load duplicated the other picker entries."""
+    offenders = [
+        p.name
+        for p in _frontend_sources()
+        if p.name != "register-card.ts"
+        and "__tests__" not in p.parts
+        and ".customCards" in p.read_text(encoding="utf-8")
+    ]
+    assert not offenders, f"direct customCards access in {offenders} — use registerCustomCard"
+
+
 def test_currency_fallback_single_source() -> None:
     """The panel's currency symbol comes from ONE getter — two of the seven
     call sites had drifted to an empty-string fallback."""

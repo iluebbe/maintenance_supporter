@@ -9,6 +9,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
+import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { HomeAssistant } from "../types";
@@ -330,9 +331,7 @@ if (!customElements.get("maintenance-groups-section-card")) {
   );
 }
 
-(window as { customCards?: unknown[] }).customCards =
-  (window as { customCards?: unknown[] }).customCards || [];
-((window as { customCards?: unknown[] }).customCards!).push({
+registerCustomCard({
   type: "maintenance-groups-section-card",
   name: "Maintenance Supporter — Groups",
   description: "Inline group CRUD",

@@ -1,25 +1,25 @@
 /*! maintenance_supporter frontend 2.57.0 */
-import{a as _}from"./chunk-D4DPMIXG.js";import{a as u,b as o,d as h,e as b,f as y,g as l,h as g,i as r,j as m,l as v,u as p}from"./chunk-D5H7NGC6.js";import{a as n}from"./chunk-HQWGP2HE.js";var w=80,s=class extends b{constructor(){super(...arguments);this._config={type:""};this._status=null;this._busy=!1;this._error="";this._localMonthly="";this._localYearly="";this._dirty=!1;this._loaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return m(this.hass)}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._loaded&&(this._loaded=!0,this._load(),v(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"});this._status=t,this._localMonthly=t.monthly_budget?String(t.monthly_budget):"",this._localYearly=t.yearly_budget?String(t.yearly_budget):"",this._dirty=!1}catch(t){this._error=p(t,this._lang)}}async _save(){if(this._isAdmin){this._busy=!0,this._error="";try{let t=parseFloat(this._localMonthly),a=parseFloat(this._localYearly),i={};!isNaN(t)&&t>=0&&(i.budget_monthly=t),!isNaN(a)&&a>=0&&(i.budget_yearly=a),await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/update",settings:i}),await this._load()}catch(t){this._error=p(t,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_budget"),window.dispatchEvent(new CustomEvent("location-changed"))}render(){let t=this._lang,a=this._status;if(!a)return o`<ha-card><div class="loading">${r("loading",t)||"Loading\u2026"}</div></ha-card>`;let i=a.currency_symbol||g,f=a.alert_threshold_pct??w,x=[{label:r("budget_monthly",t)||"Monthly",spent:a.monthly_spent||0,budget:a.monthly_budget||0},{label:r("budget_yearly",t)||"Yearly",spent:a.yearly_spent||0,budget:a.yearly_budget||0}];return o`
+import{a as m,b as f}from"./chunk-3JHFCCUB.js";import{a as u,b as l,d as h,e as b,f as y,g as o,h as g,i as a,j as v,l as _,u as p}from"./chunk-D5H7NGC6.js";import{a as n}from"./chunk-HQWGP2HE.js";var k=80,s=class extends b{constructor(){super(...arguments);this._config={type:""};this._status=null;this._busy=!1;this._error="";this._localMonthly="";this._localYearly="";this._dirty=!1;this._loaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return v(this.hass)}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._loaded&&(this._loaded=!0,this._load(),_(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"});this._status=t,this._localMonthly=t.monthly_budget?String(t.monthly_budget):"",this._localYearly=t.yearly_budget?String(t.yearly_budget):"",this._dirty=!1}catch(t){this._error=p(t,this._lang)}}async _save(){if(this._isAdmin){this._busy=!0,this._error="";try{let t=parseFloat(this._localMonthly),r=parseFloat(this._localYearly),i={};!isNaN(t)&&t>=0&&(i.budget_monthly=t),!isNaN(r)&&r>=0&&(i.budget_yearly=r),await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/update",settings:i}),await this._load()}catch(t){this._error=p(t,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_budget"),window.dispatchEvent(new CustomEvent("location-changed"))}render(){let t=this._lang,r=this._status;if(!r)return l`<ha-card><div class="loading">${a("loading",t)||"Loading\u2026"}</div></ha-card>`;let i=r.currency_symbol||g,x=r.alert_threshold_pct??k,$=[{label:a("budget_monthly",t)||"Monthly",spent:r.monthly_spent||0,budget:r.monthly_budget||0},{label:a("budget_yearly",t)||"Yearly",spent:r.yearly_spent||0,budget:r.yearly_budget||0}];return l`
       <ha-card>
         <div class="card-content">
           <div class="header">
             <div class="title">
               <span class="emoji">💰</span>
-              <span>${this._config.title||r("settings_budget",t)||"Budget"}</span>
+              <span>${this._config.title||a("settings_budget",t)||"Budget"}</span>
             </div>
             <span class="currency">${i}</span>
           </div>
 
-          ${this._error?o`<div class="error">${this._error}</div>`:h}
+          ${this._error?l`<div class="error">${this._error}</div>`:h}
 
-          ${x.map(e=>{if(!(e.budget>0))return o`
+          ${$.map(e=>{if(!(e.budget>0))return l`
                 <div class="track spent-only">
                   <div class="track-label-row">
                     <label>${e.label}</label>
                     <span class="track-numbers ok">${e.spent.toFixed(0)} ${i}</span>
                   </div>
                 </div>
-              `;let d=Math.min(100,Math.max(0,e.spent/e.budget*100)),c=d>=100?"danger":d>=f?"warning":"ok";return o`
+              `;let d=Math.min(100,Math.max(0,e.spent/e.budget*100)),c=d>=100?"danger":d>=x?"warning":"ok";return l`
               <div class="track">
                 <div class="track-label-row">
                   <label>${e.label}</label>
@@ -31,10 +31,10 @@ import{a as _}from"./chunk-D4DPMIXG.js";import{a as u,b as o,d as h,e as b,f as 
               </div>
             `})}
 
-          ${this._isAdmin?o`
+          ${this._isAdmin?l`
                 <div class="inputs-row">
                   <div class="input-field">
-                    <label>${r("budget_monthly_set",t)||"Set monthly"}</label>
+                    <label>${a("budget_monthly_set",t)||"Set monthly"}</label>
                     <div class="input-wrap">
                       <input type="number" min="0" step="1"
                         .value=${this._localMonthly}
@@ -44,7 +44,7 @@ import{a as _}from"./chunk-D4DPMIXG.js";import{a as u,b as o,d as h,e as b,f as 
                     </div>
                   </div>
                   <div class="input-field">
-                    <label>${r("budget_yearly_set",t)||"Set yearly"}</label>
+                    <label>${a("budget_yearly_set",t)||"Set yearly"}</label>
                     <div class="input-wrap">
                       <input type="number" min="0" step="1"
                         .value=${this._localYearly}
@@ -59,20 +59,20 @@ import{a as _}from"./chunk-D4DPMIXG.js";import{a as u,b as o,d as h,e as b,f as 
                     @click=${this._save}
                     ?disabled=${this._busy||!this._dirty}>
                     <ha-icon icon="${this._dirty?"mdi:content-save":"mdi:check"}"></ha-icon>
-                    ${this._dirty?r("save",t)||"Save":r("saved",t)||"Saved"}
+                    ${this._dirty?a("save",t)||"Save":a("saved",t)||"Saved"}
                   </button>
                   <button class="btn link" @click=${this._onDeepLink}>
-                    ${r("budget_advanced",t)||"Currency, alerts\u2026"}
+                    ${a("budget_advanced",t)||"Currency, alerts\u2026"}
                   </button>
                 </div>
-              `:o`
+              `:l`
                 <button class="btn link" @click=${this._onDeepLink}>
-                  ${r("budget_open_panel",t)||"Open in panel"}
+                  ${a("budget_open_panel",t)||"Open in panel"}
                 </button>
               `}
         </div>
       </ha-card>
-    `}};s.styles=[_,u`
+    `}};s.styles=[f,u`
     .currency {
       font-size: 14px; font-weight: 600;
       color: var(--secondary-text-color);
@@ -122,4 +122,4 @@ import{a as _}from"./chunk-D4DPMIXG.js";import{a as u,b as o,d as h,e as b,f as 
       pointer-events: none;
     }
     .actions { display: flex; gap: 8px; align-items: center; }
-  `],n([y({attribute:!1})],s.prototype,"hass",2),n([l()],s.prototype,"_config",2),n([l()],s.prototype,"_status",2),n([l()],s.prototype,"_busy",2),n([l()],s.prototype,"_error",2),n([l()],s.prototype,"_localMonthly",2),n([l()],s.prototype,"_localYearly",2),n([l()],s.prototype,"_dirty",2);customElements.get("maintenance-budget-section-card")||customElements.define("maintenance-budget-section-card",s);window.customCards=window.customCards||[];window.customCards.push({type:"maintenance-budget-section-card",name:"Maintenance Supporter \u2014 Budget",description:"Inline monthly + yearly budget editor",preview:!1});export{s as MaintenanceBudgetSectionCard};
+  `],n([y({attribute:!1})],s.prototype,"hass",2),n([o()],s.prototype,"_config",2),n([o()],s.prototype,"_status",2),n([o()],s.prototype,"_busy",2),n([o()],s.prototype,"_error",2),n([o()],s.prototype,"_localMonthly",2),n([o()],s.prototype,"_localYearly",2),n([o()],s.prototype,"_dirty",2);customElements.get("maintenance-budget-section-card")||customElements.define("maintenance-budget-section-card",s);m({type:"maintenance-budget-section-card",name:"Maintenance Supporter \u2014 Budget",description:"Inline monthly + yearly budget editor",preview:!1});export{s as MaintenanceBudgetSectionCard};

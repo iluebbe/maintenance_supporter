@@ -14,6 +14,7 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { downloadUrl } from "../helpers/download";
+import { downloadSignedDocument, openSignedDocument } from "../helpers/document-url";
 import { formatBytes } from "../helpers/format-bytes";
 import { CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
 import type { HomeAssistant } from "../types";
@@ -149,19 +150,9 @@ export class MaintenanceTaskDocuments extends LitElement {
     // A per-task page hint jumps straight to the relevant page via the PDF
     // viewer's #page=N fragment (client-side, so it never breaks the signature).
     const page = this._pageFor(doc);
-    const frag = page ? `#page=${page}` : "";
-    const win = window.open("about:blank", "_blank");
     try {
-      const s = await this.hass.connection.sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/document/${doc.id}`,
-        expires: 300,
-      });
-      // Absolute URL: a fragment on a *root-relative* path won't resolve against
-      // the blank popup's about:blank base, so it would silently stay blank.
-      if (win) win.location.href = new URL(s.path + frag, window.location.origin).href;
+      await openSignedDocument(this.hass, doc.id, page ? `#page=${page}` : "");
     } catch (e) {
-      if (win) win.close();
       this._error = describeWsError(e, this._lang);
     }
   }
@@ -187,12 +178,7 @@ export class MaintenanceTaskDocuments extends LitElement {
 
   private async _download(doc: Doc): Promise<void> {
     try {
-      const s = await this.hass.connection.sendMessagePromise<{ path: string }>({
-        type: "auth/sign_path",
-        path: `/api/maintenance_supporter/document/${doc.id}`,
-        expires: 30,
-      });
-      downloadUrl(s.path, doc.filename || doc.title || "document");
+      await downloadSignedDocument(this.hass, doc.id, doc.filename || doc.title || "document");
     } catch (e) {
       this._error = describeWsError(e, this._lang);
     }

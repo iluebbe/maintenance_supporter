@@ -35,6 +35,7 @@ import {
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
 import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
+import { registerCustomCard } from "./helpers/register-card";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -642,31 +643,15 @@ if (!customElements.get("maintenance-supporter-calendar-card-editor")) {
 }
 
 // Register with HACS / customCards so the picker shows it
-const w = window as unknown as {
-  customCards?: Array<{
-    type: string;
-    name: string;
-    description: string;
-    preview?: boolean;
-  }>;
-};
-w.customCards = w.customCards || [];
-// HA's custom-card resolver maps ``custom:X`` → element tag ``X``. Our element
-// is registered as ``maintenance-supporter-calendar-card``, so the customCards
-// type MUST match that exact suffix or the card-picker entry resolves to a
-// non-existent element and the strategy's calendar mode throws a config error.
-const CALENDAR_CARD_TYPE = "maintenance-supporter-calendar-card";
-const alreadyRegistered = w.customCards.some(
-  (c) => c.type === CALENDAR_CARD_TYPE,
-);
-if (!alreadyRegistered) {
-  w.customCards.push({
-    type: CALENDAR_CARD_TYPE,
-    name: "Maintenance Supporter — Calendar",
-    description:
-      "Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",
-    preview: true,
-  });
-}
+// The type MUST match the registered element tag exactly (custom:X → tag X),
+// or the picker entry resolves to a non-existent element and the strategy's
+// calendar mode throws a config error.
+registerCustomCard({
+  type: "maintenance-supporter-calendar-card",
+  name: "Maintenance Supporter — Calendar",
+  description:
+    "Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",
+  preview: true,
+});
 
 export {};
