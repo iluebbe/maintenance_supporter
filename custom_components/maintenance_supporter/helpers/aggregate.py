@@ -27,6 +27,29 @@ _COUNTED_STATUSES = (
 )
 
 
+def merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
+    """Merged task data (static ConfigEntry + dynamic Store) for an entry.
+
+    THE read path for task dicts outside the coordinator — it was re-implemented
+    eight times, and only one copy overlaid the in-cycle checklist ticks. The
+    ticks are overlaid HERE rather than via the Store merge whitelist: merged
+    dicts feed MaintenanceTask.from_dict all over the coordinator, and this
+    field is presentation state the model never needs. Degrades to the static
+    data when the Store is unavailable.
+    """
+    tasks_data: dict[str, Any] = entry.data.get(CONF_TASKS, {})
+    rd = getattr(entry, "runtime_data", None)
+    store = getattr(rd, "store", None) if rd else None
+    if store is None:
+        return tasks_data
+    merged: dict[str, Any] = store.merge_all_tasks(tasks_data)
+    for tid, td in merged.items():
+        progress = store.get_task_state(tid).get("checklist_progress")
+        if progress:
+            td["checklist_progress"] = progress
+    return merged
+
+
 def get_object_entries(hass: HomeAssistant, entry_ids: set[str] | None = None) -> list[ConfigEntry]:
     """Return all non-global config entries for this domain, optionally
     narrowed to a selection (``entry_ids=None`` means all objects)."""

@@ -12,7 +12,6 @@ from homeassistant.util import dt as dt_util
 
 from ..const import (
     CONF_OBJECT,
-    CONF_TASKS,
     CONF_VACATION_BUFFER_DAYS,
     CONF_VACATION_ENABLED,
     CONF_VACATION_END,
@@ -24,7 +23,7 @@ from ..const import (
 )
 from ..helpers.schedule import read_legacy_fields
 from ..helpers.vacation import compute_preview, get_vacation_state
-from . import _get_object_entries, _load_global_options, _save_global_options
+from . import _get_merged_tasks, _get_object_entries, _load_global_options, _save_global_options
 
 
 def _state_payload(hass: HomeAssistant) -> dict[str, Any]:
@@ -155,12 +154,8 @@ async def ws_vacation_preview(
     for entry in _get_object_entries(hass):
         obj_data = entry.data.get(CONF_OBJECT, {})
         obj_name = obj_data.get("name", "")
-        tasks_data = entry.data.get(CONF_TASKS, {})
-
         # Merge dynamic store fields (last_performed, etc.) when available.
-        rd = getattr(entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
-        merged: dict[str, dict[str, Any]] = store.merge_all_tasks(tasks_data) if store is not None else dict(tasks_data)
+        merged = _get_merged_tasks(entry)
 
         for task_id, task_data in merged.items():
             sched = read_legacy_fields(task_data)

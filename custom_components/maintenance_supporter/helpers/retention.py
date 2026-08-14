@@ -115,13 +115,10 @@ def _global_options(hass: HomeAssistant) -> dict[str, Any]:
 
 def _merged_tasks(entry: Any) -> dict[str, Any]:
     """Static (ConfigEntry) + dynamic (Store) task data for an object entry."""
-    from ..const import CONF_TASKS
 
-    tasks = entry.data.get(CONF_TASKS, {})
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
-    merged: dict[str, Any] = store.merge_all_tasks(tasks) if store is not None else tasks
-    return merged
+    from .aggregate import merged_tasks
+
+    return merged_tasks(entry)
 
 
 async def async_run_retention_sweep(hass: HomeAssistant) -> None:
@@ -167,17 +164,18 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
             continue
 
         if to_archive:
-            new_tasks = dict(entry.data.get(CONF_TASKS, {}))
+            from .entry_tasks import write_tasks
+
+            existing = entry.data.get(CONF_TASKS, {})
+            updates: dict[str, dict[str, Any]] = {}
             for tid in to_archive:
-                if tid not in new_tasks:
+                if tid not in existing:
                     continue
-                td = dict(new_tasks[tid])
+                td = dict(existing[tid])
                 td["archived_at"] = now_iso
                 td["archived_reason"] = _REASON_AUTO
-                new_tasks[tid] = td
-            new_data = dict(entry.data)
-            new_data[CONF_TASKS] = new_tasks
-            hass.config_entries.async_update_entry(entry, data=new_data)
+                updates[tid] = td
+            write_tasks(hass, entry, updates)
             _LOGGER.info(
                 "Auto-archived %d completed one-off task(s) in %s",
                 len(to_archive),

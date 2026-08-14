@@ -18,6 +18,7 @@ from ..const import (
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
 )
+from .aggregate import merged_tasks
 from .dates import INTERVAL_UNITS
 from .global_options import get_default_warning_days
 from .schedule import read_legacy_fields
@@ -83,10 +84,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
     for entry in entries:
         obj_data = entry.data.get(CONF_OBJECT, {})
         # Merge static + Store dynamic data
-        rd = getattr(entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
-        static_tasks = entry.data.get(CONF_TASKS, {})
-        tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
+        tasks_data = merged_tasks(entry)
 
         rd = getattr(entry, "runtime_data", None)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None
@@ -169,10 +167,7 @@ def export_object_records_csv(hass: HomeAssistant, entry_ids: set[str] | None = 
 
     for entry in entries:
         obj_data = entry.data.get(CONF_OBJECT, {})
-        static_tasks = entry.data.get(CONF_TASKS, {})
-        rd = getattr(entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
-        tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
+        tasks_data = merged_tasks(entry)
         writer.writerow(
             {
                 "object_name": _csv_safe(obj_data.get("name", "")),

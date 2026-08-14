@@ -13,7 +13,7 @@ TriggerConfigMixin.
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
 import voluptuous as vol
@@ -60,8 +60,8 @@ async def _resolve(result: Any) -> ConfigFlowResult:
     sync (options-flow menu helpers) or async (setup-flow step methods), the
     same contract as TriggerConfigMixin's _on_cancel."""
     if inspect.isawaitable(result):
-        return await result
-    return result
+        result = await result
+    return cast("ConfigFlowResult", result)
 
 
 def _warning_days_field(hass: HomeAssistant) -> dict[Any, Any]:

@@ -108,11 +108,9 @@ async def ws_assign_user(
 
     # Patch only this task's key onto a fresh read — never write back a map
     # snapshot from before an await.
-    new_data = dict(entry.data)
-    new_tasks = dict(new_data.get(CONF_TASKS, {}))
-    new_tasks[task_id] = task
-    new_data[CONF_TASKS] = new_tasks
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    from ..helpers.entry_tasks import write_task
+
+    write_task(hass, entry, task_id, task)
 
     # Refresh coordinator
     rd = _get_runtime_data(hass, entry.entry_id)

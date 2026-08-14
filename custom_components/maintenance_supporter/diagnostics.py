@@ -66,12 +66,10 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: Mainten
         diag["overview"] = _get_integration_overview(hass)
     else:
         # Object entry diagnostics — merge Store dynamic data for stats
-        runtime_data = getattr(entry, "runtime_data", None)
-        store = getattr(runtime_data, "store", None) if runtime_data else None
-        static_tasks = entry.data.get(CONF_TASKS, {})
-        merged_tasks = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
+        from .helpers.aggregate import merged_tasks
+
         merged_data = dict(entry.data)
-        merged_data[CONF_TASKS] = merged_tasks
+        merged_data[CONF_TASKS] = merged_tasks(entry)
 
         diag["statistics"] = _calculate_statistics(merged_data)
         diag["trigger_status"] = _check_trigger_status(hass, entry.data)

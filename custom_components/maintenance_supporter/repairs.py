@@ -587,28 +587,24 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         return _entry_for_issue(self.hass, self.data)
 
     def _patch_action_entity(self, entry: Any, new_entity_id: str) -> None:
+        from .helpers.entry_tasks import write_task
+
         task_id = str((self.data or {}).get("task_id", ""))
-        new_data = dict(entry.data)
-        tasks = dict(new_data.get(CONF_TASKS, {}))
-        task = dict(tasks.get(task_id) or {})
+        task = dict(entry.data.get(CONF_TASKS, {}).get(task_id) or {})
         action = dict(task.get("on_complete_action") or {})
         target = dict(action.get("target") or {})
         target["entity_id"] = new_entity_id
         action["target"] = target
         task["on_complete_action"] = action
-        tasks[task_id] = task
-        new_data[CONF_TASKS] = tasks
-        self.hass.config_entries.async_update_entry(entry, data=new_data)
+        write_task(self.hass, entry, task_id, task)
 
     def _clear_action(self, entry: Any) -> None:
+        from .helpers.entry_tasks import write_task
+
         task_id = str((self.data or {}).get("task_id", ""))
-        new_data = dict(entry.data)
-        tasks = dict(new_data.get(CONF_TASKS, {}))
-        task = dict(tasks.get(task_id) or {})
+        task = dict(entry.data.get(CONF_TASKS, {}).get(task_id) or {})
         task.pop("on_complete_action", None)
-        tasks[task_id] = task
-        new_data[CONF_TASKS] = tasks
-        self.hass.config_entries.async_update_entry(entry, data=new_data)
+        write_task(self.hass, entry, task_id, task)
 
 
 class DocumentStorageRepairFlow(RepairsFlow):

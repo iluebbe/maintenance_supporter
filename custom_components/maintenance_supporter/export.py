@@ -16,7 +16,7 @@ from .const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
 )
-from .helpers.aggregate import get_object_entries
+from .helpers.aggregate import get_object_entries, merged_tasks
 from .helpers.schedule import Schedule, read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,8 +73,7 @@ def _build_export_object(
     # Merge static + Store dynamic data for each task
     rd = getattr(entry, "runtime_data", None)
     store = getattr(rd, "store", None) if rd else None
-    static_tasks = entry.data.get(CONF_TASKS, {})
-    tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
+    tasks_data = merged_tasks(entry)
     ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
 
     tasks = []

@@ -156,11 +156,9 @@ async def ws_unarchive_task(
         # so an imported due_override can't out-rank it in merge_task_data.
         clear_cycle_modifiers(td)
 
-    new_data = dict(entry.data)
-    new_tasks = dict(new_data.get(CONF_TASKS, {}))
-    new_tasks[task_id] = td
-    new_data[CONF_TASKS] = new_tasks
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    from ..helpers.entry_tasks import write_task
+
+    write_task(hass, entry, task_id, td)
 
     await hass.config_entries.async_reload(entry.entry_id)
 

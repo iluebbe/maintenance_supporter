@@ -19,6 +19,7 @@ from .const import (
     MaintenanceStatus,
     ScheduleType,
 )
+from .helpers.aggregate import merged_tasks
 from .helpers.dates import interval_span_days
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.i18n import normalize_language
@@ -521,9 +522,7 @@ class MaintenanceCalendar(CalendarEntity):
                 live_tasks = {}
 
             # Merge static (ConfigEntry) + dynamic (Store) task data
-            store = getattr(runtime_data, "store", None) if runtime_data else None
-            static_tasks = entry.data.get(CONF_TASKS, {})
-            tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
+            tasks_data = merged_tasks(entry)
 
             for task_id, task_dict in tasks_data.items():
                 task = MaintenanceTask.from_dict(task_dict)

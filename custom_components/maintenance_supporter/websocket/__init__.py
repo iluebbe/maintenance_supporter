@@ -38,22 +38,10 @@ _get_runtime_data = get_runtime_data
 
 
 def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
-    """Return merged task data (static ConfigEntry + dynamic Store) for an entry."""
-    tasks_data = entry.data.get(CONF_TASKS, {})
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
-    if store is not None:
-        merged = store.merge_all_tasks(tasks_data)
-        # #73: overlay the in-cycle checklist ticks HERE rather than via the
-        # merge whitelist — merged dicts feed MaintenanceTask.from_dict all
-        # over the coordinator, and this field is presentation state the model
-        # never needs.
-        for tid, td in merged.items():
-            progress = store.get_task_state(tid).get("checklist_progress")
-            if progress:
-                td["checklist_progress"] = progress
-        return merged
-    return tasks_data
+    """Return merged task data (thin re-export of helpers.aggregate.merged_tasks)."""
+    from ..helpers.aggregate import merged_tasks
+
+    return merged_tasks(entry)
 
 
 # How many recent history entries ride in the LIST payload. Chosen to cover

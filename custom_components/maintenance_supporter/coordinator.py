@@ -48,6 +48,7 @@ from .const import (
     TriggerEntityState,
 )
 from .helpers.budget import compute_spend
+from .helpers.entry_tasks import write_task
 from .helpers.global_options import get_global_options, is_schedule_time_enabled
 from .helpers.schedule import normalize_task_storage, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
@@ -1086,13 +1087,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # writes then loses only the rotation — the completion is recorded,
         # and a retried completion can't double-advance the pointer.
         if task.responsible_user_id != pre_rotation_responsible:
-            new_data = dict(self.entry.data)
-            new_tasks = dict(new_data.get(CONF_TASKS, {}))
-            td = dict(new_tasks.get(task_id, {}))
+            td = dict(self.entry.data.get(CONF_TASKS, {}).get(task_id, {}))
             td["responsible_user_id"] = task.responsible_user_id
-            new_tasks[task_id] = td
-            new_data[CONF_TASKS] = new_tasks
-            self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+            write_task(self.hass, self.entry, task_id, td)
 
         # Invalidate budget cache when a cost is recorded
         if cost is not None:
