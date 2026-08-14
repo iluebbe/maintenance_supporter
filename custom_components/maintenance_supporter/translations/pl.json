@@ -114,7 +114,8 @@
           "type": "Typ konserwacji",
           "schedule_type": "Typ harmonogramu",
           "custom_icon": "Ikona zadania",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "reading_unit": "Jednostka odczytu (dla zadań odczytu, np. kWh)"
         },
         "data_description": {
           "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
@@ -170,7 +171,8 @@
           "go_back": "Wróć",
           "last_day": "Ostatni dzień miesiąca",
           "business": "Tylko dni robocze",
-          "offset": "Przesunięcie (dni)"
+          "offset": "Przesunięcie (dni)",
+          "last_performed": "Ostatnio wykonano"
         },
         "data_description": {
           "weekdays": "Zadanie powtarza się w każdy wybrany dzień tygodnia.",

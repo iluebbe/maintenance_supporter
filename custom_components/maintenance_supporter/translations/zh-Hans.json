@@ -114,7 +114,8 @@
           "type": "维护类型",
           "schedule_type": "计划类型",
           "custom_icon": "任务图标",
-          "go_back": "返回"
+          "go_back": "返回",
+          "reading_unit": "读数单位（用于读数任务，如 kWh）"
         },
         "data_description": {
           "name": "此任务的描述性名称（例如：‘清洁过滤器’、‘更换机油’）。",
@@ -170,7 +171,8 @@
           "go_back": "返回",
           "last_day": "当月最后一天",
           "business": "仅工作日",
-          "offset": "偏移（天）"
+          "offset": "偏移（天）",
+          "last_performed": "上次执行时间"
         },
         "data_description": {
           "weekdays": "任务在每个选定的周日期重复。",

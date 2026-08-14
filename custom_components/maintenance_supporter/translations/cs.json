@@ -114,7 +114,8 @@
           "type": "Typ údržby",
           "schedule_type": "Typ harmonogramu",
           "custom_icon": "Ikona úkolu",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "reading_unit": "Jednotka odečtu (pro odečtové úkoly, např. kWh)"
         },
         "data_description": {
           "name": "Popisný název tohoto úkolu (např. „Čištění filtru“, „Výměna oleje“).",
@@ -170,7 +171,8 @@
           "go_back": "Zpět",
           "last_day": "Poslední den v měsíci",
           "business": "Pouze pracovní dny",
-          "offset": "Posun (dny)"
+          "offset": "Posun (dny)",
+          "last_performed": "Naposledy provedeno"
         },
         "data_description": {
           "weekdays": "Úkol se opakuje v každý vybraný den v týdnu.",

@@ -114,7 +114,8 @@
           "type": "Vedligeholdelsestype",
           "schedule_type": "Planlægningstype",
           "custom_icon": "Opgaveikon",
-          "go_back": "Gå tilbage"
+          "go_back": "Gå tilbage",
+          "reading_unit": "Aflæsningsenhed (til aflæsningsopgaver, f.eks. kWh)"
         },
         "data_description": {
           "name": "Et beskrivende navn til denne opgave (f.eks. 'Filterrensning', 'Olieskift').",
@@ -170,7 +171,8 @@
           "go_back": "Gå tilbage",
           "last_day": "Sidste dag i måneden",
           "business": "Kun hverdage",
-          "offset": "Forskydning (dage)"
+          "offset": "Forskydning (dage)",
+          "last_performed": "Senest udført"
         },
         "data_description": {
           "weekdays": "Opgaven gentages på hver valgt ugedag.",

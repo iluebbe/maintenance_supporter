@@ -114,7 +114,8 @@
           "type": "Type de maintenance",
           "schedule_type": "Type de planification",
           "custom_icon": "Icône de tâche",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "reading_unit": "Unité de relevé (pour les tâches de relevé, p. ex. kWh)"
         },
         "data_description": {
           "name": "Un nom descriptif pour cette tâche (ex. : 'Nettoyage filtre', 'Vidange').",
@@ -170,7 +171,8 @@
           "go_back": "Retour",
           "last_day": "Dernier jour du mois",
           "business": "Jours ouvrés uniquement",
-          "offset": "Décalage (jours)"
+          "offset": "Décalage (jours)",
+          "last_performed": "Dernière exécution"
         },
         "data_description": {
           "weekdays": "La tâche se répète chaque jour de la semaine sélectionné.",

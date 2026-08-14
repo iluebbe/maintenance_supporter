@@ -17,23 +17,8 @@ from .const import (
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_CHECKLISTS,
     CONF_OBJECT,
-    CONF_TASK_DUE_DATE,
-    CONF_TASK_ICON,
-    CONF_TASK_INTERVAL_ANCHOR,
-    CONF_TASK_INTERVAL_DAYS,
-    CONF_TASK_INTERVAL_UNIT,
-    CONF_TASK_LABELS_TEXT,
-    CONF_TASK_NAME,
-    CONF_TASK_NOTES,
-    CONF_TASK_PRIORITY,
-    CONF_TASK_SCHEDULE_TYPE,
-    CONF_TASK_TYPE,
-    CONF_TASK_WARNING_DAYS,
     CONF_TASKS,
-    MaintenanceTypeEnum,
-    ScheduleType,
 )
-from .helpers.global_options import get_default_warning_days
 from .helpers.schedule import (
     normalize_task_storage,
 )
@@ -67,49 +52,15 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
 
     def _save_new_task(self) -> ConfigFlowResult:
         """Save the current task and return to init."""
-        from homeassistant.util import dt as dt_util
-
-        from .helpers.sanitize import cap_task_fields, parse_labels_text
+        from .config_flow_schedule import build_new_task_record
 
         task_id = uuid4().hex
-        task_data: dict[str, Any] = {
-            "id": task_id,
-            "object_id": self.config_entry.data.get(CONF_OBJECT, {}).get("id", ""),
-            "name": self._current_task.get(CONF_TASK_NAME, ""),
-            "type": self._current_task.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CUSTOM),
-            "enabled": True,
-            "schedule_type": self._current_task.get(CONF_TASK_SCHEDULE_TYPE, ScheduleType.TIME_BASED),
-            "warning_days": self._current_task.get(CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)),
-            # Anchor for next_due fallback when last_performed is None (issue #30).
-            "created_at": dt_util.now().date().isoformat(),
-        }
-
-        # Calendar kinds carry a pre-built nested schedule; normalize (in
-        # _update_config_entry) treats it as authoritative over the flat fields.
-        if "schedule" in self._current_task:
-            task_data["schedule"] = self._current_task["schedule"]
-
-        if CONF_TASK_INTERVAL_DAYS in self._current_task:
-            task_data["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
-        if CONF_TASK_INTERVAL_UNIT in self._current_task:
-            task_data["interval_unit"] = self._current_task[CONF_TASK_INTERVAL_UNIT]
-        if CONF_TASK_DUE_DATE in self._current_task:
-            task_data["due_date"] = self._current_task[CONF_TASK_DUE_DATE]
-        anchor = self._current_task.get(CONF_TASK_INTERVAL_ANCHOR, "completion")
-        if anchor != "completion":
-            task_data["interval_anchor"] = anchor
-        if "trigger_config" in self._current_task:
-            task_data["trigger_config"] = self._current_task["trigger_config"]
-        if CONF_TASK_NOTES in self._current_task:
-            task_data["notes"] = self._current_task[CONF_TASK_NOTES]
-        if CONF_TASK_ICON in self._current_task:
-            task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
-        if CONF_TASK_PRIORITY in self._current_task:
-            task_data["priority"] = self._current_task[CONF_TASK_PRIORITY]
-        if self._current_task.get(CONF_TASK_LABELS_TEXT):
-            task_data["labels"] = parse_labels_text(self._current_task[CONF_TASK_LABELS_TEXT])
-
-        cap_task_fields(task_data)
+        task_data = build_new_task_record(
+            self._current_task,
+            task_id=task_id,
+            object_id=self.config_entry.data.get(CONF_OBJECT, {}).get("id", ""),
+            hass=self.hass,
+        )
         new_data = dict(self.config_entry.data)
         new_tasks = dict(new_data.get(CONF_TASKS, {}))
         new_tasks[task_id] = task_data

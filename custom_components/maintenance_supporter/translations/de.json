@@ -114,7 +114,8 @@
           "type": "Wartungstyp",
           "schedule_type": "Planungsart",
           "custom_icon": "Aufgaben-Icon",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "reading_unit": "Ableseeinheit (für Ablese-Aufgaben, z. B. kWh)"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
@@ -170,7 +171,8 @@
           "go_back": "Zurück",
           "last_day": "Letzter Tag des Monats",
           "business": "Nur Werktage",
-          "offset": "Versatz (Tage)"
+          "offset": "Versatz (Tage)",
+          "last_performed": "Zuletzt durchgeführt"
         },
         "data_description": {
           "weekdays": "Die Aufgabe wiederholt sich an jedem ausgewählten Wochentag.",

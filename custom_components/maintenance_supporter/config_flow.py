@@ -16,14 +16,8 @@ from homeassistant.config_entries import (
 from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers import selector
 
-from .config_flow_helpers import (
-    CALENDAR_KIND_VALUES,
-    apply_interval_unit,
-    calendar_schema,
-    interval_unit_selector,
-    schedule_from_calendar_input,
-)
 from .config_flow_options_global import validate_notify_service
+from .config_flow_schedule import ScheduleStepsMixin
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
     CONF_DEFAULT_WARNING_DAYS,
@@ -39,30 +33,15 @@ from .const import (
     CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
     CONF_OBJECT_WARRANTY_EXPIRY,
-    CONF_TASK_DUE_DATE,
-    CONF_TASK_ICON,
-    CONF_TASK_INTERVAL_DAYS,
-    CONF_TASK_INTERVAL_UNIT,
-    CONF_TASK_LABELS_TEXT,
-    CONF_TASK_NAME,
-    CONF_TASK_NOTES,
-    CONF_TASK_PRIORITY,
-    CONF_TASK_SCHEDULE_TYPE,
-    CONF_TASK_TYPE,
-    CONF_TASK_WARNING_DAYS,
     CONF_TASKS,
-    DEFAULT_INTERVAL_DAYS,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    MaintenanceTypeEnum,
-    ScheduleType,
     slugify_object_name,
 )
-from .helpers.global_options import get_default_warning_days
 from .helpers.i18n import normalize_language
-from .helpers.schedule import KIND_WEEKDAYS, normalize_task_storage
-from .helpers.task_fields import INTERVAL_DAYS_RANGE, TASK_PRIORITIES, WARNING_DAYS_RANGE
+from .helpers.schedule import normalize_task_storage
+from .helpers.task_fields import WARNING_DAYS_RANGE
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -80,7 +59,7 @@ def _localized_template_default_name(template: ObjectTemplate, hass: HomeAssista
     return localize_template_text(template.name, normalize_language(hass)) or template.name
 
 
-class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMAIN):
+class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Maintenance Supporter."""
 
     VERSION = 1
@@ -588,79 +567,16 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     async def async_step_add_task(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add a maintenance task."""
-        if user_input is not None:
-            if user_input.get("go_back"):
-                return await self.async_step_task_menu()
-
-            self._current_task = {
-                "id": uuid4().hex,
-                CONF_TASK_NAME: user_input[CONF_TASK_NAME],
-                CONF_TASK_TYPE: user_input[CONF_TASK_TYPE],
-                CONF_TASK_SCHEDULE_TYPE: user_input[CONF_TASK_SCHEDULE_TYPE],
-            }
-            if user_input.get(CONF_TASK_ICON):
-                self._current_task[CONF_TASK_ICON] = user_input[CONF_TASK_ICON]
-            if user_input.get(CONF_TASK_PRIORITY):
-                self._current_task[CONF_TASK_PRIORITY] = user_input[CONF_TASK_PRIORITY]
-            if user_input.get(CONF_TASK_LABELS_TEXT):
-                self._current_task[CONF_TASK_LABELS_TEXT] = user_input[CONF_TASK_LABELS_TEXT]
-
-            schedule = user_input[CONF_TASK_SCHEDULE_TYPE]
-            if schedule == ScheduleType.TIME_BASED:
-                return await self.async_step_time_based()
-            if schedule in CALENDAR_KIND_VALUES:
-                return await self.async_step_calendar()
-            if schedule == ScheduleType.SENSOR_BASED:
-                return await self.async_step_sensor_select()
-            if schedule == ScheduleType.ONE_TIME:
-                return await self.async_step_one_time()
-            # Manual
-            return await self.async_step_manual()
-
-        type_options = [t.value for t in MaintenanceTypeEnum]
-        schedule_options = [
-            ScheduleType.TIME_BASED,
-            *CALENDAR_KIND_VALUES,
-            ScheduleType.SENSOR_BASED,
-            ScheduleType.ONE_TIME,
-            ScheduleType.MANUAL,
-        ]
-
-        return self.async_show_form(
+        return await self._schedule_add_task(
+            user_input,
             step_id="add_task",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_TASK_NAME): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                    ),
-                    vol.Required(CONF_TASK_TYPE, default=MaintenanceTypeEnum.CLEANING): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=type_options,
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                            translation_key="maintenance_type",
-                        )
-                    ),
-                    vol.Required(CONF_TASK_SCHEDULE_TYPE, default=ScheduleType.TIME_BASED): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=schedule_options,
-                            mode=selector.SelectSelectorMode.LIST,
-                            translation_key="schedule_type",
-                        )
-                    ),
-                    vol.Optional(CONF_TASK_ICON): selector.IconSelector(),
-                    vol.Optional(CONF_TASK_PRIORITY, default="normal"): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=list(TASK_PRIORITIES),
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                            translation_key="task_priority",
-                        )
-                    ),
-                    vol.Optional(CONF_TASK_LABELS_TEXT): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                    ),
-                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
-                }
-            ),
+            on_go_back=self.async_step_task_menu,
+            time_based_step=self.async_step_time_based,
+            calendar_step=self.async_step_calendar,
+            sensor_step=self.async_step_sensor_select,
+            one_time_step=self.async_step_one_time,
+            manual_step=self.async_step_manual,
+            seed_id=True,
             description_placeholders={
                 "object_name": self._object_data.get(CONF_OBJECT_NAME, ""),
             },
@@ -668,131 +584,30 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     async def async_step_time_based(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure time-based schedule."""
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            if user_input.get("go_back"):
-                return await self.async_step_add_task()
-
-            interval = user_input.get(CONF_TASK_INTERVAL_DAYS, DEFAULT_INTERVAL_DAYS)
-            if interval <= 0:
-                errors[CONF_TASK_INTERVAL_DAYS] = "invalid_interval"
-            else:
-                self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
-                apply_interval_unit(self._current_task, user_input)
-                self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
-                )
-                last_performed = user_input.get("last_performed")
-                if last_performed:
-                    self._current_task["last_performed"] = str(last_performed)
-
-                return self._save_task_and_return()
-
-        return self.async_show_form(
+        return await self._schedule_time_based(
+            user_input,
             step_id="time_based",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_TASK_INTERVAL_DAYS, default=DEFAULT_INTERVAL_DAYS): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=INTERVAL_DAYS_RANGE[0],
-                            max=INTERVAL_DAYS_RANGE[1],
-                            step=1,
-                            mode=selector.NumberSelectorMode.BOX,
-                        )
-                    ),
-                    vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
-                    vol.Optional("last_performed"): selector.DateSelector(),
-                    vol.Optional(
-                        CONF_TASK_WARNING_DAYS,
-                        default=get_default_warning_days(self.hass),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=WARNING_DAYS_RANGE[0],
-                            max=WARNING_DAYS_RANGE[1],
-                            step=1,
-                            mode=selector.NumberSelectorMode.BOX,
-                        )
-                    ),
-                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
-                }
-            ),
-            errors=errors,
+            on_go_back=self.async_step_add_task,
+            on_complete=self._save_task_and_return,
         )
 
     async def async_step_calendar(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure a calendar recurrence kind (weekdays / nth_weekday /
         day_of_month) during initial setup."""
-        errors: dict[str, str] = {}
-        kind = self._current_task.get(CONF_TASK_SCHEDULE_TYPE, KIND_WEEKDAYS)
-
-        if user_input is not None:
-            if user_input.get("go_back"):
-                return await self.async_step_add_task()
-            schedule = schedule_from_calendar_input(kind, user_input)
-            if schedule is None:
-                errors["base"] = "invalid_schedule"
-            else:
-                self._current_task["schedule"] = schedule
-                self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
-                )
-                return self._save_task_and_return()
-
-        schema = calendar_schema(kind).extend(
-            {
-                vol.Optional(CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-                vol.Optional("go_back", default=False): selector.BooleanSelector(),
-            }
-        )
-        return self.async_show_form(
+        return await self._schedule_calendar(
+            user_input,
             step_id="calendar",
-            data_schema=schema,
-            errors=errors,
+            on_go_back=self.async_step_add_task,
+            on_complete=self._save_task_and_return,
         )
 
     async def async_step_one_time(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure a one-time (non-recurring) task."""
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            if user_input.get("go_back"):
-                return await self.async_step_add_task()
-
-            due_date = user_input.get(CONF_TASK_DUE_DATE)
-            if not due_date:
-                errors[CONF_TASK_DUE_DATE] = "invalid_due_date"
-            else:
-                self._current_task[CONF_TASK_DUE_DATE] = str(due_date)
-                self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
-                )
-                return self._save_task_and_return()
-
-        return self.async_show_form(
+        return await self._schedule_one_time(
+            user_input,
             step_id="one_time",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_TASK_DUE_DATE): selector.DateSelector(),
-                    vol.Optional(
-                        CONF_TASK_WARNING_DAYS,
-                        default=get_default_warning_days(self.hass),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=WARNING_DAYS_RANGE[0],
-                            max=WARNING_DAYS_RANGE[1],
-                            step=1,
-                            mode=selector.NumberSelectorMode.BOX,
-                        )
-                    ),
-                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
-                }
-            ),
-            errors=errors,
+            on_go_back=self.async_step_add_task,
+            on_complete=self._save_task_and_return,
         )
 
     # --- Sensor trigger steps (thin wrappers delegating to TriggerConfigMixin) ---
@@ -954,40 +769,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     async def async_step_manual(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure manual schedule."""
-        if user_input is not None:
-            if user_input.get("go_back"):
-                return await self.async_step_add_task()
-
-            self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.MANUAL
-            self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
-            )
-            if user_input.get(CONF_TASK_NOTES):
-                self._current_task[CONF_TASK_NOTES] = user_input[CONF_TASK_NOTES]
-
-            return self._save_task_and_return()
-
-        return self.async_show_form(
+        return await self._schedule_manual(
+            user_input,
             step_id="manual",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_TASK_WARNING_DAYS,
-                        default=get_default_warning_days(self.hass),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                        )
-                    ),
-                    vol.Optional(CONF_TASK_NOTES): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT,
-                            multiline=True,
-                        )
-                    ),
-                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
-                }
-            ),
+            on_go_back=self.async_step_add_task,
+            on_complete=self._save_task_and_return,
         )
 
     async def async_step_finish(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -1023,49 +809,19 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     def _save_task_and_return(self) -> ConfigFlowResult:
         """Save the current task and return to task menu."""
-        from homeassistant.util import dt as dt_util
-
-        from .helpers.sanitize import cap_task_fields, parse_labels_text
+        from .config_flow_schedule import build_new_task_record
 
         task_id = self._current_task.get("id", uuid4().hex)
-        task_data = {
-            "id": task_id,
-            "object_id": self._object_data.get("id", ""),
-            "name": self._current_task.get(CONF_TASK_NAME, ""),
-            "type": self._current_task.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CUSTOM),
-            "enabled": True,
-            "schedule_type": self._current_task.get(CONF_TASK_SCHEDULE_TYPE, ScheduleType.TIME_BASED),
-            "warning_days": self._current_task.get(CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)),
-            "history": [],
-            # Anchor for next_due fallback when last_performed is None (issue #30).
-            "created_at": dt_util.now().date().isoformat(),
-        }
-
-        # Calendar kinds carry a pre-built nested schedule; create_entry
-        # normalizes it (treated as authoritative over the flat fields).
-        if "schedule" in self._current_task:
-            task_data["schedule"] = self._current_task["schedule"]
-
-        if CONF_TASK_INTERVAL_DAYS in self._current_task:
-            task_data["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
-        if CONF_TASK_INTERVAL_UNIT in self._current_task:
-            task_data["interval_unit"] = self._current_task[CONF_TASK_INTERVAL_UNIT]
-        if CONF_TASK_DUE_DATE in self._current_task:
-            task_data["due_date"] = self._current_task[CONF_TASK_DUE_DATE]
-        if "last_performed" in self._current_task:
-            task_data["last_performed"] = self._current_task["last_performed"]
-        if "trigger_config" in self._current_task:
-            task_data["trigger_config"] = self._current_task["trigger_config"]
-        if CONF_TASK_NOTES in self._current_task:
-            task_data["notes"] = self._current_task[CONF_TASK_NOTES]
-        if CONF_TASK_ICON in self._current_task:
-            task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
-        if CONF_TASK_PRIORITY in self._current_task:
-            task_data["priority"] = self._current_task[CONF_TASK_PRIORITY]
-        if self._current_task.get(CONF_TASK_LABELS_TEXT):
-            task_data["labels"] = parse_labels_text(self._current_task[CONF_TASK_LABELS_TEXT])
-
-        cap_task_fields(task_data)
+        task_data = build_new_task_record(
+            self._current_task,
+            task_id=task_id,
+            object_id=self._object_data.get("id", ""),
+            hass=self.hass,
+            # No entry (and thus no Store) exists yet during setup — history and
+            # a backdated last_performed must ride entry.data.
+            seed_history=True,
+            include_last_performed=True,
+        )
         self._tasks[task_id] = task_data
         self._current_task = {}
 

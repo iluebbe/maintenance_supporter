@@ -114,7 +114,8 @@
           "type": "Huoltotyyppi",
           "schedule_type": "Aikataulutyyppi",
           "custom_icon": "Tehtävän kuvake",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "reading_unit": "Lukeman yksikkö (lukematehtäville, esim. kWh)"
         },
         "data_description": {
           "name": "Kuvaava nimi tälle tehtävälle (esim. 'Suodattimen puhdistus', 'Öljynvaihto').",
@@ -170,7 +171,8 @@
           "go_back": "Palaa takaisin",
           "last_day": "Kuukauden viimeinen päivä",
           "business": "Vain arkipäivät",
-          "offset": "Siirtymä (päivää)"
+          "offset": "Siirtymä (päivää)",
+          "last_performed": "Viimeksi suoritettu"
         },
         "data_description": {
           "weekdays": "Tehtävä toistuu jokaisena valittuna viikonpäivänä.",

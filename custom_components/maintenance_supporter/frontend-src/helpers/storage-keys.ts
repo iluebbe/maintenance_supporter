@@ -18,4 +18,29 @@ export const LS_KEYS = {
   objectView: "maintenance_supporter_object_view",
   objectsCache: "msp-objects-cache",
   gettingStartedDismissed: "msp-gs-dismissed",
+  batteryRosterSort: "ms_bf_roster_sort",
 } as const;
+
+/**
+ * Guarded storage access — localStorage can THROW (Safari private mode /
+ * locked-down policies raise instead of returning null), and an unguarded
+ * call aborts the surrounding handler. The 2026-08 DRY audit found two
+ * hand-written call sites that had missed the guard; every access now goes
+ * through these two (a source tripwire forbids direct localStorage use
+ * outside this module).
+ */
+export function lsGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function lsSet(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* private mode / storage blocked */
+  }
+}

@@ -114,7 +114,8 @@
           "type": "Maintenance type",
           "schedule_type": "Schedule type",
           "custom_icon": "Task icon",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "reading_unit": "Reading unit (for reading tasks, e.g. kWh)"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
@@ -170,7 +171,8 @@
           "go_back": "Go back",
           "last_day": "Last day of the month",
           "business": "Business days only",
-          "offset": "Offset (days)"
+          "offset": "Offset (days)",
+          "last_performed": "Last performed"
         },
         "data_description": {
           "weekdays": "The task repeats on each selected weekday.",

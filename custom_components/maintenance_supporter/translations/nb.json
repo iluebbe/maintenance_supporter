@@ -114,7 +114,8 @@
           "type": "Vedlikeholdstype",
           "schedule_type": "Planleggingstype",
           "custom_icon": "Oppgaveikon",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "reading_unit": "Avlesningsenhet (for avlesningsoppgaver, f.eks. kWh)"
         },
         "data_description": {
           "name": "Et beskrivende navn for denne oppgaven (f.eks. «Filterrengjøring», «Oljeskift»).",
@@ -170,7 +171,8 @@
           "go_back": "Gå tilbake",
           "last_day": "Siste dag i måneden",
           "business": "Kun virkedager",
-          "offset": "Forskyvning (dager)"
+          "offset": "Forskyvning (dager)",
+          "last_performed": "Sist utført"
         },
         "data_description": {
           "weekdays": "Oppgaven gjentas på hver valgte ukedag.",

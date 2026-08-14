@@ -114,7 +114,8 @@
           "type": "유지보수 유형",
           "schedule_type": "일정 유형",
           "custom_icon": "작업 아이콘",
-          "go_back": "뒤로 가기"
+          "go_back": "뒤로 가기",
+          "reading_unit": "측정 단위(측정형 작업용, 예: kWh)"
         },
         "data_description": {
           "name": "이 작업을 설명하는 이름입니다(예: '필터 청소', '엔진 오일 교환').",
@@ -170,7 +171,8 @@
           "go_back": "뒤로 가기",
           "last_day": "월의 마지막 날",
           "business": "영업일만",
-          "offset": "오프셋(일)"
+          "offset": "오프셋(일)",
+          "last_performed": "마지막 수행일"
         },
         "data_description": {
           "weekdays": "선택한 각 요일마다 작업이 반복됩니다.",

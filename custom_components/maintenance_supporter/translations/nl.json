@@ -114,7 +114,8 @@
           "type": "Onderhoudstype",
           "schedule_type": "Planningstype",
           "custom_icon": "Taakicoon",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "reading_unit": "Meeteenheid (voor aflees-taken, bijv. kWh)"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filter reinigen', 'Olie verversen').",
@@ -170,7 +171,8 @@
           "go_back": "Terug",
           "last_day": "Laatste dag van de maand",
           "business": "Alleen werkdagen",
-          "offset": "Verschuiving (dagen)"
+          "offset": "Verschuiving (dagen)",
+          "last_performed": "Laatst uitgevoerd"
         },
         "data_description": {
           "weekdays": "De taak herhaalt zich op elke geselecteerde weekdag.",

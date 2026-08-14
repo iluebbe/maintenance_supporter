@@ -13,6 +13,7 @@ from .config_flow_helpers import (
     apply_season_ends,
     calendar_current,
     calendar_schema,
+    interval_anchor_selector,
     interval_unit_selector,
     schedule_from_calendar_input,
     season_ends_schema,
@@ -385,15 +386,7 @@ class TaskCrudMixin:
                             vol.Optional(
                                 CONF_TASK_INTERVAL_ANCHOR,
                                 default=sched["interval_anchor"],
-                            ): selector.SelectSelector(
-                                selector.SelectSelectorConfig(
-                                    options=[
-                                        selector.SelectOptionDict(value="completion", label="From completion date"),
-                                        selector.SelectOptionDict(value="planned", label="From planned date (no drift)"),
-                                    ],
-                                    mode=selector.SelectSelectorMode.DROPDOWN,
-                                )
-                            ),
+                            ): interval_anchor_selector(),
                             **(
                                 {
                                     vol.Optional(

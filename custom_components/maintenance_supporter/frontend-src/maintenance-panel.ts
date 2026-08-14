@@ -6,7 +6,7 @@ import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscr
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs, langOf } from "./styles";
-import { LS_KEYS } from "./helpers/storage-keys";
+import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { daysProgress } from "./helpers/interval";
@@ -134,14 +134,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _unsub: (() => void) | null = null;
   @state() private _chartRangeDays = (() => {
     try {
-      const v = parseInt(localStorage.getItem(LS_KEYS.chartRange) || "", 10);
+      const v = parseInt(lsGet(LS_KEYS.chartRange) || "", 10);
       return [7, 30, 90, 365].includes(v) ? v : 30;
     } catch {
       return 30;
     }
   })();
   @state() private _hideOutliers = (() => {
-    try { return localStorage.getItem(LS_KEYS.chartHideOutliers) === "1"; } catch { return false; }
+    try { return lsGet(LS_KEYS.chartHideOutliers) === "1"; } catch { return false; }
   })();
   @state() private _historyFilter: string | null = null;
   @state() private _budget: BudgetStatus | null = null;
@@ -190,7 +190,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   // Dashboard redesign state
   @state() private _overviewTab: "today" | "dashboard" | "calendar" | "settings" = (() => {
     try {
-      const v = localStorage.getItem(LS_KEYS.overviewTab);
+      const v = lsGet(LS_KEYS.overviewTab);
       return v === "today" || v === "calendar" ? v : "dashboard";
     } catch { return "dashboard"; }
   })();
@@ -222,7 +222,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   // v2.15.0: collapsed analysis sections on the task-detail overview tab,
   // remembered per section across visits.
   @state() private _collapsedSections: Set<string> = (() => {
-    try { return new Set(JSON.parse(localStorage.getItem(LS_KEYS.collapsedSections) || "[]")); }
+    try { return new Set(JSON.parse(lsGet(LS_KEYS.collapsedSections) || "[]")); }
     catch { return new Set(); }
   })();
   // v2.15.0: command palette ("/" since 2.18.1 — Ctrl+K clashed with HA's own
@@ -319,19 +319,19 @@ export class MaintenanceSupporterPanel extends LitElement {
     // read here would abort connectedCallback and leave the panel blank. Every
     // other storage access in this file is wrapped; wrap these too.
     try {
-      const saved = localStorage.getItem(LS_KEYS.taskSort);
+      const saved = lsGet(LS_KEYS.taskSort);
       if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
         this._sortMode = saved as SortMode;
       }
-      const savedObj = localStorage.getItem(LS_KEYS.objectSort);
+      const savedObj = lsGet(LS_KEYS.objectSort);
       if (savedObj && ["alphabetical", "due_soonest", "task_count"].includes(savedObj)) {
         this._objectSortMode = savedObj as ObjectSortMode;
       }
-      const savedGroup = localStorage.getItem(LS_KEYS.groupBy);
+      const savedGroup = lsGet(LS_KEYS.groupBy);
       if (savedGroup && ["none", "area", "group", "user"].includes(savedGroup)) {
         this._groupByMode = savedGroup as GroupByMode;
       }
-      const savedView = localStorage.getItem(LS_KEYS.objectView);
+      const savedView = lsGet(LS_KEYS.objectView);
       if (savedView === "cards" || savedView === "table") {
         this._objectViewMode = savedView;
       }
@@ -645,7 +645,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _setChartRange(days: number): void {
     if (days === this._chartRangeDays) return;
     this._chartRangeDays = days;
-    try { localStorage.setItem(LS_KEYS.chartRange, String(days)); } catch { /* private mode */ }
+    try { lsSet(LS_KEYS.chartRange, String(days)); } catch { /* private mode */ }
     const task = this._selectedEntryId && this._selectedTaskId
       ? this._getTask(this._selectedEntryId, this._selectedTaskId)
       : null;
@@ -664,7 +664,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Outlier filtering is client-side on the already-fetched series, so just
     // flip the flag and let renderChart re-filter — no re-fetch needed.
     this._hideOutliers = hide;
-    try { localStorage.setItem(LS_KEYS.chartHideOutliers, hide ? "1" : "0"); } catch { /* private mode */ }
+    try { lsSet(LS_KEYS.chartHideOutliers, hide ? "1" : "0"); } catch { /* private mode */ }
   }
 
   private async _fetchMiniStatsForOverview(): Promise<void> {
@@ -953,8 +953,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
     // Persist sort/group like the manual controls do, so they stick after reload.
     try {
-      localStorage.setItem(LS_KEYS.taskSort, this._sortMode);
-      localStorage.setItem(LS_KEYS.groupBy, this._groupByMode);
+      lsSet(LS_KEYS.taskSort, this._sortMode);
+      lsSet(LS_KEYS.groupBy, this._groupByMode);
     } catch {
       // ignore private-mode storage errors
     }
@@ -2280,7 +2280,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _setOverviewTab(tab: "today" | "dashboard" | "calendar" | "settings"): void {
     this._overviewTab = tab;
-    try { localStorage.setItem(LS_KEYS.overviewTab, tab); } catch { /* private mode */ }
+    try { lsSet(LS_KEYS.overviewTab, tab); } catch { /* private mode */ }
     this._scrollContentToTop();
   }
 
@@ -2446,7 +2446,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             @change=${(e: Event) => {
               this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
               this._activeViewId = "";
-              try { localStorage.setItem(LS_KEYS.taskSort, this._sortMode); } catch { /* private mode */ }
+              try { lsSet(LS_KEYS.taskSort, this._sortMode); } catch { /* private mode */ }
             }}
           >
             <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
@@ -2465,7 +2465,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             @change=${(e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
               this._activeViewId = "";
-              try { localStorage.setItem(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
+              try { lsSet(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
             }}
           >
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
@@ -2770,7 +2770,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._objectSortMode}
             @change=${(e: Event) => {
               this._objectSortMode = (e.target as HTMLSelectElement).value as ObjectSortMode;
-              try { localStorage.setItem(LS_KEYS.objectSort, this._objectSortMode); } catch { /* private mode */ }
+              try { lsSet(LS_KEYS.objectSort, this._objectSortMode); } catch { /* private mode */ }
             }}
           >
             <option value="alphabetical" ?selected=${this._objectSortMode === "alphabetical"}>${t("sort_alphabetical", L)}</option>
@@ -2799,7 +2799,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._groupByMode}
             @change=${(e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
-              try { localStorage.setItem(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
+              try { lsSet(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
             }}
           >
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
@@ -2848,7 +2848,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _setObjectViewMode(mode: "cards" | "table"): void {
     this._objectViewMode = mode;
-    try { localStorage.setItem(LS_KEYS.objectView, mode); } catch { /* private mode */ }
+    try { lsSet(LS_KEYS.objectView, mode); } catch { /* private mode */ }
   }
 
   // ── #130: instance-wide parts overview ────────────────────────────────────
@@ -3511,7 +3511,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _gsDismissed(): Set<string> {
     try {
-      return new Set(JSON.parse(localStorage.getItem(LS_KEYS.gettingStartedDismissed) || "[]"));
+      return new Set(JSON.parse(lsGet(LS_KEYS.gettingStartedDismissed) || "[]"));
     } catch {
       return new Set();
     }
@@ -3520,7 +3520,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _dismissGettingStarted(id: string): void {
     const next = this._gsDismissed();
     next.add(id);
-    try { localStorage.setItem(LS_KEYS.gettingStartedDismissed, JSON.stringify([...next])); } catch { /* storage blocked */ }
+    try { lsSet(LS_KEYS.gettingStartedDismissed, JSON.stringify([...next])); } catch { /* storage blocked */ }
     this.requestUpdate();
   }
 
@@ -3617,7 +3617,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const next = new Set(this._collapsedSections);
     if (next.has(key)) next.delete(key); else next.add(key);
     this._collapsedSections = next;
-    try { localStorage.setItem(LS_KEYS.collapsedSections, JSON.stringify([...next])); } catch { /* private mode */ }
+    try { lsSet(LS_KEYS.collapsedSections, JSON.stringify([...next])); } catch { /* private mode */ }
   }
 
   /** Build the context the history renderers need from panel state. */

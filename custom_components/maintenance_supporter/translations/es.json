@@ -114,7 +114,8 @@
           "type": "Tipo de mantenimiento",
           "schedule_type": "Tipo de programación",
           "custom_icon": "Icono de tarea",
-          "go_back": "Volver"
+          "go_back": "Volver",
+          "reading_unit": "Unidad de lectura (para tareas de lectura, p. ej. kWh)"
         },
         "data_description": {
           "name": "Un nombre descriptivo para esta tarea (ej.: 'Limpieza de filtro', 'Cambio de aceite').",
@@ -170,7 +171,8 @@
           "go_back": "Volver",
           "last_day": "Último día del mes",
           "business": "Solo días laborables",
-          "offset": "Desplazamiento (días)"
+          "offset": "Desplazamiento (días)",
+          "last_performed": "Última realización"
         },
         "data_description": {
           "weekdays": "La tarea se repite cada día de la semana seleccionado.",

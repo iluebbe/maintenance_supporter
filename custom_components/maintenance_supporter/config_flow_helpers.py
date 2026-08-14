@@ -157,6 +157,22 @@ def interval_unit_selector() -> selector.SelectSelector:
     )
 
 
+def interval_anchor_selector() -> selector.SelectSelector:
+    """Shared completion/planned anchor dropdown (issue #30).
+
+    Single source for the add-task time-based step (both flows via
+    ScheduleStepsMixin) and the task-edit form."""
+    return selector.SelectSelector(
+        selector.SelectSelectorConfig(
+            options=[
+                selector.SelectOptionDict(value="completion", label="From completion date"),
+                selector.SelectOptionDict(value="planned", label="From planned date (no drift)"),
+            ],
+            mode=selector.SelectSelectorMode.DROPDOWN,
+        )
+    )
+
+
 def apply_interval_unit(target: dict[str, Any], user_input: dict[str, Any]) -> None:
     """Persist ``interval_unit`` from a flow step into ``target`` only when it
     differs from the implicit default ``days`` (keeps stored task dicts minimal).

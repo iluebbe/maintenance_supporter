@@ -114,7 +114,8 @@
           "type": "メンテナンスの種類",
           "schedule_type": "スケジュールの種類",
           "custom_icon": "タスクアイコン",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "reading_unit": "検針単位（検針タスク用、例: kWh）"
         },
         "data_description": {
           "name": "このタスクの分かりやすい名前です (例: 「フィルター清掃」「オイル交換」)。",
@@ -170,7 +171,8 @@
           "go_back": "戻る",
           "last_day": "月の最終日",
           "business": "営業日のみ",
-          "offset": "オフセット（日）"
+          "offset": "オフセット（日）",
+          "last_performed": "前回の実施"
         },
         "data_description": {
           "weekdays": "選択した各曜日にタスクが繰り返されます。",

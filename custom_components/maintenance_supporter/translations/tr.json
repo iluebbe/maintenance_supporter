@@ -114,7 +114,8 @@
           "type": "Bakım türü",
           "schedule_type": "Zamanlama türü",
           "custom_icon": "Görev simgesi",
-          "go_back": "Geri dön"
+          "go_back": "Geri dön",
+          "reading_unit": "Okuma birimi (okuma görevleri için, örn. kWh)"
         },
         "data_description": {
           "name": "Bu görev için açıklayıcı bir ad (örn. 'Filtre Temizliği', 'Yağ Değişimi').",
@@ -170,7 +171,8 @@
           "go_back": "Geri dön",
           "last_day": "Ayın son günü",
           "business": "Yalnızca iş günleri",
-          "offset": "Kaydırma (gün)"
+          "offset": "Kaydırma (gün)",
+          "last_performed": "Son yapılma"
         },
         "data_description": {
           "weekdays": "Görev, seçilen her haftanın gününde tekrarlanır.",

@@ -114,7 +114,8 @@
           "type": "Tipo de manutenção",
           "schedule_type": "Tipo de agendamento",
           "custom_icon": "Ícone da tarefa",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "reading_unit": "Unidade de leitura (para tarefas de leitura, p. ex. kWh)"
         },
         "data_description": {
           "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
@@ -170,7 +171,8 @@
           "go_back": "Voltar",
           "last_day": "Último dia do mês",
           "business": "Apenas dias úteis",
-          "offset": "Deslocamento (dias)"
+          "offset": "Deslocamento (dias)",
+          "last_performed": "Última execução"
         },
         "data_description": {
           "weekdays": "A tarefa repete-se em cada dia da semana selecionado.",

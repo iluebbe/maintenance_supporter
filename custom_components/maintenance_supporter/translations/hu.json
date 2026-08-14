@@ -114,7 +114,8 @@
           "type": "Karbantartás típusa",
           "schedule_type": "Ütemezés típusa",
           "custom_icon": "Feladat ikonja",
-          "go_back": "Vissza"
+          "go_back": "Vissza",
+          "reading_unit": "Leolvasás mértékegysége (leolvasási feladatokhoz, pl. kWh)"
         },
         "data_description": {
           "name": "A feladat beszédes neve (pl. „Szűrőtisztítás”, „Olajcsere”).",
@@ -170,7 +171,8 @@
           "go_back": "Vissza",
           "last_day": "A hónap utolsó napja",
           "business": "Csak munkanapokon",
-          "offset": "Eltolás (nap)"
+          "offset": "Eltolás (nap)",
+          "last_performed": "Utoljára elvégezve"
         },
         "data_description": {
           "weekdays": "A feladat minden kiválasztott hétnapon ismétlődik.",

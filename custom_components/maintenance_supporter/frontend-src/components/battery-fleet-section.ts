@@ -7,6 +7,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
+import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant } from "../types";
 
@@ -232,24 +233,14 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     </svg>`;
   }
 
-  private static readonly _SORT_KEY = "ms_bf_roster_sort";
-
   private static _storedSort(): "name" | "urgency" {
-    try {
-      const v = localStorage.getItem(MaintenanceBatteryFleetSection._SORT_KEY);
-      return v === "name" ? "name" : "urgency";
-    } catch {
-      return "urgency";
-    }
+    return lsGet(LS_KEYS.batteryRosterSort) === "name" ? "name" : "urgency";
   }
 
   private _setSort(mode: "name" | "urgency"): void {
     this._rosterSort = mode;
-    try {
-      localStorage.setItem(MaintenanceBatteryFleetSection._SORT_KEY, mode);
-    } catch {
-      // storage unavailable — the toggle still works for this visit
-    }
+    // Storage may be unavailable — the toggle still works for this visit.
+    lsSet(LS_KEYS.batteryRosterSort, mode);
   }
 
   /** Urgency (the default, issue #123): low rows first — emptiest first —

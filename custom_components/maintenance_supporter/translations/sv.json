@@ -114,7 +114,8 @@
           "type": "Underhållstyp",
           "schedule_type": "Schematyp",
           "custom_icon": "Uppgiftsikon",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "reading_unit": "Avläsningsenhet (för avläsningsuppgifter, t.ex. kWh)"
         },
         "data_description": {
           "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
@@ -170,7 +171,8 @@
           "go_back": "Tillbaka",
           "last_day": "Sista dagen i månaden",
           "business": "Endast vardagar",
-          "offset": "Förskjutning (dagar)"
+          "offset": "Förskjutning (dagar)",
+          "last_performed": "Senast utförd"
         },
         "data_description": {
           "weekdays": "Uppgiften upprepas varje vald veckodag.",

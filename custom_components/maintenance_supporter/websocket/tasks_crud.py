@@ -22,7 +22,6 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
-    GLOBAL_UNIQUE_ID,
     MAX_ASSIGNEE_POOL,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
@@ -720,10 +719,10 @@ async def async_delete_task(
     # persistent and task-id keyed — without this, deleted ids accumulate
     # there forever and confuse the vacation preview UI.
     from ..const import CONF_VACATION_EXEMPT_TASK_IDS
+    from ..helpers.global_options import get_global_entry
 
-    for ge in hass.config_entries.async_entries(DOMAIN):
-        if ge.unique_id != GLOBAL_UNIQUE_ID:
-            continue
+    ge = get_global_entry(hass)
+    if ge is not None:
         exempt = ge.options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
         if isinstance(exempt, list) and task_id in exempt:
             hass.config_entries.async_update_entry(
@@ -733,7 +732,6 @@ async def async_delete_task(
                     CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t != task_id],
                 },
             )
-        break
 
     # Clean up any repair issues referencing this task
     if old_trigger_config:

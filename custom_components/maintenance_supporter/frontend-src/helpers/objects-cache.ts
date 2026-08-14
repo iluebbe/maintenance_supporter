@@ -17,7 +17,7 @@
  */
 
 import { BUNDLE_VERSION } from "./bundle-version";
-import { LS_KEYS } from "./storage-keys";
+import { LS_KEYS, lsGet, lsSet } from "./storage-keys";
 
 const MAX_AGE_MS = 7 * 24 * 3600 * 1000;
 
@@ -30,7 +30,7 @@ export interface ObjectsCacheEntry<O = unknown, S = unknown> {
 
 export function readObjectsCache<O = unknown, S = unknown>(): { objects: O[]; stats: S | null } | null {
   try {
-    const raw = localStorage.getItem(LS_KEYS.objectsCache);
+    const raw = lsGet(LS_KEYS.objectsCache);
     if (!raw) return null;
     const entry = JSON.parse(raw) as ObjectsCacheEntry<O, S>;
     if (entry.v !== BUNDLE_VERSION) return null;
@@ -46,7 +46,7 @@ export function writeObjectsCache<O, S>(objects: O[], stats: S | null): void {
   if (!Array.isArray(objects) || objects.length === 0) return;
   try {
     const entry: ObjectsCacheEntry<O, S> = { v: BUNDLE_VERSION, at: Date.now(), objects, stats };
-    localStorage.setItem(LS_KEYS.objectsCache, JSON.stringify(entry));
+    lsSet(LS_KEYS.objectsCache, JSON.stringify(entry));
   } catch {
     // quota / blocked storage — skeleton just won't be available next visit
   }
