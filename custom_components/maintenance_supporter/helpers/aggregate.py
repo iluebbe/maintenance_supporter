@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, MaintenanceStatus
+from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, MaintenanceStatus
 
 if TYPE_CHECKING:
     from .. import MaintenanceSupporterData
@@ -25,6 +25,15 @@ _COUNTED_STATUSES = (
     MaintenanceStatus.TRIGGERED,
     MaintenanceStatus.OK,
 )
+
+
+def object_name(entry: ConfigEntry) -> str:
+    """The object's display name, falling back to the entry title.
+
+    One rule for the ~13 hand-written fallbacks that existed in four spellings
+    — half used ``.get("name", title)``, which kept an EMPTY name instead of
+    falling through to the title."""
+    return str((entry.data.get(CONF_OBJECT) or {}).get("name") or entry.title)
 
 
 def merged_tasks(entry: ConfigEntry) -> dict[str, Any]:

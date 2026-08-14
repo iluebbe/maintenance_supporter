@@ -47,6 +47,20 @@ def slugify_object_name(name: str) -> str:
     return slug
 
 
+def task_unique_id(object_slug: str, task_id: str, suffix: str = "") -> str:
+    """The unique_id of a per-task entity:
+    ``maintenance_supporter_{slug}_{task_id}[_suffix]``.
+
+    ONE formatter for every builder — the sensor/binary_sensor/button
+    platforms, the WS entity-id resolver, and the logbook each hand-formatted
+    this string, so changing the scheme in one place silently broke the
+    others' registry lookups. (The parse-side consumers — entity_rename and
+    the service-target resolver — key off the same prefix/suffix contract.)
+    """
+    base = f"maintenance_supporter_{object_slug}_{task_id}"
+    return f"{base}_{suffix}" if suffix else base
+
+
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,

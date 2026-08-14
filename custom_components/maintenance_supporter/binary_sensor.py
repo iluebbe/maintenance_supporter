@@ -30,6 +30,7 @@ from .const import (
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
     slugify_object_name,
+    task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
@@ -94,7 +95,7 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
 
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
-        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_overdue"
+        self._attr_unique_id = task_unique_id(object_slug, task_id, "overdue")
 
         entity_slug = task_data.get("entity_slug")
         if entity_slug:

@@ -32,6 +32,7 @@ from .const import (
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
     slugify_object_name,
+    task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
@@ -144,7 +145,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
 
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
-        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}"
+        self._attr_unique_id = task_unique_id(object_slug, task_id)
 
         # Use custom entity_slug as the friendly name if provided
         entity_slug = task_data.get("entity_slug")
@@ -459,7 +460,7 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
-        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_next_due"
+        self._attr_unique_id = task_unique_id(object_slug, task_id, "next_due")
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
 
     @property
@@ -528,7 +529,7 @@ class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
-        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_days_until_due"
+        self._attr_unique_id = task_unique_id(object_slug, task_id, "days_until_due")
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
         # Pin the documented, language-independent entity_id. Only NEW entities
         # are affected — an already-registered one keeps its registry id.

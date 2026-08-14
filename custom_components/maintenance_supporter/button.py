@@ -21,6 +21,7 @@ from .const import (
     CONF_TASKS,
     GLOBAL_UNIQUE_ID,
     slugify_object_name,
+    task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
@@ -89,7 +90,7 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
 
-        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_{action}"
+        self._attr_unique_id = task_unique_id(object_slug, task_id, action)
         self._attr_translation_key = f"button_{action}"
         # Custom entity_slug → stable, language-independent entity_id/name.
         entity_slug = task_data.get("entity_slug")

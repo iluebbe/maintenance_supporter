@@ -38,6 +38,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 
 from .const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .helpers.aggregate import object_name as aggregate_object_name
 
 INTENT_LIST_TASKS = "MaintenanceSupporterListTasks"
 INTENT_COMPLETE_TASK = "MaintenanceSupporterCompleteTask"
@@ -570,7 +571,7 @@ def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     for ce in hass.config_entries.async_entries(DOMAIN):
         if ce.unique_id == GLOBAL_UNIQUE_ID:
             continue
-        object_name = ce.data.get(CONF_OBJECT, {}).get("name", ce.title)
+        object_name = aggregate_object_name(ce)
         rd = getattr(ce, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None
         for part_id, part in (ce.data.get(CONF_PARTS) or {}).items():

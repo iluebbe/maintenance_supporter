@@ -26,6 +26,7 @@ from .const import (
     HistoryEntryType,
     ScheduleType,
 )
+from .helpers.aggregate import object_name
 from .helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     normalize_task_storage,
@@ -728,12 +729,9 @@ class DeviceLinkRepairFlow(RepairsFlow):
     # ── helpers ──────────────────────────────────────────────────────────
 
     def _placeholders(self, entry: Any) -> dict[str, str]:
-        from .const import CONF_OBJECT
-
-        obj = entry.data.get(CONF_OBJECT, {}) or {}
         best = self._best_match(entry)
         return {
-            "object": str(obj.get("name") or entry.title),
+            "object": object_name(entry),
             "suggestion": str((best.name_by_user or best.name) if best else "—"),
         }
 

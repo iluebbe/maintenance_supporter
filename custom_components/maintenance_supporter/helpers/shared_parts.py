@@ -34,7 +34,7 @@ from ..const import (
     DOMAIN,
     STORES_CACHE_KEY,
 )
-from .aggregate import get_object_entries
+from .aggregate import get_object_entries, object_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -196,8 +196,8 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         if changed:
             hass.config_entries.async_update_entry(other, data={**other.data, CONF_TASKS: tasks})
 
-    heir_name = str((heir.data.get(CONF_OBJECT) or {}).get("name") or heir.title)
-    owner_name = str((entry.data.get(CONF_OBJECT) or {}).get("name") or entry.title)
+    heir_name = object_name(heir)
+    owner_name = object_name(entry)
     ir.async_create_issue(
         hass,
         DOMAIN,

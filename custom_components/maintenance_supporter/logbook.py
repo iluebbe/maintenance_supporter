@@ -29,6 +29,7 @@ from .const import (
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
     slugify_object_name,
+    task_unique_id,
 )
 from .helpers.i18n import normalize_language
 
@@ -214,7 +215,7 @@ def _task_entity_id(hass: HomeAssistant, data: Mapping[str, Any]) -> str | None:
     task_id = data.get("task_id")
     if not obj or not task_id:
         return None
-    unique_id = f"maintenance_supporter_{slugify_object_name(obj)}_{task_id}"
+    unique_id = task_unique_id(slugify_object_name(obj), task_id)
     return er.async_get(hass).async_get_entity_id("sensor", DOMAIN, unique_id)
 
 

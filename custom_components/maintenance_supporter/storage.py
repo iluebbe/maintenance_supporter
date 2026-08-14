@@ -29,6 +29,14 @@ STORE_SAVE_DELAY = 60.0  # seconds — debounce writes to protect SD cards
 # Fields that migrate from ConfigEntry.data to Store
 _DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "due_override", "history", "adaptive_config")
 
+# Presentation-state fields that SPLIT/migrate into the Store like the dynamic
+# fields but are deliberately NOT overlaid by merge_task_data: merged dicts feed
+# MaintenanceTask.from_dict all over the coordinator and the model never needs
+# these — helpers.aggregate.merged_tasks overlays them explicitly for the read
+# surfaces instead. Split-listing them lets a backup import (which lands them in
+# entry.data) carry them into the fresh entry's Store on first setup.
+_SPLIT_ONLY_TASK_FIELDS = ("checklist_progress",)
+
 # Flat trigger_config keys that should move to Store trigger_runtime
 _LEGACY_TRIGGER_RUNTIME_KEYS = (
     "trigger_baseline_value",
@@ -383,8 +391,8 @@ def extract_dynamic_from_task(
     static = dict(task_data)
     dynamic: dict[str, Any] = {}
 
-    # Extract top-level dynamic fields
-    for field in _DYNAMIC_TASK_FIELDS:
+    # Extract top-level dynamic fields (+ the split-only presentation state).
+    for field in _DYNAMIC_TASK_FIELDS + _SPLIT_ONLY_TASK_FIELDS:
         if field in static:
             dynamic[field] = static.pop(field)
 

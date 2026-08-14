@@ -30,6 +30,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     MAX_ADOPTED_NOTES,
 )
+from .aggregate import object_name
 
 PROBLEM_DEVICE_CLASS = "problem"
 # safety (NAS disk-health / lifespan thresholds) and tamper alarms behave like
@@ -95,7 +96,7 @@ def _object_by_device(hass: HomeAssistant) -> dict[str, dict[str, str]]:
         obj = entry.data.get(CONF_OBJECT, {})
         dev = obj.get("ha_device_id")
         if dev:
-            out[dev] = {"entry_id": entry.entry_id, "name": obj.get("name", entry.title)}
+            out[dev] = {"entry_id": entry.entry_id, "name": object_name(entry)}
     return out
 
 

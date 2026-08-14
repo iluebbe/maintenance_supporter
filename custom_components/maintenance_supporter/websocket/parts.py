@@ -9,6 +9,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import CONF_PARTS, MAX_ID_LENGTH
+from ..helpers.aggregate import object_name
 from ..helpers.parts import (
     MAX_PART_STOCK,
     MAX_PARTS_PER_OBJECT,
@@ -266,12 +267,11 @@ async def ws_parts_overview(
     every consuming task — the object's own tasks and pooled #111 links from
     other objects. Read-only; the per-object CRUD stays on part/*.
     """
-    from ..const import CONF_OBJECT
     from ..helpers.parts import part_is_low
     from . import _get_merged_tasks, _get_object_entries
 
     entries = _get_object_entries(hass)
-    names = {e.entry_id: (e.data.get(CONF_OBJECT) or {}).get("name") or e.title for e in entries}
+    names = {e.entry_id: object_name(e) for e in entries}
 
     # (owner_entry_id, part_id) -> consuming task links, own AND pooled.
     consumers: dict[tuple[str, str], list[dict[str, Any]]] = {}

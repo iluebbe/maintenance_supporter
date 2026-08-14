@@ -19,6 +19,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    task_unique_id,
 )
 from ..helpers.aggregate import get_object_entries, get_runtime_data
 
@@ -169,7 +170,7 @@ def _build_task_summary(
             er.async_get(hass).async_get_entity_id(
                 "sensor",
                 "maintenance_supporter",
-                f"maintenance_supporter_{object_slug}_{task_id}",
+                task_unique_id(object_slug, task_id),
             )
             if object_slug
             else None
@@ -178,7 +179,7 @@ def _build_task_summary(
             er.async_get(hass).async_get_entity_id(
                 "binary_sensor",
                 "maintenance_supporter",
-                f"maintenance_supporter_{object_slug}_{task_id}_overdue",
+                task_unique_id(object_slug, task_id, "overdue"),
             )
             if object_slug
             else None

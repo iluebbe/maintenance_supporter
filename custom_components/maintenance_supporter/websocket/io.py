@@ -536,6 +536,18 @@ async def ws_import_json(
                 if val is not None:
                     task_data[key] = val
 
+            # In-cycle checklist ticks: keyed by item TEXT so they survive the
+            # id regeneration; keys are filtered against the imported checklist
+            # exactly like the live checklist_progress WS write. Rides
+            # entry.data until the fresh entry's first setup migrates it into
+            # the Store (split-only field — storage._SPLIT_ONLY_TASK_FIELDS).
+            raw_progress = task_entry.get("checklist_progress")
+            if isinstance(raw_progress, dict):
+                items = set(task_data.get("checklist") or [])
+                progress = {k: bool(v) for k, v in raw_progress.items() if isinstance(k, str) and k in items}
+                if progress:
+                    task_data["checklist_progress"] = progress
+
             # #130: history entries carry used_parts, and since they are
             # editable (stock reconciled by delta), the part ids must follow
             # the regenerated ones. Own-part ids remap via part_id_map; links

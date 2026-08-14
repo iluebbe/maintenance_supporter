@@ -115,6 +115,9 @@ def _build_export_object(
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),
             "checklist": tdata.get("checklist") or [],
+            # In-cycle ticks (#73) — merged_tasks overlays them from the Store;
+            # exporting them keeps half-done checklists across backup/restore.
+            "checklist_progress": tdata.get("checklist_progress"),
             "schedule_time": tdata.get("schedule_time"),
             # v2.17+ / #83 task fields — persisted and user-facing, so a JSON
             # backup must restore them (same field-completeness contract as #67

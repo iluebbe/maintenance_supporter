@@ -170,3 +170,47 @@ async def test_import_remaps_history_used_parts_to_new_part_ids(
     assert own_link["quantity"] == 2
     assert pool_link["part_id"] == "pool_part"  # verbatim (owner not present)
     assert pool_link["entry_id"] == "gone-instance-entry"
+
+
+async def test_import_carries_checklist_progress_into_store(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """In-cycle checklist ticks round-trip a backup: the export carries them
+    (post 2026-08 audit), the import sanitizes and stages them in entry.data,
+    and the fresh entry's first setup migrates them into its Store — from
+    where the merged read surfaces them again."""
+    await setup_integration(hass, global_entry)
+    payload = {
+        "objects": [
+            {
+                "object": {"name": "Dishwasher"},
+                "tasks": [
+                    {
+                        "name": "Deep clean",
+                        "type": "cleaning",
+                        "schedule_type": "time_based",
+                        "interval_days": 90,
+                        "checklist": ["filter", "arms", "seals"],
+                        # "arms" already ticked; junk keys/values must not survive.
+                        "checklist_progress": {"filter": True, "arms": 1, 42: True},
+                    }
+                ],
+            }
+        ]
+    }
+    result = await _import(hass, payload)
+    assert not result.get("error"), result
+
+    from custom_components.maintenance_supporter.const import STORES_CACHE_KEY
+    from custom_components.maintenance_supporter.helpers.aggregate import merged_tasks
+
+    entry = _objects_named(hass, "Dishwasher")[0]
+    task_id = next(iter(entry.data["tasks"]))
+    # Lifted into the Store by the first-setup migration (split-only field) —
+    # and NOT left behind in the static entry data.
+    store = hass.data[STORES_CACHE_KEY][entry.entry_id]
+    assert store.get_task_state(task_id).get("checklist_progress") == {"filter": True, "arms": True}
+    assert "checklist_progress" not in entry.data["tasks"][task_id]
+    # The shared merged read overlays it for every surface (export included).
+    assert merged_tasks(entry)[task_id]["checklist_progress"] == {"filter": True, "arms": True}

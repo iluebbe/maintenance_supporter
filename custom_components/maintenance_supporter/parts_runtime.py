@@ -26,6 +26,7 @@ from .const import (
     EVENT_PART_STOCK_LOW,
     EVENT_PART_STOCK_OUT,
 )
+from .helpers.aggregate import object_name as _object_name
 from .helpers.global_options import get_global_options
 from .helpers.i18n import normalize_language
 from .helpers.parts import (
@@ -67,7 +68,7 @@ def _fire_transition(
         {
             "entry_id": entry.entry_id,
             "object_id": obj.get("id", ""),
-            "object_name": obj.get("name", entry.title),
+            "object_name": _object_name(entry),
             "part_id": part["id"],
             "part_name": part.get("name", ""),
             "stock": stock,
@@ -434,7 +435,7 @@ def _raise_broken_link_issue(hass: HomeAssistant, entry: ConfigEntry, part_ids: 
     """
     from homeassistant.helpers import issue_registry as ir
 
-    object_name = str((entry.data.get(CONF_OBJECT) or {}).get("name") or entry.title)
+    object_name = _object_name(entry)
     ir.async_create_issue(
         hass,
         DOMAIN,

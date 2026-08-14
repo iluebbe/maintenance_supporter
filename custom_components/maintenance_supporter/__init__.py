@@ -88,6 +88,7 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
+from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.documents import DocumentStore
@@ -309,7 +310,7 @@ async def async_maybe_send_warranty_reminders(hass: HomeAssistant, *, force: boo
         except (ValueError, TypeError):
             continue
         if delta == days or (force and 0 <= delta <= days):
-            names.append(obj.get("name") or entry.title)
+            names.append(aggregate_object_name(entry))
     if not names:
         return
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
@@ -360,7 +361,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
             continue
         # Merged data so last_performed reflects the Store, not stale entry data.
         merged = coordinator._get_merged_tasks_data()
-        obj_name = obj.get("name") or entry.title
+        obj_name = aggregate_object_name(entry)
         for task_id, task_data in merged.items():
             if not task_data.get("enabled", True):
                 continue
@@ -670,7 +671,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             coordinator = getattr(rd, "coordinator", None) if rd else None
             if coordinator is None or not coordinator.data:
                 continue
-            object_name = ce.data.get(CONF_OBJECT, {}).get("name", ce.title)
+            object_name = aggregate_object_name(ce)
             for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
                 status = str(task.get("_status", ""))
                 if status == "archived":
@@ -1337,7 +1338,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
                     is_fixable=True,
                     severity=ir.IssueSeverity.WARNING,
                     translation_key="device_link_self" if self_link else "device_link_lost",
-                    translation_placeholders={"object": obj_data.get("name") or entry.title},
+                    translation_placeholders={"object": aggregate_object_name(entry)},
                     data={"entry_id": entry.entry_id},
                 )
             else:
