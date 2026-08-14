@@ -12,7 +12,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
-import { t, ensureLocale } from "../styles";
+import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant, SavedView, SavedViewFilters } from "../types";
 
@@ -33,7 +33,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
   private _localeReady = false;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   updated(changed: Map<string, unknown>): void {
@@ -171,7 +171,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      min-width: 340px;
+      min-width: min(360px, calc(100vw - 24px));
       max-width: 480px;
       width: 90vw;
       max-height: 80vh;

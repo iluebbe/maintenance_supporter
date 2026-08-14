@@ -18,6 +18,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import (
+    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_PANEL_TITLE,
     DEFAULT_WARNING_DAYS,
@@ -44,6 +45,16 @@ def get_global_options(hass: HomeAssistant) -> Mapping[str, Any]:
     """Return the options dict from the global config entry, or empty mapping."""
     entry = get_global_entry(hass)
     return (entry.options or entry.data) if entry is not None else {}
+
+
+def is_schedule_time_enabled(hass: HomeAssistant) -> bool:
+    """The global advanced flag for time-of-day scheduling.
+
+    Reads the global entry's options on every call (cheap), so a toggle in
+    Settings takes effect on the next refresh without a restart. Was copied
+    inline by the coordinator, calendar, and sensor before living here.
+    """
+    return bool(get_global_options(hass).get(CONF_ADVANCED_SCHEDULE_TIME, False))
 
 
 def get_default_warning_days(hass: HomeAssistant) -> int:

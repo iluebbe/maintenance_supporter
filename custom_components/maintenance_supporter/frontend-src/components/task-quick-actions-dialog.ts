@@ -14,7 +14,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence } from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
@@ -62,7 +62,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   private _featuresLoaded = false;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   /** Open the dialog. Loads fresh data from /object via WS so dialog stays in

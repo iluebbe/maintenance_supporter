@@ -92,6 +92,8 @@ from . import (
     _get_global_entry,
     _get_object_entries,
     _get_runtime_data,
+    _load_global_options,
+    _save_global_options,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -569,10 +571,10 @@ async def ws_update_global_settings(
     Accepts a flat dict of setting keys to update.  Unknown keys are
     silently ignored.  Returns the full updated settings.
     """
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_error(msg["id"], "not_found", "Global config entry not found")
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
         return
+    global_entry, current_options = ctx
 
     settings_input: dict[str, Any] = msg["settings"]
 
@@ -707,9 +709,9 @@ async def ws_update_global_settings(
         filtered[CONF_NOTIFY_SERVICE] = normalized
 
     # Merge with existing options
-    merged = dict(global_entry.options or global_entry.data)
+    merged = current_options
     merged.update(filtered)
-    hass.config_entries.async_update_entry(global_entry, options=merged)
+    _save_global_options(hass, global_entry, merged)
 
     _LOGGER.debug("Global settings updated via WS: %s", list(filtered.keys()))
 
@@ -751,12 +753,10 @@ async def ws_test_notification(
         send_test_notification,
     )
 
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_error(msg["id"], "not_found", "Global config entry not found")
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
         return
-
-    options = dict(global_entry.options or global_entry.data)
+    _global_entry, options = ctx
     result_key = await send_test_notification(hass, options, user_id=msg.get("user_id"))
     connection.send_result(
         msg["id"],

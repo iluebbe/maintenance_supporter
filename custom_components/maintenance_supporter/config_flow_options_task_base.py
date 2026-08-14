@@ -30,8 +30,6 @@ from .const import (
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
     CONF_TASKS,
-    DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MaintenanceTypeEnum,
     ScheduleType,
 )
@@ -171,10 +169,9 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
 
     def _get_global_options(self) -> dict[str, Any]:
         """Get global options from the global config entry."""
-        for entry in self.hass.config_entries.async_entries(DOMAIN):
-            if entry.unique_id == GLOBAL_UNIQUE_ID:
-                return dict(entry.options or entry.data)
-        return {}
+        from .helpers.global_options import get_global_options
+
+        return dict(get_global_options(self.hass))
 
     def _build_task_action_menu(self) -> list[str]:
         """Build the task_action menu options list."""

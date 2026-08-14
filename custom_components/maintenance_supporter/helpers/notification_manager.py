@@ -33,9 +33,9 @@ from ..const import (
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
 )
+from .global_options import get_global_options
 from .i18n import normalize_language
 
 _LOGGER = logging.getLogger(__name__)
@@ -705,10 +705,7 @@ class NotificationManager:
     @property
     def _global_options(self) -> Mapping[str, Any]:
         """Get global options from the global config entry."""
-        for entry in self.hass.config_entries.async_entries(DOMAIN):
-            if entry.unique_id == GLOBAL_UNIQUE_ID:
-                return entry.options or entry.data
-        return {}
+        return get_global_options(self.hass)
 
     @property
     def _lang(self) -> str:

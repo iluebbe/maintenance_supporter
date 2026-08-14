@@ -15,7 +15,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale } from "../styles";
+import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant, MaintenancePart } from "../types";
 // Per-part document links (v2.26) — the task-documents component in part mode.
@@ -70,7 +70,7 @@ export class MaintenancePartsSection extends LitElement {
   @state() private _docsFor: string | null = null;
 
   private get _lang(): string {
-    return this.hass?.locale?.language || this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   public connectedCallback(): void {

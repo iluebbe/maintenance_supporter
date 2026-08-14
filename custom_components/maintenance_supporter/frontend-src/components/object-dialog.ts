@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, MaintenanceObject, MaintenanceObjectResponse } from "../types";
-import { t } from "../styles";
+import { t, langOf } from "../styles";
 
 import { describeWsError } from "../ws-errors";
 import "./ms-textfield";
@@ -33,7 +33,7 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _entryId: string | null = null; // null = create, string = update
 
   private get _lang(): string {
-    return this.hass?.language ?? navigator.language.split("-")[0] ?? "en";
+    return langOf(this.hass);
   }
 
   public openCreate(): void {

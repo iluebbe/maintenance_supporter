@@ -20,7 +20,6 @@ from ..const import (
     CONF_OBJECT_NAME,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_ID_LENGTH,
@@ -35,6 +34,7 @@ from ..helpers.qr_generator import (
     generate_qr_svg_data_uri,
 )
 from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
+from . import _get_object_entries, _load_object_entry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -724,10 +724,8 @@ async def ws_generate_qr(
     msg: dict[str, Any],
 ) -> None:
     """Generate a QR code for a maintenance object or task."""
-    entry_id = msg["entry_id"]
-    entry = hass.config_entries.async_get_entry(entry_id)
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     obj_data = entry.data.get(CONF_OBJECT, {})
@@ -747,7 +745,7 @@ async def ws_generate_qr(
     try:
         url = build_qr_url(
             hass,
-            entry_id,
+            entry.entry_id,
             task_id=task_id,
             action=action,
             base_url_override=base_url,
@@ -828,7 +826,7 @@ async def ws_batch_generate_qr(
     filters mean "all" at that level.
     """
     # Resolve target entries (always exclude the global config entry).
-    all_entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
+    all_entries = _get_object_entries(hass)
     entry_filter = msg.get("entry_ids")
     if entry_filter:
         wanted = set(entry_filter)

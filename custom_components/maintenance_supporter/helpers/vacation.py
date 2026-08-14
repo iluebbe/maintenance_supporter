@@ -30,7 +30,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from .dates import add_interval
+from .dates import add_interval, parse_iso_date
 from .schedule import (
     KIND_DAY_OF_MONTH,
     KIND_NTH_WEEKDAY,
@@ -122,12 +122,7 @@ class VacationState:
 
 def _coerce_date(value: Any) -> date | None:
     """Parse an ISO YYYY-MM-DD string from config; tolerant of None / junk."""
-    if not value or not isinstance(value, str):
-        return None
-    try:
-        return date.fromisoformat(value)
-    except (TypeError, ValueError):
-        return None
+    return parse_iso_date(value)
 
 
 def _coerce_buffer(value: Any) -> int:

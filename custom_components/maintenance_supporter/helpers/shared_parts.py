@@ -32,22 +32,18 @@ from ..const import (
     CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     STORES_CACHE_KEY,
 )
+from .aggregate import get_object_entries
 
 _LOGGER = logging.getLogger(__name__)
 
 TRANSFER_ISSUE_PREFIX = "shared_parts_moved_"
 
 
-def object_entries(hass: HomeAssistant) -> list[ConfigEntry]:
-    """Every maintenance OBJECT entry (the global entry is not one)."""
-    return [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID
-    ]
+# Every maintenance OBJECT entry (the global entry is not one) — the
+# implementation lives in helpers.aggregate.
+object_entries = get_object_entries
 
 
 def borrowers_of(hass: HomeAssistant, owner_id: str) -> list[ConfigEntry]:

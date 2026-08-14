@@ -24,7 +24,7 @@ from ..const import (
 )
 from ..helpers.schedule import read_legacy_fields
 from ..helpers.vacation import compute_preview, get_vacation_state
-from . import _get_global_entry, _get_object_entries
+from . import _get_object_entries, _load_global_options, _save_global_options
 
 
 def _state_payload(hass: HomeAssistant) -> dict[str, Any]:
@@ -64,12 +64,10 @@ async def ws_vacation_update(
     msg: dict[str, Any],
 ) -> None:
     """Patch vacation config on the global entry. Partial updates allowed."""
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_error(msg["id"], "not_found", "Global entry not found")
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
         return
-
-    options = dict(global_entry.options or global_entry.data)
+    global_entry, options = ctx
 
     if "enabled" in msg:
         options[CONF_VACATION_ENABLED] = bool(msg["enabled"])
@@ -126,7 +124,7 @@ async def ws_vacation_update(
                 break
         options[CONF_VACATION_EXEMPT_TASK_IDS] = cleaned
 
-    hass.config_entries.async_update_entry(global_entry, options=options)
+    _save_global_options(hass, global_entry, options)
     connection.send_result(msg["id"], _state_payload(hass))
 
 
@@ -203,12 +201,11 @@ async def ws_vacation_end_now(
     msg: dict[str, Any],
 ) -> None:
     """Disable vacation mode immediately, preserve the date config for reuse."""
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_error(msg["id"], "not_found", "Global entry not found")
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
         return
+    global_entry, options = ctx
 
-    options = dict(global_entry.options or global_entry.data)
     options[CONF_VACATION_ENABLED] = False
     # Optionally clamp end-date to today so the historical record reflects when
     # the user actually returned. Use HA's configured timezone — the user's
@@ -222,7 +219,7 @@ async def ws_vacation_end_now(
         except (TypeError, ValueError):
             pass
 
-    hass.config_entries.async_update_entry(global_entry, options=options)
+    _save_global_options(hass, global_entry, options)
     connection.send_result(msg["id"], _state_payload(hass))
 
 

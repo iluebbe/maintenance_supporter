@@ -5,7 +5,7 @@ import { isSafeHttpUrl } from "./helpers/url";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs } from "./styles";
+import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs, langOf } from "./styles";
 import { LS_KEYS } from "./helpers/storage-keys";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { hydrateObjects } from "./helpers/hydrate-objects";
@@ -246,7 +246,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _lastConnection: unknown = null;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   /**
@@ -2770,7 +2770,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .value=${this._objectSortMode}
             @change=${(e: Event) => {
               this._objectSortMode = (e.target as HTMLSelectElement).value as ObjectSortMode;
-              localStorage.setItem(LS_KEYS.objectSort, this._objectSortMode);
+              try { localStorage.setItem(LS_KEYS.objectSort, this._objectSortMode); } catch { /* private mode */ }
             }}
           >
             <option value="alphabetical" ?selected=${this._objectSortMode === "alphabetical"}>${t("sort_alphabetical", L)}</option>
@@ -2848,7 +2848,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _setObjectViewMode(mode: "cards" | "table"): void {
     this._objectViewMode = mode;
-    localStorage.setItem(LS_KEYS.objectView, mode);
+    try { localStorage.setItem(LS_KEYS.objectView, mode); } catch { /* private mode */ }
   }
 
   // ── #130: instance-wide parts overview ────────────────────────────────────

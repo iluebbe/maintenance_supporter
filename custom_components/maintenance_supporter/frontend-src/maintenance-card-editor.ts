@@ -2,7 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t } from "./styles";
+import { t, langOf } from "./styles";
 import type { HomeAssistant, CardConfig, MaintenanceObjectResponse, SavedView } from "./types";
 
 const STATUS_KEYS = ["overdue", "triggered", "due_soon", "ok"] as const;
@@ -18,7 +18,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
   private _objectsLoaded = false;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   setConfig(config: CardConfig): void {

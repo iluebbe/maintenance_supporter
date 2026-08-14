@@ -12,7 +12,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
@@ -21,6 +20,7 @@ from .const import (
     ScheduleType,
 )
 from .helpers.dates import interval_span_days
+from .helpers.global_options import is_schedule_time_enabled
 from .helpers.i18n import normalize_language
 from .models.maintenance_task import MaintenanceTask
 
@@ -638,9 +638,5 @@ class MaintenanceCalendar(CalendarEntity):
         )
 
     def _is_schedule_time_feature_enabled(self) -> bool:
-        """Lookup the global advanced flag — same approach as coordinator."""
-        for ce in self._hass.config_entries.async_entries(DOMAIN):
-            if ce.unique_id == GLOBAL_UNIQUE_ID:
-                opts = ce.options or ce.data
-                return bool(opts.get(CONF_ADVANCED_SCHEDULE_TIME, False))
-        return False
+        """Lookup the global advanced flag — same source as the coordinator."""
+        return is_schedule_time_enabled(self._hass)

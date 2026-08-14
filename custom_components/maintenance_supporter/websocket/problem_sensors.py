@@ -145,7 +145,16 @@ async def ws_adopt_problem_sensors(
                 [{"part_id": sel["part_id"], "quantity": 1}] if sel.get("part_id") else stashed.get("consumes_parts") or []
             )
             if raw_links:
-                links = sanitize_consumes_parts(raw_links, set(entry.data.get(CONF_PARTS) or {}))
+                # foreign_part_ids keeps pooled #111 cross-object links — the
+                # CRUD paths pass it, this copy had forgotten it (a re-adopted
+                # task silently lost its pooled part link).
+                from . import foreign_part_resolver
+
+                links = sanitize_consumes_parts(
+                    raw_links,
+                    set(entry.data.get(CONF_PARTS) or {}),
+                    foreign_part_ids=foreign_part_resolver(hass),
+                )
                 if links:
                     task_data["consumes_parts"] = links
             await async_persist_task(hass, entry, task_data)

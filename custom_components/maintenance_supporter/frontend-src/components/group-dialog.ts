@@ -3,7 +3,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
-import { t } from "../styles";
+import { t, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import "./ms-textfield";
 import type {
@@ -26,7 +26,7 @@ export class MaintenanceGroupDialog extends LitElement {
   @state() private _selected: Set<string> = new Set(); // "entry_id:task_id"
 
   private get _lang(): string {
-    return this.hass?.language ?? navigator.language.split("-")[0] ?? "en";
+    return langOf(this.hass);
   }
 
   public openCreate(): void {

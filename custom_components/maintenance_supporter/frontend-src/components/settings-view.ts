@@ -4,7 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
-import { t } from "../styles";
+import { t, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
@@ -160,7 +160,7 @@ export class MaintenanceSettingsView extends LitElement {
   private _userService: UserService | null = null;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   updated(changedProps: Map<string, unknown>): void {

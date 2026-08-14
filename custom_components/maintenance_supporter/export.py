@@ -15,8 +15,8 @@ from .const import (
     CONF_TASKS,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
+from .helpers.aggregate import get_object_entries
 from .helpers.schedule import Schedule, read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -197,15 +197,11 @@ def _build_export_object(
     }
 
 
-def object_entries(hass: HomeAssistant, entry_ids: set[str] | None = None) -> list[ConfigEntry]:
-    """The maintenance OBJECT entries (never the global hub), optionally
-    narrowed to a selection. Shared by every exporter so JSON/YAML/CSV apply
-    the same selective-export filter. ``entry_ids=None`` means all objects."""
-    return [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID and (entry_ids is None or entry.entry_id in entry_ids)
-    ]
+# The maintenance OBJECT entries (never the global hub). Shared by every
+# exporter so JSON/YAML/CSV apply the same selective-export filter — the
+# implementation lives in helpers.aggregate, this module keeps the name its
+# importers (csv_handler, doc_archive, WS adopt handlers) bind to.
+object_entries = get_object_entries
 
 
 def build_export_data(

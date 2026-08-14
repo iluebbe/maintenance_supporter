@@ -3,7 +3,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
-import { t } from "../styles";
+import { t, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant } from "../types";
 
@@ -23,7 +23,7 @@ export class SeasonalOverridesDialog extends LitElement {
   @state() private _values: string[] = new Array(12).fill("");
 
   private get _lang(): string {
-    return this.hass?.language ?? navigator.language.split("-")[0] ?? "en";
+    return langOf(this.hass);
   }
 
   public open(entryId: string, taskId: string, currentOverrides: Record<number, number> | null | undefined): void {

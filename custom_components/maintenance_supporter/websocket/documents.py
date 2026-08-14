@@ -23,13 +23,12 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_OBJECT,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_ID_LENGTH,
     MAX_NAME_LENGTH,
     MAX_URL_LENGTH,
 )
 from ..helpers.permissions import require_write
-from . import _load_object_entry, object_id_for_entry
+from . import _get_object_entries, _load_object_entry, object_id_for_entry
 from .tasks import _is_safe_url
 
 if TYPE_CHECKING:
@@ -218,9 +217,7 @@ async def ws_documents_search(
 
     # object id -> (entry_id, name), so hits carry a human-readable location.
     obj_map: dict[str, tuple[str, str]] = {}
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            continue
+    for entry in _get_object_entries(hass):
         obj = entry.data.get(CONF_OBJECT, {})
         oid = obj.get("id")
         if isinstance(oid, str) and oid:

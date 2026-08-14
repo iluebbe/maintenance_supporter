@@ -4,7 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays } from "./styles";
+import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -54,7 +54,7 @@ export class MaintenanceSupporterCard extends LitElement {
   private _docsLoadedFor = new Set<string>();
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   static getConfigElement() {

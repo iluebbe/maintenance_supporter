@@ -91,6 +91,7 @@ from .frontend import async_register_card
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.documents import DocumentStore
+from .helpers.global_options import get_global_entry
 from .helpers.notification_manager import NotificationManager
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import (
@@ -252,10 +253,7 @@ async def async_maybe_send_weekly_digest(hass: HomeAssistant, *, force: bool = F
 
     if not force and dt_util.now().weekday() != 0:  # Monday only
         return
-    global_entry = next(
-        (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
-        None,
-    )
+    global_entry = get_global_entry(hass)
     if global_entry is None:
         return
     options = global_entry.options or global_entry.data
@@ -290,10 +288,7 @@ async def async_maybe_send_warranty_reminders(hass: HomeAssistant, *, force: boo
         DEFAULT_WARRANTY_REMINDER_DAYS,
     )
 
-    global_entry = next(
-        (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
-        None,
-    )
+    global_entry = get_global_entry(hass)
     if global_entry is None:
         return
     options = global_entry.options or global_entry.data
@@ -336,10 +331,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
     from .const import CONF_REMINDER_LEAD_DAYS
     from .models.maintenance_task import MaintenanceTask
 
-    global_entry = next(
-        (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
-        None,
-    )
+    global_entry = get_global_entry(hass)
     if global_entry is None:
         return
     options = global_entry.options or global_entry.data

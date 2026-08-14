@@ -266,11 +266,11 @@ async def ws_parts_overview(
     every consuming task — the object's own tasks and pooled #111 links from
     other objects. Read-only; the per-object CRUD stays on part/*.
     """
-    from ..const import CONF_OBJECT, DOMAIN, GLOBAL_UNIQUE_ID
+    from ..const import CONF_OBJECT
     from ..helpers.parts import part_is_low
-    from . import _get_merged_tasks
+    from . import _get_merged_tasks, _get_object_entries
 
-    entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]
+    entries = _get_object_entries(hass)
     names = {e.entry_id: (e.data.get(CONF_OBJECT) or {}).get("name") or e.title for e in entries}
 
     # (owner_entry_id, part_id) -> consuming task links, own AND pooled.

@@ -98,6 +98,37 @@ def _cap_strings(d: dict[str, Any], limits: dict[str, int]) -> None:
             d[field] = v[:max_len]
 
 
+# Keys a FRESH task copy must never inherit: per-task-unique identity
+# (entity_slug, nfc_tag_id) and dynamic lifecycle state (history, schedule
+# anchors, a one-shot due_override defer, adaptive tuning, archive markers).
+# One list for task-duplicate, object-duplicate, and object-replace — the
+# three hand-copied lists had drifted (task-duplicate kept archive markers,
+# and none of them dropped due_override).
+_FRESH_COPY_STRIP_KEYS = (
+    "entity_slug",
+    "nfc_tag_id",
+    "history",
+    "last_performed",
+    "last_planned_due",
+    "due_override",
+    "adaptive_config",
+    "archived_at",
+    "archived_reason",
+)
+
+
+def strip_task_runtime_state(task: dict[str, Any]) -> dict[str, Any]:
+    """Remove unique/dynamic state from a task dict copy, in place.
+
+    Returns the same dict for fluent use.
+    """
+    for key in _FRESH_COPY_STRIP_KEYS:
+        task.pop(key, None)
+    if isinstance(task.get("trigger_config"), dict):
+        task["trigger_config"].pop("_trigger_state", None)
+    return task
+
+
 def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     """Truncate user-controllable strings + numerics on a task dict in-place.
 

@@ -10,10 +10,11 @@
 import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale } from "../styles";
+import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { downloadUrl } from "../helpers/download";
 import { formatBytes } from "../helpers/format-bytes";
+import { CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
 import type { HomeAssistant } from "../types";
 
 interface MaintenanceDocument {
@@ -27,16 +28,6 @@ interface MaintenanceDocument {
   tags?: string[];
   added_at?: string;
 }
-
-const CATEGORIES = ["manual", "warranty", "invoice", "spare_parts", "photo", "other"] as const;
-const CATEGORY_ICONS: Record<string, string> = {
-  manual: "mdi:book-open-variant",
-  warranty: "mdi:shield-check",
-  invoice: "mdi:receipt-text-outline",
-  spare_parts: "mdi:cog-outline",
-  photo: "mdi:image-outline",
-  other: "mdi:file-document-outline",
-};
 
 export class MaintenanceDocumentsSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -76,7 +67,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   }
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   updated(changed: Map<string, unknown>): void {

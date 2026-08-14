@@ -42,6 +42,7 @@ from ..const import (
 )
 from ..helpers.dates import INTERVAL_UNITS
 from ..helpers.permissions import require_write
+from ..helpers.sanitize import strip_task_runtime_state
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     KIND_INTERVAL,
@@ -786,10 +787,7 @@ async def ws_duplicate_task(
     new_task["name"] = f"{base_name} (copy)"[:MAX_NAME_LENGTH]
     new_task["created_at"] = dt_util.now().date().isoformat()
     # Never carry over per-task-unique keys or any stray dynamic state.
-    for key in ("entity_slug", "nfc_tag_id", "history", "last_performed", "last_planned_due", "adaptive_config"):
-        new_task.pop(key, None)
-    if isinstance(new_task.get("trigger_config"), dict):
-        new_task["trigger_config"].pop("_trigger_state", None)
+    strip_task_runtime_state(new_task)
 
     await async_persist_task(hass, entry, new_task)
 

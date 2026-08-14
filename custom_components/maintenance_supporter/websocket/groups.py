@@ -17,7 +17,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
 )
 from ..helpers.permissions import require_write
-from . import _get_global_entry
+from . import _get_global_entry, _load_global_options, _save_global_options
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/groups"})
@@ -66,10 +66,10 @@ async def ws_create_group(
     """Create a new maintenance group."""
     from ..const import CONF_GROUPS
 
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_error(msg["id"], "not_found", "Global config not found")
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
         return
+    global_entry, options = ctx
 
     name = msg["name"].strip()
     if not name:
@@ -77,7 +77,6 @@ async def ws_create_group(
         return
 
     group_id = uuid4().hex
-    options = dict(global_entry.options or global_entry.data)
     groups = dict(options.get(CONF_GROUPS, {}))
     groups[group_id] = {
         "name": name,
@@ -85,7 +84,7 @@ async def ws_create_group(
         "task_refs": msg.get("task_refs", []),
     }
     options[CONF_GROUPS] = groups
-    hass.config_entries.async_update_entry(global_entry, options=options)
+    _save_global_options(hass, global_entry, options)
 
     connection.send_result(msg["id"], {"group_id": group_id})
 
@@ -117,12 +116,11 @@ async def ws_update_group(
     """Update an existing maintenance group."""
     from ..const import CONF_GROUPS
 
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_error(msg["id"], "not_found", "Global config not found")
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
         return
+    global_entry, options = ctx
 
-    options = dict(global_entry.options or global_entry.data)
     groups = dict(options.get(CONF_GROUPS, {}))
     group_id = msg["group_id"]
 
@@ -140,7 +138,7 @@ async def ws_update_group(
 
     groups[group_id] = group
     options[CONF_GROUPS] = groups
-    hass.config_entries.async_update_entry(global_entry, options=options)
+    _save_global_options(hass, global_entry, options)
 
     connection.send_result(msg["id"], {"success": True})
 
@@ -161,12 +159,11 @@ async def ws_delete_group(
     """Delete a maintenance group."""
     from ..const import CONF_GROUPS
 
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_error(msg["id"], "not_found", "Global config not found")
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
         return
+    global_entry, options = ctx
 
-    options = dict(global_entry.options or global_entry.data)
     groups = dict(options.get(CONF_GROUPS, {}))
     group_id = msg["group_id"]
 
@@ -176,6 +173,6 @@ async def ws_delete_group(
 
     del groups[group_id]
     options[CONF_GROUPS] = groups
-    hass.config_entries.async_update_entry(global_entry, options=options)
+    _save_global_options(hass, global_entry, options)
 
     connection.send_result(msg["id"], {"success": True})

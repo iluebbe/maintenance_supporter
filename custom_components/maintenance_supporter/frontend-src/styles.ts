@@ -79,6 +79,17 @@ export function t(key: string, lang?: string): string {
   return STORE[l]?.[key] ?? STORE.en[key] ?? key;
 }
 
+/**
+ * The UI language for a hass object — the ONE rule every component's `_lang`
+ * getter delegates to. Before this helper the 23 hand-copied getters had
+ * drifted into three variants (`|| "en"`, `?? navigator.language...`, and a
+ * `locale.language` probe), so sibling components could resolve different
+ * languages from the same hass.
+ */
+export function langOf(hass?: { language?: string }): string {
+  return hass?.language || "en";
+}
+
 /** True when *lang*'s table is in memory (English is always bundled). */
 export function isLocaleLoaded(lang?: string): boolean {
   const l = normLang(lang);

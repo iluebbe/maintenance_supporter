@@ -1,5 +1,5 @@
 /*! maintenance_supporter frontend 2.57.0 */
-import{a as m}from"./chunk-6INP67SU.js";import{a as u,b as s,d as l,e as h,f as g,g as o,i,k as _,t as p}from"./chunk-CWQRMTXS.js";import{a}from"./chunk-HQWGP2HE.js";var e=class extends h{constructor(){super(...arguments);this._config={type:""};this._groups={};this._loaded=!1;this._busy=!1;this._error="";this._newName="";this._editingId=null;this._editingName="";this._hasInitiallyLoaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return this.hass?.language||"en"}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._hasInitiallyLoaded&&(this._hasInitiallyLoaded=!0,this._load(),_(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/groups"});this._groups=t.groups||{},this._loaded=!0}catch(t){this._error=p(t,this._lang)}}async _addGroup(){if(!this._isAdmin)return;let t=this._newName.trim();if(t){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/create",name:t}),this._newName="",await this._load()}catch(r){this._error=p(r,this._lang)}finally{this._busy=!1}}}_startEdit(t){this._editingId=t,this._editingName=this._groups[t]?.name||""}async _saveEdit(){if(!this._isAdmin||!this._editingId)return;let t=this._editingName.trim();if(t){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/update",group_id:this._editingId,name:t}),this._editingId=null,this._editingName="",await this._load()}catch(r){this._error=p(r,this._lang)}finally{this._busy=!1}}}async _deleteGroup(t,r){if(!this._isAdmin)return;let n=(i("group_delete_confirm",this._lang)||'Delete group "{name}"?').replace("{name}",r);if(window.confirm(n)){this._busy=!0;try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/delete",group_id:t}),await this._load()}catch(d){this._error=p(d,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_groups"),window.dispatchEvent(new CustomEvent("location-changed"))}_onKeyDown(t,r){t.key==="Enter"?(t.preventDefault(),r()):t.key==="Escape"&&(t.preventDefault(),this._editingId=null,this._editingName="")}render(){let t=this._lang;if(!this._loaded)return s`<ha-card><div class="loading">${i("loading",t)||"Loading\u2026"}</div></ha-card>`;let r=Object.keys(this._groups);return s`
+import{a as v}from"./chunk-D4DPMIXG.js";import{a as u,b as s,d as l,e as h,f as g,g as o,i,j as _,l as m,u as p}from"./chunk-D5H7NGC6.js";import{a}from"./chunk-HQWGP2HE.js";var e=class extends h{constructor(){super(...arguments);this._config={type:""};this._groups={};this._loaded=!1;this._busy=!1;this._error="";this._newName="";this._editingId=null;this._editingName="";this._hasInitiallyLoaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return _(this.hass)}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._hasInitiallyLoaded&&(this._hasInitiallyLoaded=!0,this._load(),m(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/groups"});this._groups=t.groups||{},this._loaded=!0}catch(t){this._error=p(t,this._lang)}}async _addGroup(){if(!this._isAdmin)return;let t=this._newName.trim();if(t){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/create",name:t}),this._newName="",await this._load()}catch(r){this._error=p(r,this._lang)}finally{this._busy=!1}}}_startEdit(t){this._editingId=t,this._editingName=this._groups[t]?.name||""}async _saveEdit(){if(!this._isAdmin||!this._editingId)return;let t=this._editingName.trim();if(t){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/update",group_id:this._editingId,name:t}),this._editingId=null,this._editingName="",await this._load()}catch(r){this._error=p(r,this._lang)}finally{this._busy=!1}}}async _deleteGroup(t,r){if(!this._isAdmin)return;let n=(i("group_delete_confirm",this._lang)||'Delete group "{name}"?').replace("{name}",r);if(window.confirm(n)){this._busy=!0;try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/delete",group_id:t}),await this._load()}catch(d){this._error=p(d,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_groups"),window.dispatchEvent(new CustomEvent("location-changed"))}_onKeyDown(t,r){t.key==="Enter"?(t.preventDefault(),r()):t.key==="Escape"&&(t.preventDefault(),this._editingId=null,this._editingName="")}render(){let t=this._lang;if(!this._loaded)return s`<ha-card><div class="loading">${i("loading",t)||"Loading\u2026"}</div></ha-card>`;let r=Object.keys(this._groups);return s`
       <ha-card>
         <div class="card-content">
           <div class="header">
@@ -14,9 +14,9 @@ import{a as m}from"./chunk-6INP67SU.js";import{a as u,b as s,d as l,e as h,f as 
 
           ${r.length===0?s`<div class="empty">${i("groups_empty",t)||"No groups yet."}</div>`:s`
                 <div class="group-list">
-                  ${r.map(n=>{let d=this._groups[n],v=d.task_refs?.length??0,b=this._editingId===n;return s`
+                  ${r.map(n=>{let d=this._groups[n],b=d.task_refs?.length??0,y=this._editingId===n;return s`
                       <div class="group-row">
-                        ${b?s`
+                        ${y?s`
                               <input class="edit-input" type="text"
                                 .value=${this._editingName}
                                 ?disabled=${this._busy}
@@ -33,7 +33,7 @@ import{a as m}from"./chunk-6INP67SU.js";import{a as u,b as s,d as l,e as h,f as 
                               </button>
                             `:s`
                               <span class="group-name">${d.name||"Unnamed"}</span>
-                              <span class="task-count">${v}</span>
+                              <span class="task-count">${b}</span>
                               ${this._isAdmin?s`
                                     <button class="icon-btn"
                                       title="${i("edit",t)||"Edit"}"
@@ -79,7 +79,7 @@ import{a as m}from"./chunk-6INP67SU.js";import{a as u,b as s,d as l,e as h,f as 
               `}
         </div>
       </ha-card>
-    `}};e.styles=[m,u`
+    `}};e.styles=[v,u`
     .count {
       font-size: 12px; color: var(--secondary-text-color);
       background: var(--secondary-background-color);

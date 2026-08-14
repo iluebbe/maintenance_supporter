@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Mapping
 from datetime import date, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -23,7 +22,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     BUDGET_CACHE_KEY,
     BUDGET_CURRENCIES,
-    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
@@ -38,7 +36,6 @@ from .const import (
     EVENT_TASK_COMPLETED,
     EVENT_TASK_RESET,
     EVENT_TASK_SKIPPED,
-    GLOBAL_UNIQUE_ID,
     MANUAL_COMPLETION_DEDUP_SECONDS,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
     NOTIFICATION_MANAGER_KEY,
@@ -51,6 +48,7 @@ from .const import (
     TriggerEntityState,
 )
 from .helpers.budget import compute_spend
+from .helpers.global_options import get_global_options, is_schedule_time_enabled
 from .helpers.schedule import normalize_task_storage, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
@@ -96,18 +94,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._trigger_entity_states: dict[str, str] = {}  # task_id -> TriggerEntityState
 
     def _is_schedule_time_feature_enabled(self) -> bool:
-        """Return True iff the global advanced flag for time-of-day scheduling is on.
-
-        Reads the global config entry's options on every call. Cheap (just a
-        dict lookup over the small list of integration entries) and means a
-        toggle in Settings takes effect on the next coordinator refresh
-        without needing a restart.
-        """
-        for ce in self.hass.config_entries.async_entries(DOMAIN):
-            if ce.unique_id == GLOBAL_UNIQUE_ID:
-                opts = ce.options or ce.data
-                return bool(opts.get(CONF_ADVANCED_SCHEDULE_TIME, False))
-        return False
+        """Return True iff the global advanced flag for time-of-day scheduling is on."""
+        return is_schedule_time_enabled(self.hass)
 
     def _in_startup_grace_period(self) -> bool:
         """Return True if still within the startup grace period."""
@@ -719,7 +707,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # BEFORE the bundle threshold, like the vacation filter above. A stale
         # view id (view deleted) means no scope, never "silence everything".
         from .const import CONF_NOTIFY_SCOPE_VIEW_ID
-        from .helpers.global_options import get_global_options
 
         scope_view_id = get_global_options(self.hass).get(CONF_NOTIFY_SCOPE_VIEW_ID) or ""
         if scope_view_id:
@@ -739,15 +726,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         from .const import (
             CONF_NOTIFICATION_BUNDLE_THRESHOLD,
             CONF_NOTIFICATION_BUNDLING_ENABLED,
-            GLOBAL_UNIQUE_ID,
         )
 
-        global_options: Mapping[str, Any] = {}
-        for entry in self.hass.config_entries.async_entries(DOMAIN):
-            if entry.unique_id == GLOBAL_UNIQUE_ID:
-                global_options = entry.options or entry.data
-                break
-
+        global_options = get_global_options(self.hass)
         bundling_enabled = global_options.get(CONF_NOTIFICATION_BUNDLING_ENABLED, False)
         bundle_threshold = int(global_options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2))
 
@@ -810,12 +791,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not isinstance(nm, NotificationManager) or not nm.enabled:
             return
 
-        global_options: Mapping[str, Any] = {}
-        for entry in self.hass.config_entries.async_entries(DOMAIN):
-            if entry.unique_id == GLOBAL_UNIQUE_ID:
-                global_options = entry.options or entry.data
-                break
-
+        global_options = get_global_options(self.hass)
         if not global_options.get(CONF_BUDGET_ALERTS_ENABLED, False):
             return
 

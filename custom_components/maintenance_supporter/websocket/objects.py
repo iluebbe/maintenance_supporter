@@ -35,7 +35,7 @@ from ..const import (
 )
 from ..helpers.pause import reanchor_recurring_task
 from ..helpers.permissions import require_write
-from ..helpers.sanitize import cap_object_fields
+from ..helpers.sanitize import cap_object_fields, strip_task_runtime_state
 from . import (
     _build_object_response,
     _get_object_entries,
@@ -169,13 +169,11 @@ async def ws_get_object(
     msg: dict[str, Any],
 ) -> None:
     """Return a single object with full task details including history."""
-    entry_id = msg["entry_id"]
-    entry = hass.config_entries.async_get_entry(entry_id)
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
-    rd = _get_runtime_data(hass, entry_id)
+    rd = _get_runtime_data(hass, entry.entry_id)
     coord_data = rd.coordinator.data if rd and rd.coordinator else None
     connection.send_result(msg["id"], _build_object_response(hass, entry, coord_data))
 
@@ -499,19 +497,7 @@ async def ws_duplicate_object(
         task_id = uuid4().hex
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
-        for key in (
-            "entity_slug",
-            "nfc_tag_id",
-            "history",
-            "last_performed",
-            "last_planned_due",
-            "adaptive_config",
-            "archived_at",
-            "archived_reason",
-        ):
-            task.pop(key, None)
-        if isinstance(task.get("trigger_config"), dict):
-            task["trigger_config"].pop("_trigger_state", None)
+        strip_task_runtime_state(task)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
 
@@ -568,8 +554,7 @@ async def ws_create_from_template(
     # flow's duplicate detection (object name, case-insensitive).
     existing_names = {
         str(e.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")).strip().lower()
-        for e in hass.config_entries.async_entries(DOMAIN)
-        if e.unique_id != GLOBAL_UNIQUE_ID
+        for e in _get_object_entries(hass)
     }
     if name.strip().lower() in existing_names:
         base = name[: MAX_NAME_LENGTH - 4]
@@ -912,19 +897,7 @@ async def ws_replace_object(
         task_id = uuid4().hex
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
-        for key in (
-            "entity_slug",
-            "nfc_tag_id",
-            "history",
-            "last_performed",
-            "last_planned_due",
-            "adaptive_config",
-            "archived_at",
-            "archived_reason",
-        ):
-            task.pop(key, None)
-        if isinstance(task.get("trigger_config"), dict):
-            task["trigger_config"].pop("_trigger_state", None)
+        strip_task_runtime_state(task)
         links = task.get("consumes_parts")
         if isinstance(links, list):
             remapped = []

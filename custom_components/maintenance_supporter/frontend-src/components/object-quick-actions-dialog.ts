@@ -11,7 +11,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
-import { t, STATUS_COLORS } from "../styles";
+import { t, STATUS_COLORS, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 
@@ -31,7 +31,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
   @state() private _error = "";
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   public async openFor(entryId: string): Promise<void> {

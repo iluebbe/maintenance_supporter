@@ -9,7 +9,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t } from "../styles";
+import { t, langOf } from "../styles";
 import type { HomeAssistant } from "../types";
 import { describeWsError } from "../ws-errors";
 
@@ -50,7 +50,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   private _originalSnapshot: HistoryEntryDraft | null = null;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   // #130: selectable parts + the edited selection (part key -> quantity;

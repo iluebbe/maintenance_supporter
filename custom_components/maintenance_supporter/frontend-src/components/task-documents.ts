@@ -11,10 +11,11 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale } from "../styles";
+import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { downloadUrl } from "../helpers/download";
 import { formatBytes } from "../helpers/format-bytes";
+import { CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
 import type { HomeAssistant } from "../types";
 
 interface Doc {
@@ -30,16 +31,6 @@ interface Doc {
   task_pages?: Record<string, number>;
   part_ids?: string[];
 }
-
-const CATEGORIES = ["manual", "warranty", "invoice", "spare_parts", "photo", "other"] as const;
-const CATEGORY_ICONS: Record<string, string> = {
-  manual: "mdi:book-open-variant",
-  warranty: "mdi:shield-check",
-  invoice: "mdi:receipt-text-outline",
-  spare_parts: "mdi:cog-outline",
-  photo: "mdi:image-outline",
-  other: "mdi:file-document-outline",
-};
 
 export class MaintenanceTaskDocuments extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -59,7 +50,7 @@ export class MaintenanceTaskDocuments extends LitElement {
   private _localeReady = false;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   /** The id linked docs reference — a task id or (part mode) a part id. */

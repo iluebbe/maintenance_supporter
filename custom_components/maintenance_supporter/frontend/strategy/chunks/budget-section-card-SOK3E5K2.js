@@ -1,5 +1,5 @@
 /*! maintenance_supporter frontend 2.57.0 */
-import{a as v}from"./chunk-6INP67SU.js";import{a as u,b as o,d as h,e as b,f as y,g as l,h as g,i as r,k as m,t as p}from"./chunk-CWQRMTXS.js";import{a as n}from"./chunk-HQWGP2HE.js";var x=80,s=class extends b{constructor(){super(...arguments);this._config={type:""};this._status=null;this._busy=!1;this._error="";this._localMonthly="";this._localYearly="";this._dirty=!1;this._loaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return this.hass?.language||"en"}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._loaded&&(this._loaded=!0,this._load(),m(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"});this._status=t,this._localMonthly=t.monthly_budget?String(t.monthly_budget):"",this._localYearly=t.yearly_budget?String(t.yearly_budget):"",this._dirty=!1}catch(t){this._error=p(t,this._lang)}}async _save(){if(this._isAdmin){this._busy=!0,this._error="";try{let t=parseFloat(this._localMonthly),a=parseFloat(this._localYearly),i={};!isNaN(t)&&t>=0&&(i.budget_monthly=t),!isNaN(a)&&a>=0&&(i.budget_yearly=a),await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/update",settings:i}),await this._load()}catch(t){this._error=p(t,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_budget"),window.dispatchEvent(new CustomEvent("location-changed"))}render(){let t=this._lang,a=this._status;if(!a)return o`<ha-card><div class="loading">${r("loading",t)||"Loading\u2026"}</div></ha-card>`;let i=a.currency_symbol||g,_=a.alert_threshold_pct??x,f=[{label:r("budget_monthly",t)||"Monthly",spent:a.monthly_spent||0,budget:a.monthly_budget||0},{label:r("budget_yearly",t)||"Yearly",spent:a.yearly_spent||0,budget:a.yearly_budget||0}];return o`
+import{a as _}from"./chunk-D4DPMIXG.js";import{a as u,b as o,d as h,e as b,f as y,g as l,h as g,i as r,j as m,l as v,u as p}from"./chunk-D5H7NGC6.js";import{a as n}from"./chunk-HQWGP2HE.js";var w=80,s=class extends b{constructor(){super(...arguments);this._config={type:""};this._status=null;this._busy=!1;this._error="";this._localMonthly="";this._localYearly="";this._dirty=!1;this._loaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return m(this.hass)}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._loaded&&(this._loaded=!0,this._load(),v(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"});this._status=t,this._localMonthly=t.monthly_budget?String(t.monthly_budget):"",this._localYearly=t.yearly_budget?String(t.yearly_budget):"",this._dirty=!1}catch(t){this._error=p(t,this._lang)}}async _save(){if(this._isAdmin){this._busy=!0,this._error="";try{let t=parseFloat(this._localMonthly),a=parseFloat(this._localYearly),i={};!isNaN(t)&&t>=0&&(i.budget_monthly=t),!isNaN(a)&&a>=0&&(i.budget_yearly=a),await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/update",settings:i}),await this._load()}catch(t){this._error=p(t,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_budget"),window.dispatchEvent(new CustomEvent("location-changed"))}render(){let t=this._lang,a=this._status;if(!a)return o`<ha-card><div class="loading">${r("loading",t)||"Loading\u2026"}</div></ha-card>`;let i=a.currency_symbol||g,f=a.alert_threshold_pct??w,x=[{label:r("budget_monthly",t)||"Monthly",spent:a.monthly_spent||0,budget:a.monthly_budget||0},{label:r("budget_yearly",t)||"Yearly",spent:a.yearly_spent||0,budget:a.yearly_budget||0}];return o`
       <ha-card>
         <div class="card-content">
           <div class="header">
@@ -12,14 +12,14 @@ import{a as v}from"./chunk-6INP67SU.js";import{a as u,b as o,d as h,e as b,f as 
 
           ${this._error?o`<div class="error">${this._error}</div>`:h}
 
-          ${f.map(e=>{if(!(e.budget>0))return o`
+          ${x.map(e=>{if(!(e.budget>0))return o`
                 <div class="track spent-only">
                   <div class="track-label-row">
                     <label>${e.label}</label>
                     <span class="track-numbers ok">${e.spent.toFixed(0)} ${i}</span>
                   </div>
                 </div>
-              `;let d=Math.min(100,Math.max(0,e.spent/e.budget*100)),c=d>=100?"danger":d>=_?"warning":"ok";return o`
+              `;let d=Math.min(100,Math.max(0,e.spent/e.budget*100)),c=d>=100?"danger":d>=f?"warning":"ok";return o`
               <div class="track">
                 <div class="track-label-row">
                   <label>${e.label}</label>
@@ -72,7 +72,7 @@ import{a as v}from"./chunk-6INP67SU.js";import{a as u,b as o,d as h,e as b,f as 
               `}
         </div>
       </ha-card>
-    `}};s.styles=[v,u`
+    `}};s.styles=[_,u`
     .currency {
       font-size: 14px; font-weight: 600;
       color: var(--secondary-text-color);

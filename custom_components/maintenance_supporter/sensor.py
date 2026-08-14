@@ -23,7 +23,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_ENTITY_LOGIC,
@@ -38,6 +37,7 @@ from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
+from .helpers.global_options import is_schedule_time_enabled
 from .helpers.schedule import read_legacy_fields
 from .helpers.status import compute_status_from_task_dict
 
@@ -490,12 +490,8 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
         return datetime.combine(due, at, tzinfo=dt_util.DEFAULT_TIME_ZONE)
 
     def _schedule_time_enabled(self) -> bool:
-        """Global advanced flag — same lookup as the calendar entity."""
-        for ce in self.coordinator.hass.config_entries.async_entries(DOMAIN):
-            if ce.unique_id == GLOBAL_UNIQUE_ID:
-                opts = ce.options or ce.data
-                return bool(opts.get(CONF_ADVANCED_SCHEDULE_TIME, False))
-        return False
+        """Global advanced flag — same source as the calendar entity."""
+        return is_schedule_time_enabled(self.coordinator.hass)
 
 
 class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):

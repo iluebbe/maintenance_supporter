@@ -412,6 +412,30 @@ def _get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:
     return get_global_entry(hass)
 
 
+def _load_global_options(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> tuple[ConfigEntry, dict[str, Any]] | None:
+    """Resolve the global entry and a mutable copy of its options, or send the
+    standard not-found error and return None.
+
+    The load → ``dict(options or data)`` → mutate → write-back triad was
+    copied across groups/vacation/dashboard/saved-views handlers, each with a
+    slightly different error message for the identical condition.
+    """
+    global_entry = _get_global_entry(hass)
+    if global_entry is None:
+        connection.send_error(msg["id"], "not_found", "Global config entry not found")
+        return None
+    return global_entry, dict(global_entry.options or global_entry.data)
+
+
+def _save_global_options(hass: HomeAssistant, entry: ConfigEntry, options: dict[str, Any]) -> None:
+    """Write back a mutated global-options dict."""
+    hass.config_entries.async_update_entry(entry, options=options)
+
+
 def _load_object_entry(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,

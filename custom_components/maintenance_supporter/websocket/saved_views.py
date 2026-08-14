@@ -73,7 +73,7 @@ async def ws_save_saved_view(
         connection.send_error(msg["id"], "too_many_views", "The saved-views limit has been reached")
         return
     except LookupError:
-        connection.send_error(msg["id"], "not_found", "Global entry not found")
+        connection.send_error(msg["id"], "not_found", "Global config entry not found")
         return
     connection.send_result(msg["id"], {"views": views, "saved_id": saved_id})
 
@@ -96,6 +96,6 @@ async def ws_delete_saved_view(
     try:
         _persist(hass, views)
     except LookupError:
-        connection.send_error(msg["id"], "not_found", "Global entry not found")
+        connection.send_error(msg["id"], "not_found", "Global config entry not found")
         return
     connection.send_result(msg["id"], {"views": views})

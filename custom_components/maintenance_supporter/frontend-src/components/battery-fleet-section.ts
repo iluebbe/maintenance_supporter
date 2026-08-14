@@ -6,7 +6,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
-import { t, ensureLocale } from "../styles";
+import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant } from "../types";
 
@@ -84,7 +84,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   private _localeReady = false;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   connectedCallback(): void {

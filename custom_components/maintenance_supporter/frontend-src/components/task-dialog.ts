@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TaskPartLink, TriggerConfig, HAUser } from "../types";
-import { formatDate, t, weekdayName } from "../styles";
+import { formatDate, t, weekdayName, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
 import {
@@ -297,7 +297,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private _userService: UserService | null = null;
 
   private get _lang(): string {
-    return this.hass?.language ?? navigator.language.split("-")[0] ?? "en";
+    return langOf(this.hass);
   }
 
   public async openCreate(entryId: string, objects?: Array<{ entry_id: string; object: { name: string } }>): Promise<void> {

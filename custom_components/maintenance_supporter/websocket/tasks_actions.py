@@ -148,12 +148,13 @@ async def ws_complete_task(
     # automatic consumes_parts path is untouched.
     used_parts = msg.get("used_parts")
     if used_parts is not None:
+        from ..const import CONF_PARTS
         from ..helpers.parts import sanitize_consumes_parts
         from . import foreign_part_resolver
 
         used_parts = sanitize_consumes_parts(
             used_parts,
-            set(_entry.data.get("parts") or {}),
+            set(_entry.data.get(CONF_PARTS) or {}),
             foreign_part_ids=foreign_part_resolver(hass),
         )
 
@@ -420,6 +421,11 @@ async def ws_checklist_progress(
     rd, entry = ctx
     task_items = set(entry.data[CONF_TASKS][msg["task_id"]].get("checklist") or [])
     state = {item: bool(done) for item, done in msg["checklist_state"].items() if item in task_items}
+    # Progress lives ONLY in the Store (no legacy fallback) — degrade to a
+    # clean error instead of an AttributeError when it failed to load.
+    if rd.store is None:
+        connection.send_error(msg["id"], "storage_unavailable", "Task storage not loaded")
+        return
     rd.store.set_checklist_progress(msg["task_id"], state)
     await rd.store.async_save()
     # A user action must be visible immediately — never the 10 s debounce.

@@ -27,9 +27,14 @@ _COUNTED_STATUSES = (
 )
 
 
-def get_object_entries(hass: HomeAssistant) -> list[ConfigEntry]:
-    """Return all non-global config entries for this domain."""
-    return [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
+def get_object_entries(hass: HomeAssistant, entry_ids: set[str] | None = None) -> list[ConfigEntry]:
+    """Return all non-global config entries for this domain, optionally
+    narrowed to a selection (``entry_ids=None`` means all objects)."""
+    return [
+        entry
+        for entry in hass.config_entries.async_entries(DOMAIN)
+        if entry.unique_id != GLOBAL_UNIQUE_ID and (entry_ids is None or entry.entry_id in entry_ids)
+    ]
 
 
 def get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporterData | None:

@@ -9,7 +9,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
-import { t, ensureLocale } from "../styles";
+import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { UserService } from "../user-service";
 import type { HAUser, HomeAssistant } from "../types";
@@ -55,7 +55,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
   private _userService: UserService | null = null;
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   updated(changed: Map<string, unknown>): void {

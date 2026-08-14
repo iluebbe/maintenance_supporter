@@ -34,7 +34,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays } from "./styles";
+import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -121,7 +121,7 @@ export class MaintenanceCalendarCard extends LitElement {
   }
 
   private get _lang(): string {
-    return this.hass?.language || "en";
+    return langOf(this.hass);
   }
 
   disconnectedCallback(): void {

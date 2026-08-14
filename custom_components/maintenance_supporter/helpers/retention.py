@@ -108,13 +108,9 @@ def _coerce_int(value: Any, default: int) -> int:
 
 def _global_options(hass: HomeAssistant) -> dict[str, Any]:
     """Return the global entry's options (or data), or {} when absent."""
-    from ..const import DOMAIN, GLOBAL_UNIQUE_ID
+    from .global_options import get_global_options
 
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            opts: dict[str, Any] = dict(entry.options or entry.data)
-            return opts
-    return {}
+    return dict(get_global_options(hass))
 
 
 def _merged_tasks(entry: Any) -> dict[str, Any]:
