@@ -483,6 +483,7 @@
   "settings_export_json": "Exportovat JSON",
   "settings_export_yaml": "Exportovat YAML",
   "settings_export_csv": "Exportovat CSV",
+  "settings_export_settings": "Exportovat nastavení (JSON)",
   "settings_import_csv": "Importovat CSV",
   "settings_import_placeholder": "Vložte sem obsah JSON nebo CSV…",
   "settings_import_btn": "Importovat",

@@ -483,6 +483,7 @@
   "settings_export_json": "Експортувати JSON",
   "settings_export_yaml": "Експортувати YAML",
   "settings_export_csv": "Експортувати CSV",
+  "settings_export_settings": "Експорт налаштувань (JSON)",
   "settings_import_csv": "Імпортувати CSV",
   "settings_import_placeholder": "Вставте вміст JSON або CSV сюди…",
   "settings_import_btn": "Імпортувати",

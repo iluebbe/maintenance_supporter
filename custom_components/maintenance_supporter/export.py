@@ -282,3 +282,49 @@ def export_maintenance_data(
     """
     data = build_export_data(hass, include_history=include_history)
     return serialize_export(data, fmt)
+
+
+# Global settings the export deliberately leaves behind: HA user ids are
+# instance-bound (and the panel-access allowlist is security-relevant), and
+# the adopted-task stash is transient re-adopt state.
+_NON_PORTABLE_SETTINGS = ("admin_panel_user_ids", "adopted_task_notes")
+
+
+def build_settings_export(hass: HomeAssistant) -> dict[str, Any]:
+    """The SECOND export: the global entry's settings.
+
+    ``build_export_data`` deliberately carries only objects — groups, saved
+    views, vacation config, notification/budget settings and the feature
+    toggles live on the global entry and export through here instead
+    (2026-08 round-trip audit decision). Instance-bound keys are excluded
+    (see ``_NON_PORTABLE_SETTINGS``).
+    """
+    from .const import (
+        CONF_GROUPS,
+        CONF_SAVED_FILTER_VIEWS,
+        CONF_VACATION_BUFFER_DAYS,
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_END,
+        CONF_VACATION_EXEMPT_TASK_IDS,
+        CONF_VACATION_START,
+    )
+    from .helpers.global_options import get_global_options
+    from .helpers.settings_registry import ALLOWED_SETTING_KEYS
+
+    opts = get_global_options(hass)
+    settings: dict[str, Any] = {
+        k: opts[k] for k in ALLOWED_SETTING_KEYS if k in opts and k not in _NON_PORTABLE_SETTINGS
+    }
+    # Structured sections with their own WS surfaces (not in the registry).
+    for key in (
+        CONF_GROUPS,
+        CONF_SAVED_FILTER_VIEWS,
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_START,
+        CONF_VACATION_END,
+        CONF_VACATION_BUFFER_DAYS,
+        CONF_VACATION_EXEMPT_TASK_IDS,
+    ):
+        if key in opts:
+            settings[key] = opts[key]
+    return {"version": 1, "global_settings": settings}

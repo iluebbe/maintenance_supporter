@@ -483,6 +483,7 @@
   "settings_export_json": "Eksportuj JSON",
   "settings_export_yaml": "Eksportuj YAML",
   "settings_export_csv": "Eksportuj CSV",
+  "settings_export_settings": "Eksportuj ustawienia (JSON)",
   "settings_import_csv": "Importuj CSV",
   "settings_import_placeholder": "Wklej tutaj zawartość JSON lub CSV…",
   "settings_import_btn": "Importuj",

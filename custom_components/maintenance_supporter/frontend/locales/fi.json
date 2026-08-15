@@ -484,6 +484,7 @@
   "settings_export_json": "Vie JSON",
   "settings_export_yaml": "Vie YAML",
   "settings_export_csv": "Vie CSV",
+  "settings_export_settings": "Vie asetukset (JSON)",
   "settings_import_csv": "Tuo CSV",
   "settings_import_placeholder": "Liitä JSON- tai CSV-sisältö tähän…",
   "settings_import_btn": "Tuo",

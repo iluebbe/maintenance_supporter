@@ -484,6 +484,7 @@
   "settings_export_json": "JSON exportálása",
   "settings_export_yaml": "YAML exportálása",
   "settings_export_csv": "CSV exportálása",
+  "settings_export_settings": "Beállítások exportálása (JSON)",
   "settings_import_csv": "CSV importálása",
   "settings_import_placeholder": "Illessze be ide a JSON vagy CSV tartalmat…",
   "settings_import_btn": "Importálás",

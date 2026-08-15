@@ -553,30 +553,13 @@ async def ws_get_budget_status(
 # ---------------------------------------------------------------------------
 
 
-@websocket_api.websocket_command(
-    {
-        vol.Required("type"): f"{DOMAIN}/global/update",
-        vol.Required("settings"): dict,
-    }
-)
-@websocket_api.require_admin
-@websocket_api.async_response
-async def ws_update_global_settings(
-    hass: HomeAssistant,
-    connection: websocket_api.ActiveConnection,
-    msg: dict[str, Any],
-) -> None:
-    """Update global settings.
+def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
+    """Filter + validate a flat settings dict against the registry.
 
-    Accepts a flat dict of setting keys to update.  Unknown keys are
-    silently ignored.  Returns the full updated settings.
-    """
-    ctx = _load_global_options(hass, connection, msg)
-    if ctx is None:
-        return
-    global_entry, current_options = ctx
-
-    settings_input: dict[str, Any] = msg["settings"]
+    Returns ``(filtered, notify_error)`` — the validated subset plus the
+    error code when ``notify_service`` was present but invalid. Shared by
+    ``global/update`` and the settings-export import path so the two
+    surfaces cannot drift."""
 
     # Filter to allowed keys and validate types
     filtered: dict[str, Any] = {}
@@ -694,19 +677,51 @@ async def ws_update_global_settings(
                 tids.append(v)
         filtered[CONF_DISABLED_TEMPLATE_IDS] = tids
 
-    if not filtered:
-        connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")
-        return
-
     # Validate notify_service if provided
     if CONF_NOTIFY_SERVICE in filtered:
         from ..config_flow_options_global import validate_notify_service
 
         normalized, error = validate_notify_service(filtered[CONF_NOTIFY_SERVICE])
         if error:
-            connection.send_error(msg["id"], error, f"Invalid notify service: {error}")
-            return
+            return filtered, error
         filtered[CONF_NOTIFY_SERVICE] = normalized
+
+    return filtered, None
+
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/global/update",
+        vol.Required("settings"): dict,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_update_global_settings(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update global settings.
+
+    Accepts a flat dict of setting keys to update.  Unknown keys are
+    silently ignored.  Returns the full updated settings.
+    """
+    ctx = _load_global_options(hass, connection, msg)
+    if ctx is None:
+        return
+    global_entry, current_options = ctx
+
+    settings_input: dict[str, Any] = msg["settings"]
+
+    filtered, notify_error = sanitize_settings_input(settings_input)
+    if notify_error:
+        connection.send_error(msg["id"], notify_error, f"Invalid notify service: {notify_error}")
+        return
+    if not filtered:
+        connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")
+        return
 
     # Merge with existing options
     merged = current_options

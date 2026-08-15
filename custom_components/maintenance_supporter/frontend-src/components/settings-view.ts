@@ -1432,6 +1432,7 @@ export class MaintenanceSettingsView extends LitElement {
           <button @click=${this._exportJson}>${t("settings_export_json", L)}</button>
           <button @click=${this._exportYaml}>${t("settings_export_yaml", L)}</button>
           <button @click=${this._exportCsv}>${t("settings_export_csv", L)}</button>
+          <button @click=${this._exportSettings}>${t("settings_export_settings", L)}</button>
         </div>
         <div class="settings-actions docs-archive-block">
           <h4>${t("settings_docs_archive", L)}</h4>
@@ -1506,6 +1507,22 @@ export class MaintenanceSettingsView extends LitElement {
       }) as { data: string };
       const ts = new Date().toISOString().slice(0, 10);
       this._downloadFile(result.data, `maintenance_export_${ts}.json`, "application/json");
+      this._showToast(t("settings_export_success", this._lang));
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  /** The SECOND export: the global entry's settings (groups, saved views,
+   *  vacation, notification/budget settings, feature toggles) — the objects
+   *  export deliberately excludes them. Re-import via the regular import. */
+  private async _exportSettings(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/settings/export",
+      }) as { data: string };
+      const ts = new Date().toISOString().slice(0, 10);
+      this._downloadFile(result.data, `maintenance_settings_${ts}.json`, "application/json");
       this._showToast(t("settings_export_success", this._lang));
     } catch {
       this._showToast(t("action_error", this._lang));

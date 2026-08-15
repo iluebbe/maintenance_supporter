@@ -484,6 +484,7 @@
   "settings_export_json": "JSON 내보내기",
   "settings_export_yaml": "YAML 내보내기",
   "settings_export_csv": "CSV 내보내기",
+  "settings_export_settings": "설정 내보내기 (JSON)",
   "settings_import_csv": "CSV 가져오기",
   "settings_import_placeholder": "JSON 또는 CSV 내용을 여기에 붙여넣으세요…",
   "settings_import_btn": "가져오기",

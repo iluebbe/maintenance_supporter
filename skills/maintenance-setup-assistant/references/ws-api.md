@@ -485,7 +485,17 @@ admin-gated.
 ### `json/import` — admin — restore JSON **or YAML**
 `{json_content:str}` (accepts JSON and YAML) → `{created, errors, ...}`. New ids
 are generated; parts/consumes links are remapped. Selective because it restores
-exactly the objects present in the payload.
+exactly the objects present in the payload. A payload may also (or only)
+carry a `global_settings` section (from `settings/export`) — applied through
+the same validation as `global/update`; the response then adds
+`settings_applied:[keys]`.
+
+### `settings/export` — admin — the global entry's settings
+`{}` → `{format:"json", data:str}`. The objects export deliberately excludes
+the global scope; this second export carries groups, saved views, vacation
+config, notification/budget settings and the feature toggles. Instance-bound
+keys (panel-access user ids, the adopted-task stash) stay out. Re-import via
+`json/import`.
 
 ### `csv/import` — admin — restore flat CSV
 `{csv_content:str}` → `{created, ...}`.

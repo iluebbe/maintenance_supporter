@@ -343,6 +343,129 @@ def _parse_structured(raw: str) -> Any:
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): f"{DOMAIN}/settings/export",
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_export_settings(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Export the global entry's settings as JSON.
+
+    The objects export deliberately excludes the global scope (groups, saved
+    views, vacation, notification/budget settings, feature toggles) — this is
+    its second half. Import goes through the regular json/import command,
+    which recognizes the ``global_settings`` section.
+    """
+    from ..export import build_settings_export
+
+    connection.send_result(
+        msg["id"],
+        {"format": "json", "data": json_mod.dumps(build_settings_export(hass), indent=2)},
+    )
+
+
+def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str]:
+    """Apply an imported ``global_settings`` payload; returns the applied keys.
+
+    Scalar settings run through the SAME validation as the ``global/update``
+    WS command (``sanitize_settings_input``); an invalid notify_service is
+    dropped rather than failing the import. The structured sections reuse
+    their own sanitizers: saved views via ``sanitize_view``, groups shape-
+    checked here, vacation dates validated like ``vacation/update``. Group
+    task_refs and vacation exempt ids may point at objects of the SOURCE
+    instance — they are kept verbatim (same-instance restores keep them
+    valid; elsewhere they degrade gracefully like every stale reference).
+    """
+    from datetime import date as date_cls
+
+    from ..const import (
+        CONF_GROUPS,
+        CONF_NOTIFY_SERVICE,
+        CONF_SAVED_FILTER_VIEWS,
+        CONF_VACATION_BUFFER_DAYS,
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_END,
+        CONF_VACATION_EXEMPT_TASK_IDS,
+        CONF_VACATION_START,
+        MAX_GROUP_TASK_REFS,
+        MAX_NAME_LENGTH,
+    )
+    from ..export import _NON_PORTABLE_SETTINGS
+    from ..helpers.global_options import get_global_entry
+    from ..helpers.saved_views import MAX_SAVED_VIEWS, sanitize_view
+    from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
+    from .dashboard import sanitize_settings_input
+
+    entry = get_global_entry(hass)
+    if entry is None or not isinstance(raw, dict):
+        return []
+
+    scalars = {k: v for k, v in raw.items() if k in ALLOWED_SETTING_KEYS and k not in _NON_PORTABLE_SETTINGS}
+    filtered, notify_error = sanitize_settings_input(scalars)
+    if notify_error:
+        filtered.pop(CONF_NOTIFY_SERVICE, None)
+
+    groups_in = raw.get(CONF_GROUPS)
+    if isinstance(groups_in, dict):
+        groups: dict[str, dict[str, Any]] = {}
+        for gid, g in groups_in.items():
+            if not isinstance(g, dict) or not str(g.get("name") or "").strip():
+                continue
+            refs = [
+                {"entry_id": str(r["entry_id"]), "task_id": str(r["task_id"])}
+                for r in (g.get("task_refs") or [])
+                if isinstance(r, dict) and r.get("entry_id") and r.get("task_id")
+            ][:MAX_GROUP_TASK_REFS]
+            groups[str(gid)] = {
+                "name": str(g["name"]).strip()[:MAX_NAME_LENGTH],
+                "description": str(g.get("description") or "")[:MAX_NAME_LENGTH],
+                "task_refs": refs,
+            }
+        if groups:
+            filtered[CONF_GROUPS] = groups
+
+    views_in = raw.get(CONF_SAVED_FILTER_VIEWS)
+    if isinstance(views_in, list):
+        views = []
+        for v in views_in[:MAX_SAVED_VIEWS]:
+            clean = sanitize_view(v, view_id=str(v.get("id")) if isinstance(v, dict) and v.get("id") else None)
+            if clean is not None:
+                views.append(clean)
+        if views:
+            filtered[CONF_SAVED_FILTER_VIEWS] = views
+
+    if isinstance(raw.get(CONF_VACATION_ENABLED), bool):
+        filtered[CONF_VACATION_ENABLED] = raw[CONF_VACATION_ENABLED]
+    for key in (CONF_VACATION_START, CONF_VACATION_END):
+        val = raw.get(key)
+        if isinstance(val, str):
+            try:
+                date_cls.fromisoformat(val)
+            except ValueError:
+                continue
+            filtered[key] = val
+    if isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), int) and not isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), bool):
+        filtered[CONF_VACATION_BUFFER_DAYS] = raw[CONF_VACATION_BUFFER_DAYS]
+    exempt = raw.get(CONF_VACATION_EXEMPT_TASK_IDS)
+    if isinstance(exempt, list):
+        cleaned = [t.strip() for t in exempt if isinstance(t, str) and t.strip()][:2000]
+        filtered[CONF_VACATION_EXEMPT_TASK_IDS] = cleaned
+
+    if not filtered:
+        return []
+    merged = dict(entry.options or entry.data)
+    merged.update(filtered)
+    hass.config_entries.async_update_entry(entry, options=merged)
+    _LOGGER.info("Settings import applied %d key(s)", len(filtered))
+    return sorted(filtered)
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): f"{DOMAIN}/json/import",
         vol.Required("json_content"): str,
     }
@@ -366,11 +489,18 @@ async def ws_import_json(
         connection.send_error(msg["id"], "invalid_format", "Content is not valid JSON or YAML")
         return
 
-    if not isinstance(data, dict) or "objects" not in data:
+    has_settings = isinstance(data, dict) and isinstance(data.get("global_settings"), dict)
+    if not isinstance(data, dict) or ("objects" not in data and not has_settings):
         connection.send_error(msg["id"], "invalid_format", "JSON must contain an 'objects' array")
         return
 
-    objects = data["objects"]
+    # A settings export (see export.build_settings_export) may travel alone or
+    # alongside an objects payload — apply it first either way.
+    settings_applied: list[str] = []
+    if has_settings:
+        settings_applied = _apply_settings_import(hass, data["global_settings"])
+
+    objects = data.get("objects", [])
     if not isinstance(objects, list):
         connection.send_error(msg["id"], "invalid_format", "'objects' must be an array")
         return
@@ -379,7 +509,7 @@ async def ws_import_json(
         connection.send_error(msg["id"], "too_many", "JSON contains more than 1000 objects")
         return
 
-    if not objects:
+    if not objects and not settings_applied:
         connection.send_error(msg["id"], "empty", "No objects found in JSON")
         return
 
@@ -714,6 +844,8 @@ async def ws_import_json(
         "total": len(objects),
         "created": len(created),
     }
+    if settings_applied:
+        resp["settings_applied"] = settings_applied
     if errors:
         resp["errors"] = errors
     connection.send_result(msg["id"], resp)

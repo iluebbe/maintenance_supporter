@@ -483,6 +483,7 @@
   "settings_export_json": "Exportera JSON",
   "settings_export_yaml": "Exportera YAML",
   "settings_export_csv": "Exportera CSV",
+  "settings_export_settings": "Exportera inställningar (JSON)",
   "settings_import_csv": "Importera CSV",
   "settings_import_placeholder": "Klistra in JSON- eller CSV-innehåll här…",
   "settings_import_btn": "Importera",

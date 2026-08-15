@@ -54,6 +54,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/notify/user_targets": "admin",
     "maintenance_supporter/global/update": "admin",
     "maintenance_supporter/json/import": "admin",
+    "maintenance_supporter/settings/export": "admin",
     "maintenance_supporter/vacation/end_now": "admin",
     "maintenance_supporter/vacation/update": "admin",
     # ── write (content CRUD) ──

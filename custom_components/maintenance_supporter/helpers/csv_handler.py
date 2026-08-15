@@ -34,6 +34,11 @@ _COLUMNS = [
     "object_area_id",
     "object_installation_date",
     "object_warranty_expiry",
+    # The 2026-08 round-trip audit: the IMPORT read these two from day one,
+    # but the export never wrote the columns — a CSV migration silently
+    # dropped object notes + documentation URL.
+    "object_documentation_url",
+    "object_notes",
     "task_name",
     "task_type",
     "enabled",
@@ -102,6 +107,8 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "object_area_id": _csv_safe(obj_data.get("area_id", "")),
                     "object_installation_date": _csv_safe(obj_data.get("installation_date", "")),
                     "object_warranty_expiry": _csv_safe(obj_data.get("warranty_expiry", "")),
+                    "object_documentation_url": _csv_safe(obj_data.get("documentation_url") or ""),
+                    "object_notes": _csv_safe(obj_data.get("notes") or ""),
                     "task_name": _csv_safe(tdata.get("name", "")),
                     "task_type": tdata.get("type", "custom"),
                     "enabled": tdata.get("enabled", True),

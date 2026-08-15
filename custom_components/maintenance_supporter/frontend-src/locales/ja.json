@@ -484,6 +484,7 @@
   "settings_export_json": "JSONをエクスポート",
   "settings_export_yaml": "YAMLをエクスポート",
   "settings_export_csv": "CSVをエクスポート",
+  "settings_export_settings": "設定をエクスポート（JSON）",
   "settings_import_csv": "CSVをインポート",
   "settings_import_placeholder": "JSONまたはCSVの内容をここに貼り付け…",
   "settings_import_btn": "インポート",

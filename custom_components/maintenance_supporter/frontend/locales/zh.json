@@ -484,6 +484,7 @@
   "settings_export_json": "导出 JSON",
   "settings_export_yaml": "导出 YAML",
   "settings_export_csv": "导出 CSV",
+  "settings_export_settings": "导出设置（JSON）",
   "settings_import_csv": "导入 CSV",
   "settings_import_placeholder": "在此粘贴 JSON 或 CSV 内容…",
   "settings_import_btn": "导入",
