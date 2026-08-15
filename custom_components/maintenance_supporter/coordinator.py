@@ -58,6 +58,24 @@ from .storage import MaintenanceStore
 _LOGGER = logging.getLogger(__name__)
 
 
+def _inert_task_result(task: MaintenanceTask, status: str, **extra: Any) -> dict[str, Any]:
+    """Coordinator payload for a task that gets NO live evaluation (archived /
+    paused): due fields nulled, trigger off, only cost/history-derived fields
+    surfaced. The archived and paused short-circuits were hand-copied twins."""
+    task_result = task.to_dict()
+    task_result["_status"] = status
+    task_result["_days_until_due"] = None
+    task_result["_next_due"] = None
+    task_result["_is_done"] = task.is_done
+    task_result["_trigger_active"] = False
+    task_result["_times_performed"] = task.times_performed
+    task_result["_total_cost"] = task.total_cost
+    task_result["_average_duration"] = task.average_duration
+    task_result["_last_entry"] = task.last_entry
+    task_result.update(extra)
+    return task_result
+
+
 class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator for a single maintenance object and its tasks."""
 
@@ -184,17 +202,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # are surfaced (budget keeps counting; the detail view still renders
             # the record).
             if task.archived_at is not None:
-                task_result = task.to_dict()
-                task_result["_status"] = MaintenanceStatus.ARCHIVED
-                task_result["_days_until_due"] = None
-                task_result["_next_due"] = None
-                task_result["_is_done"] = task.is_done
-                task_result["_trigger_active"] = False
-                task_result["_times_performed"] = task.times_performed
-                task_result["_total_cost"] = task.total_cost
-                task_result["_average_duration"] = task.average_duration
-                task_result["_last_entry"] = task.last_entry
-                result[CONF_TASKS][task_id] = task_result
+                result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.ARCHIVED)
                 continue
 
             # v2.20 (N3): tasks of a paused object are frozen — status PAUSED,
@@ -203,18 +211,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # first-class citizen in every view. `_paused` mirrors the status
             # for the dict-twin recomputation in helpers.status.
             if object_paused:
-                task_result = task.to_dict()
-                task_result["_status"] = MaintenanceStatus.PAUSED
-                task_result["_paused"] = True
-                task_result["_days_until_due"] = None
-                task_result["_next_due"] = None
-                task_result["_is_done"] = task.is_done
-                task_result["_trigger_active"] = False
-                task_result["_times_performed"] = task.times_performed
-                task_result["_total_cost"] = task.total_cost
-                task_result["_average_duration"] = task.average_duration
-                task_result["_last_entry"] = task.last_entry
-                result[CONF_TASKS][task_id] = task_result
+                result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.PAUSED, _paused=True)
                 continue
 
             # Restore live trigger state from previous coordinator data
@@ -1013,16 +1010,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         enriched_used: list[dict[str, Any]] | None = None
         if used_parts is not None or record_links:
-            own_catalog = self.entry.data.get("parts") or {}
 
             def _part_name(link: dict[str, Any]) -> str:
-                owner_id = link.get("entry_id")
-                catalog: dict[str, Any] = own_catalog
-                if owner_id and owner_id != self.entry.entry_id:
-                    owner = self.hass.config_entries.async_get_entry(owner_id)
-                    catalog = (owner.data.get("parts") or {}) if owner else {}
-                name = (catalog.get(link["part_id"]) or {}).get("name")
-                return str(name) if name else str(link["part_id"])
+                from .parts_runtime import part_link_name
+
+                return part_link_name(self.hass, self.entry, link)
 
             enriched_used = [
                 {

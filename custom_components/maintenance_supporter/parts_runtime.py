@@ -52,6 +52,38 @@ def _get_store(hass: HomeAssistant, entry: ConfigEntry) -> Any:
     return getattr(rd, "store", None) if rd else None
 
 
+def resolve_part_link(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    link: dict[str, Any],
+    *,
+    link_owners: dict[str, str] | None = None,
+) -> tuple[ConfigEntry | None, dict[str, Any] | None, Any]:
+    """Resolve a task→part link to ``(owner_entry, part, store)``.
+
+    The owner is the link's ``entry_id`` (#111 pooled link), a
+    ``link_owners`` fallback (part_id → entry_id, derived from the task's
+    consumes_parts), or the task's own entry. Any element can be None when
+    that leg is broken — what a broken link MEANS (repair issue, silent
+    skip, raw-id name fallback) stays the caller's business, which is
+    exactly where the three hand-copied resolvers had drifted.
+    """
+    part_id = str(link.get("part_id") or "")
+    owner_id = str(link.get("entry_id") or "").strip() or (link_owners or {}).get(part_id) or entry.entry_id
+    owner = entry if owner_id == entry.entry_id else hass.config_entries.async_get_entry(owner_id)
+    if owner is None:
+        return None, None, None
+    part = (owner.data.get(CONF_PARTS) or {}).get(part_id)
+    return owner, part, _get_store(hass, owner)
+
+
+def part_link_name(hass: HomeAssistant, entry: ConfigEntry, link: dict[str, Any]) -> str:
+    """Display name for a link's part, falling back to the raw part id."""
+    _owner, part, _store = resolve_part_link(hass, entry, link)
+    name = (part or {}).get("name")
+    return str(name) if name else str(link.get("part_id"))
+
+
 def _fire_transition(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -163,28 +195,11 @@ async def async_handle_completion_parts(
     for link in links:
         if not isinstance(link, dict):
             continue
-        target_entry = entry
-        target_parts = parts
-        target_store = store
-        foreign_id = str(link.get("entry_id") or "").strip()
-        if foreign_id and foreign_id != entry.entry_id:
-            resolved = hass.config_entries.async_get_entry(foreign_id)
-            if resolved is None:
-                broken.append(str(link.get("part_id") or "?"))
-                continue
-            target_entry = resolved
-            target_parts = resolved.data.get(CONF_PARTS) or {}
-            resolved_store = _get_store(hass, resolved)
-            if resolved_store is None:
-                broken.append(str(link.get("part_id") or "?"))
-                continue
-            target_store = resolved_store
-
-        part = target_parts.get(link.get("part_id"))
-        if part is None:
-            # The pool is gone (owner deleted, or the part removed from it).
-            # Silence here would record a completion that consumed nothing and
-            # tell nobody — surface it instead.
+        target_entry, part, target_store = resolve_part_link(hass, entry, link)
+        if target_entry is None or target_store is None or part is None:
+            # The pool is gone (owner deleted, its store unavailable, or the
+            # part removed from it). Silence here would record a completion
+            # that consumed nothing and tell nobody — surface it instead.
             broken.append(str(link.get("part_id") or "?"))
             continue
         old = target_store.get_part_stock(part["id"])
@@ -230,14 +245,8 @@ async def async_apply_history_parts_edit(
             link_owners[str(link["part_id"])] = str(link["entry_id"])
 
     def resolve(link: dict[str, Any]) -> tuple[ConfigEntry, dict[str, Any], Any] | None:
-        part_id = str(link.get("part_id") or "")
-        owner_id = str(link.get("entry_id") or "") or link_owners.get(part_id) or entry.entry_id
-        owner = entry if owner_id == entry.entry_id else hass.config_entries.async_get_entry(owner_id)
-        if owner is None:
-            return None
-        part = (owner.data.get(CONF_PARTS) or {}).get(part_id)
-        store = _get_store(hass, owner)
-        if part is None or store is None:
+        owner, part, store = resolve_part_link(hass, entry, link, link_owners=link_owners)
+        if owner is None or part is None or store is None:
             return None
         return owner, part, store
 

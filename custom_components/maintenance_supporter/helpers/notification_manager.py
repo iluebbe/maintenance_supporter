@@ -572,6 +572,17 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
 }
 
 
+def _service_payload(title: str, message: str, *, tag: str, url: str = "/maintenance-supporter") -> dict[str, Any]:
+    """Notify payload with the deep link doubled into ``url`` (iOS) and
+    ``clickAction`` (Android) — five hand-built copies each repeated the
+    link string twice."""
+    return {
+        "title": title,
+        "message": message,
+        "data": {"tag": tag, "url": url, "clickAction": url},
+    }
+
+
 def _notif_t(key: str, lang: str, **kwargs: str) -> str:
     """Get notification translation string."""
     strings = _NOTIFICATION_STRINGS.get(lang, _NOTIFICATION_STRINGS["en"])
@@ -706,6 +717,65 @@ class NotificationManager:
     def _global_options(self) -> Mapping[str, Any]:
         """Get global options from the global config entry."""
         return get_global_options(self.hass)
+
+    def _rate_limited(self, key: str, min_seconds: float) -> bool:
+        """True when ``key`` fired less than ``min_seconds`` ago.
+
+        The _SENT_ONCE sentinel never blocks here — only the status-change
+        path stores it, with its own interval-hours semantics. Extracted from
+        the bundle/budget copies of the elapsed check."""
+        last = self._last_notified.get(key)
+        if last is None or last == _SENT_ONCE:
+            return False
+        return (dt_util.now() - last).total_seconds() < min_seconds
+
+    async def _resolve_and_send(
+        self,
+        responsible_user_id: str | None,
+        *,
+        title: str,
+        message: str,
+        entry_id: str,
+        task_id: str,
+    ) -> bool:
+        """Resolve targets (per-user services, else the global service) and
+        fan the notification out; True when at least one send succeeded.
+
+        The status-change and lead-reminder paths carried drifting copies of
+        this block — one logged the per-user fallback, the other was silent.
+        """
+        target_services: list[str] = []
+        if responsible_user_id:
+            user_services = await get_user_notify_services(self.hass, responsible_user_id)
+            if user_services:
+                target_services = user_services
+                _LOGGER.debug(
+                    "Sending notification to user %s services: %s",
+                    responsible_user_id,
+                    user_services,
+                )
+            else:
+                _LOGGER.debug(
+                    "User %s has no notification services, falling back to global",
+                    responsible_user_id,
+                )
+        if not target_services and self.notify_service:
+            target_services = [self.notify_service]
+        if not target_services:
+            _LOGGER.warning("No notification services available")
+            return False
+
+        success = False
+        for service in target_services:
+            if await self._async_send_notification_to_service(
+                service=service,
+                title=title,
+                message=message,
+                entry_id=entry_id,
+                task_id=task_id,
+            ):
+                success = True
+        return success
 
     @property
     def _lang(self) -> str:
@@ -934,44 +1004,13 @@ class NotificationManager:
         lang = self._lang
         title, message = self._build_message(new_status, lang, task_name, object_name, days_until_due, next_due)
 
-        # Determine target services: user-specific or global
-        target_services = []
-        if responsible_user_id:
-            user_services = await get_user_notify_services(self.hass, responsible_user_id)
-            if user_services:
-                target_services = user_services
-                _LOGGER.debug(
-                    "Sending notification to user %s services: %s",
-                    responsible_user_id,
-                    user_services,
-                )
-            else:
-                _LOGGER.debug(
-                    "User %s has no notification services, falling back to global",
-                    responsible_user_id,
-                )
-
-        # Fallback to global service
-        if not target_services and self.notify_service:
-            target_services = [self.notify_service]
-
-        if not target_services:
-            _LOGGER.warning("No notification services available")
-            return
-
-        # Send to all target services
-        success = False
-        for service in target_services:
-            if await self._async_send_notification_to_service(
-                service=service,
-                title=title,
-                message=message,
-                entry_id=entry_id,
-                task_id=task_id,
-            ):
-                success = True
-
-        if not success:
+        if not await self._resolve_and_send(
+            responsible_user_id,
+            title=title,
+            message=message,
+            entry_id=entry_id,
+            task_id=task_id,
+        ):
             return
 
         # Record send time (only on success)
@@ -1082,15 +1121,14 @@ class NotificationManager:
                 }
             )
 
-        service_data: dict[str, Any] = {"title": title, "message": message}
-        data: dict[str, Any] = {
-            "tag": f"maintenance_{task_id}",
-            "url": f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}",
-            "clickAction": f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}",
-        }
+        service_data = _service_payload(
+            title,
+            message,
+            tag=f"maintenance_{task_id}",
+            url=f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}",
+        )
         if actions:
-            data["actions"] = actions[:3]  # Android supports max 3
-        service_data["data"] = data
+            service_data["data"]["actions"] = actions[:3]  # Android supports max 3
 
         try:
             return await async_dispatch_notify(self.hass, service, service_data)
@@ -1114,12 +1152,8 @@ class NotificationManager:
 
         # Rate-limit bundled notifications (once per hour)
         bundle_key = f"{entry_id}_bundled"
-        if bundle_key in self._last_notified:
-            last = self._last_notified[bundle_key]
-            if last != _SENT_ONCE:
-                elapsed = (dt_util.now() - last).total_seconds()
-                if elapsed < 3600:
-                    return
+        if self._rate_limited(bundle_key, 3600):
+            return
 
         if not self._check_daily_limit():
             return
@@ -1145,15 +1179,12 @@ class NotificationManager:
         if self.title_style == "object_name" and object_name:
             title = object_name
 
-        service_data: dict[str, Any] = {
-            "title": title,
-            "message": message,
-            "data": {
-                "tag": f"maintenance_bundled_{entry_id}",
-                "url": f"/maintenance-supporter?entry_id={entry_id}",
-                "clickAction": f"/maintenance-supporter?entry_id={entry_id}",
-            },
-        }
+        service_data = _service_payload(
+            title,
+            message,
+            tag=f"maintenance_bundled_{entry_id}",
+            url=f"/maintenance-supporter?entry_id={entry_id}",
+        )
 
         try:
             if await async_dispatch_notify(self.hass, self.notify_service, service_data):
@@ -1175,15 +1206,11 @@ class NotificationManager:
         if not self.enabled or not self.notify_service:
             return
         lang = self._lang
-        service_data: dict[str, Any] = {
-            "title": _notif_t("digest_title", lang),
-            "message": _notif_t("digest_message", lang, overdue=str(overdue), due_soon=str(due_soon)),
-            "data": {
-                "tag": "maintenance_weekly_digest",
-                "url": "/maintenance-supporter",
-                "clickAction": "/maintenance-supporter",
-            },
-        }
+        service_data = _service_payload(
+            _notif_t("digest_title", lang),
+            _notif_t("digest_message", lang, overdue=str(overdue), due_soon=str(due_soon)),
+            tag="maintenance_weekly_digest",
+        )
         try:
             await async_dispatch_notify(self.hass, self.notify_service, service_data)
             _LOGGER.debug("Weekly digest sent: %s overdue, %s due soon", overdue, due_soon)
@@ -1199,21 +1226,17 @@ class NotificationManager:
         if not self.enabled or not self.notify_service or not names:
             return
         lang = self._lang
-        service_data: dict[str, Any] = {
-            "title": _notif_t("warranty_title", lang),
-            "message": _notif_t(
+        service_data = _service_payload(
+            _notif_t("warranty_title", lang),
+            _notif_t(
                 "warranty_message",
                 lang,
                 count=str(len(names)),
                 days=str(days),
                 names=", ".join(names),
             ),
-            "data": {
-                "tag": "maintenance_warranty_reminder",
-                "url": "/maintenance-supporter",
-                "clickAction": "/maintenance-supporter",
-            },
-        }
+            tag="maintenance_warranty_reminder",
+        )
         try:
             await async_dispatch_notify(self.hass, self.notify_service, service_data)
             _LOGGER.debug("Warranty reminder sent: %s object(s)", len(names))
@@ -1266,27 +1289,13 @@ class NotificationManager:
             due=next_due if next_due is not None else "?",
         )
 
-        target_services: list[str] = []
-        if responsible_user_id:
-            user_services = await get_user_notify_services(self.hass, responsible_user_id)
-            if user_services:
-                target_services = user_services
-        if not target_services and self.notify_service:
-            target_services = [self.notify_service]
-        if not target_services:
-            return
-
-        success = False
-        for service in target_services:
-            if await self._async_send_notification_to_service(
-                service=service,
-                title=title,
-                message=message,
-                entry_id=entry_id,
-                task_id=task_id,
-            ):
-                success = True
-        if success:
+        if await self._resolve_and_send(
+            responsible_user_id,
+            title=title,
+            message=message,
+            entry_id=entry_id,
+            task_id=task_id,
+        ):
             self._daily_count += 1
             _LOGGER.debug("Lead reminder sent: %s due in %s day(s)", task_name, days)
 
@@ -1306,12 +1315,8 @@ class NotificationManager:
 
         # Rate-limit budget alerts (once per 24 hours per period)
         budget_key = f"_budget_{period}"
-        if budget_key in self._last_notified:
-            last = self._last_notified[budget_key]
-            if last != _SENT_ONCE:
-                elapsed = (dt_util.now() - last).total_seconds()
-                if elapsed < 86400:  # 24 hours
-                    return
+        if self._rate_limited(budget_key, 86400):
+            return
 
         if not self._check_daily_limit():
             return
@@ -1328,15 +1333,7 @@ class NotificationManager:
             budget=f"{budget:.2f}{currency_symbol}",
         )
 
-        service_data: dict[str, Any] = {
-            "title": title,
-            "message": message,
-            "data": {
-                "tag": f"maintenance_budget_{period}",
-                "url": "/maintenance-supporter",
-                "clickAction": "/maintenance-supporter",
-            },
-        }
+        service_data = _service_payload(title, message, tag=f"maintenance_budget_{period}")
 
         try:
             if await async_dispatch_notify(self.hass, self.notify_service, service_data):
