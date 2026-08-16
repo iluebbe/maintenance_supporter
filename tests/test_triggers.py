@@ -3511,3 +3511,58 @@ class TestAutoCompleteOnRecovery:
         assert not errors
         # Falsy is dropped — absence means off, stored configs stay minimal.
         assert "auto_complete_on_recovery" not in tc_off
+
+
+class TestStateChangeLatchOnAppearance:
+    """Issue #131: trigger setup races HA's state restoration.
+
+    A source entity that restores AFTER our setup kept a stale persisted
+    latch — a problem sensor still on read OK, a single-shot alarm that had
+    recovered while HA was down stayed triggered. The latch is reconciled on
+    the entity's first APPEARANCE now, not only at setup."""
+
+    def _config(self) -> dict:
+        return {
+            "entity_id": "binary_sensor.problem",
+            "attribute": None,
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_from_state": None,
+            "trigger_to_state": "on",
+            "trigger_target_changes": 1,
+            # Persisted latch from before the restart.
+            "trigger_change_count": 1,
+        }
+
+    async def test_late_restore_on_restores_triggered(self, hass: HomeAssistant) -> None:
+        """Entity absent at setup, restores ON → the latch comes back (the
+        exact #131 report: sensor still in Problem state, task read OK)."""
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._config())
+        await trigger.async_setup()  # entity not in the state machine yet
+        assert trigger._triggered is False
+
+        hass.states.async_set("binary_sensor.problem", "on")
+        await hass.async_block_till_done()
+
+        assert trigger._triggered is True
+        entity.async_update_trigger_state.assert_called_with(
+            is_triggered=True, current_value=1.0, trigger_entity_id="binary_sensor.problem"
+        )
+        await trigger.async_teardown()
+
+    async def test_late_restore_off_clears_single_shot_quietly(self, hass: HomeAssistant) -> None:
+        """Entity absent at setup, restores OFF → the single-shot latch clears
+        QUIETLY (no auto-complete — the recovery was never observed)."""
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+
+        hass.states.async_set("binary_sensor.problem", "off")
+        await hass.async_block_till_done()
+
+        assert trigger._triggered is False
+        assert trigger.change_count == 0
+        entity.async_update_trigger_state.assert_called_with(
+            is_triggered=False, current_value=0.0, trigger_entity_id="binary_sensor.problem"
+        )
+        await trigger.async_teardown()

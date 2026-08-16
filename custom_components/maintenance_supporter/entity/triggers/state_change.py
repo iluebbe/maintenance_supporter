@@ -71,30 +71,7 @@ class StateChangeTrigger(BaseTrigger):
             return
 
         self._last_state = state.state
-
-        # Restore triggered state from persisted change count
-        if self._change_count >= self._target_changes:
-            # Latch reconciliation: a single-shot state alarm (target_changes
-            # == 1) that already left its alert state while we were down is no
-            # longer active. Clear it quietly — the recovery transition was
-            # never observed, so we must NOT auto-complete for it here (that
-            # path only runs on a live off event, guarded against double-count).
-            if (
-                self._to_state is not None
-                and self._target_changes == 1
-                and _norm_state(state.state) != self._to_state
-            ):
-                self._change_count = 0
-                self._current_value = 0.0
-                if self.hass.is_running:
-                    self.hass.async_create_task(self._persist_change_count())
-            else:
-                self._triggered = True
-                self.entity.async_update_trigger_state(
-                    is_triggered=True,
-                    current_value=float(self._change_count),
-                    trigger_entity_id=self.entity_id,
-                )
+        self._reconcile_persisted_latch(state.state)
 
         # Register state change listener (override base: we handle events differently)
         self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_transition)
@@ -107,6 +84,42 @@ class StateChangeTrigger(BaseTrigger):
             self._from_state,
             self._to_state,
         )
+
+    def _reconcile_persisted_latch(self, live_state: str) -> None:
+        """Align the persisted change-count latch with the LIVE entity state.
+
+        Runs at setup when the entity already exists, and again when the
+        entity first APPEARS (issue #131): trigger setup races HA's state
+        restoration, so a source that restores later kept a stale latch —
+        a problem sensor still on read OK, and a single-shot alarm that had
+        recovered while we were down stayed triggered.
+
+        A single-shot state alarm (target_changes == 1) whose entity is no
+        longer in its alert state is cleared QUIETLY — the recovery
+        transition was never observed, so we must NOT auto-complete for it
+        here (that path only runs on a live off event, guarded against
+        double-count). Otherwise the latch is restored and repainted.
+        """
+        if self._change_count < self._target_changes:
+            return
+        if self._to_state is not None and self._target_changes == 1 and _norm_state(live_state) != self._to_state:
+            self._change_count = 0
+            self._current_value = 0.0
+            self._triggered = False
+            if self.hass.is_running:
+                self.hass.async_create_task(self._persist_change_count())
+            self.entity.async_update_trigger_state(
+                is_triggered=False,
+                current_value=0.0,
+                trigger_entity_id=self.entity_id,
+            )
+        else:
+            self._triggered = True
+            self.entity.async_update_trigger_state(
+                is_triggered=True,
+                current_value=float(self._change_count),
+                trigger_entity_id=self.entity_id,
+            )
 
     @callback
     def _handle_state_transition(self, event: Event[EventStateChangedData]) -> None:
@@ -128,9 +141,13 @@ class StateChangeTrigger(BaseTrigger):
                 new_val,
             )
             self._logged_unavailable = False
-            # Capture initial state but don't count as a transition
+            # Capture initial state but don't count as a transition — and
+            # reconcile the persisted latch against it (issue #131): when the
+            # entity restores AFTER our setup, this appearance is the first
+            # moment the latch can be checked against reality.
             if new_val not in ("unavailable", "unknown"):
                 self._last_state = new_val
+                self._reconcile_persisted_latch(new_val)
             return
 
         old_val = old_state.state
