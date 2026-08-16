@@ -2,6 +2,64 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.58.0] - 2026-08-16
+
+### ✨ Added
+
+- **Settings export** — a second export for the global scope. The objects
+  export deliberately carries only objects; the new "Export settings
+  (JSON)" button in Settings (WS `settings/export`, 88 commands) exports
+  groups, saved views, the complete vacation configuration, and every
+  portable global setting. Instance-bound keys (panel-access user ids,
+  the adopted-task stash) stay out. Re-import through the regular
+  import, which recognizes the `global_settings` section — alone or
+  alongside an objects payload — and applies it through the same
+  validation as the settings UI.
+- **Checklist ticks survive backups.** In-cycle checklist progress is
+  now part of the JSON/YAML export and restores into the fresh
+  instance's store on import.
+- **Setup wizard parity.** The add-task steps of the initial setup
+  wizard gained what only the options flow had: the reading-unit field,
+  the interval anchor (completion vs. planned), and a backdated "last
+  performed" on calendar schedules. Both flows now share one
+  implementation and cannot drift again.
+
+### 🐛 Fixed
+
+- **Trigger state after restart** (#131, thanks @lurisin). Trigger setup
+  races HA's state restoration: a problem sensor that restored after our
+  setup kept a stale latch — still alerting but the task read OK, or
+  recovered while HA was down but the task stayed triggered. The
+  persisted latch is now reconciled when the entity appears, and an
+  entity that is present but still `unavailable` at setup no longer
+  counts as "recovered" (it used to quietly clear a legitimate latch) —
+  the check waits for the first real state. Runtime triggers similarly
+  no longer treat `unavailable` at setup as OFF, so a running device
+  whose sensor connects late keeps its runtime anchor.
+- **Options flow dropped the reading unit** on newly added tasks
+  (collected in the form, lost on save).
+- **CSV round-trip lost object notes and documentation URL** — the
+  import read both columns from day one, the export never wrote them.
+- **Duplicating an archived task produced an archived copy**; fresh
+  copies also no longer inherit a pending postpone.
+- **Re-adopting a problem sensor lost pooled part links** (#111 links
+  survived on every other path).
+- **Panel actions now surface the server's error message** instead of a
+  generic "Action failed", every action shows its loading state, and
+  snooze refreshes the view immediately.
+- Smaller fixes: empty object names fall back to the entry title
+  everywhere, storage access survives Safari private mode, the
+  saved-views dialog fits 320-px phones, duplicate card-picker entries
+  after a double bundle-load, and the settings ZIP export routes through
+  the Companion-safe download path.
+
+### 🔧 Internal
+
+- Codebase-wide DRY consolidation (shared persistence chokepoints,
+  merged-task reads, entity-id and object-name single sources, shared
+  signed-URL/notification/part-link helpers) with 16 source tripwires
+  and full-field export/import round-trip tests pinning it all.
+
 ## [2.57.0] - 2026-08-13
 
 ### ✨ Added
