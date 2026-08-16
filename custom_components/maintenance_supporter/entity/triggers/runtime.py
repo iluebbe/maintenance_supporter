@@ -79,10 +79,16 @@ class RuntimeTrigger(BaseTrigger):
     async def async_setup(self) -> None:
         """Set up runtime trigger with state restoration."""
         state = self.hass.states.get(self.entity_id)
-        if state is None:
+        if state is None or state.state in ("unavailable", "unknown"):
+            # No USABLE state yet (#131 family): "unavailable" must not read
+            # as OFF — a running device whose sensor merely connects late
+            # would lose its restored on_since anchor and undercount. Keep
+            # the restored tracking state untouched and let the first real
+            # state event decide.
             _LOGGER.info(
-                "Runtime trigger entity %s not yet available — listener registered, waiting for entity to appear",
+                "Runtime trigger entity %s not ready at setup (state=%s) — listener registered, waiting for a real state",
                 self.entity_id,
+                state.state if state else "missing",
             )
             self._unsub_listener = async_track_state_change_event(
                 self.hass,

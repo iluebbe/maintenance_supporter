@@ -3566,3 +3566,67 @@ class TestStateChangeLatchOnAppearance:
             is_triggered=False, current_value=0.0, trigger_entity_id="binary_sensor.problem"
         )
         await trigger.async_teardown()
+
+
+class TestUnavailableAtSetupDefersReconcile:
+    """#131 family: setup also races DEVICE readiness — an entity that is
+    present but unavailable at setup carries no usable state. The latch check
+    is deferred to the first real state instead of misreading unavailable as
+    'recovered' (state_change) or OFF (runtime)."""
+
+    def _sc_config(self) -> dict:
+        return {
+            "entity_id": "binary_sensor.problem",
+            "attribute": None,
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_from_state": None,
+            "trigger_to_state": "on",
+            "trigger_target_changes": 1,
+            "trigger_change_count": 1,
+        }
+
+    async def test_unavailable_at_setup_keeps_latch_until_real_state(self, hass: HomeAssistant) -> None:
+        """Unavailable at setup must NOT clear the latch; the sensor coming
+        back ON restores triggered."""
+        set_sensor_state(hass, "binary_sensor.problem", "unavailable")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._sc_config())
+        await trigger.async_setup()
+        assert trigger.change_count == 1  # NOT cleared by "unavailable"
+
+        hass.states.async_set("binary_sensor.problem", "on")
+        await hass.async_block_till_done()
+        assert trigger._triggered is True
+        assert trigger.change_count == 1  # reconciled, not counted as transition
+        await trigger.async_teardown()
+
+    async def test_unavailable_at_setup_then_off_clears_quietly(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.problem", "unavailable")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._sc_config())
+        await trigger.async_setup()
+
+        hass.states.async_set("binary_sensor.problem", "off")
+        await hass.async_block_till_done()
+        assert trigger._triggered is False
+        assert trigger.change_count == 0
+        await trigger.async_teardown()
+
+    async def test_runtime_unavailable_at_setup_keeps_on_since(self, hass: HomeAssistant) -> None:
+        """Runtime: unavailable at setup is not OFF — the restored on_since
+        anchor survives until a real state decides."""
+        set_sensor_state(hass, "switch.pump", "unavailable")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "switch.pump",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100,
+            "trigger_accumulated_seconds": 3600.0,
+            "trigger_on_since": "2026-08-16T00:00:00+00:00",
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+        await trigger.async_setup()
+        assert trigger._on_since_dt is not None  # anchor kept, not cleared as OFF
+        assert trigger._accumulated_seconds == 3600.0
+        await trigger.async_teardown()

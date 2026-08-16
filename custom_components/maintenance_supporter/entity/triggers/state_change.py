@@ -31,6 +31,10 @@ class StateChangeTrigger(BaseTrigger):
     Triggers when count reaches target_changes.
     """
 
+    # Setup saw no usable state -> reconcile on the first real one (#131).
+    # Class default so hand-built test instances inherit it.
+    _needs_latch_reconcile: bool = False
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -52,6 +56,7 @@ class StateChangeTrigger(BaseTrigger):
         self._change_count: int = trigger_config.get("trigger_change_count", 0)
         self._current_value = float(self._change_count)
         self._last_state: str | None = None
+        self._needs_latch_reconcile = False
 
     async def async_setup(self) -> None:
         """Set up state change trigger.
@@ -61,12 +66,20 @@ class StateChangeTrigger(BaseTrigger):
         appears (old_state=None), so the trigger will self-heal automatically.
         """
         state = self.hass.states.get(self.entity_id)
-        if state is None:
+        if state is None or state.state in ("unavailable", "unknown"):
+            # No USABLE state yet — the #131 family: trigger setup races both
+            # the entity's registration AND its device readiness (a Zigbee /
+            # Z-Wave problem sensor restores as unavailable long before it
+            # reports). "unavailable" must never read as "recovered" — it
+            # used to quietly clear a single-shot latch right here. Register
+            # the listener and defer the latch reconciliation to the first
+            # real state.
+            self._needs_latch_reconcile = True
             _LOGGER.info(
-                "Trigger entity %s not yet available — listener registered, waiting for entity to appear",
+                "Trigger entity %s not ready at setup (state=%s) — listener registered, latch check deferred",
                 self.entity_id,
+                state.state if state else "missing",
             )
-            # Register listener anyway so we catch the entity appearing
             self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_transition)
             return
 
@@ -146,6 +159,7 @@ class StateChangeTrigger(BaseTrigger):
             # entity restores AFTER our setup, this appearance is the first
             # moment the latch can be checked against reality.
             if new_val not in ("unavailable", "unknown"):
+                self._needs_latch_reconcile = False
                 self._last_state = new_val
                 self._reconcile_persisted_latch(new_val)
             return
@@ -171,6 +185,17 @@ class StateChangeTrigger(BaseTrigger):
                 new_val,
             )
             self._logged_unavailable = False
+
+        # First REAL state after a setup that saw none/unavailable (#131
+        # family): reconcile the persisted latch against it instead of
+        # counting the restore as a transition. Mid-run unavailability
+        # glitches never set the flag, so their observed recovery still goes
+        # through the normal transition/auto-complete path below.
+        if self._needs_latch_reconcile:
+            self._needs_latch_reconcile = False
+            self._last_state = new_val
+            self._reconcile_persisted_latch(new_val)
+            return
 
         # Use _last_state as fallback when old_val is unavailable/unknown
         effective_old = old_val
