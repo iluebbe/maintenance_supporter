@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Kiváltás e fölött",
           "trigger_below": "Kiváltás ez alatt",
+          "trigger_equals": "Aktiválás ha egyenlő",
+          "trigger_not_equals": "Aktiválás ha eltér ettől",
           "trigger_for_minutes": "Legalább ennyi ideig (perc)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "A karbantartás kiváltása, ha az érték túllépi ezt a küszöböt.",
           "trigger_below": "A karbantartás kiváltása, ha az érték e küszöb alá esik.",
+          "trigger_equals": "Karbantartás aktiválása, ha az érték megegyezik ezzel a szinttel.",
+          "trigger_not_equals": "Karbantartás aktiválása, ha az érték eltér ettől a szinttől.",
           "trigger_for_minutes": "Az értéknek ennyi percig kell a küszöbön túl lennie a kiváltás előtt.",
           "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
           "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Delta mód (változások számolása, nem abszolút érték)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Ha engedélyezve van, az abszolút érték helyett egy kiindulási értékhez képesti különbséget számolja.",
           "interval_days": "Opcionális időalapú biztonsági intervallum a számlálókiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
           "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Kiváltó változások száma",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Az egyező állapotváltozások száma a karbantartás kiváltása előtt.",
           "interval_days": "Opcionális időalapú biztonsági intervallum az állapotváltozás-kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
           "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Aktív állapotok (vesszővel elválasztva)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Mely érzékelőállapotok számítanak „aktívnak”. Hagyja üresen az alapértelmezéshez: on, 1, true. Példa: in_use, running",
           "interval_days": "Opcionális időalapú biztonsági intervallum az üzemidő-kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
           "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Kiváltás e fölött",
           "trigger_below": "Kiváltás ez alatt",
+          "trigger_equals": "Aktiválás ha egyenlő",
+          "trigger_not_equals": "Aktiválás ha eltér ettől",
           "trigger_for_minutes": "Időtartam (perc)",
           "go_back": "Vissza"
         },
         "data_description": {
           "trigger_above": "Kiváltás, ha az érték túllépi ezt a küszöböt.",
           "trigger_below": "Kiváltás, ha az érték e küszöb alá esik.",
+          "trigger_equals": "Karbantartás aktiválása, ha az érték megegyezik ezzel a szinttel.",
+          "trigger_not_equals": "Karbantartás aktiválása, ha az érték eltér ettől a szinttől.",
           "trigger_for_minutes": "Az értéknek ennyi ideig kell a küszöbön túl maradnia.",
           "go_back": "Visszatérés a feltételtípus-választáshoz mentés nélkül."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Kiváltás e fölött",
           "trigger_below": "Kiváltás ez alatt",
+          "trigger_equals": "Aktiválás ha egyenlő",
+          "trigger_not_equals": "Aktiválás ha eltér ettől",
           "trigger_for_minutes": "Időtartam (perc)",
           "go_back": "Vissza"
         },
         "data_description": {
           "trigger_above": "Kiváltás, ha az érték túllépi ezt a küszöböt.",
           "trigger_below": "Kiváltás, ha az érték e küszöb alá esik.",
+          "trigger_equals": "Karbantartás aktiválása, ha az érték megegyezik ezzel a szinttel.",
+          "trigger_not_equals": "Karbantartás aktiválása, ha az érték eltér ettől a szinttől.",
           "trigger_for_minutes": "Az értéknek ennyi ideig kell a küszöbön túl maradnia."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Kiváltás e fölött",
           "trigger_below": "Kiváltás ez alatt",
+          "trigger_equals": "Aktiválás ha egyenlő",
+          "trigger_not_equals": "Aktiválás ha eltér ettől",
           "trigger_for_minutes": "Legalább ennyi ideig (perc)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "A karbantartás kiváltása, ha az érték túllépi ezt a küszöböt.",
           "trigger_below": "A karbantartás kiváltása, ha az érték e küszöb alá esik.",
+          "trigger_equals": "Karbantartás aktiválása, ha az érték megegyezik ezzel a szinttel.",
+          "trigger_not_equals": "Karbantartás aktiválása, ha az érték eltér ettől a szinttől.",
           "trigger_for_minutes": "Az értéknek ennyi percig kell a küszöbön túl lennie a kiváltás előtt.",
           "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Delta mód (változások számolása, nem abszolút érték)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Ha engedélyezve van, az abszolút érték helyett egy kiindulási értékhez képesti különbséget számolja.",
           "interval_days": "Opcionális időalapú biztonsági intervallum a számlálókiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Kiváltó változások száma",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Az egyező állapotváltozások száma a karbantartás kiváltása előtt.",
           "interval_days": "Opcionális időalapú biztonsági intervallum az állapotváltozás-kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Aktív állapotok (vesszővel elválasztva)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
           "warning_days": "Figyelmeztetési napok az esedékesség előtt",
           "go_back": "Vissza",
           "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Mely érzékelőállapotok számítanak „aktívnak”. Hagyja üresen az alapértelmezéshez: on, 1, true. Példa: in_use, running",
           "interval_days": "Opcionális időalapú biztonsági intervallum az üzemidő-kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Bármely entitás kivált",
         "all": "Minden entitásnak ki kell váltania"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Trigger vagy időköz (amelyik előbb)",
+        "all": "Trigger és időköz (mindkettő szükséges)"
       }
     },
     "notification_title_style": {

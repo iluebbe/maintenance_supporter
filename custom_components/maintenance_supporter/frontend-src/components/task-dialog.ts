@@ -35,6 +35,8 @@ interface CompoundConditionDraft {
   attribute: string; // "" = use the entity state
   above: string;
   below: string;
+  equals: string;
+  notEquals: string;
   forMinutes: string;
   targetValue: string;
   deltaMode: boolean;
@@ -50,7 +52,8 @@ interface CompoundConditionDraft {
 
 function emptyCondition(): CompoundConditionDraft {
   return {
-    entityIds: "", type: "threshold", attribute: "", above: "", below: "", forMinutes: "0",
+    entityIds: "", type: "threshold", attribute: "", above: "", below: "",
+    equals: "", notEquals: "", forMinutes: "0",
     targetValue: "", deltaMode: false, fromState: "", toState: "",
     targetChanges: "", runtimeHours: "", onStates: "", carry: {},
   };
@@ -60,7 +63,7 @@ function emptyCondition(): CompoundConditionDraft {
  *  travels through `carry` untouched. */
 const MANAGED_CONDITION_KEYS = new Set([
   "entity_id", "entity_ids", "type", "attribute",
-  "trigger_above", "trigger_below", "trigger_for_minutes",
+  "trigger_above", "trigger_below", "trigger_equals", "trigger_not_equals", "trigger_for_minutes",
   "trigger_target_value", "trigger_delta_mode",
   "trigger_from_state", "trigger_to_state", "trigger_target_changes",
   "trigger_runtime_hours", "trigger_on_states",
@@ -75,6 +78,8 @@ function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
     attribute: c.attribute || "",
     above: c.trigger_above?.toString() ?? "",
     below: c.trigger_below?.toString() ?? "",
+    equals: c.trigger_equals?.toString() ?? "",
+    notEquals: c.trigger_not_equals?.toString() ?? "",
     forMinutes: c.trigger_for_minutes?.toString() ?? "0",
     targetValue: c.trigger_target_value?.toString() ?? "",
     deltaMode: c.trigger_delta_mode || false,
@@ -99,6 +104,8 @@ function draftToCondition(d: CompoundConditionDraft): TriggerConfig | null {
   if (d.type === "threshold") {
     const a = parseFloat(d.above); if (!isNaN(a)) c.trigger_above = a;
     const b = parseFloat(d.below); if (!isNaN(b)) c.trigger_below = b;
+    const eq = parseFloat(d.equals); if (!isNaN(eq)) c.trigger_equals = eq;
+    const ne = parseFloat(d.notEquals); if (!isNaN(ne)) c.trigger_not_equals = ne;
     const f = parseInt(d.forMinutes, 10); if (!isNaN(f)) c.trigger_for_minutes = f;
   } else if (d.type === "counter") {
     const v = parseFloat(d.targetValue); if (!isNaN(v)) c.trigger_target_value = v;
@@ -202,7 +209,11 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerType = "threshold";
   @state() private _triggerAbove = "";
   @state() private _triggerBelow = "";
+  @state() private _triggerEquals = "";
+  @state() private _triggerNotEquals = "";
   @state() private _triggerForMinutes = "0";
+  /** Trigger vs. safety interval: "any" = whichever first (default), "all" = both required. */
+  @state() private _triggerCombinator: "any" | "all" = "any";
   @state() private _triggerTargetValue = "";
   @state() private _triggerDeltaMode = false;
   @state() private _triggerBaselineValue = "";
@@ -426,7 +437,10 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerType = tc.type || "threshold";
       this._triggerAbove = tc.trigger_above?.toString() || "";
       this._triggerBelow = tc.trigger_below?.toString() || "";
+      this._triggerEquals = tc.trigger_equals?.toString() || "";
+      this._triggerNotEquals = tc.trigger_not_equals?.toString() || "";
       this._triggerForMinutes = tc.trigger_for_minutes?.toString() || "0";
+      this._triggerCombinator = tc.trigger_combinator === "all" ? "all" : "any";
       this._triggerTargetValue = tc.trigger_target_value?.toString() || "";
       this._triggerDeltaMode = tc.trigger_delta_mode || false;
       this._triggerBaselineValue = tc.trigger_baseline_value?.toString() || "";
@@ -530,7 +544,10 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerType = "threshold";
     this._triggerAbove = "";
     this._triggerBelow = "";
+    this._triggerEquals = "";
+    this._triggerNotEquals = "";
     this._triggerForMinutes = "0";
+    this._triggerCombinator = "any";
     this._triggerTargetValue = "";
     this._triggerDeltaMode = false;
     this._triggerBaselineValue = "";
@@ -1089,6 +1106,7 @@ export class MaintenanceTaskDialog extends LitElement {
             conditions,
           };
           if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
+          if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
           data.trigger_config = triggerConfig;
         } else if (this._taskId) {
           data.trigger_config = null;
@@ -1104,6 +1122,7 @@ export class MaintenanceTaskDialog extends LitElement {
         };
         if (this._triggerAttribute) triggerConfig.attribute = this._triggerAttribute;
         if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
+        if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
 
         // Multi-entity: store entity_logic for all trigger types
         if (entityIds.length > 1) {
@@ -1113,6 +1132,8 @@ export class MaintenanceTaskDialog extends LitElement {
         if (this._triggerType === "threshold") {
           if (this._triggerAbove) { const v = parseFloat(this._triggerAbove); if (!isNaN(v)) triggerConfig.trigger_above = v; }
           if (this._triggerBelow) { const v = parseFloat(this._triggerBelow); if (!isNaN(v)) triggerConfig.trigger_below = v; }
+          if (this._triggerEquals) { const v = parseFloat(this._triggerEquals); if (!isNaN(v)) triggerConfig.trigger_equals = v; }
+          if (this._triggerNotEquals) { const v = parseFloat(this._triggerNotEquals); if (!isNaN(v)) triggerConfig.trigger_not_equals = v; }
           if (this._triggerForMinutes) { const v = parseInt(this._triggerForMinutes, 10); if (!isNaN(v)) triggerConfig.trigger_for_minutes = v; }
         } else if (this._triggerType === "counter") {
           if (this._triggerTargetValue) { const v = parseFloat(this._triggerTargetValue); if (!isNaN(v)) triggerConfig.trigger_target_value = v; }
@@ -1342,6 +1363,19 @@ export class MaintenanceTaskDialog extends LitElement {
         @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
       ></ms-textfield>
       ${this._intervalDays ? this._renderUnitSelect() : nothing}
+      ${this._intervalDays
+        ? html`
+            <div class="select-row">
+              <label>${t("trigger_combinator", L)}</label>
+              <select
+                @change=${(e: Event) => (this._triggerCombinator = (e.target as HTMLSelectElement).value as "any" | "all")}
+              >
+                <option value="any" ?selected=${this._triggerCombinator === "any"}>${t("trigger_combinator_any", L)}</option>
+                <option value="all" ?selected=${this._triggerCombinator === "all"}>${t("trigger_combinator_all", L)}</option>
+              </select>
+            </div>
+          `
+        : nothing}
     `;
   }
 
@@ -1636,6 +1670,10 @@ export class MaintenanceTaskDialog extends LitElement {
           @input=${(e: Event) => this._patchCondition(i, { above: (e.target as HTMLInputElement).value })}></ms-textfield>
         <ms-textfield label="${t("trigger_below", L)}" type="number" .value=${c.below}
           @input=${(e: Event) => this._patchCondition(i, { below: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("trigger_equals", L)}" type="number" .value=${c.equals}
+          @input=${(e: Event) => this._patchCondition(i, { equals: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("trigger_not_equals", L)}" type="number" .value=${c.notEquals}
+          @input=${(e: Event) => this._patchCondition(i, { notEquals: (e.target as HTMLInputElement).value })}></ms-textfield>
         <ms-textfield label="${t("for_minutes", L)}" type="number" .value=${c.forMinutes}
           @input=${(e: Event) => this._patchCondition(i, { forMinutes: (e.target as HTMLInputElement).value })}></ms-textfield>
       `;
@@ -2121,6 +2159,20 @@ export class MaintenanceTaskDialog extends LitElement {
           step="any"
           .value=${this._triggerBelow}
           @input=${(e: Event) => (this._triggerBelow = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <ms-textfield
+          label="${t("trigger_equals", L)}"
+          type="number"
+          step="any"
+          .value=${this._triggerEquals}
+          @input=${(e: Event) => (this._triggerEquals = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <ms-textfield
+          label="${t("trigger_not_equals", L)}"
+          type="number"
+          step="any"
+          .value=${this._triggerNotEquals}
+          @input=${(e: Event) => (this._triggerNotEquals = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
         <ms-textfield
           label="${t("for_at_least_minutes", L)}"

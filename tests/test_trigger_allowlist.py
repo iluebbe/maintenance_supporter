@@ -167,3 +167,51 @@ def test_critical_keys_in_allowlist(key: str) -> None:
         f"#37 (state_change filter) and equivalent silent failures for "
         f"threshold/counter/attribute triggers."
     )
+
+
+# =/!= threshold limits + trigger_combinator (validator behaviour)
+
+
+def test_threshold_equals_only_passes_validation(mock_hass) -> None:
+    config = {"type": "threshold", "entity_id": "sensor.x", "trigger_equals": 3.0}
+    errors, _warnings = _validate_trigger_config(mock_hass, config)
+    assert errors == []
+    assert config["trigger_equals"] == 3.0
+
+
+def test_threshold_not_equals_only_passes_validation(mock_hass) -> None:
+    config = {"type": "threshold", "entity_id": "sensor.x", "trigger_not_equals": 1.0}
+    errors, _warnings = _validate_trigger_config(mock_hass, config)
+    assert errors == []
+
+
+def test_threshold_without_any_limit_errors(mock_hass) -> None:
+    config = {"type": "threshold", "entity_id": "sensor.x"}
+    errors, _warnings = _validate_trigger_config(mock_hass, config)
+    assert any("trigger_equals" in e for e in errors)
+
+
+def test_combinator_valid_values_preserved(mock_hass) -> None:
+    config = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1, "trigger_combinator": "all"}
+    errors, _warnings = _validate_trigger_config(mock_hass, config)
+    assert errors == []
+    assert config["trigger_combinator"] == "all"
+
+
+def test_combinator_invalid_value_errors(mock_hass) -> None:
+    config = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1, "trigger_combinator": "sometimes"}
+    errors, _warnings = _validate_trigger_config(mock_hass, config)
+    assert any("trigger_combinator" in e for e in errors)
+
+
+def test_combinator_validated_on_compound(mock_hass) -> None:
+    config = {
+        "type": "compound",
+        "trigger_combinator": "bogus",
+        "conditions": [
+            {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 1},
+            {"type": "threshold", "entity_id": "sensor.b", "trigger_below": 1},
+        ],
+    }
+    errors, _warnings = _validate_trigger_config(mock_hass, config)
+    assert any("trigger_combinator" in e for e in errors)

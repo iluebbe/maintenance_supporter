@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Acionar quando acima de",
           "trigger_below": "Acionar quando abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Por pelo menos (minutos)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Aciona a manutenção quando o valor ultrapassa este limite.",
           "trigger_below": "Aciona a manutenção quando o valor cai abaixo deste limite.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor precisa ultrapassar o limite por este número de minutos antes de acionar.",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho do sensor.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Retornar à seleção do tipo de gatilho sem salvar."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Modo delta (conta variações, não o valor absoluto)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Se ativado, conta a diferença a partir de uma linha de base em vez do valor absoluto.",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de contador.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Retornar à seleção do tipo de gatilho sem salvar."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Número de mudanças para acionar",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar a manutenção.",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de mudança de estado.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Retornar à seleção do tipo de gatilho sem salvar."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Estados ativos (separados por vírgula)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o padrão: on, 1, true. Exemplo: in_use, running",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de tempo de operação.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Retornar à seleção do tipo de gatilho sem salvar."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Acionar acima de",
           "trigger_below": "Acionar abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Duração (minutos)",
           "go_back": "Voltar"
         },
         "data_description": {
           "trigger_above": "Aciona quando o valor ultrapassa este limite.",
           "trigger_below": "Aciona quando o valor cai abaixo deste limite.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor precisa permanecer além do limite por esta duração.",
           "go_back": "Retornar à seleção do tipo de condição sem salvar."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Acionar acima de",
           "trigger_below": "Acionar abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Duração (minutos)",
           "go_back": "Voltar"
         },
         "data_description": {
           "trigger_above": "Aciona quando o valor ultrapassa este limite.",
           "trigger_below": "Aciona quando o valor cai abaixo deste limite.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor precisa permanecer além do limite por esta duração."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Acionar quando acima de",
           "trigger_below": "Acionar quando abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Por pelo menos (minutos)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Aciona a manutenção quando o valor ultrapassa este limite.",
           "trigger_below": "Aciona a manutenção quando o valor cai abaixo deste limite.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor precisa ultrapassar o limite por este número de minutos antes de acionar.",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho do sensor.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Modo delta (conta variações, não o valor absoluto)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Se ativado, conta a diferença a partir de uma linha de base em vez do valor absoluto.",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de contador.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Número de mudanças para acionar",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar a manutenção.",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de mudança de estado.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Estados ativos (separados por vírgula)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o padrão: on, 1, true. Exemplo: in_use, running",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de tempo de operação.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Qualquer entidade aciona",
         "all": "Todas as entidades devem acionar"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Gatilho ou intervalo (o primeiro)",
+        "all": "Gatilho e intervalo (ambos exigidos)"
       }
     },
     "notification_title_style": {

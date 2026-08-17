@@ -237,10 +237,14 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             ttype = trigger_config.get("type")
             attrs["trigger_type"] = ttype
             attrs["trigger_active"] = task.get("_trigger_active", False)
+            if trigger_config.get("trigger_combinator") == "all":
+                attrs["trigger_combinator"] = "all"
 
             if ttype == "threshold":
                 attrs["trigger_above"] = trigger_config.get("trigger_above")
                 attrs["trigger_below"] = trigger_config.get("trigger_below")
+                attrs["trigger_equals"] = trigger_config.get("trigger_equals")
+                attrs["trigger_not_equals"] = trigger_config.get("trigger_not_equals")
                 attrs["trigger_for_minutes"] = trigger_config.get("trigger_for_minutes")
             elif ttype == "counter":
                 attrs["trigger_target_value"] = trigger_config.get("trigger_target_value")
@@ -391,6 +395,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
 
         tasks = self.coordinator.data.get(CONF_TASKS, {})
         task = tasks.get(self._task_id, {})
+        prev_active = task.get("_trigger_active", False)
 
         # Track per-entity state
         if trigger_entity_id is not None:
@@ -421,9 +426,12 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         new_status = self._compute_live_status(task)
         task["_status"] = new_status
 
-        # Only write HA state when status actually changes to avoid
-        # unnecessary recorder writes on every trigger value update.
-        if new_status != old_status:
+        # Only write HA state when the status — or the latched trigger flag —
+        # actually changes, to avoid recorder writes on every value update.
+        # With trigger_combinator="all" a latched trigger no longer implies a
+        # status change (the interval leg may still be pending), but the
+        # trigger_active attribute must repaint regardless.
+        if new_status != old_status or task.get("_trigger_active", False) != prev_active:
             self.async_write_ha_state()
 
     @staticmethod

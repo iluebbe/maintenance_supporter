@@ -64,6 +64,51 @@ class TestMaintenanceTaskStatus:
         status_after: MaintenanceStatus = task.status
         assert status_after == MaintenanceStatus.TRIGGERED
 
+    def test_all_combinator_trigger_alone_stays_time_ladder(self) -> None:
+        """With trigger_combinator=all a fired trigger waits for the interval."""
+        last = (dt_util.now().date() - timedelta(days=5)).isoformat()
+        data = build_task_data(interval_days=30, warning_days=7, last_performed=last)
+        data["trigger_config"] = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1, "trigger_combinator": "all"}
+        task = MaintenanceTask.from_dict(data)
+        task._trigger_active = True
+        # 25 days until due -> trigger suppressed, plain time ladder (OK)
+        assert task.status == MaintenanceStatus.OK
+
+    def test_all_combinator_interval_alone_never_actions(self) -> None:
+        """With all, an elapsed interval without the trigger stays OK."""
+        last = (dt_util.now().date() - timedelta(days=60)).isoformat()
+        data = build_task_data(interval_days=30, warning_days=7, last_performed=last)
+        data["trigger_config"] = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1, "trigger_combinator": "all"}
+        task = MaintenanceTask.from_dict(data)
+        assert task.status == MaintenanceStatus.OK
+
+    def test_all_combinator_both_met_is_triggered(self) -> None:
+        """Trigger fired AND interval elapsed -> TRIGGERED."""
+        last = (dt_util.now().date() - timedelta(days=60)).isoformat()
+        data = build_task_data(interval_days=30, warning_days=7, last_performed=last)
+        data["trigger_config"] = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1, "trigger_combinator": "all"}
+        task = MaintenanceTask.from_dict(data)
+        task._trigger_active = True
+        assert task.status == MaintenanceStatus.TRIGGERED
+
+    def test_all_combinator_without_schedule_acts_like_any(self) -> None:
+        """No interval leg -> the trigger alone governs (no dead task)."""
+        data = build_task_data(schedule_type="manual", interval_days=None, last_performed=None)
+        data.pop("interval_days", None)
+        data["trigger_config"] = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1, "trigger_combinator": "all"}
+        task = MaintenanceTask.from_dict(data)
+        task._trigger_active = True
+        assert task.status == MaintenanceStatus.TRIGGERED
+
+    def test_any_combinator_keeps_whichever_first(self) -> None:
+        """Default any: the trigger actions immediately, due date untouched."""
+        last = (dt_util.now().date() - timedelta(days=5)).isoformat()
+        data = build_task_data(interval_days=30, warning_days=7, last_performed=last)
+        data["trigger_config"] = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1}
+        task = MaintenanceTask.from_dict(data)
+        task._trigger_active = True
+        assert task.status == MaintenanceStatus.TRIGGERED
+
     def test_never_performed_with_interval(self) -> None:
         """Task never performed schedules from creation date (issue #30 fix).
 
@@ -477,3 +522,38 @@ def test_status_dict_twin_agrees_with_model_on_shared_ladder() -> None:
     ):
         assert task.status == expected  # sanity: model computes the tier
         assert compute_status_from_task_dict(_coord_dict(task)) == expected, f"dict-twin diverged from model for {expected}"
+
+
+class TestDictTwinCombinator:
+    """compute_status_from_task_dict mirrors the model for trigger_combinator."""
+
+    def test_all_combinator_dict_twin(self) -> None:
+        from custom_components.maintenance_supporter.helpers.status import (
+            compute_status_from_task_dict,
+        )
+
+        base = {
+            "trigger_config": {"type": "threshold", "trigger_above": 1, "trigger_combinator": "all"},
+            "warning_days": 7,
+        }
+        # Trigger alone, interval not elapsed -> OK
+        assert compute_status_from_task_dict({**base, "_trigger_active": True, "_days_until_due": 25}) == MaintenanceStatus.OK
+        # Interval alone -> OK
+        assert compute_status_from_task_dict({**base, "_trigger_active": False, "_days_until_due": -5}) == MaintenanceStatus.OK
+        # Both -> TRIGGERED
+        assert compute_status_from_task_dict({**base, "_trigger_active": True, "_days_until_due": -5}) == MaintenanceStatus.TRIGGERED
+        # No schedule leg -> trigger alone governs
+        assert compute_status_from_task_dict({**base, "_trigger_active": True, "_days_until_due": None}) == MaintenanceStatus.TRIGGERED
+
+    def test_any_combinator_dict_twin_unchanged(self) -> None:
+        from custom_components.maintenance_supporter.helpers.status import (
+            compute_status_from_task_dict,
+        )
+
+        task = {
+            "trigger_config": {"type": "threshold", "trigger_above": 1},
+            "_trigger_active": True,
+            "_days_until_due": 25,
+            "warning_days": 7,
+        }
+        assert compute_status_from_task_dict(task) == MaintenanceStatus.TRIGGERED

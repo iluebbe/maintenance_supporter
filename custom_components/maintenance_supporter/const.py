@@ -401,7 +401,14 @@ DEFAULT_ENTITY_LOGIC = "any"
 CONF_TRIGGER_ATTRIBUTE = "trigger_attribute"
 CONF_TRIGGER_ABOVE = "trigger_above"
 CONF_TRIGGER_BELOW = "trigger_below"
+CONF_TRIGGER_EQUALS = "trigger_equals"
+CONF_TRIGGER_NOT_EQUALS = "trigger_not_equals"
 CONF_TRIGGER_FOR_MINUTES = "trigger_for_minutes"
+# How the trigger combines with the safety interval on the same task:
+# "any" (default) — whichever fires first makes the task due;
+# "all" — the task only becomes due once the trigger fired AND the interval
+# elapsed (the interval acts as a minimum age, not a deadline).
+CONF_TRIGGER_COMBINATOR = "trigger_combinator"
 CONF_TRIGGER_TARGET_VALUE = "trigger_target_value"
 CONF_TRIGGER_DELTA_MODE = "trigger_delta_mode"
 CONF_TRIGGER_BASELINE_VALUE = "trigger_baseline_value"

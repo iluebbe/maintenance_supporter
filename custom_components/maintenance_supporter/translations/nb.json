@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Utløs når over",
           "trigger_below": "Utløs når under",
+          "trigger_equals": "Utløs ved lik",
+          "trigger_not_equals": "Utløs ved forskjellig fra",
           "trigger_for_minutes": "I minst (minutter)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Utløs vedlikehold når verdien overskrider denne terskelen.",
           "trigger_below": "Utløs vedlikehold når verdien faller under denne terskelen.",
+          "trigger_equals": "Utløs vedlikehold når verdien er lik dette nivået.",
+          "trigger_not_equals": "Utløs vedlikehold når verdien avviker fra dette nivået.",
           "trigger_for_minutes": "Verdien må overskride terskelen i så mange minutter før utløsing.",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til sensorutløseren.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel.",
           "go_back": "Gå tilbake til valg av utløsertype uten å lagre."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Deltamodus (tell endringer, ikke absolutt)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Hvis aktivert, telles differansen fra en grunnlinje i stedet for den absolutte verdien.",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til tellerutløseren.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel.",
           "go_back": "Gå tilbake til valg av utløsertype uten å lagre."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Antall endringer for å utløse",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Antall samsvarende tilstandsendringer før vedlikehold utløses.",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til utløseren for tilstandsendring.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel.",
           "go_back": "Gå tilbake til valg av utløsertype uten å lagre."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Aktive tilstander (kommaseparert)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Hvilke sensortilstander som regnes som «aktive». La feltet stå tomt for standard: on, 1, true. Eksempel: in_use, running",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til driftstidsutløseren.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel.",
           "go_back": "Gå tilbake til valg av utløsertype uten å lagre."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Utløs over",
           "trigger_below": "Utløs under",
+          "trigger_equals": "Utløs ved lik",
+          "trigger_not_equals": "Utløs ved forskjellig fra",
           "trigger_for_minutes": "Varighet (minutter)",
           "go_back": "Gå tilbake"
         },
         "data_description": {
           "trigger_above": "Utløs når verdien overskrider denne terskelen.",
           "trigger_below": "Utløs når verdien faller under denne terskelen.",
+          "trigger_equals": "Utløs vedlikehold når verdien er lik dette nivået.",
+          "trigger_not_equals": "Utløs vedlikehold når verdien avviker fra dette nivået.",
           "trigger_for_minutes": "Verdien må holde seg utenfor terskelen i denne varigheten.",
           "go_back": "Gå tilbake til valg av betingelsestype uten å lagre."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Utløs over",
           "trigger_below": "Utløs under",
+          "trigger_equals": "Utløs ved lik",
+          "trigger_not_equals": "Utløs ved forskjellig fra",
           "trigger_for_minutes": "Varighet (minutter)",
           "go_back": "Gå tilbake"
         },
         "data_description": {
           "trigger_above": "Utløs når verdien overskrider denne terskelen.",
           "trigger_below": "Utløs når verdien faller under denne terskelen.",
+          "trigger_equals": "Utløs vedlikehold når verdien er lik dette nivået.",
+          "trigger_not_equals": "Utløs vedlikehold når verdien avviker fra dette nivået.",
           "trigger_for_minutes": "Verdien må holde seg utenfor terskelen i denne varigheten."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Utløs når over",
           "trigger_below": "Utløs når under",
+          "trigger_equals": "Utløs ved lik",
+          "trigger_not_equals": "Utløs ved forskjellig fra",
           "trigger_for_minutes": "I minst (minutter)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Utløs vedlikehold når verdien overskrider denne terskelen.",
           "trigger_below": "Utløs vedlikehold når verdien faller under denne terskelen.",
+          "trigger_equals": "Utløs vedlikehold når verdien er lik dette nivået.",
+          "trigger_not_equals": "Utløs vedlikehold når verdien avviker fra dette nivået.",
           "trigger_for_minutes": "Verdien må overskride terskelen i så mange minutter før utløsing.",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til sensorutløseren.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Deltamodus (tell endringer, ikke absolutt)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Hvis aktivert, telles differansen fra en grunnlinje i stedet for den absolutte verdien.",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til tellerutløseren.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Antall endringer for å utløse",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Antall samsvarende tilstandsendringer før vedlikehold utløses.",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til utløseren for tilstandsendring.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Aktive tilstander (kommaseparert)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
           "warning_days": "Varseldager før forfall",
           "go_back": "Gå tilbake",
           "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Hvilke sensortilstander som regnes som «aktive». La feltet stå tomt for standard: on, 1, true. Eksempel: in_use, running",
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til driftstidsutløseren.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "En hvilken som helst enhet utløser",
         "all": "Alle enheter må utløses"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Utløser eller intervall (først oppfylt)",
+        "all": "Utløser og intervall (begge kreves)"
       }
     },
     "notification_title_style": {

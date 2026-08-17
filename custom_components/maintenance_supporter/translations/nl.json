@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Activeren bij waarde boven",
           "trigger_below": "Activeren bij waarde onder",
+          "trigger_equals": "Activeren bij gelijk aan",
+          "trigger_not_equals": "Activeren bij afwijkend van",
           "trigger_for_minutes": "Gedurende minimaal (minuten)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
           "trigger_below": "Onderhoud activeren wanneer de waarde onder deze drempel daalt.",
+          "trigger_equals": "Onderhoud activeren wanneer de waarde gelijk is aan dit niveau.",
+          "trigger_not_equals": "Onderhoud activeren wanneer de waarde afwijkt van dit niveau.",
           "trigger_for_minutes": "De waarde moet gedurende dit aantal minuten de drempel overschrijden voordat activering plaatsvindt.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Indien ingeschakeld, telt het verschil vanaf een basislijn in plaats van de absolute waarde.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de tellertrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Aantal wijzigingen voor activering",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voordat onderhoud wordt geactiveerd.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Actieve statussen (kommagescheiden)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Welke sensorstatussen als 'actief' gelden. Leeg laten voor standaard: on, 1, true. Voorbeeld: in_use, running",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Activeren boven",
           "trigger_below": "Activeren onder",
+          "trigger_equals": "Activeren bij gelijk aan",
+          "trigger_not_equals": "Activeren bij afwijkend van",
           "trigger_for_minutes": "Duur (minuten)",
           "go_back": "Terug"
         },
         "data_description": {
           "trigger_above": "Activeren wanneer de waarde deze drempel overschrijdt.",
           "trigger_below": "Activeren wanneer de waarde onder deze drempel daalt.",
+          "trigger_equals": "Onderhoud activeren wanneer de waarde gelijk is aan dit niveau.",
+          "trigger_not_equals": "Onderhoud activeren wanneer de waarde afwijkt van dit niveau.",
           "trigger_for_minutes": "De waarde moet de drempel gedurende deze duur overschrijden.",
           "go_back": "Terug naar conditietypeselectie zonder op te slaan."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Activeren boven",
           "trigger_below": "Activeren onder",
+          "trigger_equals": "Activeren bij gelijk aan",
+          "trigger_not_equals": "Activeren bij afwijkend van",
           "trigger_for_minutes": "Duur (minuten)",
           "go_back": "Terug"
         },
         "data_description": {
           "trigger_above": "Activeren wanneer de waarde deze drempel overschrijdt.",
           "trigger_below": "Activeren wanneer de waarde onder deze drempel daalt.",
+          "trigger_equals": "Onderhoud activeren wanneer de waarde gelijk is aan dit niveau.",
+          "trigger_not_equals": "Onderhoud activeren wanneer de waarde afwijkt van dit niveau.",
           "trigger_for_minutes": "De waarde moet de drempel gedurende deze duur overschrijden."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Activeren bij waarde boven",
           "trigger_below": "Activeren bij waarde onder",
+          "trigger_equals": "Activeren bij gelijk aan",
+          "trigger_not_equals": "Activeren bij afwijkend van",
           "trigger_for_minutes": "Gedurende minimaal (minuten)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
           "trigger_below": "Onderhoud activeren wanneer de waarde onder deze drempel komt.",
+          "trigger_equals": "Onderhoud activeren wanneer de waarde gelijk is aan dit niveau.",
+          "trigger_not_equals": "Onderhoud activeren wanneer de waarde afwijkt van dit niveau.",
           "trigger_for_minutes": "De waarde moet de drempel gedurende dit aantal minuten overschrijden voor activering.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Indien ingeschakeld, telt het verschil vanaf een basislijn in plaats van de absolute waarde.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de tellertrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Aantal wijzigingen voor activering",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voordat onderhoud wordt geactiveerd.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Actieve statussen (kommagescheiden)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Welke sensorstatussen tellen als 'actief'. Laat leeg voor standaard: on, 1, true. Voorbeeld: in_use, running",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Elke entiteit triggert",
         "all": "Alle entiteiten moeten triggeren"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Trigger of interval (eerst vervuld)",
+        "all": "Trigger en interval (beide vereist)"
       }
     },
     "notification_title_style": {

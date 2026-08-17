@@ -338,6 +338,48 @@ async def test_async_update_trigger_state_single(
         assert state.state == MaintenanceStatus.TRIGGERED
 
 
+async def test_trigger_latch_repaints_attrs_without_status_change(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """With trigger_combinator=all a latch flips no status — but the
+    trigger_active attribute must still repaint (the write gate used to key
+    on status change only, leaving the entity attribute stale)."""
+    last = (dt_util.now().date() - timedelta(days=1)).isoformat()
+    hass.states.async_set("sensor.temp", "25")
+
+    task = build_task_data(
+        last_performed=last,
+        interval_days=30,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.temp",
+            "trigger_above": 30,
+            "trigger_combinator": "all",
+        },
+    )
+    obj_entry = _make_entry(hass, task, unique_id="latch_repaint")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    sensor = _get_sensor_entity(hass, obj_entry)
+    if sensor is None:
+        pytest.skip("Sensor entity not available")
+
+    sensor.async_update_trigger_state(
+        is_triggered=True,
+        current_value=35.0,
+        trigger_entity_id="sensor.temp",
+    )
+
+    state = _get_sensor_state(hass, obj_entry)
+    if state:
+        # Interval leg fresh -> the all-combinator keeps the status un-actioned...
+        assert state.state == MaintenanceStatus.OK
+        # ...but the latched flag is visible on the entity immediately.
+        assert state.attributes.get("trigger_active") is True
+
+
 async def test_async_update_trigger_state_coordinator_none(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
@@ -474,3 +516,38 @@ async def test_last_entry_attr(
 
     state = _get_sensor_state(hass, obj_entry)
     assert "last_entry" not in (state.attributes if state else {})
+
+
+# --- =/≠ limits + combinator attributes -----------------------------
+
+
+async def test_threshold_equals_and_combinator_attrs(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Threshold attrs expose =/≠ limits; trigger_combinator surfaces as all."""
+    hass.states.async_set("sensor.filter_stage", "1")
+
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.filter_stage",
+            "entity_ids": ["sensor.filter_stage"],
+            "trigger_equals": 3.0,
+            "trigger_not_equals": 7.0,
+            "trigger_combinator": "all",
+        },
+    )
+    obj_entry = _make_entry(hass, task, unique_id="threshold_eq")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    state = _get_sensor_state(hass, obj_entry)
+    if state is None:
+        pytest.skip("Sensor not available")
+
+    attrs = state.attributes
+    assert attrs.get("trigger_type") == "threshold"
+    assert attrs.get("trigger_equals") == 3.0
+    assert attrs.get("trigger_not_equals") == 7.0
+    assert attrs.get("trigger_combinator") == "all"

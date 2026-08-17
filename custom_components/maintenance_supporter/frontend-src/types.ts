@@ -56,6 +56,10 @@ export interface TriggerConfig {
   type?: string; // "threshold" | "counter" | "state_change" | "runtime"
   trigger_above?: number | null;
   trigger_below?: number | null;
+  trigger_equals?: number | null;
+  trigger_not_equals?: number | null;
+  /** "any" (default) = trigger or safety interval, whichever first; "all" = both required. */
+  trigger_combinator?: string;
   trigger_for_minutes?: number;
   trigger_target_value?: number;
   trigger_delta_mode?: boolean;

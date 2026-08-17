@@ -304,11 +304,18 @@ Any key outside the whitelist is stripped.
 - `entity_logic`: `"any"` | `"all"` (multi-entity aggregation; default `any`)
 - `attribute`: `str|null` — monitor an attribute instead of the state value
 - `auto_complete_on_recovery`: `bool` — auto-record completion when trigger clears
+- `trigger_combinator`: `"any"` (default) | `"all"` — how the trigger pairs with
+  the task's safety interval. `any` = whichever is met first makes the task due;
+  `all` = the task only becomes due once the trigger fired AND the interval
+  elapsed (interval acts as a minimum age). Omit for `any`.
 
 ### `threshold`
 `{"type":"threshold","entity_ids":["sensor.pressure"],"trigger_above":3.0,"trigger_below":1.2,"trigger_for_minutes":0}`
-At least one of `trigger_above`/`trigger_below` required. Fires when value
-crosses; `trigger_for_minutes` requires it to stay crossed that long.
+At least one of `trigger_above`/`trigger_below`/`trigger_equals`/
+`trigger_not_equals` required. Above/below fire when the value crosses;
+`trigger_equals`/`trigger_not_equals` fire while the value matches / differs
+from a discrete level (filter stages, error codes).
+`trigger_for_minutes` requires the condition to hold that long.
 
 ### `counter`
 `{"type":"counter","entity_ids":["sensor.odometer"],"trigger_target_value":15000,"trigger_delta_mode":true}`

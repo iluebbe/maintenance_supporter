@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Utlös när över",
           "trigger_below": "Utlös när under",
+          "trigger_equals": "Utlös vid lika med",
+          "trigger_not_equals": "Utlös vid skilt från",
           "trigger_for_minutes": "Under minst (minuter)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Utlös underhåll när värdet överskrider denna tröskel.",
           "trigger_below": "Utlös underhåll när värdet faller under denna tröskel.",
+          "trigger_equals": "Utlös underhåll när värdet är lika med denna nivå.",
+          "trigger_not_equals": "Utlös underhåll när värdet avviker från denna nivå.",
           "trigger_for_minutes": "Värdet måste överskrida tröskeln så här många minuter innan utlösning.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Delta-läge (räkna ändringar, inte absolut)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Om aktiverad räknas skillnaden från en baslinje istället för det absoluta värdet.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver räknarutlösaren.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Antal ändringar för utlösning",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Antal matchande tillståndsändringar innan underhåll utlöses.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver utlösaren för tillståndsändring.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Aktiva tillstånd (kommaseparerat)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Vilka sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard: on, 1, true. Exempel: in_use, running",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver körtidsutlösaren.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Utlös över",
           "trigger_below": "Utlös under",
+          "trigger_equals": "Utlös vid lika med",
+          "trigger_not_equals": "Utlös vid skilt från",
           "trigger_for_minutes": "Varaktighet (minuter)",
           "go_back": "Tillbaka"
         },
         "data_description": {
           "trigger_above": "Utlös när värdet överskrider denna tröskel.",
           "trigger_below": "Utlös när värdet sjunker under denna tröskel.",
+          "trigger_equals": "Utlös underhåll när värdet är lika med denna nivå.",
+          "trigger_not_equals": "Utlös underhåll när värdet avviker från denna nivå.",
           "trigger_for_minutes": "Värdet måste förbli utanför tröskeln under denna tid.",
           "go_back": "Återgå till val av villkorstyp utan att spara."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Utlös över",
           "trigger_below": "Utlös under",
+          "trigger_equals": "Utlös vid lika med",
+          "trigger_not_equals": "Utlös vid skilt från",
           "trigger_for_minutes": "Varaktighet (minuter)",
           "go_back": "Tillbaka"
         },
         "data_description": {
           "trigger_above": "Utlös när värdet överskrider denna tröskel.",
           "trigger_below": "Utlös när värdet sjunker under denna tröskel.",
+          "trigger_equals": "Utlös underhåll när värdet är lika med denna nivå.",
+          "trigger_not_equals": "Utlös underhåll när värdet avviker från denna nivå.",
           "trigger_for_minutes": "Värdet måste förbli utanför tröskeln under denna tid."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Utlös när över",
           "trigger_below": "Utlös när under",
+          "trigger_equals": "Utlös vid lika med",
+          "trigger_not_equals": "Utlös vid skilt från",
           "trigger_for_minutes": "Under minst (minuter)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Utlös underhåll när värdet överskrider denna tröskel.",
           "trigger_below": "Utlös underhåll när värdet faller under denna tröskel.",
+          "trigger_equals": "Utlös underhåll när värdet är lika med denna nivå.",
+          "trigger_not_equals": "Utlös underhåll när värdet avviker från denna nivå.",
           "trigger_for_minutes": "Värdet måste överskrida tröskeln så här många minuter innan utlösning.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Delta-läge (räkna ändringar, inte absolut)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Om aktiverad räknas skillnaden från en baslinje istället för det absoluta värdet.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver räknarutlösaren.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Antal ändringar för utlösning",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Antal matchande tillståndsändringar innan underhåll utlöses.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver utlösaren för tillståndsändring.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Aktiva tillstånd (kommaseparerat)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Vilka sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard: on, 1, true. Exempel: in_use, running",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver körtidsutlösaren.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Vilken entitet som helst utlöser",
         "all": "Alla entiteter måste utlösa"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Utlösare eller intervall (först uppfylld)",
+        "all": "Utlösare och intervall (båda krävs)"
       }
     },
     "notification_title_style": {

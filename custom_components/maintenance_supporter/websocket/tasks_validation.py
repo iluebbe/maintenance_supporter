@@ -101,6 +101,8 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     # threshold
     "trigger_above",
     "trigger_below",
+    "trigger_equals",
+    "trigger_not_equals",
     "trigger_for_minutes",
     # counter
     "trigger_target_value",
@@ -118,6 +120,8 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     "conditions",
     # record a completion when the trigger clears itself (#53)
     "auto_complete_on_recovery",
+    # trigger ∧/∨ safety interval (any = whichever first, all = both required)
+    "trigger_combinator",
 }
 
 
@@ -172,10 +176,16 @@ def _validate_trigger_config(
         if trigger_config.get(field) is None:
             errors.append(f"trigger_config.{field} is required for type '{trigger_type}'")
 
-    # Threshold: at least one of trigger_above or trigger_below
+    # Threshold: at least one limit must be configured
     if trigger_type == "threshold":
-        if trigger_config.get("trigger_above") is None and trigger_config.get("trigger_below") is None:
-            errors.append("trigger_config requires at least one of 'trigger_above' or 'trigger_below' for type 'threshold'")
+        _limit_keys = ("trigger_above", "trigger_below", "trigger_equals", "trigger_not_equals")
+        if all(trigger_config.get(k) is None for k in _limit_keys):
+            errors.append(
+                "trigger_config requires at least one of 'trigger_above', 'trigger_below', "
+                "'trigger_equals' or 'trigger_not_equals' for type 'threshold'"
+            )
+
+    _validate_combinator(trigger_config, errors)
 
     # Runtime: validate trigger_on_states if provided
     if trigger_type == "runtime":
@@ -215,6 +225,17 @@ def _validate_trigger_config(
     return errors, warnings
 
 
+def _validate_combinator(trigger_config: dict[str, Any], errors: list[str]) -> None:
+    """Validate the trigger ∧/∨ safety-interval combinator (any | all).
+
+    Shared by the plain and compound paths — the combinator is task-level and
+    legal on every trigger type.
+    """
+    combinator = trigger_config.get("trigger_combinator")
+    if combinator is not None and combinator not in ("any", "all"):
+        errors.append(f"trigger_config.trigger_combinator must be 'any' or 'all', got '{combinator}'")
+
+
 def _validate_compound_trigger(
     hass: HomeAssistant,
     trigger_config: dict[str, Any],
@@ -222,6 +243,8 @@ def _validate_compound_trigger(
     """Validate a compound trigger config."""
     errors: list[str] = []
     warnings: list[str] = []
+
+    _validate_combinator(trigger_config, errors)
 
     compound_logic = trigger_config.get("compound_logic", "AND").upper()
     if compound_logic not in ("AND", "OR"):

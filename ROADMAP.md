@@ -597,6 +597,25 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
+### 💡 Public integration contract — document services + events for third parties
+We already expose task services (`add_task`, `complete`, …) and fire lifecycle
+events, but there is no public, stable contract document for OTHER integration
+authors who want to contribute tasks (a battery integration scheduling
+"replace battery", a plant integration scheduling "water the fern") and react
+to completions. Plan: an `INTEGRATING.md` that pins the stable service fields
+and event payloads, loop-avoidance guidance (an `origin` echo on completion
+events), and a `source` namespace convention so contributed tasks stay
+attributable and idempotently re-creatable. Mostly documentation; at most a
+small `source`/`origin` passthrough on the completion path.
+
+### 💡 Mutation testing over the pure-logic helpers
+Coverage counts executed lines, not pinned behavior. Evaluate `mutmut` as a
+periodic (not CI-gating) run over `helpers/` — schedule math, status
+computation, sanitizers — to find spots where tests execute code but would not
+catch a flipped comparison or an off-by-one. Promote to a CI gate only if the
+signal-to-noise turns out good.
+
+
 ### ✅ LLM setup assistant — a skill that configures the integration for you
 **Shipped** as a portable skill/playbook in
 [`skills/maintenance-setup-assistant/`](skills/maintenance-setup-assistant/)

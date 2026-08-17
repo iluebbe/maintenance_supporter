@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Activar cuando superior a",
           "trigger_below": "Activar cuando inferior a",
+          "trigger_equals": "Activar cuando sea igual a",
+          "trigger_not_equals": "Activar cuando sea distinto de",
           "trigger_for_minutes": "Durante al menos (minutos)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Activar mantenimiento cuando el valor supere este umbral.",
           "trigger_below": "Activar mantenimiento cuando el valor caiga por debajo de este umbral.",
+          "trigger_equals": "Activar el mantenimiento cuando el valor sea igual a este nivel.",
+          "trigger_not_equals": "Activar el mantenimiento cuando el valor difiera de este nivel.",
           "trigger_for_minutes": "El valor debe superar el umbral durante este número de minutos antes de la activación.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de sensor.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Modo delta (contar cambios, no valor absoluto)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Si está activado, cuenta la diferencia respecto a una base en lugar del valor absoluto.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de contador.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Número de cambios para activar",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Número de cambios de estado correspondientes antes de activar el mantenimiento.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de cambio de estado.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Estados activos (separados por comas)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Qué estados del sensor se consideran 'activo'. Dejar vacío para predeterminado: on, 1, true. Ejemplo: in_use, running",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de tiempo de funcionamiento.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Activar por encima de",
           "trigger_below": "Activar por debajo de",
+          "trigger_equals": "Activar cuando sea igual a",
+          "trigger_not_equals": "Activar cuando sea distinto de",
           "trigger_for_minutes": "Duración (minutos)",
           "go_back": "Volver"
         },
         "data_description": {
           "trigger_above": "Activar cuando el valor supere este umbral.",
           "trigger_below": "Activar cuando el valor caiga por debajo de este umbral.",
+          "trigger_equals": "Activar el mantenimiento cuando el valor sea igual a este nivel.",
+          "trigger_not_equals": "Activar el mantenimiento cuando el valor difiera de este nivel.",
           "trigger_for_minutes": "El valor debe permanecer más allá del umbral durante esta duración.",
           "go_back": "Volver a la selección de tipo de condición sin guardar."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Activar por encima de",
           "trigger_below": "Activar por debajo de",
+          "trigger_equals": "Activar cuando sea igual a",
+          "trigger_not_equals": "Activar cuando sea distinto de",
           "trigger_for_minutes": "Duración (minutos)",
           "go_back": "Volver"
         },
         "data_description": {
           "trigger_above": "Activar cuando el valor supere este umbral.",
           "trigger_below": "Activar cuando el valor caiga por debajo de este umbral.",
+          "trigger_equals": "Activar el mantenimiento cuando el valor sea igual a este nivel.",
+          "trigger_not_equals": "Activar el mantenimiento cuando el valor difiera de este nivel.",
           "trigger_for_minutes": "El valor debe permanecer más allá del umbral durante esta duración."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Activar cuando superior a",
           "trigger_below": "Activar cuando inferior a",
+          "trigger_equals": "Activar cuando sea igual a",
+          "trigger_not_equals": "Activar cuando sea distinto de",
           "trigger_for_minutes": "Durante al menos (minutos)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Activar mantenimiento cuando el valor exceda este umbral.",
           "trigger_below": "Activar mantenimiento cuando el valor caiga por debajo de este umbral.",
+          "trigger_equals": "Activar el mantenimiento cuando el valor sea igual a este nivel.",
+          "trigger_not_equals": "Activar el mantenimiento cuando el valor difiera de este nivel.",
           "trigger_for_minutes": "El valor debe exceder el umbral durante estos minutos antes de activarse.",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador del sensor.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Modo delta (contar cambios, no valor absoluto)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Si está activado, cuenta la diferencia desde una línea base en lugar del valor absoluto.",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador del contador.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Número de cambios para activar",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Número de cambios de estado coincidentes antes de activar el mantenimiento.",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador de cambio de estado.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Estados activos (separados por comas)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
+          "trigger_combinator": "Combinar disparador e intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver",
           "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Qué estados del sensor cuentan como 'activo'. Dejar vacío para predeterminado: on, 1, true. Ejemplo: in_use, running",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador de tiempo de ejecución.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
+          "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Cualquier entidad activa",
         "all": "Todas las entidades deben activar"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Disparador o intervalo (el primero)",
+        "all": "Disparador e intervalo (ambos requeridos)"
       }
     },
     "notification_title_style": {

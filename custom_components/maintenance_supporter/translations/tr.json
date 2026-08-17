@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Şunun üzerinde tetikle",
           "trigger_below": "Şunun altında tetikle",
+          "trigger_equals": "Şuna eşitse tetikle",
+          "trigger_not_equals": "Şundan farklıysa tetikle",
           "trigger_for_minutes": "En az (dakika)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Değer bu eşiği aştığında bakımı tetikle.",
           "trigger_below": "Değer bu eşiğin altına düştüğünde bakımı tetikle.",
+          "trigger_equals": "Değer bu seviyeye eşit olduğunda bakımı tetikle.",
+          "trigger_not_equals": "Değer bu seviyeden farklı olduğunda bakımı tetikle.",
           "trigger_for_minutes": "Tetiklenmeden önce değer bu kadar dakika boyunca eşiği aşmalıdır.",
           "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
           "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Delta modu (mutlak değil, değişiklikleri say)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Etkinleştirilirse, mutlak değer yerine bir referans noktasından farkı sayar.",
           "interval_days": "Sayaç tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
           "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Tetikleme için değişiklik sayısı",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Bakım tetiklenmeden önce eşleşen durum değişikliği sayısı.",
           "interval_days": "Durum değişikliği tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
           "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Etkin durumlar (virgülle ayrılmış)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Hangi sensör durumlarının 'etkin' sayılacağı. Varsayılan için boş bırakın: on, 1, true. Örnek: in_use, running",
           "interval_days": "Çalışma süresi tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
           "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Üzerinde tetikle",
           "trigger_below": "Altında tetikle",
+          "trigger_equals": "Şuna eşitse tetikle",
+          "trigger_not_equals": "Şundan farklıysa tetikle",
           "trigger_for_minutes": "Süre (dakika)",
           "go_back": "Geri dön"
         },
         "data_description": {
           "trigger_above": "Değer bu eşiği aştığında tetikle.",
           "trigger_below": "Değer bu eşiğin altına düştüğünde tetikle.",
+          "trigger_equals": "Değer bu seviyeye eşit olduğunda bakımı tetikle.",
+          "trigger_not_equals": "Değer bu seviyeden farklı olduğunda bakımı tetikle.",
           "trigger_for_minutes": "Değer bu süre boyunca eşiğin ötesinde kalmalıdır.",
           "go_back": "Kaydetmeden koşul türü seçimine dönün."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Üzerinde tetikle",
           "trigger_below": "Altında tetikle",
+          "trigger_equals": "Şuna eşitse tetikle",
+          "trigger_not_equals": "Şundan farklıysa tetikle",
           "trigger_for_minutes": "Süre (dakika)",
           "go_back": "Geri dön"
         },
         "data_description": {
           "trigger_above": "Değer bu eşiği aştığında tetikle.",
           "trigger_below": "Değer bu eşiğin altına düştüğünde tetikle.",
+          "trigger_equals": "Değer bu seviyeye eşit olduğunda bakımı tetikle.",
+          "trigger_not_equals": "Değer bu seviyeden farklı olduğunda bakımı tetikle.",
           "trigger_for_minutes": "Değer bu süre boyunca eşiğin ötesinde kalmalıdır."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Şunun üzerinde tetikle",
           "trigger_below": "Şunun altında tetikle",
+          "trigger_equals": "Şuna eşitse tetikle",
+          "trigger_not_equals": "Şundan farklıysa tetikle",
           "trigger_for_minutes": "En az (dakika)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Değer bu eşiği aştığında bakımı tetikle.",
           "trigger_below": "Değer bu eşiğin altına düştüğünde bakımı tetikle.",
+          "trigger_equals": "Değer bu seviyeye eşit olduğunda bakımı tetikle.",
+          "trigger_not_equals": "Değer bu seviyeden farklı olduğunda bakımı tetikle.",
           "trigger_for_minutes": "Tetiklenmeden önce değer bu kadar dakika boyunca eşiği aşmalıdır.",
           "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Delta modu (mutlak değil, değişiklikleri say)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Etkinleştirilirse, mutlak değer yerine bir referans noktasından farkı sayar.",
           "interval_days": "Sayaç tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Tetikleme için değişiklik sayısı",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Bakım tetiklenmeden önce eşleşen durum değişikliği sayısı.",
           "interval_days": "Durum değişikliği tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Etkin durumlar (virgülle ayrılmış)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
           "warning_days": "Vadeden önce uyarı günleri",
           "go_back": "Geri dön",
           "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Hangi sensör durumlarının 'etkin' sayılacağı. Varsayılan için boş bırakın: on, 1, true. Örnek: in_use, running",
           "interval_days": "Çalışma süresi tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Herhangi bir varlık tetikler",
         "all": "Tüm varlıklar tetiklenmelidir"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Tetikleyici veya aralık (ilk gerçekleşen)",
+        "all": "Tetikleyici ve aralık (her ikisi gerekli)"
       }
     },
     "notification_title_style": {

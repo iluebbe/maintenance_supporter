@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Trigger when above",
           "trigger_below": "Trigger when below",
+          "trigger_equals": "Trigger when equal to",
+          "trigger_not_equals": "Trigger when different from",
           "trigger_for_minutes": "For at least (minutes)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Trigger maintenance when value exceeds this threshold.",
           "trigger_below": "Trigger maintenance when value falls below this threshold.",
+          "trigger_equals": "Trigger maintenance when the value equals this level.",
+          "trigger_not_equals": "Trigger maintenance when the value differs from this level.",
           "trigger_for_minutes": "Value must exceed threshold for this many minutes before triggering.",
           "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Delta mode (count changes, not absolute)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "If enabled, counts the difference from a baseline instead of the absolute value.",
           "interval_days": "Optional time-based safety interval in addition to the counter trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Number of changes to trigger",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Number of matching state changes before triggering maintenance.",
           "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Active states (comma-separated)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Which sensor states count as 'active'. Leave empty for default: on, 1, true. Example: in_use, running",
           "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Trigger above",
           "trigger_below": "Trigger below",
+          "trigger_equals": "Trigger when equal to",
+          "trigger_not_equals": "Trigger when different from",
           "trigger_for_minutes": "Duration (minutes)",
           "go_back": "Go back"
         },
         "data_description": {
           "trigger_above": "Trigger when value exceeds this threshold.",
           "trigger_below": "Trigger when value drops below this threshold.",
+          "trigger_equals": "Trigger maintenance when the value equals this level.",
+          "trigger_not_equals": "Trigger maintenance when the value differs from this level.",
           "trigger_for_minutes": "Value must remain beyond threshold for this duration.",
           "go_back": "Return to condition type selection without saving."
         }
@@ -886,9 +902,12 @@
         "data": {
           "trigger_above": "Trigger when above",
           "trigger_below": "Trigger when below",
+          "trigger_equals": "Trigger when equal to",
+          "trigger_not_equals": "Trigger when different from",
           "trigger_for_minutes": "For at least (minutes)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
@@ -896,9 +915,12 @@
         "data_description": {
           "trigger_above": "Trigger maintenance when value exceeds this threshold.",
           "trigger_below": "Trigger maintenance when value falls below this threshold.",
+          "trigger_equals": "Trigger maintenance when the value equals this level.",
+          "trigger_not_equals": "Trigger maintenance when the value differs from this level.",
           "trigger_for_minutes": "Value must exceed threshold for this many minutes before triggering.",
           "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },
@@ -910,6 +932,7 @@
           "trigger_delta_mode": "Delta mode (count changes, not absolute)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers",
@@ -920,6 +943,7 @@
           "trigger_delta_mode": "If enabled, counts the difference from a baseline instead of the absolute value.",
           "interval_days": "Optional time-based safety interval in addition to the counter trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },
@@ -932,6 +956,7 @@
           "trigger_target_changes": "Number of changes to trigger",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
@@ -942,6 +967,7 @@
           "trigger_target_changes": "Number of matching state changes before triggering maintenance.",
           "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },
@@ -953,6 +979,7 @@
           "trigger_on_states": "Active states (comma-separated)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
           "warning_days": "Warning days before due",
           "go_back": "Go back",
           "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
@@ -962,6 +989,7 @@
           "trigger_on_states": "Which sensor states count as 'active'. Leave empty for default: on, 1, true. Example: in_use, running",
           "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },
@@ -1004,12 +1032,16 @@
         "data": {
           "trigger_above": "Trigger above",
           "trigger_below": "Trigger below",
+          "trigger_equals": "Trigger when equal to",
+          "trigger_not_equals": "Trigger when different from",
           "trigger_for_minutes": "Duration (minutes)",
           "go_back": "Go back"
         },
         "data_description": {
           "trigger_above": "Trigger when value exceeds this threshold.",
           "trigger_below": "Trigger when value drops below this threshold.",
+          "trigger_equals": "Trigger maintenance when the value equals this level.",
+          "trigger_not_equals": "Trigger maintenance when the value differs from this level.",
           "trigger_for_minutes": "Value must remain beyond threshold for this duration."
         }
       },
@@ -1737,6 +1769,12 @@
       "options": {
         "any": "Any entity triggers",
         "all": "All entities must trigger"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Trigger or interval (whichever first)",
+        "all": "Trigger and interval (both required)"
       }
     },
     "notification_title_style": {

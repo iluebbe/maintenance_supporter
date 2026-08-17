@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
+          "trigger_equals": "Auslösen bei genau",
+          "trigger_not_equals": "Auslösen bei abweichend von",
           "trigger_for_minutes": "Für mindestens (Minuten)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellwert überschreitet.",
           "trigger_below": "Wartung auslösen, wenn der Wert unter diesen Schwellwert fällt.",
+          "trigger_equals": "Wartung auslösen, wenn der Wert genau diesem Niveau entspricht.",
+          "trigger_not_equals": "Wartung auslösen, wenn der Wert von diesem Niveau abweicht.",
           "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Anzahl Minuten überschreiten, bevor ausgelöst wird.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Trigger.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Wenn aktiviert, wird die Differenz ab einer Basislinie gezählt statt des absoluten Werts.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zähler-Trigger.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung der Wartung.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandswechsel-Trigger.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Aktive Zustände (kommagetrennt)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Welche Sensor-Zustände als 'aktiv' gelten. Leer lassen für Standard: on, 1, true. Beispiel: in_use, running",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Trigger.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl Tage vor Fälligkeit für Warnung.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
+          "trigger_equals": "Auslösen bei genau",
+          "trigger_not_equals": "Auslösen bei abweichend von",
           "trigger_for_minutes": "Dauer (Minuten)",
           "go_back": "Zurück"
         },
         "data_description": {
           "trigger_above": "Auslösen, wenn der Wert diesen Schwellwert überschreitet.",
           "trigger_below": "Auslösen, wenn der Wert unter diesen Schwellwert fällt.",
+          "trigger_equals": "Wartung auslösen, wenn der Wert genau diesem Niveau entspricht.",
+          "trigger_not_equals": "Wartung auslösen, wenn der Wert von diesem Niveau abweicht.",
           "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Dauer überschreiten.",
           "go_back": "Zurück zur Bedingungstyp-Auswahl ohne zu speichern."
         }
@@ -910,9 +926,12 @@
         "data": {
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
+          "trigger_equals": "Auslösen bei genau",
+          "trigger_not_equals": "Auslösen bei abweichend von",
           "trigger_for_minutes": "Für mindestens (Minuten)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
@@ -920,9 +939,12 @@
         "data_description": {
           "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellenwert überschreitet.",
           "trigger_below": "Wartung auslösen, wenn der Wert unter diesen Schwellenwert fällt.",
+          "trigger_equals": "Wartung auslösen, wenn der Wert genau diesem Niveau entspricht.",
+          "trigger_not_equals": "Wartung auslösen, wenn der Wert von diesem Niveau abweicht.",
           "trigger_for_minutes": "Der Wert muss den Schwellenwert für diese Anzahl von Minuten überschreiten.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Auslöser.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
@@ -934,6 +956,7 @@
           "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen",
@@ -944,6 +967,7 @@
           "trigger_delta_mode": "Wenn aktiviert, zählt die Differenz von einer Basislinie statt des absoluten Werts.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zähler-Auslöser.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
@@ -956,6 +980,7 @@
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
@@ -966,6 +991,7 @@
           "trigger_target_changes": "Anzahl der übereinstimmenden Zustandsänderungen vor Auslösung der Wartung.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandsänderungs-Auslöser.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
@@ -977,6 +1003,7 @@
           "trigger_on_states": "Aktive Zustände (kommagetrennt)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
@@ -986,6 +1013,7 @@
           "trigger_on_states": "Welche Sensorzustände als 'aktiv' gelten. Leer lassen für Standard: on, 1, true. Beispiel: in_use, running",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Auslöser.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
@@ -1028,12 +1056,16 @@
         "data": {
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
+          "trigger_equals": "Auslösen bei genau",
+          "trigger_not_equals": "Auslösen bei abweichend von",
           "trigger_for_minutes": "Dauer (Minuten)",
           "go_back": "Zurück"
         },
         "data_description": {
           "trigger_above": "Auslösen, wenn der Wert diesen Schwellwert überschreitet.",
           "trigger_below": "Auslösen, wenn der Wert unter diesen Schwellwert fällt.",
+          "trigger_equals": "Wartung auslösen, wenn der Wert genau diesem Niveau entspricht.",
+          "trigger_not_equals": "Wartung auslösen, wenn der Wert von diesem Niveau abweicht.",
           "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Dauer überschreiten."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Beliebige Entität löst aus",
         "all": "Alle Entitäten müssen auslösen"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Trigger oder Intervall (zuerst erfüllt)",
+        "all": "Trigger und Intervall (beides erforderlich)"
       }
     },
     "notification_title_style": {

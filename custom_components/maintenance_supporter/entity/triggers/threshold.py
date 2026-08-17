@@ -13,6 +13,7 @@ from homeassistant.util import dt as dt_util
 if TYPE_CHECKING:
     from ...sensor import MaintenanceSensor
 
+from ...helpers.trigger_fallback import threshold_exceeds
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ class ThresholdTrigger(BaseTrigger):
     Supports:
     - Above threshold (value > above)
     - Below threshold (value < below)
+    - Equals / not-equals a discrete level (value = / ≠ equals)
     - Duration requirement (value must exceed for X minutes)
     """
 
@@ -38,6 +40,8 @@ class ThresholdTrigger(BaseTrigger):
 
         self._above: float | None = trigger_config.get("trigger_above")
         self._below: float | None = trigger_config.get("trigger_below")
+        self._equals: float | None = trigger_config.get("trigger_equals")
+        self._not_equals: float | None = trigger_config.get("trigger_not_equals")
         self._for_minutes: int = trigger_config.get("trigger_for_minutes", 0)
 
         self._threshold_exceeded = False
@@ -63,11 +67,13 @@ class ThresholdTrigger(BaseTrigger):
 
     def _value_exceeds_threshold(self, value: float) -> bool:
         """Check if the value exceeds configured thresholds."""
-        if self._above is not None and value > self._above:
-            return True
-        if self._below is not None and value < self._below:
-            return True
-        return False
+        return threshold_exceeds(
+            value,
+            above=self._above,
+            below=self._below,
+            equals=self._equals,
+            not_equals=self._not_equals,
+        )
 
     def evaluate(self, value: float) -> bool:
         """Evaluate threshold condition."""

@@ -481,7 +481,7 @@ Abstract factory pattern with five implementations:
 
 | Type | Trigger Condition | Config |
 |------|-------------------|--------|
-| **Threshold** | Value crosses above/below limit | `trigger_above`, `trigger_below`, `trigger_for_minutes` |
+| **Threshold** | Value crosses above/below limit, or =/≠ a discrete level | `trigger_above`, `trigger_below`, `trigger_equals`, `trigger_not_equals`, `trigger_for_minutes` |
 | **Counter** | Accumulated delta reaches target | `trigger_target_value`, `trigger_delta_mode` |
 | **State Change** | N transitions between from→to states | `trigger_from_state`, `trigger_to_state`, `trigger_target_changes` |
 | **Runtime** | Accumulated ON-time reaches target hours | `trigger_runtime_hours`, `on_states` |

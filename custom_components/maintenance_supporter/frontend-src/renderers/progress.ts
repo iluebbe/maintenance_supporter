@@ -50,6 +50,12 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask) {
       const range = high - below || 1;
       pct = Math.min(100, Math.max(0, ((high - val) / range) * 100));
       label = `${val.toFixed(1)} / ${below} ${unit}`;
+    } else if (tc.trigger_equals != null || tc.trigger_not_equals != null) {
+      // Discrete = / ≠ levels have no meaningful gradient — binary bar,
+      // same treatment as compound.
+      const target = tc.trigger_equals != null ? `= ${tc.trigger_equals}` : `≠ ${tc.trigger_not_equals}`;
+      label = `${val.toFixed(1)} (${target}${unit ? ` ${unit}` : ""})`;
+      pct = row.trigger_active ? 100 : 0;
     } else {
       return nothing;
     }

@@ -134,6 +134,38 @@ class TestThresholdTrigger:
         assert trigger.evaluate(19.0) is True
         assert trigger.evaluate(50.0) is False  # back to normal
 
+    async def test_equals_threshold_triggers(self, hass: HomeAssistant) -> None:
+        """trigger_equals fires on the exact level (float-tolerant), clears off it."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.filter_level",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_equals": 3.0,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        assert trigger.evaluate(2.0) is False
+        assert trigger.evaluate(3.0) is True
+        assert trigger.evaluate(3.0000000001) is True  # isclose tolerance
+        assert trigger.evaluate(4.0) is False
+
+    async def test_not_equals_threshold_triggers(self, hass: HomeAssistant) -> None:
+        """trigger_not_equals fires whenever the value leaves the expected level."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.mode",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_not_equals": 1.0,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        assert trigger.evaluate(1.0) is False
+        assert trigger.evaluate(0.0) is True
+        assert trigger.evaluate(2.0) is True
+        assert trigger.evaluate(1.0) is False  # back to the expected level
+
     async def test_threshold_with_for_minutes(self, hass: HomeAssistant) -> None:
         """Test threshold with duration requirement doesn't trigger immediately."""
         entity = _make_mock_entity(hass)

@@ -63,6 +63,31 @@ describe("task-dialog trigger_config roundtrip closure (#103 class)", () => {
     });
   });
 
+  it("threshold: =/≠ limits and the all-combinator survive", async () => {
+    const tc = await saveRoundtrip({
+      type: "threshold",
+      entity_id: "sensor.a",
+      trigger_equals: 3,
+      trigger_not_equals: 1,
+      trigger_combinator: "all",
+    });
+    expect(tc).to.deep.include({
+      type: "threshold",
+      trigger_equals: 3,
+      trigger_not_equals: 1,
+      trigger_combinator: "all",
+    });
+  });
+
+  it("combinator defaults to any and is then omitted from the payload", async () => {
+    const tc = await saveRoundtrip({
+      type: "threshold",
+      entity_id: "sensor.a",
+      trigger_above: 80,
+    });
+    expect(tc.trigger_combinator, "any must not be persisted").to.equal(undefined);
+  });
+
   it("threshold stored with ONLY plural entity_ids survives an edit (#106)", async () => {
     // The Battery Fleet task's trigger has no singular entity_id; the save
     // path gates on _triggerEntityId, so before the hydration fallback an
@@ -177,6 +202,36 @@ describe("task-dialog trigger_config roundtrip closure (#103 class)", () => {
       trigger_delta_mode: true,
       trigger_baseline_value: 40,
       entity_logic: "any",
+    });
+  });
+
+  it("compound: condition =/≠ limits and task-level combinator survive", async () => {
+    const tc = await saveRoundtrip({
+      type: "compound",
+      compound_logic: "AND",
+      trigger_combinator: "all",
+      conditions: [
+        {
+          type: "threshold",
+          entity_id: "sensor.a",
+          entity_ids: ["sensor.a"],
+          trigger_equals: 3,
+          trigger_not_equals: 1,
+        },
+        {
+          type: "threshold",
+          entity_id: "sensor.b",
+          entity_ids: ["sensor.b"],
+          trigger_above: 80,
+        },
+      ],
+    });
+    expect(tc.trigger_combinator).to.equal("all");
+    const conds = tc.conditions as Array<Record<string, unknown>>;
+    expect(conds[0]).to.deep.include({
+      type: "threshold",
+      trigger_equals: 3,
+      trigger_not_equals: 1,
     });
   });
 });

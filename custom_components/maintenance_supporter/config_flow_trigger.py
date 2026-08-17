@@ -44,11 +44,14 @@ from .const import (
     CONF_TRIGGER_ABOVE,
     CONF_TRIGGER_ATTRIBUTE,
     CONF_TRIGGER_BELOW,
+    CONF_TRIGGER_COMBINATOR,
     CONF_TRIGGER_DELTA_MODE,
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_ENTITY_LOGIC,
+    CONF_TRIGGER_EQUALS,
     CONF_TRIGGER_FOR_MINUTES,
     CONF_TRIGGER_FROM_STATE,
+    CONF_TRIGGER_NOT_EQUALS,
     CONF_TRIGGER_ON_STATES,
     CONF_TRIGGER_RUNTIME_HOURS,
     CONF_TRIGGER_TARGET_CHANGES,
@@ -133,7 +136,7 @@ def _entity_logic_field(entity_ids: list[Any]) -> dict[Any, Any]:
     }
 
 
-def _interval_warning_fields(hass: HomeAssistant) -> dict[Any, Any]:
+def _interval_warning_fields(hass: HomeAssistant, tc: dict[str, Any] | None = None) -> dict[Any, Any]:
     """The safety-interval + warning-days tail shared by all four type steps."""
     return {
         vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
@@ -146,6 +149,19 @@ def _interval_warning_fields(hass: HomeAssistant) -> dict[Any, Any]:
         ),
         vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
         vol.Optional(
+            CONF_TRIGGER_COMBINATOR,
+            default=(tc or {}).get(CONF_TRIGGER_COMBINATOR, DEFAULT_ENTITY_LOGIC),
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    selector.SelectOptionDict(value="any", label="Trigger or interval (whichever first)"),
+                    selector.SelectOptionDict(value="all", label="Trigger and interval (both required)"),
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                translation_key="trigger_combinator",
+            )
+        ),
+        vol.Optional(
             CONF_TASK_WARNING_DAYS,
             default=get_default_warning_days(hass),
         ): selector.NumberSelector(
@@ -154,6 +170,14 @@ def _interval_warning_fields(hass: HomeAssistant) -> dict[Any, Any]:
             )
         ),
     }
+
+
+def _apply_combinator(tc: dict[str, Any], user_input: dict[str, Any]) -> None:
+    """Store the trigger∧interval combinator; absence means the default "any"."""
+    if user_input.get(CONF_TRIGGER_COMBINATOR) == "all":
+        tc[CONF_TRIGGER_COMBINATOR] = "all"
+    else:
+        tc.pop(CONF_TRIGGER_COMBINATOR, None)
 
 
 def _state_selector(entity_id: str | None, *, multiple: bool = False) -> Any:
@@ -463,8 +487,10 @@ class TriggerConfigMixin:
 
             above = user_input.get(CONF_TRIGGER_ABOVE)
             below = user_input.get(CONF_TRIGGER_BELOW)
+            equals = user_input.get(CONF_TRIGGER_EQUALS)
+            not_equals = user_input.get(CONF_TRIGGER_NOT_EQUALS)
 
-            if above is None and below is None:
+            if above is None and below is None and equals is None and not_equals is None:
                 errors["base"] = "invalid_threshold"
             else:
                 tc = self._current_task["trigger_config"]
@@ -472,8 +498,13 @@ class TriggerConfigMixin:
                     tc[CONF_TRIGGER_ABOVE] = above
                 if below is not None:
                     tc[CONF_TRIGGER_BELOW] = below
+                if equals is not None:
+                    tc[CONF_TRIGGER_EQUALS] = equals
+                if not_equals is not None:
+                    tc[CONF_TRIGGER_NOT_EQUALS] = not_equals
                 tc[CONF_TRIGGER_FOR_MINUTES] = user_input.get(CONF_TRIGGER_FOR_MINUTES, 0)
                 _apply_recovery_flag(tc, user_input)
+                _apply_combinator(tc, user_input)
 
                 # Multi-entity: store entity_logic if multiple entities selected
                 entity_ids = tc.get("entity_ids", [])
@@ -509,13 +540,25 @@ class TriggerConfigMixin:
                     step="any",
                 )
             ),
+            vol.Optional(CONF_TRIGGER_EQUALS): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    mode=selector.NumberSelectorMode.BOX,
+                    step="any",
+                )
+            ),
+            vol.Optional(CONF_TRIGGER_NOT_EQUALS): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    mode=selector.NumberSelectorMode.BOX,
+                    step="any",
+                )
+            ),
             vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=0, max=1440, step=1, mode=selector.NumberSelectorMode.BOX)
             ),
             **_recovery_field(self._current_task.get("trigger_config")),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass))
+        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
 
         return self.async_show_form(
             step_id=step_id,
@@ -541,6 +584,7 @@ class TriggerConfigMixin:
             tc[CONF_TRIGGER_TARGET_VALUE] = user_input[CONF_TRIGGER_TARGET_VALUE]
             tc[CONF_TRIGGER_DELTA_MODE] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
             _apply_recovery_flag(tc, user_input)
+            _apply_combinator(tc, user_input)
             # Counting start value (#102/#103): editable here since the parity
             # round — an omitted field keeps the value the attribute step
             # carried over; the backend clears stale Store state on change.
@@ -601,7 +645,7 @@ class TriggerConfigMixin:
             **_recovery_field(prev_tc),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass))
+        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
 
         return self.async_show_form(
             step_id=step_id,
@@ -638,6 +682,7 @@ class TriggerConfigMixin:
                 tc[CONF_TRIGGER_TO_STATE] = to_state
             tc[CONF_TRIGGER_TARGET_CHANGES] = user_input.get(CONF_TRIGGER_TARGET_CHANGES, 1)
             _apply_recovery_flag(tc, user_input)
+            _apply_combinator(tc, user_input)
 
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
@@ -669,7 +714,7 @@ class TriggerConfigMixin:
             **_recovery_field(self._current_task.get("trigger_config")),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass))
+        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
 
         return self.async_show_form(
             step_id=step_id,
@@ -701,6 +746,7 @@ class TriggerConfigMixin:
             else:
                 tc.pop(CONF_TRIGGER_ON_STATES, None)
             _apply_recovery_flag(tc, user_input)
+            _apply_combinator(tc, user_input)
 
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
@@ -740,7 +786,7 @@ class TriggerConfigMixin:
             **_recovery_field(current_tc),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass))
+        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
 
         return self.async_show_form(
             step_id=step_id,
@@ -920,6 +966,12 @@ class TriggerConfigMixin:
                     cond["trigger_above"] = above
                 if below is not None:
                     cond["trigger_below"] = below
+                equals = user_input.get(CONF_TRIGGER_EQUALS)
+                if equals is not None:
+                    cond["trigger_equals"] = equals
+                not_equals = user_input.get(CONF_TRIGGER_NOT_EQUALS)
+                if not_equals is not None:
+                    cond["trigger_not_equals"] = not_equals
                 for_min = user_input.get(CONF_TRIGGER_FOR_MINUTES)
                 if for_min:
                     cond["trigger_for_minutes"] = for_min
@@ -955,6 +1007,12 @@ class TriggerConfigMixin:
                     selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
                 ),
                 vol.Optional(CONF_TRIGGER_BELOW): selector.NumberSelector(
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
+                ),
+                vol.Optional(CONF_TRIGGER_EQUALS): selector.NumberSelector(
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
+                ),
+                vol.Optional(CONF_TRIGGER_NOT_EQUALS): selector.NumberSelector(
                     selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
                 ),
                 vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(

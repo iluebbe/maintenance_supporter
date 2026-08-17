@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Wyzwalaj powyżej",
           "trigger_below": "Wyzwalaj poniżej",
+          "trigger_equals": "Wyzwól przy równym",
+          "trigger_not_equals": "Wyzwól przy różnym od",
           "trigger_for_minutes": "Przez co najmniej (minuty)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Wyzwalaj konserwację, gdy wartość przekroczy ten próg.",
           "trigger_below": "Wyzwalaj konserwację, gdy wartość spadnie poniżej tego progu.",
+          "trigger_equals": "Wyzwól konserwację, gdy wartość jest równa temu poziomowi.",
+          "trigger_not_equals": "Wyzwól konserwację, gdy wartość różni się od tego poziomu.",
           "trigger_for_minutes": "Wartość musi przekraczać próg przez tyle minut przed wyzwoleniem.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Tryb różnicowy (licz zmiany, nie wartość bezwzględną)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Jeśli włączone, liczy różnicę względem linii bazowej zamiast wartości bezwzględnej.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza licznika.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Liczba zmian do wyzwolenia",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem konserwacji.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza zmiany stanu.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Stany aktywne (oddzielone przecinkami)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Które stany czujnika liczą się jako „aktywne”. Pozostaw puste dla domyślnych: on, 1, true. Przykład: in_use, running",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czasu pracy.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Wyzwalaj powyżej",
           "trigger_below": "Wyzwalaj poniżej",
+          "trigger_equals": "Wyzwól przy równym",
+          "trigger_not_equals": "Wyzwól przy różnym od",
           "trigger_for_minutes": "Czas trwania (minuty)",
           "go_back": "Wróć"
         },
         "data_description": {
           "trigger_above": "Wyzwalaj, gdy wartość przekroczy ten próg.",
           "trigger_below": "Wyzwalaj, gdy wartość spadnie poniżej tego progu.",
+          "trigger_equals": "Wyzwól konserwację, gdy wartość jest równa temu poziomowi.",
+          "trigger_not_equals": "Wyzwól konserwację, gdy wartość różni się od tego poziomu.",
           "trigger_for_minutes": "Wartość musi pozostać poza progiem przez ten czas.",
           "go_back": "Wróć do wyboru typu warunku bez zapisywania."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Wyzwalaj powyżej",
           "trigger_below": "Wyzwalaj poniżej",
+          "trigger_equals": "Wyzwól przy równym",
+          "trigger_not_equals": "Wyzwól przy różnym od",
           "trigger_for_minutes": "Czas trwania (minuty)",
           "go_back": "Wróć"
         },
         "data_description": {
           "trigger_above": "Wyzwalaj, gdy wartość przekroczy ten próg.",
           "trigger_below": "Wyzwalaj, gdy wartość spadnie poniżej tego progu.",
+          "trigger_equals": "Wyzwól konserwację, gdy wartość jest równa temu poziomowi.",
+          "trigger_not_equals": "Wyzwól konserwację, gdy wartość różni się od tego poziomu.",
           "trigger_for_minutes": "Wartość musi pozostać poza progiem przez ten czas."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Wyzwalaj powyżej",
           "trigger_below": "Wyzwalaj poniżej",
+          "trigger_equals": "Wyzwól przy równym",
+          "trigger_not_equals": "Wyzwól przy różnym od",
           "trigger_for_minutes": "Przez co najmniej (minuty)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Wyzwalaj konserwację, gdy wartość przekroczy ten próg.",
           "trigger_below": "Wyzwalaj konserwację, gdy wartość spadnie poniżej tego progu.",
+          "trigger_equals": "Wyzwól konserwację, gdy wartość jest równa temu poziomowi.",
+          "trigger_not_equals": "Wyzwól konserwację, gdy wartość różni się od tego poziomu.",
           "trigger_for_minutes": "Wartość musi przekraczać próg przez tyle minut przed wyzwoleniem.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Tryb różnicowy (licz zmiany, nie wartość bezwzględną)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Jeśli włączone, liczy różnicę względem linii bazowej zamiast wartości bezwzględnej.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza licznika.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Liczba zmian do wyzwolenia",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem konserwacji.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza zmiany stanu.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Stany aktywne (oddzielone przecinkami)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Które stany czujnika liczą się jako „aktywne”. Pozostaw puste dla domyślnych: on, 1, true. Przykład: in_use, running",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czasu pracy.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Dowolna encja wyzwala",
         "all": "Wszystkie encje muszą wyzwalać"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Wyzwalacz lub interwał (co pierwsze)",
+        "all": "Wyzwalacz i interwał (oba wymagane)"
       }
     },
     "notification_title_style": {

@@ -11,6 +11,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_NAME,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
@@ -495,6 +496,95 @@ async def test_multi_entity_threshold(
     tc = task["trigger_config"]
     assert tc["entity_ids"] == ["sensor.temp1", "sensor.temp2"]
     assert tc.get(CONF_TRIGGER_ENTITY_LOGIC) == "any"
+
+
+async def test_threshold_equals_and_combinator_stored(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """The =/≠ limits and the all-combinator flow from form to trigger_config."""
+    hass.states.async_set("sensor.filter_stage", "1", {"unit_of_measurement": "lvl"})
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Equals Task",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.INSPECTION,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.filter_stage"]},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            "trigger_equals": 3.0,
+            "trigger_not_equals": 1.0,
+            "trigger_combinator": "all",
+            CONF_TASK_INTERVAL_DAYS: 90,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"next_step_id": "finish"},
+    )
+
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    task = list(result["data"][CONF_TASKS].values())[0]
+    tc = task["trigger_config"]
+    assert tc["trigger_equals"] == 3.0
+    assert tc["trigger_not_equals"] == 1.0
+    assert tc["trigger_combinator"] == "all"
+    # Finish normalises the flat interval into the nested schedule dict.
+    assert read_legacy_fields(task)["interval_days"] == 90
+
+
+async def test_threshold_without_any_limit_shows_error(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Submitting the threshold step with no limit at all re-shows the form."""
+    hass.states.async_set("sensor.filter_stage", "1", {"unit_of_measurement": "lvl"})
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "No Limit",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.INSPECTION,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.filter_stage"]},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TASK_WARNING_DAYS: 7},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert (result["errors"] or {}).get("base") == "invalid_threshold"
 
 
 async def test_multi_entity_second_entity_invalid(

@@ -16,6 +16,7 @@ from custom_components.maintenance_supporter.helpers.trigger_fallback import (
     evaluate_runtime,
     evaluate_state_change,
     evaluate_threshold,
+    threshold_exceeds,
 )
 
 
@@ -257,3 +258,42 @@ def test_runtime_naive_on_since_does_not_raise() -> None:
     # 8h persisted + ~3h live ≈ 11h ≥ 10h — and crucially, no exception.
     assert r.current_value is not None and r.current_value >= 10.9
     assert r.active is True
+
+
+# ─── threshold_exceeds (shared predicate: event path + fallback) ─────────
+
+
+def test_threshold_exceeds_equals_and_not_equals() -> None:
+    assert threshold_exceeds(3.0, above=None, below=None, equals=3.0) is True
+    assert threshold_exceeds(3.0000000001, above=None, below=None, equals=3.0) is True
+    assert threshold_exceeds(2.0, above=None, below=None, equals=3.0) is False
+    assert threshold_exceeds(2.0, above=None, below=None, not_equals=3.0) is True
+    assert threshold_exceeds(3.0, above=None, below=None, not_equals=3.0) is False
+    # Combined with above/below: any configured limit may fire
+    assert threshold_exceeds(3.0, above=10.0, below=None, equals=3.0) is True
+    assert threshold_exceeds(11.0, above=10.0, below=None, equals=3.0) is True
+
+
+def test_fallback_threshold_equals_activates() -> None:
+    r = evaluate_threshold(
+        _states({"sensor.filter_level": 3}),
+        {"trigger_equals": 3.0},
+        ["sensor.filter_level"],
+    )
+    assert r.current_value == 3.0
+    assert r.active is True
+
+
+def test_fallback_threshold_not_equals_activates() -> None:
+    r = evaluate_threshold(
+        _states({"sensor.mode": 2}),
+        {"trigger_not_equals": 1.0},
+        ["sensor.mode"],
+    )
+    assert r.active is True
+    r2 = evaluate_threshold(
+        _states({"sensor.mode": 1}),
+        {"trigger_not_equals": 1.0},
+        ["sensor.mode"],
+    )
+    assert r2.active is False

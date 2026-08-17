@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Acionar quando acima de",
           "trigger_below": "Acionar quando abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Durante pelo menos (minutos)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Acionar manutenção quando o valor exceder este limiar.",
           "trigger_below": "Acionar manutenção quando o valor ficar abaixo deste limiar.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor deve exceder o limiar durante estes minutos antes de acionar.",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Modo delta (contar alterações, não absoluto)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Se ativado, conta a diferença a partir de uma linha de base em vez do valor absoluto.",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por contador.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Número de mudanças para acionar",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar a manutenção.",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por mudança de estado.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Estados ativos (separados por vírgula)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o predefinido: on, 1, true. Exemplo: in_use, running",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por tempo de execução.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Acionar acima de",
           "trigger_below": "Acionar abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Duração (minutos)",
           "go_back": "Voltar"
         },
         "data_description": {
           "trigger_above": "Acionar quando o valor exceder este limiar.",
           "trigger_below": "Acionar quando o valor ficar abaixo deste limiar.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor deve permanecer além do limiar durante esta duração.",
           "go_back": "Regressar à seleção do tipo de condição sem guardar."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Acionar acima de",
           "trigger_below": "Acionar abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Duração (minutos)",
           "go_back": "Voltar"
         },
         "data_description": {
           "trigger_above": "Acionar quando o valor exceder este limiar.",
           "trigger_below": "Acionar quando o valor ficar abaixo deste limiar.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor deve permanecer além do limiar durante esta duração."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Acionar quando acima de",
           "trigger_below": "Acionar quando abaixo de",
+          "trigger_equals": "Acionar quando igual a",
+          "trigger_not_equals": "Acionar quando diferente de",
           "trigger_for_minutes": "Durante pelo menos (minutos)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Acionar manutenção quando o valor exceder este limiar.",
           "trigger_below": "Acionar manutenção quando o valor ficar abaixo deste limiar.",
+          "trigger_equals": "Acionar a manutenção quando o valor for igual a este nível.",
+          "trigger_not_equals": "Acionar a manutenção quando o valor diferir deste nível.",
           "trigger_for_minutes": "O valor deve exceder o limiar durante estes minutos antes de acionar.",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Modo delta (contar alterações, não absoluto)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Se ativado, conta a diferença a partir de uma linha de base em vez do valor absoluto.",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por contador.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Número de mudanças para acionar",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar a manutenção.",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por mudança de estado.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Estados ativos (separados por vírgula)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o predefinido: on, 1, true. Exemplo: in_use, running",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por tempo de execução.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Qualquer entidade aciona",
         "all": "Todas as entidades devem acionar"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Acionador ou intervalo (o primeiro)",
+        "all": "Acionador e intervalo (ambos exigidos)"
       }
     },
     "notification_title_style": {

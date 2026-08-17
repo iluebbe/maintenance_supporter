@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "이 값 초과 시 트리거",
           "trigger_below": "이 값 미만 시 트리거",
+          "trigger_equals": "값이 같으면 트리거",
+          "trigger_not_equals": "값이 다르면 트리거",
           "trigger_for_minutes": "최소 지속 시간(분)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "값이 이 임계값을 초과하면 유지보수를 트리거합니다.",
           "trigger_below": "값이 이 임계값 아래로 떨어지면 유지보수를 트리거합니다.",
+          "trigger_equals": "값이 이 수준과 같을 때 유지보수를 트리거합니다.",
+          "trigger_not_equals": "값이 이 수준과 다를 때 유지보수를 트리거합니다.",
           "trigger_for_minutes": "트리거되기 전에 값이 이 시간(분) 동안 임계값을 넘어야 합니다.",
           "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다.",
           "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "델타 모드(절대값이 아닌 변화량 계산)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "사용하면 절대값 대신 기준값과의 차이를 계산합니다.",
           "interval_days": "카운터 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다.",
           "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "트리거까지의 변경 횟수",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "유지보수를 트리거하기까지 일치해야 하는 상태 변경 횟수입니다.",
           "interval_days": "상태 변경 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다.",
           "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "활성 상태(쉼표로 구분)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
@@ -307,6 +318,7 @@
           "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값(on, 1, true)을 사용합니다. 예: in_use, running",
           "interval_days": "가동 시간 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다.",
           "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "초과 시 트리거",
           "trigger_below": "미만 시 트리거",
+          "trigger_equals": "값이 같으면 트리거",
+          "trigger_not_equals": "값이 다르면 트리거",
           "trigger_for_minutes": "지속 시간(분)",
           "go_back": "뒤로 가기"
         },
         "data_description": {
           "trigger_above": "값이 이 임계값을 초과하면 트리거됩니다.",
           "trigger_below": "값이 이 임계값 아래로 떨어지면 트리거됩니다.",
+          "trigger_equals": "값이 이 수준과 같을 때 유지보수를 트리거합니다.",
+          "trigger_not_equals": "값이 이 수준과 다를 때 유지보수를 트리거합니다.",
           "trigger_for_minutes": "값이 이 시간 동안 임계값을 벗어난 상태를 유지해야 합니다.",
           "go_back": "저장하지 않고 조건 유형 선택으로 돌아갑니다."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "초과 시 트리거",
           "trigger_below": "미만 시 트리거",
+          "trigger_equals": "값이 같으면 트리거",
+          "trigger_not_equals": "값이 다르면 트리거",
           "trigger_for_minutes": "지속 시간(분)",
           "go_back": "뒤로 가기"
         },
         "data_description": {
           "trigger_above": "값이 이 임계값을 초과하면 트리거됩니다.",
           "trigger_below": "값이 이 임계값 아래로 떨어지면 트리거됩니다.",
+          "trigger_equals": "값이 이 수준과 같을 때 유지보수를 트리거합니다.",
+          "trigger_not_equals": "값이 이 수준과 다를 때 유지보수를 트리거합니다.",
           "trigger_for_minutes": "값이 이 시간 동안 임계값을 벗어난 상태를 유지해야 합니다."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "이 값 초과 시 트리거",
           "trigger_below": "이 값 미만 시 트리거",
+          "trigger_equals": "값이 같으면 트리거",
+          "trigger_not_equals": "값이 다르면 트리거",
           "trigger_for_minutes": "최소 지속 시간(분)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "값이 이 임계값을 초과하면 유지보수를 트리거합니다.",
           "trigger_below": "값이 이 임계값 아래로 떨어지면 유지보수를 트리거합니다.",
+          "trigger_equals": "값이 이 수준과 같을 때 유지보수를 트리거합니다.",
+          "trigger_not_equals": "값이 이 수준과 다를 때 유지보수를 트리거합니다.",
           "trigger_for_minutes": "트리거되기 전에 값이 이 시간(분) 동안 임계값을 넘어야 합니다.",
           "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "델타 모드(절대값이 아닌 변화량 계산)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "사용하면 절대값 대신 기준값과의 차이를 계산합니다.",
           "interval_days": "카운터 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "트리거까지의 변경 횟수",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "유지보수를 트리거하기까지 일치해야 하는 상태 변경 횟수입니다.",
           "interval_days": "상태 변경 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "활성 상태(쉼표로 구분)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
           "warning_days": "기한 전 경고 일수",
           "go_back": "뒤로 가기",
           "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값(on, 1, true)을 사용합니다. 예: in_use, running",
           "interval_days": "가동 시간 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "아무 엔티티나 트리거되면 됨",
         "all": "모든 엔티티가 트리거되어야 함"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "트리거 또는 간격 (먼저 충족)",
+        "all": "트리거와 간격 (둘 다 필요)"
       }
     },
     "notification_title_style": {

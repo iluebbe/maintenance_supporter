@@ -192,13 +192,26 @@ class MaintenanceTask:
         if self.archived_at is not None:
             return MaintenanceStatus.ARCHIVED
 
+        days = self.days_until_due
+
+        # Trigger ∧/∨ safety interval: with the "all" combinator BOTH legs must
+        # be met — the trigger must have fired AND the due date been reached
+        # (the interval is a minimum age, not a deadline). Default "any" keeps
+        # the historical whichever-first behaviour. Mirror any change in
+        # helpers/status.compute_status_from_task_dict (the dict twin).
+        all_mode = (self.trigger_config or {}).get("trigger_combinator") == "all"
+        time_met = days is None or days <= 0
+
         # Trigger takes precedence
-        if self._trigger_active:
+        if self._trigger_active and (not all_mode or time_met):
             return MaintenanceStatus.TRIGGERED
 
-        days = self.days_until_due
         if days is None:
             # Manual task or no schedule: always OK unless triggered
+            return MaintenanceStatus.OK
+
+        if all_mode and not self._trigger_active:
+            # The elapsed interval alone never actions an "all" task.
             return MaintenanceStatus.OK
 
         if days < 0:

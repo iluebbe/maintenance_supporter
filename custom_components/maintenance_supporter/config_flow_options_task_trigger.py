@@ -59,6 +59,10 @@ class TriggerStepsMixin(TriggerConfigMixin):
                 parts.append(f"above: {cond['trigger_above']}")
             if cond.get("trigger_below") is not None:
                 parts.append(f"below: {cond['trigger_below']}")
+            if cond.get("trigger_equals") is not None:
+                parts.append(f"= {cond['trigger_equals']}")
+            if cond.get("trigger_not_equals") is not None:
+                parts.append(f"≠ {cond['trigger_not_equals']}")
             if cond.get("trigger_for_minutes"):
                 parts.append(f"for: {cond['trigger_for_minutes']}min")
         elif ctype == TriggerType.COUNTER:
@@ -97,6 +101,10 @@ class TriggerStepsMixin(TriggerConfigMixin):
                 config_parts.append(f"above: {tc['trigger_above']}")
             if tc.get("trigger_below") is not None:
                 config_parts.append(f"below: {tc['trigger_below']}")
+            if tc.get("trigger_equals") is not None:
+                config_parts.append(f"= {tc['trigger_equals']}")
+            if tc.get("trigger_not_equals") is not None:
+                config_parts.append(f"≠ {tc['trigger_not_equals']}")
             if tc.get("trigger_for_minutes"):
                 config_parts.append(f"for: {tc['trigger_for_minutes']}min")
         elif trigger_type == TriggerType.COUNTER:

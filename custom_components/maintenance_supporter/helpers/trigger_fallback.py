@@ -14,6 +14,7 @@ every rule is individually testable.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
@@ -44,6 +45,30 @@ def _aggregate(per_entity: list[bool], entity_logic: str) -> bool:
     return all(per_entity) if entity_logic == "all" else any(per_entity)
 
 
+def threshold_exceeds(
+    value: float,
+    *,
+    above: float | None,
+    below: float | None,
+    equals: float | None = None,
+    not_equals: float | None = None,
+) -> bool:
+    """Whether *value* violates any configured threshold limit.
+
+    The single predicate shared by the event-driven ThresholdTrigger and the
+    refresh-time fallback below — keep both surfaces on this one rule.
+    Equality uses ``math.isclose`` so float round-trips (state strings, JSON)
+    can't miss a discrete level like 3.0.
+    """
+    if above is not None and value > above:
+        return True
+    if below is not None and value < below:
+        return True
+    if equals is not None and math.isclose(value, equals, rel_tol=1e-9, abs_tol=1e-9):
+        return True
+    return not_equals is not None and not math.isclose(value, not_equals, rel_tol=1e-9, abs_tol=1e-9)
+
+
 def _numeric_entity_value(get_state: StateGetter, entity_id: str, attribute: str | None) -> float | None:
     """Read a numeric value from an entity state/attribute (None when unusable)."""
     state = get_state(entity_id)
@@ -69,6 +94,8 @@ def evaluate_threshold(
     for_minutes = trigger_config.get("trigger_for_minutes", 0)
     above = trigger_config.get("trigger_above")
     below = trigger_config.get("trigger_below")
+    equals = trigger_config.get("trigger_equals")
+    not_equals = trigger_config.get("trigger_not_equals")
 
     per_entity: list[bool] = []
     last_value: float | None = None
@@ -78,8 +105,7 @@ def evaluate_threshold(
             per_entity.append(False)
             continue
         last_value = value
-        exceeds = (above is not None and value > above) or (below is not None and value < below)
-        per_entity.append(exceeds)
+        per_entity.append(threshold_exceeds(value, above=above, below=below, equals=equals, not_equals=not_equals))
 
     aggregated = _aggregate(per_entity, entity_logic) if per_entity else False
 

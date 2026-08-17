@@ -98,6 +98,8 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         ${triggerType === "threshold" ? html`
           ${tc.trigger_above != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("threshold_above", L)}: ${tc.trigger_above} ${unit}</span>` : nothing}
           ${tc.trigger_below != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("threshold_below", L)}: ${tc.trigger_below} ${unit}</span>` : nothing}
+          ${tc.trigger_equals != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> = ${tc.trigger_equals} ${unit}</span>` : nothing}
+          ${tc.trigger_not_equals != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ≠ ${tc.trigger_not_equals} ${unit}</span>` : nothing}
           ${tc.trigger_for_minutes ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("for_minutes", L)}: ${tc.trigger_for_minutes}</span>` : nothing}
         ` : nothing}
         ${triggerType === "state_change" ? html`

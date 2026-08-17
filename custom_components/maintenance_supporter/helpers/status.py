@@ -35,11 +35,21 @@ def compute_status_from_task_dict(task: dict[str, Any]) -> str:
     # between refreshes.
     if task.get("_paused"):
         return MaintenanceStatus.PAUSED
-    if task.get("_trigger_active", False):
+    days = task.get("_days_until_due")
+
+    # "all" combinator: trigger AND elapsed safety interval must both be met
+    # before the task actions (model twin: MaintenanceTask.status).
+    all_mode = (task.get("trigger_config") or {}).get("trigger_combinator") == "all"
+    time_met = days is None or days <= 0
+    trigger_active = task.get("_trigger_active", False)
+
+    if trigger_active and (not all_mode or time_met):
         return MaintenanceStatus.TRIGGERED
 
-    days = task.get("_days_until_due")
     if days is None:
+        return MaintenanceStatus.OK
+
+    if all_mode and not trigger_active:
         return MaintenanceStatus.OK
 
     warning_days = task.get("warning_days", DEFAULT_WARNING_DAYS)

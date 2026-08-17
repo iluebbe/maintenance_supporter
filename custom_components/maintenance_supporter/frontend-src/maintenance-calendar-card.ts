@@ -5,11 +5,12 @@
  * (clock vs trending-up), prediction-confidence pill, projected recurrences
  * at 55% opacity, today-pill highlight, empty-day collapsing in the year view.
  *
- * Click on an event fires an ``ll-custom`` event with payload
- * ``{type: "maintenance-supporter:open-task", entry_id, task_id}``. The
- * dashboard-strategy bundle's document-level handler picks that up and
- * either opens the task dialog in-place (preferred) or deep-links into the
- * panel as a fallback.
+ * Click on an event opens the task quick-actions dialog (future events) or
+ * the history-edit dialog (past events) DIRECTLY via the shared dialog-mount
+ * — so clicks work on any dashboard, with or without the strategy bundle.
+ * When the dialog helper cannot mount, an ``ll-custom`` event
+ * (``{type: "maintenance-supporter:open-task", entry_id, task_id}``) is
+ * dispatched as the fallback for the strategy bundle's document listener.
  *
  * Card config:
  *
@@ -36,6 +37,7 @@ import {
 import { calendarStyles } from "./calendar-styles";
 import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
+import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -200,29 +202,65 @@ export class MaintenanceCalendarCard extends LitElement {
 
   private _onEventClick(ev: CalendarEvent): void {
     // Past events carry a history_timestamp — those open the history-edit
-    // dialog instead of the task editor. Future / next_due events open
-    // the task editor as usual.
+    // dialog instead of the task editor. Future / next_due events open the
+    // task quick-actions. Dialogs open DIRECTLY via the shared dialog-mount
+    // (same fix the task card got): the ll-custom event this used to
+    // dispatch is only handled by the strategy bundle's document listener,
+    // so on a plain dashboard the clicks silently did nothing. ll-custom
+    // stays as the fallback when the dialog helper cannot mount.
     if (ev.history_timestamp) {
-      this.dispatchEvent(
-        new CustomEvent("ll-custom", {
-          detail: {
-            type: "maintenance-supporter:edit-history",
-            entry_id: ev.entry_id,
-            task_id: ev.task_id,
-            original_timestamp: ev.history_timestamp,
-          },
-          bubbles: true,
-          composed: true,
-        }),
-      );
+      void this._openHistoryEntry(ev);
       return;
     }
+    if (openTaskQuickActions(ev.entry_id, ev.task_id)) return;
     this.dispatchEvent(
       new CustomEvent("ll-custom", {
         detail: {
           type: "maintenance-supporter:open-task",
           entry_id: ev.entry_id,
           task_id: ev.task_id,
+        },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
+  /** Fetch the recorded entry and open the history-edit dialog directly
+   *  (mirrors the strategy shim's ll-custom "edit-history" path). */
+  private async _openHistoryEntry(ev: CalendarEvent): Promise<void> {
+    try {
+      const resp = await this.hass.connection.sendMessagePromise<{
+        tasks?: Array<{ id: string; history?: Array<Record<string, unknown>> }>;
+      }>({ type: "maintenance_supporter/object", entry_id: ev.entry_id });
+      const entry = resp.tasks
+        ?.find((tk) => tk.id === ev.task_id)
+        ?.history?.find((h) => h.timestamp === ev.history_timestamp);
+      if (!entry) return;
+      const opened = openHistoryEditDialog({
+        entry_id: ev.entry_id,
+        task_id: ev.task_id,
+        original_timestamp: ev.history_timestamp!,
+        type: (entry.type as string) || "completed",
+        timestamp: (entry.timestamp as string) || ev.history_timestamp!,
+        notes: (entry.notes as string | null) ?? null,
+        cost: (entry.cost as number | null) ?? null,
+        duration: (entry.duration as number | null) ?? null,
+        completed_by: (entry.completed_by as string | null) ?? null,
+        used_parts:
+          (entry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
+      });
+      if (opened) return;
+    } catch {
+      /* fall through to the ll-custom fallback below */
+    }
+    this.dispatchEvent(
+      new CustomEvent("ll-custom", {
+        detail: {
+          type: "maintenance-supporter:edit-history",
+          entry_id: ev.entry_id,
+          task_id: ev.task_id,
+          original_timestamp: ev.history_timestamp,
         },
         bubbles: true,
         composed: true,
@@ -456,11 +494,11 @@ export class MaintenanceCalendarCard extends LitElement {
 // and user-filter on/off. Same pattern as MaintenanceSupporterCardEditor —
 // LitElement with setConfig + dispatched config-changed.
 
-const WINDOW_DAY_OPTIONS: Array<{ value: WindowDays; label: string }> = [
-  { value: 7, label: "Week (7 days)" },
-  { value: 14, label: "Fortnight (14 days)" },
-  { value: 30, label: "Month (30 days, default)" },
-  { value: 365, label: "Year (365 days, empty days collapsed)" },
+const WINDOW_DAY_KEYS: Array<{ value: WindowDays; key: string }> = [
+  { value: 7, key: "cal_editor_window_week" },
+  { value: 14, key: "cal_editor_window_fortnight" },
+  { value: 30, key: "cal_editor_window_month" },
+  { value: 365, key: "cal_editor_window_year" },
 ];
 
 class MaintenanceCalendarCardEditor extends LitElement {
@@ -469,8 +507,19 @@ class MaintenanceCalendarCardEditor extends LitElement {
     type: "custom:maintenance-supporter-calendar-card",
   };
 
+  private get _lang(): string {
+    return langOf(this.hass);
+  }
+
   setConfig(config: CalendarCardConfig): void {
     this._config = { ...config };
+  }
+
+  /** The editor renders before the locale JSON is fetched — re-render once
+   *  it lands so the labels localize (same pattern as the card itself). */
+  updated(): void {
+    const lang = this._lang;
+    if (lang && !isLocaleLoaded(lang)) void ensureLocale(lang).then(() => this.requestUpdate());
   }
 
   private _valueChanged(key: keyof CalendarCardConfig, value: unknown): void {
@@ -502,6 +551,7 @@ class MaintenanceCalendarCardEditor extends LitElement {
   }
 
   render() {
+    const L = this._lang;
     const currentWindow = this._config.window_days ?? 30;
     const showChips = this._config.show_window_chips !== false;
     const showUserFilter = this._config.show_user_filter !== false;
@@ -510,7 +560,7 @@ class MaintenanceCalendarCardEditor extends LitElement {
     return html`
       <div class="editor">
         <div class="row">
-          <label for="title">Title (optional)</label>
+          <label for="title">${t("card_title", L)}</label>
           <input
             id="title"
             type="text"
@@ -520,7 +570,7 @@ class MaintenanceCalendarCardEditor extends LitElement {
           />
         </div>
         <div class="row">
-          <label for="window">Default window</label>
+          <label for="window">${t("cal_editor_window", L)}</label>
           <select
             id="window"
             @change=${(e: Event) =>
@@ -529,14 +579,14 @@ class MaintenanceCalendarCardEditor extends LitElement {
                 Number((e.target as HTMLSelectElement).value) as WindowDays,
               )}
           >
-            ${WINDOW_DAY_OPTIONS.map(
+            ${WINDOW_DAY_KEYS.map(
               (o) =>
-                html`<option value="${o.value}" ?selected=${o.value === currentWindow}>${o.label}</option>`,
+                html`<option value="${o.value}" ?selected=${o.value === currentWindow}>${t(o.key, L)}</option>`,
             )}
           </select>
         </div>
         <div class="row toggle">
-          <label for="chips">Show window chips inside the card</label>
+          <label for="chips">${t("cal_editor_show_chips", L)}</label>
           <input
             id="chips"
             type="checkbox"
@@ -548,12 +598,9 @@ class MaintenanceCalendarCardEditor extends LitElement {
               )}
           />
         </div>
-        <div class="hint">
-          Hide the chips when the card is embedded in a strategy view that
-          already serves as the window selector.
-        </div>
+        <div class="hint">${t("cal_editor_chips_hint", L)}</div>
         <div class="row toggle">
-          <label for="userf">Show user filter dropdown</label>
+          <label for="userf">${t("cal_editor_show_user_filter", L)}</label>
           <input
             id="userf"
             type="checkbox"
@@ -566,7 +613,7 @@ class MaintenanceCalendarCardEditor extends LitElement {
           />
         </div>
         <div class="row">
-          <label for="userv">Default user filter</label>
+          <label for="userv">${t("cal_editor_default_user", L)}</label>
           <select
             id="userv"
             @change=${(e: Event) =>
@@ -575,14 +622,14 @@ class MaintenanceCalendarCardEditor extends LitElement {
                 (e.target as HTMLSelectElement).value,
               )}
           >
-            <option value="" ?selected=${userFilter === ""}>All users</option>
+            <option value="" ?selected=${userFilter === ""}>${t("all_users", L)}</option>
             <option value="current_user" ?selected=${userFilter === "current_user"}>
-              My tasks (current user)
+              ${t("cal_editor_my_tasks", L)}
             </option>
           </select>
         </div>
         <div class="row toggle">
-          <label for="objf">Show object filter dropdown</label>
+          <label for="objf">${t("cal_editor_show_object_filter", L)}</label>
           <input
             id="objf"
             type="checkbox"
@@ -594,10 +641,7 @@ class MaintenanceCalendarCardEditor extends LitElement {
               )}
           />
         </div>
-        <div class="hint">
-          Pre-select one object via YAML: object_filter: "&lt;object name&gt;" — or a
-          list of names to restrict the card to several objects.
-        </div>
+        <div class="hint">${t("cal_editor_object_hint", L)}</div>
       </div>
     `;
   }

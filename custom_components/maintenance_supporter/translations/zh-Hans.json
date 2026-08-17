@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "高于此值触发",
           "trigger_below": "低于此值触发",
+          "trigger_equals": "等于时触发",
+          "trigger_not_equals": "不等于时触发",
           "trigger_for_minutes": "持续至少 (分钟)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "提前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "当数值超过此阈值时触发维护。",
           "trigger_below": "当数值低于此阈值时触发维护。",
+          "trigger_equals": "当数值等于该水平时触发维护。",
+          "trigger_not_equals": "当数值不同于该水平时触发维护。",
           "trigger_for_minutes": "数值必须超过阈值并保持此分钟数才会触发。",
           "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。",
           "go_back": "返回触发类型选择且不保存。"
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "增量模式 (计算变化量，而非绝对值)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "提前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "如果启用，将计算与基准线的差值而非使用绝对值。",
           "interval_days": "除了计数器触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。",
           "go_back": "返回触发类型选择且不保存。"
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "触发所需的变化次数",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "提前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "触发维护前匹配的状态变化次数。",
           "interval_days": "除了状态变化触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。",
           "go_back": "返回触发类型选择且不保存。"
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "激活状态 (英文逗号分隔)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "提前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成"
@@ -307,6 +318,7 @@
           "trigger_on_states": "哪些传感器状态被视为‘激活’。留空使用默认值：on, 1, true。示例：in_use, running",
           "interval_days": "除了运行时间触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。",
           "go_back": "返回触发类型选择且不保存。"
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "高于此值触发",
           "trigger_below": "低于此值触发",
+          "trigger_equals": "等于时触发",
+          "trigger_not_equals": "不等于时触发",
           "trigger_for_minutes": "持续时长 (分钟)",
           "go_back": "返回"
         },
         "data_description": {
           "trigger_above": "当数值超过此阈值时触发条件。",
           "trigger_below": "当数值低于此阈值时触发条件。",
+          "trigger_equals": "当数值等于该水平时触发维护。",
+          "trigger_not_equals": "当数值不同于该水平时触发维护。",
           "trigger_for_minutes": "数值必须超出阈值并保持此时长。",
           "go_back": "返回条件类型选择且不保存。"
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "高于此值触发",
           "trigger_below": "低于此值触发",
+          "trigger_equals": "等于时触发",
+          "trigger_not_equals": "不等于时触发",
           "trigger_for_minutes": "持续时长 (分钟)",
           "go_back": "返回"
         },
         "data_description": {
           "trigger_above": "当数值超过此阈值时触发条件。",
           "trigger_below": "当数值低于此阈值时触发条件。",
+          "trigger_equals": "当数值等于该水平时触发维护。",
+          "trigger_not_equals": "当数值不同于该水平时触发维护。",
           "trigger_for_minutes": "数值必须超过阈值并保持此时长。"
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "高于此值触发",
           "trigger_below": "低于此值触发",
+          "trigger_equals": "等于时触发",
+          "trigger_not_equals": "不等于时触发",
           "trigger_for_minutes": "持续至少 (分钟)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "提前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "当数值超过此阈值时触发维护。",
           "trigger_below": "当数值低于此阈值时触发维护。",
+          "trigger_equals": "当数值等于该水平时触发维护。",
+          "trigger_not_equals": "当数值不同于该水平时触发维护。",
           "trigger_for_minutes": "数值必须超过阈值并保持此分钟数才会触发。",
           "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。"
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "增量模式 (计算变化量，而非绝对值)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "提前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "如果启用，将计算与基准线的差值而非使用绝对值。",
           "interval_days": "除了计数器触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。"
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "触发所需的变化次数",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "到期前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "触发维护前匹配的状态变化次数。",
           "interval_days": "除了状态变化触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。"
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "激活状态 (英文逗号分隔)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
           "warning_days": "到期前预警天数",
           "go_back": "返回",
           "auto_complete_on_recovery": "传感器恢复时自动完成"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "哪些传感器状态被视为‘激活’。留空使用默认值：on, 1, true。示例：in_use, running",
           "interval_days": "除了运行时间触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。"
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "任一实体触发",
         "all": "所有实体均触发"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "触发器或间隔（先到者）",
+        "all": "触发器与间隔（两者皆需）"
       }
     },
     "notification_title_style": {

@@ -426,6 +426,7 @@ Triggers are configured per task when `schedule_type` is `sensor_based` or when 
 | `type` | enum | *(required)* | Trigger type: `threshold`, `counter`, `state_change`, `runtime`, `compound` |
 | `entity_logic` | enum | `any` | Multi-entity aggregation: `any` (one entity suffices) or `all` (all must match) |
 | `auto_complete_on_recovery` (#53) | bool | `false` | Opt-in per trigger: when the sensor recovers on its own — salt refilled, filter swapped, water level back up — the recovery **is** the maintenance, so a real completion is recorded (`last_performed` and the time-between-services statistics stay honest) instead of the trigger just clearing. Ticked in the task dialog's trigger section. Only the automatic evaluation path records it; a manual Complete / Skip resets the trigger without double-recording |
+| `trigger_combinator` (2.59+) | enum | `any` | How the trigger pairs with the task's safety interval. `any`: whichever is met first makes the task due (the historical behaviour). `all`: the task only becomes due once the trigger fired **and** the interval elapsed — the interval acts as a minimum age instead of a deadline (e.g. "replace the filter when the sensor says so, but never more often than every 3 months"). Selectable in the task dialog and both config flows whenever a safety interval is set |
 
 > **Form ids vs stored keys:** the options-flow trigger form labels its first two
 > fields `trigger_entity` and `trigger_attribute`, but those ids never reach
@@ -439,15 +440,19 @@ A multi-entity threshold in the task dialog — one rule watching several sensor
 
 ### Threshold Trigger
 
-Activates when a sensor value crosses above or below a limit.
+Activates when a sensor value crosses above or below a limit — or matches
+(`=`) / leaves (`≠`) a discrete level, e.g. a filter-stage or error-code sensor.
 
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `trigger_above` | float | *(none)* | — | Trigger when value exceeds this threshold |
 | `trigger_below` | float | *(none)* | — | Trigger when value falls below this threshold |
+| `trigger_equals` | float | *(none)* | — | Trigger when value equals this level exactly |
+| `trigger_not_equals` | float | *(none)* | — | Trigger when value differs from this level |
 | `trigger_for_minutes` | int | 0 | 0–1440 | Minutes the condition must hold before triggering (debounce). 0 = immediate |
 
-At least one of `trigger_above` or `trigger_below` must be set.
+At least one of `trigger_above`, `trigger_below`, `trigger_equals` or
+`trigger_not_equals` must be set.
 
 ### Counter Trigger
 

@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Attiva quando superiore a",
           "trigger_below": "Attiva quando inferiore a",
+          "trigger_equals": "Attiva quando uguale a",
+          "trigger_not_equals": "Attiva quando diverso da",
           "trigger_for_minutes": "Per almeno (minuti)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Attiva la manutenzione quando il valore supera questa soglia.",
           "trigger_below": "Attiva la manutenzione quando il valore scende sotto questa soglia.",
+          "trigger_equals": "Attiva la manutenzione quando il valore è uguale a questo livello.",
+          "trigger_not_equals": "Attiva la manutenzione quando il valore differisce da questo livello.",
           "trigger_for_minutes": "Il valore deve superare la soglia per questo numero di minuti prima dell'attivazione.",
           "interval_days": "Intervallo di sicurezza temporale opzionale in aggiunta al trigger sensore.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
           "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Modalità delta (conta le variazioni, non il valore assoluto)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Se abilitato, conta la differenza rispetto a un valore base invece del valore assoluto.",
           "interval_days": "Intervallo di sicurezza temporale opzionale in aggiunta al trigger contatore.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
           "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Numero di cambiamenti per attivare",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Numero di cambiamenti di stato corrispondenti prima di attivare la manutenzione.",
           "interval_days": "Intervallo di sicurezza temporale opzionale in aggiunta al trigger di cambio stato.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
           "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Stati attivi (separati da virgole)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Quali stati del sensore contano come 'attivo'. Lasciare vuoto per predefinito: on, 1, true. Esempio: in_use, running",
           "interval_days": "Intervallo di sicurezza temporale opzionale in aggiunta al trigger di tempo di funzionamento.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
           "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Attiva sopra",
           "trigger_below": "Attiva sotto",
+          "trigger_equals": "Attiva quando uguale a",
+          "trigger_not_equals": "Attiva quando diverso da",
           "trigger_for_minutes": "Durata (minuti)",
           "go_back": "Indietro"
         },
         "data_description": {
           "trigger_above": "Attiva quando il valore supera questa soglia.",
           "trigger_below": "Attiva quando il valore scende sotto questa soglia.",
+          "trigger_equals": "Attiva la manutenzione quando il valore è uguale a questo livello.",
+          "trigger_not_equals": "Attiva la manutenzione quando il valore differisce da questo livello.",
           "trigger_for_minutes": "Il valore deve rimanere oltre la soglia per questa durata.",
           "go_back": "Tornare alla selezione del tipo di condizione senza salvare."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Attiva sopra",
           "trigger_below": "Attiva sotto",
+          "trigger_equals": "Attiva quando uguale a",
+          "trigger_not_equals": "Attiva quando diverso da",
           "trigger_for_minutes": "Durata (minuti)",
           "go_back": "Indietro"
         },
         "data_description": {
           "trigger_above": "Attiva quando il valore supera questa soglia.",
           "trigger_below": "Attiva quando il valore scende sotto questa soglia.",
+          "trigger_equals": "Attiva la manutenzione quando il valore è uguale a questo livello.",
+          "trigger_not_equals": "Attiva la manutenzione quando il valore differisce da questo livello.",
           "trigger_for_minutes": "Il valore deve rimanere oltre la soglia per questa durata."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Attiva quando superiore a",
           "trigger_below": "Attiva quando inferiore a",
+          "trigger_equals": "Attiva quando uguale a",
+          "trigger_not_equals": "Attiva quando diverso da",
           "trigger_for_minutes": "Per almeno (minuti)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Attivare la manutenzione quando il valore supera questa soglia.",
           "trigger_below": "Attivare la manutenzione quando il valore scende sotto questa soglia.",
+          "trigger_equals": "Attiva la manutenzione quando il valore è uguale a questo livello.",
+          "trigger_not_equals": "Attiva la manutenzione quando il valore differisce da questo livello.",
           "trigger_for_minutes": "Il valore deve superare la soglia per questo numero di minuti prima dell'attivazione.",
           "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del sensore.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Modalità delta (conta le variazioni, non il valore assoluto)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Se abilitato, conta la differenza da un valore di base invece del valore assoluto.",
           "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del contatore.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Numero di cambiamenti per attivare",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Numero di cambiamenti di stato corrispondenti prima di attivare la manutenzione.",
           "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger di cambio stato.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Stati attivi (separati da virgole)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Quali stati del sensore contano come 'attivo'. Lasciare vuoto per predefinito: on, 1, true. Esempio: in_use, running",
           "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del tempo di esecuzione.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Qualsiasi entità attiva",
         "all": "Tutte le entità devono attivare"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Trigger o intervallo (il primo)",
+        "all": "Trigger e intervallo (entrambi richiesti)"
       }
     },
     "notification_title_style": {

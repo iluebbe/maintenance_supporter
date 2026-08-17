@@ -228,9 +228,12 @@
         "data": {
           "trigger_above": "Laukaise yläpuolella",
           "trigger_below": "Laukaise alapuolella",
+          "trigger_equals": "Laukaise kun yhtä suuri kuin",
+          "trigger_not_equals": "Laukaise kun eri kuin",
           "trigger_for_minutes": "Vähintään (minuuttia)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
@@ -238,9 +241,12 @@
         "data_description": {
           "trigger_above": "Laukaise huolto, kun arvo ylittää tämän kynnysarvon.",
           "trigger_below": "Laukaise huolto, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_equals": "Laukaise huolto, kun arvo on yhtä suuri kuin tämä taso.",
+          "trigger_not_equals": "Laukaise huolto, kun arvo poikkeaa tästä tasosta.",
           "trigger_for_minutes": "Arvon on ylitettävä kynnysarvo näin monta minuuttia ennen laukaisua.",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
           "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
         }
@@ -253,6 +259,7 @@
           "trigger_delta_mode": "Erotustila (laske muutokset, ei absoluuttista arvoa)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu",
@@ -263,6 +270,7 @@
           "trigger_delta_mode": "Jos käytössä, lasketaan erotus lähtötasosta absoluuttisen arvon sijaan.",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli laskurilaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
           "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
         }
@@ -276,6 +284,7 @@
           "trigger_target_changes": "Muutosten määrä laukaisuun",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
@@ -286,6 +295,7 @@
           "trigger_target_changes": "Vastaavien tilanmuutosten määrä ennen huollon laukaisua.",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli tilanmuutoslaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
           "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
         }
@@ -298,6 +308,7 @@
           "trigger_on_states": "Aktiiviset tilat (pilkulla eroteltuna)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
@@ -307,6 +318,7 @@
           "trigger_on_states": "Mitkä anturin tilat lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle: on, 1, true. Esimerkki: in_use, running",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli käyntiaikalaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
           "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
         }
@@ -353,12 +365,16 @@
         "data": {
           "trigger_above": "Laukaise yläpuolella",
           "trigger_below": "Laukaise alapuolella",
+          "trigger_equals": "Laukaise kun yhtä suuri kuin",
+          "trigger_not_equals": "Laukaise kun eri kuin",
           "trigger_for_minutes": "Kesto (minuuttia)",
           "go_back": "Palaa takaisin"
         },
         "data_description": {
           "trigger_above": "Laukaise, kun arvo ylittää tämän kynnysarvon.",
           "trigger_below": "Laukaise, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_equals": "Laukaise huolto, kun arvo on yhtä suuri kuin tämä taso.",
+          "trigger_not_equals": "Laukaise huolto, kun arvo poikkeaa tästä tasosta.",
           "trigger_for_minutes": "Arvon on pysyttävä kynnysarvon ulkopuolella tämän keston ajan.",
           "go_back": "Palaa ehtotyypin valintaan tallentamatta."
         }
@@ -762,12 +778,16 @@
         "data": {
           "trigger_above": "Laukaise yläpuolella",
           "trigger_below": "Laukaise alapuolella",
+          "trigger_equals": "Laukaise kun yhtä suuri kuin",
+          "trigger_not_equals": "Laukaise kun eri kuin",
           "trigger_for_minutes": "Kesto (minuuttia)",
           "go_back": "Palaa takaisin"
         },
         "data_description": {
           "trigger_above": "Laukaise, kun arvo ylittää tämän kynnysarvon.",
           "trigger_below": "Laukaise, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_equals": "Laukaise huolto, kun arvo on yhtä suuri kuin tämä taso.",
+          "trigger_not_equals": "Laukaise huolto, kun arvo poikkeaa tästä tasosta.",
           "trigger_for_minutes": "Arvon on pysyttävä kynnysarvon ulkopuolella tämän keston ajan."
         }
       },
@@ -1004,9 +1024,12 @@
         "data": {
           "trigger_above": "Laukaise yläpuolella",
           "trigger_below": "Laukaise alapuolella",
+          "trigger_equals": "Laukaise kun yhtä suuri kuin",
+          "trigger_not_equals": "Laukaise kun eri kuin",
           "trigger_for_minutes": "Vähintään (minuuttia)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
@@ -1014,9 +1037,12 @@
         "data_description": {
           "trigger_above": "Laukaise huolto, kun arvo ylittää tämän kynnysarvon.",
           "trigger_below": "Laukaise huolto, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_equals": "Laukaise huolto, kun arvo on yhtä suuri kuin tämä taso.",
+          "trigger_not_equals": "Laukaise huolto, kun arvo poikkeaa tästä tasosta.",
           "trigger_for_minutes": "Arvon on ylitettävä kynnysarvo näin monta minuuttia ennen laukaisua.",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
         }
       },
@@ -1028,6 +1054,7 @@
           "trigger_delta_mode": "Erotustila (laske muutokset, ei absoluuttista arvoa)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu",
@@ -1038,6 +1065,7 @@
           "trigger_delta_mode": "Jos käytössä, lasketaan erotus lähtötasosta absoluuttisen arvon sijaan.",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli laskurilaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
         }
       },
@@ -1050,6 +1078,7 @@
           "trigger_target_changes": "Muutosten määrä laukaisuun",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
@@ -1060,6 +1089,7 @@
           "trigger_target_changes": "Vastaavien tilanmuutosten määrä ennen huollon laukaisua.",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli tilanmuutoslaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
         }
       },
@@ -1071,6 +1101,7 @@
           "trigger_on_states": "Aktiiviset tilat (pilkulla eroteltuna)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
           "warning_days": "Varoituspäivät ennen eräpäivää",
           "go_back": "Palaa takaisin",
           "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
@@ -1080,6 +1111,7 @@
           "trigger_on_states": "Mitkä anturin tilat lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle: on, 1, true. Esimerkki: in_use, running",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli käyntiaikalaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
         }
       },
@@ -1480,6 +1512,12 @@
       "options": {
         "any": "Mikä tahansa entiteetti laukaisee",
         "all": "Kaikkien entiteettien on lauettava"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Laukaisin tai väli (ensin täyttyvä)",
+        "all": "Laukaisin ja väli (molemmat vaaditaan)"
       }
     },
     "notification_title_style": {

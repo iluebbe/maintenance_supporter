@@ -48,6 +48,8 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   environmental_attribute: "environmental_attribute_optional",
   trigger_above: "trigger_above",
   trigger_below: "trigger_below",
+  trigger_equals: "trigger_equals",
+  trigger_not_equals: "trigger_not_equals",
   trigger_for_minutes: "trigger_for_minutes",
 };
 
