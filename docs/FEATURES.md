@@ -105,8 +105,11 @@ documents.
 ![Objects table](images/objects-table.png)
 
 ### Complete Dialog
-Optional notes / cost / duration and a completion photo (camera capture on
-mobile); checklist steps tick off right in the dialog. When the task
+Optional notes / cost / duration, an optional **Completed at** date for
+backfilling work that was done earlier (empty = now; see
+[Events](#events) for how backdated entries behave), and a completion
+photo (camera capture on mobile); checklist steps tick off right in the
+dialog. When the task
 consumes spare parts that carry unit prices, their sum appears as a
 **one-click cost suggestion** under the cost field — following your live
 parts selection, and vanishing the moment you type a cost yourself.
@@ -538,12 +541,13 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - 47 object templates in 9 categories — Vehicle, Home & HVAC, Household & Routines, Garden & Outdoor, Pool, Appliances, Pets, Tech & IT, Health (car, e-bike, HVAC, ventilation system, fireplace, smoke detectors, bathroom/bedroom/kitchen routines, robot vacuums, espresso machine, RO water filter, irrigation, litter box, aquarium, printer, NAS, wallbox, CPAP, hearing aids, …) — fully localized, curatable via Settings → Template gallery
 
 ### Sensor-Based Triggers
-- **Threshold**: trigger when a sensor value exceeds or falls below a limit (with optional duration)
+- **Threshold**: trigger when a sensor value exceeds or falls below a limit — or equals (`=`) / deviates from (`≠`) a discrete level such as a filter stage or error code (with optional duration)
 - **Counter**: trigger when accumulated value reaches a target (absolute or delta mode)
 - **State change**: trigger after a number of state transitions (e.g., on/off cycles)
 - **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime)
 - **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime)
 - Multi-entity support for all trigger types (any/all entity logic)
+- **Trigger ∧ interval combinator**: a trigger task can also carry a safety interval — by default whichever is met first makes the task due; with the `all` combinator the task only becomes due once the trigger fired *and* the interval elapsed (the interval acts as a minimum age, e.g. "when the sensor says so, but never more often than every 3 months")
 - **Auto-complete on sensor recovery** (2.12.0+, opt-in per task, #53) — when the trigger clears itself (salt refilled, filter swapped, pressure topped up), the task records a completion automatically: `last performed` and the time-between-services statistics stay real without opening the app. Manual completes are unaffected, and a just-completed task never double-records
 - **Entity attribute introspection** — trigger setup shows domain-specific attribute suggestions (e.g., `current_temperature` for climate entities)
 - Automatic entity availability tracking with grace periods

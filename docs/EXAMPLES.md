@@ -460,7 +460,7 @@ object_filter: ""                     # "" | "<entry_id>" | "<object name>" — 
                                       #   object_filter: ["Pool Pump", "Family Car"]
 ```
 
-Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Clicking an event opens the task editor **in-place** where the dashboard-strategy bundle is loaded to catch it; otherwise the card falls back to deep-linking into the panel on that task.
+Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Clicking an event opens the task **quick-actions dialog** in place — on any dashboard, with or without the strategy bundle; in `past_days` mode a click opens the history entry for editing. The card's visual editor is fully localized.
 
 The dashboard strategy's `group_by: calendar` mode wraps four instances of this card (week / fortnight / month / year) as separate views, with the chips hidden because the tab bar already serves as the window selector.
 
