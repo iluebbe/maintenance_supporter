@@ -2,6 +2,59 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.59.0] - 2026-08-18
+
+### ✨ Added
+
+- **Backdate a completion** (Discussion #133, thanks @MarcoK89). The
+  completion dialog gains an optional **Completed at** field (empty =
+  now), and the same `completed_at` parameter exists on the
+  `task/complete` WebSocket command and the
+  `maintenance_supporter.complete` service — so recording work that was
+  done earlier no longer needs a second edit step. If the chosen moment
+  is still the task's latest completion, the cycle advances anchored on
+  it (`last_performed`, next due date, adaptive learning with the real
+  elapsed interval). If it is older, it is a pure backfill: the history
+  entry with cost and parts is recorded, but the live cycle, an armed
+  trigger, a postponed due date and the chore rotation stay untouched —
+  and the task's `on_complete_action` is skipped, so backfilling old
+  records can't reset a device counter today. Future dates are
+  rejected; a deliberate backfill bypasses the double-tap guard and,
+  for past days, the earliest-completion window.
+- **`completed_at` + `backfill` in the completion event.** The
+  `maintenance_supporter_task_completed` payload now carries the
+  history entry's own timestamp — for a backdated completion that is
+  the chosen past moment, not the moment the event fired — plus a
+  `backfill` flag, so period-bucketing automations (yearly cost
+  counters) attribute entries to the right year.
+- **Threshold operators `=` and `≠`.** Threshold triggers can now fire
+  while a sensor value *equals* — or *deviates from* — a discrete
+  level (filter stages, error codes), in addition to above/below.
+  Available in the task dialog, both config flows and compound
+  conditions, with strings in all 22 languages.
+- **Trigger ∧ interval combinator.** A trigger task with a safety
+  interval can now demand **both**: with the new "Trigger and interval
+  (both required)" option the task only becomes due once the trigger
+  fired *and* the interval elapsed — the interval acts as a minimum
+  age ("when the sensor says so, but never more often than every
+  3 months"). Default stays "whichever first".
+
+### 🐛 Fixed
+
+- **Calendar card events are clickable on any dashboard.** Clicking an
+  event opens the task quick-actions dialog (future events) or the
+  history-edit dialog (past-days mode) directly — previously the click
+  only worked where the dashboard-strategy bundle happened to be
+  loaded, and silently did nothing on a plain dashboard.
+- **Calendar card editor is localized.** The card's visual editor
+  (window options, filter toggles, hints) rendered hard-coded English;
+  it now follows the profile language in all 22 languages.
+- A latched trigger now repaints the task entity's attributes even when
+  the status does not change (visible with the new "all" combinator,
+  where an armed trigger can be waiting on the interval leg).
+- History-edit reconciliation now counts *missed* entries as cycle
+  anchors, matching how skipping-as-missed actually moves the cycle.
+
 ## [2.58.0] - 2026-08-16
 
 ### ✨ Added
