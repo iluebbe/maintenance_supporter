@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Completed by",
           "description": "Person who performed the maintenance (must be linked to a Home Assistant user). When omitted, the user triggering the call is recorded."
+        },
+        "completed_at": {
+          "name": "Completed at",
+          "description": "When the maintenance was actually performed — use it to backfill a past completion. Must not be in the future; when omitted, now is recorded."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "“{task_name}” requires these details when you complete it: {fields}. Complete it from the Maintenance panel or card so you can fill them in."
+    },
+    "completed_at_in_future": {
+      "message": "The completion date cannot be in the future."
     }
   },
   "triggers": {

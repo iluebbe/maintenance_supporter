@@ -129,6 +129,8 @@
   "notes_optional": "Notizen (optional)",
   "cost_optional": "Kosten (optional)",
   "duration_minutes": "Dauer in Minuten (optional)",
+  "completed_at_optional": "Erledigt am (optional, leer = jetzt)",
+  "completed_at_future_error": "Das Erledigungsdatum darf nicht in der Zukunft liegen.",
   "days": "Tage",
   "day": "Tag",
   "today": "Heute",

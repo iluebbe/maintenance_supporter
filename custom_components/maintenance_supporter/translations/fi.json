@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Suorittaja",
           "description": "Huollon suorittanut henkilö (on oltava liitetty Home Assistant -käyttäjään). Jos jätetään pois, kirjataan kutsun käynnistänyt käyttäjä."
+        },
+        "completed_at": {
+          "name": "Suoritettu",
+          "description": "Milloin huolto todella tehtiin — aiemman suorituksen jälkikirjaukseen. Ei saa olla tulevaisuudessa; jos jätetään pois, kirjataan nykyhetki."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "”{task_name}” vaatii nämä tiedot valmistuessaan: {fields}. Merkitse tehtävä valmiiksi huoltopaneelista tai kortista, jotta voit täyttää ne."
+    },
+    "completed_at_in_future": {
+      "message": "Suorituspäivä ei voi olla tulevaisuudessa."
     }
   },
   "triggers": {

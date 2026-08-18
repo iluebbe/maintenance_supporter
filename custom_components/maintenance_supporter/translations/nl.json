@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Voltooid door",
           "description": "Persoon die het onderhoud heeft uitgevoerd (moet gekoppeld zijn aan een Home Assistant-gebruiker). Indien weggelaten wordt de aanroepende gebruiker vastgelegd."
+        },
+        "completed_at": {
+          "name": "Voltooid op",
+          "description": "Wanneer het onderhoud daadwerkelijk is uitgevoerd — om een eerdere voltooiing achteraf in te voeren. Mag niet in de toekomst liggen; indien weggelaten wordt nu geregistreerd."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "“{task_name}” vereist deze gegevens bij het afronden: {fields}. Rond de taak af via het onderhoudspaneel of de kaart om ze in te vullen."
+    },
+    "completed_at_in_future": {
+      "message": "De voltooiingsdatum mag niet in de toekomst liggen."
     }
   },
   "triggers": {

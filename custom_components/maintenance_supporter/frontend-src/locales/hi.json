@@ -129,6 +129,8 @@
   "notes_optional": "टिप्पणियाँ (वैकल्पिक)",
   "cost_optional": "लागत (वैकल्पिक)",
   "duration_minutes": "मिनटों में अवधि (वैकल्पिक)",
+  "completed_at_optional": "पूर्ण होने का समय (वैकल्पिक, खाली = अभी)",
+  "completed_at_future_error": "पूर्णता की तारीख भविष्य में नहीं हो सकती।",
   "days": "दिन",
   "day": "दिन",
   "today": "आज",

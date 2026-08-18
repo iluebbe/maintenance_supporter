@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Completado por",
           "description": "Persona que realizó el mantenimiento (debe estar vinculada a un usuario de Home Assistant). Si se omite, se registra el usuario que activó la llamada."
+        },
+        "completed_at": {
+          "name": "Completado el",
+          "description": "Cuándo se realizó realmente el mantenimiento — para registrar a posteriori una tarea pasada. No puede estar en el futuro; si se omite, se registra ahora."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "“{task_name}” requiere estos datos al completarla: {fields}. Complétala desde el panel de mantenimiento o la tarjeta para introducirlos."
+    },
+    "completed_at_in_future": {
+      "message": "La fecha de finalización no puede estar en el futuro."
     }
   },
   "triggers": {

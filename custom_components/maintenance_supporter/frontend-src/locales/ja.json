@@ -129,6 +129,8 @@
   "notes_optional": "メモ（任意）",
   "cost_optional": "費用（任意）",
   "duration_minutes": "所要時間（分、任意）",
+  "completed_at_optional": "完了日時（任意・空欄 = 現在）",
+  "completed_at_future_error": "完了日時に未来は指定できません。",
   "days": "日",
   "day": "日",
   "today": "今日",

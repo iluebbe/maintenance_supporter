@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import Any
 from uuid import uuid4
 
@@ -12,6 +12,7 @@ from homeassistant.util import dt as dt_util
 from ..const import (
     DEFAULT_MAX_HISTORY_ENTRIES,
     DEFAULT_WARNING_DAYS,
+    LIFECYCLE_HISTORY_TYPES,
     HistoryEntryType,
     MaintenanceStatus,
     MaintenanceTypeEnum,
@@ -313,24 +314,54 @@ class MaintenanceTask:
         reading_value: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
-    ) -> None:
+        completed_at: datetime | None = None,
+    ) -> bool:
         """Mark this task as completed.
 
         ``auto`` marks a completion nobody performed in the UI (a trigger
         recovering on its own): the history entry is flagged so surfaces can
         label it, and the rotation pointer stays put — advancing it would
-        credit/skip a pool member for work nobody attributed."""
-        # Save current next_due as anchor for planned mode before resetting
-        if self.interval_anchor == "planned" and self.next_due is not None:
-            self.last_planned_due = self.next_due.isoformat()
+        credit/skip a pool member for work nobody attributed.
 
-        now = dt_util.now()
-        self.last_performed = now.date().isoformat()
-        self._trigger_active = False
-        self._trigger_current_value = None
-        # A postponed occurrence is consumed by completing it — the next cycle
-        # returns to the normal cadence.
-        self.due_override = None
+        ``completed_at`` (#133) records the completion at a past moment
+        instead of now. When that moment is still the LATEST lifecycle entry
+        ("did it three days ago, logging it now") the cycle advances exactly
+        like a normal completion. When it is OLDER than the latest lifecycle
+        entry it is a pure backfill: only the history entry is written — the
+        cycle anchor, trigger latch, postpone override, planned anchor and
+        rotation pointer all stay put (moving them would throw the live cycle
+        backwards). Mirrors the history-edit reconciliation's
+        max-by-timestamp rule (websocket/tasks_history.py).
+
+        Returns True when the completion advanced the cycle (it was the
+        latest lifecycle entry), False for a pure backfill.
+        """
+        ts = completed_at if completed_at is not None else dt_util.now()
+        ts_iso = ts.isoformat()
+        # String comparison, deliberately — history timestamps mix TZ-aware
+        # (live completions) and naive (hand-edited) values, and the edit
+        # reconciliation already compares them as strings. last_performed
+        # (date-only ISO) joins the anchors: an imported or history-trimmed
+        # task has a cycle anchor but no lifecycle entries, and a backfill
+        # must not drag that anchor backwards either. A full timestamp on the
+        # same day sorts after the bare date, so a same-day completion still
+        # counts as latest.
+        anchors = [h.get("timestamp") or "" for h in self.history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
+        if self.last_performed:
+            anchors.append(self.last_performed)
+        is_latest = ts_iso >= max(anchors, default="")
+
+        if is_latest:
+            # Save current next_due as anchor for planned mode before resetting
+            if self.interval_anchor == "planned" and self.next_due is not None:
+                self.last_planned_due = self.next_due.isoformat()
+
+            self.last_performed = ts.date().isoformat()
+            self._trigger_active = False
+            self._trigger_current_value = None
+            # A postponed occurrence is consumed by completing it — the next
+            # cycle returns to the normal cadence.
+            self.due_override = None
 
         self.add_history_entry(
             entry_type=HistoryEntryType.COMPLETED,
@@ -344,13 +375,18 @@ class MaintenanceTask:
             reading_value=reading_value,
             used_parts=used_parts,
             auto=auto,
+            timestamp=ts_iso,
         )
 
         # Shared tasks: rotate the "currently responsible" pointer to the next
         # assignee for the coming cycle (after this completion is recorded, so
         # least_completed sees it). Auto-completions don't rotate — see above.
-        if not auto:
+        # Pure backfills don't either: the coming cycle's assignee was already
+        # decided by the real latest completion.
+        if not auto and is_latest:
             self.advance_rotation()
+
+        return is_latest
 
     def advance_rotation(self) -> None:
         """Advance ``responsible_user_id`` to the next pool member.
@@ -433,10 +469,15 @@ class MaintenanceTask:
         reading_value: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
+        timestamp: str | None = None,
     ) -> None:
-        """Add an entry to the maintenance history."""
+        """Add an entry to the maintenance history.
+
+        ``timestamp`` overrides the default "now" (backdated completions,
+        #133). Entries are APPENDED regardless of chronology — consumers that
+        need order sort defensively, same as after a history-edit."""
         entry: dict[str, Any] = {
-            "timestamp": dt_util.now().isoformat(),
+            "timestamp": timestamp or dt_util.now().isoformat(),
             "type": entry_type,
         }
         if auto:

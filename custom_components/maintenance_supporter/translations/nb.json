@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Utført av",
           "description": "Person som utførte vedlikeholdet (må være knyttet til en Home Assistant-bruker). Hvis utelatt registreres brukeren som utløste kallet."
+        },
+        "completed_at": {
+          "name": "Utført den",
+          "description": "Når vedlikeholdet faktisk ble utført — for å etterregistrere en tidligere fullføring. Kan ikke ligge i fremtiden; utelates den, registreres nå."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "«{task_name}» krever disse opplysningene når du fullfører den: {fields}. Fullfør oppgaven fra vedlikeholdspanelet eller kortet for å fylle dem ut."
+    },
+    "completed_at_in_future": {
+      "message": "Fullføringsdatoen kan ikke ligge i fremtiden."
     }
   },
   "triggers": {

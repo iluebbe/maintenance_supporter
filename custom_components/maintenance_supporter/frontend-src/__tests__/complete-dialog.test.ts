@@ -101,6 +101,41 @@ describe("complete-dialog", () => {
     expect("feedback" in msg).to.be.false;
     expect("checklist_state" in msg).to.be.false;
     expect("photo_doc_id" in msg).to.be.false;
+    expect("completed_at" in msg).to.be.false;
+  });
+
+  it("sends completed_at with seconds re-added when a backdate is picked (#133)", async () => {
+    const { el, sent } = await mount();
+    const dt = el.shadowRoot!.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
+    expect(dt, "backdate field rendered").to.exist;
+    dt.value = "2026-01-10T14:30";
+    dt.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+
+    clickComplete(el);
+    await new Promise((r) => setTimeout(r, 10));
+
+    const msg = sent.find((m) => m.type === "maintenance_supporter/task/complete")!;
+    expect(msg).to.exist;
+    expect(msg.completed_at).to.equal("2026-01-10T14:30:00");
+  });
+
+  it("rejects a future completed_at client-side without a WS roundtrip (#133)", async () => {
+    const { el, sent } = await mount();
+    const future = new Date(Date.now() + 48 * 3600 * 1000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const v = `${future.getFullYear()}-${pad(future.getMonth() + 1)}-${pad(future.getDate())}T12:00`;
+    const dt = el.shadowRoot!.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
+    dt.value = v;
+    dt.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+
+    clickComplete(el);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(sent.find((m) => m.type === "maintenance_supporter/task/complete")).to.equal(undefined);
+    await el.updateComplete;
+    expect(el.shadowRoot!.textContent).to.include("future");
   });
 
   it("attaches an uploaded photo as photo_doc_id", async () => {

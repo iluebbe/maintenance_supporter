@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Dokončil(a)",
           "description": "Osoba, která údržbu provedla (musí být propojena s uživatelem Home Assistant). Pokud není uvedeno, zaznamená se volající uživatel."
+        },
+        "completed_at": {
+          "name": "Dokončeno dne",
+          "description": "Kdy byla údržba skutečně provedena — pro zpětné doplnění dřívějšího dokončení. Nesmí být v budoucnosti; při vynechání se zaznamená nyní."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "„{task_name}“ při dokončení vyžaduje tyto údaje: {fields}. Dokončete úlohu v panelu údržby nebo na kartě, abyste je mohli vyplnit."
+    },
+    "completed_at_in_future": {
+      "message": "Datum dokončení nesmí být v budoucnosti."
     }
   },
   "triggers": {

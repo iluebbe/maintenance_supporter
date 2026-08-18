@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Effectué par",
           "description": "Personne ayant effectué la maintenance (doit être liée à un utilisateur Home Assistant). Si omis, l'utilisateur à l'origine de l'appel est enregistré."
+        },
+        "completed_at": {
+          "name": "Effectué le",
+          "description": "Quand l'entretien a réellement été effectué — pour saisir a posteriori un entretien passé. Ne doit pas être dans le futur ; si omis, l'instant présent est enregistré."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "« {task_name} » exige ces informations à la clôture : {fields}. Terminez la tâche depuis le panneau de maintenance ou la carte pour les saisir."
+    },
+    "completed_at_in_future": {
+      "message": "La date d'achèvement ne peut pas être dans le futur."
     }
   },
   "triggers": {

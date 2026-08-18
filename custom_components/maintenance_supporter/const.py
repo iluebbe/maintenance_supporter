@@ -629,6 +629,22 @@ class HistoryEntryType(StrEnum):
     TRIGGER_REPLACED = "trigger_replaced"
 
 
+# Entry types that reset the maintenance cycle — the ``last_performed`` anchor
+# is always the LATEST such entry (by timestamp). Shared by the history-edit
+# reconciliation and the backdated-completion path (#133) so the two can't
+# drift on what counts as a cycle anchor. MISSED is included because
+# ``skip(as_missed=True)`` moves ``last_performed`` exactly like a skip —
+# the edit path historically omitted it (latent reconciliation gap).
+LIFECYCLE_HISTORY_TYPES = frozenset(
+    {
+        HistoryEntryType.COMPLETED,
+        HistoryEntryType.RESET,
+        HistoryEntryType.SKIPPED,
+        HistoryEntryType.MISSED,
+    }
+)
+
+
 class MaintenanceFeedback(StrEnum):
     """Feedback from user about whether maintenance was needed."""
 

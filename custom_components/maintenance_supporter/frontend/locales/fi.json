@@ -129,6 +129,8 @@
   "notes_optional": "Muistiinpanot (valinnainen)",
   "cost_optional": "Kustannus (valinnainen)",
   "duration_minutes": "Kesto minuutteina (valinnainen)",
+  "completed_at_optional": "Suoritettu (valinnainen, tyhjä = nyt)",
+  "completed_at_future_error": "Suorituspäivä ei voi olla tulevaisuudessa.",
   "days": "päivää",
   "day": "päivä",
   "today": "Tänään",

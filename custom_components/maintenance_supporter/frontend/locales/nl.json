@@ -128,6 +128,8 @@
   "notes_optional": "Notities (optioneel)",
   "cost_optional": "Kosten (optioneel)",
   "duration_minutes": "Duur in minuten (optioneel)",
+  "completed_at_optional": "Voltooid op (optioneel, leeg = nu)",
+  "completed_at_future_error": "De voltooiingsdatum mag niet in de toekomst liggen.",
   "days": "dagen",
   "day": "dag",
   "today": "Vandaag",

@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Slutförd av",
           "description": "Person som utförde underhållet (måste vara kopplad till en Home Assistant-användare). Om utelämnad registreras användaren som utlöste anropet."
+        },
+        "completed_at": {
+          "name": "Utförd den",
+          "description": "När underhållet faktiskt utfördes — för att efterregistrera ett tidigare slutförande. Får inte ligga i framtiden; om det utelämnas registreras nu."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "”{task_name}” kräver dessa uppgifter när du slutför den: {fields}. Slutför uppgiften från underhållspanelen eller kortet för att fylla i dem."
+    },
+    "completed_at_in_future": {
+      "message": "Slutförandedatumet får inte ligga i framtiden."
     }
   },
   "triggers": {

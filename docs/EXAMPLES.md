@@ -258,6 +258,24 @@ data:
   duration: 30
 ```
 
+### Backfill a past completion (#133)
+
+`completed_at` records when the work was *actually* done (must not be in the
+future). The `maintenance_supporter_task_completed` event carries the same
+moment as `completed_at`, so period-bucketing automations (e.g. yearly cost
+counters keyed on `trigger.event.data.completed_at`) attribute it correctly.
+If the moment is older than the task's latest completion, only the history
+entry is written — the live cycle, trigger latch and rotation stay untouched.
+
+```yaml
+service: maintenance_supporter.complete
+data:
+  entity_id: sensor.family_car_oil_change
+  completed_at: "2026-03-14 10:30:00"
+  cost: 129.50
+  notes: "Backfilled from the garage invoice"
+```
+
 ### Attribute and assign chores from automations (#128)
 
 Both fields take a **person entity** (a validated picker — no free-text user

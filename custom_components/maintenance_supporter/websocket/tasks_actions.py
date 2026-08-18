@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.util import dt as dt_util
 
 from ..const import (
     CONF_TASKS,
@@ -88,6 +90,10 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
             None,
         ),
         vol.Optional("feedback"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        # #133: when the maintenance was actually performed (ISO datetime,
+        # naive = local). Backfills a past completion; must not be in the
+        # future — the coordinator validates and splits latest-vs-backfill.
+        vol.Optional("completed_at"): vol.Any(vol.All(str, vol.Length(max=64)), None),
         # Optional completion photo: the doc_id of an already-uploaded image
         # (via the document upload endpoint, tagged "photo").
         vol.Optional("photo_doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
@@ -135,7 +141,26 @@ async def ws_complete_task(
         return
     rd, _entry = ctx
 
-    if _completion_blocked(rd, msg["task_id"]):
+    # #133: an optional backdated completion moment. Parsed here (the schema
+    # can only cheaply cap the length); range/future validation lives in the
+    # coordinator choke point shared with the HA service.
+    completed_at: datetime | None = None
+    if msg.get("completed_at"):
+        completed_at = dt_util.parse_datetime(msg["completed_at"])
+        if completed_at is None:
+            connection.send_error(
+                msg["id"],
+                "invalid_format",
+                f"completed_at is not a valid ISO datetime: {msg['completed_at']!r}",
+            )
+            return
+
+    # The earliest-completion window guards against doing the work too early
+    # — recording a completion that already happened on a PAST day is a
+    # history correction, not early work, so it bypasses the gate. A
+    # today-dated completed_at still honours it.
+    is_past_dated = completed_at is not None and completed_at.date() < dt_util.now().date()
+    if not is_past_dated and _completion_blocked(rd, msg["task_id"]):
         connection.send_error(
             msg["id"],
             "too_early",
@@ -170,6 +195,7 @@ async def ws_complete_task(
             reading_value=msg.get("reading_value"),
             restock_quantity=msg.get("restock_quantity"),
             used_parts=used_parts,
+            completed_at=completed_at,
             # Who did it: taken from the authenticated connection, never from
             # the payload — a client must not be able to credit someone else.
             # This is also what feeds the `least_completed` rotation strategy
@@ -177,10 +203,11 @@ async def ws_complete_task(
             completed_by=connection.user.id if connection.user else None,
         )
     except ServiceValidationError as err:
-        # Required completion details are missing. The dialog normally
-        # prevents this, so reaching here means an older/cached frontend or a
-        # scripted call — answer with the field list rather than a traceback.
-        connection.send_error(msg["id"], "completion_details_required", str(err))
+        # Validation refusals (missing required details, future completed_at).
+        # The dialog normally prevents these, so reaching here means an
+        # older/cached frontend or a scripted call — answer with the
+        # exception's own key rather than a traceback.
+        connection.send_error(msg["id"], err.translation_key or "completion_details_required", str(err))
         return
     connection.send_result(msg["id"], {"success": True})
 

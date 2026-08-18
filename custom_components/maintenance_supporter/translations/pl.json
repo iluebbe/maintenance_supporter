@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Wykonane przez",
           "description": "Osoba, która wykonała konserwację (musi być powiązana z użytkownikiem Home Assistant). W razie pominięcia zapisywany jest użytkownik wywołujący."
+        },
+        "completed_at": {
+          "name": "Wykonano dnia",
+          "description": "Kiedy konserwacja została faktycznie wykonana — do uzupełnienia wcześniejszego wykonania. Nie może być w przyszłości; pominięcie oznacza zapis teraz."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "„{task_name}” wymaga tych danych przy zakończeniu: {fields}. Zakończ zadanie w panelu konserwacji lub na karcie, aby je wypełnić."
+    },
+    "completed_at_in_future": {
+      "message": "Data wykonania nie może być w przyszłości."
     }
   },
   "triggers": {

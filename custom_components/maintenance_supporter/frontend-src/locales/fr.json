@@ -128,6 +128,8 @@
   "notes_optional": "Notes (optionnel)",
   "cost_optional": "Coût (optionnel)",
   "duration_minutes": "Durée en minutes (optionnel)",
+  "completed_at_optional": "Effectué le (optionnel, vide = maintenant)",
+  "completed_at_future_error": "La date d'achèvement ne peut pas être dans le futur.",
   "days": "jours",
   "day": "jour",
   "today": "Aujourd'hui",

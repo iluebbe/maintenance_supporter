@@ -129,6 +129,8 @@
   "notes_optional": "Notes (optional)",
   "cost_optional": "Cost (optional)",
   "duration_minutes": "Duration in minutes (optional)",
+  "completed_at_optional": "Completed at (optional, empty = now)",
+  "completed_at_future_error": "The completion date cannot be in the future.",
   "days": "days",
   "day": "day",
   "today": "Today",

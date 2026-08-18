@@ -128,6 +128,8 @@
   "notes_optional": "Poznámky (volitelné)",
   "cost_optional": "Náklady (volitelné)",
   "duration_minutes": "Doba trvání v minutách (volitelné)",
+  "completed_at_optional": "Dokončeno dne (volitelné, prázdné = nyní)",
+  "completed_at_future_error": "Datum dokončení nesmí být v budoucnosti.",
   "days": "dní",
   "day": "den",
   "today": "Dnes",

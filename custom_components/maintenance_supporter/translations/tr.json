@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Tamamlayan",
           "description": "Bakımı yapan kişi (bir Home Assistant kullanıcısına bağlı olmalıdır). Belirtilmezse çağrıyı tetikleyen kullanıcı kaydedilir."
+        },
+        "completed_at": {
+          "name": "Tamamlanma zamanı",
+          "description": "Bakımın gerçekte ne zaman yapıldığı — geçmiş bir tamamlamayı sonradan kaydetmek için. Gelecekte olamaz; atlanırsa şimdi kaydedilir."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "“{task_name}” tamamlanırken şu bilgileri gerektirir: {fields}. Bunları girebilmek için görevi bakım panelinden veya karttan tamamlayın."
+    },
+    "completed_at_in_future": {
+      "message": "Tamamlanma tarihi gelecekte olamaz."
     }
   },
   "triggers": {

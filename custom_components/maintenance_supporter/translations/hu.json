@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Elvégezte",
           "description": "A karbantartást elvégző személy (Home Assistant-felhasználóhoz kell kapcsolódnia). Ha üres, a hívást indító felhasználó kerül rögzítésre."
+        },
+        "completed_at": {
+          "name": "Elvégezve ekkor",
+          "description": "Mikor történt ténylegesen a karbantartás — korábbi elvégzés utólagos rögzítéséhez. Nem lehet a jövőben; elhagyása esetén a mostani időpont kerül rögzítésre."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "A(z) „{task_name}” befejezésekor meg kell adni ezeket: {fields}. Fejezd be a feladatot a karbantartási panelen vagy a kártyán, hogy kitölthesd őket."
+    },
+    "completed_at_in_future": {
+      "message": "Az elvégzés dátuma nem lehet a jövőben."
     }
   },
   "triggers": {

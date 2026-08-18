@@ -102,6 +102,11 @@ def register_action_listener(hass: HomeAssistant) -> Callable[[], None]:
         task_id = event.data.get("task_id")
         if not entry_id or not task_id:
             return
+        # #133: a pure backfill records maintenance that happened long ago —
+        # running the on_complete_action NOW (reset a device counter, toggle
+        # a helper) would act on the live device for stale work.
+        if event.data.get("backfill"):
+            return
         action = _resolve_task_action(hass, entry_id, task_id)
         if action is None:
             return

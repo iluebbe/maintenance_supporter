@@ -129,6 +129,8 @@
   "notes_optional": "메모 (선택)",
   "cost_optional": "비용 (선택)",
   "duration_minutes": "소요 시간(분, 선택)",
+  "completed_at_optional": "완료 시각 (선택, 비우면 지금)",
+  "completed_at_future_error": "완료 날짜는 미래일 수 없습니다.",
   "days": "일",
   "day": "일",
   "today": "오늘",

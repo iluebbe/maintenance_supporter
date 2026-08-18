@@ -129,6 +129,8 @@
   "notes_optional": "Notater (valgfritt)",
   "cost_optional": "Kostnad (valgfritt)",
   "duration_minutes": "Varighet i minutter (valgfritt)",
+  "completed_at_optional": "Utført den (valgfritt, tomt = nå)",
+  "completed_at_future_error": "Fullføringsdatoen kan ikke ligge i fremtiden.",
   "days": "dager",
   "day": "dag",
   "today": "I dag",

@@ -10,12 +10,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    LIFECYCLE_HISTORY_TYPES,
     MAX_COST,
     MAX_DURATION_MINUTES,
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_TEXT_LENGTH,
-    HistoryEntryType,
 )
 from ..helpers.permissions import require_write
 from . import (
@@ -156,15 +156,10 @@ async def ws_update_history_entry(
     store.set_history(task_id, history)
 
     # Recompute last_performed if the edited entry is the latest lifecycle
-    # entry. Lifecycle = anything that resets the maintenance cycle:
-    # COMPLETED, RESET, SKIPPED. Trigger / trigger_replaced entries don't
-    # affect last_performed.
-    LIFECYCLE_TYPES = {
-        HistoryEntryType.COMPLETED,
-        HistoryEntryType.RESET,
-        HistoryEntryType.SKIPPED,
-    }
-    lifecycle_entries = [h for h in history if h.get("type") in LIFECYCLE_TYPES]
+    # entry. Lifecycle = anything that resets the maintenance cycle (shared
+    # set with the backdated-completion path, #133). Trigger /
+    # trigger_replaced entries don't affect last_performed.
+    lifecycle_entries = [h for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
     if lifecycle_entries:
         # "Latest" by timestamp — sort defensively (entries are usually
         # already in append order, but a timestamp edit may have changed that).

@@ -129,6 +129,8 @@
   "notes_optional": "Notlar (isteğe bağlı)",
   "cost_optional": "Maliyet (isteğe bağlı)",
   "duration_minutes": "Dakika cinsinden süre (isteğe bağlı)",
+  "completed_at_optional": "Tamamlanma zamanı (isteğe bağlı, boş = şimdi)",
+  "completed_at_future_error": "Tamamlanma tarihi gelecekte olamaz.",
   "days": "gün",
   "day": "gün",
   "today": "Bugün",

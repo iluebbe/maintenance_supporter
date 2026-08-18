@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -907,6 +907,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
         unattended: bool = False,
+        completed_at: datetime | None = None,
     ) -> None:
         """Mark a task as completed and persist.
 
@@ -915,11 +916,27 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         voice command. Those paths attach a canned provenance note
         ("Completed via NFC tag"), which must NOT be mistaken for the note a
         task demands: the point of a required note is that somebody wrote it.
+
+        ``completed_at`` (#133) records the completion at a past moment
+        (dialog date field / service parameter). Validated HERE — the one
+        point the WS command and the HA service both funnel through. See
+        :meth:`MaintenanceTask.complete` for the latest-vs-backfill split.
         """
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
+
+        if completed_at is not None:
+            # Naive input (datetime-local field, service YAML) means local time.
+            if completed_at.tzinfo is None:
+                completed_at = completed_at.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+            if completed_at > dt_util.now():
+                raise ServiceValidationError(
+                    "The completion date cannot be in the future",
+                    translation_domain=DOMAIN,
+                    translation_key="completed_at_in_future",
+                )
 
         # Required completion details. Checked HERE — the one point every
         # surface funnels through — so a task demanding a note cannot be
@@ -972,29 +989,38 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # because the task is already completed. Deliberately a SEPARATE map
         # from _recently_completed: that one is also stamped by skip/reset,
         # and a complete right after a date-correction reset must go through.
-        last_manual = self._recent_manual_completions.get(task_id)
-        if last_manual is not None and time.monotonic() - last_manual < MANUAL_COMPLETION_DEDUP_SECONDS:
-            _LOGGER.info(
-                "Ignoring duplicate completion of %s within %.0fs (double-tap from a second device?)",
-                task_id,
-                time.monotonic() - last_manual,
-            )
-            return
-        # Stamp the guard NOW, before any await (the photo-link below yields the
-        # loop). Stamping only at the end let two photo-carrying completions in
-        # the same tick both pass the check and interleave → double rotation /
-        # part-consume / history entry.
-        self._recent_manual_completions[task_id] = time.monotonic()
+        # An explicit completed_at is a deliberate backfill, not a double-tap
+        # — it neither checks nor stamps the guard (a stamped guard would
+        # swallow a normal completion made right after backfilling, and a
+        # normal completion's stamp must not swallow the backfill).
+        if completed_at is None:
+            last_manual = self._recent_manual_completions.get(task_id)
+            if last_manual is not None and time.monotonic() - last_manual < MANUAL_COMPLETION_DEDUP_SECONDS:
+                _LOGGER.info(
+                    "Ignoring duplicate completion of %s within %.0fs (double-tap from a second device?)",
+                    task_id,
+                    time.monotonic() - last_manual,
+                )
+                return
+            # Stamp the guard NOW, before any await (the photo-link below yields the
+            # loop). Stamping only at the end let two photo-carrying completions in
+            # the same tick both pass the check and interleave → double rotation /
+            # part-consume / history entry.
+            self._recent_manual_completions[task_id] = time.monotonic()
 
         task = MaintenanceTask.from_dict(merged[task_id])
         pre_rotation_responsible = task.responsible_user_id
+        effective_ts = completed_at if completed_at is not None else dt_util.now()
 
-        # Compute actual interval before updating last_performed
+        # Compute actual interval before updating last_performed. Anchored on
+        # the EFFECTIVE moment: "did it three days ago" must feed the real
+        # elapsed interval into adaptive learning, and a pure backfill yields
+        # a negative interval the learning guard below already rejects.
         actual_interval: int | None = None
         if task.last_performed:
             try:
                 last = date.fromisoformat(task.last_performed)
-                actual_interval = (dt_util.now().date() - last).days
+                actual_interval = (effective_ts.date() - last).days
             except (ValueError, TypeError):
                 actual_interval = None
 
@@ -1029,7 +1055,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if isinstance(link, dict) and link.get("part_id")
             ]
 
-        task.complete(
+        is_latest = task.complete(
             notes=notes,
             cost=cost,
             duration=duration,
@@ -1040,10 +1066,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             reading_value=reading_value,
             used_parts=enriched_used,
             auto=auto,
+            completed_at=completed_at,
         )
         # #73: a completed cycle retires its in-cycle checklist ticks — the
-        # snapshot that matters is in the history entry above.
-        self._store.clear_checklist_progress(task_id)
+        # snapshot that matters is in the history entry above. A pure backfill
+        # closed no current cycle, so the live ticks stay.
+        if is_latest:
+            self._store.clear_checklist_progress(task_id)
 
         # Link the completion photo to this task so it also surfaces under the
         # object's documents and is deref'd correctly on cleanup. Best-effort:
@@ -1051,8 +1080,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if photo_doc_id:
             await self._link_completion_photo(photo_doc_id, task_id)
 
-        # Update adaptive scheduling if enabled
-        if task.adaptive_config and task.adaptive_config.get("enabled"):
+        # Update adaptive scheduling if enabled. Gated on is_latest: a pure
+        # backfill is not a fresh service interval (its negative
+        # actual_interval would be rejected below anyway — the gate makes the
+        # intent explicit and keeps the seasonal stamps off stale months).
+        if is_latest and task.adaptive_config and task.adaptive_config.get("enabled"):
             if actual_interval is not None and actual_interval > 0:
                 from .helpers.interval_analyzer import IntervalAnalyzer
 
@@ -1060,11 +1092,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Store the base interval for blending reference
                 if "base_interval" not in task.adaptive_config:
                     task.adaptive_config["base_interval"] = task.interval_days or DEFAULT_INTERVAL_DAYS
-                # Inject hemisphere, current month/date for seasonal awareness
+                # Inject hemisphere + month/date of the EFFECTIVE completion
+                # moment for seasonal awareness (a completion logged today but
+                # performed in March belongs to March).
                 task.adaptive_config["hemisphere"] = "south" if (self.hass.config.latitude or 0) < 0 else "north"
-                now = dt_util.now()
-                task.adaptive_config["_current_month"] = now.month
-                task.adaptive_config["_current_date"] = now.date().isoformat()
+                task.adaptive_config["_current_month"] = effective_ts.month
+                task.adaptive_config["_current_date"] = effective_ts.date().isoformat()
                 updated_config = analyzer.update_on_completion(task.adaptive_config, actual_interval, feedback)
                 task.adaptive_config = updated_config
 
@@ -1118,6 +1151,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 duration=duration,
                 feedback=feedback,
                 completed_by=completed_by,
+                # #133: the history entry's own timestamp — identical to what
+                # the history records, so automations can attribute backdated
+                # completions to the right period instead of time_fired.
+                completed_at=effective_ts.isoformat(),
+                # True when this completion was OLDER than the latest one (a
+                # pure history backfill): the action listener skips
+                # on_complete_action for those, and automations can filter.
+                backfill=not is_latest,
             ),
         )
 

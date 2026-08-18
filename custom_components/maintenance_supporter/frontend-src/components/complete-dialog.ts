@@ -53,6 +53,8 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _photoUploading = false;
   @state() private _readingValue = "";
   @state() private _restockQty = "";
+  /** #133: optional backdated completion moment (datetime-local value; "" = now). */
+  @state() private _completedAt = "";
   /** Keyed by `partLinkKey` — the (entry_id, part_id) pair — because two
    *  objects can carry the same part id, so part_id alone would merge pools. */
   @state() private _usedParts: Record<string, TaskPartLink> = {};
@@ -81,6 +83,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._photoUploading = false;
     this._readingValue = "";
     this._restockQty = this.restockDefault !== null ? String(this.restockDefault) : "";
+    this._completedAt = "";
     // #99: prefill "parts used" with the task's fixed links — the user can
     // untick or adjust before completing. The whole link is kept, entry_id
     // included, so a shared pool survives the edit (#111).
@@ -166,6 +169,18 @@ export class MaintenanceCompleteDialog extends LitElement {
       }
       if (this._photoDocId) {
         data.photo_doc_id = this._photoDocId;
+      }
+      if (this._completedAt) {
+        // Client-side guard mirrors the backend rule — a picked future moment
+        // fails fast with a localized message instead of a WS roundtrip.
+        if (new Date(this._completedAt).getTime() > Date.now()) {
+          this._error = t("completed_at_future_error", this.lang);
+          this._loading = false;
+          return;
+        }
+        // Re-add seconds if the datetime-local input drops them (same
+        // normalisation as the history-edit dialog).
+        data.completed_at = this._completedAt.length === 16 ? `${this._completedAt}:00` : this._completedAt;
       }
       if (this._readingValue !== "") {
         const rv = parseFloat(this._readingValue);
@@ -370,6 +385,13 @@ export class MaintenanceCompleteDialog extends LitElement {
             <input type="number" step="0.01" min="0" class="field-input"
               .value=${this._duration}
               @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
+          </label>
+          <label class="field">
+            <span class="field-label">${t("completed_at_optional", L)}</span>
+            <input type="datetime-local" class="field-input"
+              max=${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+              .value=${this._completedAt}
+              @change=${(e: Event) => (this._completedAt = (e.target as HTMLInputElement).value)} />
           </label>
           <div class="field">
             <span class="field-label">${t("completion_photo_optional", L)}${this._req("photo")}</span>

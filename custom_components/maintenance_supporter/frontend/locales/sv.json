@@ -128,6 +128,8 @@
   "notes_optional": "Anteckningar (valfritt)",
   "cost_optional": "Kostnad (valfritt)",
   "duration_minutes": "Varaktighet i minuter (valfritt)",
+  "completed_at_optional": "Utförd den (valfritt, tomt = nu)",
+  "completed_at_future_error": "Slutförandedatumet får inte ligga i framtiden.",
   "days": "dagar",
   "day": "dag",
   "today": "Idag",

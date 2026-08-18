@@ -45,6 +45,11 @@ complete:
       selector:
         entity:
           domain: person
+    completed_at:
+      name: Completed at
+      description: When the maintenance was actually performed — use it to backfill a past completion. Must not be in the future; when omitted, now is recorded.
+      selector:
+        datetime:
 
 reset:
   name: Reset Maintenance

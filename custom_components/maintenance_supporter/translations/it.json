@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Completato da",
           "description": "Persona che ha eseguito la manutenzione (deve essere collegata a un utente Home Assistant). Se omesso, viene registrato l'utente che ha attivato la chiamata."
+        },
+        "completed_at": {
+          "name": "Completato il",
+          "description": "Quando la manutenzione è stata realmente eseguita — per registrare a posteriori un completamento passato. Non può essere nel futuro; se omesso, viene registrato adesso."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "“{task_name}” richiede questi dettagli al completamento: {fields}. Completa l'attività dal pannello manutenzione o dalla scheda per inserirli."
+    },
+    "completed_at_in_future": {
+      "message": "La data di completamento non può essere nel futuro."
     }
   },
   "triggers": {

@@ -128,6 +128,8 @@
   "notes_optional": "Notatki (opcjonalne)",
   "cost_optional": "Koszt (opcjonalne)",
   "duration_minutes": "Czas trwania w minutach (opcjonalne)",
+  "completed_at_optional": "Wykonano dnia (opcjonalne, puste = teraz)",
+  "completed_at_future_error": "Data wykonania nie może być w przyszłości.",
   "days": "dni",
   "day": "dzień",
   "today": "Dzisiaj",

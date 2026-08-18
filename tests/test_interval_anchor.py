@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -146,8 +146,10 @@ class TestIntervalAnchorPlanned:
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
     def test_planned_anchor_overdue_then_complete(self, mock_dt: MagicMock) -> None:
         """Complete an overdue planned task, verify new next_due is correct."""
-        # "Today" is June 1
-        mock_dt.now.return_value.date.return_value = date(2026, 6, 1)
+        # "Today" is June 1. A REAL datetime (not just a mocked .date()):
+        # complete() also builds the history timestamp + latest-anchor
+        # comparison from now().isoformat() (#133).
+        mock_dt.now.return_value = datetime(2026, 6, 1, 12, 0, 0)
 
         task = MaintenanceTask(
             id=TASK_ID_1,
@@ -322,8 +324,9 @@ class TestPlannedAnchorOnComplete:
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
     def test_complete_saves_last_planned_due(self, mock_dt: MagicMock) -> None:
         """complete() saves current next_due as last_planned_due."""
-        # Set today to Feb 15 so next_due (Mar 3) is in the future
-        mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
+        # Set today to Feb 15 so next_due (Mar 3) is in the future — a real
+        # datetime, see test_planned_anchor_overdue_then_complete.
+        mock_dt.now.return_value = datetime(2026, 2, 15, 12, 0, 0)
 
         task = MaintenanceTask(
             id=TASK_ID_1,

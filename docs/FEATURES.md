@@ -667,7 +667,7 @@ activity timeline (logbook) — *"Oil Change (Family Car) was completed —
 
 - `maintenance_supporter_trigger_activated` — fired when a sensor trigger condition becomes true
 - `maintenance_supporter_trigger_deactivated` — fired when a sensor trigger condition clears
-- `maintenance_supporter_task_completed` — fired on every completion path (panel, complete-QR, quick-complete, mobile action). Payload: `entry_id`, `task_id`, `task_name`, `object_name`, plus optional `notes`, `cost`, `duration`, `feedback`, `completed_by`
+- `maintenance_supporter_task_completed` — fired on every completion path (panel, complete-QR, quick-complete, mobile action). Payload: `entry_id`, `task_id`, `task_name`, `object_name`, `completed_at` (ISO timestamp of the history entry — for a backdated completion this is the chosen past moment, not the moment the event fired; #133), `backfill` (bool — `true` when the completion was recorded for a moment OLDER than the task's latest completion; such pure backfills do not run `on_complete_action`), plus optional `notes`, `cost`, `duration`, `feedback`, `completed_by`
 - `maintenance_supporter_task_skipped` — fired when a task is skipped. Payload includes the optional `reason`
 - `maintenance_supporter_task_reset` — fired when a task's `last_performed` is reset to a specific date. Payload includes that `date`
 - `maintenance_supporter_part_stock_low` / `_part_stock_out` / `_part_restocked` (2.23+) — spare-part stock **crossings**. Edge-triggered: one event per transition (a further decrease while already low never re-fires), so automations can reorder / notify without debouncing. Payload: `entry_id`, `object_id`, `object_name`, `part_id`, `part_name`, `stock`, `reorder_threshold`

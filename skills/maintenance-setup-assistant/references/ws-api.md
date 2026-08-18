@@ -114,6 +114,18 @@ tasks (recurring ones re-anchored). Errors: `already_archived` / `not_archived`.
 (float) which is stored on the completion history entry. The panel derives
 the delta between consecutive readings client-side.
 
+### Backdated completions (#133)
+`task/complete` accepts `completed_at` (ISO datetime, naive = local; must not
+be in the future). When it is still the latest lifecycle entry the cycle
+advances normally anchored on that moment; when OLDER than the latest one it
+is a pure backfill — history entry (+ cost/parts) only, the cycle anchor,
+trigger latch and rotation stay put. Bypasses the double-tap dedup guard and
+(for past days) the earliest-completion window. The
+`maintenance_supporter_task_completed` event carries the entry's timestamp as
+`completed_at` plus `backfill: bool`; pure backfills skip
+`on_complete_action`. Same parameter on the `maintenance_supporter.complete`
+service.
+
 ### `object/pause` / `object/resume` — `@require_write` (v2.20)
 Seasonal pause. Pause: `{entry_id, until?}` (`until` = ISO date, must be in the
 future; omit for an open-ended pause) → `{"success": true, "paused_at",

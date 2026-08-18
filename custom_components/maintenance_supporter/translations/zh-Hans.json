@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "完成人",
           "description": "执行维护的人员（必须关联 Home Assistant 用户）。省略时记录触发调用的用户。"
+        },
+        "completed_at": {
+          "name": "完成时间",
+          "description": "维护实际执行的时间 — 用于补录过去的完成记录。不能是未来时间；省略时记录当前时间。"
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "“{task_name}”完成时需要以下信息：{fields}。请在维护面板或卡片中完成以便填写。"
+    },
+    "completed_at_in_future": {
+      "message": "完成日期不能是未来时间。"
     }
   },
   "triggers": {

@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "実施者",
           "description": "メンテナンスを実施した人（Home Assistant ユーザーに関連付けられている必要があります）。省略時は呼び出したユーザーが記録されます。"
+        },
+        "completed_at": {
+          "name": "完了日時",
+          "description": "メンテナンスを実際に行った日時 — 過去の完了を後から記録するために使います。未来は指定できません。省略時は現在時刻が記録されます。"
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "「{task_name}」の完了には次の入力が必要です: {fields}。メンテナンスパネルまたはカードから完了して入力してください。"
+    },
+    "completed_at_in_future": {
+      "message": "完了日時に未来は指定できません。"
     }
   },
   "triggers": {

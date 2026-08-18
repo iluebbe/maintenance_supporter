@@ -138,6 +138,9 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
         # #128: who did it — a person ENTITY (validated picker, no free text);
         # resolved to the linked HA user id. Omitted -> the calling user.
         vol.Optional("completed_by"): cv.entity_id,
+        # #133: when the maintenance was actually performed (backfill a past
+        # completion). Future values are rejected by the coordinator.
+        vol.Optional("completed_at"): cv.datetime,
     }
 )
 
@@ -474,6 +477,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             duration=call.data.get("duration"),
             reading_value=call.data.get("reading_value"),
             completed_by=completed_by,
+            completed_at=call.data.get("completed_at"),
         )
 
     async def _handle_reset(call: ServiceCall) -> None:

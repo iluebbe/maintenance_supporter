@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Concluído por",
           "description": "Pessoa que realizou a manutenção (tem de estar associada a um utilizador do Home Assistant). Se omitido, é registado o utilizador que acionou a chamada."
+        },
+        "completed_at": {
+          "name": "Concluído em",
+          "description": "Quando a manutenção foi realmente efetuada — para registar retroativamente uma conclusão passada. Não pode estar no futuro; se omitido, é registado agora."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "“{task_name}” exige estes dados ao concluir: {fields}. Conclua a tarefa no painel de manutenção ou no cartão para os preencher."
+    },
+    "completed_at_in_future": {
+      "message": "A data de conclusão não pode estar no futuro."
     }
   },
   "triggers": {

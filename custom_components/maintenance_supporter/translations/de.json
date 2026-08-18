@@ -1556,6 +1556,10 @@
         "completed_by": {
           "name": "Erledigt von",
           "description": "Person, die die Wartung durchgeführt hat (muss mit einem Home-Assistant-Benutzer verknüpft sein). Ohne Angabe wird der auslösende Benutzer erfasst."
+        },
+        "completed_at": {
+          "name": "Erledigt am",
+          "description": "Wann die Wartung tatsächlich durchgeführt wurde — zum Nachtragen einer vergangenen Erledigung. Darf nicht in der Zukunft liegen; ohne Angabe wird jetzt erfasst."
         }
       }
     },
@@ -1963,6 +1967,9 @@
     },
     "completion_details_required": {
       "message": "„{task_name}“ verlangt beim Abschließen diese Angaben: {fields}. Schließe die Aufgabe im Wartungs-Panel oder über die Karte ab, um sie einzutragen."
+    },
+    "completed_at_in_future": {
+      "message": "Das Erledigungsdatum darf nicht in der Zukunft liegen."
     }
   },
   "triggers": {

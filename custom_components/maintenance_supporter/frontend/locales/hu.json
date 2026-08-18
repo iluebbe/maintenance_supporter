@@ -129,6 +129,8 @@
   "notes_optional": "Megjegyzések (opcionális)",
   "cost_optional": "Költség (opcionális)",
   "duration_minutes": "Időtartam percben (opcionális)",
+  "completed_at_optional": "Elvégezve ekkor (opcionális, üres = most)",
+  "completed_at_future_error": "Az elvégzés dátuma nem lehet a jövőben.",
   "days": "nap",
   "day": "nap",
   "today": "Ma",

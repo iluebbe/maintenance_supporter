@@ -129,6 +129,8 @@
   "notes_optional": "备注 (可选)",
   "cost_optional": "成本 (可选)",
   "duration_minutes": "耗时 (分钟, 可选)",
+  "completed_at_optional": "完成时间（可选，留空 = 现在）",
+  "completed_at_future_error": "完成日期不能是未来时间。",
   "days": "天",
   "day": "天",
   "today": "今天",
