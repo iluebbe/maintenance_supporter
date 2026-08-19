@@ -2,6 +2,48 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.60.0] - 2026-08-20
+
+### ✨ Added
+
+- **Route on priority** (Discussion #134, thanks @tracymckibben). The
+  priority field was effectively write-only — now it works for you in
+  three places: every task sensor exposes a `priority` attribute (tasks
+  without an explicit value read `normal`), so automations can filter on
+  `state_attr(..., 'priority') == 'high'`; the panel filter bar gains a
+  **priority dropdown** that is captured in saved views; and since the
+  notification view-scope honours a view's priority dimension, *"push me
+  only about high-priority tasks"* is now two clicks — save a *High
+  priority* view, pick it under Settings → Notifications → *"Notify only
+  for view"*. No new setting needed.
+- **`filter_priority` on the Lovelace card** — limit a card to `low` /
+  `normal` / `high` (OR semantics like `filter_labels`, with checkboxes in
+  the card editor), and the card's `view_id` scoping applies the view's
+  priority too.
+- **CSV export/import carries `priority` and `labels`.** A CSV migration
+  used to silently drop both; labels ride one cell (one label per line),
+  like the checklist.
+
+### 🐛 Fixed
+
+- **Calendar entity and the notification test button now speak all 22
+  languages.** Two internal string tables had stalled at 14 languages —
+  Czech, Danish, Finnish, Hindi, Japanese, Norwegian, Polish and Swedish
+  users got English calendar event details and test-notification results
+  while the rest of the UI was translated.
+
+### 🧰 Internal
+
+- Hand-maintained field/language lists are now guarded by source-derived
+  parity contracts: every exported task field must round-trip or carry a
+  documented exemption (the first run immediately caught six never-probed
+  fields), the export probe's trigger config is generated from the WS
+  allowlist, every JSON field is a CSV column or a documented exclusion,
+  the in-python language tables are pinned to the locale language set, the
+  entity-attribute surface is pinned to the editable-field map, and the
+  editable history-entry fields are checked against both frontend edit
+  surfaces.
+
 ## [2.59.0] - 2026-08-18
 
 ### ✨ Added
