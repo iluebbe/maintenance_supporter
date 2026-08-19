@@ -494,8 +494,11 @@ schedule (season/ends/due_override), archived_at/created_at. Document file
 *contents* are NOT here (see the documents archive below) — only metadata.
 
 ### `csv/export` — admin — flat CSV
-`{entry_ids?:[...]}` → `{csv}`. One row per task, object columns repeated. A
-reduced view: no parts / history / nested-schedule extras (tabular by design).
+`{entry_ids?:[...]}` → `{csv}`. One row per task, object columns repeated
+(incl. `priority` + `labels` as a "\n"-joined cell since the #134 audit). A
+reduced view: no parts / history / nested-schedule extras (tabular by design
+— the covered-or-excluded contract is pinned by
+`tests/test_export_roundtrip.py`).
 
 ### `objects/csv` — one row per object (#67)
 `{entry_ids?:[...]}` → `{csv}`. Asset table download (no cost/history), so not

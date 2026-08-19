@@ -56,6 +56,10 @@ _COLUMNS = [
     "custom_icon",
     "nfc_tag_id",
     "responsible_user_id",
+    # #134 audit: priority routes notifications/filters and labels drive views
+    # — a CSV migration losing them silently was the object_notes class again.
+    "priority",
+    "labels",
     "trigger_type",
     "status",
     "times_performed",
@@ -126,6 +130,9 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "custom_icon": _csv_safe(tdata.get("custom_icon", "")),
                     "nfc_tag_id": _csv_safe(tdata.get("nfc_tag_id", "")),
                     "responsible_user_id": _csv_safe(tdata.get("responsible_user_id", "")),
+                    "priority": tdata.get("priority") or "normal",
+                    # Labels ride one cell, "\n"-separated like the checklist.
+                    "labels": "\n".join(_csv_safe(lb) for lb in (tdata.get("labels") or []) if lb),
                     "trigger_type": (tdata.get("trigger_config") or {}).get("type", ""),
                     "status": ct.get("_status", "ok"),
                     "times_performed": ct.get("_times_performed", 0),
@@ -307,6 +314,18 @@ def import_objects_csv(
         resp_user = (row.get("responsible_user_id") or "").strip()
         if resp_user:
             task_data["responsible_user_id"] = resp_user
+
+        # #134 audit: priority (closed set) + labels ("\n" cell like checklist).
+        priority = (row.get("priority") or "").strip().lower()
+        if priority in ("low", "normal", "high"):
+            task_data["priority"] = priority
+        labels_raw = row.get("labels") or ""
+        if labels_raw:
+            from ..const import MAX_LABEL_LENGTH, MAX_LABELS
+
+            labels = [line.strip()[:MAX_LABEL_LENGTH] for line in labels_raw.splitlines() if line.strip()][:MAX_LABELS]
+            if labels:
+                task_data["labels"] = labels
 
         # Checklist round-trips via a single cell with "\n" between items.
         # Apply the same hard caps as the WebSocket schema so a malicious or

@@ -75,6 +75,8 @@ FULL_TASK = {
     "labels": ["alpha", "beta"],
     "checklist": ["step1", "step2"],
     "schedule_time": "07:30",
+    "entity_slug": "full_field_probe",
+    "adaptive_config": {"enabled": True, "ewa_alpha": 0.3, "min_interval_days": 7, "max_interval_days": 120},
     "reading_unit": "kWh",
     "due_override": "2026-12-24",
     "on_complete_action": {"service": "light.turn_off", "target": {"entity_id": "light.x"}},
@@ -120,8 +122,55 @@ FULL_PART = {
 }
 
 
+def _full_trigger_config() -> dict:
+    """A trigger_config exercising EVERY WS-allowlisted key (source-derived).
+
+    The JSON import runs trigger_config through ``_validate_trigger_config``,
+    which STRIPS keys missing from ``_TRIGGER_ALLOWED_KEYS`` — the silent-loss
+    class that bit ``required_completion_fields`` in v2.57. Deriving this
+    probe from the allowlist means a new trigger key breaks this test until a
+    dummy value is added here, and the roundtrip below then proves the import
+    keeps it. Values respect the validator's normalisations (states lowercase,
+    recovery flag truthy, threshold needs one limit).
+    """
+    from custom_components.maintenance_supporter.websocket.tasks_validation import (
+        _TRIGGER_ALLOWED_KEYS,
+    )
+
+    dummies: dict = {
+        "type": "threshold",
+        "entity_id": "sensor.probe",
+        "entity_ids": ["sensor.probe"],
+        "entity_logic": "any",
+        "attribute": "level",
+        "trigger_above": 80.0,
+        "trigger_below": 10.0,
+        "trigger_equals": 3.0,
+        "trigger_not_equals": 1.0,
+        "trigger_for_minutes": 5,
+        "trigger_target_value": 100.0,
+        "trigger_delta_mode": True,
+        "trigger_baseline_value": 40.0,
+        "trigger_runtime_hours": 500,
+        "trigger_on_states": ["on"],
+        "trigger_from_state": "running",
+        "trigger_to_state": "clean",
+        "trigger_target_changes": 30,
+        "compound_logic": "AND",
+        "conditions": [{"type": "threshold", "entity_id": "sensor.sub", "trigger_above": 1}],
+        "auto_complete_on_recovery": True,
+        "trigger_combinator": "all",
+    }
+    missing = _TRIGGER_ALLOWED_KEYS - set(dummies)
+    assert not missing, (
+        f"New trigger_config key(s) {sorted(missing)} have no dummy value here — "
+        "add one so the export/import roundtrip proves the import keeps them."
+    )
+    return dummies
+
+
 async def _make_source_entry(hass: HomeAssistant) -> MockConfigEntry:
-    task = dict(build_task_data(), **FULL_TASK)
+    task = dict(build_task_data(), **FULL_TASK, trigger_config=_full_trigger_config())
     data = build_object_entry_data(tasks={task["id"]: task})
     data = {**data, "object": {**data["object"], **FULL_OBJECT}, "parts": {"part_a": dict(FULL_PART)}}
     entry = MockConfigEntry(
@@ -169,15 +218,18 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
     for key, want in FULL_OBJECT.items():
         if key != "name" and (dst.data.get("object") or {}).get(key) != want:
             diffs.append(f"object.{key}")
+    # adaptive_config migrates into the Store on first setup (a
+    # _DYNAMIC_TASK_FIELDS member) — checked below via the Store, like
+    # last_performed / due_override.
     skip = {"name", "history", "consumes_parts", "due_override", "last_performed",
-            "interval_days", "interval_unit", "interval_anchor", "schedule_type"}
+            "adaptive_config", "interval_days", "interval_unit", "interval_anchor", "schedule_type"}
     for key, want in FULL_TASK.items():
         if key not in skip and dst_task.get(key) != want:
             diffs.append(f"task.{key}: {dst_task.get(key)!r}")
     from custom_components.maintenance_supporter.helpers.schedule import read_legacy_fields
 
     src_sched, dst_sched = read_legacy_fields(src_task), read_legacy_fields(dst_task)
-    for key in ("schedule_type", "interval_days", "interval_unit", "interval_anchor"):
+    for key in ("schedule_type", "interval_days", "interval_unit", "interval_anchor", "due_date"):
         if src_sched[key] != dst_sched[key]:
             diffs.append(f"schedule.{key}")
     new_parts = dst.data.get("parts") or {}
@@ -202,6 +254,8 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
         diffs.append("last_performed")
     if state.get("due_override", dst_task.get("due_override")) != "2026-12-24":
         diffs.append("due_override")
+    if state.get("adaptive_config", dst_task.get("adaptive_config")) != FULL_TASK["adaptive_config"]:
+        diffs.append("adaptive_config")
     hist = dst_store.get_history(new_task_id) or dst_task.get("history") or []
     if not hist:
         diffs.append("history lost")
@@ -212,6 +266,14 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
         used = h.get("used_parts") or []
         if not (used and used[0].get("part_id") in new_parts and used[0].get("quantity") == 2):
             diffs.append("history.used_parts remap")
+
+    # trigger_config: compare KEY SETS (the import normalises values — states
+    # lowercase etc.), asserting no allowlisted key was stripped on the way in.
+    src_tc = src_task.get("trigger_config") or {}
+    dst_tc = dst_task.get("trigger_config") or {}
+    lost_tc = set(src_tc) - set(dst_tc)
+    if lost_tc:
+        diffs.append(f"trigger_config keys stripped by import: {sorted(lost_tc)}")
 
     assert not diffs, "JSON round-trip losses: " + ", ".join(diffs)
 
@@ -235,7 +297,8 @@ async def test_csv_roundtrip_keeps_object_notes_and_docs_url(
                 "warranty_expiry", "documentation_url", "notes"):
         assert obj.get(key) == FULL_OBJECT[key], f"CSV lost object.{key}"
     dst_task = next(iter(dst.data[CONF_TASKS].values()))
-    for key in ("notes", "documentation_url", "custom_icon", "nfc_tag_id", "reading_unit", "schedule_time"):
+    for key in ("notes", "documentation_url", "custom_icon", "nfc_tag_id", "reading_unit",
+                "schedule_time", "priority", "labels"):
         assert dst_task.get(key) == FULL_TASK[key], f"CSV lost task.{key}"
 
 
@@ -296,3 +359,118 @@ async def test_settings_export_import_roundtrip(hass: HomeAssistant, global_entr
     assert opts["vacation_exempt_task_ids"] == ["keep-me"]
     assert "admin_panel_user_ids" not in opts
     assert "adopted_task_notes" not in opts
+
+
+# ─── Export parity contracts (#134 audit) ───────────────────────────────────
+#
+# WHY these exist: every export surface used to be a hand-maintained field
+# list (JSON builder, import mirror, CSV columns, and the FULL_TASK probe
+# above) with nothing diffing them against each other — a new persisted field
+# only round-tripped if someone remembered every list. These contracts anchor
+# the chain on the RUNTIME export payload: any new exported field must either
+# join the roundtrip probe (proving import parity) or be explicitly exempted
+# here with a reason. Forgetting is no longer silent.
+
+# Export keys that are deliberately NOT part of the FULL_TASK roundtrip probe.
+_TASK_EXPORT_EXEMPT = {
+    "id",  # regenerated on import by design
+    # Computed at export time from coordinator state — never imported:
+    "status", "days_until_due", "next_due",
+    "times_performed", "total_cost", "average_duration",
+    # Model-managed lifecycle stamps (created_at is the next_due fallback
+    # anchor; archived_* keep retired tasks retired — both in the import
+    # mirror, exercised by the archive/lifecycle test suites):
+    "created_at", "archived_at", "archived_reason",
+    "last_planned_due",  # planned-anchor bookkeeping, written by complete()
+    "due_date",  # flat twin of the nested schedule, compared via read_legacy_fields
+    "schedule",  # nested twin of the flat schedule fields compared above
+    # The user cluster IS in the import mirror, but non-existent HA users are
+    # deliberately pruned by the orphan sweep at setup (same reason the
+    # settings roundtrip skips them) — unprobeable in a test hass:
+    "responsible_user_id", "assignee_pool", "rotation_strategy",
+    "checklist_progress",  # Store-side; asserted separately in the roundtrip
+    "part_ref",  # auto-buy marker; covered by the parts/buy-task tests
+    "trigger_config",  # key-set-compared separately (import normalises values)
+}
+
+
+async def test_full_task_probe_covers_every_exported_field(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Tripwire: a new field in the JSON task export MUST join FULL_TASK (so
+    the roundtrip proves the import mirrors it) or be exempted with a reason."""
+    src = await _make_source_entry(hass)
+    await setup_integration(hass, global_entry, src)
+
+    export = build_export_data(hass)
+    exported_task = export["objects"][0]["tasks"][0]
+
+    uncovered = set(exported_task) - set(FULL_TASK) - _TASK_EXPORT_EXEMPT
+    assert not uncovered, (
+        f"Exported task field(s) {sorted(uncovered)} are not in the FULL_TASK "
+        "roundtrip probe — add them there (and to the import mirror in "
+        "websocket/io.py) or exempt them above with a reason."
+    )
+    stale = _TASK_EXPORT_EXEMPT - set(exported_task)
+    assert not stale, f"Exempt entries no longer exported: {sorted(stale)}"
+
+
+# CSV deliberately carries the human-readable asset/task basics, one row per
+# task. Everything below is EXCLUDED ON PURPOSE — structured/nested data that
+# doesn't fit a flat cell, instance-specific ids, or computed display state.
+# A new exported field must be placed in the CSV columns or in this list.
+_CSV_TASK_EXCLUDED = {
+    "id", "created_at", "archived_at", "archived_reason",  # lifecycle/ids
+    "schedule", "last_planned_due", "due_override",  # nested/derived schedule
+    "adaptive_config", "checklist_progress", "history",  # structured state
+    "on_complete_action", "quick_complete_defaults",  # nested service configs
+    "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)
+    "required_completion_fields", "earliest_completion_days",  # niche gates
+    "entity_slug",  # instance-specific entity naming
+    "consumes_parts", "part_ref",  # part links (ids are instance-specific)
+    "trigger_config",  # only the type is summarised (trigger_type column)
+    "days_until_due", "next_due", "average_duration",  # computed display
+}
+_CSV_OBJECT_EXCLUDED = {
+    # Instance-specific ids/lineage — meaningless in a spreadsheet migration:
+    "ha_device_id", "parent_entry_id",
+    "predecessor_entry_id", "replaced_by_entry_id",
+    "paused_at", "paused_until",  # seasonal pause state (JSON backup carries it)
+}
+
+
+async def test_csv_covers_or_excludes_every_exported_field(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Tripwire: every JSON-exported field is either a CSV column or a
+    documented CSV exclusion — losing one silently (the priority/labels class)
+    now fails here."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import _COLUMNS
+
+    src = await _make_source_entry(hass)
+    await setup_integration(hass, global_entry, src)
+    export = build_export_data(hass)
+    exported_task = export["objects"][0]["tasks"][0]
+    exported_object = export["objects"][0]["object"]
+
+    csv_task_cols = {c for c in _COLUMNS if not c.startswith("object_")}
+    # JSON name -> CSV column where they differ:
+    renames = {"name": "task_name", "type": "task_type"}
+    unplaced = {
+        k for k in exported_task
+        if renames.get(k, k) not in csv_task_cols and k not in _CSV_TASK_EXCLUDED
+    }
+    assert not unplaced, (
+        f"Task field(s) {sorted(unplaced)} are neither a CSV column nor a "
+        "documented exclusion — add a column + import reader in "
+        "helpers/csv_handler.py, or exclude them above with a reason."
+    )
+
+    csv_obj_cols = {c.removeprefix("object_") for c in _COLUMNS if c.startswith("object_")}
+    unplaced_obj = {
+        k for k in exported_object if k not in csv_obj_cols and k not in _CSV_OBJECT_EXCLUDED
+    }
+    assert not unplaced_obj, (
+        f"Object field(s) {sorted(unplaced_obj)} are neither a CSV column nor "
+        "a documented exclusion."
+    )
