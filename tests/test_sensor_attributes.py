@@ -174,6 +174,36 @@ async def test_notes_and_documentation_url_attributes(
     assert attrs["documentation_url"] == "https://example.com/manual.pdf"
 
 
+async def test_priority_attribute(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """#134: priority is exposed so automations can route on it
+    (state_attr(..., 'priority') == 'high'); absent = the "normal" default."""
+    last = (dt_util.now().date() - timedelta(days=10)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    task["priority"] = "high"
+    obj_entry = _make_entry(hass, task, unique_id="priority_attr")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    attrs = _get_sensor_state(hass, obj_entry).attributes
+    assert attrs["priority"] == "high"
+
+
+async def test_priority_attribute_defaults_to_normal(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    last = (dt_util.now().date() - timedelta(days=10)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    task.pop("priority", None)
+    obj_entry = _make_entry(hass, task, unique_id="priority_attr_default")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    attrs = _get_sensor_state(hass, obj_entry).attributes
+    assert attrs["priority"] == "normal"
+
+
 # ─── Trigger Attributes ──────────────────────────────────────────────────
 
 

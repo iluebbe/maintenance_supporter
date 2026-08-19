@@ -128,6 +128,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _filterStatus = "";
   @state() private _filterUser: string | null = null;
   @state() private _filterLabel: string | null = null;
+  /** #134: only tasks of this priority (low|normal|high); "" = no filter. */
+  @state() private _filterPriority = "";
   // v2.24: shared saved filter views + the id of the one currently applied ("" =
   // none; cleared the moment the user hand-edits any filter control).
   @state() private _savedViews: SavedView[] = [];
@@ -738,6 +740,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         // Label filter (v2.26 — also captured by saved views)
         if (this._filterLabel && !(task.labels || []).includes(this._filterLabel)) continue;
 
+        // Priority filter (#134 — also captured by saved views). Tasks
+        // without an explicit priority are "normal", the model default.
+        if (this._filterPriority && (task.priority || "normal") !== this._filterPriority) continue;
+
         // Collect groups that contain this task
         const groupNames: string[] = [];
         for (const group of Object.values(this._groups)) {
@@ -926,6 +932,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       status: this._filterStatus,
       user_id: this._filterUser,
       label: this._filterLabel,
+      priority: this._filterPriority,
       archived: this._showArchived,
       sort_mode: this._sortMode,
       group_by: this._groupByMode,
@@ -942,6 +949,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._filterStatus = f.status || "";
     this._filterUser = f.user_id || null;
     this._filterLabel = f.label || null;
+    this._filterPriority = f.priority || "";
     this._showArchived = !!f.archived;
     // Validate against the current enums before assigning — a view saved by an
     // older/renamed build could carry a mode no longer valid, which would then
@@ -2266,6 +2274,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       (this._filterStatus ? 1 : 0) +
       (this._filterUser ? 1 : 0) +
       (this._filterLabel ? 1 : 0) +
+      (this._filterPriority ? 1 : 0) +
       (this._activeViewId ? 1 : 0);
 
     return html`
@@ -2350,6 +2359,21 @@ export class MaintenanceSupporterPanel extends LitElement {
             </select>
           </label>
         ` : nothing}
+        <label class="filter-field">
+          <span class="filter-label">${t("priority", L)}</span>
+          <select
+            .value=${this._filterPriority}
+            @change=${(e: Event) => {
+              this._filterPriority = (e.target as HTMLSelectElement).value;
+              this._activeViewId = "";
+            }}
+          >
+            <option value="">${t("all_priorities", L)}</option>
+            ${["high", "normal", "low"].map(
+              (pr) => html`<option value=${pr} ?selected=${this._filterPriority === pr}>${t(`priority_${pr}`, L)}</option>`
+            )}
+          </select>
+        </label>
         <label class="filter-field">
           <span class="filter-label">${t("sort_label", L)}</span>
           <select

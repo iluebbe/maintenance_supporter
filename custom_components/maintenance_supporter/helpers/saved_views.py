@@ -23,7 +23,7 @@ from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_SAVED_FILTER_VIEWS, MAX_SAVED_VIEWS, MAX_VIEW_NAME_LENGTH
+from ..const import CONF_SAVED_FILTER_VIEWS, MAX_SAVED_VIEWS, MAX_VIEW_NAME_LENGTH, TaskPriority
 from .global_options import get_global_options
 
 # Closed value sets mirrored from the panel's filter controls. Anything outside
@@ -32,6 +32,8 @@ from .global_options import get_global_options
 VALID_STATUSES = frozenset({"", "ok", "due_soon", "overdue", "triggered", "paused", "archived"})
 VALID_SORT_MODES = frozenset({"due_date", "object", "type", "task_name", "area", "assigned_user", "group"})
 VALID_GROUP_BY = frozenset({"none", "area", "group", "user"})
+# Priority filter (#134): "" = no filter, else one of the TaskPriority values.
+VALID_PRIORITIES = frozenset({"", *(p.value for p in TaskPriority)})
 
 
 def _clean_filters(raw: Any) -> dict[str, Any]:
@@ -61,10 +63,17 @@ def _clean_filters(raw: Any) -> dict[str, Any]:
     if isinstance(label, str) and len(label) > MAX_LABEL_LENGTH:
         label = None
 
+    # #134: a priority filter ("only high-priority tasks") — closed set, "" =
+    # no filter. Together with the notification view-scope this gives
+    # priority-routed notifications without a dedicated setting.
+    priority = src.get("priority", "")
+    priority = priority if isinstance(priority, str) and priority in VALID_PRIORITIES else ""
+
     return {
         "status": status,
         "user_id": user_id,
         "label": label,
+        "priority": priority,
         "archived": bool(src.get("archived")),
         "sort_mode": sort_mode,
         "group_by": group_by,
@@ -72,7 +81,7 @@ def _clean_filters(raw: Any) -> dict[str, Any]:
 
 
 def view_matches_task(filters: Mapping[str, Any], task: Mapping[str, Any]) -> bool:
-    """Does a task match a view's TASK-SELECTING filters (label + user)?
+    """Does a task match a view's TASK-SELECTING filters (label/user/priority)?
 
     Used by notification routing ("only notify about view X"). Deliberately
     ignores the DISPLAY dimensions: ``status`` (the per-status notify toggles
@@ -85,6 +94,11 @@ def view_matches_task(filters: Mapping[str, Any], task: Mapping[str, Any]) -> bo
         return False
     user_id = filters.get("user_id")
     if user_id and user_id != "current_user" and task.get("responsible_user_id") != user_id:
+        return False
+    # Tasks without an explicit priority are "normal" everywhere (the model
+    # default) — the filter must see them the same way.
+    priority = filters.get("priority")
+    if priority and (task.get("priority") or "normal") != priority:
         return False
     return True
 

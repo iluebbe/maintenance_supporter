@@ -93,6 +93,12 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     this._valueChanged("filter_areas", [...current]);
   }
 
+  private _togglePriority(priority: string, on: boolean): void {
+    const current = new Set(this._config.filter_priority || []);
+    if (on) current.add(priority); else current.delete(priority);
+    this._valueChanged("filter_priority", [...current]);
+  }
+
   private _onEntitiesChanged = (e: CustomEvent<{ value: string[] }>): void => {
     this._valueChanged("entity_ids", e.detail.value || []);
   };
@@ -123,6 +129,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       .map((id) => ({ id, name: areaName(id) }))
       .sort((a, b) => a.name.localeCompare(b.name));
     const selectedLabels = new Set(this._config.filter_labels || []);
+    const selectedPriorities = new Set(this._config.filter_priority || []);
     // Labels are free-form per task, so the picker offers exactly the ones in
     // use — an empty list simply hides the section.
     const labelNames = [
@@ -220,6 +227,20 @@ export class MaintenanceSupporterCardEditor extends LitElement {
             `)}
           </div>
         </div>` : nothing}
+        <div class="field">
+          <div class="field-label">${t("priority", L)}</div>
+          <div class="object-list">
+            ${["high", "normal", "low"].map((pr) => html`
+              <label class="object-row">
+                <input type="checkbox"
+                  .checked=${selectedPriorities.has(pr)}
+                  @change=${(e: Event) => this._togglePriority(pr, (e.target as HTMLInputElement).checked)} />
+                <span>${t(`priority_${pr}`, L)}</span>
+              </label>
+            `)}
+          </div>
+          <div class="field-help">${t("card_filter_priority_help", L)}</div>
+        </div>
 
         <!-- Entity-id filter (HA-native pattern). Limited to our integration's
              sensor + binary_sensor entities via includeEntities so the picker

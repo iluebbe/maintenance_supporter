@@ -229,6 +229,10 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             # particular is exactly what belongs on the entity.)
             "notes": task.get("notes"),
             "documentation_url": task.get("documentation_url"),
+            # #134: the priority level, so automations can route on it
+            # (state_attr(..., 'priority') == 'high'). Always present — tasks
+            # without an explicit value are "normal", the model default.
+            "priority": task.get("priority") or "normal",
         }
 
         # Trigger attributes (static config only — no fast-changing values)

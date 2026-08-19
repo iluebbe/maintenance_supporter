@@ -333,6 +333,8 @@ export interface SavedViewFilters {
   user_id: string | null;
   /** Only tasks carrying this label (v2.26); null = no label filter. */
   label?: string | null;
+  /** Only tasks of this priority (#134): low|normal|high; "" = no filter. */
+  priority?: string;
   archived: boolean;
   sort_mode: string;
   group_by: string;
@@ -375,6 +377,9 @@ export interface CardConfig {
   // Labels to limit the card to (v2.44). A task passes when it carries at
   // least one of them — same OR semantics as filter_status / filter_objects.
   filter_labels?: string[];
+  // Priorities to limit the card to (#134): low|normal|high. Same OR
+  // semantics; a task without an explicit priority counts as "normal".
+  filter_priority?: string[];
   // HA area ids to limit the card to (C8). A task passes when its parent
   // OBJECT sits in one of these areas — same OR semantics as filter_objects,
   // and ANDed with every other filter. Objects without an area never match a

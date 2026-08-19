@@ -180,6 +180,32 @@ def test_label_filter_round_trips_and_is_sanitised() -> None:
     assert sanitize_view({"name": "X", "filters": {}})["filters"]["label"] is None
 
 
+def test_priority_filter_round_trips_and_is_sanitised() -> None:
+    """#134: the priority dimension survives sanitising; junk coerces to ""."""
+    view = sanitize_view({"name": "Urgent", "filters": {"priority": "high"}})
+    assert view is not None and view["filters"]["priority"] == "high"
+    assert sanitize_view({"name": "X", "filters": {"priority": "urgent"}})["filters"]["priority"] == ""
+    assert sanitize_view({"name": "X", "filters": {"priority": 42}})["filters"]["priority"] == ""
+    assert sanitize_view({"name": "X", "filters": {}})["filters"]["priority"] == ""
+
+
+def test_view_matches_task_priority_semantics() -> None:
+    """#134: priority is a task-selecting dimension for notification routing.
+    Tasks without an explicit priority count as "normal" (the model default)."""
+    from custom_components.maintenance_supporter.helpers.saved_views import view_matches_task
+
+    high = {"priority": "high"}
+    implicit_normal: dict = {}
+    assert view_matches_task({"priority": "high"}, high) is True
+    assert view_matches_task({"priority": "high"}, implicit_normal) is False
+    assert view_matches_task({"priority": "normal"}, implicit_normal) is True
+    assert view_matches_task({"priority": ""}, high) is True  # "" = no filter
+    # Combined with label: both must match.
+    task = {"priority": "high", "labels": ["safety"]}
+    assert view_matches_task({"priority": "high", "label": "safety"}, task) is True
+    assert view_matches_task({"priority": "low", "label": "safety"}, task) is False
+
+
 def test_view_matches_task_routing_semantics() -> None:
     """Notification routing matches on label + user; status/sort/group are
     display-only; the client-side current_user sentinel means no user filter."""

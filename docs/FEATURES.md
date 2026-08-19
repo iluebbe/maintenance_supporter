@@ -388,16 +388,19 @@ least one battery device is present and the fleet isn't set up yet.
 
 ### Saved filter views
 Name a combination of the panel task-list filters — status, responsible user,
-**label**, archived, plus sort and group-by — and reapply the whole set in one
-tap from the toolbar (e.g. *"Kitchen overdue"*, *"Unassigned this week"*). Views
-are **shared** across everyone who opens the panel and persist across restarts;
-save the current filters or manage/delete existing views from the same dialog.
-Hand-editing any filter clears the active-view selection, so the dropdown never
-lies. A view can also **route notifications**: pick it under Settings →
-Notifications → *"Notify only for view"* and reminders fire only for tasks
-matching its label/user filters (display-only dimensions are ignored). And the
-**Lovelace card** can be scoped to a view (`view_id` option / editor dropdown):
-the view's status/user/label filters apply on top of the card's own config.
+**label**, **priority** (#134), archived, plus sort and group-by — and reapply
+the whole set in one tap from the toolbar (e.g. *"Kitchen overdue"*,
+*"Unassigned this week"*, *"High priority"*). Views are **shared** across
+everyone who opens the panel and persist across restarts; save the current
+filters or manage/delete existing views from the same dialog. Hand-editing any
+filter clears the active-view selection, so the dropdown never lies. A view can
+also **route notifications**: pick it under Settings → Notifications → *"Notify
+only for view"* and reminders fire only for tasks matching its
+label/user/priority filters (display-only dimensions are ignored) — a *"High
+priority"* view scoped there sends urgent tasks to your phone while a daily
+digest automation covers the rest. And the **Lovelace card** can be scoped to a
+view (`view_id` option / editor dropdown): the view's status/user/label/priority
+filters apply on top of the card's own config.
 
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.
@@ -656,7 +659,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 
 Each sensor entity exposes attributes grouped by function. Only stable values are exposed as entity attributes (to avoid excessive recorder writes); fast-changing trigger values are served via the WebSocket `subscribe` endpoint instead (see below).
 
-- **Core**: `maintenance_type`, `schedule_type`, `interval_days`, `interval_unit`, `interval_anchor`, `due_date`, `warning_days`, `last_performed`, `next_due`, `days_until_due`, `parent_object`, `times_performed`, `total_cost`, `average_duration`, `notes`, `documentation_url`
+- **Core**: `maintenance_type`, `schedule_type`, `interval_days`, `interval_unit`, `interval_anchor`, `due_date`, `warning_days`, `last_performed`, `next_due`, `days_until_due`, `parent_object`, `times_performed`, `total_cost`, `average_duration`, `notes`, `documentation_url`, `priority` (#134 — route automations on it: `state_attr(..., 'priority') == 'high'`; tasks without an explicit value read `normal`)
 - **Trigger** (only when a trigger is configured): `trigger_type`, `trigger_active`, plus type-specific fields (e.g. `trigger_above` / `trigger_below` / `trigger_for_minutes`, `trigger_target_value`, …)
 - **Adaptive** (only when adaptive scheduling is enabled): `suggested_interval`, `interval_confidence`, `adaptive_scheduling_enabled`, `seasonal_factor`, `seasonal_reason`
 - **Weibull** (after 5+ completions): `weibull_beta`, `weibull_eta`, `weibull_r_squared`, `weibull_beta_interpretation`, `confidence_interval_low`, `confidence_interval_high`

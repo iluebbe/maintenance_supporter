@@ -251,7 +251,7 @@ async def test_settings_export_import_roundtrip(hass: HomeAssistant, global_entr
             "notifications_enabled": True,
             "notification_bundling_enabled": True,
             "groups": {"g1": {"name": "Heating", "description": "Season", "task_refs": [{"entry_id": "e1", "task_id": "t1"}]}},
-            "saved_filter_views": [{"id": "v1", "name": "Overdue only", "filters": {"status": ["overdue"]}}],
+            "saved_filter_views": [{"id": "v1", "name": "Overdue only", "filters": {"status": ["overdue"], "priority": "high"}}],
             "vacation_enabled": True,
             "vacation_start": "2026-09-01",
             "vacation_end": "2026-09-15",
@@ -289,6 +289,8 @@ async def test_settings_export_import_roundtrip(hass: HomeAssistant, global_entr
     assert opts["notification_bundling_enabled"] is True
     assert opts["groups"]["g1"]["task_refs"] == [{"entry_id": "e1", "task_id": "t1"}]
     assert opts["saved_filter_views"][0]["name"] == "Overdue only"
+    # #134: the priority filter dimension survives export -> wipe -> import.
+    assert opts["saved_filter_views"][0]["filters"]["priority"] == "high"
     assert opts["vacation_enabled"] is True
     assert opts["vacation_end"] == "2026-09-15"
     assert opts["vacation_exempt_task_ids"] == ["keep-me"]

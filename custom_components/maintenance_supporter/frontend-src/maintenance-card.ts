@@ -302,6 +302,7 @@ export class MaintenanceSupporterCard extends LitElement {
       filter_due_min_days,
       filter_due_max_days,
       filter_labels,
+      filter_priority,
       filter_areas,
       max_items,
     } = this._config;
@@ -335,6 +336,9 @@ export class MaintenanceSupporterCard extends LitElement {
         if (filter_status?.length && !filter_status.includes(task.status)) continue;
         // Labels: a task passes when it carries at least one configured label.
         if (filter_labels?.length && !(task.labels || []).some((lb) => filter_labels.includes(lb))) continue;
+        // Priority (#134): OR over the configured levels; no explicit
+        // priority on the task means "normal" (the model default).
+        if (filter_priority?.length && !filter_priority.includes(task.priority || "normal")) continue;
         // entity_ids: HA-native filter — match the task's sensor or
         // binary_sensor entity_id. Both fields come pre-resolved from the
         // backend WS response (see _build_task_summary in websocket/__init__.py).
@@ -355,6 +359,7 @@ export class MaintenanceSupporterCard extends LitElement {
         if (vf) {
           if (vf.status && task.status !== vf.status) continue;
           if (vf.label && !(task.labels || []).includes(vf.label)) continue;
+          if (vf.priority && (task.priority || "normal") !== vf.priority) continue;
           if (viewUser && task.responsible_user_id !== viewUser) continue;
         }
         tasks.push({ entry_id: obj.entry_id, object_name: obj.object.name, task });

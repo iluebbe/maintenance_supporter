@@ -694,7 +694,9 @@ filters (`label`, `user_id`) while ignoring the display ones (status, archived,
 sort/group). So "only notify about the garden tasks" is a view + that setting.
 
 ### `views/list` — read
-`{}` → `{views:[{id,name,filters:{status,user_id,label,archived,sort_mode,group_by}}]}`.
+`{}` → `{views:[{id,name,filters:{status,user_id,label,priority,archived,sort_mode,group_by}}]}`.
+`priority` (#134): `""` | `low` | `normal` | `high` — a task-selecting dimension
+(also honoured by the notification view-scope and the card's `view_id`).
 
 ### `views/save` — @require_write
 `{name, view_id?, filters?}` → `{views:[...], saved_id}`. Omit `view_id` to
