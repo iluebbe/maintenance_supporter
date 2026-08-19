@@ -807,3 +807,76 @@ async def test_sensor_will_remove_from_hass(hass: HomeAssistant) -> None:
     # Unloading the entry will call async_will_remove_from_hass on all entities
     await hass.config_entries.async_unload(obj_entry.entry_id)
     await hass.async_block_till_done()
+
+
+# ─── Entity-attribute contract (#134 audit) ──────────────────────────────────
+#
+# Which persisted task fields surface as sensor attributes was a hand-kept
+# enumeration in sensor.py — priority was simply missing until #134. This
+# contract forces the decision: every user-editable storage field (the
+# TASK_UPDATE_FIELD_MAP values, the same source the task-summary contract
+# uses) must either appear as an attribute on a REAL sensor or be exempted
+# below with a reason. Attributes cost recorder rows (v2.8.3 once minimised
+# them deliberately), so "exempt" is a valid, documented answer — silently
+# forgetting no longer is.
+
+# storage field -> attribute name where they differ
+_ATTR_RENAMES = {"type": "maintenance_type"}
+
+_ATTR_EXEMPT = {
+    "name": "the entity's friendly_name IS the task name",
+    "enabled": "a disabled task's entities go inert; state visible via WS/panel",
+    "trigger_config": "faceted into per-type trigger_* attributes instead",
+    "responsible_user_id": "raw HA-user UUIDs are meaningless in recorder rows",
+    "assignee_pool": "list of HA-user UUIDs — same reason as responsible_user_id",
+    "rotation_strategy": "assignment mechanics; visible in the panel/WS",
+    "required_completion_fields": "dialog gating config, not routable state",
+    "entity_slug": "already manifest in the entity_id itself",
+    "custom_icon": "applied as the entity's icon, not an attribute",
+    "nfc_tag_id": "identifier for the scan flow, not state; served via WS",
+    "reading_unit": "display unit for the reading dialog; rides the WS payload",
+    "consumes_parts": "structured part links; the parts surfaces own this",
+    "checklist": "structured list — recorder bloat; served via WS",
+    "labels": "list; candidate for exposure if automations need it (#134 follow-up)",
+    "schedule_time": "sub-day refinement of due_date; panel/WS surface it",
+    "earliest_completion_days": "completion-window config, not routable state",
+    "on_complete_action": "nested service-call config (data minimisation)",
+    "quick_complete_defaults": "nested defaults config (data minimisation)",
+}
+
+
+async def test_every_editable_field_is_attribute_or_exempted(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    from custom_components.maintenance_supporter.websocket.tasks_crud import (
+        TASK_UPDATE_FIELD_MAP,
+    )
+
+    last = (dt_util.now().date() - timedelta(days=10)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    task["trigger_config"] = {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1}
+    obj_entry = _make_entry(hass, task, unique_id="attr_contract")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    state = _get_sensor_state(hass, obj_entry)
+    if state is None:
+        pytest.skip("Sensor not available")
+    attrs = set(state.attributes)
+
+    storage_fields = set(TASK_UPDATE_FIELD_MAP.values())
+    unplaced = {
+        f for f in storage_fields
+        if _ATTR_RENAMES.get(f, f) not in attrs and f not in _ATTR_EXEMPT
+    }
+    assert not unplaced, (
+        f"Editable field(s) {sorted(unplaced)} are neither a sensor attribute "
+        "nor exempted — expose them in sensor.py or add an exemption WITH a "
+        "reason above."
+    )
+    # An exemption for a field that IS exposed (or no longer exists) is stale.
+    stale = {
+        f for f in _ATTR_EXEMPT
+        if f not in storage_fields or _ATTR_RENAMES.get(f, f) in attrs
+    }
+    assert not stale, f"Stale exemptions: {sorted(stale)}"

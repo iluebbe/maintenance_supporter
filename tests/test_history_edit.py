@@ -878,3 +878,36 @@ async def test_apply_history_parts_edit_skips_malformed_links(
         hass, obj_entry, {}, [], ["nonsense", {"quantity": 2}]
     )
     assert enriched == []
+
+
+# ─── Patchable-field surface parity (2026-08 audit) ──────────────────────────
+#
+# The editable history-entry fields live in four hand-kept places: the WS
+# schema (the source, scanned here), the history-edit dialog, the calendar
+# card's past-event mapping, and the edit handler itself. A field added to
+# the schema but not the frontends silently loses data on the next edit
+# (#103 class, history flavour).
+
+def test_patchable_fields_known_to_both_frontends() -> None:
+    import re
+    from pathlib import Path
+
+    component = Path(__file__).parent.parent / "custom_components" / "maintenance_supporter"
+    ws_src = (component / "websocket" / "tasks_history.py").read_text(encoding="utf-8")
+
+    # The Optional() keys of the history/update command = the patchable set.
+    block = ws_src.split('"maintenance_supporter/task/history/update"', 1)[1]
+    block = block.split("@websocket_api.async_response", 1)[0]
+    patchable = set(re.findall(r'vol\.Optional\("([a-z_]+)"\)', block))
+    assert patchable >= {"timestamp", "notes", "cost", "duration", "completed_by", "used_parts"}
+
+    for ts_file in (
+        component / "frontend-src" / "components" / "history-edit-dialog.ts",
+        component / "frontend-src" / "maintenance-calendar-card.ts",
+    ):
+        src = ts_file.read_text(encoding="utf-8")
+        unknown = {f for f in patchable if not re.search(rf"\b{re.escape(f)}\b", src)}
+        assert not unknown, (
+            f"{ts_file.name} does not reference patchable history field(s) "
+            f"{sorted(unknown)} — a save/edit from that surface would drop them."
+        )

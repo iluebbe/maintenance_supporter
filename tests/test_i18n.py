@@ -486,3 +486,71 @@ def test_normalize_language_code_regional_variants() -> None:
     assert normalize_language_code("de-DE") == "de"
     assert normalize_language_code("zh-Hans") == "zh"
     assert normalize_language_code(None) == "en"
+
+
+# ─── In-python language tables (2026-08 parity audit) ────────────────────────
+#
+# Four modules carry their own language dicts in Python (the notification
+# manager, the logbook renderer, the calendar entity and the options-flow
+# test-notification result). Nothing coupled them to the 22 locale languages
+# — two silently stalled at 14 (calendar + test-notification) while the file
+# locales grew. These pins derive from the SAME expectation as the locale
+# files, so a new UI language fails here until every in-python table learns
+# it too (feedback_new_language_pr_audit class).
+
+# The python tables use lowercase/short codes where the locale files use
+# BCP-47-ish ones.
+_PY_TABLE_LANGUAGES = frozenset(
+    lang.lower().replace("zh-hans", "zh") for lang in _EXPECTED_LANGUAGES
+)
+
+
+def _py_language_tables() -> dict[str, dict[str, dict[str, str]]]:
+    from custom_components.maintenance_supporter import calendar as cal_mod
+    from custom_components.maintenance_supporter import config_flow_options_global as ofg
+    from custom_components.maintenance_supporter import logbook as logbook_mod
+    from custom_components.maintenance_supporter.helpers import notification_manager as nm
+
+    return {
+        "notification_manager._NOTIFICATION_STRINGS": nm._NOTIFICATION_STRINGS,
+        "logbook._STRINGS": logbook_mod._STRINGS,
+        "calendar._CAL_STRINGS": cal_mod._CAL_STRINGS,
+        "config_flow_options_global._TEST_NOTIFICATION_RESULTS": ofg._TEST_NOTIFICATION_RESULTS,
+    }
+
+
+def test_py_language_tables_cover_every_language() -> None:
+    for name, table in _py_language_tables().items():
+        present = set(table)
+        assert present == _PY_TABLE_LANGUAGES, {
+            "table": name,
+            "missing": sorted(_PY_TABLE_LANGUAGES - present),
+            "unexpected": sorted(present - _PY_TABLE_LANGUAGES),
+        }
+
+
+def test_py_language_tables_key_parity() -> None:
+    """Every language block carries exactly the English key set."""
+    for name, table in _py_language_tables().items():
+        ref = set(table["en"])
+        for lang, block in table.items():
+            assert set(block) == ref, {
+                "table": name,
+                "lang": lang,
+                "missing": sorted(ref - set(block)),
+                "extra": sorted(set(block) - ref),
+            }
+
+
+def test_py_language_tables_placeholder_parity() -> None:
+    """``{placeholders}`` must survive translation in the python tables too."""
+    for name, table in _py_language_tables().items():
+        for key, ref_val in table["en"].items():
+            ref_tokens = set(_TOKEN_RE.findall(ref_val))
+            for lang, block in table.items():
+                tokens = set(_TOKEN_RE.findall(block[key]))
+                assert tokens == ref_tokens, {
+                    "table": name, "lang": lang, "key": key,
+                    "missing": sorted(ref_tokens - tokens),
+                    "extra": sorted(tokens - ref_tokens),
+                }
