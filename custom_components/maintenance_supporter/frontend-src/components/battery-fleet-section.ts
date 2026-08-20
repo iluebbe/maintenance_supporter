@@ -66,6 +66,8 @@ interface Overview {
   needs_soon: Record<string, number>;
   types: string[];
   excluded?: { entity_id: string; device_name: string }[];
+  // #135 follow-up: fleet-wide "track self-charging devices" opt-in.
+  track_self_charging?: boolean;
 }
 
 export class MaintenanceBatteryFleetSection extends LitElement {
@@ -189,6 +191,26 @@ export class MaintenanceBatteryFleetSection extends LitElement {
         type: "maintenance_supporter/battery_fleet/set_included",
         entity_id: entityId,
         included: true,
+      });
+      await this._load();
+    } catch (e2) {
+      this._error = describeWsError(e2, this._lang);
+    } finally {
+      this._marking = false;
+    }
+  }
+
+  // #135 follow-up: fleet-wide opt-in that keeps self-charging devices
+  // (phones, vacuums, smart rings) in the roster as rechargeables.
+  private async _setTrackSelf(e: Event): Promise<void> {
+    const enabled = (e.target as HTMLInputElement).checked;
+    if (this._marking) return;
+    this._marking = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/battery_fleet/set_track_self_charging",
+        enabled,
       });
       await this._load();
     } catch (e2) {
@@ -517,6 +539,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   ></ha-selector>
                   <div class="bf-roster-hint">${t("battery_fleet_add_hint", L)}</div>
                 </div>
+                <label class="bf-track-self">
+                  <input
+                    type="checkbox"
+                    .checked=${!!ov.track_self_charging}
+                    .disabled=${this._marking}
+                    @change=${this._setTrackSelf}
+                  />
+                  ${t("battery_fleet_track_self", L)}
+                </label>
+                <div class="bf-roster-hint">${t("battery_fleet_track_self_hint", L)}</div>
               </details>
             `
           : nothing}
@@ -833,6 +865,18 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       background: var(--secondary-background-color);
       border-radius: 10px;
       padding: 1px 4px 1px 10px;
+    }
+    .bf-track-self {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .bf-track-self input {
+      accent-color: var(--primary-color);
+      margin: 0;
     }
   `;
 }

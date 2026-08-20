@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Ein Gerät hier ausschließen, bevor es überhaupt schwach meldet — etwa ein Sauger, der sich selbst lädt, oder ein Telefon, das von sich aus warnt.",
   "battery_fleet_add": "Batterie hinzufügen",
   "battery_fleet_add_hint": "Einen Batteriesensor wählen, den die automatische Erkennung übersehen hat — er erscheint sofort in der Liste.",
+  "battery_fleet_track_self": "Selbstladende Batterien mitverfolgen",
+  "battery_fleet_track_self_hint": "Telefone, Staubsauger und andere selbstladende Geräte erscheinen als Akkus — bei niedrigem Stand wird ans Laden erinnert, nie an neue Zellen.",
   "battery_fleet_status_low": "Schwach",
   "battery_fleet_status_soon": "Bald",
   "battery_fleet_status_ok": "In Ordnung",

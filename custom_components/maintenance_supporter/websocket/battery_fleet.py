@@ -18,6 +18,7 @@ from ..helpers.battery_fleet import (
     async_compute_overview,
     async_level_history,
     fleet_excluded_entities,
+    fleet_track_self_charging,
     has_batteries,
     has_battery_notes,
     read_batteries,
@@ -65,6 +66,8 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             "needs_now": dict(ov.needs_now),
             "needs_soon": dict(ov.needs_soon),
             "types": ov.types,
+            # #135 follow-up: the roster's track-self-charging toggle state.
+            "track_self_charging": fleet_track_self_charging(hass),
             # Manually excluded batteries (issue #107) — names enriched where
             # the entity still exists, so the restore list stays readable.
             "excluded": [
@@ -170,6 +173,26 @@ async def ws_battery_fleet_set_included(
     from ..helpers.battery_fleet_setup import set_battery_included
 
     if not set_battery_included(hass, msg["entity_id"], msg["included"]):
+        connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
+        return
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/battery_fleet/set_track_self_charging",
+        vol.Required("enabled"): bool,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_battery_fleet_set_track_self_charging(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Fleet-wide opt-in: keep self-charging devices in the roster (#135)."""
+    from ..helpers.battery_fleet_setup import set_track_self_charging
+
+    if not set_track_self_charging(hass, msg["enabled"]):
         connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
         return
     connection.send_result(msg["id"], {"success": True})

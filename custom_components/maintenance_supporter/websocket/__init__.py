@@ -534,6 +534,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_battery_fleet_overview,
         ws_battery_fleet_set_excluded,
         ws_battery_fleet_set_included,
+        ws_battery_fleet_set_track_self_charging,
         ws_battery_fleet_setup,
         ws_battery_fleet_status,
     )
@@ -689,6 +690,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_battery_fleet_mark_replaced)
     websocket_api.async_register_command(hass, ws_battery_fleet_set_excluded)
     websocket_api.async_register_command(hass, ws_battery_fleet_set_included)
+    websocket_api.async_register_command(hass, ws_battery_fleet_set_track_self_charging)
     websocket_api.async_register_command(hass, ws_discover_integration_setups)
     websocket_api.async_register_command(hass, ws_adopt_integration_setups)
     websocket_api.async_register_command(hass, ws_list_saved_views)

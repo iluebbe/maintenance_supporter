@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Sluit een apparaat hier uit voordat het ooit laag meldt — een stofzuiger die zichzelf oplaadt, of een telefoon die zelf waarschuwt.",
   "battery_fleet_add": "Batterij toevoegen",
   "battery_fleet_add_hint": "Kies een batterijsensor die de automatische detectie heeft gemist — hij verschijnt direct in de lijst.",
+  "battery_fleet_track_self": "Zelfopladende batterijen volgen",
+  "battery_fleet_track_self_hint": "Telefoons, stofzuigers en andere zelfopladende apparaten verschijnen als oplaadbaar — bij een lage stand wordt om opladen gevraagd, nooit om nieuwe batterijen.",
   "battery_fleet_status_low": "Laag",
   "battery_fleet_status_soon": "Binnenkort",
   "battery_fleet_status_ok": "In orde",

@@ -696,3 +696,278 @@ async def test_fleet_sensor_batteries_due_attribute(
     assert "lock — replace (CR2)" in due
     assert "vacuum_dock — recharge" in due
     assert fleet_state.attributes["batteries_due_soon"] == []
+
+
+def _ring_device(hass: HomeAssistant, slug: str, *, identifiers=None, with_note: bool = True):
+    """Registry device with a native battery %, a ``battery_charging`` binary
+    (=> ``_is_self_charging`` is True) and optionally a Battery Notes note on
+    the SAME device — lurisin's Oura Ring shape (#135)."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    entry = MockConfigEntry(domain="test", data={})
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers=identifiers or {("test", slug)},
+        name=slug.replace("_", " ").title(),
+    )
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "sensor", "test", f"{slug}_batt", suggested_object_id=f"{slug}_battery", device_id=device.id
+    )
+    ent_reg.async_get_or_create(
+        "binary_sensor",
+        "test",
+        f"{slug}_chg",
+        suggested_object_id=f"{slug}_charging",
+        device_id=device.id,
+        original_device_class="battery_charging",
+    )
+    hass.states.async_set(f"sensor.{slug}_battery", "73", {"device_class": "battery"})
+    if with_note:
+        ent_reg.async_get_or_create(
+            "sensor", "battery_notes", f"{slug}_plus", suggested_object_id=f"{slug}_battery_plus", device_id=device.id
+        )
+        hass.states.async_set(
+            f"sensor.{slug}_battery_plus",
+            "73",
+            {
+                "device_class": "battery",
+                "battery_type": "Rechargeable",
+                "battery_quantity": 1,
+                "battery_low": False,
+                "battery_last_replaced": "2026-08-18T19:08:07+00:00",
+                "device_name": slug.replace("_", " ").title(),
+                # lurisin's real attrs: Battery Notes left this EMPTY.
+                "source_entity_id": "",
+            },
+        )
+    return device
+
+
+async def _overview(hass: HomeAssistant) -> dict:
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_overview
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn, {"id": 99, "type": "x"})
+    return conn.send_result.call_args[0][1]
+
+
+async def test_include_lifts_the_self_charging_skip_for_a_noted_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#135 (lurisin's Oura Ring): a NOTED device dropped by the self-charging
+    filter joins the roster via a manual include of its battery_plus. The
+    v2.61.0 bypass lived only in the native pass, so this exact include was a
+    silent no-op: pass 1 dropped the note, and the native pass skipped both
+    the note (battery_type attr) and the sibling sensor (device coverage)."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+    _ring_device(hass, "oura_ring")
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_excluded,
+        ws_battery_fleet_set_included,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+
+    # Dropped by the self-charging filter (charging binary on the device).
+    res = await _overview(hass)
+    assert all("oura" not in r["entity_id"] for r in res["all"])
+
+    # Include the battery_plus -> ONE row, the rich note.
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_included,
+        hass,
+        conn2,
+        {"id": 2, "type": "x", "entity_id": "sensor.oura_ring_battery_plus", "included": True},
+    )
+    assert not conn2.send_error.called, conn2.send_error.call_args
+    res = await _overview(hass)
+    rows = [r for r in res["all"] if "oura" in r["entity_id"]]
+    assert len(rows) == 1, rows
+    assert rows[0]["entity_id"] == "sensor.oura_ring_battery_plus"
+    assert rows[0]["level"] == 73
+    assert rows[0]["rechargeable"] is True
+
+    # Excluding it lifts the include (symmetric setters), no excluded chip.
+    conn3 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_excluded,
+        hass,
+        conn3,
+        {"id": 3, "type": "x", "entity_id": "sensor.oura_ring_battery_plus", "excluded": True},
+    )
+    res = await _overview(hass)
+    assert all("oura" not in r["entity_id"] for r in res["all"])
+    assert all("oura" not in x["entity_id"] for x in res.get("excluded", []))
+
+
+async def test_include_of_the_native_sibling_lifts_the_whole_device(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#135: the include acts DEVICE-wide — picking the native %-sensor of a
+    noted self-charging device surfaces the device once, through its richer
+    Battery Notes row (never a degraded duplicate)."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+    _ring_device(hass, "oura_ring")
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_included,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_included,
+        hass,
+        conn2,
+        {"id": 2, "type": "x", "entity_id": "sensor.oura_ring_battery", "included": True},
+    )
+    res = await _overview(hass)
+    rows = [r for r in res["all"] if "oura" in r["entity_id"]]
+    assert len(rows) == 1, rows
+    assert rows[0]["entity_id"] == "sensor.oura_ring_battery_plus"
+    assert rows[0]["rechargeable"] is True
+
+
+async def test_track_self_charging_option(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#135 follow-up: the fleet-wide opt-in surfaces self-charging devices as
+    rechargeables — typed "Rechargeable" (native rows too, never "Unknown"),
+    kept out of the shopping needs, exclusions still win."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+    # A Companion-app phone: native battery, low, no note.
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    t_entry = MockConfigEntry(domain="test", data={})
+    t_entry.add_to_hass(hass)
+    phone = dr.async_get(hass).async_get_or_create(
+        config_entry_id=t_entry.entry_id, identifiers={("mobile_app", "pixel10")}, name="Pixel"
+    )
+    er.async_get(hass).async_get_or_create(
+        "sensor", "test", "pixel_batt", suggested_object_id="pixel_battery", device_id=phone.id
+    )
+    hass.states.async_set("sensor.pixel_battery", "9", {"device_class": "battery"})
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_excluded,
+        ws_battery_fleet_set_track_self_charging,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+
+    res = await _overview(hass)
+    assert res["track_self_charging"] is False
+    assert all(r["entity_id"] != "sensor.pixel_battery" for r in res["all"])
+
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_track_self_charging, hass, conn2, {"id": 2, "type": "x", "enabled": True}
+    )
+    assert not conn2.send_error.called, conn2.send_error.call_args
+    res = await _overview(hass)
+    assert res["track_self_charging"] is True
+    row = next(r for r in res["all"] if r["entity_id"] == "sensor.pixel_battery")
+    # Surfaced as a RECHARGEABLE (drives the "— recharge" label), low, and
+    # never a shopping need.
+    assert row["rechargeable"] is True
+    assert row["status"] == "low"
+    assert "RECHARGEABLE" not in res["needs_now"] and "UNKNOWN" not in res["needs_now"]
+
+    # Exclusion still wins over the option.
+    conn3 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_excluded,
+        hass,
+        conn3,
+        {"id": 3, "type": "x", "entity_id": "sensor.pixel_battery", "excluded": True},
+    )
+    res = await _overview(hass)
+    assert all(r["entity_id"] != "sensor.pixel_battery" for r in res["all"])
+
+    # Un-exclude + switch the option back off -> hidden again (#107 default).
+    conn4 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_excluded,
+        hass,
+        conn4,
+        {"id": 4, "type": "x", "entity_id": "sensor.pixel_battery", "excluded": False},
+    )
+    conn5 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_track_self_charging, hass, conn5, {"id": 5, "type": "x", "enabled": False}
+    )
+    res = await _overview(hass)
+    assert res["track_self_charging"] is False
+    assert all(r["entity_id"] != "sensor.pixel_battery" for r in res["all"])
+
+
+async def test_track_self_charging_requires_a_fleet(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    await setup_integration(hass, global_entry)
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_track_self_charging,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_track_self_charging, hass, conn, {"id": 1, "type": "x", "enabled": True}
+    )
+    assert conn.send_error.called
+    assert conn.send_error.call_args[0][1] == "not_configured"
+
+
+async def test_included_dead_note_stays_visible(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#135: the connectivity-noise drop (unavailable, not low, no date) is
+    lifted for an entity the user explicitly included — a stated battery
+    stays on the roster even while it reads like noise."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+    hass.states.async_set(
+        "sensor.attic_cam_battery_plus",
+        "unavailable",
+        {
+            "device_class": "battery",
+            "battery_type": "18650",
+            "battery_quantity": 1,
+            "battery_low": False,
+            "device_name": "Attic Cam",
+        },
+    )
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_included,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+
+    res = await _overview(hass)
+    assert all(r["entity_id"] != "sensor.attic_cam_battery_plus" for r in res["all"])
+
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_included,
+        hass,
+        conn2,
+        {"id": 2, "type": "x", "entity_id": "sensor.attic_cam_battery_plus", "included": True},
+    )
+    res = await _overview(hass)
+    row = next(r for r in res["all"] if r["entity_id"] == "sensor.attic_cam_battery_plus")
+    assert row["available"] is False

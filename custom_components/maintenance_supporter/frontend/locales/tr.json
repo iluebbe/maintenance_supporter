@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Bir cihazı, daha düşük şarj bildirmeden burada hariç tutun — kendi kendine şarj olan bir süpürge ya da zaten kendisi uyaran bir telefon gibi.",
   "battery_fleet_add": "Pil ekle",
   "battery_fleet_add_hint": "Otomatik keşfin atladığı bir pil sensörü seçin — hemen listeye katılır.",
+  "battery_fleet_track_self": "Kendi kendine şarj olan pilleri izle",
+  "battery_fleet_track_self_hint": "Telefonlar, süpürgeler ve kendi kendine şarj olan diğer cihazlar şarj edilebilir olarak görünür — seviye düşükken şarj istenir, asla yeni pil istenmez.",
   "battery_fleet_status_low": "Düşük",
   "battery_fleet_status_soon": "Yakında",
   "battery_fleet_status_ok": "İyi durumda",

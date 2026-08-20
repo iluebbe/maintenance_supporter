@@ -2,6 +2,7 @@
 
 import { css } from "lit";
 import EN from "./locales/en.json";
+import { BUNDLE_VERSION } from "./helpers/bundle-version";
 
 // Display fallback when the backend hasn't sent a currency symbol. The backend
 // derives the real symbol from const.BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY].
@@ -47,8 +48,21 @@ const _localeGlobals: LocaleGlobals = (() => {
 })();
 
 const STORE = _localeGlobals.store;
-// Each copy guarantees the bundled English fallback is present.
-if (!STORE.en) STORE.en = EN as Translations;
+
+/** Seed/extend the shared English table with this bundle's copy.
+ *
+ * MERGE, not first-wins (#135 regression): after an update, a cached app
+ * shell can still list an OLD sibling bundle (the card) next to the fresh
+ * panel. First-wins let the stale bundle's EN — missing every new key —
+ * claim the store, and the fresh panel rendered raw keys
+ * ("BATTERY_FLEET_ADD"). Existing entries win conflicts (steady state is
+ * unchanged); every bundle contributes the keys it knows, so a newer
+ * bundle's keys can never be shadowed by an older first-loader.
+ */
+export function seedEnglish(en: Record<string, string>): void {
+  STORE.en = Object.assign({}, en, STORE.en ?? {});
+}
+seedEnglish(EN as Translations);
 
 /** Languages available as runtime-loaded JSON. Keep in sync with locales/. */
 const SUPPORTED_LANGS = new Set<string>([
@@ -108,7 +122,11 @@ export function ensureLocale(lang?: string): Promise<void> {
     return Promise.resolve();
   }
   if (!(l in _localeInflight)) {
-    _localeInflight[l] = fetch(`${LOCALES_BASE}/${l}.json`)
+    // Version-busted (#135, same family as #124): the locale files are served
+    // without Cache-Control, so browsers cache them heuristically — after an
+    // update a stale table would miss every new key and silently fall back to
+    // English for them. "dev" builds keep a stable URL.
+    _localeInflight[l] = fetch(`${LOCALES_BASE}/${l}.json?v=${BUNDLE_VERSION}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) {

@@ -67,6 +67,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/battery_fleet/mark_replaced": "write",
     "maintenance_supporter/battery_fleet/set_excluded": "write",
     "maintenance_supporter/battery_fleet/set_included": "write",
+    "maintenance_supporter/battery_fleet/set_track_self_charging": "write",
     "maintenance_supporter/views/save": "write",
     "maintenance_supporter/views/delete": "write",
     "maintenance_supporter/group/create": "write",

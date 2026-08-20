@@ -346,6 +346,10 @@ BATTERY_FLEET_EXCLUDED = "battery_fleet_excluded"
 # heuristics miss (no device_class, odd naming, self-charging filter). An
 # include bypasses the heuristic and #107 filters, never the dedupe.
 BATTERY_FLEET_INCLUDED = "battery_fleet_included"
+# #135 follow-up: fleet-wide opt-in that keeps self-charging devices (phones,
+# vacuums, smart rings — the #107 filter) in the roster as rechargeables, so
+# "needs a recharge" can notify like "needs a swap". Default off: #107 stays.
+BATTERY_FLEET_TRACK_SELF_CHARGING = "battery_fleet_track_self_charging"
 # Task-side link: task["consumes_parts"] = [{"part_id", "quantity"}] — a
 # completion decrements each linked part's stock.
 CONF_TASK_CONSUMES_PARTS = "consumes_parts"

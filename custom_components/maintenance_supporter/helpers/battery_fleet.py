@@ -340,8 +340,10 @@ def fleet_excluded_entities(hass: HomeAssistant) -> set[str]:
 def fleet_included_entities(hass: HomeAssistant) -> set[str]:
     """Manually ADDED battery entity_ids (#135) — same storage pattern as
     the exclusions. An include bypasses the discovery heuristic and the
-    self-charging filter in the native pass; Battery-Notes coverage and the
-    exclusion list still win (no duplicate rows, exclusion stays king)."""
+    self-charging filter in BOTH passes (lurisin's Oura Ring carried a
+    Battery Notes note, so the native-pass-only bypass never fired);
+    Battery-Notes coverage and the exclusion list still win (no duplicate
+    rows, exclusion stays king)."""
     from ..const import BATTERY_FLEET_INCLUDED, BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, DOMAIN
 
     for entry in hass.config_entries.async_entries(DOMAIN):
@@ -349,6 +351,23 @@ def fleet_included_entities(hass: HomeAssistant) -> set[str]:
         if obj.get(BATTERY_FLEET_OBJECT_FLAG):
             return set(obj.get(BATTERY_FLEET_INCLUDED) or [])
     return set()
+
+
+def fleet_track_self_charging(hass: HomeAssistant) -> bool:
+    """Whether the fleet keeps self-charging devices in the roster (#135).
+
+    Off (the default) preserves #107: vacuums/phones/rings never enter. On,
+    they appear as rechargeables — typed "Rechargeable", labelled
+    "— recharge", never counted into the shopping needs — so a low phone or
+    smart ring can drive a "charge it" notification. Exclusions still win.
+    """
+    from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_TRACK_SELF_CHARGING, CONF_OBJECT, DOMAIN
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        obj = entry.data.get(CONF_OBJECT, {})
+        if obj.get(BATTERY_FLEET_OBJECT_FLAG):
+            return bool(obj.get(BATTERY_FLEET_TRACK_SELF_CHARGING))
+    return False
 
 
 def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
@@ -418,6 +437,12 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       for free via its retained ``battery_low`` attribute).
     * Manually excluded entity_ids (fleet detail → exclude) are dropped from
       BOTH passes.
+    * Manual includes (#135) act DEVICE-wide: whichever of a device's battery
+      entities the user picked, the self-charging filter is lifted for the
+      whole device in both passes — so the richest source (a Battery Notes
+      note) still wins the row. With ``fleet_track_self_charging`` on, the
+      self-charging filter is off entirely and such devices surface as
+      rechargeables (native rows typed "Rechargeable", never "Unknown").
     """
     from homeassistant.helpers import device_registry as dr
     from homeassistant.helpers import entity_registry as er
@@ -426,6 +451,24 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     dev_reg = dr.async_get(hass)
     excluded = fleet_excluded_entities(hass)
     included = fleet_included_entities(hass)
+    track_self = fleet_track_self_charging(hass)
+    # The include acts device-wide (see docstring) — resolve each included
+    # entity to its device once.
+    included_devices: set[str] = set()
+    for _eid in included:
+        _reg = ent_reg.async_get(_eid)
+        if _reg and _reg.device_id:
+            included_devices.add(_reg.device_id)
+    # _is_self_charging walks the device's registry entries — cache per device
+    # (a device's %-sensor and low-binary would otherwise both pay for it).
+    _self_charging_cache: dict[str, bool] = {}
+
+    def _self_charging(dev_id: str | None) -> bool:
+        if not dev_id:
+            return False
+        if dev_id not in _self_charging_cache:
+            _self_charging_cache[dev_id] = _is_self_charging(hass, dev_id)
+        return _self_charging_cache[dev_id]
 
     out: list[Battery] = []
     covered_sources: set[str] = set()
@@ -487,8 +530,10 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             # sensor, so the state reads unknown forever — must SURVIVE when it
             # carries a replacement date: that date is all `_predicted_date`
             # needs, and dropping these hid 11 overdue batteries in a live fleet.
-            # Offline AND not low AND no date = pure connectivity noise → drop.
-            if not available and not low and last_replaced is None:
+            # Offline AND not low AND no date = pure connectivity noise → drop —
+            # unless the user explicitly included THIS entity (#135): a stated
+            # battery stays visible even while it reads like noise.
+            if not available and not low and last_replaced is None and state.entity_id not in included:
                 continue
             # B3: only a KEPT note covers its source/device — a dropped dead note
             # must not suppress the native fallback for its own device (a device
@@ -506,8 +551,17 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             # #107 follow-up: the skip covers noted devices too (it covers
             # above for the same reason exclusion does). Battery Notes
             # auto-discovers vacuums/phones from its library, so a note is
-            # not evidence anyone means to swap cells there.
-            if _is_self_charging(hass, dev_id):
+            # not evidence anyone means to swap cells there. A manual include
+            # (this entity or a sibling on the same device, #135) or the
+            # track-self-charging option lifts the skip — lurisin's Oura Ring
+            # was noted AND self-charging, and the v2.61.0 bypass lived only
+            # in the native pass, so including it did nothing.
+            if (
+                not track_self
+                and state.entity_id not in included
+                and dev_id not in included_devices
+                and _self_charging(dev_id)
+            ):
                 continue
             out.append(
                 Battery(
@@ -550,12 +604,28 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             dev_id = reg.device_id if reg else None
             if dev_id and dev_id in covered_devices:
                 continue
-            if eid not in included and _is_self_charging(hass, dev_id):  # #107
+            self_charging = _self_charging(dev_id)
+            if (  # #107; lifted by an include on the device (#135) or the option
+                self_charging
+                and not track_self
+                and eid not in included
+                and dev_id not in included_devices
+            ):
                 continue
             key = dev_id or eid
             rec = native.setdefault(
                 key,
-                {"level_state": None, "low_state": None, "device_id": dev_id, "eid": eid, "name": None},
+                {
+                    "level_state": None,
+                    "low_state": None,
+                    "device_id": dev_id,
+                    "eid": eid,
+                    "name": None,
+                    # A surfaced self-charging device is a RECHARGEABLE, not an
+                    # "Unknown" cell — the type drives the "— recharge" label
+                    # and keeps it out of the shopping needs.
+                    "self_charging": self_charging,
+                },
             )
             friendly = state.attributes.get("friendly_name")
             if domain == "sensor":
@@ -600,7 +670,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             Battery(
                 entity_id=rec["eid"],
                 device_name=name or rec["eid"],
-                battery_type="Unknown",
+                battery_type="Rechargeable" if rec.get("self_charging") else "Unknown",
                 quantity=1,
                 low=low,
                 level=level,
@@ -875,6 +945,7 @@ __all__ = [
     "discover_battery_types",
     "fleet_excluded_entities",
     "fleet_included_entities",
+    "fleet_track_self_charging",
     "has_batteries",
     "has_battery_notes",
     "is_rechargeable_type",

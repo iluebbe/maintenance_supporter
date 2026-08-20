@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Exclude a device here to drop it from the fleet before it ever reports low — a vacuum that recharges itself, or a phone that warns you on its own.",
   "battery_fleet_add": "Add a battery",
   "battery_fleet_add_hint": "Pick a battery sensor the automatic discovery missed — it joins the roster immediately.",
+  "battery_fleet_track_self": "Track self-charging batteries",
+  "battery_fleet_track_self_hint": "Phones, vacuums and other devices that recharge themselves appear as rechargeables — a low one asks for a charge, never for new cells.",
   "battery_fleet_status_low": "Low",
   "battery_fleet_status_soon": "Soon",
   "battery_fleet_status_ok": "Healthy",

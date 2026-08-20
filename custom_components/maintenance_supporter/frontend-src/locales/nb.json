@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Utelukk en enhet her før den i det hele tatt melder lavt nivå — en støvsuger som lader seg selv, eller en telefon som varsler av seg selv.",
   "battery_fleet_add": "Legg til et batteri",
   "battery_fleet_add_hint": "Velg en batterisensor som den automatiske gjenkjenningen overså — den blir med i listen umiddelbart.",
+  "battery_fleet_track_self": "Spor selvladende batterier",
+  "battery_fleet_track_self_hint": "Telefoner, støvsugere og andre selvladende enheter vises som oppladbare — ved lavt nivå bes det om lading, aldri om nye batterier.",
   "battery_fleet_status_low": "Lav",
   "battery_fleet_status_soon": "Snart",
   "battery_fleet_status_ok": "I orden",

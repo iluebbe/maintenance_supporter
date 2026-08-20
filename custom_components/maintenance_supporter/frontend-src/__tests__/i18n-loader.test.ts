@@ -13,7 +13,7 @@
  * the no-fetch fast paths of ensureLocale/isLocaleLoaded.
  */
 import { expect } from "@open-wc/testing";
-import { t, isLocaleLoaded, ensureLocale } from "../styles";
+import { t, isLocaleLoaded, ensureLocale, seedEnglish } from "../styles";
 
 describe("i18n runtime loader", () => {
   it("serves bundled English synchronously", () => {
@@ -58,6 +58,27 @@ describe("i18n runtime loader", () => {
       expect(isLocaleLoaded("pt")).to.be.true;
     } finally {
       delete g!.store.pt;
+    }
+  });
+
+  it("seedEnglish MERGES so a stale first-loader cannot shadow newer keys (#135 regression)", () => {
+    // After an update, a cached app shell can load an OLD card bundle first;
+    // its EN table lacks every key the fresh panel introduced. First-wins
+    // seeding froze that stale table and the panel rendered raw keys
+    // ("BATTERY_FLEET_ADD"). The merge keeps existing entries (steady state
+    // unchanged) but lets every bundle contribute the keys it knows.
+    const g = (window as unknown as {
+      __msLocales: { store: Record<string, Record<string, string>> };
+    }).__msLocales;
+    const original = g.store.en;
+    try {
+      // Simulate the stale bundle having seeded first with a tiny old table.
+      g.store.en = { loading: "Old loading text" };
+      seedEnglish({ loading: "Fresh loading text", brand_new_key: "New feature label" });
+      expect(t("loading", "en"), "existing entries win conflicts").to.equal("Old loading text");
+      expect(t("brand_new_key", "en"), "newer keys are contributed, never raw").to.equal("New feature label");
+    } finally {
+      g.store.en = original;
     }
   });
 });

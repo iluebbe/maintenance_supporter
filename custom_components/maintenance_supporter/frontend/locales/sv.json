@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Uteslut en enhet här redan innan den rapporterar låg nivå — en dammsugare som laddar sig själv, eller en telefon som varnar på egen hand.",
   "battery_fleet_add": "Lägg till ett batteri",
   "battery_fleet_add_hint": "Välj en batterisensor som den automatiska identifieringen missade — den läggs till i listan direkt.",
+  "battery_fleet_track_self": "Spåra självladdande batterier",
+  "battery_fleet_track_self_hint": "Telefoner, dammsugare och andra självladdande enheter visas som laddningsbara — vid låg nivå begärs laddning, aldrig nya batterier.",
   "battery_fleet_status_low": "Låg",
   "battery_fleet_status_soon": "Snart",
   "battery_fleet_status_ok": "I ordning",

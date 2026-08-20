@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "배터리 부족을 알리기 전에 여기에서 기기를 제외하세요 — 스스로 충전하는 로봇청소기나 자체적으로 경고하는 휴대폰처럼.",
   "battery_fleet_add": "배터리 추가",
   "battery_fleet_add_hint": "자동 검색이 놓친 배터리 센서를 선택하면 즉시 목록에 추가됩니다.",
+  "battery_fleet_track_self": "자체 충전 배터리 추적",
+  "battery_fleet_track_self_hint": "휴대폰, 청소기 등 스스로 충전되는 기기는 충전식으로 표시됩니다. 잔량이 낮으면 충전을 요청하며 새 전지를 요구하지 않습니다.",
   "battery_fleet_status_low": "부족",
   "battery_fleet_status_soon": "곧",
   "battery_fleet_status_ok": "정상",

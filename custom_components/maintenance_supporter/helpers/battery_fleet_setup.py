@@ -401,6 +401,25 @@ def set_battery_included(hass: HomeAssistant, entity_id: str, included: bool) ->
     hass.config_entries.async_update_entry(entry, data=new_data)
     return True
 
+def set_track_self_charging(hass: HomeAssistant, enabled: bool) -> bool:
+    """Persist the fleet-wide track-self-charging opt-in (#135 follow-up).
+
+    Stored on the fleet object like the exclude/include lists. Returns False
+    when no fleet exists yet.
+    """
+    from ..const import BATTERY_FLEET_TRACK_SELF_CHARGING
+
+    entry = find_fleet_entry(hass)
+    if entry is None:
+        return False
+    new_data = dict(entry.data)
+    obj = dict(new_data.get(CONF_OBJECT, {}))
+    obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = bool(enabled)
+    new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    return True
+
+
 def find_fleet_task(entry: ConfigEntry) -> tuple[str, dict[str, Any]] | None:
     """The flagged fleet task (id, data) on the fleet entry, or None."""
     for task_id, task_data in (entry.data.get(CONF_TASKS) or {}).items():

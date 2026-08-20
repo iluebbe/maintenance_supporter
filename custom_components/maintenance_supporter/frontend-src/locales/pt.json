@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Exclua aqui um dispositivo antes de ele sequer indicar carga fraca — um aspirador que se recarrega sozinho ou um telemóvel que já avisa por si.",
   "battery_fleet_add": "Adicionar uma bateria",
   "battery_fleet_add_hint": "Escolha um sensor de bateria que a deteção automática não encontrou — entra de imediato na lista.",
+  "battery_fleet_track_self": "Acompanhar baterias de carregamento automático",
+  "battery_fleet_track_self_hint": "Telefones, aspiradores e outros dispositivos que se recarregam sozinhos aparecem como recarregáveis — com carga baixa pedem um carregamento, nunca pilhas novas.",
   "battery_fleet_status_low": "Fraca",
   "battery_fleet_status_soon": "Em breve",
   "battery_fleet_status_ok": "Em bom estado",

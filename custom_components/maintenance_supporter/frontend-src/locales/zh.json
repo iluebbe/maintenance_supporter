@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "在设备报告电量不足之前就可以在这里将其排除——例如会自行充电的扫地机器人，或本身就会提醒你的手机。",
   "battery_fleet_add": "添加电池",
   "battery_fleet_add_hint": "选择自动发现遗漏的电池传感器——它会立即加入列表。",
+  "battery_fleet_track_self": "跟踪自充电电池",
+  "battery_fleet_track_self_hint": "手机、吸尘器等自充电设备显示为可充电电池——电量低时提示充电，而不是更换电池。",
   "battery_fleet_status_low": "电量低",
   "battery_fleet_status_soon": "即将",
   "battery_fleet_status_ok": "正常",

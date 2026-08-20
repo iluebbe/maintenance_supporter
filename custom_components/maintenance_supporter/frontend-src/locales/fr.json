@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Excluez un appareil ici avant même qu'il ne signale une charge faible — un aspirateur qui se recharge seul, ou un téléphone qui vous prévient lui-même.",
   "battery_fleet_add": "Ajouter une batterie",
   "battery_fleet_add_hint": "Choisissez un capteur de batterie que la détection automatique a manqué — il rejoint la liste immédiatement.",
+  "battery_fleet_track_self": "Suivre les batteries à recharge automatique",
+  "battery_fleet_track_self_hint": "Les téléphones, aspirateurs et autres appareils qui se rechargent seuls apparaissent comme rechargeables — un niveau bas demande une recharge, jamais de nouvelles piles.",
   "battery_fleet_status_low": "Faible",
   "battery_fleet_status_soon": "Bientôt",
   "battery_fleet_status_ok": "Bon état",

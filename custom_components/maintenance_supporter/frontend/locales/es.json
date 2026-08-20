@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Excluye aquí un dispositivo antes de que llegue a avisar de carga baja — un aspirador que se recarga solo o un teléfono que ya avisa por su cuenta.",
   "battery_fleet_add": "Añadir una batería",
   "battery_fleet_add_hint": "Elige un sensor de batería que la detección automática pasó por alto — se une a la lista de inmediato.",
+  "battery_fleet_track_self": "Seguir baterías de carga automática",
+  "battery_fleet_track_self_hint": "Teléfonos, aspiradoras y otros dispositivos que se recargan solos aparecen como recargables: si están bajos piden una carga, nunca pilas nuevas.",
   "battery_fleet_status_low": "Baja",
   "battery_fleet_status_soon": "Pronto",
   "battery_fleet_status_ok": "Correcta",

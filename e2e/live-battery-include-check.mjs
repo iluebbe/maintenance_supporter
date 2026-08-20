@@ -9,8 +9,12 @@
  *   4. The fleet low sensor exposes batteries_due lines in the
  *      "<name> — replace (type)" / "<name> — recharge" format.
  *   5. Panel: the roster renders the add-battery picker.
+ *   6. No raw locale keys leak into the section (v2.61.0 regression guard).
+ *   7. battery_fleet/set_track_self_charging persists and survives a REAL
+ *      page reload into the toggle's checked state.
+ *   8. Clicking the toggle in the UI switches the option back off.
  *
- *  Uses the existing dev fleet; cleans up its own entity + include.
+ *  Uses the existing dev fleet; cleans up its own entity + include + option.
  */
 import { chromium } from "@playwright/test";
 import { hassTokensInit, loadToken, watchdog, wsClient } from "./ws-client.mjs";
@@ -27,6 +31,7 @@ const stamp = Date.now() % 100000;
 const EID = `sensor.sidegate_cell_${stamp}`;
 let browser = null;
 let included = false;
+let trackSet = false;
 
 try {
   // Seed a heuristic miss: % unit but no device_class and no "battery" name.
@@ -97,6 +102,56 @@ try {
   }
   assert(found, "fleet task detail renders the add-battery picker");
 
+  // 7. WS toggle persists…
+  await api.send({ type: "maintenance_supporter/battery_fleet/set_track_self_charging", enabled: true });
+  trackSet = true;
+  const ov4 = await api.send({ type: "maintenance_supporter/battery_fleet/overview" });
+  assert(ov4.track_self_charging === true, "set_track_self_charging persists (overview reports true)");
+
+  // …and survives a REAL reload into the checked toggle. Also scan the
+  // section's rendered text for raw locale keys (check 6, the v2.61.0
+  // BATTERY_FLEET_ADD regression).
+  await p.reload({ waitUntil: "domcontentloaded", timeout: 30000 });
+  let ui = null;
+  for (let i = 0; i < 30 && !ui; i++) {
+    await p.waitForTimeout(1000);
+    ui = await p.evaluate(({ e, t2 }) => {
+      const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+        while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+          if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return o; };
+      const panel = deep((el) => el.tagName === "MAINTENANCE-SUPPORTER-PANEL")[0];
+      if (!panel || !panel.shadowRoot || !Array.isArray(panel._objects) || !panel._objects.length) return null;
+      if (!window.__navigated2) { panel._showTask(e, t2); window.__navigated2 = true; return null; }
+      const sec = panel.shadowRoot.querySelector("maintenance-battery-fleet-section");
+      if (!sec || !sec.shadowRoot) return null;
+      const roster = sec.shadowRoot.querySelector("details.bf-roster");
+      if (roster) roster.open = true;
+      const input = sec.shadowRoot.querySelector(".bf-track-self input");
+      if (!input) return null;
+      const raw = (sec.shadowRoot.textContent || "").match(/battery_fleet_\w+/g) || [];
+      return { checked: !!input.checked, raw };
+    }, { e: fleetEntry, t2: fleetTaskId }).catch(() => null);
+  }
+  assert(ui, "roster renders the track-self-charging toggle");
+  assert(ui.raw.length === 0, `no raw locale keys leak into the section (${ui.raw.join(",") || "clean"})`);
+  assert(ui.checked === true, "toggle reflects the enabled option after a real reload");
+
+  // 8. A real UI click switches it back off.
+  await p.evaluate(() => {
+    const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+      while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+        if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+        for (const k of (el.children || [])) st.push(k); } return o; };
+    const panel = deep((el) => el.tagName === "MAINTENANCE-SUPPORTER-PANEL")[0];
+    const sec = panel.shadowRoot.querySelector("maintenance-battery-fleet-section");
+    sec.shadowRoot.querySelector(".bf-track-self input").click();
+  });
+  await p.waitForTimeout(2000);
+  const ov5 = await api.send({ type: "maintenance_supporter/battery_fleet/overview" });
+  assert(ov5.track_self_charging === false, "clicking the toggle in the UI switches the option off");
+  trackSet = false;
+
   log("\nALL LIVE CHECKS PASSED");
   process.exitCode = 0;
 } catch (err) {
@@ -104,6 +159,7 @@ try {
   process.exitCode = 1;
 } finally {
   try { if (included) await api.send({ type: "maintenance_supporter/battery_fleet/set_included", entity_id: EID, included: false }); } catch { /* ignore */ }
+  try { if (trackSet) await api.send({ type: "maintenance_supporter/battery_fleet/set_track_self_charging", enabled: false }); } catch { /* ignore */ }
   try {
     await fetch(`${REST}/api/states/${EID}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
   } catch { /* ignore */ }

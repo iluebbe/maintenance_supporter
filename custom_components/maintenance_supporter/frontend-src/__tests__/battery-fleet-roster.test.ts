@@ -52,6 +52,10 @@ async function mount(ov: unknown = overview(), history: Record<string, unknown> 
         calls.push(msg);
         return { success: true };
       },
+      "maintenance_supporter/battery_fleet/set_track_self_charging": (msg: Record<string, unknown>) => {
+        calls.push(msg);
+        return { success: true };
+      },
     },
   });
   const el = await fixture<MaintenanceBatteryFleetSection>(
@@ -339,5 +343,38 @@ describe("battery fleet manual include (#135)", () => {
     selector.dispatchEvent(new CustomEvent("value-changed", { detail: { value: "" } }));
     await new Promise((r) => setTimeout(r, 0));
     expect(calls.some((c) => c.type === "maintenance_supporter/battery_fleet/set_included")).to.equal(false);
+  });
+});
+
+
+describe("battery fleet track-self-charging toggle (#135)", () => {
+  const toggle = (el: MaintenanceBatteryFleetSection) =>
+    roster(el)!.querySelector<HTMLInputElement>(".bf-track-self input");
+
+  it("renders unchecked by default and reflects the server state", async () => {
+    const { el } = await mount();
+    expect(toggle(el)).to.exist;
+    expect(toggle(el)!.checked).to.equal(false);
+
+    const { el: el2 } = await mount(overview({ track_self_charging: true }));
+    expect(toggle(el2)!.checked).to.equal(true);
+  });
+
+  it("checking it sends set_track_self_charging", async () => {
+    const { el, calls } = await mount();
+    toggle(el)!.click();
+    await new Promise((r) => setTimeout(r, 0));
+    const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/set_track_self_charging");
+    expect(call).to.exist;
+    expect(call!.enabled).to.equal(true);
+  });
+
+  it("unchecking sends enabled=false", async () => {
+    const { el, calls } = await mount(overview({ track_self_charging: true }));
+    toggle(el)!.click();
+    await new Promise((r) => setTimeout(r, 0));
+    const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/set_track_self_charging");
+    expect(call).to.exist;
+    expect(call!.enabled).to.equal(false);
   });
 });

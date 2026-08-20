@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Wyklucz tutaj urządzenie, zanim w ogóle zgłosi niski poziom — odkurzacz, który sam się ładuje, albo telefon, który ostrzega samodzielnie.",
   "battery_fleet_add": "Dodaj baterię",
   "battery_fleet_add_hint": "Wybierz czujnik baterii pominięty przez automatyczne wykrywanie — od razu trafi na listę.",
+  "battery_fleet_track_self": "Śledź baterie samoładujące",
+  "battery_fleet_track_self_hint": "Telefony, odkurzacze i inne samoładujące się urządzenia pojawiają się jako akumulatory — przy niskim poziomie proszą o ładowanie, nigdy o nowe baterie.",
   "battery_fleet_status_low": "Niski",
   "battery_fleet_status_soon": "Wkrótce",
   "battery_fleet_status_ok": "W porządku",

@@ -838,6 +838,8 @@
   "battery_fleet_all_hint": "Zárjon ki egy eszközt már azelőtt, hogy alacsony töltöttséget jelezne — például egy magát töltő porszívót vagy egy telefont, amely magától figyelmeztet.",
   "battery_fleet_add": "Elem hozzáadása",
   "battery_fleet_add_hint": "Válassz egy elem-érzékelőt, amelyet az automatikus felismerés kihagyott — azonnal felkerül a listára.",
+  "battery_fleet_track_self": "Öntöltő akkumulátorok követése",
+  "battery_fleet_track_self_hint": "A telefonok, porszívók és más öntöltő eszközök akkumulátorként jelennek meg — alacsony töltöttségnél töltést kérnek, sosem új elemet.",
   "battery_fleet_status_low": "Alacsony",
   "battery_fleet_status_soon": "Hamarosan",
   "battery_fleet_status_ok": "Rendben",

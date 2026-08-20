@@ -361,8 +361,15 @@ The fleet task's detail view is the whole surface:
 - **Add a battery by hand** (#135) — the mirror case: a picker at the bottom
   of the roster adds a sensor the automatic discovery missed (no
   `device_class`, unusual naming, or a device the self-charging filter
-  skipped). The include bypasses the heuristics but never the dedupe;
-  excluding a manually-added battery simply lifts the include again.
+  skipped). The include acts device-wide — whichever of a device's battery
+  entities is picked, the richest source (a Battery Notes note) wins the
+  roster row — and bypasses the heuristics but never the dedupe; excluding a
+  manually-added battery simply lifts the include again.
+- **Track self-charging batteries** (#135) — a roster toggle that keeps
+  phones, vacuums and other self-recharging devices in the fleet as
+  rechargeables: a low one asks for a charge (never for new cells), and the
+  due-line attributes say *"— recharge"*. Off by default; exclusions still
+  win per device.
 - **Dashboard-ready due lines** (#135) — the fleet's low-count sensor exposes
   `batteries_due` and `batteries_due_soon` attributes: one readable line per
   device, *"Front door lock — replace (CR2)"* for primaries and *"Robot dock —
@@ -641,7 +648,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 89 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 90 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -724,7 +731,7 @@ status) join the long-standing `complete` / `skip` / `reset` /
 `completed_by` **person entity** (defaulting to the calling user), and
 `update_task` can assign or clear the responsible user — see
 [Examples](EXAMPLES.md#attribute-and-assign-chores-from-automations-128).
-For the full WebSocket API (89 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (90 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 
