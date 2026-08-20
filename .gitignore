@@ -77,3 +77,4 @@ e2e/visual-results/
 e2e/perf-results/*.json
 e2e/churn-result.json
 e2e/idle5min*.json
+.mutation/

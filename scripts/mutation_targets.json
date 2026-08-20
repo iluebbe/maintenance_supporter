@@ -1,0 +1,55 @@
+[
+  {
+    "module": "custom_components/maintenance_supporter/helpers/trigger_fallback.py",
+    "tests": [
+      "tests/test_trigger_fallback.py"
+    ]
+  },
+  {
+    "module": "custom_components/maintenance_supporter/helpers/status.py",
+    "tests": [
+      "tests/test_status_computation.py",
+      "tests/test_archive.py"
+    ]
+  },
+  {
+    "module": "custom_components/maintenance_supporter/helpers/saved_views.py",
+    "tests": [
+      "tests/test_saved_views.py"
+    ]
+  },
+  {
+    "module": "custom_components/maintenance_supporter/helpers/schedule.py",
+    "tests": [
+      "tests/test_schedule.py",
+      "tests/test_schedule_eom.py",
+      "tests/test_interval_anchor.py"
+    ]
+  },
+  {
+    "module": "custom_components/maintenance_supporter/helpers/retention.py",
+    "tests": [
+      "tests/test_journey_retention.py"
+    ]
+  },
+  {
+    "module": "custom_components/maintenance_supporter/helpers/threshold_calculator.py",
+    "tests": [
+      "tests/test_threshold_calculator.py"
+    ]
+  },
+  {
+    "module": "custom_components/maintenance_supporter/helpers/dates.py",
+    "tests": [
+      "tests/test_dates.py",
+      "tests/test_schedule.py",
+      "tests/test_schedule_eom.py"
+    ]
+  },
+  {
+    "module": "custom_components/maintenance_supporter/helpers/completion_requirements.py",
+    "tests": [
+      "tests/test_required_completion_details.py"
+    ]
+  }
+]

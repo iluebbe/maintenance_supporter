@@ -297,3 +297,82 @@ def test_fallback_threshold_not_equals_activates() -> None:
         ["sensor.mode"],
     )
     assert r2.active is False
+
+
+# ─── Boundary pins (2026-08 mutation-testing pilot) ─────────────────────────
+# Every case below is a mutant that SURVIVED the first mutation run: the
+# comparison boundaries (value == limit) and clamp/rounding behaviour were
+# executed by the suite but never asserted.
+
+
+def test_threshold_exceeds_boundaries_are_exclusive() -> None:
+    """above/below are strict: AT the limit is not "exceeded"."""
+    assert threshold_exceeds(80.0, above=80.0, below=None) is False
+    assert threshold_exceeds(80.5, above=80.0, below=None) is True
+    assert threshold_exceeds(20.0, above=None, below=20.0) is False
+    assert threshold_exceeds(19.5, above=None, below=20.0) is True
+
+
+def test_threshold_fallback_with_no_entities_is_inactive() -> None:
+    r = evaluate_threshold(_states({}), {"trigger_above": 1.0}, [])
+    assert r.active is False
+    assert r.current_value is None
+
+
+def test_counter_boundary_at_exact_target() -> None:
+    """value == target counts as reached (inclusive), absolute and delta."""
+    r = evaluate_counter(_states({"sensor.c": 100}), {"trigger_target_value": 100}, ["sensor.c"])
+    assert r.active is True
+    r2 = evaluate_counter(
+        _states({"sensor.c": 140}),
+        {"trigger_target_value": 100, "trigger_delta_mode": True,
+         "_trigger_state": {"sensor.c": {"baseline_value": 40}}},
+        ["sensor.c"],
+    )
+    assert r2.active is True
+
+
+def test_state_change_boundary_at_exact_target() -> None:
+    r = evaluate_state_change(
+        {"trigger_target_changes": 30, "_trigger_state": {"sensor.s": {"change_count": 30}}},
+        ["sensor.s"],
+    )
+    assert r.active is True
+    assert r.current_value == 30.0
+
+
+def test_runtime_boundary_at_exact_target_hours() -> None:
+    r = evaluate_runtime(
+        {"trigger_runtime_hours": 2, "_trigger_state": {"sensor.r": {"accumulated_seconds": 7200}}},
+        ["sensor.r"],
+    )
+    assert r.active is True
+    assert r.current_value == 2.0
+
+
+def test_runtime_future_on_since_clamps_to_zero() -> None:
+    """A clock-skewed on_since in the future must not SUBTRACT runtime."""
+    future = (dt_util.utcnow() + timedelta(hours=3)).isoformat()
+    r = evaluate_runtime(
+        {"trigger_runtime_hours": 100,
+         "_trigger_state": {"sensor.r": {"accumulated_seconds": 3600, "on_since": future}}},
+        ["sensor.r"],
+    )
+    assert r.current_value == 1.0  # clamped: accumulated only, not negative
+
+
+def test_runtime_hours_rounded_to_two_decimals() -> None:
+    r = evaluate_runtime(
+        {"trigger_runtime_hours": 100, "_trigger_state": {"sensor.r": {"accumulated_seconds": 4444}}},
+        ["sensor.r"],
+    )
+    assert r.current_value == 1.23  # 4444/3600 = 1.2344...
+
+
+def test_aggregate_modes_diverge_on_mixed_states() -> None:
+    """all vs any must actually differ when entities disagree."""
+    states = _states({"sensor.a": 25, "sensor.b": 5})
+    cfg_any = {"trigger_above": 10.0, "entity_logic": "any"}
+    cfg_all = {"trigger_above": 10.0, "entity_logic": "all"}
+    assert evaluate_threshold(states, cfg_any, ["sensor.a", "sensor.b"]).active is True
+    assert evaluate_threshold(states, cfg_all, ["sensor.a", "sensor.b"]).active is False

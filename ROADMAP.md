@@ -608,12 +608,13 @@ events), and a `source` namespace convention so contributed tasks stay
 attributable and idempotently re-creatable. Mostly documentation; at most a
 small `source`/`origin` passthrough on the completion path.
 
-### 💡 Mutation testing over the pure-logic helpers
-Coverage counts executed lines, not pinned behavior. Evaluate `mutmut` as a
-periodic (not CI-gating) run over `helpers/` — schedule math, status
-computation, sanitizers — to find spots where tests execute code but would not
-catch a flipped comparison or an off-by-one. Promote to a CI gate only if the
-signal-to-noise turns out good.
+### ✅ Mutation testing over the pure-logic helpers
+Shipped as an in-house runner (`scripts/mutation-run.sh` +
+`scripts/mutation_check.py`) after `mutmut` proved incompatible with the
+Python 3.14 / HA-harness dev environment — design notes and the pilot
+results in [docs/design/mutation-testing.md](docs/design/mutation-testing.md).
+The pilot over `trigger_fallback.py` found 9 real boundary-case gaps
+(now pinned); runs are periodic per release cycle, not CI-gating.
 
 
 ### ✅ LLM setup assistant — a skill that configures the integration for you

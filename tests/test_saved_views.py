@@ -250,3 +250,16 @@ async def test_over_cap_hand_edited_list_not_truncated_on_save_or_delete(
     conn = make_ws_connection()
     await call_ws_handler(ws_delete_saved_view, hass, conn, {"id": 1, "type": "x", "view_id": "v1"})
     assert len(conn.send_result.call_args[0][1]["views"]) == over - 1
+
+
+def test_filter_length_caps_are_boundaries() -> None:
+    """Mutation-run pins: the 64-char user-id cap and the label cap are
+    inclusive at the limit and reject one past it."""
+    v = sanitize_view({"name": "X", "filters": {"user_id": "u" * 64}})
+    assert v["filters"]["user_id"] == "u" * 64
+    v = sanitize_view({"name": "X", "filters": {"user_id": "u" * 65}})
+    assert v["filters"]["user_id"] is None
+    v = sanitize_view({"name": "X", "filters": {"label": "l" * 40}})
+    assert v["filters"]["label"] == "l" * 40
+    v = sanitize_view({"name": "X", "filters": {"label": "l" * 41}})
+    assert v["filters"]["label"] is None

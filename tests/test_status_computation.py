@@ -557,3 +557,41 @@ class TestDictTwinCombinator:
             "warning_days": 7,
         }
         assert compute_status_from_task_dict(task) == MaintenanceStatus.TRIGGERED
+
+
+class TestDictTwinBoundaries:
+    """Mutation-run pins: the dict twin's comparison boundaries (2026-08)."""
+
+    def test_due_today_is_due_soon_not_overdue(self) -> None:
+        from custom_components.maintenance_supporter.helpers.status import (
+            compute_status_from_task_dict,
+        )
+
+        task = {"_days_until_due": 0, "warning_days": 7}
+        assert compute_status_from_task_dict(task) == MaintenanceStatus.DUE_SOON
+
+    def test_exactly_at_warning_days_is_due_soon(self) -> None:
+        from custom_components.maintenance_supporter.helpers.status import (
+            compute_status_from_task_dict,
+        )
+
+        assert compute_status_from_task_dict({"_days_until_due": 7, "warning_days": 7}) == MaintenanceStatus.DUE_SOON
+        assert compute_status_from_task_dict({"_days_until_due": 8, "warning_days": 7}) == MaintenanceStatus.OK
+
+    def test_all_combinator_due_today_counts_as_time_met(self) -> None:
+        """days == 0 IS time-met: a latched trigger actions on the due day."""
+        from custom_components.maintenance_supporter.helpers.status import (
+            compute_status_from_task_dict,
+        )
+
+        task = {
+            "trigger_config": {"trigger_combinator": "all"},
+            "_trigger_active": True,
+            "_days_until_due": 0,
+            "warning_days": 7,
+        }
+        assert compute_status_from_task_dict(task) == MaintenanceStatus.TRIGGERED
+        # One day early: not TRIGGERED yet — but the time ladder keeps
+        # running, so the imminent due date still reads as a warning.
+        task["_days_until_due"] = 1
+        assert compute_status_from_task_dict(task) == MaintenanceStatus.DUE_SOON

@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 StateGetter = Callable[[str], "State | None"]
 
 
-@dataclass(slots=True)
+@dataclass(slots=True)  # pragma: no mutate (slots is memory, not behaviour)
 class FallbackResult:
     """What a fallback evaluation learned.
 
@@ -130,7 +130,7 @@ def evaluate_counter(
     """Counter: value (or delta from a per-entity baseline) reaches a target."""
     attribute = trigger_config.get("attribute")
     entity_logic = trigger_config.get("entity_logic", "any")
-    target = trigger_config.get("trigger_target_value", 0)
+    target = trigger_config.get("trigger_target_value", 0)  # pragma: no mutate (WS-required; default only guards hand-edited data)
     delta_mode = trigger_config.get("trigger_delta_mode", False)
     trigger_state = trigger_config.get("_trigger_state", {})
 
@@ -214,7 +214,7 @@ def evaluate_runtime(
                     from datetime import UTC
 
                     on_dt = on_dt.replace(tzinfo=UTC)
-                total += max(0.0, (dt_util.utcnow() - on_dt).total_seconds())
+                total += max(0.0, (dt_util.utcnow() - on_dt).total_seconds())  # pragma: no mutate (a 1s floor shift vanishes in the 2-decimal rounding)
         hours = total / 3600.0
         best_hours = hours if best_hours is None else max(best_hours, hours)
         if target_hours:
