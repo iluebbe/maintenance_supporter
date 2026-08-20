@@ -2,6 +2,37 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.61.0] - 2026-08-20
+
+### ✨ Added
+
+- **Add a battery by hand** (#135, thanks @lurisin). The Battery Fleet's
+  *All tracked batteries* roster gains a picker that adds any sensor the
+  automatic discovery missed — no `device_class`, unusual naming, or a
+  device the self-charging filter skipped. The manual add bypasses the
+  heuristics but never the duplicate protection, and hiding a
+  manually-added battery simply lifts the add again (the actions never
+  stack). Also available as the `battery_fleet/set_included` WebSocket
+  command (89 commands total).
+- **Dashboard-ready battery due lines** (#135). The fleet's low-count
+  sensor exposes `batteries_due` and `batteries_due_soon` attributes:
+  one readable line per device — *"Front door lock — replace (CR2)"*
+  for primaries, *"Robot dock — recharge"* for rechargeables — capped
+  at 30 lines each, so a markdown card or automation can show what to
+  do without templating over the roster payload.
+
+### 🧰 Internal
+
+- Three new journey suites walk the recent features end-to-end:
+  backdated completions (invoice backfill vs. "did it three days ago"),
+  the `=`/`≠` trigger operators living with real stage/mode sensors plus
+  the trigger∧interval combinator, and priority-routed notifications.
+- Mutation testing over the pure-logic helpers (in-house AST runner,
+  periodic — see `docs/design/mutation-testing.md`): the pilot found and
+  pinned two dozen boundary-case test gaps (`value == limit` on every
+  trigger type, loop order with unreadable entities, status-ladder
+  edges); four helper modules now score 100%.
+
 ## [2.60.0] - 2026-08-20
 
 ### ✨ Added
