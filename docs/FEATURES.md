@@ -443,6 +443,8 @@ complete roster with sparklines, exclude/add controls and the
 track-self-charging toggle — the same section the fleet task's detail page
 shows, so nothing needs templating over sensor attributes.
 
+![Battery Fleet Card](images/battery-fleet-card.png)
+
 ```yaml
 type: custom:maintenance-battery-fleet-card
 title: Batteries   # optional

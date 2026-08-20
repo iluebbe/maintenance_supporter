@@ -357,6 +357,8 @@ max_items: 10
 
 ### Battery Fleet Card
 
+![Battery Fleet Card](images/battery-fleet-card.png)
+
 The full Battery Fleet view as a dashboard card (#135) — low now, due soon,
 the shopping line, and the complete roster with sparklines and the
 exclude/add/track-self-charging controls. It is the same section the fleet
