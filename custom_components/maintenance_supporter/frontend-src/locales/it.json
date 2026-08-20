@@ -836,6 +836,8 @@
   "battery_fleet_include": "Traccia di nuovo",
   "battery_fleet_all": "Tutte le batterie monitorate",
   "battery_fleet_all_hint": "Escludi qui un dispositivo prima ancora che segnali la batteria scarica — un aspirapolvere che si ricarica da solo o un telefono che avvisa da sé.",
+  "battery_fleet_add": "Aggiungi una batteria",
+  "battery_fleet_add_hint": "Scegli un sensore batteria sfuggito al rilevamento automatico — entra subito nell'elenco.",
   "battery_fleet_status_low": "Scarica",
   "battery_fleet_status_soon": "A breve",
   "battery_fleet_status_ok": "A posto",

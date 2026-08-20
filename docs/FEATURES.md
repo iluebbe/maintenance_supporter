@@ -358,6 +358,16 @@ The fleet task's detail view is the whole surface:
   robot vacuum that recharges itself, or a phone that already warns you on its
   own. Excluded batteries are listed separately and can be brought back the
   same way.
+- **Add a battery by hand** (#135) — the mirror case: a picker at the bottom
+  of the roster adds a sensor the automatic discovery missed (no
+  `device_class`, unusual naming, or a device the self-charging filter
+  skipped). The include bypasses the heuristics but never the dedupe;
+  excluding a manually-added battery simply lifts the include again.
+- **Dashboard-ready due lines** (#135) — the fleet's low-count sensor exposes
+  `batteries_due` and `batteries_due_soon` attributes: one readable line per
+  device, *"Front door lock — replace (CR2)"* for primaries and *"Robot dock —
+  recharge"* for rechargeables (capped at 30 lines each), so a markdown card
+  or automation can show what to do without templating over the roster.
 - **Mark all replaced** in one tap: this presses each battery's Battery Notes
   *replaced* button (resetting the forecast) and consumes the matching spares
   from stock. The task clears itself once the devices report fresh batteries.

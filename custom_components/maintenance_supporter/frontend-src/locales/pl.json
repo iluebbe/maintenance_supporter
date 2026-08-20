@@ -836,6 +836,8 @@
   "battery_fleet_include": "Śledź ponownie",
   "battery_fleet_all": "Wszystkie śledzone baterie",
   "battery_fleet_all_hint": "Wyklucz tutaj urządzenie, zanim w ogóle zgłosi niski poziom — odkurzacz, który sam się ładuje, albo telefon, który ostrzega samodzielnie.",
+  "battery_fleet_add": "Dodaj baterię",
+  "battery_fleet_add_hint": "Wybierz czujnik baterii pominięty przez automatyczne wykrywanie — od razu trafi na listę.",
   "battery_fleet_status_low": "Niski",
   "battery_fleet_status_soon": "Wkrótce",
   "battery_fleet_status_ok": "W porządku",

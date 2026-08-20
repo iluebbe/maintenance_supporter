@@ -796,12 +796,24 @@ class BatteryFleetLowSensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         ov = self._overview()
+
+        def _due_label(row: dict[str, Any]) -> str:
+            # #135: dashboard-ready per-device lines. Rechargeables are
+            # charged, never bought — no type suffix for them.
+            if row.get("rechargeable"):
+                return f"{row['device_name']} — recharge"
+            return f"{row['device_name']} — replace ({row['battery_type']})"
+
         return {
             "total_batteries": ov.total,
             "soon_count": len(ov.soon),
             "needs_now": dict(ov.needs_now),
             "needs_soon": dict(ov.needs_soon),
             "battery_types": ov.types,
+            # #135: what is due right now, one readable line per device,
+            # capped so a huge neglected fleet can't bloat recorder rows.
+            "batteries_due": [_due_label(r) for r in ov.low[:30]],
+            "batteries_due_soon": [_due_label(r) for r in ov.soon[:30]],
         }
 
 

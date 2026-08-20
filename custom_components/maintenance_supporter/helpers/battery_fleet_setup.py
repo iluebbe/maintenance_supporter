@@ -18,7 +18,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
-from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, CONF_PARTS, CONF_TASKS, DOMAIN
+from ..const import (
+    BATTERY_FLEET_EXCLUDED,
+    BATTERY_FLEET_INCLUDED,
+    BATTERY_FLEET_OBJECT_FLAG,
+    CONF_OBJECT,
+    CONF_PARTS,
+    CONF_TASKS,
+    DOMAIN,
+)
 from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, read_batteries
 
 # The global aggregate sensor the fleet task triggers on (fixed entity_id).
@@ -349,7 +357,14 @@ def set_battery_excluded(hass: HomeAssistant, entity_id: str, excluded: bool) ->
     obj = dict(new_data.get(CONF_OBJECT, {}))
     current = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
     if excluded:
-        current.add(entity_id)
+        # Symmetry (#135): hiding a manually-added battery removes the manual
+        # include instead of stacking an exclusion on top of it.
+        includes = set(obj.get(BATTERY_FLEET_INCLUDED) or [])
+        if entity_id in includes:
+            includes.discard(entity_id)
+            obj[BATTERY_FLEET_INCLUDED] = sorted(includes)
+        else:
+            current.add(entity_id)
     else:
         current.discard(entity_id)
     obj[BATTERY_FLEET_EXCLUDED] = sorted(current)
@@ -357,6 +372,34 @@ def set_battery_excluded(hass: HomeAssistant, entity_id: str, excluded: bool) ->
     hass.config_entries.async_update_entry(entry, data=new_data)
     return True
 
+
+
+def set_battery_included(hass: HomeAssistant, entity_id: str, included: bool) -> bool:
+    """Persist a manual ADD of one battery to the fleet (#135).
+
+    The include bypasses the discovery heuristic and the self-charging filter
+    in the aggregation — for batteries the heuristics miss. Adding also lifts
+    a previous exclusion (the user changed their mind). Returns False when no
+    fleet exists yet.
+    """
+    entry = find_fleet_entry(hass)
+    if entry is None:
+        return False
+    new_data = dict(entry.data)
+    obj = dict(new_data.get(CONF_OBJECT, {}))
+    includes = set(obj.get(BATTERY_FLEET_INCLUDED) or [])
+    if included:
+        includes.add(entity_id)
+        excludes = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
+        if entity_id in excludes:
+            excludes.discard(entity_id)
+            obj[BATTERY_FLEET_EXCLUDED] = sorted(excludes)
+    else:
+        includes.discard(entity_id)
+    obj[BATTERY_FLEET_INCLUDED] = sorted(includes)
+    new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    return True
 
 def find_fleet_task(entry: ConfigEntry) -> tuple[str, dict[str, Any]] | None:
     """The flagged fleet task (id, data) on the fleet entry, or None."""

@@ -836,6 +836,8 @@
   "battery_fleet_include": "Acompanhar novamente",
   "battery_fleet_all": "Todas as baterias monitoradas",
   "battery_fleet_all_hint": "Exclua aqui um dispositivo antes que ele sequer indique carga baixa — um aspirador que se recarrega sozinho ou um celular que já avisa sozinho.",
+  "battery_fleet_add": "Adicionar uma bateria",
+  "battery_fleet_add_hint": "Escolha um sensor de bateria que a detecção automática não encontrou — ele entra na lista imediatamente.",
   "battery_fleet_status_low": "Fraca",
   "battery_fleet_status_soon": "Em breve",
   "battery_fleet_status_ok": "Em bom estado",

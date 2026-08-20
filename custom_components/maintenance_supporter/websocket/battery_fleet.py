@@ -156,6 +156,27 @@ async def ws_battery_fleet_set_excluded(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): f"{DOMAIN}/battery_fleet/set_included",
+        vol.Required("entity_id"): vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)),
+        vol.Required("included"): bool,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_battery_fleet_set_included(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Manually ADD a battery the discovery heuristics miss (#135)."""
+    from ..helpers.battery_fleet_setup import set_battery_included
+
+    if not set_battery_included(hass, msg["entity_id"], msg["included"]):
+        connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
+        return
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): f"{DOMAIN}/battery_fleet/mark_replaced",
         # battery_plus entity_ids to mark; omit to mark ALL currently low.
         vol.Optional("entity_ids"): [vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH))],

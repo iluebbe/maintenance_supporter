@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **85** registered commands are covered here. Their authorization tiers are
+All **89** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -36,7 +36,7 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
   `views/{save,delete}`, `problem_sensors/adopt`,
-  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded}`.
+  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included}`.
 - `@require_admin` (admin only): `global/update`, `global/test_notification`,
   `notify/user_targets`,
   bulk import **and export** (`export`, `csv/export`, `json/import`,
@@ -682,7 +682,18 @@ everything currently low.
 ### `battery_fleet/set_excluded` — `@require_write`
 `{entity_id (req), excluded (req, bool)}` → `{"success": true}`. Keeps a
 self-charging or retired device out of the fleet (and puts it back). Fleet not
-set up → `not_configured`.
+set up → `not_configured`. Excluding a manually-added battery lifts the
+include instead of stacking an exclusion.
+
+### `battery_fleet/set_included` — `@require_write` (#135)
+`{entity_id (req), included (req, bool)}` → `{"success": true}`. Manually ADD
+a sensor/binary_sensor the discovery heuristics miss: the include bypasses
+the name/%-heuristic and the self-charging filter, while Battery-Notes
+coverage dedupe and the exclusion list still apply. Adding lifts a previous
+exclusion. Fleet not set up → `not_configured`. The fleet task's low sensor
+also exposes `batteries_due` / `batteries_due_soon` attributes — one
+dashboard-ready line per device ("<name> — replace (CR2)" / "<name> —
+recharge", capped at 30).
 
 ## Saved filter views — shared named panel-list filter combinations
 

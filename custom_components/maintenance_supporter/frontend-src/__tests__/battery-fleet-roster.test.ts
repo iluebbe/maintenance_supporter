@@ -48,6 +48,10 @@ async function mount(ov: unknown = overview(), history: Record<string, unknown> 
         calls.push(msg);
         return { success: true };
       },
+      "maintenance_supporter/battery_fleet/set_included": (msg: Record<string, unknown>) => {
+        calls.push(msg);
+        return { success: true };
+      },
     },
   });
   const el = await fixture<MaintenanceBatteryFleetSection>(
@@ -305,5 +309,35 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     const plainRow = lowRows.find((r) => /Front Lock/.test(r.textContent || ""))!;
     expect(packRow.querySelector("button.bf-mark:not(.bf-exclude)")!.getAttribute("title")).to.match(/recharged/i);
     expect(plainRow.querySelector("button.bf-mark:not(.bf-exclude)")!.getAttribute("title")).to.not.match(/recharged/i);
+  });
+});
+
+
+describe("battery fleet manual include (#135)", () => {
+  it("renders the add-battery picker inside the roster", async () => {
+    const { el } = await mount();
+    const details = roster(el)!;
+    expect(details.querySelector(".bf-add ha-selector")).to.exist;
+  });
+
+  it("picking an entity sends set_included immediately", async () => {
+    const { el, calls } = await mount();
+    const selector = roster(el)!.querySelector(".bf-add ha-selector")!;
+    selector.dispatchEvent(
+      new CustomEvent("value-changed", { detail: { value: "sensor.side_gate_cell" } }),
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/set_included");
+    expect(call).to.exist;
+    expect(call!.entity_id).to.equal("sensor.side_gate_cell");
+    expect(call!.included).to.equal(true);
+  });
+
+  it("an empty picker change is a no-op", async () => {
+    const { el, calls } = await mount();
+    const selector = roster(el)!.querySelector(".bf-add ha-selector")!;
+    selector.dispatchEvent(new CustomEvent("value-changed", { detail: { value: "" } }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(calls.some((c) => c.type === "maintenance_supporter/battery_fleet/set_included")).to.equal(false);
   });
 });

@@ -836,6 +836,8 @@
   "battery_fleet_include": "Track again",
   "battery_fleet_all": "All tracked batteries",
   "battery_fleet_all_hint": "Exclude a device here to drop it from the fleet before it ever reports low — a vacuum that recharges itself, or a phone that warns you on its own.",
+  "battery_fleet_add": "Add a battery",
+  "battery_fleet_add_hint": "Pick a battery sensor the automatic discovery missed — it joins the roster immediately.",
   "battery_fleet_status_low": "Low",
   "battery_fleet_status_soon": "Soon",
   "battery_fleet_status_ok": "Healthy",

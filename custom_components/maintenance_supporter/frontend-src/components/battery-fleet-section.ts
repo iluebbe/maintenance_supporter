@@ -176,6 +176,28 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
   }
 
+  // #135: manually ADD a battery the discovery heuristics missed. The
+  // include bypasses the name/% heuristic and the self-charging filter
+  // server-side; picking an entity acts immediately (no extra button).
+  private async _addBattery(e: CustomEvent<{ value?: string }>): Promise<void> {
+    const entityId = e.detail?.value;
+    if (!entityId || this._marking) return;
+    this._marking = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/battery_fleet/set_included",
+        entity_id: entityId,
+        included: true,
+      });
+      await this._load();
+    } catch (e2) {
+      this._error = describeWsError(e2, this._lang);
+    } finally {
+      this._marking = false;
+    }
+  }
+
   /** Lazy: the recorder-backed history is fetched once, when the roster is
    *  first expanded — most panel visits never open it. */
   private _loadHistory = async (e: Event): Promise<void> => {
@@ -485,6 +507,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   )}
                 </div>
                 <div class="bf-roster-hint">${t("battery_fleet_all_hint", L)}</div>
+                <div class="bf-add">
+                  <span class="bf-label">${t("battery_fleet_add", L)}</span>
+                  <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ entity: { domain: ["sensor", "binary_sensor"] } }}
+                    .value=${""}
+                    @value-changed=${this._addBattery}
+                  ></ha-selector>
+                  <div class="bf-roster-hint">${t("battery_fleet_add_hint", L)}</div>
+                </div>
               </details>
             `
           : nothing}

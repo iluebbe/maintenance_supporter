@@ -836,6 +836,8 @@
   "battery_fleet_include": "फिर से ट्रैक करें",
   "battery_fleet_all": "सभी ट्रैक की गई बैटरियाँ",
   "battery_fleet_all_hint": "किसी डिवाइस को यहाँ कम बैटरी बताने से पहले ही बाहर रखें — जैसे खुद चार्ज होने वाला वैक्यूम, या खुद ही चेतावनी देने वाला फ़ोन।",
+  "battery_fleet_add": "बैटरी जोड़ें",
+  "battery_fleet_add_hint": "स्वचालित खोज से छूटा बैटरी सेंसर चुनें — यह तुरंत सूची में जुड़ जाएगा।",
   "battery_fleet_status_low": "कम",
   "battery_fleet_status_soon": "जल्द",
   "battery_fleet_status_ok": "ठीक",

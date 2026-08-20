@@ -836,6 +836,8 @@
   "battery_fleet_include": "Znovu sledovat",
   "battery_fleet_all": "Všechny sledované baterie",
   "battery_fleet_all_hint": "Vylučte zařízení už dřív, než vůbec ohlásí nízkou úroveň — vysavač, který se sám nabíjí, nebo telefon, který varuje sám.",
+  "battery_fleet_add": "Přidat baterii",
+  "battery_fleet_add_hint": "Vyberte senzor baterie, který automatická detekce přehlédla — okamžitě se objeví v seznamu.",
   "battery_fleet_status_low": "Nízká",
   "battery_fleet_status_soon": "Brzy",
   "battery_fleet_status_ok": "V pořádku",

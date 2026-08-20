@@ -836,6 +836,8 @@
   "battery_fleet_include": "再び追跡",
   "battery_fleet_all": "追跡中のすべての電池",
   "battery_fleet_all_hint": "電池残量が少ないと報告される前に、ここで機器を除外できます — 自動充電するロボット掃除機や、自分で警告するスマートフォンなど。",
+  "battery_fleet_add": "電池を追加",
+  "battery_fleet_add_hint": "自動検出が見逃した電池センサーを選択すると、すぐに一覧に追加されます。",
   "battery_fleet_status_low": "残量低下",
   "battery_fleet_status_soon": "まもなく",
   "battery_fleet_status_ok": "良好",

@@ -583,3 +583,116 @@ def test_retranslation_matches_foreign_variants_and_placeholders() -> None:
     entry.data = kwargs["data"]
     hass2 = MagicMock()
     assert retranslate_seeded_texts(hass2, entry, "de") is False
+
+
+async def test_ws_set_included_adds_a_heuristic_miss(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#135: a sensor the discovery heuristics miss (no device_class, no
+    "battery" in the name, no % unit) joins the roster via a manual include,
+    bypassing the heuristic AND the self-charging filter — while exclusion
+    stays king and the symmetric setters never stack."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+    # A heuristic miss: voltage-style reading, no battery hints at all.
+    hass.states.async_set("sensor.side_gate_cell", "42", {"unit_of_measurement": "%"})
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_overview,
+        ws_battery_fleet_set_excluded,
+        ws_battery_fleet_set_included,
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+
+    # Not discovered on its own.
+    conn2 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn2, {"id": 2, "type": "x"})
+    res = conn2.send_result.call_args[0][1]
+    assert all(r["entity_id"] != "sensor.side_gate_cell" for r in res["all"])
+
+    # Include -> appears with its level.
+    conn3 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_included,
+        hass,
+        conn3,
+        {"id": 3, "type": "x", "entity_id": "sensor.side_gate_cell", "included": True},
+    )
+    assert not conn3.send_error.called, conn3.send_error.call_args
+    conn4 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn4, {"id": 4, "type": "x"})
+    res = conn4.send_result.call_args[0][1]
+    row = next(r for r in res["all"] if r["entity_id"] == "sensor.side_gate_cell")
+    assert row["level"] == 42
+
+    # Excluding the included battery LIFTS the include (no stacked state):
+    conn5 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_excluded,
+        hass,
+        conn5,
+        {"id": 5, "type": "x", "entity_id": "sensor.side_gate_cell", "excluded": True},
+    )
+    conn6 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn6, {"id": 6, "type": "x"})
+    res = conn6.send_result.call_args[0][1]
+    assert all(r["entity_id"] != "sensor.side_gate_cell" for r in res["all"])
+    # ...and it is NOT in the excluded chips either (the include was lifted,
+    # not converted into an exclusion of a heuristic-invisible entity).
+    assert all(x["entity_id"] != "sensor.side_gate_cell" for x in res.get("excluded", []))
+
+    # Re-including lifts a real exclusion too (change of mind on a normal row).
+    conn7 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_excluded,
+        hass,
+        conn7,
+        {"id": 7, "type": "x", "entity_id": "sensor.lock_battery_plus", "excluded": True},
+    )
+    conn8 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_set_included,
+        hass,
+        conn8,
+        {"id": 8, "type": "x", "entity_id": "sensor.lock_battery_plus", "included": True},
+    )
+    conn9 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_overview, hass, conn9, {"id": 9, "type": "x"})
+    res = conn9.send_result.call_args[0][1]
+    assert any(r["entity_id"] == "sensor.lock_battery_plus" for r in res["all"])
+
+
+async def test_fleet_sensor_batteries_due_attribute(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#135: the fleet low sensor lists what is due as readable lines —
+    replace with the type for primaries, recharge for rechargeables."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "CR2", 1, low=True)
+    _battery(hass, "vacuum_dock", "Rechargeable", 1, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_setup,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    await hass.async_block_till_done()
+    # The summary sensor refreshes on Battery Notes events (its real update
+    # path) — the seeded states alone don't repaint the snapshot.
+    hass.bus.async_fire("battery_notes_battery_threshold", {})
+    await hass.async_block_till_done()
+
+    # Assert on the REAL entity's attributes — the label formatting lives in
+    # the sensor, not in the aggregation.
+    fleet_state = next(
+        st for st in hass.states.async_all("sensor")
+        if "batteries_due" in st.attributes
+    )
+    due = set(fleet_state.attributes["batteries_due"])
+    assert "lock — replace (CR2)" in due
+    assert "vacuum_dock — recharge" in due
+    assert fleet_state.attributes["batteries_due_soon"] == []

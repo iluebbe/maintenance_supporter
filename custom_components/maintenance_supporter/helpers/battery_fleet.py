@@ -337,6 +337,20 @@ def fleet_excluded_entities(hass: HomeAssistant) -> set[str]:
     return set()
 
 
+def fleet_included_entities(hass: HomeAssistant) -> set[str]:
+    """Manually ADDED battery entity_ids (#135) — same storage pattern as
+    the exclusions. An include bypasses the discovery heuristic and the
+    self-charging filter in the native pass; Battery-Notes coverage and the
+    exclusion list still win (no duplicate rows, exclusion stays king)."""
+    from ..const import BATTERY_FLEET_INCLUDED, BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, DOMAIN
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        obj = entry.data.get(CONF_OBJECT, {})
+        if obj.get(BATTERY_FLEET_OBJECT_FLAG):
+            return set(obj.get(BATTERY_FLEET_INCLUDED) or [])
+    return set()
+
+
 def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
     """Whether a device recharges itself — its battery is never REPLACED.
 
@@ -411,6 +425,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
     excluded = fleet_excluded_entities(hass)
+    included = fleet_included_entities(hass)
 
     out: list[Battery] = []
     covered_sources: set[str] = set()
@@ -517,12 +532,16 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             # Sensors: device_class battery OR the strict name/% heuristic
             # (Zigbee2MQTT/ESPHome levels without a device class). Binaries:
             # device_class only — name-guessing booleans is too risky.
-            if domain == "sensor":
-                if not _is_native_battery_sensor(state):
-                    continue
-            elif state.attributes.get("device_class") != "battery":
-                continue
             eid = state.entity_id
+            # #135: a manual include bypasses the discovery heuristic (and the
+            # self-charging filter below) — the user has stated this IS a
+            # battery. Coverage dedupe and the exclusion list still apply.
+            if eid not in included:
+                if domain == "sensor":
+                    if not _is_native_battery_sensor(state):
+                        continue
+                elif state.attributes.get("device_class") != "battery":
+                    continue
             if "battery_type" in state.attributes:  # Battery Notes battery_plus — handled above
                 continue
             if eid in covered_sources or eid in excluded:
@@ -531,7 +550,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             dev_id = reg.device_id if reg else None
             if dev_id and dev_id in covered_devices:
                 continue
-            if _is_self_charging(hass, dev_id):  # #107: vacuums/mowers/phones
+            if eid not in included and _is_self_charging(hass, dev_id):  # #107
                 continue
             key = dev_id or eid
             rec = native.setdefault(
@@ -855,6 +874,7 @@ __all__ = [
     "compute_overview",
     "discover_battery_types",
     "fleet_excluded_entities",
+    "fleet_included_entities",
     "has_batteries",
     "has_battery_notes",
     "is_rechargeable_type",

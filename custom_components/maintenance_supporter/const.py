@@ -342,6 +342,10 @@ CONF_PARTS = "parts"
 # and the fleet exclusion all key on them).
 BATTERY_FLEET_OBJECT_FLAG = "battery_fleet"
 BATTERY_FLEET_EXCLUDED = "battery_fleet_excluded"
+# #135: entity_ids manually ADDED to the fleet — batteries the discovery
+# heuristics miss (no device_class, odd naming, self-charging filter). An
+# include bypasses the heuristic and #107 filters, never the dedupe.
+BATTERY_FLEET_INCLUDED = "battery_fleet_included"
 # Task-side link: task["consumes_parts"] = [{"part_id", "quantity"}] — a
 # completion decrements each linked part's stock.
 CONF_TASK_CONSUMES_PARTS = "consumes_parts"
