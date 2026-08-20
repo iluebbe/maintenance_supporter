@@ -738,12 +738,47 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       flex: 0 0 auto;
       cursor: help;
     }
-    /* On phones the row cannot fit name + chips + curve + bar + date: the
-     * decorations yield (the percentage still carries the number). */
+    /* On phones the row cannot fit name + chips + curve + bar + date in ONE
+     * line: the decorations yield (the percentage still carries the number)
+     * and the row wraps to two lines - the name spans the full width, the
+     * status chip moves under it (left, into the name column) and the rest
+     * keeps its pinned subgrid column, so type / percentage / date / eye
+     * stay aligned across rows. Without this the fixed max-content columns
+     * overflowed 400 px and the chips overlapped the wrapped names. */
     @media (max-width: 640px) {
       .bf-spark,
       .bf-bar {
         display: none;
+      }
+      .bf-row {
+        row-gap: 2px;
+      }
+      .bf-dev {
+        grid-column: 1 / 9;
+        grid-row: 1;
+      }
+      .bf-offline,
+      .bf-status {
+        /* Line 1, RIGHT - over the date+eye columns, which are wide enough
+         * for any chip. Pinning the chip into the 1fr rest column instead
+         * overlapped the type text (the rest column shrinks below chip
+         * width, and a span onto an fr track never grows fixed tracks). */
+        grid-column: 9 / 11;
+        grid-row: 1;
+        justify-self: end;
+      }
+      .bf-type {
+        grid-row: 2;
+        max-width: 44vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .bf-recharge,
+      .bf-level,
+      .bf-predicted,
+      .bf-row .bf-mark {
+        grid-row: 2;
       }
     }
     .bf-spark-line {

@@ -51,7 +51,7 @@ for (const o of objs) {
 if (!fleetEntry) fail("no fleet task on ha-shots");
 api.close();
 
-const MEASURE = ({ e, t2 }) => {
+const MEASURE = ({ e, t2, narrow }) => {
   const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
     while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
       if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
@@ -73,6 +73,10 @@ const MEASURE = ({ e, t2 }) => {
       .filter(Boolean)
       .map((el2) => Math.round(el2.getBoundingClientRect()[edge]));
   };
+  // Narrow rows are two-line: the chip sits top-right (over the date+eye
+  // columns); on desktop it right-aligns against the type column. Either
+  // way its RIGHT edge is the aligned one.
+  void narrow;
   collect(".bf-status", "right");
   collect(".bf-type", "left");
   collect(".bf-level", "right");
@@ -97,7 +101,7 @@ try {
     let res = null;
     for (let i = 0; i < 30 && !res; i++) {
       await p.waitForTimeout(1000);
-      res = await p.evaluate(MEASURE, { e: fleetEntry, t2: fleetTaskId }).catch(() => null);
+      res = await p.evaluate(MEASURE, { e: fleetEntry, t2: fleetTaskId, narrow: viewport.width < 640 }).catch(() => null);
     }
     assert(res, `${label}: roster measured (${res && res.rowCount} rows)`);
     for (const [key, vals] of Object.entries(res.edges)) {
