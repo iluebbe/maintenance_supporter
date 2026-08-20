@@ -376,3 +376,40 @@ def test_aggregate_modes_diverge_on_mixed_states() -> None:
     cfg_all = {"trigger_above": 10.0, "entity_logic": "all"}
     assert evaluate_threshold(states, cfg_any, ["sensor.a", "sensor.b"]).active is True
     assert evaluate_threshold(states, cfg_all, ["sensor.a", "sensor.b"]).active is False
+
+
+def test_unreadable_entity_first_does_not_stop_the_loop() -> None:
+    """cosmic-ray finding: continue->break survived — an unreadable entity
+    BEFORE a readable one must not cut evaluation short, for any type."""
+    # threshold: first unavailable, second over the limit -> active
+    r = evaluate_threshold(
+        _states({"sensor.b": 99}),  # sensor.a unknown to the getter
+        {"trigger_above": 50.0},
+        ["sensor.a", "sensor.b"],
+    )
+    assert r.active is True
+    assert r.current_value == 99.0
+
+    # counter: first unreadable, second at target
+    r = evaluate_counter(
+        _states({"sensor.b": 100}),
+        {"trigger_target_value": 100},
+        ["sensor.a", "sensor.b"],
+    )
+    assert r.active is True
+
+    # state_change: first entity has no persisted count, second is at target
+    r = evaluate_state_change(
+        {"trigger_target_changes": 5, "_trigger_state": {"sensor.b": {"change_count": 5}}},
+        ["sensor.a", "sensor.b"],
+    )
+    assert r.active is True
+    assert r.current_value == 5.0
+
+    # runtime: first entity has no accumulated state, second is at target
+    r = evaluate_runtime(
+        {"trigger_runtime_hours": 1, "_trigger_state": {"sensor.b": {"accumulated_seconds": 3600}}},
+        ["sensor.a", "sensor.b"],
+    )
+    assert r.active is True
+    assert r.current_value == 1.0

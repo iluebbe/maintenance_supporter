@@ -36,7 +36,7 @@ Some mutations change nothing observable (e.g. `@dataclass(slots=True)`, a
 `# pragma: no mutate (<reason>)` — the reason is mandatory by convention, the
 pragma is the documented equivalent of the parity contracts' EXEMPT lists.
 
-## Why a ~200-line in-house runner instead of mutmut
+## Why a ~200-line in-house runner instead of an established tool
 
 Evaluated 2026-08-20 in the dev container (Python 3.14, pytest-ha-cc):
 
@@ -46,6 +46,39 @@ Evaluated 2026-08-20 in the dev container (Python 3.14, pytest-ha-cc):
   Home Assistant test harness (`BadTestExecutionCommandsException`) and its
   trampoline design drops the per-module test mapping that keeps a run in
   the minutes instead of hours.
+* **cosmic-ray 8.7.0 WORKS** on this stack (free-form `test-command`, ran
+  clean over a work copy) — head-to-head on trigger_fallback.py, a module
+  this runner scores at 100%: cosmic-ray generated 260 mutants (vs 58) and
+  reported **82 survivors, of which ~80% were noise** — mostly mutations of
+  the `|` in `float | None` type annotations (never evaluated under
+  `from __future__ import annotations`, guaranteed-equivalent) plus
+  `==`→`is` on interned strings. The audit's product is a short actionable
+  survivor list, so signal-to-noise beats operator count. cosmic-ray DID
+  find one class this runner lacked — `continue`→`break` surviving in the
+  per-entity loops — which was adopted as a runner operator and pinned with
+  loop-order tests the same day.
+
+**cosmic-ray remains the documented deep-scan option** for an occasional
+second opinion on a single module (expect annotation-mutation noise):
+
+```toml
+# /tmp/crtest/cr.toml — run on a work copy, never the bind mount
+[cosmic-ray]
+module-path = "custom_components/maintenance_supporter/helpers/<module>.py"
+timeout = 60.0
+excluded-modules = []
+test-command = "python -m pytest tests/<mapped tests> -x -q -p no:cacheprovider"
+[cosmic-ray.distributor]
+name = "local"
+```
+```bash
+cosmic-ray init cr.toml session.sqlite && cosmic-ray exec cr.toml session.sqlite
+cr-report session.sqlite
+```
+
+The valuable artifacts — `scripts/mutation_targets.json`, the
+`# pragma: no mutate` markers and the boundary-pin tests — are
+tool-agnostic; switching engines later stays cheap.
 
 `scripts/mutation_check.py` implements the classic operator set with a
 single depth-first enumeration shared between collect and apply (an early

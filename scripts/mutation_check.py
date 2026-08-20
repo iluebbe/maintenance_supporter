@@ -26,6 +26,9 @@ would rewrite dict keys and produce noise, and no statement deletion):
 * boolean flips:     and <-> or
 * arithmetic flips:  + <-> -
 * unary drop:        not X -> X
+* loop flips:        continue <-> break (found by the cosmic-ray comparison:
+  a break-for-continue swap survives unless a test puts an unreadable entity
+  BEFORE a readable one in the same loop)
 * constant flips:    True <-> False, integer/float n -> n + 1
 
 Lines carrying ``# pragma: no mutate`` are skipped.
@@ -132,6 +135,12 @@ class _Mutator(ast.NodeTransformer):
         elif isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
             if self._hit("drop not"):
                 return node.operand
+        elif isinstance(node, ast.Continue):
+            if self._hit("continue -> break"):
+                return ast.Break()
+        elif isinstance(node, ast.Break):
+            if self._hit("break -> continue"):
+                return ast.Continue()
         elif isinstance(node, ast.Constant):
             if node.value is True or node.value is False:
                 if self._hit(f"{node.value} -> {not node.value}"):
