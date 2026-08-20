@@ -355,6 +355,19 @@ max_items: 10
 > not `_days_until_due`). Look the exact id up under *Developer Tools → States*
 > or on the object's device page — see [Entity naming](#entity-naming).
 
+### Battery Fleet Card
+
+The full Battery Fleet view as a dashboard card (#135) — low now, due soon,
+the shopping line, and the complete roster with sparklines and the
+exclude/add/track-self-charging controls. It is the same section the fleet
+task's detail page renders; for text-only dashboards the
+`batteries_due` / `batteries_due_soon` sensor attributes remain available.
+
+```yaml
+type: custom:maintenance-battery-fleet-card
+title: Batteries   # optional; the card brings its own header if omitted
+```
+
 ### Gauge / Progress-Bar Countdown
 
 Each task registers a **days-until-due countdown sensor** (disabled by

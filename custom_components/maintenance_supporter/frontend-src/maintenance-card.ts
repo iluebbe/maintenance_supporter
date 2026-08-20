@@ -20,6 +20,9 @@ import { UserService } from "./user-service";
 import { partsForCompletion } from "./helpers/shared-parts";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
+// The Battery Fleet card ships in this globally-loaded bundle so it is
+// available on every dashboard without another extra_module_url entry.
+import "./components/battery-fleet-card";
 import {
   openCreateObjectDialog,
   openCreateTaskDialog,

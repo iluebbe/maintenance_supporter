@@ -436,6 +436,18 @@ read-tier command, so household members without admin rights see them too.
 
 ![Lovelace Card](images/lovelace-card.png)
 
+### Battery Fleet Card
+The `custom:maintenance-battery-fleet-card` (#135) puts the full fleet view on
+any dashboard: what is low now, what runs out soon, the shopping line, and the
+complete roster with sparklines, exclude/add controls and the
+track-self-charging toggle — the same section the fleet task's detail page
+shows, so nothing needs templating over sensor attributes.
+
+```yaml
+type: custom:maintenance-battery-fleet-card
+title: Batteries   # optional
+```
+
 ### Calendar Tab (panel — 1.5.0+)
 ![Calendar tab](images/calendar-tab.png)
 

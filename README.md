@@ -125,7 +125,7 @@ for you — always previewing before it writes.
 | **Documents** | Attach manuals/invoices/photos per object — backup-safe, deduplicated, searchable, linkable to tasks (PDF page jump) | [Features → Documents](docs/FEATURES.md#documents--manuals-2110) |
 | **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors. Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags, on-complete service calls back to the device | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
-| **Dashboards** | Sidebar panel (Today view, `/` command palette, bulk actions, saved filter views), Lovelace card, calendar card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
+| **Dashboards** | Sidebar panel (Today view, `/` command palette, bulk actions, saved filter views), Lovelace card, calendar card, battery-fleet card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
 | **Localization** | Full UI in 22 languages across panel, config flow, and notifications | [Features → Frontend](docs/FEATURES.md#frontend) |
 
 ## Entities & automation hooks

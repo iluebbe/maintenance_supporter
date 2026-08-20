@@ -73,6 +73,10 @@ interface Overview {
 export class MaintenanceBatteryFleetSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
+  /** Flat mode drops the section's own card chrome (border/background) —
+   *  set by the Lovelace card wrapper, whose ha-card provides the chrome. */
+  @property({ type: Boolean }) public flat = false;
+
   @state() private _ov: Overview | null = null;
   @state() private _loading = false;
   @state() private _marking = false;
@@ -589,6 +593,13 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
+    :host([flat]) .bf-card {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      margin: 0;
+      padding: 0;
     }
     .bf-head {
       display: flex;
