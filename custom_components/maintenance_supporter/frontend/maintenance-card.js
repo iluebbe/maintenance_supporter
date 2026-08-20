@@ -4296,21 +4296,68 @@ ${p?`<div class="sub">${p}</div>`:""}
     .bf-list {
       font-weight: 500;
     }
+    /* Cross-row column alignment (same subgrid pattern as the task table,
+     * issue 66): the LIST owns one column template, every row spans it via
+     * subgrid, and each element is PINNED to its column below - so an
+     * optional element (sparkline, percentage, forecast date) leaves its
+     * column empty instead of letting the rest of the row drift. max-content
+     * columns collapse to 0 when a whole list never fills them (the low list
+     * has no status chip, no sparkline, no date). */
     .bf-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) repeat(9, max-content);
+      column-gap: 8px;
     }
     .bf-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-column: 1 / -1;
       align-items: center;
-      gap: 10px;
       padding: 6px 0;
       border-bottom: 1px solid var(--divider-color);
     }
+    /* Column pinning: 1 name, 2 status/offline chip, 3 type, 4 charging
+     * icon, 5 sparkline, 6 level bar, 7 percentage, 8 row action
+     * (mark-one / record-swap), 9 forecast date, 10 exclude eye. */
     .bf-dev {
-      flex: 1;
+      grid-column: 1;
       min-width: 0;
+    }
+    .bf-offline,
+    .bf-status {
+      grid-column: 2;
+      justify-self: end;
+    }
+    .bf-type {
+      grid-column: 3;
+    }
+    .bf-recharge {
+      grid-column: 4;
+    }
+    .bf-spark {
+      grid-column: 5;
+    }
+    .bf-bar {
+      grid-column: 6;
+    }
+    .bf-level {
+      grid-column: 7;
+      justify-self: end;
+    }
+    .bf-row .bf-mark {
+      grid-column: 8;
+    }
+    .bf-predicted {
+      grid-column: 9;
+      justify-self: end;
+    }
+    .bf-row .bf-mark.bf-exclude {
+      grid-column: 10;
+    }
+    .bf-offline {
+      color: var(--secondary-text-color);
+      font-size: 12px;
+      font-style: italic;
     }
     .bf-type {
       color: var(--secondary-text-color);
