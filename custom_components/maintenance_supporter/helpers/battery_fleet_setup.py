@@ -32,6 +32,12 @@ from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, 
 # The global aggregate sensor the fleet task triggers on (fixed entity_id).
 LOW_COUNT_ENTITY_ID = "sensor.maintenance_supporter_batteries_to_replace"
 
+# Hygiene bound on the manual exclude/include lists (security review
+# 2026-08-21): both are write-gated, but nothing else limited their growth —
+# a scripted operator could bloat the fleet object's config entry without
+# bound. 2000 is far above any real fleet.
+FLEET_LIST_CAP = 2000
+
 # Marker on the object + task so the panel renders the battery detail section
 # and setup is idempotent (never a second fleet).
 OBJECT_FLAG = BATTERY_FLEET_OBJECT_FLAG
@@ -364,6 +370,8 @@ def set_battery_excluded(hass: HomeAssistant, entity_id: str, excluded: bool) ->
             includes.discard(entity_id)
             obj[BATTERY_FLEET_INCLUDED] = sorted(includes)
         else:
+            if len(current) >= FLEET_LIST_CAP and entity_id not in current:
+                raise HomeAssistantError(f"Battery fleet exclusion list is full ({FLEET_LIST_CAP})")
             current.add(entity_id)
     else:
         current.discard(entity_id)
@@ -389,6 +397,8 @@ def set_battery_included(hass: HomeAssistant, entity_id: str, included: bool) ->
     obj = dict(new_data.get(CONF_OBJECT, {}))
     includes = set(obj.get(BATTERY_FLEET_INCLUDED) or [])
     if included:
+        if len(includes) >= FLEET_LIST_CAP and entity_id not in includes:
+            raise HomeAssistantError(f"Battery fleet include list is full ({FLEET_LIST_CAP})")
         includes.add(entity_id)
         excludes = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
         if entity_id in excludes:

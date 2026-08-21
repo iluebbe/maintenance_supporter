@@ -971,3 +971,45 @@ async def test_included_dead_note_stays_visible(
     res = await _overview(hass)
     row = next(r for r in res["all"] if r["entity_id"] == "sensor.attic_cam_battery_plus")
     assert row["available"] is False
+
+
+async def test_fleet_lists_are_capped(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Security-review hygiene bound: the write-gated include/exclude lists
+    refuse to grow past FLEET_LIST_CAP (config-entry bloat), while re-adding
+    an entry already on a full list stays a no-op success."""
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import (
+        FLEET_LIST_CAP,
+        find_fleet_entry,
+        set_battery_excluded,
+        set_battery_included,
+    )
+
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 4, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+
+    entry = find_fleet_entry(hass)
+    assert entry is not None
+    new_data = dict(entry.data)
+    obj = dict(new_data[CONF_OBJECT])
+    obj["battery_fleet_included"] = [f"sensor.cap_probe_{i}" for i in range(FLEET_LIST_CAP)]
+    obj["battery_fleet_excluded"] = [f"sensor.cap_out_{i}" for i in range(FLEET_LIST_CAP)]
+    new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    with pytest.raises(HomeAssistantError):
+        set_battery_included(hass, "sensor.one_too_many", True)
+    with pytest.raises(HomeAssistantError):
+        set_battery_excluded(hass, "sensor.one_too_many", True)
+
+    # Already-listed entries stay idempotent no-ops, and removal always works.
+    assert set_battery_included(hass, "sensor.cap_probe_0", True) is True
+    assert set_battery_included(hass, "sensor.cap_probe_1", False) is True
+    assert set_battery_excluded(hass, "sensor.cap_out_1", False) is True

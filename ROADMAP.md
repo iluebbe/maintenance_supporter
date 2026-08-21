@@ -597,6 +597,30 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
+### 💡 Value-level validation for trigger_config numbers (security review 2026-08-21)
+The task save path validates trigger_config by KEY (allowlist, unknown keys
+stripped) and per-type required fields, but never the VALUES: a write-tier
+client can store `trigger_for_minutes: "abc"` or a negative
+`trigger_target_changes`. Nothing exploitable — the trigger classes fail
+closed (setup error is caught and logged, the task ends up trigger-less) —
+but the failure surfaces far from its cause. Plan: type/range checks for the
+numeric trigger fields (`trigger_above/below/equals/not_equals`,
+`trigger_for_minutes` 0–1440, `trigger_target_changes` ≥ 1,
+`trigger_target_value`, `trigger_runtime_hours`, `trigger_baseline_value`)
+in `_validate_trigger_config`, mirrored in the compound-condition validator,
+with actionable error strings.
+
+### 💡 Resume a persisted hold window on deferred trigger setup (#136 follow-up)
+When HA starts while a state-change trigger's entity is still unavailable,
+setup defers the latch reconcile to the entity's first real state — but a
+persisted hold window (`pending_since`) is only resumed on the immediate
+setup path, so it is silently discarded in the deferred one. Conservative
+(never a false trigger; the next real transition re-opens the window), but
+a long-held problem state could under-report across a restart that races
+the entity. Plan: run `_resume_pending_window` from the deferred-reconcile
+branch in `_handle_state_transition` too, with a test that restores an
+entity late.
+
 ### 💡 Public integration contract — document services + events for third parties
 We already expose task services (`add_task`, `complete`, …) and fire lifecycle
 events, but there is no public, stable contract document for OTHER integration
