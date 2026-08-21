@@ -93,6 +93,22 @@ export function t(key: string, lang?: string): string {
   return STORE[l]?.[key] ?? STORE.en[key] ?? key;
 }
 
+/** The per-`updated()` locale boot every top-level surface needs: date/time
+ * prefs follow the HA profile (#97), and the user's UI language is lazily
+ * fetched with a re-render once it arrives (EN is bundled, so strings read
+ * in English until then rather than as raw keys). Was copy-pasted across the
+ * panel and both cards (drift audit 2026-08). */
+export function syncLocaleFromHass(
+  host: { hass?: { language?: string; locale?: unknown }; requestUpdate: () => void },
+  changedProps: Map<string, unknown>,
+): void {
+  if (changedProps.has("hass")) setDateTimePrefs(host.hass?.locale as Parameters<typeof setDateTimePrefs>[0]);
+  const lang = host.hass?.language;
+  if (lang && !isLocaleLoaded(lang)) {
+    ensureLocale(lang).then(() => host.requestUpdate());
+  }
+}
+
 /**
  * The UI language for a hass object — the ONE rule every component's `_lang`
  * getter delegates to. Before this helper the 23 hand-copied getters had
@@ -1085,48 +1101,9 @@ export const sharedStyles = css`
   .confidence-dot.medium { background: var(--warning-color, #ff9800); }
   .confidence-dot.high { background: var(--success-color, #4caf50); }
 
-  /* Feedback toggle buttons in complete dialog */
-  .feedback-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 8px 0;
-    border-top: 1px solid var(--divider-color);
-  }
-
-  .feedback-label {
-    font-weight: 500;
-    font-size: 13px;
-    color: var(--secondary-text-color);
-  }
-
-  .feedback-buttons {
-    display: flex;
-    gap: 8px;
-  }
-
-  .feedback-btn {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
-    background: var(--card-background-color, #fff);
-    color: var(--primary-text-color);
-    font-size: 13px;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-  }
-
-  .feedback-btn:hover {
-    background: var(--secondary-background-color, #f5f5f5);
-  }
-
-  .feedback-btn.selected {
-    background: var(--primary-color);
-    color: var(--text-primary-color, #fff);
-    border-color: var(--primary-color);
-  }
+  /* (The complete-dialog's .feedback-* rules live in complete-dialog.ts —
+     this sheet carried a dead byte-identical copy until the 2026-08 drift
+     audit; complete-dialog never imports sharedStyles.) */
 
   /* Seasonal chart */
   .seasonal-chart {

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from enum import StrEnum
 
-from homeassistant.const import Platform
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, Platform
 
 DOMAIN = "maintenance_supporter"
 
@@ -341,6 +341,9 @@ CONF_PARTS = "parts"
 # string literals in four files; find_fleet_entry, setup, the WS response
 # and the fleet exclusion all key on them).
 BATTERY_FLEET_OBJECT_FLAG = "battery_fleet"
+# Marks the fleet's single aggregate task (detail view renders the battery
+# section). Canonical home; helpers/battery_fleet_setup re-exports as TASK_FLAG.
+BATTERY_FLEET_TASK_FLAG = "battery_fleet_task"
 BATTERY_FLEET_EXCLUDED = "battery_fleet_excluded"
 # #135: entity_ids manually ADDED to the fleet — batteries the discovery
 # heuristics miss (no device_class, odd naming, self-charging filter). An
@@ -379,6 +382,7 @@ CONF_TASK_NFC_TAG = "nfc_tag_id"
 # v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...).
 CONF_TASK_READING_UNIT = "reading_unit"
 MAX_READING_UNIT_LENGTH = 32
+MAX_NFC_TAG_LENGTH = 256
 CONF_TASK_INTERVAL_ANCHOR = "interval_anchor"
 CONF_TASK_SCHEDULE_TIME = "schedule_time"
 CONF_TASK_PRIORITY = "priority"
@@ -708,6 +712,11 @@ MAX_GROUP_TASK_REFS = 200
 MAX_ID_LENGTH = 64  # entry_id, task_id, group_id (uuid hex = 32)
 MAX_DATE_LENGTH = 20  # ISO 8601 date strings (e.g. 2026-04-21)
 MAX_ENTITY_ID_LENGTH = 255  # HA entity_id max
+
+# "No usable reading" state pair — 13 call sites hand-typed the tuple before
+# the 2026-08 drift audit. Built from HA's own constants so it can never
+# drift from core.
+UNAVAILABLE_STATES = (STATE_UNAVAILABLE, STATE_UNKNOWN)
 MAX_ENTITY_SLUG_LENGTH = 64  # task entity_slug
 MAX_INTERVAL_DAYS = 3650  # 10 years — caps date arithmetic overflow
 # Import payload byte caps. CSV is flat (one row per task) so 1 MB is ample;

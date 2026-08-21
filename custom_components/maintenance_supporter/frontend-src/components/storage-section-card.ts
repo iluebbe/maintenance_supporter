@@ -7,6 +7,7 @@
  */
 
 import { LitElement, html, css, nothing } from "lit";
+import { docDisplayName } from "../helpers/document-categories";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
@@ -154,7 +155,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
       <div class="obj-row result-row" title=${t("doc_open", L)} @click=${() => this._openResult(doc)}>
         <ha-icon icon=${doc.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline"}></ha-icon>
         <div class="result-info">
-          <div class="result-title">${doc.title || doc.filename || doc.url}</div>
+          <div class="result-title">${docDisplayName(doc)}</div>
           <div class="result-obj">${doc.object_name}</div>
         </div>
         <ha-icon class="result-open" icon=${doc.kind === "weblink" ? "mdi:open-in-new" : "mdi:eye-outline"}></ha-icon>

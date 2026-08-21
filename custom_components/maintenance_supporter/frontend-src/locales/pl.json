@@ -585,6 +585,7 @@
   "quick_complete_defaults_feedback_not_needed": "Nie było potrzebne",
   "quick_complete_success": "Szybko oznaczono jako wykonane",
   "trigger_replaced": "Wyzwalacz zastąpiony",
+  "trigger_removed": "Wyzwalacz usunięty",
   "add": "Dodaj",
   "show_stats": "Pokaż statystyki + wykresy",
   "hide_stats": "Ukryj statystyki",

@@ -31,7 +31,7 @@ import re
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
@@ -322,19 +322,28 @@ def _level_of(state_val: str) -> float | None:
         return None
 
 
-def fleet_excluded_entities(hass: HomeAssistant) -> set[str]:
-    """Manually excluded battery entity_ids, stored on the fleet object entry.
+def _fleet_object(hass: HomeAssistant) -> dict[str, Any]:
+    """The fleet object dict from its config entry, or ``{}`` when no fleet.
 
-    Inlined lookup (not via battery_fleet_setup.find_fleet_entry) to keep this
-    module import-cycle-free — setup imports the aggregation, not vice versa.
+    Inlined entry loop (not via battery_fleet_setup.find_fleet_entry) to keep
+    this module import-cycle-free — setup imports the aggregation, not vice
+    versa. The three getters below were three copies of this loop (drift
+    audit 2026-08).
     """
-    from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, DOMAIN
+    from ..const import BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, DOMAIN
 
     for entry in hass.config_entries.async_entries(DOMAIN):
         obj = entry.data.get(CONF_OBJECT, {})
         if obj.get(BATTERY_FLEET_OBJECT_FLAG):
-            return set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
-    return set()
+            return cast(dict[str, Any], obj)
+    return {}
+
+
+def fleet_excluded_entities(hass: HomeAssistant) -> set[str]:
+    """Manually excluded battery entity_ids, stored on the fleet object entry."""
+    from ..const import BATTERY_FLEET_EXCLUDED
+
+    return set(_fleet_object(hass).get(BATTERY_FLEET_EXCLUDED) or [])
 
 
 def fleet_included_entities(hass: HomeAssistant) -> set[str]:
@@ -344,13 +353,9 @@ def fleet_included_entities(hass: HomeAssistant) -> set[str]:
     Battery Notes note, so the native-pass-only bypass never fired);
     Battery-Notes coverage and the exclusion list still win (no duplicate
     rows, exclusion stays king)."""
-    from ..const import BATTERY_FLEET_INCLUDED, BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, DOMAIN
+    from ..const import BATTERY_FLEET_INCLUDED
 
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        obj = entry.data.get(CONF_OBJECT, {})
-        if obj.get(BATTERY_FLEET_OBJECT_FLAG):
-            return set(obj.get(BATTERY_FLEET_INCLUDED) or [])
-    return set()
+    return set(_fleet_object(hass).get(BATTERY_FLEET_INCLUDED) or [])
 
 
 def fleet_track_self_charging(hass: HomeAssistant) -> bool:
@@ -361,13 +366,9 @@ def fleet_track_self_charging(hass: HomeAssistant) -> bool:
     "— recharge", never counted into the shopping needs — so a low phone or
     smart ring can drive a "charge it" notification. Exclusions still win.
     """
-    from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_TRACK_SELF_CHARGING, CONF_OBJECT, DOMAIN
+    from ..const import BATTERY_FLEET_TRACK_SELF_CHARGING
 
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        obj = entry.data.get(CONF_OBJECT, {})
-        if obj.get(BATTERY_FLEET_OBJECT_FLAG):
-            return bool(obj.get(BATTERY_FLEET_TRACK_SELF_CHARGING))
-    return False
+    return bool(_fleet_object(hass).get(BATTERY_FLEET_TRACK_SELF_CHARGING))
 
 
 def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:

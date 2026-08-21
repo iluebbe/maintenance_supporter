@@ -17,3 +17,11 @@ export const CATEGORY_ICONS: Record<string, string> = {
   photo: "mdi:image-outline",
   other: "mdi:file-document-outline",
 };
+
+/** Display name of a document: title, else filename, else the raw URL.
+ * Five components carried this exact `||` chain (drift audit 2026-08).
+ * NOT for download filenames — those deliberately prefer the filename
+ * (see documents-section/task-documents download paths). */
+export function docDisplayName(doc: { title?: string | null; filename?: string | null; url?: string | null }): string {
+  return doc.title || doc.filename || doc.url || "";
+}

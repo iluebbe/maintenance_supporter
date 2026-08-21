@@ -10,6 +10,7 @@ threshold trigger. No per-battery task.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 from uuid import uuid4
 
@@ -22,6 +23,7 @@ from ..const import (
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_INCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
     CONF_PARTS,
     CONF_TASKS,
@@ -41,7 +43,7 @@ FLEET_LIST_CAP = 2000
 # Marker on the object + task so the panel renders the battery detail section
 # and setup is idempotent (never a second fleet).
 OBJECT_FLAG = BATTERY_FLEET_OBJECT_FLAG
-TASK_FLAG = "battery_fleet_task"
+TASK_FLAG = BATTERY_FLEET_TASK_FLAG
 
 
 def find_fleet_entry(hass: HomeAssistant) -> ConfigEntry | None:
@@ -348,6 +350,21 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     return {"marked": len(targets), "pressed": pressed, "consumed": consumed}
 
 
+def _mutate_fleet_object(hass: HomeAssistant, mutate: Callable[[dict[str, Any]], None]) -> bool:
+    """Find the fleet entry, apply ``mutate`` to a copy of its object dict,
+    persist. Returns False when no fleet exists yet — the shared scaffolding
+    the three setters below each hand-rolled (drift audit 2026-08)."""
+    entry = find_fleet_entry(hass)
+    if entry is None:
+        return False
+    new_data = dict(entry.data)
+    obj = dict(new_data.get(CONF_OBJECT, {}))
+    mutate(obj)
+    new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    return True
+
+
 def set_battery_excluded(hass: HomeAssistant, entity_id: str, excluded: bool) -> bool:
     """Persist a manual exclude/include of one battery on the fleet object.
 
@@ -356,30 +373,25 @@ def set_battery_excluded(hass: HomeAssistant, entity_id: str, excluded: bool) ->
     ``battery_fleet_excluded`` on the fleet object dict. Returns False when
     no fleet exists yet.
     """
-    entry = find_fleet_entry(hass)
-    if entry is None:
-        return False
-    new_data = dict(entry.data)
-    obj = dict(new_data.get(CONF_OBJECT, {}))
-    current = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
-    if excluded:
-        # Symmetry (#135): hiding a manually-added battery removes the manual
-        # include instead of stacking an exclusion on top of it.
-        includes = set(obj.get(BATTERY_FLEET_INCLUDED) or [])
-        if entity_id in includes:
-            includes.discard(entity_id)
-            obj[BATTERY_FLEET_INCLUDED] = sorted(includes)
-        else:
-            if len(current) >= FLEET_LIST_CAP and entity_id not in current:
-                raise HomeAssistantError(f"Battery fleet exclusion list is full ({FLEET_LIST_CAP})")
-            current.add(entity_id)
-    else:
-        current.discard(entity_id)
-    obj[BATTERY_FLEET_EXCLUDED] = sorted(current)
-    new_data[CONF_OBJECT] = obj
-    hass.config_entries.async_update_entry(entry, data=new_data)
-    return True
 
+    def _apply(obj: dict[str, Any]) -> None:
+        current = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
+        if excluded:
+            # Symmetry (#135): hiding a manually-added battery removes the
+            # manual include instead of stacking an exclusion on top of it.
+            includes = set(obj.get(BATTERY_FLEET_INCLUDED) or [])
+            if entity_id in includes:
+                includes.discard(entity_id)
+                obj[BATTERY_FLEET_INCLUDED] = sorted(includes)
+            else:
+                if len(current) >= FLEET_LIST_CAP and entity_id not in current:
+                    raise HomeAssistantError(f"Battery fleet exclusion list is full ({FLEET_LIST_CAP})")
+                current.add(entity_id)
+        else:
+            current.discard(entity_id)
+        obj[BATTERY_FLEET_EXCLUDED] = sorted(current)
+
+    return _mutate_fleet_object(hass, _apply)
 
 
 def set_battery_included(hass: HomeAssistant, entity_id: str, included: bool) -> bool:
@@ -390,26 +402,23 @@ def set_battery_included(hass: HomeAssistant, entity_id: str, included: bool) ->
     a previous exclusion (the user changed their mind). Returns False when no
     fleet exists yet.
     """
-    entry = find_fleet_entry(hass)
-    if entry is None:
-        return False
-    new_data = dict(entry.data)
-    obj = dict(new_data.get(CONF_OBJECT, {}))
-    includes = set(obj.get(BATTERY_FLEET_INCLUDED) or [])
-    if included:
-        if len(includes) >= FLEET_LIST_CAP and entity_id not in includes:
-            raise HomeAssistantError(f"Battery fleet include list is full ({FLEET_LIST_CAP})")
-        includes.add(entity_id)
-        excludes = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
-        if entity_id in excludes:
-            excludes.discard(entity_id)
-            obj[BATTERY_FLEET_EXCLUDED] = sorted(excludes)
-    else:
-        includes.discard(entity_id)
-    obj[BATTERY_FLEET_INCLUDED] = sorted(includes)
-    new_data[CONF_OBJECT] = obj
-    hass.config_entries.async_update_entry(entry, data=new_data)
-    return True
+
+    def _apply(obj: dict[str, Any]) -> None:
+        includes = set(obj.get(BATTERY_FLEET_INCLUDED) or [])
+        if included:
+            if len(includes) >= FLEET_LIST_CAP and entity_id not in includes:
+                raise HomeAssistantError(f"Battery fleet include list is full ({FLEET_LIST_CAP})")
+            includes.add(entity_id)
+            excludes = set(obj.get(BATTERY_FLEET_EXCLUDED) or [])
+            if entity_id in excludes:
+                excludes.discard(entity_id)
+                obj[BATTERY_FLEET_EXCLUDED] = sorted(excludes)
+        else:
+            includes.discard(entity_id)
+        obj[BATTERY_FLEET_INCLUDED] = sorted(includes)
+
+    return _mutate_fleet_object(hass, _apply)
+
 
 def set_track_self_charging(hass: HomeAssistant, enabled: bool) -> bool:
     """Persist the fleet-wide track-self-charging opt-in (#135 follow-up).
@@ -419,15 +428,7 @@ def set_track_self_charging(hass: HomeAssistant, enabled: bool) -> bool:
     """
     from ..const import BATTERY_FLEET_TRACK_SELF_CHARGING
 
-    entry = find_fleet_entry(hass)
-    if entry is None:
-        return False
-    new_data = dict(entry.data)
-    obj = dict(new_data.get(CONF_OBJECT, {}))
-    obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = bool(enabled)
-    new_data[CONF_OBJECT] = obj
-    hass.config_entries.async_update_entry(entry, data=new_data)
-    return True
+    return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_TRACK_SELF_CHARGING, bool(enabled)))
 
 
 def find_fleet_task(entry: ConfigEntry) -> tuple[str, dict[str, Any]] | None:

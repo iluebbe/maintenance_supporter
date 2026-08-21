@@ -17,7 +17,7 @@ import { downloadUrl } from "../helpers/download";
 import { downloadSignedDocument, openSignedDocument } from "../helpers/document-url";
 import { isSafeHttpUrl } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
-import { CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
+import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
 import type { HomeAssistant } from "../types";
 
 interface Doc {
@@ -211,7 +211,7 @@ export class MaintenanceTaskDocuments extends LitElement {
               >
                 <option value="" ?selected=${!this._attachId}>${t("doc_link_existing", L)}</option>
                 ${available.map(
-                  (d) => html`<option value=${d.id} ?selected=${d.id === this._attachId}>${d.title || d.filename || d.url}</option>`,
+                  (d) => html`<option value=${d.id} ?selected=${d.id === this._attachId}>${docDisplayName(d)}</option>`,
                 )}
               </select>
               <button class="tdoc-btn" ?disabled=${this._busy || !this._attachId} @click=${this._link}>
@@ -245,7 +245,7 @@ export class MaintenanceTaskDocuments extends LitElement {
             }
           }}
         >
-          <div class="tdoc-title">${doc.title || doc.filename || doc.url}</div>
+          <div class="tdoc-title">${docDisplayName(doc)}</div>
           <div class="tdoc-meta">
             ${meta}${page ? html` · <span class="tdoc-pagetag">${t("doc_page", L)} ${page}</span>` : nothing}
           </div>

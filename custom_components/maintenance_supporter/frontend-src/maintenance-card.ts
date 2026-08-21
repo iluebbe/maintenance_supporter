@@ -4,8 +4,9 @@ import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
+import { isSafeHttpUrl } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";
 import type {
   HomeAssistant,
@@ -113,12 +114,7 @@ export class MaintenanceSupporterCard extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
-    // Dates/times follow the HA profile format, not just the language (#97).
-    if (changedProps.has("hass")) setDateTimePrefs(this.hass?.locale);
-    const lang = this.hass?.language;
-    if (lang && !isLocaleLoaded(lang)) {
-      ensureLocale(lang).then(() => this.requestUpdate());
-    }
+    syncLocaleFromHass(this, changedProps);
     // Assignee names: resolved once, only when the config allows it AND some
     // task actually carries a responsible user. The condition is checked
     // synchronously here — an unconditional call whose promise triggered a
@@ -242,7 +238,10 @@ export class MaintenanceSupporterCard extends LitElement {
    *  (the same route the panel uses, so it works in the Companion app). */
   private async _openDoc(doc: CardDoc): Promise<void> {
     if (doc.kind === "weblink" && doc.url) {
-      window.open(doc.url, "_blank", "noopener");
+      // Same guarded sink as every other weblink opener: never hand a
+      // non-http(s) URL to window.open (defense-in-depth against a link
+      // stored before the server-side scheme check existed).
+      if (isSafeHttpUrl(doc.url)) window.open(doc.url, "_blank", "noopener");
       return;
     }
     try {

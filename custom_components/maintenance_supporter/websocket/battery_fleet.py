@@ -29,6 +29,8 @@ from ..helpers.battery_fleet_setup import (
     find_fleet_entry,
     fleet_task_trigger_ok,
     set_battery_excluded,
+    set_battery_included,
+    set_track_self_charging,
 )
 from ..helpers.permissions import require_write
 
@@ -170,8 +172,6 @@ async def ws_battery_fleet_set_included(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
 ) -> None:
     """Manually ADD a battery the discovery heuristics miss (#135)."""
-    from ..helpers.battery_fleet_setup import set_battery_included
-
     if not set_battery_included(hass, msg["entity_id"], msg["included"]):
         connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
         return
@@ -190,8 +190,6 @@ async def ws_battery_fleet_set_track_self_charging(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
 ) -> None:
     """Fleet-wide opt-in: keep self-charging devices in the roster (#135)."""
-    from ..helpers.battery_fleet_setup import set_track_self_charging
-
     if not set_track_self_charging(hass, msg["enabled"]):
         connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
         return

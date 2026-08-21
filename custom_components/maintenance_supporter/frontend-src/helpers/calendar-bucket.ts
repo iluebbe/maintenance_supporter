@@ -279,6 +279,10 @@ const HISTORY_TYPE_TO_STATUS: Record<string, string> = {
   completed: "ok",
   reset: "ok",
   skipped: "due_soon",
+  // A cycle that was NOT done in time (skip-while-overdue writes it, and the
+  // coordinator stamps it automatically) — must never paint green. Found by
+  // the 2026-08 drift audit: the missing entry fell through to "ok".
+  missed: "overdue",
   triggered: "triggered",
   trigger_replaced: "triggered",
   trigger_removed: "ok", // config change, not a due/triggered event

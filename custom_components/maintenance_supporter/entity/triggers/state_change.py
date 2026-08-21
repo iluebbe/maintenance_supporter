@@ -14,6 +14,8 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.util import dt as dt_util
 
+from ...const import UNAVAILABLE_STATES
+
 if TYPE_CHECKING:
     from ...sensor import MaintenanceSensor
 
@@ -83,19 +85,12 @@ class StateChangeTrigger(BaseTrigger):
         self._pending_state: str | None = None
         self._pending_since: str | None = None
         # Persisted pending window from before a restart (consumed in setup).
-        self._restored_pending_state: str | None = trigger_config.get("trigger_state_pending_state")
-        self._restored_pending_dt: datetime | None = None
-        raw_since = trigger_config.get("trigger_state_pending_since")
-        if raw_since:
-            try:
-                parsed = datetime.fromisoformat(raw_since)
-                if parsed.tzinfo is None:
-                    from datetime import UTC
+        from ...helpers.dates import parse_persisted_utc
 
-                    parsed = parsed.replace(tzinfo=UTC)
-                self._restored_pending_dt = parsed
-            except (ValueError, TypeError):
-                self._restored_pending_state = None
+        self._restored_pending_state: str | None = trigger_config.get("trigger_state_pending_state")
+        self._restored_pending_dt: datetime | None = parse_persisted_utc(trigger_config.get("trigger_state_pending_since"))
+        if self._restored_pending_dt is None:
+            self._restored_pending_state = None
 
     async def async_setup(self) -> None:
         """Set up state change trigger.
@@ -105,7 +100,7 @@ class StateChangeTrigger(BaseTrigger):
         appears (old_state=None), so the trigger will self-heal automatically.
         """
         state = self.hass.states.get(self.entity_id)
-        if state is None or state.state in ("unavailable", "unknown"):
+        if state is None or state.state in UNAVAILABLE_STATES:
             # No USABLE state yet — the #131 family: trigger setup races both
             # the entity's registration AND its device readiness (a Zigbee /
             # Z-Wave problem sensor restores as unavailable long before it
@@ -304,7 +299,7 @@ class StateChangeTrigger(BaseTrigger):
             # reconcile the persisted latch against it (issue #131): when the
             # entity restores AFTER our setup, this appearance is the first
             # moment the latch can be checked against reality.
-            if new_val not in ("unavailable", "unknown"):
+            if new_val not in UNAVAILABLE_STATES:
                 self._needs_latch_reconcile = False
                 self._last_state = new_val
                 self._reconcile_persisted_latch(new_val)
@@ -313,7 +308,7 @@ class StateChangeTrigger(BaseTrigger):
         old_val = old_state.state
 
         # Handle unavailable/unknown with log-once pattern
-        if new_val in ("unavailable", "unknown"):
+        if new_val in UNAVAILABLE_STATES:
             # #136: an unavailability blip is not "the state held" — abandon
             # the hold window, but REMEMBER it: only a window that was
             # actually running may re-open when the entity comes back (else a
@@ -365,7 +360,7 @@ class StateChangeTrigger(BaseTrigger):
 
         # Use _last_state as fallback when old_val is unavailable/unknown
         effective_old = old_val
-        if old_val in ("unavailable", "unknown") and self._last_state is not None:
+        if old_val in UNAVAILABLE_STATES and self._last_state is not None:
             effective_old = self._last_state
 
         # #136: any real state movement means the previous state did NOT hold

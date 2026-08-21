@@ -53,6 +53,14 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
     def _save_new_task(self) -> ConfigFlowResult:
         """Save the current task and return to init."""
         from .config_flow_schedule import build_new_task_record
+        from .const import MAX_TASKS_PER_OBJECT
+
+        # Same bound the WS create chokepoint enforces (drift audit 2026-08:
+        # this options-flow copy had no cap, so the flow could inflate
+        # ConfigEntry.data past the limit the API refuses).
+        if len(self.config_entry.data.get(CONF_TASKS, {})) >= MAX_TASKS_PER_OBJECT:
+            self._current_task = {}
+            return self._show_init_menu()
 
         task_id = uuid4().hex
         task_data = build_new_task_record(

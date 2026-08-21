@@ -17,6 +17,9 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    MAX_NFC_TAG_LENGTH,
+    MAX_READING_UNIT_LENGTH,
+    BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_WARNING_DAYS,
@@ -112,8 +115,9 @@ TASK_UPDATE_FIELD_MAP = {
 }
 
 
-@websocket_api.websocket_command(
-    {
+# Hoisted as a module constant so the schema/field-map parity tripwire
+# (tests/test_task_schema_parity.py, drift audit 2026-08) can introspect it.
+_TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         vol.Required("type"): "maintenance_supporter/task/create",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
@@ -146,9 +150,9 @@ TASK_UPDATE_FIELD_MAP = {
         vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
-        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
-        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=32)), None),
+        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].
         vol.Optional("consumes_parts"): vol.Any(list, None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
@@ -173,7 +177,9 @@ TASK_UPDATE_FIELD_MAP = {
         vol.Optional("enabled", default=True): bool,
         vol.Optional("dry_run", default=False): bool,
     }
-)
+
+
+@websocket_api.websocket_command(_TASK_CREATE_SCHEMA)
 @require_write
 @websocket_api.async_response
 async def ws_create_task(
@@ -377,8 +383,9 @@ async def ws_create_task(
     connection.send_result(msg["id"], result)
 
 
-@websocket_api.websocket_command(
-    {
+# Hoisted as a module constant so the schema/field-map parity tripwire
+# (tests/test_task_schema_parity.py, drift audit 2026-08) can introspect it.
+_TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         vol.Required("type"): "maintenance_supporter/task/update",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
@@ -410,9 +417,9 @@ async def ws_create_task(
         vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
-        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
-        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=32)), None),
+        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].
         vol.Optional("consumes_parts"): vol.Any(list, None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
@@ -430,7 +437,9 @@ async def ws_create_task(
         vol.Optional("on_complete_action"): vol.Any(dict, None),
         vol.Optional("quick_complete_defaults"): vol.Any(dict, None),
     }
-)
+
+
+@websocket_api.websocket_command(_TASK_UPDATE_SCHEMA)
 @require_write
 @websocket_api.async_response
 async def ws_update_task(
@@ -464,7 +473,7 @@ async def ws_update_task(
     # null can only be a client (possibly stale/cached bundle) failing to
     # round-trip a trigger it did not hydrate. Ignore the null; every other
     # field in the message still applies.
-    if task.get("battery_fleet_task") and "trigger_config" in msg and msg["trigger_config"] is None:
+    if task.get(BATTERY_FLEET_TASK_FLAG) and "trigger_config" in msg and msg["trigger_config"] is None:
         del msg["trigger_config"]
 
     # Validate trigger_config if provided

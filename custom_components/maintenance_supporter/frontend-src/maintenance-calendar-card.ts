@@ -35,7 +35,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
@@ -139,12 +139,7 @@ export class MaintenanceCalendarCard extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
-    // Dates/times follow the HA profile format, not just the language (#97).
-    if (changedProps.has("hass")) setDateTimePrefs(this.hass?.locale);
-    const lang = this.hass?.language;
-    if (lang && !isLocaleLoaded(lang)) {
-      ensureLocale(lang).then(() => this.requestUpdate());
-    }
+    syncLocaleFromHass(this, changedProps);
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;

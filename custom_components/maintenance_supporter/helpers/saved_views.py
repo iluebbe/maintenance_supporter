@@ -23,7 +23,7 @@ from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_SAVED_FILTER_VIEWS, MAX_SAVED_VIEWS, MAX_VIEW_NAME_LENGTH, TaskPriority
+from ..const import CONF_SAVED_FILTER_VIEWS, DEFAULT_TASK_PRIORITY, MAX_SAVED_VIEWS, MAX_VIEW_NAME_LENGTH, TaskPriority
 from .global_options import get_global_options
 
 # Closed value sets mirrored from the panel's filter controls. Anything outside
@@ -98,7 +98,7 @@ def view_matches_task(filters: Mapping[str, Any], task: Mapping[str, Any]) -> bo
     # Tasks without an explicit priority are "normal" everywhere (the model
     # default) — the filter must see them the same way.
     priority = filters.get("priority")
-    if priority and (task.get("priority") or "normal") != priority:
+    if priority and (task.get("priority") or DEFAULT_TASK_PRIORITY) != priority:
         return False
     return True
 

@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { t, nativeFieldStyles } from "../styles";
+import { langOf, t, nativeFieldStyles } from "../styles";
 
 export interface ConfirmOptions {
   title: string;
@@ -90,7 +90,7 @@ export class MaintenanceConfirmDialog extends LitElement {
 
   render() {
     if (!this._open) return nothing;
-    const lang = this.hass?.language || "en";
+    const lang = langOf(this.hass);
     return html`
       <ha-dialog open @closed=${this._cancel}>
         <div class="dialog-title">${this._title}</div>

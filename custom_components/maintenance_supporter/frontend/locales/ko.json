@@ -6,6 +6,7 @@
   "due_soon": "기한 임박",
   "triggered": "트리거됨",
   "trigger_replaced": "트리거 교체됨",
+  "trigger_removed": "트리거 제거됨",
   "ok": "정상",
   "all": "전체",
   "new_object": "+ 새 객체",

@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 from ...const import (
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
+    UNAVAILABLE_STATES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -80,7 +81,7 @@ class BaseTrigger(ABC):
         self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_change_event)
 
         # If state is unknown/unavailable, schedule a retry
-        if state.state in ("unavailable", "unknown"):
+        if state.state in UNAVAILABLE_STATES:
             _LOGGER.info(
                 "Trigger entity %s is '%s' — will retry evaluation in 30s",
                 self.entity_id,
@@ -115,7 +116,7 @@ class BaseTrigger(ABC):
             """Re-check entity state after a delay."""
             self._unsub_retry = None
             state = self.hass.states.get(self.entity_id)
-            if state is None or state.state in ("unavailable", "unknown"):
+            if state is None or state.state in UNAVAILABLE_STATES:
                 _LOGGER.debug(
                     "Trigger entity %s still %s after retry",
                     self.entity_id,
@@ -176,7 +177,7 @@ class BaseTrigger(ABC):
         # trigger entity is surfaced via the missing_trigger_entity repair
         # flow instead. (Numeric-only triggers: any non-numeric value below
         # is likewise ignored via the _get_numeric_value None check.)
-        if new_state.state in ("unavailable", "unknown"):
+        if new_state.state in UNAVAILABLE_STATES:
             if not self._logged_unavailable:
                 _LOGGER.warning(
                     "Trigger entity %s became %s — keeping last trigger state",

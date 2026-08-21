@@ -13,9 +13,11 @@ from homeassistant.core import HomeAssistant, callback
 from ..const import (
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_TASK_FLAG,
     CONF_GROUPS,
     CONF_OBJECT,
     CONF_TASKS,
+    DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -149,7 +151,7 @@ def _build_task_summary(
         # auto-created "buy" reminder, the owning part marker ({part_id}).
         "consumes_parts": task_data.get("consumes_parts"),
         "part_ref": task_data.get("part_ref"),
-        "priority": task_data.get("priority", "normal"),
+        "priority": task_data.get("priority") or DEFAULT_TASK_PRIORITY,
         # v2.10.0 archive: archived_at is the persisted timestamp (None = active);
         # `archived` is the convenience bool the frontend filters on; reason is
         # manual | auto | object. All read from the persisted (static) task dict.
@@ -187,7 +189,7 @@ def _build_task_summary(
         "trigger_config": trigger_config,
         # Battery Fleet: marks the single aggregate task so the detail view
         # renders the battery section instead of the generic trigger card.
-        "battery_fleet_task": task_data.get("battery_fleet_task", False),
+        "battery_fleet_task": task_data.get(BATTERY_FLEET_TASK_FLAG, False),
         "trigger_entity_info": trigger_entity_info,
         "trigger_entity_infos": trigger_entity_infos,
         "checklist": task_data.get("checklist", []),

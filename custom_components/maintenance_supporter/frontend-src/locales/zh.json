@@ -6,6 +6,7 @@
   "due_soon": "即将到期",
   "triggered": "已触发",
   "trigger_replaced": "触发器已更换",
+  "trigger_removed": "触发器已移除",
   "ok": "正常",
   "all": "全部",
   "new_object": "+ 新建维护项",

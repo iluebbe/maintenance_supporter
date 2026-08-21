@@ -13,6 +13,7 @@ from .const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    UNAVAILABLE_STATES,
     MaintenanceStatus,
     TriggerEntityState,
 )
@@ -178,7 +179,7 @@ def _check_trigger_status(hass: HomeAssistant, data: Mapping[str, Any]) -> list[
 
             if state is None:
                 entity_health = TriggerEntityState.MISSING
-            elif state.state in ("unavailable", "unknown"):
+            elif state.state in UNAVAILABLE_STATES:
                 entity_health = TriggerEntityState.UNAVAILABLE
             else:
                 entity_health = TriggerEntityState.AVAILABLE

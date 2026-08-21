@@ -585,6 +585,7 @@
   "quick_complete_defaults_feedback_not_needed": "No era necesario",
   "quick_complete_success": "Completado rápido",
   "trigger_replaced": "Disparador reemplazado",
+  "trigger_removed": "Disparador eliminado",
   "add": "Añadir",
   "show_stats": "Mostrar estadísticas + gráficos",
   "hide_stats": "Ocultar estadísticas",

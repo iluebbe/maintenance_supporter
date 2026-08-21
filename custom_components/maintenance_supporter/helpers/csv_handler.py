@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_OBJECT,
     CONF_TASKS,
+    DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
@@ -130,7 +131,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "custom_icon": _csv_safe(tdata.get("custom_icon", "")),
                     "nfc_tag_id": _csv_safe(tdata.get("nfc_tag_id", "")),
                     "responsible_user_id": _csv_safe(tdata.get("responsible_user_id", "")),
-                    "priority": tdata.get("priority") or "normal",
+                    "priority": tdata.get("priority") or DEFAULT_TASK_PRIORITY,
                     # Labels ride one cell, "\n"-separated like the checklist.
                     "labels": "\n".join(_csv_safe(lb) for lb in (tdata.get("labels") or []) if lb),
                     "trigger_type": (tdata.get("trigger_config") or {}).get("type", ""),

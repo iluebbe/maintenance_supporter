@@ -22,6 +22,8 @@ from __future__ import annotations
 from typing import Any
 
 from ..const import (
+    MAX_NFC_TAG_LENGTH,
+    MAX_READING_UNIT_LENGTH,
     MAX_COST,
     MAX_DATE_LENGTH,
     MAX_DURATION_MINUTES,
@@ -50,7 +52,7 @@ _TASK_STR_LIMITS: dict[str, int] = {
     "notes": MAX_TEXT_LENGTH,
     "documentation_url": MAX_URL_LENGTH,
     "custom_icon": MAX_ICON_LENGTH,
-    "nfc_tag_id": 256,
+    "nfc_tag_id": MAX_NFC_TAG_LENGTH,
     "responsible_user_id": MAX_META_LENGTH,
     "entity_slug": MAX_ENTITY_SLUG_LENGTH,
     "created_at": MAX_DATE_LENGTH,
@@ -61,7 +63,7 @@ _TASK_STR_LIMITS: dict[str, int] = {
     "archived_reason": MAX_META_LENGTH,
     "schedule_time": MAX_SCHEDULE_TIME_LENGTH,
     "priority": MAX_TYPE_LENGTH,
-    "reading_unit": 32,
+    "reading_unit": MAX_READING_UNIT_LENGTH,
 }
 
 _OBJECT_STR_LIMITS: dict[str, int] = {

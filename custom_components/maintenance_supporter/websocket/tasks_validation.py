@@ -14,6 +14,7 @@ from ..const import (
     CONF_OBJECT,
     CONF_OBJECT_NAME,
     CONF_TASKS,
+    UNAVAILABLE_STATES,
     TriggerType,
 )
 from . import (
@@ -158,7 +159,7 @@ def _validate_trigger_config(
             state = hass.states.get(eid)
             if state is None:
                 warnings.append(f"Entity {eid} does not exist (yet)")
-            elif state.state in ("unavailable", "unknown"):
+            elif state.state in UNAVAILABLE_STATES:
                 warnings.append(f"Entity {eid} is currently '{state.state}'")
         # Ensure entity_id is set for backwards compat
         if not trigger_config.get("entity_id"):

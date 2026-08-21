@@ -122,3 +122,35 @@ export const panelOf = () => document
   .querySelector("home-assistant")?.shadowRoot
   ?.querySelector("home-assistant-main")?.shadowRoot
   ?.querySelector("ha-drawer partial-panel-resolver ha-panel-custom maintenance-supporter-panel");
+
+/** Shadow-DOM walker SOURCE for page.evaluate contexts. 53 scripts carried
+ * inline copies (drift audit 2026-08); new scripts should embed this string:
+ *   await page.evaluate(`${DEEP_SRC} deep(el => ...)`) — or interpolate it
+ * into an evaluate function body. Existing scripts keep their working
+ * copies; migrate opportunistically when touching one.
+ */
+export const DEEP_SRC = `const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+  while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+    if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+    for (const k of (el.children || [])) st.push(k); } return o; };`;
+
+/** login_flow + auth/token against an HA instance (17 named copies existed).
+ * cid MUST be the origin the BROWSER uses (client_id trap: the frontend
+ * bounces to /auth/authorize when localStorage clientId disagrees). */
+export async function haLogin(rest, { user, pass, cid }) {
+  const j = (r) => r.json();
+  const f = await fetch(rest + "/auth/login_flow", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ client_id: cid, handler: ["homeassistant", null], redirect_uri: cid }),
+  }).then(j);
+  const s = await fetch(rest + "/auth/login_flow/" + f.flow_id, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ client_id: cid, username: user, password: pass }),
+  }).then(j);
+  const t = await fetch(rest + "/auth/token", {
+    method: "POST",
+    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: cid }),
+  }).then(j);
+  if (!t.access_token) throw new Error("login failed: " + JSON.stringify(t));
+  return t.access_token;
+}

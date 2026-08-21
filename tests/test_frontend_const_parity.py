@@ -173,6 +173,47 @@ def test_status_colors_are_theme_token_based() -> None:
     assert not offenders, f"STATUS_COLORS entries must use a theme token (var(--…)); bare colours break dark mode: {offenders}"
 
 
+def test_status_palettes_cover_every_maintenance_status() -> None:
+    """Coverage tripwire (drift audit 2026-08): the theme-token tests above
+    check the palette VALUES but never that the KEY SET covers the enum — a
+    7th MaintenanceStatus would render with no colour and no icon, silently.
+    The calendar pills and the card editor are DELIBERATE subsets (actionable
+    statuses only) and are asserted as such below, the _ATTR_EXEMPT way."""
+    from custom_components.maintenance_supporter.const import MaintenanceStatus
+
+    statuses = {s.value for s in MaintenanceStatus}
+    src = (_FRONTEND / "status-constants.ts").read_text(encoding="utf-8")
+    for name in ("STATUS_COLORS", "STATUS_ICONS"):
+        start = src.index(name)
+        block = src[start : src.index("};", start)]
+        keys = set(re.findall(r"^\s*(\w+)\s*:", block, re.M))
+        missing = statuses - keys
+        assert not missing, f"{name} lacks entries for MaintenanceStatus values: {sorted(missing)}"
+
+
+def test_history_type_map_covers_every_history_entry_type() -> None:
+    """The calendar's past-mode map and the history filter chips must know
+    every HistoryEntryType — `missed` was absent from the map and fell
+    through to a green "ok" pill (real bug, drift audit 2026-08)."""
+    from custom_components.maintenance_supporter.const import HistoryEntryType
+
+    types = {t.value for t in HistoryEntryType}
+
+    src = (_FRONTEND / "helpers" / "calendar-bucket.ts").read_text(encoding="utf-8")
+    start = src.index("HISTORY_TYPE_TO_STATUS")
+    block = src[start : src.index("};", start)]
+    keys = set(re.findall(r"^\s*(\w+)\s*:", block, re.M))
+    missing = types - keys
+    assert not missing, f"HISTORY_TYPE_TO_STATUS lacks: {sorted(missing)} (falls through to a green 'ok')"
+
+    hist = (_FRONTEND / "renderers" / "history.ts").read_text(encoding="utf-8")
+    m = re.search(r"_FILTER_TYPES = \[([^\]]+)\]", hist)
+    assert m, "could not parse _FILTER_TYPES"
+    filter_types = set(re.findall(r'"(\w+)"', m.group(1)))
+    missing = types - filter_types
+    assert not missing, f"history filter chips lack: {sorted(missing)}"
+
+
 def test_calendar_status_pills_are_theme_token_based() -> None:
     """Same dark-mode rule for the calendar's status pills: they used to keep a
     private hardcoded palette (triggered was even blue there) — every

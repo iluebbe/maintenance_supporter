@@ -49,3 +49,13 @@ export async function openSignedDocument(hass: HomeAssistant, docId: string, fra
 export async function downloadSignedDocument(hass: HomeAssistant, docId: string, filename: string): Promise<void> {
   downloadUrl(await signDocumentPath(hass, docId, 30), filename);
 }
+
+/** Open a generated HTML page (report / worksheet) in a new tab via a blob
+ * URL. One home for the open + deferred-revoke recipe the panel carried
+ * twice (drift audit 2026-08); the 60 s revoke delay gives slow tabs time
+ * to load before the blob disappears. */
+export function openHtmlInNewTab(html: string): void {
+  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  window.open(url, "_blank");
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}

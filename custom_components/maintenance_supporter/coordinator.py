@@ -42,6 +42,7 @@ from .const import (
     SIGNAL_TASK_RESET,
     STARTUP_GRACE_PERIOD_SECONDS,
     TRIGGER_COMPLETION_COOLDOWN_SECONDS,
+    UNAVAILABLE_STATES,
     HistoryEntryType,
     MaintenanceStatus,
     ScheduleType,
@@ -518,7 +519,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 issue_id = f"missing_trigger_{self.entry.entry_id}_{task_id}_{trigger_entity_id}"
                 state = self.hass.states.get(trigger_entity_id)
 
-                if state is not None and state.state not in ("unavailable", "unknown"):
+                if state is not None and state.state not in UNAVAILABLE_STATES:
                     # Entity exists and is available
                     self._entity_missing_refresh_count.pop(entity_key, None)
                     self._entity_unavailable_logged.pop(entity_key, None)

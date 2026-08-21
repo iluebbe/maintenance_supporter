@@ -585,6 +585,7 @@
   "quick_complete_defaults_feedback_not_needed": "Не было необходимо",
   "quick_complete_success": "Быстро отмечено как выполнено",
   "trigger_replaced": "Триггер заменён",
+  "trigger_removed": "Триггер удалён",
   "add": "Добавить",
   "show_stats": "Показать статистику + графики",
   "hide_stats": "Скрыть статистику",

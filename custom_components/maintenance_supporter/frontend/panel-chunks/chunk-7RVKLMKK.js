@@ -1,7 +1,7 @@
 /*! maintenance_supporter frontend 2.63.0 */
-import{a,b as v,c as n,f as g,g as b,k as m,l as c,p as t}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-XP7DO6HK.js";function p(l){return l.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function x(l){return!l.startsWith("data:image/svg+xml,")&&!l.startsWith("data:image/png;base64,")?"":p(l)}function $(l){return l.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var r=class extends b{constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(e,i){this._entryId=e,this._taskId=null,this._objectName=i,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(e,i,o,s){this._entryId=e,this._taskId=i,this._objectName=o,this._taskName=s,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let e=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let i={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(i.task_id=this._taskId);let o=[this.hass.connection.sendMessagePromise({...i,action:"view"})];this._taskId&&o.push(this.hass.connection.sendMessagePromise({...i,action:"complete"}));let s=await Promise.all(o);if(e!==this._generateSeq)return;this._viewResult=s[0],s.length>1&&(this._completeResult=s[1])}catch(i){if(e!==this._generateSeq)return;let o=i?.code,s=i?.message;this._error=o==="no_url"||typeof s=="string"&&s.includes("No Home Assistant URL")?t("qr_error_no_url",this.lang):t("qr_error",this.lang)}finally{e===this._generateSeq&&(this._loading=!1)}}_setUrlMode(e){this._urlMode!==e&&(this._urlMode=e,this._generate())}_print(){if(!this._viewResult)return;let e=this._viewResult,i=e.label.task_name?`${e.label.object_name} \u2014 ${e.label.task_name}`:e.label.object_name,o=[e.label.manufacturer,e.label.model].filter(Boolean).join(" "),s=window.open("","_blank","width=600,height=500");if(!s)return;let h=this.lang||"en",d=p(i),u=p(o),_=!!this._completeResult,f=p(t("qr_action_view",h)),w=p(t("qr_action_complete",h));s.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+import{a as x}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-GFIEOIQ2.js";import{a,b as v,c as n,f as p,g as b,k as h,l as c,p as t}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-EUAUXBAN.js";function d(l){return l.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function f(l){return!l.startsWith("data:image/svg+xml,")&&!l.startsWith("data:image/png;base64,")?"":d(l)}function q(l){return l.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var o=class extends b{constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(e,i){this._entryId=e,this._taskId=null,this._objectName=i,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(e,i,r,s){this._entryId=e,this._taskId=i,this._objectName=r,this._taskName=s,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let e=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let i={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(i.task_id=this._taskId);let r=[this.hass.connection.sendMessagePromise({...i,action:"view"})];this._taskId&&r.push(this.hass.connection.sendMessagePromise({...i,action:"complete"}));let s=await Promise.all(r);if(e!==this._generateSeq)return;this._viewResult=s[0],s.length>1&&(this._completeResult=s[1])}catch(i){if(e!==this._generateSeq)return;let r=i?.code,s=i?.message;this._error=r==="no_url"||typeof s=="string"&&s.includes("No Home Assistant URL")?t("qr_error_no_url",this.lang):t("qr_error",this.lang)}finally{e===this._generateSeq&&(this._loading=!1)}}_setUrlMode(e){this._urlMode!==e&&(this._urlMode=e,this._generate())}_print(){if(!this._viewResult)return;let e=this._viewResult,i=e.label.task_name?`${e.label.object_name} \u2014 ${e.label.task_name}`:e.label.object_name,r=[e.label.manufacturer,e.label.model].filter(Boolean).join(" "),s=window.open("","_blank","width=600,height=500");if(!s)return;let g=this.lang||"en",u=d(i),m=d(r),_=!!this._completeResult,w=d(t("qr_action_view",g)),$=d(t("qr_action_complete",g));s.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="color-scheme" content="light">
-<title>${d}</title>
+<title>${u}</title>
 <style>
   /* Printable sheet \u2014 must not inherit the phone's dark theme. The QR images
      carry their own white quiet zone and stay scannable either way, but the
@@ -17,25 +17,25 @@ import{a,b as v,c as n,f as g,g as b,k as m,l as c,p as t}from"/maintenance_supp
   .qr-label{font-size:13px;font-weight:500;color:#333}
   .url{font-size:10px;color:#999;word-break:break-all;margin-top:8px;max-width:480px}
 </style></head><body>
-<h2>${d}</h2>
-${u?`<div class="sub">${u}</div>`:""}
+<h2>${u}</h2>
+${m?`<div class="sub">${m}</div>`:""}
 <div class="qr-row">
   <div class="qr-col">
-    <img src="${x(this._viewResult.svg_data_uri)}" alt="QR Info" />
-    <div class="qr-label">${f}</div>
+    <img src="${f(this._viewResult.svg_data_uri)}" alt="QR Info" />
+    <div class="qr-label">${w}</div>
   </div>
   ${_?`<div class="qr-col">
-    <img src="${x(this._completeResult.svg_data_uri)}" alt="QR Complete" />
-    <div class="qr-label">${w}</div>
+    <img src="${f(this._completeResult.svg_data_uri)}" alt="QR Complete" />
+    <div class="qr-label">${$}</div>
   </div>`:""}
 </div>
-<div class="url">${p(this._viewResult.url)}</div>
+<div class="url">${d(this._viewResult.url)}</div>
 <script>setTimeout(()=>window.print(),300)<\/script>
-</body></html>`),s.document.close()}_downloadSvg(e,i){let o=decodeURIComponent(e.svg_data_uri.replace("data:image/svg+xml,","")),s=new Blob([o],{type:"image/svg+xml"}),h=URL.createObjectURL(s),d=document.createElement("a");d.href=h;let u=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;d.download=`qr-${$(u)}-${i}.svg`,d.click(),URL.revokeObjectURL(h)}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return n``;let e=this.lang||this.hass?.language||"en",i=this._taskName?`${t("qr_code",e)}: ${this._objectName} \u2014 ${this._taskName}`:`${t("qr_code",e)}: ${this._objectName}`,o=!!this._viewResult;return n`
+</body></html>`),s.document.close()}_downloadSvg(e,i){let r=decodeURIComponent(e.svg_data_uri.replace("data:image/svg+xml,","")),s=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;x(r,`qr-${q(s)}-${i}.svg`,"image/svg+xml")}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return n``;let e=this.lang||this.hass?.language||"en",i=this._taskName?`${t("qr_code",e)}: ${this._objectName} \u2014 ${this._taskName}`:`${t("qr_code",e)}: ${this._objectName}`,r=!!this._viewResult;return n`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${i}</div>
         <div class="content">
-          ${this._loading?n`<div class="loading">${t("qr_generating",e)}</div>`:this._error?n`<div class="error">${this._error}</div>`:o?n`
+          ${this._loading?n`<div class="loading">${t("qr_generating",e)}</div>`:this._error?n`<div class="error">${this._error}</div>`:r?n`
                     <div class="qr-pair">
                       <div class="qr-item">
                         <img
@@ -64,10 +64,10 @@ ${u?`<div class="sub">${u}</div>`:""}
                                 ${t("qr_download",e)}
                               </button>
                             </div>
-                          `:g}
+                          `:p}
                     </div>
                     <div class="url-display">${this._viewResult.url}</div>
-                  `:g}
+                  `:p}
           <div class="action-row">
             <label>${t("qr_url_mode",e)}</label>
             <div class="action-toggle">
@@ -86,13 +86,13 @@ ${u?`<div class="sub">${u}</div>`:""}
           </ha-button>
           <ha-button
             @click=${this._print}
-            .disabled=${!o}
+            .disabled=${!r}
           >
             ${t("qr_print",e)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};r.styles=v`
+    `}};o.styles=v`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -210,4 +210,4 @@ ${u?`<div class="sub">${u}</div>`:""}
       color: var(--text-primary-color, #fff);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
-  `,a([m({attribute:!1})],r.prototype,"hass",2),a([m()],r.prototype,"lang",2),a([c()],r.prototype,"_open",2),a([c()],r.prototype,"_loading",2),a([c()],r.prototype,"_error",2),a([c()],r.prototype,"_viewResult",2),a([c()],r.prototype,"_completeResult",2),a([c()],r.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",r);export{r as a};
+  `,a([h({attribute:!1})],o.prototype,"hass",2),a([h()],o.prototype,"lang",2),a([c()],o.prototype,"_open",2),a([c()],o.prototype,"_loading",2),a([c()],o.prototype,"_error",2),a([c()],o.prototype,"_viewResult",2),a([c()],o.prototype,"_completeResult",2),a([c()],o.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",o);export{o as a};

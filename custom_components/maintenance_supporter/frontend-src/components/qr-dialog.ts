@@ -8,6 +8,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
 import { t } from "../styles";
+import { downloadTextFile } from "../helpers/download";
 
 interface QrResult {
   svg_data_uri: string;
@@ -194,16 +195,13 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
     const svgContent = decodeURIComponent(
       result.svg_data_uri.replace("data:image/svg+xml,", ""),
     );
-    const blob = new Blob([svgContent], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
     const name = this._taskName
       ? `${this._objectName}-${this._taskName}`
       : this._objectName;
-    a.download = `qr-${sanitizeFilename(name)}-${suffix}.svg`;
-    a.click();
-    URL.revokeObjectURL(url);
+    // helpers/download.ts, not a hand-rolled anchor: the detached-anchor +
+    // immediate-revoke pattern this used silently fails in the Companion
+    // WebView (drift audit 2026-08 caught the bypass).
+    downloadTextFile(svgContent, `qr-${sanitizeFilename(name)}-${suffix}.svg`, "image/svg+xml");
   }
 
   private _close(): void {

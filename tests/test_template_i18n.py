@@ -31,7 +31,12 @@ from custom_components.maintenance_supporter.websocket.objects import (
 
 from .conftest import make_ws_connection as _conn, build_global_entry_data, call_ws_handler, setup_integration
 
-_LANGS = ("de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
+# Derived from the single language root (drift audit 2026-08: this was a
+# THIRD independent hand list — a new language never forced template
+# translations). Non-EN only: templates fall back to the English source text.
+from .test_i18n import _FRONTEND_LANGUAGES as _ALL_LANGS
+
+_LANGS = tuple(sorted(_ALL_LANGS - {"en"}))
 
 
 @pytest.fixture

@@ -24,6 +24,8 @@ from homeassistant.helpers.event import (
     async_track_time_interval,
 )
 
+from ...const import UNAVAILABLE_STATES
+
 if TYPE_CHECKING:
     from ...sensor import MaintenanceSensor
 from homeassistant.util import dt as dt_util
@@ -57,15 +59,15 @@ class RuntimeTrigger(BaseTrigger):
         self._target_hours: float = trigger_config.get("trigger_runtime_hours", 100.0)
         self._accumulated_seconds: float = trigger_config.get("trigger_accumulated_seconds", 0.0)
 
-        # Restore on_since timestamp for restart recovery
+        # Restore on_since timestamp for restart recovery. parse_persisted_utc
+        # coerces a naive legacy payload to UTC — dt_util.parse_datetime kept
+        # it naive here, and `utcnow() - naive` raises TypeError in the
+        # elapsed math (drift audit 2026-08; the sibling triggers coerced).
+        from ...helpers.dates import parse_persisted_utc
+
         on_since_str = trigger_config.get("trigger_on_since")
-        self._on_since: str | None = None  # ISO string stored for persistence
-        self._on_since_dt: datetime | None = None  # parsed datetime for calculation
-        if on_since_str:
-            parsed = dt_util.parse_datetime(on_since_str)
-            if parsed:
-                self._on_since = on_since_str
-                self._on_since_dt = parsed
+        self._on_since_dt: datetime | None = parse_persisted_utc(on_since_str)
+        self._on_since: str | None = on_since_str if self._on_since_dt is not None else None
 
         # Custom ON states (default: on, 1, true)
         custom_on = trigger_config.get("trigger_on_states")
@@ -79,7 +81,7 @@ class RuntimeTrigger(BaseTrigger):
     async def async_setup(self) -> None:
         """Set up runtime trigger with state restoration."""
         state = self.hass.states.get(self.entity_id)
-        if state is None or state.state in ("unavailable", "unknown"):
+        if state is None or state.state in UNAVAILABLE_STATES:
             # No USABLE state yet (#131 family): "unavailable" must not read
             # as OFF — a running device whose sensor merely connects late
             # would lose its restored on_since anchor and undercount. Keep
@@ -189,7 +191,7 @@ class RuntimeTrigger(BaseTrigger):
         old_val = self._tracked_value(old_state)
 
         # Handle unavailable/unknown — pause accumulation
-        if raw_state in ("unavailable", "unknown"):
+        if raw_state in UNAVAILABLE_STATES:
             if self._on_since_dt is not None:
                 self._accumulate_elapsed()
                 self._on_since_dt = None

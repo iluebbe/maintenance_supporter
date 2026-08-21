@@ -48,22 +48,11 @@ class ThresholdTrigger(BaseTrigger):
         self._timer_cancel: CALLBACK_TYPE | None = None
 
         # Restore persisted exceeded-since timestamp (survives HA restarts)
-        exceeded_since = trigger_config.get("trigger_threshold_exceeded_since")
-        self._exceeded_since: str | None = None
-        self._exceeded_since_dt: datetime | None = None
-        if exceeded_since:
-            try:
-                parsed = datetime.fromisoformat(exceeded_since)
-                # Older payloads may be naive — assume UTC since live writes
-                # use dt_util.utcnow().isoformat() (TZ-aware).
-                if parsed.tzinfo is None:
-                    from datetime import UTC
+        from ...helpers.dates import parse_persisted_utc
 
-                    parsed = parsed.replace(tzinfo=UTC)
-                self._exceeded_since_dt = parsed
-                self._exceeded_since = exceeded_since
-            except (ValueError, TypeError):
-                pass
+        exceeded_since = trigger_config.get("trigger_threshold_exceeded_since")
+        self._exceeded_since_dt: datetime | None = parse_persisted_utc(exceeded_since)
+        self._exceeded_since: str | None = exceeded_since if self._exceeded_since_dt is not None else None
 
     def _value_exceeds_threshold(self, value: float) -> bool:
         """Check if the value exceeds configured thresholds."""

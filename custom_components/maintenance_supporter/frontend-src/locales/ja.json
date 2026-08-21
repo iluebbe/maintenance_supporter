@@ -6,6 +6,7 @@
   "due_soon": "期限間近",
   "triggered": "トリガー発生",
   "trigger_replaced": "トリガー解除済み",
+  "trigger_removed": "トリガーを削除しました",
   "ok": "OK",
   "all": "すべて",
   "new_object": "+ 新規対象",

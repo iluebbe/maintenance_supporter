@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import calendar
 from collections.abc import Iterator
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from .workday import is_business_day
 
@@ -25,6 +25,27 @@ def parse_iso_date(value: str | None) -> date | None:
         return date.fromisoformat(value)
     except (ValueError, TypeError):
         return None
+
+
+def parse_persisted_utc(value: str | None) -> datetime | None:
+    """Persisted ISO timestamp → TZ-aware ``datetime``; ``None`` when absent
+    or malformed.
+
+    Live writes use ``dt_util.utcnow().isoformat()`` (TZ-aware), but older
+    payloads may be naive — those are assumed UTC, because subtracting a naive
+    datetime from ``dt_util.utcnow()`` raises ``TypeError``. One home for the
+    block the threshold and state-change triggers each hand-rolled (and the
+    runtime trigger FORGOT — a naive ``on_since`` crashed its elapsed math).
+    """
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed
 
 
 def _add_months(anchor: date, months: int) -> date:

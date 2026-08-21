@@ -5,9 +5,9 @@ import { isSafeHttpUrl } from "./helpers/url";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs, langOf } from "./styles";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
-import { openSignedDocument, signApiPath } from "./helpers/document-url";
+import { openHtmlInNewTab, openSignedDocument, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { daysProgress } from "./helpers/interval";
@@ -373,15 +373,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
-    // Dates/times follow the HA profile format, not just the language (#97).
-    if (changedProps.has("hass")) setDateTimePrefs(this.hass?.locale);
-    // Lazy-load the user's UI language (non-EN tables aren't bundled) and
-    // re-render once it arrives. EN is bundled, so strings read in English
-    // until then rather than as raw keys.
-    const lang = this.hass?.language;
-    if (lang && !isLocaleLoaded(lang)) {
-      ensureLocale(lang).then(() => this.requestUpdate());
-    }
+    syncLocaleFromHass(this, changedProps);
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
@@ -1477,9 +1469,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._currencySymbol,
       new Date().toISOString(),
     );
-    const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-    window.open(url, "_blank");
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    openHtmlInNewTab(html);
   }
 
   private async _duplicateObject(entryId: string): Promise<void> {
@@ -1843,9 +1833,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         new Date().toISOString(),
         partsLines,
       );
-      const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-      window.open(url, "_blank");
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      openHtmlInNewTab(html);
     } finally {
       this._actionLoading = false;
     }

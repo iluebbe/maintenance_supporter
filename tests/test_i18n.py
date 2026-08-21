@@ -32,19 +32,20 @@ _TRANSLATIONS = _COMPONENT / "translations"
 # the JS). Same parity discipline as the backend translations; the 2-letter
 # codes (zh, not zh-Hans) match the frontend t() table keys.
 _FRONTEND_LOCALES = _COMPONENT / "frontend-src" / "locales"
-_FRONTEND_LANGUAGES = frozenset(
-    {"de", "en", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr"}
-)
 
-# The shipped UI languages. Mirrors the frontend guard's set (which uses "zh"
-# and "pt-br"); HA's on-disk convention is the regional file name ("zh-Hans",
-# "pt-BR").
+# The shipped UI languages. HA's on-disk convention is the regional file name
+# ("zh-Hans", "pt-BR"); the frontend t() table keys use the short forms
+# ("zh", "pt-br"). This set is the SINGLE root — the frontend set below is
+# DERIVED from it (drift audit 2026-08: two independent hand lists meant a
+# language added on one side shipped half-translated with green CI).
 _EXPECTED_LANGUAGES = frozenset(
     {
         "cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "pt-BR", "ru", "sv", "uk",
         "zh-Hans", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr",
     }
 )
+
+_FRONTEND_LANGUAGES = frozenset(lang.lower().replace("zh-hans", "zh") for lang in _EXPECTED_LANGUAGES)
 
 # HA/Python ``str.format`` placeholder, e.g. ``{task_name}``.
 _TOKEN_RE = re.compile(r"\{(\w+)\}")

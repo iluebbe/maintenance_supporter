@@ -15,7 +15,7 @@ import { describeWsError } from "../ws-errors";
 import { downloadUrl } from "../helpers/download";
 import { downloadSignedDocument, openSignedDocument, signDocumentPath } from "../helpers/document-url";
 import { formatBytes } from "../helpers/format-bytes";
-import { CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
+import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
 import type { HomeAssistant } from "../types";
 
 interface MaintenanceDocument {
@@ -263,7 +263,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   }
 
   private async _delete(doc: MaintenanceDocument): Promise<void> {
-    const name = doc.title || doc.filename || doc.url || "";
+    const name = docDisplayName(doc);
     if (!window.confirm(t("doc_delete_confirm", this._lang).replace("{name}", name))) return;
     this._busy = true;
     this._error = "";
@@ -447,7 +447,7 @@ export class MaintenanceDocumentsSection extends LitElement {
             }
           }}
         >
-          <div class="doc-title">${doc.title || doc.filename || doc.url}</div>
+          <div class="doc-title">${docDisplayName(doc)}</div>
           <div class="doc-meta">${meta}</div>
         </div>
         <div class="doc-row-actions">

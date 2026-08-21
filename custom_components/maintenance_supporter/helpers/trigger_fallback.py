@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.util import dt as dt_util
 
+from ..const import UNAVAILABLE_STATES
+
 if TYPE_CHECKING:
     from homeassistant.core import State
 
@@ -72,7 +74,7 @@ def threshold_exceeds(
 def _numeric_entity_value(get_state: StateGetter, entity_id: str, attribute: str | None) -> float | None:
     """Read a numeric value from an entity state/attribute (None when unusable)."""
     state = get_state(entity_id)
-    if state is None or state.state in ("unavailable", "unknown"):
+    if state is None or state.state in UNAVAILABLE_STATES:
         return None
     try:
         raw = state.attributes.get(attribute) if attribute else state.state

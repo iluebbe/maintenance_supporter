@@ -26,6 +26,7 @@ from .const import (
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_ENTITY_LOGIC,
+    DEFAULT_TASK_PRIORITY,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     SIGNAL_DOCUMENTS_UPDATED,
@@ -232,7 +233,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             # #134: the priority level, so automations can route on it
             # (state_attr(..., 'priority') == 'high'). Always present — tasks
             # without an explicit value are "normal", the model default.
-            "priority": task.get("priority") or "normal",
+            "priority": task.get("priority") or DEFAULT_TASK_PRIORITY,
         }
 
         # Trigger attributes (static config only — no fast-changing values)

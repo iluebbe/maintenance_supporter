@@ -44,7 +44,7 @@ import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import type { MaintenanceTaskQuickActionsDialog } from "./components/task-quick-actions-dialog";
 import type { MaintenanceObjectQuickActionsDialog } from "./components/object-quick-actions-dialog";
 import type { HomeAssistant, MaintenanceObject } from "./types";
-import { ensureLocale, isLocaleLoaded } from "./styles";
+import { ensureLocale, isLocaleLoaded, langOf } from "./styles";
 
 const OBJECT_DIALOG_TAG = "maintenance-object-dialog";
 const TASK_DIALOG_TAG = "maintenance-task-dialog";
@@ -91,7 +91,7 @@ function syncHass(el: HTMLElement & { hass?: HomeAssistant }): boolean {
   // in English even when the rest of HA is localized. Fetch the user's locale
   // (idempotent + cached) and force a re-render once it's in, so the first paint
   // (which may be English) is corrected to the user's language.
-  const lang = hass.language || "en";
+  const lang = langOf(hass);
   if (!isLocaleLoaded(lang)) {
     void ensureLocale(lang).then(() => {
       (el as unknown as { requestUpdate?: () => void }).requestUpdate?.();
