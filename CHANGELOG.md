@@ -2,6 +2,48 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.62.0] - 2026-08-21
+
+### ✨ Added
+
+- **Battery Fleet card** (#135). `custom:maintenance-battery-fleet-card`
+  puts the full fleet view on any dashboard — low now, due soon, the
+  shopping line, and the complete roster with sparklines, exclude/add
+  controls and the new toggle below. Optional `title`; listed in the
+  Lovelace card picker.
+- **Track self-charging batteries** (#135, thanks @lurisin). A roster
+  toggle (and the `battery_fleet/set_track_self_charging` WebSocket
+  command, 90 commands total) keeps phones, vacuums, smart rings and
+  other self-recharging devices in the fleet as rechargeables: a low one
+  asks for a charge — never for new cells — and the due-line attributes
+  say *"— recharge"*. Off by default; excluding a device still wins.
+
+### 🐛 Fixed
+
+- **Manually adding a noted battery did nothing** (#135). The v2.61.0
+  include bypassed the self-charging filter only for plain sensors — for
+  a device with a Battery Notes note (the reporter's smart ring) the add
+  was silently ignored. The include now acts device-wide: whichever of a
+  device's battery entities you pick, the richest source (the note) wins
+  the roster row, and an explicitly added battery stays visible even
+  while it reads unavailable.
+- **Raw labels after an update** ("BATTERY_FLEET_ADD"). A cached app
+  shell could still load an old bundle next to the fresh panel, and its
+  older translation table shadowed every new key. Bundles now merge
+  their English tables instead of first-wins, and runtime locale fetches
+  are version-busted like the module URLs.
+- **Battery roster alignment.** The roster's right side never lined up
+  across rows — every optional element (sparkline, percentage, forecast
+  date) shifted its own row. Rows now share fixed columns (the task
+  table's subgrid pattern), and on phones they wrap to two lines instead
+  of overflowing — chips no longer overlap wrapped device names.
+
+### 🧰 Internal
+
+- Every docs screenshot regenerated (the imagery had drifted behind the
+  last three releases); visual-regression baselines re-tied and a
+  geometric roster-alignment check added to the e2e toolbox.
+
 ## [2.61.0] - 2026-08-20
 
 ### ✨ Added
