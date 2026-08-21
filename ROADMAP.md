@@ -597,6 +597,30 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
+### 💡 on_complete_action: admin-gate the configuration, not just the dispatch (security review round 2, 2026-08-21)
+`on_complete_action` fires a service call on task completion. Configuring it
+is `@require_write` (an operator, when operator-write is enabled), triggering
+it is ungated (`task/complete` — any authenticated user), and the only guard
+is the `_FORBIDDEN_ACTION_DOMAINS` denylist (`shell_command`, `python_script`,
+`hassio`, `homeassistant`, `recorder`, `backup`) enforced at both save and
+dispatch. The denylist correctly blocks the direct arbitrary-code and
+host-control vectors, but a **denylist is only as complete as its author's
+imagination**: it still permits `script.<name>` and `automation.trigger`,
+which run existing admin-defined logic — and a script that internally calls
+`shell_command` lets an operator reach it indirectly. Not a plain bug (those
+services are the *legitimate* purpose of the feature — the Roborock
+filter-reset recipe uses `script`/`button`), and the operator can only
+trigger logic an admin already authored, never inject new logic. But the
+security of the feature rests on denylist completeness, which is a fragile
+foundation for an operator-writable field. Options to weigh (product call,
+hence roadmap not fix): (a) move `on_complete_action` config to `@require_admin`
+while task editing stays `@require_write` — configuring which service fires is
+an admin decision, breaks no legitimate flow (admins set it up, operators/users
+run it); (b) flip to an allowlist of safe domains; (c) leave as-is and document
+the trust model. Recommendation: (a) — cheapest, closes the fragility without
+touching functionality, matches the existing "escalation-sensitive operations
+stay admin-only" convention (`global/update`, import, vacation).
+
 ### 💡 Value-level validation for trigger_config numbers (security review 2026-08-21)
 The task save path validates trigger_config by KEY (allowlist, unknown keys
 stripped) and per-type required fields, but never the VALUES: a write-tier

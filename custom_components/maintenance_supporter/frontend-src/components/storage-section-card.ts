@@ -11,6 +11,7 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { openSignedDocument } from "../helpers/document-url";
+import { isSafeHttpUrl } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
 import type { HomeAssistant } from "../types";
 
@@ -135,7 +136,10 @@ export class MaintenanceStorageSectionCard extends LitElement {
 
   private async _openResult(doc: SearchResult): Promise<void> {
     if (doc.kind === "weblink") {
-      window.open(doc.url, "_blank", "noopener");
+      // Defense-in-depth (mirrors task-documents/documents-section): never
+      // hand a non-http(s) weblink to window.open, even though the WS add
+      // path already rejects such schemes.
+      if (isSafeHttpUrl(doc.url)) window.open(doc.url, "_blank", "noopener");
       return;
     }
     try {

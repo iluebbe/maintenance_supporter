@@ -122,6 +122,22 @@ describe("task-documents", () => {
       window.open = orig;
     }
   });
+
+  it("refuses to window.open a non-http(s) weblink (defense-in-depth, XSS)", async () => {
+    const EVIL = { id: "d4", kind: "weblink", title: "Evil", url: "javascript:alert(document.cookie)", tags: [], task_ids: ["t1"] };
+    const orig = window.open;
+    let opened = "NOT_CALLED";
+    window.open = ((u: string) => { opened = u; return null; }) as typeof window.open;
+    try {
+      const { el } = await mount(true, [EVIL]);
+      const info = el.shadowRoot!.querySelector<HTMLElement>(".tdoc-row .tdoc-info")!;
+      info.click();
+      await el.updateComplete;
+      expect(opened, "a javascript: weblink must never reach window.open").to.equal("NOT_CALLED");
+    } finally {
+      window.open = orig;
+    }
+  });
 });
 
 // ── part mode (v2.26): same component, linking via part_ids ─────────────────
