@@ -454,7 +454,8 @@ title: Batteries   # optional
 ![Calendar tab](images/calendar-tab.png)
 
 Window chips (7 / 14 / 30 days, *1 year*, plus past windows −30d/−90d for
-reviewing what was done), per-event source icon (clock = time-based,
+reviewing what was done — a *missed* cycle shows with the overdue pill, never
+green), per-event source icon (clock = time-based,
 trending-up = sensor-based), per-event average cost, and a prediction-confidence
 pill (green / amber / red, 1.5.1+) on sensor-predicted events. Time-based
 recurring tasks additionally project up to 5 future occurrences into the window
