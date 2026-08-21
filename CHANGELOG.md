@@ -2,6 +2,33 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.63.0] - 2026-08-21
+
+### ✨ Added
+
+- **Hold filter for state-change triggers** (#136, thanks @lurisin). A
+  state-change trigger gains an optional *for (minutes)*: a transition only
+  counts once the new state has HELD that long. Flappy problem sensors stop
+  firing on second-long night-time flickers, and a flicker never counts as
+  an appliance cycle. 0 (the default) counts immediately, so sensors that
+  pulse only briefly keep working. The hold window survives restarts, and an
+  unavailability blip restarts it. Configurable per task in the dialog and
+  both config/options flows, and offered right in the problem-sensor adopt
+  dialog so a flicker filter can be set at adoption time.
+
+### 🔒 Security
+
+- Battery-fleet manual include/exclude lists are capped at 2000 entries
+  (both are write-gated, but nothing bounded their growth — config-entry
+  bloat hygiene).
+- Weblink documents are opened through the same `http(s)`-only guard the
+  document list already applied, closing a defense-in-depth gap on two
+  `window.open` call sites (the add-link path already rejects other schemes
+  server-side; this covers any link stored before that check).
+- Two review follow-ups recorded on the roadmap: admin-gating the
+  `on_complete_action` service-call configuration, and value-level
+  validation of numeric `trigger_config` fields.
+
 ## [2.62.0] - 2026-08-21
 
 ### ✨ Added
