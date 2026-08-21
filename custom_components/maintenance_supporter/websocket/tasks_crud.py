@@ -17,8 +17,6 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 from ..const import (
-    MAX_NFC_TAG_LENGTH,
-    MAX_READING_UNIT_LENGTH,
     BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
     CONF_TASKS,
@@ -36,6 +34,8 @@ from ..const import (
     MAX_LABELS,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
+    MAX_NFC_TAG_LENGTH,
+    MAX_READING_UNIT_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,

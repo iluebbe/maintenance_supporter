@@ -22,8 +22,6 @@ from __future__ import annotations
 from typing import Any
 
 from ..const import (
-    MAX_NFC_TAG_LENGTH,
-    MAX_READING_UNIT_LENGTH,
     MAX_COST,
     MAX_DATE_LENGTH,
     MAX_DURATION_MINUTES,
@@ -33,6 +31,8 @@ from ..const import (
     MAX_INTERVAL_DAYS,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
+    MAX_NFC_TAG_LENGTH,
+    MAX_READING_UNIT_LENGTH,
     MAX_SCHEDULE_TIME_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
