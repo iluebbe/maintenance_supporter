@@ -50,6 +50,9 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
   @state() private _selected: Set<string> = new Set();
   @state() private _users: HAUser[] = [];
   @state() private _responsible = "";
+  // #136: minutes the problem must persist before the created task triggers
+  // (one field applied to every selection). "0" = react to the first flicker.
+  @state() private _forMinutes = "0";
 
   private _localeReady = false;
   private _userService: UserService | null = null;
@@ -72,6 +75,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     this._sensors = [];
     this._selected = new Set();
     this._responsible = "";
+    this._forMinutes = "0";
     try {
       if (!this._userService) this._userService = new UserService(this.hass);
       else this._userService.updateHass(this.hass);
@@ -126,6 +130,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
           device_id: s.device_id ?? undefined,
           part_id: s.suggested_part_id ?? undefined,
           responsible_user_id: this._responsible || undefined,
+          for_minutes: parseInt(this._forMinutes, 10) > 0 ? parseInt(this._forMinutes, 10) : undefined,
         }));
       const result = await this.hass.connection.sendMessagePromise<AdoptResponse>({
         type: "maintenance_supporter/problem_sensors/adopt",
@@ -213,6 +218,23 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                     })}
                   </div>
                 `}
+
+          ${!this._loading && this._sensors.length > 0
+            ? html`
+                <label class="responsible">
+                  <span>${t("for_at_least_minutes", L)}</span>
+                  <input
+                    class="for-input"
+                    type="number"
+                    min="0"
+                    max="1440"
+                    .value=${this._forMinutes}
+                    @input=${(e: Event) => (this._forMinutes = (e.target as HTMLInputElement).value)}
+                  />
+                </label>
+                <div class="for-hint">${t("adopt_for_minutes_hint", L)}</div>
+              `
+            : nothing}
 
           ${!this._loading && this._sensors.length > 0 && this._users.length > 0
             ? html`
@@ -381,6 +403,19 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       font-size: 12px;
       color: var(--secondary-text-color);
       flex-wrap: wrap;
+    }
+    .for-input {
+      width: 70px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      padding: 4px 6px;
+    }
+    .for-hint {
+      font-size: 11px;
+      color: var(--secondary-text-color);
+      margin: -4px 0 2px;
     }
     .responsible select {
       flex: 1;

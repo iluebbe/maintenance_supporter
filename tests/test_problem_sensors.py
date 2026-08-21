@@ -154,6 +154,50 @@ async def test_adopt_creates_a_triggered_task_and_hides_from_discovery(
     ids = {s["entity_id"] for s in conn2.send_result.call_args[0][1]["sensors"]}
     assert "binary_sensor.hvac_filter_problem" not in ids
 
+    # #136: no for_minutes in the selection → no hold filter on the trigger
+    # (some sensors pulse only briefly — the filter must stay opt-in).
+    assert "trigger_for_minutes" not in tc
+
+
+async def test_adopt_with_for_minutes_writes_the_hold_filter(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#136: the adopt dialog's flicker filter lands on the created trigger."""
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
+
+    await setup_integration(hass, global_entry)
+    _problem_sensor(hass, "binary_sensor.vacuum_problem", "Vacuum problem", "off")
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_problem_sensors,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/problem_sensors/adopt",
+            "selections": [
+                {
+                    "entity_id": "binary_sensor.vacuum_problem",
+                    "name": "Vacuum problem",
+                    "object_name": "Vacuum",
+                    "for_minutes": 10,
+                }
+            ],
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    obj = next(
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Vacuum"
+    )
+    (task,) = obj.data[CONF_TASKS].values()
+    tc = task["trigger_config"]
+    assert tc["trigger_for_minutes"] == 10
+    assert tc["trigger_to_state"] == "on"
+    assert tc["auto_complete_on_recovery"] is True
+
 
 async def test_adopt_two_sensors_same_device_reuse_one_object(
     hass: HomeAssistant, global_entry: MockConfigEntry

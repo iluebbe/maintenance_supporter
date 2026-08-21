@@ -282,6 +282,7 @@
           "trigger_from_state": "Ze stavu (volitelné)",
           "trigger_to_state": "Do stavu (volitelné)",
           "trigger_target_changes": "Počet změn pro spuštění",
+          "trigger_for_minutes": "Po dobu alespoň (minut)",
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "trigger_combinator": "Kombinovat spouštěč a interval",
@@ -297,7 +298,8 @@
           "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "trigger_combinator": "Co nastane dřív (výchozí): spouštěč nebo uplynulý interval učiní úkol splatným. Obojí vyžadováno: úkol je splatný, až když spouštěč vystřelil a interval uplynul.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
-          "go_back": "Návrat k výběru typu spouště bez uložení."
+          "go_back": "Návrat k výběru typu spouště bez uložení.",
+          "trigger_for_minutes": "Nový stav musí vydržet takto dlouho, než se změna započítá. 0 = počítat ihned."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Ze stavu (volitelné)",
           "trigger_to_state": "Do stavu (volitelné)",
           "trigger_target_changes": "Počet změn pro spuštění",
+          "trigger_for_minutes": "Po dobu alespoň (minut)",
           "interval_days": "Bezpečnostní interval",
           "interval_unit": "Jednotka intervalu",
           "trigger_combinator": "Kombinovat spouštěč a interval",
@@ -1090,7 +1093,8 @@
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči změny stavu.",
           "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "trigger_combinator": "Co nastane dřív (výchozí): spouštěč nebo uplynulý interval učiní úkol splatným. Obojí vyžadováno: úkol je splatný, až když spouštěč vystřelil a interval uplynul.",
-          "warning_days": "Počet dní před termínem pro zobrazení upozornění."
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "trigger_for_minutes": "Nový stav musí vydržet takto dlouho, než se změna započítá. 0 = počítat ihned."
         }
       },
       "opt_trigger_runtime": {

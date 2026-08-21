@@ -282,6 +282,7 @@
           "trigger_from_state": "Van status (optioneel)",
           "trigger_to_state": "Naar status (optioneel)",
           "trigger_target_changes": "Aantal wijzigingen voor activering",
+          "trigger_for_minutes": "Gedurende minimaal (minuten)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "trigger_combinator": "Trigger en interval combineren",
@@ -297,7 +298,8 @@
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
-          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan.",
+          "trigger_for_minutes": "De nieuwe status moet zo lang aanhouden voordat de wijziging telt. 0 = direct tellen."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Van status (optioneel)",
           "trigger_to_state": "Naar status (optioneel)",
           "trigger_target_changes": "Aantal wijzigingen voor activering",
+          "trigger_for_minutes": "Gedurende minimaal (minuten)",
           "interval_days": "Veiligheidsinterval",
           "interval_unit": "Intervaleenheid",
           "trigger_combinator": "Trigger en interval combineren",
@@ -1090,7 +1093,8 @@
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
-          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
+          "trigger_for_minutes": "De nieuwe status moet zo lang aanhouden voordat de wijziging telt. 0 = direct tellen."
         }
       },
       "opt_trigger_runtime": {

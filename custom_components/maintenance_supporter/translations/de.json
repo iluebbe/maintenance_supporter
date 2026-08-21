@@ -282,6 +282,7 @@
           "trigger_from_state": "Von Zustand (optional)",
           "trigger_to_state": "Zu Zustand (optional)",
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
+          "trigger_for_minutes": "Für mindestens (Minuten)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "trigger_combinator": "Trigger und Intervall kombinieren",
@@ -297,7 +298,8 @@
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
-          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern.",
+          "trigger_for_minutes": "Der neue Zustand muss so lange bestehen bleiben, bevor die Änderung zählt. 0 = sofort zählen."
         }
       },
       "trigger_runtime": {
@@ -978,6 +980,7 @@
           "trigger_from_state": "Von Zustand (optional)",
           "trigger_to_state": "Zu Zustand (optional)",
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
+          "trigger_for_minutes": "Für mindestens (Minuten)",
           "interval_days": "Sicherheitsintervall",
           "interval_unit": "Intervalleinheit",
           "trigger_combinator": "Trigger und Intervall kombinieren",
@@ -992,7 +995,8 @@
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandsänderungs-Auslöser.",
           "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
-          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
+          "trigger_for_minutes": "Der neue Zustand muss so lange bestehen bleiben, bevor die Änderung zählt. 0 = sofort zählen."
         }
       },
       "opt_trigger_runtime": {

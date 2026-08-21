@@ -282,6 +282,7 @@
           "trigger_from_state": "Tilasta (valinnainen)",
           "trigger_to_state": "Tilaan (valinnainen)",
           "trigger_target_changes": "Muutosten määrä laukaisuun",
+          "trigger_for_minutes": "Vähintään (minuuttia)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "trigger_combinator": "Yhdistä laukaisin ja väli",
@@ -297,7 +298,8 @@
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
           "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
-          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta.",
+          "trigger_for_minutes": "Uuden tilan on pysyttävä näin kauan, ennen kuin muutos lasketaan. 0 = laske heti."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Tilasta (valinnainen)",
           "trigger_to_state": "Tilaan (valinnainen)",
           "trigger_target_changes": "Muutosten määrä laukaisuun",
+          "trigger_for_minutes": "Vähintään (minuuttia)",
           "interval_days": "Turva-aikaväli",
           "interval_unit": "Aikavälin yksikkö",
           "trigger_combinator": "Yhdistä laukaisin ja väli",
@@ -1090,7 +1093,8 @@
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli tilanmuutoslaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
           "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
-          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "trigger_for_minutes": "Uuden tilan on pysyttävä näin kauan, ennen kuin muutos lasketaan. 0 = laske heti."
         }
       },
       "opt_trigger_runtime": {

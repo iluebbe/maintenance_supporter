@@ -282,6 +282,7 @@
           "trigger_from_state": "이전 상태(선택 사항)",
           "trigger_to_state": "이후 상태(선택 사항)",
           "trigger_target_changes": "트리거까지의 변경 횟수",
+          "trigger_for_minutes": "최소 지속 시간(분)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "trigger_combinator": "트리거와 간격 결합",
@@ -297,7 +298,8 @@
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
           "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다.",
-          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다.",
+          "trigger_for_minutes": "새 상태가 이 시간 동안 유지되어야 변경이 집계됩니다. 0 = 즉시 집계."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "이전 상태(선택 사항)",
           "trigger_to_state": "이후 상태(선택 사항)",
           "trigger_target_changes": "트리거까지의 변경 횟수",
+          "trigger_for_minutes": "최소 지속 시간(분)",
           "interval_days": "안전 주기",
           "interval_unit": "주기 단위",
           "trigger_combinator": "트리거와 간격 결합",
@@ -1090,7 +1093,8 @@
           "interval_days": "상태 변경 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
           "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
-          "warning_days": "기한 전에 경고를 표시할 일수입니다."
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "trigger_for_minutes": "새 상태가 이 시간 동안 유지되어야 변경이 집계됩니다. 0 = 즉시 집계."
         }
       },
       "opt_trigger_runtime": {

@@ -282,6 +282,7 @@
           "trigger_from_state": "遷移元の状態 (任意)",
           "trigger_to_state": "遷移先の状態 (任意)",
           "trigger_target_changes": "トリガーまでの変化回数",
+          "trigger_for_minutes": "最低継続時間 (分)",
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "trigger_combinator": "トリガーと間隔の組み合わせ",
@@ -297,7 +298,8 @@
           "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
           "trigger_combinator": "先に満たした方（既定）：トリガーまたは経過した間隔でタスクが期限になります。両方必須：トリガーが発動し、かつ間隔が経過して初めて期限になります。",
           "warning_days": "期限の何日前から警告を表示するかの日数です。",
-          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。",
+          "trigger_for_minutes": "新しい状態がこの時間続いた場合にのみ変化としてカウントされます。0 = 即時カウント。"
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "遷移元の状態 (任意)",
           "trigger_to_state": "遷移先の状態 (任意)",
           "trigger_target_changes": "トリガーまでの変化回数",
+          "trigger_for_minutes": "最低継続時間 (分)",
           "interval_days": "安全間隔",
           "interval_unit": "間隔の単位",
           "trigger_combinator": "トリガーと間隔の組み合わせ",
@@ -1090,7 +1093,8 @@
           "interval_days": "状態変化トリガーに加えて使用する任意の時間ベースの安全間隔です。",
           "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
           "trigger_combinator": "先に満たした方（既定）：トリガーまたは経過した間隔でタスクが期限になります。両方必須：トリガーが発動し、かつ間隔が経過して初めて期限になります。",
-          "warning_days": "期限の何日前から警告を表示するかの日数です。"
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "trigger_for_minutes": "新しい状態がこの時間続いた場合にのみ変化としてカウントされます。0 = 即時カウント。"
         }
       },
       "opt_trigger_runtime": {

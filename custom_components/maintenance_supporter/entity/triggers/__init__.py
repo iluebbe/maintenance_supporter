@@ -103,6 +103,11 @@ def _inject_per_entity_state(config: dict[str, Any], entity_state: dict[str, Any
     elif trigger_type == TriggerType.STATE_CHANGE:
         if "change_count" in entity_state:
             config["trigger_change_count"] = entity_state["change_count"]
+        # #136: a hold window that was open when HA went down.
+        if "pending_since" in entity_state:
+            config["trigger_state_pending_since"] = entity_state["pending_since"]
+        if "pending_state" in entity_state:
+            config["trigger_state_pending_state"] = entity_state["pending_state"]
     elif trigger_type == TriggerType.THRESHOLD:
         tes = entity_state.get("threshold_exceeded_since")
         if tes:

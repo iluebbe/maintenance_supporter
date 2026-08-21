@@ -577,7 +577,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 ### Sensor-Based Triggers
 - **Threshold**: trigger when a sensor value exceeds or falls below a limit — or equals (`=`) / deviates from (`≠`) a discrete level such as a filter stage or error code (with optional duration)
 - **Counter**: trigger when accumulated value reaches a target (absolute or delta mode)
-- **State change**: trigger after a number of state transitions (e.g., on/off cycles)
+- **State change**: trigger after a number of state transitions (e.g., on/off cycles). An optional *for (minutes)* hold (#136) makes a transition count only once the new state has held that long — flappy problem sensors stop firing on second-long night-time flickers, and a flicker never counts as an appliance cycle. 0 (default) counts every change immediately, so sensors that pulse only briefly keep working. The hold window survives restarts and is also offered when adopting problem sensors.
 - **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime)
 - **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime)
 - Multi-entity support for all trigger types (any/all entity logic)

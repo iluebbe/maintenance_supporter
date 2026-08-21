@@ -282,6 +282,7 @@
           "trigger_from_state": "Fra tilstand (valgfrit)",
           "trigger_to_state": "Til tilstand (valgfrit)",
           "trigger_target_changes": "Antal ændringer for at udløse",
+          "trigger_for_minutes": "I mindst (minutter)",
           "interval_days": "Sikkerhedsinterval",
           "interval_unit": "Intervalenhed",
           "trigger_combinator": "Kombinér trigger og interval",
@@ -297,7 +298,8 @@
           "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
           "trigger_combinator": "Først opfyldt (standard): trigger eller udløbet interval gør opgaven forfalden. Begge kræves: opgaven forfalder først, når triggeren er udløst og intervallet er udløbet.",
           "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
-          "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
+          "go_back": "Vend tilbage til valg af udløsertype uden at gemme.",
+          "trigger_for_minutes": "Den nye tilstand skal holde så længe, før ændringen tælles. 0 = tæl straks."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Fra tilstand (valgfrit)",
           "trigger_to_state": "Til tilstand (valgfrit)",
           "trigger_target_changes": "Antal ændringer for at udløse",
+          "trigger_for_minutes": "I mindst (minutter)",
           "interval_days": "Sikkerhedsinterval",
           "interval_unit": "Intervalenhed",
           "trigger_combinator": "Kombinér trigger og interval",
@@ -1090,7 +1093,8 @@
           "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over udløseren for tilstandsændring.",
           "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
           "trigger_combinator": "Først opfyldt (standard): trigger eller udløbet interval gør opgaven forfalden. Begge kræves: opgaven forfalder først, når triggeren er udløst og intervallet er udløbet.",
-          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel."
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "trigger_for_minutes": "Den nye tilstand skal holde så længe, før ændringen tælles. 0 = tæl straks."
         }
       },
       "opt_trigger_runtime": {

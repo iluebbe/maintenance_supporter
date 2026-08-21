@@ -49,6 +49,10 @@ _SELECTION_SCHEMA = vol.Schema(
         # Responsible HA user for the created task (the adopt dialog offers one
         # picker applied to every selection). Wins over a stashed value.
         vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        # #136: minutes the problem state must HOLD before the task triggers
+        # (one dialog field applied to every selection). 0/omitted = trigger
+        # on the first flicker, the pre-#136 behaviour.
+        vol.Optional("for_minutes"): vol.Any(vol.All(int, vol.Range(min=0, max=1440)), None),
     }
 )
 
@@ -114,7 +118,7 @@ async def ws_adopt_problem_sensors(
                 errors.append({"entity_id": entity_id, "reason": "target object not found"})
                 continue
 
-            task = build_problem_task(entity_id, sel["name"])
+            task = build_problem_task(entity_id, sel["name"], for_minutes=sel.get("for_minutes") or 0)
             task_data = {
                 "id": uuid4().hex,
                 "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),

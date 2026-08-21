@@ -282,6 +282,7 @@
           "trigger_from_state": "Dallo stato (opzionale)",
           "trigger_to_state": "Allo stato (opzionale)",
           "trigger_target_changes": "Numero di cambiamenti per attivare",
+          "trigger_for_minutes": "Per almeno (minuti)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
           "trigger_combinator": "Combina trigger e intervallo",
@@ -297,7 +298,8 @@
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
           "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
-          "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
+          "go_back": "Tornare alla selezione del tipo di trigger senza salvare.",
+          "trigger_for_minutes": "Il nuovo stato deve mantenersi per questo tempo prima che il cambiamento conti. 0 = conta subito."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Dallo stato (opzionale)",
           "trigger_to_state": "Allo stato (opzionale)",
           "trigger_target_changes": "Numero di cambiamenti per attivare",
+          "trigger_for_minutes": "Per almeno (minuti)",
           "interval_days": "Intervallo di sicurezza",
           "interval_unit": "Unità di intervallo",
           "trigger_combinator": "Combina trigger e intervallo",
@@ -1090,7 +1093,8 @@
           "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger di cambio stato.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
           "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
-          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "trigger_for_minutes": "Il nuovo stato deve mantenersi per questo tempo prima che il cambiamento conti. 0 = conta subito."
         }
       },
       "opt_trigger_runtime": {

@@ -282,6 +282,7 @@
           "trigger_from_state": "Ze stanu (opcjonalnie)",
           "trigger_to_state": "Do stanu (opcjonalnie)",
           "trigger_target_changes": "Liczba zmian do wyzwolenia",
+          "trigger_for_minutes": "Przez co najmniej (minuty)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "trigger_combinator": "Połącz wyzwalacz i interwał",
@@ -297,7 +298,8 @@
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
-          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania.",
+          "trigger_for_minutes": "Nowy stan musi się utrzymać przez ten czas, zanim zmiana zostanie policzona. 0 = licz natychmiast."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Ze stanu (opcjonalnie)",
           "trigger_to_state": "Do stanu (opcjonalnie)",
           "trigger_target_changes": "Liczba zmian do wyzwolenia",
+          "trigger_for_minutes": "Przez co najmniej (minuty)",
           "interval_days": "Interwał bezpieczeństwa",
           "interval_unit": "Jednostka interwału",
           "trigger_combinator": "Połącz wyzwalacz i interwał",
@@ -1090,7 +1093,8 @@
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza zmiany stanu.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
-          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "trigger_for_minutes": "Nowy stan musi się utrzymać przez ten czas, zanim zmiana zostanie policzona. 0 = licz natychmiast."
         }
       },
       "opt_trigger_runtime": {

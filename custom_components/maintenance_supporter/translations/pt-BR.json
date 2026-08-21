@@ -282,6 +282,7 @@
           "trigger_from_state": "Do estado (opcional)",
           "trigger_to_state": "Para o estado (opcional)",
           "trigger_target_changes": "Número de mudanças para acionar",
+          "trigger_for_minutes": "Por pelo menos (minutos)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "trigger_combinator": "Combinar gatilho e intervalo",
@@ -297,7 +298,8 @@
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
           "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
-          "go_back": "Retornar à seleção do tipo de gatilho sem salvar."
+          "go_back": "Retornar à seleção do tipo de gatilho sem salvar.",
+          "trigger_for_minutes": "O novo estado deve se manter por esse tempo antes de a mudança contar. 0 = contar imediatamente."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Do estado (opcional)",
           "trigger_to_state": "Para o estado (opcional)",
           "trigger_target_changes": "Número de mudanças para acionar",
+          "trigger_for_minutes": "Por pelo menos (minutos)",
           "interval_days": "Intervalo de segurança",
           "interval_unit": "Unidade do intervalo",
           "trigger_combinator": "Combinar gatilho e intervalo",
@@ -1090,7 +1093,8 @@
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de mudança de estado.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
           "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
-          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "trigger_for_minutes": "O novo estado deve se manter por esse tempo antes de a mudança contar. 0 = contar imediatamente."
         }
       },
       "opt_trigger_runtime": {

@@ -3662,3 +3662,217 @@ class TestUnavailableAtSetupDefersReconcile:
         assert trigger._on_since_dt is not None  # anchor kept, not cleared as OFF
         assert trigger._accumulated_seconds == 3600.0
         await trigger.async_teardown()
+
+
+class TestStateChangeHold:
+    """#136: trigger_for_minutes on state-change triggers — a transition only
+    counts once the new state has HELD. Filters the reporter's night-time
+    problem-sensor flickers (single-shot mode) and, on cycle counters, keeps
+    a flicker from counting as a cycle. 0 stays "count immediately" because
+    some sensors express a real event only as a brief pulse."""
+
+    def _config(self, **over: object) -> dict:
+        cfg: dict = {
+            "entity_id": "binary_sensor.vacuum_problem",
+            "attribute": None,
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_to_state": "on",
+            "trigger_target_changes": 1,
+            "trigger_for_minutes": 5,
+        }
+        cfg.update(over)
+        return cfg
+
+    def _advance(self, hass: HomeAssistant, minutes: float) -> None:
+        from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=minutes))
+
+    async def test_brief_flicker_neither_triggers_nor_counts(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.vacuum_problem", "off")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+
+        hass.states.async_set("binary_sensor.vacuum_problem", "on")
+        await hass.async_block_till_done()
+        assert trigger.change_count == 0 and trigger._triggered is False
+
+        # Back off before the window elapses — the pending window dies.
+        hass.states.async_set("binary_sensor.vacuum_problem", "off")
+        await hass.async_block_till_done()
+        self._advance(hass, 10)
+        await hass.async_block_till_done()
+        assert trigger.change_count == 0 and trigger._triggered is False
+
+        await trigger.async_teardown()
+
+    async def test_held_state_triggers_after_the_window(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.vacuum_problem", "off")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+
+        hass.states.async_set("binary_sensor.vacuum_problem", "on")
+        await hass.async_block_till_done()
+        self._advance(hass, 6)
+        await hass.async_block_till_done()
+        assert trigger.change_count == 1
+        assert trigger._triggered is True
+
+        # Latch recovery still works after a hold-commit.
+        hass.states.async_set("binary_sensor.vacuum_problem", "off")
+        await hass.async_block_till_done()
+        assert trigger._triggered is False
+
+        await trigger.async_teardown()
+
+    async def test_cycle_counter_ignores_flickers_but_counts_held_cycles(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.washer_running", "off")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(
+            hass,
+            entity,
+            self._config(
+                entity_id="binary_sensor.washer_running",
+                trigger_from_state="off",
+                trigger_target_changes=3,
+                trigger_for_minutes=2,
+            ),
+        )
+        trigger.entity_id = "binary_sensor.washer_running"
+        await trigger.async_setup()
+
+        # Three brief flickers: nothing counts.
+        for _ in range(3):
+            hass.states.async_set("binary_sensor.washer_running", "on")
+            await hass.async_block_till_done()
+            hass.states.async_set("binary_sensor.washer_running", "off")
+            await hass.async_block_till_done()
+        self._advance(hass, 10)
+        await hass.async_block_till_done()
+        assert trigger.change_count == 0
+
+        # Three held cycles count.
+        for i in range(3):
+            hass.states.async_set("binary_sensor.washer_running", "on")
+            await hass.async_block_till_done()
+            self._advance(hass, 3)
+            await hass.async_block_till_done()
+            assert trigger.change_count == i + 1
+            hass.states.async_set("binary_sensor.washer_running", "off")
+            await hass.async_block_till_done()
+        assert trigger._triggered is True
+
+        await trigger.async_teardown()
+
+    async def test_restart_resume_commits_when_window_already_elapsed(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.vacuum_problem", "on")
+        entity = _make_mock_entity(hass)
+        since = (dt_util.utcnow() - timedelta(minutes=10)).isoformat()
+        trigger = StateChangeTrigger(
+            hass,
+            entity,
+            self._config(trigger_state_pending_since=since, trigger_state_pending_state="on"),
+        )
+        await trigger.async_setup()
+        assert trigger.change_count == 1
+        assert trigger._triggered is True
+        await trigger.async_teardown()
+
+    async def test_restart_resume_continues_with_the_remaining_time(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.vacuum_problem", "on")
+        entity = _make_mock_entity(hass)
+        since = (dt_util.utcnow() - timedelta(minutes=4)).isoformat()
+        trigger = StateChangeTrigger(
+            hass,
+            entity,
+            self._config(trigger_state_pending_since=since, trigger_state_pending_state="on"),
+        )
+        await trigger.async_setup()
+        assert trigger._triggered is False
+
+        self._advance(hass, 2)
+        await hass.async_block_till_done()
+        assert trigger.change_count == 1
+        assert trigger._triggered is True
+        await trigger.async_teardown()
+
+    async def test_restart_resume_discarded_when_state_moved_on(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.vacuum_problem", "off")
+        entity = _make_mock_entity(hass)
+        since = (dt_util.utcnow() - timedelta(minutes=10)).isoformat()
+        trigger = StateChangeTrigger(
+            hass,
+            entity,
+            self._config(trigger_state_pending_since=since, trigger_state_pending_state="on"),
+        )
+        await trigger.async_setup()
+        self._advance(hass, 10)
+        await hass.async_block_till_done()
+        assert trigger.change_count == 0
+        assert trigger._triggered is False
+        await trigger.async_teardown()
+
+    async def test_unavailable_blip_restarts_the_window(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.vacuum_problem", "off")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+
+        hass.states.async_set("binary_sensor.vacuum_problem", "on")
+        await hass.async_block_till_done()
+        hass.states.async_set("binary_sensor.vacuum_problem", "unavailable")
+        await hass.async_block_till_done()
+        hass.states.async_set("binary_sensor.vacuum_problem", "on")
+        await hass.async_block_till_done()
+
+        # The pre-blip window was abandoned; the fresh one is still running.
+        assert trigger._pending_state is not None
+        self._advance(hass, 6)
+        await hass.async_block_till_done()
+        assert trigger._triggered is True
+        await trigger.async_teardown()
+
+    async def test_blip_on_a_settled_state_counts_no_phantom_cycle(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.washer_running", "off")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(
+            hass,
+            entity,
+            self._config(
+                entity_id="binary_sensor.washer_running",
+                trigger_target_changes=3,
+                trigger_for_minutes=2,
+            ),
+        )
+        trigger.entity_id = "binary_sensor.washer_running"
+        await trigger.async_setup()
+
+        hass.states.async_set("binary_sensor.washer_running", "on")
+        await hass.async_block_till_done()
+        self._advance(hass, 3)
+        await hass.async_block_till_done()
+        assert trigger.change_count == 1  # settled, counted
+
+        # A blip on the SETTLED state must not open a new window (that would
+        # count a phantom cycle without any real transition).
+        hass.states.async_set("binary_sensor.washer_running", "unavailable")
+        await hass.async_block_till_done()
+        hass.states.async_set("binary_sensor.washer_running", "on")
+        await hass.async_block_till_done()
+        self._advance(hass, 10)
+        await hass.async_block_till_done()
+        assert trigger.change_count == 1
+
+        await trigger.async_teardown()
+
+    async def test_zero_for_minutes_counts_immediately(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "binary_sensor.vacuum_problem", "off")
+        entity = _make_mock_entity(hass)
+        trigger = StateChangeTrigger(hass, entity, self._config(trigger_for_minutes=0))
+        await trigger.async_setup()
+        hass.states.async_set("binary_sensor.vacuum_problem", "on")
+        await hass.async_block_till_done()
+        assert trigger.change_count == 1 and trigger._triggered is True
+        await trigger.async_teardown()

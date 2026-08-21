@@ -282,6 +282,7 @@
           "trigger_from_state": "From state (optional)",
           "trigger_to_state": "To state (optional)",
           "trigger_target_changes": "Number of changes to trigger",
+          "trigger_for_minutes": "For at least (minutes)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "trigger_combinator": "Combine trigger and interval",
@@ -297,7 +298,8 @@
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
           "warning_days": "Number of days before due date to show a warning.",
-          "go_back": "Return to trigger type selection without saving."
+          "go_back": "Return to trigger type selection without saving.",
+          "trigger_for_minutes": "The new state must hold this long before the change counts. 0 = count immediately."
         }
       },
       "trigger_runtime": {
@@ -954,6 +956,7 @@
           "trigger_from_state": "From state (optional)",
           "trigger_to_state": "To state (optional)",
           "trigger_target_changes": "Number of changes to trigger",
+          "trigger_for_minutes": "For at least (minutes)",
           "interval_days": "Safety interval",
           "interval_unit": "Interval unit",
           "trigger_combinator": "Combine trigger and interval",
@@ -968,7 +971,8 @@
           "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
           "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
-          "warning_days": "Number of days before due date to show a warning."
+          "warning_days": "Number of days before due date to show a warning.",
+          "trigger_for_minutes": "The new state must hold this long before the change counts. 0 = count immediately."
         }
       },
       "opt_trigger_runtime": {

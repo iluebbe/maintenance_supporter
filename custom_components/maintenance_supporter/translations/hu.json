@@ -282,6 +282,7 @@
           "trigger_from_state": "Kezdő állapot (opcionális)",
           "trigger_to_state": "Célállapot (opcionális)",
           "trigger_target_changes": "Kiváltó változások száma",
+          "trigger_for_minutes": "Legalább ennyi ideig (perc)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "trigger_combinator": "Trigger és időköz kombinálása",
@@ -297,7 +298,8 @@
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
           "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
-          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül.",
+          "trigger_for_minutes": "Az új állapotnak ennyi ideig fenn kell maradnia, mielőtt a változás számítana. 0 = azonnal számít."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Kezdő állapot (opcionális)",
           "trigger_to_state": "Célállapot (opcionális)",
           "trigger_target_changes": "Kiváltó változások száma",
+          "trigger_for_minutes": "Legalább ennyi ideig (perc)",
           "interval_days": "Biztonsági intervallum",
           "interval_unit": "Intervallum egysége",
           "trigger_combinator": "Trigger és időköz kombinálása",
@@ -1090,7 +1093,8 @@
           "interval_days": "Opcionális időalapú biztonsági intervallum az állapotváltozás-kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
           "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
-          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "trigger_for_minutes": "Az új állapotnak ennyi ideig fenn kell maradnia, mielőtt a változás számítana. 0 = azonnal számít."
         }
       },
       "opt_trigger_runtime": {

@@ -282,6 +282,7 @@
           "trigger_from_state": "Fra tilstand (valgfritt)",
           "trigger_to_state": "Til tilstand (valgfritt)",
           "trigger_target_changes": "Antall endringer for å utløse",
+          "trigger_for_minutes": "I minst (minutter)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "trigger_combinator": "Kombiner utløser og intervall",
@@ -297,7 +298,8 @@
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
           "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
           "warning_days": "Antall dager før forfallsdato for å vise et varsel.",
-          "go_back": "Gå tilbake til valg av utløsertype uten å lagre."
+          "go_back": "Gå tilbake til valg av utløsertype uten å lagre.",
+          "trigger_for_minutes": "Den nye tilstanden må holde seg så lenge før endringen telles. 0 = tell umiddelbart."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Fra tilstand (valgfritt)",
           "trigger_to_state": "Til tilstand (valgfritt)",
           "trigger_target_changes": "Antall endringer for å utløse",
+          "trigger_for_minutes": "I minst (minutter)",
           "interval_days": "Sikkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "trigger_combinator": "Kombiner utløser og intervall",
@@ -1090,7 +1093,8 @@
           "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til utløseren for tilstandsendring.",
           "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
           "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
-          "warning_days": "Antall dager før forfallsdato for å vise et varsel."
+          "warning_days": "Antall dager før forfallsdato for å vise et varsel.",
+          "trigger_for_minutes": "Den nye tilstanden må holde seg så lenge før endringen telles. 0 = tell umiddelbart."
         }
       },
       "opt_trigger_runtime": {

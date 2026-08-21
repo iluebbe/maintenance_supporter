@@ -338,7 +338,11 @@ target`; baseline captured at setup (best for odometers / ever-increasing meters
 ### `state_change`
 `{"type":"state_change","entity_ids":["sensor.dishwasher"],"trigger_from_state":"running","trigger_to_state":"clean","trigger_target_changes":30}`
 Fires after `trigger_target_changes` matching transitions (default 1). Null/empty
-`from`/`to` match any state (lowercased on save).
+`from`/`to` match any state (lowercased on save). `trigger_for_minutes` (#136,
+default 0) makes a transition count only once the new state has HELD that long
+— the flicker filter for flappy problem sensors and phantom appliance cycles;
+0 counts immediately (some sensors pulse only briefly). The hold window
+survives restarts; an unavailability blip restarts it.
 
 ### `runtime`
 `{"type":"runtime","entity_ids":["switch.pump"],"trigger_runtime_hours":500,"trigger_on_states":["on"]}`
@@ -616,10 +620,14 @@ name matches the sensor's (toner-low ↔ "Toner cartridge"), `suggested_part_*`
 carry it so adoption can pre-link it.
 
 ### `problem_sensors/adopt` — @require_write
-`{selections:[{entity_id,name,entry_id?,object_name?,device_id?,part_id?}]}` →
+`{selections:[{entity_id,name,entry_id?,object_name?,device_id?,part_id?,for_minutes?}]}` →
 `{tasks_created,objects_created,total,errors?}`. Each selection becomes a task
 that triggers while the sensor is on and auto-completes on recovery
-(`state_change` → `on` + `auto_complete_on_recovery`). With `entry_id` it
+(`state_change` → `on` + `auto_complete_on_recovery`). `for_minutes` (#136,
+0–1440) writes `trigger_for_minutes` on the created trigger: the problem must
+persist that long before the task fires — the flicker filter for sensors that
+report problems for a few seconds. Omitted/0 = trigger on the first flicker.
+With `entry_id` it
 attaches to that object; otherwise a fresh object (`object_name`, bound to
 `device_id`) is created — two selections sharing a `device_id` reuse one object.
 A `part_id` (from discovery's suggestion) links the part as the task's

@@ -162,6 +162,23 @@ describe("task-dialog trigger_config roundtrip closure (#103 class)", () => {
     });
   });
 
+  it("state_change: the hold filter (for_minutes, #136) survives the roundtrip", async () => {
+    const tc = await saveRoundtrip({
+      type: "state_change",
+      entity_id: "binary_sensor.vacuum_problem",
+      entity_ids: ["binary_sensor.vacuum_problem"],
+      trigger_to_state: "on",
+      trigger_target_changes: 1,
+      trigger_for_minutes: 10,
+      auto_complete_on_recovery: true,
+    });
+    expect(tc).to.deep.include({
+      type: "state_change",
+      trigger_to_state: "on",
+      trigger_for_minutes: 10,
+    });
+  });
+
   it("compound: per-condition attribute/baseline/entity_logic survive via carry", async () => {
     const tc = await saveRoundtrip({
       type: "compound",

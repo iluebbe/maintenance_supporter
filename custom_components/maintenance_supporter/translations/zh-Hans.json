@@ -282,6 +282,7 @@
           "trigger_from_state": "起始状态 (可选)",
           "trigger_to_state": "目标状态 (可选)",
           "trigger_target_changes": "触发所需的变化次数",
+          "trigger_for_minutes": "持续至少 (分钟)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "trigger_combinator": "组合触发器与间隔",
@@ -297,7 +298,8 @@
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
           "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。",
-          "go_back": "返回触发类型选择且不保存。"
+          "go_back": "返回触发类型选择且不保存。",
+          "trigger_for_minutes": "新状态需保持此时长后变化才计数。0 = 立即计数。"
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "起始状态 (可选)",
           "trigger_to_state": "目标状态 (可选)",
           "trigger_target_changes": "触发所需的变化次数",
+          "trigger_for_minutes": "持续至少 (分钟)",
           "interval_days": "安全间隔数值",
           "interval_unit": "安全间隔单位",
           "trigger_combinator": "组合触发器与间隔",
@@ -1090,7 +1093,8 @@
           "interval_days": "除了状态变化触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
           "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
-          "warning_days": "到期日期前多少天显示预警。"
+          "warning_days": "到期日期前多少天显示预警。",
+          "trigger_for_minutes": "新状态需保持此时长后变化才计数。0 = 立即计数。"
         }
       },
       "opt_trigger_runtime": {

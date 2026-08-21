@@ -282,6 +282,7 @@
           "trigger_from_state": "Desde estado (opcional)",
           "trigger_to_state": "Hacia estado (opcional)",
           "trigger_target_changes": "Número de cambios para activar",
+          "trigger_for_minutes": "Durante al menos (minutos)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
           "trigger_combinator": "Combinar disparador e intervalo",
@@ -297,7 +298,8 @@
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
-          "go_back": "Volver a la selección de tipo de trigger sin guardar."
+          "go_back": "Volver a la selección de tipo de trigger sin guardar.",
+          "trigger_for_minutes": "El nuevo estado debe mantenerse este tiempo antes de que el cambio cuente. 0 = contar de inmediato."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Desde estado (opcional)",
           "trigger_to_state": "Hacia estado (opcional)",
           "trigger_target_changes": "Número de cambios para activar",
+          "trigger_for_minutes": "Durante al menos (minutos)",
           "interval_days": "Intervalo de seguridad",
           "interval_unit": "Unidad de intervalo",
           "trigger_combinator": "Combinar disparador e intervalo",
@@ -1090,7 +1093,8 @@
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador de cambio de estado.",
           "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "trigger_combinator": "El primero (predeterminado): el disparador o el intervalo transcurrido hace que la tarea venza. Ambos requeridos: la tarea solo vence cuando el disparador se activó y el intervalo transcurrió.",
-          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
+          "trigger_for_minutes": "El nuevo estado debe mantenerse este tiempo antes de que el cambio cuente. 0 = contar de inmediato."
         }
       },
       "opt_trigger_runtime": {

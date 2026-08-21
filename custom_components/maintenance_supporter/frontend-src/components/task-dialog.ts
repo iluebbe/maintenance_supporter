@@ -1149,6 +1149,8 @@ export class MaintenanceTaskDialog extends LitElement {
           if (this._triggerFromState) triggerConfig.trigger_from_state = this._triggerFromState;
           if (this._triggerToState) triggerConfig.trigger_to_state = this._triggerToState;
           if (this._triggerTargetChanges) { const v = parseInt(this._triggerTargetChanges, 10); if (!isNaN(v)) triggerConfig.trigger_target_changes = v; }
+          // #136: the new state must hold this long before a change counts.
+          if (this._triggerForMinutes) { const v = parseInt(this._triggerForMinutes, 10); if (!isNaN(v)) triggerConfig.trigger_for_minutes = v; }
         } else if (this._triggerType === "runtime") {
           if (this._triggerRuntimeHours) { const v = parseFloat(this._triggerRuntimeHours); if (!isNaN(v)) triggerConfig.trigger_runtime_hours = v; }
           const onStates = this._triggerOnStates.split(",").map((s) => s.trim()).filter(Boolean);
@@ -2246,6 +2248,14 @@ export class MaintenanceTaskDialog extends LitElement {
           @input=${(e: Event) => (this._triggerTargetChanges = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
         <div class="field-help">${t("target_changes_help", L)}</div>
+        <ms-textfield
+          label="${t("for_at_least_minutes", L)}"
+          type="number"
+          min="0"
+          .value=${this._triggerForMinutes}
+          @input=${(e: Event) => (this._triggerForMinutes = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <div class="field-help">${t("for_minutes_state_help", L)}</div>
       `;
     }
     if (this._triggerType === "runtime") {

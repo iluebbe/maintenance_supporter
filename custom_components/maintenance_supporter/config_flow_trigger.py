@@ -681,6 +681,9 @@ class TriggerConfigMixin:
             if to_state:
                 tc[CONF_TRIGGER_TO_STATE] = to_state
             tc[CONF_TRIGGER_TARGET_CHANGES] = user_input.get(CONF_TRIGGER_TARGET_CHANGES, 1)
+            # #136: the new state must HOLD this long before a change counts
+            # (0 = count immediately — some sensors pulse only briefly).
+            tc[CONF_TRIGGER_FOR_MINUTES] = user_input.get(CONF_TRIGGER_FOR_MINUTES, 0)
             _apply_recovery_flag(tc, user_input)
             _apply_combinator(tc, user_input)
 
@@ -710,6 +713,9 @@ class TriggerConfigMixin:
                     step=1,
                     mode=selector.NumberSelectorMode.BOX,
                 )
+            ),
+            vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=1440, step=1, mode=selector.NumberSelectorMode.BOX)
             ),
             **_recovery_field(self._current_task.get("trigger_config")),
         }

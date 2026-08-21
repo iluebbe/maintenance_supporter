@@ -282,6 +282,7 @@
           "trigger_from_state": "Kaynak durum (isteğe bağlı)",
           "trigger_to_state": "Hedef durum (isteğe bağlı)",
           "trigger_target_changes": "Tetikleme için değişiklik sayısı",
+          "trigger_for_minutes": "En az (dakika)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "trigger_combinator": "Tetikleyici ve aralığı birleştir",
@@ -297,7 +298,8 @@
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
           "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
-          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün.",
+          "trigger_for_minutes": "Değişikliğin sayılması için yeni durumun bu süre boyunca sürmesi gerekir. 0 = hemen say."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Kaynak durum (isteğe bağlı)",
           "trigger_to_state": "Hedef durum (isteğe bağlı)",
           "trigger_target_changes": "Tetikleme için değişiklik sayısı",
+          "trigger_for_minutes": "En az (dakika)",
           "interval_days": "Güvenlik aralığı",
           "interval_unit": "Aralık birimi",
           "trigger_combinator": "Tetikleyici ve aralığı birleştir",
@@ -1090,7 +1093,8 @@
           "interval_days": "Durum değişikliği tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
           "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
-          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "trigger_for_minutes": "Değişikliğin sayılması için yeni durumun bu süre boyunca sürmesi gerekir. 0 = hemen say."
         }
       },
       "opt_trigger_runtime": {

@@ -62,3 +62,35 @@ describe("adopt-problem-sensors dialog: suggested part", () => {
     expect(byId["binary_sensor.pump_problem"].part_id).to.equal(undefined);
   });
 });
+
+describe("adopt-problem-sensors dialog: flicker filter (#136)", () => {
+  it("defaults to 0 and then omits for_minutes from the payload", async () => {
+    const { el, sent } = await mountOpen();
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>(".for-input")!;
+    expect(input, "the for-minutes field renders").to.exist;
+    expect(input.value).to.equal("0");
+    el.shadowRoot!.querySelectorAll<HTMLElement>("ha-button")[1].click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as {
+      selections: Array<{ for_minutes?: number }>;
+    };
+    expect(adopt.selections.every((s) => s.for_minutes === undefined)).to.equal(true);
+  });
+
+  it("forwards the entered minutes on every selection", async () => {
+    const { el, sent } = await mountOpen();
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>(".for-input")!;
+    input.value = "10";
+    input.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    el.shadowRoot!.querySelectorAll<HTMLElement>("ha-button")[1].click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as {
+      selections: Array<{ for_minutes?: number }>;
+    };
+    expect(adopt.selections.length).to.be.greaterThan(0);
+    expect(adopt.selections.every((s) => s.for_minutes === 10)).to.equal(true);
+  });
+});

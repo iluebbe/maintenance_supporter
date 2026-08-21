@@ -239,20 +239,28 @@ def pop_stashed_config(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | 
     return None
 
 
-def build_problem_task(entity_id: str, name: str) -> dict[str, Any]:
+def build_problem_task(entity_id: str, name: str, *, for_minutes: int = 0) -> dict[str, Any]:
     """The task payload for an adopted problem sensor: manual schedule (no
-    calendar), triggered while the problem is on, auto-completed on recovery."""
+    calendar), triggered while the problem is on, auto-completed on recovery.
+
+    ``for_minutes`` (#136) makes the problem state HOLD that long before the
+    task triggers — the opt-in flicker filter for sensors that report problems
+    for a few seconds at night. 0 keeps the trigger-on-first-flicker default.
+    """
     # A concise task title; the sensor's friendly name often already reads like
     # "Printer problem", so keep it as-is rather than double-prefixing.
+    trigger_config: dict[str, Any] = {
+        "type": "state_change",
+        "entity_ids": [entity_id],
+        "trigger_to_state": "on",
+        "trigger_target_changes": 1,
+        "auto_complete_on_recovery": True,
+    }
+    if for_minutes > 0:
+        trigger_config["trigger_for_minutes"] = for_minutes
     return {
         "name": name,
         "task_type": "inspection",
         "schedule": {"kind": "manual"},
-        "trigger_config": {
-            "type": "state_change",
-            "entity_ids": [entity_id],
-            "trigger_to_state": "on",
-            "trigger_target_changes": 1,
-            "auto_complete_on_recovery": True,
-        },
+        "trigger_config": trigger_config,
     }

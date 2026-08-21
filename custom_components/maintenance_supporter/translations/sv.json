@@ -282,6 +282,7 @@
           "trigger_from_state": "Från tillstånd (valfritt)",
           "trigger_to_state": "Till tillstånd (valfritt)",
           "trigger_target_changes": "Antal ändringar för utlösning",
+          "trigger_for_minutes": "Under minst (minuter)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "trigger_combinator": "Kombinera utlösare och intervall",
@@ -297,7 +298,8 @@
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
-          "go_back": "Återgå till val av utlösartyp utan att spara."
+          "go_back": "Återgå till val av utlösartyp utan att spara.",
+          "trigger_for_minutes": "Det nya tillståndet måste hålla i sig så här länge innan ändringen räknas. 0 = räkna direkt."
         }
       },
       "trigger_runtime": {
@@ -1076,6 +1078,7 @@
           "trigger_from_state": "Från tillstånd (valfritt)",
           "trigger_to_state": "Till tillstånd (valfritt)",
           "trigger_target_changes": "Antal ändringar för utlösning",
+          "trigger_for_minutes": "Under minst (minuter)",
           "interval_days": "Säkerhetsintervall",
           "interval_unit": "Intervallenhet",
           "trigger_combinator": "Kombinera utlösare och intervall",
@@ -1090,7 +1093,8 @@
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver utlösaren för tillståndsändring.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
-          "warning_days": "Antal dagar före förfallodagen då en varning visas."
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "trigger_for_minutes": "Det nya tillståndet måste hålla i sig så här länge innan ändringen räknas. 0 = räkna direkt."
         }
       },
       "opt_trigger_runtime": {

@@ -56,6 +56,9 @@ _RUNTIME_INJECTED_KEYS = frozenset(
         "trigger_accumulated_seconds",
         "trigger_on_since",
         "trigger_threshold_exceeded_since",
+        # #136 state-change hold window (pending transition anchor).
+        "trigger_state_pending_since",
+        "trigger_state_pending_state",
         # Compound trigger runtime state (per-condition triggered flags).
         # Written by compound.py at runtime; extracted out of the save path by
         # storage.py before the dict ever reaches the WS save validator.
