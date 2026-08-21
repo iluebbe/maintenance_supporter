@@ -2,6 +2,37 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.63.1] - 2026-08-21
+
+### 🐛 Fixed
+
+Four fixes surfaced by an intensive internal DRY/drift audit:
+
+- **Missed cycles painted green.** The calendar's past-review mode had no
+  mapping for `missed` history entries, so a maintenance cycle that was NOT
+  done in time showed with the green "ok" pill. It now shows as overdue,
+  and the history filter chips cover the repair-flow entry types too.
+- **Weblink documents on the Lovelace card** opened without the
+  `http(s)`-only guard the other four openers use — the last unguarded
+  `window.open` sink, now closed.
+- **Runtime-trigger restart hazard.** A persisted naive `on_since`
+  timestamp crashed the elapsed-time math after a restart; all three
+  event triggers now share one UTC-coercing timestamp parser.
+- **Options-flow task cap.** Adding tasks through the options flow
+  bypassed the per-object task limit the WebSocket API enforces.
+- Also: the QR SVG download used a pattern that silently fails in the
+  Companion app's WebView — routed through the shared download helper.
+
+### 🧰 Internal
+
+- DRY consolidation across battery-fleet helpers, trigger timers, locale
+  boot and document display names, plus six new drift tripwires — among
+  them schema/field-map parity for the task API (the voluptuous schemas
+  were never exercised by tests) and a single root for the 22-language
+  lists (a language added on one side can no longer ship half-translated).
+- Every docs GIF re-recorded (they predated the last three releases) and
+  the adopt-dialog screenshot now shows the #136 flicker filter.
+
 ## [2.63.0] - 2026-08-21
 
 ### ✨ Added
