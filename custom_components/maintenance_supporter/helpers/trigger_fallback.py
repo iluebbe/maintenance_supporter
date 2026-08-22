@@ -99,6 +99,11 @@ def evaluate_threshold(
     equals = trigger_config.get("trigger_equals")
     not_equals = trigger_config.get("trigger_not_equals")
 
+    # No entities at all = nothing can ever latch — "not triggered" is a safe
+    # verdict (and the boundary pin the mutation suite asserts).
+    if not entity_ids:
+        return FallbackResult(current_value=None, active=False)
+
     per_entity: list[bool] = []
     last_value: float | None = None
     for eid in entity_ids:
@@ -113,7 +118,13 @@ def evaluate_threshold(
 
     active: bool | None
     if for_minutes == 0:
-        active = aggregated
+        # Only assert a verdict when at least one entity produced a READING.
+        # base_trigger deliberately keeps the latch through unavailable blips
+        # ("unavailable carries no measurement"); this sweep used to overrule
+        # it — a 90 s sensor dropout inside the 5-min window flipped a latched
+        # task OK and back, firing state automations twice (bug audit
+        # 2026-08-22). Mirrors the guard the for_minutes>0 branch always had.
+        active = aggregated if last_value is not None else None
     elif not aggregated and last_value is not None:
         # Back in the normal range — safe to deactivate even with for_minutes.
         active = False
@@ -178,13 +189,23 @@ def evaluate_state_change(
             # Legacy flat storage
             cc = trigger_config.get("trigger_change_count")
         if cc is None:
+            # Never persisted = zero transitions. Contribute False instead of
+            # skipping: omitting the entity made "all" quantify over a subset,
+            # so one busy door could satisfy an all-of-two config while the
+            # other door had never moved (bug audit 2026-08-22 — mirrors
+            # evaluate_threshold/counter, which already append False).
+            if target_changes:
+                per_entity.append(False)
             continue
         count = float(cc)
         best_count = count if best_count is None else max(best_count, count)
         if target_changes:
             per_entity.append(count >= target_changes)
 
-    active = _aggregate(per_entity, entity_logic) if per_entity else None
+    # No entity has EVER persisted a count → the fallback has nothing to say
+    # (active=None keeps the event-driven state untouched). The False
+    # contributions above only matter once at least one real count exists.
+    active = _aggregate(per_entity, entity_logic) if per_entity and best_count is not None else None
     return FallbackResult(current_value=best_count, active=active)
 
 
@@ -203,6 +224,11 @@ def evaluate_runtime(
         es = trigger_state.get(eid, {})
         seconds = es.get("accumulated_seconds")
         if seconds is None:
+            # Never persisted = zero runtime. Contribute False so an "all"
+            # config cannot be satisfied by a subset (bug audit 2026-08-22;
+            # mirrors evaluate_threshold/counter/state_change).
+            if target_hours:
+                per_entity.append(False)
             continue
         total = float(seconds)
         on_since = es.get("on_since")
@@ -222,7 +248,9 @@ def evaluate_runtime(
         if target_hours:
             per_entity.append(hours >= target_hours)
 
-    active = _aggregate(per_entity, entity_logic) if per_entity else None
+    # Same rule as evaluate_state_change: without a single persisted value
+    # the fallback stays silent instead of asserting False.
+    active = _aggregate(per_entity, entity_logic) if per_entity and best_hours is not None else None
     return FallbackResult(
         current_value=round(best_hours, 2) if best_hours is not None else None,
         active=active,

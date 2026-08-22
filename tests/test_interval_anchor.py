@@ -726,3 +726,52 @@ def test_weibull_eta_zero_overflow_returns_none() -> None:
     result = analyzer._weibull_fit([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
     # Just assert no exception
     assert result is None or isinstance(result, tuple)
+
+
+class TestPlannedAnchorPostponeInteraction:
+    """Bug audit 2026-08-22: complete()/skip() anchored on next_due, which
+    returns the postpone override when one is set — a one-shot 19-day postpone
+    shifted the whole planned cadence by 19 days FOREVER. The anchor update
+    must use the drift-free grid date (_planned_grid_due)."""
+
+    def _task(self) -> MaintenanceTask:
+        return MaintenanceTask(
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-01-15",
+            interval_days=30,
+            interval_anchor="planned",
+            last_planned_due="2026-01-15",
+            due_override="2026-03-05",  # this cycle postponed by ~19 days
+        )
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_complete_keeps_planned_grid_despite_postpone(self, mock_dt: MagicMock) -> None:
+        mock_dt.now.return_value.date.return_value = date(2026, 3, 5)
+        task = self._task()
+        assert task.next_due == date(2026, 3, 5)  # the override rules THIS cycle
+
+        task.complete(completed_at=datetime(2026, 3, 5, 12, 0))
+        # Anchor = grid date (Jan 15 + 30), NOT the postponed date.
+        assert task.last_planned_due == "2026-02-14"
+        assert task.due_override is None  # consumed
+        # Next cycle continues the original cadence: Feb 14 + 30.
+        assert task.next_due == date(2026, 3, 16)
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_skip_keeps_planned_grid_despite_postpone(self, mock_dt: MagicMock) -> None:
+        mock_dt.now.return_value.date.return_value = date(2026, 3, 5)
+        task = self._task()
+        task.skip("busy")
+        assert task.last_planned_due == "2026-02-14"
+        assert task.due_override is None
+
+    def test_reset_clears_due_override(self) -> None:
+        """reset() forgot due_override (bug audit 2026-08-22): a postponed
+        task that was reset kept the override, so the reset visibly did
+        nothing to the due date."""
+        task = self._task()
+        task.reset(date(2026, 2, 1))
+        assert task.due_override is None
+        assert task.last_planned_due is None
+        assert task.last_performed == "2026-02-01"

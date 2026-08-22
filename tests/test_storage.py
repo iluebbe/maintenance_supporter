@@ -208,14 +208,16 @@ async def test_trigger_runtime_whole_dict(hass: HomeAssistant) -> None:
     assert "sensor.b" in runtime
 
 
-async def test_trigger_runtime_update_merges(hass: HomeAssistant) -> None:
-    """set_trigger_runtime merges into existing entity data."""
+async def test_trigger_runtime_update_replaces(hass: HomeAssistant) -> None:
+    """set_trigger_runtime REPLACES the entity's dict wholesale.
+
+    Every trigger type writes its complete key set per persist; the old merge
+    semantics kept keys from a previous life alive forever (e.g. a #136
+    pending window that was already consumed — bug audit 2026-08-22)."""
     store = MaintenanceStore(hass, "trig_3")
-    store.set_trigger_runtime("t1", "sensor.x", {"baseline_value": 10.0})
+    store.set_trigger_runtime("t1", "sensor.x", {"baseline_value": 10.0, "pending_since": "2026-08-01T00:00:00+00:00"})
     store.set_trigger_runtime("t1", "sensor.x", {"accumulated_seconds": 3600.0})
-    data = store.get_trigger_runtime("t1", "sensor.x")
-    assert data["baseline_value"] == 10.0
-    assert data["accumulated_seconds"] == 3600.0
+    assert store.get_trigger_runtime("t1", "sensor.x") == {"accumulated_seconds": 3600.0}
 
 
 async def test_clear_trigger_runtime(hass: HomeAssistant) -> None:

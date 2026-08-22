@@ -130,6 +130,23 @@ class ThresholdTrigger(BaseTrigger):
         @callback
         def _timer_fired(_now: datetime) -> None:
             """Handle timer completion."""
+            # Safety net (mirrors the state_change hold timer): only commit
+            # while the premise still HOLDS. _threshold_exceeded is cleared
+            # only by a numeric in-range reading, so a sensor that went
+            # unavailable right after crossing kept it True and the timer
+            # activated on a value nobody had observed for the whole window
+            # (bug audit 2026-08-22). Discard the window entirely — a bare
+            # return would leave the latch set and evaluate() would swallow
+            # every future exceeding reading; the next one re-arms fresh.
+            state = self.hass.states.get(self.entity_id)
+            live = self._get_numeric_value(state) if state is not None else None
+            if live is None or not self._value_exceeds_threshold(live):
+                self._threshold_exceeded = False
+                self._exceeded_since = None
+                self._exceeded_since_dt = None
+                if self.hass.is_running:
+                    self.hass.async_create_task(self._persist_exceeded_since())
+                return
             if self._threshold_exceeded:
                 _LOGGER.debug(
                     "Threshold for-timer fired: %s (%d min)",

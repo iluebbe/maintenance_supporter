@@ -429,7 +429,7 @@ export class MaintenanceSupporterCard extends LitElement {
                   <mwc-icon-button
                     class="hdr-add"
                     title="${t("add_task", L)}"
-                    @click=${() => openCreateTaskDialog()}
+                    @click=${() => openCreateTaskDialog("", this._objects)}
                   >
                     <ha-icon icon="mdi:playlist-plus"></ha-icon>
                   </mwc-icon-button>

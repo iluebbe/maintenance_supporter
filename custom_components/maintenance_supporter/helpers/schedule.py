@@ -54,18 +54,74 @@ _MAX_PLANNED_STEPS = 2000
 _MAX_OFFSET_DAYS = 15
 
 
+def _coerce_int(raw: object) -> int | None:
+    """Best-effort int from a persisted/imported value.
+
+    Ints pass, integral floats and numeric strings coerce, everything else
+    -> None. Imports and hand-edited payloads carried e.g. ``every: "30"`` or
+    ``nth: 2.0``, which raised TypeError on EVERY refresh — one bad field took
+    the whole object's sensors down (bug audit 2026-08-22). The read path must
+    degrade to "no value", never crash.
+    """
+    if isinstance(raw, bool):
+        return None
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, float):
+        return int(raw) if raw.is_integer() else None
+    if isinstance(raw, str):
+        try:
+            val = float(raw.strip())
+        except ValueError:
+            return None
+        return int(val) if val.is_integer() else None
+    return None
+
+
+def _sanitize_every(raw: object) -> int | None:
+    """Interval count >= 1, or None."""
+    val = _coerce_int(raw)
+    return val if val is not None and val >= 1 else None
+
+
+def _sanitize_nth(raw: object) -> int | None:
+    """nth 1..5, or -1 = last occurrence; anything else -> None."""
+    val = _coerce_int(raw)
+    if val is None:
+        return None
+    if val == -1 or 1 <= val <= 5:
+        return val
+    return None
+
+
+def _sanitize_weekday(raw: object) -> int | None:
+    """Weekday 0=Mon..6=Sun, or None."""
+    val = _coerce_int(raw)
+    return val if val is not None and 0 <= val <= 6 else None
+
+
+def _sanitize_weekdays(raw: object) -> tuple[int, ...]:
+    """A deduped, sorted tuple of valid weekdays (0..6); () on garbage."""
+    if not isinstance(raw, (list, tuple)):
+        return ()
+    seen = {wd for item in raw if (wd := _sanitize_weekday(item)) is not None}
+    return tuple(sorted(seen))
+
+
 def _sanitize_offset(raw: object) -> int:
-    if isinstance(raw, bool) or not isinstance(raw, int):
+    val = _coerce_int(raw)
+    if val is None:
         return 0
-    return max(-_MAX_OFFSET_DAYS, min(raw, _MAX_OFFSET_DAYS))
+    return max(-_MAX_OFFSET_DAYS, min(val, _MAX_OFFSET_DAYS))
 
 
 def _sanitize_day(raw: object) -> int | None:
     """day 1..31, or -1 = last day of the month; anything else -> None."""
-    if isinstance(raw, bool) or not isinstance(raw, int):
+    val = _coerce_int(raw)
+    if val is None:
         return None
-    if raw == -1 or 1 <= raw <= 31:
-        return raw
+    if val == -1 or 1 <= val <= 31:
+        return val
     return None
 
 
@@ -73,7 +129,7 @@ def _sanitize_months(raw: object) -> tuple[int, ...]:
     """A deduped, sorted tuple of valid month numbers (1..12); [] on garbage."""
     if not isinstance(raw, (list, tuple)):
         return ()
-    seen = {m for m in raw if isinstance(m, int) and not isinstance(m, bool) and 1 <= m <= 12}
+    seen = {m for item in raw if (m := _coerce_int(item)) is not None and 1 <= m <= 12}
     return tuple(sorted(seen))
 
 
@@ -81,8 +137,8 @@ def _parse_ends(raw: object) -> tuple[int | None, date | None]:
     """Read a finite-series ``ends`` block: (count>=1 or None, until-date or None)."""
     if not isinstance(raw, Mapping):
         return None, None
-    count = raw.get("count")
-    valid_count = count if isinstance(count, int) and not isinstance(count, bool) and count >= 1 else None
+    count = _coerce_int(raw.get("count"))
+    valid_count = count if count is not None and count >= 1 else None
     until_raw = raw.get("until")
     until = parse_iso_date(until_raw) if isinstance(until_raw, str) else None
     return valid_count, until
@@ -137,11 +193,14 @@ class Schedule:
         """
         if schedule_type == KIND_ONE_TIME:
             return cls(kind=KIND_ONE_TIME, due_date=parse_iso_date(due_date))
-        if not interval_days or interval_days <= 0:
+        # Coerce — an imported flat payload can carry interval_days as a
+        # string, and `"30" <= 0` raises TypeError on every refresh.
+        every = _sanitize_every(interval_days)
+        if every is None:
             return cls(kind=KIND_MANUAL)
         return cls(
             kind=KIND_INTERVAL,
-            every=interval_days,
+            every=every,
             unit=interval_unit or "days",
             anchor=interval_anchor or "completion",
         )
@@ -401,7 +460,7 @@ class Schedule:
         if kind == KIND_INTERVAL:
             return cls(
                 kind=KIND_INTERVAL,
-                every=d.get("every"),
+                every=_sanitize_every(d.get("every")),
                 unit=d.get("unit") or "days",
                 anchor=d.get("anchor") or "completion",
                 season_months=season,
@@ -411,7 +470,7 @@ class Schedule:
         if kind == KIND_WEEKDAYS:
             return cls(
                 kind=KIND_WEEKDAYS,
-                weekdays=tuple(d.get("weekdays") or ()),
+                weekdays=_sanitize_weekdays(d.get("weekdays")),
                 offset_days=_sanitize_offset(d.get("offset")),
                 season_months=season,
                 ends_count=ends_count,
@@ -420,9 +479,9 @@ class Schedule:
         if kind == KIND_NTH_WEEKDAY:
             return cls(
                 kind=KIND_NTH_WEEKDAY,
-                nth=d.get("nth"),
-                weekday=d.get("weekday"),
-                months=tuple(d.get("months") or ()),
+                nth=_sanitize_nth(d.get("nth")),
+                weekday=_sanitize_weekday(d.get("weekday")),
+                months=_sanitize_months(d.get("months")),
                 offset_days=_sanitize_offset(d.get("offset")),
                 season_months=season,
                 ends_count=ends_count,
@@ -432,7 +491,7 @@ class Schedule:
             return cls(
                 kind=KIND_DAY_OF_MONTH,
                 day=_sanitize_day(d.get("day")),
-                months=tuple(d.get("months") or ()),
+                months=_sanitize_months(d.get("months")),
                 business=d.get("business") is True,
                 offset_days=_sanitize_offset(d.get("offset")),
                 season_months=season,

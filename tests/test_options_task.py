@@ -3240,3 +3240,71 @@ def test_apply_recovery_flag_clears_on_unchecked() -> None:
     assert "auto_complete_on_recovery" not in tc
     _apply_recovery_flag(tc, {"auto_complete_on_recovery": True})
     assert tc["auto_complete_on_recovery"] is True
+
+
+# ─── _clear_stale_trigger_runtime (bug audit 2026-08-22) ─────────────────
+
+
+def _trigger_mixin_self(store: Any, task_id: str = "task_x") -> Any:
+    """A minimal stand-in exposing what _clear_stale_trigger_runtime reads."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    ce = MagicMock()
+    ce.runtime_data = SimpleNamespace(store=store)
+    return SimpleNamespace(config_entry=ce, _selected_task_id=task_id)
+
+
+def test_options_flow_trigger_edit_clears_stale_runtime() -> None:
+    """An options-flow trigger edit that changes type/entities/baseline must
+    drop the Store runtime like the WS update path does — the Store wins over
+    config on restore (#102), so the old counters silently survived the edit."""
+    from unittest.mock import MagicMock
+
+    from custom_components.maintenance_supporter.config_flow_options_task_trigger import (
+        TriggerStepsMixin,
+    )
+
+    store = MagicMock()
+    fake = _trigger_mixin_self(store)
+    TriggerStepsMixin._clear_stale_trigger_runtime(
+        fake,
+        {"type": "counter", "entity_id": "sensor.a", "trigger_baseline_value": 5},
+        {"type": "runtime", "entity_id": "sensor.a"},
+    )
+    store.clear_trigger_runtime.assert_called_once_with("task_x")
+    store.async_delay_save.assert_called_once()
+
+    # Entity change alone is fundamental too.
+    store.reset_mock()
+    TriggerStepsMixin._clear_stale_trigger_runtime(
+        fake,
+        {"type": "counter", "entity_ids": ["sensor.a"]},
+        {"type": "counter", "entity_ids": ["sensor.b"]},
+    )
+    store.clear_trigger_runtime.assert_called_once_with("task_x")
+
+    # Full removal (edit to no trigger) clears as well.
+    store.reset_mock()
+    TriggerStepsMixin._clear_stale_trigger_runtime(fake, {"type": "counter", "entity_id": "sensor.a"}, {})
+    store.clear_trigger_runtime.assert_called_once_with("task_x")
+
+
+def test_options_flow_trigger_edit_keeps_runtime_when_unchanged() -> None:
+    """Editing only thresholds/targets keeps accumulated state (same rule as
+    the WS path)."""
+    from unittest.mock import MagicMock
+
+    from custom_components.maintenance_supporter.config_flow_options_task_trigger import (
+        TriggerStepsMixin,
+    )
+
+    store = MagicMock()
+    fake = _trigger_mixin_self(store)
+    TriggerStepsMixin._clear_stale_trigger_runtime(
+        fake,
+        {"type": "runtime", "entity_id": "sensor.a", "trigger_runtime_hours": 100},
+        {"type": "runtime", "entity_id": "sensor.a", "trigger_runtime_hours": 200},
+    )
+    store.clear_trigger_runtime.assert_not_called()
+    store.async_delay_save.assert_not_called()

@@ -106,14 +106,20 @@ def test_threshold_multi_entity_logic() -> None:
     assert evaluate_threshold(states, cfg_all, ["sensor.a", "sensor.b"]).active is False
 
 
-def test_threshold_unavailable_entities_read_as_not_triggered() -> None:
+def test_threshold_unavailable_entities_leave_the_verdict_open() -> None:
+    """No readable value = no verdict (active=None), NOT "not triggered".
+
+    base_trigger keeps a latched trigger through unavailable blips; the
+    refresh sweep asserting False here overruled that latch, flipping a
+    task OK and back during a 90 s sensor dropout (bug audit 2026-08-22).
+    """
     r = evaluate_threshold(
         _states({"sensor.a": "unavailable"}),
         {"trigger_above": 50.0},
         ["sensor.a", "sensor.missing"],
     )
     assert r.current_value is None
-    assert r.active is False
+    assert r.active is None
 
 
 # ─── counter ─────────────────────────────────────────────────────────────

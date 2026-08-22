@@ -76,8 +76,11 @@ export class MaintenanceBudgetSectionCard extends LitElement {
     this._busy = true;
     this._error = "";
     try {
-      const m = parseFloat(this._localMonthly);
-      const y = parseFloat(this._localYearly);
+      // An emptied field means "remove this budget" and must SEND 0 (the
+      // backend's off-state) — omitting the key kept the old value, so a
+      // budget could never be cleared from this card (bug audit 2026-08-22).
+      const m = this._localMonthly.trim() === "" ? 0 : parseFloat(this._localMonthly);
+      const y = this._localYearly.trim() === "" ? 0 : parseFloat(this._localYearly);
       const settings: Record<string, number> = {};
       if (!isNaN(m) && m >= 0) settings.budget_monthly = m;
       if (!isNaN(y) && y >= 0) settings.budget_yearly = y;

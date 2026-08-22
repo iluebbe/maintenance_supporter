@@ -16,6 +16,8 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
+import { isoDateLocal } from "../helpers/calendar-bucket";
+import { partsForCompletion } from "../helpers/shared-parts";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -75,7 +77,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._showReset = false;
     this._showAdaptive = false;
     this._skipReason = "";
-    this._resetDate = new Date().toISOString().slice(0, 10);
+    // Local calendar date — toISOString() is UTC and prefills YESTERDAY for
+    // users east of UTC before their morning (bug audit 2026-08-22).
+    this._resetDate = isoDateLocal(new Date());
     this._open = true;
     await Promise.all([this._loadTask(), this._loadFeatures()]);
   }
@@ -146,14 +150,36 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   private _onComplete(): void {
     if (!this._entryId || !this._taskId || !this._task) return;
-    // Reuse the existing rich complete-dialog by mounting it on body
-    import("../dialog-mount").then(({ openCompleteDialog }) => {
+    // Reuse the existing rich complete-dialog by mounting it on body.
+    // Pass EVERYTHING the card's direct path passes — omitting
+    // required_completion_fields let a mandatory note be skipped, and a
+    // reading task without type+unit never rendered its value field
+    // (bug audit 2026-08-22).
+    import("../dialog-mount").then(async ({ openCompleteDialog }) => {
+      const task = this._task!;
+      const isBuy = !!(task as { part_ref?: string }).part_ref;
+      let parts: Parameters<typeof openCompleteDialog>[0]["parts"] = [];
+      if (!isBuy) {
+        try {
+          const r = await this.hass.connection.sendMessagePromise<{
+            objects: MaintenanceObjectResponse[];
+          }>({ type: "maintenance_supporter/objects", compact: true });
+          parts = partsForCompletion(task, this._entryId!, r.objects || [], this._lang);
+        } catch {
+          // Parts stay empty — the dialog still completes without them.
+        }
+      }
       const ok = openCompleteDialog({
         entry_id: this._entryId!,
         task_id: this._taskId!,
-        task_name: this._task!.name,
-        checklist: this._task!.checklist || [],
-        adaptive_enabled: !!this._task!.adaptive_config?.enabled,
+        task_name: task.name,
+        checklist: task.checklist || [],
+        adaptive_enabled: !!task.adaptive_config?.enabled,
+        required_completion_fields: task.required_completion_fields || [],
+        task_type: task.type || "",
+        reading_unit: (task as { reading_unit?: string }).reading_unit || "",
+        parts,
+        consumes_parts: isBuy ? [] : (task.consumes_parts || []),
       });
       if (ok) {
         this._notifyChanged("complete");

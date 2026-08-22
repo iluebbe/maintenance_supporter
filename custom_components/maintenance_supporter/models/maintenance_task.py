@@ -136,6 +136,30 @@ class MaintenanceTask:
             due_override=parse_iso_date(self.due_override),
         )
 
+    def _planned_grid_due(self) -> date | None:
+        """``next_due`` WITHOUT the postpone override — the drift-free grid.
+
+        The planned-anchor update in complete()/skip() must anchor on the
+        GRID date, not on ``next_due``: that property returns ``due_override``
+        when one is set, so anchoring on it made a one-shot postpone shift
+        the whole cadence permanently (bug audit 2026-08-22 — a 19-day
+        postpone moved every future occurrence by 19 days forever).
+        """
+        last: date | None = None
+        if self.last_performed:
+            try:
+                last = date.fromisoformat(self.last_performed)
+            except (ValueError, TypeError):
+                return None
+        return self._schedule().next_due(
+            last_performed=last,
+            created_at=parse_iso_date(self.created_at),
+            last_planned_due=parse_iso_date(self.last_planned_due),
+            today=dt_util.now().date(),
+            times_performed=self.times_performed,
+            due_override=None,
+        )
+
     def _schedule(self) -> Schedule:
         """The recurrence as a value object (see docs/design/schedule-model-v2.md).
 
@@ -352,9 +376,13 @@ class MaintenanceTask:
         is_latest = ts_iso >= max(anchors, default="")
 
         if is_latest:
-            # Save current next_due as anchor for planned mode before resetting
-            if self.interval_anchor == "planned" and self.next_due is not None:
-                self.last_planned_due = self.next_due.isoformat()
+            # Save the PLANNED grid date as the anchor before resetting — not
+            # next_due, which returns a postpone override and would shift the
+            # cadence permanently (see _planned_grid_due).
+            if self.interval_anchor == "planned":
+                grid = self._planned_grid_due()
+                if grid is not None:
+                    self.last_planned_due = grid.isoformat()
 
             self.last_performed = ts.date().isoformat()
             self._trigger_active = False
@@ -423,8 +451,14 @@ class MaintenanceTask:
         if reset_date is None:
             reset_date = dt_util.now().date()
         self.last_performed = reset_date.isoformat()
-        # Clear planned anchor so next_due is computed from the reset date
+        # Clear BOTH cycle modifiers so next_due is computed from the reset
+        # date. due_override was forgotten here (bug audit 2026-08-22): a
+        # postponed task that was reset kept the override, so the reset
+        # visibly did nothing to the due date. Mirrors skip() and
+        # helpers/pause.clear_cycle_modifiers ("both must go when a task is
+        # re-anchored").
         self.last_planned_due = None
+        self.due_override = None
 
         self.add_history_entry(
             entry_type=HistoryEntryType.RESET,
@@ -438,9 +472,13 @@ class MaintenanceTask:
         rather than a deliberate SKIPPED — clearer history + compliance views.
         The cycle restarts either way.
         """
-        # Save current next_due as anchor for planned mode before resetting
-        if self.interval_anchor == "planned" and self.next_due is not None:
-            self.last_planned_due = self.next_due.isoformat()
+        # Save the PLANNED grid date as the anchor before resetting — not
+        # next_due, which returns a postpone override (same cadence-shift bug
+        # as complete(); see _planned_grid_due).
+        if self.interval_anchor == "planned":
+            grid = self._planned_grid_due()
+            if grid is not None:
+                self.last_planned_due = grid.isoformat()
 
         # Move last_performed to today to restart the cycle
         self.last_performed = dt_util.now().date().isoformat()

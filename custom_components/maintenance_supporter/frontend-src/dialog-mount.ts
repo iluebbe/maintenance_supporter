@@ -167,7 +167,10 @@ export function openEditObjectDialog(
   return true;
 }
 
-export function openCreateTaskDialog(): boolean {
+export function openCreateTaskDialog(
+  entryId = "",
+  objects?: Array<{ entry_id: string; object: { name: string } }>,
+): boolean {
   const dlg = getOrCreate<MaintenanceTaskDialog>(TASK_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
   const hass = getHass();
@@ -179,13 +182,20 @@ export function openCreateTaskDialog(): boolean {
       scheduleTimeEnabled: boolean;
       completionActionsEnabled: boolean;
       defaultWarningDays: number;
-      openCreate: (entryId?: string) => void;
+      openCreate: (
+        entryId: string,
+        objects?: Array<{ entry_id: string; object: { name: string } }>,
+      ) => void;
     };
     dlgFull.checklistsEnabled = settings.features.checklists;
     dlgFull.scheduleTimeEnabled = settings.features.schedule_time;
     dlgFull.completionActionsEnabled = settings.features.completion_actions;
     dlgFull.defaultWarningDays = settings.defaultWarningDays;
-    dlgFull.openCreate();
+    // openCreate NEEDS a target: a bare call left _entryId undefined and
+    // _objectChoices empty — no object picker, and save failed on the
+    // backend's required entry_id (bug audit 2026-08-22). Callers pass the
+    // entry (quick-actions) or their object list (card header button).
+    dlgFull.openCreate(entryId, objects);
   })();
   return true;
 }
@@ -273,6 +283,12 @@ export function openCompleteDialog(args: {
   adaptive_enabled?: boolean;
   /** Details the task demands before it counts as done (v2.44). */
   required_completion_fields?: string[];
+  /** Reading tasks need type+unit or the value field never renders. */
+  task_type?: string;
+  reading_unit?: string;
+  /** #99/#111: per-completion parts selection incl. shared pools. */
+  parts?: MaintenanceCompleteDialog["parts"];
+  consumes_parts?: MaintenanceCompleteDialog["consumesParts"];
 }): boolean {
   const dlg = getOrCreate<MaintenanceCompleteDialog>(COMPLETE_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
@@ -282,6 +298,12 @@ export function openCompleteDialog(args: {
   dlg.checklist = args.checklist ?? [];
   dlg.adaptiveEnabled = !!args.adaptive_enabled;
   dlg.requiredFields = args.required_completion_fields ?? [];
+  // Always assign — the dialog is a singleton, so an omitted field must not
+  // leak the previous task's value.
+  dlg.taskType = args.task_type ?? "";
+  dlg.readingUnit = args.reading_unit ?? "";
+  dlg.parts = args.parts ?? [];
+  dlg.consumesParts = args.consumes_parts ?? [];
   dlg.lang = (getHass()?.language) || "en";
   dlg.open();
   return true;

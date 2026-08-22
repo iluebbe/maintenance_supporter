@@ -575,3 +575,66 @@ def test_next_due_planned_anchor_months_no_february_day_drift() -> None:
         today=date(2026, 3, 5),
     )
     assert result == date(2026, 3, 31), f"February clamp dragged the anchor day: {result}"
+
+
+# ─── read-path coercion (bug audit 2026-08-22) ───────────────────────────
+# Imports and hand-edited payloads carried e.g. every: "30" or nth: 2.0;
+# `"30" <= 0` / timedelta(days="30") raised TypeError on EVERY refresh, taking
+# the whole object's sensors down. The read path coerces integral strings and
+# floats and degrades garbage to "no value" instead of crashing.
+
+
+def test_from_dict_coerces_interval_every() -> None:
+    assert Schedule.from_dict({"kind": "interval", "every": "30"}).every == 30
+    assert Schedule.from_dict({"kind": "interval", "every": 30.0}).every == 30
+    # Non-integral / garbage / non-positive → no interval, but no crash.
+    assert Schedule.from_dict({"kind": "interval", "every": 2.5}).every is None
+    assert Schedule.from_dict({"kind": "interval", "every": "abc"}).every is None
+    assert Schedule.from_dict({"kind": "interval", "every": 0}).every is None
+    assert Schedule.from_dict({"kind": "interval", "every": True}).every is None
+
+
+def test_from_dict_coerces_nth_weekday_fields() -> None:
+    s = Schedule.from_dict({"kind": "nth_weekday", "nth": "2", "weekday": 5.0, "months": ["2", 3]})
+    assert s.nth == 2
+    assert s.weekday == 5
+    assert s.months == (2, 3)
+    # Out-of-range / fractional values are dropped, never crash next_due.
+    bad = Schedule.from_dict({"kind": "nth_weekday", "nth": 2.5, "weekday": "7"})
+    assert bad.nth is None
+    assert bad.weekday is None
+    assert bad.next_due(last_performed=None, created_at=TODAY, last_planned_due=None, today=TODAY) is None
+    # -1 = last occurrence stays valid.
+    assert Schedule.from_dict({"kind": "nth_weekday", "nth": -1, "weekday": 0}).nth == -1
+
+
+def test_from_dict_coerces_weekdays_and_day() -> None:
+    s = Schedule.from_dict({"kind": "weekdays", "weekdays": ["1", 3, 9, "x", 3]})
+    assert s.weekdays == (1, 3)
+    assert Schedule.from_dict({"kind": "day_of_month", "day": "15"}).day == 15
+    assert Schedule.from_dict({"kind": "day_of_month", "day": "0"}).day is None
+
+
+def test_from_dict_coerces_ends_count() -> None:
+    s = Schedule.from_dict({"kind": "interval", "every": 7, "ends": {"count": "5"}})
+    assert s.ends_count == 5
+
+
+def test_from_legacy_coerces_interval_days() -> None:
+    s = Schedule.from_legacy(
+        schedule_type="time_based",
+        interval_days="30",  # type: ignore[arg-type]
+        interval_unit=None,
+        interval_anchor=None,
+        due_date=None,
+    )
+    assert s.kind == KIND_INTERVAL
+    assert s.every == 30
+    garbage = Schedule.from_legacy(
+        schedule_type="time_based",
+        interval_days="abc",  # type: ignore[arg-type]
+        interval_unit=None,
+        interval_anchor=None,
+        due_date=None,
+    )
+    assert garbage.kind == KIND_MANUAL

@@ -57,13 +57,18 @@ from . import (
         # the per-part DELTA against the entry's previous used_parts; None (or
         # []) clears the consumption and returns the old quantities to stock.
         vol.Optional("used_parts"): vol.Any(
-            [
-                {
-                    vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                    vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0.01, max=999)),
-                    vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                }
-            ],
+            vol.All(
+                [
+                    {
+                        vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                        vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0.01, max=999)),
+                        vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                    }
+                ],
+                # Same cap as the live completion path (tasks_actions.py) —
+                # the edit path must not accept what completion refuses.
+                vol.Length(max=10),
+            ),
             None,
         ),
     }
@@ -94,16 +99,25 @@ async def ws_update_history_entry(
 
     # Validate new timestamp format up front so we don't half-mutate
     if "timestamp" in msg:
-        new_ts = msg["timestamp"]
-        try:
-            dt_util.parse_datetime(new_ts)
-            if dt_util.parse_datetime(new_ts) is None:
-                raise ValueError("not a datetime")
-        except (ValueError, TypeError):
+        parsed_ts = dt_util.parse_datetime(msg["timestamp"])
+        if parsed_ts is None:
             connection.send_error(
                 msg["id"],
                 "invalid_date",
                 "timestamp must be an ISO datetime string",
+            )
+            return
+        # Mirror the completed_at choke point (coordinator): a naive value
+        # means local time, and a FUTURE moment is refused — the anchor
+        # recompute below would otherwise push next_due into the future
+        # (bug audit 2026-08-22; the backfill path already rejected this).
+        if parsed_ts.tzinfo is None:
+            parsed_ts = parsed_ts.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+        if parsed_ts > dt_util.now():
+            connection.send_error(
+                msg["id"],
+                "invalid_date",
+                "timestamp cannot be in the future",
             )
             return
 
@@ -144,6 +158,11 @@ async def ws_update_history_entry(
         from . import _get_merged_tasks
 
         old_used = patched.get("used_parts") or []
+        # Deliberately NOT sanitize_consumes_parts here: an edited entry may
+        # reference a part that has since been deleted, and that link must
+        # stay RECORDED (stock math skips it) — dropping unknown ids would
+        # rewrite history. Field validation (ids, quantity range, list cap)
+        # is the schema's job above.
         new_used = msg["used_parts"] or []
         task_data = _get_merged_tasks(entry).get(task_id) or {}
         enriched = await async_apply_history_parts_edit(hass, entry, task_data, old_used, new_used)

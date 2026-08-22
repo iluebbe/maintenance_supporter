@@ -106,6 +106,13 @@ def test_seed_helper_edge_cases() -> None:
     seed_rotation_assignee(td)
     assert td["responsible_user_id"] == "a"
 
+    # Pool edited down to ONE member with a now-removed assignee: the stale
+    # assignee must still be corrected — the old len<2 early-return kept the
+    # task on the removed user forever (bug audit 2026-08-22).
+    td = {"assignee_pool": ["a"], "rotation_strategy": "round_robin", "responsible_user_id": "removed"}
+    seed_rotation_assignee(td)
+    assert td["responsible_user_id"] == "a"
+
 
 # ── WS create ───────────────────────────────────────────────────────────────
 

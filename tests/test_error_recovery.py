@@ -175,8 +175,15 @@ async def test_trigger_entity_unavailable(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
 ) -> None:
-    """Sensor state='unavailable' → trigger not activated."""
-    set_sensor_state(hass, "sensor.flaky", "0.5")
+    """Unavailable never ACTIVATES a trigger — and never deactivates a latch.
+
+    Updated 2026-08-22 (bug audit): the refresh fallback used to assert False
+    on an unavailable sensor, overruling the event-driven latch — a 90 s
+    dropout flipped a latched task OK and back, firing automations twice.
+    Unavailable now carries NO verdict: an inactive trigger stays inactive,
+    a latched one stays latched.
+    """
+    set_sensor_state(hass, "sensor.flaky", "2.0")  # above below=1.0 → not triggered
 
     task = build_task_data(
         schedule_type=ScheduleType.SENSOR_BASED,
@@ -212,8 +219,20 @@ async def test_trigger_entity_unavailable(
     await hass.async_block_till_done()
 
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    # Should not be triggered when entity is unavailable
+    # Unavailable must not ACTIVATE a trigger.
     assert task_data.get("_trigger_active") is not True
+
+    # And it must not DEACTIVATE a latched one either: trigger with a real
+    # reading, then drop to unavailable — the latch survives the sweep.
+    hass.states.async_set("sensor.flaky", "0.5")  # below 1.0 → triggered
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].get("_trigger_active") is True
+
+    hass.states.async_set("sensor.flaky", "unavailable")
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].get("_trigger_active") is True
 
 
 async def test_store_missing_on_reload(

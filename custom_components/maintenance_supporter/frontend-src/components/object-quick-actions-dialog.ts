@@ -71,7 +71,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
   private _onAddTask(): void {
     if (!this._entryId) return;
     import("../dialog-mount").then(({ openCreateTaskDialog }) => {
-      openCreateTaskDialog();
+      openCreateTaskDialog(this._entryId!);
       this.close();
     });
   }

@@ -151,6 +151,13 @@ function progressSpec(task: MaintenanceTask, unit: string, ctx: SparklineContext
     case "counter": {
       const target = tc.trigger_target_value;
       if (target == null || target <= 0) return null;
+      if (!tc.trigger_delta_mode) {
+        // Non-delta counters count from zero since the last reset — the raw
+        // value IS the progress. Subtracting a baseline here showed a fresh
+        // cycle as stuck at 0 (progress.ts branches the same way; bug audit
+        // 2026-08-22).
+        return { progress: Math.max(0, cur), target, unit, meter: null };
+      }
       const base = counterBaseline(task, rawStatsPoints(task, ctx));
       return { progress: Math.max(0, cur - (base?.value ?? cur)), target, unit, meter: cur };
     }
@@ -296,13 +303,17 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   let forceZero = false;
   if (triggerType === "counter" && tc.trigger_target_value != null && points.length) {
     // Progress domain: cumulative since the last service, never negative.
-    const base = counterBaseline(task, points);
-    if (base) {
-      if (base.ts != null) {
-        const kept = points.filter((p) => p.ts >= base.ts!);
-        if (kept.length >= 2) points = kept;
+    // Baseline subtraction is a DELTA-mode concept — a non-delta counter's
+    // raw value already is the cycle progress (bug audit 2026-08-22).
+    if (tc.trigger_delta_mode) {
+      const base = counterBaseline(task, points);
+      if (base) {
+        if (base.ts != null) {
+          const kept = points.filter((p) => p.ts >= base.ts!);
+          if (kept.length >= 2) points = kept;
+        }
+        points = points.map((p) => ({ ...p, val: Math.max(0, p.val - base.value) }));
       }
-      points = points.map((p) => ({ ...p, val: Math.max(0, p.val - base.value) }));
     }
     targetValue = tc.trigger_target_value;
     forceZero = true;

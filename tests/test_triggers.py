@@ -3876,3 +3876,148 @@ class TestStateChangeHold:
         await hass.async_block_till_done()
         assert trigger.change_count == 1 and trigger._triggered is True
         await trigger.async_teardown()
+
+
+class TestRuntimeStaleAnchorSettles:
+    """Bug audit 2026-08-22: a restored on_since anchor survived every path in
+    which the entity's first REAL state after (deferred) setup was OFF — the
+    5-min periodic persist then baked wall-clock time into runtime forever
+    (an idle pump "ran" 24 h/day)."""
+
+    def _config(self) -> dict:
+        return {
+            "entity_id": "switch.pump",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100,
+            "trigger_accumulated_seconds": 3600.0,
+            "trigger_on_since": (dt_util.utcnow() - timedelta(hours=2)).isoformat(),
+        }
+
+    async def test_unavailable_then_off_settles_restored_anchor(self, hass: HomeAssistant) -> None:
+        """unavailable at setup keeps the anchor (#131), but the first real
+        OFF must settle it: accumulate the gap once, then clear."""
+        set_sensor_state(hass, "switch.pump", "unavailable")
+        entity = _make_mock_entity(hass)
+        trigger = RuntimeTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+        assert trigger._on_since_dt is not None  # deferred, anchor kept
+
+        hass.states.async_set("switch.pump", "off")
+        await hass.async_block_till_done()
+        assert trigger._on_since_dt is None
+        assert trigger._on_since is None
+        # ~2h gap accumulated ON TOP of the restored hour — once, not forever.
+        assert trigger._accumulated_seconds > 3600.0
+        await trigger.async_teardown()
+
+    async def test_appearing_off_settles_restored_anchor(self, hass: HomeAssistant) -> None:
+        """Entity missing at setup, then APPEARS in an OFF state
+        (old_state=None path) — same settle rule."""
+        entity = _make_mock_entity(hass)
+        trigger = RuntimeTrigger(hass, entity, self._config())
+        await trigger.async_setup()  # entity missing → deferred
+        assert trigger._on_since_dt is not None
+
+        hass.states.async_set("switch.pump", "off")
+        await hass.async_block_till_done()
+        assert trigger._on_since_dt is None
+        assert trigger._accumulated_seconds > 3600.0
+        await trigger.async_teardown()
+
+    async def test_appearing_on_still_keeps_or_starts_tracking(self, hass: HomeAssistant) -> None:
+        """Control: appearing ON must not settle — the device is running."""
+        entity = _make_mock_entity(hass)
+        trigger = RuntimeTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+
+        hass.states.async_set("switch.pump", "on")
+        await hass.async_block_till_done()
+        assert trigger._on_since_dt is not None
+        assert trigger._accumulated_seconds == 3600.0  # nothing settled
+        await trigger.async_teardown()
+
+
+class TestThresholdForTimerRecheck:
+    """Bug audit 2026-08-22: the for-minutes timer committed on a value nobody
+    had observed for the whole window — _threshold_exceeded is only cleared by
+    a numeric in-range reading, so a sensor that went unavailable right after
+    crossing kept it latched and the timer activated blind. The timer now
+    re-checks the LIVE value (mirroring the state_change hold timer) and
+    discards the window when the premise no longer holds."""
+
+    def _config(self) -> dict:
+        return {
+            "entity_id": "sensor.filter_load",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+        }
+
+    def _advance(self, hass: HomeAssistant, minutes: float) -> None:
+        from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=minutes))
+
+    async def test_timer_discards_when_sensor_went_unavailable(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "sensor.filter_load", "40")
+        entity = _make_mock_entity(hass)
+        trigger = ThresholdTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+
+        hass.states.async_set("sensor.filter_load", "60")
+        await hass.async_block_till_done()
+        assert trigger._triggered is False  # window opened, not committed
+
+        hass.states.async_set("sensor.filter_load", "unavailable")
+        await hass.async_block_till_done()
+        self._advance(hass, 6)
+        await hass.async_block_till_done()
+        assert trigger._triggered is False
+        assert trigger._threshold_exceeded is False  # window discarded
+
+        # Recovery re-arms a FRESH window and commits after it holds.
+        hass.states.async_set("sensor.filter_load", "61")
+        await hass.async_block_till_done()
+        assert trigger._triggered is False
+        self._advance(hass, 6)
+        await hass.async_block_till_done()
+        assert trigger._triggered is True
+        await trigger.async_teardown()
+
+    async def test_timer_still_commits_when_value_holds(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "sensor.filter_load", "40")
+        entity = _make_mock_entity(hass)
+        trigger = ThresholdTrigger(hass, entity, self._config())
+        await trigger.async_setup()
+
+        hass.states.async_set("sensor.filter_load", "60")
+        await hass.async_block_till_done()
+        self._advance(hass, 6)
+        await hass.async_block_till_done()
+        assert trigger._triggered is True
+        await trigger.async_teardown()
+
+
+def test_inject_per_entity_state_ignores_stale_pending_keys() -> None:
+    """Stores written before set_trigger_runtime became a REPLACE can carry
+    None/empty pending keys forever — the injection is truthy-gated so those
+    never resurrect a phantom hold window (bug audit 2026-08-22)."""
+    from custom_components.maintenance_supporter.entity.triggers import (
+        _inject_per_entity_state,
+    )
+
+    cfg: dict = {"type": TriggerType.STATE_CHANGE}
+    _inject_per_entity_state(cfg, {"change_count": 2, "pending_since": None, "pending_state": ""})
+    assert cfg["trigger_change_count"] == 2
+    assert "trigger_state_pending_since" not in cfg
+    assert "trigger_state_pending_state" not in cfg
+
+    live: dict = {"type": TriggerType.STATE_CHANGE}
+    _inject_per_entity_state(
+        live,
+        {"change_count": 0, "pending_since": "2026-08-22T10:00:00+00:00", "pending_state": "on"},
+    )
+    assert live["trigger_state_pending_since"] == "2026-08-22T10:00:00+00:00"
+    assert live["trigger_state_pending_state"] == "on"

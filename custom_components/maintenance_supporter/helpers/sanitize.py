@@ -254,9 +254,17 @@ def seed_rotation_assignee(task_data: dict[str, Any]) -> None:
     (the pool was edited out from under the current assignee).
     """
     pool = [u for u in task_data.get("assignee_pool") or [] if u]
-    if len(pool) < 2 or not task_data.get("rotation_strategy"):
+    if not pool or not task_data.get("rotation_strategy"):
         return
-    if task_data.get("responsible_user_id") not in pool:
+    current = task_data.get("responsible_user_id")
+    # A pool of one is an inert rotation — never seed a MISSING assignee for
+    # it. But a STALE one must still be corrected: the old blanket
+    # `len(pool) < 2` early-return meant a pool edited down to one member
+    # never ran the not-in-pool check, so a removed assignee kept the task
+    # forever (bug audit 2026-08-22).
+    if len(pool) < 2 and not current:
+        return
+    if current not in pool:
         task_data["responsible_user_id"] = pool[0]
 
 

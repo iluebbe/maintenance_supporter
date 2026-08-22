@@ -16,6 +16,7 @@ import { t } from "./styles";
  * the raw key as-is so the user can still tell which input was rejected.
  */
 const FIELD_LABEL_KEYS: Record<string, string> = {
+  entry_id: "object",
   name: "name",
   task_type: "maintenance_type",
   schedule_type: "schedule_type",

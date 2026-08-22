@@ -645,6 +645,46 @@ the entity. Plan: run `_resume_pending_window` from the deferred-reconcile
 branch in `_handle_state_transition` too, with a test that restores an
 entity late.
 
+### 💡 Bug audit 2026-08-22 — deferred findings (documented, not fixed)
+A four-perspective code audit (time/scheduling, trigger engine, persistence,
+frontend) fixed ~25 defects in one tranche; these remain open by decision —
+each is either a product call, a documented limitation, or low-impact:
+
+- **Stock clamp is one-way** (`parts_runtime` `max(0, …)`): consuming below
+  zero clamps, so *undoing* that consumption via a history edit adds back a
+  quantity that was never subtracted — repeated edit cycles can inflate
+  stock. A clean fix needs signed ledger semantics instead of clamped
+  arithmetic (product call on how negative stock should display).
+- **Object rename keeps the config-entry `unique_id`**: renaming Boiler →
+  Heater and later creating a new "Boiler" hits `already_configured`; restores
+  of old exports can collide the same way. Fix = unique_id migration on
+  rename; needs a careful pass over restore/import matching.
+- **Vacation preview ignores season windows, series ends and postpones** —
+  the shifted-dates preview can show occurrences the engine will never
+  produce. Preview-only; the engine is correct.
+- **Completion-anchored month intervals degrade at month ends** (Jan 31 →
+  Feb 28 → Mar 28 forever). Documented limitation of completion anchoring;
+  planned anchoring (which multiplies from the original anchor) is the
+  supported answer and does not degrade.
+- **`auto_complete_on_recovery` on compound triggers** does nothing (the
+  compound's deactivation path doesn't dispatch the hook) — and compound
+  SUB-conditions fire per-condition events/TRIGGERED history that surfaces
+  treat like full triggers. Both need a design pass on what compound
+  activation/recovery should mean before wiring hooks.
+- **`is_latest` compares timestamps as strings**: two entries with different
+  UTC offsets can order wrongly in the latest-lifecycle check. Real payloads
+  are single-zone; revisit if mixed-offset data ever shows up.
+- **`times_performed` counts only the retained history window** (500
+  entries): an `ends.count` above the retention cap never terminates the
+  series. Cap-adjacent edge; document with the retention setting.
+- **Postpone resurrects a completed one-time task** (due_override outlives
+  the completion); **budget cache is not invalidated on entry unload** (only
+  staleness/month-rollover bounds it); **event payloads carry pre-clamp
+  values** in one spot; **complete-dialog duration** allows fractional input
+  it then truncates (`parseInt` on a `step=0.01` field); **compound
+  state-change conditions** accept `trigger_for_minutes` from the flow with
+  slightly different hold semantics than the standalone trigger. All LOW.
+
 ### 💡 Public integration contract — document services + events for third parties
 We already expose task services (`add_task`, `complete`, …) and fire lifecycle
 events, but there is no public, stable contract document for OTHER integration

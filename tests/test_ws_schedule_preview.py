@@ -112,25 +112,24 @@ async def test_manual_and_one_time(hass: HomeAssistant, global_config_entry: Moc
 
 
 @freeze_time("2026-07-19 12:00:00")
-async def test_broken_schedule_values_surface_invalid_input(
+@freeze_time("2026-07-19 12:00:00")
+async def test_broken_schedule_values_degrade_to_empty_preview(
     hass: HomeAssistant, global_config_entry: MockConfigEntry
 ) -> None:
-    """from_dict is lenient, but garbage VALUES that crash the engine at
-    compute time (a string nth) must surface as invalid_input, not a 500."""
+    """Garbage values never reach the engine any more (bug audit 2026-08-22):
+    from_dict coerces integral strings ("2" → 2) and DROPS the rest, so an
+    un-coercible nth yields an empty preview instead of a compute-time crash.
+    (Previously the crash was caught and surfaced as invalid_input; now the
+    same payload can't even crash — an imported task with such data keeps its
+    sensors alive too.)"""
     await setup_integration(hass, global_config_entry)
-    conn = make_ws_connection()
-    await call_ws_handler(
-        ws_schedule_preview,
-        hass,
-        conn,
-        {
-            "id": 1,
-            "type": "maintenance_supporter/schedule/preview",
-            "schedule": {"kind": "nth_weekday", "nth": "second", "weekday": 5},
-        },
-    )
-    assert conn.send_error.called
-    assert conn.send_error.call_args[0][1] == "invalid_input"
+    res = await _preview(hass, {"schedule": {"kind": "nth_weekday", "nth": "second", "weekday": 5}})
+    assert res["occurrences"] == []
+    assert res["series_ended"] is True
+
+    # Coercible strings work: "2" → the 2nd Saturday.
+    res = await _preview(hass, {"schedule": {"kind": "nth_weekday", "nth": "2", "weekday": 5}})
+    assert len(res["occurrences"]) > 0
 
 
 async def test_invalid_last_performed_rejected(

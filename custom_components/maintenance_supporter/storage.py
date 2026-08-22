@@ -308,8 +308,14 @@ class MaintenanceStore:
         """Set trigger runtime data for a specific entity."""
         state = self._ensure_task(task_id)
         runtime = state.setdefault("trigger_runtime", {})
-        entity_state = runtime.setdefault(entity_id, {})
-        entity_state.update(data)
+        # REPLACE, not merge: every trigger persists its COMPLETE per-entity
+        # dict in one write (each type owns its slot; compound conditions get
+        # _compound_<idx>-prefixed slots). The old .update() merge meant a key
+        # written once could never be REMOVED — a state-change hold window's
+        # pending_since survived its own clear on disk, and a restart during a
+        # fresh flicker then treated the stale anchor as an elapsed window,
+        # bypassing the #136 filter (bug audit 2026-08-22).
+        runtime[entity_id] = dict(data)
 
     def clear_trigger_runtime(self, task_id: str) -> None:
         """Clear all trigger runtime data for a task."""

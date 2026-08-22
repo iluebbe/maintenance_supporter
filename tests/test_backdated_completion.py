@@ -328,3 +328,48 @@ async def test_backfill_skips_on_complete_action(hass: HomeAssistant) -> None:
         assert conn2.send_error.call_count == 0
         await hass.async_block_till_done()
         assert mock_call.call_count == 0, "backfill must not dispatch on_complete_action"
+
+
+async def test_identical_backfill_double_submit_deduped(hass: HomeAssistant) -> None:
+    """Bug audit 2026-08-22: the double-tap guard deliberately bypasses
+    backdated completions — but the SAME backfill submitted twice (dialog
+    double-click) wrote two identical history entries. Identical (task,
+    completed_at) pairs inside the dedup window collapse to one."""
+    global_entry = _global(hass)
+    obj = _object(hass, last_performed="2026-06-01")
+    await setup_integration(hass, global_entry, obj)
+
+    past = (dt_util.now() - timedelta(days=3)).replace(microsecond=0)
+    await _ws_complete(hass, obj, completed_at=past.isoformat())
+    await _ws_complete(hass, obj, completed_at=past.isoformat())
+    await hass.async_block_till_done()
+
+    merged = obj.runtime_data.coordinator._get_merged_tasks_data()
+    completed = [h for h in merged[TASK_ID_1]["history"] if h["type"] == "completed"]
+    assert len(completed) == 1
+
+    # A DIFFERENT past moment right after is a distinct record and goes through.
+    other = (dt_util.now() - timedelta(days=5)).replace(microsecond=0)
+    await _ws_complete(hass, obj, completed_at=other.isoformat())
+    await hass.async_block_till_done()
+    merged = obj.runtime_data.coordinator._get_merged_tasks_data()
+    completed = [h for h in merged[TASK_ID_1]["history"] if h["type"] == "completed"]
+    assert len(completed) == 2
+
+
+async def test_auto_complete_does_not_stamp_manual_guard(hass: HomeAssistant) -> None:
+    """Bug audit 2026-08-22: an AUTO completion (trigger recovery) stamped the
+    household double-tap guard, so a real manual completion within the next
+    30 s was silently swallowed as a 'double tap'."""
+    global_entry = _global(hass)
+    obj = _object(hass, last_performed="2026-06-01")
+    await setup_integration(hass, global_entry, obj)
+
+    await obj.runtime_data.coordinator.complete_maintenance(task_id=TASK_ID_1, auto=True)
+    conn = await _ws_complete(hass, obj)
+    assert conn.send_error.call_count == 0
+    await hass.async_block_till_done()
+
+    merged = obj.runtime_data.coordinator._get_merged_tasks_data()
+    completed = [h for h in merged[TASK_ID_1]["history"] if h["type"] == "completed"]
+    assert len(completed) == 2

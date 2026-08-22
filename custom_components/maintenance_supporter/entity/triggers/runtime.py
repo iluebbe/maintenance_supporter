@@ -185,6 +185,17 @@ class RuntimeTrigger(BaseTrigger):
                 self._on_since_dt = now
                 self._on_since = now.isoformat()
                 self.hass.async_create_task(self._persist_runtime())
+            elif not self._is_on(new_val) and self._on_since_dt is not None:
+                # Restored anchor but the device APPEARS off (deferred setup
+                # kept the anchor, then the first real state is OFF). Without
+                # this, nothing ever cleared it and the 5-min periodic persist
+                # baked wall-clock time into runtime forever — an idle pump
+                # "ran" 24 h/day (bug audit 2026-08-22). Mirror the setup
+                # path: accumulate the ON-until-now gap once, then clear.
+                self._accumulate_elapsed()
+                self._on_since_dt = None
+                self._on_since = None
+                self.hass.async_create_task(self._persist_runtime())
             self._update_evaluation()
             return
 
@@ -239,6 +250,15 @@ class RuntimeTrigger(BaseTrigger):
                 "Runtime trigger: %s turned ON (tracking started)",
                 self.entity_id,
             )
+        elif not now_on and self._on_since_dt is not None:
+            # OFF with a lingering anchor (e.g. unavailable→off right after a
+            # deferred setup kept the restored anchor: was_on reads the
+            # unavailable old state as not-on, so neither branch above fired).
+            # Same stale-anchor hazard as the appearance path — settle it.
+            self._accumulate_elapsed()
+            self._on_since_dt = None
+            self._on_since = None
+            self.hass.async_create_task(self._persist_runtime())
 
         self._update_evaluation()
 

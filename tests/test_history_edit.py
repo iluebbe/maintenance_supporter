@@ -911,3 +911,66 @@ def test_patchable_fields_known_to_both_frontends() -> None:
             f"{ts_file.name} does not reference patchable history field(s) "
             f"{sorted(unknown)} — a save/edit from that surface would drop them."
         )
+
+
+async def test_future_timestamp_rejected(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Bug audit 2026-08-22: the edit path accepted a FUTURE timestamp while
+    the backfill path (coordinator completed_at choke point) refuses it — the
+    anchor recompute then pushed next_due into the future."""
+    h = _hist_entry(1)
+    obj_entry = _build_object_entry_with_history([h])
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    conn = make_ws_connection()
+    future_ts = (dt_util.now() + timedelta(days=3)).isoformat()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "timestamp": future_ts,
+        },
+    )
+    code, _ = assert_ws_error(conn)
+    assert code == "invalid_date"
+    store = _get_store(hass, obj_entry)
+    assert store.get_history(TASK_ID_1)[0]["timestamp"] == h["timestamp"]
+
+
+async def test_naive_future_timestamp_rejected_as_local(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """A naive value means LOCAL time (the datetime-local field) — a naive
+    tomorrow is just as much in the future."""
+    h = _hist_entry(1)
+    obj_entry = _build_object_entry_with_history([h])
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    conn = make_ws_connection()
+    naive_future = (dt_util.now() + timedelta(days=2)).replace(tzinfo=None).isoformat()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "timestamp": naive_future,
+        },
+    )
+    code, _ = assert_ws_error(conn)
+    assert code == "invalid_date"

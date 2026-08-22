@@ -119,3 +119,26 @@ describe("budget-section-card: spent-only display (#104)", () => {
     expect(numbersOf(tracks(el)[0])).to.equal("9 / 150 €");
   });
 });
+
+describe("maintenance-budget-section-card save (bug audit 2026-08-22)", () => {
+  it("sends 0 for an emptied field so a budget can be CLEARED", async () => {
+    const { el, sent } = await mount({ monthly_budget: 100, yearly_budget: 500 });
+    const priv = el as unknown as {
+      _localMonthly: string;
+      _localYearly: string;
+      _save: () => Promise<void>;
+    };
+    // User empties the monthly field and keeps a yearly value.
+    priv._localMonthly = "   ";
+    priv._localYearly = "250";
+    await priv._save();
+    const update = sent.find((m) => m.type === "maintenance_supporter/global/update") as
+      | { settings?: Record<string, number> }
+      | undefined;
+    expect(update, "global/update sent").to.exist;
+    // Empty = clear = the backend's 0 off-state; omitting the key kept the
+    // old budget forever.
+    expect(update!.settings!.budget_monthly).to.equal(0);
+    expect(update!.settings!.budget_yearly).to.equal(250);
+  });
+});

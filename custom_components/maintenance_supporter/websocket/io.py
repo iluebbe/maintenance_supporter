@@ -823,6 +823,14 @@ async def ws_import_json(
                     for pid, stock_val in part_stocks.items():
                         store_new.set_part_stock(pid, stock_val)
                     await store_new.async_save()
+                    # Restored stocks can sit below min_stock — reconcile buy
+                    # tasks like every other stock mutation does, or the
+                    # shopping list stays silent until the next unrelated
+                    # stock change (bug audit 2026-08-22).
+                    from ..parts_runtime import schedule_buy_task_reconcile
+
+                    if new_entry is not None:
+                        schedule_buy_task_reconcile(hass, new_entry)
 
             # (roadmap P6) recreate document metadata + web-links for the object
             # (blobs travel via the /config backup; a JSON-only import leaves

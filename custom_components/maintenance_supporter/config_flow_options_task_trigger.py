@@ -184,6 +184,26 @@ class TriggerStepsMixin(TriggerConfigMixin):
         self._on_cancel = self._show_task_action_menu
         return await self.async_step_opt_sensor_select()
 
+    def _clear_stale_trigger_runtime(self, old_tc: dict[str, Any], new_tc: dict[str, Any]) -> None:
+        """Drop persisted trigger runtime when the trigger fundamentally changed.
+
+        Mirrors the WS update path (websocket/tasks_crud.py): the Store
+        runtime wins over config on restore (#102), so an options-flow edit
+        that changes type/entities/baseline must clear it or the old
+        counters/anchors silently survive the edit (bug audit 2026-08-22).
+        """
+        if (
+            old_tc.get("type") != new_tc.get("type")
+            or old_tc.get("entity_id") != new_tc.get("entity_id")
+            or old_tc.get("entity_ids") != new_tc.get("entity_ids")
+            or old_tc.get("trigger_baseline_value") != new_tc.get("trigger_baseline_value")
+        ):
+            rd = getattr(self.config_entry, "runtime_data", None)
+            store = getattr(rd, "store", None) if rd else None
+            if store is not None:
+                store.clear_trigger_runtime(self._selected_task_id or "")
+                store.async_delay_save()
+
     def _save_edited_trigger(self) -> ConfigFlowResult:
         """Save edited trigger configuration to an existing task."""
         new_data = dict(self.config_entry.data)
@@ -191,6 +211,10 @@ class TriggerStepsMixin(TriggerConfigMixin):
         updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
 
         if "trigger_config" in self._current_task:
+            self._clear_stale_trigger_runtime(
+                updated_task.get("trigger_config") or {},
+                self._current_task["trigger_config"] or {},
+            )
             updated_task["trigger_config"] = self._current_task["trigger_config"]
         if CONF_TASK_SCHEDULE_TYPE in self._current_task:
             updated_task["schedule_type"] = self._current_task[CONF_TASK_SCHEDULE_TYPE]
@@ -231,17 +255,20 @@ class TriggerStepsMixin(TriggerConfigMixin):
                 new_tasks = dict(new_data.get(CONF_TASKS, {}))
                 updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
 
+                old_tc = updated_task.get("trigger_config") or {}
                 if remaining:
                     # Partial removal — keep trigger with remaining entities
                     updated_tc = dict(updated_task.get("trigger_config", {}))
                     updated_tc["entity_ids"] = remaining
                     updated_tc.pop("entity_id", None)
                     updated_task["trigger_config"] = updated_tc
+                    self._clear_stale_trigger_runtime(old_tc, updated_tc)
                 else:
                     # Full removal — remove entire trigger config
                     updated_task.pop("trigger_config", None)
                     if updated_task.get("schedule_type") == ScheduleType.SENSOR_BASED:
                         updated_task["schedule_type"] = ScheduleType.TIME_BASED
+                    self._clear_stale_trigger_runtime(old_tc, {})
 
                 new_tasks[self._selected_task_id or ""] = updated_task
                 new_data[CONF_TASKS] = new_tasks

@@ -345,6 +345,15 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 entity=self,
                 trigger_config=trigger_config,
             )
+            # Pre-seed the aggregation map with False for EVERY entity — the
+            # same H1 fix compound.py already carries: the map used to start
+            # empty and fill only on a trigger's first TRANSITION, so with
+            # entity_logic "all" the very first entity to trigger made
+            # all({one: True}) pass and falsely activated the task while the
+            # sibling sensors were still fine (bug audit 2026-08-22). Setup
+            # below overwrites entries for entities that restore triggered.
+            if len(self._triggers) > 1:
+                self._trigger_states = {t.entity_id: False for t in self._triggers}
             for trigger in self._triggers:
                 await trigger.async_setup()
             _LOGGER.debug(

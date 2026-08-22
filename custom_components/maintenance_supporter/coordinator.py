@@ -106,6 +106,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recently_completed: dict[str, float] = {}  # task_id -> monotonic timestamp
         # Manual completions only — the double-tap dedup window (journey M1).
         self._recent_manual_completions: dict[str, float] = {}
+        # Backdated completions (explicit completed_at) get their OWN dedup,
+        # keyed by (task_id, timestamp): a double-submitted backfill wrote two
+        # identical history entries and consumed parts/budget twice (bug audit
+        # 2026-08-22). Distinct timestamps stay unguarded on purpose — a user
+        # backfilling several past days in a row is legitimate.
+        self._recent_backfills: dict[tuple[str, str], float] = {}
 
         # Trigger entity availability tracking
         self._startup_time: float = time.monotonic()
@@ -806,7 +812,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Use cached budget totals (recalculate if stale or missing)
         cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get(BUDGET_CACHE_KEY)
-        if cache is None or (dt_util.now() - cache["last_updated"]).total_seconds() > 3600:
+        # Stale when old — OR when the local month/year rolled over since the
+        # compute: the cached buckets are tied to the month they were computed
+        # in, and a purely age-based rule fired a false "budget nearly
+        # exhausted" alert for the NEW month during the first cached hour of
+        # the 1st (bug audit 2026-08-22).
+        now_local = dt_util.now()
+        if (
+            cache is None
+            or (now_local - cache["last_updated"]).total_seconds() > 3600
+            or cache["last_updated"].month != now_local.month
+            or cache["last_updated"].year != now_local.year
+        ):
             self._recalculate_budget_cache()
             cache = self.hass.data[DOMAIN][BUDGET_CACHE_KEY]
 
@@ -994,7 +1011,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # — it neither checks nor stamps the guard (a stamped guard would
         # swallow a normal completion made right after backfilling, and a
         # normal completion's stamp must not swallow the backfill).
-        if completed_at is None:
+        if completed_at is None and not auto:
             last_manual = self._recent_manual_completions.get(task_id)
             if last_manual is not None and time.monotonic() - last_manual < MANUAL_COMPLETION_DEDUP_SECONDS:
                 _LOGGER.info(
@@ -1008,6 +1025,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # the same tick both pass the check and interleave → double rotation /
             # part-consume / history entry.
             self._recent_manual_completions[task_id] = time.monotonic()
+
+        if completed_at is not None:
+            backfill_key = (task_id, completed_at.isoformat())
+            last_backfill = self._recent_backfills.get(backfill_key)
+            if last_backfill is not None and time.monotonic() - last_backfill < MANUAL_COMPLETION_DEDUP_SECONDS:
+                _LOGGER.info(
+                    "Ignoring duplicate backdated completion of %s @ %s (double submit)",
+                    task_id,
+                    completed_at.isoformat(),
+                )
+                return
+            self._recent_backfills[backfill_key] = time.monotonic()
 
         task = MaintenanceTask.from_dict(merged[task_id])
         pre_rotation_responsible = task.responsible_user_id
@@ -1192,15 +1221,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for entry in reversed(history):
             if entry.get("type") != "completed":
                 continue
-            try:
-                last_ts = dt_util.parse_datetime(entry.get("timestamp", ""))
-            except (ValueError, TypeError):
-                last_ts = None
-            if last_ts is not None and (dt_util.now() - last_ts).total_seconds() < 120:
+            # parse_persisted_utc, NOT dt_util.parse_datetime: history can
+            # hold NAIVE timestamps (the history-edit dialog sends
+            # datetime-local without an offset), and `aware - naive` raised
+            # TypeError OUTSIDE the old try — the recovery coroutine died and
+            # the auto-completion was silently never recorded (bug audit
+            # 2026-08-22). The UTC assumption is harmless for a 120 s guard.
+            from .helpers.dates import parse_persisted_utc
+
+            last_ts = parse_persisted_utc(entry.get("timestamp", ""))
+            if last_ts is not None and (dt_util.utcnow() - last_ts).total_seconds() < 120:
                 _LOGGER.debug(
                     "Skipping auto-complete for %s: completed %.0fs ago",
                     task_id,
-                    (dt_util.now() - last_ts).total_seconds(),
+                    (dt_util.utcnow() - last_ts).total_seconds(),
                 )
                 return
             break
