@@ -56,6 +56,12 @@ def _reports_about_us(caplog: pytest.LogCaptureFixture) -> list[str]:
         record.getMessage()
         for record in caplog.records
         if record.levelno >= logging.WARNING
+        # asyncio's slow-callback warning ("Executing <Task ...> took 0.1
+        # seconds") quotes the running coroutine and its file path — on a slow
+        # CI runner that meant THIS test's own name ("...no_deprecated_usage"
+        # matched "deprecated") and the repo path (matched the domain), a
+        # perfect false positive (flaked on dependabot PR #137's runner).
+        and record.name != "asyncio"
         and DOMAIN in record.getMessage()
         and _REPORT.search(record.getMessage())
     ]
