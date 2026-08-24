@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Standard-Benutzerfilter",
   "cal_editor_my_tasks": "Meine Aufgaben (aktueller Benutzer)",
   "cal_editor_show_object_filter": "Objektfilter-Dropdown anzeigen",
-  "cal_editor_object_hint": "Ein Objekt per YAML vorauswählen: object_filter: \"<Objektname>\" — oder eine Namensliste, um die Karte auf mehrere Objekte zu beschränken."
+  "cal_editor_object_hint": "Ein Objekt per YAML vorauswählen: object_filter: \"<Objektname>\" — oder eine Namensliste, um die Karte auf mehrere Objekte zu beschränken.",
+  "object_history_section": "Verlauf (alle Aufgaben)",
+  "object_history_all_tasks": "Alle Aufgaben",
+  "object_history_empty": "Keine Einträge in diesem Zeitraum.",
+  "object_history_cap_note": "Der Verlauf umfasst bis zu 500 Einträge pro Aufgabe — sehr alte Einträge können fehlen.",
+  "service_record_title": "Serviceheft",
+  "service_record_print": "Serviceheft (PDF)",
+  "date": "Datum",
+  "service_record_entries": "Einträge",
+  "completed_by": "Erledigt von",
+  "date_from": "Von",
+  "date_to": "Bis"
 }

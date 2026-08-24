@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Domyślny filtr użytkownika",
   "cal_editor_my_tasks": "Moje zadania (bieżący użytkownik)",
   "cal_editor_show_object_filter": "Pokaż filtr obiektu",
-  "cal_editor_object_hint": "Wybierz obiekt w YAML: object_filter: \"<nazwa>\" — lub listę nazw, aby ograniczyć kartę do kilku obiektów."
+  "cal_editor_object_hint": "Wybierz obiekt w YAML: object_filter: \"<nazwa>\" — lub listę nazw, aby ograniczyć kartę do kilku obiektów.",
+  "object_history_section": "Historia (wszystkie zadania)",
+  "object_history_all_tasks": "Wszystkie zadania",
+  "object_history_empty": "Brak wpisów w tym okresie.",
+  "object_history_cap_note": "Historia przechowuje do 500 wpisów na zadanie — bardzo stare wpisy mogą brakować.",
+  "service_record_title": "Książka serwisowa",
+  "service_record_print": "Książka serwisowa (PDF)",
+  "date": "Data",
+  "service_record_entries": "wpisów",
+  "completed_by": "Wykonane przez",
+  "date_from": "Od",
+  "date_to": "Do"
 }

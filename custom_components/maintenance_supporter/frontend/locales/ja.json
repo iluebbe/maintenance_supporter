@@ -878,5 +878,16 @@
   "cal_editor_default_user": "既定のユーザーフィルター",
   "cal_editor_my_tasks": "自分のタスク（現在のユーザー）",
   "cal_editor_show_object_filter": "オブジェクトフィルターを表示",
-  "cal_editor_object_hint": "YAML でオブジェクトを事前選択：object_filter: \"<名前>\" — 複数指定はカードを複数オブジェクトに限定します。"
+  "cal_editor_object_hint": "YAML でオブジェクトを事前選択：object_filter: \"<名前>\" — 複数指定はカードを複数オブジェクトに限定します。",
+  "object_history_section": "履歴（全タスク）",
+  "object_history_all_tasks": "すべてのタスク",
+  "object_history_empty": "この期間の記録はありません。",
+  "object_history_cap_note": "履歴はタスクごとに最大500件まで保持されます。非常に古い記録は含まれない場合があります。",
+  "service_record_title": "整備記録",
+  "service_record_print": "整備記録（PDF）",
+  "date": "日付",
+  "service_record_entries": "件",
+  "completed_by": "実施者",
+  "date_from": "開始",
+  "date_to": "終了"
 }

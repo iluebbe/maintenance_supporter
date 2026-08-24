@@ -265,6 +265,7 @@ _NEUTRAL_VALUES = {"ok", "id", "url", "qr", "pdf", "csv", "svg", "json", "nfc", 
 # languages ("*"). Adding a key here is a REVIEWED decision, not a shortcut:
 # a new failure means translate the value or consciously allowlist it.
 _VALUE_OK: dict[str, frozenset[str] | str] = {
+    "date": frozenset({"fr"}),  # "Date" is the French word too
     "actions": frozenset({"fr"}),
     "qr_print_actions": frozenset({"fr"}),
     "area": frozenset({"it"}),

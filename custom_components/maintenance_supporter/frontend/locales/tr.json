@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Varsayılan kullanıcı filtresi",
   "cal_editor_my_tasks": "Görevlerim (geçerli kullanıcı)",
   "cal_editor_show_object_filter": "Nesne filtresini göster",
-  "cal_editor_object_hint": "YAML ile bir nesne önceden seçin: object_filter: \"<ad>\" — veya kartı birden çok nesneyle sınırlamak için ad listesi."
+  "cal_editor_object_hint": "YAML ile bir nesne önceden seçin: object_filter: \"<ad>\" — veya kartı birden çok nesneyle sınırlamak için ad listesi.",
+  "object_history_section": "Geçmiş (tüm görevler)",
+  "object_history_all_tasks": "Tüm görevler",
+  "object_history_empty": "Bu aralıkta kayıt yok.",
+  "object_history_cap_note": "Geçmiş, görev başına en fazla 500 kayıt tutar — çok eski kayıtlar eksik olabilir.",
+  "service_record_title": "Servis kaydı",
+  "service_record_print": "Servis kaydı (PDF)",
+  "date": "Tarih",
+  "service_record_entries": "kayıt",
+  "completed_by": "Tamamlayan",
+  "date_from": "Başlangıç",
+  "date_to": "Bitiş"
 }

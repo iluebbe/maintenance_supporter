@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Oletuskäyttäjäsuodatin",
   "cal_editor_my_tasks": "Omat tehtävät (nykyinen käyttäjä)",
   "cal_editor_show_object_filter": "Näytä kohdesuodatin",
-  "cal_editor_object_hint": "Esivalitse kohde YAML:lla: object_filter: \"<nimi>\" — tai nimilista rajataksesi kortin useisiin kohteisiin."
+  "cal_editor_object_hint": "Esivalitse kohde YAML:lla: object_filter: \"<nimi>\" — tai nimilista rajataksesi kortin useisiin kohteisiin.",
+  "object_history_section": "Historia (kaikki tehtävät)",
+  "object_history_all_tasks": "Kaikki tehtävät",
+  "object_history_empty": "Ei merkintöjä tällä aikavälillä.",
+  "object_history_cap_note": "Historia säilyttää enintään 500 merkintää tehtävää kohden — hyvin vanhat merkinnät voivat puuttua.",
+  "service_record_title": "Huoltokirja",
+  "service_record_print": "Huoltokirja (PDF)",
+  "date": "Päivämäärä",
+  "service_record_entries": "merkintää",
+  "completed_by": "Suorittanut",
+  "date_from": "Alkaen",
+  "date_to": "Asti"
 }

@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Standaard gebruikersfilter",
   "cal_editor_my_tasks": "Mijn taken (huidige gebruiker)",
   "cal_editor_show_object_filter": "Objectfilter tonen",
-  "cal_editor_object_hint": "Selecteer een object vooraf via YAML: object_filter: \"<naam>\" — of een lijst met namen om de kaart tot meerdere objecten te beperken."
+  "cal_editor_object_hint": "Selecteer een object vooraf via YAML: object_filter: \"<naam>\" — of een lijst met namen om de kaart tot meerdere objecten te beperken.",
+  "object_history_section": "Geschiedenis (alle taken)",
+  "object_history_all_tasks": "Alle taken",
+  "object_history_empty": "Geen items in deze periode.",
+  "object_history_cap_note": "De geschiedenis bewaart maximaal 500 items per taak — zeer oude items kunnen ontbreken.",
+  "service_record_title": "Onderhoudsboekje",
+  "service_record_print": "Onderhoudsboekje (PDF)",
+  "date": "Datum",
+  "service_record_entries": "items",
+  "completed_by": "Voltooid door",
+  "date_from": "Van",
+  "date_to": "Tot"
 }

@@ -44,6 +44,7 @@ import { UserService } from "./user-service";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
 import "./components/documents-section";
 import "./components/parts-section";
+import "./components/object-history-section";
 import "./components/task-documents";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
@@ -3342,6 +3343,16 @@ export class MaintenanceSupporterPanel extends LitElement {
           .currencySymbol=${this._currencySymbol}
           @parts-changed=${() => this._loadData()}
         ></maintenance-parts-section>
+
+        <maintenance-object-history-section
+          .hass=${this.hass}
+          .entryId=${obj.entry_id}
+          .object=${o}
+          .tasks=${obj.tasks}
+          .currencySymbol=${this._currencySymbol}
+          .userName=${(id: string) => this._userService?.getUserName(id) ?? null}
+          @open-task=${(e: CustomEvent<{ taskId: string }>) => this._showTask(obj.entry_id, e.detail.taskId)}
+        ></maintenance-object-history-section>
       </div>
     `;
   }

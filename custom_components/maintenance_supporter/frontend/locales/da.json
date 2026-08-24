@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Standard brugerfilter",
   "cal_editor_my_tasks": "Mine opgaver (aktuel bruger)",
   "cal_editor_show_object_filter": "Vis objektfilter",
-  "cal_editor_object_hint": "Forvælg et objekt via YAML: object_filter: \"<navn>\" — eller en liste af navne for at begrænse kortet til flere objekter."
+  "cal_editor_object_hint": "Forvælg et objekt via YAML: object_filter: \"<navn>\" — eller en liste af navne for at begrænse kortet til flere objekter.",
+  "object_history_section": "Historik (alle opgaver)",
+  "object_history_all_tasks": "Alle opgaver",
+  "object_history_empty": "Ingen poster i denne periode.",
+  "object_history_cap_note": "Historikken gemmer op til 500 poster pr. opgave — meget gamle poster kan mangle.",
+  "service_record_title": "Servicebog",
+  "service_record_print": "Servicebog (PDF)",
+  "date": "Dato",
+  "service_record_entries": "poster",
+  "completed_by": "Udført af",
+  "date_from": "Fra",
+  "date_to": "Til"
 }

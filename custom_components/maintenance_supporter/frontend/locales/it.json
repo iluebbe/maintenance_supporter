@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Filtro utente predefinito",
   "cal_editor_my_tasks": "Le mie attività (utente attuale)",
   "cal_editor_show_object_filter": "Mostra il filtro oggetto",
-  "cal_editor_object_hint": "Preseleziona un oggetto via YAML: object_filter: \"<nome>\" — o un elenco di nomi per limitare la scheda a più oggetti."
+  "cal_editor_object_hint": "Preseleziona un oggetto via YAML: object_filter: \"<nome>\" — o un elenco di nomi per limitare la scheda a più oggetti.",
+  "object_history_section": "Cronologia (tutte le attività)",
+  "object_history_all_tasks": "Tutte le attività",
+  "object_history_empty": "Nessuna voce in questo periodo.",
+  "object_history_cap_note": "La cronologia conserva fino a 500 voci per attività — le voci molto vecchie potrebbero mancare.",
+  "service_record_title": "Libretto di manutenzione",
+  "service_record_print": "Libretto di manutenzione (PDF)",
+  "date": "Data",
+  "service_record_entries": "voci",
+  "completed_by": "Completato da",
+  "date_from": "Dal",
+  "date_to": "Al"
 }

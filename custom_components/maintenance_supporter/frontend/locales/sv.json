@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Standardanvändarfilter",
   "cal_editor_my_tasks": "Mina uppgifter (aktuell användare)",
   "cal_editor_show_object_filter": "Visa objektfilter",
-  "cal_editor_object_hint": "Förvälj ett objekt via YAML: object_filter: \"<namn>\" — eller en lista med namn för att begränsa kortet till flera objekt."
+  "cal_editor_object_hint": "Förvälj ett objekt via YAML: object_filter: \"<namn>\" — eller en lista med namn för att begränsa kortet till flera objekt.",
+  "object_history_section": "Historik (alla uppgifter)",
+  "object_history_all_tasks": "Alla uppgifter",
+  "object_history_empty": "Inga poster under denna period.",
+  "object_history_cap_note": "Historiken sparar upp till 500 poster per uppgift — mycket gamla poster kan saknas.",
+  "service_record_title": "Servicebok",
+  "service_record_print": "Servicebok (PDF)",
+  "date": "Datum",
+  "service_record_entries": "poster",
+  "completed_by": "Utförd av",
+  "date_from": "Från",
+  "date_to": "Till"
 }

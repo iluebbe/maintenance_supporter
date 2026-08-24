@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Фильтр пользователя по умолчанию",
   "cal_editor_my_tasks": "Мои задачи (текущий пользователь)",
   "cal_editor_show_object_filter": "Показывать фильтр объекта",
-  "cal_editor_object_hint": "Предварительный выбор объекта через YAML: object_filter: \"<имя>\" — или список имён, чтобы ограничить карточку несколькими объектами."
+  "cal_editor_object_hint": "Предварительный выбор объекта через YAML: object_filter: \"<имя>\" — или список имён, чтобы ограничить карточку несколькими объектами.",
+  "object_history_section": "История (все задачи)",
+  "object_history_all_tasks": "Все задачи",
+  "object_history_empty": "Нет записей за этот период.",
+  "object_history_cap_note": "История хранит до 500 записей на задачу — очень старые записи могут отсутствовать.",
+  "service_record_title": "Сервисная книжка",
+  "service_record_print": "Сервисная книжка (PDF)",
+  "date": "Дата",
+  "service_record_entries": "записей",
+  "completed_by": "Выполнил",
+  "date_from": "С",
+  "date_to": "По"
 }

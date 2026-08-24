@@ -624,6 +624,14 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Cost tracking per task completion
 - Budget alerts at configurable thresholds
 
+### Object lifecycle history & service record (2.64+)
+
+![Object lifecycle history](images/object-history.png)
+
+- **Cross-task history on the object page** (#138) — a "History (all tasks)" section on every object's detail page merges the completion/skip/reset entries of *all* its tasks into one chronological log ("everything that has ever been done to my car"), independent of task boundaries. Task names link straight to the task; filter by task and by an inclusive date range
+- **Printable service record** — one click produces a printable "vehicle service booklet": object master data (manufacturer, model, serial, installed), every completed maintenance with date, cost, duration and notes, and a cost total — print or save as PDF from the browser, ready to hand over at resale or keep for warranty/insurance
+- Honest about limits: history keeps up to **500 entries per task**; when any task hits that cap, both the section and the printed record say so, so "complete" is never silently overstated
+
 ### Data Management
 - JSON, YAML, and CSV export and import (via WebSocket API and Settings panel) — JSON/CSV round-trip the full object asset record (incl. warranty, manual URL, notes, and attached-document metadata + web-links); a dedicated one-row-per-object CSV export is available from the objects table (#67)
 - QR code generation for mobile quick-actions (print, download SVG)

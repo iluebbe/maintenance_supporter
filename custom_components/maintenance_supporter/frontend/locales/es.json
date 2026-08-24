@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Filtro de usuario predeterminado",
   "cal_editor_my_tasks": "Mis tareas (usuario actual)",
   "cal_editor_show_object_filter": "Mostrar filtro de objeto",
-  "cal_editor_object_hint": "Preselecciona un objeto por YAML: object_filter: \"<nombre>\" — o una lista de nombres para limitar la tarjeta a varios objetos."
+  "cal_editor_object_hint": "Preselecciona un objeto por YAML: object_filter: \"<nombre>\" — o una lista de nombres para limitar la tarjeta a varios objetos.",
+  "object_history_section": "Historial (todas las tareas)",
+  "object_history_all_tasks": "Todas las tareas",
+  "object_history_empty": "No hay entradas en este periodo.",
+  "object_history_cap_note": "El historial conserva hasta 500 entradas por tarea; las entradas muy antiguas pueden faltar.",
+  "service_record_title": "Registro de mantenimiento",
+  "service_record_print": "Registro de mantenimiento (PDF)",
+  "date": "Fecha",
+  "service_record_entries": "entradas",
+  "completed_by": "Realizado por",
+  "date_from": "Desde",
+  "date_to": "Hasta"
 }

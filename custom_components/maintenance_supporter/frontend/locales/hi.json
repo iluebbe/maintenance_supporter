@@ -878,5 +878,16 @@
   "cal_editor_default_user": "डिफ़ॉल्ट उपयोगकर्ता फ़िल्टर",
   "cal_editor_my_tasks": "मेरे कार्य (वर्तमान उपयोगकर्ता)",
   "cal_editor_show_object_filter": "ऑब्जेक्ट फ़िल्टर दिखाएँ",
-  "cal_editor_object_hint": "YAML से एक ऑब्जेक्ट पहले से चुनें: object_filter: \"<नाम>\" — या कार्ड को कई ऑब्जेक्ट तक सीमित करने हेतु नामों की सूची।"
+  "cal_editor_object_hint": "YAML से एक ऑब्जेक्ट पहले से चुनें: object_filter: \"<नाम>\" — या कार्ड को कई ऑब्जेक्ट तक सीमित करने हेतु नामों की सूची।",
+  "object_history_section": "इतिहास (सभी कार्य)",
+  "object_history_all_tasks": "सभी कार्य",
+  "object_history_empty": "इस अवधि में कोई प्रविष्टि नहीं है।",
+  "object_history_cap_note": "इतिहास प्रति कार्य अधिकतम 500 प्रविष्टियाँ रखता है — बहुत पुरानी प्रविष्टियाँ अनुपस्थित हो सकती हैं।",
+  "service_record_title": "सेवा रिकॉर्ड",
+  "service_record_print": "सेवा रिकॉर्ड (PDF)",
+  "date": "दिनांक",
+  "service_record_entries": "प्रविष्टियाँ",
+  "completed_by": "द्वारा पूर्ण",
+  "date_from": "से",
+  "date_to": "तक"
 }

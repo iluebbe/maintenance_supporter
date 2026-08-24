@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Filtre utilisateur par défaut",
   "cal_editor_my_tasks": "Mes tâches (utilisateur actuel)",
   "cal_editor_show_object_filter": "Afficher le filtre d'objet",
-  "cal_editor_object_hint": "Présélectionnez un objet via YAML : object_filter : \"<nom>\" — ou une liste de noms pour limiter la carte à plusieurs objets."
+  "cal_editor_object_hint": "Présélectionnez un objet via YAML : object_filter : \"<nom>\" — ou une liste de noms pour limiter la carte à plusieurs objets.",
+  "object_history_section": "Historique (toutes les tâches)",
+  "object_history_all_tasks": "Toutes les tâches",
+  "object_history_empty": "Aucune entrée sur cette période.",
+  "object_history_cap_note": "L'historique conserve jusqu'à 500 entrées par tâche — les entrées très anciennes peuvent manquer.",
+  "service_record_title": "Carnet d'entretien",
+  "service_record_print": "Carnet d'entretien (PDF)",
+  "date": "Date",
+  "service_record_entries": "entrées",
+  "completed_by": "Réalisé par",
+  "date_from": "Du",
+  "date_to": "Au"
 }

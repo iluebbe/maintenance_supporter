@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Default user filter",
   "cal_editor_my_tasks": "My tasks (current user)",
   "cal_editor_show_object_filter": "Show object filter dropdown",
-  "cal_editor_object_hint": "Pre-select one object via YAML: object_filter: \"<object name>\" — or a list of names to restrict the card to several objects."
+  "cal_editor_object_hint": "Pre-select one object via YAML: object_filter: \"<object name>\" — or a list of names to restrict the card to several objects.",
+  "object_history_section": "History (all tasks)",
+  "object_history_all_tasks": "All tasks",
+  "object_history_empty": "No entries in this range.",
+  "object_history_cap_note": "History keeps up to 500 entries per task — very old entries may be missing.",
+  "service_record_title": "Service record",
+  "service_record_print": "Service record (PDF)",
+  "date": "Date",
+  "service_record_entries": "entries",
+  "completed_by": "Completed by",
+  "date_from": "From",
+  "date_to": "To"
 }

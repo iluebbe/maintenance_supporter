@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Alapértelmezett felhasználószűrő",
   "cal_editor_my_tasks": "Saját feladatok (aktuális felhasználó)",
   "cal_editor_show_object_filter": "Objektumszűrő megjelenítése",
-  "cal_editor_object_hint": "Előválasztás YAML-lel: object_filter: \"<név>\" — vagy névlista, hogy a kártya több objektumra korlátozódjon."
+  "cal_editor_object_hint": "Előválasztás YAML-lel: object_filter: \"<név>\" — vagy névlista, hogy a kártya több objektumra korlátozódjon.",
+  "object_history_section": "Előzmények (összes feladat)",
+  "object_history_all_tasks": "Összes feladat",
+  "object_history_empty": "Nincs bejegyzés ebben az időszakban.",
+  "object_history_cap_note": "Az előzmények feladatonként legfeljebb 500 bejegyzést őriznek meg — a nagyon régiek hiányozhatnak.",
+  "service_record_title": "Szervizkönyv",
+  "service_record_print": "Szervizkönyv (PDF)",
+  "date": "Dátum",
+  "service_record_entries": "bejegyzés",
+  "completed_by": "Elvégezte",
+  "date_from": "Ettől",
+  "date_to": "Eddig"
 }

@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Výchozí filtr uživatele",
   "cal_editor_my_tasks": "Moje úkoly (aktuální uživatel)",
   "cal_editor_show_object_filter": "Zobrazit filtr objektu",
-  "cal_editor_object_hint": "Předvyberte objekt přes YAML: object_filter: \"<název>\" — nebo seznam názvů pro omezení karty na více objektů."
+  "cal_editor_object_hint": "Předvyberte objekt přes YAML: object_filter: \"<název>\" — nebo seznam názvů pro omezení karty na více objektů.",
+  "object_history_section": "Historie (všechny úkoly)",
+  "object_history_all_tasks": "Všechny úkoly",
+  "object_history_empty": "V tomto období nejsou žádné záznamy.",
+  "object_history_cap_note": "Historie uchovává až 500 záznamů na úkol — velmi staré záznamy mohou chybět.",
+  "service_record_title": "Servisní knížka",
+  "service_record_print": "Servisní knížka (PDF)",
+  "date": "Datum",
+  "service_record_entries": "záznamů",
+  "completed_by": "Dokončil",
+  "date_from": "Od",
+  "date_to": "Do"
 }

@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Типовий фільтр користувача",
   "cal_editor_my_tasks": "Мої завдання (поточний користувач)",
   "cal_editor_show_object_filter": "Показувати фільтр об'єкта",
-  "cal_editor_object_hint": "Попередній вибір об'єкта через YAML: object_filter: \"<назва>\" — або список назв, щоб обмежити картку кількома об'єктами."
+  "cal_editor_object_hint": "Попередній вибір об'єкта через YAML: object_filter: \"<назва>\" — або список назв, щоб обмежити картку кількома об'єктами.",
+  "object_history_section": "Історія (усі завдання)",
+  "object_history_all_tasks": "Усі завдання",
+  "object_history_empty": "Немає записів за цей період.",
+  "object_history_cap_note": "Історія зберігає до 500 записів на завдання — дуже старі записи можуть бути відсутні.",
+  "service_record_title": "Сервісна книжка",
+  "service_record_print": "Сервісна книжка (PDF)",
+  "date": "Дата",
+  "service_record_entries": "записів",
+  "completed_by": "Виконав",
+  "date_from": "Від",
+  "date_to": "До"
 }

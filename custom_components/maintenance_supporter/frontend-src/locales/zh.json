@@ -878,5 +878,16 @@
   "cal_editor_default_user": "默认用户筛选",
   "cal_editor_my_tasks": "我的任务（当前用户）",
   "cal_editor_show_object_filter": "显示对象筛选",
-  "cal_editor_object_hint": "通过 YAML 预选对象：object_filter: \"<对象名>\" — 或名称列表，将卡片限定为多个对象。"
+  "cal_editor_object_hint": "通过 YAML 预选对象：object_filter: \"<对象名>\" — 或名称列表，将卡片限定为多个对象。",
+  "object_history_section": "历史（全部任务）",
+  "object_history_all_tasks": "全部任务",
+  "object_history_empty": "此时间段内没有记录。",
+  "object_history_cap_note": "每个任务的历史最多保留 500 条记录，很早的记录可能缺失。",
+  "service_record_title": "维护记录",
+  "service_record_print": "维护记录（PDF）",
+  "date": "日期",
+  "service_record_entries": "条记录",
+  "completed_by": "完成人",
+  "date_from": "从",
+  "date_to": "至"
 }

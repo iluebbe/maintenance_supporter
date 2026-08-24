@@ -878,5 +878,16 @@
   "cal_editor_default_user": "기본 사용자 필터",
   "cal_editor_my_tasks": "내 작업 (현재 사용자)",
   "cal_editor_show_object_filter": "객체 필터 표시",
-  "cal_editor_object_hint": "YAML로 객체를 미리 선택: object_filter: \"<이름>\" — 이름 목록으로 카드를 여러 객체로 제한할 수 있습니다."
+  "cal_editor_object_hint": "YAML로 객체를 미리 선택: object_filter: \"<이름>\" — 이름 목록으로 카드를 여러 객체로 제한할 수 있습니다.",
+  "object_history_section": "기록(전체 작업)",
+  "object_history_all_tasks": "모든 작업",
+  "object_history_empty": "이 기간에 기록이 없습니다.",
+  "object_history_cap_note": "기록은 작업당 최대 500건까지 보관됩니다. 아주 오래된 기록은 없을 수 있습니다.",
+  "service_record_title": "정비 기록",
+  "service_record_print": "정비 기록(PDF)",
+  "date": "날짜",
+  "service_record_entries": "건",
+  "completed_by": "수행자",
+  "date_from": "시작",
+  "date_to": "종료"
 }

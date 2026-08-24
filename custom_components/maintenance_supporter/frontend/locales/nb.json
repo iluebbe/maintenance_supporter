@@ -878,5 +878,16 @@
   "cal_editor_default_user": "Standard brukerfilter",
   "cal_editor_my_tasks": "Mine oppgaver (gjeldende bruker)",
   "cal_editor_show_object_filter": "Vis objektfilter",
-  "cal_editor_object_hint": "Forhåndsvelg et objekt via YAML: object_filter: \"<navn>\" — eller en liste med navn for å begrense kortet til flere objekter."
+  "cal_editor_object_hint": "Forhåndsvelg et objekt via YAML: object_filter: \"<navn>\" — eller en liste med navn for å begrense kortet til flere objekter.",
+  "object_history_section": "Historikk (alle oppgaver)",
+  "object_history_all_tasks": "Alle oppgaver",
+  "object_history_empty": "Ingen oppføringer i denne perioden.",
+  "object_history_cap_note": "Historikken beholder opptil 500 oppføringer per oppgave — svært gamle oppføringer kan mangle.",
+  "service_record_title": "Servicehefte",
+  "service_record_print": "Servicehefte (PDF)",
+  "date": "Dato",
+  "service_record_entries": "oppføringer",
+  "completed_by": "Utført av",
+  "date_from": "Fra",
+  "date_to": "Til"
 }
