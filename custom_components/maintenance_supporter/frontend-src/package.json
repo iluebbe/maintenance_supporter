@@ -9,12 +9,16 @@
     "test:watch": "web-test-runner --config web-test-runner.config.mjs --watch"
   },
   "devDependencies": {
+    "@mdi/js": "^7.4.47",
     "@open-wc/testing": "^5.0.0",
+    "@types/react": "^19.2.18",
     "@web/dev-server-esbuild": "^2.0.0",
     "@web/test-runner": "^1.0.0",
     "@web/test-runner-playwright": "^1.0.0",
     "esbuild": "^0.28.1",
     "lit": "^3.3.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "typescript": "^7.0.2"
   },
   "dependencies": {

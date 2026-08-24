@@ -1,0 +1,54 @@
+/* design-sync theme tokens.
+ *
+ * Inside Home Assistant these custom properties come from the active HA
+ * theme; outside HA (design-system previews and designs built with this
+ * bundle) nothing defines them, so components would fall back to their
+ * hardcoded defaults inconsistently. This file pins HA's default light theme
+ * values for every custom property this library consumes, plus the four
+ * `--maint-*` status tokens the library itself defines.
+ *
+ * Covers exactly the var(--…) names used in frontend-src (28 names,
+ * inventoried 2026-08-24 — re-run the grep in .design-sync/NOTES.md after
+ * introducing new tokens). */
+
+:root,
+body {
+  /* HA default light theme */
+  --primary-color: #03a9f4;
+  --accent-color: #ff9800;
+  --primary-text-color: #212121;
+  --secondary-text-color: #727272;
+  --text-primary-color: #ffffff;
+  --disabled-color: #bdbdbd;
+  --divider-color: rgba(0, 0, 0, 0.12);
+  --error-color: #db4437;
+  --warning-color: #ffa600;
+  --success-color: #43a047;
+  --info-color: #039be5;
+  --deep-orange-color: #ff6f22;
+  --card-background-color: #ffffff;
+  --ha-card-background: var(--card-background-color);
+  --ha-card-border-radius: 12px;
+  --ha-card-box-shadow: none;
+  --primary-background-color: #fafafa;
+  --secondary-background-color: #f5f5f5;
+  --table-row-alternative-background-color: #f5f5f5;
+  --app-header-background-color: var(--primary-color);
+  --app-header-text-color: var(--text-primary-color);
+  --state-icon-color: #44739e;
+  --mdc-icon-size: 24px;
+
+  /* Maintenance Supporter status tokens (the library's own design language) */
+  --maint-ok-color: #4caf50;
+  --maint-due-soon-color: #ff9800;
+  --maint-overdue-color: #f44336;
+  --maint-triggered-color: #ff5722;
+  --maint-done-color: #9e9e9e;
+}
+
+body {
+  background: var(--primary-background-color);
+  color: var(--primary-text-color);
+  font-family: Roboto, system-ui, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

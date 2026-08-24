@@ -1,0 +1,130 @@
+{
+  "projectId": "e7dcf6e1-59e7-4056-ba15-a388fdbe8dc7",
+  "shape": "package",
+  "pkg": "maintenance-supporter-frontend",
+  "globalName": "MaintenanceSupporter",
+  "buildCmd": "cd custom_components/maintenance_supporter/frontend-src && node ds-esbuild.mjs",
+  "srcDir": ".",
+  "cssEntry": "ds-theme.css",
+  "runtimeFontPrefixes": [
+    "Roboto"
+  ],
+  "componentSrcMap": {
+    "MaintenanceSupporterCard": "maintenance-card.ts",
+    "MaintenanceCalendarCard": "maintenance-calendar-card.ts",
+    "MaintenanceBatteryFleetCard": "components/battery-fleet-card.ts",
+    "MaintenanceBudgetSectionCard": "components/budget-section-card.ts",
+    "MaintenanceGroupsSectionCard": "components/groups-section-card.ts",
+    "MaintenanceVacationSectionCard": "components/vacation-section-card.ts",
+    "MaintenanceStorageSectionCard": "components/storage-section-card.ts",
+    "MaintenanceTaskDialog": "components/task-dialog.ts",
+    "MaintenanceObjectDialog": "components/object-dialog.ts",
+    "MaintenanceCompleteDialog": "components/complete-dialog.ts",
+    "MaintenanceConfirmDialog": "components/confirm-dialog.ts",
+    "MaintenanceGroupDialog": "components/group-dialog.ts",
+    "MaintenanceQrDialog": "components/qr-dialog.ts",
+    "MaintenanceHistoryEditDialog": "components/history-edit-dialog.ts",
+    "MaintenanceSavedViewsDialog": "components/saved-views-dialog.ts",
+    "SeasonalOverridesDialog": "components/seasonal-overrides-dialog.ts",
+    "MaintenanceTaskQuickActionsDialog": "components/task-quick-actions-dialog.ts",
+    "MaintenanceObjectQuickActionsDialog": "components/object-quick-actions-dialog.ts",
+    "MaintenanceAdoptProblemSensorsDialog": "components/adopt-problem-sensors-dialog.ts",
+    "MaintenanceSuggestedSetupsDialog": "components/suggested-setups-dialog.ts",
+    "MaintenanceBatteryFleetSection": "components/battery-fleet-section.ts",
+    "MaintenanceDocumentsSection": "components/documents-section.ts",
+    "MaintenancePartsSection": "components/parts-section.ts",
+    "MaintenanceTaskDocuments": "components/task-documents.ts",
+    "MaintenanceTaskDetailView": "components/task-detail-view.ts",
+    "MaintenanceSettingsView": "components/settings-view.ts",
+    "MaintenanceTriggerChart": "components/trigger-chart.ts",
+    "MaintenanceHistoryPhoto": "components/history-photo.ts",
+    "MsTextfield": "components/ms-textfield.ts"
+  },
+  "dtsPropsFor": {
+    "MaintenanceSupporterCard": "hass: HomeAssistant;",
+    "MaintenanceCalendarCard": "hass: HomeAssistant;",
+    "MaintenanceBatteryFleetCard": "hass: HomeAssistant;",
+    "MaintenanceBudgetSectionCard": "hass: HomeAssistant;",
+    "MaintenanceGroupsSectionCard": "hass: HomeAssistant;",
+    "MaintenanceVacationSectionCard": "hass: HomeAssistant;",
+    "MaintenanceStorageSectionCard": "hass: HomeAssistant; objects: PanelObject[];",
+    "MaintenanceTaskDialog": "hass: HomeAssistant; checklistsEnabled: boolean; scheduleTimeEnabled: boolean; completionActionsEnabled: boolean; defaultWarningDays: number;",
+    "MaintenanceObjectDialog": "hass: HomeAssistant; objects: MaintenanceObjectResponse[];",
+    "MaintenanceCompleteDialog": "hass: HomeAssistant; entryId: string; taskId: string; taskName: string; lang: string; checklist: string[]; adaptiveEnabled: boolean; taskType: string; readingUnit: string; restockDefault: number | null; restockUnitCost: number | null; currencySymbol: string; parts: LinkedPart[]; consumesParts: TaskPartLink[]; consumesInfo: string[]; requiredFields: string[]; checklistPrefill: Record<string, boolean>;",
+    "MaintenanceConfirmDialog": "hass: HomeAssistant;",
+    "MaintenanceGroupDialog": "hass: HomeAssistant; objects: MaintenanceObjectResponse[];",
+    "MaintenanceQrDialog": "hass: HomeAssistant; lang: string;",
+    "MaintenanceHistoryEditDialog": "hass: HomeAssistant;",
+    "MaintenanceSavedViewsDialog": "hass: HomeAssistant;",
+    "SeasonalOverridesDialog": "hass: HomeAssistant;",
+    "MaintenanceTaskQuickActionsDialog": "hass: HomeAssistant;",
+    "MaintenanceObjectQuickActionsDialog": "hass: HomeAssistant;",
+    "MaintenanceAdoptProblemSensorsDialog": "hass: HomeAssistant;",
+    "MaintenanceSuggestedSetupsDialog": "hass: HomeAssistant;",
+    "MaintenanceBatteryFleetSection": "hass: HomeAssistant; flat: boolean;",
+    "MaintenanceDocumentsSection": "hass: HomeAssistant; entryId: string; canWrite: boolean;",
+    "MaintenancePartsSection": "hass: HomeAssistant; entryId: string; parts: MaintenancePart[]; canWrite: boolean; currencySymbol: string;",
+    "MaintenanceTaskDocuments": "hass: HomeAssistant; entryId: string; taskId?: string; partId?: string; canWrite: boolean;",
+    "MaintenanceTaskDetailView": "task?: MaintenanceTask; ctx?: TaskDetailContext;",
+    "MaintenanceSettingsView": "hass: HomeAssistant; features: AdvancedFeatures; budget: BudgetStatus | null;",
+    "MaintenanceTriggerChart": "points: ChartPoint[]; events: ChartEvent[]; unit: string; lang: string; thresholdAbove: number | null; thresholdBelow: number | null; targetValue: number | null; forceZero: boolean; projection: ChartPoint[] | null; rangeDays: number; showRange: boolean; busy: boolean; hideOutliers: boolean; showOutlierToggle: boolean;",
+    "MaintenanceHistoryPhoto": "hass: HomeAssistant; docId: string;",
+    "MsTextfield": "label: string; value: string; placeholder: string; type: \"text\" | \"number\" | \"url\" | \"email\" | \"password\" | \"date\" | \"time\" | \"datetime-local\"; required: boolean; disabled: boolean; step?: string; min?: string; max?: string; pattern?: string; helper?: string;"
+  },
+  "docsDir": "../../../.design-sync/docs",
+  "overrides": {
+    "MaintenanceCompleteDialog": {
+      "cardMode": "single",
+      "primaryStory": "WithChecklist",
+      "viewport": "760x860"
+    },
+    "MaintenanceTaskDialog": {
+      "cardMode": "single",
+      "viewport": "820x1250"
+    },
+    "MaintenanceObjectDialog": {
+      "cardMode": "single",
+      "viewport": "760x980"
+    },
+    "MaintenanceConfirmDialog": {
+      "cardMode": "single",
+      "viewport": "640x420"
+    },
+    "MaintenanceGroupDialog": {
+      "cardMode": "single",
+      "viewport": "760x860"
+    },
+    "MaintenanceQrDialog": {
+      "cardMode": "single",
+      "viewport": "700x820"
+    },
+    "MaintenanceHistoryEditDialog": {
+      "cardMode": "single",
+      "viewport": "760x900"
+    },
+    "MaintenanceSavedViewsDialog": {
+      "cardMode": "single",
+      "viewport": "700x700"
+    },
+    "SeasonalOverridesDialog": {
+      "cardMode": "single",
+      "viewport": "820x900"
+    },
+    "MaintenanceTaskQuickActionsDialog": {
+      "cardMode": "single",
+      "viewport": "760x1000"
+    },
+    "MaintenanceObjectQuickActionsDialog": {
+      "cardMode": "single",
+      "viewport": "760x900"
+    },
+    "MaintenanceAdoptProblemSensorsDialog": {
+      "cardMode": "single",
+      "viewport": "820x1000"
+    },
+    "MaintenanceSuggestedSetupsDialog": {
+      "cardMode": "single",
+      "viewport": "820x1000"
+    }
+  }
+}
