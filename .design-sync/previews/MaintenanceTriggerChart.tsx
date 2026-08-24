@@ -73,6 +73,30 @@ const PRESSURE = Array.from({ length: 31 }, (_, i) => {
   return { ts: now - (30 - i) * day, val: Math.round(val * 100) / 100 };
 });
 
+/** REGRESSION story: the projection EXACTLY as renderers/sparkline.ts builds
+ * it in production — [last sample, last sample + 30 d]. Before the domain
+ * fix this rendered as a zero-width stub on the right plot edge. */
+export const ProductionProjectionShape = () => (
+  <maintenance-trigger-chart
+    ref={(el: unknown) => {
+      if (el) Object.assign(el as Record<string, unknown>, {
+        points: PRESSURE,
+        events: [{ ts: now - 24 * day, type: "completed" }],
+        unit: "bar",
+        lang: "en",
+        thresholdBelow: 1.2,
+        projection: [
+          PRESSURE[PRESSURE.length - 1],
+          { ts: PRESSURE[PRESSURE.length - 1].ts + 30 * day, val: PRESSURE[PRESSURE.length - 1].val - 0.044 * 30 },
+        ],
+        rangeDays: 30,
+        showOutlierToggle: false,
+      });
+    }}
+    style={{ display: "block", width: 620 }}
+  />
+);
+
 export const DegradationProjection = () => (
   <maintenance-trigger-chart
     ref={(el: unknown) => {
