@@ -126,5 +126,6 @@
       "cardMode": "single",
       "viewport": "820x1000"
     }
-  }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
 }

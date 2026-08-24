@@ -23,12 +23,14 @@ const define = (tag: string, cls: CustomElementConstructor): void => {
   if (!customElements.get(tag)) customElements.define(tag, cls);
 };
 
-const svgIcon = (path: string | undefined) => {
+const svgIcon = (path: string | undefined, size = "100%") => {
   const d = path || DS_MDI_PATHS["mdi:circle-medium"];
   const el = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   el.setAttribute("viewBox", "0 0 24 24");
-  el.style.width = "100%";
-  el.style.height = "100%";
+  // Inline (beats any host CSS) — the picker stub passes a FIXED size, the
+  // icon hosts constrain via their own box.
+  el.style.width = size;
+  el.style.height = size;
   el.style.fill = "currentColor";
   const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
   p.setAttribute("d", d);
@@ -94,7 +96,9 @@ class DsHaButton extends LitElement {
       border-radius: 6px;
       border: none;
       cursor: pointer;
-      background: var(--primary-color, #03a9f4);
+      /* Honor the mwc theme override first — HA's .danger idiom recolors
+         buttons via --mdc-theme-primary (wave-1 finding). */
+      background: var(--mdc-theme-primary, var(--primary-color, #03a9f4));
       color: var(--text-primary-color, #fff);
       display: inline-flex;
       align-items: center;
@@ -103,9 +107,9 @@ class DsHaButton extends LitElement {
     :host([appearance="plain"]) button,
     :host([appearance="outlined"]) button {
       background: transparent;
-      color: var(--primary-color, #03a9f4);
+      color: var(--mdc-theme-primary, var(--primary-color, #03a9f4));
     }
-    :host([appearance="outlined"]) button { border: 1px solid var(--primary-color, #03a9f4); }
+    :host([appearance="outlined"]) button { border: 1px solid var(--mdc-theme-primary, var(--primary-color, #03a9f4)); }
     button[disabled] { opacity: 0.45; cursor: default; }
   `;
   render() {
@@ -211,7 +215,9 @@ class DsHaDialog extends LitElement {
 define("ha-dialog", DsHaDialog);
 
 class DsHaSwitch extends LitElement {
-  static properties = { checked: { type: Boolean }, disabled: { type: Boolean } };
+  // reflect — the styles key off :host([checked]); without reflection every
+  // switch rendered off (wave-1 finding).
+  static properties = { checked: { type: Boolean, reflect: true }, disabled: { type: Boolean, reflect: true } };
   declare checked?: boolean;
   declare disabled?: boolean;
   static styles = css`
@@ -266,9 +272,12 @@ class DsPickerField extends LitElement {
       font: 400 14px Roboto, system-ui, sans-serif;
       display: flex; align-items: center; gap: 8px;
     }
+    /* svgIcon() emits width/height 100% — unconstrained it fills the whole
+       field with a giant magnifier (wave-1 finding). */
+    .field svg { width: 20px; height: 20px; flex: none; }
   `;
   render() {
-    return html`<div class="field">${svgIcon(DS_MDI_PATHS["mdi:magnify"])} ${this.label || this.tagName.toLowerCase().replace(/^ha-/, "").replace(/-/g, " ")}</div>`;
+    return html`<div class="field">${svgIcon(DS_MDI_PATHS["mdi:magnify"], "20px")} ${this.label || this.tagName.toLowerCase().replace(/^ha-/, "").replace(/-/g, " ")}</div>`;
   }
 }
 for (const tag of ["ha-form", "ha-selector", "ha-entities-picker", "ha-area-picker", "ha-service-picker", "ha-icon-picker"]) {

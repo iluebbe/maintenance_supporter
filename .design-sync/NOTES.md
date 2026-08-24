@@ -52,3 +52,40 @@ Repo-specific facts a future sync must know. One bullet per gotcha.
   keys); if the vendored React major changes, re-check property assignment.
 - Panel (`maintenance-supporter-panel`), card editor, dashboard strategy and
   services are deliberately excluded from the DS (app infrastructure).
+
+## Wave-1 fold (2026-08-24) — capture/harness facts
+- **Capture clock is FIXED at 2024-05-15T12:00Z** (page.clock in
+  package-capture.mjs). Previews must compute dates relative to `new Date()`
+  (see the iso(offsetDays) helper in previews/MaintenanceCalendarCard.tsx);
+  never hardcode 2026 epochs for chart x-axes. Kit-fix candidate: make
+  DS_DEMO dates relative to now.
+- **`.ds-single` carries `transform:translateZ(0)`** — a transformed ancestor
+  is the containing block for position:fixed, so SELF-positioned dialogs
+  (own backdrop/fixed-center) clip their top half. Preview-level fix used in
+  6 dialogs: render `<style>{".ds-single{transform:none !important}"}</style>`
+  inside the story (FixedAnchor helper). ha-dialog-based dialogs are immune
+  (top-anchored stub). Config-level ask for a future converter version:
+  drop the wrapper transform in ?story= mode.
+- Story shots are 900x700 non-fullPage unless the component has a config
+  `viewport` override; below-the-fold content is fine (absolute rubric),
+  scroll the dialog's `.content`/frame in the ref when a lower section IS the
+  story.
+- Stub fixes applied at fold time (ds-host-stubs.ts): switch `reflect: true`,
+  button honors `--mdc-theme-primary` (danger red), picker svg constrained.
+- **Kit shape gaps are deliberately NOT fixed in ds-preview-kit** — the
+  authored previews carry per-preview `dsDemoHass({handlers})` overrides with
+  the REAL backend shapes (battery_fleet/overview + overview_history,
+  parts/overview incl. consumers, documents/storage summary shape, tags/list
+  {id,name}, objects-with-parts, qr/generate svg_data_uri, discover payloads,
+  auth/sign_path→data-URI for images). A future kit sweep should lift those
+  shapes INTO the kit and delete the per-preview overrides — until then the
+  kit's simple shapes serve the simple consumers (card/statistics/budget).
+- Light-DOM views (task-detail-view) need BOTH panel stylesheets inlined in
+  the preview frame: sharedStyles (styles.ts) + panelStyles (panel-styles.ts).
+- React (vendored 19) sets unknown JSX props as PROPERTIES on custom
+  elements; a CSS-relevant ATTRIBUTE (`:host([flat])`) needs
+  el.setAttribute in the ref.
+- Product-bug candidate found during previews (tracked outside the sync):
+  MaintenanceTriggerChart clips a beyond-domain projection to zero length,
+  and renderers/sparkline.ts:343 builds exactly that shape — production
+  degradation projections likely render invisible.
