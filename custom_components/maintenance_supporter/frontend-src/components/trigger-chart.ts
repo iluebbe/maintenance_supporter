@@ -156,7 +156,14 @@ export class MaintenanceTriggerChart extends LitElement {
     }
 
     const tsMin = pts[0].ts;
-    const tsMax = pts[pts.length - 1].ts;
+    // The dashed projection extends the TIME domain. sparkline.ts builds it
+    // as [last sample, last sample + 30 d]; with a data-only domain its
+    // start sat exactly on the right plot edge and the x2 clamp below
+    // collapsed the line to zero width — the production degradation
+    // projection never rendered (found via the design-system previews,
+    // 2026-08-24).
+    const projEnd = this.projection && this.projection.length === 2 ? this.projection[1].ts : null;
+    const tsMax = projEnd != null ? Math.max(pts[pts.length - 1].ts, projEnd) : pts[pts.length - 1].ts;
     const tsSpan = tsMax - tsMin || 1;
     const withYear = needsYear(tsMin, tsMax);
 

@@ -99,6 +99,25 @@ describe("trigger-chart", () => {
     const marks = el.shadowRoot!.querySelectorAll('rect[fill="var(--success-color, #4caf50)"]');
     expect(marks.length).to.equal(1);
   });
+
+  it("renders the production-shaped projection with real horizontal extent", async () => {
+    // sparkline.ts builds the projection as [last sample, last sample + 30d].
+    // Before the domain fix (2026-08-24) the data-only time domain put that
+    // start on the right plot edge and the x2 clamp collapsed the dashed
+    // line to zero width — the degradation projection never rendered.
+    const el = await mount();
+    const last = POINTS[POINTS.length - 1];
+    el.projection = [last, { ts: last.ts + 30 * DAY, val: last.val + 15 }];
+    await el.updateComplete;
+    const line = el.shadowRoot!.querySelector('line[stroke-dasharray="4,3"]');
+    expect(line, "projection line rendered").to.exist;
+    const x1 = Number(line!.getAttribute("x1"));
+    const x2 = Number(line!.getAttribute("x2"));
+    expect(x2 - x1, `projection width (${x1} -> ${x2})`).to.be.greaterThan(50);
+    // still clamped inside the plot
+    const svgW = Number(el.shadowRoot!.querySelector("svg")!.getAttribute("width"));
+    expect(x2).to.be.at.most(svgW);
+  });
 });
 
 describe("chart-utils", () => {
