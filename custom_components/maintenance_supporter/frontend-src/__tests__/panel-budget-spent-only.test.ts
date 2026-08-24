@@ -48,8 +48,13 @@ describe("budget KPI tiles: spent-only display (#104)", () => {
     const tiles = sr(el).querySelectorAll(".budget-tile");
     expect(tiles.length).to.equal(2);
     expect(sr(el).querySelectorAll(".budget-tile-bar").length).to.equal(1);
-    expect(tiles[0].textContent).to.contain("9.00 / 150 €");
+    // 2026-08-24: the spent amount carries the full stat-value typography
+    // (same size as the other KPI chips); the "/ max" ratio is its own
+    // small line so it can't overflow the grid cell.
+    expect(tiles[0].querySelector(".stat-value")!.textContent).to.contain("9.00 €");
+    expect(tiles[0].querySelector(".budget-tile-max")!.textContent).to.contain("/ 150 €");
     expect(tiles[1].textContent).to.contain("429.60 €");
+    expect(tiles[1].querySelector(".budget-tile-max"), "spent-only tile has no ratio line").to.equal(null);
   });
 
   it("tiles live INSIDE the stats strip (#125)", async () => {

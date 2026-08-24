@@ -954,10 +954,20 @@ export const sharedStyles = css`
   }
 
   /* Budget KPI tiles in the stats strip (#125) — replaced the full-width
-     budget-bars row. */
+     budget-bars row. The spent amount inherits .stat-value's full 24px bold
+     so the budget tiles read exactly like the other KPI chips (user report
+     2026-08-24: the old 15px override made them visibly smaller); only the
+     "/ max" suffix stays secondary. */
   .stat-item.budget-tile .budget-tile-value {
-    font-size: 15px;
-    padding-top: 5px;
+    white-space: nowrap;
+  }
+  /* The "/ max" ratio is its OWN small line between value and bar — inline
+     it overflowed the ~150px grid cell into the neighbouring tile once the
+     value took the full 24px. */
+  .budget-tile-max {
+    font-size: 11px;
+    line-height: 1.2;
+    color: var(--secondary-text-color);
     white-space: nowrap;
   }
   .budget-tile-bar {
@@ -1440,9 +1450,10 @@ export const sharedStyles = css`
 
     .weibull-info-row { flex-direction: column; gap: 8px; }
 
-    /* Budget tiles on narrow screens (#125): slightly smaller value so the
-       "x / y €" pair fits the wrapped grid cell. */
-    .stat-item.budget-tile .budget-tile-value { font-size: 13px; }
+    /* Budget tiles on narrow screens (#125): the spent amount keeps the
+       full chip size (consistency, user report 2026-08-24); the "/ max"
+       suffix is hidden instead — the bar and the title carry the ratio. */
+    .budget-tile-max { display: none; }
 
     .group-card { min-width: 0; max-width: 100%; }
 

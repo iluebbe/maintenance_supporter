@@ -3078,7 +3078,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         const color = pct >= 100 ? "var(--error-color, #f44336)" : pct >= b.alert_threshold_pct ? "var(--warning-color, #ff9800)" : "var(--success-color, #4caf50)";
         return html`
           <div class="stat-item budget-tile" title="${label}: ${spent.toFixed(2)} / ${budget.toFixed(2)} ${cs}">
-            <span class="stat-value budget-tile-value">${spent.toFixed(2)} / ${budget.toFixed(0)} ${cs}</span>
+            <span class="stat-value budget-tile-value">${spent.toFixed(2)} ${cs}</span>
+            <span class="budget-tile-max">/ ${budget.toFixed(0)} ${cs}</span>
             <div class="budget-tile-bar"><div style="width:${pct}%; background:${color}"></div></div>
             <span class="stat-label">${label}</span>
           </div>
