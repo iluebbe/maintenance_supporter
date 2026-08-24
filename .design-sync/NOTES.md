@@ -89,3 +89,8 @@ Repo-specific facts a future sync must know. One bullet per gotcha.
   MaintenanceTriggerChart clips a beyond-domain projection to zero length,
   and renderers/sparkline.ts:343 builds exactly that shape — production
   degradation projections likely render invisible.
+- OneDrive can transiently kill node builds mid-run (exit with a bare
+  Node-version line; twice in the first sync: once during ds-esbuild, once
+  during package-build AFTER it had emptied ds-bundle/ -> [OUT_UNSAFE] on the
+  next run). Remedy: rerun the command; if OUT_UNSAFE fires, rm -rf ds-bundle
+  and rebuild - grades and previews live elsewhere and are safe.
