@@ -40,6 +40,7 @@ export { MaintenanceSuggestedSetupsDialog } from "./components/suggested-setups-
 // Sections
 export { MaintenanceBatteryFleetSection } from "./components/battery-fleet-section";
 export { MaintenanceDocumentsSection } from "./components/documents-section";
+export { MaintenanceObjectHistorySection } from "./components/object-history-section";
 export { MaintenancePartsSection } from "./components/parts-section";
 export { MaintenanceTaskDocuments } from "./components/task-documents";
 

@@ -38,7 +38,8 @@
     "MaintenanceSettingsView": "components/settings-view.ts",
     "MaintenanceTriggerChart": "components/trigger-chart.ts",
     "MaintenanceHistoryPhoto": "components/history-photo.ts",
-    "MsTextfield": "components/ms-textfield.ts"
+    "MsTextfield": "components/ms-textfield.ts",
+    "MaintenanceObjectHistorySection": "components/object-history-section.ts"
   },
   "dtsPropsFor": {
     "MaintenanceSupporterCard": "hass: HomeAssistant;",
@@ -69,7 +70,8 @@
     "MaintenanceSettingsView": "hass: HomeAssistant; features: AdvancedFeatures; budget: BudgetStatus | null;",
     "MaintenanceTriggerChart": "points: ChartPoint[]; events: ChartEvent[]; unit: string; lang: string; thresholdAbove: number | null; thresholdBelow: number | null; targetValue: number | null; forceZero: boolean; projection: ChartPoint[] | null; rangeDays: number; showRange: boolean; busy: boolean; hideOutliers: boolean; showOutlierToggle: boolean;",
     "MaintenanceHistoryPhoto": "hass: HomeAssistant; docId: string;",
-    "MsTextfield": "label: string; value: string; placeholder: string; type: \"text\" | \"number\" | \"url\" | \"email\" | \"password\" | \"date\" | \"time\" | \"datetime-local\"; required: boolean; disabled: boolean; step?: string; min?: string; max?: string; pattern?: string; helper?: string;"
+    "MsTextfield": "label: string; value: string; placeholder: string; type: \"text\" | \"number\" | \"url\" | \"email\" | \"password\" | \"date\" | \"time\" | \"datetime-local\"; required: boolean; disabled: boolean; step?: string; min?: string; max?: string; pattern?: string; helper?: string;",
+    "MaintenanceObjectHistorySection": "hass: HomeAssistant; entryId: string; object: MaintenanceObject | null; tasks: MaintenanceTask[]; currencySymbol: string; userName: (id: string) => string | null;"
   },
   "docsDir": "../../../.design-sync/docs",
   "overrides": {

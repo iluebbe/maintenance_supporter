@@ -22,7 +22,10 @@ const out = {};
 // `@property(...) public name = <literal>` (type inferred from the default),
 // optional/definite markers included. @state/private/protected are internal
 // and deliberately skipped. A get/set pair matches twice — deduped by name.
-const PROP_RX = /@property\([^)]*\)\s+(?:public\s+)?(?:get\s+|set\s+)?([A-Za-z_$][\w$]*)([?!]?)\s*(?::\s*([^;=\n]+?))?\s*(?:=\s*([^;\n]+))?;/g;
+// The type alternation permits `=>` (function types) while a bare `=` still
+// ends the type and starts the default — `userName: (id: string) => x` used
+// to truncate at the arrow and emit invalid d.ts ([DTS_PARSE]).
+const PROP_RX = /@property\([^)]*\)\s+(?:public\s+)?(?:get\s+|set\s+)?([A-Za-z_$][\w$]*)([?!]?)\s*(?::\s*((?:[^;=\n]|=>)+?))?\s*(?:=(?!>)\s*([^;\n]+))?;/g;
 
 const inferType = (dflt) => {
   const d = (dflt ?? "").trim();
