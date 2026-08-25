@@ -79,5 +79,10 @@ e2e/churn-result.json
 e2e/idle5min*.json
 .mutation/
 
-# design-sync build artifact (full ignore set lives on the design-sync branch)
+# design-sync (claude.ai/design) — staged scripts, build output, machine state
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
 custom_components/maintenance_supporter/frontend-src/dist-ds/
