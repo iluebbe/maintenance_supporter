@@ -2,6 +2,75 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.64.0] - 2026-08-25
+
+### ✨ Added
+
+- **Object lifecycle history & printable service record** (#138). Every
+  object's detail page gains a **"History (all tasks)"** section that merges
+  the completion/skip/reset entries of *all* its tasks into one
+  chronological log — "everything that has ever been done to my car",
+  independent of task boundaries. Task names link straight to the task;
+  filter by task and by an inclusive date range; a totals footer sums the
+  completed costs. One click prints a **service record** ("vehicle service
+  booklet"): object master data, every completed maintenance with date,
+  cost, duration and notes, and a cost total — print or save as PDF, ready
+  to hand over at resale or keep for warranty/insurance. User ids are
+  resolved to display names on the sheet, and both the section and the
+  record call out the 500-entries-per-task retention cap when it applies,
+  so "complete" is never silently overstated. Works in light and dark
+  themes; the printed sheet always carries its own light colour scheme
+  (Companion WebView safe).
+
+### 🐛 Fixed
+
+A dedicated bug audit swept the codebase from four angles (scheduling,
+trigger engine, persistence, frontend); every fix below shipped with a
+regression test.
+
+- **A one-shot postpone shifted planned-anchor schedules forever.** The
+  anchor update on complete/skip used the postponed date instead of the
+  planned grid date; reset also forgot to clear the postpone override.
+- **One malformed schedule value took a whole object's sensors down.** An
+  imported task carrying e.g. `every: "30"` (string) raised on every
+  refresh. The schedule read path now coerces integral strings/floats and
+  degrades garbage to "no value" instead of crashing.
+- **Idle devices accumulated runtime forever.** A restored runtime anchor
+  survived every path where the entity's first real state after startup was
+  OFF; the periodic persist then counted wall-clock time as runtime.
+- **Threshold "for X minutes" timers committed blind.** A sensor that
+  crossed its threshold and then went unavailable kept the window latched
+  and triggered on a value nobody had observed; the timer now re-checks the
+  live value and discards a stale window.
+- **Unavailable sensor blips no longer flip latched triggers.** The refresh
+  sweep asserted "not triggered" during dropouts, firing state automations
+  twice per blip; without a reading it now leaves the verdict alone.
+- **Trigger edits in the options flow kept stale counters.** Changing a
+  trigger's type/entities/baseline there never cleared the persisted
+  runtime state (the WS path did).
+- **An automatic trigger-recovery completion swallowed the real manual
+  completion** that followed within the double-tap window; double-submitted
+  backdated completions also wrote duplicate history entries.
+- **History edits accepted future timestamps**, pushing next-due dates into
+  the future; they are now rejected like backdated completions always were.
+- **The degradation projection was invisible since the chart redesign.**
+  The dashed 30-day trend line started on the chart's right edge and was
+  clamped to zero width; the time axis now extends to the projection's end
+  so the forecast visibly runs into the threshold zone.
+- **Budget KPI tiles matched the other chips in name only.** Their amounts
+  rendered at 15px next to the 24px KPI values; they now share the exact
+  chip typography, with the "/ max" ratio on its own small line.
+- Plus a set of smaller hardenings: multi-entity "all" trigger aggregation
+  no longer quantifies over a subset; per-entity trigger state is replaced
+  wholesale on persist (stale keys could survive forever); a rotation pool
+  edited down to one member now corrects a removed assignee; JSON import
+  reconciles buy tasks after restoring part stocks; the Lovelace card's
+  "Add task" button produced an unsavable dialog; the quick-actions
+  Complete bypassed required completion fields and reading values; budget
+  values could never be cleared from the budget card; counter sparklines
+  subtracted a baseline for non-delta counters; the reset-date prefill used
+  UTC instead of the local calendar day.
+
 ## [2.63.1] - 2026-08-21
 
 ### 🐛 Fixed
