@@ -645,6 +645,84 @@ the entity. Plan: run `_resume_pending_window` from the deferred-reconcile
 branch in `_handle_state_transition` too, with a test that restores an
 entity late.
 
+### 💡 Task phases — cyclic content rotation on one shared cadence (#139)
+
+**The problem** (discussion #139, robot-mower blade protocol — but the shape
+is universal: "every 4th service is the big one" applies to cars, heating
+systems, pool filters): some maintenance is a fixed *cycle of different
+activities on one shared clock*. Every D runtime-hours a step is due, but the
+steps differ — swap disks (small), flip blades (large), swap disks, REPLACE
+blades (large + consumes 14 parts). Today's model forces a bad trade: one
+task schedules perfectly (the trigger resets on completion, so a late step
+correctly pushes everything) but can't say *which* step is due, learns
+meaningless duration averages, and can't model the one step that consumes
+parts. Three tasks with offset triggers model the content but break the
+scheduling coupling (a late step does NOT push its siblings), triple the
+bookkeeping when D changes, and can't pool the statistics of the two
+identical swap steps.
+
+**The design — one cadence, an ordered list of phases, a rotating cursor:**
+
+- *Static config (task dict)*: `phase_defs` — up to ~10 named definitions
+  (`id`, `name`, optional per-phase `checklist`, `consumes_parts`,
+  `required_completion_fields`, `notes`) — plus `phase_sequence`, an ordered
+  list of def ids (up to ~12, repeats allowed: `[swap, flip, swap,
+  replace]`). Defs + sequence, not a flat list: editing "swap" once fixes
+  both occurrences, and per-phase statistics pool by def id for free —
+  exactly the pooling #139 asks for. A phase field that is set OVERRIDES the
+  task-level field; unset falls through (no merging — predictable).
+- *Dynamic state (Store, like the rotation pointer)*: `phase_cursor` — the
+  index of the phase currently due. Store wins on restore (#102 rule);
+  editing the sequence clamps/validates the cursor on BOTH write paths (WS
+  update AND options flow — the bug-audit lesson).
+- *History*: completion entries record their `phase_id`, giving per-phase
+  "last done / avg duration / avg cost" lines on the task detail — which
+  also answers "how long have these blades been in use?" (time since the
+  last `replace` completion).
+
+**Cursor semantics at the choke point** (all nine completion surfaces flow
+through `complete_maintenance`, so rotation is defined ONCE):
+
+- *Complete* (incl. auto-recovery, NFC, to-do, voice, buttons): apply the
+  due phase's requirements (checklist, required fields, parts), then advance
+  the cursor. The due phase is completed, period — no "actually I did a
+  different phase" picker (corrections go through an explicit admin "set
+  phase" action on the task detail).
+- *Backfill* (#133 rule: a pure backfill moves nothing): cursor untouched;
+  the history entry carries no phase_id (honest "unattributed").
+- *Skip / missed*: cursor UNTOUCHED — the physical state didn't change, so
+  the same phase stays due; only the clock restarts (matches both the mower
+  protocol and "skipped the big car service → the big one is still next").
+- *Reset*: re-anchors the clock, cursor untouched.
+
+**Surfaces**: the due phase's name shows everywhere the task shows — sensor
+attribute (`current_phase`, `phase_index`/`phase_count`), WS read model
+(#50 rule: every persisted user-facing field), panel card rows, quick
+actions, complete dialog header ("Phase 2/4 — Flip blades"), calendar event
+suffix, notification texts, and a phase strip with cursor marker + per-phase
+stats + "Replace in N steps (≈X h)" on the task detail. The phase editor
+itself is **panel-only** (PANEL_ONLY allowlist, like parts/actions/qc) —
+the options flow shows tasks with phases read-only-ish as it does for those.
+Adaptive/interval analysis stays task-wide by design: the cadence IS shared,
+so pooling all steps into one interval estimate is correct (and better than
+what three separate tasks could learn). Export/import carries phase config
+with the task and the cursor with the dynamic state (like `last_performed`).
+
+**Deliberate non-goals** (keep the primitive small): no per-phase cadences
+(that's simply two tasks), no branching/conditional cycles, no phase picker
+at completion time, no per-phase triggers. Voice announcing the phase, a
+buy-task lead-time hook ("order blades one step before `replace`"), and
+phase attribution in the history-edit dialog are follow-ups, not v1.
+
+**Effort**: a large feature round (comparable to the #130 parts round):
+model + store + choke-point semantics + value-level validation on both
+write paths + schema/parity tripwires + read-model fields, the panel phase
+editor, complete-dialog + detail + card/notification surfaces, ~15–20
+locale keys ×22, export/import, tests pinning every cursor rule above
+(complete advances / backfill doesn't / skip doesn't / sequence-edit
+clamps), live Docker check, docs. The #138 object history gets phase
+labels almost for free once entries carry `phase_id`.
+
 ### 💡 Bug audit 2026-08-22 — deferred findings (documented, not fixed)
 A four-perspective code audit (time/scheduling, trigger engine, persistence,
 frontend) fixed ~25 defects in one tranche; these remain open by decision —
