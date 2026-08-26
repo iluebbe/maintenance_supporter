@@ -681,7 +681,8 @@
           "edit_checklist": "Redigera checklista",
           "adaptive_scheduling": "Adaptiv schemaläggning",
           "delete_task": "Ta bort uppgift",
-          "manage_tasks": "Tillbaka"
+          "manage_tasks": "Tillbaka",
+          "edit_phases": "Redigera cykelfaser"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "När objektet installerades eller köptes.",
           "warranty_expiry": "När tillverkarens garanti för detta objekt går ut.",
           "go_back": "Återgå till huvudmenyn utan att spara."
+        }
+      },
+      "edit_phases": {
+        "title": "Redigera cykelfaser",
+        "description": "Cykelfaser för {task_name}: olika arbeten i samma rytm. En rad per cykelsteg — upprepa ett namn för ett upprepat steg. Lägg till en checklista med \"Namn: punkt; punkt\". Lämna tomt för att ta bort cykeln.",
+        "data": {
+          "phases_text": "Cykelsteg",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "phases_text": "Ett steg per rad i cykelordning. \"Namn: punkt; punkt\" anger fasens checklista. Delar och obligatoriska fält per fas redigeras i panelen och bevaras här.",
+          "go_back": "Återgå till uppgiftsåtgärder utan att spara."
         }
       }
     }

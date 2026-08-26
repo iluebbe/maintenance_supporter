@@ -681,7 +681,8 @@
           "edit_checklist": "체크리스트 편집",
           "adaptive_scheduling": "적응형 일정",
           "delete_task": "작업 삭제",
-          "manage_tasks": "뒤로"
+          "manage_tasks": "뒤로",
+          "edit_phases": "주기 단계 편집"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "이 대상을 설치했거나 구입한 날짜입니다.",
           "warranty_expiry": "이 대상의 제조사 보증이 만료되는 날짜입니다.",
           "go_back": "저장하지 않고 기본 메뉴로 돌아갑니다."
+        }
+      },
+      "edit_phases": {
+        "title": "주기 단계 편집",
+        "description": "{task_name}의 주기 단계: 같은 주기에 다른 작업을 수행합니다. 한 줄에 한 스텝 — 반복 스텝은 이름을 반복하세요. \"이름: 항목; 항목\"으로 체크리스트를 설정합니다. 비워 두면 주기가 제거됩니다.",
+        "data": {
+          "phases_text": "주기 스텝",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "phases_text": "주기 순서대로 한 줄에 한 스텝씩 입력하세요. \"이름: 항목; 항목\"은 해당 단계의 체크리스트를 설정합니다. 단계별 부품과 필수 항목은 패널에서 편집하며 여기서는 유지됩니다.",
+          "go_back": "저장하지 않고 작업 동작으로 돌아갑니다."
         }
       }
     }

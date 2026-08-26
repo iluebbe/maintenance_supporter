@@ -681,7 +681,8 @@
           "edit_checklist": "Edytuj listę kontrolną",
           "adaptive_scheduling": "Adaptacyjne planowanie",
           "delete_task": "Usuń zadanie",
-          "manage_tasks": "Wróć"
+          "manage_tasks": "Wróć",
+          "edit_phases": "Edytuj fazy cyklu"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
           "warranty_expiry": "Kiedy wygasa gwarancja producenta dla tego obiektu.",
           "go_back": "Wróć do menu głównego bez zapisywania."
+        }
+      },
+      "edit_phases": {
+        "title": "Edytuj fazy cyklu",
+        "description": "Fazy cyklu dla {task_name}: różne prace w jednym rytmie. Jedna linia na krok cyklu — powtórz nazwę dla powtórzonego kroku. Dodaj listę kontrolną przez \"Nazwa: punkt; punkt\". Pozostaw puste, aby usunąć cykl.",
+        "data": {
+          "phases_text": "Kroki cyklu",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "phases_text": "Jeden krok w linii, w kolejności cyklu. \"Nazwa: punkt; punkt\" ustawia listę kontrolną fazy. Części i wymagane pola fazy edytuje się w panelu; tutaj zostają zachowane.",
+          "go_back": "Wróć do akcji zadania bez zapisywania."
         }
       }
     }

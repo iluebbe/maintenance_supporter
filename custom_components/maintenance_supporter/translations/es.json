@@ -681,7 +681,8 @@
           "edit_checklist": "Editar lista de verificación",
           "adaptive_scheduling": "Programación adaptativa",
           "delete_task": "Eliminar tarea",
-          "manage_tasks": "Atrás"
+          "manage_tasks": "Atrás",
+          "edit_phases": "Editar fases del ciclo"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Cuándo se instaló o compró este objeto.",
           "warranty_expiry": "Cuándo vence la garantía del fabricante de este objeto.",
           "go_back": "Volver al menú principal sin guardar."
+        }
+      },
+      "edit_phases": {
+        "title": "Editar fases del ciclo",
+        "description": "Fases del ciclo para {task_name}: trabajos distintos con un mismo ritmo. Una línea por paso del ciclo; repite un nombre para un paso repetido. Añade una lista con \"Nombre: punto; punto\". Deja vacío para eliminar el ciclo.",
+        "data": {
+          "phases_text": "Pasos del ciclo",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "phases_text": "Un paso por línea, en el orden del ciclo. \"Nombre: punto; punto\" define la lista de esa fase. Las piezas y campos obligatorios por fase se editan en el panel y aquí se conservan.",
+          "go_back": "Volver a las acciones de tarea sin guardar."
         }
       }
     }

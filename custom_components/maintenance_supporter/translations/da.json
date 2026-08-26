@@ -681,7 +681,8 @@
           "edit_checklist": "Rediger tjekliste",
           "adaptive_scheduling": "Adaptiv planlægning",
           "delete_task": "Slet opgave",
-          "manage_tasks": "Tilbage"
+          "manage_tasks": "Tilbage",
+          "edit_phases": "Rediger cyklusfaser"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Hvornår dette objekt blev installeret eller købt.",
           "warranty_expiry": "Hvornår producentgarantien for dette objekt udløber.",
           "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      },
+      "edit_phases": {
+        "title": "Rediger cyklusfaser",
+        "description": "Cyklusfaser for {task_name}: forskelligt arbejde i samme rytme. Én linje pr. cyklustrin — gentag et navn for et gentaget trin. Tilføj en tjekliste med \"Navn: punkt; punkt\". Lad stå tomt for at fjerne cyklussen.",
+        "data": {
+          "phases_text": "Cyklustrin",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "phases_text": "Ét trin pr. linje i cyklusrækkefølge. \"Navn: punkt; punkt\" sætter fasens tjekliste. Reservedele og påkrævede felter pr. fase redigeres i panelet og bevares her.",
+          "go_back": "Vend tilbage til opgavehandlinger uden at gemme."
         }
       }
     }

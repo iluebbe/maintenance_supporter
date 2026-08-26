@@ -681,7 +681,8 @@
           "edit_checklist": "Upravit kontrolní seznam",
           "adaptive_scheduling": "Adaptivní plánování",
           "delete_task": "Smazat úkol",
-          "manage_tasks": "Zpět"
+          "manage_tasks": "Zpět",
+          "edit_phases": "Upravit fáze cyklu"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Kdy byl objekt instalován nebo zakoupen.",
           "warranty_expiry": "Kdy vyprší záruka výrobce na tento objekt.",
           "go_back": "Návrat do hlavní nabídky bez uložení."
+        }
+      },
+      "edit_phases": {
+        "title": "Upravit fáze cyklu",
+        "description": "Fáze cyklu pro {task_name}: různé práce ve stejném rytmu. Jeden řádek na krok cyklu — opakujte název pro opakovaný krok. Checklist fáze: \"Název: bod; bod\". Ponechte prázdné pro odstranění cyklu.",
+        "data": {
+          "phases_text": "Kroky cyklu",
+          "go_back": "Zpět"
+        },
+        "data_description": {
+          "phases_text": "Jeden krok na řádek, v pořadí cyklu. \"Název: bod; bod\" nastaví checklist fáze. Díly a povinná pole fáze se upravují v panelu a zde zůstávají zachovány.",
+          "go_back": "Návrat k akcím úkolu bez uložení."
         }
       }
     }

@@ -681,7 +681,8 @@
           "edit_checklist": "Muokkaa tarkistuslistaa",
           "adaptive_scheduling": "Mukautuva aikataulutus",
           "delete_task": "Poista tehtävä",
-          "manage_tasks": "Takaisin"
+          "manage_tasks": "Takaisin",
+          "edit_phases": "Muokkaa syklin vaiheita"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Milloin tämä kohde asennettiin tai ostettiin.",
           "warranty_expiry": "Milloin kohteen valmistajan takuu päättyy.",
           "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      },
+      "edit_phases": {
+        "title": "Muokkaa syklin vaiheita",
+        "description": "Syklin vaiheet kohteelle {task_name}: eri työt samassa tahdissa. Yksi rivi per syklin askel — toista nimi toistuvalle askeleelle. Lisää tarkistuslista: \"Nimi: kohta; kohta\". Jätä tyhjäksi poistaaksesi syklin.",
+        "data": {
+          "phases_text": "Syklin askeleet",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "phases_text": "Yksi askel riviä kohden syklin järjestyksessä. \"Nimi: kohta; kohta\" asettaa vaiheen tarkistuslistan. Vaihekohtaiset osat ja pakolliset kentät muokataan paneelissa ja säilyvät täällä.",
+          "go_back": "Palaa tehtävän toimintoihin tallentamatta."
         }
       }
     }

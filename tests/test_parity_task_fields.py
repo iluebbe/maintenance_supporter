@@ -68,12 +68,13 @@ PANEL_ONLY = {
     # from), so a config-flow editor would only duplicate the picker, not
     # close a behavioural gap.
     "required_completion_fields",
-    # Task phases (#139): same class again — the cycle editor composes
-    # checklists, part links and required fields PER PHASE, i.e. it builds on
-    # three features that are themselves panel-only. A config-flow phase
-    # editor without them would be a stub; enforcement (cursor advance,
-    # phase-effective completion rules) is surface-independent in the
-    # coordinator/model either way.
+    # Task phases (#139): the flow DOES edit these — the edit_phases step's
+    # minimal textarea editor (names + checklists + sequence) writes both via
+    # the shared websocket _apply_phase_fields, which this extractor cannot
+    # see (it only reads direct `updated_task[...] = ` assignments in the
+    # CONFIG_FLOW_SOURCES). Allowlisted so the indirection doesn't fail the
+    # gate; per-phase parts/required-fields overrides remain panel-only like
+    # their task-level twins. Coverage: tests/test_options_flow_phases.py.
     "phases",
     "phase_sequence",
 }

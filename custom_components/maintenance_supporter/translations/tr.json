@@ -681,7 +681,8 @@
           "edit_checklist": "Kontrol Listesini Düzenle",
           "adaptive_scheduling": "Uyarlanabilir Zamanlama",
           "delete_task": "Görevi Sil",
-          "manage_tasks": "Geri"
+          "manage_tasks": "Geri",
+          "edit_phases": "Döngü aşamalarını düzenle"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Bu nesnenin kurulduğu veya satın alındığı tarih.",
           "warranty_expiry": "Bu nesnenin üretici garantisinin sona erdiği tarih.",
           "go_back": "Kaydetmeden ana menüye dönün."
+        }
+      },
+      "edit_phases": {
+        "title": "Döngü aşamalarını düzenle",
+        "description": "{task_name} için döngü aşamaları: aynı ritimde farklı işler. Her döngü adımı için bir satır — tekrarlanan adım için adı tekrarlayın. \"Ad: madde; madde\" ile kontrol listesi ekleyin. Döngüyü kaldırmak için boş bırakın.",
+        "data": {
+          "phases_text": "Döngü adımları",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "phases_text": "Döngü sırasına göre her satıra bir adım. \"Ad: madde; madde\" o aşamanın kontrol listesini ayarlar. Aşama başına parçalar ve zorunlu alanlar panelde düzenlenir ve burada korunur.",
+          "go_back": "Kaydetmeden görev eylemlerine dönün."
         }
       }
     }

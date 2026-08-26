@@ -539,6 +539,73 @@ class TaskCrudMixin:
             },
         )
 
+    async def async_step_edit_phases(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Minimal cycle-phase editor (#139): one textarea, one line per
+        sequence step, optional per-phase checklist as "Name: item; item".
+
+        Names matching existing phases keep their ids (history phase_id and
+        the Store cursor stay stable) AND their panel-only overrides (parts /
+        required fields). Sanitizing + storage go through the SAME
+        ``_apply_phase_fields`` as the WS write path, and the Store cursor is
+        clamped the same way ws_update_task clamps it.
+        """
+        from .helpers.phases import clamp_phase_cursor, parse_phases_text, phases_to_text
+        from .websocket.tasks_crud import _apply_phase_fields
+
+        tasks_data = self.config_entry.data.get(CONF_TASKS, {})
+        task = tasks_data.get(self._selected_task_id or "", {})
+
+        if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_task_action_menu()
+
+            raw_defs, raw_seq = parse_phases_text(
+                user_input.get("phases_text", ""), task.get("phases") or {}
+            )
+            new_data = dict(self.config_entry.data)
+            new_tasks = dict(new_data.get(CONF_TASKS, {}))
+            updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
+            _apply_phase_fields(self.hass, self.config_entry, updated_task, raw_defs, raw_seq)
+            new_tasks[self._selected_task_id or ""] = updated_task
+            new_data[CONF_TASKS] = new_tasks
+            self._update_config_entry(new_data)
+
+            # Clamp/clear the Store cursor against the edited sequence —
+            # the Store wins on restore, so an out-of-range cursor would
+            # otherwise survive this edit forever (same block as ws_update).
+            rd = getattr(self.config_entry, "runtime_data", None)
+            store = getattr(rd, "store", None)
+            if store is not None and self._selected_task_id:
+                seq = updated_task.get("phase_sequence") or []
+                if seq:
+                    cur = store.get_task_state(self._selected_task_id).get("phase_cursor", 0)
+                    store.set_phase_cursor(self._selected_task_id, clamp_phase_cursor(cur, len(seq)))
+                else:
+                    store.get_task_state(self._selected_task_id).pop("phase_cursor", None)
+                store.async_delay_save()
+
+            return self._show_task_action_menu()
+
+        default_text = phases_to_text(task.get("phases") or {}, task.get("phase_sequence") or [])
+
+        return self.async_show_form(
+            step_id="edit_phases",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional("phases_text", default=default_text): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                            multiline=True,
+                        )
+                    ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
+                }
+            ),
+            description_placeholders={
+                "task_name": task.get("name", ""),
+            },
+        )
+
     async def async_step_delete_task(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Confirm and delete a task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})

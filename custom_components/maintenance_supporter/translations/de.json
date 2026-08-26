@@ -681,7 +681,8 @@
           "edit_checklist": "Checkliste bearbeiten",
           "adaptive_scheduling": "Adaptive Planung",
           "delete_task": "Aufgabe löschen",
-          "manage_tasks": "Zurück"
+          "manage_tasks": "Zurück",
+          "edit_phases": "Zyklus-Phasen bearbeiten"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Wann dieses Objekt installiert oder gekauft wurde.",
           "warranty_expiry": "Wann die Herstellergarantie für dieses Objekt abläuft.",
           "go_back": "Zurück zum Hauptmenü ohne Speichern."
+        }
+      },
+      "edit_phases": {
+        "title": "Zyklus-Phasen bearbeiten",
+        "description": "Zyklus-Phasen für {task_name}: unterschiedliche Arbeiten im gleichen Takt. Eine Zeile pro Zyklus-Schritt — gleicher Name = wiederholter Schritt. Checkliste einer Phase per \"Name: Punkt; Punkt\". Leer lassen entfernt den Zyklus.",
+        "data": {
+          "phases_text": "Zyklus-Schritte",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "phases_text": "Ein Schritt pro Zeile in Zyklus-Reihenfolge (z. B. Messer wenden / Messer wenden / Messer wechseln). \"Name: Punkt; Punkt\" setzt die Checkliste der Phase. Teile und Pflichtfelder je Phase werden im Panel gepflegt und bleiben hier erhalten.",
+          "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
         }
       }
     }

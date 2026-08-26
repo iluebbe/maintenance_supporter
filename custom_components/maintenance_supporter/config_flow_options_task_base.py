@@ -143,6 +143,9 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             menu.append("remove_trigger")
         if global_opts.get(CONF_ADVANCED_CHECKLISTS, False):
             menu.append("edit_checklist")
+        # #139: cycle phases are not feature-gated (the panel editor isn't
+        # either) — the minimal flow editor is always reachable.
+        menu.append("edit_phases")
         if global_opts.get(CONF_ADVANCED_ADAPTIVE, False):
             menu.append("adaptive_scheduling")
         menu.extend(["delete_task", "manage_tasks"])

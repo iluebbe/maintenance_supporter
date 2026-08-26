@@ -681,7 +681,8 @@
           "edit_checklist": "Edit Checklist",
           "adaptive_scheduling": "Adaptive Scheduling",
           "delete_task": "Delete Task",
-          "manage_tasks": "Back"
+          "manage_tasks": "Back",
+          "edit_phases": "Edit Cycle Phases"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "When this object was installed or purchased.",
           "warranty_expiry": "When the manufacturer warranty for this object expires.",
           "go_back": "Return to the main menu without saving."
+        }
+      },
+      "edit_phases": {
+        "title": "Edit Cycle Phases",
+        "description": "Cycle phases for {task_name}: different work on one shared schedule. One line per cycle step — repeat a name for a repeated step. Add a checklist to a phase with \"Name: item; item\". Leave empty to remove the cycle.",
+        "data": {
+          "phases_text": "Cycle steps",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "phases_text": "One step per line, in cycle order (e.g. Flip blades / Flip blades / Replace blades). \"Name: item; item\" sets that phase's checklist. Per-phase parts and required fields are edited in the panel and are preserved here.",
+          "go_back": "Return to task actions without saving."
         }
       }
     }

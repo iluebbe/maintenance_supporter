@@ -681,7 +681,8 @@
           "edit_checklist": "Rediger sjekkliste",
           "adaptive_scheduling": "Adaptiv planlegging",
           "delete_task": "Slett oppgave",
-          "manage_tasks": "Tilbake"
+          "manage_tasks": "Tilbake",
+          "edit_phases": "Rediger syklusfaser"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Når dette objektet ble installert eller kjøpt.",
           "warranty_expiry": "Når produsentgarantien for dette objektet utløper.",
           "go_back": "Gå tilbake til hovedmenyen uten å lagre."
+        }
+      },
+      "edit_phases": {
+        "title": "Rediger syklusfaser",
+        "description": "Syklusfaser for {task_name}: ulikt arbeid i samme rytme. Én linje per syklustrinn — gjenta et navn for et gjentatt trinn. Legg til en sjekkliste med \"Navn: punkt; punkt\". La stå tomt for å fjerne syklusen.",
+        "data": {
+          "phases_text": "Syklustrinn",
+          "go_back": "Gå tilbake"
+        },
+        "data_description": {
+          "phases_text": "Ett trinn per linje i syklusrekkefølge. \"Navn: punkt; punkt\" setter fasens sjekkliste. Deler og påkrevde felter per fase redigeres i panelet og bevares her.",
+          "go_back": "Gå tilbake til oppgavehandlinger uten å lagre."
         }
       }
     }

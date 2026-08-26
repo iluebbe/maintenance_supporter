@@ -681,7 +681,8 @@
           "edit_checklist": "Ellenőrzőlista szerkesztése",
           "adaptive_scheduling": "Adaptív ütemezés",
           "delete_task": "Feladat törlése",
-          "manage_tasks": "Vissza"
+          "manage_tasks": "Vissza",
+          "edit_phases": "Ciklusfázisok szerkesztése"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Mikor telepítették vagy vásárolták az objektumot.",
           "warranty_expiry": "Mikor jár le az objektum gyártói garanciája.",
           "go_back": "Visszatérés a főmenübe mentés nélkül."
+        }
+      },
+      "edit_phases": {
+        "title": "Ciklusfázisok szerkesztése",
+        "description": "Ciklusfázisok ehhez: {task_name} — különböző munkák azonos ütemben. Soronként egy cikluslépés; ismételt lépéshez ismételje a nevet. Ellenőrzőlista: \"Név: pont; pont\". Hagyja üresen a ciklus törléséhez.",
+        "data": {
+          "phases_text": "Cikluslépések",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "phases_text": "Soronként egy lépés, a ciklus sorrendjében. A \"Név: pont; pont\" a fázis ellenőrzőlistáját adja meg. A fázisonkénti alkatrészek és kötelező mezők a panelben szerkeszthetők, itt megmaradnak.",
+          "go_back": "Visszatérés a feladatműveletekhez mentés nélkül."
         }
       }
     }

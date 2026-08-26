@@ -681,7 +681,8 @@
           "edit_checklist": "Modifier la liste de contrôle",
           "adaptive_scheduling": "Planification adaptative",
           "delete_task": "Supprimer la tâche",
-          "manage_tasks": "Retour"
+          "manage_tasks": "Retour",
+          "edit_phases": "Modifier les phases du cycle"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Quand cet objet a été installé ou acheté.",
           "warranty_expiry": "Date d'expiration de la garantie du fabricant pour cet objet.",
           "go_back": "Retour au menu principal sans enregistrer."
+        }
+      },
+      "edit_phases": {
+        "title": "Modifier les phases du cycle",
+        "description": "Phases du cycle pour {task_name} : des travaux différents sur un même rythme. Une ligne par étape du cycle — répétez un nom pour une étape répétée. Ajoutez une check-list avec « Nom : élément ; élément ». Laissez vide pour supprimer le cycle.",
+        "data": {
+          "phases_text": "Étapes du cycle",
+          "go_back": "Retour"
+        },
+        "data_description": {
+          "phases_text": "Une étape par ligne, dans l'ordre du cycle. « Nom : élément ; élément » définit la check-list de la phase. Les pièces et champs obligatoires par phase se gèrent dans le panneau et sont conservés ici.",
+          "go_back": "Retour aux actions de tâche sans enregistrer."
         }
       }
     }

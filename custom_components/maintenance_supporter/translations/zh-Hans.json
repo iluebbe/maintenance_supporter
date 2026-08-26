@@ -681,7 +681,8 @@
           "edit_checklist": "编辑检查清单",
           "adaptive_scheduling": "自适应调度计划",
           "delete_task": "删除任务",
-          "manage_tasks": "返回"
+          "manage_tasks": "返回",
+          "edit_phases": "编辑循环阶段"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "该维护项安装或购买的日期。",
           "warranty_expiry": "此对象的制造商保修到期时间。",
           "go_back": "返回主菜单且不保存。"
+        }
+      },
+      "edit_phases": {
+        "title": "编辑循环阶段",
+        "description": "{task_name} 的循环阶段：同一节奏下的不同工作。每行一个循环步骤——重复的步骤请重复名称。用“名称: 项目; 项目”为阶段添加清单。留空则移除循环。",
+        "data": {
+          "phases_text": "循环步骤",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "phases_text": "按循环顺序每行输入一个步骤。“名称: 项目; 项目”设置该阶段的清单。每个阶段的备件和必填项在面板中编辑，此处会保留。",
+          "go_back": "返回任务动作且不保存。"
         }
       }
     }

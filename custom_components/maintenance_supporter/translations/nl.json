@@ -681,7 +681,8 @@
           "edit_checklist": "Checklist bewerken",
           "adaptive_scheduling": "Adaptieve planning",
           "delete_task": "Taak verwijderen",
-          "manage_tasks": "Terug"
+          "manage_tasks": "Terug",
+          "edit_phases": "Cyclusfasen bewerken"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
           "warranty_expiry": "Wanneer de fabrieksgarantie voor dit object verloopt.",
           "go_back": "Terug naar het hoofdmenu zonder opslaan."
+        }
+      },
+      "edit_phases": {
+        "title": "Cyclusfasen bewerken",
+        "description": "Cyclusfasen voor {task_name}: verschillend werk op één ritme. Eén regel per cyclusstap — herhaal een naam voor een herhaalde stap. Voeg een checklist toe met \"Naam: punt; punt\". Leeg laten verwijdert de cyclus.",
+        "data": {
+          "phases_text": "Cyclusstappen",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "phases_text": "Eén stap per regel, in cyclusvolgorde. \"Naam: punt; punt\" stelt de checklist van die fase in. Onderdelen en verplichte velden per fase beheer je in het paneel; ze blijven hier behouden.",
+          "go_back": "Terug naar taakacties zonder opslaan."
         }
       }
     }

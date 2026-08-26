@@ -133,3 +133,89 @@ def effective_field(task: dict[str, Any] | None, field: str) -> Any:
     if phase is not None and field in PHASE_OVERRIDE_FIELDS and field in phase:
         return phase[field]
     return (task or {}).get(field)
+
+
+# ── Options-flow text format ────────────────────────────────────────────────
+#
+# The config-flow's minimal phase editor is a single textarea (the
+# edit_checklist precedent): one line per SEQUENCE step, repeats by repeating
+# the name, and an optional checklist for a phase on the first line that
+# names it — "Replace blades: new blades; torque screws". Per-phase parts
+# and required-fields overrides stay panel-only (their task-level twins are
+# not flow-editable either) and are PRESERVED across a flow edit.
+
+_SLUG_RX = re.compile(r"[^a-z0-9_-]+")
+
+
+def _slug_for(name: str, taken: set[str]) -> str:
+    base = _SLUG_RX.sub("-", name.lower()).strip("-")[:24] or "phase"
+    if not _PHASE_ID_RX.match(base):
+        base = "phase"
+    slug, n = base, 2
+    while slug in taken:
+        slug = f"{base}-{n}"
+        n += 1
+    return slug
+
+
+def phases_to_text(defs: dict[str, Any], sequence: list[str]) -> str:
+    """Serialize a phase config for the options-flow textarea."""
+    lines: list[str] = []
+    seen: set[str] = set()
+    for pid in sequence:
+        definition = defs.get(pid) or {}
+        name = str(definition.get("name") or pid)
+        checklist = definition.get("checklist")
+        if pid not in seen and isinstance(checklist, list) and checklist:
+            lines.append(f"{name}: " + "; ".join(str(item) for item in checklist))
+        else:
+            lines.append(name)
+        seen.add(pid)
+    return "\n".join(lines)
+
+
+def parse_phases_text(
+    text: str, existing_defs: dict[str, Any] | None
+) -> tuple[dict[str, dict[str, Any]], list[str]]:
+    """Inverse of :func:`phases_to_text` — RAW defs + sequence for the
+    canonical sanitizers (callers run sanitize_phase_defs/_sequence, or
+    the shared ``_apply_phase_fields``, on the result).
+
+    Names match existing definitions case-insensitively so their ids stay
+    stable (history ``phase_id`` and the Store cursor key off them) and
+    their panel-only overrides (parts, required fields, notes) survive the
+    flow edit. A ``Name: item; item`` line sets that phase's checklist
+    (first such line wins); a name-only line of a phase that previously
+    had a checklist keeps it unless another line rewrote it. Empty text
+    clears the cycle.
+    """
+    existing = existing_defs or {}
+    by_name = {str(d.get("name", "")).strip().lower(): pid for pid, d in existing.items() if isinstance(d, dict)}
+    defs: dict[str, dict[str, Any]] = {}
+    sequence: list[str] = []
+    checklist_set: set[str] = set()
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        name, _, checklist_raw = line.partition(":")
+        name = name.strip()
+        if not name:
+            continue
+        pid = by_name.get(name.lower())
+        if pid is None:
+            pid = _slug_for(name, set(defs) | set(existing))
+            by_name[name.lower()] = pid
+        if pid not in defs:
+            base = existing.get(pid)
+            defs[pid] = dict(base) if isinstance(base, dict) else {}
+            defs[pid]["name"] = name
+        if checklist_raw.strip() and pid not in checklist_set:
+            items = [item.strip() for item in checklist_raw.split(";") if item.strip()]
+            if items:
+                defs[pid]["checklist"] = items
+                checklist_set.add(pid)
+        sequence.append(pid)
+    # Drop defs that never made it into the sequence (defensive; every line
+    # that defines also sequences) and let the canonical sanitizers cap.
+    return defs, sequence

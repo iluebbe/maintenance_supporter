@@ -681,7 +681,8 @@
           "edit_checklist": "Modifica lista di controllo",
           "adaptive_scheduling": "Pianificazione adattiva",
           "delete_task": "Elimina attività",
-          "manage_tasks": "Indietro"
+          "manage_tasks": "Indietro",
+          "edit_phases": "Modifica fasi del ciclo"
         }
       },
       "edit_task": {
@@ -1145,6 +1146,18 @@
           "installation_date": "Quando questo oggetto è stato installato o acquistato.",
           "warranty_expiry": "Quando scade la garanzia del produttore per questo oggetto.",
           "go_back": "Torna al menu principale senza salvare."
+        }
+      },
+      "edit_phases": {
+        "title": "Modifica fasi del ciclo",
+        "description": "Fasi del ciclo per {task_name}: lavori diversi sullo stesso ritmo. Una riga per passo del ciclo; ripeti un nome per un passo ripetuto. Aggiungi una checklist con \"Nome: voce; voce\". Lascia vuoto per rimuovere il ciclo.",
+        "data": {
+          "phases_text": "Passi del ciclo",
+          "go_back": "Indietro"
+        },
+        "data_description": {
+          "phases_text": "Un passo per riga, nell'ordine del ciclo. \"Nome: voce; voce\" imposta la checklist della fase. Ricambi e campi obbligatori per fase si gestiscono nel pannello e qui restano invariati.",
+          "go_back": "Torna alle azioni attività senza salvare."
         }
       }
     }
