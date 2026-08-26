@@ -248,6 +248,9 @@ export interface MaintenanceTask {
   degradation_rate?: number | null;
   degradation_trend?: string | null; // "rising" | "falling" | "stable" | "insufficient_data"
   degradation_r_squared?: number | null;
+  /** How many prior service cycles the degradation rate learned from
+   *  (sawtooth sensors); 0 = current window only. */
+  prediction_cycles?: number;
   days_until_threshold?: number | null;
   threshold_prediction_date?: string | null;
   threshold_prediction_confidence?: string | null; // "low" | "medium" | "high"

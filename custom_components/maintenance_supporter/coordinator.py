@@ -357,6 +357,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             task_result["_degradation_trend"] = deg.trend
                             task_result["_degradation_r_squared"] = deg.r_squared
                             task_result["_degradation_data_points"] = deg.data_points
+                            task_result["_prediction_cycles"] = deg.cycles_learned
 
                         # Threshold prediction
                         if prediction.threshold_prediction:

@@ -108,6 +108,7 @@ const READONLY = new Set([
   "degradation_rate",
   "degradation_trend",
   "degradation_r_squared",
+  "prediction_cycles",
   "days_until_threshold",
   "threshold_prediction_date",
   "threshold_prediction_confidence",

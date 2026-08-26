@@ -898,5 +898,6 @@
   "phase_sequence_add_step": "Adım ekle",
   "phase_current": "Geçerli aşama",
   "phase_set": "Geçerli olarak ayarla",
-  "chart_history_fallback": "Bu varlık için uzun dönem istatistik yok — recorder durum geçmişi gösteriliyor (genellikle son ~10 gün)"
+  "chart_history_fallback": "Bu varlık için uzun dönem istatistik yok — recorder durum geçmişi gösteriliyor (genellikle son ~10 gün)",
+  "prediction_cycles": "Döngülerden öğrenildi"
 }

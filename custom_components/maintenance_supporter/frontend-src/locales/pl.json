@@ -898,5 +898,6 @@
   "phase_sequence_add_step": "Dodaj krok",
   "phase_current": "Bieżąca faza",
   "phase_set": "Ustaw jako bieżącą",
-  "chart_history_fallback": "Brak statystyk długoterminowych dla tej encji — wyświetlana jest historia stanów recordera (zwykle ostatnie ~10 dni)"
+  "chart_history_fallback": "Brak statystyk długoterminowych dla tej encji — wyświetlana jest historia stanów recordera (zwykle ostatnie ~10 dni)",
+  "prediction_cycles": "Nauczone z cykli"
 }

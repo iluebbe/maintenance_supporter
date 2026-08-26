@@ -341,15 +341,25 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   // exists — a slow 0.25 %/day decline classifies stable yet still crosses
   // the threshold in a foreseeable number of days.
   let projection: ChartPoint[] | null = null;
+  // A projection pointing AWAY from the configured threshold is noise (the
+  // ET-4800 finding: a refill-skewed rising rate on a below-threshold ink
+  // sensor projected the ink level going UP) — draw it only when it heads
+  // toward the bound, or when no bound is configured at all.
+  const rate = task.degradation_rate;
+  const pointsAway =
+    rate != null &&
+    ((tc.trigger_below != null && tc.trigger_above == null && rate > 0) ||
+      (tc.trigger_above != null && tc.trigger_below == null && rate < 0));
   if (
     targetValue == null &&
-    task.degradation_rate != null &&
+    rate != null &&
+    !pointsAway &&
     (task.degradation_trend !== "stable" || task.days_until_threshold != null) &&
     task.degradation_trend !== "insufficient_data" &&
     points.length >= 2
   ) {
     const lp = points[points.length - 1];
-    projection = [lp, { ts: lp.ts + 30 * 86400000, val: lp.val + task.degradation_rate * 30 }];
+    projection = [lp, { ts: lp.ts + 30 * 86400000, val: lp.val + rate * 30 }];
   }
 
   const events: ChartEvent[] = task.history

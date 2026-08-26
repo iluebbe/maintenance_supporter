@@ -450,6 +450,18 @@ DEFAULT_DEGRADATION_LOOKBACK_DAYS = 30  # Days of recorder data for slope comput
 DEFAULT_DEGRADATION_MIN_POINTS = 10  # Min hourly data points to compute regression
 DEFAULT_DEGRADATION_SIGNIFICANCE = 0.05  # Min |slope|/mean ratio for rising/falling
 
+# --- Cycle-aware degradation (ET-4800 ink finding, 2026-08) ---
+# Consumption sensors are sawtooths: the value drifts toward the threshold and
+# JUMPS back on a refill/service. A regression across that jump reports the
+# refill as a rising trend. The analysis therefore splits the series into
+# service cycles at significant against-the-drift jumps, regresses the CURRENT
+# cycle, and LEARNS the typical rate from prior cycles (median, blended in
+# while the current cycle is still thin).
+DEGRADATION_CYCLE_LOOKBACK_DAYS = 180  # window for learning prior cycles
+DEGRADATION_CYCLE_JUMP_FRACTION = 0.2  # jump ≥ this share of the observed range = boundary
+DEGRADATION_BLEND_HALF_POINTS = 48  # current-cycle points at which current/history blend 50/50
+DEGRADATION_MIN_CYCLE_HOURS = 24  # prior cycles shorter than this teach nothing
+
 # --- Environmental Adjustment Defaults (Phase 3) ---
 DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS = 90  # Days of env data for correlation
 DEFAULT_ENVIRONMENTAL_CORRELATION_MIN = 0.3  # Min |r| to apply adjustment

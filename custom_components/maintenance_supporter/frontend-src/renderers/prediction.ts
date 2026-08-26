@@ -44,6 +44,7 @@ export function renderPredictionSection(task: MaintenanceTask, lang: string, fea
             <span class="prediction-value prediction-days${task.days_until_threshold === 0 ? " exceeded" : task.sensor_prediction_urgency ? " urgent" : ""}">${task.days_until_threshold === 0 ? t("threshold_exceeded", lang) : "~" + Math.round(task.days_until_threshold!) + " " + t("days", lang)}</span>
             ${task.threshold_prediction_date ? html`<span class="prediction-date">${formatDate(task.threshold_prediction_date, lang)}</span>` : nothing}
             ${task.threshold_prediction_confidence ? html`<span class="confidence-dot ${task.threshold_prediction_confidence}"></span>` : nothing}
+            ${(task.prediction_cycles ?? 0) > 0 ? html`<span class="prediction-cycles">${t("prediction_cycles", lang)}: ${task.prediction_cycles}</span>` : nothing}
           </div>
         ` : nothing}
         ${hasEnv && features.environmental ? html`

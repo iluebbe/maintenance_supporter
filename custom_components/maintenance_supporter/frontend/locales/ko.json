@@ -898,5 +898,6 @@
   "phase_sequence_add_step": "스텝 추가",
   "phase_current": "현재 단계",
   "phase_set": "현재로 설정",
-  "chart_history_fallback": "이 엔티티에는 장기 통계가 없습니다 — 레코더 상태 기록을 표시합니다(보통 최근 약 10일)"
+  "chart_history_fallback": "이 엔티티에는 장기 통계가 없습니다 — 레코더 상태 기록을 표시합니다(보통 최근 약 10일)",
+  "prediction_cycles": "학습한 주기 수"
 }

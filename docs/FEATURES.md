@@ -595,7 +595,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - On-demand **Re-analyze** button (task detail) — shows recommended interval, confidence and data-point count as a toast without having to wait for the next coordinator refresh
 - Seasonal awareness with hemisphere detection and per-month multipliers; manual 12-month **seasonal factor override editor** available below the seasonal chart (0.1–5.0 per month, empty = learned)
 - Environmental correlation with external sensors (temperature, humidity, etc.) — bound via an entity picker in the task dialog for sensor-based tasks
-- Sensor degradation rate analysis and threshold prediction
+- Sensor degradation rate analysis and threshold prediction — **cycle-aware** (2.66+): consumption/accumulation sensors are sawtooths (ink drifts down, a refill jumps it back up), so the analysis splits the series into service cycles at those jumps, regresses the *current* cycle, and **learns the typical rate from up to 180 days of prior cycles** (median, blended in while the current cycle is still thin). Right after a refill the forecast is carried by the learned rate instead of going silent, the prediction panel shows how many cycles it learned from, consistent cycles raise the confidence, and the chart never draws a projection pointing *away* from the configured threshold (the "ink level rising forever" artifact)
 - User feedback loop (needed / not needed / not sure) to improve recommendations
 
 ### Completion Actions (1.3.0+, advanced)

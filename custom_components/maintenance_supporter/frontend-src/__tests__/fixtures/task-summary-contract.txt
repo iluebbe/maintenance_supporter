@@ -97,6 +97,7 @@
       "name": "Swap cutting disks"
     }
   },
+  "prediction_cycles": 0,
   "priority": "high",
   "quick_complete_defaults": {
     "cost": 5.5,

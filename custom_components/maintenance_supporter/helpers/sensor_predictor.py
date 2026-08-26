@@ -9,6 +9,7 @@ Only applicable to SENSOR_BASED tasks with threshold or counter triggers.
 
 from __future__ import annotations
 
+import itertools
 import logging
 import math
 from dataclasses import dataclass
@@ -26,6 +27,10 @@ from ..const import (
     DEFAULT_ENVIRONMENTAL_FACTOR_MIN,
     DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS,
     DEFAULT_ENVIRONMENTAL_MIN_COMPLETIONS,
+    DEGRADATION_BLEND_HALF_POINTS,
+    DEGRADATION_CYCLE_JUMP_FRACTION,
+    DEGRADATION_CYCLE_LOOKBACK_DAYS,
+    DEGRADATION_MIN_CYCLE_HOURS,
 )
 from .schedule import read_legacy_fields
 
@@ -53,6 +58,10 @@ class DegradationAnalysis:
     current_value: float | None
     data_points: int
     lookback_days: int
+    # Cycle learning: how many COMPLETED prior service cycles fed the rate,
+    # and how consistent their rates were (MAD/|median|; None below 2 cycles).
+    cycles_learned: int = 0
+    cycle_spread: float | None = None
 
 
 @dataclass
@@ -170,12 +179,22 @@ class SensorPredictor:
 
         attribute = trigger_config.get("attribute")
 
-        # 1. Degradation rate
-        degradation = await self._async_compute_degradation(
-            entity_id,
-            attribute,
-            DEFAULT_DEGRADATION_LOOKBACK_DAYS,
-        )
+        # 1. Degradation rate. Consumption/accumulation sensors are sawtooths
+        #    (drift toward the threshold, jump back on service) — when the
+        #    trigger tells us which jump direction means "serviced", regress
+        #    the CURRENT cycle and learn the typical rate from prior ones
+        #    instead of fitting one line across the jumps (which reported a
+        #    refill as a rising trend — the ET-4800 ink finding).
+        boundary = self._cycle_boundary_direction(trigger_config)
+        if boundary is not None:
+            points = await self._async_fetch_statistics_points(entity_id, DEGRADATION_CYCLE_LOOKBACK_DAYS)
+            degradation = self._compute_cycle_aware_degradation(entity_id, boundary, points)
+        else:
+            degradation = await self._async_compute_degradation(
+                entity_id,
+                attribute,
+                DEFAULT_DEGRADATION_LOOKBACK_DAYS,
+            )
 
         # 2. Threshold prediction (synchronous math)
         threshold_prediction = None
@@ -193,6 +212,164 @@ class SensorPredictor:
             degradation=degradation,
             threshold_prediction=threshold_prediction,
             environmental=environmental,
+        )
+
+    # ------------------------------------------------------------------
+    # Cycle-aware degradation (sawtooth sensors)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _cycle_boundary_direction(trigger_config: dict[str, Any]) -> str | None:
+        """Which jump direction means "serviced" for this trigger, or None.
+
+        below-threshold → the value drifts DOWN, a refill jumps UP;
+        above-threshold / counter → the value drifts UP, a service resets DOWN;
+        both bounds → either jump is a boundary. No bound at all → no cycle
+        semantics (keep the plain whole-window regression).
+        """
+        if trigger_config.get("type", "threshold") == "counter":
+            return "down"
+        above = trigger_config.get("trigger_above") is not None
+        below = trigger_config.get("trigger_below") is not None
+        if above and below:
+            return "both"
+        if below:
+            return "up"
+        if above:
+            return "down"
+        return None
+
+    @staticmethod
+    def _split_cycles(
+        points: list[tuple[float, float]],
+        boundary: str,
+    ) -> list[list[tuple[float, float]]]:
+        """Split a series into service cycles at significant boundary jumps.
+
+        A jump counts when it moves in the boundary direction by at least
+        ``DEGRADATION_CYCLE_JUMP_FRACTION`` of the observed value range —
+        relative to the range so a 0-100 % ink tank and a 0-3 bar pressure
+        sensor segment alike, and immune to step-y sensors that report in
+        coarse increments (those steps are far below the fraction).
+        """
+        if len(points) < 2:
+            return [points] if points else []
+        values = [v for _, v in points]
+        value_range = max(values) - min(values)
+        if value_range <= 0:
+            return [points]
+        jump = DEGRADATION_CYCLE_JUMP_FRACTION * value_range
+
+        segments: list[list[tuple[float, float]]] = [[points[0]]]
+        for prev, cur in itertools.pairwise(points):
+            delta = cur[1] - prev[1]
+            is_boundary = (
+                (boundary in ("up", "both") and delta >= jump)
+                or (boundary in ("down", "both") and -delta >= jump)
+            )
+            if is_boundary:
+                segments.append([cur])
+            else:
+                segments[-1].append(cur)
+        return segments
+
+    def _compute_cycle_aware_degradation(
+        self,
+        entity_id: str,
+        boundary: str,
+        points: list[tuple[float, float]],
+    ) -> DegradationAnalysis:
+        """Degradation from the CURRENT cycle, blended with prior cycles.
+
+        - current rate: regression over the segment after the last boundary
+        - learned rate: median of the prior segments' rates (segments shorter
+          than ``DEGRADATION_MIN_CYCLE_HOURS`` or too thin teach nothing)
+        - blend: w·current + (1−w)·learned with w = n/(n+K) — right after a
+          service the learned rate carries the forecast, and the current
+          cycle takes over as it accumulates points
+        """
+        segments = self._split_cycles(points, boundary)
+        current_segment = segments[-1] if segments else []
+
+        # Rates of completed prior cycles (units/day).
+        prior_rates: list[float] = []
+        for segment in segments[:-1]:
+            if len(segment) < DEFAULT_DEGRADATION_MIN_POINTS:
+                continue
+            if segment[-1][0] - segment[0][0] < DEGRADATION_MIN_CYCLE_HOURS * 3600:
+                continue
+            fit = self._linear_regression(segment)
+            if fit is not None:
+                prior_rates.append(fit[0] * _SECONDS_PER_DAY)
+
+        learned_rate: float | None = None
+        cycle_spread: float | None = None
+        if prior_rates:
+            ordered = sorted(prior_rates)
+            mid = len(ordered) // 2
+            learned_rate = (
+                ordered[mid] if len(ordered) % 2 else (ordered[mid - 1] + ordered[mid]) / 2
+            )
+            if len(ordered) >= 2 and learned_rate != 0:
+                deviations = sorted(abs(r - learned_rate) for r in ordered)
+                dmid = len(deviations) // 2
+                mad = (
+                    deviations[dmid]
+                    if len(deviations) % 2
+                    else (deviations[dmid - 1] + deviations[dmid]) / 2
+                )
+                cycle_spread = round(mad / abs(learned_rate), 4)
+
+        current_rate: float | None = None
+        r_squared: float | None = None
+        if len(current_segment) >= DEFAULT_DEGRADATION_MIN_POINTS:
+            fit = self._linear_regression(current_segment)
+            if fit is not None:
+                current_rate = fit[0] * _SECONDS_PER_DAY
+                r_squared = fit[2]
+
+        if current_rate is not None and learned_rate is not None:
+            w = len(current_segment) / (len(current_segment) + DEGRADATION_BLEND_HALF_POINTS)
+            slope_per_day = w * current_rate + (1 - w) * learned_rate
+        elif current_rate is not None:
+            slope_per_day = current_rate
+        elif learned_rate is not None:
+            slope_per_day = learned_rate
+        else:
+            return DegradationAnalysis(
+                entity_id=entity_id,
+                slope_per_day=None,
+                trend="insufficient_data",
+                r_squared=None,
+                current_value=points[-1][1] if points else None,
+                data_points=len(current_segment),
+                lookback_days=DEGRADATION_CYCLE_LOOKBACK_DAYS,
+                cycles_learned=len(prior_rates),
+                cycle_spread=cycle_spread,
+            )
+
+        values = [v for _, v in points]
+        mean_val = sum(values) / len(values) if values else 1.0
+        if mean_val == 0:
+            mean_val = 1.0
+        ratio = abs(slope_per_day) / abs(mean_val)
+        if ratio < DEFAULT_DEGRADATION_SIGNIFICANCE:
+            trend = "stable"
+        elif slope_per_day > 0:
+            trend = "rising"
+        else:
+            trend = "falling"
+
+        return DegradationAnalysis(
+            entity_id=entity_id,
+            slope_per_day=round(slope_per_day, 6),
+            trend=trend,
+            r_squared=round(r_squared, 4) if r_squared is not None else None,
+            current_value=points[-1][1] if points else None,
+            data_points=len(current_segment),
+            lookback_days=DEGRADATION_CYCLE_LOOKBACK_DAYS,
+            cycles_learned=len(prior_rates),
+            cycle_spread=cycle_spread,
         )
 
     # ------------------------------------------------------------------
@@ -332,14 +509,23 @@ class SensorPredictor:
         else:
             days_until = min(abs(delta / slope), 3650)  # Cap at 10 years
 
-        # Confidence from r_squared
+        # Confidence: best of fit quality and cycle consistency. Right after
+        # a service the current segment is thin (low/no r²), but three prior
+        # cycles with near-identical rates justify a confident forecast.
         r2 = degradation.r_squared or 0.0
         if r2 >= 0.7:
-            confidence = "high"
+            fit_level = 2
         elif r2 >= 0.3:
-            confidence = "medium"
+            fit_level = 1
         else:
-            confidence = "low"
+            fit_level = 0
+        cycle_level = 0
+        spread = degradation.cycle_spread
+        if degradation.cycles_learned >= 3 and spread is not None and spread <= 0.25:
+            cycle_level = 2
+        elif degradation.cycles_learned >= 2 and spread is not None and spread <= 0.5:
+            cycle_level = 1
+        confidence = ("low", "medium", "high")[max(fit_level, cycle_level)]
 
         # Predicted date
         predicted_date = None

@@ -1229,3 +1229,137 @@ def test_fetch_statistics_returns_empty_list_on_import_error() -> None:
     with patch.dict("sys.modules", {"homeassistant.components.recorder": None}):
         result = asyncio.get_event_loop().run_until_complete(predictor._async_fetch_statistics_points("sensor.x", 30))
     assert result == []
+
+
+# ─── Cycle-aware degradation (ET-4800 ink finding, 2026-08) ──────────────
+
+
+def _hourly(spec: list[tuple[int, float, float]]) -> list[tuple[float, float]]:
+    """Build hourly points from (hours, start_value, end_value) ramps."""
+    points: list[tuple[float, float]] = []
+    t = 0.0
+    for hours, v0, v1 in spec:
+        for i in range(hours):
+            frac = i / max(1, hours - 1) if hours > 1 else 0.0
+            points.append((t, v0 + (v1 - v0) * frac))
+            t += 3600.0
+    return points
+
+
+def _predictor() -> SensorPredictor:
+    return SensorPredictor(MagicMock())
+
+
+def test_cycle_boundary_direction_from_trigger() -> None:
+    d = SensorPredictor._cycle_boundary_direction
+    assert d({"type": "threshold", "trigger_below": 15}) == "up"
+    assert d({"type": "threshold", "trigger_above": 3.0}) == "down"
+    assert d({"type": "threshold", "trigger_above": 3.0, "trigger_below": 1.0}) == "both"
+    assert d({"type": "counter", "trigger_target_value": 100}) == "down"
+    assert d({"type": "threshold"}) is None
+
+
+def test_split_cycles_at_refill_jumps() -> None:
+    # 3 weeks falling 40→16, refill jump to 100, falling to 71.
+    points = _hourly([(500, 40, 16), (120, 100, 71)])
+    segments = SensorPredictor._split_cycles(points, "up")
+    assert len(segments) == 2
+    assert segments[0][-1][1] == 16
+    assert segments[1][0][1] == 100
+
+
+def test_split_cycles_ignores_step_noise() -> None:
+    # Coarse sensor reporting in 1-unit steps never splits (range 30, jump=6).
+    points = _hourly([(300, 45, 16)])
+    assert len(SensorPredictor._split_cycles(points, "up")) == 1
+
+
+def test_et4800_sawtooth_no_longer_reports_rising() -> None:
+    """THE bug: flat-at-16 weeks, refill to ~71 — the whole-window regression
+    said +4.2/day "rising". Cycle-aware analysis must not."""
+    points = _hourly([(400, 17, 16), (120, 72, 71)])
+    deg = _predictor()._compute_cycle_aware_degradation("sensor.ink", "up", points)
+    assert deg.trend != "rising"
+    assert deg.slope_per_day is not None and deg.slope_per_day <= 0
+    assert deg.cycles_learned == 1
+
+
+def test_learned_rate_carries_a_fresh_cycle() -> None:
+    """Right after a refill the current segment is too thin to regress —
+    the median of the prior cycles' rates must carry the forecast."""
+    # Two prior cycles at ~-1/day (24 units over 24 days), then a refill
+    # with only 4 points so far.
+    cycle = (24 * 24, 100.0, 76.0)
+    points = _hourly([cycle, cycle, (4, 100, 100)])
+    deg = _predictor()._compute_cycle_aware_degradation("sensor.ink", "up", points)
+    assert deg.cycles_learned == 2
+    assert deg.slope_per_day == pytest.approx(-1.0, abs=0.1)
+    assert deg.data_points == 4  # current segment only
+    # consistent cycles → tight spread
+    assert deg.cycle_spread is not None and deg.cycle_spread <= 0.25
+
+
+def test_blend_shifts_toward_current_cycle_as_it_grows() -> None:
+    # Prior cycles at -1/day; current cycle clearly faster at -2/day.
+    prior = (24 * 24, 100.0, 76.0)
+    current_fast = (24 * 10, 100.0, 80.0)  # -2/day, 240 points
+    points = _hourly([prior, prior, current_fast])
+    deg = _predictor()._compute_cycle_aware_degradation("sensor.ink", "up", points)
+    # w = 240/(240+48) ≈ 0.83 → blended ≈ 0.83*(-2) + 0.17*(-1) ≈ -1.83
+    assert deg.slope_per_day == pytest.approx(-1.83, abs=0.1)
+
+
+def test_above_threshold_resets_split_downward() -> None:
+    # Filter pressure rises 1→3, service resets to 1, rises again.
+    rise = (24 * 20, 1.0, 3.0)
+    points = _hourly([rise, rise])
+    segments = SensorPredictor._split_cycles(points, "down")
+    assert len(segments) == 2
+    deg = _predictor()._compute_cycle_aware_degradation("sensor.pressure", "down", points)
+    assert deg.trend == "rising"  # genuinely rising WITHIN the cycle
+    assert deg.cycles_learned == 1
+
+
+def test_short_prior_cycles_teach_nothing() -> None:
+    # A 6-hour blip between refills is not a cycle.
+    points = _hourly([(6, 20, 19), (24 * 20, 100.0, 76.0)])
+    deg = _predictor()._compute_cycle_aware_degradation("sensor.ink", "up", points)
+    assert deg.cycles_learned == 0
+
+
+def test_cycle_confidence_lifts_thin_current_fit() -> None:
+    """3 consistent prior cycles → high confidence even with no current r²."""
+    cycle = (24 * 24, 100.0, 76.0)
+    points = _hourly([cycle, cycle, cycle, (4, 100, 100)])
+    deg = _predictor()._compute_cycle_aware_degradation("sensor.ink", "up", points)
+    assert deg.cycles_learned == 3
+    tp = SensorPredictor._compute_threshold_prediction(
+        deg, {"type": "threshold", "trigger_below": 15}
+    )
+    assert tp is not None
+    assert tp.confidence == "high"
+    # ~100 → 15 at ~1/day ≈ 85 days
+    assert tp.days_until_threshold == pytest.approx(85, abs=10)
+
+
+async def test_analyze_uses_cycle_path_for_below_threshold() -> None:
+    """async_analyze routes below-threshold tasks through the cycle-aware
+    path with the long lookback."""
+    predictor = _predictor()
+    points = _hourly([(400, 17, 16), (120, 72, 71)])
+    with patch.object(
+        predictor, "_async_fetch_statistics_points", new=AsyncMock(return_value=points)
+    ) as fetch:
+        result = await predictor.async_analyze(
+            {
+                "name": "Ink",
+                "schedule_type": "sensor_based",
+                "trigger_config": {"type": "threshold", "entity_id": "sensor.ink", "trigger_below": 15},
+            },
+            {},
+        )
+    from custom_components.maintenance_supporter.const import DEGRADATION_CYCLE_LOOKBACK_DAYS
+
+    fetch.assert_awaited_once_with("sensor.ink", DEGRADATION_CYCLE_LOOKBACK_DAYS)
+    assert result is not None and result.degradation is not None
+    assert result.degradation.trend != "rising"

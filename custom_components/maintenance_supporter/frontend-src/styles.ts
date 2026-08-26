@@ -1322,6 +1322,11 @@ export const sharedStyles = css`
     opacity: 0.7;
   }
 
+  .prediction-cycles {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
   .prediction-entity {
     font-size: 10px;
     opacity: 0.6;

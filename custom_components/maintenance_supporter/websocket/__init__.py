@@ -261,6 +261,9 @@ def _build_task_summary(
         "degradation_rate": ct.get("_degradation_rate"),
         "degradation_trend": ct.get("_degradation_trend"),
         "degradation_r_squared": ct.get("_degradation_r_squared"),
+        # How many prior service cycles the rate learned from (sawtooth
+        # sensors — ET-4800 finding). 0 = current window only.
+        "prediction_cycles": ct.get("_prediction_cycles", 0),
         "days_until_threshold": ct.get("_days_until_threshold"),
         "threshold_prediction_date": ct.get("_threshold_prediction_date"),
         "threshold_prediction_confidence": ct.get("_threshold_prediction_confidence"),
