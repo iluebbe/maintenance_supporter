@@ -897,5 +897,6 @@
   "phase_sequence_label": "Kolejność cyklu",
   "phase_sequence_add_step": "Dodaj krok",
   "phase_current": "Bieżąca faza",
-  "phase_set": "Ustaw jako bieżącą"
+  "phase_set": "Ustaw jako bieżącą",
+  "chart_history_fallback": "Brak statystyk długoterminowych dla tej encji — wyświetlana jest historia stanów recordera (zwykle ostatnie ~10 dni)"
 }

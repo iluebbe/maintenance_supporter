@@ -3548,6 +3548,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       lang: this._lang,
       detailStatsData: this._detailStatsData,
       hasStatsService: !!this._statsService,
+      historyFallbackIds: this._statsService?.historyFallbackIds,
       isCounterEntity: (tc) => this._isCounterEntity(tc),
       rangeDays: this._chartRangeDays,
       setRangeDays: (days) => this._setChartRange(days),

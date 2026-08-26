@@ -897,5 +897,6 @@
   "phase_sequence_label": "Cycle order",
   "phase_sequence_add_step": "Add step",
   "phase_current": "Current phase",
-  "phase_set": "Set as current"
+  "phase_set": "Set as current",
+  "chart_history_fallback": "No long-term statistics for this entity — showing recorder state history (typically the last ~10 days)"
 }

@@ -897,5 +897,6 @@
   "phase_sequence_label": "Cykelordning",
   "phase_sequence_add_step": "Lägg till steg",
   "phase_current": "Aktuell fas",
-  "phase_set": "Ange som aktuell"
+  "phase_set": "Ange som aktuell",
+  "chart_history_fallback": "Ingen långtidsstatistik för denna entitet — recorderns tillståndshistorik visas (vanligtvis de senaste ~10 dagarna)"
 }

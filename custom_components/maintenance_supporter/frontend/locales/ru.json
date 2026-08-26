@@ -897,5 +897,6 @@
   "phase_sequence_label": "Порядок цикла",
   "phase_sequence_add_step": "Добавить шаг",
   "phase_current": "Текущая фаза",
-  "phase_set": "Сделать текущей"
+  "phase_set": "Сделать текущей",
+  "chart_history_fallback": "Для этой сущности нет долгосрочной статистики — показана история состояний recorder (обычно последние ~10 дней)"
 }

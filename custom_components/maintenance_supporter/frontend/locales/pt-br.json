@@ -897,5 +897,6 @@
   "phase_sequence_label": "Ordem do ciclo",
   "phase_sequence_add_step": "Adicionar passo",
   "phase_current": "Fase atual",
-  "phase_set": "Definir como atual"
+  "phase_set": "Definir como atual",
+  "chart_history_fallback": "Sem estatísticas de longo prazo para esta entidade — mostrando o histórico de estados do recorder (normalmente os últimos ~10 dias)"
 }

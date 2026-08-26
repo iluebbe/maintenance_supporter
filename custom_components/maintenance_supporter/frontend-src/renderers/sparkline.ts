@@ -22,6 +22,11 @@ export interface SparklineContext {
   lang: string;
   detailStatsData: Map<string, StatisticsPoint[]>;
   hasStatsService: boolean;
+  /** #141: entities whose series is recorder STATE HISTORY (no long-term
+   *  statistics exist — binary sensors etc.). Changes the footnote and
+   *  suppresses the trigger_current_value tail point (for a state_change
+   *  trigger that is the change COUNTER, not the plotted state). */
+  historyFallbackIds?: Set<string>;
   isCounterEntity: (tc: TriggerConfig) => boolean;
   rangeDays: number;
   setRangeDays: (days: number) => void;
@@ -252,7 +257,11 @@ function rawStatsPoints(task: MaintenanceTask, ctx: SparklineContext): ChartPoin
       }
     }
   }
-  if (task.trigger_current_value != null) {
+  // #141: a history-fallback series already runs to "now" and plots the
+  // STATE — appending trigger_current_value (a change counter on
+  // state_change triggers) would graft a wrong-dimension point onto it.
+  const fromHistory = !!entityId && !!ctx.historyFallbackIds?.has(entityId) && statsPoints.length >= 2;
+  if (task.trigger_current_value != null && !fromHistory) {
     points.push({ ts: Date.now(), val: task.trigger_current_value });
   }
   points.sort((a, b) => a.ts - b.ts);
@@ -364,11 +373,23 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       @range-change=${(e: CustomEvent<{ days: number }>) => ctx.setRangeDays(e.detail.days)}
       @outlier-toggle=${(e: CustomEvent<{ hide: boolean }>) => ctx.setHideOutliers(e.detail.hide)}
     ></maintenance-trigger-chart>
-    ${statsFetchedEmpty && !loading
-      ? html`<div class="chart-note">
+    ${(() => {
+      if (loading) return nothing;
+      // #141: the series came from recorder state history (binary sensors
+      // never have long-term statistics) — say so, incl. the shorter window.
+      if (entityId && ctx.historyFallbackIds?.has(entityId) && !statsFetchedEmpty) {
+        return html`<div class="chart-note">
+          <ha-icon icon="mdi:information-outline"></ha-icon>
+          ${t("chart_history_fallback", ctx.lang)}
+        </div>`;
+      }
+      if (statsFetchedEmpty) {
+        return html`<div class="chart-note">
           <ha-icon icon="mdi:information-outline"></ha-icon>
           ${t("chart_no_stats", ctx.lang)}
-        </div>`
-      : nothing}
+        </div>`;
+      }
+      return nothing;
+    })()}
   `;
 }

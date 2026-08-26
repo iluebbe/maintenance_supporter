@@ -897,5 +897,6 @@
   "phase_sequence_label": "循环顺序",
   "phase_sequence_add_step": "添加步骤",
   "phase_current": "当前阶段",
-  "phase_set": "设为当前"
+  "phase_set": "设为当前",
+  "chart_history_fallback": "该实体没有长期统计数据——显示 recorder 状态历史（通常为最近约 10 天）"
 }

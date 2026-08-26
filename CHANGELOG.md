@@ -2,6 +2,43 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.65.0] - 2026-08-26
+
+### ✨ Added
+
+- **Task cycle phases** (#139). One task, one cadence, **different work each
+  time**: define up to 10 named phases and arrange them in a cycle of up to
+  12 steps (repeats welcome) — the robot-mower blade protocol *flip, flip,
+  replace* on one 30-day rhythm, or "every 4th service is the big one".
+  Every completion performs the step currently due and advances the cycle,
+  wrapping around. A phase can override the task's **checklist**, **consumed
+  spare parts** and **required completion fields** for its step (set =
+  override, unset = the task-level value applies), so the *replace* step can
+  demand the new blades and a cost entry while *flip* stays lightweight.
+  Every surface names the due step: the task detail shows the full cycle
+  strip with each phase's last completion (operators can re-point it after a
+  mis-click or when adopting a machine mid-cycle), the complete dialog, the
+  dashboard card, calendar events, notifications and the task sensor
+  (`current_phase`/`phase_index`/`phase_count` attributes) all carry the
+  current phase, and history entries record which phase they completed.
+  Skips and resets keep the cycle position — the same work stays due, only
+  the clock restarts; backfilled completions never advance it. Phases are
+  edited in the panel task dialog; the Integration Options flow carries a
+  minimal editor too (one line per cycle step, `Name: item; item` for a
+  phase checklist). JSON backups round-trip the definitions, the sequence
+  AND the live cycle position, so a restore resumes mid-cycle. New
+  WebSocket command `task/set_phase` (91 commands total).
+
+### 🐛 Fixed
+
+- **Binary/problem-sensor trigger charts drew a flat line** (#141). Entities
+  without long-term statistics (binary sensors never have them) fell back to
+  the sparse per-completion snapshots, so a `problem` sensor's chart showed
+  a constant `1`. The detail chart now falls back to **recorder state
+  history**: on/off plots as a real 0/1 step line (numeric no-statistics
+  entities get their raw history, too), extended to "now", with a footnote
+  naming the shorter history window (typically ~10 days).
+
 ## [2.64.0] - 2026-08-25
 
 ### ✨ Added

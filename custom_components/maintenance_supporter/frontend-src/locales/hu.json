@@ -897,5 +897,6 @@
   "phase_sequence_label": "Ciklus sorrendje",
   "phase_sequence_add_step": "Lépés hozzáadása",
   "phase_current": "Aktuális fázis",
-  "phase_set": "Beállítás aktuálisként"
+  "phase_set": "Beállítás aktuálisként",
+  "chart_history_fallback": "Ehhez az entitáshoz nincs hosszú távú statisztika — a recorder állapotelőzményei jelennek meg (jellemzően az utolsó ~10 nap)"
 }
