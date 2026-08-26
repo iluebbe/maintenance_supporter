@@ -68,6 +68,14 @@ PANEL_ONLY = {
     # from), so a config-flow editor would only duplicate the picker, not
     # close a behavioural gap.
     "required_completion_fields",
+    # Task phases (#139): same class again — the cycle editor composes
+    # checklists, part links and required fields PER PHASE, i.e. it builds on
+    # three features that are themselves panel-only. A config-flow phase
+    # editor without them would be a stub; enforcement (cursor advance,
+    # phase-effective completion rules) is surface-independent in the
+    # coordinator/model either way.
+    "phases",
+    "phase_sequence",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by

@@ -889,5 +889,13 @@
   "service_record_entries": "записів",
   "completed_by": "Виконав",
   "date_from": "Від",
-  "date_to": "До"
+  "date_to": "До",
+  "phases_section": "Фази циклу (необов'язково)",
+  "phases_hint": "Різні роботи в одному ритмі — кожне виконання переходить до наступного кроку (напр., мале, мале, велике ТО).",
+  "phase_add": "Додати фазу",
+  "phase_name": "Назва фази",
+  "phase_sequence_label": "Порядок циклу",
+  "phase_sequence_add_step": "Додати крок",
+  "phase_current": "Поточна фаза",
+  "phase_set": "Зробити поточною"
 }

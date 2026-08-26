@@ -27,6 +27,7 @@ from ..const import (
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
 )
 from ..helpers.global_options import get_default_warning_days
+from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
     build_qr_url,
@@ -727,6 +728,42 @@ async def ws_import_json(
                 task_data["part_ref"] = {"part_id": part_id_map[ref["part_id"]]}
             elif ref is not None:
                 task_data.pop("part_ref", None)
+
+            # Task phases (#139): sanitize like the live WS write, remap each
+            # phase's part links to the regenerated ids (same rules as the
+            # task-level links above), and clamp the cursor to the imported
+            # sequence. The cursor rides entry.data until the fresh entry's
+            # first setup migrates it into the Store (dynamic field), so a
+            # restore resumes mid-cycle.
+            raw_defs = task_entry.get("phases")
+            raw_seq = task_entry.get("phase_sequence")
+            if isinstance(raw_defs, dict) and isinstance(raw_seq, list):
+                defs = sanitize_phase_defs(raw_defs)
+                for pdef in defs.values():
+                    plinks = pdef.get("consumes_parts")
+                    if not isinstance(plinks, list):
+                        continue
+                    kept = []
+                    for link in plinks:
+                        if not isinstance(link, dict):
+                            continue
+                        foreign = str(link.get("entry_id") or "").strip()
+                        if foreign:
+                            if hass.config_entries.async_get_entry(foreign) is not None:
+                                kept.append(dict(link))
+                        elif link.get("part_id") in part_id_map:
+                            kept.append(
+                                {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
+                            )
+                    if kept:
+                        pdef["consumes_parts"] = kept
+                    else:
+                        pdef.pop("consumes_parts", None)
+                seq = sanitize_phase_sequence(raw_seq, defs)
+                if defs and seq:
+                    task_data["phases"] = defs
+                    task_data["phase_sequence"] = seq
+                    task_data["phase_cursor"] = clamp_phase_cursor(task_entry.get("phase_cursor"), len(seq))
 
             # Sanitize critical fields from import data
             iv = task_data.get("interval_days")

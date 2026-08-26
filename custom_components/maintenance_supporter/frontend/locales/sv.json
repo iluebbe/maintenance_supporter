@@ -889,5 +889,13 @@
   "service_record_entries": "poster",
   "completed_by": "Utförd av",
   "date_from": "Från",
-  "date_to": "Till"
+  "date_to": "Till",
+  "phases_section": "Cykelfaser (valfritt)",
+  "phases_hint": "Olika arbeten i samma rytm — varje slutförande går vidare till nästa steg (t.ex. liten, liten, stor service).",
+  "phase_add": "Lägg till fas",
+  "phase_name": "Fasnamn",
+  "phase_sequence_label": "Cykelordning",
+  "phase_sequence_add_step": "Lägg till steg",
+  "phase_current": "Aktuell fas",
+  "phase_set": "Ange som aktuell"
 }

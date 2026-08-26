@@ -193,7 +193,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
                   <div class="row">
                     <span class="date" title=${formatDateTime(e.timestamp, L)}>${formatDate(e.timestamp, L)}</span>
                     <span class="type type-${e.type}">${t(e.type, L)}</span>
-                    <button class="task-link" @click=${() => this._openTask(e.taskId)}>${e.taskName}</button>
+                    <button class="task-link" @click=${() => this._openTask(e.taskId)}>${e.taskName}${e.phaseName ? ` · ${e.phaseName}` : ""}</button>
                     <span class="facts">
                       ${e.cost != null ? html`<span>${e.cost.toFixed(2)} ${this.currencySymbol}</span>` : nothing}
                       ${e.duration != null ? html`<span>${e.duration} min</span>` : nothing}

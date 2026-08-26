@@ -18,6 +18,9 @@ export interface ObjectHistoryEntry {
   duration: number | null;
   notes: string | null;
   completedBy: string | null;
+  /** #139: name of the cycle phase this completion recorded (null when the
+   *  task is phase-less or the entry predates its phases). */
+  phaseName: string | null;
 }
 
 /** Entry types that belong in a lifecycle record — mirrors the task detail's
@@ -26,7 +29,12 @@ export interface ObjectHistoryEntry {
 const LIFECYCLE_TYPES = new Set(["completed", "skipped", "reset", "missed"]);
 
 export function mergeObjectHistory(
-  tasks: ReadonlyArray<{ id: string; name: string; history?: HistoryEntry[] | null }>,
+  tasks: ReadonlyArray<{
+    id: string;
+    name: string;
+    history?: HistoryEntry[] | null;
+    phases?: Record<string, { name: string }> | null;
+  }>,
 ): ObjectHistoryEntry[] {
   const out: ObjectHistoryEntry[] = [];
   for (const task of tasks) {
@@ -44,6 +52,7 @@ export function mergeObjectHistory(
         duration: typeof h.duration === "number" ? h.duration : null,
         notes: h.notes ?? null,
         completedBy: h.completed_by ?? null,
+        phaseName: (h.phase_id && task.phases?.[h.phase_id]?.name) || null,
       });
     }
   }

@@ -60,6 +60,16 @@ def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
 _HISTORY_WINDOW = int(os.environ.get("MS_HISTORY_WINDOW", "20"))
 
 
+def _current_phase_summary(task_data: dict[str, Any]) -> dict[str, Any] | None:
+    """{id, name, index, count} of the phase currently due, or None (#139)."""
+    from ..helpers.phases import current_phase
+
+    phase = current_phase(task_data)
+    if phase is None:
+        return None
+    return {"id": phase["id"], "name": phase["name"], "index": phase["index"], "count": phase["count"]}
+
+
 def _build_task_summary(
     hass: HomeAssistant,
     task_id: str,
@@ -151,6 +161,13 @@ def _build_task_summary(
         # auto-created "buy" reminder, the owning part marker ({part_id}).
         "consumes_parts": task_data.get("consumes_parts"),
         "part_ref": task_data.get("part_ref"),
+        # Task phases (#139): defs + cycle + Store-merged cursor, plus the
+        # resolved current phase so every surface can label "what's due now"
+        # without re-deriving the clamp.
+        "phases": task_data.get("phases"),
+        "phase_sequence": task_data.get("phase_sequence"),
+        "phase_cursor": task_data.get("phase_cursor", 0),
+        "current_phase": _current_phase_summary(task_data),
         "priority": task_data.get("priority") or DEFAULT_TASK_PRIORITY,
         # v2.10.0 archive: archived_at is the persisted timestamp (None = active);
         # `archived` is the convenience bool the frontend filters on; reason is
@@ -623,6 +640,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_postpone_task,
         ws_quick_complete_task,
         ws_reset_task,
+        ws_set_task_phase,
         ws_skip_task,
         ws_snooze_task,
         ws_task_history,
@@ -665,6 +683,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_checklist_progress)
     websocket_api.async_register_command(hass, ws_skip_task)
     websocket_api.async_register_command(hass, ws_reset_task)
+    websocket_api.async_register_command(hass, ws_set_task_phase)
     websocket_api.async_register_command(hass, ws_snooze_task)
     websocket_api.async_register_command(hass, ws_postpone_task)
     websocket_api.async_register_command(hass, ws_create_part)

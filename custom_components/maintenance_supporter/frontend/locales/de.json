@@ -889,5 +889,13 @@
   "service_record_entries": "Einträge",
   "completed_by": "Erledigt von",
   "date_from": "Von",
-  "date_to": "Bis"
+  "date_to": "Bis",
+  "phases_section": "Zyklus-Phasen (optional)",
+  "phases_hint": "Unterschiedliche Arbeiten im gleichen Takt — jede Erledigung schaltet zum nächsten Schritt (z. B. klein, klein, groß).",
+  "phase_add": "Phase hinzufügen",
+  "phase_name": "Phasenname",
+  "phase_sequence_label": "Zyklus-Reihenfolge",
+  "phase_sequence_add_step": "Schritt anhängen",
+  "phase_current": "Aktuelle Phase",
+  "phase_set": "Als aktuell setzen"
 }

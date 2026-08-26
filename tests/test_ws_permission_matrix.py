@@ -132,6 +132,8 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/task/postpone": "read",
     "maintenance_supporter/task/quick_complete": "read",
     "maintenance_supporter/task/reset": "read",
+    # #139: same class as reset — a correction of dynamic task state.
+    "maintenance_supporter/task/set_phase": "read",
     "maintenance_supporter/task/skip": "read",
     "maintenance_supporter/task/snooze": "read",
     "maintenance_supporter/tasks/by_user": "read",

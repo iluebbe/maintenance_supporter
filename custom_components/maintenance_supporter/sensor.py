@@ -60,6 +60,17 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+
+def _current_phase_summary_for_sensor(task: dict[str, Any]) -> dict[str, Any] | None:
+    """Resolved current phase for entity attributes (#139)."""
+    from .helpers.phases import current_phase
+
+    phase = current_phase(task)
+    if phase is None:
+        return None
+    return {"id": phase["id"], "name": phase["name"], "index": phase["index"], "count": phase["count"]}
+
+
 PARALLEL_UPDATES = 0
 
 
@@ -235,6 +246,16 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             # without an explicit value are "normal", the model default.
             "priority": task.get("priority") or DEFAULT_TASK_PRIORITY,
         }
+
+        # Task phases (#139): which cycle step is due — stable (changes once
+        # per completion), so it belongs on the entity for automations
+        # ("announce 'replace blades' only when THAT phase comes up").
+        phase = _current_phase_summary_for_sensor(task)
+        if phase is not None:
+            attrs["current_phase"] = phase["name"]
+            attrs["current_phase_id"] = phase["id"]
+            attrs["phase_index"] = phase["index"] + 1
+            attrs["phase_count"] = phase["count"]
 
         # Trigger attributes (static config only — no fast-changing values)
         trigger_config = task.get("trigger_config")

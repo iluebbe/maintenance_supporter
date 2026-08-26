@@ -260,6 +260,18 @@ export class MaintenanceTaskDialog extends LitElement {
 
   // Checklist (newline-separated steps, one per line)
   @state() private _checklistText = "";
+  // Task phases (#139): editable defs + the cycle order. The v1 editor keeps
+  // each phase to name + checklist + at most ONE own-object part (the mower
+  // "14 new blades" case); richer per-phase config exists at the WS level.
+  // `carry` holds def fields the editor has no form for (notes,
+  // required_completion_fields, future keys) and `extraParts` any links
+  // beyond the first — both re-merged on save so a no-op edit never wipes
+  // them (#106 pattern; same passthrough idea as trigger_config's carry).
+  @state() private _phaseDefs: Array<{
+    id: string; name: string; checklistText: string; partId: string; partQty: string;
+    extraParts: TaskPartLink[]; carry: Record<string, unknown>;
+  }> = [];
+  @state() private _phaseSeq: string[] = [];
   /** Details this task demands on completion — enforced by the backend on
    *  every surface, so a button press or voice command cannot bypass it. */
   @state() private _requiredCompletion: string[] = [];
@@ -388,6 +400,19 @@ export class MaintenanceTaskDialog extends LitElement {
     this._rotationStrategy = task.rotation_strategy || "";
 
     this._checklistText = (task.checklist || []).join("\n");
+    this._phaseDefs = Object.entries(task.phases || {}).map(([id, def]) => {
+      const { name: _n, checklist: _c, consumes_parts: _p, ...carry } = def as unknown as Record<string, unknown>;
+      return {
+        id,
+        name: def.name || id,
+        checklistText: (def.checklist || []).join("\n"),
+        partId: def.consumes_parts?.[0]?.part_id || "",
+        partQty: def.consumes_parts?.[0]?.quantity != null ? String(def.consumes_parts[0].quantity) : "",
+        extraParts: (def.consumes_parts || []).slice(1),
+        carry,
+      };
+    });
+    this._phaseSeq = [...(task.phase_sequence || [])];
     this._requiredCompletion = [...(task.required_completion_fields || [])];
     this._scheduleTime = task.schedule_time || "";
 
@@ -506,6 +531,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._assigneePool = [];
     this._rotationStrategy = "";
     this._checklistText = "";
+    this._phaseDefs = [];
+    this._phaseSeq = [];
     this._requiredCompletion = [];
     this._scheduleTime = "";
     this._environmentalEntity = "";
@@ -993,6 +1020,103 @@ export class MaintenanceTaskDialog extends LitElement {
     this._requiredCompletion = [...next];
   }
 
+  // ── Task phases (#139) ───────────────────────────────────────────────
+
+  private _phaseSlug(name: string): string {
+    const base = name.toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "phase";
+    let slug = base;
+    let n = 2;
+    while (this._phaseDefs.some((d) => d.id === slug)) slug = `${base}-${n++}`;
+    return slug;
+  }
+
+  private _addPhaseDef(): void {
+    const id = this._phaseSlug(`phase-${this._phaseDefs.length + 1}`);
+    this._phaseDefs = [...this._phaseDefs, { id, name: "", checklistText: "", partId: "", partQty: "", extraParts: [], carry: {} }];
+  }
+
+  private _removePhaseDef(id: string): void {
+    this._phaseDefs = this._phaseDefs.filter((d) => d.id !== id);
+    this._phaseSeq = this._phaseSeq.filter((s) => s !== id);
+  }
+
+  private _patchPhaseDef(id: string, patch: Partial<{ name: string; checklistText: string; partId: string; partQty: string }>): void {
+    this._phaseDefs = this._phaseDefs.map((d) => (d.id === id ? { ...d, ...patch } : d));
+  }
+
+  private _renderPhasesEditor(L: string) {
+    const defName = (id: string) => this._phaseDefs.find((d) => d.id === id)?.name || id;
+    return html`
+      <h3>${t("phases_section", L)}</h3>
+      <div class="field-help">${t("phases_hint", L)}</div>
+      ${this._phaseDefs.map((d) => html`
+        <div class="phase-def">
+          <div class="phase-def-head">
+            <ms-textfield
+              label="${t("phase_name", L)}"
+              .value=${d.name}
+              @input=${(e: Event) => this._patchPhaseDef(d.id, { name: (e.target as HTMLInputElement).value })}
+            ></ms-textfield>
+            ${this.parts.length ? html`
+              <select
+                class="phase-part"
+                .value=${d.partId}
+                @change=${(e: Event) => this._patchPhaseDef(d.id, { partId: (e.target as HTMLSelectElement).value })}
+              >
+                <option value="">—</option>
+                ${this.parts.map((p) => html`<option value=${p.id} ?selected=${p.id === d.partId}>${p.name}</option>`)}
+              </select>
+              ${d.partId ? html`
+                <input class="phase-qty" type="number" min="0.01" step="0.01" .value=${d.partQty || "1"}
+                  @input=${(e: Event) => this._patchPhaseDef(d.id, { partQty: (e.target as HTMLInputElement).value })} />
+              ` : nothing}
+            ` : nothing}
+            <mwc-icon-button class="phase-remove" @click=${() => this._removePhaseDef(d.id)}>
+              <ha-icon icon="mdi:delete-outline"></ha-icon>
+            </mwc-icon-button>
+          </div>
+          ${this.checklistsEnabled ? html`
+            <textarea
+              class="checklist-textarea phase-checklist"
+              rows="2"
+              placeholder="${t("checklist_placeholder", L)}"
+              .value=${d.checklistText}
+              @input=${(e: Event) => this._patchPhaseDef(d.id, { checklistText: (e.target as HTMLTextAreaElement).value })}
+            ></textarea>
+          ` : nothing}
+        </div>
+      `)}
+      <ha-button appearance="plain" @click=${this._addPhaseDef}>
+        <ha-icon icon="mdi:plus"></ha-icon> ${t("phase_add", L)}
+      </ha-button>
+      ${this._phaseDefs.some((d) => d.name.trim()) ? html`
+        <div class="phase-seq-label">${t("phase_sequence_label", L)}</div>
+        <div class="phase-seq">
+          ${this._phaseSeq.map((id, i) => html`
+            <span class="phase-chip">
+              ${i + 1}. ${defName(id)}
+              <button class="phase-chip-x" @click=${() => {
+                this._phaseSeq = this._phaseSeq.filter((_, idx) => idx !== i);
+              }}>✕</button>
+            </span>
+          `)}
+          <select
+            class="phase-seq-add"
+            .value=${""}
+            @change=${(e: Event) => {
+              const id = (e.target as HTMLSelectElement).value;
+              if (id) this._phaseSeq = [...this._phaseSeq, id];
+              (e.target as HTMLSelectElement).value = "";
+            }}
+          >
+            <option value="">+ ${t("phase_sequence_add_step", L)}</option>
+            ${this._phaseDefs.filter((d) => d.name.trim()).map((d) => html`<option value=${d.id}>${d.name}</option>`)}
+          </select>
+        </div>
+      ` : nothing}
+    `;
+  }
+
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
     if (!this._name.trim()) return;
@@ -1073,6 +1197,27 @@ export class MaintenanceTaskDialog extends LitElement {
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
       data.reading_unit = this._readingUnit.trim() || null;
+      // Task phases (#139): always sent — null clears a removed cycle.
+      {
+        const defs: Record<string, unknown> = {};
+        for (const d of this._phaseDefs) {
+          if (!d.name.trim()) continue;
+          const def: Record<string, unknown> = { ...d.carry, name: d.name.trim() };
+          const items = d.checklistText.split("\n").map((s) => s.trim()).filter(Boolean);
+          if (items.length) def.checklist = items;
+          const links: TaskPartLink[] = [];
+          if (d.partId) {
+            const qty = parseFloat(d.partQty);
+            links.push({ part_id: d.partId, quantity: Number.isFinite(qty) && qty > 0 ? qty : 1 });
+          }
+          links.push(...d.extraParts);
+          if (links.length) def.consumes_parts = links;
+          defs[d.id] = def;
+        }
+        const seq = this._phaseSeq.filter((id) => id in defs);
+        data.phases = Object.keys(defs).length && seq.length ? defs : null;
+        data.phase_sequence = data.phases ? seq : null;
+      }
       // Only send when a picker was actually rendered. A failed parts load
       // leaves both lists empty, and sending [] then would silently wipe links
       // the user never saw. entry_id is written ONLY for a foreign pick, so an
@@ -2463,6 +2608,7 @@ export class MaintenanceTaskDialog extends LitElement {
             ></textarea>
             <div class="field-help">${t("checklist_help", L)}</div>
           ` : nothing}
+          ${this._renderPhasesEditor(L)}
           <h3>${t("require_on_completion", L)}</h3>
           <div class="required-completion">
             ${REQUIRED_COMPLETION_KEYS.map((field) => html`
@@ -2741,6 +2887,82 @@ export class MaintenanceTaskDialog extends LitElement {
       align-items: center;
       gap: 8px;
       padding: 2px 0;
+    }
+    .phase-def {
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 8px;
+      margin: 6px 0;
+    }
+    .phase-def-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .phase-def-head ms-textfield {
+      flex: 1;
+      min-width: 0;
+    }
+    .phase-part {
+      max-width: 160px;
+      padding: 6px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+    }
+    .phase-qty {
+      width: 64px;
+      padding: 6px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+    }
+    .phase-checklist {
+      min-height: 56px;
+      margin-top: 6px;
+    }
+    .phase-remove {
+      --mdc-icon-button-size: 36px;
+      color: var(--secondary-text-color);
+    }
+    .phase-seq-label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      margin-top: 8px;
+    }
+    .phase-seq {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+    }
+    .phase-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--secondary-background-color);
+      font-size: 13px;
+    }
+    .phase-chip-x {
+      border: none;
+      background: none;
+      color: var(--secondary-text-color);
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 12px;
+    }
+    .phase-seq-add {
+      padding: 4px 8px;
+      border: 1px dashed var(--divider-color);
+      border-radius: 12px;
+      background: transparent;
+      color: var(--secondary-text-color);
+      font-size: 13px;
     }
     .consumes-check {
       display: flex;

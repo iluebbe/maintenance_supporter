@@ -59,6 +59,16 @@ from .storage import MaintenanceStore
 _LOGGER = logging.getLogger(__name__)
 
 
+def _notify_task_label(task: dict[str, Any]) -> str:
+    """Task name for notifications — phased tasks (#139) name the due step,
+    so "Mower blades · Replace blades" tells the user what the work IS."""
+    from .helpers.phases import current_phase
+
+    name = task.get("name", "")
+    phase = current_phase(task)
+    return f"{name} · {phase['name']}" if phase else name
+
+
 def _inert_task_result(task: MaintenanceTask, status: str, **extra: Any) -> dict[str, Any]:
     """Coordinator payload for a task that gets NO live evaluation (archived /
     paused): due fields nulled, trigger off, only cost/history-derived fields
@@ -744,7 +754,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 tasks=[
                     {
                         "task_id": tid,
-                        "task_name": tr.get("name", ""),
+                        "task_name": _notify_task_label(tr),
                         "status": status,
                         "days_until_due": tr.get("_days_until_due"),
                     }
@@ -756,7 +766,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 await nm.async_task_status_changed(
                     entry_id=self.entry.entry_id,
                     task_id=task_id,
-                    task_name=task_result.get("name", ""),
+                    task_name=_notify_task_label(task_result),
                     object_name=obj_name,
                     new_status=new_status,
                     days_until_due=task_result.get("_days_until_due"),
@@ -862,6 +872,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             state["due_override"] = do
         elif "due_override" in state:
             del state["due_override"]
+        # Phase cursor (#139): to_dict emits it only for phase-carrying tasks.
+        pc = td.get("phase_cursor")
+        if pc is not None:
+            self._store.set_phase_cursor(task_id, pc)
         self._store.set_history(task_id, td.get("history", []))
         if task.adaptive_config:
             self._store.set_adaptive_config(task_id, task.adaptive_config)
@@ -1061,8 +1075,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # will consume below — go on the record, so completions from the
         # no-dialog surfaces (service, button, QR, to-do, voice, recovery)
         # stay correctable through the history editor like dialog ones.
+        from .helpers.phases import effective_field as _phase_effective
+
         record_links = (
-            used_parts if used_parts is not None else (merged[task_id].get("consumes_parts") or [])
+            used_parts if used_parts is not None else (_phase_effective(merged[task_id], "consumes_parts") or [])
         )
         enriched_used: list[dict[str, Any]] | None = None
         if used_parts is not None or record_links:

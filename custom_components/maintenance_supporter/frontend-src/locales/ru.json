@@ -889,5 +889,13 @@
   "service_record_entries": "записей",
   "completed_by": "Выполнил",
   "date_from": "С",
-  "date_to": "По"
+  "date_to": "По",
+  "phases_section": "Фазы цикла (необязательно)",
+  "phases_hint": "Разные работы в одном ритме — каждое выполнение переходит к следующему шагу (напр., малое, малое, большое ТО).",
+  "phase_add": "Добавить фазу",
+  "phase_name": "Название фазы",
+  "phase_sequence_label": "Порядок цикла",
+  "phase_sequence_add_step": "Добавить шаг",
+  "phase_current": "Текущая фаза",
+  "phase_set": "Сделать текущей"
 }

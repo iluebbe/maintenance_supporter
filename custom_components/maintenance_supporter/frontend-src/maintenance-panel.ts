@@ -17,6 +17,7 @@ import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "
 import { downloadTextFile } from "./helpers/download";
 import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
 import { describePartLink, partsForCompletion } from "./helpers/shared-parts";
+import { effectivePhase, phaseLabel } from "./helpers/phases";
 import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
 import type {
@@ -1861,7 +1862,9 @@ export class MaintenanceSupporterPanel extends LitElement {
     const task = obj?.tasks.find((x) => x.id === taskId);
     if (!task) return;
     const state: Record<string, boolean> = {};
-    for (const step of task.checklist || []) {
+    // #139: a phased task ticks the checklist of the phase currently due.
+    const steps = effectivePhase(task)?.checklist ?? (task.checklist || []);
+    for (const step of steps) {
       const current = task.checklist_progress?.[step] ?? false;
       state[step] = step === item ? done : current;
     }
@@ -1888,11 +1891,20 @@ export class MaintenanceSupporterPanel extends LitElement {
     const tk = this._objects
       .find((o) => o.entry_id === entryId)
       ?.tasks.find((tsk) => tsk.id === taskId);
+    // #139: a phased task completes the phase currently due — its checklist,
+    // parts and required fields override the task-level values (fallthrough
+    // is already baked into effectivePhase). Resolved HERE so every call
+    // site of _openCompleteDialog rotates for free.
+    const phase = tk ? effectivePhase(tk) : null;
+    dlg.phaseLabel = phase ? phaseLabel(tk) : "";
     dlg.taskType = tk?.type || "";
     dlg.readingUnit = tk?.reading_unit || "";
     // #73: ticks recorded during the cycle prefill the dialog's checklist.
     dlg.checklistPrefill = tk?.checklist_progress || {};
-    dlg.requiredFields = tk?.required_completion_fields || [];
+    dlg.requiredFields = phase ? phase.requiredFields : (tk?.required_completion_fields || []);
+    if (phase) {
+      dlg.checklist = this._features.checklists ? phase.checklist : [];
+    }
     // Spare parts: a buy task gets an editable restock-qty field; a consuming
     // task shows what it will decrement (incl. the storage location).
     const objParts = this._objects.find((o) => o.entry_id === entryId)?.parts || [];
@@ -1904,15 +1916,16 @@ export class MaintenanceSupporterPanel extends LitElement {
     dlg.currencySymbol = this._currencySymbol;
     // #111: a link may point at another object's pool — name that object, and
     // never drop a line that fails to resolve (the old .filter(Boolean) hid it).
-    dlg.consumesInfo = (tk?.consumes_parts || []).map((link) =>
+    const links = phase ? phase.consumesParts : (tk?.consumes_parts || []);
+    dlg.consumesInfo = links.map((link) =>
       describePartLink(link, entryId, this._objects, this._lang),
     );
     // #99: editable per-completion parts selection (not on buy tasks — those
     // RESTOCK via the qty field instead of consuming). The list carries the
     // object's own parts plus the shared pools this task draws on, so a foreign
     // link is visible and untickable rather than silently absent.
-    dlg.parts = tk?.part_ref ? [] : partsForCompletion(tk, entryId, this._objects, this._lang);
-    dlg.consumesParts = tk?.part_ref ? [] : (tk?.consumes_parts || []);
+    dlg.parts = tk?.part_ref ? [] : partsForCompletion({ consumes_parts: links }, entryId, this._objects, this._lang);
+    dlg.consumesParts = tk?.part_ref ? [] : links;
     dlg.open();
   }
 
@@ -3579,6 +3592,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       setSearch: (s) => { this._historySearch = s; },
       openEdit: (entry) => this._openHistoryEdit(entry),
       readingUnit: task?.reading_unit ?? null,
+      // #139: name the phase badge on entries stamped with a phase_id.
+      phaseNames: Object.fromEntries(
+        Object.entries(task?.phases || {}).map(([id, def]) => [id, def.name]),
+      ),
       readingDelta: (entry) => {
         const idx = readings.findIndex((h) => h.timestamp === entry.timestamp);
         if (idx <= 0) return null;
@@ -3604,6 +3621,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       objectManualDocs: obj?.object?.manual_docs ?? [],
       openManualDoc: (doc) => this._openManualDoc(doc),
       setChecklistItem: (item, done) => this._setChecklistItem(entryId, taskId, item, done),
+      setPhaseCursor: (cursor) => {
+        void this._runAction({
+          type: "maintenance_supporter/task/set_phase",
+          entry_id: entryId, task_id: taskId, cursor,
+        });
+      },
       isOperator: this._isOperator,
       actionLoading: this._actionLoading,
       moreMenuOpen: this._moreMenuOpen,

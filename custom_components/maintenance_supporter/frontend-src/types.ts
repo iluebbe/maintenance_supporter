@@ -103,6 +103,9 @@ export interface HistoryEntry {
   /** v2.37: completion recorded by the system itself (trigger recovered),
    *  not performed by a user in the UI. */
   auto?: boolean;
+  /** #139: which cycle phase this LATEST completion recorded (backfills
+   *  carry none — they never advanced the cursor). */
+  phase_id?: string | null;
 }
 
 export interface AdaptiveConfig {
@@ -269,6 +272,22 @@ export interface MaintenanceTask {
   consumes_parts?: TaskPartLink[] | null;
   /** Present on an auto-created "buy" reminder: the owning part. */
   part_ref?: { part_id: string } | null;
+  /** Task phases (#139): cyclic content rotation on one shared cadence. */
+  phases?: Record<string, TaskPhaseDef> | null;
+  phase_sequence?: string[] | null;
+  phase_cursor?: number;
+  /** Backend-resolved phase currently due (null for phase-less tasks). */
+  current_phase?: { id: string; name: string; index: number; count: number } | null;
+}
+
+/** One phase definition (#139). A set field OVERRIDES the task-level field
+ *  for completions performed while this phase is due; unset falls through. */
+export interface TaskPhaseDef {
+  name: string;
+  notes?: string;
+  checklist?: string[];
+  consumes_parts?: TaskPartLink[];
+  required_completion_fields?: string[];
 }
 
 /** One entry of a task's `consumes_parts`.

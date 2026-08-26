@@ -18,6 +18,7 @@ import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInter
 import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { partsForCompletion } from "../helpers/shared-parts";
+import { effectivePhase, phaseLabel } from "../helpers/phases";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -158,13 +159,17 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     import("../dialog-mount").then(async ({ openCompleteDialog }) => {
       const task = this._task!;
       const isBuy = !!(task as { part_ref?: string }).part_ref;
+      // #139: a phased task completes the phase currently due, so the phase's
+      // checklist/parts/required fields replace the task-level ones here.
+      const phase = effectivePhase(task);
+      const links = phase ? phase.consumesParts : (task.consumes_parts || []);
       let parts: Parameters<typeof openCompleteDialog>[0]["parts"] = [];
       if (!isBuy) {
         try {
           const r = await this.hass.connection.sendMessagePromise<{
             objects: MaintenanceObjectResponse[];
           }>({ type: "maintenance_supporter/objects", compact: true });
-          parts = partsForCompletion(task, this._entryId!, r.objects || [], this._lang);
+          parts = partsForCompletion({ consumes_parts: links }, this._entryId!, r.objects || [], this._lang);
         } catch {
           // Parts stay empty — the dialog still completes without them.
         }
@@ -173,13 +178,14 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         entry_id: this._entryId!,
         task_id: this._taskId!,
         task_name: task.name,
-        checklist: task.checklist || [],
+        checklist: phase ? phase.checklist : (task.checklist || []),
         adaptive_enabled: !!task.adaptive_config?.enabled,
-        required_completion_fields: task.required_completion_fields || [],
+        required_completion_fields: phase ? phase.requiredFields : (task.required_completion_fields || []),
         task_type: task.type || "",
         reading_unit: (task as { reading_unit?: string }).reading_unit || "",
         parts,
-        consumes_parts: isBuy ? [] : (task.consumes_parts || []),
+        consumes_parts: isBuy ? [] : links,
+        phase_label: phaseLabel(task),
       });
       if (ok) {
         this._notifyChanged("complete");
@@ -541,6 +547,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                     : nothing}
                   ${(task.schedule?.kind && !["manual", "one_time"].includes(task.schedule.kind)) || task.interval_days != null
                     ? html`<span><strong>${t("interval", L) || "Interval"}:</strong> ${formatRecurrence(task, L)}</span>`
+                    : nothing}
+                  ${phaseLabel(task)
+                    ? html`<span><strong>${t("phase_current", L)}:</strong> ${phaseLabel(task)}</span>`
                     : nothing}
                 </div>
               </div>

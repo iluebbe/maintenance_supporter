@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **90** registered commands are covered here. Their authorization tiers are
+All **91** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -216,6 +216,12 @@ template's tasks** in one call. `object/duplicate` `{entry_id}` → `{entry_id}`
   "custom_icon": "mdi:air-filter",     // per-task icon
   "nfc_tag_id": "…",                   // duplicate = warning, not error
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
+  "phases": {                          // #139 cycle phases (≤10 defs) | null clears
+    "flip":    { "name": "Flip blades" },            // per-phase overrides (optional):
+    "replace": { "name": "Replace blades",           //   checklist, consumes_parts,
+                 "consumes_parts": [{"part_id": "p1", "quantity": 9}] } //   required_completion_fields
+  },
+  "phase_sequence": ["flip","flip","replace"],  // ≤12 steps, ids from phases; repeats OK
   "schedule_time": "08:00",            // strict HH:MM
   "enabled": true,
   "dry_run": true }
@@ -228,6 +234,15 @@ Result: `{"task_id": "<uuid>"}` (+ `"warnings"` maybe). Dry-run:
 > `interval_days`/`interval_unit`. A sensor task uses `trigger_config`. A task
 > may carry **both** (a sensor trigger plus a safety calendar interval).
 > Time/calendar recurrence is **never** expressed inside `trigger_config`.
+
+> **Phases (#139)** share the task's ONE cadence: each completion performs the
+> step the cursor points at and advances it (wrapping). A phase field that is
+> SET **overrides** the task-level field for that step; unset falls through
+> (override, never merge). Read model: every task echoes `phases`,
+> `phase_sequence`, `phase_cursor` and a resolved
+> `current_phase {id,name,index,count}` (null when phase-less). History entries
+> record the completed step as `phase_id`. Correct the cursor via
+> `task/set_phase`.
 
 ### `task/update` / `task/delete` / `task/duplicate` / `task/archive` / `task/unarchive` — `@require_write`
 `update`: `{entry_id, task_id, + any task field}` (partial). `delete`:
@@ -244,6 +259,11 @@ flat interval edit rebuilds from flat and drops the nested schedule.
   `checklist_progress`.
 - `task/skip` `{entry_id, task_id, reason?}`
 - `task/reset` `{entry_id, task_id, date?}` (ISO)
+- `task/set_phase` `{entry_id, task_id, cursor (req, int ≥0)}` → `{"success": true, "phase_cursor": n}` —
+  re-points a phased task's cycle cursor (#139: mis-click repair, mid-cycle
+  adoption). Cursor indexes `phase_sequence`; out of range → `invalid_cursor`,
+  task without phases → `no_phases`. Completions advance the cursor themselves —
+  this is only for corrections.
 - `task/postpone` `{entry_id, task_id, until (req, YYYY-MM-DD)}` → `{"success": true}` —
   defers **this occurrence only** to a chosen date; the recurrence itself is untouched.
   Bad date → `invalid_date`.

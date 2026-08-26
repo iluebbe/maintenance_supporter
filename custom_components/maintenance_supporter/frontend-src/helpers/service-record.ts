@@ -69,7 +69,7 @@ export function buildServiceRecordHtml(
         .join(" · ");
       return `<tr>
         <td class="nowrap">${esc(fmtDate(e.timestamp))}</td>
-        <td>${esc(e.taskName)}</td>
+        <td>${esc(e.phaseName ? `${e.taskName} · ${e.phaseName}` : e.taskName)}</td>
         <td class="num">${e.cost != null ? `${esc(e.cost.toFixed(2))} ${esc(currencySymbol)}` : esc(labels.none)}</td>
         <td class="num">${e.duration != null ? esc(fmtDuration(e.duration)) : esc(labels.none)}</td>
         <td class="notes">${esc(notes) || esc(labels.none)}</td>

@@ -889,5 +889,13 @@
   "service_record_entries": "条记录",
   "completed_by": "完成人",
   "date_from": "从",
-  "date_to": "至"
+  "date_to": "至",
+  "phases_section": "循环阶段（可选）",
+  "phases_hint": "同一节奏下的不同工作——每次完成后进入下一步（例如：小保养、小保养、大保养）。",
+  "phase_add": "添加阶段",
+  "phase_name": "阶段名称",
+  "phase_sequence_label": "循环顺序",
+  "phase_sequence_add_step": "添加步骤",
+  "phase_current": "当前阶段",
+  "phase_set": "设为当前"
 }

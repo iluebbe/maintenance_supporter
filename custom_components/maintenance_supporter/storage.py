@@ -27,7 +27,7 @@ STORE_KEY_PREFIX = f"{DOMAIN}"
 STORE_SAVE_DELAY = 60.0  # seconds — debounce writes to protect SD cards
 
 # Fields that migrate from ConfigEntry.data to Store
-_DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "due_override", "history", "adaptive_config")
+_DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "due_override", "history", "adaptive_config", "phase_cursor")
 
 # Presentation-state fields that SPLIT/migrate into the Store like the dynamic
 # fields but are deliberately NOT overlaid by merge_task_data: merged dicts feed
@@ -254,6 +254,10 @@ class MaintenanceStore:
     def set_last_performed(self, task_id: str, date_str: str) -> None:
         """Set last_performed date string."""
         self._ensure_task(task_id)["last_performed"] = date_str
+
+    def set_phase_cursor(self, task_id: str, cursor: int) -> None:
+        """Set the phase cursor (#139) — which cycle step is due next."""
+        self._ensure_task(task_id)["phase_cursor"] = cursor
 
     # --- history ---
 

@@ -563,6 +563,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Assign tasks to responsible Home Assistant users with per-user notification routing — and since 2.44 a **per-person self-test** under Settings → Notifications: each household member is listed with the notify services they actually resolve to, plus a button that sends a test to exactly those. Members without a Companion device are named as such instead of quietly falling back, so "will this person get their reminders?" can be answered before a task comes due
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task
+- **Cycle phases** (2.65+, discussion #139): one task, one cadence, **different work each time** — e.g. a mower-blade task that runs *flip, flip, replace* on the same 30-day rhythm. Define up to 10 named phases in the task dialog, arrange them in a cycle of up to 12 steps (repeats welcome), and every completion performs the step currently due and advances to the next, wrapping around. A phase can override the task's **checklist**, **consumed parts**, and **required completion fields** for its step (set = override, unset = the task-level value applies), so "replace" can demand the new blades and a cost entry while "flip" stays lightweight. Every surface names the step that's due — task detail shows the full cycle strip with each phase's last completion, the complete dialog, dashboard card, calendar, notifications and task sensor all carry the current phase — and history entries record which phase they completed. Skips and resets leave the cycle position untouched (the same work stays due, only the clock restarts), and operators can re-point the cursor from the task detail (or via `task/set_phase`) after a mis-click or when adopting a machine mid-cycle
 - Checklists for multi-step procedures — editable in the panel task dialog (and in the Integration Options). **Steps can be ticked off as you go** (2.49+, discussion #73): the ticks persist server-side without completing the task — stop halfway, come back days later, the progress is still there and prefills the completion dialog. Completing or skipping the cycle resets the list for the next round; the ticked state at completion time lands in the history entry as before
 - Task grouping for logical organization — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
 - **Sort & group-by** in the Tasks/Objects views — sort by due date, object name, task type, task name, area, assigned user, or group; group into collapsible sections by area, group, or user (1.0.44+)
@@ -671,7 +672,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 90 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 91 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -754,7 +755,7 @@ status) join the long-standing `complete` / `skip` / `reset` /
 `completed_by` **person entity** (defaulting to the calling user), and
 `update_task` can assign or clear the responsible user — see
 [Examples](EXAMPLES.md#attribute-and-assign-chores-from-automations-128).
-For the full WebSocket API (90 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (91 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

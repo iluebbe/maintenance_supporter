@@ -889,5 +889,13 @@
   "service_record_entries": "záznamů",
   "completed_by": "Dokončil",
   "date_from": "Od",
-  "date_to": "Do"
+  "date_to": "Do",
+  "phases_section": "Fáze cyklu (volitelné)",
+  "phases_hint": "Různé práce ve stejném rytmu — každé dokončení posune na další krok (např. malý, malý, velký servis).",
+  "phase_add": "Přidat fázi",
+  "phase_name": "Název fáze",
+  "phase_sequence_label": "Pořadí cyklu",
+  "phase_sequence_add_step": "Přidat krok",
+  "phase_current": "Aktuální fáze",
+  "phase_set": "Nastavit jako aktuální"
 }

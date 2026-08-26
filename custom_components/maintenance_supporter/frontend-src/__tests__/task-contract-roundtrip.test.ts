@@ -44,6 +44,9 @@ const EDITABLE: Record<string, string> = {
   rotation_strategy: "rotation_strategy",
   required_completion_fields: "required_completion_fields",
   trigger_config: "trigger_config",
+  // #139: cycle phases — the dialog round-trips defs + sequence (null clears).
+  phases: "phases",
+  phase_sequence: "phase_sequence",
   on_complete_action: "on_complete_action",
   quick_complete_defaults: "quick_complete_defaults",
   interval_days: "interval_days",
@@ -65,6 +68,11 @@ const READONLY = new Set([
   // #73: in-cycle checklist ticks — written via task/checklist_progress,
   // never through the edit dialog.
   "checklist_progress",
+  // #139: the cursor is DYNAMIC Store state (advanced by completions, moved
+  // via task/set_phase), and current_phase is derived from it server-side —
+  // the edit dialog writes neither.
+  "phase_cursor",
+  "current_phase",
   "schedule_type", // derived label (sensor_based when a trigger exists)
   "schedule", // canonical nested recurrence — rebuilt server-side from flat
   "adaptive_config",

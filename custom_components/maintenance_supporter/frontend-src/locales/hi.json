@@ -889,5 +889,13 @@
   "service_record_entries": "प्रविष्टियाँ",
   "completed_by": "द्वारा पूर्ण",
   "date_from": "से",
-  "date_to": "तक"
+  "date_to": "तक",
+  "phases_section": "चक्र चरण (वैकल्पिक)",
+  "phases_hint": "एक ही लय में अलग-अलग कार्य — प्रत्येक पूर्णता अगले चरण पर ले जाती है (जैसे छोटा, छोटा, बड़ा)।",
+  "phase_add": "चरण जोड़ें",
+  "phase_name": "चरण का नाम",
+  "phase_sequence_label": "चक्र क्रम",
+  "phase_sequence_add_step": "कदम जोड़ें",
+  "phase_current": "वर्तमान चरण",
+  "phase_set": "वर्तमान बनाएँ"
 }

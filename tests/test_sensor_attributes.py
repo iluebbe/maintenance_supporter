@@ -842,6 +842,11 @@ _ATTR_EXEMPT = {
     "earliest_completion_days": "completion-window config, not routable state",
     "on_complete_action": "nested service-call config (data minimisation)",
     "quick_complete_defaults": "nested defaults config (data minimisation)",
+    # #139: the full defs/sequence would be recorder bloat; the routable state
+    # (which step is due) IS exposed — current_phase / current_phase_id /
+    # phase_index / phase_count attributes on the task sensor.
+    "phases": "structured defs; current_phase* attributes carry the due step",
+    "phase_sequence": "structured list; current_phase* attributes carry the due step",
 }
 
 

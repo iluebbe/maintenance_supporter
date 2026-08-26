@@ -165,7 +165,7 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Every configurable parameter (global, per-object, per-task, triggers) |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Use-case recipes, automation YAML, cards & dashboard strategies |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Known limitations, common issues, debug logging, uninstalling |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (90 commands), tests |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (91 commands), tests |
 | [ROADMAP.md](ROADMAP.md) | What's planned and what shipped — ideas welcome via [Discussions](https://github.com/iluebbe/maintenance_supporter/discussions) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 

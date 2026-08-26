@@ -889,5 +889,13 @@
   "service_record_entries": "kayıt",
   "completed_by": "Tamamlayan",
   "date_from": "Başlangıç",
-  "date_to": "Bitiş"
+  "date_to": "Bitiş",
+  "phases_section": "Döngü aşamaları (isteğe bağlı)",
+  "phases_hint": "Aynı ritimde farklı işler — her tamamlama bir sonraki adıma geçer (örn. küçük, küçük, büyük bakım).",
+  "phase_add": "Aşama ekle",
+  "phase_name": "Aşama adı",
+  "phase_sequence_label": "Döngü sırası",
+  "phase_sequence_add_step": "Adım ekle",
+  "phase_current": "Geçerli aşama",
+  "phase_set": "Geçerli olarak ayarla"
 }

@@ -889,5 +889,13 @@
   "service_record_entries": "entries",
   "completed_by": "Completed by",
   "date_from": "From",
-  "date_to": "To"
+  "date_to": "To",
+  "phases_section": "Cycle phases (optional)",
+  "phases_hint": "Different work on one shared schedule — each completion moves to the next step (e.g. small service, small service, big service).",
+  "phase_add": "Add phase",
+  "phase_name": "Phase name",
+  "phase_sequence_label": "Cycle order",
+  "phase_sequence_add_step": "Add step",
+  "phase_current": "Current phase",
+  "phase_set": "Set as current"
 }

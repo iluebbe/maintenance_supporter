@@ -889,5 +889,13 @@
   "service_record_entries": "bejegyzés",
   "completed_by": "Elvégezte",
   "date_from": "Ettől",
-  "date_to": "Eddig"
+  "date_to": "Eddig",
+  "phases_section": "Ciklusfázisok (opcionális)",
+  "phases_hint": "Különböző munkák azonos ütemben — minden elvégzés a következő lépésre vált (pl. kis, kis, nagy szerviz).",
+  "phase_add": "Fázis hozzáadása",
+  "phase_name": "Fázis neve",
+  "phase_sequence_label": "Ciklus sorrendje",
+  "phase_sequence_add_step": "Lépés hozzáadása",
+  "phase_current": "Aktuális fázis",
+  "phase_set": "Beállítás aktuálisként"
 }

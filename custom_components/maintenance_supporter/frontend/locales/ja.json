@@ -889,5 +889,13 @@
   "service_record_entries": "件",
   "completed_by": "実施者",
   "date_from": "開始",
-  "date_to": "終了"
+  "date_to": "終了",
+  "phases_section": "サイクルフェーズ（任意）",
+  "phases_hint": "同じ周期で異なる作業を行います。完了するたびに次のステップへ進みます（例：小・小・大整備）。",
+  "phase_add": "フェーズを追加",
+  "phase_name": "フェーズ名",
+  "phase_sequence_label": "サイクルの順序",
+  "phase_sequence_add_step": "ステップを追加",
+  "phase_current": "現在のフェーズ",
+  "phase_set": "現在に設定"
 }

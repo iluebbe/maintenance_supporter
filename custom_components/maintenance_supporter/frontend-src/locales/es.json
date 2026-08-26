@@ -889,5 +889,13 @@
   "service_record_entries": "entradas",
   "completed_by": "Realizado por",
   "date_from": "Desde",
-  "date_to": "Hasta"
+  "date_to": "Hasta",
+  "phases_section": "Fases del ciclo (opcional)",
+  "phases_hint": "Trabajos distintos con un mismo ritmo: cada finalización pasa al siguiente paso (p. ej. pequeño, pequeño, grande).",
+  "phase_add": "Añadir fase",
+  "phase_name": "Nombre de la fase",
+  "phase_sequence_label": "Orden del ciclo",
+  "phase_sequence_add_step": "Añadir paso",
+  "phase_current": "Fase actual",
+  "phase_set": "Establecer como actual"
 }

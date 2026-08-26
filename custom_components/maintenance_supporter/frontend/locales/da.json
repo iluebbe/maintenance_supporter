@@ -889,5 +889,13 @@
   "service_record_entries": "poster",
   "completed_by": "Udført af",
   "date_from": "Fra",
-  "date_to": "Til"
+  "date_to": "Til",
+  "phases_section": "Cyklusfaser (valgfrit)",
+  "phases_hint": "Forskelligt arbejde i samme rytme — hver udførelse går videre til næste trin (f.eks. lille, lille, stor service).",
+  "phase_add": "Tilføj fase",
+  "phase_name": "Fasenavn",
+  "phase_sequence_label": "Cyklusrækkefølge",
+  "phase_sequence_add_step": "Tilføj trin",
+  "phase_current": "Aktuel fase",
+  "phase_set": "Sæt som aktuel"
 }

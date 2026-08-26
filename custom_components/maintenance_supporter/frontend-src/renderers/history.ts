@@ -27,6 +27,8 @@ export interface HistoryContext {
   /** v2.20 (#83): unit + delta-vs-previous for reading-task entries. */
   readingUnit?: string | null;
   readingDelta?: (entry: HistoryEntry) => number | null;
+  /** #139: phase id → display name, for entries stamped with a phase_id. */
+  phaseNames?: Record<string, string>;
 }
 
 // Every HistoryEntryType is filterable (drift audit 2026-08: the repair-flow
@@ -96,6 +98,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
       <div class="history-content">
         <div class="history-row">
           <strong>${t(entry.type, L)}</strong>
+          ${entry.phase_id ? html`<span class="history-phase-badge">${ctx.phaseNames?.[entry.phase_id] || entry.phase_id}</span>` : nothing}
           ${entry.auto ? html`<span class="history-auto-badge">${t("history_auto", L)}</span>` : nothing}
           ${editable
             ? html`<button class="history-edit-btn"

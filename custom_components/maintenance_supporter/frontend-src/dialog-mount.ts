@@ -289,6 +289,8 @@ export function openCompleteDialog(args: {
   /** #99/#111: per-completion parts selection incl. shared pools. */
   parts?: MaintenanceCompleteDialog["parts"];
   consumes_parts?: MaintenanceCompleteDialog["consumesParts"];
+  /** #139: "2/4 · Flip blades" — the phase this completion records. */
+  phase_label?: string;
 }): boolean {
   const dlg = getOrCreate<MaintenanceCompleteDialog>(COMPLETE_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
@@ -304,6 +306,7 @@ export function openCompleteDialog(args: {
   dlg.readingUnit = args.reading_unit ?? "";
   dlg.parts = args.parts ?? [];
   dlg.consumesParts = args.consumes_parts ?? [];
+  dlg.phaseLabel = args.phase_label ?? "";
   dlg.lang = (getHass()?.language) || "en";
   dlg.open();
   return true;

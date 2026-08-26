@@ -21,6 +21,7 @@ import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./seasona
 import { renderCostDurationCard } from "./charts";
 import { renderDaysProgress } from "./progress";
 import { renderHistoryFilters, renderHistoryList, type HistoryContext } from "./history";
+import { clampPhaseCursor, effectivePhase, hasPhases } from "../helpers/phases";
 import "../components/task-documents";
 
 export interface TaskDetailContext {
@@ -39,6 +40,8 @@ export interface TaskDetailContext {
   openManualDoc: (doc: ManualDocRef) => void;
   /** #73: persist one checklist tick (panel sends the full state via WS). */
   setChecklistItem: (item: string, done: boolean) => void;
+  /** #139: re-point the phase cursor (operator repair / mid-cycle adoption). */
+  setPhaseCursor: (cursor: number) => void;
   isOperator: boolean;
   actionLoading: boolean;
   moreMenuOpen: boolean;
@@ -190,9 +193,51 @@ function collapsible(key: string, titleKey: string, body: unknown, ctx: TaskDeta
  *  reloads, prefills the complete dialog) and resets when the task is
  *  completed or skipped. Only rendered when the Checklists feature is
  *  enabled and steps are set. */
+/** #139: the cycle strip — every step of the phase sequence as a chip, the
+ *  step currently due highlighted, each phase's last completion underneath.
+ *  Operators can re-point the cursor (mis-click repair, mid-cycle adoption). */
+function renderPhasesCard(task: MaintenanceTask, ctx: TaskDetailContext) {
+  if (!hasPhases(task)) return nothing;
+  const L = ctx.lang;
+  const seq = task.phase_sequence!;
+  const cursor = clampPhaseCursor(task.phase_cursor, seq.length);
+  // Last completion per phase id — history is append-ordered, so walk it
+  // backwards and keep the first hit.
+  const lastByPhase = new Map<string, string>();
+  for (let i = task.history.length - 1; i >= 0; i--) {
+    const h = task.history[i];
+    if (h.phase_id && h.type === "completed" && !lastByPhase.has(h.phase_id)) {
+      lastByPhase.set(h.phase_id, h.timestamp);
+    }
+  }
+  return html`
+    <div class="phases-card">
+      <div class="phases-card-header">
+        <ha-icon icon="mdi:rotate-right"></ha-icon>
+        <span>${t("phase_sequence_label", L)}</span>
+      </div>
+      <div class="phases-strip">
+        ${seq.map((id, i) => {
+          const name = task.phases?.[id]?.name || id;
+          const last = lastByPhase.get(id);
+          return html`
+            <div class="phase-step ${i === cursor ? "current" : ""}"
+              title=${i === cursor ? t("phase_current", L) : (ctx.isOperator ? t("phase_set", L) : "")}
+              @click=${() => { if (ctx.isOperator && i !== cursor) ctx.setPhaseCursor(i); }}>
+              <span class="phase-step-name">${i + 1}. ${name}</span>
+              ${last ? html`<span class="phase-step-last">${formatDate(last, L)}</span>` : nothing}
+            </div>
+          `;
+        })}
+      </div>
+    </div>
+  `;
+}
+
 function renderChecklistCard(task: MaintenanceTask, ctx: TaskDetailContext) {
   if (!ctx.features.checklists) return nothing;
-  const items = task.checklist || [];
+  // #139: a phased task shows the checklist of the phase currently due.
+  const items = effectivePhase(task)?.checklist ?? (task.checklist || []);
   if (items.length === 0) return nothing;
   const L = ctx.lang;
   const progress = task.checklist_progress || {};
@@ -439,6 +484,7 @@ export function renderOverviewTab(task: MaintenanceTask, ctx: TaskDetailContext)
             </div>
           `, ctx)
         : nothing}
+      ${renderPhasesCard(task, ctx)}
       ${renderChecklistCard(task, ctx)}
       ${renderRecentActivities(task, ctx)}
     </div>

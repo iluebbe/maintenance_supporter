@@ -40,6 +40,9 @@ export class MaintenanceCompleteDialog extends LitElement {
    *  enforces the same list at every completion surface; blocking Save here
    *  just means the user never has to meet that rejection. */
   @property({ type: Array }) public requiredFields: string[] = [];
+  /** #139: "2/4 · Flip blades" — which phase of the cycle this completion
+   *  records. Purely informative; the backend advances the cursor itself. */
+  @property() public phaseLabel = "";
   @state() private _open = false;
   @state() private _notes = "";
   @state() private _cost = "";
@@ -286,6 +289,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     return html`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${t("complete_title", L)}${this.taskName}</div>
+        ${this.phaseLabel ? html`<div class="phase-line">${t("phase_current", L)}: ${this.phaseLabel}</div>` : nothing}
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           ${this.checklist.length > 0 ? html`
@@ -472,6 +476,12 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-size: 18px;
       font-weight: 500;
       padding-bottom: 12px;
+    }
+    .phase-line {
+      margin-top: -8px;
+      padding-bottom: 12px;
+      font-size: 13px;
+      color: var(--secondary-text-color);
     }
     .content {
       display: flex;

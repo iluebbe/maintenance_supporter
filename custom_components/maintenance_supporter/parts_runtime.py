@@ -183,8 +183,11 @@ async def async_handle_completion_parts(
 
     # #99: an explicit per-completion selection REPLACES the fixed links —
     # including the empty selection ("nothing used this time"). None keeps the
-    # automatic consumes_parts behaviour.
-    links = used_parts if used_parts is not None else (task_data.get(CONF_TASK_CONSUMES_PARTS) or [])
+    # automatic consumes_parts behaviour — phase-aware (#139): the phase
+    # currently due may override which parts a completion consumes.
+    from .helpers.phases import effective_field
+
+    links = used_parts if used_parts is not None else (effective_field(task_data, CONF_TASK_CONSUMES_PARTS) or [])
     # #111: a link may name another object's pool. Every touched entry has its
     # own parts dict and its own Store, so collect them per entry and save each.
     touched: dict[str, tuple[ConfigEntry, Any]] = {}

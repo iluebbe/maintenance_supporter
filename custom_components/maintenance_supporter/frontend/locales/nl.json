@@ -889,5 +889,13 @@
   "service_record_entries": "items",
   "completed_by": "Voltooid door",
   "date_from": "Van",
-  "date_to": "Tot"
+  "date_to": "Tot",
+  "phases_section": "Cyclusfasen (optioneel)",
+  "phases_hint": "Verschillend werk op één ritme — elke afronding schuift naar de volgende stap (bijv. klein, klein, groot).",
+  "phase_add": "Fase toevoegen",
+  "phase_name": "Fasenaam",
+  "phase_sequence_label": "Cyclusvolgorde",
+  "phase_sequence_add_step": "Stap toevoegen",
+  "phase_current": "Huidige fase",
+  "phase_set": "Instellen als huidige"
 }

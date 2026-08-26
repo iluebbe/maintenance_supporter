@@ -889,5 +889,13 @@
   "service_record_entries": "wpisów",
   "completed_by": "Wykonane przez",
   "date_from": "Od",
-  "date_to": "Do"
+  "date_to": "Do",
+  "phases_section": "Fazy cyklu (opcjonalnie)",
+  "phases_hint": "Różne prace w jednym rytmie — każde ukończenie przechodzi do następnego kroku (np. mały, mały, duży).",
+  "phase_add": "Dodaj fazę",
+  "phase_name": "Nazwa fazy",
+  "phase_sequence_label": "Kolejność cyklu",
+  "phase_sequence_add_step": "Dodaj krok",
+  "phase_current": "Bieżąca faza",
+  "phase_set": "Ustaw jako bieżącą"
 }

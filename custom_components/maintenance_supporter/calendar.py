@@ -564,6 +564,12 @@ async def async_setup_entry(
     _LOGGER.debug("Maintenance calendar entity created")
 
 
+
+def _task_label(task: MaintenanceTask) -> str:
+    """Task name, with the due cycle phase appended for phased tasks (#139)."""
+    phase = task.current_phase_name
+    return f"{task.name} · {phase}" if phase else task.name
+
 class MaintenanceCalendar(CalendarEntity):
     """Calendar entity aggregating all maintenance tasks."""
 
@@ -713,7 +719,7 @@ class MaintenanceCalendar(CalendarEntity):
             today = dt_util.now().date()
             if start_d <= today <= end_d:
                 return CalendarEvent(
-                    summary=f"{STATUS_PREFIX.get(MaintenanceStatus.TRIGGERED, '🔔')} {task.name} ({object_name})",
+                    summary=f"{STATUS_PREFIX.get(MaintenanceStatus.TRIGGERED, '🔔')} {_task_label(task)} ({object_name})",
                     start=today,
                     end=today + timedelta(days=1),
                     description=_cal_t("manually_triggered", lang),
@@ -728,7 +734,7 @@ class MaintenanceCalendar(CalendarEntity):
                 today = dt_util.now().date()
                 if start_d <= today <= end_d:
                     return CalendarEvent(
-                        summary=f"{STATUS_PREFIX.get(MaintenanceStatus.TRIGGERED, '🔔')} {task.name} ({object_name})",
+                        summary=f"{STATUS_PREFIX.get(MaintenanceStatus.TRIGGERED, '🔔')} {_task_label(task)} ({object_name})",
                         start=today,
                         end=today + timedelta(days=1),
                         description=_cal_t("sensor_triggered", lang, name=task.name),
@@ -770,7 +776,7 @@ class MaintenanceCalendar(CalendarEntity):
                 pass  # malformed schedule_time → fall back to all-day
 
         return CalendarEvent(
-            summary=f"{prefix} {task.name} ({object_name})",
+            summary=f"{prefix} {_task_label(task)} ({object_name})",
             start=start,
             end=end,
             description=(

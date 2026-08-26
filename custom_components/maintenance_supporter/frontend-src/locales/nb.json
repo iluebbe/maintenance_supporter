@@ -889,5 +889,13 @@
   "service_record_entries": "oppføringer",
   "completed_by": "Utført av",
   "date_from": "Fra",
-  "date_to": "Til"
+  "date_to": "Til",
+  "phases_section": "Syklusfaser (valgfritt)",
+  "phases_hint": "Ulikt arbeid i samme rytme — hver fullføring går videre til neste trinn (f.eks. liten, liten, stor service).",
+  "phase_add": "Legg til fase",
+  "phase_name": "Fasenavn",
+  "phase_sequence_label": "Syklusrekkefølge",
+  "phase_sequence_add_step": "Legg til trinn",
+  "phase_current": "Gjeldende fase",
+  "phase_set": "Sett som gjeldende"
 }

@@ -82,6 +82,18 @@ FULL_TASK = {
     "on_complete_action": {"service": "light.turn_off", "target": {"entity_id": "light.x"}},
     "quick_complete_defaults": {"notes": "qc", "cost": 5},
     "consumes_parts": [{"part_id": "part_a", "quantity": 2}],
+    # #139: phases round-trip; the cursor is Store-merged on export and
+    # clamped against the imported sequence on import.
+    "phases": {
+        "flip": {"name": "Flip", "checklist": ["loosen", "flip"]},
+        "replace": {
+            "name": "Replace",
+            "consumes_parts": [{"part_id": "part_a", "quantity": 4}],
+            "required_completion_fields": ["cost"],
+        },
+    },
+    "phase_sequence": ["flip", "flip", "replace"],
+    "phase_cursor": 1,
     "history": [
         {
             "timestamp": "2026-05-01T10:00:00",
@@ -222,7 +234,10 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
     # _DYNAMIC_TASK_FIELDS member) — checked below via the Store, like
     # last_performed / due_override.
     skip = {"name", "history", "consumes_parts", "due_override", "last_performed",
-            "adaptive_config", "interval_days", "interval_unit", "interval_anchor", "schedule_type"}
+            "adaptive_config", "interval_days", "interval_unit", "interval_anchor", "schedule_type",
+            # #139: phases carry a remapped part link (checked below);
+            # the cursor migrates into the Store on first setup.
+            "phases", "phase_cursor"}
     for key, want in FULL_TASK.items():
         if key not in skip and dst_task.get(key) != want:
             diffs.append(f"task.{key}: {dst_task.get(key)!r}")
@@ -236,6 +251,21 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
     links = dst_task.get("consumes_parts") or []
     if not (len(links) == 1 and links[0]["part_id"] in new_parts and links[0]["quantity"] == 2):
         diffs.append("task.consumes_parts remap")
+    # #139: phase defs survive with the replace-phase's part link remapped to
+    # the regenerated id; the flip phase must arrive verbatim.
+    dst_phases = dst_task.get("phases") or {}
+    if dst_phases.get("flip") != FULL_TASK["phases"]["flip"]:
+        diffs.append(f"task.phases.flip: {dst_phases.get('flip')!r}")
+    rep = dst_phases.get("replace") or {}
+    rep_links = rep.get("consumes_parts") or []
+    if not (
+        rep.get("name") == "Replace"
+        and rep.get("required_completion_fields") == ["cost"]
+        and len(rep_links) == 1
+        and rep_links[0]["part_id"] in new_parts
+        and rep_links[0]["quantity"] == 4
+    ):
+        diffs.append(f"task.phases.replace remap: {rep!r}")
     if new_parts:
         got_part = next(iter(new_parts.values()))
         for key in ("name", "mpn", "vendor", "storage_location", "unit", "cost", "reorder_threshold", "restock_quantity"):
@@ -256,6 +286,9 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
         diffs.append("due_override")
     if state.get("adaptive_config", dst_task.get("adaptive_config")) != FULL_TASK["adaptive_config"]:
         diffs.append("adaptive_config")
+    # #139: the cursor is a dynamic field — Store after first setup.
+    if state.get("phase_cursor", dst_task.get("phase_cursor")) != 1:
+        diffs.append(f"phase_cursor: {state.get('phase_cursor', dst_task.get('phase_cursor'))!r}")
     hist = dst_store.get_history(new_task_id) or dst_task.get("history") or []
     if not hist:
         diffs.append("history lost")
@@ -428,6 +461,9 @@ _CSV_TASK_EXCLUDED = {
     "required_completion_fields", "earliest_completion_days",  # niche gates
     "entity_slug",  # instance-specific entity naming
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
+    # #139: nested defs + cycle + Store cursor — structured state that doesn't
+    # fit a flat cell; the JSON backup round-trips all three.
+    "phases", "phase_sequence", "phase_cursor",
     "trigger_config",  # only the type is summarised (trigger_type column)
     "days_until_due", "next_due", "average_duration",  # computed display
 }

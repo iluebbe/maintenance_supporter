@@ -889,5 +889,13 @@
   "service_record_entries": "merkintää",
   "completed_by": "Suorittanut",
   "date_from": "Alkaen",
-  "date_to": "Asti"
+  "date_to": "Asti",
+  "phases_section": "Syklin vaiheet (valinnainen)",
+  "phases_hint": "Eri työt samassa tahdissa — jokainen suoritus siirtyy seuraavaan vaiheeseen (esim. pieni, pieni, iso huolto).",
+  "phase_add": "Lisää vaihe",
+  "phase_name": "Vaiheen nimi",
+  "phase_sequence_label": "Syklin järjestys",
+  "phase_sequence_add_step": "Lisää askel",
+  "phase_current": "Nykyinen vaihe",
+  "phase_set": "Aseta nykyiseksi"
 }

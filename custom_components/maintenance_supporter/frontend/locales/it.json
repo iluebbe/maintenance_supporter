@@ -889,5 +889,13 @@
   "service_record_entries": "voci",
   "completed_by": "Completato da",
   "date_from": "Dal",
-  "date_to": "Al"
+  "date_to": "Al",
+  "phases_section": "Fasi del ciclo (opzionale)",
+  "phases_hint": "Lavori diversi sullo stesso ritmo — ogni completamento passa al passo successivo (es. piccolo, piccolo, grande).",
+  "phase_add": "Aggiungi fase",
+  "phase_name": "Nome della fase",
+  "phase_sequence_label": "Ordine del ciclo",
+  "phase_sequence_add_step": "Aggiungi passo",
+  "phase_current": "Fase attuale",
+  "phase_set": "Imposta come attuale"
 }

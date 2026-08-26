@@ -13,6 +13,7 @@ from .tasks_actions import (
     ws_postpone_task,
     ws_quick_complete_task,
     ws_reset_task,
+    ws_set_task_phase,
     ws_skip_task,
     ws_snooze_task,
 )
@@ -69,6 +70,7 @@ __all__ = [
     "ws_postpone_task",
     "ws_quick_complete_task",
     "ws_reset_task",
+    "ws_set_task_phase",
     "ws_skip_task",
     "ws_snooze_task",
     "ws_task_history",

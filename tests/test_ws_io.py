@@ -422,6 +422,14 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
             "notes": "keep me",
             "documentation_url": "https://x.test/m.pdf",
             "checklist": ["step 1", "step 2"],
+            # #139: phases round-trip; the cursor is Store-merged on export
+            # and clamped on import, so a restore resumes mid-cycle.
+            "phases": {
+                "flip": {"name": "Flip"},
+                "replace": {"name": "Replace", "required_completion_fields": ["cost"]},
+            },
+            "phase_sequence": ["flip", "flip", "replace"],
+            "phase_cursor": 2,
             "history": [
                 {"timestamp": "2024-06-01T10:00:00+00:00", "type": "completed", "cost": 9.0, "reading_value": 1234.5},
             ],
@@ -460,10 +468,17 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
         "notes": "keep me",
         "documentation_url": "https://x.test/m.pdf",
         "checklist": ["step 1", "step 2"],
+        "phases": {
+            "flip": {"name": "Flip"},
+            "replace": {"name": "Replace", "required_completion_fields": ["cost"]},
+        },
+        "phase_sequence": ["flip", "flip", "replace"],
     }
     for key, want in expected.items():
         assert etask.get(key) == want, f"export dropped/changed task field {key!r}: {etask.get(key)!r} != {want!r}"
     assert etask["history"][0]["reading_value"] == 1234.5, "history reading_value not exported"
+    # The cursor is dynamic (Store-merged into the export like history).
+    assert etask.get("phase_cursor") == 2, f"export dropped the live phase_cursor: {etask.get('phase_cursor')!r}"
 
     # ── Import side: re-import a renamed copy; every field must survive. ──
     exported["object"]["name"] = "Full Asset Copy"
@@ -491,6 +506,9 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
     reexport = build_export_data(hass, include_history=True)
     copy_task = next(e for e in reexport["objects"] if e["object"]["name"] == "Full Asset Copy")["tasks"][0]
     assert copy_task["history"][0]["reading_value"] == 1234.5, "history reading_value not imported"
+    # #139: the cursor came back through the import → Store → export chain,
+    # so the restored instance resumes mid-cycle instead of restarting.
+    assert copy_task.get("phase_cursor") == 2, f"phase_cursor lost on import: {copy_task.get('phase_cursor')!r}"
 
 
 async def test_export_covers_every_model_task_field(

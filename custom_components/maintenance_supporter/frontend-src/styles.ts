@@ -604,6 +604,21 @@ export const sharedStyles = css`
     color: var(--secondary-text-color);
     white-space: nowrap;
   }
+  /* #139 — names the cycle phase a completion recorded. Shares the auto-badge
+     look; carries the left-pinning margin itself unless the auto badge (which
+     already has it) follows. */
+  .history-phase-badge {
+    margin-right: auto;
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--secondary-background-color);
+    color: var(--secondary-text-color);
+    white-space: nowrap;
+  }
+  .history-phase-badge:has(+ .history-auto-badge) {
+    margin-right: 0;
+  }
   .history-edit-btn {
     background: transparent;
     color: var(--secondary-text-color);

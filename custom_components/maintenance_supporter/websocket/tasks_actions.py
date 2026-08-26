@@ -350,6 +350,47 @@ async def ws_reset_task(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "maintenance_supporter/task/set_phase",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        # Index into phase_sequence — which cycle step is due NEXT.
+        vol.Required("cursor"): vol.All(int, vol.Range(min=0, max=100)),
+    }
+)
+@websocket_api.async_response
+async def ws_set_task_phase(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Set which phase of a cyclic task is due next (#139).
+
+    The explicit correction path ("I'm actually at step 3") — completions
+    rotate the cursor themselves and there is deliberately no phase picker
+    in the complete dialog.
+    """
+    ctx = _load_task_context(hass, connection, msg)
+    if ctx is None:
+        return
+    rd, entry = ctx
+    task = (entry.data.get(CONF_TASKS) or {}).get(msg["task_id"]) or {}
+    sequence = task.get("phase_sequence") or []
+    if not (task.get("phases") and sequence):
+        connection.send_error(msg["id"], "no_phases", "Task has no phase cycle")
+        return
+    if msg["cursor"] >= len(sequence):
+        connection.send_error(
+            msg["id"], "invalid_cursor", f"cursor must be < {len(sequence)}"
+        )
+        return
+    rd.store.set_phase_cursor(msg["task_id"], msg["cursor"])
+    rd.store.async_delay_save()
+    await rd.coordinator.async_refresh_now()
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "maintenance_supporter/task/postpone",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),

@@ -134,6 +134,12 @@ def _build_export_object(
             "required_completion_fields": tdata.get("required_completion_fields"),
             "rotation_strategy": tdata.get("rotation_strategy"),
             "reading_unit": tdata.get("reading_unit"),
+            # Task phases (#139): defs + cycle are static config; the cursor is
+            # Store-merged by merged_tasks, so a restore resumes mid-cycle
+            # instead of silently restarting at step one.
+            "phases": tdata.get("phases"),
+            "phase_sequence": tdata.get("phase_sequence"),
+            "phase_cursor": tdata.get("phase_cursor"),
             # Spare parts: consumption links + the auto-buy-task marker.
             "consumes_parts": tdata.get("consumes_parts"),
             "part_ref": tdata.get("part_ref"),

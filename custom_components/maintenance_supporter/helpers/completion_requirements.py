@@ -38,10 +38,16 @@ def sanitize_required_completion_fields(value: object) -> list[str]:
 
 
 def required_completion_fields(task: dict[str, Any] | None) -> list[str]:
-    """The fields *task* demands on completion (empty when it demands none)."""
+    """The fields *task* demands on completion (empty when it demands none).
+
+    Phase-aware (#139): a phase that sets its own required fields overrides
+    the task's; the phase currently due is what is being completed.
+    """
     if not task:
         return []
-    return sanitize_required_completion_fields(task.get("required_completion_fields"))
+    from .phases import effective_field
+
+    return sanitize_required_completion_fields(effective_field(task, "required_completion_fields"))
 
 
 def missing_completion_fields(

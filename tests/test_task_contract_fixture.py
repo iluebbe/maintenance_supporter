@@ -80,6 +80,16 @@ _MAXIMAL_TASK = {
     "nfc_tag_id": "contract-nfc-1",
     "reading_unit": "kWh",
     "consumes_parts": [{"part_id": "part_1", "quantity": 2}],
+    # #139: cyclic content rotation — defs + sequence with a repeated step.
+    "phases": {
+        "swap": {"name": "Swap cutting disks", "checklist": ["six screws"]},
+        "replace": {
+            "name": "Replace blades",
+            "consumes_parts": [{"part_id": "part_1", "quantity": 14}],
+            "required_completion_fields": ["cost"],
+        },
+    },
+    "phase_sequence": ["swap", "replace", "swap"],
     "priority": "high",
     "checklist": ["step one", "step two"],
     "labels": ["safety", "seasonal"],

@@ -62,6 +62,14 @@ class MaintenanceTask:
     # --- Trigger ---
     trigger_config: dict[str, Any] | None = None
 
+    # --- Phases (#139): a cyclic sequence of different activities on ONE
+    # shared cadence. Definitions + sequence are STATIC config (dict-only,
+    # like consumes_parts — the model carries them read-only so complete()
+    # can rotate); the cursor is DYNAMIC (Store, like the rotation pointer).
+    phases: dict[str, Any] | None = None
+    phase_sequence: list[str] = field(default_factory=list)
+    phase_cursor: int = 0
+
     # --- Metadata ---
     notes: str | None = None
     documentation_url: str | None = None
@@ -135,6 +143,17 @@ class MaintenanceTask:
             times_performed=self.times_performed,
             due_override=parse_iso_date(self.due_override),
         )
+
+    @property
+    def current_phase_name(self) -> str | None:
+        """Name of the cycle phase currently due (#139), or None."""
+        if not (self.phases and self.phase_sequence):
+            return None
+        from ..helpers.phases import clamp_phase_cursor
+
+        phase_id = self.phase_sequence[clamp_phase_cursor(self.phase_cursor, len(self.phase_sequence))]
+        definition = self.phases.get(phase_id)
+        return definition.get("name") if isinstance(definition, dict) else None
 
     def _planned_grid_due(self) -> date | None:
         """``next_due`` WITHOUT the postpone override — the drift-free grid.
@@ -375,6 +394,17 @@ class MaintenanceTask:
             anchors.append(self.last_performed)
         is_latest = ts_iso >= max(anchors, default="")
 
+        # Phases (#139): the step being completed is the one currently due.
+        # Resolved BEFORE the cursor advances; a pure backfill gets no phase
+        # attribution (we cannot know which step it was) and never rotates.
+        completed_phase_id: str | None = None
+        if is_latest and self.phases and self.phase_sequence:
+            from ..helpers.phases import clamp_phase_cursor
+
+            cursor = clamp_phase_cursor(self.phase_cursor, len(self.phase_sequence))
+            completed_phase_id = self.phase_sequence[cursor]
+            self.phase_cursor = (cursor + 1) % len(self.phase_sequence)
+
         if is_latest:
             # Save the PLANNED grid date as the anchor before resetting — not
             # next_due, which returns a postpone override and would shift the
@@ -404,6 +434,7 @@ class MaintenanceTask:
             used_parts=used_parts,
             auto=auto,
             timestamp=ts_iso,
+            phase_id=completed_phase_id,
         )
 
         # Shared tasks: rotate the "currently responsible" pointer to the next
@@ -508,6 +539,7 @@ class MaintenanceTask:
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
         timestamp: str | None = None,
+        phase_id: str | None = None,
     ) -> None:
         """Add an entry to the maintenance history.
 
@@ -520,6 +552,10 @@ class MaintenanceTask:
         }
         if auto:
             entry["auto"] = True
+        # Phases (#139): which cycle step this completion performed — the key
+        # per-phase statistics and "last done" lines pool by.
+        if phase_id is not None:
+            entry["phase_id"] = phase_id
         if notes is not None:
             entry["notes"] = notes
         if cost is not None:
@@ -630,6 +666,13 @@ class MaintenanceTask:
             data["checklist"] = self.checklist
         if self.adaptive_config is not None:
             data["adaptive_config"] = self.adaptive_config
+        # Phases (#139): defs + sequence are static config (like
+        # trigger_config), the cursor is the dynamic pointer — emitted only
+        # for phase-carrying tasks so plain tasks stay lean.
+        if self.phases and self.phase_sequence:
+            data["phases"] = self.phases
+            data["phase_sequence"] = self.phase_sequence
+            data["phase_cursor"] = self.phase_cursor
         return data
 
     @classmethod
@@ -642,6 +685,9 @@ class MaintenanceTask:
         ``task.interval_days`` etc. is unaffected.
         """
         sched = read_legacy_fields(data)
+        raw_phases = data.get("phases")
+        raw_seq = data.get("phase_sequence")
+        raw_cursor = data.get("phase_cursor", 0)
         return cls(
             id=data.get("id", uuid4().hex),
             object_id=data.get("object_id", ""),
@@ -677,4 +723,7 @@ class MaintenanceTask:
             checklist=data.get("checklist", []),
             adaptive_config=data.get("adaptive_config"),
             history=data.get("history", []),
+            phases=raw_phases if isinstance(raw_phases, dict) else None,
+            phase_sequence=list(raw_seq) if isinstance(raw_seq, list) else [],
+            phase_cursor=raw_cursor if isinstance(raw_cursor, int) else 0,
         )

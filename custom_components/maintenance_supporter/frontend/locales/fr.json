@@ -889,5 +889,13 @@
   "service_record_entries": "entrées",
   "completed_by": "Réalisé par",
   "date_from": "Du",
-  "date_to": "Au"
+  "date_to": "Au",
+  "phases_section": "Phases du cycle (optionnel)",
+  "phases_hint": "Des travaux différents sur un même rythme — chaque réalisation passe à l'étape suivante (p. ex. petit, petit, grand entretien).",
+  "phase_add": "Ajouter une phase",
+  "phase_name": "Nom de la phase",
+  "phase_sequence_label": "Ordre du cycle",
+  "phase_sequence_add_step": "Ajouter une étape",
+  "phase_current": "Phase actuelle",
+  "phase_set": "Définir comme actuelle"
 }

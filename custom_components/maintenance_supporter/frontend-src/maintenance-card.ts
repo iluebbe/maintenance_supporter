@@ -19,6 +19,7 @@ import type {
 } from "./types";
 import { UserService } from "./user-service";
 import { partsForCompletion } from "./helpers/shared-parts";
+import { effectivePhase, phaseLabel } from "./helpers/phases";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
 // The Battery Fleet card ships in this globally-loaded bundle so it is
@@ -469,7 +470,7 @@ export class MaintenanceSupporterCard extends LitElement {
                         </div>
                         ${!compact
                           ? html`<div class="task-meta">
-                              ${object_name} · ${t(task.type, L)}${this._assigneeName(task)
+                              ${object_name} · ${t(task.type, L)}${phaseLabel(task) ? html` · ${phaseLabel(task)}` : nothing}${this._assigneeName(task)
                                 ? html` · <span class="assignee"
                                     ><ha-icon icon="mdi:account"></ha-icon>${this._assigneeName(task)}</span
                                   >`
@@ -514,14 +515,19 @@ export class MaintenanceSupporterCard extends LitElement {
                                 // Stop the row's open-task handler from also firing
                                 e.stopPropagation();
                                 const dlg = this.shadowRoot!.querySelector("maintenance-complete-dialog") as any;
+                                // #139: a phased task completes the phase
+                                // currently due — its fields override the
+                                // task-level ones (fallthrough included).
+                                const phase = effectivePhase(task);
                                 dlg.entryId = entry_id;
                                 dlg.taskId = task.id;
                                 dlg.taskName = task.name;
-                                dlg.checklist = task.checklist || [];
+                                dlg.checklist = phase ? phase.checklist : (task.checklist || []);
                                 dlg.adaptiveEnabled = !!task.adaptive_config?.enabled;
                                 dlg.taskType = task.type || "";
                                 dlg.readingUnit = (task as any).reading_unit || "";
-                                dlg.requiredFields = task.required_completion_fields || [];
+                                dlg.requiredFields = phase ? phase.requiredFields : (task.required_completion_fields || []);
+                                dlg.phaseLabel = phaseLabel(task);
                                 dlg.lang = L;
                                 // #99: editable per-completion parts selection
                                 // (skip on buy tasks — those restock instead).
@@ -530,8 +536,9 @@ export class MaintenanceSupporterCard extends LitElement {
                                 // owner — resolving against the object's own
                                 // parts alone left a foreign link invisible.
                                 const isBuy = !!(task as any).part_ref;
-                                dlg.parts = isBuy ? [] : partsForCompletion(task, entry_id, this._objects, L);
-                                dlg.consumesParts = isBuy ? [] : (task.consumes_parts || []);
+                                const links = phase ? phase.consumesParts : (task.consumes_parts || []);
+                                dlg.parts = isBuy ? [] : partsForCompletion({ consumes_parts: links }, entry_id, this._objects, L);
+                                dlg.consumesParts = isBuy ? [] : links;
                                 dlg.open();
                               }}
                             >

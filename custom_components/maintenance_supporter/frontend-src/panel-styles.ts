@@ -1053,6 +1053,53 @@ export const panelStyles = css`
     border-color: var(--primary-color);
   }
 
+  /* #139: cycle-phase strip in the task overview */
+  .phases-card {
+    background: var(--card-background-color, #fff);
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid var(--divider-color);
+    margin-top: 8px;
+  }
+  .phases-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .phases-card-header ha-icon {
+    --mdc-icon-size: 18px;
+    color: var(--secondary-text-color);
+  }
+  .phases-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .phase-step {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--divider-color);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .phase-step.current {
+    border-color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+    font-weight: 500;
+    cursor: default;
+  }
+  .phase-step-last {
+    font-size: 11px;
+    color: var(--secondary-text-color);
+    font-weight: 400;
+  }
+
   /* Checklist preview card (read-only display in task overview) */
   .checklist-preview-card {
     background: var(--card-background-color, #fff);

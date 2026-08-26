@@ -105,6 +105,8 @@ TASK_UPDATE_FIELD_MAP = {
     "nfc_tag_id": "nfc_tag_id",
     "reading_unit": "reading_unit",
     "consumes_parts": "consumes_parts",
+    "phases": "phases",
+    "phase_sequence": "phase_sequence",
     "priority": "priority",
     "checklist": "checklist",
     "labels": "labels",
@@ -113,6 +115,45 @@ TASK_UPDATE_FIELD_MAP = {
     "on_complete_action": "on_complete_action",
     "quick_complete_defaults": "quick_complete_defaults",
 }
+
+
+def _apply_phase_fields(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_data: dict[str, Any],
+    raw_defs: object,
+    raw_sequence: object,
+) -> None:
+    """Sanitize + store the phase config (#139) — shared by create and update.
+
+    Empty/invalid defs or sequence remove BOTH fields (a task either has a
+    usable cycle or none). Per-phase consumes_parts get the same part-registry
+    validation the task-level field gets.
+    """
+    from ..const import CONF_PARTS
+    from ..helpers.parts import sanitize_consumes_parts
+    from ..helpers.phases import sanitize_phase_defs, sanitize_phase_sequence
+    from . import foreign_part_resolver
+
+    defs = sanitize_phase_defs(raw_defs)
+    for definition in defs.values():
+        if "consumes_parts" in definition:
+            links = sanitize_consumes_parts(
+                definition["consumes_parts"],
+                set(entry.data.get(CONF_PARTS) or {}),
+                foreign_part_ids=foreign_part_resolver(hass),
+            )
+            if links:
+                definition["consumes_parts"] = links
+            else:
+                del definition["consumes_parts"]
+    sequence = sanitize_phase_sequence(raw_sequence, defs)
+    if defs and sequence:
+        task_data["phases"] = defs
+        task_data["phase_sequence"] = sequence
+    else:
+        task_data.pop("phases", None)
+        task_data.pop("phase_sequence", None)
 
 
 # Hoisted as a module constant so the schema/field-map parity tripwire
@@ -155,6 +196,10 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].
         vol.Optional("consumes_parts"): vol.Any(list, None),
+        # Task phases (#139): cyclic content rotation on one cadence.
+        # Shape-validated in helpers/phases.py at both write paths.
+        vol.Optional("phases"): vol.Any(dict, None),
+        vol.Optional("phase_sequence"): vol.Any(list, None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
         vol.Optional("checklist"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
@@ -337,6 +382,8 @@ async def ws_create_task(
         )
         if links:
             task_data["consumes_parts"] = links
+    if msg.get("phases") is not None or msg.get("phase_sequence") is not None:
+        _apply_phase_fields(hass, entry, task_data, msg.get("phases"), msg.get("phase_sequence"))
     if msg.get("checklist"):
         task_data["checklist"] = msg["checklist"]
     if msg.get("labels"):
@@ -422,6 +469,10 @@ _TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].
         vol.Optional("consumes_parts"): vol.Any(list, None),
+        # Task phases (#139): cyclic content rotation on one cadence.
+        # Shape-validated in helpers/phases.py at both write paths.
+        vol.Optional("phases"): vol.Any(dict, None),
+        vol.Optional("phase_sequence"): vol.Any(list, None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
         vol.Optional("checklist"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
@@ -539,6 +590,24 @@ async def ws_update_task(
             set(entry.data.get(CONF_PARTS) or {}),
             foreign_part_ids=foreign_part_resolver(hass),
         )
+
+    # Phases (#139): the raw field-map copy above skipped validation (the
+    # raw-field-map lesson) — sanitize here, and clamp the Store cursor
+    # against the possibly shortened sequence (the Store wins on restore, so
+    # an out-of-range cursor would otherwise survive the edit forever).
+    if "phases" in msg or "phase_sequence" in msg:
+        _apply_phase_fields(hass, entry, task, msg.get("phases", task.get("phases")), msg.get("phase_sequence", task.get("phase_sequence")))
+        from ..helpers.phases import clamp_phase_cursor
+
+        rd_phase = _get_runtime_data(hass, msg["entry_id"])
+        if rd_phase and rd_phase.store:
+            seq = task.get("phase_sequence") or []
+            if seq:
+                cur = rd_phase.store.get_task_state(task_id).get("phase_cursor", 0)
+                rd_phase.store.set_phase_cursor(task_id, clamp_phase_cursor(cur, len(seq)))
+            else:
+                rd_phase.store.get_task_state(task_id).pop("phase_cursor", None)
+            rd_phase.store.async_delay_save()
 
     # Recurrence resolution: an explicit nested `schedule` wins (calendar kinds
     # and kind-switches). Otherwise rebuild from the flat view ONLY when a real

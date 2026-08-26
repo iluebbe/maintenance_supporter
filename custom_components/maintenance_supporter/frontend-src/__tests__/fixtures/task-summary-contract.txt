@@ -21,6 +21,12 @@
       "quantity": 2
     }
   ],
+  "current_phase": {
+    "count": 3,
+    "id": "swap",
+    "index": 0,
+    "name": "Swap cutting disks"
+  },
   "custom_icon": "mdi:test-tube",
   "days_until_due": null,
   "days_until_threshold": null,
@@ -65,6 +71,32 @@
     }
   },
   "part_ref": null,
+  "phase_cursor": 0,
+  "phase_sequence": [
+    "swap",
+    "replace",
+    "swap"
+  ],
+  "phases": {
+    "replace": {
+      "consumes_parts": [
+        {
+          "part_id": "part_1",
+          "quantity": 14
+        }
+      ],
+      "name": "Replace blades",
+      "required_completion_fields": [
+        "cost"
+      ]
+    },
+    "swap": {
+      "checklist": [
+        "six screws"
+      ],
+      "name": "Swap cutting disks"
+    }
+  },
   "priority": "high",
   "quick_complete_defaults": {
     "cost": 5.5,
