@@ -99,10 +99,15 @@ export function t(key: string, lang?: string): string {
  * in English until then rather than as raw keys). Was copy-pasted across the
  * panel and both cards (drift audit 2026-08). */
 export function syncLocaleFromHass(
-  host: { hass?: { language?: string; locale?: unknown }; requestUpdate: () => void },
+  host: {
+    hass?: { language?: string; locale?: unknown; config?: { country?: string | null } };
+    requestUpdate: () => void;
+  },
   changedProps: Map<string, unknown>,
 ): void {
-  if (changedProps.has("hass")) setDateTimePrefs(host.hass?.locale as Parameters<typeof setDateTimePrefs>[0]);
+  if (changedProps.has("hass")) {
+    setDateTimePrefs(host.hass?.locale as Parameters<typeof setDateTimePrefs>[0], host.hass?.config?.country);
+  }
   const lang = host.hass?.language;
   if (lang && !isLocaleLoaded(lang)) {
     ensureLocale(lang).then(() => host.requestUpdate());
@@ -196,15 +201,41 @@ function langToLocale(lang?: string): string {
 interface DateTimePrefs {
   date?: string;
   time?: string;
+  country?: string;
 }
 const _w = window as unknown as { __msDateTimePrefs?: DateTimePrefs };
 const DT_PREFS: DateTimePrefs = (_w.__msDateTimePrefs ??= {});
 
-/** Feed HA's per-user date/time format into formatDate/formatDateTime. */
-export function setDateTimePrefs(locale?: { date_format?: string; time_format?: string }): void {
+/** Feed HA's per-user date/time format into formatDate/formatDateTime.
+ *  `country` is the SERVER's configured country (#140): with the profile
+ *  format left on "language" it regionalizes the language default —
+ *  "en" + AU renders DD/MM/YYYY instead of the hard en-US mapping. */
+export function setDateTimePrefs(
+  locale?: { date_format?: string; time_format?: string },
+  country?: string | null,
+): void {
   if (!locale) return;
   DT_PREFS.date = locale.date_format;
   DT_PREFS.time = locale.time_format;
+  if (country !== undefined) DT_PREFS.country = country || undefined;
+}
+
+/** BCP-47 locale for the "language" default: the UI language regionalized
+ *  by the server country when Intl knows the combination (#140). Explicit
+ *  profile formats (DMY/MDY/YMD/system) never reach this path. */
+function resolveLocale(lang?: string): string {
+  const base = langToLocale(lang);
+  const country = DT_PREFS.country;
+  if (country && /^[A-Za-z]{2}$/.test(country)) {
+    const candidate = `${normLang(lang).split("-")[0]}-${country.toUpperCase()}`;
+    try {
+      new Intl.DateTimeFormat(candidate);
+      return candidate;
+    } catch {
+      // syntactically invalid tag — keep the language mapping
+    }
+  }
+  return base;
 }
 
 function _formatDateObj(d: Date, lang?: string): string {
@@ -217,17 +248,17 @@ function _formatDateObj(d: Date, lang?: string): string {
     case "YMD": return `${yyyy}-${mm}-${dd}`;
     case "system":
       return d.toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "numeric" });
-    default: // "language" or unset — derive from the UI language (pre-#97 behaviour)
-      return d.toLocaleDateString(langToLocale(lang), { day: "2-digit", month: "2-digit", year: "numeric" });
+    default: // "language" or unset — UI language, regionalized by the server country (#140)
+      return d.toLocaleDateString(resolveLocale(lang), { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 }
 
 function _formatTimeObj(d: Date, lang?: string): string {
   switch (DT_PREFS.time) {
-    case "12": return d.toLocaleTimeString(langToLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: true });
-    case "24": return d.toLocaleTimeString(langToLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: false });
+    case "12": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: true });
+    case "24": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: false });
     case "system": return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-    default: return d.toLocaleTimeString(langToLocale(lang), { hour: "2-digit", minute: "2-digit" });
+    default: return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit" });
   }
 }
 

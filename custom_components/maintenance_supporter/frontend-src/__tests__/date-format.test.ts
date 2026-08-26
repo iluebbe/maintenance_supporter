@@ -5,7 +5,7 @@
 import { expect } from "@open-wc/testing";
 import { formatDate, formatDateTime, setDateTimePrefs } from "../styles";
 
-const reset = () => setDateTimePrefs({ date_format: undefined, time_format: undefined });
+const reset = () => setDateTimePrefs({ date_format: undefined, time_format: undefined }, null);
 
 describe("formatDate with HA profile date_format (#97)", () => {
   afterEach(reset);
@@ -64,5 +64,41 @@ describe("formatDateTime with HA profile time_format (#97)", () => {
     expect(out.startsWith("10/08/2026 ")).to.be.true;
     expect(out).to.match(/2:30/);
     expect(out.toLowerCase()).to.match(/pm|nachm/);
+  });
+});
+
+describe("server country regionalizes the language default (#140)", () => {
+  afterEach(reset);
+
+  it('"en" + AU renders dd/mm/yyyy without any profile setting', () => {
+    setDateTimePrefs({ date_format: "language" }, "AU");
+    expect(formatDate("2026-08-10", "en")).to.equal("10/08/2026");
+  });
+
+  it('"en" + US keeps mm/dd/yyyy; "de" + AT stays dd.mm.yyyy', () => {
+    setDateTimePrefs({ date_format: "language" }, "US");
+    expect(formatDate("2026-08-10", "en")).to.equal("08/10/2026");
+    setDateTimePrefs({ date_format: "language" }, "AT");
+    expect(formatDate("2026-08-10", "de")).to.equal("10.08.2026");
+  });
+
+  it("an explicit profile format always beats the country", () => {
+    setDateTimePrefs({ date_format: "MDY" }, "AU");
+    expect(formatDate("2026-08-10", "en")).to.equal("08/10/2026");
+    setDateTimePrefs({ date_format: "YMD" }, "AU");
+    expect(formatDate("2026-08-10", "en")).to.equal("2026-08-10");
+  });
+
+  it("garbage/unset country falls back to the language mapping", () => {
+    setDateTimePrefs({ date_format: "language" }, "!!");
+    expect(formatDate("2026-08-10", "en")).to.equal("08/10/2026");
+    setDateTimePrefs({ date_format: "language" }, null);
+    expect(formatDate("2026-08-10", "en")).to.equal("08/10/2026");
+  });
+
+  it("country survives a later prefs update that omits it (undefined ≠ clear)", () => {
+    setDateTimePrefs({ date_format: "language" }, "AU");
+    setDateTimePrefs({ date_format: "language" });
+    expect(formatDate("2026-08-10", "en")).to.equal("10/08/2026");
   });
 });
