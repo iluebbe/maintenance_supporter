@@ -899,5 +899,6 @@
   "phase_current": "Aktuel fase",
   "phase_set": "Sæt som aktuel",
   "chart_history_fallback": "Ingen langtidsstatistik for denne enhed — recorderens tilstandshistorik vises (typisk de seneste ~10 dage)",
-  "prediction_cycles": "Lært af cyklusser"
+  "prediction_cycles": "Lært af cyklusser",
+  "phase_require_override": "Tilsidesæt „Kræv ved udførelse“ for denne fase"
 }

@@ -899,5 +899,6 @@
   "phase_current": "当前阶段",
   "phase_set": "设为当前",
   "chart_history_fallback": "该实体没有长期统计数据——显示 recorder 状态历史（通常为最近约 10 天）",
-  "prediction_cycles": "已学习的周期数"
+  "prediction_cycles": "已学习的周期数",
+  "phase_require_override": "为此阶段覆盖“完成时要求”"
 }

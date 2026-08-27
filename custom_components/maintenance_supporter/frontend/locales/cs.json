@@ -899,5 +899,6 @@
   "phase_current": "Aktuální fáze",
   "phase_set": "Nastavit jako aktuální",
   "chart_history_fallback": "Pro tuto entitu nejsou dlouhodobé statistiky — zobrazuje se historie stavů recorderu (obvykle posledních ~10 dní)",
-  "prediction_cycles": "Naučeno z cyklů"
+  "prediction_cycles": "Naučeno z cyklů",
+  "phase_require_override": "Přepsat „Vyžadovat při dokončení“ pro tuto fázi"
 }

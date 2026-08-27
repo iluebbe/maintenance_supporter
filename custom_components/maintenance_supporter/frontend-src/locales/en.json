@@ -899,5 +899,6 @@
   "phase_current": "Current phase",
   "phase_set": "Set as current",
   "chart_history_fallback": "No long-term statistics for this entity — showing recorder state history (typically the last ~10 days)",
-  "prediction_cycles": "Learned from cycles"
+  "prediction_cycles": "Learned from cycles",
+  "phase_require_override": "Override “Require on completion” for this phase"
 }

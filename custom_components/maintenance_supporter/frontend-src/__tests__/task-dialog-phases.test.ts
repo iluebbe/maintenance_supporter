@@ -78,6 +78,36 @@ describe("task-dialog phases editor (#139)", () => {
     expect(update.phase_sequence).to.equal(null);
   });
 
+  it("round-trips per-phase required-fields overrides — empty override included", async () => {
+    const { el, update } = await openAndSave({
+      phases: {
+        flip: { name: "Flip blades", required_completion_fields: [] },
+        replace: { name: "Replace blades", required_completion_fields: ["cost"] },
+      },
+      phase_sequence: ["flip", "replace"],
+    });
+    const defs = (el as any)._phaseDefs;
+    expect(defs.find((d: any) => d.id === "flip").reqOverride).to.equal(true);
+    expect(defs.find((d: any) => d.id === "flip").reqFields).to.deep.equal([]);
+    expect(defs.find((d: any) => d.id === "replace").reqFields).to.deep.equal(["cost"]);
+    // the EMPTY override ("this phase demands nothing") survives the save
+    expect(update.phases.flip.required_completion_fields).to.deep.equal([]);
+    expect(update.phases.replace.required_completion_fields).to.deep.equal(["cost"]);
+  });
+
+  it("no override → the key is omitted so the task level falls through", async () => {
+    const { el, update } = await openAndSave(
+      { phases: { flip: { name: "Flip blades" } }, phase_sequence: ["flip"] },
+      (el) => {
+        // toggling on and off again must land back at "inherit"
+        (el as any)._patchPhaseDef("flip", { reqOverride: true, reqFields: ["cost"] });
+        (el as any)._patchPhaseDef("flip", { reqOverride: false });
+      },
+    );
+    expect((el as any)._phaseDefs[0].reqOverride).to.equal(false);
+    expect("required_completion_fields" in update.phases.flip).to.equal(false);
+  });
+
   it("renders the phases section with the editor rows", async () => {
     const { hass } = createMockHass({});
     const el = await fixture<MaintenanceTaskDialog>(html`

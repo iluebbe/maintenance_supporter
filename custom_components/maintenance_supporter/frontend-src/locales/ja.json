@@ -899,5 +899,6 @@
   "phase_current": "現在のフェーズ",
   "phase_set": "現在に設定",
   "chart_history_fallback": "このエンティティには長期統計がありません — レコーダーの状態履歴を表示しています（通常は直近約10日分）",
-  "prediction_cycles": "学習したサイクル数"
+  "prediction_cycles": "学習したサイクル数",
+  "phase_require_override": "このフェーズで「完了時に必須」を上書き"
 }

@@ -899,5 +899,6 @@
   "phase_current": "Aktuelle Phase",
   "phase_set": "Als aktuell setzen",
   "chart_history_fallback": "Keine Langzeitstatistik für diese Entität — angezeigt wird der Recorder-Zustandsverlauf (üblicherweise die letzten ~10 Tage)",
-  "prediction_cycles": "Gelernt aus Zyklen"
+  "prediction_cycles": "Gelernt aus Zyklen",
+  "phase_require_override": "„Bei Erledigung verlangen“ für diese Phase überschreiben"
 }

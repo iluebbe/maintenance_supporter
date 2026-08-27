@@ -71,9 +71,10 @@ def sanitize_phase_defs(value: object) -> dict[str, dict[str, Any]]:
                 clean["checklist"] = items[:20]
         rcf = raw_def.get("required_completion_fields")
         if isinstance(rcf, list):
-            cleaned = sanitize_required_completion_fields(rcf)
-            if cleaned:
-                clean["required_completion_fields"] = cleaned
+            # Phase fields OVERRIDE the task's — an explicit empty list is a
+            # meaningful override ("this phase demands nothing") and must
+            # survive, unlike on the task level where [] and absent coincide.
+            clean["required_completion_fields"] = sanitize_required_completion_fields(rcf)
         cp = raw_def.get("consumes_parts")
         if isinstance(cp, list) and cp:
             clean["consumes_parts"] = cp  # per-part validation at the write path

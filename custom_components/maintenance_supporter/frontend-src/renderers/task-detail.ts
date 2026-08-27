@@ -222,8 +222,8 @@ function renderPhasesCard(task: MaintenanceTask, ctx: TaskDetailContext) {
           const last = lastByPhase.get(id);
           return html`
             <div class="phase-step ${i === cursor ? "current" : ""}"
-              title=${i === cursor ? t("phase_current", L) : (ctx.isOperator ? t("phase_set", L) : "")}
-              @click=${() => { if (ctx.isOperator && i !== cursor) ctx.setPhaseCursor(i); }}>
+              title=${i === cursor ? t("phase_current", L) : t("phase_set", L)}
+              @click=${() => { if (i !== cursor) ctx.setPhaseCursor(i); }}>
               <span class="phase-step-name">${i + 1}. ${name}</span>
               ${last ? html`<span class="phase-step-last">${formatDate(last, L)}</span>` : nothing}
             </div>

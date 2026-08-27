@@ -263,12 +263,16 @@ export class MaintenanceTaskDialog extends LitElement {
   // Task phases (#139): editable defs + the cycle order. The v1 editor keeps
   // each phase to name + checklist + at most ONE own-object part (the mower
   // "14 new blades" case); richer per-phase config exists at the WS level.
-  // `carry` holds def fields the editor has no form for (notes,
-  // required_completion_fields, future keys) and `extraParts` any links
-  // beyond the first — both re-merged on save so a no-op edit never wipes
-  // them (#106 pattern; same passthrough idea as trigger_config's carry).
+  // `carry` holds def fields the editor has no form for (notes, future
+  // keys) and `extraParts` any links beyond the first — both re-merged on
+  // save so a no-op edit never wipes them (#106 pattern; same passthrough
+  // idea as trigger_config's carry). Required completion fields are a real
+  // form now (#139 follow-up): `reqOverride` distinguishes "inherit the
+  // task's list" (off) from an explicit per-phase list — including the
+  // meaningful EMPTY override "this phase demands nothing".
   @state() private _phaseDefs: Array<{
     id: string; name: string; checklistText: string; partId: string; partQty: string;
+    reqOverride: boolean; reqFields: string[];
     extraParts: TaskPartLink[]; carry: Record<string, unknown>;
   }> = [];
   @state() private _phaseSeq: string[] = [];
@@ -401,13 +405,18 @@ export class MaintenanceTaskDialog extends LitElement {
 
     this._checklistText = (task.checklist || []).join("\n");
     this._phaseDefs = Object.entries(task.phases || {}).map(([id, def]) => {
-      const { name: _n, checklist: _c, consumes_parts: _p, ...carry } = def as unknown as Record<string, unknown>;
+      const {
+        name: _n, checklist: _c, consumes_parts: _p, required_completion_fields: _r,
+        ...carry
+      } = def as unknown as Record<string, unknown>;
       return {
         id,
         name: def.name || id,
         checklistText: (def.checklist || []).join("\n"),
         partId: def.consumes_parts?.[0]?.part_id || "",
         partQty: def.consumes_parts?.[0]?.quantity != null ? String(def.consumes_parts[0].quantity) : "",
+        reqOverride: def.required_completion_fields !== undefined,
+        reqFields: [...(def.required_completion_fields || [])],
         extraParts: (def.consumes_parts || []).slice(1),
         carry,
       };
@@ -1032,7 +1041,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private _addPhaseDef(): void {
     const id = this._phaseSlug(`phase-${this._phaseDefs.length + 1}`);
-    this._phaseDefs = [...this._phaseDefs, { id, name: "", checklistText: "", partId: "", partQty: "", extraParts: [], carry: {} }];
+    this._phaseDefs = [...this._phaseDefs, { id, name: "", checklistText: "", partId: "", partQty: "", reqOverride: false, reqFields: [], extraParts: [], carry: {} }];
   }
 
   private _removePhaseDef(id: string): void {
@@ -1040,7 +1049,10 @@ export class MaintenanceTaskDialog extends LitElement {
     this._phaseSeq = this._phaseSeq.filter((s) => s !== id);
   }
 
-  private _patchPhaseDef(id: string, patch: Partial<{ name: string; checklistText: string; partId: string; partQty: string }>): void {
+  private _patchPhaseDef(
+    id: string,
+    patch: Partial<{ name: string; checklistText: string; partId: string; partQty: string; reqOverride: boolean; reqFields: string[] }>,
+  ): void {
     this._phaseDefs = this._phaseDefs.map((d) => (d.id === id ? { ...d, ...patch } : d));
   }
 
@@ -1083,6 +1095,33 @@ export class MaintenanceTaskDialog extends LitElement {
               .value=${d.checklistText}
               @input=${(e: Event) => this._patchPhaseDef(d.id, { checklistText: (e.target as HTMLTextAreaElement).value })}
             ></textarea>
+          ` : nothing}
+          <label class="req-option phase-req-toggle">
+            <input
+              type="checkbox"
+              .checked=${d.reqOverride}
+              @change=${(e: Event) => this._patchPhaseDef(d.id, { reqOverride: (e.target as HTMLInputElement).checked })}
+            />
+            <span>${t("phase_require_override", L)}</span>
+          </label>
+          ${d.reqOverride ? html`
+            <div class="required-completion phase-req-fields">
+              ${REQUIRED_COMPLETION_KEYS.map((field) => html`
+                <label class="req-option">
+                  <input
+                    type="checkbox"
+                    .checked=${d.reqFields.includes(field)}
+                    @change=${(e: Event) => {
+                      const on = (e.target as HTMLInputElement).checked;
+                      const next = new Set(d.reqFields);
+                      if (on) next.add(field); else next.delete(field);
+                      this._patchPhaseDef(d.id, { reqFields: [...next] });
+                    }}
+                  />
+                  <span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>
+                </label>
+              `)}
+            </div>
           ` : nothing}
         </div>
       `)}
@@ -1212,6 +1251,9 @@ export class MaintenanceTaskDialog extends LitElement {
           }
           links.push(...d.extraParts);
           if (links.length) def.consumes_parts = links;
+          // Override on → send the list, EMPTY included ("demands nothing");
+          // off → omit the key so the task-level list falls through.
+          if (d.reqOverride) def.required_completion_fields = [...d.reqFields];
           defs[d.id] = def;
         }
         const seq = this._phaseSeq.filter((id) => id in defs);
@@ -2922,6 +2964,15 @@ export class MaintenanceTaskDialog extends LitElement {
     .phase-checklist {
       min-height: 56px;
       margin-top: 6px;
+    }
+    .phase-req-toggle {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .phase-req-fields {
+      margin: 2px 0 0 22px;
+      font-size: 13px;
     }
     .phase-remove {
       --mdc-icon-button-size: 36px;

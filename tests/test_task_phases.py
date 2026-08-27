@@ -157,6 +157,27 @@ def test_current_phase_clamps_out_of_range_cursor() -> None:
 # ─── sanitizers ──────────────────────────────────────────────────────────
 
 
+def test_sanitize_keeps_the_empty_required_fields_override() -> None:
+    """[] is a meaningful phase override ("this phase demands nothing") —
+    dropping it would make the task-level requirement fall through (#139
+    follow-up: the dialog's override toggle relies on this surviving)."""
+    defs = sanitize_phase_defs({
+        "flip": {"name": "Flip", "required_completion_fields": []},
+        "junky": {"name": "J", "required_completion_fields": ["bogus"]},
+    })
+    assert defs["flip"]["required_completion_fields"] == []
+    # garbage-only input sanitizes to the empty override too (harmless)
+    assert defs["junky"]["required_completion_fields"] == []
+    td = {
+        "name": "T",
+        "phases": defs,
+        "phase_sequence": ["flip"],
+        "phase_cursor": 0,
+        "required_completion_fields": ["cost"],
+    }
+    assert required_completion_fields(td) == []
+
+
 def test_sanitize_defs_and_sequence() -> None:
     defs = sanitize_phase_defs(
         {

@@ -899,5 +899,6 @@
   "phase_current": "Nykyinen vaihe",
   "phase_set": "Aseta nykyiseksi",
   "chart_history_fallback": "Tälle entiteetille ei ole pitkän aikavälin tilastoja — näytetään recorderin tilahistoria (yleensä viimeiset ~10 päivää)",
-  "prediction_cycles": "Opittu sykleistä"
+  "prediction_cycles": "Opittu sykleistä",
+  "phase_require_override": "Ohita ”Vaadi valmistuessa” tälle vaiheelle"
 }

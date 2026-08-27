@@ -899,5 +899,6 @@
   "phase_current": "현재 단계",
   "phase_set": "현재로 설정",
   "chart_history_fallback": "이 엔티티에는 장기 통계가 없습니다 — 레코더 상태 기록을 표시합니다(보통 최근 약 10일)",
-  "prediction_cycles": "학습한 주기 수"
+  "prediction_cycles": "학습한 주기 수",
+  "phase_require_override": "이 단계에서 ‘완료 시 필수’ 재정의"
 }

@@ -899,5 +899,6 @@
   "phase_current": "Fase atual",
   "phase_set": "Definir como atual",
   "chart_history_fallback": "Sem estatísticas de longo prazo para esta entidade — a mostrar o histórico de estados do recorder (normalmente os últimos ~10 dias)",
-  "prediction_cycles": "Aprendido de ciclos"
+  "prediction_cycles": "Aprendido de ciclos",
+  "phase_require_override": "Substituir «Exigir na conclusão» para esta fase"
 }

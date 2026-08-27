@@ -899,5 +899,6 @@
   "phase_current": "Huidige fase",
   "phase_set": "Instellen als huidige",
   "chart_history_fallback": "Geen langetermijnstatistieken voor deze entiteit — de recorder-statusgeschiedenis wordt getoond (meestal de laatste ~10 dagen)",
-  "prediction_cycles": "Geleerd uit cycli"
+  "prediction_cycles": "Geleerd uit cycli",
+  "phase_require_override": "„Vereisen bij afronden” voor deze fase overschrijven"
 }

@@ -899,5 +899,6 @@
   "phase_current": "Aktuell fas",
   "phase_set": "Ange som aktuell",
   "chart_history_fallback": "Ingen långtidsstatistik för denna entitet — recorderns tillståndshistorik visas (vanligtvis de senaste ~10 dagarna)",
-  "prediction_cycles": "Lärt av cykler"
+  "prediction_cycles": "Lärt av cykler",
+  "phase_require_override": "Åsidosätt ”Kräv vid slutförande” för denna fas"
 }

@@ -37,6 +37,17 @@ const getTask = async (taskId) => {
   const obj = await api.send({ type: "maintenance_supporter/object", entry_id: entryId });
   return obj.tasks.find((t) => t.id === taskId);
 };
+/** Poll until the read model reflects a state — the WS complete returns
+ *  before the coordinator refresh lands, so asserting immediately races. */
+const getTaskUntil = async (taskId, pred) => {
+  let task = null;
+  for (let i = 0; i < 12; i++) {
+    task = await getTask(taskId);
+    if (task && pred(task)) return task;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return task;
+};
 const getPart = async (partId) => {
   const obj = await api.send({ type: "maintenance_supporter/object", entry_id: entryId });
   return (obj.parts || []).find((p) => p.id === partId);
@@ -78,7 +89,7 @@ try {
 
   // 3. complete the swap step
   await api.send({ type: "maintenance_supporter/task/complete", entry_id: entryId, task_id: taskId });
-  task = await getTask(taskId);
+  task = await getTaskUntil(taskId, (t) => t.phase_cursor === 1);
   assert(task.phase_cursor === 1, "completion advanced the cursor");
   assert(task.current_phase?.id === "flip", "current_phase is now flip");
   const done = task.history.filter((h) => h.type === "completed");
@@ -102,11 +113,14 @@ try {
 
   // The double-tap dedup (MANUAL_COMPLETION_DEDUP_SECONDS = 30, journey M1)
   // swallows a same-task re-completion inside its window — deliberately, and
-  // task-wide even across a set_phase. Wait it out before the replace step.
-  log("  waiting out the 31s double-complete dedup window …");
-  await new Promise((r) => setTimeout(r, 31000));
+  // task-wide even across a set_phase. Wait it out with a REAL margin: under
+  // WSL2 the container's CLOCK_MONOTONIC drifts a few percent behind host
+  // wall time (measured 31 s host ≈ 30.1 s container), so a 31 s sleep sat
+  // exactly on the boundary and flaked.
+  log("  waiting out the 30s double-complete dedup window (40s, drift margin) …");
+  await new Promise((r) => setTimeout(r, 40000));
   await api.send({ type: "maintenance_supporter/task/complete", entry_id: entryId, task_id: taskId, cost: 24.9 });
-  task = await getTask(taskId);
+  task = await getTaskUntil(taskId, (t) => t.phase_cursor === 0);
   assert(task.phase_cursor === 0, "cursor wrapped to 0 after replace");
   const done2 = task.history.filter((h) => h.type === "completed");
   assert(done2.at(-1)?.phase_id === "replace", "history entry stamped phase_id=replace");
@@ -160,6 +174,35 @@ try {
   assert(ui.steps === 4, `cycle strip has 4 steps (${ui.steps})`);
   assert(ui.current.includes("Swap"), `current step highlighted = Swap (${ui.current})`);
   assert(ui.lastLines >= 2, `last-completion lines under completed steps (${ui.lastLines})`);
+
+  // Clicking another step re-points the cursor (the liblit report: an
+  // inverted isOperator gate made the click a silent no-op for admins).
+  await page.evaluate(() => {
+    const sr = (el) => el && el.shadowRoot;
+    const panel = (() => {
+      const st = [document.documentElement]; let n = 0;
+      while (st.length && n++ < 8000) {
+        const el = st.pop();
+        if (el.tagName === "MAINTENANCE-SUPPORTER-PANEL") return el;
+        const r = sr(el); if (r) st.push(...r.querySelectorAll("*"));
+        else if (el.children) st.push(...el.children);
+      }
+      return null;
+    })();
+    const steps = sr(panel).querySelectorAll(".phases-card .phase-step");
+    steps[3].click(); // "4. Replace blades"
+  });
+  let clicked = null;
+  for (let i = 0; i < 15 && clicked?.phase_cursor !== 3; i++) {
+    await page.waitForTimeout(1000);
+    clicked = await getTask(taskId);
+  }
+  assert(clicked?.phase_cursor === 3, `strip click re-pointed the cursor (${clicked?.phase_cursor})`);
+  assert(clicked.current_phase?.id === "replace", "current phase is replace after the click");
+  // put it back for the dialog scene below (give the panel's subscription
+  // a moment to deliver the reverted state)
+  await api.send({ type: "maintenance_supporter/task/set_phase", entry_id: entryId, task_id: taskId, cursor: 0 });
+  await page.waitForTimeout(3000);
 
   // complete dialog shows the phase line
   const dialogProbe = await page.evaluate(() => {
