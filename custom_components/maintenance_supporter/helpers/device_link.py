@@ -115,13 +115,18 @@ def _is_ours(device: dr.DeviceEntry, own_entry_id: str) -> bool:
     return bool(getattr(device, "config_entry_id", None) == own_entry_id)
 
 
-def _only_ours(device: dr.DeviceEntry, own_entry_id: str) -> bool:
+def _only_ours(device: object, own_entry_id: str) -> bool:
     """Whether OUR entry is the device's sole owner — the self-link shape.
 
     The distinction matters: a legacy CO-OWNED appliance device (the appliance's
     integration + us, the pre-2.45 merge) is a real link that migration must
     still clean up; the doppelgänger the old picker offered is owned by our
     entry alone.
+
+    Typed ``object``: HA 2026.9 introduces sub-devices, so registry lookups
+    return ``DeviceEntry | ChildDeviceEntry`` — a union 2026.7 cannot even
+    import. The body is getattr-based anyway (the 2026.8 spelling split),
+    so any registry entry shape works.
     """
     owners = set(getattr(device, "config_entries", None) or ())
     if single := getattr(device, "config_entry_id", None):
@@ -129,8 +134,11 @@ def _only_ours(device: dr.DeviceEntry, own_entry_id: str) -> bool:
     return owners == {own_entry_id}
 
 
-def is_maintenance_device(hass: HomeAssistant, device: dr.DeviceEntry) -> bool:
+def is_maintenance_device(hass: HomeAssistant, device: object) -> bool:
     """Whether a device belongs to Maintenance Supporter (identifiers or owner).
+
+    Typed ``object`` for the same reason as :func:`_only_ours` — HA 2026.9
+    registry lookups return ``DeviceEntry | ChildDeviceEntry``.
 
     Our own devices always carry a ``(DOMAIN, …)`` identifier; the owning-entry
     check additionally catches forks that copied a foreign identity. Both the

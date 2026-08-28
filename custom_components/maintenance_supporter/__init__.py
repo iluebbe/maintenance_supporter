@@ -862,7 +862,10 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # (DeviceInfo.suggested_area only fires once, on first device creation).
     @callback
     def _object_entries_for_device(
-        hass: HomeAssistant, device: dr.DeviceEntry
+        # object: HA 2026.9 registry lookups return DeviceEntry |
+        # ChildDeviceEntry (a union 2026.7 cannot import); the body reads
+        # attributes via getattr already.
+        hass: HomeAssistant, device: object
     ) -> list[ConfigEntry]:
         """Our object entries that live on this device.
 
@@ -894,7 +897,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         for ce in hass.config_entries.async_entries(DOMAIN):
             if ce.entry_id in seen or ce.unique_id == GLOBAL_UNIQUE_ID:
                 continue
-            if (ce.data.get(CONF_OBJECT) or {}).get("ha_device_id") == device.id:
+            if (ce.data.get(CONF_OBJECT) or {}).get("ha_device_id") == getattr(device, "id", None):
                 found.append(ce)
         return found
 

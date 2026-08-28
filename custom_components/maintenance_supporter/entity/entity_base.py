@@ -58,7 +58,12 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
                 coordinator.hass, device_id, own_entry_id=coordinator.entry.entry_id
             )
             if resolved is not None:
-                self._linked_device = dr.async_get(coordinator.hass).async_get(resolved)
+                # Any hop: HA 2026.9 lookups return DeviceEntry |
+                # ChildDeviceEntry (both attach to entities the same way);
+                # 2026.7 returns the plain entry — a cast would be redundant
+                # on one version and required on the other.
+                resolved_device: Any = dr.async_get(coordinator.hass).async_get(resolved)
+                self._linked_device = resolved_device
         if self._linked_device is not None:
             self.device_entry = self._linked_device
 

@@ -732,7 +732,7 @@ class DeviceLinkRepairFlow(RepairsFlow):
         best = self._best_match(entry)
         return {
             "object": object_name(entry),
-            "suggestion": str((best.name_by_user or best.name) if best else "—"),
+            "suggestion": str((getattr(best, "name_by_user", None) or getattr(best, "name", None)) if best else "—"),
         }
 
     def _best_match(self, entry: Any) -> Any:
@@ -762,10 +762,18 @@ class DeviceLinkRepairFlow(RepairsFlow):
         words |= {w for w in (norm(obj.get("manufacturer")), norm(obj.get("model"))) if w}
 
         best, best_score = None, 0
-        for device in dr.async_get(self.hass).devices.values():
+        # HA 2026.9 retypes `DeviceRegistry.devices` as a Collection (directly
+        # iterable); 2026.7 exposes the dict-like mapping — take .values()
+        # only where it exists.
+        registry_devices = dr.async_get(self.hass).devices
+        device_iter: Any = getattr(registry_devices, "values", lambda: registry_devices)()
+        for device in device_iter:
             if is_maintenance_device(self.hass, device):
                 continue
-            hay = norm(f"{device.name_by_user or ''} {device.name or ''} {device.manufacturer or ''} {device.model or ''}")
+            hay = norm(
+                f"{getattr(device, 'name_by_user', None) or ''} {getattr(device, 'name', None) or ''} "
+                f"{getattr(device, 'manufacturer', None) or ''} {getattr(device, 'model', None) or ''}"
+            )
             score = sum(1 for w in words if w and w in hay)
             if score > best_score:
                 best, best_score = device, score

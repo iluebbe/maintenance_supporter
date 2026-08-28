@@ -89,7 +89,9 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     for (device_id, integration), entries in by_device_integration.items():
         catalog = SIGNATURES[integration]
         device = dev_reg.async_get(device_id)
-        model = ((device.model or "") if device else "").lower()
+        # getattr: HA 2026.9 may hand back a ChildDeviceEntry (sub-device),
+        # which carries no model — model-gated signatures simply don't match.
+        model = ((getattr(device, "model", None) or "") if device else "").lower()
         for sig in catalog.tasks:
             # Device-type gates: registry model substring and/or a
             # type-identifying sibling entity (watched siblings still count —
