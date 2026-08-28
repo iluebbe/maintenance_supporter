@@ -128,6 +128,7 @@
   "schedule_time_help": "Tyhjä = keskiyö (oletus). HA:n aikavyöhyke.",
   "at_time": "klo",
   "notes_optional": "Muistiinpanot (valinnainen)",
+  "notes_markdown_hint": "Markdown on tuettu — **lihavointi**, listat, [linkit](…)",
   "cost_optional": "Kustannus (valinnainen)",
   "duration_minutes": "Kesto minuutteina (valinnainen)",
   "completed_at_optional": "Suoritettu (valinnainen, tyhjä = nyt)",

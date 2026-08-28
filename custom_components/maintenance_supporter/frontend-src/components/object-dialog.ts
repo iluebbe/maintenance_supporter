@@ -217,6 +217,7 @@ export class MaintenanceObjectDialog extends LitElement {
               .value=${this._notes}
               @input=${(e: Event) => (this._notes = (e.target as HTMLTextAreaElement).value)}
             ></textarea>
+            <span class="md-hint">${t("notes_markdown_hint", L)}</span>
           </label>
         </div>
         <div class="dialog-actions">
@@ -270,6 +271,9 @@ export class MaintenanceObjectDialog extends LitElement {
     }
     .textarea-field textarea:focus {
       outline: none; border-color: var(--primary-color);
+    }
+    .md-hint {
+      font-size: 11px; color: var(--secondary-text-color); font-style: italic;
     }
     .parent-select {
       padding: 8px 10px; font-size: 14px; font-family: inherit;

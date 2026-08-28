@@ -126,6 +126,7 @@
   "schedule_time_help": "Puste = północ (domyślnie). Strefa czasowa HA.",
   "at_time": "o",
   "notes_optional": "Notatki (opcjonalne)",
+  "notes_markdown_hint": "Obsługiwany jest Markdown — **pogrubienie**, listy, [linki](…)",
   "cost_optional": "Koszt (opcjonalne)",
   "duration_minutes": "Czas trwania w minutach (opcjonalne)",
   "completed_at_optional": "Wykonano dnia (opcjonalne, puste = teraz)",

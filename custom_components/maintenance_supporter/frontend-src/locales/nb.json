@@ -128,6 +128,7 @@
   "schedule_time_help": "Tom = midnatt (standard). HA-tidssone.",
   "at_time": "kl.",
   "notes_optional": "Notater (valgfritt)",
+  "notes_markdown_hint": "Markdown støttes — **fet**, lister, [lenker](…)",
   "cost_optional": "Kostnad (valgfritt)",
   "duration_minutes": "Varighet i minutter (valgfritt)",
   "completed_at_optional": "Utført den (valgfritt, tomt = nå)",

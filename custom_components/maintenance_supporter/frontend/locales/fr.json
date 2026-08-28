@@ -126,6 +126,7 @@
   "schedule_time_help": "Vide = minuit (défaut). Fuseau horaire HA.",
   "at_time": "à",
   "notes_optional": "Notes (optionnel)",
+  "notes_markdown_hint": "Markdown est pris en charge — **gras**, listes, [liens](…)",
   "cost_optional": "Coût (optionnel)",
   "duration_minutes": "Durée en minutes (optionnel)",
   "completed_at_optional": "Effectué le (optionnel, vide = maintenant)",

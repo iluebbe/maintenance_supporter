@@ -126,6 +126,7 @@
   "schedule_time_help": "Vacío = medianoche (predeterminado). Zona horaria HA.",
   "at_time": "a las",
   "notes_optional": "Notas (opcional)",
+  "notes_markdown_hint": "Se admite Markdown — **negrita**, listas, [enlaces](…)",
   "cost_optional": "Coste (opcional)",
   "duration_minutes": "Duración en minutos (opcional)",
   "completed_at_optional": "Completado el (opcional, vacío = ahora)",

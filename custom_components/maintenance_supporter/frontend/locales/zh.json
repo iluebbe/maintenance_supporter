@@ -128,6 +128,7 @@
   "schedule_time_help": "留空 = 午夜 (默认)。基于 HA 时区。",
   "at_time": "于",
   "notes_optional": "备注 (可选)",
+  "notes_markdown_hint": "支持 Markdown — **加粗**、列表、[链接](…)",
   "cost_optional": "成本 (可选)",
   "duration_minutes": "耗时 (分钟, 可选)",
   "completed_at_optional": "完成时间（可选，留空 = 现在）",

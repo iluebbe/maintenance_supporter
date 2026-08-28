@@ -128,6 +128,7 @@
   "schedule_time_help": "Boş = gece yarısı (varsayılan). HA saat dilimi.",
   "at_time": "saat",
   "notes_optional": "Notlar (isteğe bağlı)",
+  "notes_markdown_hint": "Markdown desteklenir — **kalın**, listeler, [bağlantılar](…)",
   "cost_optional": "Maliyet (isteğe bağlı)",
   "duration_minutes": "Dakika cinsinden süre (isteğe bağlı)",
   "completed_at_optional": "Tamamlanma zamanı (isteğe bağlı, boş = şimdi)",

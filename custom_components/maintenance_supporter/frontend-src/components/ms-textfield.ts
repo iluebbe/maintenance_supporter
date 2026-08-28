@@ -39,6 +39,10 @@ export class MsTextfield extends LitElement {
   @property() public max?: string;
   @property() public pattern?: string;
   @property() public helper?: string;
+  /** Render a <textarea> instead of an <input> (free-text notes). The
+   *  `input` event contract is identical — target.value works for both. */
+  @property({ type: Boolean }) public multiline = false;
+  @property({ type: Number }) public rows = 3;
 
   /** Forwards the native input's value into our `value` property and
    *  re-fires as a bubbling `input` event so consumers reading
@@ -56,6 +60,16 @@ export class MsTextfield extends LitElement {
     return html`
       <label class="field">
         ${this.label ? html`<span class="label">${this.label}${this.required ? html`<span class="req">*</span>` : nothing}</span>` : nothing}
+        ${this.multiline ? html`
+        <textarea
+          .value=${this.value ?? ""}
+          rows=${this.rows}
+          ?required=${this.required}
+          ?disabled=${this.disabled}
+          placeholder=${this.placeholder}
+          @input=${this._onInput}
+          @change=${this._onInput}
+        ></textarea>` : html`
         <input
           .value=${this.value ?? ""}
           .type=${this.type}
@@ -68,7 +82,7 @@ export class MsTextfield extends LitElement {
           pattern=${this.pattern ?? nothing}
           @input=${this._onInput}
           @change=${this._onInput}
-        />
+        />`}
         ${this.helper ? html`<span class="helper">${this.helper}</span>` : nothing}
       </label>
     `;
@@ -103,6 +117,21 @@ export class MsTextfield extends LitElement {
       border-color: var(--primary-color);
     }
     input:disabled { opacity: 0.5; cursor: not-allowed; }
+    textarea {
+      padding: 8px 10px;
+      font-size: 14px;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
+      border-radius: 6px;
+      font-family: inherit;
+      width: 100%;
+      box-sizing: border-box;
+      outline: none;
+      resize: vertical;
+    }
+    textarea:focus { border-color: var(--primary-color); }
+    textarea:disabled { opacity: 0.5; cursor: not-allowed; }
     .helper {
       font-size: 11px;
       color: var(--secondary-text-color);

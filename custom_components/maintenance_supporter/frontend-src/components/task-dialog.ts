@@ -2749,6 +2749,9 @@ export class MaintenanceTaskDialog extends LitElement {
           ${this._renderAdaptiveSection(L)}
           <ms-textfield
             label="${t("notes_optional", L)}"
+            multiline
+            .rows=${3}
+            .helper=${t("notes_markdown_hint", L)}
             .value=${this._notes}
             @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
           ></ms-textfield>

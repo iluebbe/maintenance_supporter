@@ -445,6 +445,12 @@ export const panelStyles = css`
     word-break: break-word;
     line-height: 1.45;
   }
+  /* Markdown notes: <ha-markdown> parses the source itself — the container's
+     pre-wrap must not leak into its rendered paragraphs. */
+  .object-notes-body ha-markdown,
+  .task-meta-notes ha-markdown {
+    white-space: normal;
+  }
   .empty { color: var(--secondary-text-color); font-style: italic; }
   .analysis-empty-state { text-align: center; padding: 24px 16px; }
   .analysis-empty-state .empty { font-size: 15px; margin-bottom: 8px; }

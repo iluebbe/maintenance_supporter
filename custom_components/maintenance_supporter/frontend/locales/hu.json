@@ -128,6 +128,7 @@
   "schedule_time_help": "Üres = éjfél (alapértelmezés). HA időzóna.",
   "at_time": "ekkor:",
   "notes_optional": "Megjegyzések (opcionális)",
+  "notes_markdown_hint": "A Markdown támogatott — **félkövér**, listák, [hivatkozások](…)",
   "cost_optional": "Költség (opcionális)",
   "duration_minutes": "Időtartam percben (opcionális)",
   "completed_at_optional": "Elvégezve ekkor (opcionális, üres = most)",

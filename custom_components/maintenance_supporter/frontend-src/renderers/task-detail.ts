@@ -11,6 +11,7 @@
 
 import { html, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
+import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { t, formatDate, formatDateTime, formatRecurrence } from "../styles";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
@@ -284,7 +285,7 @@ function renderTaskMeta(task: MaintenanceTask, ctx: TaskDetailContext) {
       ${task.notes ? html`
         <div class="task-meta-row">
           <ha-icon icon="mdi:note-text-outline"></ha-icon>
-          <span class="task-meta-notes">${task.notes}</span>
+          <span class="task-meta-notes">${renderNotesMarkdown(task.notes)}</span>
         </div>
       ` : nothing}
       ${safeTaskUrl ? html`

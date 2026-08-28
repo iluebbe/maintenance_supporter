@@ -128,6 +128,7 @@
   "schedule_time_help": "Tom = midnat (standard). HA-tidszone.",
   "at_time": "kl.",
   "notes_optional": "Noter (valgfrit)",
+  "notes_markdown_hint": "Markdown understøttes — **fed**, lister, [links](…)",
   "cost_optional": "Omkostning (valgfrit)",
   "duration_minutes": "Varighed i minutter (valgfrit)",
   "completed_at_optional": "Udført den (valgfrit, tomt = nu)",

@@ -10,6 +10,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
+import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { property, state } from "lit/decorators.js";
 import { t, STATUS_COLORS, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
@@ -186,7 +187,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                 ? html`
                     <div class="notes-section">
                       <strong>${t("object_notes_label", L)}</strong>
-                      <div class="notes-body">${obj.notes}</div>
+                      <div class="notes-body">${renderNotesMarkdown(obj.notes)}</div>
                     </div>
                   `
                 : nothing}
@@ -294,6 +295,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     .task-name { flex: 1; font-size: 14px; }
     .task-status { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; }
     .notes-body { white-space: pre-wrap; font-size: 13px; padding: 8px; background: var(--secondary-background-color); border-radius: 6px; }
+    .notes-body ha-markdown { white-space: normal; }
     .actions { display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid var(--divider-color); }
     .actions .btn { flex: 1; }
     .btn {

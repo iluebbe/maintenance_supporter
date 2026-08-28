@@ -126,6 +126,7 @@
   "schedule_time_help": "Tomt = midnatt (standard). HA-tidszon.",
   "at_time": "kl.",
   "notes_optional": "Anteckningar (valfritt)",
+  "notes_markdown_hint": "Markdown stöds — **fetstil**, listor, [länkar](…)",
   "cost_optional": "Kostnad (valfritt)",
   "duration_minutes": "Varaktighet i minuter (valfritt)",
   "completed_at_optional": "Utförd den (valfritt, tomt = nu)",

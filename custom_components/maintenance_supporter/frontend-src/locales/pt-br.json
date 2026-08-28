@@ -128,6 +128,7 @@
   "schedule_time_help": "Vazio = meia-noite (padrão). Fuso horário do HA.",
   "at_time": "às",
   "notes_optional": "Observações (opcional)",
+  "notes_markdown_hint": "Markdown é suportado — **negrito**, listas, [links](…)",
   "cost_optional": "Custo (opcional)",
   "duration_minutes": "Duração em minutos (opcional)",
   "completed_at_optional": "Concluído em (opcional, vazio = agora)",

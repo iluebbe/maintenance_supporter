@@ -128,6 +128,7 @@
   "schedule_time_help": "空欄＝深夜0時（既定）。HAのタイムゾーン。",
   "at_time": "時刻",
   "notes_optional": "メモ（任意）",
+  "notes_markdown_hint": "Markdownに対応 — **太字**、リスト、[リンク](…)",
   "cost_optional": "費用（任意）",
   "duration_minutes": "所要時間（分、任意）",
   "completed_at_optional": "完了日時（任意・空欄 = 現在）",

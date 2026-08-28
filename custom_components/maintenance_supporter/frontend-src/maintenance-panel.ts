@@ -15,6 +15,7 @@ import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
 import { downloadTextFile } from "./helpers/download";
+import { renderNotesMarkdown } from "./helpers/notes-markdown";
 import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
 import { describePartLink, partsForCompletion } from "./helpers/shared-parts";
 import { effectivePhase, phaseLabel } from "./helpers/phases";
@@ -3288,7 +3289,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${o.notes
           ? html`<div class="object-notes">
               <div class="object-notes-label">${t("object_notes_label", L)}</div>
-              <div class="object-notes-body">${o.notes}</div>
+              <div class="object-notes-body">${renderNotesMarkdown(o.notes)}</div>
             </div>`
           : nothing}
 

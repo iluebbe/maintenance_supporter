@@ -128,6 +128,7 @@
   "schedule_time_help": "비워두면 자정(기본값)입니다. HA 시간대 기준.",
   "at_time": "시각",
   "notes_optional": "메모 (선택)",
+  "notes_markdown_hint": "Markdown 지원 — **굵게**, 목록, [링크](…)",
   "cost_optional": "비용 (선택)",
   "duration_minutes": "소요 시간(분, 선택)",
   "completed_at_optional": "완료 시각 (선택, 비우면 지금)",

@@ -128,6 +128,7 @@
   "schedule_time_help": "Empty = midnight (default). HA timezone.",
   "at_time": "at",
   "notes_optional": "Notes (optional)",
+  "notes_markdown_hint": "Markdown is supported — **bold**, lists, [links](…)",
   "cost_optional": "Cost (optional)",
   "duration_minutes": "Duration in minutes (optional)",
   "completed_at_optional": "Completed at (optional, empty = now)",

@@ -126,6 +126,7 @@
   "schedule_time_help": "Prázdné = půlnoc (výchozí). Časové pásmo HA.",
   "at_time": "v",
   "notes_optional": "Poznámky (volitelné)",
+  "notes_markdown_hint": "Markdown je podporován — **tučně**, seznamy, [odkazy](…)",
   "cost_optional": "Náklady (volitelné)",
   "duration_minutes": "Doba trvání v minutách (volitelné)",
   "completed_at_optional": "Dokončeno dne (volitelné, prázdné = nyní)",

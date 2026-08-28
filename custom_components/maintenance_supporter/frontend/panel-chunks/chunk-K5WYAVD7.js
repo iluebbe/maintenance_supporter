@@ -1,50 +1,50 @@
 /*! maintenance_supporter frontend 2.66.1 */
-import{a as u}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-RWVOWRJT.js";import{a as r,b as _,c as l,f as o,g as p,k as d,l as s,p as i,r as h}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-J4ZVGIKR.js";var e=class extends p{constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._haDeviceId="";this._parentEntryId="";this._entryId=null}get _lang(){return h(this.hass)}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._haDeviceId="",this._parentEntryId="",this._error="",this._open=!0}openEdit(a,n){this._entryId=a,this._name=n.name||"",this._manufacturer=n.manufacturer||"",this._model=n.model||"",this._serialNumber=n.serial_number||"",this._areaId=n.area_id||"",this._installationDate=n.installation_date||"",this._warrantyExpiry=n.warranty_expiry||"",this._documentationUrl=n.documentation_url||"",this._notes=n.notes||"",this._haDeviceId=n.ha_device_id||"",this._parentEntryId=n.parent_entry_id||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(a){this._error=u(a,this._lang,i("save_error",this._lang))}finally{this._loading=!1}}}_parentChoices(){return(this.objects||[]).filter(a=>a.entry_id!==this._entryId)}_close(){this._open=!1}render(){if(!this._open)return l``;let a=this._lang,n=this._entryId?i("edit_object",a):i("new_object",a);return l`
+import{a as u}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-HKDISMU4.js";import{a as r,b as _,c as l,f as o,g as p,k as d,l as s,p as i,r as h}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-AEUVYNDR.js";var a=class extends p{constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._haDeviceId="";this._parentEntryId="";this._entryId=null}get _lang(){return h(this.hass)}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._haDeviceId="",this._parentEntryId="",this._error="",this._open=!0}openEdit(e,n){this._entryId=e,this._name=n.name||"",this._manufacturer=n.manufacturer||"",this._model=n.model||"",this._serialNumber=n.serial_number||"",this._areaId=n.area_id||"",this._installationDate=n.installation_date||"",this._warrantyExpiry=n.warranty_expiry||"",this._documentationUrl=n.documentation_url||"",this._notes=n.notes||"",this._haDeviceId=n.ha_device_id||"",this._parentEntryId=n.parent_entry_id||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(e){this._error=u(e,this._lang,i("save_error",this._lang))}finally{this._loading=!1}}}_parentChoices(){return(this.objects||[]).filter(e=>e.entry_id!==this._entryId)}_close(){this._open=!1}render(){if(!this._open)return l``;let e=this._lang,n=this._entryId?i("edit_object",e):i("new_object",e);return l`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${n}</div>
         <div class="content">
           ${this._error?l`<div class="error">${this._error}</div>`:o}
           <ms-textfield
-            label="${i("name",a)}"
+            label="${i("name",e)}"
             required
             .value=${this._name}
             @input=${t=>this._name=t.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${i("manufacturer_optional",a)}"
+            label="${i("manufacturer_optional",e)}"
             .value=${this._manufacturer}
             @input=${t=>this._manufacturer=t.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${i("model_optional",a)}"
+            label="${i("model_optional",e)}"
             .value=${this._model}
             @input=${t=>this._model=t.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${i("serial_number_optional",a)}"
+            label="${i("serial_number_optional",e)}"
             .value=${this._serialNumber}
             @input=${t=>this._serialNumber=t.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${i("documentation_url_optional",a)}"
+            label="${i("documentation_url_optional",e)}"
             type="url"
             .value=${this._documentationUrl}
             @input=${t=>this._documentationUrl=t.target.value}
           ></ms-textfield>
           <ha-area-picker
             .hass=${this.hass}
-            label="${i("area_id_optional",a)}"
+            label="${i("area_id_optional",e)}"
             .value=${this._areaId}
             @value-changed=${t=>this._areaId=t.detail.value||""}
           ></ha-area-picker>
           <ms-textfield
-            label="${i("installation_date_optional",a)}"
+            label="${i("installation_date_optional",e)}"
             type="date"
             .value=${this._installationDate}
             @input=${t=>this._installationDate=t.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${i("warranty_expiry_optional",a)}"
+            label="${i("warranty_expiry_optional",e)}"
             type="date"
             .value=${this._warrantyExpiry}
             @input=${t=>this._warrantyExpiry=t.target.value}
@@ -53,18 +53,18 @@ import{a as u}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-RWVOWRJT
             .hass=${this.hass}
             .data=${{device:this._haDeviceId||void 0}}
             .schema=${[{name:"device",selector:{device:{}}}]}
-            .computeLabel=${()=>i("link_device_optional",a)}
+            .computeLabel=${()=>i("link_device_optional",e)}
             @value-changed=${t=>this._haDeviceId=t.detail.value?.device||""}
           ></ha-form>
           ${this._parentChoices().length?l`<label class="textarea-field">
-                <span class="textarea-label">${i("parent_object_optional",a)}</span>
+                <span class="textarea-label">${i("parent_object_optional",e)}</span>
                 <select
                   class="parent-select"
                   .value=${this._parentEntryId}
                   @change=${t=>this._parentEntryId=t.target.value}
                 >
                   <option value="" ?selected=${!this._parentEntryId}>
-                    ${i("parent_none",a)}
+                    ${i("parent_none",e)}
                   </option>
                   ${this._parentChoices().map(t=>l`<option
                       value=${t.entry_id}
@@ -73,12 +73,13 @@ import{a as u}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-RWVOWRJT
                 </select>
               </label>`:o}
           <label class="textarea-field">
-            <span class="textarea-label">${i("object_notes_optional",a)}</span>
+            <span class="textarea-label">${i("object_notes_optional",e)}</span>
             <textarea
               rows="3"
               .value=${this._notes}
               @input=${t=>this._notes=t.target.value}
             ></textarea>
+            <span class="md-hint">${i("notes_markdown_hint",e)}</span>
           </label>
         </div>
         <div class="dialog-actions">
@@ -93,7 +94,7 @@ import{a as u}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-RWVOWRJT
           </ha-button>
         </div>
       </ha-dialog>
-    `}};e.styles=_`
+    `}};a.styles=_`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -130,6 +131,9 @@ import{a as u}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-RWVOWRJT
     .textarea-field textarea:focus {
       outline: none; border-color: var(--primary-color);
     }
+    .md-hint {
+      font-size: 11px; color: var(--secondary-text-color); font-style: italic;
+    }
     .parent-select {
       padding: 8px 10px; font-size: 14px; font-family: inherit;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
@@ -140,4 +144,4 @@ import{a as u}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-RWVOWRJT
       color: var(--error-color, #f44336);
       font-size: 13px;
     }
-  `,r([d({attribute:!1})],e.prototype,"hass",2),r([d({attribute:!1})],e.prototype,"objects",2),r([s()],e.prototype,"_open",2),r([s()],e.prototype,"_loading",2),r([s()],e.prototype,"_error",2),r([s()],e.prototype,"_name",2),r([s()],e.prototype,"_manufacturer",2),r([s()],e.prototype,"_model",2),r([s()],e.prototype,"_serialNumber",2),r([s()],e.prototype,"_areaId",2),r([s()],e.prototype,"_installationDate",2),r([s()],e.prototype,"_warrantyExpiry",2),r([s()],e.prototype,"_documentationUrl",2),r([s()],e.prototype,"_notes",2),r([s()],e.prototype,"_haDeviceId",2),r([s()],e.prototype,"_parentEntryId",2),r([s()],e.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",e);export{e as a};
+  `,r([d({attribute:!1})],a.prototype,"hass",2),r([d({attribute:!1})],a.prototype,"objects",2),r([s()],a.prototype,"_open",2),r([s()],a.prototype,"_loading",2),r([s()],a.prototype,"_error",2),r([s()],a.prototype,"_name",2),r([s()],a.prototype,"_manufacturer",2),r([s()],a.prototype,"_model",2),r([s()],a.prototype,"_serialNumber",2),r([s()],a.prototype,"_areaId",2),r([s()],a.prototype,"_installationDate",2),r([s()],a.prototype,"_warrantyExpiry",2),r([s()],a.prototype,"_documentationUrl",2),r([s()],a.prototype,"_notes",2),r([s()],a.prototype,"_haDeviceId",2),r([s()],a.prototype,"_parentEntryId",2),r([s()],a.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",a);export{a};

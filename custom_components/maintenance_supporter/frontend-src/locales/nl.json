@@ -126,6 +126,7 @@
   "schedule_time_help": "Leeg = middernacht (standaard). HA-tijdzone.",
   "at_time": "om",
   "notes_optional": "Notities (optioneel)",
+  "notes_markdown_hint": "Markdown wordt ondersteund — **vet**, lijsten, [links](…)",
   "cost_optional": "Kosten (optioneel)",
   "duration_minutes": "Duur in minuten (optioneel)",
   "completed_at_optional": "Voltooid op (optioneel, leeg = nu)",

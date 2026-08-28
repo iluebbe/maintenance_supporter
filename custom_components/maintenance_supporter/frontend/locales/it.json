@@ -126,6 +126,7 @@
   "schedule_time_help": "Vuoto = mezzanotte (default). Fuso orario HA.",
   "at_time": "alle",
   "notes_optional": "Note (opzionale)",
+  "notes_markdown_hint": "Markdown è supportato — **grassetto**, elenchi, [link](…)",
   "cost_optional": "Costo (opzionale)",
   "duration_minutes": "Durata in minuti (opzionale)",
   "completed_at_optional": "Completato il (opzionale, vuoto = adesso)",
