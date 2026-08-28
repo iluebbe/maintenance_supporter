@@ -30,7 +30,12 @@ parts** in the task dialog. Every completion decrements the stock; when it
 hits the threshold, a one-off **"Buy Descaling tablets"** task appears with
 the part number, price and shopping link in its notes — complete it after the
 delivery and the stock is topped back up. No automations to write, but the
-edge-triggered events are there if you want them:
+edge-triggered events are there if you want them.
+
+> **Since 2.67 the two automations below ship built-in**: pick a to-do list
+> under Settings → General → *Shopping list* and buy reminders mirror into it
+> automatically — checking an item off completes the reminder and restocks the
+> part. Keep the YAML versions only if you need custom behaviour:
 
 ```yaml
 automation:
