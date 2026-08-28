@@ -57,11 +57,13 @@ def resolve_linked_device_id(
     # carries the COMPOSITE id. Handing it to an entity is precisely what
     # makes the entity registry refuse the link. Three core generations,
     # three probes:
-    if hasattr(dr, "ChildDeviceEntry"):
-        # 2026.9+: async_is_composite_device_id is deprecated; the kwarg is
-        # the replacement — a composite id resolves WITHOUT it but not WITH
-        # include_composite_devices=False. cast(Any): the kwarg does not
-        # exist in older stubs, and this branch only runs where it does.
+    if hasattr(dev_reg, "async_get_device_by_identifier"):
+        # 2026.9+ (probed on the INSTANCE so version-stub registries in tests
+        # keep exercising their own generation): async_is_composite_device_id
+        # is deprecated; the kwarg is the replacement — a composite id
+        # resolves WITHOUT it but not WITH include_composite_devices=False.
+        # cast(Any): the kwarg does not exist in older stubs, and this branch
+        # only runs where it does.
         live = cast(Any, dev_reg).async_get(device_id, include_composite_devices=False)
         if live is not None:
             if _only_ours(live, own_entry_id):
