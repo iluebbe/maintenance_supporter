@@ -38,5 +38,9 @@
   "stock_loc": " (보관 위치: {loc})",
   "stock_low": ". 재주문 기준 이하예요",
   "stock_untracked": "{part} 재고는 관리하지 않아요.",
-  "part_not_found": "'{name}'에 맞는 예비 부품을 찾지 못했어요."
+  "part_not_found": "'{name}'에 맞는 예비 부품을 찾지 못했어요.",
+  "st_phase": " — 다음 단계: {phase}",
+  "st_priority": ", 높은 우선순위",
+  "completed_phase": "{object}의 '{task}' 완료 — 단계: {phase}. 다음번: {next}.",
+  "guide_phase": "현재 단계: {phase} ({count}단계 중 {index}단계)."
 }

@@ -38,5 +38,9 @@
   "stock_loc": " (conservato in {loc})",
   "stock_low": " — pari o sotto la soglia di riordino",
   "stock_untracked": "Per {part} non viene tenuta la giacenza.",
-  "part_not_found": "Non ho trovato nessun ricambio che corrisponda a '{name}'."
+  "part_not_found": "Non ho trovato nessun ricambio che corrisponda a '{name}'.",
+  "st_phase": " — prossimo passo: {phase}",
+  "st_priority": ", priorità alta",
+  "completed_phase": "'{task}' su {object} completato — passo: {phase}. La prossima volta: {next}.",
+  "guide_phase": "Passo attuale: {phase} (passo {index} di {count})."
 }

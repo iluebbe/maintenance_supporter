@@ -38,5 +38,9 @@
   "stock_loc": "（存放在{loc}）",
   "stock_low": "，已达到或低于补货下限",
   "stock_untracked": "{part}的库存没有记录。",
-  "part_not_found": "我没有找到和“{name}”对得上的备件。"
+  "part_not_found": "我没有找到和“{name}”对得上的备件。",
+  "st_phase": "——下一步：{phase}",
+  "st_priority": "，高优先级",
+  "completed_phase": "已完成{object}的“{task}”——步骤：{phase}。下次：{next}。",
+  "guide_phase": "当前步骤：{phase}（第 {index} 步，共 {count} 步）。"
 }

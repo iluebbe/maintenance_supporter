@@ -38,5 +38,9 @@
   "stock_loc": " (tárolási hely: {loc})",
   "stock_low": " — az újrarendelési küszöbön vagy alatta",
   "stock_untracked": "Ehhez nincs készletnyilvántartás: {part}.",
-  "part_not_found": "Nem találtam ehhez illő alkatrészt: '{name}'."
+  "part_not_found": "Nem találtam ehhez illő alkatrészt: '{name}'.",
+  "st_phase": " — következő lépés: {phase}",
+  "st_priority": ", magas prioritás",
+  "completed_phase": "'{task}' ({object}) elvégezve — lépés: {phase}. Legközelebb: {next}.",
+  "guide_phase": "Aktuális lépés: {phase} ({index}. lépés a(z) {count} közül)."
 }

@@ -38,5 +38,9 @@
   "stock_loc": "（保管場所は{loc}）",
   "stock_low": "。在庫は発注の目安以下です",
   "stock_untracked": "{part}の在庫は管理していません。",
-  "part_not_found": "「{name}」に一致する交換部品は見つかりませんでした。"
+  "part_not_found": "「{name}」に一致する交換部品は見つかりませんでした。",
+  "st_phase": "（次のステップ: {phase}）",
+  "st_priority": "、優先度高",
+  "completed_phase": "{object}の「{task}」を完了しました（ステップ: {phase}）。次回は: {next}。",
+  "guide_phase": "現在のステップ: {phase}（{count}ステップ中{index}番目）。"
 }

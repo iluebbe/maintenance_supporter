@@ -38,5 +38,9 @@
   "stock_loc": " (saklama yeri: {loc})",
   "stock_low": " — yeniden sipariş sınırında ya da altında",
   "stock_untracked": "{part} için stok takibi yapılmıyor.",
-  "part_not_found": "'{name}' ile eşleşen bir yedek parça bulamadım."
+  "part_not_found": "'{name}' ile eşleşen bir yedek parça bulamadım.",
+  "st_phase": " — sonraki adım: {phase}",
+  "st_priority": ", yüksek öncelik",
+  "completed_phase": "{object} üzerindeki '{task}' tamamlandı — adım: {phase}. Bir dahaki sefere: {next}.",
+  "guide_phase": "Geçerli adım: {phase} ({count} adımdan {index}.)."
 }

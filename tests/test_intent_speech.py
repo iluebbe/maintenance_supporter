@@ -102,12 +102,14 @@ def test_every_text_actually_formats(language: str) -> None:
     `str.format` raises on those, and the raise happens while answering a
     question — the one moment nobody is watching a log.
     """
-    values = {name: "X" for name in {"days", "count", "hours", "qty", "stock", "page"}}
+    values = {name: "X" for name in {"days", "count", "hours", "qty", "stock", "page", "index"}}
     values |= {
         name: "X"
         for name in {
             "task", "object", "date", "items", "name", "candidates", "segments",
             "notes", "steps", "title", "part", "extras", "loc", "low",
+            # cycle phases (#139 voice pass)
+            "phase", "next",
         }
     }
     for key, text in load_language(language).items():

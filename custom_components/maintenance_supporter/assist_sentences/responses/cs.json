@@ -38,5 +38,9 @@
   "stock_loc": " (místo uložení: {loc})",
   "stock_low": " — na úrovni objednacího limitu nebo pod ním",
   "stock_untracked": "{part} — u tohoto dílu sklad nesleduju.",
-  "part_not_found": "Nenašel jsem náhradní díl, který by odpovídal '{name}'."
+  "part_not_found": "Nenašel jsem náhradní díl, který by odpovídal '{name}'.",
+  "st_phase": " — další krok: {phase}",
+  "st_priority": ", vysoká priorita",
+  "completed_phase": "'{task}' na {object} dokončeno — krok: {phase}. Příště: {next}.",
+  "guide_phase": "Aktuální krok: {phase} (krok {index} z {count})."
 }

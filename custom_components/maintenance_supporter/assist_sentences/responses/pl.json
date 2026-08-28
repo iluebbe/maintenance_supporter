@@ -38,5 +38,9 @@
   "stock_loc": " (miejsce przechowywania: {loc})",
   "stock_low": " — na poziomie progu zamówienia lub poniżej",
   "stock_untracked": "{part} — nie prowadzę stanu magazynowego dla tej części.",
-  "part_not_found": "Nie znalazłem części zamiennej pasującej do '{name}'."
+  "part_not_found": "Nie znalazłem części zamiennej pasującej do '{name}'.",
+  "st_phase": " — następny krok: {phase}",
+  "st_priority": ", wysoki priorytet",
+  "completed_phase": "Ukończono '{task}' ({object}) — krok: {phase}. Następnym razem: {next}.",
+  "guide_phase": "Bieżący krok: {phase} (krok {index} z {count})."
 }

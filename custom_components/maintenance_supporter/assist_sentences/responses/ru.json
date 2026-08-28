@@ -38,5 +38,9 @@
   "stock_loc": " (место хранения: {loc})",
   "stock_low": " — на уровне порога дозаказа или ниже",
   "stock_untracked": "{part} — запас по этой детали не отслеживается.",
-  "part_not_found": "Я не нашёл запчасть, подходящую под '{name}'."
+  "part_not_found": "Я не нашёл запчасть, подходящую под '{name}'.",
+  "st_phase": " — следующий шаг: {phase}",
+  "st_priority": ", высокий приоритет",
+  "completed_phase": "«{task}» ({object}) выполнено — шаг: {phase}. В следующий раз: {next}.",
+  "guide_phase": "Текущий шаг: {phase} (шаг {index} из {count})."
 }

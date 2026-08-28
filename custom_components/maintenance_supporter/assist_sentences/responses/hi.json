@@ -38,5 +38,9 @@
   "stock_loc": " (रखने की जगह: {loc})",
   "stock_low": " — दोबारा ऑर्डर करने की सीमा पर या उससे नीचे",
   "stock_untracked": "{part} के लिए स्टॉक ट्रैक नहीं किया जाता।",
-  "part_not_found": "'{name}' से मिलता-जुलता कोई स्पेयर पार्ट नहीं मिला।"
+  "part_not_found": "'{name}' से मिलता-जुलता कोई स्पेयर पार्ट नहीं मिला।",
+  "st_phase": " — अगला चरण: {phase}",
+  "st_priority": ", उच्च प्राथमिकता",
+  "completed_phase": "{object} पर '{task}' पूर्ण — चरण: {phase}। अगली बार: {next}।",
+  "guide_phase": "वर्तमान चरण: {phase} ({count} में से चरण {index})।"
 }

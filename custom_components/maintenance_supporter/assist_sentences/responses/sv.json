@@ -38,5 +38,9 @@
   "stock_loc": " (förvaringsplats {loc})",
   "stock_low": " — vid eller under beställningsgränsen",
   "stock_untracked": "Lagersaldot följs inte för {part}.",
-  "part_not_found": "Jag hittade ingen reservdel som matchar '{name}'."
+  "part_not_found": "Jag hittade ingen reservdel som matchar '{name}'.",
+  "st_phase": " — nästa steg: {phase}",
+  "st_priority": ", hög prioritet",
+  "completed_phase": "'{task}' på {object} slutfört — steg: {phase}. Nästa gång: {next}.",
+  "guide_phase": "Aktuellt steg: {phase} (steg {index} av {count})."
 }

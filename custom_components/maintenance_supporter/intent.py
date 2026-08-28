@@ -88,6 +88,11 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
             status = str(task.get("_status", ""))
             if status == "archived":
                 continue
+            # Cycle phases (#139): name the step currently due, so answers
+            # say WHICH work is meant ("Mower blades — next step: replace").
+            from .helpers.phases import current_phase
+
+            phase = current_phase(task)
             tasks.append(
                 {
                     "entry_id": ce.entry_id,
@@ -102,6 +107,10 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
                     "status": status,
                     "days_until_due": task.get("_days_until_due"),
                     "next_due": task.get("_next_due"),
+                    "phase": str(phase["name"]) if phase else None,
+                    # #134: high-priority work is named as such and listed first
+                    # within the same urgency bucket.
+                    "priority": str(task.get("priority") or "normal"),
                 }
             )
     return tasks
@@ -185,7 +194,12 @@ def _describe(task: dict[str, Any], language: str | None) -> str:
         desc = _sp(key, language, days=days)
     else:
         desc = task["status"]
-    return f"{_sp('item_on', language, task=task['name'], object=task['object_name'])} ({desc})"
+    if task.get("priority") == "high":
+        desc = f"{desc}{_sp('st_priority', language)}"
+    line = f"{_sp('item_on', language, task=task['name'], object=task['object_name'])} ({desc})"
+    if task.get("phase"):
+        line = f"{line}{_sp('st_phase', language, phase=task['phase'])}"
+    return line
 
 
 def _resolve_single(
@@ -295,7 +309,15 @@ class ListTasksIntent(intent.IntentHandler):
             tasks = [t for t in tasks if t.get("area_id") == area]
 
         # Most urgent first: overdue (most days) → due today → due soon.
-        tasks.sort(key=lambda t: (t["days_until_due"] is None, t["days_until_due"] or 0))
+        # Within the same due day, high-priority work is named first (#134).
+        _PRIO_RANK = {"high": 0, "normal": 1, "low": 2}
+        tasks.sort(
+            key=lambda t: (
+                t["days_until_due"] is None,
+                t["days_until_due"] or 0,
+                _PRIO_RANK.get(t.get("priority") or "normal", 1),
+            )
+        )
 
         if not tasks:
             empty = {"mine": "none_due_mine", "here": "none_due_here"}.get(scope, "none_due")
@@ -351,6 +373,10 @@ class CompleteTaskIntent(intent.IntentHandler):
             )
             return response
 
+        # Cycle phases (#139): remember the step this completion performs, so
+        # the confirmation can say what was DONE and what comes next.
+        done_phase = target.get("phase")
+
         try:
             await coordinator.complete_maintenance(
                 task_id=target["task_id"], completed_by="assist", unattended=True
@@ -361,6 +387,23 @@ class CompleteTaskIntent(intent.IntentHandler):
             response.async_set_error(
                 intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
                 str(err),
+            )
+            return response
+
+        if done_phase:
+            from .helpers.phases import current_phase
+
+            next_task = (coordinator.data or {}).get(CONF_TASKS, {}).get(target["task_id"]) or {}
+            next_phase = current_phase(next_task)
+            response.async_set_speech(
+                _sp(
+                    "completed_phase",
+                    lang,
+                    task=target["name"],
+                    object=target["object_name"],
+                    phase=done_phase,
+                    next=str(next_phase["name"]) if next_phase else done_phase,
+                )
             )
             return response
         response.async_set_speech(
@@ -405,9 +448,31 @@ class TaskInstructionsIntent(intent.IntentHandler):
         # computed subset (consumes_parts, for one, is not in it).
         task: dict[str, Any] = {}
         if entry is not None:
-            task = entry.data.get(CONF_TASKS, {}).get(target["task_id"], {}) or {}
+            task = dict(entry.data.get(CONF_TASKS, {}).get(target["task_id"], {}) or {})
+
+        # Cycle phases (#139): the guidance must describe the step currently
+        # DUE. Static defs live in entry.data; the cursor is Store state —
+        # splice it in so current_phase/effective_field resolve like every
+        # other surface. Falls through untouched for phase-less tasks.
+        from .helpers.phases import current_phase, effective_field
+
+        store = getattr(rd, "store", None) if rd else None
+        if store is not None and task.get("phases"):
+            task["phase_cursor"] = store.get_task_state(target["task_id"]).get("phase_cursor", 0)
+        phase = current_phase(task)
 
         segments: list[str] = []
+
+        if phase:
+            segments.append(
+                _sp(
+                    "guide_phase",
+                    lang,
+                    phase=str(phase["name"]),
+                    index=int(phase["index"]) + 1,
+                    count=int(phase["count"]),
+                )
+            )
 
         notes = task.get("notes")
         if isinstance(notes, str) and notes.strip():
@@ -416,7 +481,11 @@ class TaskInstructionsIntent(intent.IntentHandler):
                 trimmed = trimmed[:237] + "…"
             segments.append(_sp("guide_notes", lang, notes=trimmed))
 
-        checklist = [s for s in (task.get("checklist") or []) if isinstance(s, str) and s.strip()]
+        checklist = [
+            s
+            for s in (effective_field(task, "checklist") or [])
+            if isinstance(s, str) and s.strip()
+        ]
         if checklist:
             segments.append(
                 _sp("guide_checklist", lang, count=len(checklist), steps="; ".join(checklist[:8]))
@@ -444,8 +513,7 @@ class TaskInstructionsIntent(intent.IntentHandler):
 
         # Required spare parts with storage location + live stock.
         parts = (entry.data.get(CONF_PARTS) or {}) if entry is not None else {}
-        store = getattr(rd, "store", None) if rd else None
-        for link in task.get("consumes_parts") or []:
+        for link in effective_field(task, "consumes_parts") or []:
             part = parts.get(link.get("part_id")) if isinstance(link, dict) else None
             if not isinstance(part, dict):
                 continue

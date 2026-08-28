@@ -38,5 +38,9 @@
   "stock_loc": " (stored at {loc})",
   "stock_low": " — at or below the reorder threshold",
   "stock_untracked": "Stock isn't tracked for {part}.",
-  "part_not_found": "I couldn't find a spare part matching '{name}'."
+  "part_not_found": "I couldn't find a spare part matching '{name}'.",
+  "st_phase": " — next step: {phase}",
+  "st_priority": ", high priority",
+  "completed_phase": "Completed '{task}' on {object} — step done: {phase}. Next time: {next}.",
+  "guide_phase": "Current step: {phase} (step {index} of {count})."
 }

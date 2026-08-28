@@ -399,3 +399,73 @@ async def test_part_stock_ambiguous_lists_candidates(
     assert resp.error_code == intent.IntentResponseErrorCode.NO_VALID_TARGETS
     assert "Toner black" in resp.speech["plain"]["speech"]
     assert "Toner cyan" in resp.speech["plain"]["speech"]
+
+
+# ─── Cycle phases + priority in voice answers (#139/#134 voice pass 3) ────
+
+
+def _phased_task(name: str, task_id: str = TASK_ID_1) -> dict:
+    last = (dt_util.now().date() - timedelta(days=60)).isoformat()
+    task = build_task_data(task_id=task_id, name=name, last_performed=last, interval_days=30)
+    task["checklist"] = ["Task-level step"]
+    task["phases"] = {
+        "flip": {"name": "Flip blades", "checklist": ["Loosen", "Flip"]},
+        "replace": {"name": "Replace blades"},
+    }
+    task["phase_sequence"] = ["flip", "replace"]
+    return task
+
+
+async def test_list_tasks_names_the_due_phase_and_priority(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    task = _phased_task("Mower blades")
+    task["priority"] = "high"
+    entry = make_object_entry(hass, tasks={TASK_ID_1: task}, name="Mower", uid="ms_voice_phase")
+    await setup_integration(hass, global_entry, entry)
+    await async_setup_intents(hass)
+
+    resp = await _handle(hass, INTENT_LIST_TASKS)
+    speech = resp.speech["plain"]["speech"]
+    assert "next step: Flip blades" in speech
+    assert "high priority" in speech
+
+
+async def test_complete_names_done_and_next_phase(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    entry = make_object_entry(hass, tasks={TASK_ID_1: _phased_task("Mower blades")}, name="Mower", uid="ms_voice_phase2")
+    await setup_integration(hass, global_entry, entry)
+    await async_setup_intents(hass)
+
+    resp = await _handle(hass, INTENT_COMPLETE_TASK, {"name": {"value": "Mower blades"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "step done: Flip blades" in speech
+    assert "Next time: Replace blades" in speech
+
+
+async def test_instructions_describe_the_due_phase(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The guide speaks the PHASE'S checklist, not the task-level one, and
+    names the current step — voice stays consistent with every other
+    completion surface (#139)."""
+    from custom_components.maintenance_supporter.intent import INTENT_TASK_INSTRUCTIONS
+
+    entry = make_object_entry(hass, tasks={TASK_ID_1: _phased_task("Mower blades")}, name="Mower", uid="ms_voice_phase3")
+    await setup_integration(hass, global_entry, entry)
+    await async_setup_intents(hass)
+
+    resp = await _handle(hass, INTENT_TASK_INSTRUCTIONS, {"name": {"value": "Mower blades"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "Current step: Flip blades (step 1 of 2)" in speech
+    assert "Loosen; Flip" in speech
+    assert "Task-level step" not in speech
+
+    # After completing, the guide moves to the replace step, whose unset
+    # checklist falls through to the task level.
+    await _handle(hass, INTENT_COMPLETE_TASK, {"name": {"value": "Mower blades"}})
+    resp = await _handle(hass, INTENT_TASK_INSTRUCTIONS, {"name": {"value": "Mower blades"}})
+    speech = resp.speech["plain"]["speech"]
+    assert "Current step: Replace blades (step 2 of 2)" in speech
+    assert "Task-level step" in speech

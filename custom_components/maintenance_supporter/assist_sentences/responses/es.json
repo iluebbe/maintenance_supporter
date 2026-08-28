@@ -38,5 +38,9 @@
   "stock_loc": " (guardado en {loc})",
   "stock_low": " — en el umbral de reposición o por debajo",
   "stock_untracked": "De {part} no se lleva control de stock.",
-  "part_not_found": "No he encontrado ningún recambio que coincida con '{name}'."
+  "part_not_found": "No he encontrado ningún recambio que coincida con '{name}'.",
+  "st_phase": " — siguiente paso: {phase}",
+  "st_priority": ", prioridad alta",
+  "completed_phase": "'{task}' en {object} completado — paso: {phase}. La próxima vez: {next}.",
+  "guide_phase": "Paso actual: {phase} (paso {index} de {count})."
 }

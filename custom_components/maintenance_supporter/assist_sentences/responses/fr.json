@@ -38,5 +38,9 @@
   "stock_loc": " (rangé à {loc})",
   "stock_low": " — au niveau ou en dessous du seuil de réapprovisionnement",
   "stock_untracked": "Le stock n'est pas suivi pour {part}.",
-  "part_not_found": "Je n'ai pas trouvé de pièce détachée qui corresponde à '{name}'."
+  "part_not_found": "Je n'ai pas trouvé de pièce détachée qui corresponde à '{name}'.",
+  "st_phase": " — prochaine étape : {phase}",
+  "st_priority": ", priorité haute",
+  "completed_phase": "« {task} » sur {object} terminé — étape : {phase}. La prochaine fois : {next}.",
+  "guide_phase": "Étape actuelle : {phase} (étape {index} sur {count})."
 }

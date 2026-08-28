@@ -38,5 +38,9 @@
   "stock_loc": " (Lagerort: {loc})",
   "stock_low": " — an oder unter der Nachbestellgrenze",
   "stock_untracked": "Für {part} wird kein Bestand geführt.",
-  "part_not_found": "Ich habe kein Ersatzteil zu '{name}' gefunden."
+  "part_not_found": "Ich habe kein Ersatzteil zu '{name}' gefunden.",
+  "st_phase": " — nächster Schritt: {phase}",
+  "st_priority": ", hohe Priorität",
+  "completed_phase": "'{task}' an {object} erledigt — Schritt: {phase}. Beim nächsten Mal: {next}.",
+  "guide_phase": "Aktueller Schritt: {phase} (Schritt {index} von {count})."
 }

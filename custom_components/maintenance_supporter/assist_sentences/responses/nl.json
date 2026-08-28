@@ -38,5 +38,9 @@
   "stock_loc": " (ligt in {loc})",
   "stock_low": " — op of onder de bestelgrens",
   "stock_untracked": "Van {part} wordt de voorraad niet bijgehouden.",
-  "part_not_found": "Ik kon geen onderdeel vinden dat past bij '{name}'."
+  "part_not_found": "Ik kon geen onderdeel vinden dat past bij '{name}'.",
+  "st_phase": " — volgende stap: {phase}",
+  "st_priority": ", hoge prioriteit",
+  "completed_phase": "'{task}' op {object} afgerond — stap: {phase}. Volgende keer: {next}.",
+  "guide_phase": "Huidige stap: {phase} (stap {index} van {count})."
 }

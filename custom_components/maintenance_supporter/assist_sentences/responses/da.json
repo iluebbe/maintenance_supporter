@@ -38,5 +38,9 @@
   "stock_loc": " (opbevaringssted {loc})",
   "stock_low": " — på eller under genbestillingsgrænsen",
   "stock_untracked": "Der føres ikke lager for {part}.",
-  "part_not_found": "Jeg kunne ikke finde en reservedel, der passer på '{name}'."
+  "part_not_found": "Jeg kunne ikke finde en reservedel, der passer på '{name}'.",
+  "st_phase": " — næste trin: {phase}",
+  "st_priority": ", høj prioritet",
+  "completed_phase": "'{task}' på {object} udført — trin: {phase}. Næste gang: {next}.",
+  "guide_phase": "Aktuelt trin: {phase} (trin {index} af {count})."
 }

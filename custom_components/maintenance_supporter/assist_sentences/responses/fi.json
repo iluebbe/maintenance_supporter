@@ -38,5 +38,9 @@
   "stock_loc": " (säilytyspaikka {loc})",
   "stock_low": " — tilausrajalla tai sen alapuolella",
   "stock_untracked": "Varastosaldoa ei seurata varaosalle {part}.",
-  "part_not_found": "En löytänyt varaosaa, joka vastaisi hakua '{name}'."
+  "part_not_found": "En löytänyt varaosaa, joka vastaisi hakua '{name}'.",
+  "st_phase": " — seuraava vaihe: {phase}",
+  "st_priority": ", korkea prioriteetti",
+  "completed_phase": "'{task}' ({object}) valmis — vaihe: {phase}. Ensi kerralla: {next}.",
+  "guide_phase": "Nykyinen vaihe: {phase} (vaihe {index}/{count})."
 }
