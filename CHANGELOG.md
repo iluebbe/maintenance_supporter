@@ -2,6 +2,56 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.66.0] - 2026-08-28
+
+### ✨ Added
+
+- **Cycle-aware sensor predictions that learn from prior service cycles.**
+  Consumption/accumulation sensors are sawtooths: the value drifts toward the
+  trigger threshold and jumps back on a refill or service. The degradation
+  analysis used to fit one line across those jumps, so a freshly refilled ink
+  tank reported a *rising* trend and the chart projected the level climbing
+  forever. The analysis now splits the series into service cycles at those
+  jumps (the trigger's bound tells it which direction means "serviced"),
+  regresses the **current** cycle on its own, and **learns the typical rate
+  from up to 180 days of prior cycles** — median-based, blended in while the
+  current cycle is still thin, so right after a refill the forecast is
+  carried by the learned rate instead of going silent. Consistent prior
+  cycles raise the prediction confidence, the prediction panel shows how many
+  cycles it learned from, and the chart never draws a projection pointing
+  *away* from the configured threshold.
+- **Per-phase "Require on completion" editor** (#139 follow-up). Each cycle
+  phase in the task dialog now carries an *"Override 'Require on completion'
+  for this phase"* toggle with the same checkbox row as the task level. Off =
+  the phase inherits the task's list; on with nothing checked is the
+  meaningful empty override — *this phase demands nothing*, even when the
+  task level requires a cost.
+- **"Add past completion" in the history tab** (#142). Backdated completions
+  have existed since v2.59.0 (the complete dialog's *Completed at* field
+  records past work as a pure backfill), but people building up history for a
+  new install looked for them in the history tab — which now carries a button
+  that opens exactly that dialog. Every completion rule (required details,
+  spare-part consumption, cycle phases) applies to backfilled entries too.
+- **Dates follow the server's country** (#140). With the profile date format
+  left on "Use language default", dates now regionalize by the Home Assistant
+  *Country* setting: an English UI on an Australian instance renders
+  DD/MM/YYYY instead of the hard-coded US ordering (`de`+AT, `en`+GB/NZ/CA
+  etc. work the same way). An explicit profile format (DD/MM/YYYY, MM/DD/YYYY,
+  YYYY-MM-DD, System) always wins — this only improves the default.
+
+### 🐛 Fixed
+
+- **Clicking the cycle strip did nothing for admins** (#139 follow-up). The
+  click-to-repoint handler was gated on an inverted permission flag, so
+  exactly the users who would re-point the cycle got a silent no-op with a
+  pointing-hand cursor. Clicking another step now moves the cycle immediately
+  (the server enforces permissions as before).
+- **Home Assistant 2026.9 compatibility (first wave).** The upcoming HA
+  release introduces sub-devices; device-registry lookups can now hand back
+  child entries. All registry-touching helpers accept both shapes, so the
+  integration keeps working on the 2026.9 betas (full readiness for the
+  reworked registry APIs follows in the next release).
+
 ## [2.65.0] - 2026-08-26
 
 ### ✨ Added
