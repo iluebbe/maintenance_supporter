@@ -34,6 +34,7 @@ from custom_components.maintenance_supporter.websocket.objects import (
 )
 
 from .conftest import (
+    get_device_by_identifier,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
@@ -195,7 +196,10 @@ async def test_uninstall_leaves_nothing_behind(hass: HomeAssistant, global_entry
     assert not hass.config_entries.async_entries(DOMAIN)
     # No devices or entities of ours remain anywhere.
     dev_reg = dr.async_get(hass)
-    ours = [d for d in dev_reg.devices.values() if any(idf[0] == DOMAIN for idf in d.identifiers)]
+    # 2026.9 iterates entries directly and deprecates .values(); 2026.7
+    # iterates ids. ChildDeviceEntry marks the new world.
+    device_entries = dev_reg.devices if hasattr(dr, "ChildDeviceEntry") else dev_reg.devices.values()
+    ours = [d for d in device_entries if any(idf[0] == DOMAIN for idf in d.identifiers)]
     assert not ours
 
 
@@ -250,7 +254,7 @@ async def test_device_link_unlink_restart_roundtrip(hass: HomeAssistant, global_
     await simulate_restart(hass, global_entry, obj_entry)
 
     assert registry_snapshot(hass, obj_entry) == before
-    own = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, obj_entry.unique_id or "")})
+    own = get_device_by_identifier(hass, (DOMAIN, obj_entry.unique_id or ""), obj_entry.entry_id)
     assert own is not None
     sensors = [e for e in er.async_entries_for_config_entry(ent_reg, obj_entry.entry_id) if e.domain == "sensor"]
     assert all(e.device_id == own.id for e in sensors)

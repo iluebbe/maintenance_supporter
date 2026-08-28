@@ -762,11 +762,15 @@ class DeviceLinkRepairFlow(RepairsFlow):
         words |= {w for w in (norm(obj.get("manufacturer")), norm(obj.get("model"))) if w}
 
         best, best_score = None, 0
-        # HA 2026.9 retypes `DeviceRegistry.devices` as a Collection (directly
-        # iterable); 2026.7 exposes the dict-like mapping — take .values()
-        # only where it exists.
+        # HA 2026.9 deprecates mapping-style access on `DeviceRegistry.devices`
+        # (calling .values() raises a deprecation ERROR there) and makes the
+        # collection itself iterate over ENTRIES; 2026.7 iterates over ids, so
+        # .values() is required there. ChildDeviceEntry's existence is the
+        # cleanest capability marker for the new world.
         registry_devices = dr.async_get(self.hass).devices
-        device_iter: Any = getattr(registry_devices, "values", lambda: registry_devices)()
+        device_iter: Any = (
+            registry_devices if hasattr(dr, "ChildDeviceEntry") else registry_devices.values()
+        )
         for device in device_iter:
             if is_maintenance_device(self.hass, device):
                 continue

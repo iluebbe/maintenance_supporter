@@ -419,3 +419,29 @@ def assert_ws_error(connection: MagicMock, code: str | None = None) -> tuple[str
     if code is not None:
         assert err_code == code, f"Expected error code {code!r}, got {err_code!r}"
     return err_code, err_msg
+
+
+def get_device_by_identifier(hass: Any, identifier: tuple[str, str], config_entry_id: str | None = None) -> Any:
+    """Version-neutral device lookup by identifier.
+
+    HA 2026.9 makes ``async_get_device(identifiers=…)`` a hard deprecation
+    error (identifiers are only unique per config entry since the device
+    split) and offers ``async_get_device_by_identifier(identifier, entry_id)``
+    / ``async_get_devices(identifiers=…)`` instead; 2026.7 only has the
+    legacy call. Tests must run green on both.
+    """
+    from homeassistant.helpers import device_registry as dr
+
+    reg = dr.async_get(hass)
+    modern = getattr(reg, "async_get_device_by_identifier", None)
+    if modern is None:
+        return reg.async_get_device(identifiers={identifier})
+    if config_entry_id is not None:
+        return modern(identifier, config_entry_id)
+    # No entry known: the 2026.9 bulk lookup, or the legacy call where only
+    # by_identifier exists (a test mocking the modern API onto an old core).
+    get_many = getattr(reg, "async_get_devices", None)
+    if get_many is not None:
+        devices = get_many(identifiers={identifier})
+        return devices[0] if devices else None
+    return reg.async_get_device(identifiers={identifier})

@@ -28,6 +28,7 @@ from custom_components.maintenance_supporter.websocket.objects import (
 )
 
 from .conftest import (
+    get_device_by_identifier,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -104,7 +105,7 @@ async def test_linked_object_attaches_entities_to_foreign_device(hass: HomeAssis
     assert all(e.device_id == device.id for e in sensors)
 
     # No own virtual device was created for the object...
-    own = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, obj_entry.unique_id or "")})
+    own = get_device_by_identifier(hass, (DOMAIN, obj_entry.unique_id or ""), obj_entry.entry_id)
     assert own is None
     # ...and the foreign device's metadata was NOT overwritten by the
     # obj→device forward-sync.
@@ -123,7 +124,7 @@ async def test_vanished_linked_device_falls_back_to_own_device(hass: HomeAssista
     )
     await setup_integration(hass, global_entry, obj_entry)
 
-    own = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, obj_entry.unique_id or "")})
+    own = get_device_by_identifier(hass, (DOMAIN, obj_entry.unique_id or ""), obj_entry.entry_id)
     assert own is not None
     assert own.name == "Orphan"
 
@@ -139,8 +140,8 @@ async def test_parent_object_nests_via_device(hass: HomeAssistant, global_entry:
     await setup_integration(hass, global_entry, parent_entry, child_entry)
 
     reg = dr.async_get(hass)
-    parent_dev = reg.async_get_device(identifiers={(DOMAIN, parent_entry.unique_id or "")})
-    child_dev = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
+    parent_dev = get_device_by_identifier(hass, (DOMAIN, parent_entry.unique_id or ""), parent_entry.entry_id)
+    child_dev = get_device_by_identifier(hass, (DOMAIN, child_entry.unique_id or ""), child_entry.entry_id)
     assert parent_dev is not None and child_dev is not None
     assert child_dev.via_device_id == parent_dev.id
 
@@ -311,7 +312,12 @@ async def test_migrating_an_existing_install_drops_the_co_ownership(
     obj_entry = _make_entry(hass, "legacy", name="Washer Maintenance", extra_obj={"ha_device_id": device.id})
 
     # Recreate the pre-migration state: our entry co-owns the device.
-    dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
+    # 2026.9 raises outright (single-ownership); 2026.8 silently refuses —
+    # either way the legacy state cannot be staged and the guard skips.
+    try:
+        dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
+    except RuntimeError:
+        pytest.skip("this HA cannot stage the legacy co-owned state (2026.9+)")
     if obj_entry.entry_id not in dr.async_get(hass).async_get(device.id).config_entries:
         pytest.skip(
             "this Home Assistant refuses to co-own a device at all (2026.8+), so the "
@@ -486,7 +492,10 @@ async def test_the_production_update_path_keeps_a_live_link(
         hass, "prodpath", name="Roborock Maintenance", extra_obj={"ha_device_id": device.id}
     )
     # Pre-update reality: the old code merged us onto the appliance's device.
-    dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
+    try:
+        dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
+    except RuntimeError:
+        pytest.skip("this HA cannot stage the legacy co-owned state (2026.9+)")
     if obj_entry.entry_id not in dr.async_get(hass).async_get(device.id).config_entries:
         pytest.skip("this HA cannot stage the legacy co-owned state (2026.8+)")
 
@@ -769,8 +778,8 @@ async def test_nesting_survives_child_before_parent_boot_order(
     await setup_integration(hass, global_entry, child_entry, parent_entry)
 
     reg = dr.async_get(hass)
-    parent_dev = reg.async_get_device(identifiers={(DOMAIN, parent_entry.unique_id or "")})
-    child_dev = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
+    parent_dev = get_device_by_identifier(hass, (DOMAIN, parent_entry.unique_id or ""), parent_entry.entry_id)
+    child_dev = get_device_by_identifier(hass, (DOMAIN, child_entry.unique_id or ""), child_entry.entry_id)
     assert parent_dev is not None and child_dev is not None
     assert child_dev.via_device_id == parent_dev.id
 
@@ -784,7 +793,7 @@ async def test_clearing_the_parent_clears_the_nesting(
     )
     await setup_integration(hass, global_entry, parent_entry, child_entry)
     reg = dr.async_get(hass)
-    child_dev = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
+    child_dev = get_device_by_identifier(hass, (DOMAIN, child_entry.unique_id or ""), child_entry.entry_id)
     assert child_dev is not None and child_dev.via_device_id is not None
 
     data = dict(child_entry.data)
@@ -793,7 +802,7 @@ async def test_clearing_the_parent_clears_the_nesting(
     await hass.config_entries.async_reload(child_entry.entry_id)
     await hass.async_block_till_done()
 
-    refreshed = reg.async_get_device(identifiers={(DOMAIN, child_entry.unique_id or "")})
+    refreshed = get_device_by_identifier(hass, (DOMAIN, child_entry.unique_id or ""), child_entry.entry_id)
     assert refreshed is not None
     assert refreshed.via_device_id is None, "the stale nesting pointer survived un-nesting"
 
@@ -818,7 +827,7 @@ async def test_via_sync_prefers_per_entry_device_lookup_when_available(
 
     def modern(identifier: tuple[str, str], config_entry_id: str) -> Any:
         calls.append((identifier, config_entry_id))
-        return reg.async_get_device(identifiers={identifier})
+        return get_device_by_identifier(hass, identifier)
 
     reg.async_get_device_by_identifier = modern  # type: ignore[attr-defined]
     try:

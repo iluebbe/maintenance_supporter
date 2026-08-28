@@ -21,7 +21,7 @@ from custom_components.maintenance_supporter.helpers.integration_signatures impo
     discover_integration_setups,
 )
 
-from .conftest import build_global_entry_data, call_ws_handler, make_ws_connection, setup_integration
+from .conftest import build_global_entry_data, call_ws_handler, get_device_by_identifier, make_ws_connection, setup_integration
 
 
 @pytest.fixture
@@ -342,7 +342,7 @@ async def test_usage_above_direction_husqvarna_and_landroid(
     stat = ent_reg.async_get_or_create(
         "sensor", "husqvarna_automower", "am1_total_cutting_time",
         config_entry=hass.config_entries.async_entries("husqvarna_automower")[0],
-        device_id=dr.async_get(hass).async_get_device({("husqvarna_automower", "am1")}).id,
+        device_id=get_device_by_identifier(hass, ("husqvarna_automower", "am1"), hass.config_entries.async_entries("husqvarna_automower")[0].entry_id).id,
         translation_key="total_cutting_time",
         suggested_object_id="am1_total_cutting_time",
     )

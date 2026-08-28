@@ -105,14 +105,10 @@ jobs:
         # betas, which is how the 2026.8 device-registry change surfaced here
         # before it reached a single user. The pin that briefly stood here came
         # off once object↔device linking was adapted to it.
-        # HA-PIN-EXPIRES: 2026-09-04 — pinned to HA 2026.8.3 while the 2026.9
-        # readiness round lands: 2026.9.0b0 makes identifier lookups
-        # (async_get_device), shared device ownership
-        # (add/remove_config_entry_id) and mapping-style
-        # `device_registry.devices` hard errors, and drops
-        # voluptuous_serialize from the test env. test_ha_pin_expiry fails
-        # once the date passes so the pin cannot silently outlive the beta.
-        run: pip install pytest pytest-cov pytest-xdist pytest-homeassistant-custom-component==0.13.357 mypy babel pypdf holidays
+        # voluptuous_serialize: HA 2026.9 stopped pulling it into the test
+        # env, but core still lazy-imports it for flow-schema serialization
+        # and our options-flow test exercises exactly that path.
+        run: pip install pytest pytest-cov pytest-xdist pytest-homeassistant-custom-component mypy babel pypdf holidays voluptuous_serialize
       - name: Type check
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       # Parallel via pytest-xdist. The old blocker — the documents feature's
