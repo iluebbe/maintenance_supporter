@@ -41,6 +41,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import (
     CALLBACK_TYPE,
+    CoreState,
     Event,
     EventStateChangedData,
     HassJob,
@@ -92,7 +93,9 @@ class ShoppingListSync:
                 "entity_id": str(loaded.get("entity_id") or ""),
                 "items": dict(items) if isinstance(items, dict) else {},
             }
-        if self._hass.is_running:
+        # NOT is_running — that is already True during CoreState.starting,
+        # and the initial pass should wait until entities are actually loaded.
+        if self._hass.state is CoreState.running:
             self.schedule_resync()
         else:
             self._unsub_started = self._hass.bus.async_listen_once(

@@ -93,3 +93,47 @@ async def test_status_never_touches_the_trend_machinery(hass: HomeAssistant, glo
     ):
         result = await _status(hass)
     assert result == {"available": True, "configured": False}
+
+
+async def test_exclude_include_without_fleet_is_not_configured(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#107/#135 toggles refuse cleanly when the fleet was never set up."""
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_excluded,
+        ws_battery_fleet_set_included,
+    )
+
+    from .conftest import assert_ws_error, call_ws_handler, make_ws_connection
+
+    await setup_integration(hass, global_entry)
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_set_excluded, hass, conn, {
+        "id": 1, "type": "x", "entity_id": "sensor.some_battery", "excluded": True,
+    })
+    code, _ = assert_ws_error(conn)
+    assert code == "not_configured"
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_set_included, hass, conn, {
+        "id": 1, "type": "x", "entity_id": "sensor.some_battery", "included": True,
+    })
+    code, _ = assert_ws_error(conn)
+    assert code == "not_configured"
+
+
+async def test_overview_history_returns_series(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_history,
+    )
+
+    from .conftest import call_ws_handler, make_ws_connection
+
+    await setup_integration(hass, global_entry)
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_history, hass, conn, {"id": 1, "type": "x"})
+    assert not conn.send_error.called, conn.send_error.call_args
+    assert "series" in conn.send_result.call_args[0][1]

@@ -263,3 +263,36 @@ def test_filter_length_caps_are_boundaries() -> None:
     assert v["filters"]["label"] == "l" * 40
     v = sanitize_view({"name": "X", "filters": {"label": "l" * 41}})
     assert v["filters"]["label"] is None
+
+
+async def test_blank_name_is_refused(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Schema demands min length 1, but whitespace still sanitises to None."""
+    from custom_components.maintenance_supporter.websocket.saved_views import ws_save_saved_view
+
+    from .conftest import assert_ws_error
+
+    await setup_integration(hass, global_entry)
+    conn = make_ws_connection()
+    await call_ws_handler(ws_save_saved_view, hass, conn, {"id": 1, "type": "x", "name": "   "})
+    code, _ = assert_ws_error(conn)
+    assert code == "invalid_view"
+
+
+async def test_missing_global_entry_maps_to_not_found(hass: HomeAssistant) -> None:
+    """save + delete on an instance whose global entry is gone → not_found."""
+    from custom_components.maintenance_supporter.websocket.saved_views import (
+        ws_delete_saved_view,
+        ws_save_saved_view,
+    )
+
+    from .conftest import assert_ws_error
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_save_saved_view, hass, conn, {"id": 1, "type": "x", "name": "Overdue only"})
+    code, _ = assert_ws_error(conn)
+    assert code == "not_found"
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_delete_saved_view, hass, conn, {"id": 1, "type": "x", "view_id": "v1"})
+    code, _ = assert_ws_error(conn)
+    assert code == "not_found"

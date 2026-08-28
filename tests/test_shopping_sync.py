@@ -228,3 +228,216 @@ async def test_unconfigured_sync_is_inert(hass: HomeAssistant) -> None:
     await sync.async_resync()
     assert todo.summaries() == []
     assert not sync._data["items"]
+
+
+# ── edge coverage: plumbing, error paths, guards ─────────────────────────
+
+
+async def test_mapping_survives_a_restart(hass: HomeAssistant) -> None:
+    """The uid mapping persists — a fresh instance loads it and converges."""
+    from custom_components.maintenance_supporter.shopping_sync import ShoppingListSync
+
+    todo, entry, sync = await _setup(hass)
+    await sync.async_resync()
+    (rec,) = sync._data["items"].values()
+
+    reborn = ShoppingListSync(hass)
+    await reborn.async_setup()
+    assert reborn._data["items"] and next(iter(reborn._data["items"].values()))["uid"] == rec["uid"]
+    await reborn.async_resync()  # converges — no duplicate row
+    assert sum("Filter" in s for s in todo.summaries()) == 1
+    reborn.async_teardown()
+
+
+async def test_setup_before_started_waits_for_ha(hass: HomeAssistant) -> None:
+    from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+    from homeassistant.core import CoreState
+
+    from custom_components.maintenance_supporter.shopping_sync import ShoppingListSync
+
+    hass.set_state(CoreState.starting)
+    sync = ShoppingListSync(hass)
+    await sync.async_setup()
+    assert sync._debounce is None  # nothing scheduled yet
+    hass.set_state(CoreState.running)
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
+    await hass.async_block_till_done()
+    assert sync._debounce is not None  # boot resync armed
+    sync.async_teardown()
+    assert sync._debounce is None
+
+
+async def test_rename_follows_the_configured_list(hass: HomeAssistant) -> None:
+    todo, entry, sync = await _setup(hass)
+    await sync.async_resync()
+    assert sync._data["entity_id"] == LIST_ENTITY
+
+    await sync.async_handle_rename(LIST_ENTITY, "todo.pantry")
+    assert sync._data["entity_id"] == "todo.pantry"
+    assert sync._listening_to == "todo.pantry"
+    assert sync._debounce is not None
+
+
+async def test_debounced_trigger_fires_the_resync(hass: HomeAssistant) -> None:
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    todo, entry, sync = await _setup(hass)
+    sync.schedule_resync()
+    sync.schedule_resync()  # re-arm cancels the first timer
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=3))
+    await hass.async_block_till_done()
+    assert any("Filter" in s for s in todo.summaries())  # the fired pass mirrored
+
+
+async def test_missing_entity_is_a_quiet_noop(hass: HomeAssistant) -> None:
+    todo, entry, sync = await _setup(hass, option="todo.not_loaded_yet")
+    await sync.async_resync()
+    assert not sync._data["items"]
+
+
+async def test_switch_to_gone_list_skips_old_cleanup(hass: HomeAssistant) -> None:
+    """Old list vanished entirely — nothing to clean, mapping still resets."""
+    todo, entry, sync = await _setup(hass)
+    await sync.async_resync()
+    assert sync._data["items"]
+
+    hass.states.async_remove(LIST_ENTITY)
+    gentry = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID)
+    hass.config_entries.async_update_entry(gentry, options={CONF_SHOPPING_LIST_ENTITY: ""})
+    await hass.async_block_till_done()
+    sync = hass.data[DOMAIN][SHOPPING_SYNC_KEY]
+    await sync.async_resync()
+    assert not sync._data["items"]
+
+
+async def test_resync_pass_failure_is_contained(hass: HomeAssistant, monkeypatch) -> None:
+    todo, entry, sync = await _setup(hass)
+
+    async def boom() -> None:
+        raise RuntimeError("kaboom")
+
+    monkeypatch.setattr(sync, "_resync_locked", boom)
+    await sync.async_resync()  # must not raise
+
+
+async def test_service_error_paths_are_soft(hass: HomeAssistant) -> None:
+    """A broken todo provider degrades to warnings, never exceptions.
+
+    hass.services can't be monkeypatched, so the probe instance gets a stub
+    hass whose service registry always raises.
+    """
+    from types import SimpleNamespace
+
+    from custom_components.maintenance_supporter.shopping_sync import ShoppingListSync
+
+    todo, entry, sync = await _setup(hass)
+
+    class _BrokenServices:
+        async def async_call(self, *a, **kw):
+            raise RuntimeError("provider down")
+
+    probe = ShoppingListSync(hass)
+    probe._hass = SimpleNamespace(services=_BrokenServices(), states=hass.states)
+    assert await probe._get_items(LIST_ENTITY) is None
+    assert await probe._add_item(LIST_ENTITY, "x") is False
+    await probe._remove_item(LIST_ENTITY, {"uid": "u1"})  # logged, not raised
+    await probe._remove_item(LIST_ENTITY, {})  # no uid/summary → nothing to do
+    probe._data["items"]["k"] = {"uid": "u1", "summary": "x"}
+    await probe._remove_all_from(LIST_ENTITY)  # errors stay soft here too
+
+
+async def test_complete_buy_task_guards(hass: HomeAssistant, monkeypatch) -> None:
+    todo, entry, sync = await _setup(hass)
+    buy_id = _buy_task_id(entry)
+
+    await sync._complete_buy_task("gone-entry:whatever")  # unknown entry
+    await sync._complete_buy_task(f"{entry.entry_id}:not_a_task")  # unknown task
+
+    # a failing complete is logged, never raised
+    async def boom(**kw):
+        raise RuntimeError("nope")
+
+    monkeypatch.setattr(entry.runtime_data.coordinator, "complete_maintenance", boom)
+    await sync._complete_buy_task(f"{entry.entry_id}:{buy_id}")
+    merged = entry.runtime_data.coordinator._get_merged_tasks_data()[buy_id]
+    assert not [h for h in merged["history"] if h["type"] == "completed"]
+
+    # already completed elsewhere → guard, no second attempt — and _desired
+    # now skips it as history (part_ref still attached, but done)
+    entry.runtime_data.store.set_last_performed(buy_id, "2026-08-01")
+    await sync._complete_buy_task(f"{entry.entry_id}:{buy_id}")
+    assert f"{entry.entry_id}:{buy_id}" not in sync._desired()
+
+    # entry without a coordinator/store (the global entry) → guard
+    gentry = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID)
+    await sync._complete_buy_task(f"{gentry.entry_id}:whatever")
+
+
+async def test_desired_skips_plain_and_disabled_tasks(hass: HomeAssistant) -> None:
+    todo, entry, sync = await _setup(hass)
+    buy_id = _buy_task_id(entry)
+
+    new_data = dict(entry.data)
+    tasks = dict(new_data[CONF_TASKS])
+    tasks["plain"] = {"id": "plain", "name": "No ref", "enabled": True}
+    disabled = dict(tasks[buy_id])
+    disabled["enabled"] = False
+    tasks["off"] = {**disabled, "id": "off"}
+    new_data[CONF_TASKS] = tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    # an added-but-never-loaded entry (no runtime_data) is skipped, not fatal
+    MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Ghost",
+        data=build_object_entry_data(tasks={}), source="user",
+        unique_id="maintenance_supporter_shopping_ghost",
+    ).add_to_hass(hass)
+
+    desired = sync._desired()
+    assert f"{entry.entry_id}:{buy_id}" in desired
+    assert not any(k.endswith(":plain") or k.endswith(":off") for k in desired)
+
+
+async def test_partial_failures_and_second_part(hass: HomeAssistant, monkeypatch) -> None:
+    """get_items failure aborts the pass; a failed add just skips the row;
+    an already-claimed uid is left alone when the next part joins."""
+    todo, entry, sync = await _setup(hass)
+    await sync.async_resync()
+    assert len(sync._data["items"]) == 1
+
+    # a failing get_items ends the pass cleanly (mapping untouched)
+    async def none_items(entity):
+        return None
+
+    monkeypatch.setattr(sync, "_get_items", none_items)
+    await sync.async_resync()
+    assert len(sync._data["items"]) == 1
+    monkeypatch.undo()
+
+    # second part goes low -> second buy task
+    new_data = dict(entry.data)
+    parts = dict(new_data[CONF_PARTS])
+    parts["p2"] = {"id": "p2", "name": "Belt", "reorder_threshold": 2, "restock_quantity": 1, "auto_buy_task": True}
+    new_data[CONF_PARTS] = parts
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+    entry.runtime_data.store.set_part_stock("p2", 0)
+    await async_reconcile_buy_tasks(hass, entry)
+    await hass.async_block_till_done()
+
+    # its add fails -> skipped this pass, first row untouched
+    async def no_add(entity, summary):
+        return False
+
+    monkeypatch.setattr(sync, "_add_item", no_add)
+    await sync.async_resync()
+    assert len(sync._data["items"]) == 1
+    monkeypatch.undo()
+
+    # next pass claims only the new row; the first keeps its uid (continue)
+    await sync.async_resync()
+    assert len(sync._data["items"]) == 2
+    assert all(rec["uid"] for rec in sync._data["items"].values())
