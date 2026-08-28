@@ -485,7 +485,8 @@
       "min_exceeds_max": "Minimiintervallet får inte överstiga maximalt intervall.",
       "invalid_notify_service": "Ogiltigt format för aviseringstjänst. Använd ”notify.service_name” (t.ex. notify.mobile_app_phone).",
       "notify_service_not_found": "Denna aviseringstjänst hittades inte i Home Assistant. Verifiera tjänstens namn.",
-      "nfc_tag_duplicate": "Denna NFC-tagg är redan kopplad till en annan uppgift."
+      "nfc_tag_duplicate": "Denna NFC-tagg är redan kopplad till en annan uppgift.",
+      "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…)."
     },
     "abort": {
       "already_configured": "Detta underhållsobjekt är redan konfigurerat.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Aktivera aviseringar",
           "notify_service": "Aviseringstjänst",
           "panel_enabled": "Visa sidopanel",
-          "panel_title": "Titel för sidofältspanel"
+          "panel_title": "Titel för sidofältspanel",
+          "shopping_list_entity": "Inköpslista att synka köpuppgifter till"
         },
         "data_description": {
           "default_warning_days": "Antal dagar före underhållsuppgiftens förfall då en varning visas.",
           "notifications_enabled": "Skicka aviseringar när underhållsuppgifter förfaller eller är försenade.",
           "notify_service": "Aviseringstjänsten som ska användas (t.ex. notify.mobile_app_phone).",
           "panel_enabled": "Visa en Maintenance Supporter-panel i sidofältet.",
-          "panel_title": "Eget namn för sidofältsposten. Lämna tomt för att använda \"Maintenance\". Användbart för att undvika krock med Home Assistants inbyggda Maintenance-panel."
+          "panel_title": "Eget namn för sidofältsposten. Lämna tomt för att använda \"Maintenance\". Användbart för att undvika krock med Home Assistants inbyggda Maintenance-panel.",
+          "shopping_list_entity": "Automatiska köppåminnelser för delar som håller på att ta slut visas i denna att-göra-lista; att bocka av en slutför påminnelsen och fyller på lagret. Lämna tomt för att inaktivera."
         }
       },
       "notification_settings": {

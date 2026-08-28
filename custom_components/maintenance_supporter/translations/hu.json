@@ -485,7 +485,8 @@
       "min_exceeds_max": "A minimális intervallum nem lehet nagyobb a maximálisnál.",
       "invalid_notify_service": "Érvénytelen értesítésiszolgáltatás-formátum. Használja a „notify.szolgaltatas_nev” alakot (pl. notify.mobile_app_phone).",
       "notify_service_not_found": "Ez az értesítési szolgáltatás nem található a Home Assistantban. Ellenőrizze a szolgáltatás nevét.",
-      "nfc_tag_duplicate": "Ez az NFC címke már egy másik feladathoz van rendelve."
+      "nfc_tag_duplicate": "Ez az NFC címke már egy másik feladathoz van rendelve.",
+      "invalid_shopping_list_entity": "A bevásárlólistának teendő-entitásnak kell lennie (todo.…)."
     },
     "abort": {
       "already_configured": "Ez a karbantartási objektum már be van állítva.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Értesítések engedélyezése",
           "notify_service": "Értesítési szolgáltatás",
           "panel_enabled": "Oldalsáv-panel megjelenítése",
-          "panel_title": "Oldalsáv-panel címe"
+          "panel_title": "Oldalsáv-panel címe",
+          "shopping_list_entity": "Bevásárlólista a vásárlási feladatok szinkronizálásához"
         },
         "data_description": {
           "default_warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
           "notifications_enabled": "Értesítések küldése, amikor karbantartási feladatok esedékessé válnak vagy lejárnak.",
           "notify_service": "A használandó értesítési szolgáltatás (pl. notify.mobile_app_phone).",
           "panel_enabled": "Maintenance Supporter panel megjelenítése az oldalsávban.",
-          "panel_title": "Az oldalsáv-bejegyzés egyéni neve. Hagyja üresen a „Karbantartás” használatához. Hasznos, ha ütközne a Home Assistant beépített Karbantartás irányítópultjával."
+          "panel_title": "Az oldalsáv-bejegyzés egyéni neve. Hagyja üresen a „Karbantartás” használatához. Hasznos, ha ütközne a Home Assistant beépített Karbantartás irányítópultjával.",
+          "shopping_list_entity": "A fogyóban lévő alkatrészek automatikus vásárlási emlékeztetői ezen a teendőlistán jelennek meg; a kipipálás befejezi az emlékeztetőt és feltölti a készletet. Hagyja üresen a kikapcsoláshoz."
         }
       },
       "notification_settings": {

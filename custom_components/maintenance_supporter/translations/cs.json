@@ -485,7 +485,8 @@
       "min_exceeds_max": "Minimální interval nesmí překročit maximální interval.",
       "invalid_notify_service": "Neplatný formát služby oznámení. Použijte „notify.service_name“ (např. notify.mobile_app_phone).",
       "notify_service_not_found": "Tato služba oznámení nebyla v Home Assistant nalezena. Ověřte název služby.",
-      "nfc_tag_duplicate": "Tento NFC tag je již spojen s jiným úkolem."
+      "nfc_tag_duplicate": "Tento NFC tag je již spojen s jiným úkolem.",
+      "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…)."
     },
     "abort": {
       "already_configured": "Tento objekt údržby je již nakonfigurován.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Povolit oznámení",
           "notify_service": "Služba oznámení",
           "panel_enabled": "Zobrazit boční panel",
-          "panel_title": "Název panelu v postranním panelu"
+          "panel_title": "Název panelu v postranním panelu",
+          "shopping_list_entity": "Nákupní seznam pro synchronizaci nákupních úkolů"
         },
         "data_description": {
           "default_warning_days": "Počet dní před termínem úkolu údržby pro zobrazení upozornění.",
           "notifications_enabled": "Odesílat oznámení, když se úkoly údržby blíží nebo jsou po termínu.",
           "notify_service": "Služba oznámení, kterou použít (např. notify.mobile_app_phone).",
           "panel_enabled": "Zobrazit panel Maintenance Supporter v bočním panelu.",
-          "panel_title": "Vlastní název pro položku v postranním panelu. Ponechte prázdné pro \"Maintenance\". Užitečné pro odlišení od vestavěného přehledu Maintenance v Home Assistantu."
+          "panel_title": "Vlastní název pro položku v postranním panelu. Ponechte prázdné pro \"Maintenance\". Užitečné pro odlišení od vestavěného přehledu Maintenance v Home Assistantu.",
+          "shopping_list_entity": "Automatická upozornění na nákup docházejících dílů se objeví v tomto seznamu úkolů; odškrtnutí dokončí upozornění a doplní zásobu. Ponechte prázdné pro vypnutí."
         }
       },
       "notification_settings": {

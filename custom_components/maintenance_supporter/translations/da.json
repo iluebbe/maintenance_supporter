@@ -485,7 +485,8 @@
       "min_exceeds_max": "Minimumsintervallet må ikke overstige maksimumsintervallet.",
       "invalid_notify_service": "Ugyldigt format for notifikationstjeneste. Brug 'notify.service_name' (f.eks. notify.mobile_app_phone).",
       "notify_service_not_found": "Denne notifikationstjeneste blev ikke fundet i Home Assistant. Bekræft venligst tjenestens navn.",
-      "nfc_tag_duplicate": "Dette NFC-mærke er allerede knyttet til en anden opgave."
+      "nfc_tag_duplicate": "Dette NFC-mærke er allerede knyttet til en anden opgave.",
+      "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…)."
     },
     "abort": {
       "already_configured": "Dette vedligeholdelsesobjekt er allerede konfigureret.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Aktivér notifikationer",
           "notify_service": "Notifikationstjeneste",
           "panel_enabled": "Vis sidebjælkepanel",
-          "panel_title": "Titel på sidebjælkepanel"
+          "panel_title": "Titel på sidebjælkepanel",
+          "shopping_list_entity": "Indkøbsliste til synkronisering af købsopgaver"
         },
         "data_description": {
           "default_warning_days": "Antal dage før en vedligeholdelsesopgave forfalder, hvor der vises en advarsel.",
           "notifications_enabled": "Send notifikationer, når vedligeholdelsesopgaver forfalder eller er overskredet.",
           "notify_service": "Den notifikationstjeneste, der skal bruges (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidebjælken.",
-          "panel_title": "Brugerdefineret navn til sidebjælkeposten. Lad feltet stå tomt for at bruge \"Vedligeholdelse\". Nyttigt for at undgå sammenfald med Home Assistants indbyggede vedligeholdelses-dashboard."
+          "panel_title": "Brugerdefineret navn til sidebjælkeposten. Lad feltet stå tomt for at bruge \"Vedligeholdelse\". Nyttigt for at undgå sammenfald med Home Assistants indbyggede vedligeholdelses-dashboard.",
+          "shopping_list_entity": "Automatiske købspåmindelser for dele med lav beholdning vises på denne opgaveliste; afkrydsning fuldfører påmindelsen og genopfylder delen. Lad feltet være tomt for at deaktivere."
         }
       },
       "notification_settings": {

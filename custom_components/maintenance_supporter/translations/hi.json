@@ -485,7 +485,8 @@
       "min_exceeds_max": "न्यूनतम अंतराल अधिकतम अंतराल से अधिक नहीं होना चाहिए।",
       "invalid_notify_service": "अमान्य सूचना सेवा प्रारूप। 'notify.service_name' का उपयोग करें (उदा. notify.mobile_app_phone)।",
       "notify_service_not_found": "यह सूचना सेवा Home Assistant में नहीं मिली। कृपया सेवा का नाम सत्यापित करें।",
-      "nfc_tag_duplicate": "यह NFC टैग पहले से ही किसी अन्य कार्य से जुड़ा हुआ है।"
+      "nfc_tag_duplicate": "यह NFC टैग पहले से ही किसी अन्य कार्य से जुड़ा हुआ है।",
+      "invalid_shopping_list_entity": "शॉपिंग सूची एक टू-डू इकाई (todo.…) होनी चाहिए।"
     },
     "abort": {
       "already_configured": "यह रखरखाव ऑब्जेक्ट पहले से ही कॉन्फ़िगर किया गया है।",
@@ -567,14 +568,16 @@
           "notifications_enabled": "सूचनाएँ सक्षम करें",
           "notify_service": "सूचना सेवा",
           "panel_enabled": "साइडबार पैनल दिखाएँ",
-          "panel_title": "साइडबार पैनल शीर्षक"
+          "panel_title": "साइडबार पैनल शीर्षक",
+          "shopping_list_entity": "खरीद कार्यों को सिंक करने की शॉपिंग सूची"
         },
         "data_description": {
           "default_warning_days": "रखरखाव कार्य देय होने से कितने दिन पहले चेतावनी दिखानी है।",
           "notifications_enabled": "रखरखाव कार्य देय या अतिदेय होने पर सूचनाएँ भेजें।",
           "notify_service": "उपयोग करने के लिए सूचना सेवा (उदा. notify.mobile_app_phone)।",
           "panel_enabled": "साइडबार में एक Maintenance Supporter पैनल दिखाएँ।",
-          "panel_title": "साइडबार प्रविष्टि के लिए कस्टम नाम। \"Maintenance\" का उपयोग करने के लिए खाली छोड़ें। Home Assistant के अंतर्निहित Maintenance डैशबोर्ड से टकराव से बचने के लिए उपयोगी।"
+          "panel_title": "साइडबार प्रविष्टि के लिए कस्टम नाम। \"Maintenance\" का उपयोग करने के लिए खाली छोड़ें। Home Assistant के अंतर्निहित Maintenance डैशबोर्ड से टकराव से बचने के लिए उपयोगी।",
+          "shopping_list_entity": "कम स्टॉक वाले पुर्जों के स्वचालित खरीद अनुस्मारक इस टू-डू सूची में दिखाई देते हैं; टिक करने पर अनुस्मारक पूरा होता है और पुर्जा फिर से स्टॉक होता है। अक्षम करने के लिए खाली छोड़ें।"
         }
       },
       "notification_settings": {

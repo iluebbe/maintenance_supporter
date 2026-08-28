@@ -294,7 +294,7 @@ def export_maintenance_data(
 # Global settings the export deliberately leaves behind: HA user ids are
 # instance-bound (and the panel-access allowlist is security-relevant), and
 # the adopted-task stash is transient re-adopt state.
-_NON_PORTABLE_SETTINGS = ("admin_panel_user_ids", "adopted_task_notes")
+_NON_PORTABLE_SETTINGS = ("admin_panel_user_ids", "adopted_task_notes", "shopping_list_entity")
 
 
 def build_settings_export(hass: HomeAssistant) -> dict[str, Any]:

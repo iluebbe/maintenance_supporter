@@ -485,7 +485,8 @@
       "min_exceeds_max": "El intervalo mínimo no debe superar el intervalo máximo.",
       "invalid_notify_service": "Formato del servicio de notificación no válido. Use 'notify.nombre_servicio' (ej.: notify.mobile_app_phone).",
       "notify_service_not_found": "Este servicio de notificación no se encontró en Home Assistant. Verifique el nombre del servicio.",
-      "nfc_tag_duplicate": "Esta etiqueta NFC ya está vinculada a otra tarea."
+      "nfc_tag_duplicate": "Esta etiqueta NFC ya está vinculada a otra tarea.",
+      "invalid_shopping_list_entity": "La lista de la compra debe ser una entidad de tareas (todo.…)."
     },
     "abort": {
       "already_configured": "Este objeto de mantenimiento ya está configurado.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Activar notificaciones",
           "notify_service": "Servicio de notificación",
           "panel_enabled": "Mostrar panel en la barra lateral",
-          "panel_title": "Título del panel lateral"
+          "panel_title": "Título del panel lateral",
+          "shopping_list_entity": "Lista de la compra para sincronizar las tareas de compra"
         },
         "data_description": {
           "default_warning_days": "Número de días antes de que venza una tarea de mantenimiento para mostrar una advertencia.",
           "notifications_enabled": "Enviar notificaciones cuando las tareas de mantenimiento están próximas a vencer o vencidas.",
           "notify_service": "El servicio de notificación a utilizar (ej.: notify.mobile_app_phone).",
           "panel_enabled": "Mostrar un panel de Maintenance Supporter en la barra lateral.",
-          "panel_title": "Nombre personalizado para la entrada de la barra lateral. Déjalo en blanco para usar \"Maintenance\". Útil para evitar conflictos con el panel de Mantenimiento integrado de Home Assistant."
+          "panel_title": "Nombre personalizado para la entrada de la barra lateral. Déjalo en blanco para usar \"Maintenance\". Útil para evitar conflictos con el panel de Mantenimiento integrado de Home Assistant.",
+          "shopping_list_entity": "Los recordatorios automáticos de compra de piezas escasas aparecen en esta lista de tareas; marcar uno completa el recordatorio y repone la pieza. Dejar vacío para desactivar."
         }
       },
       "notification_settings": {

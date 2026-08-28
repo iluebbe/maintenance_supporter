@@ -9,7 +9,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback, valid_entity_id
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_call_later
 
@@ -59,6 +59,7 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_REMINDER_LEAD_DAYS,
+    CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
@@ -149,6 +150,8 @@ def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
             "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
+            # v2.67: buy-task shopping sync target ("" = off).
+            "shopping_list_entity": options.get(CONF_SHOPPING_LIST_ENTITY, ""),
             # Shared pickable-target list so the panel picker can't drift from
             # the options-flow dropdown (both go through build_notify_targets).
             "notify_targets": notify_targets or [],
@@ -676,6 +679,17 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             if isinstance(v, str) and v in KNOWN_TEMPLATE_IDS and v not in tids:
                 tids.append(v)
         filtered[CONF_DISABLED_TEMPLATE_IDS] = tids
+
+    # Validate shopping_list_entity if provided: "" clears; otherwise it must
+    # be a todo.* entity id. Format-only — NO existence check (the list's
+    # integration may load later; the sync self-heals on first appearance).
+    if CONF_SHOPPING_LIST_ENTITY in filtered:
+        raw_ent = (filtered[CONF_SHOPPING_LIST_ENTITY] or "").strip()
+        if raw_ent and not valid_entity_id(raw_ent):
+            return filtered, "invalid_shopping_list_entity"
+        if raw_ent and not raw_ent.startswith("todo."):
+            return filtered, "invalid_shopping_list_entity"
+        filtered[CONF_SHOPPING_LIST_ENTITY] = raw_ent
 
     # Validate notify_service if provided
     if CONF_NOTIFY_SERVICE in filtered:

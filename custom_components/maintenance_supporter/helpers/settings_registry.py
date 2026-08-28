@@ -64,6 +64,7 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_REMINDER_LEAD_DAYS,
+    CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
@@ -89,6 +90,10 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_DEFAULT_WARNING_DAYS, int, int_range=(1, 365)),
     SettingSpec(CONF_NOTIFICATIONS_ENABLED, bool),
     SettingSpec(CONF_NOTIFY_SERVICE, str, max_len=200),
+    # todo.* entity the buy-task shopping sync mirrors into ("" = off);
+    # format-validated by a bespoke sanitiser rule (todo. prefix), max_len is
+    # HA's entity-id cap.
+    SettingSpec(CONF_SHOPPING_LIST_ENTITY, str, max_len=255),
     SettingSpec(CONF_PANEL_ENABLED, bool),
     # panel_title is trimmed+capped to MAX_PANEL_TITLE_LENGTH by a bespoke rule,
     # not a plain drop-if-too-long — so no max_len here.

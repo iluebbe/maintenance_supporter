@@ -485,7 +485,8 @@
       "min_exceeds_max": "Minste intervall må ikke overskride største intervall.",
       "invalid_notify_service": "Ugyldig format for varslingstjeneste. Bruk «notify.service_name» (f.eks. notify.mobile_app_phone).",
       "notify_service_not_found": "Denne varslingstjenesten ble ikke funnet i Home Assistant. Kontroller tjenestenavnet.",
-      "nfc_tag_duplicate": "Denne NFC-taggen er allerede koblet til en annen oppgave."
+      "nfc_tag_duplicate": "Denne NFC-taggen er allerede koblet til en annen oppgave.",
+      "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…)."
     },
     "abort": {
       "already_configured": "Dette vedlikeholdsobjektet er allerede konfigurert.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Aktiver varsler",
           "notify_service": "Varslingstjeneste",
           "panel_enabled": "Vis sidefeltpanel",
-          "panel_title": "Tittel på sidefeltpanel"
+          "panel_title": "Tittel på sidefeltpanel",
+          "shopping_list_entity": "Handleliste å synkronisere kjøpsoppgaver til"
         },
         "data_description": {
           "default_warning_days": "Antall dager før en vedlikeholdsoppgave forfaller for å vise et varsel.",
           "notifications_enabled": "Send varsler når vedlikeholdsoppgaver forfaller eller er forfalt.",
           "notify_service": "Varslingstjenesten som skal brukes (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidefeltet.",
-          "panel_title": "Egendefinert navn for sidefeltoppføringen. La feltet stå tomt for å bruke «Vedlikehold». Nyttig for å unngå konflikt med Home Assistants innebygde vedlikeholdsdashbord."
+          "panel_title": "Egendefinert navn for sidefeltoppføringen. La feltet stå tomt for å bruke «Vedlikehold». Nyttig for å unngå konflikt med Home Assistants innebygde vedlikeholdsdashbord.",
+          "shopping_list_entity": "Automatiske kjøpespåminnelser for deler med lav beholdning vises i denne gjøremålslisten; å krysse av en fullfører påminnelsen og fyller på beholdningen. La stå tomt for å deaktivere."
         }
       },
       "notification_settings": {

@@ -485,7 +485,8 @@
       "min_exceeds_max": "Vähimmäisaikaväli ei saa ylittää enimmäisaikaväliä.",
       "invalid_notify_service": "Virheellinen ilmoituspalvelun muoto. Käytä muotoa 'notify.service_name' (esim. notify.mobile_app_phone).",
       "notify_service_not_found": "Tätä ilmoituspalvelua ei löytynyt Home Assistantista. Tarkista palvelun nimi.",
-      "nfc_tag_duplicate": "Tämä NFC-tunniste on jo liitetty toiseen tehtävään."
+      "nfc_tag_duplicate": "Tämä NFC-tunniste on jo liitetty toiseen tehtävään.",
+      "invalid_shopping_list_entity": "Ostoslistan on oltava tehtäväentiteetti (todo.…)."
     },
     "abort": {
       "already_configured": "Tämä huoltokohde on jo määritetty.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Ota ilmoitukset käyttöön",
           "notify_service": "Ilmoituspalvelu",
           "panel_enabled": "Näytä sivupalkin paneeli",
-          "panel_title": "Sivupalkin paneelin otsikko"
+          "panel_title": "Sivupalkin paneelin otsikko",
+          "shopping_list_entity": "Ostoslista, johon ostotehtävät synkronoidaan"
         },
         "data_description": {
           "default_warning_days": "Montako päivää ennen huoltotehtävän eräpäivää varoitus näytetään.",
           "notifications_enabled": "Lähetä ilmoituksia, kun huoltotehtävät erääntyvät tai ovat myöhässä.",
           "notify_service": "Käytettävä ilmoituspalvelu (esim. notify.mobile_app_phone).",
           "panel_enabled": "Näytä Maintenance Supporter -paneeli sivupalkissa.",
-          "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi."
+          "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi.",
+          "shopping_list_entity": "Automaattiset ostomuistutukset vähiin käyneistä osista ilmestyvät tähän tehtäväluetteloon; kuittaus suorittaa muistutuksen ja täydentää varaston. Jätä tyhjäksi poistaaksesi käytöstä."
         }
       },
       "notification_settings": {

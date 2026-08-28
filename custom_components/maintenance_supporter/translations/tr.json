@@ -485,7 +485,8 @@
       "min_exceeds_max": "Minimum aralık, maksimum aralığı aşmamalıdır.",
       "invalid_notify_service": "Geçersiz bildirim servisi biçimi. 'notify.servis_adi' kullanın (örn. notify.mobile_app_phone).",
       "notify_service_not_found": "Bu bildirim servisi Home Assistant'ta bulunamadı. Lütfen servis adını doğrulayın.",
-      "nfc_tag_duplicate": "Bu NFC etiketi zaten başka bir göreve bağlı."
+      "nfc_tag_duplicate": "Bu NFC etiketi zaten başka bir göreve bağlı.",
+      "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…)."
     },
     "abort": {
       "already_configured": "Bu bakım nesnesi zaten yapılandırılmış.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Bildirimleri etkinleştir",
           "notify_service": "Bildirim servisi",
           "panel_enabled": "Kenar çubuğu panelini göster",
-          "panel_title": "Kenar çubuğu paneli başlığı"
+          "panel_title": "Kenar çubuğu paneli başlığı",
+          "shopping_list_entity": "Satın alma görevlerinin eşitleneceği alışveriş listesi"
         },
         "data_description": {
           "default_warning_days": "Bir bakım görevinin vadesinden kaç gün önce uyarı gösterileceği.",
           "notifications_enabled": "Bakım görevlerinin vadesi geldiğinde veya geciktiğinde bildirim gönder.",
           "notify_service": "Kullanılacak bildirim servisi (örn. notify.mobile_app_phone).",
           "panel_enabled": "Kenar çubuğunda bir Maintenance Supporter paneli göster.",
-          "panel_title": "Kenar çubuğu girdisi için özel ad. \"Bakım\" kullanmak için boş bırakın. Home Assistant'ın yerleşik Bakım panosuyla çakışmayı önlemek için kullanışlıdır."
+          "panel_title": "Kenar çubuğu girdisi için özel ad. \"Bakım\" kullanmak için boş bırakın. Home Assistant'ın yerleşik Bakım panosuyla çakışmayı önlemek için kullanışlıdır.",
+          "shopping_list_entity": "Azalan parçalar için otomatik satın alma hatırlatıcıları bu yapılacaklar listesinde görünür; birini işaretlemek hatırlatıcıyı tamamlar ve parçayı yeniden stoklar. Devre dışı bırakmak için boş bırakın."
         }
       },
       "notification_settings": {

@@ -485,7 +485,8 @@
       "min_exceeds_max": "O intervalo mínimo não deve exceder o intervalo máximo.",
       "invalid_notify_service": "Formato de serviço de notificação inválido. Use 'notify.nome_do_servico' (ex.: notify.mobile_app_phone).",
       "notify_service_not_found": "Este serviço de notificação não foi encontrado no Home Assistant. Verifique o nome do serviço.",
-      "nfc_tag_duplicate": "Esta etiqueta NFC já está associada a outra tarefa."
+      "nfc_tag_duplicate": "Esta etiqueta NFC já está associada a outra tarefa.",
+      "invalid_shopping_list_entity": "A lista de compras tem de ser uma entidade de tarefas (todo.…)."
     },
     "abort": {
       "already_configured": "Este objeto de manutenção já está configurado.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Ativar notificações",
           "notify_service": "Serviço de notificação",
           "panel_enabled": "Mostrar painel na barra lateral",
-          "panel_title": "Título do painel lateral"
+          "panel_title": "Título do painel lateral",
+          "shopping_list_entity": "Lista de compras para sincronizar as tarefas de compra"
         },
         "data_description": {
           "default_warning_days": "Número de dias antes do vencimento de uma tarefa de manutenção para mostrar um aviso.",
           "notifications_enabled": "Enviar notificações quando as tarefas de manutenção ficarem pendentes ou em atraso.",
           "notify_service": "O serviço de notificação a utilizar (ex.: notify.mobile_app_phone).",
           "panel_enabled": "Mostrar um painel do Maintenance Supporter na barra lateral.",
-          "panel_title": "Nome personalizado para a entrada da barra lateral. Deixe em branco para usar \"Maintenance\". Útil para evitar conflitos com o painel de Manutenção integrado do Home Assistant."
+          "panel_title": "Nome personalizado para a entrada da barra lateral. Deixe em branco para usar \"Maintenance\". Útil para evitar conflitos com o painel de Manutenção integrado do Home Assistant.",
+          "shopping_list_entity": "Os lembretes automáticos de compra de peças em falta aparecem nesta lista de tarefas; marcar um conclui o lembrete e repõe a peça. Deixar vazio para desativar."
         }
       },
       "notification_settings": {

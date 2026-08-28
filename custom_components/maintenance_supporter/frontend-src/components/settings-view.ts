@@ -36,6 +36,8 @@ interface SettingsResponse {
     // so the picker matches the options-flow dropdown exactly. Optional for
     // backward-compat with an older backend that didn't send it.
     notify_targets?: string[];
+    /** v2.67: todo.* entity the buy-task shopping sync mirrors into ("" = off). */
+    shopping_list_entity?: string;
     panel_enabled: boolean;
     panel_title: string;
     /** Opt-in copy of the shipped Assist sentences into the config dir. */
@@ -652,8 +654,27 @@ export class MaintenanceSettingsView extends LitElement {
             </div>
           ` : nothing}
         ` : nothing}
+
+        <label class="setting-row">
+          <span class="setting-label" title=${t("settings_shopping_list_help", L)}>${t("settings_shopping_list", L)}</span>
+          <select .value=${g.shopping_list_entity || ""}
+            @change=${(e: Event) => this._updateSetting("shopping_list_entity", (e.target as HTMLSelectElement).value)}>
+            <option value="" ?selected=${!g.shopping_list_entity}>${t("shopping_list_none", L)}</option>
+            ${this._todoEntities(g.shopping_list_entity || "").map((id) => html`
+              <option value=${id} ?selected=${g.shopping_list_entity === id}>${id}</option>
+            `)}
+          </select>
+        </label>
       </div>
     `;
+  }
+
+  /** All todo.* entities, plus the saved value even when its integration
+   *  hasn't loaded (so an offline pick isn't silently dropped from the UI). */
+  private _todoEntities(current: string): string[] {
+    const ids = Object.keys(this.hass?.states || {}).filter((id) => id.startsWith("todo.")).sort();
+    if (current && !ids.includes(current)) ids.unshift(current);
+    return ids;
   }
 
   // --- Section: Notifications ---

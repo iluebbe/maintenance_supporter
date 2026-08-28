@@ -704,6 +704,9 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # (bare "persistent_notification" gets rewritten to "notify.…"); the
     # already-qualified form round-trips unchanged, which is what we pin.
     "notify_service": "notify.persistent_notification",
+    # Format-validated (todo.* prefix) by a bespoke sanitiser rule; the
+    # qualified form round-trips unchanged.
+    "shopping_list_entity": "todo.shopping_list",
     "panel_enabled": True,
     # Already trimmed + under the 50-char cap, so it round-trips unchanged.
     "panel_title": "Upkeep",
@@ -788,6 +791,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "default_warning_days": settings["general"]["default_warning_days"],
         "notifications_enabled": settings["general"]["notifications_enabled"],
         "notify_service": settings["general"]["notify_service"],
+        "shopping_list_entity": settings["general"]["shopping_list_entity"],
         "panel_enabled": settings["general"]["panel_enabled"],
         "panel_title": settings["general"]["panel_title"],
         "operator_write_enabled": settings["operator_write_enabled"],

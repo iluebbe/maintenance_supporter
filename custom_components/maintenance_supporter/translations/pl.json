@@ -485,7 +485,8 @@
       "min_exceeds_max": "Minimalny interwał nie może przekraczać maksymalnego.",
       "invalid_notify_service": "Nieprawidłowy format usługi powiadomień. Użyj „notify.service_name” (np. notify.mobile_app_phone).",
       "notify_service_not_found": "Tej usługi powiadomień nie znaleziono w Home Assistant. Sprawdź nazwę usługi.",
-      "nfc_tag_duplicate": "Ten tag NFC jest już powiązany z innym zadaniem."
+      "nfc_tag_duplicate": "Ten tag NFC jest już powiązany z innym zadaniem.",
+      "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…)."
     },
     "abort": {
       "already_configured": "Ten obiekt konserwacji jest już skonfigurowany.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Włącz powiadomienia",
           "notify_service": "Usługa powiadomień",
           "panel_enabled": "Pokaż panel boczny",
-          "panel_title": "Tytuł panelu na pasku bocznym"
+          "panel_title": "Tytuł panelu na pasku bocznym",
+          "shopping_list_entity": "Lista zakupów do synchronizacji zadań zakupowych"
         },
         "data_description": {
           "default_warning_days": "Liczba dni przed terminem zadania konserwacji, w której wyświetlane jest ostrzeżenie.",
           "notifications_enabled": "Wysyłaj powiadomienia, gdy zadania konserwacji stają się wymagane lub przeterminowane.",
           "notify_service": "Usługa powiadomień, której należy używać (np. notify.mobile_app_phone).",
           "panel_enabled": "Pokaż panel Maintenance Supporter w pasku bocznym.",
-          "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant."
+          "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant.",
+          "shopping_list_entity": "Automatyczne przypomnienia o zakupie brakujących części pojawiają się na tej liście zadań; odhaczenie kończy przypomnienie i uzupełnia zapas. Pozostaw puste, aby wyłączyć."
         }
       },
       "notification_settings": {

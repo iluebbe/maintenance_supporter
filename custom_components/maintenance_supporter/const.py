@@ -111,6 +111,9 @@ SOUTHERN_SEASONS: dict[str, list[int]] = {
 CONF_DEFAULT_WARNING_DAYS = "default_warning_days"
 CONF_NOTIFICATIONS_ENABLED = "notifications_enabled"
 CONF_NOTIFY_SERVICE = "notify_service"
+# v2.67: mirror auto "buy" tasks into a user-picked HA to-do list (todo.*).
+# Empty = feature off. Instance-bound → excluded from settings export.
+CONF_SHOPPING_LIST_ENTITY = "shopping_list_entity"
 CONF_PANEL_ENABLED = "panel_enabled"
 # v2.10.4 (#69 follow-up): the sidebar panel is the integration's hub — the
 # auto-dashboard's "Open Maintenance panel" button, QR codes, and notifications

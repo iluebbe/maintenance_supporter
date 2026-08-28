@@ -485,7 +485,8 @@
       "min_exceeds_max": "最小间隔不能超过最大间隔。",
       "invalid_notify_service": "无效的通知服务格式。请使用 'notify.service_name'（例如：notify.mobile_app_phone）。",
       "notify_service_not_found": "在 Home Assistant 中找不到此通知服务。请验证服务名称。",
-      "nfc_tag_duplicate": "此 NFC 标签已链接到另一项任务。"
+      "nfc_tag_duplicate": "此 NFC 标签已链接到另一项任务。",
+      "invalid_shopping_list_entity": "购物清单必须是待办实体（todo.…）。"
     },
     "abort": {
       "already_configured": "此维护项已配置。",
@@ -567,14 +568,16 @@
           "notifications_enabled": "启用通知",
           "notify_service": "通知服务",
           "panel_enabled": "显示侧边栏面板",
-          "panel_title": "侧边栏面板标题"
+          "panel_title": "侧边栏面板标题",
+          "shopping_list_entity": "同步购买任务的购物清单"
         },
         "data_description": {
           "default_warning_days": "维护任务到期前多少天显示预警。",
           "notifications_enabled": "当维护任务到期或已超期时发送通知。",
           "notify_service": "要使用的通知服务（例如：notify.mobile_app_phone）。",
           "panel_enabled": "在侧边栏显示维护助手面板。",
-          "panel_title": "侧边栏条目的自定义名称。留空使用 “Maintenance”。有助于避免与 Home Assistant 内置的维护面板冲突。"
+          "panel_title": "侧边栏条目的自定义名称。留空使用 “Maintenance”。有助于避免与 Home Assistant 内置的维护面板冲突。",
+          "shopping_list_entity": "库存不足部件的自动购买提醒会显示在此待办清单中；勾选一项即完成提醒并补充库存。留空则禁用。"
         }
       },
       "notification_settings": {

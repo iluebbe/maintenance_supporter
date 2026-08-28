@@ -54,6 +54,7 @@ from .const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
@@ -576,6 +577,14 @@ class GlobalOptionsFlow(OptionsFlow):
             else:
                 user_input[CONF_NOTIFY_SERVICE] = normalized
 
+            # Shopping-list target: a cleared EntitySelector omits the key —
+            # normalise to "" so clearing actually turns the sync off. Format
+            # only (todo.*): the list's integration may load later.
+            raw_list = (user_input.get(CONF_SHOPPING_LIST_ENTITY) or "").strip()
+            if raw_list and not raw_list.startswith("todo."):
+                errors[CONF_SHOPPING_LIST_ENTITY] = "invalid_shopping_list_entity"
+            user_input[CONF_SHOPPING_LIST_ENTITY] = raw_list
+
             # Trim + cap the optional sidebar title; blank clears the override
             # (panel falls back to the default "Maintenance").
             raw_title = user_input.get(CONF_PANEL_TITLE)
@@ -631,6 +640,12 @@ class GlobalOptionsFlow(OptionsFlow):
                             custom_value=True,
                         )
                     ),
+                    # v2.67: mirror auto "buy" tasks into this to-do list
+                    # (blank = off). suggested_value keeps the field clearable.
+                    vol.Optional(
+                        CONF_SHOPPING_LIST_ENTITY,
+                        description={"suggested_value": current.get(CONF_SHOPPING_LIST_ENTITY, "")},
+                    ): selector.EntitySelector(selector.EntitySelectorConfig(domain="todo")),
                     vol.Optional(
                         CONF_PANEL_ENABLED,
                         default=current.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED),

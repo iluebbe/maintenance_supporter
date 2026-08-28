@@ -485,7 +485,8 @@
       "min_exceeds_max": "Minimum interval must not exceed maximum interval.",
       "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
       "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name.",
-      "nfc_tag_duplicate": "This NFC tag is already linked to another task."
+      "nfc_tag_duplicate": "This NFC tag is already linked to another task.",
+      "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…)."
     },
     "abort": {
       "already_configured": "This maintenance object is already configured.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Enable notifications",
           "notify_service": "Notification service",
           "panel_enabled": "Show sidebar panel",
-          "panel_title": "Sidebar panel title"
+          "panel_title": "Sidebar panel title",
+          "shopping_list_entity": "Shopping list to sync buy tasks into"
         },
         "data_description": {
           "default_warning_days": "Number of days before a maintenance task is due to show a warning.",
           "notifications_enabled": "Send notifications when maintenance tasks become due or are overdue.",
           "notify_service": "The notification service to use (e.g., notify.mobile_app_phone).",
           "panel_enabled": "Show a Maintenance Supporter panel in the sidebar.",
-          "panel_title": "Custom name for the sidebar entry. Leave blank to use \"Maintenance\". Useful to avoid clashing with Home Assistant's built-in Maintenance dashboard."
+          "panel_title": "Custom name for the sidebar entry. Leave blank to use \"Maintenance\". Useful to avoid clashing with Home Assistant's built-in Maintenance dashboard.",
+          "shopping_list_entity": "Automatic “buy” reminders for low parts appear in this to-do list; checking one off completes the reminder and restocks the part. Leave empty to disable."
         }
       },
       "notification_settings": {

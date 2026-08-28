@@ -51,6 +51,7 @@ from .const import (
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
+    CONF_SHOPPING_LIST_ENTITY,
     CONF_TASKS,
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_PANEL_ENABLED,
@@ -422,6 +423,14 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     doc_store = DocumentStore(hass)
     await doc_store.async_load()
     hass.data[DOMAIN][DOCUMENT_STORE_KEY] = doc_store
+
+    # v2.67: mirror auto "buy" tasks into the user's to-do list (no-op until
+    # the global shopping_list_entity option is set).
+    from .shopping_sync import SHOPPING_SYNC_KEY, ShoppingListSync
+
+    shopping_sync = ShoppingListSync(hass)
+    await shopping_sync.async_setup()
+    hass.data[DOMAIN][SHOPPING_SYNC_KEY] = shopping_sync
 
     # Authenticated upload + serve endpoints for document blobs (the blobs live
     # under /config, so they must never be exposed via an unauthenticated path).
@@ -947,6 +956,21 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             return
 
         from .helpers.entity_rename import rewrite_store, rewrite_tasks
+
+        # v2.67: the global shopping-list target is an entity reference too.
+        gentry = next(
+            (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
+            None,
+        )
+        if gentry is not None and gentry.options.get(CONF_SHOPPING_LIST_ENTITY) == old_eid:
+            hass.config_entries.async_update_entry(
+                gentry, options={**gentry.options, CONF_SHOPPING_LIST_ENTITY: new_eid}
+            )
+            from .shopping_sync import SHOPPING_SYNC_KEY
+
+            sync = hass.data.get(DOMAIN, {}).get(SHOPPING_SYNC_KEY)
+            if sync is not None:
+                await sync.async_handle_rename(old_eid, new_eid)
 
         for ce in hass.config_entries.async_entries(DOMAIN):
             if ce.unique_id == GLOBAL_UNIQUE_ID:
@@ -1701,6 +1725,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
     if entry.unique_id == GLOBAL_UNIQUE_ID:
         # Unregister panel when global entry is unloaded
         await async_unregister_panel(hass)
+        from .shopping_sync import SHOPPING_SYNC_KEY
+
+        shopping_sync = hass.data.get(DOMAIN, {}).pop(SHOPPING_SYNC_KEY, None)
+        if shopping_sync is not None:
+            shopping_sync.async_teardown()
 
     # Flush a pending debounced store save BEFORE tearing down — belt and
     # suspenders next to the store cache: disk is current the moment the entry

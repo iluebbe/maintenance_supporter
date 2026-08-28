@@ -485,7 +485,8 @@
       "min_exceeds_max": "Het minimuminterval mag het maximuminterval niet overschrijden.",
       "invalid_notify_service": "Ongeldig formaat voor de meldingsservice. Gebruik 'notify.servicenaam' (bijv. notify.mobile_app_phone).",
       "notify_service_not_found": "Deze meldingsservice is niet gevonden in Home Assistant. Controleer de servicenaam.",
-      "nfc_tag_duplicate": "Deze NFC-tag is al gekoppeld aan een andere taak."
+      "nfc_tag_duplicate": "Deze NFC-tag is al gekoppeld aan een andere taak.",
+      "invalid_shopping_list_entity": "De boodschappenlijst moet een to-do-entiteit zijn (todo.…)."
     },
     "abort": {
       "already_configured": "Dit onderhoudsobject is al geconfigureerd.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Meldingen inschakelen",
           "notify_service": "Meldingsservice",
           "panel_enabled": "Zijbalkpaneel tonen",
-          "panel_title": "Titel van zijbalkpaneel"
+          "panel_title": "Titel van zijbalkpaneel",
+          "shopping_list_entity": "Boodschappenlijst om kooptaken mee te synchroniseren"
         },
         "data_description": {
           "default_warning_days": "Aantal dagen voor de vervaldatum van een onderhoudstaak om een waarschuwing te tonen.",
           "notifications_enabled": "Meldingen verzenden wanneer onderhoudstaken verlopen of achterstallig zijn.",
           "notify_service": "De te gebruiken meldingsservice (bijv. notify.mobile_app_phone).",
           "panel_enabled": "Een Onderhoud Supporter-paneel in de zijbalk tonen.",
-          "panel_title": "Eigen naam voor het zijbalk-item. Laat leeg voor \"Maintenance\". Handig om verwarring met het ingebouwde Maintenance-dashboard van Home Assistant te voorkomen."
+          "panel_title": "Eigen naam voor het zijbalk-item. Laat leeg voor \"Maintenance\". Handig om verwarring met het ingebouwde Maintenance-dashboard van Home Assistant te voorkomen.",
+          "shopping_list_entity": "Automatische koopherinneringen voor schaarse onderdelen verschijnen in deze takenlijst; afvinken voltooit de herinnering en vult de voorraad aan. Leeg laten om uit te schakelen."
         }
       },
       "notification_settings": {

@@ -485,7 +485,8 @@
       "min_exceeds_max": "最小間隔は最大間隔を超えることはできません。",
       "invalid_notify_service": "通知サービスの形式が無効です。「notify.service_name」を使用してください (例: notify.mobile_app_phone)。",
       "notify_service_not_found": "この通知サービスは Home Assistant で見つかりませんでした。サービス名を確認してください。",
-      "nfc_tag_duplicate": "この NFC タグは既に別のタスクに関連付けられています。"
+      "nfc_tag_duplicate": "この NFC タグは既に別のタスクに関連付けられています。",
+      "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。"
     },
     "abort": {
       "already_configured": "このメンテナンス対象は既に構成されています。",
@@ -567,14 +568,16 @@
           "notifications_enabled": "通知を有効にする",
           "notify_service": "通知サービス",
           "panel_enabled": "サイドバーパネルを表示",
-          "panel_title": "サイドバーパネルのタイトル"
+          "panel_title": "サイドバーパネルのタイトル",
+          "shopping_list_entity": "購入タスクを同期する買い物リスト"
         },
         "data_description": {
           "default_warning_days": "メンテナンスタスクの期限の何日前から警告を表示するかの日数です。",
           "notifications_enabled": "メンテナンスタスクが期限を迎えたとき、または期限切れになったときに通知を送信します。",
           "notify_service": "使用する通知サービスです (例: notify.mobile_app_phone)。",
           "panel_enabled": "サイドバーに Maintenance Supporter パネルを表示します。",
-          "panel_title": "サイドバー項目のカスタム名です。空欄にすると「メンテナンス」が使用されます。Home Assistant 標準のメンテナンスダッシュボードとの競合を避けるのに便利です。"
+          "panel_title": "サイドバー項目のカスタム名です。空欄にすると「メンテナンス」が使用されます。Home Assistant 標準のメンテナンスダッシュボードとの競合を避けるのに便利です。",
+          "shopping_list_entity": "在庫が少ない部品の自動購入リマインダーがこのToDoリストに表示されます。チェックするとリマインダーが完了し、部品が補充されます。無効にするには空のままにします。"
         }
       },
       "notification_settings": {

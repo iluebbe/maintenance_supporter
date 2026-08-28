@@ -485,7 +485,8 @@
       "min_exceeds_max": "Das Mindestintervall darf das Höchstintervall nicht überschreiten.",
       "invalid_notify_service": "Ungültiges Format des Benachrichtigungsdienstes. Verwenden Sie 'notify.dienstname' (z.B. notify.mobile_app_phone).",
       "notify_service_not_found": "Dieser Benachrichtigungsdienst wurde in Home Assistant nicht gefunden. Bitte prüfen Sie den Dienstnamen.",
-      "nfc_tag_duplicate": "Dieses NFC-Tag ist bereits mit einer anderen Aufgabe verknüpft."
+      "nfc_tag_duplicate": "Dieses NFC-Tag ist bereits mit einer anderen Aufgabe verknüpft.",
+      "invalid_shopping_list_entity": "Die Einkaufsliste muss eine To-do-Entität sein (todo.…)."
     },
     "abort": {
       "already_configured": "Dieses Wartungsobjekt ist bereits konfiguriert.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Benachrichtigungen aktivieren",
           "notify_service": "Benachrichtigungsdienst",
           "panel_enabled": "Sidebar-Panel anzeigen",
-          "panel_title": "Titel des Seitenleisten-Panels"
+          "panel_title": "Titel des Seitenleisten-Panels",
+          "shopping_list_entity": "Einkaufsliste für den Abgleich der Kauf-Aufgaben"
         },
         "data_description": {
           "default_warning_days": "Anzahl der Tage vor Fälligkeit einer Wartungsaufgabe für eine Warnung.",
           "notifications_enabled": "Benachrichtigungen senden, wenn Wartungsaufgaben bald fällig oder überfällig sind.",
           "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone).",
           "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen.",
-          "panel_title": "Eigener Name für den Seitenleisten-Eintrag. Leer lassen für \"Maintenance\". Praktisch, um Verwechslungen mit dem integrierten Wartungs-Dashboard von Home Assistant zu vermeiden."
+          "panel_title": "Eigener Name für den Seitenleisten-Eintrag. Leer lassen für \"Maintenance\". Praktisch, um Verwechslungen mit dem integrierten Wartungs-Dashboard von Home Assistant zu vermeiden.",
+          "shopping_list_entity": "Automatische „Kaufen“-Erinnerungen für knappe Teile erscheinen in dieser To-do-Liste; Abhaken schließt die Erinnerung ab und füllt den Bestand auf. Leer lassen zum Deaktivieren."
         }
       },
       "notification_settings": {

@@ -485,7 +485,8 @@
       "min_exceeds_max": "최소 주기는 최대 주기를 초과할 수 없습니다.",
       "invalid_notify_service": "알림 서비스 형식이 잘못되었습니다. 'notify.service_name' 형식을 사용하세요(예: notify.mobile_app_phone).",
       "notify_service_not_found": "이 알림 서비스를 Home Assistant에서 찾을 수 없습니다. 서비스 이름을 확인해 주세요.",
-      "nfc_tag_duplicate": "이 NFC 태그는 이미 다른 작업에 연결되어 있습니다."
+      "nfc_tag_duplicate": "이 NFC 태그는 이미 다른 작업에 연결되어 있습니다.",
+      "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다."
     },
     "abort": {
       "already_configured": "이 유지보수 대상은 이미 구성되어 있습니다.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "알림 사용",
           "notify_service": "알림 서비스",
           "panel_enabled": "사이드바 패널 표시",
-          "panel_title": "사이드바 패널 제목"
+          "panel_title": "사이드바 패널 제목",
+          "shopping_list_entity": "구매 작업을 동기화할 쇼핑 목록"
         },
         "data_description": {
           "default_warning_days": "유지보수 작업의 기한 전에 경고를 표시할 일수입니다.",
           "notifications_enabled": "유지보수 작업의 기한이 되거나 기한을 초과하면 알림을 보냅니다.",
           "notify_service": "사용할 알림 서비스입니다(예: notify.mobile_app_phone).",
           "panel_enabled": "사이드바에 Maintenance Supporter 패널을 표시합니다.",
-          "panel_title": "사이드바 항목의 사용자 지정 이름입니다. 비워 두면 \"유지보수\"를 사용합니다. Home Assistant 기본 유지보수 대시보드와 이름이 겹치지 않게 할 때 유용합니다."
+          "panel_title": "사이드바 항목의 사용자 지정 이름입니다. 비워 두면 \"유지보수\"를 사용합니다. Home Assistant 기본 유지보수 대시보드와 이름이 겹치지 않게 할 때 유용합니다.",
+          "shopping_list_entity": "부족한 부품의 자동 구매 알림이 이 할 일 목록에 표시됩니다. 항목을 체크하면 알림이 완료되고 부품이 재입고됩니다. 비워두면 비활성화됩니다."
         }
       },
       "notification_settings": {

@@ -485,7 +485,8 @@
       "min_exceeds_max": "L'intervallo minimo non deve superare l'intervallo massimo.",
       "invalid_notify_service": "Formato del servizio di notifica non valido. Usa 'notify.nome_servizio' (es.: notify.mobile_app_phone).",
       "notify_service_not_found": "Questo servizio di notifica non è stato trovato in Home Assistant. Verifica il nome del servizio.",
-      "nfc_tag_duplicate": "Questo tag NFC è già collegato a un'altra attività."
+      "nfc_tag_duplicate": "Questo tag NFC è già collegato a un'altra attività.",
+      "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…)."
     },
     "abort": {
       "already_configured": "Questo oggetto di manutenzione è già configurato.",
@@ -567,14 +568,16 @@
           "notifications_enabled": "Abilita notifiche",
           "notify_service": "Servizio di notifica",
           "panel_enabled": "Mostra pannello nella barra laterale",
-          "panel_title": "Titolo del pannello laterale"
+          "panel_title": "Titolo del pannello laterale",
+          "shopping_list_entity": "Lista della spesa per sincronizzare le attività di acquisto"
         },
         "data_description": {
           "default_warning_days": "Numero di giorni prima della scadenza di un'attività di manutenzione per mostrare un avviso.",
           "notifications_enabled": "Invia notifiche quando le attività di manutenzione sono in scadenza o in ritardo.",
           "notify_service": "Il servizio di notifica da utilizzare (es.: notify.mobile_app_phone).",
           "panel_enabled": "Mostra un pannello Maintenance Supporter nella barra laterale.",
-          "panel_title": "Nome personalizzato per la voce nella barra laterale. Lascia vuoto per usare \"Maintenance\". Utile per evitare conflitti con la dashboard Manutenzione integrata di Home Assistant."
+          "panel_title": "Nome personalizzato per la voce nella barra laterale. Lascia vuoto per usare \"Maintenance\". Utile per evitare conflitti con la dashboard Manutenzione integrata di Home Assistant.",
+          "shopping_list_entity": "I promemoria di acquisto automatici per i ricambi scarsi appaiono in questo elenco; spuntarne uno completa il promemoria e rifornisce il ricambio. Lasciare vuoto per disattivare."
         }
       },
       "notification_settings": {

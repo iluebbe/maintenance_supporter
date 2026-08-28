@@ -431,6 +431,12 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
     if created or removed:
         # Entities for created/removed tasks appear/vanish on reload.
         await hass.config_entries.async_reload(entry.entry_id)
+
+    # v2.67: mirror the new buy-task set into the configured shopping list
+    # (no-op unless the global shopping_list_entity option is set).
+    from .shopping_sync import schedule_resync
+
+    schedule_resync(hass)
     return True
 
 
