@@ -10,7 +10,7 @@ three options:
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 import voluptuous as vol
 from homeassistant import data_entry_flow
@@ -768,8 +768,12 @@ class DeviceLinkRepairFlow(RepairsFlow):
         # .values() is required there. ChildDeviceEntry's existence is the
         # cleanest capability marker for the new world.
         registry_devices = dr.async_get(self.hass).devices
+        # cast(Any): the .values() branch only ever runs on 2026.7, but the
+        # 2026.9 stubs type `devices` as a Collection without it.
         device_iter: Any = (
-            registry_devices if hasattr(dr, "ChildDeviceEntry") else registry_devices.values()
+            registry_devices
+            if hasattr(dr, "ChildDeviceEntry")
+            else cast(Any, registry_devices).values()
         )
         for device in device_iter:
             if is_maintenance_device(self.hass, device):
