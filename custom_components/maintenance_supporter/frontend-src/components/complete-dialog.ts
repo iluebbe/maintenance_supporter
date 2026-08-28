@@ -43,6 +43,9 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** #139: "2/4 · Flip blades" — which phase of the cycle this completion
    *  records. Purely informative; the backend advances the cursor itself. */
   @property() public phaseLabel = "";
+  /** Proof of presence: the task completes only via NFC/QR scan — the
+   *  dialog says so up front instead of relaying the server's refusal. */
+  @property({ type: Boolean }) public requireTagScan = false;
   @state() private _open = false;
   @state() private _notes = "";
   @state() private _cost = "";
@@ -290,6 +293,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${t("complete_title", L)}${this.taskName}</div>
         ${this.phaseLabel ? html`<div class="phase-line">${t("phase_current", L)}: ${this.phaseLabel}</div>` : nothing}
+        ${this.requireTagScan ? html`<div class="scan-required-note">${t("require_tag_scan_hint", L)}</div>` : nothing}
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           ${this.checklist.length > 0 ? html`
@@ -476,6 +480,14 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-size: 18px;
       font-weight: 500;
       padding-bottom: 12px;
+    }
+    .scan-required-note {
+      margin: -4px 0 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(255, 152, 0, 0.12);
+      color: var(--primary-text-color);
+      font-size: 13px;
     }
     .phase-line {
       margin-top: -8px;

@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "Udførelsesdatoen må ikke ligge i fremtiden."
+    },
+    "tag_scan_required": {
+      "message": "“{task_name}” kan kun udføres ved at scanne dens tag — gå hen og scan NFC-tagget eller QR-koden på selve tingen."
     }
   },
   "triggers": {

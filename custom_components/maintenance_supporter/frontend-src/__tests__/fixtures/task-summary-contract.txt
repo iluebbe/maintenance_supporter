@@ -106,6 +106,7 @@
     "notes": "quick note"
   },
   "reading_unit": "kWh",
+  "require_tag_scan": true,
   "required_completion_fields": [
     "notes",
     "cost"

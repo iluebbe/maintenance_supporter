@@ -901,5 +901,8 @@
   "chart_history_fallback": "Ehhez az entitáshoz nincs hosszú távú statisztika — a recorder állapotelőzményei jelennek meg (jellemzően az utolsó ~10 nap)",
   "prediction_cycles": "Ciklusokból tanulva",
   "phase_require_override": "A „Megkövetelés elvégzéskor” felülbírálása ennél a fázisnál",
-  "history_add_past": "Korábbi elvégzés rögzítése"
+  "history_add_past": "Korábbi elvégzés rögzítése",
+  "require_tag_scan": "Csak címke beolvasásával fejezhető be",
+  "require_tag_scan_help": "Jelenlét-igazolás: a „Kész” mindenhol blokkolva van, amíg be nem olvasod az eszközön lévő NFC-címkét vagy QR-kódot. Az automatizálások 'via_tag_scan' értéket adhatnak át a complete szolgáltatásnak.",
+  "require_tag_scan_hint": "Ez a feladat csak az eszközön lévő NFC-címke vagy QR-kód beolvasásával fejezhető be — az itteni mentés el lesz utasítva."
 }

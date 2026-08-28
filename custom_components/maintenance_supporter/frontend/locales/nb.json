@@ -901,5 +901,8 @@
   "chart_history_fallback": "Ingen langtidsstatistikk for denne enheten — recorderens tilstandshistorikk vises (vanligvis de siste ~10 dagene)",
   "prediction_cycles": "Lært av sykluser",
   "phase_require_override": "Overstyr «Krev ved fullføring» for denne fasen",
-  "history_add_past": "Legg til tidligere fullføring"
+  "history_add_past": "Legg til tidligere fullføring",
+  "require_tag_scan": "Kan bare fullføres ved tag-skanning",
+  "require_tag_scan_help": "Tilstedeværelsesbevis: «Fullført» er blokkert overalt til NFC-taggen eller QR-koden på selve tingen er skannet. Automatiseringer kan sende 'via_tag_scan' til complete-tjenesten.",
+  "require_tag_scan_hint": "Denne oppgaven fullføres bare ved å skanne NFC-taggen eller QR-koden på selve tingen — lagring her vil bli avvist."
 }

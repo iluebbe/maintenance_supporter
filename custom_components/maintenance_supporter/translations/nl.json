@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "De voltooiingsdatum mag niet in de toekomst liggen."
+    },
+    "tag_scan_required": {
+      "message": "„{task_name}” kan alleen worden afgerond door de tag te scannen — loop ernaartoe en scan de NFC-tag of QR-code op het apparaat zelf."
     }
   },
   "triggers": {

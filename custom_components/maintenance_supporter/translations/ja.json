@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "完了日時に未来は指定できません。"
+    },
+    "tag_scan_required": {
+      "message": "「{task_name}」はタグをスキャンしないと完了できません。対象物のところへ行き、NFCタグまたはQRコードをスキャンしてください。"
     }
   },
   "triggers": {

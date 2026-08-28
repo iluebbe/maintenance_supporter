@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "The completion date cannot be in the future."
+    },
+    "tag_scan_required": {
+      "message": "“{task_name}” can only be completed by scanning its tag — walk over and scan the NFC tag or QR code on the thing itself."
     }
   },
   "triggers": {

@@ -901,5 +901,8 @@
   "chart_history_fallback": "Bu varlık için uzun dönem istatistik yok — recorder durum geçmişi gösteriliyor (genellikle son ~10 gün)",
   "prediction_cycles": "Döngülerden öğrenildi",
   "phase_require_override": "Bu aşama için “Tamamlarken zorunlu tut” ayarını geçersiz kıl",
-  "history_add_past": "Geçmiş tamamlama ekle"
+  "history_add_past": "Geçmiş tamamlama ekle",
+  "require_tag_scan": "Yalnızca etiket taranarak tamamlanır",
+  "require_tag_scan_help": "Yerinde olma kanıtı: Cihazın üzerindeki NFC etiketi veya QR kodu taranana kadar 'Tamamlandı' her yerde engellenir. Otomasyonlar complete servisine 'via_tag_scan' iletebilir.",
+  "require_tag_scan_hint": "Bu görev yalnızca cihazın üzerindeki NFC etiketi veya QR kodu taranarak tamamlanır — buradan kaydetme reddedilecektir."
 }

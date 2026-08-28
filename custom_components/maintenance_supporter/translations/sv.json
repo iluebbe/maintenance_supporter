@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "Slutförandedatumet får inte ligga i framtiden."
+    },
+    "tag_scan_required": {
+      "message": "”{task_name}” kan bara slutföras genom att skanna dess tagg — gå dit och skanna NFC-taggen eller QR-koden på själva saken."
     }
   },
   "triggers": {

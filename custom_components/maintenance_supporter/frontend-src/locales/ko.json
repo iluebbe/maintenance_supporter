@@ -901,5 +901,8 @@
   "chart_history_fallback": "이 엔티티에는 장기 통계가 없습니다 — 레코더 상태 기록을 표시합니다(보통 최근 약 10일)",
   "prediction_cycles": "학습한 주기 수",
   "phase_require_override": "이 단계에서 ‘완료 시 필수’ 재정의",
-  "history_add_past": "지난 완료 추가"
+  "history_add_past": "지난 완료 추가",
+  "require_tag_scan": "태그 스캔으로만 완료 가능",
+  "require_tag_scan_help": "현장 확인: 기기의 NFC 태그나 QR 코드를 스캔할 때까지 모든 화면에서 '완료'가 차단됩니다. 자동화는 complete 서비스에 'via_tag_scan'을 전달할 수 있습니다.",
+  "require_tag_scan_hint": "이 작업은 기기의 NFC 태그나 QR 코드를 스캔해야만 완료됩니다. 여기서 저장하면 거부됩니다."
 }

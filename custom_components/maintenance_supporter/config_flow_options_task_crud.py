@@ -264,6 +264,8 @@ class TaskCrudMixin:
                     updated_task[CONF_TASK_NFC_TAG] = nfc_val
                 else:
                     updated_task.pop(CONF_TASK_NFC_TAG, None)
+                # Proof of presence: completion only via NFC/QR scan.
+                updated_task["require_tag_scan"] = bool(user_input.get("require_tag_scan"))
                 # v2.20 (#83): reading unit — clear by submitting "".
                 if CONF_TASK_READING_UNIT in user_input:
                     ru = (user_input.get(CONF_TASK_READING_UNIT) or "").strip()
@@ -483,6 +485,7 @@ class TaskCrudMixin:
                         default=", ".join(task.get("labels", [])),
                     ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     nfc_tag_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    vol.Optional("require_tag_scan", default=bool(task.get("require_tag_scan"))): selector.BooleanSelector(),
                     reading_unit_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }

@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "Suorituspäivä ei voi olla tulevaisuudessa."
+    },
+    "tag_scan_required": {
+      "message": "”{task_name}” voidaan suorittaa vain skannaamalla sen tunniste — mene paikalle ja skannaa NFC-tunniste tai QR-koodi itse laitteesta."
     }
   },
   "triggers": {

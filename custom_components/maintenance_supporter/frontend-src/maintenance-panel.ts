@@ -1897,6 +1897,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // site of _openCompleteDialog rotates for free.
     const phase = tk ? effectivePhase(tk) : null;
     dlg.phaseLabel = phase ? phaseLabel(tk) : "";
+    dlg.requireTagScan = !!tk?.require_tag_scan;
     dlg.taskType = tk?.type || "";
     dlg.readingUnit = tk?.reading_unit || "";
     // #73: ticks recorded during the cycle prefill the dialog's checklist.

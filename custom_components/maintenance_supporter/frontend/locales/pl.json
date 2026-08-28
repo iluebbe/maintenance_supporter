@@ -901,5 +901,8 @@
   "chart_history_fallback": "Brak statystyk długoterminowych dla tej encji — wyświetlana jest historia stanów recordera (zwykle ostatnie ~10 dni)",
   "prediction_cycles": "Nauczone z cykli",
   "phase_require_override": "Nadpisz „Wymagaj przy ukończeniu” dla tej fazy",
-  "history_add_past": "Dodaj wcześniejsze ukończenie"
+  "history_add_past": "Dodaj wcześniejsze ukończenie",
+  "require_tag_scan": "Ukończenie tylko przez skan tagu",
+  "require_tag_scan_help": "Dowód obecności: „Gotowe” jest wszędzie zablokowane, dopóki nie zeskanujesz tagu NFC lub kodu QR na urządzeniu. Automatyzacje mogą przekazać 'via_tag_scan' do usługi complete.",
+  "require_tag_scan_hint": "To zadanie można ukończyć tylko skanując jego tag NFC lub kod QR na urządzeniu — zapis tutaj zostanie odrzucony."
 }

@@ -901,5 +901,8 @@
   "chart_history_fallback": "Ingen långtidsstatistik för denna entitet — recorderns tillståndshistorik visas (vanligtvis de senaste ~10 dagarna)",
   "prediction_cycles": "Lärt av cykler",
   "phase_require_override": "Åsidosätt ”Kräv vid slutförande” för denna fas",
-  "history_add_past": "Lägg till tidigare slutförande"
+  "history_add_past": "Lägg till tidigare slutförande",
+  "require_tag_scan": "Kan endast slutföras via tagg-skanning",
+  "require_tag_scan_help": "Närvarobevis: ”Klar” är blockerad överallt tills NFC-taggen eller QR-koden på själva saken har skannats. Automationer kan skicka 'via_tag_scan' till complete-tjänsten.",
+  "require_tag_scan_hint": "Den här uppgiften slutförs endast genom att skanna dess NFC-tagg eller QR-kod på själva saken — att spara här kommer att nekas."
 }

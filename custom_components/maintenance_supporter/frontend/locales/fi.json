@@ -901,5 +901,8 @@
   "chart_history_fallback": "Tälle entiteetille ei ole pitkän aikavälin tilastoja — näytetään recorderin tilahistoria (yleensä viimeiset ~10 päivää)",
   "prediction_cycles": "Opittu sykleistä",
   "phase_require_override": "Ohita ”Vaadi valmistuessa” tälle vaiheelle",
-  "history_add_past": "Lisää aiempi suoritus"
+  "history_add_past": "Lisää aiempi suoritus",
+  "require_tag_scan": "Suoritus vain tunnisteen skannauksella",
+  "require_tag_scan_help": "Läsnäolotodistus: ”Valmis” on estetty kaikkialla, kunnes laitteen NFC-tunniste tai QR-koodi on skannattu. Automaatiot voivat välittää 'via_tag_scan' complete-palvelulle.",
+  "require_tag_scan_hint": "Tämä tehtävä valmistuu vain skannaamalla sen NFC-tunniste tai QR-koodi itse laitteesta — tallennus tässä estetään."
 }

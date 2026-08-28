@@ -418,6 +418,7 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
             "schedule_time": "08:30",
             "custom_icon": "mdi:test-tube",
             "nfc_tag_id": "04AABBCC",
+            "require_tag_scan": True,
             "responsible_user_id": user_a.id,
             "notes": "keep me",
             "documentation_url": "https://x.test/m.pdf",

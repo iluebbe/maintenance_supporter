@@ -901,5 +901,8 @@
   "chart_history_fallback": "Sem estatísticas de longo prazo para esta entidade — a mostrar o histórico de estados do recorder (normalmente os últimos ~10 dias)",
   "prediction_cycles": "Aprendido de ciclos",
   "phase_require_override": "Substituir «Exigir na conclusão» para esta fase",
-  "history_add_past": "Adicionar conclusão passada"
+  "history_add_past": "Adicionar conclusão passada",
+  "require_tag_scan": "Concluir apenas lendo a etiqueta",
+  "require_tag_scan_help": "Prova de presença: «Concluído» fica bloqueado em todo o lado até ler a etiqueta NFC ou o código QR no próprio objeto. As automações podem passar 'via_tag_scan' ao serviço complete.",
+  "require_tag_scan_hint": "Esta tarefa só é concluída lendo a sua etiqueta NFC ou código QR no próprio objeto — guardar aqui será recusado."
 }

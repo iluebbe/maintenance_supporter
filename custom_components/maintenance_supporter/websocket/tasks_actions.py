@@ -270,6 +270,8 @@ async def ws_quick_complete_task(
             cost=defaults.get("cost"),
             duration=defaults.get("duration"),
             feedback=defaults.get("feedback"),
+            # The QR sticker hangs ON the thing — scanning it is presence.
+            tag_verified=True,
             completed_by=connection.user.id if connection.user else None,
         )
     except ServiceValidationError as err:

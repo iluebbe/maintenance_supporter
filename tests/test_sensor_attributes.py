@@ -834,6 +834,7 @@ _ATTR_EXEMPT = {
     "entity_slug": "already manifest in the entity_id itself",
     "custom_icon": "applied as the entity's icon, not an attribute",
     "nfc_tag_id": "identifier for the scan flow, not state; served via WS",
+    "require_tag_scan": "completion gating config, not routable state",
     "reading_unit": "display unit for the reading dialog; rides the WS payload",
     "consumes_parts": "structured part links; the parts surfaces own this",
     "checklist": "structured list — recorder bloat; served via WS",

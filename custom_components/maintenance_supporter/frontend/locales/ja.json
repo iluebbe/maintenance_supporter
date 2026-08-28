@@ -901,5 +901,8 @@
   "chart_history_fallback": "このエンティティには長期統計がありません — レコーダーの状態履歴を表示しています（通常は直近約10日分）",
   "prediction_cycles": "学習したサイクル数",
   "phase_require_override": "このフェーズで「完了時に必須」を上書き",
-  "history_add_past": "過去の完了を追加"
+  "history_add_past": "過去の完了を追加",
+  "require_tag_scan": "タグのスキャンでのみ完了可能",
+  "require_tag_scan_help": "在席証明：対象物のNFCタグまたはQRコードをスキャンするまで、どの画面でも「完了」はブロックされます。オートメーションはcompleteサービスに 'via_tag_scan' を渡せます。",
+  "require_tag_scan_hint": "このタスクは対象物のNFCタグまたはQRコードをスキャンしないと完了できません。ここでの保存は拒否されます。"
 }

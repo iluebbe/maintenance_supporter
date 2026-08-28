@@ -901,5 +901,8 @@
   "chart_history_fallback": "Geen langetermijnstatistieken voor deze entiteit — de recorder-statusgeschiedenis wordt getoond (meestal de laatste ~10 dagen)",
   "prediction_cycles": "Geleerd uit cycli",
   "phase_require_override": "„Vereisen bij afronden” voor deze fase overschrijven",
-  "history_add_past": "Eerdere afronding toevoegen"
+  "history_add_past": "Eerdere afronding toevoegen",
+  "require_tag_scan": "Alleen af te ronden via tag-scan",
+  "require_tag_scan_help": "Aanwezigheidsbewijs: „Klaar” is overal geblokkeerd totdat de NFC-tag of QR-code op het apparaat zelf is gescand. Automatiseringen kunnen 'via_tag_scan' aan de complete-service meegeven.",
+  "require_tag_scan_hint": "Deze taak wordt alleen afgerond door de NFC-tag of QR-code op het apparaat te scannen — opslaan hier wordt geweigerd."
 }

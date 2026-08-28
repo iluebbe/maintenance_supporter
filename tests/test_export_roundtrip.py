@@ -69,6 +69,7 @@ FULL_TASK = {
     "documentation_url": "https://example.org/manual",
     "custom_icon": "mdi:test-tube",
     "nfc_tag_id": "nfc-123",
+    "require_tag_scan": True,
     "required_completion_fields": ["cost"],
     "earliest_completion_days": 3,
     "priority": "high",
@@ -459,6 +460,7 @@ _CSV_TASK_EXCLUDED = {
     "on_complete_action", "quick_complete_defaults",  # nested service configs
     "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)
     "required_completion_fields", "earliest_completion_days",  # niche gates
+    "require_tag_scan",  # completion gate (JSON backup carries it)
     "entity_slug",  # instance-specific entity naming
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
     # #139: nested defs + cycle + Store cursor — structured state that doesn't

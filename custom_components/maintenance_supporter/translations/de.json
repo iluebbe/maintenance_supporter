@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "Das Erledigungsdatum darf nicht in der Zukunft liegen."
+    },
+    "tag_scan_required": {
+      "message": "„{task_name}“ kann nur per Tag-Scan erledigt werden — bitte hingehen und das NFC-Tag oder den QR-Code am Gerät scannen."
     }
   },
   "triggers": {

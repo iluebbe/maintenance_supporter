@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "Data wykonania nie może być w przyszłości."
+    },
+    "tag_scan_required": {
+      "message": "„{task_name}” można ukończyć tylko przez zeskanowanie tagu — podejdź i zeskanuj tag NFC lub kod QR na samym urządzeniu."
     }
   },
   "triggers": {

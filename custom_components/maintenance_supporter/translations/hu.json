@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "Az elvégzés dátuma nem lehet a jövőben."
+    },
+    "tag_scan_required": {
+      "message": "A(z) „{task_name}” csak a címke beolvasásával fejezhető be — menj oda, és olvasd be az NFC-címkét vagy a QR-kódot magán az eszközön."
     }
   },
   "triggers": {

@@ -155,6 +155,7 @@ def _build_task_summary(
         "documentation_url": task_data.get("documentation_url"),
         "custom_icon": task_data.get("custom_icon"),
         "nfc_tag_id": task_data.get("nfc_tag_id"),
+        "require_tag_scan": bool(task_data.get("require_tag_scan", False)),
         # v2.20 (#83): unit for `reading`-type tasks; values live in history.
         "reading_unit": task_data.get("reading_unit"),
         # Spare parts: consumption links ([{part_id, quantity}]) and, on an

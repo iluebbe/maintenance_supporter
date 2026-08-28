@@ -901,5 +901,8 @@
   "chart_history_fallback": "Ingen langtidsstatistik for denne enhed — recorderens tilstandshistorik vises (typisk de seneste ~10 dage)",
   "prediction_cycles": "Lært af cyklusser",
   "phase_require_override": "Tilsidesæt „Kræv ved udførelse“ for denne fase",
-  "history_add_past": "Tilføj tidligere udførelse"
+  "history_add_past": "Tilføj tidligere udførelse",
+  "require_tag_scan": "Kan kun udføres ved tag-scanning",
+  "require_tag_scan_help": "Tilstedeværelsesbevis: „Udført“ er blokeret overalt, indtil NFC-tagget eller QR-koden på selve tingen er scannet. Automatiseringer kan give 'via_tag_scan' til complete-tjenesten.",
+  "require_tag_scan_hint": "Denne opgave udføres kun ved at scanne dens NFC-tag eller QR-kode på selve tingen — at gemme her vil blive afvist."
 }

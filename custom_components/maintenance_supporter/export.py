@@ -111,6 +111,7 @@ def _build_export_object(
             "documentation_url": tdata.get("documentation_url"),
             "custom_icon": tdata.get("custom_icon"),
             "nfc_tag_id": tdata.get("nfc_tag_id"),
+            "require_tag_scan": tdata.get("require_tag_scan"),
             "responsible_user_id": tdata.get("responsible_user_id"),
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),

@@ -78,6 +78,7 @@ _MAXIMAL_TASK = {
     "entity_slug": "contract_fixture_task",
     "custom_icon": "mdi:test-tube",
     "nfc_tag_id": "contract-nfc-1",
+    "require_tag_scan": True,
     "reading_unit": "kWh",
     "consumes_parts": [{"part_id": "part_1", "quantity": 2}],
     # #139: cyclic content rotation — defs + sequence with a repeated step.

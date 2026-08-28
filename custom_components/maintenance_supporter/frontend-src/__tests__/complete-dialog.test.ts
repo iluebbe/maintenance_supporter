@@ -273,3 +273,27 @@ describe("complete-dialog cost suggestion from parts (#104 follow-up)", () => {
     expect(chip(el)).to.equal(null);
   });
 });
+
+describe("complete-dialog require_tag_scan note", () => {
+  it("shows the scan hint when the task demands proof of presence", async () => {
+    const { hass } = createMockHass({});
+    const el = await fixture<MaintenanceCompleteDialog>(html`
+      <maintenance-complete-dialog
+        .hass=${hass}
+        .entryId=${"entry1"}
+        .taskId=${"task1"}
+        .taskName=${"Filter Wechsel"}
+        .lang=${"en"}
+        .requireTagScan=${true}
+      ></maintenance-complete-dialog>
+    `);
+    el.open();
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector(".scan-required-note")).to.exist;
+  });
+
+  it("stays silent for ordinary tasks", async () => {
+    const { el } = await mount();
+    expect(el.shadowRoot!.querySelector(".scan-required-note")).to.equal(null);
+  });
+});

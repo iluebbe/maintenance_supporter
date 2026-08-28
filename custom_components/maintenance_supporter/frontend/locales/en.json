@@ -901,5 +901,8 @@
   "chart_history_fallback": "No long-term statistics for this entity — showing recorder state history (typically the last ~10 days)",
   "prediction_cycles": "Learned from cycles",
   "phase_require_override": "Override “Require on completion” for this phase",
-  "history_add_past": "Add past completion"
+  "history_add_past": "Add past completion",
+  "require_tag_scan": "Only complete by scanning the tag",
+  "require_tag_scan_help": "Proof of presence: Done is blocked on every surface until the NFC tag or QR code on the thing itself is scanned. Automations can pass 'via_tag_scan' to the complete service.",
+  "require_tag_scan_hint": "This task completes only by scanning its NFC tag or QR code on the thing itself — saving here will be refused."
 }

@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "La fecha de finalización no puede estar en el futuro."
+    },
+    "tag_scan_required": {
+      "message": "«{task_name}» solo puede completarse escaneando su etiqueta: acércate y escanea la etiqueta NFC o el código QR del propio objeto."
     }
   },
   "triggers": {

@@ -901,5 +901,8 @@
   "chart_history_fallback": "Pas de statistiques à long terme pour cette entité — affichage de l'historique d'états du recorder (généralement les ~10 derniers jours)",
   "prediction_cycles": "Appris sur cycles",
   "phase_require_override": "Remplacer « Exiger à l’achèvement » pour cette phase",
-  "history_add_past": "Ajouter une réalisation passée"
+  "history_add_past": "Ajouter une réalisation passée",
+  "require_tag_scan": "Terminer uniquement en scannant le tag",
+  "require_tag_scan_help": "Preuve de présence : « Terminé » est bloqué partout tant que le tag NFC ou le QR code sur l'objet n'a pas été scanné. Les automatisations peuvent passer 'via_tag_scan' au service complete.",
+  "require_tag_scan_hint": "Cette tâche ne se termine qu'en scannant son tag NFC ou son QR code sur l'objet — l'enregistrement ici sera refusé."
 }

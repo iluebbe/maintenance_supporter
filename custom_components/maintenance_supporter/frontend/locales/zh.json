@@ -901,5 +901,8 @@
   "chart_history_fallback": "该实体没有长期统计数据——显示 recorder 状态历史（通常为最近约 10 天）",
   "prediction_cycles": "已学习的周期数",
   "phase_require_override": "为此阶段覆盖“完成时要求”",
-  "history_add_past": "补录过去的完成记录"
+  "history_add_past": "补录过去的完成记录",
+  "require_tag_scan": "仅可通过扫描标签完成",
+  "require_tag_scan_help": "在场证明：在扫描设备上的 NFC 标签或二维码之前，所有界面的“完成”均被阻止。自动化可向 complete 服务传递 'via_tag_scan'。",
+  "require_tag_scan_hint": "此任务只能通过扫描设备上的 NFC 标签或二维码来完成——在此保存将被拒绝。"
 }

@@ -901,5 +901,8 @@
   "chart_history_fallback": "Nessuna statistica a lungo termine per questa entità — viene mostrata la cronologia degli stati del recorder (di solito gli ultimi ~10 giorni)",
   "prediction_cycles": "Appreso da cicli",
   "phase_require_override": "Sostituisci «Richiedi al completamento» per questa fase",
-  "history_add_past": "Aggiungi un completamento passato"
+  "history_add_past": "Aggiungi un completamento passato",
+  "require_tag_scan": "Completa solo scansionando il tag",
+  "require_tag_scan_help": "Prova di presenza: «Fatto» è bloccato ovunque finché non viene scansionato il tag NFC o il codice QR sull'oggetto. Le automazioni possono passare 'via_tag_scan' al servizio complete.",
+  "require_tag_scan_hint": "Questa attività si completa solo scansionando il suo tag NFC o codice QR sull'oggetto — il salvataggio qui verrà rifiutato."
 }

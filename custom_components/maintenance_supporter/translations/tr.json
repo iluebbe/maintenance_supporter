@@ -1987,6 +1987,9 @@
     },
     "completed_at_in_future": {
       "message": "Tamamlanma tarihi gelecekte olamaz."
+    },
+    "tag_scan_required": {
+      "message": "“{task_name}” yalnızca etiketi taranarak tamamlanabilir — gidip cihazın üzerindeki NFC etiketini veya QR kodunu tarayın."
     }
   },
   "triggers": {

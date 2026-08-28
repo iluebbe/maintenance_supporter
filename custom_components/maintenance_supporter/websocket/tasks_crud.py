@@ -103,6 +103,7 @@ TASK_UPDATE_FIELD_MAP = {
     "entity_slug": "entity_slug",
     "custom_icon": "custom_icon",
     "nfc_tag_id": "nfc_tag_id",
+    "require_tag_scan": "require_tag_scan",
     "reading_unit": "reading_unit",
     "consumes_parts": "consumes_parts",
     "phases": "phases",
@@ -192,6 +193,8 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
+        # Proof of presence (#139 family): completion only via NFC/QR scan.
+        vol.Optional("require_tag_scan"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].
@@ -367,6 +370,8 @@ async def ws_create_task(
             nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
             if nfc_warn:
                 tc_warnings.append(nfc_warn)
+    if msg.get("require_tag_scan") is not None:
+        task_data["require_tag_scan"] = bool(msg["require_tag_scan"])
     # v2.20 (#83): unit for `reading`-type tasks.
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
@@ -465,6 +470,8 @@ _TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
+        # Proof of presence (#139 family): completion only via NFC/QR scan.
+        vol.Optional("require_tag_scan"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].

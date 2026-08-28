@@ -941,6 +941,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         auto: bool = False,
         unattended: bool = False,
         completed_at: datetime | None = None,
+        tag_verified: bool = False,
     ) -> None:
         """Mark a task as completed and persist.
 
@@ -1012,6 +1013,22 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "fields": ", ".join(missing),
                     },
                 )
+
+        # Proof of presence: a task flagged require_tag_scan only completes
+        # from a surface that proves someone stood at the thing — an NFC tap
+        # or the QR quick-complete. Checked at THIS choke point so every
+        # other surface (panel, card, to-do, voice, notification button)
+        # gets the same refusal. Automatic completions are exempt (a
+        # recovered trigger has nobody to send to the machine), and
+        # automations may assert the scan via the service's `via_tag_scan`.
+        if not auto and not tag_verified and merged[task_id].get("require_tag_scan"):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="tag_scan_required",
+                translation_placeholders={
+                    "task_name": str(merged[task_id].get("name", task_id)),
+                },
+            )
 
         # Household double-complete guard (journey M1): two people seeing the
         # same overdue task and both tapping Complete within seconds would

@@ -141,6 +141,7 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
         # #133: when the maintenance was actually performed (backfill a past
         # completion). Future values are rejected by the coordinator.
         vol.Optional("completed_at"): cv.datetime,
+        vol.Optional("via_tag_scan"): cv.boolean,
     }
 )
 
@@ -478,6 +479,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             reading_value=call.data.get("reading_value"),
             completed_by=completed_by,
             completed_at=call.data.get("completed_at"),
+            # Proof of presence: an automation that reacted to the physical
+            # scan itself passes via_tag_scan to satisfy require_tag_scan.
+            tag_verified=bool(call.data.get("via_tag_scan")),
         )
 
     async def _handle_reset(call: ServiceCall) -> None:
@@ -835,6 +839,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                         completed_by=user_id,
                         notes="Completed via NFC tag",
                         unattended=True,
+                        tag_verified=True,
                     )
                 except ServiceValidationError as err:
                     # A tag tap cannot capture a cost or a photo. Log it

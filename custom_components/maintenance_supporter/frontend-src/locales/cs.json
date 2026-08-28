@@ -901,5 +901,8 @@
   "chart_history_fallback": "Pro tuto entitu nejsou dlouhodobé statistiky — zobrazuje se historie stavů recorderu (obvykle posledních ~10 dní)",
   "prediction_cycles": "Naučeno z cyklů",
   "phase_require_override": "Přepsat „Vyžadovat při dokončení“ pro tuto fázi",
-  "history_add_past": "Přidat dřívější dokončení"
+  "history_add_past": "Přidat dřívější dokončení",
+  "require_tag_scan": "Dokončit pouze naskenováním štítku",
+  "require_tag_scan_help": "Důkaz přítomnosti: „Hotovo“ je všude blokováno, dokud nenaskenujete NFC štítek nebo QR kód na zařízení. Automatizace mohou službě complete předat 'via_tag_scan'.",
+  "require_tag_scan_hint": "Tento úkol lze dokončit pouze naskenováním jeho NFC štítku nebo QR kódu na zařízení — uložení zde bude odmítnuto."
 }

@@ -244,6 +244,7 @@ export class MaintenanceTaskDialog extends LitElement {
   // NFC
   @state() private _lastPerformed = "";
   @state() private _nfcTagId = "";
+  @state() private _requireTagScan = false;
   // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
   @state() private _readingUnit = "";
   /** The picked links, keyed by `partLinkKey` — the (entry_id, part_id) pair,
@@ -393,6 +394,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
+    this._requireTagScan = !!task.require_tag_scan;
     this._readingUnit = task.reading_unit || "";
     // Whole link, entry_id included — hydrating only part_id would turn every
     // shared-pool link into an own-part link on the next save (#111).
@@ -534,6 +536,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._enabled = true;
     this._lastPerformed = "";
     this._nfcTagId = "";
+    this._requireTagScan = false;
     this._readingUnit = "";
     this._consumesParts = {};
     this._responsibleUserId = null;
@@ -1235,6 +1238,7 @@ export class MaintenanceTaskDialog extends LitElement {
       data.enabled = this._enabled;
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
+      data.require_tag_scan = this._requireTagScan;
       data.reading_unit = this._readingUnit.trim() || null;
       // Task phases (#139): always sent — null clears a removed cycle.
       {
@@ -2793,6 +2797,15 @@ export class MaintenanceTaskDialog extends LitElement {
               </div>
             `
           }
+          <label class="req-option">
+            <input
+              type="checkbox"
+              .checked=${this._requireTagScan}
+              @change=${(e: Event) => (this._requireTagScan = (e.target as HTMLInputElement).checked)}
+            />
+            <span>${t("require_tag_scan", L)}</span>
+          </label>
+          ${this._requireTagScan ? html`<div class="field-help">${t("require_tag_scan_help", L)}</div>` : nothing}
           <label class="toggle-row">
             <input
               type="checkbox"

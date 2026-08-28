@@ -901,5 +901,8 @@
   "chart_history_fallback": "Keine Langzeitstatistik für diese Entität — angezeigt wird der Recorder-Zustandsverlauf (üblicherweise die letzten ~10 Tage)",
   "prediction_cycles": "Gelernt aus Zyklen",
   "phase_require_override": "„Bei Erledigung verlangen“ für diese Phase überschreiben",
-  "history_add_past": "Vergangene Erledigung nachtragen"
+  "history_add_past": "Vergangene Erledigung nachtragen",
+  "require_tag_scan": "Nur per Tag-Scan abschließbar",
+  "require_tag_scan_help": "Anwesenheitsnachweis: „Erledigt“ ist überall blockiert, bis das NFC-Tag oder der QR-Code am Gerät gescannt wurde. Automationen können 'via_tag_scan' an den complete-Dienst übergeben.",
+  "require_tag_scan_hint": "Diese Aufgabe kann nur per Scan des NFC-Tags oder QR-Codes am Gerät erledigt werden — Speichern hier wird abgelehnt."
 }
