@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.66.1] - 2026-08-28
+
+### 🐛 Fixed
+
+- **Home Assistant 2026.9 readiness, second wave.** The 2026.9 betas turn
+  several device-registry deprecations into hard errors; this release
+  migrates the remaining call sites so the integration runs cleanly on both
+  current cores and the upcoming release: composite-device links resolve via
+  the new `include_composite_devices` lookup (the previous probe is
+  deprecated there), device iteration in the link-repair flow follows the
+  reworked registry typing, and Home Assistant no longer logs any
+  "please create a bug report" deprecation notices against this integration
+  on 2026.9. No functional changes on 2026.7/2026.8.
+
 ## [2.66.0] - 2026-08-28
 
 ### ✨ Added
