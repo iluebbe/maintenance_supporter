@@ -900,5 +900,6 @@
   "phase_set": "Geçerli olarak ayarla",
   "chart_history_fallback": "Bu varlık için uzun dönem istatistik yok — recorder durum geçmişi gösteriliyor (genellikle son ~10 gün)",
   "prediction_cycles": "Döngülerden öğrenildi",
-  "phase_require_override": "Bu aşama için “Tamamlarken zorunlu tut” ayarını geçersiz kıl"
+  "phase_require_override": "Bu aşama için “Tamamlarken zorunlu tut” ayarını geçersiz kıl",
+  "history_add_past": "Geçmiş tamamlama ekle"
 }

@@ -900,5 +900,6 @@
   "phase_set": "Beállítás aktuálisként",
   "chart_history_fallback": "Ehhez az entitáshoz nincs hosszú távú statisztika — a recorder állapotelőzményei jelennek meg (jellemzően az utolsó ~10 nap)",
   "prediction_cycles": "Ciklusokból tanulva",
-  "phase_require_override": "A „Megkövetelés elvégzéskor” felülbírálása ennél a fázisnál"
+  "phase_require_override": "A „Megkövetelés elvégzéskor” felülbírálása ennél a fázisnál",
+  "history_add_past": "Korábbi elvégzés rögzítése"
 }

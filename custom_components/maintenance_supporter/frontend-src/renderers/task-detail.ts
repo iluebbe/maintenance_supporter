@@ -494,6 +494,12 @@ export function renderOverviewTab(task: MaintenanceTask, ctx: TaskDetailContext)
 function renderHistoryTab(task: MaintenanceTask, ctx: TaskDetailContext) {
   return html`
     <div class="tab-content history-tab">
+      <div class="history-add-past">
+        <ha-button appearance="plain" class="history-add-past-btn" @click=${() => ctx.openComplete(task)}>
+          <ha-icon icon="mdi:calendar-plus"></ha-icon>
+          ${t("history_add_past", ctx.lang)}
+        </ha-button>
+      </div>
       ${renderHistoryFilters(task, ctx.history)}
       ${renderHistoryList(task, ctx.history)}
     </div>

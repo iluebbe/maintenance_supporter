@@ -215,6 +215,19 @@ describe("task-detail renderer", () => {
     expect(host2.querySelector(".kpi-bar")).to.be.null;
   });
 
+  it("history tab offers 'add past completion' routing to openComplete (#142)", () => {
+    let completed: MaintenanceTask | null = null;
+    const t2 = task();
+    const host = mount(t2, ctx({
+      activeTab: "history",
+      openComplete: (tk) => { completed = tk; },
+    }));
+    const btn = host.querySelector(".history-add-past-btn") as HTMLElement;
+    expect(btn, "add-past button").to.exist;
+    btn.click();
+    expect(completed).to.equal(t2);
+  });
+
   it("object-manual row falls back to an attached manual when the URL is empty", () => {
     let opened: unknown = null;
     const host = mount(task(), ctx({

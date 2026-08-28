@@ -1053,6 +1053,19 @@ export const panelStyles = css`
     border-color: var(--primary-color);
   }
 
+  /* #142: "add a past completion" entry point in the history tab — the
+     backdate field lives in the complete dialog, but people LOOK for it
+     here. */
+  .history-add-past {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+  }
+  .history-add-past-btn ha-icon {
+    --mdc-icon-size: 18px;
+    margin-right: 4px;
+  }
+
   /* #139: cycle-phase strip in the task overview */
   .phases-card {
     background: var(--card-background-color, #fff);
