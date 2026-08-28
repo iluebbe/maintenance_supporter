@@ -29,7 +29,7 @@ there are no composite ids and nothing to resolve.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -51,27 +51,42 @@ def resolve_linked_device_id(
     """
     dev_reg = dr.async_get(hass)
 
-    # `async_get` must NOT be the test here. For a composite id HA 2026.8
-    # synthesises a read-only device on the fly "so integration code that
-    # resolves a device by id keeps working" — and that synthetic entry carries
-    # the COMPOSITE id. Handing it to an entity is precisely what makes the
-    # entity registry refuse the link. Ask whether the id is composite first.
-    is_composite = getattr(dev_reg, "async_is_composite_device_id", None)
-    if is_composite is None:
-        # HA < 2026.8: no composites, so a live foreign device or nothing.
-        device = dev_reg.async_get(device_id)
-        if device is None or _only_ours(device, own_entry_id):
-            return None
-        return device_id
+    # `async_get` must NOT be the plain test here. For a composite id HA
+    # 2026.8+ synthesises a read-only device on the fly "so integration code
+    # that resolves a device by id keeps working" — and that synthetic entry
+    # carries the COMPOSITE id. Handing it to an entity is precisely what
+    # makes the entity registry refuse the link. Three core generations,
+    # three probes:
+    if hasattr(dr, "ChildDeviceEntry"):
+        # 2026.9+: async_is_composite_device_id is deprecated; the kwarg is
+        # the replacement — a composite id resolves WITHOUT it but not WITH
+        # include_composite_devices=False. cast(Any): the kwarg does not
+        # exist in older stubs, and this branch only runs where it does.
+        live = cast(Any, dev_reg).async_get(device_id, include_composite_devices=False)
+        if live is not None:
+            if _only_ours(live, own_entry_id):
+                return None
+            return device_id
+        if dev_reg.async_get(device_id) is None:
+            return None  # gone entirely — not a composite either
+        # composite id → resolve to its splits below
+    else:
+        is_composite = getattr(dev_reg, "async_is_composite_device_id", None)
+        if is_composite is None:
+            # HA < 2026.8: no composites, so a live foreign device or nothing.
+            device = dev_reg.async_get(device_id)
+            if device is None or _only_ours(device, own_entry_id):
+                return None
+            return device_id
 
-    state = is_composite(device_id)  # False = live device, True = composite, None = unknown
-    if state is False:
-        device = dev_reg.async_get(device_id)
-        if device is not None and _only_ours(device, own_entry_id):
+        state = is_composite(device_id)  # False = live device, True = composite, None = unknown
+        if state is False:
+            device = dev_reg.async_get(device_id)
+            if device is not None and _only_ours(device, own_entry_id):
+                return None
+            return device_id
+        if state is not True:
             return None
-        return device_id
-    if state is not True:
-        return None
 
     # Fetched via getattr for the same reason as the check above: the method
     # does not exist on 2026.7, and a `type: ignore` for it would read as
