@@ -2,6 +2,77 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.68.0] - 2026-08-29
+
+### ✨ Added
+
+- **One task per cartridge for colour printers.** *Suggested setups* used to
+  bundle every ink/toner sensor of a printer into a single *Replace Ink or
+  Toner* task, so three colours under the floor collapsed into one duty and
+  completing it for one cartridge cleared the others. The IPP marker duty
+  and Brother's toner and drum duties now come as one task per entity —
+  *Replace Toner — Cyan*, *— Magenta*, … named after the cartridge sensor,
+  each completed on its own. A mono printer keeps the single task, and
+  adopting one colour leaves the others proposable. (#145)
+- **Global warning-days default may be 0.** *Settings → General → Default
+  warning days* (and the integration options) accept `0` now, like the
+  per-task field always did: new tasks then have no warning window and turn
+  *due soon* on the due date itself. (#145)
+- **State-change trigger charts show the trigger's view.** For a switch or
+  problem sensor watched by a state-change trigger the task chart no longer
+  draws the raw on/off history with the change target on the same axis — a
+  valve that is on all week with sub-hold-time blips read as a flat 1 while
+  the header said 0/1. Latch triggers plot "alert state held" (0/1, no
+  target line), counting triggers plot the stepped change count since the
+  last service, both honouring the hold filter. (#141)
+
+### 🐛 Fixed
+
+A six-perspective bug audit (v2.67 features, HA-API version probes,
+completion choke point, frontend, persistence/lifecycle,
+notifications/fleet/predictor) — the notable ones:
+
+- **Live updates froze after a task edit.** Panel/card subscriptions and the
+  summary sensors stayed bound to the coordinator a config-entry reload had
+  replaced — every task edit reloads — so *other* clients stopped updating
+  for that object until a page reload. Subscriptions now follow the reload.
+- **"Notify once" statuses stayed silent after a completion.** The
+  once-sentinel was never cleared, so a re-triggered status was not
+  announced again until restart; completing, skipping or resetting a task
+  now clears its notification state.
+- **Shopping-list sync survives a hub reload** (it was created once per boot
+  and torn down with the hub entry) and no longer duplicates rows when the
+  provider rewrites summaries or a re-list fails mid-pass.
+- **Completion rules apply on every surface.** *Earliest completion*
+  windows and inactive tasks (archived, disabled, paused object) were only
+  enforced by the panel; the service, dashboard button, NFC tap, to-do tick
+  and notification button now refuse them too (past-dated backfills stay
+  allowed). A failed save releases the double-tap guard; a pure backfill no
+  longer restocks parts for the *current* cycle; `completed_by` is recorded
+  from the acting user on the to-do tick, dashboard button, notification
+  action and voice.
+- **Notifications.** Bundling honours per-status enable and snooze; lead
+  reminders get a noon retry so a quiet window ending after 08:00 no longer
+  silences them for good.
+- **Battery fleet.** The low-count sensor has 5 % hysteresis (a cell
+  hovering at its threshold auto-completed the fleet task on every dip);
+  low-only Battery Notes devices resolve their *replaced* button.
+- **Sensor prediction.** Cycle boundaries need a jump that dwarfs the hourly
+  noise and holds for a settle window — noisy windows without a service no
+  longer fragment into pseudo-cycles.
+- **Persistence.** Object `archived_at` and battery-fleet identity survive
+  JSON export/import; compound-trigger runtime keys follow entity renames;
+  stores sanitise malformed shapes on load; deleting a task unlinks it from
+  documents; removing an HA user reconciles orphaned assignments at once.
+- **Panel.** The object picker no longer leaks from *Create* into *Edit*;
+  card and quick-actions completions carry the tag-scan gate, restock and
+  checklist prefill; pushed updates refresh the KPIs and the open task's
+  history; the QR fallback handles required completion details; rejected
+  settings selects revert.
+- **Compatibility.** `helpers/device_link` no longer calls a helper API that
+  only exists from HA 2025.8 on the declared minimum 2025.7 (#144 class);
+  repairs skip HA 2026.9 sub-devices before reading manufacturer/model.
+
 ## [2.67.0] - 2026-08-29
 
 ### ✨ Added
