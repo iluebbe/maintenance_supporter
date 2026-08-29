@@ -129,7 +129,10 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 {
                     vol.Optional(CONF_DEFAULT_WARNING_DAYS, default=DEFAULT_WARNING_DAYS): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=1, max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                            min=WARNING_DAYS_RANGE[0],
+                            max=WARNING_DAYS_RANGE[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
                     vol.Optional(CONF_NOTIFICATIONS_ENABLED, default=False): selector.BooleanSelector(),

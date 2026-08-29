@@ -87,7 +87,9 @@ class SettingSpec:
 # settings; it has no functional meaning.
 SETTING_SPECS: tuple[SettingSpec, ...] = (
     # General
-    SettingSpec(CONF_DEFAULT_WARNING_DAYS, int, int_range=(1, 365)),
+    # 0 = no warning window: new tasks turn due_soon on the due date itself
+    # (the per-task range already allowed 0 — #145).
+    SettingSpec(CONF_DEFAULT_WARNING_DAYS, int, int_range=(0, 365)),
     SettingSpec(CONF_NOTIFICATIONS_ENABLED, bool),
     SettingSpec(CONF_NOTIFY_SERVICE, str, max_len=200),
     # todo.* entity the buy-task shopping sync mirrors into ("" = off);

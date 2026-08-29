@@ -1927,3 +1927,34 @@ async def test_update_settings_invalid_notify_service(
         },
     )
     conn.send_error.assert_called_once()
+
+
+async def test_update_global_settings_accepts_zero_warning_days(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """default_warning_days may be 0 (#145): stored as 0, not clamped to 1,
+    and the resolver hands 0 to new tasks (no warning window)."""
+    from custom_components.maintenance_supporter.const import CONF_DEFAULT_WARNING_DAYS
+    from custom_components.maintenance_supporter.helpers.global_options import get_default_warning_days
+
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {CONF_DEFAULT_WARNING_DAYS: 0},
+        },
+    )
+
+    conn.send_result.assert_called_once()
+    assert conn.send_result.call_args[0][1]["general"]["default_warning_days"] == 0
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert entry is not None
+    assert (entry.options or entry.data)[CONF_DEFAULT_WARNING_DAYS] == 0
+    assert get_default_warning_days(hass) == 0

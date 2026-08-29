@@ -587,10 +587,11 @@ export class MaintenanceSettingsView extends LitElement {
         <h3>${t("settings_general", L)}</h3>
         <label class="setting-row">
           <span class="setting-label">${t("settings_default_warning", L)}</span>
-          <input type="number" min="1" max="365" .value=${String(g.default_warning_days)}
+          <input type="number" min="0" max="365" .value=${String(g.default_warning_days)}
             @change=${(e: Event) => {
               const v = parseInt((e.target as HTMLInputElement).value, 10);
-              if (v >= 1 && v <= 365) this._updateSetting("default_warning_days", v);
+              // 0 = no warning window (due soon only on the due date) — #145.
+              if (v >= 0 && v <= 365) this._updateSetting("default_warning_days", v);
             }} />
         </label>
         <label class="setting-row">

@@ -111,8 +111,8 @@ import{a as I,f as E,h as T}from"/maintenance_supporter_panelfiles/panel-chunks/
         <h3>${t("settings_general",e)}</h3>
         <label class="setting-row">
           <span class="setting-label">${t("settings_default_warning",e)}</span>
-          <input type="number" min="1" max="365" .value=${String(s.default_warning_days)}
-            @change=${n=>{let o=parseInt(n.target.value,10);o>=1&&o<=365&&this._updateSetting("default_warning_days",o)}} />
+          <input type="number" min="0" max="365" .value=${String(s.default_warning_days)}
+            @change=${n=>{let o=parseInt(n.target.value,10);o>=0&&o<=365&&this._updateSetting("default_warning_days",o)}} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_currency",e)}</span>

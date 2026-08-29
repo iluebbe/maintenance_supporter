@@ -282,9 +282,16 @@ async def test_shopping_sync_relist_hiccup_does_not_duplicate(hass: HomeAssistan
     assert rec["uid"] is not None
 
 
-async def test_shopping_sync_claims_rows_positionally_when_provider_rewrites_summaries(hass: HomeAssistant) -> None:
+async def test_shopping_sync_claims_rows_positionally_when_provider_rewrites_summaries(
+    hass: HomeAssistant, monkeypatch
+) -> None:
     """v67-F2b: a provider that normalises the text (case, trimming) never
-    matched by summary -> one new row per pass, indefinitely."""
+    matched by summary -> one new row per pass, indefinitely.
+
+    The override goes through ``monkeypatch`` — a bare class assignment plus
+    ``del`` in ``finally`` REMOVED the original method for the rest of the
+    process, and every later test_shopping_sync test in the same xdist
+    worker hit the base class's NotImplementedError (CI flake 2026-08-29)."""
     from homeassistant.components.todo import TodoItem, TodoItemStatus
 
     from .test_shopping_sync import WritableTodoList, _setup
@@ -296,16 +303,13 @@ async def test_shopping_sync_claims_rows_positionally_when_provider_rewrites_sum
         )
         self.async_write_ha_state()
 
-    WritableTodoList.async_create_todo_item = shouting_create  # type: ignore[method-assign]
-    try:
-        todo, entry, sync = await _setup(hass)
-        for _ in range(3):
-            await sync.async_resync()
-        assert len(todo.summaries()) == 1
-        (rec,) = sync._data["items"].values()
-        assert rec["uid"] == "uid-1"
-    finally:
-        del WritableTodoList.async_create_todo_item
+    monkeypatch.setattr(WritableTodoList, "async_create_todo_item", shouting_create)
+    todo, entry, sync = await _setup(hass)
+    for _ in range(3):
+        await sync.async_resync()
+    assert len(todo.summaries()) == 1
+    (rec,) = sync._data["items"].values()
+    assert rec["uid"] == "uid-1"
 
 
 # ── sensor predictor: robust cycle boundaries ────────────────────────────
