@@ -161,3 +161,59 @@ def test_without_primary_information_the_first_foreign_split_wins(monkeypatch) -
     )
     _patch(monkeypatch, reg)
     assert resolve_linked_device_id(None, "old", own_entry_id="ours") == "split_a"
+
+
+# ── #144: the probe must key on the KWARG, not on a neighbouring symbol ──
+
+
+class _Registry2026_8(_Registry):
+    """HA 2026.8.x exactly as shipped: it ALREADY has
+    async_get_device_by_identifier, but async_get() takes no
+    include_composite_devices kwarg. v2.66.1 treated this core as 2026.9 and
+    every config entry failed setup with a TypeError (#144)."""
+
+    def async_get_device_by_identifier(self, identifier: tuple[str, str], config_entry_id: str) -> _Device | None:
+        return None
+
+
+class _Registry2026_9(_Registry):
+    """HA 2026.9+: the kwarg exists; a composite id resolves WITHOUT it but
+    not WITH include_composite_devices=False."""
+
+    def async_get(self, device_id: str, include_composite_devices: bool = True) -> _Device | None:  # type: ignore[override]
+        if device_id in self._live:
+            return self._live[device_id]
+        if include_composite_devices and device_id in self._composites:
+            return _Device(device_id, ())
+        return None
+
+    def async_get_device_by_identifier(self, identifier: tuple[str, str], config_entry_id: str) -> _Device | None:
+        return None
+
+
+def test_2026_8_core_with_by_identifier_but_no_kwarg_still_resolves(monkeypatch) -> None:
+    """The #144 core: symbol present, kwarg absent → must take the 2026.8 path."""
+    reg = _Registry2026_8(
+        live={"dev1": _Device("dev1", ("foreign",)), "split_foreign": _Device("split_foreign", ("foreign",))},
+        composites={"old": [_Device("split_ours", ("ours",)), _Device("split_foreign", ("foreign",))]},
+    )
+    _patch(monkeypatch, reg)
+    assert hasattr(reg, "async_get_device_by_identifier")  # the trap that bit v2.66.1
+    assert resolve_linked_device_id(None, "dev1", own_entry_id="ours") == "dev1"
+    assert resolve_linked_device_id(None, "old", own_entry_id="ours") == "split_foreign"
+    assert resolve_linked_device_id(None, "gone", own_entry_id="ours") is None
+
+
+def test_2026_9_core_uses_the_kwarg(monkeypatch) -> None:
+    reg = _Registry2026_9(
+        live={"dev1": _Device("dev1", ("foreign",)), "split_foreign": _Device("split_foreign", ("foreign",))},
+        composites={"old": [_Device("split_ours", ("ours",)), _Device("split_foreign", ("foreign",))]},
+    )
+    _patch(monkeypatch, reg)
+    assert resolve_linked_device_id(None, "dev1", own_entry_id="ours") == "dev1"
+    assert resolve_linked_device_id(None, "old", own_entry_id="ours") == "split_foreign"
+    assert resolve_linked_device_id(None, "gone", own_entry_id="ours") is None
+    # our own live doppelgänger is not a link either
+    reg2 = _Registry2026_9(live={"mine": _Device("mine", ("ours",))}, composites={})
+    _patch(monkeypatch, reg2)
+    assert resolve_linked_device_id(None, "mine", own_entry_id="ours") is None

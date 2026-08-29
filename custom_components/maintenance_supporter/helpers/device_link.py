@@ -29,10 +29,28 @@ there are no composite ids and nothing to resolve.
 
 from __future__ import annotations
 
+import inspect
 from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+
+
+def _accepts_composite_kwarg(dev_reg: object) -> bool:
+    """HA 2026.9+: ``async_get(id, include_composite_devices=False)``.
+
+    Probe the KWARG, never a neighbouring symbol. v2.66.1 keyed this branch on
+    ``async_get_device_by_identifier`` — which HA 2026.8 already has, while
+    the kwarg only arrives in 2026.9 — and every config entry failed setup
+    with a TypeError on the current stable core (#144). Neither the dev
+    container (2026.7) nor the unpinned CI (2026.9 beta) ran 2026.8, so the
+    CI now carries a stable-pinned matrix leg as well.
+    """
+    try:
+        params = inspect.signature(dev_reg.async_get).parameters  # type: ignore[attr-defined]
+    except (TypeError, ValueError, AttributeError):
+        return False
+    return "include_composite_devices" in params
 
 
 def resolve_linked_device_id(
@@ -57,11 +75,12 @@ def resolve_linked_device_id(
     # carries the COMPOSITE id. Handing it to an entity is precisely what
     # makes the entity registry refuse the link. Three core generations,
     # three probes:
-    if hasattr(dev_reg, "async_get_device_by_identifier"):
-        # 2026.9+ (probed on the INSTANCE so version-stub registries in tests
-        # keep exercising their own generation): async_is_composite_device_id
-        # is deprecated; the kwarg is the replacement — a composite id
-        # resolves WITHOUT it but not WITH include_composite_devices=False.
+    if _accepts_composite_kwarg(dev_reg):
+        # 2026.9+: async_is_composite_device_id is deprecated; the kwarg is the
+        # replacement — a composite id resolves WITHOUT it but not WITH
+        # include_composite_devices=False. Probed on the INSTANCE (version-stub
+        # registries in tests exercise their own generation) and on the KWARG
+        # itself — see _accepts_composite_kwarg for the #144 lesson.
         # cast(Any): the kwarg does not exist in older stubs, and this branch
         # only runs where it does.
         live = cast(Any, dev_reg).async_get(device_id, include_composite_devices=False)
