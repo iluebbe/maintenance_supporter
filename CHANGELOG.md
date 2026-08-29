@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.66.2] - 2026-08-29
+
+### 🐛 Fixed
+
+- **v2.66.1 failed to set up on Home Assistant 2026.8 (#144).** Every config
+  entry died in `async_setup_entry` with `TypeError: DeviceRegistry.async_get()
+  got an unexpected keyword argument 'include_composite_devices'` and all task
+  entities went unavailable. The 2026.9-readiness release keyed its
+  "new registry" branch on `async_get_device_by_identifier`, which 2026.8
+  already ships — while the `include_composite_devices` lookup it then uses
+  only exists from 2026.9. The probe now checks for the lookup itself, and
+  the resolver carries regression tests shaped like each core generation
+  (2026.7, 2026.8 as shipped, 2026.9). Verified on 2026.8.3 and 2026.9.0b0.
+  Thanks to @liblit for the immediate, precise report.
+- **CI now tests two Home Assistant cores**: the newest core including betas
+  (as before) **and** the current stable release — 2026.8 was the one core
+  no test ran on.
+
 ## [2.66.1] - 2026-08-28
 
 ### 🐛 Fixed
