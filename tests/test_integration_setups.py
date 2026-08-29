@@ -2232,3 +2232,126 @@ async def test_multi_duty_per_duty_entity_claims(
     # A custom rename is unrecognizable — it claims the WHOLE entity.
     rename_watcher("Roberts große Inspektion")
     assert discover_integration_setups(hass) == []
+
+
+async def test_per_entity_duties_split_colour_printer_cartridges(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """IPP markers share ONE translation_key: a colour printer proposes one
+    task per cartridge, named after the entity and watching only that entity
+    (#145); a mono printer keeps the plain catalog name. Adopting one colour
+    claims only its entity — the siblings stay proposable with their suffix."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+    )
+
+    await setup_integration(hass, global_entry)
+    colour = await _seed_sensor(
+        hass, "ipp", "colour", "Office Printer",
+        [("marker_0", "marker", "%"), ("marker_1", "marker", "%"), ("marker_2", "marker", "%")],
+    )
+    mono = await _seed_sensor(hass, "ipp", "mono", "Basement Printer", [("marker_0", "marker", "%")])
+    ent_reg = er.async_get(hass)
+    for idx, label in enumerate(("Black marker", "Cyan marker", "Magenta marker")):
+        ent_reg.async_update_entity(f"sensor.ipp_colour_marker_{idx}", original_name=label)
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    colour_tasks = setups[colour]["tasks"]
+    assert [t["task_name"] for t in colour_tasks] == [
+        "Replace Ink or Toner — Black marker",
+        "Replace Ink or Toner — Cyan marker",
+        "Replace Ink or Toner — Magenta marker",
+    ]
+    assert [t["entity_ids"] for t in colour_tasks] == [
+        ["sensor.ipp_colour_marker_0"], ["sensor.ipp_colour_marker_1"], ["sensor.ipp_colour_marker_2"]
+    ]
+    assert colour_tasks[1]["catalog_task_name"] == "Replace Ink or Toner"
+    assert colour_tasks[1]["entity_label"] == "Cyan marker"
+    assert colour_tasks[1]["task_name_localized"] == "Replace Ink or Toner — Cyan marker"
+    assert colour_tasks[1]["threshold"] == 10.0 and colour_tasks[1]["direction"] == "percent_left"
+    mono_tasks = setups[mono]["tasks"]
+    assert [t["task_name"] for t in mono_tasks] == ["Replace Ink or Toner"]
+    assert mono_tasks[0]["entity_label"] is None and mono_tasks[0]["catalog_task_name"] == "Replace Ink or Toner"
+
+    # Adopt only Cyan.
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn,
+        {
+            "id": 1, "type": "x",
+            "selections": [{"device_id": colour, "task_names": ["Replace Ink or Toner — Cyan marker"]}],
+        },
+    )
+    assert not conn.send_error.called
+    assert conn.send_result.call_args[0][1]["tasks_created"] == 1
+    entry = next(
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.data.get(CONF_OBJECT, {}).get("ha_device_id") == colour
+    )
+    (task,) = entry.data[CONF_TASKS].values()
+    assert task["name"] == "Replace Ink or Toner — Cyan marker"
+    assert task["trigger_config"]["entity_ids"] == ["sensor.ipp_colour_marker_1"]
+    assert task["trigger_config"]["trigger_below"] == 10.0
+
+    # Cyan's entity is claimed under the base duty; Black and Magenta remain,
+    # still suffixed (the device still has three cartridges).
+    remaining = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    assert [t["task_name"] for t in remaining[colour]["tasks"]] == [
+        "Replace Ink or Toner — Black marker",
+        "Replace Ink or Toner — Magenta marker",
+    ]
+    # Adopting the rest into the same object leaves nothing to propose.
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_integration_setups, hass, conn2,
+        {"id": 2, "type": "x", "selections": [{"device_id": colour}]},
+    )
+    assert conn2.send_result.call_args[0][1]["tasks_created"] == 2
+    assert colour not in {s["device_id"] for s in discover_integration_setups(hass)}
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+    assert entry is not None and len(entry.data[CONF_TASKS]) == 3
+
+
+async def test_per_entity_label_fallbacks_and_single_match_keeps_plain_name(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Brother colour laser: the toner duty splits (label from the friendly
+    name minus the device prefix, else the object id), while the drum duty —
+    one matching entity — keeps the plain catalog name."""
+    await setup_integration(hass, global_entry)
+    dev = await _seed_sensor(
+        hass, "brother", "mfc", "MFC Printer",
+        [
+            ("black_toner_remaining", "black_toner_remaining", "%"),
+            ("cyan_toner_remaining", "cyan_toner_remaining", "%"),
+            ("drum_remaining_life", "drum_remaining_life", "%"),
+        ],
+    )
+    hass.states.async_set(
+        "sensor.brother_mfc_black_toner_remaining", "40",
+        {"unit_of_measurement": "%", "friendly_name": "MFC Printer Black toner remaining"},
+    )
+    setup = next(s for s in discover_integration_setups(hass) if s["device_id"] == dev)
+    assert [t["task_name"] for t in setup["tasks"]] == [
+        "Replace Drum Unit",
+        "Replace Toner — Black toner remaining",
+        "Replace Toner — brother_mfc_cyan_toner_remaining",
+    ]
+    assert setup["tasks"][0]["entity_label"] is None
+    assert setup["tasks"][0]["entity_ids"] == ["sensor.brother_mfc_drum_remaining_life"]
+
+
+def test_proposal_name_variants_cover_every_language_with_suffix() -> None:
+    from custom_components.maintenance_supporter.helpers.signatures._model import (
+        catalog_base_name,
+        proposal_name_variants,
+        task_name_variants,
+    )
+
+    plain = task_name_variants("Replace Toner")
+    suffixed = proposal_name_variants("Replace Toner", "Cyan")
+    assert len(suffixed) == len(plain) and all(v.endswith(" — cyan") for v in suffixed)
+    assert "toner ersetzen — cyan" in suffixed
+    assert proposal_name_variants("Replace Toner", None) == plain
+    assert catalog_base_name("replace toner — cyan") == "replace toner"
+    assert catalog_base_name("replace toner") == "replace toner"

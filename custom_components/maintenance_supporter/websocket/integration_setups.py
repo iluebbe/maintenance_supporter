@@ -140,7 +140,7 @@ async def ws_adopt_integration_setups(
             # Second dedup layer (discovery already hides these): never create
             # a task whose name — in any language — already exists on the
             # target object.
-            from ..helpers.integration_signatures import task_name_variants
+            from ..helpers.integration_signatures import proposal_name_variants
 
             existing_names = {
                 str(t.get("name", "")).lower()
@@ -151,9 +151,12 @@ async def ws_adopt_integration_setups(
             for task in setup["tasks"]:
                 if task["task_name"] not in wanted:
                     continue
-                if existing_names & task_name_variants(task["task_name"]):
+                # Per-entity duties (colour cartridges) carry the entity label
+                # in task_name; the catalog key and the label travel separately.
+                catalog_name = task.get("catalog_task_name") or task["task_name"]
+                if existing_names & proposal_name_variants(catalog_name, task.get("entity_label")):
                     continue
-                sig = sig_by_key[(task["task_name"], task["direction"])]
+                sig = sig_by_key[(catalog_name, task["direction"])]
                 trigger = build_setup_trigger(sig, hass, task["entity_ids"])
                 # #102: "last service was at reading X" — usage_delta only.
                 # Other directions either already have absolute semantics
@@ -167,7 +170,9 @@ async def ws_adopt_integration_setups(
                     {
                         "id": uuid4().hex,
                         "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
-                        "name": localize_template_text(task["task_name"], lang) or task["task_name"],
+                        "name": task.get("task_name_localized")
+                        or localize_template_text(task["task_name"], lang)
+                        or task["task_name"],
                         "type": "replacement",
                         "enabled": True,
                         "schedule": {"kind": "manual"},

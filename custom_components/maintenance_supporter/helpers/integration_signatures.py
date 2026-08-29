@@ -13,6 +13,7 @@ from .signatures import (
     IntegrationSignature,
     build_setup_trigger,
     discover_integration_setups,
+    proposal_name_variants,
     task_name_variants,
 )
 
@@ -22,5 +23,6 @@ __all__ = [
     "IntegrationSignature",
     "build_setup_trigger",
     "discover_integration_setups",
+    "proposal_name_variants",
     "task_name_variants",
 ]

@@ -11,6 +11,7 @@ from ._model import (
     ConsumableSignature,
     IntegrationSignature,
     build_setup_trigger,
+    proposal_name_variants,
     task_name_variants,
 )
 from ._registry import SIGNATURES
@@ -21,5 +22,6 @@ __all__ = [
     "IntegrationSignature",
     "build_setup_trigger",
     "discover_integration_setups",
+    "proposal_name_variants",
     "task_name_variants",
 ]

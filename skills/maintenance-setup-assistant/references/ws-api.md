@@ -609,7 +609,8 @@ never trusts client-supplied thresholds.
 ### `integration_setups/discover` — read
 `{}` → `{setups:[{device_id, device_name, area_name, integration,
 integration_name, suggested_entry_id, suggested_object_name,
-tasks:[{task_name, task_name_localized, entity_ids, threshold, direction}]}]}`.
+tasks:[{task_name, catalog_task_name, entity_label, task_name_localized,
+entity_ids, threshold, direction}]}]}`.
 
 `suggested_entry_id` is the maintenance object already bound to that device
 (adopt extends it instead of creating a duplicate); it is `null` when the device
@@ -619,6 +620,10 @@ is new to us, and `suggested_object_name` then falls back to the device name.
 `value_below`, `cycle_count`) and `threshold` is the adoption-time default in the
 entity's own display unit. `task_name` is the **English catalog key** — adopt
 selections match on it; `task_name_localized` is what you show the user.
+Per-entity duties (colour printer cartridges) come back as one task per
+entity: `task_name` then carries a ` — <entity label>` suffix and is still the
+selection key, `catalog_task_name` is the bare catalog key and `entity_label`
+the suffix (`null` for ordinary duties).
 
 ### `integration_setups/adopt` — `@require_write`
 `{selections:[{device_id (req), entry_id?, object_name?, task_names?,

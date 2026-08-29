@@ -303,7 +303,12 @@ undercarriage* — so adopting one duty leaves its siblings proposable, while a
 task already watching that entity under the *same* catalog duty (in any
 language) is never proposed twice. Only a watcher whose task was **renamed**
 away from its catalog name conservatively claims the whole entity, so a
-re-run never proposes against your rename.
+re-run never proposes against your rename. Duties whose entities are serviced
+one at a time come as **one task per entity** (2.68+): a colour printer's
+ink/toner/drum duties (IPP, Brother) split into *Replace Toner — Cyan*,
+*— Magenta*, … named after the cartridge entity, each watching only its own
+sensor, so completing one colour never touches the others; a mono printer
+keeps the single task.
 
 ### Battery Fleet (Battery Notes or native)
 If you have many battery devices, 30–70+ of them would mean 30–70 maintenance

@@ -126,8 +126,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         source="home-assistant/core homeassistant/components/ipp/sensor.py (marker_<i>, translation_key 'marker', %)",
         tasks=(
             # Every marker (each ink/toner) shares translation_key "marker" —
-            # ONE task watches them all with entity_logic any.
-            ConsumableSignature(("marker",), "Replace Ink or Toner", "percent_left"),
+            # per_entity: one task per cartridge ("Replace Ink or Toner — Cyan
+            # marker"), so each colour is completed on its own (#145); a mono
+            # printer's single marker keeps the plain name.
+            ConsumableSignature(("marker",), "Replace Ink or Toner", "percent_left", per_entity=True),
         ),
     ),
     "brother": IntegrationSignature(
@@ -144,6 +146,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 ),
                 "Replace Toner",
                 "percent_left",
+                per_entity=True,  # colour lasers: one task per toner (#145)
             ),
             ConsumableSignature(
                 (
@@ -155,6 +158,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 ),
                 "Replace Drum Unit",
                 "percent_left",
+                per_entity=True,  # per-colour drums on colour models
             ),
             ConsumableSignature(("belt_unit_remaining_life",), "Replace Belt Unit", "percent_left"),
             ConsumableSignature(("fuser_remaining_life",), "Replace Fuser", "percent_left"),

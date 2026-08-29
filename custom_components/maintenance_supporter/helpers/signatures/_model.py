@@ -108,6 +108,12 @@ class ConsumableSignature:
     # too, so the desiccant duty excludes it explicitly (the Lite has no
     # desiccant compartment).
     models_exclude: tuple[str, ...] = ()
+    # One task PER matched entity instead of one task watching them all — a
+    # colour printer's cartridges are replaced one at a time, so "Replace
+    # Toner — Cyan" must be completable without touching Black. The suffix is
+    # the entity's own registry name; a device matching a single entity keeps
+    # the plain catalog name (a mono printer has no colours to tell apart).
+    per_entity: bool = False
 
 
 @dataclass(frozen=True)
@@ -131,6 +137,47 @@ def task_name_variants(task_name: str) -> set[str]:
     variants = {task_name.lower()}
     variants.update(v.lower() for v in _T.get(task_name, {}).values())
     return variants
+
+
+PER_ENTITY_SEPARATOR = " — "
+
+
+def per_entity_task_name(base: str, entity_label: str) -> str:
+    """The name of a per-entity duty: catalog name + the entity's label."""
+    return f"{base}{PER_ENTITY_SEPARATOR}{entity_label}"
+
+
+def catalog_base_name(task_name: str) -> str:
+    """Strip a per-entity suffix: 'replace toner — cyan' → 'replace toner'."""
+    return task_name.split(PER_ENTITY_SEPARATOR, 1)[0]
+
+
+def proposal_name_variants(catalog_task_name: str, entity_label: str | None) -> set[str]:
+    """``task_name_variants`` for one proposal — suffixed with the entity
+    label for per-entity duties, so the existing-task dedupe compares like
+    with like ('Toner ersetzen — Cyan' is the same duty as 'Replace Toner —
+    Cyan', but not the same as 'Replace Toner — Black')."""
+    variants = task_name_variants(catalog_task_name)
+    if not entity_label:
+        return variants
+    suffix = f"{PER_ENTITY_SEPARATOR}{entity_label}".lower()
+    return {v + suffix for v in variants}
+
+
+def entity_label(hass: HomeAssistant, entry: er.RegistryEntry, device_name: str) -> str:
+    """The entity's own display name for a per-entity suffix.
+
+    Registry name first (user override, then the integration's original
+    name — IPP's 'Black marker'), else the friendly name minus the device-name
+    prefix, else the object id. Capped so the task name stays readable."""
+    label = entry.name or entry.original_name or ""
+    if not label:
+        state = hass.states.get(entry.entity_id)
+        friendly = str(state.attributes.get("friendly_name", "")) if state else ""
+        if friendly and device_name and friendly.lower().startswith(device_name.lower()):
+            friendly = friendly[len(device_name) :].strip(" -:—")
+        label = friendly or entry.entity_id.split(".", 1)[1]
+    return label.strip()[:60]
 
 
 def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:

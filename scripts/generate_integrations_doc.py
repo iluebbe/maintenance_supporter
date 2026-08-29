@@ -62,6 +62,8 @@ def _notes(sig) -> str:
         notes.append("except " + "/".join(sig.models_exclude))
     if sig.require_sibling_keys:
         notes.append("device-type gated")
+    if sig.per_entity:
+        notes.append("one task per entity")
     return "; ".join(notes)
 
 

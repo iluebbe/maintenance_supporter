@@ -14,6 +14,10 @@ from ._model import (
     _entity_unit,
     _threshold_for,
     _unit_compatible,
+    catalog_base_name,
+    entity_label,
+    per_entity_task_name,
+    proposal_name_variants,
     task_name_variants,
 )
 from ._registry import SIGNATURES
@@ -25,6 +29,7 @@ def _entity_watchers(hass: HomeAssistant) -> dict[str, set[str]]:
     from ...entity.triggers import normalize_entity_ids
 
     out: dict[str, set[str]] = {}
+    known = _catalog_name_variants()
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             continue
@@ -32,6 +37,12 @@ def _entity_watchers(hass: HomeAssistant) -> dict[str, set[str]]:
             tc = task.get("trigger_config")
             if isinstance(tc, dict):
                 name = str(task.get("name", "")).lower()
+                # A per-entity duty ("replace toner — cyan") claims under its
+                # catalog base name: it blocks only ITS duty on ITS entity,
+                # and the sibling cartridges stay proposable.
+                base = catalog_base_name(name)
+                if base != name and base in known:
+                    name = base
                 for eid in normalize_entity_ids(tc):
                     out.setdefault(eid, set()).add(name)
     return out
@@ -112,13 +123,6 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             for entry in entries:
                 if entry.domain != sig.entity_domain:
                     continue
-                # Per-duty claims: a watcher task named as THIS duty (any
-                # language) blocks it; watchers named as other catalog duties
-                # leave the remaining duties adoptable; a custom/renamed
-                # watcher claims the whole entity.
-                watcher_names = watchers.get(entry.entity_id)
-                if watcher_names and (watcher_names & variants or watcher_names - known_variants):
-                    continue
                 if not _unit_compatible(sig.direction, _entity_unit(hass, entry)):
                     continue
                 # Empty keys (non-sensor domains only, tripwire-enforced) match
@@ -127,9 +131,21 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                     continue
                 group = matched.setdefault(device_id, {}).setdefault(
                     (integration, sig.task_name, sig.direction),
-                    {"sig": sig, "entity_ids": []},
+                    {"sig": sig, "entity_ids": [], "entries": {}, "matched_total": 0},
                 )
+                # Counted BEFORE the watcher claim: a per-entity duty keeps its
+                # entity suffix once the device has several cartridges, also
+                # after the first one was adopted.
+                group["matched_total"] += 1
+                # Per-duty claims: a watcher task named as THIS duty (any
+                # language) blocks it; watchers named as other catalog duties
+                # leave the remaining duties adoptable; a custom/renamed
+                # watcher claims the whole entity.
+                watcher_names = watchers.get(entry.entity_id)
+                if watcher_names and (watcher_names & variants or watcher_names - known_variants):
+                    continue
                 group["entity_ids"].append(entry.entity_id)
+                group["entries"][entry.entity_id] = entry
                 # One source entity may back SEVERAL duties (a mower's hours
                 # counter drives blades AND undercarriage) — both within one
                 # run and across runs: the per-duty claim above keeps a
@@ -160,19 +176,36 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             entity_ids = sorted(group["entity_ids"])
             if not entity_ids:
                 continue
-            if existing_names and existing_names & task_name_variants(task_name):
-                continue
-            tasks.append(
-                {
-                    # task_name stays the EN catalog key (adopt selections
-                    # match on it); the dialog renders the localized twin.
-                    "task_name": task_name,
-                    "task_name_localized": localize_template_text(task_name, lang) or task_name,
-                    "entity_ids": entity_ids,
-                    "threshold": _threshold_for(group["sig"], hass, entity_ids[0]),
-                    "direction": direction,
-                }
-            )
+            sig = group["sig"]
+            localized = localize_template_text(task_name, lang) or task_name
+            # Per-entity duties split into one proposal per entity, each named
+            # after its entity — only when the device actually has several (a
+            # mono printer's single cartridge keeps the plain catalog name).
+            proposals: list[tuple[list[str], str | None]]
+            if sig.per_entity and group["matched_total"] > 1:
+                proposals = [
+                    ([eid], entity_label(hass, group["entries"][eid], device_name)) for eid in entity_ids
+                ]
+            else:
+                proposals = [(entity_ids, None)]
+            for ids, label in proposals:
+                if existing_names and existing_names & proposal_name_variants(task_name, label):
+                    continue
+                tasks.append(
+                    {
+                        # task_name stays the EN catalog key (adopt selections
+                        # match on it) — suffixed with the entity label for
+                        # per-entity duties; catalog_task_name is the bare key
+                        # and the dialog renders the localized twin.
+                        "task_name": per_entity_task_name(task_name, label) if label else task_name,
+                        "catalog_task_name": task_name,
+                        "entity_label": label,
+                        "task_name_localized": per_entity_task_name(localized, label) if label else localized,
+                        "entity_ids": ids,
+                        "threshold": _threshold_for(sig, hass, ids[0]),
+                        "direction": direction,
+                    }
+                )
         if not tasks:
             continue
         tasks.sort(key=lambda t: (t["task_name"], t["direction"]))

@@ -345,9 +345,9 @@ due/auto-complete and un-adopt/re-adopt behave.
 | OctoPrint | `octoprint` | Lubricate Rails and Rods | every 200 h counted by the engine | binary_sensor entity; active: on |
 | PrusaLink | `prusalink` | Lubricate Rails and Rods | every 200 h counted by the engine | active: printing |
 | Moonraker (Klipper) | `moonraker` | Replace Nozzle | every 1000 units (counter delta) |  |
-| IPP printer | `ipp` | Replace Ink or Toner | below 10 % remaining |  |
-| Brother printer | `brother` | Replace Toner | below 10 % remaining |  |
-|  |  | Replace Drum Unit | below 10 % remaining |  |
+| IPP printer | `ipp` | Replace Ink or Toner | below 10 % remaining | one task per entity |
+| Brother printer | `brother` | Replace Toner | below 10 % remaining | one task per entity |
+|  |  | Replace Drum Unit | below 10 % remaining | one task per entity |
 |  |  | Replace Belt Unit | below 10 % remaining |  |
 |  |  | Replace Fuser | below 10 % remaining |  |
 
