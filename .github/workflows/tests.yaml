@@ -84,14 +84,29 @@ jobs:
         run: npm test
 
   pytest:
+    name: pytest (${{ matrix.python-version }}, HA ${{ matrix.ha }})
     runs-on: ubuntu-latest
     needs: [syntax-check, lint]
     strategy:
+      fail-fast: false
       matrix:
         # HA 2026.7 requires Python >= 3.14.2 — a 3.13 leg silently resolves
         # an OLDER homeassistant via pip's python_requires filtering and then
         # type-checks against stale stubs (bit us on helpers.automation).
         python-version: ["3.14"]
+        # Two Home Assistant legs (#144): `latest` is unpinned and pulls the
+        # newest core INCLUDING betas — that is how breaking changes surface
+        # before they reach a user. `stable` pins the current release via the
+        # matching pytest-homeassistant-custom-component: v2.66.1 shipped a
+        # registry probe that was only ever exercised on 2026.7 (dev Docker)
+        # and 2026.9b (this job) and broke every install on 2026.8 — the one
+        # core nobody ran. Bump HA_STABLE_PHT when HA publishes a new stable
+        # (the pht-cc release notes name the pinned core; its wheel METADATA
+        # carries `Requires-Dist: homeassistant==<version>`).
+        ha: ["latest", "stable"]
+    env:
+      # pytest-homeassistant-custom-component 0.13.357 == homeassistant 2026.8.3
+      HA_STABLE_PHT: "0.13.357"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -108,7 +123,10 @@ jobs:
         # voluptuous_serialize: HA 2026.9 stopped pulling it into the test
         # env, but core still lazy-imports it for flow-schema serialization
         # and our options-flow test exercises exactly that path.
-        run: pip install pytest pytest-cov pytest-xdist pytest-homeassistant-custom-component mypy babel pypdf holidays voluptuous_serialize
+        run: |
+          if [ "${{ matrix.ha }}" = "stable" ]; then PHT="pytest-homeassistant-custom-component==$HA_STABLE_PHT"; else PHT="pytest-homeassistant-custom-component"; fi
+          pip install pytest pytest-cov pytest-xdist "$PHT" mypy babel pypdf holidays voluptuous_serialize
+          python -c 'import homeassistant.const as c; print("Home Assistant", c.__version__)'
       - name: Type check
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       # Parallel via pytest-xdist. The old blocker — the documents feature's
