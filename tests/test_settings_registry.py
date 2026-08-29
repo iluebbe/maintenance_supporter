@@ -21,7 +21,7 @@ from custom_components.maintenance_supporter.helpers.settings_registry import (
 # The exact tables the WS handler used to hand-maintain. Kept here as the frozen
 # baseline; changing a bound is a deliberate act that must update this test too.
 _EXPECTED_INT_RANGES = {
-    "default_warning_days": (1, 365),
+    "default_warning_days": (0, 365),  # 0 = no warning window (#145)
     "max_notifications_per_day": (0, 1000),
     "notify_due_soon_interval_hours": (0, 720),
     "notify_overdue_interval_hours": (0, 720),
@@ -79,7 +79,7 @@ def test_every_ranged_key_is_declared_with_matching_type() -> None:
 
 
 def test_range_accessors_and_errors() -> None:
-    assert int_range("default_warning_days") == (1, 365)
+    assert int_range("default_warning_days") == (0, 365)
     assert float_range("budget_monthly") == (0.0, 10_000_000.0)
     # Wrong accessor for the setting's kind raises loudly.
     import pytest
