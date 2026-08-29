@@ -263,6 +263,27 @@ data:
   duration: 30
 ```
 
+### Complete a tag-gated task from an automation (2.67)
+
+A task with **Require tag scan** refuses every remote completion — that is
+the point. An automation that reacts to a *physical* presence signal (a wall
+button next to the machine, a Bluetooth beacon, a second NFC reader) asserts
+it with `via_tag_scan`:
+
+```yaml
+automation:
+  - alias: "Furnace filter: complete from the wall button"
+    triggers:
+      - trigger: state
+        entity_id: event.furnace_room_button
+    actions:
+      - action: maintenance_supporter.complete
+        data:
+          entity_id: sensor.hvac_system_filter_replacement
+          via_tag_scan: true
+          notes: "Confirmed at the unit (wall button)"
+```
+
 ### Backfill a past completion (#133)
 
 `completed_at` records when the work was *actually* done (must not be in the

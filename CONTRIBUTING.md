@@ -61,7 +61,7 @@ npm test               # one-shot
 npm run test:watch     # dev iteration
 ```
 
-~290 component tests across ~52 files, runs in seconds. Mounts individual Lit components in real Chromium with mocked `hass`. See `__tests__/` for examples.
+~500 component tests across ~80 files, runs in seconds. Mounts individual Lit components in real Chromium with mocked `hass`. See `__tests__/` for examples.
 
 ### 3. End-to-end smoke (Playwright + WS)
 

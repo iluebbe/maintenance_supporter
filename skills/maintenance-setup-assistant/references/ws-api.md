@@ -215,6 +215,7 @@ template's tasks** in one call. `object/duplicate` `{entry_id}` → `{entry_id}`
   "entity_slug": "filter_replace",     // [a-z0-9_]+, ≤64, else invalid_entity_slug
   "custom_icon": "mdi:air-filter",     // per-task icon
   "nfc_tag_id": "…",                   // duplicate = warning, not error
+  "require_tag_scan": false,           // 2.67 proof of presence: only an NFC/QR scan may complete
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
   "phases": {                          // #139 cycle phases (≤10 defs) | null clears
     "flip":    { "name": "Flip blades" },            // per-phase overrides (optional):
@@ -250,7 +251,7 @@ Result: `{"task_id": "<uuid>"}` (+ `"warnings"` maybe). Dry-run:
 flat interval edit rebuilds from flat and drops the nested schedule.
 
 ### Task actions (no write gate)
-- `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure)}` → `{"success": true}`
+- `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure)}` → `{"success": true}` — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass)
 - `task/quick_complete` `{entry_id, task_id}` → `{"success": true, "via": "quick"}` (needs stored `quick_complete_defaults`, else `no_defaults`)
 - `task/checklist_progress` `{entry_id, task_id, checklist_state (req, {item text: bool})}` →
   `{"success": true, "checklist_state": {...}}` — persists in-cycle ticks WITHOUT
@@ -467,6 +468,8 @@ accepts only whitelisted keys (unknown silently ignored); out-of-range/typed
 values dropped. Keys relevant to setup:
 - `notifications_enabled` (bool), `notify_service` (str; validated `notify.*`),
   `default_warning_days` (1..365), `panel_enabled` (bool), `panel_title` (str)
+- `shopping_list_entity` (str; a `todo.*` entity id, `""` = off) — 2.67: mirrors
+  the auto buy reminders into that to-do list; check-off completes + restocks
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
 - `notify_{due_soon,overdue,triggered}_enabled` (bool) + `_interval_hours` (0..720)
 - `quiet_hours_enabled`, `quiet_hours_start`/`end` ("HH:MM")
@@ -540,7 +543,8 @@ the same validation as `global/update`; the response then adds
 `{}` → `{format:"json", data:str}`. The objects export deliberately excludes
 the global scope; this second export carries groups, saved views, vacation
 config, notification/budget settings and the feature toggles. Instance-bound
-keys (panel-access user ids, the adopted-task stash) stay out. Re-import via
+keys (panel-access user ids, the adopted-task stash, the `shopping_list_entity`
+target) stay out. Re-import via
 `json/import`.
 
 ### `csv/import` — admin — restore flat CSV

@@ -69,6 +69,14 @@ only UI is the confirmation toast:
 
 ![QR quick-complete](images/gifs/qr-quick-complete.gif)
 
+**A task only a scan may complete (2.67)** — the dialog warns, the server refuses
+
+![Tag-gated task refused without a scan](images/gifs/tag-scan-required.gif)
+
+**Buy reminders in the household shopping list (2.67)** — check one off there and the part is restocked
+
+![Shopping-list sync](images/gifs/shopping-list-sync.gif)
+
 ## Screenshots
 
 | Dashboard | Task Detail | Mobile |
@@ -112,9 +120,29 @@ photo (camera capture on mobile); checklist steps tick off right in the
 dialog. When the task
 consumes spare parts that carry unit prices, their sum appears as a
 **one-click cost suggestion** under the cost field — following your live
-parts selection, and vanishing the moment you type a cost yourself.
+parts selection, and vanishing the moment you type a cost yourself. A task
+that **requires a tag scan** (2.67+) says so up front: the dialog carries
+the notice, and the server refuses the button — see *Proof of presence*
+below.
 
 ![Complete Dialog](images/complete-dialog.png)
+
+### Proof of presence (2.67+)
+Tick **Require tag scan to complete** next to the task's NFC tag and the
+task can only be marked done at the thing itself — by scanning that tag or
+the printed QR code. The complete dialog announces it; the panel, card,
+to-do list, voice and notification buttons are refused server-side.
+
+![Require tag scan toggle in the task dialog](images/task-dialog-tag-scan.png)
+
+![Complete dialog announcing the scan requirement](images/complete-dialog-tag-scan.png)
+
+### Markdown notes (2.67+)
+Task and object notes render as Markdown — bold, lists, links — on the task
+detail, the object detail and the quick-actions dialog. The note editors
+hint at it; printables deliberately stay plain text.
+
+![Markdown notes on a task](images/task-notes-markdown.png)
 
 ### Task History
 Every completion with cost, duration, and notes — inline-editable, searchable,
@@ -124,8 +152,9 @@ with completion photos when attached.
 
 ### Settings Tab
 Feature toggles (advanced features are hidden until enabled), panel access
-delegation, notification / budget / vacation sections — all editable in-panel
-by admins.
+delegation, notification / budget / vacation sections, and (2.67+) the
+**shopping list** the buy reminders mirror into — all editable in-panel by
+admins.
 
 ![Settings tab](images/settings-view.png)
 
@@ -150,6 +179,10 @@ off while you're at the store and the reminder completes itself, restocking
 the part by its configured quantity; restock through the panel instead and the
 row disappears. The sync only ever touches its own rows — the rest of your
 shopping list is left alone.
+
+![Buy reminders mirrored into a Local To-do list](images/shopping-list-sync.png)
+
+![Settings: pick the shopping list](images/settings-shopping-list.png)
 
 ![Buy-task complete dialog](images/parts-buy-dialog.png)
 
@@ -571,7 +604,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Assign tasks to responsible Home Assistant users with per-user notification routing — and since 2.44 a **per-person self-test** under Settings → Notifications: each household member is listed with the notify services they actually resolve to, plus a button that sends a test to exactly those. Members without a Companion device are named as such instead of quietly falling back, so "will this person get their reminders?" can be answered before a task comes due
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task
-- **Proof of presence** (2.67+): a per-task *"Require tag scan to complete"* toggle turns the linked NFC tag (or the printed QR code) into the **only** way to mark the task done. Every remote surface — panel, dashboard card, to-do list, voice, notification buttons — is refused with a clear message ("walk over and scan the tag on the thing itself"); the complete dialog announces the restriction up front. Automatic trigger-recovery completions stay exempt, and automations can assert a physical scan via the `via_tag_scan` field on the `complete_task` service. Ideal when the point of the task is *being there* — checking the actual filter, standing at the actual machine
+- **Proof of presence** (2.67+): a per-task *"Require tag scan to complete"* toggle turns the linked NFC tag (or the printed QR code) into the **only** way to mark the task done. Every remote surface — panel, dashboard card, to-do list, voice, notification buttons — is refused with a clear message ("walk over and scan the tag on the thing itself"); the complete dialog announces the restriction up front. Automatic trigger-recovery completions stay exempt, and automations can assert a physical scan via the `via_tag_scan` field on the `complete` service. Ideal when the point of the task is *being there* — checking the actual filter, standing at the actual machine
 - **Cycle phases** (2.65+, discussion #139): one task, one cadence, **different work each time** — e.g. a mower-blade task that runs *flip, flip, replace* on the same 30-day rhythm. Define up to 10 named phases in the task dialog, arrange them in a cycle of up to 12 steps (repeats welcome), and every completion performs the step currently due and advances to the next, wrapping around. A phase can override the task's **checklist**, **consumed parts**, and **required completion fields** for its step (set = override, unset = the task-level value applies), so "replace" can demand the new blades and a cost entry while "flip" stays lightweight. Every surface names the step that's due — task detail shows the full cycle strip with each phase's last completion, the complete dialog, dashboard card, calendar, notifications and task sensor all carry the current phase — and history entries record which phase they completed. Skips and resets leave the cycle position untouched (the same work stays due, only the clock restarts), and operators can re-point the cursor from the task detail (or via `task/set_phase`) after a mis-click or when adopting a machine mid-cycle. Phases are edited in the panel task dialog, and the Integration Options flow carries a minimal editor too (one line per cycle step, `Name: item; item` for a phase checklist) — per-phase parts and required-fields overrides stay panel-side
 - Checklists for multi-step procedures — editable in the panel task dialog (and in the Integration Options). **Steps can be ticked off as you go** (2.49+, discussion #73): the ticks persist server-side without completing the task — stop halfway, come back days later, the progress is still there and prefills the completion dialog. Completing or skipping the cycle resets the list for the next round; the ticked state at completion time lands in the history entry as before
 - Task grouping for logical organization — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
@@ -764,6 +797,9 @@ status) join the long-standing `complete` / `skip` / `reset` /
 `completed_by` **person entity** (defaulting to the calling user), and
 `update_task` can assign or clear the responsible user — see
 [Examples](EXAMPLES.md#attribute-and-assign-chores-from-automations-128).
+`complete` also accepts `via_tag_scan: true` (2.67+) so an automation that
+reacts to a physical scan can complete a tag-gated task — see
+[Examples](EXAMPLES.md#complete-a-tag-gated-task-from-an-automation-267).
 For the full WebSocket API (91 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)

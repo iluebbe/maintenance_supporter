@@ -81,6 +81,9 @@ token auth. The ones worth knowing:
 | `live-lang-check.mjs` | A language actually renders — fails on a silent English fallback — and saves a screenshot per language. `MS_LANGS` default `pt-BR,hu,ko,tr`. |
 | `live-card-assignee-check.mjs` | Renders the Lovelace card in a throwaway dashboard and asserts the responsible user shows up on the row (and that `show_assignee: false` hides it). |
 | `live-battery-fleet-check.mjs`, `seed-battery-fleet.mjs` | Battery-fleet aggregation against seeded Battery Notes devices. |
+| `live-tag-scan-check.mjs` | Proof of presence (2.67): WS complete refused, QR quick-complete and the NFC `tag_scanned` event pass, the complete dialog shows the notice. |
+| `live-md-notes-check.mjs` | Markdown notes (2.67) render through `<ha-markdown>` on task and object detail. |
+| `live-shopping-sync-check.mjs` | Shopping-list sync (2.67) against a real Local To-do list: low part → row, check-off → complete + restock, foreign rows untouched. |
 | `shots-*.mjs` | The committed documentation screenshots (`shots-demo.mjs` is the canonical one). |
 | `gifs-demo.mjs` | The README/FEATURES animations (needs `ffmpeg-static`). |
 

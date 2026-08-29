@@ -15,6 +15,8 @@
  *   duty-rotation.gif          a shared chore hands over to the next person
  *   battery-fleet.gif          the fleet roster: typed rows, sparklines, ~dates
  *   qr-quick-complete.gif      scanned QR deep link → silent complete + toast
+ *   tag-scan-required.gif      a tag-gated task: the dialog warns, the server refuses
+ *   shopping-list-sync.gif     buy reminder in the household to-do list → check-off restocks
  *
  * Still open: suggested-setups needs a signature-matching integration on the
  * demo instance (the shots seed is template-sensor-only, so discovery finds
@@ -644,6 +646,50 @@ const flowQrQuickComplete = async (p, mark) => {
   await p.waitForTimeout(6000);
 };
 
+/** (2.67) Proof of presence: a task only a tag scan may complete. The
+ *  complete dialog says so up front, and the server refuses the button — the
+ *  causal chain is "you are not at the detector, so this does not count". */
+const flowTagScanRequired = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  await onRow(p, "test buttons");
+  await p.waitForTimeout(1400);
+  await onRow(p, "test buttons", "complete");
+  await p.waitForTimeout(2800);          // read the notice
+  await submitComplete(p);
+  await p.waitForTimeout(3500);          // the refusal lands in the dialog
+};
+
+/** (2.67) Shopping-list sync: the buy reminder already sits in the household
+ *  to-do list; checking it off THERE completes the reminder and restocks the
+ *  part — the panel's "Buy ..." row is gone when we come back. */
+const flowShoppingListSync = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  await onRow(p, "buy water filter");
+  await p.waitForTimeout(2200);
+  await p.goto(`${HA}/todo?entity_id=todo.shopping_list`, { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(4500);
+  const r = await p.evaluate(() => {
+    const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+      while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+        if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+        for (const k of (el.children || [])) st.push(k); } return o; };
+    const near = (el, re) => { let x = el; for (let i = 0; i < 6 && x; i++) { if (re.test(x.textContent || "")) return true; x = x.parentElement || (x.getRootNode && x.getRootNode().host) || null; } return false; };
+    const box = deep((el) => /^(HA-CHECKBOX|MWC-CHECKBOX|MD-CHECKBOX)$/.test(el.tagName))
+      .find((b) => near(b, /water filter/i));
+    if (!box) return "no row";
+    box.click();
+    return "checked";
+  });
+  log("  todo row -> " + r);
+  await p.waitForTimeout(5000);          // sync completes the reminder + restocks
+  await openPanel(p);
+  await p.waitForTimeout(2500);
+  await onRow(p, "buy water filter");    // gone: the reminder completed itself
+  await p.waitForTimeout(2500);
+};
+
 // ── demo-cards dashboard: ensure BOTH cards (task card + calendar card) ─────
 async function ensureDemoCards(token) {
   const ws = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
@@ -689,6 +735,8 @@ const FLOWS = {
   // Completes the HVAC filter task via the QR deep link — the most mutating
   // flow of all, so it records dead last.
   "qr-quick-complete": flowQrQuickComplete,
+  "tag-scan-required": flowTagScanRequired,
+  "shopping-list-sync": flowShoppingListSync,
 };
 const only = process.argv[2];
 for (const [name, flow] of Object.entries(FLOWS)) {

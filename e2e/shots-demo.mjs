@@ -436,6 +436,71 @@ const seed = preSeeded ? null : await (async () => {
 })();
 log("SEED OK", JSON.stringify(seed));
 
+// (2.67) Idempotent extras — they run on a pre-seeded instance too, each
+// guarded by a state check, so a re-run converges instead of duplicating.
+// Kept OUTSIDE the preSeeded gate on purpose: the three v2.67 features need
+// their own ingredients (a tag-gated task, markdown notes, a to-do list) and
+// the instances that carry the old seed must grow them without a wipe.
+{
+  const objs2 = await api.send({ type: "maintenance_supporter/objects" });
+  const find = (on, tn) => {
+    const o = (objs2.objects || []).find((x) => x.object.name === on);
+    return o ? { o, t: o.tasks.find((x) => x.name === tn) } : { o: null, t: null };
+  };
+  // a) Proof of presence: the smoke-detector test can only be ticked off AT
+  //    the detector (NFC sticker on the hall unit).
+  try {
+    const { o, t } = find("Smoke Detectors", "Test Buttons");
+    if (o && t && !t.require_tag_scan) {
+      await api.send({ type: "maintenance_supporter/task/update", entry_id: o.entry_id, task_id: t.id,
+        name: t.name, task_type: t.type, nfc_tag_id: "smoke-hall-01", require_tag_scan: true });
+      log("v2.67 seed: require_tag_scan on Test Buttons");
+    }
+  } catch (e) { log("v2.67 tag-scan seed skipped:", String(e && e.message || e)); }
+  // b) Markdown notes on the car and its oil change.
+  try {
+    const { o, t } = find("Family Car", "Oil Change");
+    if (o && !/\*\*/.test(o.object.notes || "")) {
+      await api.send({ type: "maintenance_supporter/object/update", entry_id: o.entry_id,
+        notes: "**Plate:** HH-MS 2170\n\n- Spare key: garage drawer\n- Winter tyres: [tyre hotel](https://example.com/tyres), rack 12\n- Insurance claim hotline: 0800 1234567" });
+    }
+    if (o && t && !/\*\*/.test(t.notes || "")) {
+      await api.send({ type: "maintenance_supporter/task/update", entry_id: o.entry_id, task_id: t.id,
+        name: t.name, task_type: t.type,
+        notes: "**5W-30 longlife**, 4.3 l. Warm the engine first.\n\n1. Drain plug **25 Nm**, new copper washer\n2. Filter: [MANN W 712/95](https://example.com/w712-95)\n3. Reset the service indicator (hold OK for 10 s)" });
+    }
+    log("v2.67 seed: markdown notes");
+  } catch (e) { log("v2.67 markdown seed skipped:", String(e && e.message || e)); }
+  // c) Shopping-list sync: a Local To-do list + the global option. The espresso
+  //    water filter sits AT its threshold, so its buy reminder mirrors at once.
+  try {
+    const hdr = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
+    const states = await fetch(REST + "/api/states", { headers: hdr }).then(j);
+    let listId = (states.find((s) => s.entity_id === "todo.shopping_list") || {}).entity_id;
+    if (!listId) {
+      const flow = await fetch(REST + "/api/config/config_entries/flow", { method: "POST", headers: hdr,
+        body: JSON.stringify({ handler: "local_todo", show_advanced_options: false }) }).then(j);
+      const done = await fetch(REST + "/api/config/config_entries/flow/" + flow.flow_id, { method: "POST", headers: hdr,
+        body: JSON.stringify({ todo_list_name: "Shopping list" }) }).then(j);
+      log("v2.67 seed: local_todo flow ->", done.type);
+      listId = "todo.shopping_list";
+    }
+    await api.send({ type: "maintenance_supporter/global/update", settings: { shopping_list_entity: listId } });
+    // Keep the water filter AT its threshold across re-runs: the sync GIF
+    // checks its reminder off, which restocks it to 4.
+    const em = (objs2.objects || []).find((x) => x.object.name === "Espresso Machine");
+    if (em) {
+      const full = await api.send({ type: "maintenance_supporter/object", entry_id: em.entry_id });
+      const wf = (full.parts || []).find((x) => /water filter/i.test(x.name));
+      if (wf && Number(wf.stock) !== 1) {
+        await api.send({ type: "maintenance_supporter/part/restock", entry_id: em.entry_id, part_id: wf.id, absolute: 1 });
+        log("v2.67 seed: water filter back at threshold");
+      }
+    }
+    log("v2.67 seed: shopping list ->", listId);
+  } catch (e) { log("v2.67 shopping seed skipped:", String(e && e.message || e)); }
+}
+
 // Documents: upload a PDF manual to the Family Car + add a web link, and
 // link the manual to the Oil Change task (page 12).
 if (seed) {
@@ -834,6 +899,74 @@ await step("calendar.png", async () => {
 // 19. Native To-do list entity
 await step("todo-list.png", async () => {
   await p.goto(HA + "/todo", { waitUntil: "domcontentloaded" });
+
+// 19b. (2.67) Shopping-list sync — the espresso buy reminder mirrored into
+// the household's Local To-do list (the sync only ever touches its own rows).
+await step("shopping-list-sync.png", async () => {
+  await p.goto(HA + "/todo?entity_id=todo.shopping_list", { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(6000);
+  await shot("shopping-list-sync.png");
+});
+
+// 19b'. (2.67) The Settings > General dropdown that picks the shopping list.
+await step("settings-shopping-list.png", async () => {
+  await openPanel("settings");
+  await p.waitForTimeout(2000);
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const sv = window.__panel.shadowRoot.querySelector("maintenance-settings-view");
+    const root = sv && sv.shadowRoot ? sv.shadowRoot : window.__panel.shadowRoot;
+    const row = [...root.querySelectorAll(".setting-row")].find((el) => /shopping list/i.test(el.textContent || ""));
+    if (row) row.scrollIntoView({ block: "center" });
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1200);
+  await shot("settings-shopping-list.png");
+});
+
+// 19c. (2.67) Proof of presence: the task dialog's "Require tag scan" toggle
+// (next to the NFC tag field) and the complete dialog's up-front notice.
+await step("task-dialog-tag-scan.png", async () => {
+  await openPanel("dashboard");
+  await openTaskDialog("Smoke Detectors", "Test Buttons");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
+    const el = [...dlg.shadowRoot.querySelectorAll("label, span, div")]
+      .find((x) => /only complete by scanning|scanning the tag/i.test(x.textContent || "") && x.children.length < 4);
+    if (el) el.scrollIntoView({ block: "center" });
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1200);
+  await shot("task-dialog-tag-scan.png");
+  await closeDialogs();
+});
+await step("complete-dialog-tag-scan.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Smoke Detectors");
+    const t2 = o.tasks.find((x) => x.name === "Test Buttons");
+    panel._openCompleteDialog(o.entry_id, t2.id, t2.name, t2.checklist, false);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(2500);
+  await shot("complete-dialog-tag-scan.png");
+  await closeDialogs();
+});
+
+// 19d. (2.67) Markdown notes rendered on the oil-change task detail.
+await step("task-notes-markdown.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Family Car");
+    const t2 = o.tasks.find((x) => x.name === "Oil Change");
+    panel._showTask(o.entry_id, t2.id);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(3000);
+  await shot("task-notes-markdown.png");
+});
+
   await p.waitForTimeout(6000);
   await shot("todo-list.png");
 });

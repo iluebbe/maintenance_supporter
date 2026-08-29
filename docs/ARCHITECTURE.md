@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.66.1 | 211 source files (133 Python + 78 TypeScript) | **98% test coverage** (3,492 backend tests + 498 frontend tests)
+**Version:** 2.66.1 | 217 source files (134 Python + 83 TypeScript) | **98% test coverage** (3,531 backend tests + 504 frontend tests)
 
 ---
 
@@ -79,6 +79,8 @@ This enables per-object lifecycle management (add/remove objects independently) 
 Static task configuration (name, type, interval, trigger thresholds, `created_at`) lives in `ConfigEntry.data` and is only written on explicit user edits or via `async_migrate_entry` on schema bumps (e.g. minor_version 1 → 2 backfilled `created_at`). Frequently-changing dynamic state (history, last_performed, adaptive_config, trigger_runtime) lives in per-entry Store files (`.storage/maintenance_supporter.<entry_id>`), using debounced 60-second writes to minimize SD-card wear on Raspberry Pi.
 
 One-time idempotent migration on first load extracts dynamic fields from ConfigEntry.data into the Store. All consumers use `store.merge_all_tasks()` to recombine static + dynamic data at read time.
+
+Two **global** Store files complement the per-entry ones: `.storage/maintenance_supporter.documents` (document metadata + the content-addressed blob registry) and, since 2.67, `.storage/maintenance_supporter.shopping_sync` — the uid mapping between buy tasks and the rows the shopping-list sync created in the user's `todo.*` list, which is what lets the sync touch only its own rows.
 
 `async_migrate_entry` is currently at **`MINOR_VERSION = 4`** (`config_flow.py`), applying every pending step in order on load:
 
@@ -189,6 +191,7 @@ custom_components/maintenance_supporter/
 ├── coordinator.py               (1,381 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (440 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (367 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
+├── shopping_sync.py               (349 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
 │
 ├── config_flow.py               (1,095 lines)  Initial setup flow + templates (MINOR_VERSION = 4)
 ├── config_flow_helpers.py         (281 lines)  Shared config flow utilities
@@ -285,7 +288,7 @@ custom_components/maintenance_supporter/
 │   ├── helpers/                   (979 lines)  calendar-bucket (387: pure 7/14/30/365-day projection, 5 occurrences
 │   │                                           max per task, no projection for sensor-based), worksheet, report,
 │   │                                           virtual-window, object-columns, download, warranty, interval,
-│   │                                           storage-keys, format-bytes, url, bundle-version (stale-bundle guard)
+│   │                                           storage-keys, format-bytes, url, notes-markdown (ha-markdown hand-off), bundle-version (stale-bundle guard)
 │   ├── renderers/               (1,782 lines)  task-detail (452), sparkline (361), progress (200), weibull (187),
 │   │                                           charts, history, seasonal, prediction, recommendation, chart-utils
 │   └── components/             (12,360 lines)  27 files
@@ -821,7 +824,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**3,295 tests** across **193 test files** with **98% code coverage** (plus a 402-test frontend suite in real Chromium across 69 spec files, the 29-scenario journey suite, and the live e2e scripts under `e2e/`).
+**3,531 tests** across **207 test files** with **98% code coverage** (plus a 504-test frontend suite in real Chromium across 83 spec files, the 29-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 
@@ -1073,7 +1076,7 @@ The `docker/config-dev/configuration.yaml` defines test entities grouped by trig
 
 The documentation imagery is **scripted and committed**. The current tooling is the `e2e/shots-*.mjs` family, driven by the dockerised Playwright server against a throwaway HA instance (`ha-shots`, port 8131) rather than the dev instance — so a run never depends on whatever state `ha-maint` happens to be in.
 
-- `e2e/shots-demo.mjs` is the main entry: it onboards a fresh HA, adds the integration, seeds a realistic English demo dataset (mixed statuses, rich history with costs, priorities, labels, checklists, warranties, calendar kinds, sensor triggers with 30 days of imported statistics, two demo users with a rotation, an uploaded PDF manual), switches to the dark theme, and captures the desktop + mobile documentation set into `docs/images/` (27 captures; `docs/images/` currently holds 32 files across all scripts).
+- `e2e/shots-demo.mjs` is the main entry: it onboards a fresh HA, adds the integration, seeds a realistic English demo dataset (mixed statuses, rich history with costs, priorities, labels, checklists, warranties, calendar kinds, sensor triggers with 30 days of imported statistics, two demo users with a rotation, an uploaded PDF manual), switches to the dark theme, and captures the desktop + mobile documentation set into `docs/images/` (29 captures; `docs/images/` currently holds 41 PNGs across all scripts).
 - Focused companions refresh single areas without a full reseed: `shots-adopt-problem.mjs`, `shots-schedule-preview.mjs`, `shots-trigger-hint.mjs`, `shots-mobile-dashboard.mjs`, `shots-docs-under-tasks.mjs`, `shots-ux-viewports.mjs`, `shots-theme-qa.mjs`, …
 - `e2e/gifs-demo.mjs` records the animated GIFs used in the README and FEATURES docs.
 
