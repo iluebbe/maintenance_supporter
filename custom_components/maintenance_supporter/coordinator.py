@@ -193,6 +193,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recent_manual_completions = {
             tid: ts for tid, ts in self._recent_manual_completions.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
         }
+        self._recent_backfills = {
+            key: ts for key, ts in self._recent_backfills.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
+        }
 
         result: dict[str, Any] = {
             CONF_OBJECT: obj.to_dict(),
@@ -717,6 +720,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         _vac = get_vacation_state(self.hass)
         notifiable = [row for row in notifiable if not _vac.is_silent_for(row[0])]
+        # A status the user switched off, or a task they snoozed, must neither
+        # count toward the bundle threshold nor ride inside the bundle - the
+        # per-task path checks both, the bundle path did not (bug audit
+        # 2026-08-29).
+        notifiable = [
+            row
+            for row in notifiable
+            if nm._is_status_enabled(row[2]) and not nm._is_snoozed(f"{self.entry.entry_id}_{row[0]}_{row[2]}")
+        ]
 
         # v2.26 notification routing: a saved-view scope ("only notify about
         # view X") drops tasks the view's label/user filters don't match —
@@ -1030,6 +1042,39 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 },
             )
 
+        # Inert tasks (bug audit 2026-08-29): the auto path refuses archived /
+        # disabled tasks and paused objects (see async_auto_complete_on_recovery),
+        # but the manual path let an NFC sticker on a retired machine, a stale
+        # panel or a voice command record a completion on a task nobody can
+        # see any more - rotation advanced, parts consumed. Same gate here.
+        if not auto:
+            _td = merged[task_id]
+            if (
+                _td.get("archived_at") is not None
+                or _td.get("enabled") is False
+                or self.entry.data.get(CONF_OBJECT, {}).get("paused_at") is not None
+            ):
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="task_inactive",
+                    translation_placeholders={"task_name": str(_td.get("name", task_id))},
+                )
+
+        # Completion window (earliest_completion_days) - at the choke point like
+        # every other rule. The WS / to-do / voice surfaces pre-check it for a
+        # friendly code, but the service, the dashboard button, an NFC tap and a
+        # notification button reached this method with no gate at all (bug audit
+        # 2026-08-29). A completion dated on a PAST day is a history correction,
+        # not early work, and bypasses the window exactly like the WS pre-check.
+        if not auto:
+            _past_dated = completed_at is not None and completed_at.date() < dt_util.now().date()
+            if not _past_dated and not MaintenanceTask.from_dict(merged[task_id]).can_complete_now:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="too_early",
+                    translation_placeholders={"task_name": str(merged[task_id].get("name", task_id))},
+                )
+
         # Household double-complete guard (journey M1): two people seeing the
         # same overdue task and both tapping Complete within seconds would
         # record two completions — duplicated history/cost and a DOUBLE
@@ -1095,8 +1140,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # stay correctable through the history editor like dialog ones.
         from .helpers.phases import effective_field as _phase_effective
 
+        # A pure backfill (dated before the last completion) performed no work
+        # in the CURRENT cycle: the automatic consumes_parts / buy-task restock
+        # must not run for it (bug audit 2026-08-29) - an explicit used_parts
+        # selection is still honoured. Mirrors MaintenanceTask.complete's
+        # is_latest split (ISO-date string compare).
+        _is_backfill = (
+            completed_at is not None
+            and bool(task.last_performed)
+            and effective_ts.date().isoformat() < str(task.last_performed)
+        )
         record_links = (
-            used_parts if used_parts is not None else (_phase_effective(merged[task_id], "consumes_parts") or [])
+            used_parts
+            if used_parts is not None
+            else ([] if _is_backfill else (_phase_effective(merged[task_id], "consumes_parts") or []))
         )
         enriched_used: list[dict[str, Any]] | None = None
         if used_parts is not None or record_links:
@@ -1162,10 +1219,24 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 task.adaptive_config["hemisphere"] = "south" if (self.hass.config.latitude or 0) < 0 else "north"
                 task.adaptive_config["_current_month"] = effective_ts.month
                 task.adaptive_config["_current_date"] = effective_ts.date().isoformat()
-                updated_config = analyzer.update_on_completion(task.adaptive_config, actual_interval, feedback)
-                task.adaptive_config = updated_config
+                try:
+                    updated_config = analyzer.update_on_completion(task.adaptive_config, actual_interval, feedback)
+                    task.adaptive_config = updated_config
+                except (TypeError, ValueError, ZeroDivisionError):  # hand-edited / imported adaptive_config
+                    _LOGGER.warning("Adaptive learning skipped for %s: malformed adaptive_config", task_id)
 
-        await self._persist_and_signal_task_change(task_id, task)
+        try:
+            await self._persist_and_signal_task_change(task_id, task)
+        except Exception:
+            # The completion did not land on disk - release the double-tap
+            # guard stamped above, or the user's retry within 30 s would be
+            # swallowed as a duplicate of a completion that never happened
+            # (bug audit 2026-08-29).
+            if completed_at is None and not auto:
+                self._recent_manual_completions.pop(task_id, None)
+            elif completed_at is not None:
+                self._recent_backfills.pop((task_id, completed_at.isoformat()), None)
+            raise
 
         # Shared-task rotation: advance_rotation() (inside task.complete)
         # mutates responsible_user_id, which is a STATIC config field — the
@@ -1190,15 +1261,23 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         from .parts_runtime import async_handle_completion_parts
 
         try:
-            await async_handle_completion_parts(
-                self.hass,
-                self.entry,
-                merged[task_id],
-                restock_quantity=restock_quantity,
-                used_parts=used_parts,
-            )
+            if is_latest or used_parts is not None:
+                await async_handle_completion_parts(
+                    self.hass,
+                    self.entry,
+                    merged[task_id],
+                    restock_quantity=restock_quantity,
+                    used_parts=used_parts,
+                )
         except Exception:
             _LOGGER.exception("Part consumption failed for task %s", task_id)
+
+        # A status configured to notify ONCE (interval 0) stays silenced by the
+        # _SENT_ONCE sentinel until something clears it; nothing did after a
+        # completion, so a sensor task that re-triggered weeks later was never
+        # announced again until HA restarted (bug audit 2026-08-29).
+        if is_latest:
+            self._clear_notification_state(task_id)
 
         _LOGGER.debug("Maintenance completed: %s on %s", task.name, self.maintenance_object.name)
 
@@ -1294,6 +1373,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # A reset starts a new cycle — a following completion is a NEW
         # real-world action, never a double-tap of the previous one.
         self._recent_manual_completions.pop(task_id, None)
+        self._clear_notification_state(task_id)
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
@@ -1328,6 +1408,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self._persist_and_signal_task_change(task_id, task)
         _LOGGER.debug("Occurrence postponed to %s: %s on %s", until, task.name, self.maintenance_object.name)
 
+    def _clear_notification_state(self, task_id: str) -> None:
+        """Forget the per-status notification bookkeeping for a task.
+
+        The notification manager lives on the shared runtime; it may be absent
+        in tests or during teardown - then there is nothing to clear.
+        """
+        from .const import NOTIFICATION_MANAGER_KEY
+
+        nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+        if nm is not None:
+            nm.clear_task_state(self.entry.entry_id, task_id)
+
     async def skip_maintenance(
         self,
         task_id: str,
@@ -1338,6 +1430,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Same as reset: skipping restarts the cycle — clear the double-tap
         # window so a follow-up completion counts.
         self._recent_manual_completions.pop(task_id, None)
+        self._clear_notification_state(task_id)
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)

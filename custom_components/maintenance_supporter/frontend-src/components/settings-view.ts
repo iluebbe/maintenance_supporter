@@ -3,6 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { live } from "lit/directives/live.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
 import { t, langOf } from "../styles";
 import { signApiPath } from "../helpers/document-url";
@@ -251,6 +252,11 @@ export class MaintenanceSettingsView extends LitElement {
       this.dispatchEvent(new CustomEvent("settings-changed"));
     } catch {
       this._showToast(t("action_error", this._lang));
+      // The control already shows the rejected value (the browser changed it
+      // before we asked the server). `_settings` is unchanged, so a plain
+      // re-render would not touch the DOM — the selects bind their value
+      // through `live()` precisely so this re-render snaps them back.
+      this.requestUpdate();
     }
   }
 
@@ -589,7 +595,7 @@ export class MaintenanceSettingsView extends LitElement {
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_currency", L)}</span>
-          <select @change=${(e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value)}>
+          <select .value=${live(b.currency)} @change=${(e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value)}>
             ${CURRENCIES.map((c) => html`<option value=${c} ?selected=${b.currency === c}>${c}</option>`)}
           </select>
         </label>
@@ -657,7 +663,7 @@ export class MaintenanceSettingsView extends LitElement {
 
         <label class="setting-row">
           <span class="setting-label" title=${t("settings_shopping_list_help", L)}>${t("settings_shopping_list", L)}</span>
-          <select .value=${g.shopping_list_entity || ""}
+          <select .value=${live(g.shopping_list_entity || "")}
             @change=${(e: Event) => this._updateSetting("shopping_list_entity", (e.target as HTMLSelectElement).value)}>
             <option value="" ?selected=${!g.shopping_list_entity}>${t("shopping_list_none", L)}</option>
             ${this._todoEntities(g.shopping_list_entity || "").map((id) => html`
@@ -783,7 +789,7 @@ export class MaintenanceSettingsView extends LitElement {
         <label class="setting-row">
           <span class="setting-label">${t("settings_notify_scope", L)}</span>
           <select
-            .value=${n.scope_view_id || ""}
+            .value=${live(n.scope_view_id || "")}
             @change=${(e: Event) => this._updateSetting("notify_scope_view_id", (e.target as HTMLSelectElement).value)}
           >
             <option value="" ?selected=${!n.scope_view_id}>${t("settings_notify_scope_all", L)}</option>

@@ -83,9 +83,38 @@ class DocumentStore:
         """Load persisted metadata + blob registry."""
         raw = await self._store.async_load()
         if raw is not None:
-            self._data = raw
+            self._data = self._sanitize_loaded(raw)
         self._data.setdefault("documents", {})
         self._data.setdefault("blobs", {})
+
+    @staticmethod
+    def _sanitize_loaded(raw: Any) -> dict[str, Any]:
+        """Coerce a loaded payload to the ``{"documents": {}, "blobs": {}}`` shape.
+
+        Mirrors ``storage.MaintenanceStore._sanitize_loaded``: HA quarantines
+        syntactically corrupt files, but a hand-edited/partially written file
+        can be valid JSON of the wrong SHAPE — and this is a GLOBAL store, so
+        an AttributeError here would fail the whole integration setup, not
+        just one object. Wrong-shaped sections degrade to empty; non-dict
+        records are dropped, the rest kept.
+        """
+        if not isinstance(raw, dict):
+            _LOGGER.warning("Document store payload is %s, expected dict — resetting", type(raw).__name__)
+            return {"documents": {}, "blobs": {}}
+        data = dict(raw)
+        for section in ("documents", "blobs"):
+            value = data.get(section)
+            if value is None:
+                continue
+            if not isinstance(value, dict):
+                _LOGGER.warning("Document store %r is %s, expected dict — resetting", section, type(value).__name__)
+                data[section] = {}
+                continue
+            kept = {key: rec for key, rec in value.items() if isinstance(rec, dict)}
+            if len(kept) != len(value):
+                _LOGGER.warning("Dropping %d malformed document store %r record(s)", len(value) - len(kept), section)
+            data[section] = kept
+        return data
 
     async def _async_save(self) -> None:
         # Doc mutations are infrequent → immediate save keeps metadata and the
@@ -377,6 +406,36 @@ class DocumentStore:
         freed = await self._deref_blob(doc)
         await self._async_save()
         return freed
+
+    async def async_unlink_task(self, task_id: str) -> int:
+        """Drop every document link to a deleted task. Returns the docs touched.
+
+        The task-delete cleanup counterpart of :meth:`async_remove_object`:
+        ``task_ids`` / ``task_pages`` are task-id keyed and persistent, so
+        without this a deleted task's id lingers in the document metadata
+        forever (and the panel's "linked tasks" chips point at nothing).
+        Task ids are uuids, so no object filter is needed.
+        """
+        touched = 0
+        for doc in self.documents.values():
+            linked = doc.get("task_ids")
+            pages = doc.get("task_pages")
+            hit = False
+            if isinstance(linked, list) and task_id in linked:
+                doc["task_ids"] = [t for t in linked if t != task_id]
+                hit = True
+            if isinstance(pages, dict) and task_id in pages:
+                remaining = {t: p for t, p in pages.items() if t != task_id}
+                if remaining:
+                    doc["task_pages"] = remaining
+                else:
+                    doc.pop("task_pages", None)
+                hit = True
+            if hit:
+                touched += 1
+        if touched:
+            await self._async_save()
+        return touched
 
     async def async_remove_object(self, object_id: str) -> int:
         """Remove every document of an object (on object delete). Bytes freed."""

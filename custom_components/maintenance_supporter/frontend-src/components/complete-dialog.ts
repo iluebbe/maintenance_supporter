@@ -46,6 +46,12 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** Proof of presence: the task completes only via NFC/QR scan — the
    *  dialog says so up front instead of relaying the server's refusal. */
   @property({ type: Boolean }) public requireTagScan = false;
+  /** This open is the fallback of a QR/NFC scan (quick-complete refused for
+   *  missing defaults/details): the completion carries `via_tag_scan` so the
+   *  tag-scan gate counts the scan that got the user here, and the "scan
+   *  required" note stays hidden — they just did. Set by open(); never
+   *  survives into the next open. */
+  @property({ type: Boolean }) public viaTagScan = false;
   @state() private _open = false;
   @state() private _notes = "";
   @state() private _cost = "";
@@ -69,9 +75,12 @@ export class MaintenanceCompleteDialog extends LitElement {
    *  prefill the dialog so nobody re-ticks what is already done. */
   @property({ attribute: false }) public checklistPrefill: Record<string, boolean> = {};
 
-  public open(): void {
+  public open(opts: { viaTagScan?: boolean } = {}): void {
     if (this._open) return;
     this._open = true;
+    // Reset on every open — a plain open after a scan fallback must not
+    // keep claiming proof of presence.
+    this.viaTagScan = !!opts.viaTagScan;
     this._notes = "";
     this._cost = "";
     this._duration = "";
@@ -175,6 +184,12 @@ export class MaintenanceCompleteDialog extends LitElement {
       }
       if (this._photoDocId) {
         data.photo_doc_id = this._photoDocId;
+      }
+      // Scan fallback: the backend accepts via_tag_scan on task/complete so a
+      // require_tag_scan task can still be finished from the dialog the scan
+      // opened. Only ever sent when a scan actually happened.
+      if (this.viaTagScan) {
+        data.via_tag_scan = true;
       }
       if (this._completedAt) {
         // Client-side guard mirrors the backend rule — a picked future moment
@@ -293,7 +308,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${t("complete_title", L)}${this.taskName}</div>
         ${this.phaseLabel ? html`<div class="phase-line">${t("phase_current", L)}: ${this.phaseLabel}</div>` : nothing}
-        ${this.requireTagScan ? html`<div class="scan-required-note">${t("require_tag_scan_hint", L)}</div>` : nothing}
+        ${this.requireTagScan && !this.viaTagScan ? html`<div class="scan-required-note">${t("require_tag_scan_hint", L)}</div>` : nothing}
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           ${this.checklist.length > 0 ? html`

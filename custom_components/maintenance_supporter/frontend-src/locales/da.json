@@ -903,6 +903,8 @@
   "phase_current": "Aktuel fase",
   "phase_set": "Sæt som aktuel",
   "chart_history_fallback": "Ingen langtidsstatistik for denne enhed — recorderens tilstandshistorik vises (typisk de seneste ~10 dage)",
+  "chart_history_alarm": "Udløservisning fra tilstandshistorikken: 1 = alarmtilstand fastholdt i holdetiden, 0 = ok (typisk de seneste ~10 dage)",
+  "chart_history_count": "Antal skift genopbygget fra tilstandshistorikken siden sidste service (typisk de seneste ~10 dage)",
   "prediction_cycles": "Lært af cyklusser",
   "phase_require_override": "Tilsidesæt „Kræv ved udførelse“ for denne fase",
   "history_add_past": "Tilføj tidligere udførelse",

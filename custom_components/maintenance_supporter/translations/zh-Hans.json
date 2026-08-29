@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "“{task_name}”只能通过扫描其标签来完成——请走到设备旁，扫描其上的 NFC 标签或二维码。"
+    },
+    "task_inactive": {
+      "message": "“{task_name}”已归档、已禁用或其对象已暂停 — 无法完成"
+    },
+    "too_early": {
+      "message": "“{task_name}”只能在接近到期日时完成"
     }
   },
   "triggers": {

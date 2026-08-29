@@ -800,6 +800,14 @@ async def async_delete_task(
     # Clean up group references
     cleanup_group_refs(hass, task_id=task_id)
 
+    # Drop the task's document links (task_ids / task_pages in the global
+    # DocumentStore) — persistent, task-id keyed, and otherwise never pruned.
+    from ..const import DOCUMENT_STORE_KEY
+
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if doc_store is not None:
+        await doc_store.async_unlink_task(task_id)
+
     # Clean up the global vacation exempt list (journey L1): the list is
     # persistent and task-id keyed — without this, deleted ids accumulate
     # there forever and confuse the vacation preview UI.

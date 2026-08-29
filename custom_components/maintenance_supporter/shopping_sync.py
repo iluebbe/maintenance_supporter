@@ -205,33 +205,63 @@ class ShoppingListSync:
             mapping.pop(key, None)
             changed = True
 
-        # 3. New buy tasks (or rows the user deleted by hand) → add.
+        # 3a. Adopt rows that already exist but are not claimed yet: an earlier
+        #     pass whose re-list failed (provider hiccup, entity briefly
+        #     unavailable) left the mapping with uid=None although the row IS
+        #     in the list. Claiming it here is what stops the duplicate-adds the
+        #     first version produced (bug audit 2026-08-29).
+        owned_uids = {rec.get("uid") for rec in mapping.values() if rec.get("uid")}
+        for key, summary in desired.items():
+            existing = mapping.get(key)
+            if existing is not None and existing.get("uid") in by_uid:
+                continue
+            twin = next(
+                (i for i in listed if i.get("uid") and i["uid"] not in owned_uids and i.get("summary") == summary),
+                None,
+            )
+            if twin is not None:
+                mapping[key] = {"uid": twin["uid"], "summary": summary}
+                owned_uids.add(twin["uid"])
+                changed = True
+
+        # 3b. New buy tasks (or rows the user deleted by hand) → add. A key
+        #     whose add already succeeded but never got a uid (a provider that
+        #     rewrites summaries) is NOT re-added - that was an endless one-row-
+        #     per-pass loop; it is logged once and left alone instead.
         to_add = {
             key: summary
             for key, summary in desired.items()
-            if key not in mapping or mapping[key].get("uid") not in by_uid
+            if key not in mapping or (mapping[key].get("uid") is not None and mapping[key]["uid"] not in by_uid)
         }
         if to_add:
             known = set(by_uid)
+            added_keys: list[str] = []
             for key, summary in to_add.items():
                 if not await self._add_item(entity, summary):
                     continue
                 mapping[key] = {"uid": None, "summary": summary}
+                added_keys.append(key)
                 changed = True
-            # add_item returns nothing — re-list and claim the new uids.
+            # add_item returns nothing — re-list and claim the new uids: by
+            # summary first, then POSITIONALLY (the unclaimed leftovers are
+            # exactly the rows just created, in add order) so a provider that
+            # normalises the text still hands us the right uid.
             relisted = await self._get_items(entity) or []
-            unclaimed = [
-                i for i in relisted
-                if i.get("uid") and i["uid"] not in known
-            ]
-            for rec in mapping.values():
-                if rec.get("uid") is not None:
-                    continue
-                for item in unclaimed:
-                    if item.get("summary") == rec["summary"]:
-                        rec["uid"] = item["uid"]
-                        unclaimed.remove(item)
-                        break
+            unclaimed = [i for i in relisted if i.get("uid") and i["uid"] not in known]
+            for key in added_keys:
+                rec = mapping[key]
+                twin = next((i for i in unclaimed if i.get("summary") == rec["summary"]), None)
+                if twin is None and unclaimed:
+                    twin = unclaimed[0]
+                if twin is not None:
+                    rec["uid"] = twin["uid"]
+                    unclaimed.remove(twin)
+                else:
+                    _LOGGER.warning(
+                        "Shopping list %s: added %r but could not identify the new row; leaving it unmanaged",
+                        entity,
+                        rec["summary"],
+                    )
 
         if changed or to_add:
             await self._save()
@@ -254,6 +284,8 @@ class ShoppingListSync:
                     continue
                 if not td.get("enabled", True):
                     continue
+                if td.get("archived_at") is not None:
+                    continue  # a retired reminder is not shopping (bug audit 2026-08-29, P-F13)
                 if store.get_last_performed(tid) is not None:
                     continue  # completed reminder — history, not shopping
                 # Same summary shape as our own to-do platform.
@@ -280,8 +312,14 @@ class ShoppingListSync:
                 notes="Completed from the shopping list",
                 unattended=True,
             )
-        except Exception:
-            _LOGGER.exception("Completing buy task %s from the shopping list failed", key)
+        except Exception as err:  # noqa: BLE001 — a broken entry must not stall the whole pass
+            # The row is dropped and re-added by the same pass, so the tick
+            # visibly "bounces back" — say why (bug audit 2026-08-29).
+            _LOGGER.warning(
+                "Shopping list: checking off %r did not complete its buy task (%s); the row will reappear",
+                (ce.data.get(CONF_TASKS) or {}).get(task_id, {}).get("name", task_id),
+                err,
+            )
 
     # ── todo service wrappers (best effort) ───────────────────────────────
 

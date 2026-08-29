@@ -723,6 +723,58 @@ locale keys ×22, export/import, tests pinning every cursor rule above
 clamps), live Docker check, docs. The #138 object history gets phase
 labels almost for free once entries carry `phase_id`.
 
+### 💡 Bug audit 2026-08-29 — deferred findings (documented, not fixed)
+A six-perspective audit (v2.67 features, HA-API version probes, the
+completion choke point, frontend, persistence/lifecycle,
+notifications/fleet/predictor) fixed ~35 defects in one tranche; these
+remain open by decision — each is a product call, a documented limitation,
+or low-impact:
+
+- **In-memory mutation before a failed persist**: `task.complete()` appends
+  the history entry to the merged task dict before the Store write; if the
+  write raises, the retry (now no longer swallowed by the double-tap guard)
+  lands a second entry in memory until the next reload. A clean fix mutates
+  a copy and swaps it in after the save.
+- **Backfill required-fields semantics**: a backdated completion is still
+  validated against the phase *currently* due (its required fields), not the
+  phase it belongs to — the phase of a past completion is unknowable.
+- **Declared minimum core 2025.7 has no CI leg**: the `stable`/`latest`
+  legs cover 2026.8/2026.9; 2025.7 needs Python 3.13 (HA's own
+  `python_requires`), so a third leg means a second interpreter matrix.
+  Product call: bump `hacs.json` to 2025.8 (the helper-device APIs the
+  device link relies on first appear there) or add the leg.
+- **Notifications**: dismiss goes to the global service, not the per-user
+  target the reminder was delivered to; snooze state is in-memory (a restart
+  re-arms the interval); a per-user send that fails on every device does not
+  fall back to the household service; the bundle rate-limit key is not seeded
+  at startup (one bundle per boot after the second refresh).
+- **Shopping-list sync**: switching lists while the OLD list is unavailable
+  drops the mapping without cleaning the old rows; a row's summary is not
+  renamed after an object/part rename; deleting a buy TASK by hand (WS
+  task/delete) leaves its row until the next trigger; a task-level archived
+  buy task still counts as desired.
+- **Predictor**: every bounded sensor task now fetches 180 d of hourly
+  statistics per 5-min refresh (was 30 d) — a per-entity TTL cache like the
+  battery trend's would pay for itself on big installs.
+- **Persistence**: document ids referenced from `part.doc_id` /
+  `history[].photo_doc_id` dangle after a JSON restore (the importer mints
+  new document uuids and returns no map); multi-object restores keep
+  `parent_entry_id` / group `task_refs` / vacation exempt ids verbatim
+  (two-pass id remap needed); documents of the last object removed AFTER the
+  hub are never reclaimed; device *removal* only surfaces the
+  `device_link_lost` repair after the next reload.
+- **Frontend (low)**: completion-photo uploads before Complete are orphaned
+  on Cancel; `openEdit` leaves `_actionTestResult` / attribute suggestions
+  from the previous task until their timers clear; phases without a
+  sequence step are dropped silently on save; Back/Forward into a task skips
+  the full-history fetch; no data refresh on a plain HA reconnect; deep link
+  consumed before the object list validated it; "Task not found" flashes
+  in English during a delete; `_subscribe` failure is silent; `formatDate`
+  renders "Invalid Date" for garbage input.
+- **HA 2026.9 sub-devices**: `entity_base` may attach an entity to a
+  `ChildDeviceEntry` when the linked device id resolves to a child; whether
+  the entity registry accepts that is unverified (2026.9 is still beta).
+
 ### 💡 Bug audit 2026-08-22 — deferred findings (documented, not fixed)
 A four-perspective code audit (time/scheduling, trigger engine, persistence,
 frontend) fixed ~25 defects in one tranche; these remain open by decision —

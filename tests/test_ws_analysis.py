@@ -895,3 +895,40 @@ async def test_set_adaptive_legacy_path_without_store(
     ac = refreshed.data["tasks"][TASK_ID_1]["adaptive_config"]
     assert ac["enabled"] is True
     assert ac["min_interval_days"] == 5
+
+
+async def test_adaptive_config_writes_save_immediately(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """P-F7: a user action must flush the Store like every other write path —
+    the 60 s debounce would lose the change on a reload inside the window."""
+    from unittest.mock import AsyncMock, patch
+
+    await setup_integration(hass, global_entry, object_entry)
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    store = entry.runtime_data.store
+    assert store is not None
+
+    conn = _mock_connection()
+    with (
+        patch.object(store, "async_save", new_callable=AsyncMock) as mock_save,
+        patch.object(store, "async_delay_save") as mock_delay,
+    ):
+        await call_ws_handler(
+            ws_seasonal_overrides,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/seasonal_overrides",
+                "entry_id": object_entry.entry_id,
+                "task_id": TASK_ID_1,
+                "overrides": {"7": 0.5},
+            },
+        )
+    conn.send_result.assert_called_once()
+    mock_save.assert_awaited_once()
+    mock_delay.assert_not_called()

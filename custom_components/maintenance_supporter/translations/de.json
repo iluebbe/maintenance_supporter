@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "„{task_name}“ kann nur per Tag-Scan erledigt werden — bitte hingehen und das NFC-Tag oder den QR-Code am Gerät scannen."
+    },
+    "task_inactive": {
+      "message": "„{task_name}“ ist archiviert, deaktiviert oder das Objekt ist pausiert — kann nicht erledigt werden"
+    },
+    "too_early": {
+      "message": "„{task_name}“ kann erst näher am Fälligkeitsdatum erledigt werden"
     }
   },
   "triggers": {

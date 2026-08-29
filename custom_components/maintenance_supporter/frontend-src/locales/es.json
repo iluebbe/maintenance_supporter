@@ -903,6 +903,8 @@
   "phase_current": "Fase actual",
   "phase_set": "Establecer como actual",
   "chart_history_fallback": "Sin estadísticas a largo plazo para esta entidad: se muestra el historial de estados del recorder (normalmente los últimos ~10 días)",
+  "chart_history_alarm": "Vista del disparador desde el historial de estados: 1 = estado de alerta mantenido durante el tiempo de retención, 0 = correcto (normalmente los últimos ~10 días)",
+  "chart_history_count": "Recuento de cambios reconstruido desde el historial de estados desde el último servicio (normalmente los últimos ~10 días)",
   "prediction_cycles": "Aprendido de ciclos",
   "phase_require_override": "Sobrescribir «Requerir al completar» para esta fase",
   "history_add_past": "Añadir una finalización pasada",

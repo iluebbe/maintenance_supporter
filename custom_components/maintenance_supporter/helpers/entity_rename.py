@@ -11,6 +11,7 @@ bug as #48, but with feature breakage instead of a UI inconsistency.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -109,9 +110,15 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
     `_DYNAMIC_TASK_FIELDS` includes ``adaptive_config``, and per-entity
     trigger runtime is keyed by entity_id. Both must follow renames.
 
+    Compound sub-triggers persist their per-entity runtime under
+    ``_compound_<idx>_<entity_id>`` (entity/triggers/compound.py), so those
+    keys are rewritten too — otherwise a renamed entity inside a compound
+    condition silently restarts from an empty baseline after the reload.
+
     Returns True iff anything was rewritten.
     """
     changed = False
+    compound_key = re.compile(r"_compound_(\d+)_" + re.escape(old_id))
     tasks_state: dict[str, Any] = store._data.get("tasks", {})
     for state in tasks_state.values():
         ac = state.get("adaptive_config")
@@ -119,8 +126,16 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
             state["adaptive_config"] = {**ac, "environmental_entity": new_id}
             changed = True
         runtime = state.get("trigger_runtime")
-        if isinstance(runtime, dict) and old_id in runtime:
+        if not isinstance(runtime, dict):
+            continue
+        if old_id in runtime:
             runtime[new_id] = runtime.pop(old_id)
+            changed = True
+        for key in list(runtime):
+            match = compound_key.fullmatch(key)
+            if match is None:
+                continue
+            runtime[f"_compound_{match.group(1)}_{new_id}"] = runtime.pop(key)
             changed = True
     return changed
 

@@ -903,6 +903,8 @@
   "phase_current": "Phase actuelle",
   "phase_set": "Définir comme actuelle",
   "chart_history_fallback": "Pas de statistiques à long terme pour cette entité — affichage de l'historique d'états du recorder (généralement les ~10 derniers jours)",
+  "chart_history_alarm": "Vue déclencheur issue de l'historique d'états : 1 = état d'alerte maintenu pendant le délai, 0 = normal (généralement les ~10 derniers jours)",
+  "chart_history_count": "Nombre de changements reconstitué à partir de l'historique d'états depuis le dernier entretien (généralement les ~10 derniers jours)",
   "prediction_cycles": "Appris sur cycles",
   "phase_require_override": "Remplacer « Exiger à l’achèvement » pour cette phase",
   "history_add_past": "Ajouter une réalisation passée",

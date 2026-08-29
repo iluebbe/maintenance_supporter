@@ -474,6 +474,11 @@ _CSV_OBJECT_EXCLUDED = {
     "ha_device_id", "parent_entry_id",
     "predecessor_entry_id", "replaced_by_entry_id",
     "paused_at", "paused_until",  # seasonal pause state (JSON backup carries it)
+    "archived_at",  # object archive marker (JSON backup carries it)
+    # Battery-fleet identity — emitted only for the fleet object; the JSON
+    # backup round-trips it (test_json_roundtrip_keeps_battery_fleet_identity).
+    "battery_fleet", "battery_fleet_excluded", "battery_fleet_included",
+    "battery_fleet_track_self_charging",
 }
 
 
@@ -512,3 +517,214 @@ async def test_csv_covers_or_excludes_every_exported_field(
         f"Object field(s) {sorted(unplaced_obj)} are neither a CSV column nor "
         "a documented exclusion."
     )
+
+
+# ─── Object archive marker (P-F3) ───────────────────────────────────────────
+
+
+async def test_json_roundtrip_keeps_an_archived_object_archived(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The OBJECT's archived_at must round-trip, not only the tasks' pair.
+
+    Before the fix an archived object came back ACTIVE after export → import
+    with every task still archived (reason "object") — and object/unarchive
+    refused ("not archived"), so the tasks could never be revived.
+    """
+    from custom_components.maintenance_supporter.const import ARCHIVE_REASON_OBJECT
+    from custom_components.maintenance_supporter.websocket.objects import ws_unarchive_object
+
+    archived_at = "2026-07-01T10:00:00+00:00"
+    task = build_task_data(name="Retired by object")
+    task["archived_at"] = archived_at
+    task["archived_reason"] = ARCHIVE_REASON_OBJECT
+    data = build_object_entry_data(tasks={task["id"]: task})
+    data = {**data, "object": {**data["object"], "name": "Archived Rig", "archived_at": archived_at}}
+    src = MockConfigEntry(domain=DOMAIN, title="Archived Rig", data=data, unique_id="maintenance_supporter_archived_rig")
+    src.add_to_hass(hass)
+    await setup_integration(hass, global_entry, src)
+
+    export = build_export_data(hass)
+    exported_obj = export["objects"][0]["object"]
+    assert exported_obj.get("archived_at") == archived_at, "object archived_at dropped on export"
+
+    payload = json.loads(json.dumps(export))
+    payload["objects"][0]["object"]["name"] = "Archived Rig Copy"
+    conn = make_ws_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": json.dumps(payload)})
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+
+    dst = _get_imported(hass, "Archived Rig Copy")
+    assert dst.data["object"].get("archived_at") == archived_at, "import resurrected the archived object"
+    dst_task = next(iter(dst.data[CONF_TASKS].values()))
+    assert dst_task.get("archived_at") == archived_at
+    assert dst_task.get("archived_reason") == ARCHIVE_REASON_OBJECT
+
+    # …and the restored object can be unarchived, reviving its cascaded tasks.
+    conn = make_ws_connection()
+    await call_ws_handler(ws_unarchive_object, hass, conn, {"id": 2, "type": "x", "entry_id": dst.entry_id})
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+    dst = hass.config_entries.async_get_entry(dst.entry_id)
+    assert dst is not None
+    assert dst.data["object"].get("archived_at") is None
+    assert next(iter(dst.data[CONF_TASKS].values())).get("archived_at") is None
+
+
+async def test_json_import_drops_a_garbage_object_archived_at(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Presence means archived — a non-ISO marker must not freeze the copy."""
+    await setup_integration(hass, global_entry)
+    payload = {"objects": [{"object": {"name": "Garbage Marker", "archived_at": "yesterday-ish"}, "tasks": []}]}
+    conn = make_ws_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": json.dumps(payload)})
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+    assert _get_imported(hass, "Garbage Marker").data["object"].get("archived_at") is None
+
+
+# ─── Battery-fleet identity (P-F4) ──────────────────────────────────────────
+
+
+async def _make_fleet_entry(hass: HomeAssistant) -> MockConfigEntry:
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import _fleet_trigger_config
+    from custom_components.maintenance_supporter.helpers.parts import normalize_part
+
+    task = build_task_data(name="Replace low batteries")
+    task["battery_fleet_task"] = True
+    task["trigger_config"] = _fleet_trigger_config()
+    task["consumes_parts"] = [{"part_id": "batt_aa", "quantity": 2}]
+    data = build_object_entry_data(tasks={task["id"]: task})
+    data = {
+        **data,
+        "object": {
+            **data["object"],
+            "name": "Battery Fleet",
+            "battery_fleet": True,
+            "battery_fleet_excluded": ["sensor.lock_battery"],
+            "battery_fleet_included": ["sensor.odd_cell"],
+            "battery_fleet_track_self_charging": True,
+        },
+        "parts": {
+            "batt_aa": normalize_part(
+                {"id": "batt_aa", "name": "AA battery", "unit": "pcs", "reorder_threshold": 2, "restock_quantity": 4}
+            )
+        },
+    }
+    entry = MockConfigEntry(domain=DOMAIN, title="Battery Fleet", data=data, unique_id="maintenance_supporter_battery_fleet")
+    entry.add_to_hass(hass)
+    return entry
+
+
+async def _export_fleet_payload(hass: HomeAssistant, copy_name: str) -> dict:
+    export = build_export_data(hass)
+    fleet = next(o for o in export["objects"] if o["object"]["name"] == "Battery Fleet")
+    payload = json.loads(json.dumps({"version": 1, "objects": [fleet]}))
+    payload["objects"][0]["object"]["name"] = copy_name
+    return payload
+
+
+async def test_json_roundtrip_keeps_battery_fleet_identity(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Export → delete → import restores the fleet as THE fleet: object flag,
+    exclude/include lists, the self-charging opt-in, the flagged aggregate
+    task, and the deterministic ``batt_<type>`` part ids the fleet reconcile
+    and mark-replaced paths key on (with task links + stock following)."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import find_fleet_entry
+
+    src = await _make_fleet_entry(hass)
+    await setup_integration(hass, global_entry, src)
+    store = hass.data[STORES_CACHE_KEY][src.entry_id]
+    store.set_part_stock("batt_aa", 6)
+    await store.async_save()
+
+    payload = await _export_fleet_payload(hass, "Fleet Copy")
+    exported_obj = payload["objects"][0]["object"]
+    assert exported_obj.get("battery_fleet") is True
+    assert exported_obj.get("battery_fleet_excluded") == ["sensor.lock_battery"]
+    assert exported_obj.get("battery_fleet_included") == ["sensor.odd_cell"]
+    assert exported_obj.get("battery_fleet_track_self_charging") is True
+    assert payload["objects"][0]["tasks"][0].get("battery_fleet_task") is True
+
+    # The restore scenario: the original fleet is gone.
+    await hass.config_entries.async_remove(src.entry_id)
+    await hass.async_block_till_done()
+    assert find_fleet_entry(hass) is None
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": json.dumps(payload)})
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+
+    dst = _get_imported(hass, "Fleet Copy")
+    obj = dst.data["object"]
+    assert obj.get("battery_fleet") is True
+    assert obj.get("battery_fleet_excluded") == ["sensor.lock_battery"]
+    assert obj.get("battery_fleet_included") == ["sensor.odd_cell"]
+    assert obj.get("battery_fleet_track_self_charging") is True
+    assert find_fleet_entry(hass) is not None and find_fleet_entry(hass).entry_id == dst.entry_id
+    assert list(dst.data["parts"]) == ["batt_aa"], "deterministic fleet part id was re-minted"
+    dst_task = next(iter(dst.data[CONF_TASKS].values()))
+    assert dst_task.get("battery_fleet_task") is True
+    assert dst_task.get("consumes_parts") == [{"part_id": "batt_aa", "quantity": 2}]
+    assert hass.data[STORES_CACHE_KEY][dst.entry_id].get_part_stock("batt_aa") == 6
+
+
+async def test_json_import_never_creates_a_second_fleet(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """With a fleet already present the flagged payload imports as a PLAIN
+    object: no flag, no task marker, fresh part ids (links still remapped)."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import find_fleet_entry
+
+    src = await _make_fleet_entry(hass)
+    await setup_integration(hass, global_entry, src)
+    payload = await _export_fleet_payload(hass, "Fleet Twin")
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": json.dumps(payload)})
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+
+    dst = _get_imported(hass, "Fleet Twin")
+    obj = dst.data["object"]
+    assert "battery_fleet" not in obj and "battery_fleet_excluded" not in obj
+    assert "battery_fleet_included" not in obj and "battery_fleet_track_self_charging" not in obj
+    assert find_fleet_entry(hass).entry_id == src.entry_id
+    (new_pid,) = dst.data["parts"]
+    assert new_pid != "batt_aa"
+    dst_task = next(iter(dst.data[CONF_TASKS].values()))
+    assert "battery_fleet_task" not in dst_task
+    assert dst_task.get("consumes_parts") == [{"part_id": new_pid, "quantity": 2}]
+
+
+async def test_json_import_validates_fleet_lists(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Exclude/include lists are re-validated like the live WS writes: entity
+    ids only, deduped + sorted; junk types are ignored."""
+    await setup_integration(hass, global_entry)
+    payload = {
+        "objects": [
+            {
+                "object": {
+                    "name": "Fleet Lists",
+                    "battery_fleet": True,
+                    "battery_fleet_excluded": ["sensor.b", "not an entity", 42, "sensor.a", "sensor.b"],
+                    "battery_fleet_included": "sensor.not_a_list",
+                    "battery_fleet_track_self_charging": "yes",
+                },
+                "tasks": [],
+            }
+        ]
+    }
+    conn = make_ws_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": json.dumps(payload)})
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+    obj = _get_imported(hass, "Fleet Lists").data["object"]
+    assert obj.get("battery_fleet") is True
+    assert obj.get("battery_fleet_excluded") == ["sensor.a", "sensor.b"]
+    assert "battery_fleet_included" not in obj
+    assert "battery_fleet_track_self_charging" not in obj

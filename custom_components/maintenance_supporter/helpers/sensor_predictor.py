@@ -30,6 +30,8 @@ from ..const import (
     DEGRADATION_BLEND_HALF_POINTS,
     DEGRADATION_CYCLE_JUMP_FRACTION,
     DEGRADATION_CYCLE_LOOKBACK_DAYS,
+    DEGRADATION_CYCLE_NOISE_SIGMAS,
+    DEGRADATION_CYCLE_SETTLE_POINTS,
     DEGRADATION_MIN_CYCLE_HOURS,
 )
 from .schedule import read_legacy_fields
@@ -259,14 +261,48 @@ class SensorPredictor:
         if value_range <= 0:
             return [points]
         jump = DEGRADATION_CYCLE_JUMP_FRACTION * value_range
+        # Noise floor (bug audit 2026-08-29): in a service-free window the
+        # range IS the drift, so hourly wobble against the drift of >= 20 % of
+        # it fragmented the window into dozens of pseudo-cycles (simulated:
+        # blended rate 5x the truth). A boundary must also dwarf the typical
+        # hour-to-hour change - a robust sigma from the MAD of |delta|.
+        steps = sorted(abs(b[1] - a[1]) for a, b in itertools.pairwise(points))
+        mid = len(steps) // 2
+        mad = steps[mid] if len(steps) % 2 else (steps[mid - 1] + steps[mid]) / 2
+        jump = max(jump, DEGRADATION_CYCLE_NOISE_SIGMAS * 1.4826 * mad)
+
+        rejected = 0  # jumps already exposed as modulation in this window
+
+        def _reverses(idx: int, delta: float) -> bool:
+            """A jump that snaps back within the settle window is modulation
+            (a fan cycling, a one-hour glitch), not a service."""
+            horizon = points[idx + 1 : idx + 1 + DEGRADATION_CYCLE_SETTLE_POINTS]
+            start = points[idx][1]
+            if len(horizon) < DEGRADATION_CYCLE_SETTLE_POINTS:
+                # Window end: a genuinely fresh refill has no history of
+                # bouncing jumps; a periodic pattern has - treat its last
+                # repetition like the earlier ones.
+                if rejected >= 2:
+                    return True
+                return any(
+                    (delta > 0 and start - value >= jump) or (delta < 0 and value - start >= jump)
+                    for _ts, value in horizon
+                )
+            return any(
+                (delta > 0 and start - value >= jump) or (delta < 0 and value - start >= jump)
+                for _ts, value in horizon
+            )
 
         segments: list[list[tuple[float, float]]] = [[points[0]]]
-        for prev, cur in itertools.pairwise(points):
+        for idx, (prev, cur) in enumerate(itertools.pairwise(points), start=1):
             delta = cur[1] - prev[1]
             is_boundary = (
                 (boundary in ("up", "both") and delta >= jump)
                 or (boundary in ("down", "both") and -delta >= jump)
             )
+            if is_boundary and _reverses(idx, delta):
+                is_boundary = False
+                rejected += 1
             if is_boundary:
                 segments.append([cur])
             else:

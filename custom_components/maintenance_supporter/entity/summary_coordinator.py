@@ -42,7 +42,7 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=None,
         )
         self._unsubs: list[CALLBACK_TYPE] = []
-        self._attached: dict[str, CALLBACK_TYPE] = {}
+        self._attached: dict[str, tuple[Any, CALLBACK_TYPE]] = {}
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Recompute counts from the shared aggregator (single source)."""
@@ -62,12 +62,22 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._unsubs.append(self.hass.bus.async_listen(EVENT_TRIGGER_DEACTIVATED, self._on_event))
 
     def _attach_entry(self, entry_id: str) -> None:
-        """Register a listener on a single object coordinator (once)."""
-        if entry_id in self._attached:
-            return
+        """Register a listener on a single object coordinator.
+
+        A reload swaps the coordinator and re-announces the entry; the old
+        "once" guard left the summary sensors listening to the dead one (bug
+        audit 2026-08-29), so re-attach whenever the instance changed.
+        """
         rd = get_runtime_data(self.hass, entry_id)
-        if rd and rd.coordinator:
-            self._attached[entry_id] = rd.coordinator.async_add_listener(self._schedule)
+        coordinator = rd.coordinator if rd else None
+        if coordinator is None:
+            return
+        previous = self._attached.get(entry_id)
+        if previous is not None:
+            if previous[0] is coordinator:
+                return
+            previous[1]()
+        self._attached[entry_id] = (coordinator, coordinator.async_add_listener(self._schedule))
 
     @callback
     def _on_new_entry(self, entry_id: str) -> None:
@@ -78,9 +88,9 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     @callback
     def _on_removed(self, entry_id: str) -> None:
         """An object entry was deleted — detach its listener and recompute."""
-        unsub = self._attached.pop(entry_id, None)
-        if unsub is not None:
-            unsub()
+        attached = self._attached.pop(entry_id, None)
+        if attached is not None:
+            attached[1]()
         self._schedule()
 
     @callback
@@ -97,7 +107,7 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Detach all listeners (called on global entry unload)."""
         for unsub in self._unsubs:
             unsub()
-        for unsub in self._attached.values():
+        for _coordinator, unsub in self._attached.values():
             unsub()
         self._unsubs.clear()
         self._attached.clear()

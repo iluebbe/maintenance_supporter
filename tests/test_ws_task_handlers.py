@@ -1007,6 +1007,43 @@ async def test_ws_delete_task_cleans_group_refs(
     assert len(refs) == 0
 
 
+async def test_ws_delete_task_prunes_document_links(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """P-F10: deleting a task drops its ``task_ids`` / ``task_pages`` links in
+    the global DocumentStore (mirrors the object-removal doc cleanup)."""
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
+
+    from .conftest import OBJECT_ID_1
+
+    await setup_integration(hass, global_entry, object_entry)
+    doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+    doc = await doc_store.async_add_weblink(OBJECT_ID_1, url="https://example.org/manual")
+    await doc_store.async_update(doc["id"], task_ids=[TASK_ID_1, "other-task"], task_pages={TASK_ID_1: 4, "other-task": 2})
+
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
+    await hass.async_block_till_done()
+    conn.send_result.assert_called_once()
+
+    after = doc_store.get(doc["id"])
+    assert after is not None
+    assert after["task_ids"] == ["other-task"]
+    assert after.get("task_pages") == {"other-task": 2}
+
+
 # ─── Task List Tests ─────────────────────────────────────────────────────
 
 

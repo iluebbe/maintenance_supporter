@@ -89,8 +89,34 @@ try {
   }
   assert(ui?.chart, "trigger chart rendered");
   assert(ui.count >= 3, `chart has a real series (${ui.count} points)`);
-  assert(ui.vals.includes(0) && ui.vals.includes(1), `both states plotted (vals: ${ui.vals})`);
-  assert(ui.note.includes("state history"), `history-fallback footnote shown (${ui.note})`);
+  // #141 round 2: a state_change trigger draws the CHANGE COUNT since the
+  // last service, not the raw 0/1 state — a rising staircase.
+  const maxVal = Math.max(...ui.vals);
+  assert(maxVal >= 2, `change counter climbed (max ${maxVal}, vals: ${ui.vals})`);
+  assert(ui.vals.every((v, i) => i === 0 || v >= ui.vals[i - 1]), "counter never decreases");
+  assert(/change count|state history/i.test(ui.note), `counter footnote shown (${ui.note})`);
+
+  // Latch mode (target 1 + to-state OFF) on an entity that is ON: the trigger
+  // view is flat 0 ("not in alert state"), where the raw line would be 1.
+  await fetch(`${REST}/api/services/input_boolean/turn_on`, {
+    method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ entity_id: entityId }),
+  });
+  const latch = await api.send({
+    type: "maintenance_supporter/task/create", entry_id: entryId,
+    name: "Valve watch", schedule_type: "sensor_based",
+    trigger_config: { type: "state_change", entity_id: entityId, trigger_to_state: "off", trigger_target_changes: 1, trigger_for_minutes: 5 },
+  });
+  await page.goto(`${HA}/maintenance-supporter?entry_id=${encodeURIComponent(entryId)}&task_id=${encodeURIComponent(latch.task_id)}`,
+    { waitUntil: "domcontentloaded", timeout: 30000 });
+  let latchUi = null;
+  for (let i = 0; i < 30 && !(latchUi && latchUi.chart && latchUi.count >= 2); i++) {
+    await page.waitForTimeout(1000);
+    latchUi = await probe();
+  }
+  assert(latchUi?.chart, "latch chart rendered");
+  assert(latchUi.vals.every((v) => v === 0), `latch view flat 0 while the entity is ON (vals: ${latchUi.vals})`);
+  assert(/alert state/i.test(latchUi.note), `latch footnote shown (${latchUi.note})`);
 
   log("PASS: binary chart live check");
 } finally {

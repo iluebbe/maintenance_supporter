@@ -903,6 +903,8 @@
   "phase_current": "当前阶段",
   "phase_set": "设为当前",
   "chart_history_fallback": "该实体没有长期统计数据——显示 recorder 状态历史（通常为最近约 10 天）",
+  "chart_history_alarm": "来自状态历史的触发视图：1 = 警报状态保持了保持时间，0 = 正常（通常为最近约 10 天）",
+  "chart_history_count": "根据上次维护以来的状态历史重建的变化次数（通常为最近约 10 天）",
   "prediction_cycles": "已学习的周期数",
   "phase_require_override": "为此阶段覆盖“完成时要求”",
   "history_add_past": "补录过去的完成记录",

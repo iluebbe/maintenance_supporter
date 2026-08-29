@@ -114,6 +114,83 @@ describe("panel deep links (QR scan routing)", () => {
     expect(dlg.taskName).to.equal("No Defaults");
   });
 
+  it("quick_complete refused for missing details falls back to the dialog WITH the scan flag", async () => {
+    setDeepLink("entry_id=e1&task_id=t1&action=quick_complete");
+    const { el, sent } = await mountPanel(
+      [obj("e1", [task({ name: "Needs Notes", require_tag_scan: true })])],
+      {
+        "maintenance_supporter/task/quick_complete": () => {
+          throw { code: "completion_details_required", message: "notes required" };
+        },
+      },
+    );
+    await settleRaf(el);
+    await settleRaf(el);
+
+    await waitForOpenCompleteDialog(el);
+    const dlg = completeDialog(el)!;
+    expect(dlg.shadowRoot!.querySelector("ha-dialog"), "fallback dialog open").to.exist;
+    expect(dlg.taskName).to.equal("Needs Notes");
+    // The scan already happened: the gate is met, the note is not shown …
+    expect(dlg.viaTagScan).to.equal(true);
+    expect(dlg.requireTagScan).to.equal(true);
+    expect(dlg.shadowRoot!.querySelector(".scan-required-note")).to.be.null;
+    // … and the completion carries via_tag_scan for the backend's gate.
+    const buttons = [...dlg.shadowRoot!.querySelectorAll(".dialog-actions ha-button")];
+    (buttons[buttons.length - 1] as HTMLElement).click();
+    await new Promise((r) => setTimeout(r, 20));
+    const complete = sent.find((m) => m.type === "maintenance_supporter/task/complete");
+    expect(complete, "task/complete sent").to.exist;
+    expect(complete!.via_tag_scan).to.equal(true);
+  });
+
+  it("a plain complete (no scan) opens the dialog WITHOUT the scan flag", async () => {
+    setDeepLink("entry_id=e1&task_id=t1&action=complete");
+    const { el } = await mountPanel([obj("e1", [task({ name: "Gated", require_tag_scan: true })])]);
+    await settleRaf(el);
+    await waitForOpenCompleteDialog(el);
+    const dlg = completeDialog(el)!;
+    expect(dlg.viaTagScan).to.equal(false);
+    expect(dlg.shadowRoot!.querySelector(".scan-required-note"), "note shown").to.exist;
+  });
+
+  it("any other quick_complete refusal relays the server's message", async () => {
+    setDeepLink("entry_id=e1&task_id=t1&action=quick_complete");
+    const { el } = await mountPanel(
+      [obj("e1", [task({ name: "Early" })])],
+      {
+        "maintenance_supporter/task/quick_complete": () => {
+          throw { code: "too_early", message: "Earliest completion is 2026-09-01" };
+        },
+      },
+    );
+    await settleRaf(el);
+    await settleRaf(el);
+    expect((el as unknown as { _toastMessage: string })._toastMessage).to.equal(
+      "Earliest completion is 2026-09-01",
+    );
+    const dlg = completeDialog(el);
+    expect(dlg?.shadowRoot?.querySelector("ha-dialog") ?? null, "no dialog").to.be.null;
+  });
+
+  it("a silent quick_complete success reloads the data", async () => {
+    setDeepLink("entry_id=e1&task_id=t1&action=quick_complete");
+    const { el, sent } = await mountPanel(
+      [obj("e1", [task({ name: "Quick" })])],
+      { "maintenance_supporter/task/quick_complete": () => ({ success: true, via: "quick" }) },
+    );
+    await settleRaf(el);
+    await settleRaf(el);
+    // The deep link is only routed once the objects are known, so every
+    // objects fetch AFTER the quick_complete is the reload it triggered.
+    const atQuick = sent.findIndex((m) => m.type === "maintenance_supporter/task/quick_complete");
+    expect(atQuick, "quick_complete fired").to.be.greaterThan(-1);
+    const reloaded = sent
+      .slice(atQuick + 1)
+      .some((m) => m.type === "maintenance_supporter/objects");
+    expect(reloaded, "objects refetched after the silent complete").to.equal(true);
+  });
+
   it("an unknown entry_id lands safely on the overview", async () => {
     setDeepLink("entry_id=does-not-exist&task_id=t1&action=complete");
     const { el } = await mountPanel([obj("e1", [task({ name: "Real" })])]);

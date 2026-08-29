@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "„{task_name}” można ukończyć tylko przez zeskanowanie tagu — podejdź i zeskanuj tag NFC lub kod QR na samym urządzeniu."
+    },
+    "task_inactive": {
+      "message": "„{task_name}” jest zarchiwizowane, wyłączone lub jego obiekt jest wstrzymany — nie można ukończyć"
+    },
+    "too_early": {
+      "message": "„{task_name}” można ukończyć dopiero bliżej terminu"
     }
   },
   "triggers": {

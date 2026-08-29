@@ -1,51 +1,51 @@
 /*! maintenance_supporter frontend 2.67.0 */
-import{a as _,e as k}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-5MMQF3M2.js";import{a as m}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6MGTM6E6.js";import{B as g,a as s,b,c as a,f as d,g as v,k as n,l,p as r}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-WHQRIMTN.js";var i=class extends v{constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this.taskType="";this.readingUnit="";this.restockDefault=null;this.restockUnitCost=null;this.currencySymbol="";this.parts=[];this.consumesParts=[];this.consumesInfo=[];this.requiredFields=[];this.phaseLabel="";this.requireTagScan=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1;this._readingValue="";this._restockQty="";this._completedAt="";this._usedParts={};this.checklistPrefill={}}open(){this._open||(this._open=!0,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState=Object.fromEntries(this.checklist.map((e,t)=>[String(t),!!this.checklistPrefill[e]]).filter(([,e])=>e)),this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1,this._readingValue="",this._restockQty=this.restockDefault!==null?String(this.restockDefault):"",this._completedAt="",this._usedParts=Object.fromEntries(this.consumesParts.map(e=>[_(e),{...e}])))}_toggleCheck(e){let t=String(e);this._checklistState={...this._checklistState,[t]:!this._checklistState[t]}}_setFeedback(e){this._feedback=e}async _onPhotoInput(e){let t=e.target,o=t.files?.[0];if(t.value="",!!o){this._photoUploading=!0,this._error="";try{let c=new FormData;c.append("entry_id",this.entryId),c.append("tags","photo"),c.append("file",o,o.name);let p=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:c});if(!p.ok){this._error=p.status===413?r("doc_too_large",this.lang):r("doc_upload_failed",this.lang);return}let u=await p.json();u.id&&(this._photoDocId=u.id,this._photoPreview=URL.createObjectURL(o))}catch{this._error=r("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let e={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(e.notes=this._notes),this._cost){let t=parseFloat(this._cost);!isNaN(t)&&t>=0&&(e.cost=t)}if(this._duration){let t=parseInt(this._duration,10);!isNaN(t)&&t>=0&&(e.duration=t)}if(this.checklist.length>0&&(e.checklist_state=this._checklistState),this.adaptiveEnabled&&(e.feedback=this._feedback),this._photoDocId&&(e.photo_doc_id=this._photoDocId),this._completedAt){if(new Date(this._completedAt).getTime()>Date.now()){this._error=r("completed_at_future_error",this.lang),this._loading=!1;return}e.completed_at=this._completedAt.length===16?`${this._completedAt}:00`:this._completedAt}if(this._readingValue!==""){let t=parseFloat(this._readingValue);isNaN(t)||(e.reading_value=t)}if(this.restockDefault!==null&&this._restockQty!==""){let t=parseFloat(this._restockQty);!isNaN(t)&&t>=1&&(e.restock_quantity=t)}this.parts.length>0&&(e.used_parts=Object.values(this._usedParts).filter(t=>Number.isFinite(t.quantity)&&t.quantity>0).map(t=>t.entry_id?{part_id:t.part_id,quantity:t.quantity,entry_id:t.entry_id}:{part_id:t.part_id,quantity:t.quantity})),await this.hass.connection.sendMessagePromise(e),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(e){this._error=m(e,this.lang,r("save_error",this.lang))}finally{this._loading=!1}}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photoDocId!=="",user:!!this.hass?.user};return this.requiredFields.filter(t=>!e[t])}_req(e){return this.requiredFields.includes(e)?a`<span class="req-mark" aria-hidden="true">*</span>`:d}_partsCostSuggestion(){if(this.restockDefault!==null){let o=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(o)||o<=0?null:Math.round(this.restockUnitCost*o*100)/100}if(!this.parts.length)return null;let e=0,t=!1;for(let o of Object.values(this._usedParts)){let c=this.parts.find(p=>_({part_id:p.id,entry_id:p.entry_id})===_(o));c?.cost!=null&&(e+=c.cost*(o.quantity||1),t=!0)}return t?Math.round(e*100)/100:null}_renderCostSuggestion(e){if(this._cost.trim()!=="")return d;let t=this._partsCostSuggestion();if(t==null||t<=0)return d;let o=`${t.toFixed(2)}${this.currencySymbol?` ${this.currencySymbol}`:""}`;return a`<button
+import{a as _,e as k}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-MO66KLQB.js";import{a as m}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-ZZBLAQHX.js";import{C as g,a as s,b,c as o,f as d,h as v,l as n,m as l,q as r}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-C7MO5BGD.js";var i=class extends v{constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this.taskType="";this.readingUnit="";this.restockDefault=null;this.restockUnitCost=null;this.currencySymbol="";this.parts=[];this.consumesParts=[];this.consumesInfo=[];this.requiredFields=[];this.phaseLabel="";this.requireTagScan=!1;this.viaTagScan=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1;this._readingValue="";this._restockQty="";this._completedAt="";this._usedParts={};this.checklistPrefill={}}open(e={}){this._open||(this._open=!0,this.viaTagScan=!!e.viaTagScan,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState=Object.fromEntries(this.checklist.map((t,a)=>[String(a),!!this.checklistPrefill[t]]).filter(([,t])=>t)),this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1,this._readingValue="",this._restockQty=this.restockDefault!==null?String(this.restockDefault):"",this._completedAt="",this._usedParts=Object.fromEntries(this.consumesParts.map(t=>[_(t),{...t}])))}_toggleCheck(e){let t=String(e);this._checklistState={...this._checklistState,[t]:!this._checklistState[t]}}_setFeedback(e){this._feedback=e}async _onPhotoInput(e){let t=e.target,a=t.files?.[0];if(t.value="",!!a){this._photoUploading=!0,this._error="";try{let c=new FormData;c.append("entry_id",this.entryId),c.append("tags","photo"),c.append("file",a,a.name);let p=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:c});if(!p.ok){this._error=p.status===413?r("doc_too_large",this.lang):r("doc_upload_failed",this.lang);return}let u=await p.json();u.id&&(this._photoDocId=u.id,this._photoPreview=URL.createObjectURL(a))}catch{this._error=r("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let e={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(e.notes=this._notes),this._cost){let t=parseFloat(this._cost);!isNaN(t)&&t>=0&&(e.cost=t)}if(this._duration){let t=parseInt(this._duration,10);!isNaN(t)&&t>=0&&(e.duration=t)}if(this.checklist.length>0&&(e.checklist_state=this._checklistState),this.adaptiveEnabled&&(e.feedback=this._feedback),this._photoDocId&&(e.photo_doc_id=this._photoDocId),this.viaTagScan&&(e.via_tag_scan=!0),this._completedAt){if(new Date(this._completedAt).getTime()>Date.now()){this._error=r("completed_at_future_error",this.lang),this._loading=!1;return}e.completed_at=this._completedAt.length===16?`${this._completedAt}:00`:this._completedAt}if(this._readingValue!==""){let t=parseFloat(this._readingValue);isNaN(t)||(e.reading_value=t)}if(this.restockDefault!==null&&this._restockQty!==""){let t=parseFloat(this._restockQty);!isNaN(t)&&t>=1&&(e.restock_quantity=t)}this.parts.length>0&&(e.used_parts=Object.values(this._usedParts).filter(t=>Number.isFinite(t.quantity)&&t.quantity>0).map(t=>t.entry_id?{part_id:t.part_id,quantity:t.quantity,entry_id:t.entry_id}:{part_id:t.part_id,quantity:t.quantity})),await this.hass.connection.sendMessagePromise(e),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(e){this._error=m(e,this.lang,r("save_error",this.lang))}finally{this._loading=!1}}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photoDocId!=="",user:!!this.hass?.user};return this.requiredFields.filter(t=>!e[t])}_req(e){return this.requiredFields.includes(e)?o`<span class="req-mark" aria-hidden="true">*</span>`:d}_partsCostSuggestion(){if(this.restockDefault!==null){let a=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(a)||a<=0?null:Math.round(this.restockUnitCost*a*100)/100}if(!this.parts.length)return null;let e=0,t=!1;for(let a of Object.values(this._usedParts)){let c=this.parts.find(p=>_({part_id:p.id,entry_id:p.entry_id})===_(a));c?.cost!=null&&(e+=c.cost*(a.quantity||1),t=!0)}return t?Math.round(e*100)/100:null}_renderCostSuggestion(e){if(this._cost.trim()!=="")return d;let t=this._partsCostSuggestion();if(t==null||t<=0)return d;let a=`${t.toFixed(2)}${this.currencySymbol?` ${this.currencySymbol}`:""}`;return o`<button
       type="button"
       class="cost-suggestion"
       @click=${()=>this._cost=t.toFixed(2)}
-    >${r("cost_from_parts",e).replace("{amount}",o)}</button>`}_close(){this._open=!1}render(){if(!this._open)return a``;let e=this.lang||this.hass?.language||"en";return a`
+    >${r("cost_from_parts",e).replace("{amount}",a)}</button>`}_close(){this._open=!1}render(){if(!this._open)return o``;let e=this.lang||this.hass?.language||"en";return o`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${r("complete_title",e)}${this.taskName}</div>
-        ${this.phaseLabel?a`<div class="phase-line">${r("phase_current",e)}: ${this.phaseLabel}</div>`:d}
-        ${this.requireTagScan?a`<div class="scan-required-note">${r("require_tag_scan_hint",e)}</div>`:d}
+        ${this.phaseLabel?o`<div class="phase-line">${r("phase_current",e)}: ${this.phaseLabel}</div>`:d}
+        ${this.requireTagScan&&!this.viaTagScan?o`<div class="scan-required-note">${r("require_tag_scan_hint",e)}</div>`:d}
         <div class="content">
-          ${this._error?a`<div class="error">${this._error}</div>`:d}
-          ${this.checklist.length>0?a`
+          ${this._error?o`<div class="error">${this._error}</div>`:d}
+          ${this.checklist.length>0?o`
             <div class="checklist-section">
               <label class="checklist-label">${r("checklist",e)}</label>
-              ${this.checklist.map((t,o)=>a`
-                <label class="checklist-item" @click=${()=>this._toggleCheck(o)}>
-                  <input type="checkbox" .checked=${!!this._checklistState[String(o)]} />
+              ${this.checklist.map((t,a)=>o`
+                <label class="checklist-item" @click=${()=>this._toggleCheck(a)}>
+                  <input type="checkbox" .checked=${!!this._checklistState[String(a)]} />
                   <span>${t}</span>
                 </label>
               `)}
             </div>
           `:d}
-          ${this.taskType==="reading"?a`
+          ${this.taskType==="reading"?o`
               <label class="field">
                 <span class="field-label">${r("reading_value_label",e)}${this.readingUnit?` (${this.readingUnit})`:""}</span>
                 <input type="number" step="any" class="field-input"
                   .value=${this._readingValue}
                   @input=${t=>this._readingValue=t.target.value} />
               </label>`:d}
-          ${this.parts.length?a`<div class="used-parts">
+          ${this.parts.length?o`<div class="used-parts">
                 <span class="field-label">${r("complete_parts_used",e)}</span>
-                ${this.parts.map(t=>{let o=_({part_id:t.id,entry_id:t.entry_id}),c=this._usedParts[o],p=c!==void 0,u=t.entry_id?{part_id:t.id,quantity:1,entry_id:t.entry_id}:{part_id:t.id,quantity:1};return a`<div class="used-part-row">
+                ${this.parts.map(t=>{let a=_({part_id:t.id,entry_id:t.entry_id}),c=this._usedParts[a],p=c!==void 0,u=t.entry_id?{part_id:t.id,quantity:1,entry_id:t.entry_id}:{part_id:t.id,quantity:1};return o`<div class="used-part-row">
                     <label class="used-part-check">
                       <input type="checkbox" .checked=${p}
-                        @change=${f=>{let h={...this._usedParts};f.target.checked?h[o]=h[o]||u:delete h[o],this._usedParts=h}} />
+                        @change=${f=>{let h={...this._usedParts};f.target.checked?h[a]=h[a]||u:delete h[a],this._usedParts=h}} />
                       <span
-                        >${t.name}${t.owner_name?a`<span class="used-part-owner"> (${t.owner_name})</span>`:d}${t.stock!==null&&t.stock!==void 0?` (${t.stock}${t.unit?" "+t.unit:""})`:""}</span
+                        >${t.name}${t.owner_name?o`<span class="used-part-owner"> (${t.owner_name})</span>`:d}${t.stock!==null&&t.stock!==void 0?` (${t.stock}${t.unit?" "+t.unit:""})`:""}</span
                       >
                     </label>
-                    ${p?a`<input class="used-part-qty" type="number" min="0.01" max="999" step="0.01"
+                    ${p?o`<input class="used-part-qty" type="number" min="0.01" max="999" step="0.01"
                           .value=${String(c.quantity)}
-                          @input=${f=>{let h=parseFloat(f.target.value);this._usedParts={...this._usedParts,[o]:{...u,quantity:Number.isFinite(h)&&h>=.01?h:1}}}} />`:d}
+                          @input=${f=>{let h=parseFloat(f.target.value);this._usedParts={...this._usedParts,[a]:{...u,quantity:Number.isFinite(h)&&h>=.01?h:1}}}} />`:d}
                   </div>`})}
-              </div>`:this.consumesInfo.length?a`<div class="consumes-hint">
-                  ${this.consumesInfo.map(t=>a`<div>${t}</div>`)}
+              </div>`:this.consumesInfo.length?o`<div class="consumes-hint">
+                  ${this.consumesInfo.map(t=>o`<div>${t}</div>`)}
                 </div>`:d}
-          ${this.restockDefault!==null?a`
+          ${this.restockDefault!==null?o`
               <label class="field">
                 <span class="field-label">${r("restock_quantity_label",e)}</span>
                 <input type="number" step="0.01" min="0.01" class="field-input"
@@ -86,12 +86,12 @@ import{a as _,e as k}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-5
           </label>
           <div class="field">
             <span class="field-label">${r("completion_photo_optional",e)}${this._req("photo")}</span>
-            ${this._photoPreview?a`
+            ${this._photoPreview?o`
                 <div class="photo-preview">
                   <img src=${this._photoPreview} alt="" />
                   <button type="button" class="photo-remove" @click=${this._removePhoto}
                     title="${r("remove",e)}">✕</button>
-                </div>`:a`
+                </div>`:o`
                 <label class="photo-pick">
                   <ha-icon icon="mdi:camera"></ha-icon>
                   <span>${this._photoUploading?r("uploading",e):r("add_photo",e)}</span>
@@ -100,7 +100,7 @@ import{a as _,e as k}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-5
                     @change=${this._onPhotoInput} />
                 </label>`}
           </div>
-          ${this.adaptiveEnabled?a`
+          ${this.adaptiveEnabled?o`
             <div class="feedback-section">
               <label class="feedback-label">${r("was_maintenance_needed",e)}</label>
               <div class="feedback-buttons">
@@ -312,4 +312,4 @@ import{a as _,e as k}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-5
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color);
     }
-  `],s([n({attribute:!1})],i.prototype,"hass",2),s([n()],i.prototype,"entryId",2),s([n()],i.prototype,"taskId",2),s([n()],i.prototype,"taskName",2),s([n()],i.prototype,"lang",2),s([n({type:Array})],i.prototype,"checklist",2),s([n({type:Boolean})],i.prototype,"adaptiveEnabled",2),s([n()],i.prototype,"taskType",2),s([n()],i.prototype,"readingUnit",2),s([n({attribute:!1})],i.prototype,"restockDefault",2),s([n({attribute:!1})],i.prototype,"restockUnitCost",2),s([n()],i.prototype,"currencySymbol",2),s([n({attribute:!1})],i.prototype,"parts",2),s([n({attribute:!1})],i.prototype,"consumesParts",2),s([n({type:Array})],i.prototype,"consumesInfo",2),s([n({type:Array})],i.prototype,"requiredFields",2),s([n()],i.prototype,"phaseLabel",2),s([n({type:Boolean})],i.prototype,"requireTagScan",2),s([l()],i.prototype,"_open",2),s([l()],i.prototype,"_notes",2),s([l()],i.prototype,"_cost",2),s([l()],i.prototype,"_duration",2),s([l()],i.prototype,"_loading",2),s([l()],i.prototype,"_error",2),s([l()],i.prototype,"_checklistState",2),s([l()],i.prototype,"_feedback",2),s([l()],i.prototype,"_photoDocId",2),s([l()],i.prototype,"_photoPreview",2),s([l()],i.prototype,"_photoUploading",2),s([l()],i.prototype,"_readingValue",2),s([l()],i.prototype,"_restockQty",2),s([l()],i.prototype,"_completedAt",2),s([l()],i.prototype,"_usedParts",2),s([n({attribute:!1})],i.prototype,"checklistPrefill",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",i);export{i as a};
+  `],s([n({attribute:!1})],i.prototype,"hass",2),s([n()],i.prototype,"entryId",2),s([n()],i.prototype,"taskId",2),s([n()],i.prototype,"taskName",2),s([n()],i.prototype,"lang",2),s([n({type:Array})],i.prototype,"checklist",2),s([n({type:Boolean})],i.prototype,"adaptiveEnabled",2),s([n()],i.prototype,"taskType",2),s([n()],i.prototype,"readingUnit",2),s([n({attribute:!1})],i.prototype,"restockDefault",2),s([n({attribute:!1})],i.prototype,"restockUnitCost",2),s([n()],i.prototype,"currencySymbol",2),s([n({attribute:!1})],i.prototype,"parts",2),s([n({attribute:!1})],i.prototype,"consumesParts",2),s([n({type:Array})],i.prototype,"consumesInfo",2),s([n({type:Array})],i.prototype,"requiredFields",2),s([n()],i.prototype,"phaseLabel",2),s([n({type:Boolean})],i.prototype,"requireTagScan",2),s([n({type:Boolean})],i.prototype,"viaTagScan",2),s([l()],i.prototype,"_open",2),s([l()],i.prototype,"_notes",2),s([l()],i.prototype,"_cost",2),s([l()],i.prototype,"_duration",2),s([l()],i.prototype,"_loading",2),s([l()],i.prototype,"_error",2),s([l()],i.prototype,"_checklistState",2),s([l()],i.prototype,"_feedback",2),s([l()],i.prototype,"_photoDocId",2),s([l()],i.prototype,"_photoPreview",2),s([l()],i.prototype,"_photoUploading",2),s([l()],i.prototype,"_readingValue",2),s([l()],i.prototype,"_restockQty",2),s([l()],i.prototype,"_completedAt",2),s([l()],i.prototype,"_usedParts",2),s([n({attribute:!1})],i.prototype,"checklistPrefill",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",i);export{i as a};

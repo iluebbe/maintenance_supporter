@@ -306,6 +306,14 @@ def replaced_button_for(battery_plus_entity_id: str) -> str:
     Battery Notes mints them in parallel: sensor.<x>_battery_plus ->
     button.<x>_battery_replaced.
     """
+    # #121 low-only notes are binary_sensor.<x>_battery_plus_low; their button
+    # is still button.<x>_battery_replaced (bug audit 2026-08-29).
+    if battery_plus_entity_id.startswith("binary_sensor."):
+        return (
+            battery_plus_entity_id.replace("binary_sensor.", "button.", 1)
+            .replace("_battery_plus_low", "_battery_replaced")
+            .replace("_battery_plus", "_battery_replaced")
+        )
     return battery_plus_entity_id.replace("sensor.", "button.", 1).replace("_battery_plus", "_battery_replaced")
 
 

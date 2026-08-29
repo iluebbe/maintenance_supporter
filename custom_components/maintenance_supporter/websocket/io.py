@@ -14,6 +14,11 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import (
+    BATTERY_FLEET_EXCLUDED,
+    BATTERY_FLEET_INCLUDED,
+    BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_TASK_FLAG,
+    BATTERY_FLEET_TRACK_SELF_CHARGING,
     CONF_OBJECT,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
@@ -87,6 +92,57 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
             clean.pop("cost", None)
         out.append(clean)
     return out
+
+
+def _import_fleet_identity(
+    hass: HomeAssistant,
+    obj_data: dict[str, Any],
+    import_obj: dict[str, Any],
+    obj_name: str,
+) -> bool:
+    """Restore the battery-fleet markers onto ``import_obj``; True if it is the fleet.
+
+    The exported flag is honoured only while this instance has NO fleet yet
+    (``find_fleet_entry`` returns the FIRST flagged entry, so a second flagged
+    object would silently shadow or be shadowed by the existing one). The
+    exclude/include lists are re-validated like the live WS writes: entity
+    ids only, deduped + sorted, capped at ``FLEET_LIST_CAP``.
+    """
+    if obj_data.get(BATTERY_FLEET_OBJECT_FLAG) is not True:
+        return False
+
+    from homeassistant.core import valid_entity_id
+
+    from ..helpers.battery_fleet_setup import FLEET_LIST_CAP, find_fleet_entry
+
+    if find_fleet_entry(hass) is not None:
+        _LOGGER.warning(
+            "JSON import: %r is flagged as the Battery Fleet but this instance already has one — importing it as a plain object",
+            obj_name,
+        )
+        return False
+
+    import_obj[BATTERY_FLEET_OBJECT_FLAG] = True
+    for key in (BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_INCLUDED):
+        raw_list = obj_data.get(key)
+        if not isinstance(raw_list, list):
+            continue
+        cleaned = sorted({e.strip() for e in raw_list if isinstance(e, str) and valid_entity_id(e.strip())})
+        if cleaned:
+            import_obj[key] = cleaned[:FLEET_LIST_CAP]
+    if obj_data.get(BATTERY_FLEET_TRACK_SELF_CHARGING) is True:
+        import_obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = True
+    return True
+
+
+def _keep_fleet_part_id(is_fleet: bool, old_id: str) -> bool:
+    """Whether an imported part keeps its id instead of getting a fresh uuid.
+
+    Only the fleet's deterministic type-part ids (``batt_<type>``, minted by
+    battery_fleet_setup._type_part) — every other part id is re-minted so an
+    import can never collide with or impersonate an existing part.
+    """
+    return is_fleet and old_id.startswith("batt_") and len(old_id) <= MAX_ID_LENGTH
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/version"})
@@ -557,12 +613,26 @@ async def ws_import_json(
             "paused_until": _iso_marker(obj_data.get("paused_until")),
             "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
             "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
+            # Object-level archive marker — same presence-means-archived
+            # semantics as paused_at, so it gets the same ISO validation. Its
+            # tasks carry their own archived_* pair (mirrored below).
+            "archived_at": _iso_marker(obj_data.get("archived_at")),
             "task_ids": [],
         }
+
+        # Battery fleet identity (object flag + exclude/include lists + the
+        # self-charging opt-in). The fleet is ONE object by invariant
+        # (find_fleet_entry returns the first flagged entry), so the flag is
+        # only restored when this instance has no fleet yet — otherwise the
+        # payload imports as a plain object (fresh part ids, no task flag).
+        is_fleet = _import_fleet_identity(hass, obj_data, import_obj, obj_name)
 
         # Spare parts: regenerate ids (like tasks) and remember the mapping so
         # task-side links (consumes_parts / part_ref) can be rewritten below.
         # Stock is dynamic Store state — collected here, written after setup.
+        # Fleet type-parts keep their deterministic ``batt_<type>`` ids: the
+        # fleet reconcile / mark-replaced paths key on them, so a re-minted
+        # uuid would orphan the whole battery-type ↔ part mapping.
         from uuid import uuid4 as _uuid4
 
         part_id_map: dict[str, str] = {}
@@ -574,7 +644,7 @@ async def ws_import_json(
                 if not isinstance(part_entry, dict) or not (part_entry.get("name") or "").strip():
                     continue
                 old_id = str(part_entry.get("id") or "")
-                new_id = _uuid4().hex
+                new_id = old_id if _keep_fleet_part_id(is_fleet, old_id) else _uuid4().hex
                 pdata = {k: v for k, v in part_entry.items() if k != "stock"}
                 pdata["id"] = new_id
                 # Drop a non-http(s) product_url — the WS write path validates it
@@ -597,6 +667,7 @@ async def ws_import_json(
         # old task id → new id, so document task-links (task_ids) can be
         # remapped onto the freshly generated tasks (mirrors part_id_map).
         task_id_map: dict[str, str] = {}
+        fleet_task_seen = False
         tasks_list = obj_entry.get("tasks", [])
         if not isinstance(tasks_list, list):
             tasks_list = []
@@ -667,6 +738,13 @@ async def ws_import_json(
                 val = task_entry.get(key)
                 if val is not None:
                     task_data[key] = val
+
+            # The fleet's single aggregate task keeps its marker (detail view
+            # renders the battery section; the fleet reconcile repairs its
+            # trigger). Only ONE task may carry it, and only on the fleet.
+            if is_fleet and task_entry.get(BATTERY_FLEET_TASK_FLAG) is True and not fleet_task_seen:
+                task_data[BATTERY_FLEET_TASK_FLAG] = True
+                fleet_task_seen = True
 
             # In-cycle checklist ticks: keyed by item TEXT so they survive the
             # id regeneration; keys are filtered against the imported checklist

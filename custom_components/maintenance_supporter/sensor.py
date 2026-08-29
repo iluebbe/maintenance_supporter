@@ -794,6 +794,7 @@ class BatteryFleetLowSensor(SensorEntity):
         """Initialize the global battery-fleet low-count sensor."""
         self.hass = hass
         self._attr_unique_id = f"{GLOBAL_UNIQUE_ID}_batteries_to_replace"
+        self._sticky_low: dict[str, float] = {}
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, GLOBAL_UNIQUE_ID)},
             name="Maintenance Supporter",
@@ -811,18 +812,52 @@ class BatteryFleetLowSensor(SensorEntity):
         ):
             self.async_on_remove(self.hass.bus.async_listen(event, self._handle_event))
 
+    # A battery hovering at its threshold (20 %, 21 %, 20 %, ...) flipped the
+    # count 1 -> 0 -> 1 and the fleet task - auto-complete-on-recovery - recorded
+    # a real completion on every dip (bug audit 2026-08-29). Once low, a cell
+    # stays counted until it reads clearly above its threshold again; an
+    # unavailable reading is no proof of recovery either. In-memory only: a
+    # restart recounts from scratch, which is the correct fresh start.
+    _HYSTERESIS_PERCENT = 5.0
+
     @callback
-    def _handle_event(self, _event: Any) -> None:
-        self.async_write_ha_state()
+    def _handle_event(self, event: Any) -> None:
+        if getattr(event, "event_type", "") == "battery_notes_battery_replaced":
+            # A replacement is the one legitimate way down - forget the memory
+            # so the count drops the moment the fresh cell reports.
+            self._sticky_low.clear()
+        if self.hass is not None:
+            self.async_write_ha_state()
 
     def _overview(self) -> BatteryOverview:
         from .helpers.battery_fleet import compute_overview
 
         return compute_overview(self.hass)
 
+    def _low_count(self, ov: BatteryOverview) -> int:
+        sticky = getattr(self, "_sticky_low", None)
+        if sticky is None:
+            sticky = self._sticky_low = {}
+        low_ids = {row["entity_id"] for row in ov.low if row.get("entity_id")}
+        for row in ov.low:
+            if row.get("entity_id"):
+                sticky[row["entity_id"]] = float(row.get("low_threshold") or 0.0)
+        by_id = {row.get("entity_id"): row for row in ov.all}
+        for eid in list(sticky):
+            if eid in low_ids:
+                continue
+            current = by_id.get(eid)
+            if current is None:
+                sticky.pop(eid, None)  # gone from the fleet
+                continue
+            level = current.get("level")
+            if level is not None and float(level) >= sticky[eid] + self._HYSTERESIS_PERCENT:
+                sticky.pop(eid, None)
+        return len(low_ids | set(sticky))
+
     @property
     def native_value(self) -> int:
-        return self._overview().low_count
+        return self._low_count(self._overview())
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

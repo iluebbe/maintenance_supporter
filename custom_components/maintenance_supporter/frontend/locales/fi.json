@@ -903,6 +903,8 @@
   "phase_current": "Nykyinen vaihe",
   "phase_set": "Aseta nykyiseksi",
   "chart_history_fallback": "Tälle entiteetille ei ole pitkän aikavälin tilastoja — näytetään recorderin tilahistoria (yleensä viimeiset ~10 päivää)",
+  "chart_history_alarm": "Laukaisimen näkymä tilahistoriasta: 1 = hälytystila pysyi pitoajan, 0 = kunnossa (yleensä viimeiset ~10 päivää)",
+  "chart_history_count": "Muutoslaskuri koottu tilahistoriasta viime huollon jälkeen (yleensä viimeiset ~10 päivää)",
   "prediction_cycles": "Opittu sykleistä",
   "phase_require_override": "Ohita ”Vaadi valmistuessa” tälle vaiheelle",
   "history_add_past": "Lisää aiempi suoritus",

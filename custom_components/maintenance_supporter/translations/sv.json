@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "”{task_name}” kan bara slutföras genom att skanna dess tagg — gå dit och skanna NFC-taggen eller QR-koden på själva saken."
+    },
+    "task_inactive": {
+      "message": "”{task_name}” är arkiverad, inaktiverad eller dess objekt är pausat — kan inte slutföras"
+    },
+    "too_early": {
+      "message": "”{task_name}” kan bara slutföras närmare förfallodatumet"
     }
   },
   "triggers": {

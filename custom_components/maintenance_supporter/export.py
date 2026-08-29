@@ -11,6 +11,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
+    BATTERY_FLEET_EXCLUDED,
+    BATTERY_FLEET_INCLUDED,
+    BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_TASK_FLAG,
+    BATTERY_FLEET_TRACK_SELF_CHARGING,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_WARNING_DAYS,
@@ -156,6 +161,12 @@ def _build_export_object(
         if trigger_config:
             task["trigger_config"] = trigger_config
 
+        # Battery fleet identity: the single aggregate task is flagged so the
+        # detail view renders the battery section — without the marker a
+        # restored fleet task is a plain inspection task.
+        if tdata.get(BATTERY_FLEET_TASK_FLAG):
+            task[BATTERY_FLEET_TASK_FLAG] = True
+
         if include_history:
             task["history"] = tdata.get("history") or []
 
@@ -168,33 +179,48 @@ def _build_export_object(
     object_id = obj_data.get("id", "")
     documents = _export_documents(doc_store, object_id) if doc_store is not None and object_id else []
 
+    export_obj: dict[str, Any] = {
+        "name": obj_data.get("name", ""),
+        "area_id": obj_data.get("area_id"),
+        "manufacturer": obj_data.get("manufacturer"),
+        "model": obj_data.get("model"),
+        "serial_number": obj_data.get("serial_number"),
+        "installation_date": obj_data.get("installation_date"),
+        "warranty_expiry": obj_data.get("warranty_expiry"),
+        # Round-tripped so a JSON backup restores the full asset record
+        # (these were added in v1.4.0/v1.4.10 but missed here until #67).
+        "documentation_url": obj_data.get("documentation_url"),
+        "notes": obj_data.get("notes"),
+        # 2.19: device link / parent hierarchy. Instance-specific ids —
+        # meaningful when restoring on the SAME instance; dangling values
+        # on a foreign instance are harmless (device_info falls back).
+        "ha_device_id": obj_data.get("ha_device_id"),
+        "parent_entry_id": obj_data.get("parent_entry_id"),
+        # 2.20: seasonal pause (a paused pool restored in winter stays
+        # paused) + replace-flow lineage (instance-specific entry ids,
+        # same caveat as parent_entry_id above).
+        "paused_at": obj_data.get("paused_at"),
+        "paused_until": obj_data.get("paused_until"),
+        "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
+        "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
+        # Object-level archive marker (the tasks carry their own pair
+        # above). Without it an archived object came back ACTIVE after a
+        # restore — with every task still archived (reason "object") and
+        # object/unarchive refusing because the object "isn't archived".
+        "archived_at": obj_data.get("archived_at"),
+    }
+    # Battery fleet identity — only emitted for the fleet object so a plain
+    # object's export stays byte-identical to earlier versions. The importer
+    # mirrors these (and keeps the deterministic ``batt_<type>`` part ids).
+    if obj_data.get(BATTERY_FLEET_OBJECT_FLAG):
+        export_obj[BATTERY_FLEET_OBJECT_FLAG] = True
+        export_obj[BATTERY_FLEET_EXCLUDED] = list(obj_data.get(BATTERY_FLEET_EXCLUDED) or [])
+        export_obj[BATTERY_FLEET_INCLUDED] = list(obj_data.get(BATTERY_FLEET_INCLUDED) or [])
+        export_obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = bool(obj_data.get(BATTERY_FLEET_TRACK_SELF_CHARGING))
+
     return {
         "entry_id": entry.entry_id,
-        "object": {
-            "name": obj_data.get("name", ""),
-            "area_id": obj_data.get("area_id"),
-            "manufacturer": obj_data.get("manufacturer"),
-            "model": obj_data.get("model"),
-            "serial_number": obj_data.get("serial_number"),
-            "installation_date": obj_data.get("installation_date"),
-            "warranty_expiry": obj_data.get("warranty_expiry"),
-            # Round-tripped so a JSON backup restores the full asset record
-            # (these were added in v1.4.0/v1.4.10 but missed here until #67).
-            "documentation_url": obj_data.get("documentation_url"),
-            "notes": obj_data.get("notes"),
-            # 2.19: device link / parent hierarchy. Instance-specific ids —
-            # meaningful when restoring on the SAME instance; dangling values
-            # on a foreign instance are harmless (device_info falls back).
-            "ha_device_id": obj_data.get("ha_device_id"),
-            "parent_entry_id": obj_data.get("parent_entry_id"),
-            # 2.20: seasonal pause (a paused pool restored in winter stays
-            # paused) + replace-flow lineage (instance-specific entry ids,
-            # same caveat as parent_entry_id above).
-            "paused_at": obj_data.get("paused_at"),
-            "paused_until": obj_data.get("paused_until"),
-            "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
-            "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
-        },
+        "object": export_obj,
         "tasks": tasks,
         "documents": documents,
         # Spare parts: full static definition + the tracked stock (dynamic,

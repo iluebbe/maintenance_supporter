@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "« {task_name} » ne peut être terminé qu'en scannant son tag — allez scanner le tag NFC ou le QR code sur l'objet lui-même."
+    },
+    "task_inactive": {
+      "message": "« {task_name} » est archivée, désactivée ou son objet est en pause — elle ne peut pas être terminée"
+    },
+    "too_early": {
+      "message": "« {task_name} » ne peut être terminée que plus près de son échéance"
     }
   },
   "triggers": {

@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "„{task_name}“ lze dokončit pouze naskenováním štítku — dojděte k zařízení a naskenujte NFC štítek nebo QR kód přímo na něm."
+    },
+    "task_inactive": {
+      "message": "„{task_name}“ je archivován, zakázán nebo jeho objekt je pozastaven — nelze dokončit"
+    },
+    "too_early": {
+      "message": "„{task_name}“ lze dokončit až blíže k termínu"
     }
   },
   "triggers": {

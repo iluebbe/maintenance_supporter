@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "“{task_name}” can only be completed by scanning its tag — walk over and scan the NFC tag or QR code on the thing itself."
+    },
+    "task_inactive": {
+      "message": "“{task_name}” is archived, disabled or its object is paused — it cannot be completed"
+    },
+    "too_early": {
+      "message": "“{task_name}” can only be completed closer to its due date"
     }
   },
   "triggers": {

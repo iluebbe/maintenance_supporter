@@ -120,3 +120,28 @@ async def test_flag_off_keeps_the_old_world(hass: HomeAssistant, global_entry: M
         "entry_id": entry.entry_id, "task_id": TASK_ID_1,
     })
     assert not conn.send_error.called
+
+
+async def test_ws_complete_with_via_tag_scan_passes_the_gate(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """QR deep-link fallback (bug audit 2026-08-29): a tag-gated task whose
+    quick-complete needs the full dialog completes when the panel asserts the
+    scan on task/complete — the schema must accept the field, not just the
+    handler."""
+    entry = _entry(hass)
+    await setup_integration(hass, global_entry, entry)
+    # call_ws_handler bypasses the decorator schema, so validate the field
+    # against the REAL schema here - the first cut only patched the handler
+    # and the live check failed with "extra keys not allowed".
+    ws_complete_task._ws_schema({  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/task/complete",
+        "entry_id": entry.entry_id, "task_id": TASK_ID_1, "via_tag_scan": True,
+    })
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_complete_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/complete",
+        "entry_id": entry.entry_id, "task_id": TASK_ID_1, "via_tag_scan": True,
+    })
+    assert not conn.send_error.called, conn.send_error.call_args
+    merged = entry.runtime_data.coordinator._get_merged_tasks_data()[TASK_ID_1]
+    assert [h for h in merged["history"] if h["type"] == "completed"]

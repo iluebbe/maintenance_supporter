@@ -408,3 +408,69 @@ async def test_import_documents_without_part_map_drops_links(hass: HomeAssistant
     )
     (doc,) = s.for_object("obj1")
     assert doc["part_ids"] == []
+
+
+# ─── Load-time shape sanitizer (P-F8) ────────────────────────────────────────
+
+
+async def _write_raw(hass: HomeAssistant, payload: object) -> None:
+    from homeassistant.helpers.storage import Store
+
+    await Store(hass, docmod.DOC_STORE_VERSION, docmod.DOC_STORE_KEY).async_save(payload)
+
+
+async def test_load_resets_a_non_dict_payload(hass: HomeAssistant) -> None:
+    """A valid-JSON file whose data is a LIST must not fail integration setup."""
+    await _write_raw(hass, [1, 2, 3])
+    s = await _store(hass)
+    assert s.documents == {} and s.blobs == {}
+    # …and the store is usable afterwards.
+    await s.async_add_weblink("obj1", url="https://x/manual")
+    assert len(s.for_object("obj1")) == 1
+
+
+async def test_load_coerces_wrong_shaped_sections_and_drops_bad_records(hass: HomeAssistant) -> None:
+    good = {"object_id": "obj1", "kind": "weblink", "url": "https://x", "title": "ok", "tags": [], "task_ids": []}
+    await _write_raw(
+        hass,
+        {
+            "documents": {"d1": good, "d2": "not-a-record", "d3": None, "d4": ["list"]},
+            "blobs": ["not", "a", "dict"],
+        },
+    )
+    s = await _store(hass)
+    assert list(s.documents) == ["d1"]
+    assert s.blobs == {}
+    assert s.for_object("obj1")[0]["title"] == "ok"
+
+    await _write_raw(hass, {"documents": [], "blobs": {"a" * 64: {"size": 1, "refcount": 1}, "b" * 64: 7}})
+    s2 = await _store(hass)
+    assert s2.documents == {}
+    assert list(s2.blobs) == ["a" * 64]
+
+
+# ─── Task-delete link pruning (P-F10) ────────────────────────────────────────
+
+
+async def test_unlink_task_prunes_links_and_pages(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    d1 = await s.async_add_weblink("obj1", url="https://x/manual")
+    d2 = await s.async_add_weblink("obj1", url="https://x/other")
+    d3 = await s.async_add_weblink("obj2", url="https://x/unrelated")
+    await s.async_update(d1["id"], task_ids=["t1", "t2"], task_pages={"t1": 3, "t2": 8})
+    await s.async_update(d2["id"], task_ids=["t1"], task_pages={"t1": 5})
+    await s.async_update(d3["id"], task_ids=["t9"])
+
+    assert await s.async_unlink_task("t1") == 2
+
+    assert s.get(d1["id"])["task_ids"] == ["t2"]
+    assert s.get(d1["id"])["task_pages"] == {"t2": 8}
+    assert s.get(d2["id"])["task_ids"] == []
+    assert "task_pages" not in s.get(d2["id"]), "an empty page map is dropped like async_update does"
+    assert s.get(d3["id"])["task_ids"] == ["t9"]
+    # Nothing left to prune → no-op, no save.
+    assert await s.async_unlink_task("t1") == 0
+
+    # Persisted: a fresh load sees the pruned links.
+    s2 = await _store(hass)
+    assert s2.get(d1["id"])["task_ids"] == ["t2"]

@@ -10,6 +10,7 @@ three options:
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any, cast
 
 import voluptuous as vol
@@ -770,13 +771,19 @@ class DeviceLinkRepairFlow(RepairsFlow):
         registry_devices = dr.async_get(self.hass).devices
         # cast(Any): the .values() branch only ever runs on 2026.7, but the
         # 2026.9 stubs type `devices` as a Collection without it.
+        # Probe the COLLECTION, not a neighbouring symbol (#144 lesson): a
+        # Mapping (2026.8 and older UserDict) iterates ids and needs .values();
+        # the 2026.9 view iterates entries and has no Mapping base.
         device_iter: Any = (
-            registry_devices
-            if hasattr(dr, "ChildDeviceEntry")
-            else cast(Any, registry_devices).values()
+            cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
         )
         for device in device_iter:
             if is_maintenance_device(self.hass, device):
+                continue
+            # 2026.9 sub-devices: reading manufacturer/model on a
+            # ChildDeviceEntry logs a deprecation report per access, and a
+            # sub-device is never the appliance itself.
+            if getattr(device, "parent_device_id", None) is not None:
                 continue
             hay = norm(
                 f"{getattr(device, 'name_by_user', None) or ''} {getattr(device, 'name', None) or ''} "

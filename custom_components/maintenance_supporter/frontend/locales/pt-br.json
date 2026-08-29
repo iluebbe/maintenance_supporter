@@ -903,6 +903,8 @@
   "phase_current": "Fase atual",
   "phase_set": "Definir como atual",
   "chart_history_fallback": "Sem estatísticas de longo prazo para esta entidade — mostrando o histórico de estados do recorder (normalmente os últimos ~10 dias)",
+  "chart_history_alarm": "Visão do gatilho a partir do histórico de estados: 1 = estado de alerta mantido pelo tempo de espera, 0 = normal (normalmente os últimos ~10 dias)",
+  "chart_history_count": "Contagem de mudanças reconstruída a partir do histórico de estados desde o último serviço (normalmente os últimos ~10 dias)",
   "prediction_cycles": "Aprendido de ciclos",
   "phase_require_override": "Substituir “Exigir na conclusão” para esta fase",
   "history_add_past": "Adicionar conclusão passada",

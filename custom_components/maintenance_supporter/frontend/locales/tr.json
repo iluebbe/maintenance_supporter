@@ -903,6 +903,8 @@
   "phase_current": "Geçerli aşama",
   "phase_set": "Geçerli olarak ayarla",
   "chart_history_fallback": "Bu varlık için uzun dönem istatistik yok — recorder durum geçmişi gösteriliyor (genellikle son ~10 gün)",
+  "chart_history_alarm": "Durum geçmişinden tetikleyici görünümü: 1 = uyarı durumu bekletme süresi boyunca sürdü, 0 = normal (genellikle son ~10 gün)",
+  "chart_history_count": "Değişim sayısı son servisten bu yana durum geçmişinden yeniden oluşturuldu (genellikle son ~10 gün)",
   "prediction_cycles": "Döngülerden öğrenildi",
   "phase_require_override": "Bu aşama için “Tamamlarken zorunlu tut” ayarını geçersiz kıl",
   "history_add_past": "Geçmiş tamamlama ekle",

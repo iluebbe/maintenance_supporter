@@ -903,6 +903,8 @@
   "phase_current": "Bieżąca faza",
   "phase_set": "Ustaw jako bieżącą",
   "chart_history_fallback": "Brak statystyk długoterminowych dla tej encji — wyświetlana jest historia stanów recordera (zwykle ostatnie ~10 dni)",
+  "chart_history_alarm": "Widok wyzwalacza z historii stanów: 1 = stan alarmu utrzymany przez czas podtrzymania, 0 = w porządku (zwykle ostatnie ~10 dni)",
+  "chart_history_count": "Licznik zmian odtworzony z historii stanów od ostatniego serwisu (zwykle ostatnie ~10 dni)",
   "prediction_cycles": "Nauczone z cykli",
   "phase_require_override": "Nadpisz „Wymagaj przy ukończeniu” dla tej fazy",
   "history_add_past": "Dodaj wcześniejsze ukończenie",

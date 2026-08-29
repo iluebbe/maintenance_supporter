@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "“{task_name}” só pode ser concluído escaneando sua etiqueta — vá até lá e escaneie a etiqueta NFC ou o código QR no próprio objeto."
+    },
+    "task_inactive": {
+      "message": "“{task_name}” está arquivada, desativada ou seu objeto está pausado — não pode ser concluída"
+    },
+    "too_early": {
+      "message": "“{task_name}” só pode ser concluída mais perto da data de vencimento"
     }
   },
   "triggers": {

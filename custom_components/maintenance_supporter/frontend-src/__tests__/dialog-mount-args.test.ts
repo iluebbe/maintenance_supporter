@@ -110,4 +110,40 @@ describe("dialog-mount argument forwarding", () => {
     expect(dlg.consumesParts).to.deep.equal([]);
     expect(dlg.requiredFields).to.deep.equal([]);
   });
+
+  it("openCompleteDialog forwards the tag-scan gate, restock, currency, hints and checklist ticks", () => {
+    const ha = makeHaRoot();
+    openCompleteDialog({
+      entry_id: "e1",
+      task_id: "t1",
+      task_name: "Buy bags",
+      require_tag_scan: true,
+      restock_default: 10,
+      restock_unit_cost: 1.5,
+      currency_symbol: "€",
+      consumes_info: ["1× HEPA (Shelf)"],
+      checklist: ["A", "B"],
+      checklist_prefill: { A: true },
+      via_tag_scan: true,
+    });
+    const dlg = ha.shadowRoot!.querySelector(COMPLETE_TAG) as MaintenanceCompleteDialog;
+    expect(dlg.requireTagScan).to.equal(true);
+    expect(dlg.restockDefault).to.equal(10);
+    expect(dlg.restockUnitCost).to.equal(1.5);
+    expect(dlg.currencySymbol).to.equal("€");
+    expect(dlg.consumesInfo).to.deep.equal(["1× HEPA (Shelf)"]);
+    expect(dlg.checklistPrefill).to.deep.equal({ A: true });
+    expect(dlg.viaTagScan).to.equal(true);
+
+    // Singleton reset — the next task must not inherit any of it.
+    (dlg as unknown as { _close: () => void })._close();
+    openCompleteDialog({ entry_id: "e2", task_id: "t2", task_name: "Plain" });
+    expect(dlg.requireTagScan).to.equal(false);
+    expect(dlg.restockDefault).to.equal(null);
+    expect(dlg.restockUnitCost).to.equal(null);
+    expect(dlg.currencySymbol).to.equal("");
+    expect(dlg.consumesInfo).to.deep.equal([]);
+    expect(dlg.checklistPrefill).to.deep.equal({});
+    expect(dlg.viaTagScan).to.equal(false);
+  });
 });

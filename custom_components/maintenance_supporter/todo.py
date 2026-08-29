@@ -170,6 +170,10 @@ class MaintenanceTodoList(TodoListEntity):
         if td and not MaintenanceTask.from_dict(td).can_complete_now:
             return
         await coordinator.complete_maintenance(
-            task_id, notes="Completed from the To-do list", unattended=True
+            task_id,
+            notes="Completed from the To-do list",
+            unattended=True,
+            # HA's entity-service call carries the user in the context.
+            completed_by=self._context.user_id if self._context else None,
         )
         self.async_write_ha_state()

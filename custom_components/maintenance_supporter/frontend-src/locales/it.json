@@ -903,6 +903,8 @@
   "phase_current": "Fase attuale",
   "phase_set": "Imposta come attuale",
   "chart_history_fallback": "Nessuna statistica a lungo termine per questa entità — viene mostrata la cronologia degli stati del recorder (di solito gli ultimi ~10 giorni)",
+  "chart_history_alarm": "Vista del trigger dallo storico stati: 1 = stato di allarme mantenuto per il tempo di attesa, 0 = ok (in genere gli ultimi ~10 giorni)",
+  "chart_history_count": "Conteggio dei cambi ricostruito dallo storico stati dall'ultimo intervento (in genere gli ultimi ~10 giorni)",
   "prediction_cycles": "Appreso da cicli",
   "phase_require_override": "Sostituisci «Richiedi al completamento» per questa fase",
   "history_add_past": "Aggiungi un completamento passato",

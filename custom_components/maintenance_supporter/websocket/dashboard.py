@@ -330,7 +330,7 @@ async def ws_subscribe(
 
     deltas: bool = msg.get("deltas", False)
     compact: bool = msg.get("compact", False)
-    attached_entry_ids: set[str] = set()
+    attached_entry_ids: dict[str, tuple[Any, Callable[[], None]]] = {}
     unsub_callbacks: list[Callable[[], None]] = []
     dirty: set[str] = set()
     last_hash: dict[str, int] = {}
@@ -408,18 +408,33 @@ async def ws_subscribe(
             debounce_unsub = async_call_later(hass, 1.0, _send_now)
 
     def _attach_entry(entry_id: str) -> None:
-        """Attach a coordinator listener for a specific entry."""
-        if entry_id in attached_entry_ids:
-            return
+        """Attach a coordinator listener for a specific entry.
+
+        Every entry RELOAD (task create/edit/delete, options flow, ...) builds
+        a brand-new coordinator and re-announces the entry via
+        SIGNAL_NEW_OBJECT_ENTRY. An "already attached" early return kept this
+        subscription bound to the dead coordinator, so other clients froze
+        for that object until a page reload (bug audit 2026-08-29). Track
+        the coordinator instance and re-attach when it changed.
+        """
         rd = _get_runtime_data(hass, entry_id)
-        if rd and rd.coordinator:
+        coordinator = rd.coordinator if rd else None
+        if coordinator is None:
+            return
+        previous = attached_entry_ids.get(entry_id)
+        if previous is not None:
+            if previous[0] is coordinator:
+                return
+            previous[1]()
+            unsub_callbacks.remove(previous[1])
 
-            @callback
-            def _on_update(eid: str = entry_id) -> None:
-                _forward_update(eid)
+        @callback
+        def _on_update(eid: str = entry_id) -> None:
+            _forward_update(eid)
 
-            unsub_callbacks.append(rd.coordinator.async_add_listener(_on_update))
-            attached_entry_ids.add(entry_id)
+        unsub = coordinator.async_add_listener(_on_update)
+        unsub_callbacks.append(unsub)
+        attached_entry_ids[entry_id] = (coordinator, unsub)
 
     # Register listeners on all existing coordinators
     entries = _get_object_entries(hass)

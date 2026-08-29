@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "«{task_name}» kan bare fullføres ved å skanne taggen — gå bort og skann NFC-taggen eller QR-koden på selve tingen."
+    },
+    "task_inactive": {
+      "message": "«{task_name}» er arkivert, deaktivert eller objektet er satt på pause — kan ikke fullføres"
+    },
+    "too_early": {
+      "message": "«{task_name}» kan bare fullføres nærmere forfallsdatoen"
     }
   },
   "triggers": {

@@ -45,6 +45,7 @@ import type { MaintenanceTaskQuickActionsDialog } from "./components/task-quick-
 import type { MaintenanceObjectQuickActionsDialog } from "./components/object-quick-actions-dialog";
 import type { HomeAssistant, MaintenanceObject } from "./types";
 import { ensureLocale, isLocaleLoaded, langOf } from "./styles";
+import { fillAndOpenCompleteDialog, type CompleteDialogArgs } from "./helpers/complete-dialog-args";
 
 const OBJECT_DIALOG_TAG = "maintenance-object-dialog";
 const TASK_DIALOG_TAG = "maintenance-task-dialog";
@@ -274,41 +275,16 @@ export function openHistoryEditDialog(draft: HistoryEntryDraft): boolean {
   return true;
 }
 
-/** v2.3.0: open the rich complete-dialog from any Lovelace context. */
-export function openCompleteDialog(args: {
-  entry_id: string;
-  task_id: string;
-  task_name: string;
-  checklist?: string[];
-  adaptive_enabled?: boolean;
-  /** Details the task demands before it counts as done (v2.44). */
-  required_completion_fields?: string[];
-  /** Reading tasks need type+unit or the value field never renders. */
-  task_type?: string;
-  reading_unit?: string;
-  /** #99/#111: per-completion parts selection incl. shared pools. */
-  parts?: MaintenanceCompleteDialog["parts"];
-  consumes_parts?: MaintenanceCompleteDialog["consumesParts"];
-  /** #139: "2/4 · Flip blades" — the phase this completion records. */
-  phase_label?: string;
-}): boolean {
+/** v2.3.0: open the rich complete-dialog from any Lovelace context.
+ *
+ *  Takes the full argument bag (`buildCompleteDialogArgs` derives it from a
+ *  task + object list). Every dialog field is assigned — the dialog is a
+ *  singleton, so an omitted field must reset, never leak the previous
+ *  task's value (tag-scan gate, restock default, checklist ticks included). */
+export function openCompleteDialog(args: CompleteDialogArgs): boolean {
   const dlg = getOrCreate<MaintenanceCompleteDialog>(COMPLETE_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  dlg.entryId = args.entry_id;
-  dlg.taskId = args.task_id;
-  dlg.taskName = args.task_name;
-  dlg.checklist = args.checklist ?? [];
-  dlg.adaptiveEnabled = !!args.adaptive_enabled;
-  dlg.requiredFields = args.required_completion_fields ?? [];
-  // Always assign — the dialog is a singleton, so an omitted field must not
-  // leak the previous task's value.
-  dlg.taskType = args.task_type ?? "";
-  dlg.readingUnit = args.reading_unit ?? "";
-  dlg.parts = args.parts ?? [];
-  dlg.consumesParts = args.consumes_parts ?? [];
-  dlg.phaseLabel = args.phase_label ?? "";
-  dlg.lang = (getHass()?.language) || "en";
-  dlg.open();
+  fillAndOpenCompleteDialog(dlg, args, (getHass()?.language) || "en");
   return true;
 }
 

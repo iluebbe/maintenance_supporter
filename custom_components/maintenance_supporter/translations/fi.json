@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "”{task_name}” voidaan suorittaa vain skannaamalla sen tunniste — mene paikalle ja skannaa NFC-tunniste tai QR-koodi itse laitteesta."
+    },
+    "task_inactive": {
+      "message": "”{task_name}” on arkistoitu, poistettu käytöstä tai sen kohde on keskeytetty — ei voi suorittaa"
+    },
+    "too_early": {
+      "message": "”{task_name}” voidaan suorittaa vasta lähempänä eräpäivää"
     }
   },
   "triggers": {

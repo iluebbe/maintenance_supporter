@@ -17,8 +17,8 @@ import { property, state } from "lit/decorators.js";
 import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
-import { partsForCompletion } from "../helpers/shared-parts";
-import { effectivePhase, phaseLabel } from "../helpers/phases";
+import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
+import { phaseLabel } from "../helpers/phases";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -63,6 +63,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   };
   @state() private _toast = "";
   private _featuresLoaded = false;
+  /** Currency symbol for the complete dialog's cost suggestion — read off
+   *  the same settings response as the feature flags. */
+  private _currencySymbol = "";
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -93,10 +96,12 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     try {
       const r = await this.hass.connection.sendMessagePromise<{
         features?: Partial<AdvancedFeatures>;
+        budget?: { currency_symbol?: string };
       }>({ type: "maintenance_supporter/settings" });
       if (r?.features) {
         this._features = { ...this._features, ...r.features };
       }
+      this._currencySymbol = r?.budget?.currency_symbol || "";
       this._featuresLoaded = true;
     } catch {
       // Settings endpoint unavailable — leave defaults (all false), the
@@ -158,35 +163,34 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     // (bug audit 2026-08-22).
     import("../dialog-mount").then(async ({ openCompleteDialog }) => {
       const task = this._task!;
-      const isBuy = !!(task as { part_ref?: string }).part_ref;
-      // #139: a phased task completes the phase currently due, so the phase's
-      // checklist/parts/required fields replace the task-level ones here.
-      const phase = effectivePhase(task);
-      const links = phase ? phase.consumesParts : (task.consumes_parts || []);
-      let parts: Parameters<typeof openCompleteDialog>[0]["parts"] = [];
-      if (!isBuy) {
-        try {
-          const r = await this.hass.connection.sendMessagePromise<{
-            objects: MaintenanceObjectResponse[];
-          }>({ type: "maintenance_supporter/objects", compact: true });
-          parts = partsForCompletion({ consumes_parts: links }, this._entryId!, r.objects || [], this._lang);
-        } catch {
-          // Parts stay empty — the dialog still completes without them.
-        }
+      // The object list resolves the parts picker (own inventory + shared
+      // pools, #99/#111), the "consumes" hint lines and a buy task's restock
+      // default — fetched for every task kind, since a buy task needs its
+      // part's restock quantity + unit cost too.
+      let objects: MaintenanceObjectResponse[] = [];
+      try {
+        const r = await this.hass.connection.sendMessagePromise<{
+          objects: MaintenanceObjectResponse[];
+        }>({ type: "maintenance_supporter/objects", compact: true });
+        objects = r.objects || [];
+      } catch {
+        // Parts stay empty — the dialog still completes without them.
       }
-      const ok = openCompleteDialog({
-        entry_id: this._entryId!,
-        task_id: this._taskId!,
-        task_name: task.name,
-        checklist: phase ? phase.checklist : (task.checklist || []),
-        adaptive_enabled: !!task.adaptive_config?.enabled,
-        required_completion_fields: phase ? phase.requiredFields : (task.required_completion_fields || []),
-        task_type: task.type || "",
-        reading_unit: (task as { reading_unit?: string }).reading_unit || "",
-        parts,
-        consumes_parts: isBuy ? [] : links,
-        phase_label: phaseLabel(task),
-      });
+      // Same derivation as the panel and the card (phase override, tag-scan
+      // gate, checklist ticks …) — see helpers/complete-dialog-args.
+      const ok = openCompleteDialog(
+        buildCompleteDialogArgs({
+          entryId: this._entryId!,
+          taskId: this._taskId!,
+          taskName: task.name,
+          task,
+          objects,
+          lang: this._lang,
+          checklist: task.checklist || [],
+          adaptiveEnabled: !!task.adaptive_config?.enabled,
+          currencySymbol: this._currencySymbol,
+        }),
+      );
       if (ok) {
         this._notifyChanged("complete");
         this.close();

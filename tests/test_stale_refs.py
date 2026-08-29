@@ -369,3 +369,38 @@ async def test_async_remove_entry_cleans_group_refs(
     assert all(r["entry_id"] != obj_entry.entry_id for r in refs_after)
     # The other-entry ref must survive — we only prune the removed entry.
     assert any(r["entry_id"] == "another-entry" for r in refs_after)
+
+
+# ── A2. Store rewrite — compound sub-trigger runtime keys (P-F2) ────────────
+
+
+async def test_rewrite_store_rewrites_compound_runtime_keys(hass: HomeAssistant) -> None:
+    """Compound conditions persist per-entity runtime under
+    ``_compound_<idx>_<entity_id>`` — those keys must follow a rename too,
+    not only the top-level ``trigger_runtime[entity_id]`` slot."""
+    from custom_components.maintenance_supporter.helpers.entity_rename import rewrite_store
+    from custom_components.maintenance_supporter.storage import MaintenanceStore
+
+    store = MaintenanceStore(hass, "rename_probe")
+    store.set_trigger_runtime(TASK_ID_1, "sensor.old", {"baseline_value": 1})
+    store.set_trigger_runtime(TASK_ID_1, "_compound_0_sensor.old", {"baseline_value": 2})
+    store.set_trigger_runtime(TASK_ID_1, "_compound_12_sensor.old", {"baseline_value": 3})
+    store.set_trigger_runtime(TASK_ID_1, "_compound_1_sensor.other", {"baseline_value": 4})
+    # Prefix-only lookalikes must NOT be touched: a longer entity id sharing
+    # the prefix, and a bare per-condition slot without an entity suffix.
+    store.set_trigger_runtime(TASK_ID_1, "_compound_0_sensor.old_2", {"baseline_value": 5})
+    store.set_trigger_runtime(TASK_ID_1, "_compound_0", {"pending_since": "x"})
+
+    assert rewrite_store(store, "sensor.old", "sensor.new") is True
+
+    runtime = store.get_trigger_runtime(TASK_ID_1)
+    assert runtime == {
+        "sensor.new": {"baseline_value": 1},
+        "_compound_0_sensor.new": {"baseline_value": 2},
+        "_compound_12_sensor.new": {"baseline_value": 3},
+        "_compound_1_sensor.other": {"baseline_value": 4},
+        "_compound_0_sensor.old_2": {"baseline_value": 5},
+        "_compound_0": {"pending_since": "x"},
+    }
+    # Idempotent: nothing left to rewrite.
+    assert rewrite_store(store, "sensor.old", "sensor.new") is False

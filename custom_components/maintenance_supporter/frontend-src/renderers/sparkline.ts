@@ -39,6 +39,100 @@ export interface SparklineContext {
  *  [Q1 − 1.5·IQR, Q3 + 1.5·IQR]. Robust to a few wild glitch readings (a
  *  pressure sensor spiking to 100 while it normally sits at 1.5–3). No-ops on
  *  short series (< 4 points) where quartiles aren't meaningful. */
+/** A binary HA state as the 0/1 level the history fallback plots, or null
+ *  for states the fallback cannot express (then no trigger view is built). */
+export function binaryLevel(state: string | null | undefined): 0 | 1 | null {
+  const s = (state ?? "").trim().toLowerCase();
+  if (s === "on" || s === "open" || s === "true") return 1;
+  if (s === "off" || s === "closed" || s === "false") return 0;
+  return null;
+}
+
+export interface StateChangeView {
+  points: ChartPoint[];
+  /** "alarm": single-shot latch (target 1 + a to-state) — 1 while the alert
+   *  state is held, 0 otherwise. "count": change counter since the last
+   *  service, stepped, honouring the hold filter. */
+  mode: "alarm" | "count";
+}
+
+/** #141 (round 2): the recorder fallback plots the RAW entity state, but a
+ *  state_change trigger is about transitions. A water-valve switch that is
+ *  "on" all week with a few second-long "off" blips drew a flat 1 with the
+ *  "Target changes: 1" line on the same axis — while the header said 0 / 1,
+ *  because those blips never held for the #136 hold time. Re-express the
+ *  step series in the trigger's own terms:
+ *
+ *  - latch (target_changes == 1 with a to-state): 1 = alert state HELD for
+ *    the hold time, 0 = fine. Reads as "is the trigger active" — for a
+ *    problem sensor (to-state on) this equals the raw line, for a switch
+ *    watched for "off" it is the inverse the user expects.
+ *  - counter (everything else): the cumulative number of matching, held
+ *    transitions since the last service, anchored so the line ends at the
+ *    trigger's live count (transitions before the recorder window are
+ *    unknown but already in that count).
+ *
+ *  Returns null when the from/to states cannot be expressed as 0/1. */
+export function stateChangeView(
+  points: ChartPoint[],
+  tc: { trigger_from_state?: string | null; trigger_to_state?: string | null; trigger_target_changes?: number; trigger_for_minutes?: number },
+  opts: { since: number | null; current: number | null; now?: number },
+): StateChangeView | null {
+  if (points.length < 2) return null;
+  const now = opts.now ?? Date.now();
+  const holdMs = Math.max(0, tc.trigger_for_minutes ?? 0) * 60000;
+  const fromLevel = tc.trigger_from_state ? binaryLevel(tc.trigger_from_state) : null;
+  const toLevel = tc.trigger_to_state ? binaryLevel(tc.trigger_to_state) : null;
+  if ((tc.trigger_from_state && fromLevel === null) || (tc.trigger_to_state && toLevel === null)) return null;
+
+  // Collapse the doubled step points into held segments (start, level).
+  const sorted = [...points].sort((a, b) => a.ts - b.ts);
+  const segments: { start: number; level: number }[] = [];
+  for (const p of sorted) {
+    const last = segments[segments.length - 1];
+    if (!last || last.level !== p.val) segments.push({ start: p.ts, level: p.val });
+  }
+  const held = (i: number) => {
+    const end = i + 1 < segments.length ? segments[i + 1].start : now;
+    return end - segments[i].start >= holdMs;
+  };
+  const step = (out: ChartPoint[], ts: number, val: number) => {
+    const last = out[out.length - 1];
+    if (last && last.val !== val) out.push({ ts, val: last.val });
+    out.push({ ts, val });
+  };
+
+  const latch = (tc.trigger_target_changes ?? 1) === 1 && toLevel !== null;
+  if (latch) {
+    const out: ChartPoint[] = [];
+    segments.forEach((seg, i) => step(out, seg.start, seg.level === toLevel && held(i) ? 1 : 0));
+    const lastVal = out[out.length - 1]?.val ?? 0;
+    out.push({ ts: now, val: lastVal });
+    return { points: out, mode: "alarm" };
+  }
+
+  const since = opts.since ?? segments[0].start;
+  let counted = 0;
+  const stepsAt: number[] = [];
+  for (let i = 1; i < segments.length; i++) {
+    const prev = segments[i - 1], seg = segments[i];
+    if (fromLevel !== null && prev.level !== fromLevel) continue;
+    if (toLevel !== null && seg.level !== toLevel) continue;
+    if (!held(i) || seg.start < since) continue;
+    counted += 1;
+    stepsAt.push(seg.start);
+  }
+  const base = Math.max(0, (opts.current ?? counted) - counted);
+  const out: ChartPoint[] = [{ ts: Math.max(since, segments[0].start), val: base }];
+  let val = base;
+  for (const ts of stepsAt) {
+    val += 1;
+    step(out, ts, val);
+  }
+  out.push({ ts: now, val });
+  return { points: out, mode: "count" };
+}
+
 export function filterOutliers(points: ChartPoint[]): ChartPoint[] {
   if (points.length < 4) return points;
   const vals = points.map((p) => p.val).sort((a, b) => a - b);
@@ -276,6 +370,13 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   const entityId = tc.entity_id || "";
 
   let points = rawStatsPoints(task, ctx);
+  // #141 round 2: a state_change trigger on recorder history draws the
+  // trigger's view (alert held / change count), not the raw entity state.
+  let stateView: StateChangeView | null = null;
+  if (triggerType === "state_change" && entityId && ctx.historyFallbackIds?.has(entityId)) {
+    stateView = stateChangeView(points, tc, { since: lastServiceTs(task), current: task.trigger_current_value ?? null });
+    if (stateView) points = stateView.points;
+  }
   // Runtime accumulates hours with no stored intermediate snapshots: synthesize
   // the current cycle (0 at the last service → live value now) so the chart
   // resets each completion and always has a drawable 2-point line.
@@ -326,8 +427,9 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
     }
     targetValue = tc.trigger_target_value;
     forceZero = true;
-  } else if (triggerType === "state_change" && tc.trigger_target_changes) {
-    // Change counts / runtime hours already accumulate from zero.
+  } else if (triggerType === "state_change" && tc.trigger_target_changes && stateView?.mode !== "alarm") {
+    // Change counts / runtime hours already accumulate from zero. A latch
+    // ("alarm" view) has no meaningful target line: its axis is alert/ok.
     targetValue = tc.trigger_target_changes;
     forceZero = true;
   } else if (triggerType === "runtime" && tc.trigger_runtime_hours) {
@@ -390,7 +492,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       if (entityId && ctx.historyFallbackIds?.has(entityId) && !statsFetchedEmpty) {
         return html`<div class="chart-note">
           <ha-icon icon="mdi:information-outline"></ha-icon>
-          ${t("chart_history_fallback", ctx.lang)}
+          ${t(stateView?.mode === "alarm" ? "chart_history_alarm" : stateView?.mode === "count" ? "chart_history_count" : "chart_history_fallback", ctx.lang)}
         </div>`;
       }
       if (statsFetchedEmpty) {

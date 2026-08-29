@@ -379,7 +379,11 @@ class CompleteTaskIntent(intent.IntentHandler):
 
         try:
             await coordinator.complete_maintenance(
-                task_id=target["task_id"], completed_by="assist", unattended=True
+                task_id=target["task_id"],
+                # The speaking user when the pipeline knows one; "assist" was a
+                # sentinel that never matched a pool member (bug audit 2026-08-29).
+                completed_by=intent_obj.context.user_id if intent_obj.context else None,
+                unattended=True,
             )
         except ServiceValidationError as err:
             # The task demands details voice cannot capture (a photo, a cost).

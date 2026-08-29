@@ -464,6 +464,8 @@ DEGRADATION_CYCLE_LOOKBACK_DAYS = 180  # window for learning prior cycles
 DEGRADATION_CYCLE_JUMP_FRACTION = 0.2  # jump ≥ this share of the observed range = boundary
 DEGRADATION_BLEND_HALF_POINTS = 48  # current-cycle points at which current/history blend 50/50
 DEGRADATION_MIN_CYCLE_HOURS = 24  # prior cycles shorter than this teach nothing
+DEGRADATION_CYCLE_NOISE_SIGMAS = 8  # a boundary must also exceed this many robust sigmas of hourly wobble
+DEGRADATION_CYCLE_SETTLE_POINTS = 24  # a jump that snaps back within this many points is modulation
 
 # --- Environmental Adjustment Defaults (Phase 3) ---
 DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS = 90  # Days of env data for correlation

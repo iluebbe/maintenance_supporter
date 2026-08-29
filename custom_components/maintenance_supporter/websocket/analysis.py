@@ -33,7 +33,9 @@ async def _persist_adaptive_config(
     store = getattr(rd, "store", None) if rd else None
     if store is not None:
         store.set_adaptive_config(task_id, adaptive_config)
-        store.async_delay_save()
+        # Immediate save like every other user-initiated write: a debounced
+        # 60 s timer would lose the change on a restart/reload in that window.
+        await store.async_save()
     else:
         # Legacy: write to ConfigEntry.data
         static_tasks = dict(entry.data.get(CONF_TASKS, {}))

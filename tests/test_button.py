@@ -87,7 +87,7 @@ async def test_global_entry_has_no_buttons(hass: HomeAssistant, global_config_en
 @pytest.mark.parametrize(
     ("action", "method", "kwargs"),
     [
-        ("complete", "complete_maintenance", {"notes": "Completed from dashboard button", "unattended": True}),
+        ("complete", "complete_maintenance", {"notes": "Completed from dashboard button", "unattended": True, "completed_by": None}),
         ("skip", "skip_maintenance", {"reason": "Skipped from dashboard button"}),
         ("reset", "reset_maintenance", {}),
     ],

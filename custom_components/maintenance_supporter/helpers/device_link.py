@@ -30,10 +30,13 @@ there are no composite ids and nothing to resolve.
 from __future__ import annotations
 
 import inspect
+import logging
 from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _accepts_composite_kwarg(dev_reg: object) -> bool:
@@ -291,9 +294,14 @@ def shed_owned_devices(hass: HomeAssistant, *, own_entry_id: str, source_device_
     if modern is not None:
         modern(hass, helper_config_entry_id=own_entry_id, source_device_id=source_device_id)
         return
-    helper_integration.async_remove_helper_config_entry_from_source_device(
-        hass, helper_config_entry_id=own_entry_id, source_device_id=source_device_id
-    )
+    # 2025.8 - 2026.7. Probed too: it does not exist on 2025.7.x, the declared
+    # minimum core, and an unguarded call there failed the 4->5 migration of
+    # every linked object on each boot (bug audit 2026-08-29, #144 class).
+    legacy = getattr(helper_integration, "async_remove_helper_config_entry_from_source_device", None)
+    if legacy is not None:
+        legacy(hass, helper_config_entry_id=own_entry_id, source_device_id=source_device_id)
+        return
+    _LOGGER.debug("Core has no helper-device shedding API; leaving own devices in place")
 
 
 __all__ = [

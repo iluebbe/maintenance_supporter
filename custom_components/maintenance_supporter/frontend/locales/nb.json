@@ -903,6 +903,8 @@
   "phase_current": "Gjeldende fase",
   "phase_set": "Sett som gjeldende",
   "chart_history_fallback": "Ingen langtidsstatistikk for denne enheten — recorderens tilstandshistorikk vises (vanligvis de siste ~10 dagene)",
+  "chart_history_alarm": "Utløservisning fra tilstandshistorikken: 1 = alarmtilstand holdt gjennom holdetiden, 0 = ok (vanligvis de siste ~10 dagene)",
+  "chart_history_count": "Antall endringer gjenoppbygd fra tilstandshistorikken siden siste service (vanligvis de siste ~10 dagene)",
   "prediction_cycles": "Lært av sykluser",
   "phase_require_override": "Overstyr «Krev ved fullføring» for denne fasen",
   "history_add_past": "Legg til tidligere fullføring",

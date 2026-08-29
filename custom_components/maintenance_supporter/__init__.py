@@ -8,6 +8,7 @@ from datetime import timedelta
 from typing import Any
 
 import voluptuous as vol
+from homeassistant.auth import EVENT_USER_REMOVED
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import (
@@ -424,13 +425,6 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     await doc_store.async_load()
     hass.data[DOMAIN][DOCUMENT_STORE_KEY] = doc_store
 
-    # v2.67: mirror auto "buy" tasks into the user's to-do list (no-op until
-    # the global shopping_list_entity option is set).
-    from .shopping_sync import SHOPPING_SYNC_KEY, ShoppingListSync
-
-    shopping_sync = ShoppingListSync(hass)
-    await shopping_sync.async_setup()
-    hass.data[DOMAIN][SHOPPING_SYNC_KEY] = shopping_sync
 
     # Authenticated upload + serve endpoints for document blobs (the blobs live
     # under /config, so they must never be exposed via an unauthenticated path).
@@ -778,7 +772,14 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         try:
             if action_type == "complete":
                 _LOGGER.info("Completing task %s via notification action", task_id)
-                await runtime_data.coordinator.complete_maintenance(task_id=task_id, unattended=True)
+                await runtime_data.coordinator.complete_maintenance(
+                    task_id=task_id,
+                    unattended=True,
+                    # mobile_app fires the action with the registration's
+                    # user in the context - credit them (#128 attribution,
+                    # feeds least_completed rotation); bug audit 2026-08-29.
+                    completed_by=event.context.user_id if event.context else None,
+                )
             elif action_type == "skip":
                 _LOGGER.info("Skipping task %s via notification action", task_id)
                 await runtime_data.coordinator.skip_maintenance(task_id=task_id, reason="Skipped from notification")
@@ -1016,6 +1017,20 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     unsub_entity = hass.bus.async_listen(er.EVENT_ENTITY_REGISTRY_UPDATED, _on_entity_registry_update)
 
+    # A deleted HA user used to be reconciled only at the next boot: the
+    # least_completed rotation kept assigning the ghost meanwhile and the
+    # admin-panel allowlist kept the stale id (bug audit 2026-08-29).
+    async def _on_user_removed(_event: Event) -> None:
+        await _check_task_responsible_user_orphans(hass)
+        gentry = next(
+            (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
+            None,
+        )
+        if gentry is not None:
+            await _check_admin_panel_user_orphans(hass, gentry)
+
+    unsub_user_removed = hass.bus.async_listen(EVENT_USER_REMOVED, _on_user_removed)
+
     # v2.10.0: daily archive / auto-delete retention sweep (completed one-offs).
     # The pure decision logic + the sweep live in helpers/retention; this just
     # paces it once a day. First fire is +24h, which is plenty for a day-granular
@@ -1035,6 +1050,16 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         await async_maybe_send_lead_reminders(hass)
 
     unsub_digest = async_track_time_change(hass, _weekly_digest_tick, hour=8, minute=0, second=0)
+
+    # The 08:00 tick drops lead reminders inside quiet hours; a quiet window
+    # ending after 08:00 therefore silenced them for good (bug audit
+    # 2026-08-29). A second, reminder-only pass at noon catches those - the
+    # per-day dedup inside makes it a no-op when 08:00 already delivered.
+    async def _lead_reminder_retry(now: Any) -> None:
+        await async_maybe_send_lead_reminders(hass)
+
+    unsub_lead_retry = async_track_time_change(hass, _lead_reminder_retry, hour=12, minute=0, second=0)
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, lambda _e: unsub_lead_retry())
     # async_track_time_change has no cancel_on_shutdown, so cancel it explicitly
     # on HA stop too — otherwise the daily timer lingers past shutdown when the
     # entries aren't formally unloaded (e.g. test teardown).
@@ -1042,6 +1067,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
     hass.data[DOMAIN][EVENT_UNSUBS_KEY] = [
+        unsub_user_removed,
         unsub_notification,
         unsub_tag,
         unsub_action,
@@ -1049,6 +1075,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         unsub_entity,
         unsub_retention,
         unsub_digest,
+        unsub_lead_retry,
     ]
 
     # Once HA has started (all entries loaded), flag object entries that were
@@ -1226,6 +1253,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         summary_coordinator.async_setup_listeners()
         entry.async_on_unload(summary_coordinator.async_teardown_listeners)
         await summary_coordinator.async_refresh()
+
+        # v2.67: mirror auto "buy" tasks into the user's to-do list (no-op
+        # until the shopping_list_entity option is set). Owned by the GLOBAL
+        # entry's lifecycle - created here, torn down in async_unload_entry -
+        # so a reload of the hub entry gets a fresh instance (the shared-
+        # runtime setup only runs once per boot; bug audit 2026-08-29).
+        from .shopping_sync import SHOPPING_SYNC_KEY, ShoppingListSync
+
+        if SHOPPING_SYNC_KEY not in hass.data[DOMAIN]:
+            shopping_sync = ShoppingListSync(hass)
+            await shopping_sync.async_setup()
+            hass.data[DOMAIN][SHOPPING_SYNC_KEY] = shopping_sync
 
         # One-time migration: auto-enable advanced feature flags for existing users
         options = dict(entry.options or entry.data)
@@ -1817,6 +1856,10 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     from homeassistant.helpers.dispatcher import async_dispatcher_send
 
     async_dispatcher_send(hass, SIGNAL_OBJECT_ENTRY_REMOVED, entry.entry_id)
+    # Its buy-task rows in the shopping list are orphans now (bug audit 2026-08-29).
+    from .shopping_sync import schedule_resync as _schedule_shopping_resync
+
+    _schedule_shopping_resync(hass)
 
 
 async def async_remove_config_entry_device(

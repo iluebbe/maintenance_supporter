@@ -353,6 +353,11 @@ export class MaintenanceTaskDialog extends LitElement {
     this._entryId = entryId;
     this._taskId = task.id;
     this._error = "";
+    // The object picker belongs to CREATE only. openCreate("", objects) left
+    // the choices behind, so Create → Cancel → Edit showed the dropdown in
+    // edit mode — and picking another object re-pointed _entryId while
+    // _taskId kept the old task (audit 2026-08-29).
+    this._objectChoices = [];
     this._name = task.name;
     this._type = task.type;
     this._scheduleType = task.schedule_type;
@@ -411,15 +416,24 @@ export class MaintenanceTaskDialog extends LitElement {
         name: _n, checklist: _c, consumes_parts: _p, required_completion_fields: _r,
         ...carry
       } = def as unknown as Record<string, unknown>;
+      // The editor's single part field is the first OWN link (no entry_id —
+      // the picker only lists the object's own parts). Every other link,
+      // shared pools (#111) first among them, rides along whole in
+      // `extraParts` and is re-emitted on save: hydrating index 0 blindly
+      // turned a phase whose first link is foreign into an own-part link
+      // (or lost it) on the next save (audit 2026-08-29).
+      const links = def.consumes_parts || [];
+      const ownIdx = links.findIndex((l) => !l.entry_id);
+      const own = ownIdx >= 0 ? links[ownIdx] : undefined;
       return {
         id,
         name: def.name || id,
         checklistText: (def.checklist || []).join("\n"),
-        partId: def.consumes_parts?.[0]?.part_id || "",
-        partQty: def.consumes_parts?.[0]?.quantity != null ? String(def.consumes_parts[0].quantity) : "",
+        partId: own?.part_id || "",
+        partQty: own?.quantity != null ? String(own.quantity) : "",
         reqOverride: def.required_completion_fields !== undefined,
         reqFields: [...(def.required_completion_fields || [])],
-        extraParts: (def.consumes_parts || []).slice(1),
+        extraParts: links.filter((_, i) => i !== ownIdx).map((l) => ({ ...l })),
         carry,
       };
     });
@@ -1253,7 +1267,15 @@ export class MaintenanceTaskDialog extends LitElement {
             const qty = parseFloat(d.partQty);
             links.push({ part_id: d.partId, quantity: Number.isFinite(qty) && qty > 0 ? qty : 1 });
           }
-          links.push(...d.extraParts);
+          // entry_id travels only when present (a shared pool, #111) — an
+          // own-part link stays byte-identical to what shipped before.
+          for (const l of d.extraParts) {
+            links.push(
+              l.entry_id
+                ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
+                : { part_id: l.part_id, quantity: l.quantity },
+            );
+          }
           if (links.length) def.consumes_parts = links;
           // Override on → send the list, EMPTY included ("demands nothing");
           // off → omit the key so the task-level list falls through.
@@ -2478,7 +2500,7 @@ export class MaintenanceTaskDialog extends LitElement {
         <div class="dialog-title">${title}</div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
-          ${this._objectChoices.length > 0 ? html`
+          ${this._taskId === null && this._objectChoices.length > 0 ? html`
             <div class="select-row">
               <label>${t("object", L)}</label>
               <select

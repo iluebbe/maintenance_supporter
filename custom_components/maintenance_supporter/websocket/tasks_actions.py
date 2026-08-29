@@ -94,6 +94,9 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # naive = local). Backfills a past completion; must not be in the
         # future — the coordinator validates and splits latest-vs-backfill.
         vol.Optional("completed_at"): vol.Any(vol.All(str, vol.Length(max=64)), None),
+        # QR deep-link fallback: the panel asserts the scan on a tag-gated task
+        # whose quick-complete needs the full dialog (bug audit 2026-08-29).
+        vol.Optional("via_tag_scan"): bool,
         # Optional completion photo: the doc_id of an already-uploaded image
         # (via the document upload endpoint, tagged "photo").
         vol.Optional("photo_doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
@@ -201,6 +204,10 @@ async def ws_complete_task(
             # This is also what feeds the `least_completed` rotation strategy
             # and what satisfies a task requiring the "user" detail.
             completed_by=connection.user.id if connection.user else None,
+            # The panel sets this only on the QR deep-link fallback (a scanned
+            # sticker whose task has no quick-complete defaults) - same trust
+            # level as task/quick_complete (bug audit 2026-08-29).
+            tag_verified=bool(msg.get("via_tag_scan")),
         )
     except ServiceValidationError as err:
         # Validation refusals (missing required details, future completed_at).
@@ -277,7 +284,8 @@ async def ws_quick_complete_task(
     except ServiceValidationError as err:
         # The task demands details the quick-complete defaults do not cover —
         # same fallback as `no_defaults`: the caller opens the full dialog.
-        connection.send_error(msg["id"], "completion_details_required", str(err))
+        # Other refusals (too_early, task_inactive) keep their own key.
+        connection.send_error(msg["id"], err.translation_key or "completion_details_required", str(err))
         return
     connection.send_result(msg["id"], {"success": True, "via": "quick"})
 
@@ -386,7 +394,7 @@ async def ws_set_task_phase(
         )
         return
     rd.store.set_phase_cursor(msg["task_id"], msg["cursor"])
-    rd.store.async_delay_save()
+    await rd.store.async_save()  # user action - never rely on the 60 s debounce
     await rd.coordinator.async_refresh_now()
     connection.send_result(msg["id"], {"success": True})
 

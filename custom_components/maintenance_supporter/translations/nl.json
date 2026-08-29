@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "„{task_name}” kan alleen worden afgerond door de tag te scannen — loop ernaartoe en scan de NFC-tag of QR-code op het apparaat zelf."
+    },
+    "task_inactive": {
+      "message": "„{task_name}” is gearchiveerd, uitgeschakeld of het object is gepauzeerd — kan niet worden voltooid"
+    },
+    "too_early": {
+      "message": "„{task_name}” kan pas dichter bij de vervaldatum worden voltooid"
     }
   },
   "triggers": {

@@ -903,6 +903,8 @@
   "phase_current": "Aktuální fáze",
   "phase_set": "Nastavit jako aktuální",
   "chart_history_fallback": "Pro tuto entitu nejsou dlouhodobé statistiky — zobrazuje se historie stavů recorderu (obvykle posledních ~10 dní)",
+  "chart_history_alarm": "Pohled spouštěče z historie stavů: 1 = stav výstrahy držen po dobu přidržení, 0 = v pořádku (obvykle posledních ~10 dní)",
+  "chart_history_count": "Počet změn sestaven z historie stavů od posledního servisu (obvykle posledních ~10 dní)",
   "prediction_cycles": "Naučeno z cyklů",
   "phase_require_override": "Přepsat „Vyžadovat při dokončení“ pro tuto fázi",
   "history_add_past": "Přidat dřívější dokončení",

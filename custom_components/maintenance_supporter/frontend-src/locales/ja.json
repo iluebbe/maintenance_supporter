@@ -903,6 +903,8 @@
   "phase_current": "現在のフェーズ",
   "phase_set": "現在に設定",
   "chart_history_fallback": "このエンティティには長期統計がありません — レコーダーの状態履歴を表示しています（通常は直近約10日分）",
+  "chart_history_alarm": "状態履歴からのトリガー表示：1 = 保持時間の間アラート状態が続いた、0 = 正常（通常は直近約10日）",
+  "chart_history_count": "前回のサービス以降の状態履歴から再構築した変化回数（通常は直近約10日）",
   "prediction_cycles": "学習したサイクル数",
   "phase_require_override": "このフェーズで「完了時に必須」を上書き",
   "history_add_past": "過去の完了を追加",

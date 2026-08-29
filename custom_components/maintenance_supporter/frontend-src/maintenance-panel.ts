@@ -17,8 +17,9 @@ import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "
 import { downloadTextFile } from "./helpers/download";
 import { renderNotesMarkdown } from "./helpers/notes-markdown";
 import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
-import { describePartLink, partsForCompletion } from "./helpers/shared-parts";
-import { effectivePhase, phaseLabel } from "./helpers/phases";
+import { describePartLink } from "./helpers/shared-parts";
+import { effectivePhase } from "./helpers/phases";
+import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
 import type {
@@ -695,6 +696,20 @@ export class MaintenanceSupporterPanel extends LitElement {
             if ((msg as SubscriptionEvent<MaintenanceObjectResponse>).objects) {
               writeObjectsCache(next, this._stats ?? null);
             }
+            // The KPI row (_stats) and the budget card come from their own
+            // endpoints — a pushed change (completion from the card, a timer
+            // wave flipping a task overdue) left them frozen at the last
+            // _loadData until the next user action.
+            void this._refreshKpis();
+            // The open task's full history is a separate fetch too; the
+            // truncated list payload never wins the "longer list" comparison
+            // in _historyCtx, so a pushed completion stayed invisible there.
+            if (
+              this._view === "task" && this._selectedEntryId && this._selectedTaskId
+              && (!!ev.objects || (ev.delta || []).some((d) => d.entry_id === this._selectedEntryId))
+            ) {
+              void this._fetchFullHistory(this._selectedEntryId, this._selectedTaskId);
+            }
           }
         },
         // deltas: only entries whose rebuilt response actually changed —
@@ -711,6 +726,34 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._unsub = unsub;
     } catch {
       // Subscription failed; fall back to polling
+    }
+  }
+
+  /** Refetch the KPI statistics + budget status after a pushed object change.
+   *  Coalesced: a burst of deltas (import, timer wave) runs at most one
+   *  in-flight fetch plus one trailing catch-up instead of one per event. */
+  private _kpiRefreshInFlight = false;
+  private _kpiRefreshPending = false;
+
+  private async _refreshKpis(): Promise<void> {
+    if (this._kpiRefreshInFlight) {
+      this._kpiRefreshPending = true;
+      return;
+    }
+    this._kpiRefreshInFlight = true;
+    try {
+      do {
+        this._kpiRefreshPending = false;
+        const [statsResult, budgetResult] = await Promise.all([
+          this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }).catch(() => null),
+          this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/budget_status" }).catch(() => null),
+        ]);
+        if (!this.isConnected) return;
+        if (statsResult) this._stats = statsResult as StatisticsResponse;
+        if (budgetResult) this._budget = budgetResult as BudgetStatus;
+      } while (this._kpiRefreshPending);
+    } finally {
+      this._kpiRefreshInFlight = false;
     }
   }
 
@@ -1735,17 +1778,27 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._showToast(t("quick_complete_success", this._lang));
     } catch (e: unknown) {
       const code = (e as { code?: string })?.code || "";
-      if (code === "no_defaults") {
-        // No defaults set — open the dialog so the user can fill them in.
+      // Both refusals mean "the dialog has to collect something": no
+      // quick-complete defaults configured, or the task demands completion
+      // details a silent complete cannot supply. The dialog opens as the
+      // scan's fallback — via_tag_scan keeps the proof of presence.
+      if (code === "no_defaults" || code === "completion_details_required") {
         this._openCompleteDialog(
           entryId, taskId, task.name,
           this._features.checklists ? task.checklist : undefined,
           this._features.adaptive && !!task.adaptive_config?.enabled,
+          { viaTagScan: true },
         );
       } else {
-        this._showToast(t("action_error", this._lang));
+        // Relay the server's reason (too_early carries the earliest date)
+        // instead of a generic "action failed".
+        this._showToast(describeWsError(e, this._lang, t("action_error", this._lang)));
       }
+      return;
     }
+    // Silent success: the list must reflect the completion right away — the
+    // subscription delta may lag or be coalesced.
+    try { await this._loadData(); } catch { /* subscription will sync */ }
   }
 
   // v2.21: printable one-pager for a task — details, checklist tick boxes,
@@ -1875,60 +1928,41 @@ export class MaintenanceSupporterPanel extends LitElement {
     });
   }
 
-  private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
+  private _openCompleteDialog(
+    entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean,
+    opts?: { viaTagScan?: boolean },
+  ): void {
     void this._ui<MaintenanceCompleteDialog>("maintenance-complete-dialog")
-      .then((dlg) => dlg && this._fillAndOpenCompleteDialog(dlg, entryId, taskId, taskName, checklist, adaptiveEnabled));
+      .then((dlg) => dlg && this._fillAndOpenCompleteDialog(dlg, entryId, taskId, taskName, checklist, adaptiveEnabled, opts));
   }
 
-  private _fillAndOpenCompleteDialog(dlg: MaintenanceCompleteDialog, entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
-    dlg.entryId = entryId;
-    dlg.taskId = taskId;
-    dlg.taskName = taskName;
-    dlg.lang = this._lang;
-    dlg.checklist = checklist || [];
-    dlg.adaptiveEnabled = !!adaptiveEnabled;
-    // v2.20 (#83): reading tasks get a value field — resolve type + unit here
-    // so none of the many call sites need to thread them through.
-    const tk = this._objects
-      .find((o) => o.entry_id === entryId)
-      ?.tasks.find((tsk) => tsk.id === taskId);
-    // #139: a phased task completes the phase currently due — its checklist,
-    // parts and required fields override the task-level values (fallthrough
-    // is already baked into effectivePhase). Resolved HERE so every call
-    // site of _openCompleteDialog rotates for free.
-    const phase = tk ? effectivePhase(tk) : null;
-    dlg.phaseLabel = phase ? phaseLabel(tk) : "";
-    dlg.requireTagScan = !!tk?.require_tag_scan;
-    dlg.taskType = tk?.type || "";
-    dlg.readingUnit = tk?.reading_unit || "";
-    // #73: ticks recorded during the cycle prefill the dialog's checklist.
-    dlg.checklistPrefill = tk?.checklist_progress || {};
-    dlg.requiredFields = phase ? phase.requiredFields : (tk?.required_completion_fields || []);
-    if (phase) {
-      dlg.checklist = this._features.checklists ? phase.checklist : [];
-    }
-    // Spare parts: a buy task gets an editable restock-qty field; a consuming
-    // task shows what it will decrement (incl. the storage location).
-    const objParts = this._objects.find((o) => o.entry_id === entryId)?.parts || [];
-    const refPart = tk?.part_ref ? objParts.find((pt) => pt.id === tk.part_ref!.part_id) : undefined;
-    dlg.restockDefault = tk?.part_ref ? (refPart?.restock_quantity ?? 1) : null;
-    // #104 follow-up: parts carry unit costs — the dialog offers their sum
-    // as a one-click cost suggestion (buy task: restock qty × unit cost).
-    dlg.restockUnitCost = tk?.part_ref ? (refPart?.cost ?? null) : null;
-    dlg.currencySymbol = this._currencySymbol;
-    // #111: a link may point at another object's pool — name that object, and
-    // never drop a line that fails to resolve (the old .filter(Boolean) hid it).
-    const links = phase ? phase.consumesParts : (tk?.consumes_parts || []);
-    dlg.consumesInfo = links.map((link) =>
-      describePartLink(link, entryId, this._objects, this._lang),
+  /** Every dialog field is derived in helpers/complete-dialog-args — the
+   *  ONE derivation the panel, the Lovelace card and the quick-actions
+   *  dialog share (phase override #139, reading type+unit #83, restock
+   *  default + unit cost #104, shared pools #111, checklist ticks #73,
+   *  tag-scan gate). Resolved HERE so none of the call sites need to
+   *  thread anything but the name through. */
+  private _fillAndOpenCompleteDialog(
+    dlg: MaintenanceCompleteDialog, entryId: string, taskId: string, taskName: string,
+    checklist?: string[], adaptiveEnabled?: boolean, opts?: { viaTagScan?: boolean },
+  ): void {
+    fillAndOpenCompleteDialog(
+      dlg,
+      buildCompleteDialogArgs({
+        entryId,
+        taskId,
+        taskName,
+        task: this._getTask(entryId, taskId),
+        objects: this._objects,
+        lang: this._lang,
+        checklist,
+        checklistsEnabled: this._features.checklists,
+        adaptiveEnabled,
+        currencySymbol: this._currencySymbol,
+        viaTagScan: opts?.viaTagScan,
+      }),
+      this._lang,
     );
-    // #99: editable per-completion parts selection (not on buy tasks — those
-    // RESTOCK via the qty field instead of consuming). The list carries the
-    // object's own parts plus the shared pools this task draws on, so a foreign
-    // link is visible and untickable rather than silently absent.
-    dlg.parts = tk?.part_ref ? [] : partsForCompletion({ consumes_parts: links }, entryId, this._objects, this._lang);
-    dlg.consumesParts = tk?.part_ref ? [] : links;
-    dlg.open();
   }
 
   private _openQrForObject(entryId: string, objectName: string): void {

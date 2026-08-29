@@ -27,6 +27,44 @@ async def test_load_returns_none_when_no_file(hass: HomeAssistant) -> None:
     assert store._data == {"version": 1, "tasks": {}}
 
 
+def test_sanitize_loaded_drops_malformed_elements_but_keeps_the_rest() -> None:
+    """P-F9: the container checks are not enough — a single non-dict history
+    entry / per-entity runtime value / non-string date marker crashed later at
+    read time. Bad ELEMENTS are dropped; the task's other state survives."""
+    raw = {
+        "version": 1,
+        "tasks": {
+            "t1": {
+                "last_performed": "2026-01-15",
+                "last_planned_due": 20260115,  # not a string → dropped
+                "due_override": None,  # None is a legitimate "no override"
+                "history": [{"type": "completed"}, "junk", None, 3, {"type": "skipped"}],
+                "trigger_runtime": {
+                    "sensor.a": {"baseline_value": 1},
+                    "sensor.b": "junk",
+                    "_compound_0_sensor.c": None,
+                },
+                "checklist_progress": ["step1"],  # must be a dict → dropped
+                "adaptive_config": {"enabled": True},
+            },
+            "t2": {"last_performed": 42, "history": []},
+        },
+    }
+    clean = MaintenanceStore._sanitize_loaded(raw)
+    t1 = clean["tasks"]["t1"]
+    assert t1["history"] == [{"type": "completed"}, {"type": "skipped"}]
+    assert t1["trigger_runtime"] == {"sensor.a": {"baseline_value": 1}}
+    assert "checklist_progress" not in t1
+    assert "last_planned_due" not in t1
+    assert t1["due_override"] is None
+    assert t1["last_performed"] == "2026-01-15"
+    assert t1["adaptive_config"] == {"enabled": True}
+    assert "last_performed" not in clean["tasks"]["t2"]
+    assert clean["tasks"]["t2"]["history"] == []
+    # The input is never mutated (the caller may still hold it).
+    assert raw["tasks"]["t1"]["history"][1] == "junk"
+
+
 async def test_save_and_load_roundtrip(hass: HomeAssistant) -> None:
     """Data survives a save → load roundtrip."""
     store = MaintenanceStore(hass, "test_entry_2")

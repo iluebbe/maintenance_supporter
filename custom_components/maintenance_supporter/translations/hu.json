@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "A(z) „{task_name}” csak a címke beolvasásával fejezhető be — menj oda, és olvasd be az NFC-címkét vagy a QR-kódot magán az eszközön."
+    },
+    "task_inactive": {
+      "message": "„{task_name}” archivált, letiltott vagy az objektuma szünetel — nem fejezhető be"
+    },
+    "too_early": {
+      "message": "„{task_name}” csak a határidőhöz közelebb fejezhető be"
     }
   },
   "triggers": {

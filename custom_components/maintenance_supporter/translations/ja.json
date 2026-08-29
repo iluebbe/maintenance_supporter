@@ -1993,6 +1993,12 @@
     },
     "tag_scan_required": {
       "message": "「{task_name}」はタグをスキャンしないと完了できません。対象物のところへ行き、NFCタグまたはQRコードをスキャンしてください。"
+    },
+    "task_inactive": {
+      "message": "「{task_name}」はアーカイブ済み、無効、または対象が一時停止中のため完了できません"
+    },
+    "too_early": {
+      "message": "「{task_name}」は期限に近づいてからのみ完了できます"
     }
   },
   "triggers": {

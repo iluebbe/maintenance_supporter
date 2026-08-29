@@ -903,6 +903,8 @@
   "phase_current": "Current phase",
   "phase_set": "Set as current",
   "chart_history_fallback": "No long-term statistics for this entity — showing recorder state history (typically the last ~10 days)",
+  "chart_history_alarm": "Trigger view from recorder state history: 1 = alert state held for the hold time, 0 = fine (typically the last ~10 days)",
+  "chart_history_count": "Change count rebuilt from recorder state history since the last service (typically the last ~10 days)",
   "prediction_cycles": "Learned from cycles",
   "phase_require_override": "Override “Require on completion” for this phase",
   "history_add_past": "Add past completion",

@@ -108,6 +108,36 @@ describe("task-dialog phases editor (#139)", () => {
     expect("required_completion_fields" in update.phases.flip).to.equal(false);
   });
 
+  it("keeps a shared-pool link that comes FIRST in a phase — entry_id survives the save (#111)", async () => {
+    const foreign = { part_id: "bags", quantity: 1, entry_id: "other_entry" };
+    const { el, update } = await openAndSave({
+      phases: { flip: { name: "Flip blades", consumes_parts: [foreign, { part_id: "p_1", quantity: 2 }] } },
+      phase_sequence: ["flip"],
+    });
+    const def = (el as any)._phaseDefs[0];
+    // The editor's single part field is the first OWN link, not index 0.
+    expect(def.partId).to.equal("p_1");
+    expect(def.partQty).to.equal("2");
+    expect(def.extraParts).to.deep.equal([foreign]);
+    expect(update.phases.flip.consumes_parts).to.have.deep.members([
+      { part_id: "p_1", quantity: 2 },
+      foreign,
+    ]);
+    expect(update.phases.flip.consumes_parts.length).to.equal(2);
+  });
+
+  it("a phase with ONLY a foreign link keeps it and selects no own part", async () => {
+    const foreign = { part_id: "bags", quantity: 3, entry_id: "other_entry" };
+    const { el, update } = await openAndSave({
+      phases: { flip: { name: "Flip blades", consumes_parts: [foreign] } },
+      phase_sequence: ["flip"],
+    });
+    const def = (el as any)._phaseDefs[0];
+    expect(def.partId).to.equal("");
+    expect(def.extraParts).to.deep.equal([foreign]);
+    expect(update.phases.flip.consumes_parts).to.deep.equal([foreign]);
+  });
+
   it("renders the phases section with the editor rows", async () => {
     const { hass } = createMockHass({});
     const el = await fixture<MaintenanceTaskDialog>(html`

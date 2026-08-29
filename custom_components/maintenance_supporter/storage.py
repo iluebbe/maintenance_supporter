@@ -108,8 +108,29 @@ class MaintenanceStore:
             if "history" in state and not isinstance(state["history"], list):
                 _LOGGER.warning("Resetting malformed history for task %s", tid)
                 state["history"] = []
-            for key in ("trigger_runtime", "adaptive_config"):
+            for key in ("trigger_runtime", "adaptive_config", "checklist_progress"):
                 if key in state and not isinstance(state[key], dict):
+                    _LOGGER.warning("Dropping malformed %s for task %s", key, tid)
+                    del state[key]
+            # Element level — the container checks above are not enough:
+            # a non-dict history entry crashes the statistics/history readers,
+            # a non-dict per-entity runtime crashes the trigger restore, and a
+            # non-string date marker crashes date.fromisoformat at read time.
+            # Drop the bad elements, keep the rest (never the whole task).
+            if "history" in state:
+                history = state["history"]
+                kept = [h for h in history if isinstance(h, dict)]
+                if len(kept) != len(history):
+                    _LOGGER.warning("Dropping %d malformed history entries for task %s", len(history) - len(kept), tid)
+                    state["history"] = kept
+            if "trigger_runtime" in state:
+                runtime = state["trigger_runtime"]
+                kept_rt = {eid: rt for eid, rt in runtime.items() if isinstance(rt, dict)}
+                if len(kept_rt) != len(runtime):
+                    _LOGGER.warning("Dropping malformed trigger_runtime entries for task %s", tid)
+                    state["trigger_runtime"] = kept_rt
+            for key in ("last_performed", "last_planned_due", "due_override"):
+                if key in state and state[key] is not None and not isinstance(state[key], str):
                     _LOGGER.warning("Dropping malformed %s for task %s", key, tid)
                     del state[key]
             clean[tid] = state

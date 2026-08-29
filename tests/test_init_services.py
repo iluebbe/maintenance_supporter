@@ -187,7 +187,7 @@ async def test_notification_action_complete(
     await hass.async_block_till_done()
 
     # unattended=True: a notification button cannot ask for required details.
-    runtime_data.coordinator.complete_maintenance.assert_called_once_with(task_id=TASK_ID_1, unattended=True)
+    runtime_data.coordinator.complete_maintenance.assert_called_once_with(task_id=TASK_ID_1, unattended=True, completed_by=None)
 
 
 async def test_notification_action_skip(

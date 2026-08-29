@@ -106,7 +106,9 @@ async def test_complete_task_by_name_records_a_real_completion(
     state = get_task_store_state(hass, obj.entry_id, TASK_ID_1)
     completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
     assert len(completed) == 1
-    assert completed[0].get("completed_by") == "assist"
+    # Credited to the speaking user (none in this test context) - the old
+    # "assist" sentinel never matched a rotation-pool member (bug audit 2026-08-29).
+    assert completed[0].get("completed_by") is None
 
 
 async def test_complete_unknown_name_errors_without_side_effects(
