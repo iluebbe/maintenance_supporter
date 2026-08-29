@@ -2,6 +2,70 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.67.0] - 2026-08-29
+
+### ✨ Added
+
+- **Shopping-list sync.** Pick one of your Home Assistant to-do lists (any
+  `todo.*` entity — the built-in Shopping list, a Local To-do, Bring!, …)
+  under Settings → General and the automatic *"Buy …"* reminders for low
+  parts mirror into it. Check an item off while you're at the store and the
+  reminder completes itself, restocking the part by its configured quantity;
+  restock through the panel instead and the row disappears. The sync only
+  ever touches its own rows (it remembers them by uid), follows entity
+  renames, and needs no restart when the setting changes. This is the
+  built-in version of the automation the examples used to ask you to write.
+- **Proof of presence — "Only complete by scanning the tag".** A per-task
+  toggle next to the NFC tag field turns the linked tag (or the printed QR
+  code) into the only way to mark the task done: panel, dashboard card,
+  to-do list, voice and notification buttons are refused with a clear
+  message, the complete dialog announces the restriction up front, automatic
+  trigger-recovery completions stay exempt, and automations reacting to a
+  physical presence signal can assert it via the new `via_tag_scan` field on
+  the `complete` service.
+- **Markdown notes.** Task and object notes render as Markdown — bold,
+  lists, links — on the task detail, the object detail and the quick-actions
+  dialog (through Home Assistant's own sanitised renderer). The task notes
+  field is now a real multiline editor, both note editors hint at the syntax,
+  and printables deliberately stay plain text.
+- **Voice knows phases and priority.** Assist answers carry a task's cycle
+  phase and priority: task lists sort high-priority work first, completing
+  names the phase that was performed, and the instructions intent follows
+  the cycle cursor (checklist and parts of the phase currently due). New
+  response strings in all 22 languages.
+
+### 🐛 Fixed
+
+- Includes the v2.66.2 hotfix (#144): v2.66.1 failed to set up every config
+  entry on Home Assistant 2026.8.
+
+### 🔧 Internal
+
+- CI runs the test suite on **two Home Assistant cores** — the newest
+  release including betas, and the current stable — so a change that only
+  breaks the core most people actually run can no longer slip through.
+- Documentation refreshed for the new features: five new screenshots, two
+  new animated clips, and the full screenshot set re-shot on the extended
+  demo seed.
+
+## [2.66.2] - 2026-08-29
+
+### 🐛 Fixed
+
+- **v2.66.1 failed to set up on Home Assistant 2026.8 (#144).** Every config
+  entry died in `async_setup_entry` with `TypeError: DeviceRegistry.async_get()
+  got an unexpected keyword argument 'include_composite_devices'` and all task
+  entities went unavailable. The 2026.9-readiness release keyed its
+  "new registry" branch on `async_get_device_by_identifier`, which 2026.8
+  already ships — while the `include_composite_devices` lookup it then uses
+  only exists from 2026.9. The probe now checks for the lookup itself, and
+  the resolver carries regression tests shaped like each core generation
+  (2026.7, 2026.8 as shipped, 2026.9). Verified on 2026.8.3 and 2026.9.0b0.
+  Thanks to @liblit for the immediate, precise report.
+- **CI now tests two Home Assistant cores**: the newest core including betas
+  (as before) **and** the current stable release — 2026.8 was the one core
+  no test ran on.
+
 ## [2.66.1] - 2026-08-28
 
 ### 🐛 Fixed
