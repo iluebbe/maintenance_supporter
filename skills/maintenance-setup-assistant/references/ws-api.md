@@ -231,6 +231,15 @@ Result: `{"task_id": "<uuid>"}` (+ `"warnings"` maybe). Dry-run:
 `{"valid": true, "task_id": null}`. Errors: `invalid_input`,
 `invalid_trigger_config`, `invalid_url`, `invalid_entity_slug`, `invalid_format`.
 
+`invalid_trigger_config` also covers the VALUES (2.68.1+): thresholds,
+`trigger_target_value` and `trigger_baseline_value` must be finite numbers,
+`trigger_for_minutes` a whole number 0–1440, `trigger_target_changes` 1–10000,
+`trigger_runtime_hours` > 0 and ≤ 100000, `trigger_delta_mode` a real boolean
+(and a delta counter needs a positive step). Numeric strings are accepted and
+stored as numbers; an explicit `null` on an optional field means "unset". The
+error message names the field and the offending value; in a compound trigger
+it is prefixed with `Condition <index>:`.
+
 > **Time interval vs sensor trigger are orthogonal.** A calendar task uses
 > `interval_days`/`interval_unit`. A sensor task uses `trigger_config`. A task
 > may carry **both** (a sensor trigger plus a safety calendar interval).

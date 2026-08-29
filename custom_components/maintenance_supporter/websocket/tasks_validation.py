@@ -6,6 +6,7 @@ several sibling modules (objects, documents, io) + tests.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -187,6 +188,7 @@ def _validate_trigger_config(
             )
 
     _validate_combinator(trigger_config, errors)
+    _validate_trigger_values(trigger_type, trigger_config, errors)
 
     # Runtime: validate trigger_on_states if provided
     if trigger_type == "runtime":
@@ -224,6 +226,115 @@ def _validate_trigger_config(
                     trigger_config.pop(key, None)
 
     return errors, warnings
+
+
+# ---------------------------------------------------------------------------
+# Value-level checks (security review 2026-08-21): the key allowlist and the
+# per-type required fields never looked at the VALUES, so a write-tier client
+# could store ``trigger_for_minutes: "abc"`` or a negative target. Nothing
+# exploitable — the trigger classes fail closed — but the failure surfaced at
+# trigger setup, far from its cause. Ranges mirror the options-flow selectors.
+# ---------------------------------------------------------------------------
+
+# Numeric fields that may hold any finite number (thresholds, counter targets,
+# baselines) — a numeric string is accepted and stored as a float.
+_NUMBER_FIELDS: tuple[str, ...] = (
+    "trigger_above",
+    "trigger_below",
+    "trigger_equals",
+    "trigger_not_equals",
+    "trigger_target_value",
+    "trigger_baseline_value",
+)
+# Whole-number fields with an inclusive range.
+_INT_FIELDS: dict[str, tuple[int, int]] = {
+    "trigger_for_minutes": (0, 1440),
+    "trigger_target_changes": (1, 10_000),
+}
+TRIGGER_RUNTIME_HOURS_MAX = 100_000
+# Optional fields where an explicit null means "unset" — dropped rather than
+# refused, so a client clearing a field never trips the validator.
+_OPTIONAL_VALUE_FIELDS: tuple[str, ...] = (
+    "trigger_for_minutes",
+    "trigger_target_changes",
+    "trigger_baseline_value",
+    "trigger_delta_mode",
+    "trigger_runtime_hours",
+)
+
+
+def _coerce_number(value: Any) -> float | None:
+    """int/float/numeric-string → float; bools, non-numbers, NaN/inf → None."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        num = float(value)
+    elif isinstance(value, str):
+        try:
+            num = float(value.strip())
+        except ValueError:
+            return None
+    else:
+        return None
+    return num if math.isfinite(num) else None
+
+
+def _validate_trigger_values(trigger_type: str, trigger_config: dict[str, Any], errors: list[str]) -> None:
+    """Type/range-check the numeric trigger fields and normalise their types.
+
+    Numeric strings (an automation template, a YAML import) are accepted and
+    stored as numbers; everything else is refused with the field named, so
+    the panel and the service caller see the cause instead of a trigger that
+    silently never fires.
+    """
+    for key in _OPTIONAL_VALUE_FIELDS:
+        if key in trigger_config and trigger_config[key] is None:
+            del trigger_config[key]
+
+    for key in _NUMBER_FIELDS:
+        raw = trigger_config.get(key)
+        if raw is None:
+            continue
+        num = _coerce_number(raw)
+        if num is None:
+            errors.append(f"trigger_config.{key} must be a number, got {raw!r}")
+        elif isinstance(raw, str):
+            trigger_config[key] = num
+
+    for key, (low, high) in _INT_FIELDS.items():
+        raw = trigger_config.get(key)
+        if raw is None:
+            continue
+        num = _coerce_number(raw)
+        if num is None or not num.is_integer() or not low <= num <= high:
+            errors.append(f"trigger_config.{key} must be a whole number between {low} and {high}, got {raw!r}")
+        else:
+            trigger_config[key] = int(num)
+
+    raw = trigger_config.get("trigger_runtime_hours")
+    if raw is not None:
+        num = _coerce_number(raw)
+        if num is None or not 0 < num <= TRIGGER_RUNTIME_HOURS_MAX:
+            errors.append(
+                f"trigger_config.trigger_runtime_hours must be a number greater than 0 "
+                f"and at most {TRIGGER_RUNTIME_HOURS_MAX}, got {raw!r}"
+            )
+        elif isinstance(raw, str):
+            trigger_config["trigger_runtime_hours"] = num
+
+    raw = trigger_config.get("trigger_delta_mode")
+    if raw is not None and not isinstance(raw, bool):
+        errors.append(f"trigger_config.trigger_delta_mode must be true or false, got {raw!r}")
+
+    # A delta counter fires every N units of accumulated use — N must be
+    # positive, or the task would fire on every reading.
+    if trigger_type == "counter" and trigger_config.get("trigger_delta_mode") is True:
+        target = _coerce_number(trigger_config.get("trigger_target_value"))
+        if target is not None and target <= 0:
+            errors.append(
+                "trigger_config.trigger_target_value must be greater than 0 when trigger_delta_mode is on, "
+                f"got {trigger_config.get('trigger_target_value')!r}"
+            )
 
 
 def _validate_combinator(trigger_config: dict[str, Any], errors: list[str]) -> None:
