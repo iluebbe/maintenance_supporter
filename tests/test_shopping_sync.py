@@ -287,7 +287,7 @@ async def test_debounced_trigger_fires_the_resync(hass: HomeAssistant) -> None:
     todo, entry, sync = await _setup(hass)
     sync.schedule_resync()
     sync.schedule_resync()  # re-arm cancels the first timer
-    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=3))
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=6))
     await hass.async_block_till_done()
     assert any("Filter" in s for s in todo.summaries())  # the fired pass mirrored
 
@@ -441,3 +441,48 @@ async def test_partial_failures_and_second_part(hass: HomeAssistant, monkeypatch
     await sync.async_resync()
     assert len(sync._data["items"]) == 2
     assert all(rec["uid"] for rec in sync._data["items"].values())
+
+
+async def test_setting_the_option_in_the_panel_starts_the_mirror(hass: HomeAssistant) -> None:
+    """Regression: the global-options listener does not reload the entry, so
+    saving the setting in the panel (global/update) has to nudge the sync
+    itself — the demo instance sat with an empty list until a restart."""
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    from custom_components.maintenance_supporter.websocket.dashboard import ws_update_global_settings
+
+    from .conftest import call_ws_handler, make_ws_connection
+
+    todo, entry, sync = await _setup(hass, option="")
+    assert todo.summaries() == []
+    # Drain the boot/reconcile debounce first: with the option still empty
+    # that pass is a no-op, and afterwards NO timer is pending - exactly the
+    # state a long-running instance is in when the user saves the setting.
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=3))
+    await hass.async_block_till_done()
+    assert sync._debounce is None
+    assert todo.summaries() == []
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1, "type": "x", "settings": {"shopping_list_entity": LIST_ENTITY},
+    })
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()  # the options listener runs as a task
+    # No manual resync: only the debounce the listener armed.
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=6))
+    await hass.async_block_till_done()
+    assert any("Filter" in s for s in todo.summaries())
+
+    # Clearing it the same way pulls the row back out.
+    conn = make_ws_connection()
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 2, "type": "x", "settings": {"shopping_list_entity": ""},
+    })
+    await hass.async_block_till_done()
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=12))
+    await hass.async_block_till_done()
+    assert not any("Filter" in s for s in todo.summaries())

@@ -1595,6 +1595,13 @@ async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry)
     await async_sync_assist_sentences(
         hass, entry.options.get(CONF_INSTALL_ASSIST_SENTENCES, False)
     )
+    # v2.67: the shopping-list target may have changed (set / cleared / swapped).
+    # This listener does NOT reload the entry, so the sync must be nudged
+    # explicitly - it re-reads the option, re-arms its state listener and
+    # pulls its rows out of a list that is no longer the target.
+    from .shopping_sync import schedule_resync
+
+    schedule_resync(hass)
 
 
 _ORPHAN_ISSUE_PREFIX = "orphan_admin_panel_user_"
