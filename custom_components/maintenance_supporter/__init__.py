@@ -1466,6 +1466,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)
         await coordinator.async_config_entry_first_refresh()
 
+        # #148: a battery type that becomes known only after fleet setup (a
+        # Battery Notes note added later, a typed low-only Matter binary)
+        # never got its spare part — reconcile once per start, after the
+        # other integrations' entities exist. Also prunes the legacy
+        # untouched "UNKNOWN battery" part older versions minted. Registered
+        # AFTER runtime_data: on a running instance async_at_started fires
+        # immediately, and the reconcile needs the store for stock/prune.
+        if obj_data.get(BATTERY_FLEET_OBJECT_FLAG):
+
+            async def _fleet_parts_at_start(_hass: HomeAssistant) -> None:
+                from .helpers.battery_fleet_setup import reconcile_fleet_parts_at_start
+                from .helpers.i18n import normalize_language
+
+                try:
+                    result = await reconcile_fleet_parts_at_start(hass, entry, normalize_language(hass))
+                except Exception:
+                    _LOGGER.exception("Battery-fleet part reconcile at start failed")
+                    return
+                if result["added"] or result["pruned"]:
+                    _LOGGER.info(
+                        "Battery-fleet parts reconciled at start: added %s, pruned legacy UNKNOWN: %s",
+                        result["added"] or "none",
+                        result["pruned"],
+                    )
+
+            entry.async_on_unload(async_at_started(hass, _fleet_parts_at_start))
+
         # v1.5.3 (#48): forward-sync obj fields → device_registry whenever the
         # entry data changes (WS update OR config-flow re-edit). DeviceInfo
         # only seeds these on first device creation; after that, dashboard

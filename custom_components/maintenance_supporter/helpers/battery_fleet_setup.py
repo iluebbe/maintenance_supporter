@@ -492,6 +492,53 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: s
     return True
 
 
+async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry, lang: str) -> dict[str, Any]:
+    """Boot-time reconcile of the fleet's type-parts (issue #148).
+
+    A battery whose TYPE only becomes known after the fleet was set up (a
+    Battery Notes note added later, or a low-only Matter lock whose typed
+    ``…_battery_plus_low`` binary arrived with #121) never got its spare
+    part: ``_reconcile_type_parts`` only ran on an explicit fleet-setup
+    call. Runs the same reconcile once per start — and prunes the legacy
+    "UNKNOWN battery" part older versions minted for untyped batteries,
+    but ONLY while it is completely untouched (no stock counted, no
+    product/vendor data, auto-buy off); the moment a user touched it, it
+    is theirs and stays.
+    """
+    types = discover_battery_types(hass)
+    added = _reconcile_type_parts(hass, entry, types, lang)
+
+    pruned = False
+    rd = getattr(entry, "runtime_data", None)
+    store = getattr(rd, "store", None) if rd else None
+
+    parts = dict(entry.data.get(CONF_PARTS) or {})
+    legacy = parts.get("batt_unknown")
+    if legacy is not None:
+        stock = store.get_part_stock("batt_unknown") if store is not None else None
+        untouched = (
+            not stock
+            and not legacy.get("product_url")
+            and not legacy.get("vendor")
+            and not legacy.get("mpn")
+            and not legacy.get("gtin")
+            and not legacy.get("auto_buy_task")
+        )
+        if untouched:
+            parts.pop("batt_unknown")
+            new_data = dict(entry.data)
+            new_data[CONF_PARTS] = parts
+            hass.config_entries.async_update_entry(entry, data=new_data)
+            pruned = True
+
+    if store is not None and (added or pruned):
+        for pid in added:
+            store.set_part_stock(pid, 0)
+        await store.async_save()
+    return {"added": added, "pruned": pruned}
+
+
+
 def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int], lang: str) -> list[str]:
     """Add parts for battery types newly seen since setup. Returns added ids
     (the caller initializes their stock, mirroring the create path)."""

@@ -1013,3 +1013,72 @@ async def test_fleet_lists_are_capped(hass: HomeAssistant, global_entry: MockCon
     assert set_battery_included(hass, "sensor.cap_probe_0", True) is True
     assert set_battery_included(hass, "sensor.cap_probe_1", False) is True
     assert set_battery_excluded(hass, "sensor.cap_out_1", False) is True
+
+
+async def test_start_reconcile_adds_late_typed_parts_and_prunes_unknown(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#148: a type that becomes known after setup (Matter lock whose typed
+    low-only binary appears later) gets its part on the next start, and the
+    legacy untouched "UNKNOWN battery" part is pruned."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+
+    # Simulate the pre-fix world: a legacy UNKNOWN part sits in the fleet.
+    data = dict(fleet.data)
+    parts = dict(data[CONF_PARTS])
+    parts["batt_unknown"] = {**parts["batt_aa"], "id": "batt_unknown", "name": "UNKNOWN battery"}
+    data[CONF_PARTS] = parts
+    hass.config_entries.async_update_entry(fleet, data=data)
+
+    # The lock's battery type appears later (typed low-only binary, #121 shape).
+    hass.states.async_set(
+        "binary_sensor.back_door_battery_plus_low", "on",
+        {"device_class": "battery", "battery_type": "Lithium 3-volt CR2", "battery_quantity": 1, "device_name": "Back Door Lock"},
+    )
+
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+    parts = fleet.data[CONF_PARTS]
+    assert "batt_lithium 3-volt cr2" in parts, sorted(parts)
+    assert "batt_unknown" not in parts
+    # Added part is tracked at 0 like every setup-created sibling.
+    assert fleet.runtime_data.store.get_part_stock("batt_lithium 3-volt cr2") == 0
+
+
+async def test_start_reconcile_keeps_a_touched_unknown_part(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A legacy UNKNOWN part the user counted stock for is theirs — kept."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    data = dict(fleet.data)
+    parts = dict(data[CONF_PARTS])
+    parts["batt_unknown"] = {**parts["batt_aa"], "id": "batt_unknown", "name": "UNKNOWN battery"}
+    data[CONF_PARTS] = parts
+    hass.config_entries.async_update_entry(fleet, data=data)
+    fleet.runtime_data.store.set_part_stock("batt_unknown", 3)
+    await fleet.runtime_data.store.async_save()
+
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+
+    fleet = _fleet_entry(hass)
+    assert "batt_unknown" in fleet.data[CONF_PARTS]
+    assert fleet.runtime_data.store.get_part_stock("batt_unknown") == 3
