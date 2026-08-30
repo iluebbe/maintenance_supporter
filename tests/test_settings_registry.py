@@ -22,6 +22,8 @@ from custom_components.maintenance_supporter.helpers.settings_registry import (
 # baseline; changing a bound is a deliberate act that must update this test too.
 _EXPECTED_INT_RANGES = {
     "default_warning_days": (0, 365),  # 0 = no warning window (#145)
+    "default_consumable_threshold": (1, 90),
+    "battery_low_percent": (1, 90),
     "max_notifications_per_day": (0, 1000),
     "notify_due_soon_interval_hours": (0, 720),
     "notify_overdue_interval_hours": (0, 720),
@@ -61,12 +63,12 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 51 writable settings, each mapped to a concrete Python type.
-    assert len(ALLOWED_SETTING_KEYS) == 51
+    # 53 writable settings, each mapped to a concrete Python type.
+    assert len(ALLOWED_SETTING_KEYS) == 53
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 51
+    assert len(keys) == len(set(keys)) == 53
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

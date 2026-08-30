@@ -699,6 +699,9 @@ async def _write_settings(hass: HomeAssistant, settings: dict[str, Any]) -> None
 # are excluded here; they are covered by test_ws_dashboard.py individually.
 _SETTING_SAMPLES: dict[str, Any] = {
     "default_warning_days": 3,
+    # #146: household "low" floors.
+    "default_consumable_threshold": 5,
+    "battery_low_percent": 25,
     "notifications_enabled": True,
     # notify_service is normalised on save via validate_notify_service
     # (bare "persistent_notification" gets rewritten to "notify.…"); the
@@ -792,6 +795,8 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
     # renamed between the save shape (CONF_*) and the read shape (nested).
     flat: dict[str, Any] = {
         "default_warning_days": settings["general"]["default_warning_days"],
+        "default_consumable_threshold": settings["general"]["default_consumable_threshold"],
+        "battery_low_percent": settings["general"]["battery_low_percent"],
         "notifications_enabled": settings["general"]["notifications_enabled"],
         "notify_service": settings["general"]["notify_service"],
         "shopping_list_entity": settings["general"]["shopping_list_entity"],

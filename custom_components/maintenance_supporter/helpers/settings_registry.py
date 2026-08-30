@@ -34,11 +34,13 @@ from ..const import (
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
+    CONF_BATTERY_LOW_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
@@ -92,6 +94,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # 0 = no warning window: new tasks turn due_soon on the due date itself
     # (the per-task range already allowed 0 — #145).
     SettingSpec(CONF_DEFAULT_WARNING_DAYS, int, int_range=(0, 365)),
+    # #146: household "low" floors (percent) for discovery and the battery fleet.
+    SettingSpec(CONF_DEFAULT_CONSUMABLE_THRESHOLD, int, int_range=(1, 90)),
+    SettingSpec(CONF_BATTERY_LOW_PERCENT, int, int_range=(1, 90)),
     SettingSpec(CONF_NOTIFICATIONS_ENABLED, bool),
     SettingSpec(CONF_NOTIFY_SERVICE, str, max_len=200),
     # todo.* entity the buy-task shopping sync mirrors into ("" = off);

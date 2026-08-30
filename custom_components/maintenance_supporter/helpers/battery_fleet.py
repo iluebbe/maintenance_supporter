@@ -445,6 +445,10 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       self-charging filter is off entirely and such devices surface as
       rechargeables (native rows typed "Rechargeable", never "Unknown").
     """
+    # #146: the fleet-wide low floor is a household setting (default 20 %).
+    from .global_options import get_battery_low_percent
+
+    floor = float(get_battery_low_percent(hass))
     from homeassistant.helpers import device_registry as dr
     from homeassistant.helpers import entity_registry as er
 
@@ -525,7 +529,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 # was "healthy" here while the same level counted low in the
                 # native pass. A HIGHER Battery Notes threshold (e.g. 30 %)
                 # still wins through battery_low.
-                low = bool(attrs.get("battery_low")) or (level is not None and level <= NATIVE_LOW_PERCENT)
+                low = bool(attrs.get("battery_low")) or (level is not None and level <= floor)
             last_replaced = _parse_last_replaced(attrs.get("battery_last_replaced"))
             # B1 (roadmap 2026-07-22 audit): a forecast-only note — no level
             # sensor, so the state reads unknown forever — must SURVIVE when it
@@ -575,7 +579,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                     last_replaced=last_replaced,
                     available=available,
                     source="battery_notes",
-                    low_threshold=_note_low_threshold(attrs),
+                    low_threshold=_note_low_threshold(attrs, floor),
                 )
             )
 
@@ -648,7 +652,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
         if low_state is not None:
             low = low_available and str(low_state).lower() in ("on", "true", "1")
         else:
-            low = level is not None and level <= NATIVE_LOW_PERCENT
+            low = level is not None and level <= floor
         if available:
             # Remember the last real reading — the retention path below needs
             # it once the entity goes unavailable.
@@ -851,12 +855,16 @@ def _detect_unrecorded_jump(
     return None
 
 
-def _note_low_threshold(attrs: dict[str, Any]) -> float:
-    """The Battery-Notes-configured threshold OR the fleet floor — the higher."""
+def _note_low_threshold(attrs: dict[str, Any], floor: float = float(NATIVE_LOW_PERCENT)) -> float:
+    """The Battery-Notes-configured threshold OR the fleet floor — the higher.
+
+    ``floor`` is the household's battery_low_percent (#146); the module
+    constant only remains as the fallback default.
+    """
     raw = attrs.get("battery_low_threshold")
     if isinstance(raw, (int, float)):
-        return float(max(raw, NATIVE_LOW_PERCENT))
-    return float(NATIVE_LOW_PERCENT)
+        return float(max(raw, floor))
+    return float(floor)
 
 
 async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> dict[str, dict[str, Any]]:

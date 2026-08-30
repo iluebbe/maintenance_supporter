@@ -245,6 +245,12 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         # entity's own unit — no conversion in either case.
         return float(sig.delta_units)
     if sig.direction == "percent_left":
+        # #146: catalog-default floors follow the household setting; a
+        # signature that pins its own floor keeps it.
+        if sig.below_percent == _DEFAULT_BELOW_PERCENT:
+            from ..global_options import get_consumable_threshold
+
+            return float(get_consumable_threshold(hass))
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
     unit = (state.attributes.get("unit_of_measurement") if state else None) or "h"

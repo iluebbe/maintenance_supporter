@@ -289,7 +289,7 @@ always-current list with every duty and default lives in
 **[INTEGRATIONS.md](INTEGRATIONS.md)** (generated from the catalog itself, so
 it cannot drift). The object is bound to the
 device and every task arrives with its trigger **pre-wired** — a **threshold**
-(below 24 h left / below 10 % remaining / above a usage-hours count, unit-aware)
+(below 24 h left / below 10 % remaining — the household's *Consumable low threshold* setting, 2.69+ / above a usage-hours count, unit-aware)
 for numeric consumables, a **state latch** on the event for Home Connect's
 `present`/`off` maintenance events, or a **usage-interval counter** for
 lifetime hour meters (every N hours of use, re-baselined on completion).

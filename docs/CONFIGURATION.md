@@ -17,6 +17,8 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `default_warning_days` | int | 7 | 0–365 | Days before a task is due when its status changes to `due_soon` (`0` = only on the due date itself) |
+| `default_consumable_threshold` | int | 10 | 1–90 | Household floor (%) that *Suggested setups* pre-wires for percent-remaining consumables (ink, toner, brushes, filters …) whose catalog entry uses the default. Existing tasks keep their threshold (2.69+, #146) |
+| `battery_low_percent` | int | 20 | 1–90 | Fleet-wide "battery low" floor (%) for batteries without their own Battery Notes threshold; a higher Battery Notes threshold still wins (2.69+, #146) |
 | `row_action_style` | str | `buttons_compact` | `buttons_compact` / `buttons` / `icons` | How task rows show *Complete* / *Skip* (2.69+): HA buttons that collapse to icon-only on phones, labelled buttons everywhere, or the classic icon pair. Existing installs see a one-time banner with a *Back to icons* button |
 | `budget_currency` (1.4.9+ in General; 1.4.8+ added 7 currencies; NZD in 2.25/#96) | enum | `EUR` | EUR, USD, GBP, JPY, CHF, CAD, AUD, NZD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH | Display currency for **all** monetary values — `Avg cost` KPI, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs in the config flow. The corresponding symbol (e.g. `€`, `$`, `Kč`, `zł`) propagates everywhere. Storage key is still `budget_currency` for backwards-compat |
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |

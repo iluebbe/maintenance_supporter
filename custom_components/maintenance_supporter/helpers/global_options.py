@@ -19,13 +19,18 @@ from homeassistant.core import HomeAssistant
 
 from ..const import (
     CONF_ADVANCED_SCHEDULE_TIME,
+    CONF_BATTERY_LOW_PERCENT,
+    CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_PANEL_TITLE,
+    DEFAULT_BATTERY_LOW_PERCENT,
+    DEFAULT_CONSUMABLE_THRESHOLD,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MAX_PANEL_TITLE_LENGTH,
     PANEL_TITLE,
+    THRESHOLD_PERCENT_RANGE,
 )
 
 
@@ -89,3 +94,27 @@ def get_panel_title(hass: HomeAssistant) -> str:
     if not title:
         return PANEL_TITLE
     return title[:MAX_PANEL_TITLE_LENGTH]
+
+
+def _percent_option(hass: HomeAssistant, key: str, default: int) -> int:
+    """A percent option within THRESHOLD_PERCENT_RANGE, else its default."""
+    raw = get_global_options(hass).get(key, default)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    lo, hi = THRESHOLD_PERCENT_RANGE
+    return value if lo <= value <= hi else default
+
+
+def get_consumable_threshold(hass: HomeAssistant) -> int:
+    """#146: the household's floor for percent-remaining consumables — what
+    Suggested setups pre-wires for catalog signatures that use the default
+    (a signature with its own explicit floor keeps it)."""
+    return _percent_option(hass, CONF_DEFAULT_CONSUMABLE_THRESHOLD, DEFAULT_CONSUMABLE_THRESHOLD)
+
+
+def get_battery_low_percent(hass: HomeAssistant) -> int:
+    """#146: the fleet-wide "battery low" floor for batteries without their
+    own Battery Notes threshold (a higher Battery Notes threshold still wins)."""
+    return _percent_option(hass, CONF_BATTERY_LOW_PERCENT, DEFAULT_BATTERY_LOW_PERCENT)

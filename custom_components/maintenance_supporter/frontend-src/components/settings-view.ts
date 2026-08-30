@@ -43,6 +43,9 @@ interface SettingsResponse {
     panel_title: string;
     /** Opt-in copy of the shipped Assist sentences into the config dir. */
     install_assist_sentences?: boolean;
+    /** #146: household "low" floors (percent) for discovery + battery fleet. */
+    default_consumable_threshold?: number;
+    battery_low_percent?: number;
     /** #145: how task rows show Complete / Skip. */
     row_action_style?: "buttons_compact" | "buttons" | "icons";
     row_action_notice_pending?: boolean;
@@ -597,6 +600,23 @@ export class MaintenanceSettingsView extends LitElement {
               if (v >= 0 && v <= 365) this._updateSetting("default_warning_days", v);
             }} />
         </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_consumable_threshold", L)}</span>
+          <input type="number" min="1" max="90" .value=${String(g.default_consumable_threshold ?? 10)}
+            @change=${(e: Event) => {
+              const v = parseInt((e.target as HTMLInputElement).value, 10);
+              if (v >= 1 && v <= 90) this._updateSetting("default_consumable_threshold", v);
+            }} />
+        </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_battery_low_percent", L)}</span>
+          <input type="number" min="1" max="90" .value=${String(g.battery_low_percent ?? 20)}
+            @change=${(e: Event) => {
+              const v = parseInt((e.target as HTMLInputElement).value, 10);
+              if (v >= 1 && v <= 90) this._updateSetting("battery_low_percent", v);
+            }} />
+        </label>
+        <div class="setting-hint">${t("settings_thresholds_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_row_actions", L)}</span>
           <select .value=${live(g.row_action_style || "buttons_compact")}

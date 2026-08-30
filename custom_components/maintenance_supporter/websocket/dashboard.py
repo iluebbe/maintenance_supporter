@@ -29,11 +29,13 @@ from ..const import (
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
+    CONF_BATTERY_LOW_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
@@ -67,7 +69,9 @@ from ..const import (
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_ARCHIVE_ONEOFF_DAYS,
+    DEFAULT_BATTERY_LOW_PERCENT,
     DEFAULT_BUDGET_CURRENCY,
+    DEFAULT_CONSUMABLE_THRESHOLD,
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     DEFAULT_PANEL_ENABLED,
@@ -151,6 +155,9 @@ def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str
         },
         "general": {
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
+            # #146: household "low" floors for discovery + the battery fleet.
+            "default_consumable_threshold": options.get(CONF_DEFAULT_CONSUMABLE_THRESHOLD, DEFAULT_CONSUMABLE_THRESHOLD),
+            "battery_low_percent": options.get(CONF_BATTERY_LOW_PERCENT, DEFAULT_BATTERY_LOW_PERCENT),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
             "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
             # v2.67: buy-task shopping sync target ("" = off).

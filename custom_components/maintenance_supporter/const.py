@@ -130,6 +130,15 @@ CONF_ROW_ACTION_STYLE = "row_action_style"
 CONF_ROW_ACTION_NOTICE = "row_action_notice_pending"
 ROW_ACTION_STYLES: tuple[str, ...] = ("buttons_compact", "buttons", "icons")
 DEFAULT_ROW_ACTION_STYLE = "buttons_compact"
+# #146: household defaults for the "low" thresholds that discovery and the
+# battery fleet used to hard-code. Consumables: the catalog floor for
+# percent-remaining signatures (Suggested setups). Batteries: the fleet-wide
+# floor for batteries without their own Battery Notes threshold.
+CONF_DEFAULT_CONSUMABLE_THRESHOLD = "default_consumable_threshold"
+CONF_BATTERY_LOW_PERCENT = "battery_low_percent"
+DEFAULT_CONSUMABLE_THRESHOLD = 10
+DEFAULT_BATTERY_LOW_PERCENT = 20
+THRESHOLD_PERCENT_RANGE: tuple[int, int] = (1, 90)
 
 # --- Config Keys: Advanced Feature Visibility ---
 CONF_ADVANCED_ADAPTIVE = "advanced_adaptive_visible"
