@@ -289,7 +289,8 @@ export const panelStyles = css`
   .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
   .today-row .today-complete { flex: none; --ha-button-font-size: 13px; white-space: nowrap; }
   .today-row .today-complete ha-icon { --mdc-icon-size: 18px; }
-  :host([narrow]) .today-row .today-complete { min-width: 0; --ha-button-height: 36px; }
+  :host([narrow]) .today-row .today-complete,
+  :host([tight]) .today-row .today-complete { min-width: 0; --ha-button-height: 36px; }
   .today-empty {
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     padding: 48px 16px; color: var(--secondary-text-color); text-align: center;
@@ -1495,19 +1496,54 @@ export const panelStyles = css`
   }
   /* Prototype: on phones the two labelled pills stack, so the row keeps its
      deterministic column X-positions and neither label gets truncated. */
-  :host([narrow]) .row-actions.as-buttons {
+  /* Labelled buttons stack when the row cannot hold them side by side:
+     narrow viewports AND a tight panel (iPad portrait with the sidebar
+     docked — the viewport is not narrow but the panel is ~768 px). */
+  :host([narrow]) .row-actions.as-buttons,
+  :host([tight]) .row-actions.as-buttons {
     flex-direction: column;
     align-items: stretch;
     gap: 4px;
   }
-  :host([narrow]) .row-actions.as-buttons ha-button { --ha-button-font-size: 12px; }
-  /* Prototype variant C ("compact"): on narrow screens the labelled buttons
-     collapse to icon-only ha-buttons side by side — the colour carries the
-     meaning, the row keeps the icon-era height. */
-  :host([narrow]) .row-actions.as-buttons.compact { flex-direction: row; align-items: center; gap: 2px; }
-  :host([narrow]) .row-actions.compact ha-button { --ha-button-height: 36px; min-width: 0; }
-  :host([narrow]) .row-actions.compact ha-icon-button { --mdc-icon-button-size: 40px; --mdc-icon-size: 22px; color: var(--secondary-text-color); }
-  :host([narrow]) .row-actions.compact ha-icon { --mdc-icon-size: 20px; }
+  :host([narrow]) .row-actions.as-buttons ha-button,
+  :host([tight]) .row-actions.as-buttons ha-button { --ha-button-font-size: 12px; }
+  /* buttons_compact: the labelled buttons collapse to an icon-only ha-button
+     plus ha-icon-button side by side — the colour carries the meaning, the
+     row keeps the icon-era height. */
+  :host([narrow]) .row-actions.as-buttons.compact,
+  :host([tight]) .row-actions.as-buttons.compact { flex-direction: row; align-items: center; gap: 2px; }
+  :host([narrow]) .row-actions.compact ha-button,
+  :host([tight]) .row-actions.compact ha-button { --ha-button-height: 36px; min-width: 0; }
+  :host([narrow]) .row-actions.compact ha-icon-button,
+  :host([tight]) .row-actions.compact ha-icon-button { --mdc-icon-button-size: 40px; --mdc-icon-size: 22px; color: var(--secondary-text-color); }
+  :host([narrow]) .row-actions.compact ha-icon,
+  :host([tight]) .row-actions.compact ha-icon { --mdc-icon-size: 20px; }
+
+  /* A TIGHT panel that is not narrow (iPad portrait with HA's sidebar
+     docked: 1024 px viewport, ~768 px panel) gets the narrow row layout too —
+     the wide subgrid overflowed its last column at that width even before
+     the buttons. Same rules as the :host([narrow]) block above / the
+     max-width:768px media mirror below, keyed on the panel's own width. */
+  :host([tight]:not([narrow])) .task-table { display: block; }
+  :host([tight]:not([narrow])) .task-row {
+    display: grid;
+    grid-column: auto;
+    grid-template-columns: auto minmax(0, 1fr) 100px auto;
+    grid-template-rows: auto auto auto;
+    column-gap: 8px;
+    row-gap: 4px;
+    padding: 12px;
+    min-width: 0;
+  }
+  :host([tight]:not([narrow])) .cell.type { display: none; }
+  :host([tight]:not([narrow])) .cell.task-name { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
+  :host([tight]:not([narrow])) .cell-badges { grid-column: 1; grid-row: 2; }
+  :host([tight]:not([narrow])) .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; }
+  :host([tight]:not([narrow])) .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
+  :host([tight]:not([narrow])) .row-actions { grid-column: 4; grid-row: 2; }
+  :host([tight]:not([narrow])) .task-sub { grid-column: 1 / -1; grid-row: 3; font-size: 11px; gap: 6px; justify-content: flex-start; flex-wrap: wrap; }
+  :host([tight]:not([narrow])) .task-sub-empty { display: none; }
+  :host([tight]:not([narrow])) .mini-sparkline { width: 50px; }
   :host([narrow]) .task-sub {
     grid-column: 1 / -1;
     grid-row: 3;

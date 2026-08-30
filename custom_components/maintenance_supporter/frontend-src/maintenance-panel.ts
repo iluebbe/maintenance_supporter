@@ -120,6 +120,12 @@ type GroupByMode = "none" | "area" | "group" | "user";
 export class MaintenanceSupporterPanel extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, reflect: true }) public narrow = false;
+  /** #145: the panel itself is tight (< 880 px) although the viewport is not
+   *  `narrow` — an iPad in portrait with HA's sidebar docked leaves ~768 px.
+   *  The wide row grid then cannot hold labelled action buttons, so the
+   *  compact (icon-only) form applies here too. Reflected for the CSS. */
+  @property({ type: Boolean, reflect: true }) public tight = false;
+  private _tightObserver: ResizeObserver | null = null;
   @property({ attribute: false }) public panel: Record<string, unknown> = {};
 
   @state() private _objects: MaintenanceObjectResponse[] = [];
@@ -324,6 +330,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     else window.setTimeout(kick, 1500);
     window.addEventListener("popstate", this._popstateHandler);
     window.addEventListener("keydown", this._paletteKeydown);
+    if (typeof ResizeObserver !== "undefined") {
+      this._tightObserver = new ResizeObserver((entries) => {
+        const w = entries[0]?.contentRect.width ?? 0;
+        if (w > 0) this.tight = w < 880;
+      });
+      this._tightObserver.observe(this);
+    }
     window.addEventListener("resize", this._onVirtualScroll, { passive: true });
     // localStorage.getItem can THROW (Safari private mode / locked-down policies
     // where storage access raises rather than returning null) — an unguarded
@@ -364,6 +377,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     super.disconnectedCallback();
     window.removeEventListener("popstate", this._popstateHandler);
     window.removeEventListener("keydown", this._paletteKeydown);
+    this._tightObserver?.disconnect();
+    this._tightObserver = null;
     window.removeEventListener("resize", this._onVirtualScroll);
     this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll", this._onVirtualScroll);
     this._virtScrollAttached = false;
@@ -2315,7 +2330,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               : html`
                 <ha-button size="small" appearance="accent" variant="success" class="today-complete" title="${t("complete", L)}"
                   @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
-                  ${this._actionStyle() === "buttons_compact" && this.narrow
+                  ${this._actionStyle() === "buttons_compact" && (this.narrow || this.tight)
                     ? html`<ha-icon icon="mdi:check"></ha-icon>`
                     : html`<ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}`}
                 </ha-button>`}
@@ -3278,7 +3293,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderRowActions(L: string, onComplete: () => void, onSkip: () => void): TemplateResult {
     const style = this._actionStyle();
     if (style === "buttons" || style === "buttons_compact") {
-      const iconOnly = style === "buttons_compact" && this.narrow;
+      const iconOnly = style === "buttons_compact" && (this.narrow || this.tight);
       if (iconOnly) {
         // Compact narrow form: the primary action stays a solid ha-button
         // (icon only), the secondary one becomes HA's own icon button.
