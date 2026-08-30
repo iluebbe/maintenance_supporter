@@ -373,6 +373,9 @@ export interface SavedView {
 export interface CardConfig {
   type: string;
   title?: string;
+  /** #145: how the row's Complete action looks. Omit to follow the global
+   *  "Task row actions" setting (buttons unless the household chose icons). */
+  action_style?: "icons" | "buttons";
   show_header?: boolean;
   max_items?: number;
   filter_status?: string[];

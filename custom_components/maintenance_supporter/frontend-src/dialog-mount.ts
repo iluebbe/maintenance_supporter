@@ -122,6 +122,8 @@ interface SettingsCache {
     checklists: boolean; schedule_time: boolean; completion_actions: boolean;
   };
   defaultWarningDays: number;
+  /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
+  rowActionStyle: string;
 }
 
 const FALLBACK_SETTINGS: SettingsCache = {
@@ -131,7 +133,20 @@ const FALLBACK_SETTINGS: SettingsCache = {
     checklists: false, schedule_time: false, completion_actions: false,
   },
   defaultWarningDays: 7,
+  rowActionStyle: "buttons_compact",
 };
+
+/** The household's row-action style for surfaces outside the panel (the
+ *  Lovelace card follows it unless its own `action_style` is set). */
+export function getRowActionStyle(hass: HomeAssistant): Promise<string> {
+  return fetchSettingsOnce(hass).then((s) => s.rowActionStyle);
+}
+
+/** Test hook: the settings cache is module-wide (one fetch per page), which
+ *  makes component tests with DIFFERENT settings share the first answer. */
+export function __resetSettingsCacheForTests(): void {
+  _cachedSettings = null;
+}
 
 let _cachedSettings: Promise<SettingsCache> | null = null;
 
@@ -140,11 +155,12 @@ function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
   _cachedSettings = hass.connection
     .sendMessagePromise<{
       features?: SettingsCache["features"];
-      general?: { default_warning_days?: number };
+      general?: { default_warning_days?: number; row_action_style?: string };
     }>({ type: "maintenance_supporter/settings" })
     .then((r) => ({
       features: r.features ?? FALLBACK_SETTINGS.features,
       defaultWarningDays: r.general?.default_warning_days ?? 7,
+      rowActionStyle: r.general?.row_action_style ?? FALLBACK_SETTINGS.rowActionStyle,
     }))
     .catch(() => FALLBACK_SETTINGS);
   return _cachedSettings;

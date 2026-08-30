@@ -59,6 +59,8 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_REMINDER_LEAD_DAYS,
+    CONF_ROW_ACTION_NOTICE,
+    CONF_ROW_ACTION_STYLE,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
@@ -69,6 +71,7 @@ from ..const import (
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     DEFAULT_PANEL_ENABLED,
+    DEFAULT_ROW_ACTION_STYLE,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DEFAULT_WARNING_DAYS,
     DEFAULT_WARRANTY_REMINDER_DAYS,
@@ -161,6 +164,11 @@ def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str
             # <config>/custom_sentences/ (the only place the classic
             # conversation agent reads them from).
             "install_assist_sentences": options.get(CONF_INSTALL_ASSIST_SENTENCES, False),
+            # #145: task-row action style + the one-time "new look" notice
+            # (set by the 5→6 migration for existing installs, cleared by the
+            # panel banner).
+            "row_action_style": options.get(CONF_ROW_ACTION_STYLE, DEFAULT_ROW_ACTION_STYLE),
+            "row_action_notice_pending": options.get(CONF_ROW_ACTION_NOTICE, False),
         },
         "notifications": {
             "due_soon_enabled": options.get(CONF_NOTIFY_DUE_SOON_ENABLED, True),
@@ -620,6 +628,12 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
 
     if CONF_NOTIFICATION_TITLE_STYLE in filtered and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES:
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
+
+    # #145: same treatment for the row-action style.
+    from ..const import ROW_ACTION_STYLES
+
+    if CONF_ROW_ACTION_STYLE in filtered and filtered[CONF_ROW_ACTION_STYLE] not in ROW_ACTION_STYLES:
+        del filtered[CONF_ROW_ACTION_STYLE]
 
     # v1.4.6 (#44 follow-up): drop quiet-hours time strings that aren't valid
     # HH:MM[:SS]. The HA TimeSelector in the options-flow rejects empty / bad

@@ -1,6 +1,6 @@
 /** Maintenance Supporter Sidebar Panel. */
 
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
@@ -170,6 +170,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   // value in the task-create dialog so the Settings → General → "Default
   // warning days" choice actually flows through to new tasks.
   @state() private _defaultWarningDays = 7;
+  /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
+  @state() private _rowActionStyle = "buttons_compact";
+  /** #145: one-time "rows look different now" notice for existing installs. */
+  @state() private _rowActionNotice = false;
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
   @state() private _objMenuOpen = false;
@@ -517,7 +521,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         features: AdvancedFeatures;
         admin_panel_user_ids?: string[];
         operator_write_enabled?: boolean;
-        general?: { default_warning_days?: number };
+        general?: { default_warning_days?: number; row_action_style?: string; row_action_notice_pending?: boolean };
         objects_table_columns?: string[];
       };
       this._features = sr.features;
@@ -527,6 +531,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (typeof dwd === "number" && dwd >= 0 && dwd <= 365) {
         this._defaultWarningDays = dwd;
       }
+      const ras = sr.general?.row_action_style;
+      this._rowActionStyle = ras === "icons" || ras === "buttons" ? ras : "buttons_compact";
+      this._rowActionNotice = sr.general?.row_action_notice_pending === true;
       this._objectsTableColumns = sanitizeColumns(sr.objects_table_columns);
     }
 
@@ -1995,6 +2002,20 @@ export class MaintenanceSupporterPanel extends LitElement {
               </div>
             `
           : nothing}
+        ${this._rowActionNotice && !!this.hass?.user?.is_admin
+          ? html`
+              <div class="update-banner row-actions-banner" role="status">
+                <ha-icon icon="mdi:gesture-tap-button"></ha-icon>
+                <span>${t("row_actions_banner", this._lang)}</span>
+                <ha-button appearance="plain" @click=${() => this._dismissRowActionNotice(false)}>
+                  ${t("row_actions_keep", this._lang)}
+                </ha-button>
+                <ha-button appearance="filled" @click=${() => this._dismissRowActionNotice(true)}>
+                  ${t("row_actions_back", this._lang)}
+                </ha-button>
+              </div>
+            `
+          : nothing}
         ${this.narrow || this._view !== "overview" ? this._renderHeader() : nothing}
         <div class="content">
           ${this._view === "overview"
@@ -2285,10 +2306,19 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="today-task">${row.task_name}</div>
               <div class="today-object">${row.object_name} · ${formatDueDays(row.days_until_due, L)}</div>
             </div>
-            <mwc-icon-button class="btn-complete" title="${t("complete", L)}"
-              @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
-              <ha-icon icon="mdi:check"></ha-icon>
-            </mwc-icon-button>
+            ${this._actionStyle() === "icons"
+              ? html`
+                <mwc-icon-button class="btn-complete" title="${t("complete", L)}"
+                  @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
+                  <ha-icon icon="mdi:check"></ha-icon>
+                </mwc-icon-button>`
+              : html`
+                <ha-button size="small" appearance="accent" variant="success" class="today-complete" title="${t("complete", L)}"
+                  @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
+                  ${this._actionStyle() === "buttons_compact" && this.narrow
+                    ? html`<ha-icon icon="mdi:check"></ha-icon>`
+                    : html`<ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}`}
+                </ha-button>`}
           </div>
         `)}
       </div>
@@ -3215,16 +3245,72 @@ export class MaintenanceSupporterPanel extends LitElement {
             : nothing}
           ${renderMiniSparkline(row, this._miniStatsData, this._lang)}
         </span>
-        <span class="row-actions">
-          <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
-            <ha-icon icon="mdi:check"></ha-icon>
-          </mwc-icon-button>
-          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(row.entry_id, row.task_id); }}>
-            <ha-icon icon="mdi:skip-next"></ha-icon>
-          </mwc-icon-button>
-        </span>
+        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id))}
       </div>
     `;
+  }
+
+  /** DESIGN PROTOTYPE (#145 wish 1): row actions as bare icons (current) or
+   *  as labelled colour-coded buttons. Switch: localStorage "msp-action-style"
+   *  = "buttons" — evaluation only, no settings plumbing yet. */
+  private _actionStyle(): string {
+    return this._rowActionStyle;
+  }
+
+  /** The #145 banner's two ways out: keep the buttons (just dismiss) or go
+   *  back to icons (style + dismiss in one write). Admin-only, like every
+   *  global setting. */
+  private async _dismissRowActionNotice(backToIcons: boolean): Promise<void> {
+    const settings: Record<string, unknown> = { row_action_notice_pending: false };
+    if (backToIcons) settings.row_action_style = "icons";
+    try {
+      await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/global/update", settings });
+      this._rowActionNotice = false;
+      if (backToIcons) this._rowActionStyle = "icons";
+    } catch (err) {
+      console.warn("[maintenance-supporter] row-action notice update failed", err);
+    }
+  }
+
+  /** #145: row actions as HA buttons — labelled (accent/success + plain, the
+   *  task-detail pairing) or, for "buttons_compact" on narrow screens,
+   *  icon-only — or the classic icon pair when the household chose "icons". */
+  private _renderRowActions(L: string, onComplete: () => void, onSkip: () => void): TemplateResult {
+    const style = this._actionStyle();
+    if (style === "buttons" || style === "buttons_compact") {
+      const iconOnly = style === "buttons_compact" && this.narrow;
+      if (iconOnly) {
+        // Compact narrow form: the primary action stays a solid ha-button
+        // (icon only), the secondary one becomes HA's own icon button.
+        return html`
+          <span class="row-actions as-buttons compact">
+            <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+              <ha-icon icon="mdi:check"></ha-icon>
+            </ha-button>
+            <ha-icon-button .label=${t("skip", L)} title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+              <ha-icon icon="mdi:skip-next"></ha-icon>
+            </ha-icon-button>
+          </span>`;
+      }
+      return html`
+        <span class="row-actions as-buttons">
+          <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+            <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
+          </ha-button>
+          <ha-button size="small" appearance="plain" variant="neutral" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+            <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${t("skip", L)}
+          </ha-button>
+        </span>`;
+    }
+    return html`
+      <span class="row-actions">
+        <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+          <ha-icon icon="mdi:check"></ha-icon>
+        </mwc-icon-button>
+        <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+          <ha-icon icon="mdi:skip-next"></ha-icon>
+        </mwc-icon-button>
+      </span>`;
   }
 
   private _openCompleteDialogForRow(row: TaskRow): void {
@@ -3367,14 +3453,11 @@ export class MaintenanceSupporterPanel extends LitElement {
                     : nothing}
                   ${renderMiniSparkline(task, this._miniStatsData, this._lang)}
                 </span>
-                <span class="row-actions">
-                  <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
-                    <ha-icon icon="mdi:check"></ha-icon>
-                  </mwc-icon-button>
-                  <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(obj.entry_id, task.id); }}>
-                    <ha-icon icon="mdi:skip-next"></ha-icon>
-                  </mwc-icon-button>
-                </span>
+                ${this._renderRowActions(
+                  L,
+                  () => this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled),
+                  () => this._promptSkipTask(obj.entry_id, task.id),
+                )}
               </div>
             `)}</div>`}
 

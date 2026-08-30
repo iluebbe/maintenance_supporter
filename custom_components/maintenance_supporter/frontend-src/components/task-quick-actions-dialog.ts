@@ -596,40 +596,40 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   `
                 : html`
                     <div class="actions primary-row">
-                      <button class="btn primary" @click=${this._onComplete} ?disabled=${this._busy}>
-                        <ha-icon icon="mdi:check"></ha-icon>
+                      <ha-button appearance="accent" variant="success" @click=${this._onComplete} .disabled=${this._busy}>
+                        <ha-icon slot="start" icon="mdi:check"></ha-icon>
                         ${t("complete", L) || "Complete"}
-                      </button>
-                      <button class="btn" @click=${() => { this._showSkip = true; }} ?disabled=${this._busy}>
-                        <ha-icon icon="mdi:skip-next"></ha-icon>
+                      </ha-button>
+                      <ha-button appearance="plain" variant="neutral" @click=${() => { this._showSkip = true; }} .disabled=${this._busy}>
+                        <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>
                         ${t("skip", L) || "Skip"}
-                      </button>
-                      <button class="btn" @click=${() => { this._showReset = true; }} ?disabled=${this._busy}>
-                        <ha-icon icon="mdi:restart"></ha-icon>
+                      </ha-button>
+                      <ha-button appearance="plain" variant="neutral" @click=${() => { this._showReset = true; }} .disabled=${this._busy}>
+                        <ha-icon slot="start" icon="mdi:restart"></ha-icon>
                         ${t("reset", L) || "Reset"}
-                      </button>
+                      </ha-button>
                     </div>
                     ${isAdmin
                       ? html`
                           <div class="actions secondary-row">
-                            <button class="btn ghost" @click=${this._onEdit} ?disabled=${this._busy}>
-                              <ha-icon icon="mdi:pencil"></ha-icon>
+                            <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onEdit} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:pencil"></ha-icon>
                               ${t("edit", L) || "Edit"}
-                            </button>
-                            <button class="btn ghost" @click=${this._onQr} ?disabled=${this._busy}>
-                              <ha-icon icon="mdi:qrcode"></ha-icon>
+                            </ha-button>
+                            <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onQr} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:qrcode"></ha-icon>
                               ${t("qr_code", L) || "QR"}
-                            </button>
-                            <button class="btn ghost"
+                            </ha-button>
+                            <ha-button size="small" appearance="outlined" variant="neutral"
                               @click=${task.archived ? this._onUnarchive : this._onArchive}
-                              ?disabled=${this._busy}>
-                              <ha-icon icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
+                              .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
                               ${task.archived ? (t("unarchive", L) || "Unarchive") : (t("archive", L) || "Archive")}
-                            </button>
-                            <button class="btn ghost danger" @click=${this._onDelete} ?disabled=${this._busy}>
-                              <ha-icon icon="mdi:delete"></ha-icon>
+                            </ha-button>
+                            <ha-button size="small" appearance="outlined" variant="danger" class="danger" @click=${this._onDelete} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:delete"></ha-icon>
                               ${t("delete", L) || "Delete"}
-                            </button>
+                            </ha-button>
                           </div>
                         `
                       : nothing}
@@ -704,6 +704,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .actions { display: flex; gap: 8px; }
     .actions.primary-row { gap: 6px; }
     .actions.primary-row .btn { flex: 1; }
+    .actions.primary-row ha-button { flex: 1; }
     /* Edit + QR are admin-tools — left-align as a group; Delete is destructive
        so it gets pushed to the far right with margin-left:auto for visual
        separation. Earlier this row was flex-end which left a strange empty
@@ -712,9 +713,11 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       padding-top: 8px; border-top: 1px solid var(--divider-color);
       justify-content: flex-start;
     }
-    .actions.secondary-row .btn.danger {
+    .actions.secondary-row .btn.danger,
+    .actions.secondary-row ha-button.danger {
       margin-left: auto;
     }
+    .actions.secondary-row ha-button { --ha-button-font-size: 13px; }
     .btn {
       padding: 8px 12px; font-size: 14px;
       border-radius: 6px; cursor: pointer;

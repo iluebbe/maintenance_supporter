@@ -710,6 +710,9 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "panel_enabled": True,
     # Already trimmed + under the 50-char cap, so it round-trips unchanged.
     "panel_title": "Upkeep",
+    # #145: enum-validated style + the one-time notice flag.
+    "row_action_style": "icons",
+    "row_action_notice_pending": True,
     "operator_write_enabled": True,
     "advanced_adaptive_visible": True,
     "advanced_predictions_visible": True,
@@ -794,6 +797,8 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "shopping_list_entity": settings["general"]["shopping_list_entity"],
         "panel_enabled": settings["general"]["panel_enabled"],
         "panel_title": settings["general"]["panel_title"],
+        "row_action_style": settings["general"]["row_action_style"],
+        "row_action_notice_pending": settings["general"]["row_action_notice_pending"],
         "operator_write_enabled": settings["operator_write_enabled"],
         **{
             f"advanced_{k}_visible": v

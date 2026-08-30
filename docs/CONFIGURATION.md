@@ -17,6 +17,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `default_warning_days` | int | 7 | 0–365 | Days before a task is due when its status changes to `due_soon` (`0` = only on the due date itself) |
+| `row_action_style` | str | `buttons_compact` | `buttons_compact` / `buttons` / `icons` | How task rows show *Complete* / *Skip* (2.69+): HA buttons that collapse to icon-only on phones, labelled buttons everywhere, or the classic icon pair. Existing installs see a one-time banner with a *Back to icons* button |
 | `budget_currency` (1.4.9+ in General; 1.4.8+ added 7 currencies; NZD in 2.25/#96) | enum | `EUR` | EUR, USD, GBP, JPY, CHF, CAD, AUD, NZD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH | Display currency for **all** monetary values — `Avg cost` KPI, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs in the config flow. The corresponding symbol (e.g. `€`, `$`, `Kč`, `zł`) propagates everywhere. Storage key is still `budget_currency` for backwards-compat |
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
@@ -533,6 +534,7 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | `title` | string | `"Maintenance"` (i18n) | Card header |
 | `show_header` | bool | `true` | Show the count badges (Overdue / Due Soon / Triggered) |
 | `show_actions` | bool | `true` | Show the "Complete" button on each task row |
+| `action_style` | `buttons` / `icons` | — | How that button looks (2.69+): a labelled HA button or the classic check icon. Omit to follow the household's *Task row actions* setting |
 | `show_assignee` | bool | `true` | Show the responsible user on each task row — with a rotation this is whose turn it is. Rows without an assignee show nothing; the name is resolved via `users/list` (a read-tier command, so non-admin household members see it too) |
 | `filter_labels` | list | — | Limit the card to tasks carrying at least one of these labels (OR semantics, like `filter_objects`) |
 | `filter_priority` (#134) | list | — | Limit the card to these priority levels (`low` / `normal` / `high`, OR semantics). Tasks without an explicit priority count as `normal` |

@@ -64,6 +64,8 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_REMINDER_LEAD_DAYS,
+    CONF_ROW_ACTION_NOTICE,
+    CONF_ROW_ACTION_STYLE,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
@@ -96,6 +98,10 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # format-validated by a bespoke sanitiser rule (todo. prefix), max_len is
     # HA's entity-id cap.
     SettingSpec(CONF_SHOPPING_LIST_ENTITY, str, max_len=255),
+    # #145: enum-validated by a bespoke rule (ROW_ACTION_STYLES); the notice
+    # flag is only ever cleared by the panel banner.
+    SettingSpec(CONF_ROW_ACTION_STYLE, str, max_len=32),
+    SettingSpec(CONF_ROW_ACTION_NOTICE, bool),
     SettingSpec(CONF_PANEL_ENABLED, bool),
     # panel_title is trimmed+capped to MAX_PANEL_TITLE_LENGTH by a bespoke rule,
     # not a plain drop-if-too-long — so no max_len here.

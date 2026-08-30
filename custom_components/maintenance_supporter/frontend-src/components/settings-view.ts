@@ -43,6 +43,9 @@ interface SettingsResponse {
     panel_title: string;
     /** Opt-in copy of the shipped Assist sentences into the config dir. */
     install_assist_sentences?: boolean;
+    /** #145: how task rows show Complete / Skip. */
+    row_action_style?: "buttons_compact" | "buttons" | "icons";
+    row_action_notice_pending?: boolean;
   };
   notifications: {
     due_soon_enabled: boolean;
@@ -593,6 +596,14 @@ export class MaintenanceSettingsView extends LitElement {
               // 0 = no warning window (due soon only on the due date) — #145.
               if (v >= 0 && v <= 365) this._updateSetting("default_warning_days", v);
             }} />
+        </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_row_actions", L)}</span>
+          <select .value=${live(g.row_action_style || "buttons_compact")}
+            @change=${(e: Event) => this._updateSetting("row_action_style", (e.target as HTMLSelectElement).value)}>
+            ${(["buttons_compact", "buttons", "icons"] as const).map((v) => html`
+              <option value=${v} ?selected=${(g.row_action_style || "buttons_compact") === v}>${t(`row_actions_${v}`, L)}</option>`)}
+          </select>
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_currency", L)}</span>

@@ -476,7 +476,12 @@ person to `responsible_user_id`.
 accepts only whitelisted keys (unknown silently ignored); out-of-range/typed
 values dropped. Keys relevant to setup:
 - `notifications_enabled` (bool), `notify_service` (str; validated `notify.*`),
-  `default_warning_days` (1..365), `panel_enabled` (bool), `panel_title` (str)
+  `default_warning_days` (0..365; 0 = due soon only on the due date), `panel_enabled` (bool), `panel_title` (str)
+- `row_action_style` (`buttons_compact` | `buttons` | `icons`; 2.69) — how task
+  rows show Complete/Skip (HA buttons, icon-only on phones; labelled everywhere;
+  classic icons). `row_action_notice_pending` (bool) is the one-time "new look"
+  banner flag the 5→6 migration raises for existing installs; the panel's
+  banner clears it (optionally together with `row_action_style: "icons"`).
 - `shopping_list_entity` (str; a `todo.*` entity id, `""` = off) — 2.67: mirrors
   the auto buy reminders into that to-do list; check-off completes + restocks
 - `weekly_digest_enabled` (bool) — opt-in Monday summary

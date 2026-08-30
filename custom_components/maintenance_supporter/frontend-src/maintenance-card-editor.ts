@@ -300,6 +300,21 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           ></ha-switch>
         </ha-formfield>
 
+        <label class="editor-select">
+          <span>${t("card_action_style", L)}</span>
+          <select
+            .value=${this._config.action_style ?? ""}
+            @change=${(e: Event) => {
+              const v = (e.target as HTMLSelectElement).value;
+              this._valueChanged("action_style", v === "" ? undefined : v);
+            }}
+          >
+            <option value="" ?selected=${!this._config.action_style}>${t("row_actions_follow", L)}</option>
+            <option value="buttons" ?selected=${this._config.action_style === "buttons"}>${t("row_actions_buttons", L)}</option>
+            <option value="icons" ?selected=${this._config.action_style === "icons"}>${t("row_actions_icons", L)}</option>
+          </select>
+        </label>
+
         <ha-formfield label="${t("responsible_user", L)}">
           <ha-switch
             .checked=${this._config.show_assignee !== false}

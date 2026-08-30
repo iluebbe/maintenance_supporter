@@ -287,6 +287,9 @@ export const panelStyles = css`
   .today-task { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .today-object { color: var(--secondary-text-color); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
+  .today-row .today-complete { flex: none; --ha-button-font-size: 13px; white-space: nowrap; }
+  .today-row .today-complete ha-icon { --mdc-icon-size: 18px; }
+  :host([narrow]) .today-row .today-complete { min-width: 0; --ha-button-height: 36px; }
   .today-empty {
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     padding: 48px 16px; color: var(--secondary-text-color); text-align: center;
@@ -406,6 +409,16 @@ export const panelStyles = css`
     --mdc-icon-button-size: 44px;
     --mdc-icon-size: 26px;
   }
+
+  /* DESIGN PROTOTYPE (#145 wish 1): labelled, colour-coded action buttons
+     instead of bare icons. Complete = filled success pill, Skip = outlined
+     neutral pill; both keep the icon as a leading glyph. */
+  .row-actions.as-buttons { gap: 4px; }
+  .row-actions.as-buttons ha-button {
+    --ha-button-font-size: 13px;
+    white-space: nowrap;
+  }
+  .row-actions.as-buttons ha-icon { --mdc-icon-size: 18px; }
 
   /* Custom elements default to display:inline; the task-detail component
      renders light-DOM and must behave like the block it wraps. */
@@ -1480,6 +1493,21 @@ export const panelStyles = css`
     grid-column: 4;
     grid-row: 2;
   }
+  /* Prototype: on phones the two labelled pills stack, so the row keeps its
+     deterministic column X-positions and neither label gets truncated. */
+  :host([narrow]) .row-actions.as-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  :host([narrow]) .row-actions.as-buttons ha-button { --ha-button-font-size: 12px; }
+  /* Prototype variant C ("compact"): on narrow screens the labelled buttons
+     collapse to icon-only ha-buttons side by side — the colour carries the
+     meaning, the row keeps the icon-era height. */
+  :host([narrow]) .row-actions.as-buttons.compact { flex-direction: row; align-items: center; gap: 2px; }
+  :host([narrow]) .row-actions.compact ha-button { --ha-button-height: 36px; min-width: 0; }
+  :host([narrow]) .row-actions.compact ha-icon-button { --mdc-icon-button-size: 40px; --mdc-icon-size: 22px; color: var(--secondary-text-color); }
+  :host([narrow]) .row-actions.compact ha-icon { --mdc-icon-size: 20px; }
   :host([narrow]) .task-sub {
     grid-column: 1 / -1;
     grid-row: 3;

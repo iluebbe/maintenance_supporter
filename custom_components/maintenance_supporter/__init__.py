@@ -1147,7 +1147,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     rotation tasks that were configured without an initial assignee — those
     were invisible to every user filter until their first completion.
     """
-    if entry.version > 1 or entry.minor_version >= 5:
+    if entry.version > 1 or entry.minor_version >= 6:
         return True
 
     is_object_entry = entry.unique_id != GLOBAL_UNIQUE_ID
@@ -1225,7 +1225,28 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 shed_owned_devices(hass, own_entry_id=entry.entry_id, source_device_id=device_id)
         minor = 5
 
-    hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
+    # 5 → 6 (#145): task rows show Complete / Skip as HA buttons instead of
+    # bare icons. An EXISTING install gets a one-time panel notice with a
+    # "back to icons" button (the flag lives in the hub entry's options and
+    # is cleared by that banner); a fresh install starts at minor 6 and
+    # never sees it.
+    new_options: dict[str, Any] | None = None
+    if minor < 6:
+        if not is_object_entry:
+            from .const import CONF_ROW_ACTION_NOTICE
+
+            # Older installs keep their settings in entry.data with EMPTY
+            # options (every reader uses `entry.options or entry.data`); the
+            # first options write must carry them over, or the flag alone
+            # would mask every setting.
+            base = dict(entry.options) if entry.options else dict(entry.data)
+            new_options = {**base, CONF_ROW_ACTION_NOTICE: True}
+        minor = 6
+
+    if new_options is not None:
+        hass.config_entries.async_update_entry(entry, data=data, options=new_options, minor_version=minor)
+    else:
+        hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
     _LOGGER.info("Migrated entry %s to minor_version %s", entry.entry_id, minor)
     return True
 

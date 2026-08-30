@@ -30,6 +30,7 @@ import {
   openCreateObjectDialog,
   openCreateTaskDialog,
   openTaskQuickActions,
+  getRowActionStyle,
 } from "./dialog-mount";
 
 interface CardDoc {
@@ -48,6 +49,8 @@ interface FlatTask {
 export class MaintenanceSupporterCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
+  /** #145: global "Task row actions" style, resolved once from the settings cache. */
+  @state() private _globalRowStyle = "buttons_compact";
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
   @state() private _unsub: (() => void) | null = null;
@@ -158,6 +161,8 @@ export class MaintenanceSupporterCard extends LitElement {
   }
 
   private async _loadData(): Promise<void> {
+    // #145: resolve the household's row-action style once (cached settings).
+    void getRowActionStyle(this.hass).then((s) => { this._globalRowStyle = s; }).catch(() => undefined);
     try {
       const [objResult, statsResult] = await Promise.all([
         this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects", compact: true }),
@@ -400,6 +405,9 @@ export class MaintenanceSupporterCard extends LitElement {
     const L = this._lang;
     const title = this._config.title || t("maintenance", L);
     const showHeader = this._config.show_header !== false;
+    // #145: the card's own action_style wins; otherwise follow the household
+    // setting (any "buttons*" style → labelled HA button, "icons" → icon).
+    const useButtons = (this._config.action_style ?? (this._globalRowStyle === "icons" ? "icons" : "buttons")) === "buttons";
     const showActions = this._config.show_actions !== false;
     const compact = this._config.compact || false;
     const tasks = this._flatTasks;
@@ -507,7 +515,38 @@ export class MaintenanceSupporterCard extends LitElement {
                           ? "⚡"
                           : "—"}
                       </div>
-                      ${showActions
+                      ${showActions && useButtons
+                        ? html`
+                            <ha-button
+                              size="small"
+                              appearance="accent"
+                              variant="success"
+                              class="complete-btn-text"
+                              title="${t("complete", L)}"
+                              @click=${(e: Event) => {
+                                e.stopPropagation();
+                                const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog")!;
+                                fillAndOpenCompleteDialog(
+                                  dlg,
+                                  buildCompleteDialogArgs({
+                                    entryId: entry_id,
+                                    taskId: task.id,
+                                    taskName: task.name,
+                                    task,
+                                    objects: this._objects,
+                                    lang: L,
+                                    checklist: task.checklist || [],
+                                    adaptiveEnabled: !!task.adaptive_config?.enabled,
+                                    currencySymbol: this._stats?.budget?.currency_symbol || "",
+                                  }),
+                                  L,
+                                );
+                              }}
+                            >
+                              <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
+                            </ha-button>
+                          `
+                        : showActions
                         ? html`
                             <mwc-icon-button
                               class="complete-btn"
@@ -688,6 +727,9 @@ export class MaintenanceSupporterCard extends LitElement {
         --mdc-icon-size: 18px;
         color: var(--primary-color);
       }
+      /* DESIGN PROTOTYPE (#145): action_style: buttons — HA-native labelled button. */
+      .complete-btn-text { --ha-button-font-size: 13px; flex: none; white-space: nowrap; }
+      .complete-btn-text ha-icon { --mdc-icon-size: 18px; }
     `,
   ];
 }

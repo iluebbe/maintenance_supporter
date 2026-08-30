@@ -122,6 +122,14 @@ CONF_PANEL_ENABLED = "panel_enabled"
 # still honoured. Read this default everywhere instead of inlining the literal.
 DEFAULT_PANEL_ENABLED = True
 CONF_PANEL_TITLE = "panel_title"
+# #145: how task rows show Complete / Skip — HA buttons that collapse to
+# icon-only on phones (default), labelled buttons everywhere, or the classic
+# icon pair. The notice flag is set ONCE by the 5→6 migration for existing
+# installs so the panel can announce the new look with a "back to icons" button.
+CONF_ROW_ACTION_STYLE = "row_action_style"
+CONF_ROW_ACTION_NOTICE = "row_action_notice_pending"
+ROW_ACTION_STYLES: tuple[str, ...] = ("buttons_compact", "buttons", "icons")
+DEFAULT_ROW_ACTION_STYLE = "buttons_compact"
 
 # --- Config Keys: Advanced Feature Visibility ---
 CONF_ADVANCED_ADAPTIVE = "advanced_adaptive_visible"
