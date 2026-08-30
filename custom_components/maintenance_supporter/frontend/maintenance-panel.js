@@ -1599,7 +1599,7 @@ ${D(o.notes)}</div>`:""}
        full bottom row.  */
     display: grid;
     grid-column: auto;
-    grid-template-columns: auto minmax(0, 1fr) 100px auto;
+    grid-template-columns: auto minmax(76px, 1fr) fit-content(100px) auto; /* name column keeps a word-sized floor, the due column hugs its content — at 400 px the object name used to be clipped mid-word (2026-08-30) */
     grid-template-rows: auto auto auto;
     column-gap: 8px;
     row-gap: 4px;
@@ -1673,7 +1673,7 @@ ${D(o.notes)}</div>`:""}
   :host([tight]:not([narrow])) .task-row {
     display: grid;
     grid-column: auto;
-    grid-template-columns: auto minmax(0, 1fr) 100px auto;
+    grid-template-columns: auto minmax(76px, 1fr) fit-content(100px) auto; /* name column keeps a word-sized floor, the due column hugs its content — at 400 px the object name used to be clipped mid-word (2026-08-30) */
     grid-template-rows: auto auto auto;
     column-gap: 8px;
     row-gap: 4px;
@@ -1823,7 +1823,7 @@ ${D(o.notes)}</div>`:""}
     /* Mirror the :host([narrow]) grid layout for narrow desktop windows */
     .task-row {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) 100px auto;
+      grid-template-columns: auto minmax(76px, 1fr) fit-content(100px) auto; /* name column keeps a word-sized floor, the due column hugs its content — at 400 px the object name used to be clipped mid-word (2026-08-30) */
       grid-template-rows: auto auto auto;
       column-gap: 8px;
       row-gap: 4px;
