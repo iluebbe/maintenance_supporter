@@ -2,6 +2,44 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.69.0] - 2026-08-30
+
+### ✨ Added
+
+- **Task-row actions are buttons now.** *Complete* and *Skip* in the panel's
+  task rows (dashboard, object task table, Today tab), on the Lovelace card
+  and in the quick-actions dialog are Home Assistant's own buttons — a green
+  *Complete* and a plain *Skip*, the same pair the task detail already used
+  — instead of two bare icons. On phones (and on tablets in portrait with
+  the sidebar docked) the pair collapses to an icon-only button plus icon
+  button so rows keep their height. The look is a setting under
+  *Settings → General → Task row actions* (*buttons — icons only on phones*
+  is the default, *buttons with text* everywhere, or the classic *icons*);
+  the card has its own `action_style` option and otherwise follows the
+  household setting. **Existing installs see a one-time banner** in the
+  panel with *Keep buttons* / *Back to icons*, so nobody has to hunt for the
+  switch. (#145)
+- **Household default thresholds.** *Settings → General* gained two floors:
+  the *consumable low threshold* (default 10 %) that *Suggested setups*
+  pre-wires for percent-remaining consumables, and the *battery low
+  threshold* (default 20 %) the battery fleet uses for batteries without
+  their own Battery Notes threshold. Change them once instead of editing
+  every task; existing tasks keep their values. (#146)
+
+### 🐛 Fixed
+
+- **Tablet portrait overflow.** With Home Assistant's sidebar docked, an
+  iPad in portrait leaves the panel ~768 px inside a 1024 px viewport — not
+  "narrow", yet too tight for the wide task-row grid, whose last column
+  overflowed. The panel now measures its own width and switches to the
+  narrow row layout below 880 px. (#145)
+- **Trigger values are validated on save.** Thresholds, counter target and
+  baseline must be finite numbers, *for minutes* a whole number 0–1440,
+  *target changes* 1–10000, runtime hours > 0; numeric strings are
+  accepted and stored as numbers. Before, a bad value (`"abc"`, a negative
+  count) was stored and only failed silently at trigger setup, leaving the
+  task without a working trigger. (security review follow-up)
+
 ## [2.68.0] - 2026-08-29
 
 ### ✨ Added
