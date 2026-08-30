@@ -46,6 +46,13 @@ interface SettingsResponse {
     /** #146: household "low" floors (percent) for discovery + battery fleet. */
     default_consumable_threshold?: number;
     battery_low_percent?: number;
+    /** Computed: what Battery Notes reports (null when not installed). */
+    battery_notes?: {
+      default: number;
+      devices: number;
+      overrides: { name: string; device_id: string | null; threshold: number }[];
+      more: number;
+    } | null;
     /** #145: how task rows show Complete / Skip. */
     row_action_style?: "buttons_compact" | "buttons" | "icons";
     row_action_notice_pending?: boolean;
@@ -245,6 +252,37 @@ export class MaintenanceSettingsView extends LitElement {
     this._vacExempt = new Set(v.exempt_task_ids || []);
     this._vacIsActive = v.is_active;
     this._vacWindowEnd = v.window_end;
+  }
+
+  /** #146 follow-up: what Battery Notes currently reports, with the rule
+   *  spelled out — warn-toned when its default sits above our floor (then a
+   *  lowered floor would silently change nothing for noted batteries). */
+  private _renderBatteryNotesHint(L: string) {
+    const bn = this._settings?.general?.battery_notes;
+    if (!bn || !bn.devices) return nothing;
+    const floor = this._settings?.general?.battery_low_percent ?? 20;
+    const warn = bn.default > floor;
+    const summary = t("bn_summary", L)
+      .replace("{name}", "Battery Notes")
+      .replace("{pct}", String(bn.default))
+      .replace("{n}", String(bn.devices));
+    const rule = (warn ? t("bn_above_floor", L).replace("{name}", "Battery Notes") : t("bn_floor_decides", L))
+      .replace("{floor}", String(floor));
+    return html`
+      <div class="bn-note${warn ? " warn" : ""}">
+        <ha-icon icon="${warn ? "mdi:alert-outline" : "mdi:battery-heart-variant"}"></ha-icon>
+        <span>
+          <a class="bn-link" href="/config/integrations/integration/battery_notes">${summary.split(":")[0]}</a>${summary.slice(summary.indexOf(":"))}
+          ${bn.overrides.length
+            ? html` · ${t("bn_overrides", L).replace("{n}", String(bn.overrides.length + bn.more))}
+                ${bn.overrides.map((o, i) => html`${i ? " · " : " "}${o.device_id
+                  ? html`<a class="bn-link" href="/config/devices/device/${o.device_id}">${o.name}</a>`
+                  : o.name} (${o.threshold} %)`)}
+                ${bn.more ? html` <span class="bn-more">${t("bn_more", L).replace("{n}", String(bn.more))}</span>` : nothing}`
+            : nothing}
+          <span class="bn-sub">${rule}</span>
+        </span>
+      </div>`;
   }
 
   private async _updateSetting(key: string, value: unknown): Promise<void> {
@@ -616,6 +654,7 @@ export class MaintenanceSettingsView extends LitElement {
               if (v >= 1 && v <= 90) this._updateSetting("battery_low_percent", v);
             }} />
         </label>
+        ${this._renderBatteryNotesHint(L)}
         <div class="setting-hint">${t("settings_thresholds_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_row_actions", L)}</span>
@@ -1698,6 +1737,21 @@ export class MaintenanceSettingsView extends LitElement {
   // --- Styles ---
 
   static styles = css`
+    .bn-note {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin: 6px 0 10px; padding: 10px 12px; border-radius: 8px;
+      background: rgba(3, 169, 244, 0.08);
+      border: 1px solid rgba(3, 169, 244, 0.25);
+      font-size: 13.5px; line-height: 1.45;
+    }
+    .bn-note ha-icon { --mdc-icon-size: 20px; flex: none; color: var(--primary-color); margin-top: 1px; }
+    .bn-note.warn { background: rgba(255, 167, 38, 0.08); border-color: rgba(255, 167, 38, 0.35); }
+    .bn-note.warn ha-icon { color: var(--warning-color, #ffa726); }
+    .bn-link { color: var(--primary-color); text-decoration: none; }
+    .bn-link:hover { text-decoration: underline; }
+    .bn-more, .bn-sub { color: var(--secondary-text-color); }
+    .bn-sub { display: block; font-size: 12.5px; margin-top: 2px; }
+
     :host { display: block; }
 
     .settings-loading {

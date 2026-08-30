@@ -112,7 +112,12 @@ _LOGGER = logging.getLogger(__name__)
 _ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
 
 
-def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str] | None = None) -> dict[str, Any]:
+def _build_full_settings(
+    options: Mapping[str, Any],
+    *,
+    notify_targets: list[str] | None = None,
+    battery_notes: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Build a full settings dict from global entry options.
 
     ``notify_targets`` is the shared pickable-notify-target list (see
@@ -158,6 +163,9 @@ def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str
             # #146: household "low" floors for discovery + the battery fleet.
             "default_consumable_threshold": options.get(CONF_DEFAULT_CONSUMABLE_THRESHOLD, DEFAULT_CONSUMABLE_THRESHOLD),
             "battery_low_percent": options.get(CONF_BATTERY_LOW_PERCENT, DEFAULT_BATTERY_LOW_PERCENT),
+            # Computed, never stored: what Battery Notes currently reports
+            # (default + up to 5 named override devices) — the Settings hint.
+            "battery_notes": battery_notes,
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
             "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
             # v2.67: buy-task shopping sync target ("" = off).
@@ -244,11 +252,14 @@ async def ws_get_settings(
     msg: dict[str, Any],
 ) -> None:
     """Return all global settings."""
+    from ..helpers.battery_fleet import battery_notes_summary
+
+    bn = battery_notes_summary(hass)
     global_entry = _get_global_entry(hass)
     if global_entry is None:
         connection.send_result(
             msg["id"],
-            _build_full_settings({}, notify_targets=build_notify_targets(hass)),
+            _build_full_settings({}, notify_targets=build_notify_targets(hass), battery_notes=bn),
         )
         return
 
@@ -258,6 +269,7 @@ async def ws_get_settings(
         _build_full_settings(
             options,
             notify_targets=build_notify_targets(hass, current=options.get(CONF_NOTIFY_SERVICE, "")),
+            battery_notes=bn,
         ),
     )
 

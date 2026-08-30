@@ -380,6 +380,17 @@ export const panelStyles = css`
     color: var(--secondary-text-color);
     flex-wrap: wrap;
     justify-content: flex-end;
+    /* The chips track is minmax(0, …): when the row gets squeezed the track
+       may shrink below the chips' natural width — clip instead of painting
+       over the neighbouring type column (duty-rotation GIF, 2026-08-30). */
+    min-width: 0;
+    overflow: hidden;
+    /* …and all-or-nothing: below 60 px of track there is no readable chip,
+       only fragments — hide them entirely via the container query below. */
+    container-type: inline-size;
+  }
+  @container (max-width: 60px) {
+    .sub-chip { display: none; }
   }
   /* Empty subline still occupies its grid slot so neighbouring columns line up */
   .task-sub-empty { min-height: 1px; }
@@ -392,6 +403,11 @@ export const panelStyles = css`
     border-radius: 10px;
     background: var(--secondary-background-color, rgba(127, 127, 127, 0.1));
     line-height: 1.4;
+    /* A single chip wider than the squeezed track truncates instead of
+       bleeding into the next column. */
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .sub-chip ha-icon {
     --mdc-icon-size: 14px;

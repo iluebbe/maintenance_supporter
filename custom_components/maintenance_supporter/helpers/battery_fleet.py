@@ -687,6 +687,61 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     return out
 
 
+def battery_notes_summary(hass: HomeAssistant) -> dict[str, Any] | None:
+    """What Battery Notes currently reports, for the Settings hint (#146).
+
+    Derived purely from the ``battery_low_threshold`` attribute the
+    ``battery_plus`` entities expose — no reach into Battery Notes' own
+    configuration. The most common value is their default; devices whose
+    value differs are overrides, named (highest first, capped at 5 so a
+    large install cannot spam the settings page) and linked via their
+    device id when the registry knows one. ``None`` when Battery Notes is
+    not present.
+    """
+    from collections import Counter
+
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+    per_device: dict[str, dict[str, Any]] = {}
+    for domain in ("sensor", "binary_sensor"):
+        for state in hass.states.async_all(domain):
+            raw = state.attributes.get("battery_low_threshold")
+            if not isinstance(raw, (int, float)) or isinstance(raw, bool):
+                continue
+            reg = ent_reg.async_get(state.entity_id)
+            device_id = reg.device_id if reg else None
+            name = state.attributes.get("device_name")
+            if device_id and (device := dev_reg.async_get(device_id)):
+                name = device.name_by_user or device.name or name
+            key = device_id or state.entity_id
+            row = per_device.get(key)
+            threshold = float(raw)
+            if row is None or threshold > row["threshold"]:
+                per_device[key] = {
+                    "name": str(name or state.entity_id),
+                    "device_id": device_id,
+                    "threshold": threshold,
+                }
+    if not per_device:
+        return None
+    counts = Counter(row["threshold"] for row in per_device.values())
+    default = counts.most_common(1)[0][0]
+    overrides = sorted(
+        (row for row in per_device.values() if row["threshold"] != default),
+        key=lambda r: (-r["threshold"], r["name"].lower()),
+    )
+    return {
+        "default": default,
+        "devices": len(per_device),
+        "overrides": overrides[:5],
+        "more": max(0, len(overrides) - 5),
+    }
+
+
+
 def has_battery_notes(hass: HomeAssistant) -> bool:
     """Whether the Battery Notes integration is present (any battery_plus).
 
@@ -949,6 +1004,7 @@ __all__ = [
     "async_compute_overview",
     "async_level_history",
     "async_trend_predictions",
+    "battery_notes_summary",
     "build_overview",
     "compute_overview",
     "discover_battery_types",

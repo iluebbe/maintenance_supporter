@@ -77,10 +77,11 @@ async function findFfmpeg() {
 async function toGif(videoPath, name, trimSeconds) {
   const out = join(GIF_DIR, `${name}.gif`);
   // Cut everything before the measured action start (login/loading), then
-  // 8 fps and a 100-colour palette; the width stays 960 because these are
-  // documentation clips and the UI text must stay readable — the saving has to
-  // come from frame rate and palette, not from scaling the text down.
-  const filters = "fps=8,scale=960:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=100[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3";
+  // 8 fps and a 100-colour palette — the saving comes from frame rate and
+  // palette, never from scaling the text down. 1120 wide (was 960,
+  // 2026-08-30): at 960 the wide task-row grid sat in its squeeze band and
+  // the docs GIFs showed clipped/overlapping chips.
+  const filters = "fps=8,scale=1120:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=100[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3";
   execFileSync(await findFfmpeg(), ["-y", "-ss", trimSeconds.toFixed(1), "-i", videoPath, "-vf", filters, "-loop", "0", out], { stdio: "pipe" });
   log(`  gif -> ${out} (trim ${trimSeconds.toFixed(1)}s)`);
 }
@@ -177,13 +178,13 @@ async function record(token, name, flow) {
   }
   if (!browser) throw new Error("playwright-server never came back after restart");
   const ctx = await browser.newContext({
-    viewport: { width: 1280, height: 800 },
+    viewport: { width: 1440, height: 860 },
     // Every flow gets a FRESH browser profile, and HA's default theme mode is
     // "auto" — it follows the OS. Without this the recordings came out light
     // while all 30 screenshots are dark, because shots-demo.mjs sets
     // colorScheme on its contexts and this one did not.
     colorScheme: "dark",
-    recordVideo: { dir: VIDEO_DIR, size: { width: 1280, height: 800 } },
+    recordVideo: { dir: VIDEO_DIR, size: { width: 1440, height: 860 } },
   });
   const p = await ctx.newPage();
   await p.addInitScript(tokensInit, { t: token, ha: HA });

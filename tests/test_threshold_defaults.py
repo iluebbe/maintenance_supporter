@@ -60,3 +60,49 @@ def test_note_low_threshold_uses_the_floor() -> None:
     assert _note_low_threshold({"battery_low_threshold": 15}, 30.0) == 30.0  # floor wins
     assert _note_low_threshold({"battery_low_threshold": 45}, 30.0) == 45.0  # higher note threshold wins
     assert _note_low_threshold({}) == float(NATIVE_LOW_PERCENT)  # default floor unchanged
+
+
+def _note_state(hass: HomeAssistant, slug: str, threshold: float) -> None:
+    hass.states.async_set(
+        f"sensor.{slug}_battery_plus", "50",
+        {"device_class": "battery", "battery_low_threshold": threshold, "device_name": slug.replace("_", " ").title()},
+    )
+
+
+async def test_battery_notes_summary_default_overrides_and_cap(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.helpers.battery_fleet import battery_notes_summary
+
+    assert battery_notes_summary(hass) is None  # no Battery Notes → no hint
+
+    for i in range(3):
+        _note_state(hass, f"plain_{i}", 10)
+    _note_state(hass, "front_lock", 30)
+    s = battery_notes_summary(hass)
+    assert s == {
+        "default": 10.0, "devices": 4,
+        "overrides": [{"name": "Front Lock", "device_id": None, "threshold": 30.0}],
+        "more": 0,
+    }
+
+    # 7 overrides → 5 named (highest first), + 2 more.
+    for i, th in enumerate((45, 40, 35, 33, 31, 25, 15)):
+        _note_state(hass, f"extra_{i}", th)
+    s = battery_notes_summary(hass)
+    assert s["devices"] == 11 and s["default"] == 10.0
+    assert [o["threshold"] for o in s["overrides"]] == [45.0, 40.0, 35.0, 33.0, 31.0]
+    assert s["more"] == 3
+
+
+async def test_settings_payload_carries_battery_notes(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.websocket.dashboard import ws_get_settings
+
+    from .conftest import call_ws_handler, make_ws_connection
+
+    entry = _global()
+    entry.add_to_hass(hass)
+    await setup_integration(hass, entry)
+    _note_state(hass, "hall_motion", 10)
+    conn = make_ws_connection()
+    await call_ws_handler(ws_get_settings, hass, conn, {"id": 1, "type": "maintenance_supporter/settings"})
+    general = conn.send_result.call_args[0][1]["general"]
+    assert general["battery_notes"]["devices"] == 1 and general["battery_notes"]["default"] == 10.0

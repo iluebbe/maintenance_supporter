@@ -46,3 +46,59 @@ describe("settings: default thresholds (#146)", () => {
     expect(updates).to.deep.equal([{ default_consumable_threshold: 5 }, { battery_low_percent: 35 }]);
   });
 });
+
+describe("settings: Battery Notes hint (#146 follow-up)", () => {
+  async function mountWith(general: Record<string, unknown>) {
+    const { hass } = createMockHass({
+      handlers: {
+        "maintenance_supporter/settings": () => ({
+          ...DEFAULT_SETTINGS_RESPONSE,
+          general: { ...DEFAULT_SETTINGS_RESPONSE.general, battery_low_percent: 20, ...general },
+        }),
+      },
+    });
+    const el = await fixture<MaintenanceSettingsView>(html`
+      <maintenance-settings-view .hass=${hass} .features=${DEFAULT_FEATURES}></maintenance-settings-view>
+    `);
+    await new Promise((r) => setTimeout(r, 50));
+    await el.updateComplete;
+    return el;
+  }
+
+  it("names override devices as device links, capped with '+ n more'", async () => {
+    const el = await mountWith({
+      battery_notes: {
+        default: 10, devices: 12, more: 2,
+        overrides: [
+          { name: "Front Door Lock", device_id: "dev1", threshold: 30 },
+          { name: "Hallway Remote", device_id: null, threshold: 15 },
+        ],
+      },
+    });
+    const note = el.shadowRoot!.querySelector(".bn-note");
+    expect(note, "hint rendered").to.exist;
+    expect(note!.classList.contains("warn")).to.equal(false);
+    const links = [...note!.querySelectorAll("a.bn-link")].map((a) => (a as HTMLAnchorElement).getAttribute("href"));
+    expect(links).to.deep.equal([
+      "/config/integrations/integration/battery_notes",
+      "/config/devices/device/dev1",
+    ]);
+    expect(note!.textContent).to.contain("Front Door Lock");
+    expect(note!.textContent).to.contain("Hallway Remote");
+    expect(note!.textContent).to.contain("+ 2 more");
+  });
+
+  it("turns warn-toned when the Battery Notes default sits above the floor", async () => {
+    const el = await mountWith({
+      battery_low_percent: 5,
+      battery_notes: { default: 10, devices: 3, overrides: [], more: 0 },
+    });
+    const note = el.shadowRoot!.querySelector(".bn-note");
+    expect(note!.classList.contains("warn")).to.equal(true);
+  });
+
+  it("renders nothing without Battery Notes", async () => {
+    const el = await mountWith({ battery_notes: null });
+    expect(el.shadowRoot!.querySelector(".bn-note")).to.not.exist;
+  });
+});

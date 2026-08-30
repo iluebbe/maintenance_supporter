@@ -333,7 +333,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (typeof ResizeObserver !== "undefined") {
       this._tightObserver = new ResizeObserver((entries) => {
         const w = entries[0]?.contentRect.width ?? 0;
-        if (w > 0) this.tight = w < 880;
+        // 1000, not 880: between ~880 and ~1000 the wide grid technically
+        // fits its column minimums, but the chips track shrinks below any
+        // readable width — first the chips painted over the type column
+        // (duty-rotation GIF, 2026-08-30), clipped they left ellipsis
+        // fragments. Below ~1000 the narrow layout is the honest choice;
+        // from there up the chips track keeps ≥150 px of slack.
+        if (w > 0) this.tight = w < 1000;
       });
       this._tightObserver.observe(this);
     }
