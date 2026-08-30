@@ -597,6 +597,16 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
+### 💡 Countdown sensors as due dates (discussion #147)
+Some integrations expose "days/hours until service" directly (a Modbus
+filter counter that runs 90 → 0 and flips to 360 when overdue). Today such a
+sensor drives a threshold trigger (compound OR: below 3 / equals 360, with
+auto-complete on recovery) and the row shows "—" for the day count. Plan: a
+*countdown* option on the threshold trigger (unit days | hours) that derives
+`next_due` from the current reading, so the task gets the same day count,
+progress bar and due-soon warning as a time-based task; the overdue marker
+value (e.g. 360) stays a normal threshold condition.
+
 ### 💡 on_complete_action: admin-gate the configuration, not just the dispatch (security review round 2, 2026-08-21)
 `on_complete_action` fires a service call on task completion. Configuring it
 is `@require_write` (an operator, when operator-write is enabled), triggering
