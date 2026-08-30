@@ -457,7 +457,14 @@ Activates when a sensor value crosses above or below a limit — or matches
 | `trigger_for_minutes` | int | 0 | 0–1440 | Minutes the condition must hold before triggering (debounce). 0 = immediate |
 
 At least one of `trigger_above`, `trigger_below`, `trigger_equals` or
-`trigger_not_equals` must be set.
+`trigger_not_equals` must be set. **Several limits in one trigger are
+OR-combined** — the task fires when *any* of them is violated. That covers
+sensors with two alarm shapes in a single condition, e.g. a countdown that
+runs 90 → 0 days and flips to 360 when overdue: `trigger_below: 3` plus
+`trigger_equals: 360`, with *Auto-complete when the sensor recovers* — the
+reset back to 90 after the service completes the task automatically.
+
+![One threshold trigger with two limits (below 3 OR equals 360)](images/threshold-multi-limit.png)
 
 ### Counter Trigger
 
