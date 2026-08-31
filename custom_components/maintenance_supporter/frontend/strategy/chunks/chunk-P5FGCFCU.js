@@ -608,6 +608,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   /* Mini-sparkline in overview rows */
   .mini-sparkline {
     width: 60px;
+    /* Same class of bug as the trigger-progress floor (#150 follow-up): in
+       due cells narrower than the fixed width the right-aligned SVG used to
+       overhang LEFT (phone-360 sweep). preserveAspectRatio="none" lets it
+       just squeeze. */
+    max-width: 100%;
     height: 20px;
     display: block;
     margin-top: 2px;

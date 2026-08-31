@@ -29,6 +29,7 @@ const DEEP = `const deep = (pred) => { const st=[document.documentElement]; cons
 
 // [label, width, height]
 const SIZES = [
+  ["phone-360", 360, 780], ["phone-400", 400, 860],
   ["ipad-mini-portrait", 744, 1133], ["ipad-mini-landscape", 1133, 744],
   ["ipad-portrait", 820, 1180], ["ipad-landscape", 1180, 820],
   ["ipad-pro-11-portrait", 834, 1194], ["ipad-pro-11-landscape", 1194, 834],
