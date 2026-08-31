@@ -597,7 +597,7 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
-### 💡 Runtime trigger: per-session cap against stuck sensors (#149)
+### ✅ Runtime trigger: per-session cap against stuck sensors (#149) — implemented 2026-08-31, ships with the next release
 A BLE device that drops its connection mid-run (an Oral-B toothbrush stuck
 on "running" overnight) books unbounded on-time: the live tracker keeps
 adding elapsed time, and after a restart the stale on-since anchor settles
@@ -611,7 +611,7 @@ would still book capped slices every 5 minutes. Touches: live tracker,
 fallback evaluator, editors (panel + options flow), validation,
 export/import, i18n ×22, settings-registry pins.
 
-### 💡 Dashboard UI requests (#150)
+### ✅ Dashboard UI requests (#150) — (a) skip lock + (b) group-by object implemented 2026-08-31, ship with the next release; (c) narrow status-chip idea open, (d) awaiting the reporter's answer
 Two accepted, one idea, one awaiting clarification:
 (a) **Per-task "no skipping"** — a task flag that hides Skip in every UI
 surface AND is enforced server-side (the `task/skip` WS command and the
