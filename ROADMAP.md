@@ -597,6 +597,36 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
+### 💡 Runtime trigger: per-session cap against stuck sensors (#149)
+A BLE device that drops its connection mid-run (an Oral-B toothbrush stuck
+on "running" overnight) books unbounded on-time: the live tracker keeps
+adding elapsed time, and after a restart the stale on-since anchor settles
+by booking the full span. Plan: an optional **max session runtime** field on
+the runtime trigger — a session that exceeds the cap contributes exactly
+the cap, in the live tracker and the fallback evaluator alike. Design trap:
+the tracker persists progress in 5-minute windows (`on_since` resets each
+persist), so the cap must be enforced per SESSION (anchored at the
+on-transition, persisted alongside), not per window — a per-window cap
+would still book capped slices every 5 minutes. Touches: live tracker,
+fallback evaluator, editors (panel + options flow), validation,
+export/import, i18n ×22, settings-registry pins.
+
+### 💡 Dashboard UI requests (#150)
+Two accepted, one idea, one awaiting clarification:
+(a) **Per-task "no skipping"** — a task flag that hides Skip in every UI
+surface AND is enforced server-side (the `task/skip` WS command and the
+`SkipTask` voice intent refuse), following the completion choke-point rule;
+UI-only hiding would leave automations able to skip.
+(b) **Group by object/device** — the dashboard's group-by dropdown offers
+only area/group/user today; add an object mode.
+(c) Idea: on narrow screens, shrink the "Triggered"/"OK" state chips to
+icons to make room for labelled action buttons — if pursued, icon+tooltip,
+never colour alone (a11y).
+(d) Click-on-task lands on the object page per the report, which current
+code contradicts (task name → task detail; only the object column → object
+page) — awaiting the reporter's answer whether they mean the task EDIT
+dialog or are on ≤v2.68.
+
 ### 💡 Countdown sensors as due dates (discussion #147)
 Some integrations expose "days/hours until service" directly (a Modbus
 filter counter that runs 90 → 0 and flips to 360 when overdue). Today such a
