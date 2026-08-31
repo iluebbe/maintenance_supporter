@@ -1586,7 +1586,16 @@ ${O(o.notes)}</div>`:""}
     width: 100%;
   }
 
-  :host([narrow]) .task-table { display: block; }
+  /* Shared column tracks across rows (the wide layout's #66 lesson, applied
+     to narrow 2026-09-01): with per-row grids the auto badge/actions columns
+     sized independently, so the object-name column started at a different X
+     in every row — an "OK" pill vs "Due Soon" + priority chevron made the
+     list read jittery. The LIST owns the four tracks, rows subgrid them. */
+  :host([narrow]) .task-table {
+    display: grid;
+    grid-template-columns: auto minmax(76px, 1fr) 100px auto;
+    column-gap: 8px;
+  }
 
   :host([narrow]) .task-row {
     /* Mobile: 4-column grid keeps due-cell + actions at deterministic
@@ -1598,10 +1607,9 @@ ${O(o.notes)}</div>`:""}
        Task-name spans the full top row (own row above), chips span the
        full bottom row.  */
     display: grid;
-    grid-column: auto;
-    grid-template-columns: auto minmax(76px, 1fr) 100px auto; /* name column keeps a word-sized floor (2026-08-30); the due column is FIXED so every row's progress bar reads the same width — fit-content made bars follow their label (2026-09-01) */
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     grid-template-rows: auto auto auto;
-    column-gap: 8px;
     row-gap: 4px;
     padding: 12px;
   }
@@ -1615,6 +1623,13 @@ ${O(o.notes)}</div>`:""}
   :host([narrow]) .cell-badges {
     grid-column: 1;
     grid-row: 2;
+    /* Stack extra badges (priority chevron, NFC, disabled) under the status
+       pill: in the shared-track table the widest badge ROW sized column 1
+       for every row, and a pill+chevron combo pushed Complete/Skip off the
+       right edge at phone widths (2026-09-01). */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
   :host([narrow]) .cell.object-name {
     grid-column: 2;
@@ -1669,20 +1684,23 @@ ${O(o.notes)}</div>`:""}
      the wide subgrid overflowed its last column at that width even before
      the buttons. Same rules as the :host([narrow]) block above / the
      max-width:768px media mirror below, keyed on the panel's own width. */
-  :host([tight]:not([narrow])) .task-table { display: block; }
+  :host([tight]:not([narrow])) .task-table {
+    display: grid;
+    grid-template-columns: auto minmax(76px, 1fr) 100px auto;
+    column-gap: 8px;
+  }
   :host([tight]:not([narrow])) .task-row {
     display: grid;
-    grid-column: auto;
-    grid-template-columns: auto minmax(76px, 1fr) 100px auto; /* name column keeps a word-sized floor (2026-08-30); the due column is FIXED so every row's progress bar reads the same width — fit-content made bars follow their label (2026-09-01) */
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     grid-template-rows: auto auto auto;
-    column-gap: 8px;
     row-gap: 4px;
     padding: 12px;
     min-width: 0;
   }
   :host([tight]:not([narrow])) .cell.type { display: none; }
   :host([tight]:not([narrow])) .cell.task-name { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
-  :host([tight]:not([narrow])) .cell-badges { grid-column: 1; grid-row: 2; }
+  :host([tight]:not([narrow])) .cell-badges { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 4px; }
   :host([tight]:not([narrow])) .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; }
   :host([tight]:not([narrow])) .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
   :host([tight]:not([narrow])) .row-actions { grid-column: 4; grid-row: 2; }
@@ -1702,14 +1720,18 @@ ${O(o.notes)}</div>`:""}
   :host([narrow]) .mini-sparkline { display: none; }
   :host([narrow]) .trend-arrow { display: inline; }
 
-  /* Very narrow phones (360-class): the fixed 100px due column + both action
-     buttons no longer fit and Skip fell off the right edge — tighten the
-     floors. Bars stay uniform per breakpoint (100px above, 84px here). */
-  @media (max-width: 379px) {
-    :host([narrow]) .task-row {
+  /* Phone band (≤429px): with SHARED tracks the widest badge sizes column 1
+     for every row, and the fixed 100px due column + both action buttons no
+     longer fit — Skip fell off the right edge. Tighter floors, slimmer row
+     padding and a smaller Skip icon-button. Bars stay uniform per
+     breakpoint (100px above, 84px here). */
+  @media (max-width: 429px) {
+    :host([narrow]) .task-table {
       grid-template-columns: auto minmax(64px, 1fr) 84px auto;
       column-gap: 6px;
     }
+    :host([narrow]) .task-row { padding: 12px 8px; }
+    :host([narrow]) .row-actions.compact ha-icon-button { --mdc-icon-button-size: 32px; --mdc-icon-size: 20px; }
   }
 
   :host([narrow]) .detail-header {
@@ -1832,18 +1854,24 @@ ${O(o.notes)}</div>`:""}
     .task-header-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     .filter-bar { flex-wrap: wrap; }
     .filter-bar select { flex: 1; min-width: 0; }
-    /* Mirror the :host([narrow]) grid layout for narrow desktop windows */
+    /* Mirror the :host([narrow]) grid layout for narrow desktop windows —
+       incl. the shared-track table so rows align (2026-09-01). */
+    .task-table {
+      display: grid;
+      grid-template-columns: auto minmax(76px, 1fr) 100px auto;
+      column-gap: 8px;
+    }
     .task-row {
       display: grid;
-      grid-template-columns: auto minmax(76px, 1fr) 100px auto; /* name column keeps a word-sized floor (2026-08-30); the due column is FIXED so every row's progress bar reads the same width — fit-content made bars follow their label (2026-09-01) */
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
       grid-template-rows: auto auto auto;
-      column-gap: 8px;
       row-gap: 4px;
       padding: 12px;
     }
     .cell.type { display: none; }
     .cell.task-name { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
-    .cell-badges { grid-column: 1; grid-row: 2; }
+    .cell-badges { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 4px; }
     .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; }
     .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
     .row-actions { grid-column: 4; grid-row: 2; }
