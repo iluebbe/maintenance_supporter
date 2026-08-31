@@ -2,6 +2,44 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.70.0] - 2026-08-31
+
+### ✨ Added
+
+- **Battery Notes at a glance.** *Settings → General* shows a summary of the
+  Battery Notes install right under the battery-low threshold: how many
+  batteries it tracks, which threshold decides (the household floor or
+  Battery Notes' own), and up to five devices with their own per-device
+  thresholds — each linking straight to that device, plus a link to the
+  integration itself. No more guessing which threshold wins. (#146)
+
+### 🐛 Fixed
+
+- **Battery fleet: late-typed batteries get their spare part.** A battery
+  whose type only becomes known *after* the fleet was set up — a Battery
+  Notes note added later, or a lock that only exposes a typed low-battery
+  binary (a Matter Level Lock+ with a CR2) — never got its type part; a
+  stale "UNKNOWN battery" part lingered instead. The fleet now re-reconciles
+  its type parts on every Home Assistant start, and an untouched leftover
+  "UNKNOWN battery" part is cleaned up automatically (one with recorded
+  stock or product data stays). (#148)
+- **Narrow rows keep device names readable.** At phone widths the name
+  column could be squeezed into mid-word clips ("Espresso Machi…"); it now
+  wraps at word boundaries with a guaranteed minimum width, and the due
+  column only claims the width it actually needs.
+- **Chips stay in their lane.** In the wide task grid a long label/assignee
+  chip row used to paint over the neighbouring type column (visible in the
+  old duty-rotation GIF); chips now clip inside their own track — and at
+  narrow widths they wrap fully instead of being cut.
+
+### 📚 Documentation
+
+- Every screenshot, GIF and visual baseline re-shot from a freshly seeded
+  demo instance (GIFs now recorded at ≥1120 px wide), including new
+  object-history and multi-limit-threshold captures.
+- CONFIGURATION.md clarifies that multiple limits in one threshold trigger
+  combine with OR — one battery below its floor is enough. (#147)
+
 ## [2.69.0] - 2026-08-30
 
 ### ✨ Added
