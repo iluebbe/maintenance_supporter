@@ -104,6 +104,7 @@ TASK_UPDATE_FIELD_MAP = {
     "custom_icon": "custom_icon",
     "nfc_tag_id": "nfc_tag_id",
     "require_tag_scan": "require_tag_scan",
+    "allow_skip": "allow_skip",
     "reading_unit": "reading_unit",
     "consumes_parts": "consumes_parts",
     "phases": "phases",
@@ -195,6 +196,9 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
         # Proof of presence (#139 family): completion only via NFC/QR scan.
         vol.Optional("require_tag_scan"): vol.Any(bool, None),
+        # #150: per-task skip lock — false hides Skip in the UIs and the
+        # coordinator refuses (WS + voice), so automations cannot skip either.
+        vol.Optional("allow_skip"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].
@@ -372,6 +376,9 @@ async def ws_create_task(
                 tc_warnings.append(nfc_warn)
     if msg.get("require_tag_scan") is not None:
         task_data["require_tag_scan"] = bool(msg["require_tag_scan"])
+    # #150: stored only when False — absence means skipping is allowed.
+    if msg.get("allow_skip") is False:
+        task_data["allow_skip"] = False
     # v2.20 (#83): unit for `reading`-type tasks.
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
@@ -472,6 +479,9 @@ _TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
         # Proof of presence (#139 family): completion only via NFC/QR scan.
         vol.Optional("require_tag_scan"): vol.Any(bool, None),
+        # #150: per-task skip lock — false hides Skip in the UIs and the
+        # coordinator refuses (WS + voice), so automations cannot skip either.
+        vol.Optional("allow_skip"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # Spare parts consumed on completion: [{part_id, quantity}].
@@ -581,6 +591,14 @@ async def ws_update_task(
     for msg_key, data_key in TASK_UPDATE_FIELD_MAP.items():
         if msg_key in msg:
             task[data_key] = msg[msg_key]
+
+    # #150: allow_skip is stored only when False (absence = allowed) — the
+    # verbatim copy above would persist True/None literals.
+    if "allow_skip" in msg:
+        if msg["allow_skip"] is False:
+            task["allow_skip"] = False
+        else:
+            task.pop("allow_skip", None)
 
     # The loop above copies values verbatim, which is wrong for part links:
     # `task/create` validates them and `task/update` did not, so an edit could

@@ -536,6 +536,7 @@
   "groupby_area": "By area",
   "groupby_group": "By group",
   "groupby_user": "By user",
+  "groupby_object": "By object",
   "filter_label": "Filter",
   "user_label": "User",
   "photo_label": "Photo",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Currently effective start value: {value}",
   "runtime_on_states": "Active states",
   "runtime_on_states_help": "States that count as running — default: on. E.g. mowing, cleaning, printing. With an attribute selected, its values are matched instead.",
+  "runtime_max_session": "Max session runtime (seconds)",
+  "runtime_max_session_help": "A single run counts at most this many seconds — protects against a sensor stuck ON (lost connection, restart). Empty = no cap.",
   "setups_target_new": "Create new: {name}",
   "schedule_preview_title": "Next dates",
   "schedule_preview_ontime": "Assuming on-time completion.",
@@ -927,5 +930,7 @@
   "history_add_past": "Add past completion",
   "require_tag_scan": "Only complete by scanning the tag",
   "require_tag_scan_help": "Proof of presence: Done is blocked on every surface until the NFC tag or QR code on the thing itself is scanned. Automations can pass 'via_tag_scan' to the complete service.",
+  "disallow_skip": "Don't allow skipping",
+  "disallow_skip_help": "The Skip action disappears from every surface, and the server refuses a skip from automations and voice too.",
   "require_tag_scan_hint": "This task completes only by scanning its NFC tag or QR code on the thing itself — saving here will be refused."
 }

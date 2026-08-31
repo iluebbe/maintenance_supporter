@@ -530,6 +530,7 @@
   "groupby_area": "Nach Bereich",
   "groupby_group": "Nach Gruppe",
   "groupby_user": "Nach Verantwortlichem",
+  "groupby_object": "Nach Objekt",
   "filter_label": "Filter",
   "user_label": "Benutzer",
   "photo_label": "Foto",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Aktuell wirksamer Startwert: {value}",
   "runtime_on_states": "Aktive Zustände",
   "runtime_on_states_help": "Zustände, die als Laufzeit zählen — Standard: on. Z. B. mowing, cleaning, printing. Bei gewähltem Attribut werden dessen Werte verglichen.",
+  "runtime_max_session": "Maximale Sitzungslaufzeit (Sekunden)",
+  "runtime_max_session_help": "Ein einzelner Lauf zählt höchstens so viele Sekunden — schützt vor Sensoren, die auf AN hängen bleiben (Verbindungsabriss, Neustart). Leer = keine Begrenzung.",
   "setups_target_new": "Neu anlegen: {name}",
   "schedule_preview_title": "Nächste Termine",
   "schedule_preview_ontime": "Bei pünktlichem Abschluss.",
@@ -927,5 +930,7 @@
   "history_add_past": "Vergangene Erledigung nachtragen",
   "require_tag_scan": "Nur per Tag-Scan abschließbar",
   "require_tag_scan_help": "Anwesenheitsnachweis: „Erledigt“ ist überall blockiert, bis das NFC-Tag oder der QR-Code am Gerät gescannt wurde. Automationen können 'via_tag_scan' an den complete-Dienst übergeben.",
+  "disallow_skip": "Überspringen nicht erlauben",
+  "disallow_skip_help": "Die Aktion Überspringen verschwindet von allen Oberflächen; auch Automationen und Sprachbefehle werden abgewiesen.",
   "require_tag_scan_hint": "Diese Aufgabe kann nur per Scan des NFC-Tags oder QR-Codes am Gerät erledigt werden — Speichern hier wird abgelehnt."
 }

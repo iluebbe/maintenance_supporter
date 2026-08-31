@@ -528,6 +528,7 @@
   "groupby_area": "Podle oblasti",
   "groupby_group": "Podle skupiny",
   "groupby_user": "Podle uživatele",
+  "groupby_object": "Podle objektu",
   "filter_label": "Filtr",
   "user_label": "Uživatel",
   "photo_label": "Fotografie",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Aktuálně platná počáteční hodnota: {value}",
   "runtime_on_states": "Aktivní stavy",
   "runtime_on_states_help": "Stavy počítané jako doba běhu — výchozí: on. Např. mowing, cleaning, printing. Při zvoleném atributu se porovnávají jeho hodnoty.",
+  "runtime_max_session": "Max. doba běhu relace (sekundy)",
+  "runtime_max_session_help": "Jeden běh se počítá nejvýše na tolik sekund — chrání před senzorem zaseknutým na ZAP (ztráta spojení, restart). Prázdné = bez limitu.",
   "setups_target_new": "Vytvořit nový: {name}",
   "schedule_preview_title": "Nejbližší termíny",
   "schedule_preview_ontime": "Za předpokladu včasného dokončení.",
@@ -927,5 +930,7 @@
   "history_add_past": "Přidat dřívější dokončení",
   "require_tag_scan": "Dokončit pouze naskenováním štítku",
   "require_tag_scan_help": "Důkaz přítomnosti: „Hotovo“ je všude blokováno, dokud nenaskenujete NFC štítek nebo QR kód na zařízení. Automatizace mohou službě complete předat 'via_tag_scan'.",
+  "disallow_skip": "Nepovolit přeskočení",
+  "disallow_skip_help": "Akce Přeskočit zmizí ze všech ploch a server odmítne přeskočení i z automatizací a hlasu.",
   "require_tag_scan_hint": "Tento úkol lze dokončit pouze naskenováním jeho NFC štítku nebo QR kódu na zařízení — uložení zde bude odmítnuto."
 }

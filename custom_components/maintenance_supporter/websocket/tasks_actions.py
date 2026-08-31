@@ -313,11 +313,16 @@ async def ws_skip_task(
         return
     rd, _entry = ctx
 
-    await rd.coordinator.skip_maintenance(
-        task_id=msg["task_id"],
-        reason=msg.get("reason"),
-        as_missed=msg.get("as_missed", False),
-    )
+    try:
+        await rd.coordinator.skip_maintenance(
+            task_id=msg["task_id"],
+            reason=msg.get("reason"),
+            as_missed=msg.get("as_missed", False),
+        )
+    except ServiceValidationError as err:
+        # #150: the task carries a skip lock.
+        connection.send_error(msg["id"], "skip_disabled", str(err))
+        return
     connection.send_result(msg["id"], {"success": True})
 
 

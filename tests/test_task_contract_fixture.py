@@ -73,6 +73,7 @@ _MAXIMAL_TASK = {
     "documentation_url": "https://example.com/manual",
     "responsible_user_id": "user-uuid-1",
     "assignee_pool": ["user-uuid-1", "user-uuid-2"],
+    "allow_skip": False,
     "rotation_strategy": "round_robin",
     "required_completion_fields": ["notes", "cost"],
     "entity_slug": "contract_fixture_task",

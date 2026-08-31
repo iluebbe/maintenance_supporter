@@ -242,7 +242,14 @@ def evaluate_runtime(
                     from datetime import UTC
 
                     on_dt = on_dt.replace(tzinfo=UTC)
-                total += max(0.0, (dt_util.utcnow() - on_dt).total_seconds())  # pragma: no mutate (a 1s floor shift vanishes in the 2-decimal rounding)
+                ongoing = max(0.0, (dt_util.utcnow() - on_dt).total_seconds())  # pragma: no mutate (a 1s floor shift vanishes in the 2-decimal rounding)
+                # #149: per-session cap — the open window contributes at most
+                # what the session may still book (mirrors the live tracker).
+                cap = trigger_config.get("trigger_runtime_max_session_seconds")
+                if isinstance(cap, (int, float)) and not isinstance(cap, bool) and cap > 0:
+                    booked = es.get("session_booked_seconds") or 0.0
+                    ongoing = min(ongoing, max(0.0, float(cap) - float(booked)))
+                total += ongoing
         hours = total / 3600.0
         best_hours = hours if best_hours is None else max(best_hours, hours)
         if target_hours:

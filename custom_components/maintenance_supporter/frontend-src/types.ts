@@ -68,6 +68,8 @@ export interface TriggerConfig {
   trigger_to_state?: string | null;
   trigger_target_changes?: number;
   trigger_runtime_hours?: number;
+  /** #149: a single session books at most this many seconds. */
+  trigger_runtime_max_session_seconds?: number;
   /** States (or attribute values) that count as "running" — default ["on"]. */
   trigger_on_states?: string[];
   compound_logic?: "AND" | "OR";
@@ -173,6 +175,8 @@ export interface MaintenanceTask {
   name: string;
   type: string; // "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "reading" | "custom"
   enabled: boolean;
+  /** #150: false = the skip lock — Skip hidden everywhere, server refuses. */
+  allow_skip?: boolean;
   schedule_type: string; // "time_based" | "sensor_based" | "one_time" | "manual" | calendar kind
   interval_days?: number | null;
   interval_unit?: string; // "days" | "weeks" | "months" | "years"
@@ -509,6 +513,8 @@ export interface TaskRow {
   archived: boolean;
   history: HistoryEntry[];
   enabled: boolean;
+  /** #150: false = skip locked for this task. */
+  allow_skip: boolean;
   nfc_tag_id: string | null;
   priority: string;
   labels: string[];

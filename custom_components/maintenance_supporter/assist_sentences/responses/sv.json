@@ -11,6 +11,7 @@
   "postpone_needs_when": "Säg hur långt jag ska skjuta upp den — till exempel fem dagar.",
   "postpone_past": "Då skulle '{task}' hamna i det förflutna.",
   "skipped": "Jag har hoppat över den här omgången av '{task}' på {object}. Nästa omgång ska göras den {date}.",
+  "skip_disabled": "Hoppa över är avstängt för '{task}'.",
   "not_found": "Jag hittade ingen underhållsuppgift som matchar '{name}'.",
   "ambiguous": "Det matchar flera uppgifter: {candidates}. Var lite mer specifik.",
   "too_early": "'{task}' går att bocka av först närmare förfallodatumet.",

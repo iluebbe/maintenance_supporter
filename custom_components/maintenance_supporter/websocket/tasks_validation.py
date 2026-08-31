@@ -113,6 +113,7 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     # runtime
     "trigger_runtime_hours",
     "trigger_on_states",
+    "trigger_runtime_max_session_seconds",
     # state_change
     "trigger_from_state",
     "trigger_to_state",
@@ -321,6 +322,18 @@ def _validate_trigger_values(trigger_type: str, trigger_config: dict[str, Any], 
             )
         elif isinstance(raw, str):
             trigger_config["trigger_runtime_hours"] = num
+
+    # #149: per-session cap against stuck sensors — whole seconds, 1..86400.
+    raw = trigger_config.get("trigger_runtime_max_session_seconds")
+    if raw is not None:
+        num = _coerce_number(raw)
+        if num is None or not num.is_integer() or not 1 <= num <= 86400:
+            errors.append(
+                f"trigger_config.trigger_runtime_max_session_seconds must be a whole number "
+                f"between 1 and 86400 (seconds), got {raw!r}"
+            )
+        else:
+            trigger_config["trigger_runtime_max_session_seconds"] = int(num)
 
     raw = trigger_config.get("trigger_delta_mode")
     if raw is not None and not isinstance(raw, bool):

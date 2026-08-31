@@ -31,7 +31,7 @@ from .global_options import get_global_options
 # unknown value degrades to "show all / natural order" rather than being stored.
 VALID_STATUSES = frozenset({"", "ok", "due_soon", "overdue", "triggered", "paused", "archived"})
 VALID_SORT_MODES = frozenset({"due_date", "object", "type", "task_name", "area", "assigned_user", "group"})
-VALID_GROUP_BY = frozenset({"none", "area", "group", "user"})
+VALID_GROUP_BY = frozenset({"none", "area", "group", "user", "object"})
 # Priority filter (#134): "" = no filter, else one of the TaskPriority values.
 VALID_PRIORITIES = frozenset({"", *(p.value for p in TaskPriority)})
 

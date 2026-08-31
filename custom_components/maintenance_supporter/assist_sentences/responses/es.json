@@ -11,6 +11,7 @@
   "postpone_needs_when": "Dime cuánto quieres aplazarlo — por ejemplo, cinco días.",
   "postpone_past": "Eso dejaría '{task}' en el pasado.",
   "skipped": "Me he saltado este ciclo de '{task}' en {object}. El siguiente toca el {date}.",
+  "skip_disabled": "Omitir está desactivado para '{task}'.",
   "not_found": "No he encontrado ninguna tarea de mantenimiento que coincida con '{name}'.",
   "ambiguous": "Eso coincide con varias tareas: {candidates}. Concreta un poco más, por favor.",
   "too_early": "'{task}' solo se puede completar cuando se acerque su fecha prevista.",

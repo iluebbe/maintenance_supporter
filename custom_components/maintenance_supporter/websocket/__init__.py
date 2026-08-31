@@ -156,6 +156,8 @@ def _build_task_summary(
         "custom_icon": task_data.get("custom_icon"),
         "nfc_tag_id": task_data.get("nfc_tag_id"),
         "require_tag_scan": bool(task_data.get("require_tag_scan", False)),
+        # #150: skip lock — False disables skipping on every surface.
+        "allow_skip": task_data.get("allow_skip") is not False,
         # v2.20 (#83): unit for `reading`-type tasks; values live in history.
         "reading_unit": task_data.get("reading_unit"),
         # Spare parts: consumption links ([{part_id, quantity}]) and, on an

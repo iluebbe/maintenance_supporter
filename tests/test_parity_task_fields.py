@@ -77,6 +77,11 @@ PANEL_ONLY = {
     # their task-level twins. Coverage: tests/test_options_flow_phases.py.
     "phases",
     "phase_sequence",
+    # Per-task skip lock (#150): enforcement is surface-independent (the
+    # coordinator refuses a skip no matter where it came from), so a
+    # config-flow toggle would only duplicate the checkbox - same class as
+    # required_completion_fields above.
+    "allow_skip",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by

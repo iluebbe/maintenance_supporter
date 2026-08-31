@@ -528,6 +528,7 @@
   "groupby_area": "Por área",
   "groupby_group": "Por grupo",
   "groupby_user": "Por usuario",
+  "groupby_object": "Por objeto",
   "filter_label": "Filtro",
   "user_label": "Usuario",
   "photo_label": "Foto",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Valor inicial vigente: {value}",
   "runtime_on_states": "Estados activos",
   "runtime_on_states_help": "Estados que cuentan como en funcionamiento — predeterminado: on. P. ej. mowing, cleaning, printing. Con un atributo seleccionado se comparan sus valores.",
+  "runtime_max_session": "Duración máxima por sesión (segundos)",
+  "runtime_max_session_help": "Una sola ejecución cuenta como máximo estos segundos — protege contra un sensor atascado en ON (conexión perdida, reinicio). Vacío = sin límite.",
   "setups_target_new": "Crear nuevo: {name}",
   "schedule_preview_title": "Próximas fechas",
   "schedule_preview_ontime": "Suponiendo finalización puntual.",
@@ -927,5 +930,7 @@
   "history_add_past": "Añadir una finalización pasada",
   "require_tag_scan": "Completar solo escaneando la etiqueta",
   "require_tag_scan_help": "Prueba de presencia: «Hecho» queda bloqueado en todas partes hasta escanear la etiqueta NFC o el código QR del propio objeto. Las automatizaciones pueden pasar 'via_tag_scan' al servicio complete.",
+  "disallow_skip": "No permitir omitir",
+  "disallow_skip_help": "La acción Omitir desaparece de todas las superficies y el servidor también rechaza omisiones desde automatizaciones y voz.",
   "require_tag_scan_hint": "Esta tarea solo se completa escaneando su etiqueta NFC o código QR en el propio objeto; guardar aquí será rechazado."
 }

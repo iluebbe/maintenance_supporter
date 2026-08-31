@@ -573,6 +573,7 @@
   "groupby_area": "Por área",
   "groupby_group": "Por grupo",
   "groupby_user": "Por usuário",
+  "groupby_object": "Por objeto",
   "unassigned": "Não atribuído",
   "no_area": "Sem área",
   "has_overdue": "Tarefas em atraso",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Valor inicial atualmente em vigor: {value}",
   "runtime_on_states": "Estados ativos",
   "runtime_on_states_help": "Estados que contam como em funcionamento — padrão: on. P. ex. mowing, cleaning, printing. Com um atributo selecionado, são comparados os valores dele.",
+  "runtime_max_session": "Duração máxima por sessão (segundos)",
+  "runtime_max_session_help": "Uma única execução conta no máximo estes segundos — protege contra um sensor preso em ON (ligação perdida, reinício). Vazio = sem limite.",
   "setups_target_new": "Criar novo: {name}",
   "schedule_preview_title": "Próximas datas",
   "schedule_preview_ontime": "Assumindo conclusão pontual.",
@@ -927,5 +930,7 @@
   "history_add_past": "Adicionar conclusão passada",
   "require_tag_scan": "Concluir apenas lendo a etiqueta",
   "require_tag_scan_help": "Prova de presença: «Concluído» fica bloqueado em todo o lado até ler a etiqueta NFC ou o código QR no próprio objeto. As automações podem passar 'via_tag_scan' ao serviço complete.",
+  "disallow_skip": "Não permitir ignorar",
+  "disallow_skip_help": "A ação Ignorar desaparece de todas as superfícies e o servidor também recusa ignorar via automações e voz.",
   "require_tag_scan_hint": "Esta tarefa só é concluída lendo a sua etiqueta NFC ou código QR no próprio objeto — guardar aqui será recusado."
 }

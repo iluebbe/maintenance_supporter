@@ -530,6 +530,7 @@
   "groupby_area": "エリア別",
   "groupby_group": "グループ別",
   "groupby_user": "ユーザー別",
+  "groupby_object": "対象別",
   "filter_label": "絞り込み",
   "user_label": "ユーザー",
   "photo_label": "写真",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "現在有効な開始値：{value}",
   "runtime_on_states": "稼働中とみなす状態",
   "runtime_on_states_help": "稼働時間として数える状態 — 既定値：on。例：mowing, cleaning, printing。属性を選択している場合はその値が比較されます。",
+  "runtime_max_session": "1回の最大稼働時間（秒）",
+  "runtime_max_session_help": "1回の稼働は最大この秒数までカウント——ONのまま固まったセンサー（接続切れ・再起動）への保護です。空欄=制限なし。",
   "setups_target_new": "新規作成：{name}",
   "schedule_preview_title": "次回の予定日",
   "schedule_preview_ontime": "期日どおりに完了した場合。",
@@ -927,5 +930,7 @@
   "history_add_past": "過去の完了を追加",
   "require_tag_scan": "タグのスキャンでのみ完了可能",
   "require_tag_scan_help": "在席証明：対象物のNFCタグまたはQRコードをスキャンするまで、どの画面でも「完了」はブロックされます。オートメーションはcompleteサービスに 'via_tag_scan' を渡せます。",
+  "disallow_skip": "スキップを許可しない",
+  "disallow_skip_help": "スキップ操作はすべての画面から消え、オートメーションや音声からのスキップもサーバーが拒否します。",
   "require_tag_scan_hint": "このタスクは対象物のNFCタグまたはQRコードをスキャンしないと完了できません。ここでの保存は拒否されます。"
 }

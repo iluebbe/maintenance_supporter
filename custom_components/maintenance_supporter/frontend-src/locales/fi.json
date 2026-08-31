@@ -530,6 +530,7 @@
   "groupby_area": "Alueen mukaan",
   "groupby_group": "Ryhmän mukaan",
   "groupby_user": "Käyttäjän mukaan",
+  "groupby_object": "Kohteen mukaan",
   "filter_label": "Suodata",
   "user_label": "Käyttäjä",
   "photo_label": "Valokuva",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Nyt voimassa oleva aloitusarvo: {value}",
   "runtime_on_states": "Aktiiviset tilat",
   "runtime_on_states_help": "Tilat, jotka lasketaan käyntiajaksi — oletus: on. Esim. mowing, cleaning, printing. Jos attribuutti on valittu, verrataan sen arvoja.",
+  "runtime_max_session": "Istunnon enimmäiskesto (sekuntia)",
+  "runtime_max_session_help": "Yksi ajo lasketaan enintään näin moneksi sekunniksi — suojaa PÄÄLLÄ-tilaan jumittuneelta anturilta (katkennut yhteys, uudelleenkäynnistys). Tyhjä = ei rajaa.",
   "setups_target_new": "Luo uusi: {name}",
   "schedule_preview_title": "Seuraavat päivämäärät",
   "schedule_preview_ontime": "Olettaen, että valmistuminen on ajallaan.",
@@ -927,5 +930,7 @@
   "history_add_past": "Lisää aiempi suoritus",
   "require_tag_scan": "Suoritus vain tunnisteen skannauksella",
   "require_tag_scan_help": "Läsnäolotodistus: ”Valmis” on estetty kaikkialla, kunnes laitteen NFC-tunniste tai QR-koodi on skannattu. Automaatiot voivat välittää 'via_tag_scan' complete-palvelulle.",
+  "disallow_skip": "Estä ohittaminen",
+  "disallow_skip_help": "Ohita-toiminto katoaa kaikista näkymistä, ja palvelin hylkää ohituksen myös automaatioista ja puheesta.",
   "require_tag_scan_hint": "Tämä tehtävä valmistuu vain skannaamalla sen NFC-tunniste tai QR-koodi itse laitteesta — tallennus tässä estetään."
 }

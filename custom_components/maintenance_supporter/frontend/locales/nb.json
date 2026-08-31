@@ -530,6 +530,7 @@
   "groupby_area": "Etter område",
   "groupby_group": "Etter gruppe",
   "groupby_user": "Etter bruker",
+  "groupby_object": "Etter objekt",
   "filter_label": "Filter",
   "user_label": "Bruker",
   "photo_label": "Bilde",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Gjeldende startverdi: {value}",
   "runtime_on_states": "Aktive tilstander",
   "runtime_on_states_help": "Tilstander som teller som driftstid — standard: on. F.eks. mowing, cleaning, printing. Med et valgt attributt sammenlignes verdiene dets i stedet.",
+  "runtime_max_session": "Maks økt-varighet (sekunder)",
+  "runtime_max_session_help": "En enkelt kjøring teller høyst så mange sekunder — beskytter mot en sensor som henger på PÅ (mistet forbindelse, omstart). Tom = ingen grense.",
   "setups_target_new": "Opprett ny: {name}",
   "schedule_preview_title": "Kommende datoer",
   "schedule_preview_ontime": "Forutsatt fullføring i tide.",
@@ -927,5 +930,7 @@
   "history_add_past": "Legg til tidligere fullføring",
   "require_tag_scan": "Kan bare fullføres ved tag-skanning",
   "require_tag_scan_help": "Tilstedeværelsesbevis: «Fullført» er blokkert overalt til NFC-taggen eller QR-koden på selve tingen er skannet. Automatiseringer kan sende 'via_tag_scan' til complete-tjenesten.",
+  "disallow_skip": "Ikke tillat å hoppe over",
+  "disallow_skip_help": "Handlingen Hopp over forsvinner fra alle flater, og serveren avviser også hopp fra automatiseringer og tale.",
   "require_tag_scan_hint": "Denne oppgaven fullføres bare ved å skanne NFC-taggen eller QR-koden på selve tingen — lagring her vil bli avvist."
 }

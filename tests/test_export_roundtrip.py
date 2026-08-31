@@ -70,6 +70,7 @@ FULL_TASK = {
     "custom_icon": "mdi:test-tube",
     "nfc_tag_id": "nfc-123",
     "require_tag_scan": True,
+    "allow_skip": False,
     "required_completion_fields": ["cost"],
     "earliest_completion_days": 3,
     "priority": "high",
@@ -165,6 +166,7 @@ def _full_trigger_config() -> dict:
         "trigger_delta_mode": True,
         "trigger_baseline_value": 40.0,
         "trigger_runtime_hours": 500,
+        "trigger_runtime_max_session_seconds": 150,
         "trigger_on_states": ["on"],
         "trigger_from_state": "running",
         "trigger_to_state": "clean",
@@ -461,6 +463,7 @@ _CSV_TASK_EXCLUDED = {
     "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)
     "required_completion_fields", "earliest_completion_days",  # niche gates
     "require_tag_scan",  # completion gate (JSON backup carries it)
+    "allow_skip",  # skip lock (#150) - JSON backup carries it
     "entity_slug",  # instance-specific entity naming
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
     # #139: nested defs + cycle + Store cursor — structured state that doesn't

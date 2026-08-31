@@ -11,6 +11,7 @@
   "postpone_needs_when": "Sag mir, um wie lange ich verschieben soll — zum Beispiel um fünf Tage.",
   "postpone_past": "Damit läge '{task}' in der Vergangenheit.",
   "skipped": "Dieser Durchgang von '{task}' an {object} wurde übersprungen. Der nächste ist am {date} fällig.",
+  "skip_disabled": "Überspringen ist für '{task}' ausgeschaltet.",
   "not_found": "Ich habe keine Wartungsaufgabe zu '{name}' gefunden.",
   "ambiguous": "Das passt auf mehrere Aufgaben: {candidates}. Bitte formuliere genauer.",
   "too_early": "'{task}' kann erst näher am Fälligkeitstermin erledigt werden.",

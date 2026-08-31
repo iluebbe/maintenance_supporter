@@ -216,6 +216,7 @@ template's tasks** in one call. `object/duplicate` `{entry_id}` → `{entry_id}`
   "custom_icon": "mdi:air-filter",     // per-task icon
   "nfc_tag_id": "…",                   // duplicate = warning, not error
   "require_tag_scan": false,           // 2.67 proof of presence: only an NFC/QR scan may complete
+  "allow_skip": true,                  // #150: false = skip lock (server refuses task/skip + voice SkipTask)
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
   "phases": {                          // #139 cycle phases (≤10 defs) | null clears
     "flip":    { "name": "Flip blades" },            // per-phase overrides (optional):
@@ -267,7 +268,7 @@ flat interval edit rebuilds from flat and drops the nested schedule.
   completing (#73). The dict REPLACES the stored progress; unknown items are
   dropped; completing or skipping clears it. Echoed on every task as
   `checklist_progress`.
-- `task/skip` `{entry_id, task_id, reason?}`
+- `task/skip` `{entry_id, task_id, reason?}` — refused with `skip_disabled` when the task sets `allow_skip: false`
 - `task/reset` `{entry_id, task_id, date?}` (ISO)
 - `task/set_phase` `{entry_id, task_id, cursor (req, int ≥0)}` → `{"success": true, "phase_cursor": n}` —
   re-points a phased task's cycle cursor (#139: mis-click repair, mid-cycle
@@ -376,6 +377,7 @@ survives restarts; an unavailability blip restarts it.
 
 ### `runtime`
 `{"type":"runtime","entity_ids":["switch.pump"],"trigger_runtime_hours":500,"trigger_on_states":["on"]}`
+Optional `trigger_runtime_max_session_seconds` (whole, 1..86400): a single ON-session books at most this many seconds (#149 — protects against sensors stuck ON).
 `trigger_runtime_hours` **required**. Accumulates "on" time; default on-states
 `{"on","1","true"}`. `trigger_on_states`, if given, must be a non-empty list.
 

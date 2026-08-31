@@ -11,6 +11,7 @@
   "postpone_needs_when": "Řekni mi, o kolik ho mám odložit — třeba o pět dní.",
   "postpone_past": "Tím by '{task}' spadl do minulosti.",
   "skipped": "Tento cyklus úkolu '{task}' u zařízení {object} je přeskočený. Další termín je {date}.",
+  "skip_disabled": "Přeskakování je pro '{task}' vypnuto.",
   "not_found": "Nenašel jsem úkol údržby, který by odpovídal '{name}'.",
   "ambiguous": "Tomu odpovídá víc úkolů: {candidates}. Upřesni to, prosím.",
   "too_early": "Úkol '{task}' se dá dokončit až blíž k termínu.",

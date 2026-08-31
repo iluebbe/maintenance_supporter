@@ -100,6 +100,10 @@ def _inject_per_entity_state(config: dict[str, Any], entity_state: dict[str, Any
             config["trigger_accumulated_seconds"] = entity_state["accumulated_seconds"]
         if "on_since" in entity_state:
             config["trigger_on_since"] = entity_state["on_since"]
+        # #149: what the current session already booked — the per-session cap
+        # must survive a restart, or a stuck sensor books the cap again.
+        if "session_booked_seconds" in entity_state:
+            config["trigger_session_booked_seconds"] = entity_state["session_booked_seconds"]
     elif trigger_type == TriggerType.STATE_CHANGE:
         if "change_count" in entity_state:
             config["trigger_change_count"] = entity_state["change_count"]

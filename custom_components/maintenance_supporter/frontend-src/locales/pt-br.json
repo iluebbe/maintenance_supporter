@@ -536,6 +536,7 @@
   "groupby_area": "Por área",
   "groupby_group": "Por grupo",
   "groupby_user": "Por usuário",
+  "groupby_object": "Por objeto",
   "filter_label": "Filtro",
   "user_label": "Usuário",
   "photo_label": "Foto",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Valor inicial efetivo atual: {value}",
   "runtime_on_states": "Estados ativos",
   "runtime_on_states_help": "Estados que contam como em funcionamento — padrão: on. Ex.: mowing, cleaning, printing. Com um atributo selecionado, os valores dele são comparados.",
+  "runtime_max_session": "Duração máxima por sessão (segundos)",
+  "runtime_max_session_help": "Uma única execução conta no máximo esses segundos — protege contra um sensor travado em ON (conexão perdida, reinício). Vazio = sem limite.",
   "setups_target_new": "Criar novo: {name}",
   "schedule_preview_title": "Próximas datas",
   "schedule_preview_ontime": "Supondo conclusão em dia.",
@@ -927,5 +930,7 @@
   "history_add_past": "Adicionar conclusão passada",
   "require_tag_scan": "Concluir apenas escaneando a etiqueta",
   "require_tag_scan_help": "Prova de presença: “Concluído” fica bloqueado em toda parte até escanear a etiqueta NFC ou o código QR no próprio objeto. Automações podem passar 'via_tag_scan' ao serviço complete.",
+  "disallow_skip": "Não permitir pular",
+  "disallow_skip_help": "A ação Pular desaparece de todas as telas e o servidor também recusa pular via automações e voz.",
   "require_tag_scan_hint": "Esta tarefa só é concluída escaneando sua etiqueta NFC ou código QR no próprio objeto — salvar aqui será recusado."
 }

@@ -528,6 +528,7 @@
   "groupby_area": "Wg obszaru",
   "groupby_group": "Wg grupy",
   "groupby_user": "Wg użytkownika",
+  "groupby_object": "Według obiektu",
   "filter_label": "Filtr",
   "user_label": "Użytkownik",
   "photo_label": "Zdjęcie",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Obecnie obowiązująca wartość początkowa: {value}",
   "runtime_on_states": "Stany aktywne",
   "runtime_on_states_help": "Stany liczone jako czas pracy — domyślnie: on. Np. mowing, cleaning, printing. Przy wybranym atrybucie porównywane są jego wartości.",
+  "runtime_max_session": "Maks. czas sesji (sekundy)",
+  "runtime_max_session_help": "Pojedynczy przebieg liczy się najwyżej tyle sekund — chroni przed czujnikiem zawieszonym na WŁ. (utrata połączenia, restart). Puste = bez limitu.",
   "setups_target_new": "Utwórz nowy: {name}",
   "schedule_preview_title": "Najbliższe terminy",
   "schedule_preview_ontime": "Przy założeniu terminowego ukończenia.",
@@ -927,5 +930,7 @@
   "history_add_past": "Dodaj wcześniejsze ukończenie",
   "require_tag_scan": "Ukończenie tylko przez skan tagu",
   "require_tag_scan_help": "Dowód obecności: „Gotowe” jest wszędzie zablokowane, dopóki nie zeskanujesz tagu NFC lub kodu QR na urządzeniu. Automatyzacje mogą przekazać 'via_tag_scan' do usługi complete.",
+  "disallow_skip": "Nie zezwalaj na pomijanie",
+  "disallow_skip_help": "Akcja Pomiń znika ze wszystkich widoków, a serwer odrzuca pominięcie także z automatyzacji i głosu.",
   "require_tag_scan_hint": "To zadanie można ukończyć tylko skanując jego tag NFC lub kod QR na urządzeniu — zapis tutaj zostanie odrzucony."
 }

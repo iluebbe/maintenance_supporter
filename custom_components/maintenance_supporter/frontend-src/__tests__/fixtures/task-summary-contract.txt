@@ -1,5 +1,6 @@
 {
   "adaptive_config": null,
+  "allow_skip": false,
   "archived": false,
   "archived_at": null,
   "archived_reason": null,

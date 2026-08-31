@@ -528,6 +528,7 @@
   "groupby_area": "Per område",
   "groupby_group": "Per grupp",
   "groupby_user": "Per användare",
+  "groupby_object": "Efter objekt",
   "filter_label": "Filter",
   "user_label": "Användare",
   "photo_label": "Foto",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Nu gällande startvärde: {value}",
   "runtime_on_states": "Aktiva tillstånd",
   "runtime_on_states_help": "Tillstånd som räknas som drifttid — standard: on. T.ex. mowing, cleaning, printing. Med ett valt attribut jämförs dess värden i stället.",
+  "runtime_max_session": "Max körtid per session (sekunder)",
+  "runtime_max_session_help": "En enskild körning räknas som högst så här många sekunder — skyddar mot en sensor som fastnat på PÅ (tappad anslutning, omstart). Tomt = ingen gräns.",
   "setups_target_new": "Skapa ny: {name}",
   "schedule_preview_title": "Kommande datum",
   "schedule_preview_ontime": "Förutsatt slutförande i tid.",
@@ -927,5 +930,7 @@
   "history_add_past": "Lägg till tidigare slutförande",
   "require_tag_scan": "Kan endast slutföras via tagg-skanning",
   "require_tag_scan_help": "Närvarobevis: ”Klar” är blockerad överallt tills NFC-taggen eller QR-koden på själva saken har skannats. Automationer kan skicka 'via_tag_scan' till complete-tjänsten.",
+  "disallow_skip": "Tillåt inte att hoppa över",
+  "disallow_skip_help": "Åtgärden Hoppa över försvinner från alla ytor och servern nekar även hopp från automationer och röst.",
   "require_tag_scan_hint": "Den här uppgiften slutförs endast genom att skanna dess NFC-tagg eller QR-kod på själva saken — att spara här kommer att nekas."
 }

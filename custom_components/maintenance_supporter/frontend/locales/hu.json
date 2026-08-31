@@ -536,6 +536,7 @@
   "groupby_area": "Terület szerint",
   "groupby_group": "Csoport szerint",
   "groupby_user": "Felhasználó szerint",
+  "groupby_object": "Objektum szerint",
   "filter_label": "Szűrő",
   "user_label": "Felhasználó",
   "photo_label": "Fénykép",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Jelenleg érvényes kezdőérték: {value}",
   "runtime_on_states": "Aktív állapotok",
   "runtime_on_states_help": "Működésként számító állapotok — alapértelmezés: on. Pl. mowing, cleaning, printing. Attribútum kiválasztásakor annak értékei számítanak.",
+  "runtime_max_session": "Max. munkamenet-futásidő (másodperc)",
+  "runtime_max_session_help": "Egy futás legfeljebb ennyi másodpercet számít — véd a BE állapotban beragadt érzékelő ellen (kapcsolatvesztés, újraindítás). Üres = nincs korlát.",
   "setups_target_new": "Új létrehozása: {name}",
   "schedule_preview_title": "Következő dátumok",
   "schedule_preview_ontime": "Időben történő elvégzést feltételezve.",
@@ -927,5 +930,7 @@
   "history_add_past": "Korábbi elvégzés rögzítése",
   "require_tag_scan": "Csak címke beolvasásával fejezhető be",
   "require_tag_scan_help": "Jelenlét-igazolás: a „Kész” mindenhol blokkolva van, amíg be nem olvasod az eszközön lévő NFC-címkét vagy QR-kódot. Az automatizálások 'via_tag_scan' értéket adhatnak át a complete szolgáltatásnak.",
+  "disallow_skip": "Kihagyás tiltása",
+  "disallow_skip_help": "A Kihagyás művelet minden felületről eltűnik, és a szerver az automatizálásokból és hangból érkező kihagyást is elutasítja.",
   "require_tag_scan_hint": "Ez a feladat csak az eszközön lévő NFC-címke vagy QR-kód beolvasásával fejezhető be — az itteni mentés el lesz utasítva."
 }

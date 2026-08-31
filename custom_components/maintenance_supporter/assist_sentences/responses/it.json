@@ -11,6 +11,7 @@
   "postpone_needs_when": "Dimmi di quanto rimandarla — per esempio, di cinque giorni.",
   "postpone_past": "Così '{task}' finirebbe nel passato.",
   "skipped": "Ho saltato questo ciclo di '{task}' su {object}. Il prossimo è previsto per il {date}.",
+  "skip_disabled": "Saltare è disattivato per '{task}'.",
   "not_found": "Non ho trovato nessuna attività di manutenzione che corrisponda a '{name}'.",
   "ambiguous": "Corrisponde a più attività: {candidates}. Puoi essere un po' più preciso?",
   "too_early": "Puoi completare '{task}' solo quando si avvicina la scadenza.",

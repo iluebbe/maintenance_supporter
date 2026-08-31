@@ -117,6 +117,8 @@ def _build_export_object(
             "custom_icon": tdata.get("custom_icon"),
             "nfc_tag_id": tdata.get("nfc_tag_id"),
             "require_tag_scan": tdata.get("require_tag_scan"),
+            # #150: per-task skip lock.
+            "allow_skip": tdata.get("allow_skip"),
             "responsible_user_id": tdata.get("responsible_user_id"),
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),

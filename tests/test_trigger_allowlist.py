@@ -54,6 +54,9 @@ _RUNTIME_INJECTED_KEYS = frozenset(
         "trigger_change_count",
         "trigger_baseline_value",
         "trigger_accumulated_seconds",
+        # #149: what the current session already booked — injected from
+        # the Store like accumulated_seconds; the save path never sees it.
+        "trigger_session_booked_seconds",
         "trigger_on_since",
         "trigger_threshold_exceeded_since",
         # #136 state-change hold window (pending transition anchor).

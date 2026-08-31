@@ -11,6 +11,7 @@
   "postpone_needs_when": "Kerro, kuinka paljon siirrän sitä — esimerkiksi viisi päivää.",
   "postpone_past": "Silloin tehtävä '{task}' menisi menneisyyteen.",
   "skipped": "Ohitin tehtävän '{task}' tämän kerran kohteessa {object}. Seuraava ajankohta: {date}.",
+  "skip_disabled": "Ohittaminen on poistettu käytöstä kohteelle '{task}'.",
   "not_found": "En löytänyt huoltotehtävää, joka vastaisi hakua '{name}'.",
   "ambiguous": "Tämä vastaa useaa tehtävää: {candidates}. Tarkenna vielä hieman.",
   "too_early": "Tehtävän '{task}' voi kuitata tehdyksi vasta lähempänä sen ajankohtaa.",

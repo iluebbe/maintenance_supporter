@@ -528,6 +528,7 @@
   "groupby_area": "Per gebied",
   "groupby_group": "Per groep",
   "groupby_user": "Per gebruiker",
+  "groupby_object": "Per object",
   "filter_label": "Filter",
   "user_label": "Gebruiker",
   "photo_label": "Foto",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Momenteel geldende startwaarde: {value}",
   "runtime_on_states": "Actieve statussen",
   "runtime_on_states_help": "Statussen die als draaitijd tellen — standaard: on. Bijv. mowing, cleaning, printing. Met een geselecteerd attribuut worden de waarden daarvan vergeleken.",
+  "runtime_max_session": "Maximale sessieduur (seconden)",
+  "runtime_max_session_help": "Eén run telt maximaal dit aantal seconden — beschermt tegen sensoren die op AAN blijven hangen (verbroken verbinding, herstart). Leeg = geen limiet.",
   "setups_target_new": "Nieuw aanmaken: {name}",
   "schedule_preview_title": "Volgende data",
   "schedule_preview_ontime": "Uitgaande van tijdige afronding.",
@@ -927,5 +930,7 @@
   "history_add_past": "Eerdere afronding toevoegen",
   "require_tag_scan": "Alleen af te ronden via tag-scan",
   "require_tag_scan_help": "Aanwezigheidsbewijs: „Klaar” is overal geblokkeerd totdat de NFC-tag of QR-code op het apparaat zelf is gescand. Automatiseringen kunnen 'via_tag_scan' aan de complete-service meegeven.",
+  "disallow_skip": "Overslaan niet toestaan",
+  "disallow_skip_help": "De actie Overslaan verdwijnt overal, en de server weigert ook een skip via automatiseringen en spraak.",
   "require_tag_scan_hint": "Deze taak wordt alleen afgerond door de NFC-tag of QR-code op het apparaat te scannen — opslaan hier wordt geweigerd."
 }

@@ -214,6 +214,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `reading_unit` (2.20+, #83) | string | `""` | ≤32 chars | Display unit for `reading`-type tasks (e.g. `kWh`, `m³`, `l`). Shown next to the reading input on complete and as the delta unit in the history timeline; each completion's `reading_value` is recorded in history. Round-trips through JSON/CSV export-import |
 | `custom_icon` | string (mdi) | `""` | — | Custom `mdi:` icon for the task's entities, overriding the type-based default. Max 100 chars. Picked via the icon selector in the task dialog |
 | `nfc_tag_id` | string | `""` | — | NFC tag identifier linked to the task (scanning the tag opens / completes it). Max 256 chars; checked for uniqueness — re-using a tag already linked to another task is rejected on save |
+| `allow_skip` (#150, 2.71+) | bool | `true` | — | **Skip lock** when set to false: the Skip action disappears from the panel rows, card and quick actions, and the server refuses `task/skip` and the voice SkipTask intent (`skip_disabled`) — automations cannot skip either |
 | `require_tag_scan` (2.67+) | bool | `false` | — | **Proof of presence**: the task can only be completed by scanning its NFC tag or QR code on the thing itself. Panel, card, to-do list, voice and notification buttons are refused (`tag_scan_required`); automatic trigger-recovery completions stay exempt; the `complete` service accepts `via_tag_scan: true` for automations that react to a real scan |
 | `entity_slug` | string | `""` | — | Override for the slug used in this task's `entity_id`s. Must match `[a-z0-9_]+` (lowercase letters, digits, underscores), max 64 chars. When unset, the slug is derived from the object and task names |
 
@@ -492,9 +493,10 @@ Activates after accumulated operating hours reach a target.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `trigger_runtime_hours` | float | *(required)* | Target accumulated hours before triggering |
+| `trigger_runtime_max_session_seconds` (#149, 2.71+) | int | — | Optional per-session cap (1–86400): a single run books at most this many seconds — protects against a sensor stuck ON (lost connection, restart while running) |
 | `trigger_on_states` | list[string] | `["on"]` | Entity states considered "running" (e.g., `["on", "running", "active"]`) |
 
-Runtime hours are persisted every 5 minutes and survive restarts. Up to 5 minutes of runtime may be lost on an unclean shutdown.
+Runtime hours are persisted every 5 minutes and survive restarts. Up to 5 minutes of runtime may be lost on an unclean shutdown. With a max-session cap, a run that exceeds it books exactly the cap — across those persist windows and across restarts.
 
 ### Compound Trigger
 

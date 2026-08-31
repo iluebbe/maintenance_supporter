@@ -11,6 +11,7 @@
   "postpone_needs_when": "얼마나 미룰지 알려주세요. 예를 들어 '닷새 뒤'처럼요.",
   "postpone_past": "그러면 '{task}' 날짜가 과거가 돼요.",
   "skipped": "{object}의 '{task}', 이번 차례는 건너뛰었어요. 다음은 {date}에 예정돼 있어요.",
+  "skip_disabled": "'{task}'의 건너뛰기가 꺼져 있습니다.",
   "not_found": "'{name}'에 맞는 정비 작업을 찾지 못했어요.",
   "ambiguous": "여러 작업이 해당돼요: {candidates}. 조금 더 구체적으로 말씀해 주세요.",
   "too_early": "'{task}' 작업은 예정일이 가까워져야 완료할 수 있어요.",

@@ -11,6 +11,7 @@
   "postpone_needs_when": "Mondd meg, mennyivel halasszam el — például öt nappal.",
   "postpone_past": "'{task}': ezzel a feladat a múltba kerülne.",
   "skipped": "Kihagytam ezt a fordulót: '{task}' – {object}. A következő időpont: {date}.",
+  "skip_disabled": "A kihagyás ki van kapcsolva ehhez: '{task}'.",
   "not_found": "Nem találtam ehhez illő karbantartási feladatot: '{name}'.",
   "ambiguous": "Több feladatra is illik: {candidates}. Fogalmazz pontosabban.",
   "too_early": "'{task}': ezt a feladatot csak az esedékesség közelében lehet elvégezni.",

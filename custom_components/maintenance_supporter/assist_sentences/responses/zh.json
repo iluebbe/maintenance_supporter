@@ -11,6 +11,7 @@
   "postpone_needs_when": "告诉我要推迟多久，比如推迟五天。",
   "postpone_past": "那样的话，“{task}”的日期就会落在过去了。",
   "skipped": "已跳过{object}的“{task}”这一次。下一次在{date}到期。",
+  "skip_disabled": "已为'{task}'关闭跳过。",
   "not_found": "我没有找到和“{name}”对得上的维护任务。",
   "ambiguous": "有好几项任务都对得上：{candidates}。请说得更具体一些。",
   "too_early": "“{task}”要等到接近到期日才能完成。",

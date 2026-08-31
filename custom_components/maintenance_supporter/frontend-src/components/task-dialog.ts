@@ -227,6 +227,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
   @state() private _triggerRuntimeHours = "";
+  @state() private _triggerRuntimeMaxSession = "";
   // Comma-separated "running" states for the runtime trigger (#103) —
   // empty = the backend default ["on"]. Must roundtrip on edit: adopted
   // tasks ship e.g. ["mowing"], and dropping it on save silently stops
@@ -245,6 +246,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _lastPerformed = "";
   @state() private _nfcTagId = "";
   @state() private _requireTagScan = false;
+  @state() private _allowSkip = true;
   // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
   @state() private _readingUnit = "";
   /** The picked links, keyed by `partLinkKey` — the (entry_id, part_id) pair,
@@ -400,6 +402,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
     this._requireTagScan = !!task.require_tag_scan;
+    this._allowSkip = task.allow_skip !== false;
     this._readingUnit = task.reading_unit || "";
     // Whole link, entry_id included — hydrating only part_id would turn every
     // shared-pool link into an own-part link on the next save (#111).
@@ -500,6 +503,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerToState = tc.trigger_to_state || "";
       this._triggerTargetChanges = tc.trigger_target_changes?.toString() || "";
       this._triggerRuntimeHours = tc.trigger_runtime_hours?.toString() || "";
+      this._triggerRuntimeMaxSession = tc.trigger_runtime_max_session_seconds?.toString() || "";
       this._triggerOnStates = (tc.trigger_on_states || []).join(", ");
       if (tc.type === "compound") {
         this._compoundLogic = tc.compound_logic === "OR" ? "OR" : "AND";
@@ -551,6 +555,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = "";
     this._nfcTagId = "";
     this._requireTagScan = false;
+    this._allowSkip = true;
     this._readingUnit = "";
     this._consumesParts = {};
     this._responsibleUserId = null;
@@ -610,6 +615,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerToState = "";
     this._triggerTargetChanges = "";
     this._triggerRuntimeHours = "";
+    this._triggerRuntimeMaxSession = "";
     this._triggerOnStates = "";
     this._compoundLogic = "AND";
     this._compoundConditions = [];
@@ -1253,6 +1259,7 @@ export class MaintenanceTaskDialog extends LitElement {
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
       data.require_tag_scan = this._requireTagScan;
+      data.allow_skip = this._allowSkip;
       data.reading_unit = this._readingUnit.trim() || null;
       // Task phases (#139): always sent — null clears a removed cycle.
       {
@@ -1366,6 +1373,8 @@ export class MaintenanceTaskDialog extends LitElement {
           if (this._triggerForMinutes) { const v = parseInt(this._triggerForMinutes, 10); if (!isNaN(v)) triggerConfig.trigger_for_minutes = v; }
         } else if (this._triggerType === "runtime") {
           if (this._triggerRuntimeHours) { const v = parseFloat(this._triggerRuntimeHours); if (!isNaN(v)) triggerConfig.trigger_runtime_hours = v; }
+          // #149: per-session cap (seconds) against sensors stuck ON.
+          if (this._triggerRuntimeMaxSession) { const v = parseInt(this._triggerRuntimeMaxSession, 10); if (!isNaN(v) && v > 0) triggerConfig.trigger_runtime_max_session_seconds = v; }
           const onStates = this._triggerOnStates.split(",").map((s) => s.trim()).filter(Boolean);
           if (onStates.length > 0) triggerConfig.trigger_on_states = onStates;
         }
@@ -2480,6 +2489,14 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._triggerRuntimeHours}
           @input=${(e: Event) => (this._triggerRuntimeHours = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
+        <ms-textfield
+          label="${t("runtime_max_session", L)}"
+          type="number"
+          step="1"
+          .value=${this._triggerRuntimeMaxSession}
+          @input=${(e: Event) => (this._triggerRuntimeMaxSession = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <div class="field-help">${t("runtime_max_session_help", L)}</div>
         ${this._renderOnStatesField({
           value: this._triggerOnStates,
           entityId: this._triggerEntityId,
@@ -2831,6 +2848,15 @@ export class MaintenanceTaskDialog extends LitElement {
             <span>${t("require_tag_scan", L)}</span>
           </label>
           ${this._requireTagScan ? html`<div class="field-help">${t("require_tag_scan_help", L)}</div>` : nothing}
+          <label class="req-option">
+            <input
+              type="checkbox"
+              .checked=${!this._allowSkip}
+              @change=${(e: Event) => (this._allowSkip = !(e.target as HTMLInputElement).checked)}
+            />
+            <span>${t("disallow_skip", L)}</span>
+          </label>
+          ${!this._allowSkip ? html`<div class="field-help">${t("disallow_skip_help", L)}</div>` : nothing}
           <label class="toggle-row">
             <input
               type="checkbox"

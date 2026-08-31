@@ -536,6 +536,7 @@
   "groupby_area": "구역별",
   "groupby_group": "그룹별",
   "groupby_user": "사용자별",
+  "groupby_object": "대상별",
   "filter_label": "필터",
   "user_label": "사용자",
   "photo_label": "사진",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "현재 적용 중인 시작 값: {value}",
   "runtime_on_states": "활성 상태",
   "runtime_on_states_help": "가동 중으로 계산할 상태입니다 — 기본값: on. 예: mowing, cleaning, printing. 속성을 선택한 경우 해당 속성 값과 비교합니다.",
+  "runtime_max_session": "세션당 최대 가동 시간(초)",
+  "runtime_max_session_help": "한 번의 가동은 최대 이 초까지만 집계됩니다 — ON에 멈춘 센서(연결 끊김, 재시작)로부터 보호합니다. 비워두면 제한 없음.",
   "setups_target_new": "새로 만들기: {name}",
   "schedule_preview_title": "다음 예정일",
   "schedule_preview_ontime": "제때 완료한다고 가정한 일정입니다.",
@@ -927,5 +930,7 @@
   "history_add_past": "지난 완료 추가",
   "require_tag_scan": "태그 스캔으로만 완료 가능",
   "require_tag_scan_help": "현장 확인: 기기의 NFC 태그나 QR 코드를 스캔할 때까지 모든 화면에서 '완료'가 차단됩니다. 자동화는 complete 서비스에 'via_tag_scan'을 전달할 수 있습니다.",
+  "disallow_skip": "건너뛰기 허용 안 함",
+  "disallow_skip_help": "건너뛰기 동작이 모든 화면에서 사라지며, 서버는 자동화와 음성의 건너뛰기도 거부합니다.",
   "require_tag_scan_hint": "이 작업은 기기의 NFC 태그나 QR 코드를 스캔해야만 완료됩니다. 여기서 저장하면 거부됩니다."
 }

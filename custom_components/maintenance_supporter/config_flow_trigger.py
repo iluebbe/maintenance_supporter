@@ -353,6 +353,14 @@ class TriggerConfigMixin:
                     if "trigger_baseline_value" in prev_tc
                     else {}
                 ),
+                # #149: the session cap is panel-managed (the flow grew no
+                # field) — carry it so an options-flow trigger edit doesn't
+                # silently drop it.
+                **(
+                    {"trigger_runtime_max_session_seconds": prev_tc["trigger_runtime_max_session_seconds"]}
+                    if "trigger_runtime_max_session_seconds" in prev_tc
+                    else {}
+                ),
             }
             return await next_step()
 

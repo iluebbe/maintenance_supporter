@@ -1436,6 +1436,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
 
+        # #150: the per-task skip lock is enforced HERE — the choke point
+        # every surface funnels through (WS, voice, vacation preview).
+        if merged[task_id].get("allow_skip") is False:
+            raise ServiceValidationError(
+                f"Skipping is disabled for task {merged[task_id].get('name', task_id)!r}"
+            )
+
         task = MaintenanceTask.from_dict(merged[task_id])
         # Skipping an already-overdue task means it lapsed → record it as MISSED
         # (not a deliberate skip). An explicit as_missed=True always wins.

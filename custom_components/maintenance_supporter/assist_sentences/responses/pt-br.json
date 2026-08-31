@@ -11,6 +11,7 @@
   "postpone_needs_when": "Me diga por quanto tempo adiar — por exemplo, cinco dias.",
   "postpone_past": "Isso colocaria '{task}' no passado.",
   "skipped": "Pulei este ciclo de '{task}' em {object}. O próximo vence em {date}.",
+  "skip_disabled": "Pular está desativado para '{task}'.",
   "not_found": "Não encontrei nenhuma tarefa de manutenção que corresponda a '{name}'.",
   "ambiguous": "Isso corresponde a várias tarefas: {candidates}. Seja mais específico, por favor.",
   "too_early": "'{task}' só pode ser concluída mais perto da data de vencimento.",

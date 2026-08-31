@@ -11,6 +11,7 @@
   "postpone_needs_when": "Zeg even hoe lang ik het moet uitstellen — bijvoorbeeld vijf dagen.",
   "postpone_past": "Dan zou '{task}' in het verleden liggen.",
   "skipped": "Ik heb deze ronde van '{task}' bij {object} overgeslagen. De volgende staat op {date}.",
+  "skip_disabled": "Overslaan is uitgeschakeld voor '{task}'.",
   "not_found": "Ik kon geen onderhoudstaak vinden die past bij '{name}'.",
   "ambiguous": "Dat past bij meerdere taken: {candidates}. Kun je het iets preciezer zeggen?",
   "too_early": "'{task}' kun je pas afvinken als de datum dichterbij is.",

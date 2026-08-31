@@ -112,7 +112,7 @@ interface PartsOverviewRow {
 }
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
 type ObjectSortMode = "alphabetical" | "due_soonest" | "task_count";
-type GroupByMode = "none" | "area" | "group" | "user";
+type GroupByMode = "none" | "area" | "group" | "user" | "object";
 
 // Chart dimension constants for mini sparklines (overview)
 
@@ -358,7 +358,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         this._objectSortMode = savedObj as ObjectSortMode;
       }
       const savedGroup = lsGet(LS_KEYS.groupBy);
-      if (savedGroup && ["none", "area", "group", "user"].includes(savedGroup)) {
+      if (savedGroup && ["none", "area", "group", "user", "object"].includes(savedGroup)) {
         this._groupByMode = savedGroup as GroupByMode;
       }
       const savedView = lsGet(LS_KEYS.objectView);
@@ -822,6 +822,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           entry_id: obj.entry_id,
           task_id: task.id,
           object_name: obj.object.name,
+          allow_skip: task.allow_skip !== false,
           task_name: task.name,
           type: task.type,
           schedule_type: task.schedule_type,
@@ -1023,7 +1024,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(f.sort_mode)) {
       this._sortMode = f.sort_mode as SortMode;
     }
-    if (["none", "area", "group", "user"].includes(f.group_by)) {
+    if (["none", "area", "group", "user", "object"].includes(f.group_by)) {
       this._groupByMode = f.group_by as GroupByMode;
     }
     // Persist sort/group like the manual controls do, so they stick after reload.
@@ -2496,6 +2497,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
             ${this._features.groups ? html`<option value="group" ?selected=${this._groupByMode === "group"}>${t("groupby_group", L)}</option>` : nothing}
             <option value="user" ?selected=${this._groupByMode === "user"}>${t("groupby_user", L)}</option>
+            <option value="object" ?selected=${this._groupByMode === "object"}>${t("groupby_object", L)}</option>
           </select>
         </label>
         ${archivedCount > 0 ? html`
@@ -2661,6 +2663,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         keys = [u || noneLabel];
       } else if (this._groupByMode === "group") {
         keys = row.group_names.length > 0 ? row.group_names : [noneLabel];
+      } else if (this._groupByMode === "object") {
+        // #150(3): group the dashboard by the owning object/device.
+        keys = [row.object_name];
       }
       for (const k of keys) {
         if (!groups.has(k)) groups.set(k, []);
@@ -2675,6 +2680,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     });
     const icon = this._groupByMode === "area" ? "mdi:map-marker-outline"
       : this._groupByMode === "group" ? "mdi:folder-outline"
+      : this._groupByMode === "object" ? "mdi:cube-outline"
       : "mdi:account-outline";
     return html`
       ${sorted.map(([key, taskRows]) => html`
@@ -3266,7 +3272,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             : nothing}
           ${renderMiniSparkline(row, this._miniStatsData, this._lang)}
         </span>
-        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id))}
+        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id), row.allow_skip)}
       </div>
     `;
   }
@@ -3296,7 +3302,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** #145: row actions as HA buttons — labelled (accent/success + plain, the
    *  task-detail pairing) or, for "buttons_compact" on narrow screens,
    *  icon-only — or the classic icon pair when the household chose "icons". */
-  private _renderRowActions(L: string, onComplete: () => void, onSkip: () => void): TemplateResult {
+  private _renderRowActions(L: string, onComplete: () => void, onSkip: () => void, allowSkip = true): TemplateResult {
     const style = this._actionStyle();
     if (style === "buttons" || style === "buttons_compact") {
       const iconOnly = style === "buttons_compact" && (this.narrow || this.tight);
@@ -3308,9 +3314,10 @@ export class MaintenanceSupporterPanel extends LitElement {
             <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
               <ha-icon icon="mdi:check"></ha-icon>
             </ha-button>
-            <ha-icon-button .label=${t("skip", L)} title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
-              <ha-icon icon="mdi:skip-next"></ha-icon>
-            </ha-icon-button>
+            ${allowSkip ? html`
+              <ha-icon-button .label=${t("skip", L)} title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+                <ha-icon icon="mdi:skip-next"></ha-icon>
+              </ha-icon-button>` : nothing}
           </span>`;
       }
       return html`
@@ -3318,9 +3325,10 @@ export class MaintenanceSupporterPanel extends LitElement {
           <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
             <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
           </ha-button>
-          <ha-button size="small" appearance="plain" variant="neutral" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
-            <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${t("skip", L)}
-          </ha-button>
+          ${allowSkip ? html`
+            <ha-button size="small" appearance="plain" variant="neutral" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+              <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${t("skip", L)}
+            </ha-button>` : nothing}
         </span>`;
     }
     return html`
@@ -3328,9 +3336,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
           <ha-icon icon="mdi:check"></ha-icon>
         </mwc-icon-button>
-        <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
-          <ha-icon icon="mdi:skip-next"></ha-icon>
-        </mwc-icon-button>
+        ${allowSkip ? html`
+          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+            <ha-icon icon="mdi:skip-next"></ha-icon>
+          </mwc-icon-button>` : nothing}
       </span>`;
   }
 
@@ -3478,6 +3487,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   L,
                   () => this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled),
                   () => this._promptSkipTask(obj.entry_id, task.id),
+                  task.allow_skip,
                 )}
               </div>
             `)}</div>`}

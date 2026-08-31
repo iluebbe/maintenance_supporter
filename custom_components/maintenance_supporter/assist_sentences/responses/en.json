@@ -11,6 +11,7 @@
   "postpone_needs_when": "Tell me how far to postpone it — for example, by five days.",
   "postpone_past": "That would put '{task}' in the past.",
   "skipped": "Skipped this cycle of '{task}' on {object}. The next one is due {date}.",
+  "skip_disabled": "Skipping is turned off for '{task}'.",
   "not_found": "I couldn't find a maintenance task matching '{name}'.",
   "ambiguous": "That matches several tasks: {candidates}. Please be more specific.",
   "too_early": "'{task}' can only be completed closer to its due date.",

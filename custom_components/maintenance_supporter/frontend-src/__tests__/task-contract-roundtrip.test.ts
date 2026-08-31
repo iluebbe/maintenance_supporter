@@ -35,6 +35,8 @@ const EDITABLE: Record<string, string> = {
   custom_icon: "custom_icon",
   nfc_tag_id: "nfc_tag_id",
   require_tag_scan: "require_tag_scan",
+  // #150: per-task skip lock — round-trips through the dialog checkbox.
+  allow_skip: "allow_skip",
   reading_unit: "reading_unit",
   consumes_parts: "consumes_parts",
   priority: "priority",

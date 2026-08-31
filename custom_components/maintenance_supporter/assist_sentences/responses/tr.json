@@ -11,6 +11,7 @@
   "postpone_needs_when": "Ne kadar erteleyeceğimi söyle — örneğin beş gün.",
   "postpone_past": "Bu durumda '{task}' görevi geçmişte kalır.",
   "skipped": "{object} için '{task}' görevinin bu turu atlandı. Sıradaki {date} tarihinde.",
+  "skip_disabled": "'{task}' için atlama kapalı.",
   "not_found": "'{name}' ile eşleşen bir bakım görevi bulamadım.",
   "ambiguous": "Birden fazla göreve uyuyor: {candidates}. Biraz daha açık söyler misin?",
   "too_early": "'{task}' görevi ancak son tarihine yaklaşınca tamamlanabilir.",

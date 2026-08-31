@@ -11,6 +11,7 @@
   "postpone_needs_when": "Powiedz mi, o ile mam przełożyć — na przykład o pięć dni.",
   "postpone_past": "Wtedy '{task}' wypadłoby w przeszłości.",
   "skipped": "Ten cykl zadania '{task}' na urządzeniu {object} został pominięty. Następny termin to {date}.",
+  "skip_disabled": "Pomijanie jest wyłączone dla '{task}'.",
   "not_found": "Nie znalazłem zadania konserwacyjnego pasującego do '{name}'.",
   "ambiguous": "To pasuje do kilku zadań: {candidates}. Doprecyzuj, proszę.",
   "too_early": "Zadanie '{task}' można wykonać dopiero bliżej terminu.",

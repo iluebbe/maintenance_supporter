@@ -528,6 +528,7 @@
   "groupby_area": "Par zone",
   "groupby_group": "Par groupe",
   "groupby_user": "Par utilisateur",
+  "groupby_object": "Par objet",
   "filter_label": "Filtre",
   "user_label": "Utilisateur",
   "photo_label": "Photo",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Valeur de départ actuellement en vigueur : {value}",
   "runtime_on_states": "États actifs",
   "runtime_on_states_help": "États comptés comme en fonctionnement — par défaut : on. P. ex. mowing, cleaning, printing. Si un attribut est sélectionné, ce sont ses valeurs qui sont comparées.",
+  "runtime_max_session": "Durée max. par session (secondes)",
+  "runtime_max_session_help": "Une seule exécution compte au plus ce nombre de secondes — protège contre un capteur bloqué sur ON (connexion perdue, redémarrage). Vide = pas de limite.",
   "setups_target_new": "Créer : {name}",
   "schedule_preview_title": "Prochaines échéances",
   "schedule_preview_ontime": "En supposant un achèvement ponctuel.",
@@ -927,5 +930,7 @@
   "history_add_past": "Ajouter une réalisation passée",
   "require_tag_scan": "Terminer uniquement en scannant le tag",
   "require_tag_scan_help": "Preuve de présence : « Terminé » est bloqué partout tant que le tag NFC ou le QR code sur l'objet n'a pas été scanné. Les automatisations peuvent passer 'via_tag_scan' au service complete.",
+  "disallow_skip": "Ne pas autoriser à ignorer",
+  "disallow_skip_help": "L'action Ignorer disparaît de toutes les surfaces et le serveur refuse aussi un saut via les automatisations et la voix.",
   "require_tag_scan_hint": "Cette tâche ne se termine qu'en scannant son tag NFC ou son QR code sur l'objet — l'enregistrement ici sera refusé."
 }

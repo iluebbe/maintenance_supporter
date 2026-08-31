@@ -536,6 +536,7 @@
   "groupby_area": "Alana göre",
   "groupby_group": "Gruba göre",
   "groupby_user": "Kullanıcıya göre",
+  "groupby_object": "Nesneye göre",
   "filter_label": "Filtre",
   "user_label": "Kullanıcı",
   "photo_label": "Fotoğraf",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Şu anda geçerli başlangıç değeri: {value}",
   "runtime_on_states": "Etkin durumlar",
   "runtime_on_states_help": "Çalışıyor sayılan durumlar — varsayılan: on. Örn. mowing, cleaning, printing. Bir öznitelik seçiliyse onun değerleri eşleştirilir.",
+  "runtime_max_session": "Oturum başına azami çalışma süresi (saniye)",
+  "runtime_max_session_help": "Tek bir çalışma en fazla bu kadar saniye sayılır — AÇIK durumda takılı kalan sensöre (bağlantı kopması, yeniden başlatma) karşı korur. Boş = sınır yok.",
   "setups_target_new": "Yeni oluştur: {name}",
   "schedule_preview_title": "Sonraki tarihler",
   "schedule_preview_ontime": "Zamanında tamamlama varsayılarak.",
@@ -927,5 +930,7 @@
   "history_add_past": "Geçmiş tamamlama ekle",
   "require_tag_scan": "Yalnızca etiket taranarak tamamlanır",
   "require_tag_scan_help": "Yerinde olma kanıtı: Cihazın üzerindeki NFC etiketi veya QR kodu taranana kadar 'Tamamlandı' her yerde engellenir. Otomasyonlar complete servisine 'via_tag_scan' iletebilir.",
+  "disallow_skip": "Atlamaya izin verme",
+  "disallow_skip_help": "Atla eylemi tüm yüzeylerden kaybolur; sunucu otomasyonlardan ve sesten gelen atlamayı da reddeder.",
   "require_tag_scan_hint": "Bu görev yalnızca cihazın üzerindeki NFC etiketi veya QR kodu taranarak tamamlanır — buradan kaydetme reddedilecektir."
 }

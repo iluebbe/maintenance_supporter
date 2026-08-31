@@ -530,6 +530,7 @@
   "groupby_area": "Efter område",
   "groupby_group": "Efter gruppe",
   "groupby_user": "Efter bruger",
+  "groupby_object": "Efter objekt",
   "filter_label": "Filter",
   "user_label": "Bruger",
   "photo_label": "Foto",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Aktuelt gældende startværdi: {value}",
   "runtime_on_states": "Aktive tilstande",
   "runtime_on_states_help": "Tilstande der tæller som driftstid — standard: on. F.eks. mowing, cleaning, printing. Med en valgt attribut sammenlignes dens værdier i stedet.",
+  "runtime_max_session": "Maks. sessionstid (sekunder)",
+  "runtime_max_session_help": "En enkelt kørsel tæller højst så mange sekunder — beskytter mod en sensor, der hænger på TÆNDT (tabt forbindelse, genstart). Tom = ingen grænse.",
   "setups_target_new": "Opret ny: {name}",
   "schedule_preview_title": "Kommende datoer",
   "schedule_preview_ontime": "Forudsat rettidig fuldførelse.",
@@ -927,5 +930,7 @@
   "history_add_past": "Tilføj tidligere udførelse",
   "require_tag_scan": "Kan kun udføres ved tag-scanning",
   "require_tag_scan_help": "Tilstedeværelsesbevis: „Udført“ er blokeret overalt, indtil NFC-tagget eller QR-koden på selve tingen er scannet. Automatiseringer kan give 'via_tag_scan' til complete-tjenesten.",
+  "disallow_skip": "Tillad ikke at springe over",
+  "disallow_skip_help": "Handlingen Spring over forsvinder fra alle flader, og serveren afviser også spring fra automatiseringer og stemme.",
   "require_tag_scan_hint": "Denne opgave udføres kun ved at scanne dens NFC-tag eller QR-kode på selve tingen — at gemme her vil blive afvist."
 }

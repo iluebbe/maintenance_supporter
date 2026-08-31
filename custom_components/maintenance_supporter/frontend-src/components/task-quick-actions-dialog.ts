@@ -600,10 +600,14 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                         <ha-icon slot="start" icon="mdi:check"></ha-icon>
                         ${t("complete", L) || "Complete"}
                       </ha-button>
-                      <ha-button appearance="plain" variant="neutral" @click=${() => { this._showSkip = true; }} .disabled=${this._busy}>
-                        <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>
-                        ${t("skip", L) || "Skip"}
-                      </ha-button>
+                      ${task.allow_skip !== false
+                        ? html`
+                            <ha-button appearance="plain" variant="neutral" @click=${() => { this._showSkip = true; }} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>
+                              ${t("skip", L) || "Skip"}
+                            </ha-button>
+                          `
+                        : nothing}
                       <ha-button appearance="plain" variant="neutral" @click=${() => { this._showReset = true; }} .disabled=${this._busy}>
                         <ha-icon slot="start" icon="mdi:restart"></ha-icon>
                         ${t("reset", L) || "Reset"}

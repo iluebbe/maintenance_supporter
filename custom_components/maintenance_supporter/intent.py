@@ -849,7 +849,15 @@ class SkipTaskIntent(intent.IntentHandler):
         if err is not None:
             return err
 
-        await coordinator.skip_maintenance(target["task_id"])
+        from homeassistant.exceptions import ServiceValidationError
+
+        try:
+            await coordinator.skip_maintenance(target["task_id"])
+        except ServiceValidationError:
+            # #150: the task carries a skip lock — say so instead of failing.
+            response = intent_obj.create_response()
+            response.async_set_speech(_sp("skip_disabled", lang, task=target["name"]))
+            return response
 
         # Read the new due date back so the answer says what actually happened
         # rather than just acknowledging the command.

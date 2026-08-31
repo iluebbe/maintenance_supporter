@@ -530,6 +530,7 @@
   "groupby_area": "按区域分组",
   "groupby_group": "按分组",
   "groupby_user": "按负责人",
+  "groupby_object": "按对象",
   "filter_label": "过滤器",
   "user_label": "用户",
   "photo_label": "照片",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "当前生效的起始读数：{value}",
   "runtime_on_states": "活动状态",
   "runtime_on_states_help": "计入运行时间的状态 — 默认：on。例如 mowing、cleaning、printing。选择了属性时将比较该属性的值。",
+  "runtime_max_session": "单次运行最长时间（秒）",
+  "runtime_max_session_help": "单次运行最多计入这么多秒——防止传感器卡在开启状态（连接丢失、重启）。留空 = 不限制。",
   "setups_target_new": "新建：{name}",
   "schedule_preview_title": "下次日期",
   "schedule_preview_ontime": "假设按时完成。",
@@ -927,5 +930,7 @@
   "history_add_past": "补录过去的完成记录",
   "require_tag_scan": "仅可通过扫描标签完成",
   "require_tag_scan_help": "在场证明：在扫描设备上的 NFC 标签或二维码之前，所有界面的“完成”均被阻止。自动化可向 complete 服务传递 'via_tag_scan'。",
+  "disallow_skip": "不允许跳过",
+  "disallow_skip_help": "跳过操作将从所有界面消失，服务器也会拒绝来自自动化和语音的跳过。",
   "require_tag_scan_hint": "此任务只能通过扫描设备上的 NFC 标签或二维码来完成——在此保存将被拒绝。"
 }

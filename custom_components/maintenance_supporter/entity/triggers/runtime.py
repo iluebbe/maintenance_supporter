@@ -59,6 +59,18 @@ class RuntimeTrigger(BaseTrigger):
         self._target_hours: float = trigger_config.get("trigger_runtime_hours", 100.0)
         self._accumulated_seconds: float = trigger_config.get("trigger_accumulated_seconds", 0.0)
 
+        # #149: optional per-session cap (seconds). A session that exceeds it
+        # contributes exactly the cap — protects against a sensor stuck ON
+        # (lost connection, restart while "running").
+        raw_cap = trigger_config.get("trigger_runtime_max_session_seconds")
+        self._max_session: float | None = (
+            float(raw_cap) if isinstance(raw_cap, (int, float)) and not isinstance(raw_cap, bool) and raw_cap > 0 else None
+        )
+        # Seconds the CURRENT session already booked. Persisted, because the
+        # 5-minute periodic persist resets the on_since window — the cap is
+        # per SESSION, not per window.
+        self._session_booked: float = float(trigger_config.get("trigger_session_booked_seconds", 0.0) or 0.0)
+
         # Restore on_since timestamp for restart recovery. parse_persisted_utc
         # coerces a naive legacy payload to UTC — dt_util.parse_datetime kept
         # it naive here, and `utcnow() - naive` raises TypeError in the
@@ -107,6 +119,7 @@ class RuntimeTrigger(BaseTrigger):
                 now = dt_util.utcnow()
                 self._on_since_dt = now
                 self._on_since = now.isoformat()
+                self._session_booked = 0.0
                 await self._persist_runtime()
                 _LOGGER.debug(
                     "Runtime trigger: entity %s is ON, started tracking from now",
@@ -119,6 +132,7 @@ class RuntimeTrigger(BaseTrigger):
                 self._accumulate_elapsed()
                 self._on_since_dt = None
                 self._on_since = None
+                self._session_booked = 0.0
                 await self._persist_runtime()
 
         # Register state change listener
@@ -184,6 +198,7 @@ class RuntimeTrigger(BaseTrigger):
                 now = dt_util.utcnow()
                 self._on_since_dt = now
                 self._on_since = now.isoformat()
+                self._session_booked = 0.0
                 self.hass.async_create_task(self._persist_runtime())
             elif not self._is_on(new_val) and self._on_since_dt is not None:
                 # Restored anchor but the device APPEARS off (deferred setup
@@ -195,6 +210,7 @@ class RuntimeTrigger(BaseTrigger):
                 self._accumulate_elapsed()
                 self._on_since_dt = None
                 self._on_since = None
+                self._session_booked = 0.0
                 self.hass.async_create_task(self._persist_runtime())
             self._update_evaluation()
             return
@@ -207,6 +223,7 @@ class RuntimeTrigger(BaseTrigger):
                 self._accumulate_elapsed()
                 self._on_since_dt = None
                 self._on_since = None
+                self._session_booked = 0.0
                 self.hass.async_create_task(self._persist_runtime())
             if not self._logged_unavailable:
                 _LOGGER.warning(
@@ -234,6 +251,7 @@ class RuntimeTrigger(BaseTrigger):
             self._accumulate_elapsed()
             self._on_since_dt = None
             self._on_since = None
+            self._session_booked = 0.0
             self.hass.async_create_task(self._persist_runtime())
             _LOGGER.debug(
                 "Runtime trigger: %s turned OFF (accumulated=%.2fh)",
@@ -245,6 +263,7 @@ class RuntimeTrigger(BaseTrigger):
             now = dt_util.utcnow()
             self._on_since_dt = now
             self._on_since = now.isoformat()
+            self._session_booked = 0.0
             self.hass.async_create_task(self._persist_runtime())
             _LOGGER.debug(
                 "Runtime trigger: %s turned ON (tracking started)",
@@ -258,6 +277,7 @@ class RuntimeTrigger(BaseTrigger):
             self._accumulate_elapsed()
             self._on_since_dt = None
             self._on_since = None
+            self._session_booked = 0.0
             self.hass.async_create_task(self._persist_runtime())
 
         self._update_evaluation()
@@ -279,12 +299,23 @@ class RuntimeTrigger(BaseTrigger):
         return str(state.state)
 
     def _accumulate_elapsed(self, now: datetime | None = None) -> None:
-        """Add elapsed time since _on_since to accumulated total."""
+        """Add elapsed time since _on_since to accumulated total.
+
+        With a per-session cap (#149) the whole session contributes at most
+        the cap: ``_session_booked`` remembers what this session booked across
+        the 5-minute persist windows, so a stuck-ON sensor cannot book capped
+        slices window after window.
+        """
         if self._on_since_dt is None:
             return
         now = now or dt_util.utcnow()
         elapsed = (now - self._on_since_dt).total_seconds()
+        if elapsed <= 0:
+            return
+        if self._max_session is not None:
+            elapsed = min(elapsed, max(0.0, self._max_session - self._session_booked))
         if elapsed > 0:
+            self._session_booked += elapsed
             self._accumulated_seconds += elapsed
 
     def _get_current_runtime_hours(self) -> float:
@@ -293,6 +324,8 @@ class RuntimeTrigger(BaseTrigger):
         if self._on_since_dt is not None:
             elapsed = (dt_util.utcnow() - self._on_since_dt).total_seconds()
             if elapsed > 0:
+                if self._max_session is not None:
+                    elapsed = min(elapsed, max(0.0, self._max_session - self._session_booked))
                 total_seconds += elapsed
         return total_seconds / 3600.0
 
@@ -326,6 +359,7 @@ class RuntimeTrigger(BaseTrigger):
         data: dict[str, Any] = {
             "accumulated_seconds": self._accumulated_seconds,
             "on_since": self._on_since,
+            "session_booked_seconds": self._session_booked,
         }
         await self._coordinator.async_persist_trigger_runtime(
             self._task_id,

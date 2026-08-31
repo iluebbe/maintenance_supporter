@@ -528,6 +528,7 @@
   "groupby_area": "Per area",
   "groupby_group": "Per gruppo",
   "groupby_user": "Per utente",
+  "groupby_object": "Per oggetto",
   "filter_label": "Filtro",
   "user_label": "Utente",
   "photo_label": "Foto",
@@ -834,6 +835,8 @@
   "baseline_current_effective": "Valore iniziale attualmente in vigore: {value}",
   "runtime_on_states": "Stati attivi",
   "runtime_on_states_help": "Stati che contano come in funzione — predefinito: on. Ad es. mowing, cleaning, printing. Con un attributo selezionato vengono confrontati i suoi valori.",
+  "runtime_max_session": "Durata massima per sessione (secondi)",
+  "runtime_max_session_help": "Una singola esecuzione conta al massimo questi secondi — protegge da un sensore bloccato su ON (connessione persa, riavvio). Vuoto = nessun limite.",
   "setups_target_new": "Crea nuovo: {name}",
   "schedule_preview_title": "Prossime date",
   "schedule_preview_ontime": "Presumendo un completamento puntuale.",
@@ -927,5 +930,7 @@
   "history_add_past": "Aggiungi un completamento passato",
   "require_tag_scan": "Completa solo scansionando il tag",
   "require_tag_scan_help": "Prova di presenza: «Fatto» è bloccato ovunque finché non viene scansionato il tag NFC o il codice QR sull'oggetto. Le automazioni possono passare 'via_tag_scan' al servizio complete.",
+  "disallow_skip": "Non consentire di saltare",
+  "disallow_skip_help": "L'azione Salta scompare da tutte le superfici e il server rifiuta anche i salti da automazioni e voce.",
   "require_tag_scan_hint": "Questa attività si completa solo scansionando il suo tag NFC o codice QR sull'oggetto — il salvataggio qui verrà rifiutato."
 }
