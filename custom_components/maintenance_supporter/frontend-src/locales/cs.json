@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Stavy počítané jako doba běhu — výchozí: on. Např. mowing, cleaning, printing. Při zvoleném atributu se porovnávají jeho hodnoty.",
   "runtime_max_session": "Max. doba běhu relace (sekundy)",
   "runtime_max_session_help": "Jeden běh se počítá nejvýše na tolik sekund — chrání před senzorem zaseknutým na ZAP (ztráta spojení, restart). Prázdné = bez limitu.",
+  "trend_approaching": "Blíží se k prahu",
+  "trend_easing": "Vzdaluje se od prahu",
   "setups_target_new": "Vytvořit nový: {name}",
   "schedule_preview_title": "Nejbližší termíny",
   "schedule_preview_ontime": "Za předpokladu včasného dokončení.",

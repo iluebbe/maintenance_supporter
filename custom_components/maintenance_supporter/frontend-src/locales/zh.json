@@ -837,6 +837,8 @@
   "runtime_on_states_help": "计入运行时间的状态 — 默认：on。例如 mowing、cleaning、printing。选择了属性时将比较该属性的值。",
   "runtime_max_session": "单次运行最长时间（秒）",
   "runtime_max_session_help": "单次运行最多计入这么多秒——防止传感器卡在开启状态（连接丢失、重启）。留空 = 不限制。",
+  "trend_approaching": "正接近阈值",
+  "trend_easing": "正远离阈值",
   "setups_target_new": "新建：{name}",
   "schedule_preview_title": "下次日期",
   "schedule_preview_ontime": "假设按时完成。",

@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Tilstande der tæller som driftstid — standard: on. F.eks. mowing, cleaning, printing. Med en valgt attribut sammenlignes dens værdier i stedet.",
   "runtime_max_session": "Maks. sessionstid (sekunder)",
   "runtime_max_session_help": "En enkelt kørsel tæller højst så mange sekunder — beskytter mod en sensor, der hænger på TÆNDT (tabt forbindelse, genstart). Tom = ingen grænse.",
+  "trend_approaching": "Nærmer sig tærsklen",
+  "trend_easing": "Bevæger sig væk fra tærsklen",
   "setups_target_new": "Opret ny: {name}",
   "schedule_preview_title": "Kommende datoer",
   "schedule_preview_ontime": "Forudsat rettidig fuldførelse.",

@@ -837,6 +837,8 @@
   "runtime_on_states_help": "States that count as running — default: on. E.g. mowing, cleaning, printing. With an attribute selected, its values are matched instead.",
   "runtime_max_session": "Max session runtime (seconds)",
   "runtime_max_session_help": "A single run counts at most this many seconds — protects against a sensor stuck ON (lost connection, restart). Empty = no cap.",
+  "trend_approaching": "Heading toward the threshold",
+  "trend_easing": "Easing away from the threshold",
   "setups_target_new": "Create new: {name}",
   "schedule_preview_title": "Next dates",
   "schedule_preview_ontime": "Assuming on-time completion.",

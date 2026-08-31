@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Estados que cuentan como en funcionamiento — predeterminado: on. P. ej. mowing, cleaning, printing. Con un atributo seleccionado se comparan sus valores.",
   "runtime_max_session": "Duración máxima por sesión (segundos)",
   "runtime_max_session_help": "Una sola ejecución cuenta como máximo estos segundos — protege contra un sensor atascado en ON (conexión perdida, reinicio). Vacío = sin límite.",
+  "trend_approaching": "Se acerca al umbral",
+  "trend_easing": "Se aleja del umbral",
   "setups_target_new": "Crear nuevo: {name}",
   "schedule_preview_title": "Próximas fechas",
   "schedule_preview_ontime": "Suponiendo finalización puntual.",

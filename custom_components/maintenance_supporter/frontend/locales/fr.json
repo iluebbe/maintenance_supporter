@@ -837,6 +837,8 @@
   "runtime_on_states_help": "États comptés comme en fonctionnement — par défaut : on. P. ex. mowing, cleaning, printing. Si un attribut est sélectionné, ce sont ses valeurs qui sont comparées.",
   "runtime_max_session": "Durée max. par session (secondes)",
   "runtime_max_session_help": "Une seule exécution compte au plus ce nombre de secondes — protège contre un capteur bloqué sur ON (connexion perdue, redémarrage). Vide = pas de limite.",
+  "trend_approaching": "Se rapproche du seuil",
+  "trend_easing": "S'éloigne du seuil",
   "setups_target_new": "Créer : {name}",
   "schedule_preview_title": "Prochaines échéances",
   "schedule_preview_ontime": "En supposant un achèvement ponctuel.",

@@ -943,6 +943,19 @@ export const sharedStyles = css`
     text-overflow: ellipsis;
   }
 
+  /* #150 follow-up: 3-state trend arrow — replaces the sparkline on
+     narrow/tight rows (panel-styles toggles visibility per regime). */
+  .trend-arrow {
+    display: none;
+    font-style: normal;
+    font-weight: 700;
+    margin-left: 2px;
+  }
+  .trend-approaching { color: var(--warning-color, #ff9800); }
+  .trend-stable { color: var(--secondary-text-color); }
+  .trend-easing { color: var(--success-color, #4caf50); }
+
+
   /* Days progress bar (detail view) */
   .days-progress {
     margin: 8px 0 16px;

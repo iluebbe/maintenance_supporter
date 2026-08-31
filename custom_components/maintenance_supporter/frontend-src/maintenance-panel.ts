@@ -75,7 +75,7 @@ import "./components/saved-views-dialog";
 import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialog";
 import { type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
-import { renderTriggerProgress, renderMiniSparkline } from "./renderers/progress";
+import { renderTriggerProgress, renderMiniSparkline, computeTrend } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
 import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
 // The task-detail sub-view as a web component (light-DOM, panel styles apply).
@@ -3266,7 +3266,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             ? html`<div class="days-bar"><div class="days-bar-fill${daysOverflow ? " overflow" : ""}" style="width:${pct}%;background:${barColor}"></div></div>`
             : nothing}
           ${row.trigger_config
-            ? renderTriggerProgress(row)
+            ? renderTriggerProgress(row, { trend: computeTrend(row, this._miniStatsData), lang: L })
             : !hasDaysBar && row.trigger_active
             ? html`<span style="color:var(--maint-triggered-color);font-weight:600">⚡</span>`
             : nothing}
@@ -3479,7 +3479,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
                   ${task.trigger_config
-                    ? renderTriggerProgress(task)
+                    ? renderTriggerProgress(task, { trend: computeTrend(task, this._miniStatsData), lang: L })
                     : nothing}
                   ${renderMiniSparkline(task, this._miniStatsData, this._lang)}
                 </span>

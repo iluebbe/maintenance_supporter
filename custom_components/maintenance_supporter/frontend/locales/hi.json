@@ -837,6 +837,8 @@
   "runtime_on_states_help": "वे अवस्थाएँ जो चालू समय में गिनी जाती हैं — डिफ़ॉल्ट: on। जैसे mowing, cleaning, printing। विशेषता चुनी होने पर उसकी मानों की तुलना होती है।",
   "runtime_max_session": "प्रति सत्र अधिकतम रनटाइम (सेकंड)",
   "runtime_max_session_help": "एक रन अधिकतम इतने सेकंड गिना जाता है — ON पर अटके सेंसर (कनेक्शन टूटना, रीस्टार्ट) से बचाता है। खाली = कोई सीमा नहीं।",
+  "trend_approaching": "सीमा की ओर बढ़ रहा है",
+  "trend_easing": "सीमा से दूर जा रहा है",
   "setups_target_new": "नया बनाएँ: {name}",
   "schedule_preview_title": "अगली तिथियाँ",
   "schedule_preview_ontime": "समय पर पूर्णता मानते हुए।",

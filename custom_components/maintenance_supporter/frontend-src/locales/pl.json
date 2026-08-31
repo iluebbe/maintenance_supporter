@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Stany liczone jako czas pracy — domyślnie: on. Np. mowing, cleaning, printing. Przy wybranym atrybucie porównywane są jego wartości.",
   "runtime_max_session": "Maks. czas sesji (sekundy)",
   "runtime_max_session_help": "Pojedynczy przebieg liczy się najwyżej tyle sekund — chroni przed czujnikiem zawieszonym na WŁ. (utrata połączenia, restart). Puste = bez limitu.",
+  "trend_approaching": "Zbliża się do progu",
+  "trend_easing": "Oddala się od progu",
   "setups_target_new": "Utwórz nowy: {name}",
   "schedule_preview_title": "Najbliższe terminy",
   "schedule_preview_ontime": "Przy założeniu terminowego ukończenia.",

@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Működésként számító állapotok — alapértelmezés: on. Pl. mowing, cleaning, printing. Attribútum kiválasztásakor annak értékei számítanak.",
   "runtime_max_session": "Max. munkamenet-futásidő (másodperc)",
   "runtime_max_session_help": "Egy futás legfeljebb ennyi másodpercet számít — véd a BE állapotban beragadt érzékelő ellen (kapcsolatvesztés, újraindítás). Üres = nincs korlát.",
+  "trend_approaching": "Közeledik a küszöbhöz",
+  "trend_easing": "Távolodik a küszöbtől",
   "setups_target_new": "Új létrehozása: {name}",
   "schedule_preview_title": "Következő dátumok",
   "schedule_preview_ontime": "Időben történő elvégzést feltételezve.",

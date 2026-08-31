@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Zustände, die als Laufzeit zählen — Standard: on. Z. B. mowing, cleaning, printing. Bei gewähltem Attribut werden dessen Werte verglichen.",
   "runtime_max_session": "Maximale Sitzungslaufzeit (Sekunden)",
   "runtime_max_session_help": "Ein einzelner Lauf zählt höchstens so viele Sekunden — schützt vor Sensoren, die auf AN hängen bleiben (Verbindungsabriss, Neustart). Leer = keine Begrenzung.",
+  "trend_approaching": "Läuft auf die Schwelle zu",
+  "trend_easing": "Entfernt sich von der Schwelle",
   "setups_target_new": "Neu anlegen: {name}",
   "schedule_preview_title": "Nächste Termine",
   "schedule_preview_ontime": "Bei pünktlichem Abschluss.",

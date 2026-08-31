@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Tilat, jotka lasketaan käyntiajaksi — oletus: on. Esim. mowing, cleaning, printing. Jos attribuutti on valittu, verrataan sen arvoja.",
   "runtime_max_session": "Istunnon enimmäiskesto (sekuntia)",
   "runtime_max_session_help": "Yksi ajo lasketaan enintään näin moneksi sekunniksi — suojaa PÄÄLLÄ-tilaan jumittuneelta anturilta (katkennut yhteys, uudelleenkäynnistys). Tyhjä = ei rajaa.",
+  "trend_approaching": "Lähestyy raja-arvoa",
+  "trend_easing": "Loittonee raja-arvosta",
   "setups_target_new": "Luo uusi: {name}",
   "schedule_preview_title": "Seuraavat päivämäärät",
   "schedule_preview_ontime": "Olettaen, että valmistuminen on ajallaan.",

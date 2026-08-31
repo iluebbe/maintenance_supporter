@@ -1470,7 +1470,7 @@ export const panelStyles = css`
        full bottom row.  */
     display: grid;
     grid-column: auto;
-    grid-template-columns: auto minmax(76px, 1fr) fit-content(100px) auto; /* name column keeps a word-sized floor, the due column hugs its content — at 400 px the object name used to be clipped mid-word (2026-08-30) */
+    grid-template-columns: auto minmax(76px, 1fr) 100px auto; /* name column keeps a word-sized floor (2026-08-30); the due column is FIXED so every row's progress bar reads the same width — fit-content made bars follow their label (2026-09-01) */
     grid-template-rows: auto auto auto;
     column-gap: 8px;
     row-gap: 4px;
@@ -1544,7 +1544,7 @@ export const panelStyles = css`
   :host([tight]:not([narrow])) .task-row {
     display: grid;
     grid-column: auto;
-    grid-template-columns: auto minmax(76px, 1fr) fit-content(100px) auto; /* name column keeps a word-sized floor, the due column hugs its content — at 400 px the object name used to be clipped mid-word (2026-08-30) */
+    grid-template-columns: auto minmax(76px, 1fr) 100px auto; /* name column keeps a word-sized floor (2026-08-30); the due column is FIXED so every row's progress bar reads the same width — fit-content made bars follow their label (2026-09-01) */
     grid-template-rows: auto auto auto;
     column-gap: 8px;
     row-gap: 4px;
@@ -1559,7 +1559,8 @@ export const panelStyles = css`
   :host([tight]:not([narrow])) .row-actions { grid-column: 4; grid-row: 2; }
   :host([tight]:not([narrow])) .task-sub { grid-column: 1 / -1; grid-row: 3; font-size: 11px; gap: 6px; justify-content: flex-start; flex-wrap: wrap; }
   :host([tight]:not([narrow])) .task-sub-empty { display: none; }
-  :host([tight]:not([narrow])) .mini-sparkline { width: 50px; }
+  :host([tight]:not([narrow])) .mini-sparkline { display: none; }
+  :host([tight]:not([narrow])) .trend-arrow { display: inline; }
   :host([narrow]) .task-sub {
     grid-column: 1 / -1;
     grid-row: 3;
@@ -1569,7 +1570,18 @@ export const panelStyles = css`
     flex-wrap: wrap;
   }
   :host([narrow]) .task-sub-empty { display: none; }
-  :host([narrow]) .mini-sparkline { width: 50px; }
+  :host([narrow]) .mini-sparkline { display: none; }
+  :host([narrow]) .trend-arrow { display: inline; }
+
+  /* Very narrow phones (360-class): the fixed 100px due column + both action
+     buttons no longer fit and Skip fell off the right edge — tighten the
+     floors. Bars stay uniform per breakpoint (100px above, 84px here). */
+  @media (max-width: 379px) {
+    :host([narrow]) .task-row {
+      grid-template-columns: auto minmax(64px, 1fr) 84px auto;
+      column-gap: 6px;
+    }
+  }
 
   :host([narrow]) .detail-header {
     flex-direction: column;
@@ -1694,7 +1706,7 @@ export const panelStyles = css`
     /* Mirror the :host([narrow]) grid layout for narrow desktop windows */
     .task-row {
       display: grid;
-      grid-template-columns: auto minmax(76px, 1fr) fit-content(100px) auto; /* name column keeps a word-sized floor, the due column hugs its content — at 400 px the object name used to be clipped mid-word (2026-08-30) */
+      grid-template-columns: auto minmax(76px, 1fr) 100px auto; /* name column keeps a word-sized floor (2026-08-30); the due column is FIXED so every row's progress bar reads the same width — fit-content made bars follow their label (2026-09-01) */
       grid-template-rows: auto auto auto;
       column-gap: 8px;
       row-gap: 4px;
@@ -1708,7 +1720,8 @@ export const panelStyles = css`
     .row-actions { grid-column: 4; grid-row: 2; }
     .task-sub { grid-column: 1 / -1; grid-row: 3; font-size: 11px; gap: 6px; justify-content: flex-start; flex-wrap: wrap; }
     .task-sub-empty { display: none; }
-    .mini-sparkline { width: 50px; }
+    .mini-sparkline { display: none; }
+    .trend-arrow { display: inline; }
     .detail-header { flex-direction: column; align-items: flex-start; }
     .info-grid { grid-template-columns: 1fr; }
     .history-filters-new { flex-direction: column; }

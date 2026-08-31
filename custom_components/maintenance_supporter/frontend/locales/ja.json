@@ -837,6 +837,8 @@
   "runtime_on_states_help": "稼働時間として数える状態 — 既定値：on。例：mowing, cleaning, printing。属性を選択している場合はその値が比較されます。",
   "runtime_max_session": "1回の最大稼働時間（秒）",
   "runtime_max_session_help": "1回の稼働は最大この秒数までカウント——ONのまま固まったセンサー（接続切れ・再起動）への保護です。空欄=制限なし。",
+  "trend_approaching": "しきい値に近づいています",
+  "trend_easing": "しきい値から遠ざかっています",
   "setups_target_new": "新規作成：{name}",
   "schedule_preview_title": "次回の予定日",
   "schedule_preview_ontime": "期日どおりに完了した場合。",

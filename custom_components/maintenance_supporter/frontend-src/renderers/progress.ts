@@ -20,7 +20,59 @@ const MINI_SPARKLINE_W = 60;
 const MINI_SPARKLINE_H = 20;
 const MAX_MINI_POINTS = 30;
 
-export function renderTriggerProgress(row: TaskRow | MaintenanceTask) {
+export type TrendState = "approaching" | "stable" | "easing";
+const TREND_GLYPHS: Record<TrendState, string> = { approaching: "\u2197", stable: "\u2192", easing: "\u2198" };
+
+/** #150 follow-up: on narrow/tight rows the squeezed sparkline is unreadable
+ *  — this reduces the same points to the one question the curve answered:
+ *  is the value heading TOWARD the threshold, holding, or easing away?
+ *  Direction is relative to the threshold (a dropping salt level and a
+ *  rising runtime are both "approaching"). null = no arrow (no direction,
+ *  compound, or fewer than two points). */
+export function computeTrend(
+  row: TaskRow | MaintenanceTask,
+  miniStatsData: Map<string, StatisticsPoint[]>,
+): TrendState | null {
+  const tc = row.trigger_config;
+  if (!tc?.entity_id) return null;
+  let toward: 1 | -1;
+  const type = tc.type || "threshold";
+  if (type === "threshold") {
+    if (tc.trigger_above != null) toward = 1;
+    else if (tc.trigger_below != null) toward = -1;
+    else return null; // discrete = / \u2260 levels have no gradient
+  } else if (type === "counter" || type === "runtime" || type === "state_change") {
+    toward = 1; // these accumulate toward their target
+  } else {
+    return null; // compound: conditions may point both ways
+  }
+  const statsPoints = miniStatsData.get(tc.entity_id) || [];
+  let points: { ts: number; val: number }[] =
+    statsPoints.length >= 2
+      ? statsPoints.map((p) => ({ ts: p.ts, val: p.val }))
+      : (row.history || [])
+          .filter((h) => h.trigger_value != null)
+          .map((h) => ({ ts: new Date(h.timestamp).getTime(), val: h.trigger_value as number }));
+  if (row.trigger_current_value != null) points = [...points, { ts: Date.now(), val: row.trigger_current_value }];
+  if (points.length < 2) return null;
+  points.sort((a, b) => a.ts - b.ts);
+  const vals = points.map((p) => p.val);
+  const range = Math.max(...vals) - Math.min(...vals);
+  const delta = vals[vals.length - 1] - vals[0];
+  // Significance is judged against the JOURNEY to the threshold, not the
+  // series' own noise band: a sensor crawling 50.0 -> 50.15 under a
+  // 60-threshold is flat, even though that move spans most of its range.
+  const target =
+    type === "threshold" ? (tc.trigger_above ?? tc.trigger_below)
+    : type === "counter" ? tc.trigger_target_value
+    : type === "runtime" ? tc.trigger_runtime_hours
+    : tc.trigger_target_changes;
+  const base = typeof target === "number" ? Math.max(Math.abs(target - vals[0]), range) : range;
+  if (base === 0 || Math.abs(delta) < base * (typeof target === "number" ? 0.05 : 0.15)) return "stable";
+  return Math.sign(delta) === toward ? "approaching" : "easing";
+}
+
+export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { trend?: TrendState | null; lang?: string }) {
   const tc = row.trigger_config ?? null;
   if (!tc) return nothing;
 
@@ -109,7 +161,9 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask) {
       <div class="trigger-progress-bar">
         <div class="trigger-progress-fill${triggerOverflow ? " overflow" : ""}" style="width:${pct}%;background:${barColor}"></div>
       </div>
-      <span class="trigger-progress-label">${label}</span>
+      <span class="trigger-progress-label">${label}${opts?.trend
+        ? html` <i class="trend-arrow trend-${opts.trend}" title="${t(`trend_${opts.trend}`, opts.lang ?? "en")}" aria-label="${t(`trend_${opts.trend}`, opts.lang ?? "en")}">${TREND_GLYPHS[opts.trend]}</i>`
+        : nothing}</span>
     </div>
   `;
 }

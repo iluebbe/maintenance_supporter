@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Tillstånd som räknas som drifttid — standard: on. T.ex. mowing, cleaning, printing. Med ett valt attribut jämförs dess värden i stället.",
   "runtime_max_session": "Max körtid per session (sekunder)",
   "runtime_max_session_help": "En enskild körning räknas som högst så här många sekunder — skyddar mot en sensor som fastnat på PÅ (tappad anslutning, omstart). Tomt = ingen gräns.",
+  "trend_approaching": "Närmar sig tröskeln",
+  "trend_easing": "Rör sig bort från tröskeln",
   "setups_target_new": "Skapa ny: {name}",
   "schedule_preview_title": "Kommande datum",
   "schedule_preview_ontime": "Förutsatt slutförande i tid.",

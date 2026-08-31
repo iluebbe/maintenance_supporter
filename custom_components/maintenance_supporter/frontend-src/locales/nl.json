@@ -837,6 +837,8 @@
   "runtime_on_states_help": "Statussen die als draaitijd tellen — standaard: on. Bijv. mowing, cleaning, printing. Met een geselecteerd attribuut worden de waarden daarvan vergeleken.",
   "runtime_max_session": "Maximale sessieduur (seconden)",
   "runtime_max_session_help": "Eén run telt maximaal dit aantal seconden — beschermt tegen sensoren die op AAN blijven hangen (verbroken verbinding, herstart). Leeg = geen limiet.",
+  "trend_approaching": "Beweegt richting de drempel",
+  "trend_easing": "Beweegt weg van de drempel",
   "setups_target_new": "Nieuw aanmaken: {name}",
   "schedule_preview_title": "Volgende data",
   "schedule_preview_ontime": "Uitgaande van tijdige afronding.",
