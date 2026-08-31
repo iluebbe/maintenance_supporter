@@ -1484,11 +1484,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
                 except Exception:
                     _LOGGER.exception("Battery-fleet part reconcile at start failed")
                     return
-                if result["added"] or result["pruned"]:
+                if result["added"] or result["pruned"] or result["orphans_removed"]:
                     _LOGGER.info(
-                        "Battery-fleet parts reconciled at start: added %s, pruned legacy UNKNOWN: %s",
+                        "Battery-fleet parts reconciled at start: added %s, pruned legacy UNKNOWN: %s, orphaned stock sensors removed: %s",
                         result["added"] or "none",
                         result["pruned"],
+                        result["orphans_removed"],
                     )
 
             entry.async_on_unload(async_at_started(hass, _fleet_parts_at_start))

@@ -1044,6 +1044,14 @@ async def test_start_reconcile_adds_late_typed_parts_and_prunes_unknown(
         {"device_class": "battery", "battery_type": "Lithium 3-volt CR2", "battery_quantity": 1, "device_name": "Back Door Lock"},
     )
 
+    # The stock sensor's registry entry, the way v2.70.0 left it behind.
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "sensor", "maintenance_supporter", "maintenance_supporter_battery_fleet_part_batt_unknown", config_entry=fleet
+    )
+
     await hass.config_entries.async_reload(fleet.entry_id)
     await hass.async_block_till_done()
 
@@ -1054,6 +1062,15 @@ async def test_start_reconcile_adds_late_typed_parts_and_prunes_unknown(
     assert "batt_unknown" not in parts
     # Added part is tracked at 0 like every setup-created sibling.
     assert fleet.runtime_data.store.get_part_stock("batt_lithium 3-volt cr2") == 0
+    # #148 follow-up: the pruned part's stock entries are gone everywhere —
+    # store AND entity registry (v2.70.0 left an unavailable orphan sensor
+    # whose Delete button HA greys out).
+    assert fleet.runtime_data.store.get_part_stock("batt_unknown") is None
+    assert not [
+        e.entity_id
+        for e in er.async_entries_for_config_entry(ent_reg, fleet.entry_id)
+        if "_part_batt_unknown" in (e.unique_id or "")
+    ]
 
 
 async def test_start_reconcile_keeps_a_touched_unknown_part(
@@ -1076,9 +1093,59 @@ async def test_start_reconcile_keeps_a_touched_unknown_part(
     fleet.runtime_data.store.set_part_stock("batt_unknown", 3)
     await fleet.runtime_data.store.async_save()
 
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "sensor", "maintenance_supporter", "maintenance_supporter_battery_fleet_part_batt_unknown", config_entry=fleet
+    )
+
     await hass.config_entries.async_reload(fleet.entry_id)
     await hass.async_block_till_done()
 
     fleet = _fleet_entry(hass)
     assert "batt_unknown" in fleet.data[CONF_PARTS]
     assert fleet.runtime_data.store.get_part_stock("batt_unknown") == 3
+    # The kept part keeps its stock sensor too — only ORPHANS are swept.
+    assert any(
+        "_part_batt_unknown" in (e.unique_id or "")
+        for e in er.async_entries_for_config_entry(ent_reg, fleet.entry_id)
+    )
+
+
+async def test_start_reconcile_sweeps_orphaned_stock_sensor_registry_entries(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#148 follow-up: an install where the v2.70.0 prune already ran has the
+    part gone but the stock sensor's registry entry left behind (unavailable,
+    Delete greyed out). The boot reconcile sweeps it."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "sensor", "maintenance_supporter", "maintenance_supporter_battery_fleet_part_batt_unknown", config_entry=fleet
+    )
+
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+
+    assert not [
+        e.entity_id
+        for e in er.async_entries_for_config_entry(ent_reg, fleet.entry_id)
+        if "_part_batt_unknown" in (e.unique_id or "")
+    ]
+    # Real parts keep their registry entries.
+    assert any(
+        "_part_batt_aa" in (e.unique_id or "")
+        for e in er.async_entries_for_config_entry(ent_reg, fleet.entry_id)
+    )

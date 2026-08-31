@@ -530,12 +530,34 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
             new_data[CONF_PARTS] = parts
             hass.config_entries.async_update_entry(entry, data=new_data)
             pruned = True
+            if store is not None:
+                store.remove_part("batt_unknown")
+
+    # #148 follow-up (v2.70.0 aftermath): the prune must not leave the
+    # part's stock sensor behind as an unavailable orphan in the entity
+    # registry — the official ws_delete_part removes that entry, the v2.70.0
+    # prune did not, and HA greys out Delete while the integration still
+    # claims the entity. Sweep every part-stock registry entry whose part no
+    # longer exists; this also heals installs where the v2.70.0 prune
+    # already ran (the part is gone, only the registry corpse remains).
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    orphans_removed = 0
+    for reg_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+        uid = reg_entry.unique_id or ""
+        if "_part_" not in uid:
+            continue
+        pid = uid.split("_part_", 1)[1]
+        if pid and pid not in parts:
+            ent_reg.async_remove(reg_entry.entity_id)
+            orphans_removed += 1
 
     if store is not None and (added or pruned):
         for pid in added:
             store.set_part_stock(pid, 0)
         await store.async_save()
-    return {"added": added, "pruned": pruned}
+    return {"added": added, "pruned": pruned, "orphans_removed": orphans_removed}
 
 
 
