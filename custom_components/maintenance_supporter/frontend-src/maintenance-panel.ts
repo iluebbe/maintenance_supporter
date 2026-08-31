@@ -3326,7 +3326,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
           </ha-button>
           ${allowSkip ? html`
-            <ha-button size="small" appearance="plain" variant="neutral" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+            <ha-button size="small" appearance="outlined" variant="neutral" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
               <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${t("skip", L)}
             </ha-button>` : nothing}
         </span>`;

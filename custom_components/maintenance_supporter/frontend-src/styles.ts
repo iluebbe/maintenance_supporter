@@ -908,8 +908,15 @@ export const sharedStyles = css`
     display: flex;
     flex-direction: column;
     gap: 2px;
+    /* #150 follow-up (2026-08-31, maisun's mobile screenshot): the box used
+       to carry min-width: 90px — in the narrow grid the due column is
+       fit-content(100px) and right-aligned, so on cells narrower than 90px
+       the box overhung LEFT across the object name. It now tracks the cell
+       with no floor, and the label ellipsizes inside. */
+    align-self: stretch;
+    max-width: 100%;
+    min-width: 0;
     width: 100%;
-    min-width: 90px;
   }
 
   .trigger-progress-bar {
@@ -930,6 +937,10 @@ export const sharedStyles = css`
     font-size: 12px;
     color: var(--secondary-text-color);
     text-align: right;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Days progress bar (detail view) */
