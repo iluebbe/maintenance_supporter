@@ -2,6 +2,73 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.71.0] - 2026-09-01
+
+### ✨ Added
+
+- **Skip lock.** New per-task `allow_skip`: set it to *false* and the Skip
+  action disappears from the panel rows, the Lovelace card and the quick
+  actions — and the server refuses the `skip` service, the `task/skip` WS
+  command and the voice *SkipTask* intent (`skip_disabled`, with response
+  parity in all 22 languages), so automations cannot skip a locked task
+  either. Travels with export/import. (#150)
+- **Runtime session cap.** Runtime triggers accept
+  `trigger_runtime_max_session_seconds` (1–86400): one continuous ON-run
+  books at most the cap, so a sensor stuck ON — a lost connection, a
+  restart while running — can no longer book a whole night as runtime.
+  Booked seconds persist across restarts. (#149)
+- **Group by object.** The dashboard’s GROUP BY gains *By object*:
+  collapsible per-object sections instead of one flat list. (#150)
+- **Master-detail split on wide panels.** On panels wider than ~1500 px the
+  dashboard keeps the task list on the left and docks the full task detail
+  (trigger chart, KPIs, history, actions) on the right — clicking a task
+  previews it in place instead of switching pages. (#150 follow-up)
+- **Trend arrows on phone-width rows.** Where the mini-sparkline would be
+  squeezed to noise, the trigger label now shows a colour-coded trend arrow
+  instead — heading toward the threshold ↗, holding →, easing away ↘ —
+  and the due column is fixed-width so every row’s progress bar reads the
+  same scale. (#150 follow-up)
+- **One service call, many tasks.** `complete`, `skip` and `reset_task`
+  accept a list of task sensors (or a comma-separated string). Multi-target
+  calls are best-effort: refused tasks are named in a summary error while
+  the others still go through; per-completion values (meter reading, cost,
+  duration, tag scan) remain single-target. (#158)
+- **Richer `list_tasks` + structured battery rows.** Every `list_tasks` row
+  now carries `last_performed`, `days_since_last_completed`,
+  `trigger_current_value` and `trigger_unit`; the *Batteries to replace*
+  sensor adds a `batteries_due_detailed` attribute
+  (name/type/quantity/level/rechargeable) — enough to build dashboards and
+  voice answers without scraping display strings. (#151)
+- **Tappable persistent notifications.** Persistent notifications now end
+  with an *Open task* link (localized, all 22 languages) that jumps straight
+  to the task in the panel. Mobile pushes already carried the deep link via
+  `clickAction`. (#159)
+
+### 🐛 Fixed
+
+- **Battery fleet: recovery flag healed at start.** Fleet tasks set up
+  before `auto_complete_on_recovery` joined the canonical trigger never
+  auto-completed when the last low battery recovered. On start the fleet
+  now adds the missing flag — and only the flag: a deliberately edited
+  threshold stays untouched. (#156)
+- **Orphaned part-stock sensors swept.** Registry entries left behind by
+  removed fleet type parts are cleaned up at fleet start. (#148 follow-up)
+- **Narrow rows align.** All task rows now share the same column tracks
+  (CSS subgrid), badges stack vertically, and the progress bar and
+  sparkline clamp to their own cell — the ragged narrow layout is gone.
+  The Skip button is outlined so Complete reads as the primary action.
+  (#150 follow-up)
+
+### 📚 Documentation
+
+- Every screenshot and GIF re-shot from a freshly seeded demo instance,
+  including a new master-detail split capture; a permanent 1920 px
+  visual-regression surface now guards the wide layout.
+
+### 🔧 Internal
+
+- Dev-dependency bumps: esbuild, Playwright 1.62.1 (#152–#155).
+
 ## [2.70.0] - 2026-08-31
 
 ### ✨ Added
