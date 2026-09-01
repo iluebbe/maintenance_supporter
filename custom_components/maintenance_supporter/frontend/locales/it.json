@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Una singola esecuzione conta al massimo questi secondi — protegge da un sensore bloccato su ON (connessione persa, riavvio). Vuoto = nessun limite.",
   "trend_approaching": "Si avvicina alla soglia",
   "trend_easing": "Si allontana dalla soglia",
+  "split_select_hint": "Seleziona un'attività per vederne i dettagli qui",
   "setups_target_new": "Crea nuovo: {name}",
   "schedule_preview_title": "Prossime date",
   "schedule_preview_ontime": "Presumendo un completamento puntuale.",

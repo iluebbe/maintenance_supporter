@@ -125,6 +125,10 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  The wide row grid then cannot hold labelled action buttons, so the
    *  compact (icon-only) form applies here too. Reflected for the CSS. */
   @property({ type: Boolean, reflect: true }) public tight = false;
+  /** ≥1500px panel width (2026-09-01): master-detail split — the dashboard
+   *  keeps the task list on the left and docks the task detail on the right
+   *  (a mail client's preview pane). Reflected for the CSS. */
+  @property({ type: Boolean, reflect: true }) public split = false;
   private _tightObserver: ResizeObserver | null = null;
   @property({ attribute: false }) public panel: Record<string, unknown> = {};
 
@@ -340,6 +344,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         // fragments. Below ~1000 the narrow layout is the honest choice;
         // from there up the chips track keeps ≥150 px of slack.
         if (w > 0) this.tight = w < 1000;
+        if (w > 0) this.split = w >= 1500;
       });
       this._tightObserver.observe(this);
     }
@@ -1078,7 +1083,28 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._scrollContentToTop();
   }
 
+  /** Master-detail split is active: wide panel, dashboard tab, no bulk. */
+  private _splitActive(): boolean {
+    return this.split && !this.narrow && !this.tight && this._view === "overview" && this._overviewTab === "dashboard" && !this._bulkMode;
+  }
+
   private _showTask(entryId: string, taskId: string): void {
+    // Master-detail split (2026-09-01): same data prep, but no view switch
+    // and no history entry — the detail docks on the right like a mail
+    // client's preview pane. The detail's breadcrumb (showTaskView) still
+    // opens the full page.
+    if (this._splitActive()) {
+      this._selectedEntryId = entryId;
+      this._selectedTaskId = taskId;
+      this._activeTab = "overview";
+      this._historyFilter = null;
+      this._fetchFullHistory(entryId, taskId);
+      const task = this._getTask(entryId, taskId);
+      if (task?.trigger_config?.entity_id) {
+        this._fetchDetailStats(task.trigger_config.entity_id, this._isCounterEntity(task.trigger_config));
+      }
+      return;
+    }
     this._pushPanelState("task", entryId, taskId);
     this._view = "task";
     this._selectedEntryId = entryId;
@@ -2543,7 +2569,20 @@ export class MaintenanceSupporterPanel extends LitElement {
           `
         : html`
             ${this._bulkMode ? this._renderBulkBar(rows, L) : nothing}
-            ${this._groupByMode === "none"
+            ${this._splitActive()
+              ? html`
+                  <div class="split-layout">
+                    <div class="split-list">
+                      ${this._groupByMode === "none" ? this._renderTaskTable(rows) : this._renderGroupedTasks(rows, L)}
+                    </div>
+                    <div class="split-pane">
+                      ${this._selectedEntryId && this._selectedTaskId && this._getTask(this._selectedEntryId, this._selectedTaskId)
+                        ? this._renderTaskDetail()
+                        : html`<div class="split-pane-empty"><ha-icon icon="mdi:cursor-default-click-outline"></ha-icon><p>${t("split_select_hint", L)}</p></div>`}
+                    </div>
+                  </div>
+                `
+              : this._groupByMode === "none"
               ? this._renderTaskTable(rows)
               : this._renderGroupedTasks(rows, L)}
           `}
@@ -3226,7 +3265,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     const bulkSelected = this._bulkMode && this._bulkSelected.has(this._bulkKey(row));
     return html`
-      <div class="task-row${!row.enabled ? ' task-disabled' : ''}${bulkSelected ? ' bulk-selected' : ''}">
+      <div class="task-row${!row.enabled ? ' task-disabled' : ''}${bulkSelected ? ' bulk-selected' : ''}${this._splitActive() && row.entry_id === this._selectedEntryId && row.task_id === this._selectedTaskId ? ' selected' : ''}">
         ${this._bulkMode ? html`
           <label class="cell bulk-check" @click=${(e: Event) => e.stopPropagation()}>
             <input type="checkbox" .checked=${bulkSelected} @change=${() => this._toggleBulkRow(row)} />

@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Eén run telt maximaal dit aantal seconden — beschermt tegen sensoren die op AAN blijven hangen (verbroken verbinding, herstart). Leeg = geen limiet.",
   "trend_approaching": "Beweegt richting de drempel",
   "trend_easing": "Beweegt weg van de drempel",
+  "split_select_hint": "Selecteer een taak om hier de details te zien",
   "setups_target_new": "Nieuw aanmaken: {name}",
   "schedule_preview_title": "Volgende data",
   "schedule_preview_ontime": "Uitgaande van tijdige afronding.",

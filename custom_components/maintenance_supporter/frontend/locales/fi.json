@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Yksi ajo lasketaan enintään näin moneksi sekunniksi — suojaa PÄÄLLÄ-tilaan jumittuneelta anturilta (katkennut yhteys, uudelleenkäynnistys). Tyhjä = ei rajaa.",
   "trend_approaching": "Lähestyy raja-arvoa",
   "trend_easing": "Loittonee raja-arvosta",
+  "split_select_hint": "Valitse tehtävä nähdäksesi sen tiedot tässä",
   "setups_target_new": "Luo uusi: {name}",
   "schedule_preview_title": "Seuraavat päivämäärät",
   "schedule_preview_ontime": "Olettaen, että valmistuminen on ajallaan.",

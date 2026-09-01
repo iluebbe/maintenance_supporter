@@ -839,6 +839,7 @@
   "runtime_max_session_help": "A single run counts at most this many seconds — protects against a sensor stuck ON (lost connection, restart). Empty = no cap.",
   "trend_approaching": "Heading toward the threshold",
   "trend_easing": "Easing away from the threshold",
+  "split_select_hint": "Select a task to see its details here",
   "setups_target_new": "Create new: {name}",
   "schedule_preview_title": "Next dates",
   "schedule_preview_ontime": "Assuming on-time completion.",

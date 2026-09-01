@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Tek bir çalışma en fazla bu kadar saniye sayılır — AÇIK durumda takılı kalan sensöre (bağlantı kopması, yeniden başlatma) karşı korur. Boş = sınır yok.",
   "trend_approaching": "Eşiğe yaklaşıyor",
   "trend_easing": "Eşikten uzaklaşıyor",
+  "split_select_hint": "Ayrıntıları burada görmek için bir görev seçin",
   "setups_target_new": "Yeni oluştur: {name}",
   "schedule_preview_title": "Sonraki tarihler",
   "schedule_preview_ontime": "Zamanında tamamlama varsayılarak.",

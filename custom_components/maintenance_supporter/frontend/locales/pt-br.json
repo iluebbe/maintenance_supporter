@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Uma única execução conta no máximo esses segundos — protege contra um sensor travado em ON (conexão perdida, reinício). Vazio = sem limite.",
   "trend_approaching": "Aproximando-se do limite",
   "trend_easing": "Afastando-se do limite",
+  "split_select_hint": "Selecione uma tarefa para ver os detalhes aqui",
   "setups_target_new": "Criar novo: {name}",
   "schedule_preview_title": "Próximas datas",
   "schedule_preview_ontime": "Supondo conclusão em dia.",

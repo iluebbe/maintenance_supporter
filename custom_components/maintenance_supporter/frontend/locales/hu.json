@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Egy futás legfeljebb ennyi másodpercet számít — véd a BE állapotban beragadt érzékelő ellen (kapcsolatvesztés, újraindítás). Üres = nincs korlát.",
   "trend_approaching": "Közeledik a küszöbhöz",
   "trend_easing": "Távolodik a küszöbtől",
+  "split_select_hint": "Válassz egy feladatot, és itt jelennek meg a részletei",
   "setups_target_new": "Új létrehozása: {name}",
   "schedule_preview_title": "Következő dátumok",
   "schedule_preview_ontime": "Időben történő elvégzést feltételezve.",

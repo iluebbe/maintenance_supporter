@@ -839,6 +839,7 @@
   "runtime_max_session_help": "한 번의 가동은 최대 이 초까지만 집계됩니다 — ON에 멈춘 센서(연결 끊김, 재시작)로부터 보호합니다. 비워두면 제한 없음.",
   "trend_approaching": "임계값에 가까워지는 중",
   "trend_easing": "임계값에서 멀어지는 중",
+  "split_select_hint": "작업을 선택하면 여기에 세부 정보가 표시됩니다",
   "setups_target_new": "새로 만들기: {name}",
   "schedule_preview_title": "다음 예정일",
   "schedule_preview_ontime": "제때 완료한다고 가정한 일정입니다.",

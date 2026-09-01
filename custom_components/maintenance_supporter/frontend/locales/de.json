@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Ein einzelner Lauf zählt höchstens so viele Sekunden — schützt vor Sensoren, die auf AN hängen bleiben (Verbindungsabriss, Neustart). Leer = keine Begrenzung.",
   "trend_approaching": "Läuft auf die Schwelle zu",
   "trend_easing": "Entfernt sich von der Schwelle",
+  "split_select_hint": "Wähle eine Aufgabe, um hier die Details zu sehen",
   "setups_target_new": "Neu anlegen: {name}",
   "schedule_preview_title": "Nächste Termine",
   "schedule_preview_ontime": "Bei pünktlichem Abschluss.",

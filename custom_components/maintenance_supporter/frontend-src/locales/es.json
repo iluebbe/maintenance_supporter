@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Una sola ejecución cuenta como máximo estos segundos — protege contra un sensor atascado en ON (conexión perdida, reinicio). Vacío = sin límite.",
   "trend_approaching": "Se acerca al umbral",
   "trend_easing": "Se aleja del umbral",
+  "split_select_hint": "Selecciona una tarea para ver sus detalles aquí",
   "setups_target_new": "Crear nuevo: {name}",
   "schedule_preview_title": "Próximas fechas",
   "schedule_preview_ontime": "Suponiendo finalización puntual.",

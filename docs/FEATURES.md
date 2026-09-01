@@ -88,7 +88,7 @@ markers, labels, per-user assignment badges, and mini-sparklines for
 sensor-triggered tasks — on phone-width rows the squeezed curve gives way
 to a colour-coded **trend arrow** in the trigger label (heading toward the
 threshold ↗, holding →, easing away ↘) and the due column is fixed-width
-so every row's progress bar reads the same scale (2.71+). The task detail page adds the full trigger chart
+so every row's progress bar reads the same scale (2.71+). On panels wider than ~1500 px the dashboard becomes a **master-detail split**: the task list stays on the left and the full task detail (trigger chart, KPIs, history, actions) docks on the right — clicking a task previews it in place instead of switching pages, and the detail's breadcrumb still opens the full page (2.71+). The task detail page adds the full trigger chart
 (current value vs. threshold over 7d–1y), KPI tiles, and the cost & duration
 history chart.
 

@@ -839,6 +839,7 @@
   "runtime_max_session_help": "एक रन अधिकतम इतने सेकंड गिना जाता है — ON पर अटके सेंसर (कनेक्शन टूटना, रीस्टार्ट) से बचाता है। खाली = कोई सीमा नहीं।",
   "trend_approaching": "सीमा की ओर बढ़ रहा है",
   "trend_easing": "सीमा से दूर जा रहा है",
+  "split_select_hint": "विवरण यहाँ देखने के लिए कोई कार्य चुनें",
   "setups_target_new": "नया बनाएँ: {name}",
   "schedule_preview_title": "अगली तिथियाँ",
   "schedule_preview_ontime": "समय पर पूर्णता मानते हुए।",

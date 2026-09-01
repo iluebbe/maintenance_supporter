@@ -839,6 +839,7 @@
   "runtime_max_session_help": "En enkelt kørsel tæller højst så mange sekunder — beskytter mod en sensor, der hænger på TÆNDT (tabt forbindelse, genstart). Tom = ingen grænse.",
   "trend_approaching": "Nærmer sig tærsklen",
   "trend_easing": "Bevæger sig væk fra tærsklen",
+  "split_select_hint": "Vælg en opgave for at se detaljerne her",
   "setups_target_new": "Opret ny: {name}",
   "schedule_preview_title": "Kommende datoer",
   "schedule_preview_ontime": "Forudsat rettidig fuldførelse.",

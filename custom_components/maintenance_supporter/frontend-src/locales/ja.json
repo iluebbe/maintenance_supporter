@@ -839,6 +839,7 @@
   "runtime_max_session_help": "1回の稼働は最大この秒数までカウント——ONのまま固まったセンサー（接続切れ・再起動）への保護です。空欄=制限なし。",
   "trend_approaching": "しきい値に近づいています",
   "trend_easing": "しきい値から遠ざかっています",
+  "split_select_hint": "タスクを選択すると、ここに詳細が表示されます",
   "setups_target_new": "新規作成：{name}",
   "schedule_preview_title": "次回の予定日",
   "schedule_preview_ontime": "期日どおりに完了した場合。",

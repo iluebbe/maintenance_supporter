@@ -839,6 +839,7 @@
   "runtime_max_session_help": "Pojedynczy przebieg liczy się najwyżej tyle sekund — chroni przed czujnikiem zawieszonym na WŁ. (utrata połączenia, restart). Puste = bez limitu.",
   "trend_approaching": "Zbliża się do progu",
   "trend_easing": "Oddala się od progu",
+  "split_select_hint": "Wybierz zadanie, aby zobaczyć tutaj szczegóły",
   "setups_target_new": "Utwórz nowy: {name}",
   "schedule_preview_title": "Najbliższe terminy",
   "schedule_preview_ontime": "Przy założeniu terminowego ukończenia.",

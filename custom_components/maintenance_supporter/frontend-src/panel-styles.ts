@@ -229,6 +229,51 @@ export const panelStyles = css`
     }
   }
   .bulk-check { display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* Master-detail split (>=1500px panel, 2026-09-01): list left, docked task
+     detail right - the width finally carries content instead of slack. Only
+     the dashboard tab uses it; below the threshold everything is unchanged. */
+  .split-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(430px, 41%);
+    gap: 20px;
+    align-items: start;
+  }
+  .split-list { min-width: 0; }
+  /* Inside the split the list is ~60% wide — the type and chips columns are
+     redundant there (the docked detail names the type, assignee and labels),
+     and squeezed chips read as clutter. Drop both; the task name gets the
+     room and the list stays calm. */
+  .split-list .task-table { grid-template-columns: auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
+  .split-list .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
+  .split-list .cell.type { display: none; }
+  .split-list .task-sub { display: none; }
+  .split-pane {
+    min-width: 0;
+    position: sticky;
+    top: 8px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    border: 1px solid var(--divider-color);
+    border-radius: 12px;
+    padding: 4px 16px 16px;
+    background: var(--card-background-color, #fff);
+  }
+  .split-pane-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    gap: 8px;
+    color: var(--secondary-text-color);
+    text-align: center;
+  }
+  .split-pane-empty ha-icon { --mdc-icon-size: 40px; opacity: 0.5; }
+  .task-row.selected {
+    background: rgba(var(--rgb-primary-color, 3, 169, 244), 0.1);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+  }
   .bulk-check input, .bulk-selectall input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary-color); }
   .task-row.bulk-selected { background: color-mix(in srgb, var(--primary-color) 12%, transparent); }
   .bulk-bar {
