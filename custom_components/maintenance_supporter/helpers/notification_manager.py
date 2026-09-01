@@ -59,6 +59,7 @@ _SENT_ONCE = datetime.max  # noqa: DTZ901 - intentional naive sentinel, see comm
 # --- Notification message translations ---
 _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
     "de": {
+        "open_task_link": "Aufgabe öffnen",
         "due_soon_title": "Wartung bald fällig",
         "due_soon_message": "{task} für {object} ist in {days} Tag(en) fällig (Fällig: {due}).",
         "overdue_title": "Wartung überfällig!",
@@ -82,6 +83,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Jahresbudget zu {pct}% ausgeschöpft ({spent} von {budget})",
     },
     "nl": {
+        "open_task_link": "Taak openen",
         "due_soon_title": "Onderhoud binnenkort",
         "due_soon_message": "{task} voor {object} is over {days} dag(en) te doen (Vervaldatum: {due}).",
         "overdue_title": "Onderhoud achterstallig!",
@@ -105,6 +107,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Jaarbudget op {pct}% ({spent} van {budget})",
     },
     "fr": {
+        "open_task_link": "Ouvrir la tâche",
         "due_soon_title": "Maintenance bientôt due",
         "due_soon_message": "{task} pour {object} est dû dans {days} jour(s) (Échéance : {due}).",
         "overdue_title": "Maintenance en retard !",
@@ -128,6 +131,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Budget annuel à {pct}% ({spent} sur {budget})",
     },
     "it": {
+        "open_task_link": "Apri l'attività",
         "due_soon_title": "Manutenzione in scadenza",
         "due_soon_message": "{task} per {object} è in scadenza tra {days} giorno/i (Scadenza: {due}).",
         "overdue_title": "Manutenzione scaduta!",
@@ -151,6 +155,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Budget annuale al {pct}% ({spent} di {budget})",
     },
     "es": {
+        "open_task_link": "Abrir la tarea",
         "due_soon_title": "Mantenimiento próximo",
         "due_soon_message": "{task} para {object} vence en {days} día(s) (Vencimiento: {due}).",
         "overdue_title": "¡Mantenimiento vencido!",
@@ -174,6 +179,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Presupuesto anual al {pct}% ({spent} de {budget})",
     },
     "en": {
+        "open_task_link": "Open task",
         "due_soon_title": "Maintenance Due Soon",
         "due_soon_message": "{task} for {object} is due in {days} day(s) (Due: {due}).",
         "overdue_title": "Maintenance Overdue!",
@@ -197,6 +203,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Yearly budget at {pct}% ({spent} of {budget})",
     },
     "da": {
+        "open_task_link": "Åbn opgaven",
         "due_soon_title": "Vedligeholdelse snart forfalden",
         "due_soon_message": "{task} for {object} forfalder om {days} dag(e) (Forfalder: {due}).",
         "overdue_title": "Vedligeholdelse forfalden!",
@@ -220,6 +227,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Årsbudget på {pct}% ({spent} af {budget})",
     },
     "fi": {
+        "open_task_link": "Avaa tehtävä",
         "due_soon_title": "Huolto erääntyy pian",
         "due_soon_message": "{task} kohteelle {object} erääntyy {days} päivän kuluttua (Eräpäivä: {due}).",
         "overdue_title": "Huolto myöhässä!",
@@ -243,6 +251,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Vuosibudjetti {pct}% ({spent} / {budget})",
     },
     "nb": {
+        "open_task_link": "Åpne oppgaven",
         "due_soon_title": "Vedlikehold forfaller snart",
         "due_soon_message": "{task} for {object} forfaller om {days} dag(er) (Forfaller: {due}).",
         "overdue_title": "Vedlikehold forfalt!",
@@ -266,6 +275,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Årsbudsjett på {pct}% ({spent} av {budget})",
     },
     "ja": {
+        "open_task_link": "タスクを開く",
         "due_soon_title": "メンテナンス期限間近",
         "due_soon_message": "{object} の {task} はあと {days} 日で期限です（期限: {due}）。",
         "overdue_title": "メンテナンス期限超過！",
@@ -289,6 +299,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "年間予算が {pct}%（{budget} 中 {spent}）",
     },
     "hi": {
+        "open_task_link": "कार्य खोलें",
         "due_soon_title": "रखरखाव जल्द देय",
         "due_soon_message": "{object} के लिए {task} {days} दिन में देय है (देय: {due})।",
         "overdue_title": "रखरखाव अतिदेय!",
@@ -312,6 +323,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "वार्षिक बजट {pct}% पर ({budget} में से {spent})",
     },
     "zh": {
+        "open_task_link": "打开任务",
         "due_soon_title": "维护即将到期",
         "due_soon_message": "{object} 的 {task} 将在 {days} 天后到期（到期日期：{due}）。",
         "overdue_title": "维护已超期！",
@@ -335,6 +347,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "年度预算已达 {pct}%（已支出 {spent} / 总预算 {budget}）",
     },
     "ru": {
+        "open_task_link": "Открыть задачу",
         "due_soon_title": "Обслуживание скоро требуется",
         "due_soon_message": "{task} для {object} требуется через {days} дн. (Срок: {due}).",
         "overdue_title": "Обслуживание просрочено!",
@@ -358,6 +371,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Годовой бюджет: {pct}% ({spent} из {budget})",
     },
     "uk": {
+        "open_task_link": "Відкрити завдання",
         "due_soon_title": "Незабаром термін обслуговування",
         "due_soon_message": "{task} для {object} через {days} день(днів) (Термін: {due}).",
         "overdue_title": "Обслуговування прострочено!",
@@ -381,6 +395,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Щорічний бюджет використано на {pct}% ({spent} з {budget})",
     },
     "pt": {
+        "open_task_link": "Abrir a tarefa",
         "due_soon_title": "Manutenção em breve",
         "due_soon_message": "{task} para {object} é necessário em {days} dia(s) (Prazo: {due}).",
         "overdue_title": "Manutenção atrasada!",
@@ -406,6 +421,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
     # v1.4.2: Polish notifications (panel + config-flow have been pl since v1.3.3
     # but phone notifications still went out in English).
     "pl": {
+        "open_task_link": "Otwórz zadanie",
         "due_soon_title": "Wkrótce wymagana konserwacja",
         "due_soon_message": "{task} dla {object} wymagane za {days} dni (Termin: {due}).",
         "overdue_title": "Konserwacja przeterminowana!",
@@ -431,6 +447,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
     # v1.4.2: Czech notifications (panel UI is cs since v1.0.41; closing the
     # config-flow + notification gap together).
     "cs": {
+        "open_task_link": "Otevřít úkol",
         "due_soon_title": "Údržba se blíží",
         "due_soon_message": "{task} pro {object} je třeba za {days} dní (Termín: {due}).",
         "overdue_title": "Údržba po termínu!",
@@ -455,6 +472,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
     },
     # v1.4.2: Swedish notifications.
     "sv": {
+        "open_task_link": "Öppna uppgiften",
         "due_soon_title": "Underhåll snart",
         "due_soon_message": "{task} för {object} förfaller om {days} dag(ar) (Förfaller: {due}).",
         "overdue_title": "Underhåll försenat!",
@@ -478,6 +496,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Årsbudget på {pct}% ({spent} av {budget})",
     },
     "pt-br": {
+        "open_task_link": "Abrir a tarefa",
         "due_soon_title": "Manutenção em breve",
         "due_soon_message": "{task} de {object} vence em {days} dia(s) (vencimento: {due}).",
         "overdue_title": "Manutenção atrasada!",
@@ -501,6 +520,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Orçamento anual em {pct}% ({spent} de {budget})",
     },
     "hu": {
+        "open_task_link": "Feladat megnyitása",
         "due_soon_title": "Karbantartás hamarosan esedékes",
         "due_soon_message": "{object} – {task} {days} nap múlva esedékes (határidő: {due}).",
         "overdue_title": "Karbantartás lejárt!",
@@ -524,6 +544,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "Éves keret {pct}%-on ({spent} / {budget})",
     },
     "ko": {
+        "open_task_link": "작업 열기",
         "due_soon_title": "곧 예정된 유지보수",
         "due_soon_message": "{object}의 {task}이(가) {days}일 후 예정입니다 (기한: {due}).",
         "overdue_title": "유지보수 기한 초과!",
@@ -547,6 +568,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_yearly": "연 예산 {pct}% 사용 ({budget} 중 {spent})",
     },
     "tr": {
+        "open_task_link": "Görevi aç",
         "due_soon_title": "Bakım zamanı yaklaşıyor",
         "due_soon_message": "{object} için {task}, {days} gün içinde yapılmalı (Tarih: {due}).",
         "overdue_title": "Bakım gecikti!",
@@ -664,6 +686,14 @@ async def async_dispatch_notify(
     if not name:
         _LOGGER.warning("Invalid notify target: %s", target)
         return False
+    # #159: a persistent notification renders Markdown but never surfaces
+    # data.url (the payload's deep link) — append it as a tappable line.
+    if name == "persistent_notification":
+        url = (service_data.get("data") or {}).get("url")
+        msg = service_data.get("message", "")
+        if url and "](" not in msg:
+            link_text = _notif_t("open_task_link", getattr(hass.config, "language", None) or "en")
+            service_data = {**service_data, "message": f"{msg}\n\n[{link_text}]({url})"}
     if hass.services.has_service(domain, name):
         await hass.services.async_call(domain, name, service_data, blocking=blocking)
         return True

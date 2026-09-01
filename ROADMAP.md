@@ -597,6 +597,14 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
+### 💡 Calendar-event triggers with per-event memory (discussion #157)
+Waste-collection-style sensors keep a task's trigger condition true for the
+whole event window, so a completed task re-fires while the pickup is still
+listed. Today's answer is `earliest_completion_days` (a minimum age between
+completions) or a state-change trigger; the real fix is an event-based
+trigger that fires once per calendar occurrence and remembers the handled
+event (id/date) in the trigger's Store state.
+
 ### ✅ Runtime trigger: per-session cap against stuck sensors (#149) — implemented 2026-08-31, ships with the next release
 A BLE device that drops its connection mid-run (an Oral-B toothbrush stuck
 on "running" overnight) books unbounded on-time: the live tracker keeps

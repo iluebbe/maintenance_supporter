@@ -4,12 +4,13 @@ complete:
   fields:
     entity_id:
       name: Entity
-      description: The maintenance sensor entity to complete.
+      description: One or more maintenance sensor entities to complete.
       required: true
       selector:
         entity:
           domain: sensor
           integration: maintenance_supporter
+          multiple: true
     notes:
       name: Notes
       description: Optional notes about the maintenance performed.
@@ -68,6 +69,7 @@ reset:
         entity:
           domain: sensor
           integration: maintenance_supporter
+          multiple: true
     date:
       name: Date
       description: The date to set as last performed. Defaults to today.
@@ -86,6 +88,7 @@ skip:
         entity:
           domain: sensor
           integration: maintenance_supporter
+          multiple: true
     reason:
       name: Reason
       description: Optional reason for skipping.

@@ -492,6 +492,35 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: s
     return True
 
 
+def _heal_fleet_trigger_recovery_flag(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """#156: fleet tasks minted before ``auto_complete_on_recovery`` joined
+    the canonical trigger keep showing Triggered after the batteries were
+    swapped — the low count drops to 0 but nothing records the completion,
+    and ``fleet_task_trigger_ok`` (type+entity only) never repairs it. Add
+    the missing flag, and ONLY the flag: a deliberately edited threshold or
+    entity list stays untouched. Runs at every start, so restored backups
+    from old exports heal too.
+    """
+    found = find_fleet_task(entry)
+    if found is None:
+        return False
+    task_id, task_data = found
+    tc = task_data.get("trigger_config") or {}
+    eids = tc.get("entity_ids") or ([tc["entity_id"]] if tc.get("entity_id") else [])
+    if tc.get("type") != "threshold" or LOW_COUNT_ENTITY_ID not in eids:
+        return False
+    if tc.get("auto_complete_on_recovery"):
+        return False
+    new_task = dict(task_data)
+    new_task["trigger_config"] = {**tc, "auto_complete_on_recovery": True}
+    new_data = dict(entry.data)
+    new_tasks = dict(new_data.get(CONF_TASKS, {}))
+    new_tasks[task_id] = new_task
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    return True
+
+
 async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry, lang: str) -> dict[str, Any]:
     """Boot-time reconcile of the fleet's type-parts (issue #148).
 
@@ -505,6 +534,8 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     product/vendor data, auto-buy off); the moment a user touched it, it
     is theirs and stays.
     """
+    trigger_healed = _heal_fleet_trigger_recovery_flag(hass, entry)
+
     types = discover_battery_types(hass)
     added = _reconcile_type_parts(hass, entry, types, lang)
 
@@ -557,7 +588,7 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
         for pid in added:
             store.set_part_stock(pid, 0)
         await store.async_save()
-    return {"added": added, "pruned": pruned, "orphans_removed": orphans_removed}
+    return {"added": added, "pruned": pruned, "orphans_removed": orphans_removed, "trigger_healed": trigger_healed}
 
 
 

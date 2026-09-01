@@ -753,7 +753,8 @@ the whole device, and the richest source (a Battery Notes note) wins the
 roster row. The fleet task's low sensor
 also exposes `batteries_due` / `batteries_due_soon` attributes — one
 dashboard-ready line per device ("<name> — replace (CR2)" / "<name> —
-recharge", capped at 30).
+recharge", capped at 30) — plus `batteries_due_detailed` (2.71+): structured
+rows `{name, type, quantity, level, rechargeable}`, same 30-row cap.
 
 ### `battery_fleet/set_track_self_charging` — `@require_write` (#135)
 `{enabled (req, bool)}` → `{"success": true}`. Fleet-wide opt-in that keeps

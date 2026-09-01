@@ -880,6 +880,19 @@ class BatteryFleetLowSensor(SensorEntity):
             # capped so a huge neglected fleet can't bloat recorder rows.
             "batteries_due": [_due_label(r) for r in ov.low[:30]],
             "batteries_due_soon": [_due_label(r) for r in ov.soon[:30]],
+            # #151/#156: structured rows for automations — name/type/level
+            # split out instead of parsing the display line. Same 30-row
+            # recorder cap as the label lists above.
+            "batteries_due_detailed": [
+                {
+                    "name": r["device_name"],
+                    "type": r["battery_type"],
+                    "quantity": r["quantity"],
+                    "level": r["level"],
+                    "rechargeable": bool(r.get("rechargeable")),
+                }
+                for r in ov.low[:30]
+            ],
         }
 
 

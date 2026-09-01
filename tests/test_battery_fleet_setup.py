@@ -1149,3 +1149,73 @@ async def test_start_reconcile_sweeps_orphaned_stock_sensor_registry_entries(
         "_part_batt_aa" in (e.unique_id or "")
         for e in er.async_entries_for_config_entry(ent_reg, fleet.entry_id)
     )
+
+
+async def test_start_heals_missing_recovery_flag_only(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#156: a fleet task from before auto_complete_on_recovery joined the
+    canonical trigger gets the flag at start — and ONLY the flag; a
+    deliberately edited threshold stays."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import find_fleet_task
+
+    task_id, task_data = find_fleet_task(fleet)
+    tc = dict(task_data["trigger_config"])
+    tc.pop("auto_complete_on_recovery", None)
+    tc["trigger_above"] = 5  # user-edited threshold must survive the heal
+    tasks = dict(fleet.data[CONF_TASKS])
+    tasks[task_id] = {**task_data, "trigger_config": tc}
+    hass.config_entries.async_update_entry(fleet, data={**fleet.data, CONF_TASKS: tasks})
+
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+    # The heal triggers one more reload of its own — let it settle.
+    await hass.async_block_till_done()
+
+    fleet = _fleet_entry(hass)
+    _tid, healed = find_fleet_task(fleet)
+    htc = healed["trigger_config"]
+    assert htc.get("auto_complete_on_recovery") is True
+    assert htc.get("trigger_above") == 5
+
+
+async def test_batteries_sensor_exposes_detailed_rows(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#151/#156: structured due rows (name/type/quantity/level) next to the
+    display-line lists."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "hue_switch", "CR2450", 1, low=True)
+    await hass.async_block_till_done()
+
+    target_eid = None
+    for eid in hass.states.async_entity_ids("sensor"):
+        if "batteries_to_replace" in eid:
+            target_eid = eid
+            break
+    assert target_eid is not None, "batteries sensor missing"
+    # The battery appeared after setup — poke the entity so its attributes
+    # re-read the live overview (the homeassistant service isn't loaded in
+    # the test hass; use the helper directly).
+    from homeassistant.helpers.entity_component import async_update_entity
+
+    await async_update_entity(hass, target_eid)
+    await hass.async_block_till_done()
+    state = hass.states.get(target_eid)
+    assert state is not None, "batteries sensor missing"
+    detailed = state.attributes.get("batteries_due_detailed")
+    assert isinstance(detailed, list) and detailed, state.attributes
+    row = detailed[0]
+    assert row["type"] == "CR2450"
+    assert row["quantity"] == 1
+    assert "level" in row and "name" in row and "rechargeable" in row

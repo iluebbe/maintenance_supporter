@@ -254,6 +254,14 @@ automation:
 
 ### Service Call: Complete a Task with Details
 
+Since 2.71 `entity_id` accepts a **list** (or a comma-separated string) on
+`complete`, `skip` and `reset` — every task runs its own completion rules,
+refusals are collected without blocking the others, and per-task values
+(`cost`, `duration`, `reading_value`, `via_tag_scan`) stay single-entity so
+they can't fan out into the budget. `list_tasks` rows now also carry
+`last_performed`, `days_since_last_completed`, `trigger_current_value` and
+`trigger_unit` for notification templates (#151/#158).
+
 ```yaml
 service: maintenance_supporter.complete
 data:
@@ -389,7 +397,9 @@ The full Battery Fleet view as a dashboard card (#135) — low now, due soon,
 the shopping line, and the complete roster with sparklines and the
 exclude/add/track-self-charging controls. It is the same section the fleet
 task's detail page renders; for text-only dashboards the
-`batteries_due` / `batteries_due_soon` sensor attributes remain available.
+`batteries_due` / `batteries_due_soon` sensor attributes remain available
+(2.71+ adds `batteries_due_detailed` — structured rows with name, type,
+quantity and current level for automations).
 
 ```yaml
 type: custom:maintenance-battery-fleet-card

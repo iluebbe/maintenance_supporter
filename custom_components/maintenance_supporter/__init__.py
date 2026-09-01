@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import date as date_cls
 from datetime import timedelta
 from typing import Any
 
@@ -18,7 +20,7 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import (
     config_validation as cv,
 )
@@ -34,6 +36,7 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util import dt as dt_util
 
 from .const import (
     BATTERY_FLEET_OBJECT_FLAG,
@@ -131,7 +134,7 @@ type MaintenanceSupporterConfigEntry = ConfigEntry[MaintenanceSupporterData]
 # --- Service Schemas ---
 SERVICE_COMPLETE_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
         vol.Optional("notes"): vol.All(cv.string, vol.Length(max=2000)),
         vol.Optional("cost"): vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)),
         vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)),
@@ -149,14 +152,14 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
 
 SERVICE_RESET_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
         vol.Optional("date"): cv.date,
     }
 )
 
 SERVICE_SKIP_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
         vol.Optional("reason"): vol.All(cv.string, vol.Length(max=2000)),
     }
 )
@@ -451,9 +454,8 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             )
         return str(user_id)
 
-    async def _handle_complete(call: ServiceCall) -> None:
-        """Handle the complete service call."""
-        entity_id = call.data[ATTR_ENTITY_ID]
+    def _resolve_task_target(entity_id: str) -> tuple[MaintenanceCoordinator, str]:
+        """entity_id -> (coordinator, task_id), with the classic errors."""
         coordinator = _get_coordinator_for_entity(hass, entity_id)
         if coordinator is None:
             raise ServiceValidationError(
@@ -468,68 +470,94 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 translation_key="no_task_for_entity",
                 translation_placeholders={"entity_id": entity_id},
             )
+        return coordinator, task_id
+
+    async def _run_per_task(
+        action: Callable[[MaintenanceCoordinator, str], Awaitable[None]],
+        entity_ids: list[str],
+        label: str,
+    ) -> None:
+        """#158: one or many task sensors. A single entity keeps today's
+        exact error shape; a list runs sequentially best-effort — the
+        choke-point refusals (too_early, tag_scan_required,
+        completion_details_required, the skip lock, ...) hit per task, are
+        collected, and never block the other tasks. Partial success stands
+        and the summary error names what was refused."""
+        ids = list(dict.fromkeys(entity_ids))
+        if len(ids) == 1:
+            coordinator, task_id = _resolve_task_target(ids[0])
+            await action(coordinator, task_id)
+            return
+        done = 0
+        errors: list[str] = []
+        for eid in ids:
+            try:
+                coordinator, task_id = _resolve_task_target(eid)
+                await action(coordinator, task_id)
+                done += 1
+            except HomeAssistantError as err:
+                errors.append(f"{eid}: {err}")
+        if errors:
+            raise ServiceValidationError(
+                f"{label}: {done} of {len(ids)} succeeded; " + " | ".join(errors)
+            )
+
+    async def _handle_complete(call: ServiceCall) -> None:
+        """Handle the complete service call (one or many task sensors, #158)."""
+        entity_ids = call.data[ATTR_ENTITY_ID]
+        if len(dict.fromkeys(entity_ids)) > 1:
+            # Per-task values must not fan out: a reading belongs to ONE
+            # meter, cost/duration would multiply into the budget and the
+            # averages, and one physical scan proves exactly one tag.
+            for field in ("reading_value", "cost", "duration", "via_tag_scan"):
+                if call.data.get(field) is not None:
+                    raise ServiceValidationError(
+                        f"'{field}' can only be used with a single entity_id"
+                    )
         # #128: explicit person beats the call context; the context covers the
         # common case for free (a dashboard tap propagates the tapping user).
         if call.data.get("completed_by"):
             completed_by: str | None = _resolve_person_user_id(call.data["completed_by"])
         else:
             completed_by = call.context.user_id if call.context else None
-        await coordinator.complete_maintenance(
-            task_id=task_id,
-            notes=call.data.get("notes"),
-            cost=call.data.get("cost"),
-            duration=call.data.get("duration"),
-            reading_value=call.data.get("reading_value"),
-            completed_by=completed_by,
-            completed_at=call.data.get("completed_at"),
-            # Proof of presence: an automation that reacted to the physical
-            # scan itself passes via_tag_scan to satisfy require_tag_scan.
-            tag_verified=bool(call.data.get("via_tag_scan")),
-        )
+
+        async def _one(coordinator: MaintenanceCoordinator, task_id: str) -> None:
+            await coordinator.complete_maintenance(
+                task_id=task_id,
+                notes=call.data.get("notes"),
+                cost=call.data.get("cost"),
+                duration=call.data.get("duration"),
+                reading_value=call.data.get("reading_value"),
+                completed_by=completed_by,
+                completed_at=call.data.get("completed_at"),
+                # Proof of presence: an automation that reacted to the physical
+                # scan itself passes via_tag_scan to satisfy require_tag_scan.
+                tag_verified=bool(call.data.get("via_tag_scan")),
+            )
+
+        await _run_per_task(_one, entity_ids, "complete")
 
     async def _handle_reset(call: ServiceCall) -> None:
-        """Handle the reset service call."""
-        entity_id = call.data[ATTR_ENTITY_ID]
-        coordinator = _get_coordinator_for_entity(hass, entity_id)
-        if coordinator is None:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="no_coordinator_for_entity",
-                translation_placeholders={"entity_id": entity_id},
+        """Handle the reset service call (one or many task sensors, #158)."""
+
+        async def _one(coordinator: MaintenanceCoordinator, task_id: str) -> None:
+            await coordinator.reset_maintenance(
+                task_id=task_id,
+                date=call.data.get("date"),
             )
-        task_id = _get_task_id_for_entity(hass, entity_id)
-        if task_id is None:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="no_task_for_entity",
-                translation_placeholders={"entity_id": entity_id},
-            )
-        await coordinator.reset_maintenance(
-            task_id=task_id,
-            date=call.data.get("date"),
-        )
+
+        await _run_per_task(_one, call.data[ATTR_ENTITY_ID], "reset")
 
     async def _handle_skip(call: ServiceCall) -> None:
-        """Handle the skip service call."""
-        entity_id = call.data[ATTR_ENTITY_ID]
-        coordinator = _get_coordinator_for_entity(hass, entity_id)
-        if coordinator is None:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="no_coordinator_for_entity",
-                translation_placeholders={"entity_id": entity_id},
+        """Handle the skip service call (one or many task sensors, #158)."""
+
+        async def _one(coordinator: MaintenanceCoordinator, task_id: str) -> None:
+            await coordinator.skip_maintenance(
+                task_id=task_id,
+                reason=call.data.get("reason"),
             )
-        task_id = _get_task_id_for_entity(hass, entity_id)
-        if task_id is None:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="no_task_for_entity",
-                translation_placeholders={"entity_id": entity_id},
-            )
-        await coordinator.skip_maintenance(
-            task_id=task_id,
-            reason=call.data.get("reason"),
-        )
+
+        await _run_per_task(_one, call.data[ATTR_ENTITY_ID], "skip")
 
     async def _handle_export(call: ServiceCall) -> None:
         """Handle the export_data service call."""
@@ -689,6 +717,21 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                     continue
                 if wanted_status and status != wanted_status:
                     continue
+                # #151: last completion + live trigger reading, so
+                # notification automations don't need extra lookups.
+                lp = task.get("last_performed")
+                days_since: int | None = None
+                if lp:
+                    try:
+                        days_since = (dt_util.now().date() - date_cls.fromisoformat(str(lp)[:10])).days
+                    except ValueError:
+                        days_since = None
+                tc = task.get("trigger_config") or {}
+                trigger_unit: str | None = None
+                if tc.get("entity_id"):
+                    st = hass.states.get(tc["entity_id"])
+                    if st:
+                        trigger_unit = st.attributes.get("unit_of_measurement")
                 tasks.append(
                     {
                         "entry_id": ce.entry_id,
@@ -700,6 +743,10 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                         "days_until_due": task.get("_days_until_due"),
                         "type": task.get("type"),
                         "priority": task.get("priority", "normal"),
+                        "last_performed": lp,
+                        "days_since_last_completed": days_since,
+                        "trigger_current_value": task.get("_trigger_current_value"),
+                        "trigger_unit": trigger_unit,
                     }
                 )
         return {"tasks": tasks, "count": len(tasks)}
@@ -1491,6 +1538,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
                         result["pruned"],
                         result["orphans_removed"],
                     )
+                if result.get("trigger_healed"):
+                    # #156: the recovery flag only reaches the LIVE trigger
+                    # after a reload — do it once; the next start finds it set.
+                    _LOGGER.info("Battery-fleet trigger healed (auto_complete_on_recovery) — reloading %s", entry.title)
+                    hass.async_create_task(hass.config_entries.async_reload(entry.entry_id))
 
             entry.async_on_unload(async_at_started(hass, _fleet_parts_at_start))
 
