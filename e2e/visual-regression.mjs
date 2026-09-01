@@ -54,6 +54,8 @@ const SURFACES = [
   { name: "task-detail-trigger", viewport: { width: 1600, height: 1200 }, budget: 0.03, prepare: (p) => showTask(p, true) },
   { name: "battery-fleet", viewport: { width: 1600, height: 1460 }, budget: 0.015, prepare: showFleetRoster },
   { name: "mobile-dashboard", viewport: { width: 400, height: 900 }, budget: 0.01, prepare: async (p) => showTab(p, "dashboard") },
+  // ≥1500px panel: master-detail split (2.71+) — list left, docked detail right.
+  { name: "split-dashboard", viewport: { width: 1920, height: 1080 }, budget: 0.03, prepare: showSplit },
 ];
 
 const j = (r) => r.json();
@@ -116,6 +118,21 @@ async function showTask(page, withTrigger) {
     }
     throw new Error("no matching task in the seed");
   }, { f: FINDER, wt: withTrigger });
+  await page.waitForTimeout(3000);
+}
+
+async function showSplit(page) {
+  await showTab(page, "dashboard");
+  await page.evaluate(({ f }) => {
+    eval(f);
+    const objs = [...window.__panel._objects].sort((a, b) => a.object.name.localeCompare(b.object.name));
+    for (const o of objs) {
+      if (o.tasks.some((t) => t.battery_fleet_task)) continue;
+      const task = [...o.tasks].sort((a, b) => a.name.localeCompare(b.name)).find((t) => !!t.trigger_config);
+      if (task) { window.__panel._showTask(o.entry_id, task.id); return; }
+    }
+    throw new Error("no matching task in the seed");
+  }, { f: FINDER });
   await page.waitForTimeout(3000);
 }
 

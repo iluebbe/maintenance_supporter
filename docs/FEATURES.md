@@ -92,6 +92,8 @@ so every row's progress bar reads the same scale (2.71+). On panels wider than ~
 (current value vs. threshold over 7d–1y), KPI tiles, and the cost & duration
 history chart.
 
+![Master-detail split on a wide panel](images/split-view.png)
+
 <details>
 <summary>More screenshots</summary>
 
