@@ -119,6 +119,23 @@ describe("master-detail split (wide dashboard)", () => {
     expect(p.top).to.be.below(c.top + 40);
   });
 
+  it("grouped list: the first group card is level with the docked pane", async () => {
+    // .group-section carries a 12px vertical margin; inside the grid it does
+    // not collapse, so without the split override the first card started
+    // 12px below the pane's top edge.
+    const el = await mountAt(1700);
+    (el as unknown as { _groupByMode: string })._groupByMode = "object";
+    await el.updateComplete;
+    const sr = el.shadowRoot!;
+    await waitUntil(() => !!sr.querySelector(".split-list .task-table.grouped > .group-section"), "grouped list");
+    (sr.querySelector(".task-row .cell.task-name") as HTMLElement).click();
+    await el.updateComplete;
+    await waitUntil(() => !!sr.querySelector(".split-pane maintenance-task-detail-view"), "detail docked");
+    const card = sr.querySelector(".split-list .group-section")!.getBoundingClientRect();
+    const pane = sr.querySelector(".split-pane")!.getBoundingClientRect();
+    expect(Math.abs(card.top - pane.top), "top edges level").to.be.below(1);
+  });
+
   it("<1500px: clicking a task still opens the full task page", async () => {
     const el = await mountAt(1200);
     const sr = el.shadowRoot!;

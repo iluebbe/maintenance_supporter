@@ -293,6 +293,10 @@ export const panelStyles = css`
   .split-list .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
   .split-list .cell.type { display: none; }
   .split-list .task-sub { display: none; }
+  /* Grouped list: the section cards carry a 12px vertical margin that does
+     not collapse inside the grid, so the first card sat 12px below the
+     pane's top edge and the two cards read as misaligned. Level them. */
+  .split-list .task-table.grouped > .group-section:first-child { margin-top: 0; }
   /* The pane never scrolls on its own: it is as tall as the detail and
      docks scroll-aware (helpers/sticky-pane sets top/margin-top inline) —
      top edge while scrolling up, bottom edge while scrolling down, so a
