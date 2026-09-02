@@ -4,6 +4,21 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+## [2.72.1] - 2026-09-02
+
+### 🐛 Fixed
+
+- **Wide split view: the docked detail is level with the list.** With
+  group-by active the first group card kept its 12px top margin inside the
+  grid, so it started 12px below the detail pane's top edge. The two cards
+  now share one top line (ungrouped lists were already level).
+- **Object page: no more horizontal scrolling.** The object page's task list
+  has no object-name cell, yet it used the dashboard's seven-column grid —
+  every cell sat one column too far left and the Complete/Skip pair landed
+  in the fixed due column, poking past the row's right edge. As soon as the
+  vertical scrollbar took its width the page grew a horizontal one. The list
+  now has its own six-column grid (badges, name, chips, type, due, actions).
+
 ## [2.72.0] - 2026-09-02
 
 ### ✨ Added
