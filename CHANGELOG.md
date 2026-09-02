@@ -4,6 +4,8 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+## [2.72.0] - 2026-09-02
+
 ### ✨ Added
 
 - **`list_tasks` rows are actionable.** Every row now names its task sensor
