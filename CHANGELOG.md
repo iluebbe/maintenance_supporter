@@ -20,6 +20,31 @@ All notable changes to Maintenance Supporter are documented in this file.
   block of its own, so validation errors (`invalid_threshold`,
   `min_exceeds_max`, …) surfaced as raw keys there; it now carries the same
   messages as the config flow in all 22 languages.
+- **The panel scrolls again on HA 2026.8.** Home Assistant 2026.8 wraps
+  every custom panel in a padded `display: block` element (safe-area
+  insets); ours relied on `height: 100%` from a sized host, so the whole
+  document scrolled instead of the panel’s content and every sticky surface
+  — the bulk bar, the docked task detail — silently stopped sticking. The
+  panel now opts out of that wrapper (`handle_safe_area`, only where the
+  core offers it) and paints the insets itself; HA ≤ 2026.7 is unchanged.
+- **Docked task detail: no inner scrollbar, never out of reach.** In the
+  ≥ 1500 px master-detail view the detail pane used to be its own scroll
+  area capped at the viewport, and clicking a task at the bottom of a long
+  list opened the detail at the *top* of the page — far above where you
+  were. The pane now grows with its content and docks scroll-aware: it
+  hangs from the top edge, a detail taller than the window is pinned by its
+  bottom edge while you scroll down and by its top edge on the way back up,
+  and selecting a task parks the detail where you are looking. The pane also
+  starts exactly level with the list. (#150 follow-up)
+- **Group-by-object sections share one column grid.** Each object card laid
+  out its own columns, so a section whose tasks were all *OK* indented
+  differently from one with *Overdue* rows and the names zig-zagged down the
+  page; every section now aligns to the same tracks in every layout.
+  Section headers are keyboard-operable (Enter/Space) and stay collapsed
+  across data refreshes. (#150 follow-up)
+- **Saved-views save button sits on its row.** The 💾 icon-button next to
+  the VIEWS select rendered at 48 px against 36 px selects and floated 6 px
+  above them; it is now select-sized on old and new cores alike.
 
 ## [2.71.0] - 2026-09-01
 

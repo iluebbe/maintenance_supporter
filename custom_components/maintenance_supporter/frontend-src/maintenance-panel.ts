@@ -83,6 +83,7 @@ import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail
 // would never register.
 import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
+import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
 
@@ -240,6 +241,18 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _virtTotalRows = 0;
   private _virtScrollAttached = false;
   private _virtRaf = 0;
+  // Split view (2026-09-02): the docked detail pane is scroll-aware sticky
+  // (helpers/sticky-pane) — it never scrolls on its own; a pane taller than
+  // the viewport is pinned by its bottom edge while scrolling down and by
+  // its top edge while scrolling up.
+  private _stickyState: StickyState = INITIAL_STICKY;
+  private _stickySelectPending = false;
+  private _stickyRaf = 0;
+  private _stickyAttached = false;
+  private _stickyObserver: ResizeObserver | null = null;
+  // Group-by sections collapsed by the user (keyed by section label). Cleared
+  // when the group-by mode changes — labels mean something else then.
+  @state() private _collapsedGroups = new Set<string>();
   // v2.15.0: collapsed analysis sections on the task-detail overview tab,
   // remembered per section across visits.
   @state() private _collapsedSections: Set<string> = (() => {
@@ -394,6 +407,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll", this._onVirtualScroll);
     this._virtScrollAttached = false;
     if (this._virtRaf) cancelAnimationFrame(this._virtRaf);
+    this._detachStickyPane();
     if (this._unsub) {
       this._unsub();
       this._unsub = null;
@@ -403,6 +417,15 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._deepLinkHandled = false;
     this._statsService?.clearCache();
     this._statsService = null;
+  }
+
+  willUpdate(changedProps: Map<string, unknown>): void {
+    super.willUpdate(changedProps);
+    // Section labels are mode-specific ("Kitchen" vs "Family Car"): a
+    // collapsed set from the previous mode would fold random new sections.
+    if (changedProps.has("_groupByMode") && this._collapsedGroups.size > 0) {
+      this._collapsedGroups = new Set();
+    }
   }
 
   updated(changedProps: Map<string, unknown>): void {
@@ -451,6 +474,90 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._virtScrollAttached = true;
     }
     this._updateVirtualWindow();
+    this._syncStickyPane(content);
+  }
+
+  /** Split view: (de)attach the scroll-aware docking of the detail pane and
+   *  apply the current state to the just-rendered DOM. */
+  private _syncStickyPane(content: Element | null | undefined): void {
+    const pane = this.shadowRoot?.querySelector<HTMLElement>(".split-pane");
+    if (!pane || !content) {
+      if (this._stickyAttached) this._detachStickyPane();
+      return;
+    }
+    if (!this._stickyAttached) {
+      content.addEventListener("scroll", this._onStickyScroll, { passive: true });
+      window.addEventListener("resize", this._onStickyScroll);
+      if (typeof ResizeObserver !== "undefined") this._stickyObserver = new ResizeObserver(this._onStickyScroll);
+      this._stickyAttached = true;
+    }
+    // Observing an already-observed node is a no-op; a re-created pane
+    // (split left and came back) gets picked up here.
+    this._stickyObserver?.observe(pane);
+    this._updateStickyPane();
+  }
+
+  private _detachStickyPane(): void {
+    this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll", this._onStickyScroll);
+    window.removeEventListener("resize", this._onStickyScroll);
+    this._stickyObserver?.disconnect();
+    this._stickyObserver = null;
+    if (this._stickyRaf) cancelAnimationFrame(this._stickyRaf);
+    this._stickyRaf = 0;
+    this._stickyAttached = false;
+    this._stickyState = INITIAL_STICKY;
+    this._stickySelectPending = false;
+  }
+
+  /** rAF-throttled scroll/resize/pane-resize handler for the docked pane. */
+  private _onStickyScroll = (): void => {
+    if (this._stickyRaf) return;
+    this._stickyRaf = requestAnimationFrame(() => {
+      this._stickyRaf = 0;
+      this._updateStickyPane();
+    });
+  };
+
+  /** Measure scroller/pane/list and apply the next docking state as inline
+   *  `top` + `margin-top` on the (sticky) pane. */
+  private _updateStickyPane(): void {
+    const sr = this.shadowRoot;
+    const content = sr?.querySelector<HTMLElement>(".content");
+    const pane = sr?.querySelector<HTMLElement>(".split-pane");
+    const layout = sr?.querySelector<HTMLElement>(".split-layout");
+    const list = sr?.querySelector<HTMLElement>(".split-list");
+    if (!content || !pane || !layout || !list) return;
+    // Viewport y of the scroller's content origin — turns client rects
+    // into scrollTop-space offsets.
+    const origin = content.getBoundingClientRect().top - content.scrollTop;
+    const m = {
+      scrollTop: content.scrollTop,
+      viewH: content.clientHeight,
+      paneH: pane.offsetHeight,
+      listH: list.offsetHeight,
+      layoutTop: layout.getBoundingClientRect().top - origin,
+      renderedTop: pane.getBoundingClientRect().top - origin,
+    };
+    // Fresh selection: the detail view fills in asynchronously (its own
+    // update + WS loads), so keep re-parking on every pane resize until the
+    // user scrolls — from then on the direction machine owns the state.
+    if (this._stickySelectPending && m.scrollTop === this._stickyState.lastScrollTop) {
+      this._stickyState = stickyStateOnSelect(m);
+    } else {
+      this._stickySelectPending = false;
+      this._stickyState = nextStickyState(this._stickyState, m);
+    }
+    const next = this._stickyState;
+    pane.style.top = `${stickyTop(next.mode, m)}px`;
+    pane.style.marginTop = next.marginTop > 0 ? `${next.marginTop}px` : "";
+  }
+
+  /** A new selection parks the pane where the user is looking, whatever the
+   *  pane was doing before (see stickyStateOnSelect). */
+  private _resetStickyPane(): void {
+    const content = this.shadowRoot?.querySelector<HTMLElement>(".content");
+    this._stickyState = { ...INITIAL_STICKY, lastScrollTop: content?.scrollTop ?? 0 };
+    this._stickySelectPending = true;
   }
 
   /** rAF-throttled scroll/resize handler for the virtualized task table. */
@@ -1098,6 +1205,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._selectedTaskId = taskId;
       this._activeTab = "overview";
       this._historyFilter = null;
+      this._resetStickyPane();
       this._fetchFullHistory(entryId, taskId);
       const task = this._getTask(entryId, taskId);
       if (task?.trigger_config?.entity_id) {
@@ -2721,20 +2829,51 @@ export class MaintenanceSupporterPanel extends LitElement {
       : this._groupByMode === "group" ? "mdi:folder-outline"
       : this._groupByMode === "object" ? "mdi:cube-outline"
       : "mdi:account-outline";
+    // ONE grid owns the column tracks for every section (each section card
+    // and its row block are column subgrids), so the badge/object/name
+    // columns line up across sections no matter which badges a section
+    // carries — per-section tables started the task name up to 60px apart
+    // ("OK"-only vs overdue+ok sections). A <details> can't sit in that
+    // chain (Chrome's ::details-content box breaks subgrid), hence the
+    // div-based disclosure with its own collapsed state.
     return html`
-      ${sorted.map(([key, taskRows]) => html`
-        <details class="group-section" open>
-          <summary class="group-section-header">
-            <ha-icon icon="${icon}"></ha-icon>
-            <span>${key}</span>
-            <span class="group-section-count">(${taskRows.length})</span>
-          </summary>
-          <div class="task-table${this._bulkMode ? " bulk" : ""}">
-            ${taskRows.map((row) => this._renderOverviewRow(row))}
-          </div>
-        </details>
-      `)}
+      <div class="task-table grouped${this._bulkMode ? " bulk" : ""}">
+        ${sorted.map(([key, taskRows]) => {
+          const open = !this._collapsedGroups.has(key);
+          return html`
+            <div class="group-section" ?open=${open}>
+              <div
+                class="group-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded=${open ? "true" : "false"}
+                @click=${() => this._toggleGroup(key)}
+                @keydown=${(e: KeyboardEvent) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    this._toggleGroup(key);
+                  }
+                }}
+              >
+                <ha-icon icon="${icon}"></ha-icon>
+                <span>${key}</span>
+                <span class="group-section-count">(${taskRows.length})</span>
+              </div>
+              ${open
+                ? html`<div class="group-rows">${taskRows.map((row) => this._renderOverviewRow(row))}</div>`
+                : nothing}
+            </div>
+          `;
+        })}
+      </div>
     `;
+  }
+
+  private _toggleGroup(key: string): void {
+    const next = new Set(this._collapsedGroups);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this._collapsedGroups = next;
   }
 
   // (#67) Localised warranty label, shared by the detail meta + table cell.

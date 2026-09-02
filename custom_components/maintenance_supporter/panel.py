@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import logging
 from pathlib import Path
+from typing import Any
 
 from homeassistant.components import frontend, panel_custom
 
@@ -29,6 +31,25 @@ _LOGGER = logging.getLogger(__name__)
 # recreate / reinstall re-adds a route HA still holds and aiohttp raises
 # "Added route will never be executed, method GET is already registered".
 _PANEL_STATIC_URL_KEY = f"{DOMAIN}_panel_static_url"
+
+
+def _accepts_handle_safe_area() -> bool:
+    """HA 2026.8+: ``panel_custom.async_register_panel(handle_safe_area=...)``.
+
+    2026.8 wraps every custom panel that does not opt out in a
+    ``display: block`` element padded with the device's safe-area insets.
+    That wrapper has no height of its own, so the panel's ``height: 100%``
+    collapsed to "auto": the whole document scrolled instead of the panel's
+    ``.content``, and every sticky surface (bulk bar, docked task detail)
+    silently stopped sticking. We lay the panel out ourselves — ``.panel``
+    carries the insets — so opt out wherever the kwarg exists. Probe the
+    KWARG, never a neighbouring symbol (#144 lesson).
+    """
+    try:
+        params = inspect.signature(panel_custom.async_register_panel).parameters
+    except (TypeError, ValueError):
+        return False
+    return "handle_safe_area" in params
 
 
 async def _async_file_hash(hass: HomeAssistant, path: Path) -> str:
@@ -86,6 +107,7 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
     if PANEL_NAME in hass.data.get(frontend.DATA_PANELS, {}):
         frontend.async_remove_panel(hass, PANEL_NAME, warn_if_unknown=False)
 
+    extra: dict[str, Any] = {"handle_safe_area": True} if _accepts_handle_safe_area() else {}
     await panel_custom.async_register_panel(
         hass,
         frontend_url_path=PANEL_NAME,
@@ -95,6 +117,7 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
         module_url=versioned_url,
         require_admin=False,
         config={},
+        **extra,
     )
 
     hass.data.setdefault(DOMAIN, {})["_panel_registered"] = True

@@ -63,4 +63,50 @@ describe("skip lock + group-by object (#150)", () => {
     const headers = sections.map((s) => s.querySelector(".group-section-header span")!.textContent);
     expect(new Set(headers).size).to.equal(2);
   });
+
+  it("group sections share ONE set of column tracks: task names align across sections", async () => {
+    // Section A carries "Overdue" + "OK" badges, section B only "OK" — with
+    // per-section tables B's content-sized badge column was narrower and
+    // its names started further left (2026-09-02 report: "unruhig").
+    const el = await mount([
+      obj("e1", [task({ status: "overdue" }), task({ status: "ok" })], "Espresso Machine"),
+      obj("e2", [task({ status: "ok" }), task({ status: "ok" })], "Bicycle"),
+    ]);
+    el._groupByMode = "object";
+    await el.updateComplete;
+    const sr = el.shadowRoot!;
+    await waitUntil(() => sr.querySelectorAll(".group-section .task-row").length === 4, "four grouped rows");
+    const lefts = [...sr.querySelectorAll(".group-section .task-row .cell.task-name")].map(
+      (c) => Math.round(c.getBoundingClientRect().left),
+    );
+    expect(new Set(lefts).size, `task-name x per row: ${lefts.join(",")}`).to.equal(1);
+    const dues = [...sr.querySelectorAll(".group-section .task-row .due-cell")].map(
+      (c) => Math.round(c.getBoundingClientRect().left),
+    );
+    expect(new Set(dues).size, `due x per row: ${dues.join(",")}`).to.equal(1);
+  });
+
+  it("section headers toggle their rows (div-based disclosure, keyboard too)", async () => {
+    const el = await mount([
+      obj("e1", [task({ status: "overdue" })], "Espresso Machine"),
+      obj("e2", [task({ status: "ok" })], "Bicycle"),
+    ]);
+    el._groupByMode = "object";
+    await el.updateComplete;
+    const sr = el.shadowRoot!;
+    await waitUntil(() => sr.querySelectorAll(".group-section").length === 2, "two sections");
+    const first = sr.querySelector(".group-section")!;
+    const header = first.querySelector<HTMLElement>(".group-section-header")!;
+    expect(first.hasAttribute("open")).to.equal(true);
+    expect(header.getAttribute("aria-expanded")).to.equal("true");
+    header.click();
+    await el.updateComplete;
+    expect(first.hasAttribute("open"), "collapsed after click").to.equal(false);
+    expect(first.querySelectorAll(".task-row").length).to.equal(0);
+    expect(sr.querySelectorAll(".group-section .task-row").length, "other section untouched").to.equal(1);
+    header.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await el.updateComplete;
+    expect(first.hasAttribute("open"), "re-opened via keyboard").to.equal(true);
+    expect(first.querySelectorAll(".task-row").length).to.equal(1);
+  });
 });

@@ -49,6 +49,77 @@ async def test_register_panel(hass: HomeAssistant) -> None:
         assert call_kwargs[1]["frontend_url_path"] == "maintenance-supporter"
 
 
+async def test_register_panel_opts_out_of_safe_area_wrapper(hass: HomeAssistant) -> None:
+    """HA 2026.8+ accepts ``handle_safe_area``: pass True so HA does not wrap
+    the panel in its height-less ``display: block`` safe-area box (which
+    collapsed the panel's 100 % height, moved scrolling to the document and
+    killed every sticky surface). The probe must key on the KWARG itself."""
+
+    hass.data.setdefault(DOMAIN, {})
+    seen: dict[str, object] = {}
+
+    async def modern(
+        hass_: HomeAssistant,
+        frontend_url_path: str,
+        webcomponent_name: str,
+        sidebar_title: str | None = None,
+        sidebar_icon: str | None = None,
+        js_url: str | None = None,
+        module_url: str | None = None,
+        embed_iframe: bool = False,
+        trust_external: bool = False,
+        config: dict | None = None,
+        require_admin: bool = False,
+        config_panel_domain: str | None = None,
+        handle_safe_area: bool = False,
+    ) -> None:
+        # The explicit kwarg in the signature is what the probe looks for.
+        seen.update({"frontend_url_path": frontend_url_path, "handle_safe_area": handle_safe_area})
+
+    with patch(
+        "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
+        new=modern,
+    ):
+        await async_register_panel(hass)
+
+    assert seen.get("handle_safe_area") is True
+    assert seen.get("frontend_url_path") == "maintenance-supporter"
+
+
+async def test_register_panel_skips_safe_area_kwarg_on_older_cores(hass: HomeAssistant) -> None:
+    """HA <= 2026.7 has no ``handle_safe_area`` — passing it would TypeError
+    the whole global-entry setup (#144-style regression). The kwarg is only
+    sent when the signature carries it."""
+
+    hass.data.setdefault(DOMAIN, {})
+    seen: dict[str, object] = {}
+
+    async def legacy(
+        hass_: HomeAssistant,
+        frontend_url_path: str,
+        webcomponent_name: str,
+        sidebar_title: str | None = None,
+        sidebar_icon: str | None = None,
+        js_url: str | None = None,
+        module_url: str | None = None,
+        embed_iframe: bool = False,
+        trust_external: bool = False,
+        config: dict | None = None,
+        require_admin: bool = False,
+        config_panel_domain: str | None = None,
+    ) -> None:
+        seen.update({"frontend_url_path": frontend_url_path, "module_url": module_url})
+
+    with patch(
+        "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
+        new=legacy,
+    ):
+        await async_register_panel(hass)
+
+    assert seen["frontend_url_path"] == "maintenance-supporter"
+    assert "handle_safe_area" not in seen
+
+
 async def test_register_panel_idempotent(hass: HomeAssistant) -> None:
     """Test that second registration is a no-op."""
 

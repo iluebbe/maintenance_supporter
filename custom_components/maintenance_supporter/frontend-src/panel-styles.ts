@@ -9,8 +9,22 @@ export const panelStyles = css`
     background: var(--primary-background-color);
   }
 
+  /* The panel lays itself out: a bounded host, the header on top and
+     .content as THE scroll container (virtualized table, sticky bulk bar
+     and the docked split-view detail all hang off its scroll position).
+     HA 2026.8 started wrapping custom panels in a height-less, safe-area
+     padded block — which turned our 100% into "auto" and moved scrolling to
+     the document. panel.py opts out of that wrapper (handle_safe_area), so
+     the insets are ours to apply: same padding HA would have added, inside
+     the bounded box. The vars are 0 on desktop / older cores. */
   .panel {
     height: 100%;
+    box-sizing: border-box;
+    padding:
+      var(--safe-area-inset-top, 0px)
+      var(--safe-area-content-inset-right, var(--safe-area-inset-right, 0px))
+      var(--safe-area-inset-bottom, 0px)
+      var(--safe-area-content-inset-left, var(--safe-area-inset-left, 0px));
     display: flex;
     flex-direction: column;
   }
@@ -141,6 +155,19 @@ export const panelStyles = css`
     padding-left: 2px;
   }
 
+  /* Saved-views "save" icon-button sits in the select row: size it to the
+     select (36px) so its icon centres on the select, not 6px above it.
+     HA ≥2025.11 sizes ha-icon-button via --ha-icon-button-size (the old
+     --mdc-icon-button-size is a no-op there); older cores the other way
+     round, so declare both. */
+  .views-save-btn {
+    --ha-icon-button-size: 36px;
+    --mdc-icon-button-size: 36px;
+    --mdc-icon-size: 20px;
+    color: var(--secondary-text-color);
+    margin: 0 -2px 0 -4px;
+  }
+
   .filter-bar select {
     padding: 8px;
     border: 1px solid var(--divider-color);
@@ -230,6 +257,24 @@ export const panelStyles = css`
   }
   .bulk-check { display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
+  /* Group-by sections: the OUTER .task-table owns the column tracks (every
+     breakpoint's template above applies to it unchanged); each section card
+     and its row block are column subgrids, so the badge/object/name columns
+     line up across sections — a section whose rows are all "OK" no longer
+     starts its names 60px left of one that also carries "Overdue". */
+  .task-table.grouped > .group-section {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+  }
+  .task-table.grouped .group-section-header { grid-column: 1 / -1; }
+  .task-table.grouped .group-rows {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    padding: 0 12px;
+  }
+
   /* Master-detail split (>=1500px panel, 2026-09-01): list left, docked task
      detail right - the width finally carries content instead of slack. Only
      the dashboard tab uses it; below the threshold everything is unchanged. */
@@ -248,12 +293,14 @@ export const panelStyles = css`
   .split-list .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
   .split-list .cell.type { display: none; }
   .split-list .task-sub { display: none; }
+  /* The pane never scrolls on its own: it is as tall as the detail and
+     docks scroll-aware (helpers/sticky-pane sets top/margin-top inline) —
+     top edge while scrolling up, bottom edge while scrolling down, so a
+     long detail is read by scrolling the list, not a nested scrollbar. */
   .split-pane {
     min-width: 0;
     position: sticky;
     top: 8px;
-    max-height: calc(100vh - 140px);
-    overflow-y: auto;
     border: 1px solid var(--divider-color);
     border-radius: 12px;
     padding: 4px 16px 16px;
