@@ -36,11 +36,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   buttons — filled green Complete, outlined orange Skip, since with no
   word left the colour is the only cue. Rows are about a third shorter;
   bulk-select and the object page follow the same grid. (#150)
-- **Skip is orange everywhere.** The labelled Skip button (wide task rows,
-  the task page header, the quick-actions dialog) now wears the same
-  outlined warning colour as the icon-only phone pair, so the two actions
-  read the same on every screen size. The classic "icons" row style stays
-  uncoloured. (#150)
+- **Complete / Skip look the same everywhere.** The labelled Skip button
+  (wide task rows, the task page header, the quick-actions dialog) now
+  wears the same outlined warning colour as the icon-only phone pair, and
+  the task page header's Complete is the same filled green as in the rows
+  and the dialog instead of the theme-blue it had. The classic "icons" row
+  style stays uncoloured. (#150)
 - **Banners wrap on phones.** The stale-bundle and row-style notices let
   their buttons wrap under the text instead of squeezing it into a
   one-word-per-line column.

@@ -130,7 +130,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         }
       </div>
       <div class="task-header-actions">
-        <ha-button appearance="filled" @click=${() => ctx.openComplete(task)}>${t("complete", L)}</ha-button>
+        <ha-button appearance="accent" variant="success" @click=${() => ctx.openComplete(task)}>${t("complete", L)}</ha-button>
         ${task.allow_skip !== false
           ? html`<ha-button appearance="outlined" variant="warning" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>`
           : nothing}

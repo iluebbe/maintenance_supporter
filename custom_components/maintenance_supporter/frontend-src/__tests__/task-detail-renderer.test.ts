@@ -150,12 +150,15 @@ describe("task-detail renderer", () => {
       promptSkip: () => { skipped++; },
     }));
     const buttons = [...host.querySelectorAll(".task-header-actions ha-button")];
-    (buttons[0] as HTMLElement).click(); // Complete (filled)
+    (buttons[0] as HTMLElement).click(); // Complete (accent/success)
     (buttons[1] as HTMLElement).click(); // Skip
     expect(completed).to.not.be.null;
     expect(completed!.name).to.equal("Filter Wechsel");
     expect(skipped).to.equal(1);
-    // Skip is outlined orange on every surface (#150 follow-up), the detail header included.
+    // Same pairing as the task rows and the quick-actions dialog (#150
+    // follow-up): filled green Complete, outlined orange Skip.
+    expect(buttons[0].getAttribute("appearance")).to.equal("accent");
+    expect(buttons[0].getAttribute("variant")).to.equal("success");
     expect(buttons[1].getAttribute("appearance")).to.equal("outlined");
     expect(buttons[1].getAttribute("variant")).to.equal("warning");
   });

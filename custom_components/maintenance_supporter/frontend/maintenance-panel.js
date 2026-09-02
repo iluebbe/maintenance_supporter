@@ -4708,7 +4708,7 @@ ${d.capped?`<p class="cap-note">${P(t.capNote)}</p>`:""}
             </span>`}
       </div>
       <div class="task-header-actions">
-        <ha-button appearance="filled" @click=${()=>l.openComplete(r)}>${a("complete",t)}</ha-button>
+        <ha-button appearance="accent" variant="success" @click=${()=>l.openComplete(r)}>${a("complete",t)}</ha-button>
         ${r.allow_skip!==!1?o`<ha-button appearance="outlined" variant="warning" .disabled=${l.actionLoading} @click=${()=>l.promptSkip()}>${a("skip",t)}</ha-button>`:p}
         <div class="more-menu-wrapper">
           <ha-icon-button .disabled=${l.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${()=>l.toggleMoreMenu()}></ha-icon-button>
