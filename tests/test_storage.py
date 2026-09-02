@@ -310,6 +310,38 @@ async def test_merge_task_data_trigger_runtime_into_trigger_config(
     assert tc["_trigger_state"]["sensor.x"]["baseline_value"] == 100.0
 
 
+async def test_merge_task_data_reshapes_legacy_flat_runtime_per_entity(
+    hass: HomeAssistant,
+) -> None:
+    """Flat legacy keys (adopt baseline #102, imported runtime totals) must
+    reach the triggers in the per-entity shape they restore from — handing
+    them over flat made every trigger start from the current reading."""
+    store = MaintenanceStore(hass, "merge_legacy")
+    store._data["tasks"]["t1"] = {"trigger_runtime_legacy": {"trigger_baseline_value": 20000, "trigger_on_since": None}}
+    store._data["tasks"]["t2"] = {"trigger_runtime_legacy": {"trigger_accumulated_seconds": 36000.0}}
+
+    counter = store.merge_task_data(
+        "t1", {"id": "t1", "trigger_config": {"type": "counter", "entity_id": "sensor.odo", "trigger_delta_mode": True}}
+    )
+    assert counter["trigger_config"]["_trigger_state"] == {"sensor.odo": {"baseline_value": 20000}}
+
+    runtime = store.merge_task_data(
+        "t2", {"id": "t2", "trigger_config": {"type": "runtime", "entity_ids": ["switch.pump", "switch.pump2"]}}
+    )
+    assert runtime["trigger_config"]["_trigger_state"] == {"switch.pump": {"accumulated_seconds": 36000.0}}
+
+    # Per-entity data, once persisted by the trigger, wins over the legacy keys.
+    store.set_trigger_runtime("t1", "sensor.odo", {"baseline_value": 27000.0})
+    counter = store.merge_task_data(
+        "t1", {"id": "t1", "trigger_config": {"type": "counter", "entity_id": "sensor.odo", "trigger_delta_mode": True}}
+    )
+    assert counter["trigger_config"]["_trigger_state"] == {"sensor.odo": {"baseline_value": 27000.0}}
+
+    # No entity to key by -> nothing injected (and no crash).
+    orphan = store.merge_task_data("t2", {"id": "t2", "trigger_config": {"type": "runtime"}})
+    assert "_trigger_state" not in orphan["trigger_config"]
+
+
 async def test_merge_all_tasks(hass: HomeAssistant) -> None:
     """merge_all_tasks merges multiple tasks."""
     store = MaintenanceStore(hass, "merge_3")
@@ -608,4 +640,4 @@ async def test_storage_merge_with_legacy_trigger_runtime(hass: HomeAssistant) ->
         "trigger_config": {"type": "runtime", "entity_id": "sensor.y"},
     }
     merged = store.merge_task_data(task_id, static_data)
-    assert "_trigger_state" in merged.get("trigger_config", {})
+    assert merged["trigger_config"]["_trigger_state"] == {"sensor.y": {"accumulated_seconds": 100}}

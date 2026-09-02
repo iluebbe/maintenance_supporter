@@ -1746,7 +1746,7 @@
     },
     "list_tasks": {
       "name": "List Tasks",
-      "description": "Return a snapshot of active maintenance tasks (id, name, status, next due) for automations, scripts and voice. Supports filtering by object and status.",
+      "description": "Return a snapshot of active maintenance tasks (ids, sensor entity_id, name, status, next due, last completion, live trigger reading with target and unit) for automations, scripts and voice. Supports filtering by object and status.",
       "fields": {
         "entry_id": {
           "name": "Object",

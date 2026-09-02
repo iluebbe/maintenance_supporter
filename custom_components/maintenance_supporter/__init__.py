@@ -83,6 +83,9 @@ from .const import (
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
     STORES_CACHE_KEY,
+    TriggerType,
+    slugify_object_name,
+    task_unique_id,
 )
 from .const import (
     DOCUMENT_STORE_KEY as _DS_KEY,
@@ -393,6 +396,30 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
             )
 
 
+# Mirrors renderers/progress.ts: the configured limit and the unit the panel
+# shows next to the live reading, per trigger type. Runtime accumulates HOURS
+# regardless of the watched entity (a switch has no unit_of_measurement),
+# state_change counts transitions (no unit), threshold/counter carry the
+# source entity's unit.
+def _trigger_target_and_unit(hass: HomeAssistant, tc: dict[str, Any]) -> tuple[float | None, str | None]:
+    ttype = tc.get("type")
+    if ttype == TriggerType.RUNTIME:
+        return tc.get("trigger_runtime_hours"), "h"
+    if ttype == TriggerType.STATE_CHANGE:
+        return tc.get("trigger_target_changes"), None
+    if ttype == TriggerType.COMPOUND:
+        return None, None
+    unit: str | None = None
+    if tc.get("entity_id"):
+        st = hass.states.get(tc["entity_id"])
+        if st:
+            unit = st.attributes.get("unit_of_measurement")
+    if ttype == TriggerType.COUNTER:
+        return tc.get("trigger_target_value"), unit
+    above, below = tc.get("trigger_above"), tc.get("trigger_below")
+    return (above if above is not None else below), unit
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Maintenance Supporter integration."""
     return await _async_setup_shared(hass)
@@ -701,6 +728,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         wanted_entry = call.data.get("entry_id")
         wanted_status = call.data.get("status")
         tasks: list[dict[str, Any]] = []
+        ent_reg = er.async_get(hass)
         for ce in hass.config_entries.async_entries(DOMAIN):
             if ce.unique_id == GLOBAL_UNIQUE_ID:
                 continue
@@ -711,6 +739,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             if coordinator is None or not coordinator.data:
                 continue
             object_name = aggregate_object_name(ce)
+            # #151 follow-up: the task sensor's REGISTERED entity_id (users
+            # rename them), so a row can be fed straight into complete/skip.
+            object_slug = slugify_object_name((ce.data.get(CONF_OBJECT) or {}).get("name", "unknown"))
             for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
                 status = str(task.get("_status", ""))
                 if status == "archived":
@@ -727,15 +758,14 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                     except ValueError:
                         days_since = None
                 tc = task.get("trigger_config") or {}
-                trigger_unit: str | None = None
-                if tc.get("entity_id"):
-                    st = hass.states.get(tc["entity_id"])
-                    if st:
-                        trigger_unit = st.attributes.get("unit_of_measurement")
+                trigger_target, trigger_unit = _trigger_target_and_unit(hass, tc)
                 tasks.append(
                     {
                         "entry_id": ce.entry_id,
                         "task_id": task_id,
+                        "entity_id": ent_reg.async_get_entity_id(
+                            "sensor", DOMAIN, task_unique_id(object_slug, task_id)
+                        ),
                         "object_name": object_name,
                         "name": task.get("name"),
                         "status": status,
@@ -745,7 +775,12 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                         "priority": task.get("priority", "normal"),
                         "last_performed": lp,
                         "days_since_last_completed": days_since,
+                        "trigger_type": tc.get("type"),
                         "trigger_current_value": task.get("_trigger_current_value"),
+                        # Delta-mode counters: progress since the last service
+                        # (what the panel bar shows); None for every other trigger.
+                        "trigger_current_delta": task.get("_trigger_current_delta"),
+                        "trigger_target": trigger_target,
                         "trigger_unit": trigger_unit,
                     }
                 )

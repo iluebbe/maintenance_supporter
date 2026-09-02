@@ -540,6 +540,101 @@ async def test_list_tasks_reports_last_completion_and_trigger_reading(
     assert "trigger_unit" in row
 
 
+
+async def test_list_tasks_units_follow_trigger_type_and_rows_carry_entity_id(
+    hass: HomeAssistant, global_config_entry: ConfigEntry
+) -> None:
+    """#151 follow-up: runtime reads in hours even though the watched switch has
+    no unit; every row names its sensor so it can be fed into complete/skip."""
+    from custom_components.maintenance_supporter.const import ScheduleType
+
+    from .conftest import build_task_data, make_object_entry
+
+    hass.states.async_set("switch.toothbrush", "on")
+    hass.states.async_set("sensor.ink", "54.2", {"unit_of_measurement": "%"})
+    hass.states.async_set("sensor.odometer", "27000", {"unit_of_measurement": "km"})
+    tasks = {
+        "rt": build_task_data(
+            task_id="rt",
+            name="Brush Head",
+            schedule_type=ScheduleType.SENSOR_BASED,
+            # flat accumulated seconds = the shape a backup import / adoption
+            # writes; must survive the first setup (storage legacy reshape).
+            trigger_config={
+                "type": "runtime",
+                "entity_id": "switch.toothbrush",
+                "trigger_runtime_hours": 6,
+                "trigger_accumulated_seconds": 3600,
+            },
+        ),
+        "th": build_task_data(
+            task_id="th",
+            name="Cyan Ink",
+            schedule_type=ScheduleType.SENSOR_BASED,
+            trigger_config={"type": "threshold", "entity_id": "sensor.ink", "trigger_below": 10},
+        ),
+        "ct": build_task_data(
+            task_id="ct",
+            name="Oil",
+            schedule_type=ScheduleType.SENSOR_BASED,
+            trigger_config={
+                "type": "counter",
+                "entity_id": "sensor.odometer",
+                "trigger_target_value": 15000,
+                "trigger_delta_mode": True,
+                "trigger_baseline_value": 20000,
+            },
+        ),
+        "sc": build_task_data(
+            task_id="sc",
+            name="Door",
+            schedule_type=ScheduleType.SENSOR_BASED,
+            trigger_config={"type": "state_change", "entity_id": "switch.toothbrush", "trigger_target_changes": 50},
+        ),
+        "plain": build_task_data(task_id="plain", name="Plain"),
+    }
+    entry = make_object_entry(hass, tasks=tasks, name="Bedroom Toothbrush", uid="list_units")
+    await setup_integration(hass, global_config_entry, entry)
+
+    async def _rows() -> dict[str, dict]:
+        resp = await hass.services.async_call(
+            DOMAIN, "list_tasks", {"entry_id": entry.entry_id}, blocking=True, return_response=True
+        )
+        return {r["task_id"]: r for r in resp["tasks"]}
+
+    rows = await _rows()
+    assert set(rows) == set(tasks)
+
+    assert rows["rt"]["trigger_type"] == "runtime"
+    assert rows["rt"]["trigger_unit"] == "h"
+    assert rows["rt"]["trigger_target"] == 6
+    assert rows["rt"]["trigger_current_value"] == 1.0
+    assert rows["th"]["trigger_unit"] == "%"
+    assert rows["th"]["trigger_target"] == 10
+    assert rows["ct"]["trigger_unit"] == "km"
+    assert rows["ct"]["trigger_target"] == 15000
+    assert rows["ct"]["trigger_current_delta"] == 7000
+    assert rows["sc"]["trigger_type"] == "state_change"
+    assert rows["sc"]["trigger_unit"] is None
+    assert rows["sc"]["trigger_target"] == 50
+    assert rows["plain"]["trigger_type"] is None
+    assert rows["plain"]["trigger_target"] is None
+    assert rows["plain"]["trigger_current_delta"] is None
+
+    # entity_id = the registered task sensor, and it follows a user rename.
+    reg = er.async_get(hass)
+    assert rows["rt"]["entity_id"] == "sensor.bedroom_toothbrush_brush_head"
+    assert reg.async_get(rows["rt"]["entity_id"]) is not None
+    reg.async_update_entity(rows["rt"]["entity_id"], new_entity_id="sensor.my_brush")
+    await hass.async_block_till_done()
+    assert (await _rows())["rt"]["entity_id"] == "sensor.my_brush"
+
+    # …and that id is exactly what complete/skip accept.
+    await hass.services.async_call(DOMAIN, SERVICE_COMPLETE, {"entity_id": "sensor.my_brush"}, blocking=True)
+    await hass.async_block_till_done()
+    assert get_task_store_state(hass, entry.entry_id, "rt").get("last_performed") == dt_util.now().date().isoformat()
+
+
 # ─── #159: persistent notifications carry a tappable deep link ───────────
 
 

@@ -45,6 +45,39 @@ _LEGACY_TRIGGER_RUNTIME_KEYS = (
     "trigger_on_since",
 )
 
+# Flat legacy key -> the per-entity ``_trigger_state`` key the trigger classes
+# restore from (entity/triggers/_inject_per_entity_state).
+_LEGACY_TO_PER_ENTITY_KEY = {
+    "trigger_baseline_value": "baseline_value",
+    "trigger_accumulated_seconds": "accumulated_seconds",
+    "trigger_change_count": "change_count",
+    "trigger_on_since": "on_since",
+}
+
+
+def legacy_runtime_to_trigger_state(trigger_config: Mapping[str, Any], legacy: Mapping[str, Any]) -> dict[str, Any]:
+    """Shape ``trigger_runtime_legacy`` (flat keys) like a per-entity ``_trigger_state``.
+
+    The flat keys are split off the static config on first setup and parked
+    under ``trigger_runtime_legacy`` — but the triggers only ever read the
+    per-entity shape ``{entity_id: {baseline_value: …}}``. Handing them the
+    flat dict verbatim meant an adopted "last service was at 20 000 km"
+    baseline (#102), an imported runtime total or a hand-edited counter
+    baseline was silently replaced by the current reading on the first
+    start. Keyed by the first entity: legacy configs only ever had one.
+    """
+    if legacy and all(isinstance(v, Mapping) for v in legacy.values()):
+        # Already per-entity (defensive: nothing writes this shape today).
+        return dict(legacy)
+    entity_ids = trigger_config.get("entity_ids") or [trigger_config.get("entity_id")]
+    first = next((eid for eid in entity_ids if eid), None)
+    per_entity = {
+        _LEGACY_TO_PER_ENTITY_KEY[k]: v for k, v in legacy.items() if k in _LEGACY_TO_PER_ENTITY_KEY and v is not None
+    }
+    if not first or not per_entity:
+        return {}
+    return {first: per_entity}
+
 
 class MaintenanceStore:
     """Manages dynamic state storage for a single maintenance object.
@@ -366,9 +399,10 @@ class MaintenanceStore:
 
         # Merge trigger_runtime into trigger_config._trigger_state
         trigger_runtime = state.get("trigger_runtime")
-        if not trigger_runtime:
-            # Fall back to legacy flat runtime keys if no per-entity data yet
-            trigger_runtime = state.get("trigger_runtime_legacy")
+        if not trigger_runtime and state.get("trigger_runtime_legacy") and "trigger_config" in result:
+            # No per-entity data yet: reshape the legacy flat keys so the
+            # triggers actually restore them (see legacy_runtime_to_trigger_state).
+            trigger_runtime = legacy_runtime_to_trigger_state(result["trigger_config"], state["trigger_runtime_legacy"])
         if trigger_runtime and "trigger_config" in result:
             tc = dict(result["trigger_config"])
             # Restructure compound flat keys (_compound_N_key) into nested
