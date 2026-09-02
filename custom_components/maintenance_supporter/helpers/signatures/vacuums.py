@@ -38,13 +38,25 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "dreame_vacuum": IntegrationSignature(
         name="Dreame Vacuum",
-        verified="2026-07-16 @ Tasshack/dreame-vacuum master",
-        source="Tasshack/dreame-vacuum custom_components/dreame_vacuum/sensor.py (property keys *_left, percent)",
+        verified="2026-09-02 @ Tasshack/dreame-vacuum master (ae8422f2)",
+        source=(
+            "Tasshack/dreame-vacuum custom_components/dreame_vacuum/sensor.py "
+            "(property_key *_LEFT, UNIT_PERCENT) + dreame/const.py PROPERTY_TO_NAME "
+            "(translation_key = first element, e.g. mop_pad_left); every *_left "
+            "sensor is entity_registry_enabled_default=False — the user enables "
+            "the ones their model has (#150, station consumables)."
+        ),
         tasks=(
             ConsumableSignature(("main_brush_left",), "Replace Main Brush", "percent_left"),
             ConsumableSignature(("side_brush_left",), "Replace Side Brush", "percent_left"),
             ConsumableSignature(("filter_left",), "Replace Filter", "percent_left"),
             ConsumableSignature(("sensor_dirty_left",), "Clean Sensors", "percent_left"),
+            # Self-wash base stations (L10s/L20/X30/X40 …) add four more wear
+            # counters — same percent scale, same *_left key convention.
+            ConsumableSignature(("mop_pad_left",), "Replace Mop Pads", "percent_left"),
+            ConsumableSignature(("detergent_left",), "Refill Detergent", "percent_left"),
+            ConsumableSignature(("secondary_filter_left",), "Replace Secondary Filter", "percent_left"),
+            ConsumableSignature(("silver_ion_left",), "Replace Silver-ion Module", "percent_left"),
         ),
     ),
     "ecovacs": IntegrationSignature(

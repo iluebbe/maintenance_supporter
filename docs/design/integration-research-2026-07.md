@@ -1113,3 +1113,23 @@ Never-walked classes yielded THREE new templates (catalog 42→45):
 
 Parked as niche for a later pass: e-scooters, musical instruments (piano
 tuning), dumb dehumidifiers.
+
+## Dreame station consumables (2026-09-02, #150 user request)
+
+The 2026-07 "confirmed optimal" vacuum verdict above was wrong for Dreame:
+`dreame_vacuum` (Tasshack, master ae8422f2) exposes FOUR more `*_left`
+percent sensors beyond brushes/filter/sensors — `mop_pad_left`,
+`detergent_left`, `secondary_filter_left`, `silver_ion_left` (sensor.py
+`property_key=DreameVacuumProperty.*_LEFT`, `UNIT_PERCENT`; translation_key =
+`PROPERTY_TO_NAME[...][0]` in dreame/const.py). All eight are
+`entity_registry_enabled_default=False`, so discovery only sees the ones the
+user enabled — same as the four already shipped. Shipped as *Replace Mop
+Pads* / *Refill Detergent* / *Replace Secondary Filter* / *Replace Silver-ion
+Module* (percent_left, default below 10 %). The `*_time_left` twins (hours /
+days) are deliberately NOT added: same duty, same direction → per-device
+dedupe would keep only one anyway, and percent is the scale the app shows.
+Catalog: 123 integrations / 235 signatures.
+
+Lesson: "every wear duty is covered" was checked against the four keys we
+already had, not against the integration's full `*_LEFT` enum — a re-audit
+must diff the ENUM, not our list.

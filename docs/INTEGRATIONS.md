@@ -131,6 +131,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Replace Side Brush | below 10 % remaining |  |
 |  |  | Replace Filter | below 10 % remaining |  |
 |  |  | Clean Sensors | below 10 % remaining |  |
+|  |  | Replace Mop Pads | below 10 % remaining |  |
+|  |  | Refill Detergent | below 10 % remaining |  |
+|  |  | Replace Secondary Filter | below 10 % remaining |  |
+|  |  | Replace Silver-ion Module | below 10 % remaining |  |
 | Ecovacs | `ecovacs` | Replace Main Brush | below 10 % remaining |  |
 |  |  | Replace Side Brush | below 10 % remaining |  |
 |  |  | Replace Filter | below 10 % remaining |  |
@@ -418,6 +422,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**123 integrations / 231 verified signatures.**
+**123 integrations / 235 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

@@ -165,11 +165,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "winix": IntegrationSignature(
         name="Winix",
-        verified="2026-07-19 @ iprak/winix master sensor.py (HACS default)",
+        verified="2026-09-02 @ iprak/winix master sensor.py (HACS default)",
         source=(
             "HACS winix: tk 'filter_life' (PERCENTAGE) — % remaining derived "
-            "device-side from filter hours vs the model's "
-            "filter_alarm_duration."
+            "from filter hours vs the model's max filter life "
+            "(wrapper.filter_max_life; was filter_alarm_duration before 2026-09)."
         ),
         tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
     ),

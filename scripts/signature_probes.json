@@ -30,7 +30,11 @@
    "main_brush_left",
    "side_brush_left",
    "filter_left",
-   "sensor_dirty_left"
+   "sensor_dirty_left",
+   "mop_pad_left",
+   "detergent_left",
+   "secondary_filter_left",
+   "silver_ion_left"
   ]
  },
  "xiaomi_miot": {
@@ -894,7 +898,8 @@
   ],
   "strings": [
    "SENSOR_FILTER_LIFE",
-   "filter_alarm_duration"
+   "translation_key=\"filter_life\"",
+   "filter_max_life"
   ]
  },
  "traeger": {
