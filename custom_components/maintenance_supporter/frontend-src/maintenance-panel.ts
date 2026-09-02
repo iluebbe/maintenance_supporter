@@ -2403,13 +2403,15 @@ export class MaintenanceSupporterPanel extends LitElement {
   // duplicating what the card now does.
 
   /** Status badge with a shape icon so status isn't conveyed by colour alone
-   *  (colour-blind accessibility) — icon + text + colour together. */
+   *  (colour-blind accessibility) — icon + text + colour together. The label
+   *  is its own span so narrow/tight rows can drop it (#150: the pill ate a
+   *  third of a phone row) while `title`/`aria-label` keep the text reachable. */
   private _statusBadge(archived: boolean, isDone: boolean, status: string) {
     const L = this._lang;
     const cls = archived ? "archived" : (isDone ? "done" : status);
     const iconKey = archived ? "archived" : (isDone ? "completed" : status);
     const label = archived ? t("archived", L) : (isDone ? t("completed", L) : t(status, L));
-    return html`<span class="status-badge ${cls}"><ha-icon icon="${STATUS_ICONS[iconKey] || "mdi:circle-medium"}"></ha-icon>${label}</span>`;
+    return html`<span class="status-badge ${cls}" role="img" title="${label}" aria-label="${label}"><ha-icon icon="${STATUS_ICONS[iconKey] || "mdi:circle-medium"}"></ha-icon><span class="status-label">${label}</span></span>`;
   }
 
   private _setOverviewTab(tab: "today" | "dashboard" | "calendar" | "settings"): void {
@@ -2763,7 +2765,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <div class="task-row virt-sizer" aria-hidden="true">
         ${this._bulkMode ? html`<span></span>` : nothing}
         <span class="cell-badges">
-          <span class="status-badge"><ha-icon icon="mdi:circle-medium"></ha-icon>${widest}</span>
+          <span class="status-badge"><ha-icon icon="mdi:circle-medium"></ha-icon><span class="status-label">${widest}</span></span>
           ${anyDisabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
           ${anyNfc ? html`<span class="nfc-badge"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
           ${anyPriority ? html`<span class="priority-badge"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>` : nothing}
@@ -3417,8 +3419,10 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${row.priority === "high" ? html`<span class="priority-badge priority-high" title="${t("priority_high", L)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>` : nothing}
           ${row.priority === "low" ? html`<span class="priority-badge priority-low" title="${t("priority_low", L)}"><ha-icon icon="mdi:chevron-double-down"></ha-icon></span>` : nothing}
         </span>
-        <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
-        <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>
+        <span class="row-head">
+          <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
+          <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>
+        </span>
         <span class="task-sub${hasSub ? '' : ' task-sub-empty'}">
           ${row.group_names.length > 0 ? html`
             <span class="sub-chip" title="${t("groups", L)}">
@@ -3485,17 +3489,20 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (style === "buttons" || style === "buttons_compact") {
       const iconOnly = style === "buttons_compact" && (this.narrow || this.tight);
       if (iconOnly) {
-        // Compact narrow form: the primary action stays a solid ha-button
-        // (icon only), the secondary one becomes HA's own icon button.
+        // Compact narrow form: two icon-only ha-buttons — solid green
+        // Complete, outlined orange Skip. Without labels the colour is the
+        // only cue, so Skip wears HA's warning variant instead of the grey
+        // icon button it started as (#150; the labelled forms keep neutral,
+        // their word carries the meaning).
         return html`
           <span class="row-actions as-buttons compact">
-            <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+            <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" aria-label="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
               <ha-icon icon="mdi:check"></ha-icon>
             </ha-button>
             ${allowSkip ? html`
-              <ha-icon-button .label=${t("skip", L)} title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+              <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" aria-label="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
                 <ha-icon icon="mdi:skip-next"></ha-icon>
-              </ha-icon-button>` : nothing}
+              </ha-button>` : nothing}
           </span>`;
       }
       return html`

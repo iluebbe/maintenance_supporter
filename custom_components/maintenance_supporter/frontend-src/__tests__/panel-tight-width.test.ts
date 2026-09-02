@@ -38,7 +38,15 @@ describe("panel tight width (#145)", () => {
     expect(el.narrow).to.equal(false);
     const sr = el.shadowRoot!;
     await waitUntil(() => sr.querySelectorAll(".row-actions.as-buttons.compact").length > 0, "compact row actions");
-    expect(sr.querySelectorAll(".row-actions.compact ha-icon-button").length).to.be.greaterThan(0);
+    // #150 round (2026-09-02): the pair is two icon-only <ha-button>s — a
+    // filled green Complete and an outlined orange Skip (colour is the only
+    // cue once the label is gone).
+    const pair = [...sr.querySelectorAll(".row-actions.compact ha-button")];
+    expect(pair.length).to.equal(2);
+    expect(pair.map((b) => b.getAttribute("variant"))).to.deep.equal(["success", "warning"]);
+    expect(pair.map((b) => b.getAttribute("appearance"))).to.deep.equal(["accent", "outlined"]);
+    expect(pair.every((b) => (b.getAttribute("aria-label") || "").length > 0), "icon-only buttons keep an aria-label").to.equal(true);
+    expect(sr.querySelectorAll(".row-actions.compact ha-icon-button").length).to.equal(0);
   });
 
   it("stays labelled at 1000 px", async () => {

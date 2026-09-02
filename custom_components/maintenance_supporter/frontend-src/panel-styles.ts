@@ -459,6 +459,11 @@ export const panelStyles = css`
   }
 
   .cell { font-size: 14px; }
+  /* Task name + object name travel as one group: in the wide grids the
+     wrapper dissolves (display: contents) so both stay direct grid items in
+     their own tracks; the narrow/tight layouts turn it into the first row
+     (name left, object right — #150). */
+  .row-head { display: contents; }
   .cell.object-name { color: var(--primary-color); cursor: pointer; }
   .cell.task-name { font-weight: 500; }
   .cell.type { color: var(--secondary-text-color); }
@@ -940,15 +945,24 @@ export const panelStyles = css`
   /* Stale-bundle handshake banner (roadmap guard 2) */
   .update-banner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 6px 10px;
     padding: 8px 16px;
     background: color-mix(in srgb, var(--primary-color) 14%, var(--card-background-color, #fff));
     border-bottom: 1px solid var(--divider-color);
     font-size: 14px;
   }
+  /* The text claims the row; on a phone the buttons wrap under it instead of
+     squeezing it into a one-word-per-line column (#150 round, 2026-09-02). */
   .update-banner span {
-    flex: 1;
+    flex: 1 1 220px;
+  }
+  .update-banner ha-button {
+    margin-left: auto;
+  }
+  .update-banner ha-button + ha-button {
+    margin-left: 0;
   }
 
   .popup-menu {
@@ -1565,24 +1579,54 @@ export const panelStyles = css`
        X-positions across rows regardless of content (sparkline, bar, %).
        Earlier flex-wrap-based layouts let the row wrap unpredictably so
        "X days" sometimes sat near the middle, sometimes at the right edge.
-       Grid template:
-         [badges auto | task-name 1fr | due-cell 100px | actions auto]
-       Task-name spans the full top row (own row above), chips span the
-       full bottom row.  */
+       Two rows since #150 (was three: name / badge+object+due+actions /
+       chips — a phone list scrolled forever):
+         row 1  task name ................................ object name
+         row 2  [status icon | chips | due 100px | actions]
+       The status pill drops its label (icon + colour stay, title/aria keep
+       the word), the object name moves up beside the task name, and the
+       chips take the freed middle track. */
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
-    grid-template-rows: auto auto auto;
-    row-gap: 4px;
+    grid-template-rows: auto auto;
+    row-gap: 6px;
     padding: 12px;
   }
 
   :host([narrow]) .cell.type { display: none; }
+  :host([narrow]) .row-head {
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+  }
+  /* The object page's rows have no object name — there the task name is a
+     direct grid item and the grid placement applies; inside .row-head the
+     flex rule wins and the grid lines are inert. */
   :host([narrow]) .cell.task-name {
     grid-column: 1 / -1;
     grid-row: 1;
+    flex: 1 1 auto;
     min-width: 0;
   }
+  :host([narrow]) .cell.object-name {
+    order: 1;
+    flex: 0 1 auto;
+    max-width: 50%;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+  }
+  /* Bulk selection on a phone: the checkbox takes the badge column of the
+     first row, the name group starts one track further right. */
+  :host([narrow]) .task-table.bulk .bulk-check { grid-column: 1; grid-row: 1; align-self: start; }
+  :host([narrow]) .task-table.bulk .row-head { grid-column: 2 / -1; }
   :host([narrow]) .cell-badges {
     grid-column: 1;
     grid-row: 2;
@@ -1594,19 +1638,11 @@ export const panelStyles = css`
     align-items: flex-start;
     gap: 4px;
   }
-  :host([narrow]) .cell.object-name {
-    grid-column: 2;
-    grid-row: 2;
-    min-width: 0;
-    /* Cap long object names at 2 lines with ellipsis instead of growing
-       unbounded vertically. The full name is still readable via the panel
-       object-detail view (one tap on the object). */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.2;
-  }
+  /* Icon-only status pill (#150): a round 22 px disc; the colour + shape
+     still carry the state, the label lives in title/aria-label. */
+  :host([narrow]) .task-row .status-label { display: none; }
+  :host([narrow]) .task-row .status-badge { min-width: 0; padding: 3px; border-radius: 50%; }
+  :host([narrow]) .task-row .status-badge ha-icon { --mdc-icon-size: 16px; margin-left: 0; }
   :host([narrow]) .due-cell {
     grid-column: 3;
     grid-row: 2;
@@ -1630,15 +1666,15 @@ export const panelStyles = css`
   }
   :host([narrow]) .row-actions.as-buttons ha-button,
   :host([tight]) .row-actions.as-buttons ha-button { --ha-button-font-size: 12px; }
-  /* buttons_compact: the labelled buttons collapse to an icon-only ha-button
-     plus ha-icon-button side by side — the colour carries the meaning, the
-     row keeps the icon-era height. */
+  /* buttons_compact: the labelled buttons collapse to two icon-only
+     ha-buttons side by side (solid green Complete, outlined orange Skip) —
+     the colour carries the meaning, the row keeps the icon-era height.
+     --wa-form-control-padding-inline is the wa-button inset HA's ha-button
+     forwards (16 px default -> a 58 px pill around a 20 px glyph). */
   :host([narrow]) .row-actions.as-buttons.compact,
-  :host([tight]) .row-actions.as-buttons.compact { flex-direction: row; align-items: center; gap: 2px; }
+  :host([tight]) .row-actions.as-buttons.compact { flex-direction: row; align-items: center; gap: 4px; }
   :host([narrow]) .row-actions.compact ha-button,
-  :host([tight]) .row-actions.compact ha-button { --ha-button-height: 36px; min-width: 0; }
-  :host([narrow]) .row-actions.compact ha-icon-button,
-  :host([tight]) .row-actions.compact ha-icon-button { --mdc-icon-button-size: 40px; --mdc-icon-size: 22px; color: var(--secondary-text-color); }
+  :host([tight]) .row-actions.compact ha-button { --ha-button-height: 36px; --wa-form-control-padding-inline: 10px; min-width: 0; }
   :host([narrow]) .row-actions.compact ha-icon,
   :host([tight]) .row-actions.compact ha-icon { --mdc-icon-size: 20px; }
 
@@ -1656,26 +1692,35 @@ export const panelStyles = css`
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
-    grid-template-rows: auto auto auto;
-    row-gap: 4px;
+    grid-template-rows: auto auto;
+    row-gap: 6px;
     padding: 12px;
     min-width: 0;
   }
   :host([tight]:not([narrow])) .cell.type { display: none; }
-  :host([tight]:not([narrow])) .cell.task-name { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
+  :host([tight]:not([narrow])) .row-head { display: flex; grid-column: 1 / -1; grid-row: 1; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+  :host([tight]:not([narrow])) .cell.task-name { grid-column: 1 / -1; grid-row: 1; flex: 1 1 auto; min-width: 0; }
+  :host([tight]:not([narrow])) .cell.object-name { order: 1; flex: 0 1 auto; max-width: 50%; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+  :host([tight]:not([narrow])) .task-table.bulk .bulk-check { grid-column: 1; grid-row: 1; align-self: start; }
+  :host([tight]:not([narrow])) .task-table.bulk .row-head { grid-column: 2 / -1; }
   :host([tight]:not([narrow])) .cell-badges { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 4px; }
-  :host([tight]:not([narrow])) .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; }
+  :host([tight]:not([narrow])) .task-row .status-label { display: none; }
+  :host([tight]:not([narrow])) .task-row .status-badge { min-width: 0; padding: 3px; border-radius: 50%; }
+  :host([tight]:not([narrow])) .task-row .status-badge ha-icon { --mdc-icon-size: 16px; margin-left: 0; }
   :host([tight]:not([narrow])) .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
   :host([tight]:not([narrow])) .row-actions { grid-column: 4; grid-row: 2; }
-  :host([tight]:not([narrow])) .task-sub { grid-column: 1 / -1; grid-row: 3; font-size: 11px; gap: 6px; justify-content: flex-start; flex-wrap: wrap; }
+  :host([tight]:not([narrow])) .task-sub { grid-column: 2; grid-row: 2; align-self: center; font-size: 11px; gap: 4px; justify-content: flex-start; flex-wrap: wrap; }
   :host([tight]:not([narrow])) .task-sub-empty { display: none; }
   :host([tight]:not([narrow])) .mini-sparkline { display: none; }
   :host([tight]:not([narrow])) .trend-arrow { display: inline; }
+  /* Chips sit in the middle track of row 2 — the slot the object name
+     vacated — vertically centred on the 36 px action buttons. */
   :host([narrow]) .task-sub {
-    grid-column: 1 / -1;
-    grid-row: 3;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
     font-size: 11px;
-    gap: 6px;
+    gap: 4px;
     justify-content: flex-start;
     flex-wrap: wrap;
   }
@@ -1694,7 +1739,6 @@ export const panelStyles = css`
       column-gap: 6px;
     }
     :host([narrow]) .task-row { padding: 12px 8px; }
-    :host([narrow]) .row-actions.compact ha-icon-button { --mdc-icon-button-size: 32px; --mdc-icon-size: 20px; }
   }
 
   :host([narrow]) .detail-header {
@@ -1828,17 +1872,23 @@ export const panelStyles = css`
       display: grid;
       grid-column: 1 / -1;
       grid-template-columns: subgrid;
-      grid-template-rows: auto auto auto;
-      row-gap: 4px;
+      grid-template-rows: auto auto;
+      row-gap: 6px;
       padding: 12px;
     }
     .cell.type { display: none; }
-    .cell.task-name { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
+    .row-head { display: flex; grid-column: 1 / -1; grid-row: 1; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+    .cell.task-name { grid-column: 1 / -1; grid-row: 1; flex: 1 1 auto; min-width: 0; }
+    .cell.object-name { order: 1; flex: 0 1 auto; max-width: 50%; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+    .task-table.bulk .bulk-check { grid-column: 1; grid-row: 1; align-self: start; }
+    .task-table.bulk .row-head { grid-column: 2 / -1; }
     .cell-badges { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 4px; }
-    .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; }
+    .task-row .status-label { display: none; }
+    .task-row .status-badge { min-width: 0; padding: 3px; border-radius: 50%; }
+    .task-row .status-badge ha-icon { --mdc-icon-size: 16px; margin-left: 0; }
     .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
     .row-actions { grid-column: 4; grid-row: 2; }
-    .task-sub { grid-column: 1 / -1; grid-row: 3; font-size: 11px; gap: 6px; justify-content: flex-start; flex-wrap: wrap; }
+    .task-sub { grid-column: 2; grid-row: 2; align-self: center; font-size: 11px; gap: 4px; justify-content: flex-start; flex-wrap: wrap; }
     .task-sub-empty { display: none; }
     .mini-sparkline { display: none; }
     .trend-arrow { display: inline; }

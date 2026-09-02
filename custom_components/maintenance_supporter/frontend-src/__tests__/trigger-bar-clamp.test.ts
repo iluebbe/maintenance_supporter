@@ -2,7 +2,11 @@
  * #150 follow-up (maisun's mobile screenshot, 2026-08-31): in the narrow row
  * grid the due column is fit-content(100px) and right-aligned — the
  * shrink-to-fit trigger-progress used to grow to its label's width and
- * overhang LEFT across the object name. It is now clamped to the cell.
+ * overhang LEFT across its neighbour. It is now clamped to the cell.
+ *
+ * Since the two-row phone layout (2026-09-02) the object name sits in row 1
+ * next to the task name; the due cell's left-hand neighbour in row 2 is the
+ * chip strip (.task-sub) — or, when there are no chips, the status column.
  */
 
 import { expect, waitUntil } from "@open-wc/testing";
@@ -27,7 +31,7 @@ describe("trigger progress clamp (narrow)", () => {
     localStorage.setItem("msp-overview-tab", "dashboard");
   });
 
-  it("the bar + label stay inside the due cell and never overlap the object name", async () => {
+  it("the bar + label stay inside the due cell and never overlap their row-2 neighbour", async () => {
     const r = await mountPanel([obj("e1", [SENSOR_TASK()])], {
       "maintenance_supporter/settings": () => DEFAULT_SETTINGS_RESPONSE,
     });
@@ -42,9 +46,15 @@ describe("trigger progress clamp (narrow)", () => {
     const due = sr.querySelector(".task-row .due-cell")!.getBoundingClientRect();
     const tp = sr.querySelector(".task-row .trigger-progress")!.getBoundingClientRect();
     const objName = sr.querySelector(".task-row .cell.object-name")!.getBoundingClientRect();
+    const badges = sr.querySelector(".task-row .cell-badges")!.getBoundingClientRect();
+    const sub = sr.querySelector(".task-row .task-sub");
+    const subRect = sub && sub.getBoundingClientRect().width > 0 ? sub.getBoundingClientRect() : null;
+    const neighbourRight = subRect ? subRect.right : badges.right;
 
     expect(tp.width, "progress no wider than its cell").to.be.at.most(due.width + 1);
     expect(tp.left, "no left overhang out of the cell").to.be.at.least(due.left - 1);
-    expect(tp.left, "no overlap with the object name").to.be.at.least(objName.right - 1);
+    expect(tp.left, "no overlap with the row-2 neighbour").to.be.at.least(neighbourRight - 1);
+    // The object name lives in row 1 now — it must sit entirely above the bar.
+    expect(objName.bottom, "object name above the due cell").to.be.at.most(tp.top + 1);
   });
 });
