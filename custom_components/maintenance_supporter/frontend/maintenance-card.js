@@ -3713,7 +3713,7 @@ ${p?`<div class="sub">${p}</div>`:""}
                         ${r("complete",e)||"Complete"}
                       </ha-button>
                       ${t.allow_skip!==!1?o`
-                            <ha-button appearance="outlined" variant="neutral" @click=${()=>{this._showSkip=!0}} .disabled=${this._busy}>
+                            <ha-button appearance="outlined" variant="warning" @click=${()=>{this._showSkip=!0}} .disabled=${this._busy}>
                               <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>
                               ${r("skip",e)||"Skip"}
                             </ha-button>

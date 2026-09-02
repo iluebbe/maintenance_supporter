@@ -56,5 +56,10 @@ describe("panel tight width (#145)", () => {
     const sr = el.shadowRoot!;
     await waitUntil(() => sr.querySelectorAll(".row-actions.as-buttons ha-button").length > 0, "labelled buttons");
     expect(sr.querySelectorAll(".row-actions.as-buttons.compact").length).to.equal(0);
+    // Skip keeps the same colour with or without its label (#150 follow-up):
+    // outlined warning on the labelled pair too, never the neutral grey.
+    const pair = [...sr.querySelectorAll(".row-actions.as-buttons ha-button")].slice(0, 2);
+    expect(pair.map((b) => b.getAttribute("variant"))).to.deep.equal(["success", "warning"]);
+    expect(pair.map((b) => b.getAttribute("appearance"))).to.deep.equal(["accent", "outlined"]);
   });
 });

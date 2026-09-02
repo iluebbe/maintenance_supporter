@@ -526,7 +526,7 @@ export const panelStyles = css`
 
   /* DESIGN PROTOTYPE (#145 wish 1): labelled, colour-coded action buttons
      instead of bare icons. Complete = filled success pill, Skip = outlined
-     neutral pill; both keep the icon as a leading glyph. */
+     warning (orange) pill; both keep the icon as a leading glyph. */
   .row-actions.as-buttons { gap: 4px; }
   .row-actions.as-buttons ha-button {
     --ha-button-font-size: 13px;

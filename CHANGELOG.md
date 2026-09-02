@@ -35,8 +35,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   task name, and the compact Complete / Skip pair becomes two icon-only
   buttons — filled green Complete, outlined orange Skip, since with no
   word left the colour is the only cue. Rows are about a third shorter;
-  bulk-select and the object page follow the same grid. The labelled
-  buttons on wide screens are unchanged. (#150)
+  bulk-select and the object page follow the same grid. (#150)
+- **Skip is orange everywhere.** The labelled Skip button (wide task rows,
+  the task page header, the quick-actions dialog) now wears the same
+  outlined warning colour as the icon-only phone pair, so the two actions
+  read the same on every screen size. The classic "icons" row style stays
+  uncoloured. (#150)
 - **Banners wrap on phones.** The stale-bundle and row-style notices let
   their buttons wrap under the text instead of squeezing it into a
   one-word-per-line column.

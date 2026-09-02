@@ -3481,8 +3481,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
-  /** #145: row actions as HA buttons — labelled (accent/success + plain, the
-   *  task-detail pairing) or, for "buttons_compact" on narrow screens,
+  /** #145: row actions as HA buttons — labelled (accent/success + outlined
+   *  warning, the task-detail pairing) or, for "buttons_compact" on narrow screens,
    *  icon-only — or the classic icon pair when the household chose "icons". */
   private _renderRowActions(L: string, onComplete: () => void, onSkip: () => void, allowSkip = true): TemplateResult {
     const style = this._actionStyle();
@@ -3490,10 +3490,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       const iconOnly = style === "buttons_compact" && (this.narrow || this.tight);
       if (iconOnly) {
         // Compact narrow form: two icon-only ha-buttons — solid green
-        // Complete, outlined orange Skip. Without labels the colour is the
-        // only cue, so Skip wears HA's warning variant instead of the grey
-        // icon button it started as (#150; the labelled forms keep neutral,
-        // their word carries the meaning).
+        // Complete, outlined orange Skip (#150). Skip wears HA's warning
+        // variant on every surface, so the colour reads the same whether
+        // or not the word is there.
         return html`
           <span class="row-actions as-buttons compact">
             <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" aria-label="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
@@ -3511,7 +3510,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
           </ha-button>
           ${allowSkip ? html`
-            <ha-button size="small" appearance="outlined" variant="neutral" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+            <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
               <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${t("skip", L)}
             </ha-button>` : nothing}
         </span>`;

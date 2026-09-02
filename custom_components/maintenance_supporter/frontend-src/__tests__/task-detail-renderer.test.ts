@@ -155,6 +155,9 @@ describe("task-detail renderer", () => {
     expect(completed).to.not.be.null;
     expect(completed!.name).to.equal("Filter Wechsel");
     expect(skipped).to.equal(1);
+    // Skip is outlined orange on every surface (#150 follow-up), the detail header included.
+    expect(buttons[1].getAttribute("appearance")).to.equal("outlined");
+    expect(buttons[1].getAttribute("variant")).to.equal("warning");
   });
 
   it("operator mode: only Complete/Skip buttons; menu carries just QR + worksheet", () => {

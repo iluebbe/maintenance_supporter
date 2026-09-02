@@ -60,6 +60,17 @@ describe("storage-section-card", () => {
     expect(el.shadowRoot!.querySelector("ha-card"), "hidden when empty").to.not.exist;
   });
 
+  it("survives a malformed summary (no by_object) without throwing", async () => {
+    // A generic WS stub answering `{}` used to reach Object.entries(undefined)
+    // in render(); the card must hide itself instead of erroring.
+    const bare = await mount({});
+    expect(bare.shadowRoot!.querySelector("ha-card"), "hidden for {}").to.not.exist;
+    const partial = await mount({ ...SUMMARY, by_object: undefined });
+    await expand(partial);
+    expect(partial.shadowRoot!.querySelector("ha-card"), "card renders").to.exist;
+    expect(partial.shadowRoot!.querySelectorAll(".obj-row").length).to.equal(0);
+  });
+
   it("navigates to an object when its row is clicked", async () => {
     const el = await mount();
     await expand(el);

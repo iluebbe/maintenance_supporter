@@ -132,7 +132,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
       <div class="task-header-actions">
         <ha-button appearance="filled" @click=${() => ctx.openComplete(task)}>${t("complete", L)}</ha-button>
         ${task.allow_skip !== false
-          ? html`<ha-button appearance="outlined" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>`
+          ? html`<ha-button appearance="outlined" variant="warning" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>`
           : nothing}
         <div class="more-menu-wrapper">
           <ha-icon-button .disabled=${ctx.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => ctx.toggleMoreMenu()}></ha-icon-button>

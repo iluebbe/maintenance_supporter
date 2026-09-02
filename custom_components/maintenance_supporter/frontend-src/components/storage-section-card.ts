@@ -166,10 +166,10 @@ export class MaintenanceStorageSectionCard extends LitElement {
   render() {
     if (!this._loaded || !this._summary) return nothing;
     const s = this._summary;
-    if (s.document_count === 0) return nothing; // self-hide when unused
+    if (!s.document_count) return nothing; // self-hide when unused (or malformed)
     const L = this._lang;
 
-    const rows = Object.entries(s.by_object)
+    const rows = Object.entries(s.by_object ?? {})
       .filter(([, v]) => v.files > 0 || v.links > 0)
       .map(([id, v]) => ({ id, name: this._nameFor(id), entry: this._entryFor(id), ...v }))
       .sort((a, b) => b.bytes - a.bytes);
