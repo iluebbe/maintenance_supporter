@@ -802,6 +802,7 @@
   "trigger_hint_now": "Anturi näyttää nyt {value}.",
   "trigger_hint_above": "Tehtävä laukeaa, kun arvo ylittää {target}.",
   "trigger_hint_below": "Se laukeaa, kun arvo alittaa {target}.",
+  "trigger_hint_overlap": "Nämä rajat menevät päällekkäin: jokainen lukema laukaisee tehtävän eikä se voi koskaan palautua. Jätä toinen kentistä tyhjäksi.",
   "trigger_hint_counter_delta": "Laskee nykyisestä lukemasta ({value}): erääntyy kohdassa {due} (+{target}); laskuri alkaa alusta jokaisen suorituksen jälkeen.",
   "trigger_hint_counter_delta_edit": "Laskee käytön viime suorituksesta: erääntyy +{target} jälkeen; laskuri alkaa alusta jokaisen suorituksen jälkeen.",
   "trigger_hint_counter_abs": "Tehtävä erääntyy, kun anturi saavuttaa {target}.",

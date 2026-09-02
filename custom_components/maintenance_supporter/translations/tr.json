@@ -480,6 +480,7 @@
       "invalid_entity": "Seçilen varlık mevcut değil veya sayısal verisi yok.",
       "invalid_attribute": "Seçilen öznitelik bu varlıkta mevcut değil.",
       "invalid_threshold": "En az bir eşik (üst veya alt) ayarlanmalıdır.",
+      "overlapping_threshold": "\"Altında\" eşiği \"üstünde\" eşiğinden düşük olmalıdır; aksi halde her okuma görevi tetikler ve görev asla normale dönemez. Alanlardan birini boş bırakın.",
       "invalid_due_date": "Tek seferlik görevler için bir vade tarihi gereklidir.",
       "invalid_interval": "Aralık pozitif bir sayı olmalıdır.",
       "min_exceeds_max": "Minimum aralık, maksimum aralığı aşmamalıdır.",
@@ -1163,6 +1164,21 @@
           "go_back": "Kaydetmeden görev eylemlerine dönün."
         }
       }
+    },
+    "error": {
+      "name_exists": "Bu ada sahip bir bakım nesnesi zaten var.",
+      "no_tasks": "En az bir bakım görevi gereklidir.",
+      "invalid_entity": "Seçilen varlık mevcut değil veya sayısal verisi yok.",
+      "invalid_attribute": "Seçilen öznitelik bu varlıkta mevcut değil.",
+      "invalid_threshold": "En az bir eşik (üst veya alt) ayarlanmalıdır.",
+      "overlapping_threshold": "\"Altında\" eşiği \"üstünde\" eşiğinden düşük olmalıdır; aksi halde her okuma görevi tetikler ve görev asla normale dönemez. Alanlardan birini boş bırakın.",
+      "invalid_due_date": "Tek seferlik görevler için bir vade tarihi gereklidir.",
+      "invalid_interval": "Aralık pozitif bir sayı olmalıdır.",
+      "min_exceeds_max": "Minimum aralık, maksimum aralığı aşmamalıdır.",
+      "invalid_notify_service": "Geçersiz bildirim servisi biçimi. 'notify.servis_adi' kullanın (örn. notify.mobile_app_phone).",
+      "notify_service_not_found": "Bu bildirim servisi Home Assistant'ta bulunamadı. Lütfen servis adını doğrulayın.",
+      "nfc_tag_duplicate": "Bu NFC etiketi zaten başka bir göreve bağlı.",
+      "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…)."
     }
   },
   "entity": {

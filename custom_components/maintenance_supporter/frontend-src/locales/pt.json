@@ -802,6 +802,7 @@
   "trigger_hint_now": "O sensor marca {value} neste momento.",
   "trigger_hint_above": "A tarefa dispara quando ultrapassar {target}.",
   "trigger_hint_below": "Dispara quando descer abaixo de {target}.",
+  "trigger_hint_overlap": "Estes limites sobrepõem-se: cada leitura aciona a tarefa e esta nunca consegue recuperar. Deixe um dos campos vazio.",
   "trigger_hint_counter_delta": "Conta a partir da leitura atual ({value}): vence em {due} (+{target}); a contagem recomeça após cada conclusão.",
   "trigger_hint_counter_delta_edit": "Conta o uso desde a última conclusão: vence após +{target}; a contagem recomeça após cada conclusão.",
   "trigger_hint_counter_abs": "A tarefa vence quando o sensor atingir {target}.",

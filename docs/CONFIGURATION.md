@@ -465,6 +465,15 @@ runs 90 → 0 days and flips to 360 when overdue: `trigger_below: 3` plus
 `trigger_equals: 360`, with *Auto-complete when the sensor recovers* — the
 reset back to 90 after the service completes the task automatically.
 
+Because the limits are OR-combined, `trigger_above` and `trigger_below`
+must not overlap: with `trigger_above: 0` **and** `trigger_below: 5` every
+reading is a hit, the trigger can never clear and the task never
+auto-completes. The task editor, the options flow, the WebSocket API and the
+JSON import refuse a `trigger_below` that is higher than `trigger_above`
+(equal limits are allowed — on a count sensor `0`/`0` reads as "anything
+but 0"). Want a *band*? Use the two limits the other way round:
+`trigger_below: 20` plus `trigger_above: 30` fires outside 20–30.
+
 ![One threshold trigger with two limits (below 3 OR equals 360)](images/threshold-multi-limit.png)
 
 ### Counter Trigger

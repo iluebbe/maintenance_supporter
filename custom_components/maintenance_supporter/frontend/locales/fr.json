@@ -802,6 +802,7 @@
   "trigger_hint_now": "Le capteur indique {value} en ce moment.",
   "trigger_hint_above": "La tâche se déclenche dès que la valeur dépasse {target}.",
   "trigger_hint_below": "Elle se déclenche dès que la valeur passe sous {target}.",
+  "trigger_hint_overlap": "Ces limites se chevauchent : chaque relevé déclenche la tâche et elle ne peut jamais se rétablir. Laissez l'une des deux vide.",
   "trigger_hint_counter_delta": "Compte à partir de la valeur actuelle ({value}) : échéance à {due} (+{target}) ; le compteur repart après chaque exécution.",
   "trigger_hint_counter_delta_edit": "Compte l'usage depuis la dernière exécution : échéance après +{target} ; le compteur repart après chaque exécution.",
   "trigger_hint_counter_abs": "La tâche devient due dès que le capteur atteint {target}.",

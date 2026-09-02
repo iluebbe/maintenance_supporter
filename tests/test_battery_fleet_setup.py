@@ -1189,6 +1189,42 @@ async def test_start_heals_missing_recovery_flag_only(
     assert htc.get("trigger_above") == 5
 
 
+async def test_start_warns_on_overlapping_fleet_trigger(
+    hass: HomeAssistant, global_entry: MockConfigEntry, caplog: pytest.LogCaptureFixture
+) -> None:
+    """#156 (the reporter's real case): a hand-added ``trigger_below`` above
+    the canonical ``trigger_above: 0`` keeps the fleet task triggered forever.
+    Start logs a pointed warning and leaves the user's edit alone."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import find_fleet_task
+
+    task_id, task_data = find_fleet_task(fleet)
+    tc = {**task_data["trigger_config"], "trigger_below": 5}
+    tasks = dict(fleet.data[CONF_TASKS])
+    tasks[task_id] = {**task_data, "trigger_config": tc}
+    hass.config_entries.async_update_entry(fleet, data={**fleet.data, CONF_TASKS: tasks})
+
+    caplog.clear()
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+
+    warned = [r.getMessage() for r in caplog.records if r.levelname == "WARNING"]
+    assert any("can never auto-complete" in m and "issue #156" in m for m in warned), warned
+    fleet = _fleet_entry(hass)
+    _tid, kept = find_fleet_task(fleet)
+    assert kept["trigger_config"].get("trigger_below") == 5
+    assert kept["trigger_config"].get("trigger_above") == 0
+
+
 async def test_batteries_sensor_exposes_detailed_rows(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

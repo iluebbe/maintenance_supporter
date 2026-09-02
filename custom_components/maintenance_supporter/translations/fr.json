@@ -480,6 +480,7 @@
       "invalid_entity": "L'entité sélectionnée n'existe pas ou n'a pas de données numériques.",
       "invalid_attribute": "L'attribut sélectionné n'est pas disponible sur cette entité.",
       "invalid_threshold": "Au moins un seuil (haut ou bas) doit être défini.",
+      "overlapping_threshold": "Le seuil « en dessous » doit être inférieur au seuil « au-dessus » — sinon chaque relevé déclenche la tâche et elle ne peut jamais se rétablir. Laissez l'un des deux vide.",
       "invalid_due_date": "Une date d'échéance est requise pour les tâches uniques.",
       "invalid_interval": "L'intervalle doit être un nombre positif.",
       "min_exceeds_max": "L'intervalle minimum ne doit pas dépasser l'intervalle maximum.",
@@ -1163,6 +1164,21 @@
           "go_back": "Retour aux actions de tâche sans enregistrer."
         }
       }
+    },
+    "error": {
+      "name_exists": "Un objet de maintenance avec ce nom existe déjà.",
+      "no_tasks": "Au moins une tâche de maintenance est requise.",
+      "invalid_entity": "L'entité sélectionnée n'existe pas ou n'a pas de données numériques.",
+      "invalid_attribute": "L'attribut sélectionné n'est pas disponible sur cette entité.",
+      "invalid_threshold": "Au moins un seuil (haut ou bas) doit être défini.",
+      "overlapping_threshold": "Le seuil « en dessous » doit être inférieur au seuil « au-dessus » — sinon chaque relevé déclenche la tâche et elle ne peut jamais se rétablir. Laissez l'un des deux vide.",
+      "invalid_due_date": "Une date d'échéance est requise pour les tâches uniques.",
+      "invalid_interval": "L'intervalle doit être un nombre positif.",
+      "min_exceeds_max": "L'intervalle minimum ne doit pas dépasser l'intervalle maximum.",
+      "invalid_notify_service": "Format du service de notification invalide. Utilisez 'notify.nom_du_service' (ex. : notify.mobile_app_phone).",
+      "notify_service_not_found": "Ce service de notification n'a pas été trouvé dans Home Assistant. Veuillez vérifier le nom du service.",
+      "nfc_tag_duplicate": "Ce tag NFC est déjà lié à une autre tâche.",
+      "invalid_shopping_list_entity": "La liste de courses doit être une entité de tâches (todo.…)."
     }
   },
   "entity": {

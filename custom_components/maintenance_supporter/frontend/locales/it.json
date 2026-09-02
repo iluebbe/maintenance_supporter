@@ -802,6 +802,7 @@
   "trigger_hint_now": "Il sensore indica {value} in questo momento.",
   "trigger_hint_above": "L'attività scatta quando supera {target}.",
   "trigger_hint_below": "Scatta quando scende sotto {target}.",
+  "trigger_hint_overlap": "Questi limiti si sovrappongono: ogni lettura attiva l'attività e non può mai rientrare. Lascia vuoto uno dei due campi.",
   "trigger_hint_counter_delta": "Conta dalla lettura attuale ({value}): scade a {due} (+{target}); il conteggio riparte dopo ogni completamento.",
   "trigger_hint_counter_delta_edit": "Conta l'uso dall'ultimo completamento: scade dopo +{target}; il conteggio riparte dopo ogni completamento.",
   "trigger_hint_counter_abs": "L'attività scade quando il sensore raggiunge {target}.",

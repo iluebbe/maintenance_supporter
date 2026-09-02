@@ -480,6 +480,7 @@
       "invalid_entity": "L'entità selezionata non esiste o non ha dati numerici.",
       "invalid_attribute": "L'attributo selezionato non è disponibile per questa entità.",
       "invalid_threshold": "Almeno una soglia (superiore o inferiore) deve essere impostata.",
+      "overlapping_threshold": "La soglia «sotto» deve essere inferiore alla soglia «sopra», altrimenti ogni lettura attiva l'attività e non può mai rientrare. Lascia vuoto uno dei due campi.",
       "invalid_due_date": "Per le attività una tantum è richiesta una scadenza.",
       "invalid_interval": "L'intervallo deve essere un numero positivo.",
       "min_exceeds_max": "L'intervallo minimo non deve superare l'intervallo massimo.",
@@ -1163,6 +1164,21 @@
           "go_back": "Torna alle azioni attività senza salvare."
         }
       }
+    },
+    "error": {
+      "name_exists": "Un oggetto di manutenzione con questo nome esiste già.",
+      "no_tasks": "È richiesta almeno un'attività di manutenzione.",
+      "invalid_entity": "L'entità selezionata non esiste o non ha dati numerici.",
+      "invalid_attribute": "L'attributo selezionato non è disponibile per questa entità.",
+      "invalid_threshold": "Almeno una soglia (superiore o inferiore) deve essere impostata.",
+      "overlapping_threshold": "La soglia «sotto» deve essere inferiore alla soglia «sopra», altrimenti ogni lettura attiva l'attività e non può mai rientrare. Lascia vuoto uno dei due campi.",
+      "invalid_due_date": "Per le attività una tantum è richiesta una scadenza.",
+      "invalid_interval": "L'intervallo deve essere un numero positivo.",
+      "min_exceeds_max": "L'intervallo minimo non deve superare l'intervallo massimo.",
+      "invalid_notify_service": "Formato del servizio di notifica non valido. Usa 'notify.nome_servizio' (es.: notify.mobile_app_phone).",
+      "notify_service_not_found": "Questo servizio di notifica non è stato trovato in Home Assistant. Verifica il nome del servizio.",
+      "nfc_tag_duplicate": "Questo tag NFC è già collegato a un'altra attività.",
+      "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…)."
     }
   },
   "entity": {

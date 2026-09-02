@@ -480,6 +480,7 @@
       "invalid_entity": "선택한 엔티티가 존재하지 않거나 숫자 데이터가 없습니다.",
       "invalid_attribute": "선택한 속성은 이 엔티티에서 사용할 수 없습니다.",
       "invalid_threshold": "최소 하나의 임계값(초과 또는 미만)을 설정해야 합니다.",
+      "overlapping_threshold": "'미만' 임계값은 '초과' 임계값보다 낮아야 합니다. 그렇지 않으면 모든 측정값이 작업을 트리거하여 복구되지 않습니다. 둘 중 하나를 비워 두세요.",
       "invalid_due_date": "일회성 작업에는 기한이 필요합니다.",
       "invalid_interval": "주기는 양수여야 합니다.",
       "min_exceeds_max": "최소 주기는 최대 주기를 초과할 수 없습니다.",
@@ -1163,6 +1164,21 @@
           "go_back": "저장하지 않고 작업 동작으로 돌아갑니다."
         }
       }
+    },
+    "error": {
+      "name_exists": "같은 이름의 유지보수 대상이 이미 있습니다.",
+      "no_tasks": "최소 한 개의 유지보수 작업이 필요합니다.",
+      "invalid_entity": "선택한 엔티티가 존재하지 않거나 숫자 데이터가 없습니다.",
+      "invalid_attribute": "선택한 속성은 이 엔티티에서 사용할 수 없습니다.",
+      "invalid_threshold": "최소 하나의 임계값(초과 또는 미만)을 설정해야 합니다.",
+      "overlapping_threshold": "'미만' 임계값은 '초과' 임계값보다 낮아야 합니다. 그렇지 않으면 모든 측정값이 작업을 트리거하여 복구되지 않습니다. 둘 중 하나를 비워 두세요.",
+      "invalid_due_date": "일회성 작업에는 기한이 필요합니다.",
+      "invalid_interval": "주기는 양수여야 합니다.",
+      "min_exceeds_max": "최소 주기는 최대 주기를 초과할 수 없습니다.",
+      "invalid_notify_service": "알림 서비스 형식이 잘못되었습니다. 'notify.service_name' 형식을 사용하세요(예: notify.mobile_app_phone).",
+      "notify_service_not_found": "이 알림 서비스를 Home Assistant에서 찾을 수 없습니다. 서비스 이름을 확인해 주세요.",
+      "nfc_tag_duplicate": "이 NFC 태그는 이미 다른 작업에 연결되어 있습니다.",
+      "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다."
     }
   },
   "entity": {

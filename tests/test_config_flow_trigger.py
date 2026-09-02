@@ -19,6 +19,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
     CONF_TRIGGER_ABOVE,
     CONF_TRIGGER_ATTRIBUTE,
+    CONF_TRIGGER_BELOW,
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_ENTITY_LOGIC,
     CONF_TRIGGER_ON_STATES,
@@ -585,6 +586,116 @@ async def test_threshold_without_any_limit_shows_error(
     )
     assert result["type"] == FlowResultType.FORM
     assert (result["errors"] or {}).get("base") == "invalid_threshold"
+
+
+async def test_threshold_overlapping_limits_shows_error(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """#156: below > above re-shows the threshold step with its own error;
+    a corrected submission then goes through."""
+    hass.states.async_set("sensor.low_count", "1", {"unit_of_measurement": "batteries"})
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Overlap",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.INSPECTION,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.low_count"]},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    threshold_step = result["step_id"]
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ABOVE: 0.0, CONF_TRIGGER_BELOW: 5.0, CONF_TASK_WARNING_DAYS: 7},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == threshold_step
+    assert (result["errors"] or {}).get("base") == "overlapping_threshold"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ABOVE: 0.0, CONF_TASK_WARNING_DAYS: 7},
+    )
+    # Accepted: the flow moves on to the task menu.
+    assert result["type"] == FlowResultType.MENU
+    assert not result.get("errors")
+
+
+async def test_compound_condition_overlapping_limits_shows_error(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """#156 in a compound condition: the condition form re-shows with the
+    error and the condition is NOT appended."""
+    hass.states.async_set("sensor.temp", "25.0", {"unit_of_measurement": "°C"})
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Compound Overlap",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.INSPECTION,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.temp"]},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.COMPOUND},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"compound_logic": "and"},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.temp"]},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    assert result["step_id"] == "compound_condition_threshold"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ABOVE: 20.0, CONF_TRIGGER_BELOW: 30.0},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "compound_condition_threshold"
+    assert (result["errors"] or {}).get("base") == "overlapping_threshold"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ABOVE: 30.0},
+    )
+    assert result["step_id"] == "compound_review"
+    # The refused 30 must not linger as a lower limit on the retry.
+    flow = hass.config_entries.flow._progress[result["flow_id"]]
+    (cond,) = flow._compound_conditions
+    assert cond["trigger_above"] == 30.0
+    assert "trigger_below" not in cond
 
 
 async def test_multi_entity_second_entity_invalid(

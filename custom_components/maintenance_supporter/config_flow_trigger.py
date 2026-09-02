@@ -64,6 +64,7 @@ from .const import (
 )
 from .helpers.global_options import get_default_warning_days
 from .helpers.task_fields import INTERVAL_DAYS_RANGE, WARNING_DAYS_RANGE
+from .helpers.trigger_fallback import threshold_limits_overlap
 
 # Domains allowed for trigger entity selection.
 # Includes all domains from entity_attributes.DOMAIN_ATTRIBUTE_MAP plus
@@ -498,10 +499,16 @@ class TriggerConfigMixin:
             equals = user_input.get(CONF_TRIGGER_EQUALS)
             not_equals = user_input.get(CONF_TRIGGER_NOT_EQUALS)
 
+            tc = self._current_task["trigger_config"]
             if above is None and below is None and equals is None and not_equals is None:
                 errors["base"] = "invalid_threshold"
+            elif threshold_limits_overlap(
+                # Blank fields keep the stored value — judge the merged pair (#156).
+                above if above is not None else tc.get(CONF_TRIGGER_ABOVE),
+                below if below is not None else tc.get(CONF_TRIGGER_BELOW),
+            ):
+                errors["base"] = "overlapping_threshold"
             else:
-                tc = self._current_task["trigger_config"]
                 if above is not None:
                     tc[CONF_TRIGGER_ABOVE] = above
                 if below is not None:
@@ -967,6 +974,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Configure a compound condition's type-specific settings."""
         cond = self._current_compound_condition
+        errors: dict[str, str] = {}
 
         if user_input is not None:
             cancel = await self._mixin_check_go_back(user_input)
@@ -976,19 +984,24 @@ class TriggerConfigMixin:
             if condition_type == TriggerType.THRESHOLD:
                 above = user_input.get(CONF_TRIGGER_ABOVE)
                 below = user_input.get(CONF_TRIGGER_BELOW)
-                if above is not None:
-                    cond["trigger_above"] = above
-                if below is not None:
-                    cond["trigger_below"] = below
-                equals = user_input.get(CONF_TRIGGER_EQUALS)
-                if equals is not None:
-                    cond["trigger_equals"] = equals
-                not_equals = user_input.get(CONF_TRIGGER_NOT_EQUALS)
-                if not_equals is not None:
-                    cond["trigger_not_equals"] = not_equals
-                for_min = user_input.get(CONF_TRIGGER_FOR_MINUTES)
-                if for_min:
-                    cond["trigger_for_minutes"] = for_min
+                if threshold_limits_overlap(above, below):
+                    # Store nothing from the refused attempt: a field left
+                    # blank on the retry must not inherit its value (#156).
+                    errors["base"] = "overlapping_threshold"
+                else:
+                    if above is not None:
+                        cond["trigger_above"] = above
+                    if below is not None:
+                        cond["trigger_below"] = below
+                    equals = user_input.get(CONF_TRIGGER_EQUALS)
+                    if equals is not None:
+                        cond["trigger_equals"] = equals
+                    not_equals = user_input.get(CONF_TRIGGER_NOT_EQUALS)
+                    if not_equals is not None:
+                        cond["trigger_not_equals"] = not_equals
+                    for_min = user_input.get(CONF_TRIGGER_FOR_MINUTES)
+                    if for_min:
+                        cond["trigger_for_minutes"] = for_min
             elif condition_type == TriggerType.COUNTER:
                 cond["trigger_target_value"] = user_input.get(CONF_TRIGGER_TARGET_VALUE, 0)
                 cond["trigger_delta_mode"] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
@@ -1010,9 +1023,10 @@ class TriggerConfigMixin:
             if len(entity_ids) > 1 and user_input.get(CONF_TRIGGER_ENTITY_LOGIC):
                 cond["entity_logic"] = user_input[CONF_TRIGGER_ENTITY_LOGIC]
 
-            self._compound_conditions.append(cond)
-            self._current_compound_condition = {}
-            return await on_complete()
+            if not errors:
+                self._compound_conditions.append(cond)
+                self._current_compound_condition = {}
+                return await on_complete()
 
         schema_fields: dict[Any, Any] = {}
         if condition_type == TriggerType.THRESHOLD:
@@ -1082,6 +1096,7 @@ class TriggerConfigMixin:
         return self.async_show_form(
             step_id=step_id,
             data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
+            errors=errors,
         )
 
     async def _trigger_compound_review(

@@ -802,6 +802,7 @@
   "trigger_hint_now": "The sensor reads {value} right now.",
   "trigger_hint_above": "The task triggers once it rises above {target}.",
   "trigger_hint_below": "It triggers once it falls below {target}.",
+  "trigger_hint_overlap": "These limits overlap: every reading triggers the task and it can never recover. Leave one of them empty.",
   "trigger_hint_counter_delta": "Counts from the current reading ({value}): due at {due} (+{target}), and the count restarts after each completion.",
   "trigger_hint_counter_delta_edit": "Counts usage since the last completion: due after +{target}; the count restarts after each completion.",
   "trigger_hint_counter_abs": "The task becomes due once the sensor reaches {target}.",

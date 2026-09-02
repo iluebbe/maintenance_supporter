@@ -802,6 +802,7 @@
   "trigger_hint_now": "Az érzékelő jelenlegi értéke: {value}.",
   "trigger_hint_above": "A feladat akkor aktiválódik, amikor az érték {target} fölé emelkedik.",
   "trigger_hint_below": "Akkor aktiválódik, amikor az érték {target} alá csökken.",
+  "trigger_hint_overlap": "Ezek a határok átfedik egymást: minden mérés kiváltja a feladatot, és az soha nem állhat helyre. Hagyja üresen az egyik mezőt.",
   "trigger_hint_counter_delta": "A jelenlegi értéktől ({value}) számol: esedékes {due} értéknél (+{target}), és a számlálás minden elvégzés után újraindul.",
   "trigger_hint_counter_delta_edit": "A legutóbbi elvégzés óta számolja a használatot: esedékes +{target} után; a számlálás minden elvégzés után újraindul.",
   "trigger_hint_counter_abs": "A feladat akkor válik esedékessé, amikor az érzékelő eléri a(z) {target} értéket.",

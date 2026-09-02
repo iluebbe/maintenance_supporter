@@ -480,6 +480,7 @@
       "invalid_entity": "Vybraná entita neexistuje nebo nemá číselná data.",
       "invalid_attribute": "Vybraný atribut není pro tuto entitu k dispozici.",
       "invalid_threshold": "Musí být nastaven alespoň jeden práh (nad nebo pod).",
+      "overlapping_threshold": "Práh „pod“ musí být nižší než práh „nad“ – jinak každé měření spustí úkol a ten se nikdy nemůže zotavit. Jedno z polí nechte prázdné.",
       "invalid_due_date": "Pro jednorázové úkoly je vyžadován termín.",
       "invalid_interval": "Interval musí být kladné číslo.",
       "min_exceeds_max": "Minimální interval nesmí překročit maximální interval.",
@@ -1163,6 +1164,21 @@
           "go_back": "Návrat k akcím úkolu bez uložení."
         }
       }
+    },
+    "error": {
+      "name_exists": "Objekt údržby s tímto názvem již existuje.",
+      "no_tasks": "Je vyžadován alespoň jeden úkol údržby.",
+      "invalid_entity": "Vybraná entita neexistuje nebo nemá číselná data.",
+      "invalid_attribute": "Vybraný atribut není pro tuto entitu k dispozici.",
+      "invalid_threshold": "Musí být nastaven alespoň jeden práh (nad nebo pod).",
+      "overlapping_threshold": "Práh „pod“ musí být nižší než práh „nad“ – jinak každé měření spustí úkol a ten se nikdy nemůže zotavit. Jedno z polí nechte prázdné.",
+      "invalid_due_date": "Pro jednorázové úkoly je vyžadován termín.",
+      "invalid_interval": "Interval musí být kladné číslo.",
+      "min_exceeds_max": "Minimální interval nesmí překročit maximální interval.",
+      "invalid_notify_service": "Neplatný formát služby oznámení. Použijte „notify.service_name“ (např. notify.mobile_app_phone).",
+      "notify_service_not_found": "Tato služba oznámení nebyla v Home Assistant nalezena. Ověřte název služby.",
+      "nfc_tag_duplicate": "Tento NFC tag je již spojen s jiným úkolem.",
+      "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…)."
     }
   },
   "entity": {

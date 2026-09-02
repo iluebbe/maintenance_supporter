@@ -10,6 +10,7 @@ threshold trigger. No per-battery task.
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from typing import Any
 from uuid import uuid4
@@ -30,6 +31,9 @@ from ..const import (
     DOMAIN,
 )
 from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, read_batteries
+from .trigger_fallback import threshold_limits_overlap
+
+_LOGGER = logging.getLogger(__name__)
 
 # The global aggregate sensor the fleet task triggers on (fixed entity_id).
 LOW_COUNT_ENTITY_ID = "sensor.maintenance_supporter_batteries_to_replace"
@@ -521,6 +525,34 @@ def _heal_fleet_trigger_recovery_flag(hass: HomeAssistant, entry: ConfigEntry) -
     return True
 
 
+def _warn_fleet_trigger_overlap(entry: ConfigEntry) -> bool:
+    """#156: a hand-edited fleet trigger with ``trigger_below`` above
+    ``trigger_above`` is always tripped (the limits are OR-ed), so the task
+    never recovers and never auto-completes. Newer editors refuse the
+    combination; stored configs from before that only get this log line —
+    the user's edit is not silently rewritten. Returns True when warned.
+    """
+    found = find_fleet_task(entry)
+    if found is None:
+        return False
+    _task_id, task_data = found
+    tc = task_data.get("trigger_config") or {}
+    above, below = tc.get("trigger_above"), tc.get("trigger_below")
+    if not (isinstance(above, (int, float)) and isinstance(below, (int, float))):
+        return False
+    if not threshold_limits_overlap(float(above), float(below)):
+        return False
+    _LOGGER.warning(
+        "Battery fleet task '%s' has 'trigger below' (%s) higher than 'trigger above' (%s): "
+        "the limits are OR-ed, so the task is always triggered and can never auto-complete. "
+        "Clear 'Trigger below' in the task editor (issue #156).",
+        task_data.get("name", _task_id),
+        below,
+        above,
+    )
+    return True
+
+
 async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry, lang: str) -> dict[str, Any]:
     """Boot-time reconcile of the fleet's type-parts (issue #148).
 
@@ -535,6 +567,7 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     is theirs and stays.
     """
     trigger_healed = _heal_fleet_trigger_recovery_flag(hass, entry)
+    _warn_fleet_trigger_overlap(entry)
 
     types = discover_battery_types(hass)
     added = _reconcile_type_parts(hass, entry, types, lang)

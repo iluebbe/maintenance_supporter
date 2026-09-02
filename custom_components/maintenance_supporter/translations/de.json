@@ -480,6 +480,7 @@
       "invalid_entity": "Die ausgewählte Entität existiert nicht oder hat keine numerischen Daten.",
       "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",
       "invalid_threshold": "Mindestens ein Schwellwert (über oder unter) muss gesetzt werden.",
+      "overlapping_threshold": "Der Schwellwert „unter“ muss kleiner sein als der Schwellwert „über“ – sonst löst jeder Messwert die Aufgabe aus und sie kann sich nie erholen. Lass eines der Felder leer.",
       "invalid_due_date": "Für einmalige Aufgaben ist ein Fälligkeitsdatum erforderlich.",
       "invalid_interval": "Das Intervall muss eine positive Zahl sein.",
       "min_exceeds_max": "Das Mindestintervall darf das Höchstintervall nicht überschreiten.",
@@ -1163,6 +1164,21 @@
           "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
         }
       }
+    },
+    "error": {
+      "name_exists": "Ein Wartungsobjekt mit diesem Namen existiert bereits.",
+      "no_tasks": "Mindestens eine Wartungsaufgabe ist erforderlich.",
+      "invalid_entity": "Die ausgewählte Entität existiert nicht oder hat keine numerischen Daten.",
+      "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",
+      "invalid_threshold": "Mindestens ein Schwellwert (über oder unter) muss gesetzt werden.",
+      "overlapping_threshold": "Der Schwellwert „unter“ muss kleiner sein als der Schwellwert „über“ – sonst löst jeder Messwert die Aufgabe aus und sie kann sich nie erholen. Lass eines der Felder leer.",
+      "invalid_due_date": "Für einmalige Aufgaben ist ein Fälligkeitsdatum erforderlich.",
+      "invalid_interval": "Das Intervall muss eine positive Zahl sein.",
+      "min_exceeds_max": "Das Mindestintervall darf das Höchstintervall nicht überschreiten.",
+      "invalid_notify_service": "Ungültiges Format des Benachrichtigungsdienstes. Verwenden Sie 'notify.dienstname' (z.B. notify.mobile_app_phone).",
+      "notify_service_not_found": "Dieser Benachrichtigungsdienst wurde in Home Assistant nicht gefunden. Bitte prüfen Sie den Dienstnamen.",
+      "nfc_tag_duplicate": "Dieses NFC-Tag ist bereits mit einer anderen Aufgabe verknüpft.",
+      "invalid_shopping_list_entity": "Die Einkaufsliste muss eine To-do-Entität sein (todo.…)."
     }
   },
   "entity": {

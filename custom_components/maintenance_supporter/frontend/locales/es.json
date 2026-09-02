@@ -802,6 +802,7 @@
   "trigger_hint_now": "El sensor marca {value} ahora mismo.",
   "trigger_hint_above": "La tarea se activa cuando supere {target}.",
   "trigger_hint_below": "Se activa cuando baje de {target}.",
+  "trigger_hint_overlap": "Estos límites se solapan: cada lectura activa la tarea y nunca puede recuperarse. Deja uno de los dos vacío.",
   "trigger_hint_counter_delta": "Cuenta desde la lectura actual ({value}): vence en {due} (+{target}); el contador se reinicia tras cada finalización.",
   "trigger_hint_counter_delta_edit": "Cuenta el uso desde la última finalización: vence tras +{target}; el contador se reinicia tras cada finalización.",
   "trigger_hint_counter_abs": "La tarea vence cuando el sensor alcance {target}.",

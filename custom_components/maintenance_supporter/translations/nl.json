@@ -480,6 +480,7 @@
       "invalid_entity": "De geselecteerde entiteit bestaat niet of heeft geen numerieke gegevens.",
       "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",
       "invalid_threshold": "Er moet minimaal één drempel (boven of onder) worden ingesteld.",
+      "overlapping_threshold": "De drempel 'onder' moet lager zijn dan de drempel 'boven' – anders activeert elke meting de taak en kan deze nooit herstellen. Laat een van beide leeg.",
       "invalid_due_date": "Voor eenmalige taken is een vervaldatum vereist.",
       "invalid_interval": "Het interval moet een positief getal zijn.",
       "min_exceeds_max": "Het minimuminterval mag het maximuminterval niet overschrijden.",
@@ -1163,6 +1164,21 @@
           "go_back": "Terug naar taakacties zonder opslaan."
         }
       }
+    },
+    "error": {
+      "name_exists": "Een onderhoudsobject met deze naam bestaat al.",
+      "no_tasks": "Er is minimaal één onderhoudstaak vereist.",
+      "invalid_entity": "De geselecteerde entiteit bestaat niet of heeft geen numerieke gegevens.",
+      "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",
+      "invalid_threshold": "Er moet minimaal één drempel (boven of onder) worden ingesteld.",
+      "overlapping_threshold": "De drempel 'onder' moet lager zijn dan de drempel 'boven' – anders activeert elke meting de taak en kan deze nooit herstellen. Laat een van beide leeg.",
+      "invalid_due_date": "Voor eenmalige taken is een vervaldatum vereist.",
+      "invalid_interval": "Het interval moet een positief getal zijn.",
+      "min_exceeds_max": "Het minimuminterval mag het maximuminterval niet overschrijden.",
+      "invalid_notify_service": "Ongeldig formaat voor de meldingsservice. Gebruik 'notify.servicenaam' (bijv. notify.mobile_app_phone).",
+      "notify_service_not_found": "Deze meldingsservice is niet gevonden in Home Assistant. Controleer de servicenaam.",
+      "nfc_tag_duplicate": "Deze NFC-tag is al gekoppeld aan een andere taak.",
+      "invalid_shopping_list_entity": "De boodschappenlijst moet een to-do-entiteit zijn (todo.…)."
     }
   },
   "entity": {

@@ -480,6 +480,7 @@
       "invalid_entity": "La entidad seleccionada no existe o no tiene datos numéricos.",
       "invalid_attribute": "El atributo seleccionado no está disponible en esta entidad.",
       "invalid_threshold": "Se debe establecer al menos un umbral (superior o inferior).",
+      "overlapping_threshold": "El umbral «inferior» debe ser menor que el umbral «superior»; de lo contrario, cada lectura activa la tarea y nunca puede recuperarse. Deja uno de los dos vacío.",
       "invalid_due_date": "Se requiere una fecha de vencimiento para las tareas únicas.",
       "invalid_interval": "El intervalo debe ser un número positivo.",
       "min_exceeds_max": "El intervalo mínimo no debe superar el intervalo máximo.",
@@ -1163,6 +1164,21 @@
           "go_back": "Volver a las acciones de tarea sin guardar."
         }
       }
+    },
+    "error": {
+      "name_exists": "Ya existe un objeto de mantenimiento con este nombre.",
+      "no_tasks": "Se requiere al menos una tarea de mantenimiento.",
+      "invalid_entity": "La entidad seleccionada no existe o no tiene datos numéricos.",
+      "invalid_attribute": "El atributo seleccionado no está disponible en esta entidad.",
+      "invalid_threshold": "Se debe establecer al menos un umbral (superior o inferior).",
+      "overlapping_threshold": "El umbral «inferior» debe ser menor que el umbral «superior»; de lo contrario, cada lectura activa la tarea y nunca puede recuperarse. Deja uno de los dos vacío.",
+      "invalid_due_date": "Se requiere una fecha de vencimiento para las tareas únicas.",
+      "invalid_interval": "El intervalo debe ser un número positivo.",
+      "min_exceeds_max": "El intervalo mínimo no debe superar el intervalo máximo.",
+      "invalid_notify_service": "Formato del servicio de notificación no válido. Use 'notify.nombre_servicio' (ej.: notify.mobile_app_phone).",
+      "notify_service_not_found": "Este servicio de notificación no se encontró en Home Assistant. Verifique el nombre del servicio.",
+      "nfc_tag_duplicate": "Esta etiqueta NFC ya está vinculada a otra tarea.",
+      "invalid_shopping_list_entity": "La lista de la compra debe ser una entidad de tareas (todo.…)."
     }
   },
   "entity": {

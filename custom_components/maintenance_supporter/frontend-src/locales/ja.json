@@ -802,6 +802,7 @@
   "trigger_hint_now": "センサーは現在 {value} を示しています。",
   "trigger_hint_above": "値が {target} を上回るとタスクが発動します。",
   "trigger_hint_below": "値が {target} を下回ると発動します。",
+  "trigger_hint_overlap": "これらの制限は重なっています。すべての読み取り値でタスクがトリガーされ、復帰できなくなります。どちらか一方を空欄にしてください。",
   "trigger_hint_counter_delta": "現在の読み値（{value}）から数えます: {due}（+{target}）で期限になり、完了のたびにカウントはやり直しになります。",
   "trigger_hint_counter_delta_edit": "前回の完了からの使用量を数えます: +{target} で期限になり、完了のたびにカウントはやり直しになります。",
   "trigger_hint_counter_abs": "センサーが {target} に達するとタスクが期限になります。",

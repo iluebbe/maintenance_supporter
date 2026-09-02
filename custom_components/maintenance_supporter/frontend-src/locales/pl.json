@@ -802,6 +802,7 @@
   "trigger_hint_now": "Czujnik wskazuje teraz {value}.",
   "trigger_hint_above": "Zadanie uruchomi się, gdy wartość przekroczy {target}.",
   "trigger_hint_below": "Uruchomi się, gdy wartość spadnie poniżej {target}.",
+  "trigger_hint_overlap": "Te granice nakładają się: każdy odczyt wyzwala zadanie i nigdy nie może ono wrócić do normy. Pozostaw jedno z pól puste.",
   "trigger_hint_counter_delta": "Liczy od bieżącego odczytu ({value}): termin przy {due} (+{target}); licznik startuje od nowa po każdym ukończeniu.",
   "trigger_hint_counter_delta_edit": "Liczy zużycie od ostatniego ukończenia: termin po +{target}; licznik startuje od nowa po każdym ukończeniu.",
   "trigger_hint_counter_abs": "Zadanie staje się wymagalne, gdy czujnik osiągnie {target}.",

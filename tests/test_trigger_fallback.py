@@ -17,6 +17,7 @@ from custom_components.maintenance_supporter.helpers.trigger_fallback import (
     evaluate_state_change,
     evaluate_threshold,
     threshold_exceeds,
+    threshold_limits_overlap,
 )
 
 
@@ -278,6 +279,20 @@ def test_threshold_exceeds_equals_and_not_equals() -> None:
     # Combined with above/below: any configured limit may fire
     assert threshold_exceeds(3.0, above=10.0, below=None, equals=3.0) is True
     assert threshold_exceeds(11.0, above=10.0, below=None, equals=3.0) is True
+
+
+def test_threshold_limits_overlap_only_when_below_exceeds_above() -> None:
+    """#156: below > above covers every reading (the limits are OR-ed)."""
+    assert threshold_limits_overlap(0.0, 5.0) is True
+    assert threshold_limits_overlap(5.0, 0.0) is False
+    # Equal limits still leave a recoverable rule ("anything but 0" on a
+    # count sensor) — deliberately allowed.
+    assert threshold_limits_overlap(0.0, 0.0) is False
+    assert threshold_limits_overlap(None, 5.0) is False
+    assert threshold_limits_overlap(0.0, None) is False
+    assert threshold_limits_overlap(None, None) is False
+    # Sanity: with 0/5 every value trips, so the trigger can never recover.
+    assert all(threshold_exceeds(v, above=0.0, below=5.0) for v in (-1.0, 0.0, 1.0, 5.0, 99.0))
 
 
 def test_fallback_threshold_equals_activates() -> None:

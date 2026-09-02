@@ -480,6 +480,7 @@
       "invalid_entity": "Den valgte enhed findes ikke eller har ingen numeriske data.",
       "invalid_attribute": "Den valgte attribut er ikke tilgængelig på denne enhed.",
       "invalid_threshold": "Mindst én tærskel (over eller under) skal angives.",
+      "overlapping_threshold": "Tærsklen \"under\" skal være lavere end tærsklen \"over\" – ellers udløser hver måling opgaven, og den kan aldrig komme sig. Lad et af felterne stå tomt.",
       "invalid_due_date": "En forfaldsdato er påkrævet for engangsopgaver.",
       "invalid_interval": "Intervallet skal være et positivt tal.",
       "min_exceeds_max": "Minimumsintervallet må ikke overstige maksimumsintervallet.",
@@ -1163,6 +1164,21 @@
           "go_back": "Vend tilbage til opgavehandlinger uden at gemme."
         }
       }
+    },
+    "error": {
+      "name_exists": "Et vedligeholdelsesobjekt med dette navn findes allerede.",
+      "no_tasks": "Mindst én vedligeholdelsesopgave er påkrævet.",
+      "invalid_entity": "Den valgte enhed findes ikke eller har ingen numeriske data.",
+      "invalid_attribute": "Den valgte attribut er ikke tilgængelig på denne enhed.",
+      "invalid_threshold": "Mindst én tærskel (over eller under) skal angives.",
+      "overlapping_threshold": "Tærsklen \"under\" skal være lavere end tærsklen \"over\" – ellers udløser hver måling opgaven, og den kan aldrig komme sig. Lad et af felterne stå tomt.",
+      "invalid_due_date": "En forfaldsdato er påkrævet for engangsopgaver.",
+      "invalid_interval": "Intervallet skal være et positivt tal.",
+      "min_exceeds_max": "Minimumsintervallet må ikke overstige maksimumsintervallet.",
+      "invalid_notify_service": "Ugyldigt format for notifikationstjeneste. Brug 'notify.service_name' (f.eks. notify.mobile_app_phone).",
+      "notify_service_not_found": "Denne notifikationstjeneste blev ikke fundet i Home Assistant. Bekræft venligst tjenestens navn.",
+      "nfc_tag_duplicate": "Dette NFC-mærke er allerede knyttet til en anden opgave.",
+      "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…)."
     }
   },
   "entity": {

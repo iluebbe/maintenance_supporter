@@ -480,6 +480,7 @@
       "invalid_entity": "The selected entity does not exist or has no numeric data.",
       "invalid_attribute": "The selected attribute is not available on this entity.",
       "invalid_threshold": "At least one threshold (above or below) must be set.",
+      "overlapping_threshold": "The 'below' threshold must be lower than the 'above' threshold — otherwise every reading triggers the task and it can never recover. Leave one of them empty.",
       "invalid_interval": "Interval must be a positive number.",
       "invalid_due_date": "A due date is required for one-time tasks.",
       "min_exceeds_max": "Minimum interval must not exceed maximum interval.",
@@ -1163,6 +1164,21 @@
           "go_back": "Return to task actions without saving."
         }
       }
+    },
+    "error": {
+      "name_exists": "A maintenance object with this name already exists.",
+      "no_tasks": "At least one maintenance task is required.",
+      "invalid_entity": "The selected entity does not exist or has no numeric data.",
+      "invalid_attribute": "The selected attribute is not available on this entity.",
+      "invalid_threshold": "At least one threshold (above or below) must be set.",
+      "overlapping_threshold": "The 'below' threshold must be lower than the 'above' threshold — otherwise every reading triggers the task and it can never recover. Leave one of them empty.",
+      "invalid_interval": "Interval must be a positive number.",
+      "invalid_due_date": "A due date is required for one-time tasks.",
+      "min_exceeds_max": "Minimum interval must not exceed maximum interval.",
+      "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
+      "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name.",
+      "nfc_tag_duplicate": "This NFC tag is already linked to another task.",
+      "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…)."
     }
   },
   "entity": {

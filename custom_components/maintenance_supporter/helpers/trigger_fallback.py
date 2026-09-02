@@ -71,6 +71,18 @@ def threshold_exceeds(
     return not_equals is not None and not math.isclose(value, not_equals, rel_tol=1e-9, abs_tol=1e-9)
 
 
+def threshold_limits_overlap(above: float | None, below: float | None) -> bool:
+    """Whether ``above``/``below`` together cover every possible reading.
+
+    The limits are OR-ed by :func:`threshold_exceeds`, so ``below > above``
+    makes any value a hit — the trigger can never clear and
+    ``auto_complete_on_recovery`` never fires (#156). ``below == above`` is
+    left alone on purpose: on a count sensor 0/0 reads as "anything but 0"
+    and does recover.
+    """
+    return above is not None and below is not None and below > above
+
+
 def _numeric_entity_value(get_state: StateGetter, entity_id: str, attribute: str | None) -> float | None:
     """Read a numeric value from an entity state/attribute (None when unusable)."""
     state = get_state(entity_id)

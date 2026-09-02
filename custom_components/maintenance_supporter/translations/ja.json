@@ -480,6 +480,7 @@
       "invalid_entity": "選択したエンティティは存在しないか、数値データがありません。",
       "invalid_attribute": "選択した属性はこのエンティティで利用できません。",
       "invalid_threshold": "少なくとも 1 つのしきい値 (上限または下限) を設定する必要があります。",
+      "overlapping_threshold": "「下限」のしきい値は「上限」のしきい値より小さくする必要があります。そうでないとすべての読み取り値でタスクがトリガーされ、復帰できなくなります。どちらか一方を空欄にしてください。",
       "invalid_due_date": "一回限りのタスクには期限日が必要です。",
       "invalid_interval": "間隔は正の数値である必要があります。",
       "min_exceeds_max": "最小間隔は最大間隔を超えることはできません。",
@@ -1163,6 +1164,21 @@
           "go_back": "保存せずにタスクのアクションに戻ります。"
         }
       }
+    },
+    "error": {
+      "name_exists": "この名前のメンテナンス対象は既に存在します。",
+      "no_tasks": "少なくとも 1 件のメンテナンスタスクが必要です。",
+      "invalid_entity": "選択したエンティティは存在しないか、数値データがありません。",
+      "invalid_attribute": "選択した属性はこのエンティティで利用できません。",
+      "invalid_threshold": "少なくとも 1 つのしきい値 (上限または下限) を設定する必要があります。",
+      "overlapping_threshold": "「下限」のしきい値は「上限」のしきい値より小さくする必要があります。そうでないとすべての読み取り値でタスクがトリガーされ、復帰できなくなります。どちらか一方を空欄にしてください。",
+      "invalid_due_date": "一回限りのタスクには期限日が必要です。",
+      "invalid_interval": "間隔は正の数値である必要があります。",
+      "min_exceeds_max": "最小間隔は最大間隔を超えることはできません。",
+      "invalid_notify_service": "通知サービスの形式が無効です。「notify.service_name」を使用してください (例: notify.mobile_app_phone)。",
+      "notify_service_not_found": "この通知サービスは Home Assistant で見つかりませんでした。サービス名を確認してください。",
+      "nfc_tag_duplicate": "この NFC タグは既に別のタスクに関連付けられています。",
+      "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。"
     }
   },
   "entity": {

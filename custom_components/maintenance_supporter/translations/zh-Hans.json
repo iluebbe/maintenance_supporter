@@ -480,6 +480,7 @@
       "invalid_entity": "所选实体不存在或没有数值数据。",
       "invalid_attribute": "所选属性在此实体上不可用。",
       "invalid_threshold": "必须至少设置一个阈值（上限或下限）。",
+      "overlapping_threshold": "“低于”阈值必须小于“高于”阈值，否则每个读数都会触发任务，任务将永远无法恢复。请将其中一项留空。",
       "invalid_due_date": "一次性任务需要到期日期。",
       "invalid_interval": "间隔必须为正数。",
       "min_exceeds_max": "最小间隔不能超过最大间隔。",
@@ -1163,6 +1164,21 @@
           "go_back": "返回任务动作且不保存。"
         }
       }
+    },
+    "error": {
+      "name_exists": "已存在同名的维护项。",
+      "no_tasks": "至少需要一项维护任务。",
+      "invalid_entity": "所选实体不存在或没有数值数据。",
+      "invalid_attribute": "所选属性在此实体上不可用。",
+      "invalid_threshold": "必须至少设置一个阈值（上限或下限）。",
+      "overlapping_threshold": "“低于”阈值必须小于“高于”阈值，否则每个读数都会触发任务，任务将永远无法恢复。请将其中一项留空。",
+      "invalid_due_date": "一次性任务需要到期日期。",
+      "invalid_interval": "间隔必须为正数。",
+      "min_exceeds_max": "最小间隔不能超过最大间隔。",
+      "invalid_notify_service": "无效的通知服务格式。请使用 'notify.service_name'（例如：notify.mobile_app_phone）。",
+      "notify_service_not_found": "在 Home Assistant 中找不到此通知服务。请验证服务名称。",
+      "nfc_tag_duplicate": "此 NFC 标签已链接到另一项任务。",
+      "invalid_shopping_list_entity": "购物清单必须是待办实体（todo.…）。"
     }
   },
   "entity": {

@@ -480,6 +480,7 @@
       "invalid_entity": "Wybrana encja nie istnieje lub nie ma danych liczbowych.",
       "invalid_attribute": "Wybrany atrybut nie jest dostępny dla tej encji.",
       "invalid_threshold": "Należy ustawić co najmniej jeden próg (powyżej lub poniżej).",
+      "overlapping_threshold": "Próg „poniżej” musi być niższy niż próg „powyżej” – w przeciwnym razie każdy odczyt wyzwoli zadanie i nigdy nie będzie ono mogło wrócić do normy. Pozostaw jedno z pól puste.",
       "invalid_due_date": "Dla zadań jednorazowych wymagany jest termin.",
       "invalid_interval": "Interwał musi być liczbą dodatnią.",
       "min_exceeds_max": "Minimalny interwał nie może przekraczać maksymalnego.",
@@ -1163,6 +1164,21 @@
           "go_back": "Wróć do akcji zadania bez zapisywania."
         }
       }
+    },
+    "error": {
+      "name_exists": "Obiekt konserwacji o tej nazwie już istnieje.",
+      "no_tasks": "Wymagane jest co najmniej jedno zadanie konserwacji.",
+      "invalid_entity": "Wybrana encja nie istnieje lub nie ma danych liczbowych.",
+      "invalid_attribute": "Wybrany atrybut nie jest dostępny dla tej encji.",
+      "invalid_threshold": "Należy ustawić co najmniej jeden próg (powyżej lub poniżej).",
+      "overlapping_threshold": "Próg „poniżej” musi być niższy niż próg „powyżej” – w przeciwnym razie każdy odczyt wyzwoli zadanie i nigdy nie będzie ono mogło wrócić do normy. Pozostaw jedno z pól puste.",
+      "invalid_due_date": "Dla zadań jednorazowych wymagany jest termin.",
+      "invalid_interval": "Interwał musi być liczbą dodatnią.",
+      "min_exceeds_max": "Minimalny interwał nie może przekraczać maksymalnego.",
+      "invalid_notify_service": "Nieprawidłowy format usługi powiadomień. Użyj „notify.service_name” (np. notify.mobile_app_phone).",
+      "notify_service_not_found": "Tej usługi powiadomień nie znaleziono w Home Assistant. Sprawdź nazwę usługi.",
+      "nfc_tag_duplicate": "Ten tag NFC jest już powiązany z innym zadaniem.",
+      "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…)."
     }
   },
   "entity": {

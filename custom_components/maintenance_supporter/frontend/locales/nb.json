@@ -802,6 +802,7 @@
   "trigger_hint_now": "Sensoren viser {value} akkurat nå.",
   "trigger_hint_above": "Oppgaven utløses når verdien stiger over {target}.",
   "trigger_hint_below": "Den utløses når verdien faller under {target}.",
+  "trigger_hint_overlap": "Disse grensene overlapper: hver måling utløser oppgaven, og den kan aldri gjenopprettes. La ett av feltene stå tomt.",
   "trigger_hint_counter_delta": "Teller fra gjeldende avlesning ({value}): forfaller ved {due} (+{target}); telleren starter på nytt etter hver fullføring.",
   "trigger_hint_counter_delta_edit": "Teller forbruket siden forrige fullføring: forfaller etter +{target}; telleren starter på nytt etter hver fullføring.",
   "trigger_hint_counter_abs": "Oppgaven forfaller når sensoren når {target}.",

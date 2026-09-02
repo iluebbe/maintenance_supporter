@@ -802,6 +802,7 @@
   "trigger_hint_now": "Senzor nyní ukazuje {value}.",
   "trigger_hint_above": "Úkol se spustí, jakmile hodnota překročí {target}.",
   "trigger_hint_below": "Spustí se, jakmile hodnota klesne pod {target}.",
+  "trigger_hint_overlap": "Tyto meze se překrývají: každé měření spustí úkol a ten se nikdy nemůže zotavit. Jedno z polí nechte prázdné.",
   "trigger_hint_counter_delta": "Počítá od aktuální hodnoty ({value}): splatné při {due} (+{target}); počítadlo se po každém dokončení restartuje.",
   "trigger_hint_counter_delta_edit": "Počítá spotřebu od posledního dokončení: splatné po +{target}; počítadlo se po každém dokončení restartuje.",
   "trigger_hint_counter_abs": "Úkol bude splatný, jakmile senzor dosáhne {target}.",

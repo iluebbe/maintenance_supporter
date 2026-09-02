@@ -480,6 +480,7 @@
       "invalid_entity": "Den valda entiteten finns inte eller har inga numeriska data.",
       "invalid_attribute": "Det valda attributet är inte tillgängligt för denna entitet.",
       "invalid_threshold": "Minst en tröskel (över eller under) måste anges.",
+      "overlapping_threshold": "Tröskeln \"under\" måste vara lägre än tröskeln \"över\" – annars utlöser varje mätvärde uppgiften och den kan aldrig återhämta sig. Lämna ett av fälten tomt.",
       "invalid_due_date": "Ett förfallodatum krävs för engångsuppgifter.",
       "invalid_interval": "Intervallet måste vara ett positivt tal.",
       "min_exceeds_max": "Minimiintervallet får inte överstiga maximalt intervall.",
@@ -1163,6 +1164,21 @@
           "go_back": "Återgå till uppgiftsåtgärder utan att spara."
         }
       }
+    },
+    "error": {
+      "name_exists": "Ett underhållsobjekt med detta namn finns redan.",
+      "no_tasks": "Minst en underhållsuppgift krävs.",
+      "invalid_entity": "Den valda entiteten finns inte eller har inga numeriska data.",
+      "invalid_attribute": "Det valda attributet är inte tillgängligt för denna entitet.",
+      "invalid_threshold": "Minst en tröskel (över eller under) måste anges.",
+      "overlapping_threshold": "Tröskeln \"under\" måste vara lägre än tröskeln \"över\" – annars utlöser varje mätvärde uppgiften och den kan aldrig återhämta sig. Lämna ett av fälten tomt.",
+      "invalid_due_date": "Ett förfallodatum krävs för engångsuppgifter.",
+      "invalid_interval": "Intervallet måste vara ett positivt tal.",
+      "min_exceeds_max": "Minimiintervallet får inte överstiga maximalt intervall.",
+      "invalid_notify_service": "Ogiltigt format för aviseringstjänst. Använd ”notify.service_name” (t.ex. notify.mobile_app_phone).",
+      "notify_service_not_found": "Denna aviseringstjänst hittades inte i Home Assistant. Verifiera tjänstens namn.",
+      "nfc_tag_duplicate": "Denna NFC-tagg är redan kopplad till en annan uppgift.",
+      "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…)."
     }
   },
   "entity": {

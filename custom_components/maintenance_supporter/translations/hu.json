@@ -480,6 +480,7 @@
       "invalid_entity": "A kiválasztott entitás nem létezik, vagy nincs numerikus adata.",
       "invalid_attribute": "A kiválasztott attribútum nem érhető el ezen az entitáson.",
       "invalid_threshold": "Legalább egy küszöbértéket (felső vagy alsó) meg kell adni.",
+      "overlapping_threshold": "Az „alatta” küszöbértéknek kisebbnek kell lennie a „felette” küszöbértéknél – különben minden mérés kiváltja a feladatot, és az soha nem állhat helyre. Hagyja üresen az egyik mezőt.",
       "invalid_due_date": "Az egyszeri feladatokhoz határidő szükséges.",
       "invalid_interval": "Az intervallumnak pozitív számnak kell lennie.",
       "min_exceeds_max": "A minimális intervallum nem lehet nagyobb a maximálisnál.",
@@ -1163,6 +1164,21 @@
           "go_back": "Visszatérés a feladatműveletekhez mentés nélkül."
         }
       }
+    },
+    "error": {
+      "name_exists": "Már létezik karbantartási objektum ezzel a névvel.",
+      "no_tasks": "Legalább egy karbantartási feladat szükséges.",
+      "invalid_entity": "A kiválasztott entitás nem létezik, vagy nincs numerikus adata.",
+      "invalid_attribute": "A kiválasztott attribútum nem érhető el ezen az entitáson.",
+      "invalid_threshold": "Legalább egy küszöbértéket (felső vagy alsó) meg kell adni.",
+      "overlapping_threshold": "Az „alatta” küszöbértéknek kisebbnek kell lennie a „felette” küszöbértéknél – különben minden mérés kiváltja a feladatot, és az soha nem állhat helyre. Hagyja üresen az egyik mezőt.",
+      "invalid_due_date": "Az egyszeri feladatokhoz határidő szükséges.",
+      "invalid_interval": "Az intervallumnak pozitív számnak kell lennie.",
+      "min_exceeds_max": "A minimális intervallum nem lehet nagyobb a maximálisnál.",
+      "invalid_notify_service": "Érvénytelen értesítésiszolgáltatás-formátum. Használja a „notify.szolgaltatas_nev” alakot (pl. notify.mobile_app_phone).",
+      "notify_service_not_found": "Ez az értesítési szolgáltatás nem található a Home Assistantban. Ellenőrizze a szolgáltatás nevét.",
+      "nfc_tag_duplicate": "Ez az NFC címke már egy másik feladathoz van rendelve.",
+      "invalid_shopping_list_entity": "A bevásárlólistának teendő-entitásnak kell lennie (todo.…)."
     }
   },
   "entity": {

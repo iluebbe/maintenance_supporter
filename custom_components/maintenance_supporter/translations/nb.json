@@ -480,6 +480,7 @@
       "invalid_entity": "Den valgte enheten finnes ikke eller har ingen numeriske data.",
       "invalid_attribute": "Det valgte attributtet er ikke tilgjengelig på denne enheten.",
       "invalid_threshold": "Minst én terskel (over eller under) må angis.",
+      "overlapping_threshold": "Terskelen «under» må være lavere enn terskelen «over» – ellers utløser hver måling oppgaven, og den kan aldri gjenopprettes. La ett av feltene stå tomt.",
       "invalid_due_date": "En forfallsdato kreves for engangsoppgaver.",
       "invalid_interval": "Intervallet må være et positivt tall.",
       "min_exceeds_max": "Minste intervall må ikke overskride største intervall.",
@@ -1163,6 +1164,21 @@
           "go_back": "Gå tilbake til oppgavehandlinger uten å lagre."
         }
       }
+    },
+    "error": {
+      "name_exists": "Et vedlikeholdsobjekt med dette navnet finnes allerede.",
+      "no_tasks": "Minst én vedlikeholdsoppgave kreves.",
+      "invalid_entity": "Den valgte enheten finnes ikke eller har ingen numeriske data.",
+      "invalid_attribute": "Det valgte attributtet er ikke tilgjengelig på denne enheten.",
+      "invalid_threshold": "Minst én terskel (over eller under) må angis.",
+      "overlapping_threshold": "Terskelen «under» må være lavere enn terskelen «over» – ellers utløser hver måling oppgaven, og den kan aldri gjenopprettes. La ett av feltene stå tomt.",
+      "invalid_due_date": "En forfallsdato kreves for engangsoppgaver.",
+      "invalid_interval": "Intervallet må være et positivt tall.",
+      "min_exceeds_max": "Minste intervall må ikke overskride største intervall.",
+      "invalid_notify_service": "Ugyldig format for varslingstjeneste. Bruk «notify.service_name» (f.eks. notify.mobile_app_phone).",
+      "notify_service_not_found": "Denne varslingstjenesten ble ikke funnet i Home Assistant. Kontroller tjenestenavnet.",
+      "nfc_tag_duplicate": "Denne NFC-taggen er allerede koblet til en annen oppgave.",
+      "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…)."
     }
   },
   "entity": {

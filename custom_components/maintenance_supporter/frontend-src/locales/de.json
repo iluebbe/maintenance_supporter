@@ -802,6 +802,7 @@
   "trigger_hint_now": "Der Sensor zeigt aktuell {value}.",
   "trigger_hint_above": "Die Aufgabe wird ausgelöst, sobald der Wert über {target} steigt.",
   "trigger_hint_below": "Sie wird ausgelöst, sobald der Wert unter {target} fällt.",
+  "trigger_hint_overlap": "Diese Grenzen überschneiden sich: Jeder Messwert löst die Aufgabe aus, und sie kann sich nie erholen. Lass eines der Felder leer.",
   "trigger_hint_counter_delta": "Zählt ab dem aktuellen Stand ({value}): fällig bei {due} (+{target}); der Zähler startet nach jedem Abschluss neu.",
   "trigger_hint_counter_delta_edit": "Zählt den Verbrauch seit dem letzten Abschluss: fällig nach +{target}; der Zähler startet nach jedem Abschluss neu.",
   "trigger_hint_counter_abs": "Die Aufgabe wird fällig, sobald der Sensor {target} erreicht.",

@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Overlapping threshold limits are refused.** A threshold trigger's
+  *above* and *below* limits are OR-combined, so *Trigger below 5* next to
+  *Trigger above 0* made every reading a hit — the task stayed Triggered
+  forever and *Auto-complete when the sensor recovers* never fired (this was
+  the reporter's actual battery-fleet case in #156, not the missing flag
+  v2.71.0 healed). The task editor now warns in the live preview and blocks
+  the save, the options flow shows `overlapping_threshold`, and the WebSocket
+  create/update, the JSON import and compound conditions reject
+  `trigger_below > trigger_above`. Stored configs are left alone; the battery
+  fleet logs a pointed warning at start that names the fix. (#156)
+- **Options-flow errors are translated.** The options flow had no `error`
+  block of its own, so validation errors (`invalid_threshold`,
+  `min_exceeds_max`, …) surfaced as raw keys there; it now carries the same
+  messages as the config flow in all 22 languages.
+
 ## [2.71.0] - 2026-09-01
 
 ### ✨ Added

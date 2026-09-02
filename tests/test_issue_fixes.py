@@ -220,6 +220,45 @@ class TestTriggerConfigValidation:
         )
         assert any("trigger_above" in e for e in errors)
 
+    def test_threshold_overlapping_limits_rejected(self, hass: HomeAssistant) -> None:
+        """#156: below > above is OR-ed into "always triggered" — refused on
+        every write path that runs through this validator (create, update,
+        import), numeric strings included."""
+        set_sensor_state(hass, "sensor.test", "1")
+        for above, below in ((0, 5), (0.0, 5.0), ("0", "5")):
+            errors, _warnings = _validate_trigger_config(
+                hass,
+                {"entity_id": "sensor.test", "type": "threshold", "trigger_above": above, "trigger_below": below},
+            )
+            assert any("could never recover" in e for e in errors), (above, below, errors)
+
+    def test_threshold_non_overlapping_limits_accepted(self, hass: HomeAssistant) -> None:
+        """A real band (below < above) and equal limits stay legal."""
+        set_sensor_state(hass, "sensor.test", "1")
+        for above, below in ((5, 0), (0, 0), (10.5, 2)):
+            errors, _warnings = _validate_trigger_config(
+                hass,
+                {"entity_id": "sensor.test", "type": "threshold", "trigger_above": above, "trigger_below": below},
+            )
+            assert errors == [], (above, below, errors)
+
+    def test_compound_condition_overlapping_limits_rejected(self, hass: HomeAssistant) -> None:
+        """The same rule applies per compound condition, error prefixed."""
+        set_sensor_state(hass, "sensor.a", "1")
+        set_sensor_state(hass, "sensor.b", "1")
+        errors, _warnings = _validate_trigger_config(
+            hass,
+            {
+                "type": "compound",
+                "compound_logic": "AND",
+                "conditions": [
+                    {"entity_id": "sensor.a", "type": "threshold", "trigger_above": 0, "trigger_below": 5},
+                    {"entity_id": "sensor.b", "type": "threshold", "trigger_above": 1},
+                ],
+            },
+        )
+        assert any(e.startswith("Condition 0") and "could never recover" in e for e in errors), errors
+
     def test_counter_missing_target_value(self, hass: HomeAssistant) -> None:
         """Counter without target_value should return an error."""
         set_sensor_state(hass, "sensor.test", "42.0")

@@ -802,6 +802,7 @@
   "trigger_hint_now": "센서의 현재 값은 {value}입니다.",
   "trigger_hint_above": "{target}을(를) 초과하면 작업이 트리거됩니다.",
   "trigger_hint_below": "{target} 미만으로 떨어지면 트리거됩니다.",
+  "trigger_hint_overlap": "이 한계값들이 겹칩니다. 모든 측정값이 작업을 트리거하여 복구되지 않습니다. 둘 중 하나를 비워 두세요.",
   "trigger_hint_counter_delta": "현재 값({value})부터 계수합니다: {due} 도달 시 기한 (+{target}), 완료할 때마다 계수가 다시 시작됩니다.",
   "trigger_hint_counter_delta_edit": "마지막 완료 이후 사용량을 계수합니다: +{target} 후 기한이 되며, 완료할 때마다 계수가 다시 시작됩니다.",
   "trigger_hint_counter_abs": "센서가 {target}에 도달하면 작업 기한이 됩니다.",

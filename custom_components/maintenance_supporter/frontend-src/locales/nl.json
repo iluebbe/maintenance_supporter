@@ -802,6 +802,7 @@
   "trigger_hint_now": "De sensor staat nu op {value}.",
   "trigger_hint_above": "De taak wordt geactiveerd zodra de waarde boven {target} komt.",
   "trigger_hint_below": "Hij wordt geactiveerd zodra de waarde onder {target} zakt.",
+  "trigger_hint_overlap": "Deze grenzen overlappen: elke meting activeert de taak en deze kan nooit herstellen. Laat een van beide leeg.",
   "trigger_hint_counter_delta": "Telt vanaf de huidige stand ({value}): vervalt bij {due} (+{target}); de teller herstart na elke afronding.",
   "trigger_hint_counter_delta_edit": "Telt het gebruik sinds de laatste afronding: vervalt na +{target}; de teller herstart na elke afronding.",
   "trigger_hint_counter_abs": "De taak vervalt zodra de sensor {target} bereikt.",

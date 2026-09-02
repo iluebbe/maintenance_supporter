@@ -75,6 +75,44 @@ describe("task-dialog live trigger hint", () => {
     expect(hint(el)).to.equal(null);
   });
 
+  it("#156: below > above shows the overlap warning and blocks save (the limits are OR-ed)", async () => {
+    const { hass, sent } = createMockHass({
+      states: { "sensor.low_count": { state: "1", attributes: { unit_of_measurement: "batteries" } } },
+      handlers: { "maintenance_supporter/task/create": () => ({ task_id: "new1" }) },
+    });
+    const el = await fixture<MaintenanceTaskDialog>(html`
+      <maintenance-task-dialog .hass=${hass}></maintenance-task-dialog>
+    `);
+    el.openCreate("e1", []);
+    await el.updateComplete;
+    (el as any)._scheduleType = "sensor_based";
+    await el.updateComplete;
+    (el as any)._name = "Replace batteries";
+    (el as any)._triggerEntityId = "sensor.low_count";
+    (el as any)._triggerEntityIds = ["sensor.low_count"];
+    (el as any)._triggerType = "threshold";
+    (el as any)._triggerAbove = "0";
+    (el as any)._triggerBelow = "5";
+    await el.updateComplete;
+    const warn = el.shadowRoot!.querySelector(".trigger-live-hint.warn");
+    expect(warn, "overlap warning rendered").to.not.equal(null);
+    expect(warn!.textContent).to.include("can never recover");
+    // The regular hint still lists both limits above the warning.
+    expect(hint(el)).to.include("0 batteries");
+
+    await (el as any)._save();
+    expect(sent.some((m) => m.type === "maintenance_supporter/task/create"), "save blocked").to.be.false;
+    expect(el.shadowRoot!.querySelector(".error")?.textContent).to.include("can never recover");
+
+    // A real band (below < above) or equal limits carry no warning.
+    (el as any)._triggerBelow = "0";
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector(".trigger-live-hint.warn")).to.equal(null);
+    (el as any)._triggerAbove = "5";
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector(".trigger-live-hint.warn")).to.equal(null);
+  });
+
   it("editing a delta task uses the since-last-completion wording (baseline is not the current reading)", async () => {
     const { hass } = createMockHass({
       states: { "sensor.pump_hours": { state: "660", attributes: { unit_of_measurement: "h" } } },

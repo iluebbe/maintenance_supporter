@@ -480,6 +480,7 @@
       "invalid_entity": "Valittua entiteettiä ei ole olemassa tai sillä ei ole numeerista dataa.",
       "invalid_attribute": "Valittu attribuutti ei ole käytettävissä tällä entiteetillä.",
       "invalid_threshold": "Vähintään yksi kynnysarvo (ylä- tai alaraja) on asetettava.",
+      "overlapping_threshold": "Kynnysarvon \"alle\" on oltava pienempi kuin kynnysarvon \"yli\" – muuten jokainen lukema laukaisee tehtävän eikä se voi koskaan palautua. Jätä toinen kentistä tyhjäksi.",
       "invalid_due_date": "Eräpäivä vaaditaan kertaluonteisille tehtäville.",
       "invalid_interval": "Aikavälin on oltava positiivinen luku.",
       "min_exceeds_max": "Vähimmäisaikaväli ei saa ylittää enimmäisaikaväliä.",
@@ -1163,6 +1164,21 @@
           "go_back": "Palaa tehtävän toimintoihin tallentamatta."
         }
       }
+    },
+    "error": {
+      "name_exists": "Tämänniminen huoltokohde on jo olemassa.",
+      "no_tasks": "Vähintään yksi huoltotehtävä vaaditaan.",
+      "invalid_entity": "Valittua entiteettiä ei ole olemassa tai sillä ei ole numeerista dataa.",
+      "invalid_attribute": "Valittu attribuutti ei ole käytettävissä tällä entiteetillä.",
+      "invalid_threshold": "Vähintään yksi kynnysarvo (ylä- tai alaraja) on asetettava.",
+      "overlapping_threshold": "Kynnysarvon \"alle\" on oltava pienempi kuin kynnysarvon \"yli\" – muuten jokainen lukema laukaisee tehtävän eikä se voi koskaan palautua. Jätä toinen kentistä tyhjäksi.",
+      "invalid_due_date": "Eräpäivä vaaditaan kertaluonteisille tehtäville.",
+      "invalid_interval": "Aikavälin on oltava positiivinen luku.",
+      "min_exceeds_max": "Vähimmäisaikaväli ei saa ylittää enimmäisaikaväliä.",
+      "invalid_notify_service": "Virheellinen ilmoituspalvelun muoto. Käytä muotoa 'notify.service_name' (esim. notify.mobile_app_phone).",
+      "notify_service_not_found": "Tätä ilmoituspalvelua ei löytynyt Home Assistantista. Tarkista palvelun nimi.",
+      "nfc_tag_duplicate": "Tämä NFC-tunniste on jo liitetty toiseen tehtävään.",
+      "invalid_shopping_list_entity": "Ostoslistan on oltava tehtäväentiteetti (todo.…)."
     }
   },
   "entity": {

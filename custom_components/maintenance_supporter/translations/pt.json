@@ -480,6 +480,7 @@
       "invalid_entity": "A entidade selecionada não existe ou não tem dados numéricos.",
       "invalid_attribute": "O atributo selecionado não está disponível nesta entidade.",
       "invalid_threshold": "Pelo menos um limiar (acima ou abaixo) deve ser definido.",
+      "overlapping_threshold": "O limiar «abaixo» tem de ser inferior ao limiar «acima» — caso contrário, cada leitura aciona a tarefa e esta nunca consegue recuperar. Deixe um dos campos vazio.",
       "invalid_due_date": "É necessária uma data de vencimento para tarefas únicas.",
       "invalid_interval": "O intervalo deve ser um número positivo.",
       "min_exceeds_max": "O intervalo mínimo não deve exceder o intervalo máximo.",
@@ -1163,6 +1164,21 @@
           "go_back": "Regressar às ações da tarefa sem guardar."
         }
       }
+    },
+    "error": {
+      "name_exists": "Já existe um objeto de manutenção com este nome.",
+      "no_tasks": "É necessária pelo menos uma tarefa de manutenção.",
+      "invalid_entity": "A entidade selecionada não existe ou não tem dados numéricos.",
+      "invalid_attribute": "O atributo selecionado não está disponível nesta entidade.",
+      "invalid_threshold": "Pelo menos um limiar (acima ou abaixo) deve ser definido.",
+      "overlapping_threshold": "O limiar «abaixo» tem de ser inferior ao limiar «acima» — caso contrário, cada leitura aciona a tarefa e esta nunca consegue recuperar. Deixe um dos campos vazio.",
+      "invalid_due_date": "É necessária uma data de vencimento para tarefas únicas.",
+      "invalid_interval": "O intervalo deve ser um número positivo.",
+      "min_exceeds_max": "O intervalo mínimo não deve exceder o intervalo máximo.",
+      "invalid_notify_service": "Formato de serviço de notificação inválido. Use 'notify.nome_do_servico' (ex.: notify.mobile_app_phone).",
+      "notify_service_not_found": "Este serviço de notificação não foi encontrado no Home Assistant. Verifique o nome do serviço.",
+      "nfc_tag_duplicate": "Esta etiqueta NFC já está associada a outra tarefa.",
+      "invalid_shopping_list_entity": "A lista de compras tem de ser uma entidade de tarefas (todo.…)."
     }
   },
   "entity": {

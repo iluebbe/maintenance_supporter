@@ -1190,6 +1190,10 @@ export class MaintenanceTaskDialog extends LitElement {
         return;
       }
     }
+    if (this._triggerType === "threshold" && this._thresholdLimitsOverlap()) {
+      this._error = t("trigger_hint_overlap", this._lang);
+      return;
+    }
     this._loading = true;
     this._error = "";
     try {
@@ -2299,12 +2303,23 @@ export class MaintenanceTaskDialog extends LitElement {
    * sensor's current reading (not from zero) and restarts after each
    * completion. Renders nothing when there's no entity/state to read.
    */
+  /** #156: above/below are OR-ed server-side — `below > above` makes every
+   *  reading a hit, so the trigger never clears (and never auto-completes). */
+  private _thresholdLimitsOverlap(): boolean {
+    const above = parseFloat(this._triggerAbove);
+    const below = parseFloat(this._triggerBelow);
+    return !isNaN(above) && !isNaN(below) && below > above;
+  }
+
   private _renderTriggerLiveHint() {
     if (this._triggerType === "compound") return nothing;
+    const overlap = this._triggerType === "threshold" && this._thresholdLimitsOverlap()
+      ? html`<div class="trigger-live-hint warn">${t("trigger_hint_overlap", this._lang)}</div>`
+      : nothing;
     const entityId = this._triggerEntityId || this._triggerEntityIds[0];
-    if (!entityId || !this.hass?.states) return nothing;
+    if (!entityId || !this.hass?.states) return overlap;
     const st = this.hass.states[entityId];
-    if (!st) return nothing;
+    if (!st) return overlap;
     const L = this._lang;
 
     const unitAttr = st.attributes?.unit_of_measurement;
@@ -2362,8 +2377,8 @@ export class MaintenanceTaskDialog extends LitElement {
       );
       parts.push(t("trigger_hint_state_now", L).replace("{value}", String(st.state)));
     }
-    if (!parts.length) return nothing;
-    return html`<div class="trigger-live-hint">${parts.join(" ")}</div>`;
+    if (!parts.length) return overlap;
+    return html`<div class="trigger-live-hint">${parts.join(" ")}</div>${overlap}`;
   }
 
   private _renderTriggerTypeFields() {
@@ -3130,6 +3145,11 @@ export class MaintenanceTaskDialog extends LitElement {
       border-radius: 0 6px 6px 0;
       padding: 6px 10px;
       margin: 4px 0;
+    }
+    .trigger-live-hint.warn {
+      color: var(--primary-text-color);
+      border-left-color: var(--warning-color, #ff9800);
+      background: rgba(255, 152, 0, 0.1);
     }
     .field-help a,
     .link-button {

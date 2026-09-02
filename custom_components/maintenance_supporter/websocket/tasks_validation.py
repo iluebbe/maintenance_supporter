@@ -18,6 +18,7 @@ from ..const import (
     UNAVAILABLE_STATES,
     TriggerType,
 )
+from ..helpers.trigger_fallback import threshold_limits_overlap
 from . import (
     _get_object_entries,
 )
@@ -190,6 +191,18 @@ def _validate_trigger_config(
 
     _validate_combinator(trigger_config, errors)
     _validate_trigger_values(trigger_type, trigger_config, errors)
+
+    # #156: the limits are OR-ed — below > above means every reading trips
+    # the trigger, so it can never recover (and never auto-completes).
+    if trigger_type == "threshold" and threshold_limits_overlap(
+        _coerce_number(trigger_config.get("trigger_above")),
+        _coerce_number(trigger_config.get("trigger_below")),
+    ):
+        errors.append(
+            "trigger_config.trigger_below must not be higher than trigger_above: the limits are OR-ed, "
+            "so every reading would trigger the task and it could never recover. "
+            "Leave one of them empty."
+        )
 
     # Runtime: validate trigger_on_states if provided
     if trigger_type == "runtime":
