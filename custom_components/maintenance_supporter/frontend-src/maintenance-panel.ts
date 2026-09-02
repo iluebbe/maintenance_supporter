@@ -3644,7 +3644,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   .then((d) => d?.openCreate(obj.entry_id));
               }}>${t("add_first_task", L)}</ha-button>
             </div>`
-          : html`<div class="task-table">${[...visibleTasks].sort((a, b) => {
+          : html`<div class="task-table object-tasks">${[...visibleTasks].sort((a, b) => {
               const so: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
               return (so[a.status] ?? 9) - (so[b.status] ?? 9) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
             }).map((task) => html`

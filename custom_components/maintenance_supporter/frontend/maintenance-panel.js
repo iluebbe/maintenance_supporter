@@ -404,6 +404,24 @@ ${D(r.notes)}</div>`:""}
     padding: 0 12px;
   }
 
+  /* Object page task list: it has no object-name cell (the page IS the
+     object), so under the shared 7-track template every cell sat one track
+     to the left — the ~190px action pair landed in the 150px due track and
+     poked past the row's right edge (a horizontal scrollbar as soon as a
+     classic vertical one took its 17px; wider still with German labels).
+     Six tracks for six cells. Below 769px the narrow/tight layouts place
+     the cells explicitly and keep their own four tracks. */
+  @media (min-width: 769px) {
+    .task-table.object-tasks {
+      grid-template-columns: auto minmax(120px, 1fr) minmax(0, 220px) 100px 150px auto;
+    }
+  }
+  @media (min-width: 1200px) {
+    .task-table.object-tasks {
+      grid-template-columns: auto fit-content(400px) minmax(0, 1fr) 100px 150px auto;
+    }
+  }
+
   /* Master-detail split (>=1500px panel, 2026-09-01): list left, docked task
      detail right - the width finally carries content instead of slack. Only
      the dashboard tab uses it; below the threshold everything is unchanged. */
@@ -5791,7 +5809,7 @@ ${d.capped?`<p class="cap-note">${P(t.capNote)}</p>`:""}
         ${t.tasks.length===0?o`<div class="empty-state-centered">
               <p class="empty">${a("no_tasks_yet",i)}</p>
               <ha-button appearance="filled" @click=${()=>{this._ui("maintenance-task-dialog").then(c=>c?.openCreate(t.entry_id))}}>${a("add_first_task",i)}</ha-button>
-            </div>`:o`<div class="task-table">${[...d].sort((c,h)=>{let u={overdue:0,triggered:1,due_soon:2,ok:3};return(u[c.status]??9)-(u[h.status]??9)||(c.days_until_due??99999)-(h.days_until_due??99999)}).map(c=>o`
+            </div>`:o`<div class="task-table object-tasks">${[...d].sort((c,h)=>{let u={overdue:0,triggered:1,due_soon:2,ok:3};return(u[c.status]??9)-(u[h.status]??9)||(c.days_until_due??99999)-(h.days_until_due??99999)}).map(c=>o`
               <div class="task-row${c.enabled?"":" task-disabled"}">
                 <span class="cell-badges">
                   ${this._statusBadge(!!c.archived,!!c.is_done,c.status)}
