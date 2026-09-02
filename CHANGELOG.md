@@ -4,8 +4,57 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **`list_tasks` rows are actionable.** Every row now names its task sensor
+  (`entity_id` — the registered id, so a renamed sensor still resolves) and
+  can be handed straight to `complete` / `skip` / `reset`; no more
+  reconstructing `sensor.<object>_<task>` from names. Rows also carry
+  `trigger_type`, the configured limit `trigger_target` and — for delta-mode
+  counters — `trigger_current_delta` (progress since the last service, what
+  the panel bar shows). (#151 follow-up)
+- **Deep links documented.** `?entry_id=` alone opens the object page,
+  `&task_id=` the task, `&action=complete|quick_complete` the completion —
+  now written up in [Examples](docs/EXAMPLES.md#deep-links--open-an-object-or-task-from-anywhere-160)
+  together with where the ids come from. (#160)
+- **Dreame station consumables.** The `dreame_vacuum` signature now also
+  proposes *Replace Mop Pads*, *Refill Detergent*, *Replace Secondary
+  Filter* and *Replace Silver-ion Module* for self-wash base stations
+  (`mop_pad_left` / `detergent_left` / `secondary_filter_left` /
+  `silver_ion_left`, all percent, all disabled-by-default sensors in that
+  integration — enable the ones your model has). Catalog: 123 integrations
+  / 235 signatures. (#150)
+
+### 🔄 Changed
+
+- **Phone rows are two lines, not three.** On narrow screens (and the
+  "tight" tablet band) a task row now reads *task name … object name* on
+  the first line and *status · chips · due · actions* on the second: the
+  status pill drops its label and keeps only the icon (the label lives on
+  as the tooltip / accessible name), the object name moves up beside the
+  task name, and the compact Complete / Skip pair becomes two icon-only
+  buttons — filled green Complete, outlined orange Skip, since with no
+  word left the colour is the only cue. Rows are about a third shorter;
+  bulk-select and the object page follow the same grid. The labelled
+  buttons on wide screens are unchanged. (#150)
+- **Banners wrap on phones.** The stale-bundle and row-style notices let
+  their buttons wrap under the text instead of squeezing it into a
+  one-word-per-line column.
+
 ### 🐛 Fixed
 
+- **`trigger_unit` for runtime triggers.** `list_tasks` read the unit off
+  the watched entity, so a runtime task on a switch reported `null`; runtime
+  now reports `h` (it accumulates hours whatever the source is),
+  state-change counts have no unit, threshold/counter keep the source
+  entity's unit — the same rules the panel uses. (#151 follow-up)
+- **Adopted baselines and imported runtime totals survive the first start.**
+  A flat `trigger_baseline_value` / `trigger_accumulated_seconds` /
+  `trigger_change_count` in a task's trigger config — written by *adopt with
+  baseline* (#102, "the last service was at 20 000 km"), a backup import or
+  the options flow — was parked in the store in a shape the triggers never
+  read, so the first setup silently re-baselined to the current reading and
+  restarted runtime at zero. The store now hands them over per entity.
 - **Overlapping threshold limits are refused.** A threshold trigger's
   *above* and *below* limits are OR-combined, so *Trigger below 5* next to
   *Trigger above 0* made every reading a hit — the task stayed Triggered

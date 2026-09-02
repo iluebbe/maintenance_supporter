@@ -195,6 +195,47 @@ If you forget to pre-fill the defaults, the QR scan falls back to the normal com
 
 ![QR dialog](images/qr-dialog.png)
 
+### Deep links — open an object or task from anywhere (#160)
+
+The QR codes are just URLs into the panel; you can build the same links in
+notifications, dashboards or automations. An object *is* a config entry, so
+its `entry_id` is the key (stable for the life of the object):
+
+| URL | Opens |
+|-----|-------|
+| `/maintenance-supporter?entry_id=<entry_id>` | the object's detail page |
+| `/maintenance-supporter?entry_id=<entry_id>&task_id=<task_id>` | the task's detail page |
+| `…&task_id=<task_id>&action=complete` | the task with the completion dialog already open |
+| `…&task_id=<task_id>&action=quick_complete` | completes silently with the task's pre-filled defaults (falls back to the dialog if none are set) |
+
+Where the ids come from:
+
+- `maintenance_supporter.list_tasks` returns `entry_id` and `task_id` for
+  every row — ideal for a summary push whose tap opens the first task:
+
+  ```yaml
+  - action: maintenance_supporter.list_tasks
+    data: { status: overdue }
+    response_variable: due
+  - action: notify.mobile_app_phone
+    data:
+      title: "{{ due.count }} overdue tasks"
+      message: >-
+        {% for t in due.tasks %}• {{ t.object_name }} — {{ t.name }}
+        {% endfor %}
+      data:
+        url: "/maintenance-supporter?entry_id={{ due.tasks[0].entry_id }}&task_id={{ due.tasks[0].task_id }}"
+  ```
+
+- Every lifecycle event (`maintenance_supporter_task_completed`,
+  `_task_skipped`, `_task_reset`, `_trigger_activated`,
+  `_trigger_deactivated`) carries both ids in `trigger.event.data`.
+- The task's QR dialog in the panel shows the full URL — copy it from there
+  for a one-off link.
+
+The parameters are consumed once and stripped from the address bar, so a
+bookmarked link behaves like a fresh tap every time.
+
 ### Object documentation URL (1.4.0+) — keep the manual within reach
 
 Each object can carry a link to its PDF manual / vendor page / setup guide. Set it once via *Edit Object → Manual / documentation URL* (right under *Serial number*). The link then renders as a clickable line in:
@@ -258,9 +299,35 @@ Since 2.71 `entity_id` accepts a **list** (or a comma-separated string) on
 `complete`, `skip` and `reset` — every task runs its own completion rules,
 refusals are collected without blocking the others, and per-task values
 (`cost`, `duration`, `reading_value`, `via_tag_scan`) stay single-entity so
-they can't fan out into the budget. `list_tasks` rows now also carry
-`last_performed`, `days_since_last_completed`, `trigger_current_value` and
-`trigger_unit` for notification templates (#151/#158).
+they can't fan out into the budget.
+
+`list_tasks` rows carry everything a notification or a follow-up action
+needs (#151/#158): `entity_id` (the task sensor, registered id — feed it
+straight into `complete`/`skip`/`reset`), `last_performed`,
+`days_since_last_completed`, `trigger_type`, `trigger_current_value`,
+`trigger_current_delta` (delta-mode counters: progress since the last
+service), `trigger_target` and `trigger_unit` (`h` for runtime, the source
+entity's unit for threshold/counter, none for state-change counts).
+
+```yaml
+# "printer ink at 54.2 %", "brush head 0.9 / 6 h" — then complete the first
+# overdue task by the id the row hands back.
+- action: maintenance_supporter.list_tasks
+  data: { status: overdue }
+  response_variable: due
+- action: notify.mobile_app_phone
+  data:
+    message: >-
+      {% for t in due.tasks %}• {{ t.object_name }} — {{ t.name }}
+      {%- if t.trigger_current_value is not none %} ({{ t.trigger_current_value }}
+      {{- '/' ~ t.trigger_target if t.trigger_target is not none }}
+      {{- ' ' ~ t.trigger_unit if t.trigger_unit }}){% endif %}
+      {% endfor %}
+- action: maintenance_supporter.complete
+  data:
+    entity_id: "{{ due.tasks[0].entity_id }}"
+    notes: "done from the notification"
+```
 
 ```yaml
 service: maintenance_supporter.complete

@@ -286,7 +286,7 @@ warning-lamp families.
 
 **Suggested setups** (in the dashboard's *Add ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **123 integrations with 231 verified
+click. The catalog currently covers **123 integrations with 235 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,
@@ -804,8 +804,9 @@ binary sensors above keep working unchanged.
 
 Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
 `add_task`, `update_task`, `delete_task`, and `list_tasks` (returns a
-response — id, name, status, next due per task, filterable by object and
-status) join the long-standing `complete` / `skip` / `reset` /
+response — ids, the task's sensor `entity_id`, status, next due, last
+completion and the live trigger reading with target and unit per task,
+filterable by object and status) join the long-standing `complete` / `skip` / `reset` /
 `export_data`. Household attribution (#128): `complete` takes an optional
 `completed_by` **person entity** (defaulting to the calling user), and
 `update_task` can assign or clear the responsible user — see
