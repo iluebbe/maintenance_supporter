@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.72.1 | 220 source files (134 Python + 86 TypeScript) | **98% test coverage** (3,641 backend tests + 617 frontend tests)
+**Version:** 2.73.0 | 220 source files (134 Python + 86 TypeScript) | **98% test coverage** (3,641 backend tests + 621 frontend tests)
 
 ---
 
@@ -264,18 +264,20 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-panel.js                   Built panel
 │   ├── maintenance-card.js                    Built Lovelace card
 │   ├── maintenance-calendar-card.js           Built calendar card
-│   ├── maintenance-strategy-shim.js           Dashboard-strategy self-heal shim
+│   ├── maintenance-strategy-shim.js           Strategy registration + self-heal shim (extra_module_url)
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
 ├── frontend-src/               (26,031 lines)  TypeScript sources (excl. __tests__/, 6,301 lines / 52 files)
 │   ├── maintenance-panel.ts     (3,334 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects
-│   ├── maintenance-dashboard-strategy.ts (1,221)  Auto-generated dashboard strategy
+│   ├── maintenance-dashboard-strategy.ts (1,242)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (698 lines)  Lovelace card
 │   ├── maintenance-calendar-card.ts (646 lines)  Calendar card (object filter, #83)
 │   ├── maintenance-card-editor.ts (409 lines)
-│   ├── maintenance-strategy-shim.ts (348 lines)  Scoped-registry self-heal shim
+│   ├── maintenance-strategy-shim.ts (441 lines)  Zero-import boot shim: defines the dashboard AND the four
+│   │                                           section strategy tags synchronously (lazy-loads the bundle on
+│   │                                           first generate(); v2.73.0), picker entries, scoped-registry self-heal
 │   ├── panel-styles.ts          (1,520 lines)  Panel-specific CSS
 │   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
 │   ├── styles.ts                (1,639 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch

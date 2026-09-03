@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.73.0] - 2026-09-03
 
 ### 🐛 Fixed
 
@@ -39,6 +39,19 @@ All notable changes to Maintenance Supporter are documented in this file.
   symbol, and the standalone budget card never fed the profile in at all.
   The same tripwire now also refuses `toFixed`/`toPrecision`/`toLocaleString`
   outside the single formatting authority. (#163)
+- **Section strategies work on any dashboard again.** Since 2.8.1 the four
+  section strategies (`custom:maintenance-supporter-section` and the
+  vacation / budget / groups status sections) were registered only by the
+  full strategy bundle, which the boot-time shim loads lazily on the *first*
+  Maintenance Supporter dashboard render. Dropped into a foreign dashboard —
+  the documented use — on a freshly opened page, the section had no element
+  to wait for, timed out silently and rendered empty until the Maintenance
+  Supporter dashboard had been opened once in that browser session; the
+  section picker didn't list them either. The shim now registers all four
+  synchronously (delegating to the bundle on demand, like the dashboard
+  strategy) and advertises them to the picker. Found while verifying the
+  standalone budget card above on HA 2026.8.3; guarded by a registration
+  test.
 
 ## [2.72.1] - 2026-09-02
 

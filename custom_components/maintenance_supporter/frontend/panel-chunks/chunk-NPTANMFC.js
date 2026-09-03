@@ -1,5 +1,5 @@
-/*! maintenance_supporter frontend 2.72.1 */
-import{a as r,b as l,c as i,f as o,h as n,l as t}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-2QSBPTC4.js";var e=class extends n{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1;this.multiline=!1;this.rows=3}_onInput(s){let a=s.target.value;this.value=a,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:a}}))}render(){return i`
+/*! maintenance_supporter frontend 2.73.0 */
+import{a as r,b as l,c as i,f as o,h as n,l as t}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-2ZXPE27K.js";var e=class extends n{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1;this.multiline=!1;this.rows=3}_onInput(s){let a=s.target.value;this.value=a,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:a}}))}render(){return i`
       <label class="field">
         ${this.label?i`<span class="label">${this.label}${this.required?i`<span class="req">*</span>`:o}</span>`:o}
         ${this.multiline?i`
