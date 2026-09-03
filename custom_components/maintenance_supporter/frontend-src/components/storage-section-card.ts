@@ -188,8 +188,8 @@ export class MaintenanceStorageSectionCard extends LitElement {
               <span class="emoji">🗄️</span>
               <span class="title-text">${t("doc_storage_title", L)}</span>
               <span class="header-summary">
-                ${formatBytes(s.total_bytes)}
-                ${s.dedup_savings_bytes > 0 ? html`<span class="saved">−${formatBytes(s.dedup_savings_bytes)}</span>` : nothing}
+                ${formatBytes(s.total_bytes, L)}
+                ${s.dedup_savings_bytes > 0 ? html`<span class="saved">−${formatBytes(s.dedup_savings_bytes, L)}</span>` : nothing}
               </span>
             </button>
             <button
@@ -207,7 +207,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
                 <div class="body">
                   <div class="totals">
                     <div class="stat">
-                      <div class="stat-value">${formatBytes(s.total_bytes)}</div>
+                      <div class="stat-value">${formatBytes(s.total_bytes, L)}</div>
                       <div class="stat-label">
                         <ha-icon icon="mdi:file-document-outline"></ha-icon> ${s.file_count}
                         <ha-icon icon="mdi:link-variant"></ha-icon> ${s.link_count}
@@ -215,7 +215,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
                     </div>
                     ${s.dedup_savings_bytes > 0
                       ? html`<div class="stat">
-                          <div class="stat-value saved">−${formatBytes(s.dedup_savings_bytes)}</div>
+                          <div class="stat-value saved">−${formatBytes(s.dedup_savings_bytes, L)}</div>
                           <div class="stat-label">${t("doc_storage_saved", L)}</div>
                         </div>`
                       : nothing}
@@ -275,7 +275,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
           ${r.files > 0 ? html`<ha-icon icon="mdi:file-document-outline"></ha-icon>${r.files}` : nothing}
           ${r.links > 0 ? html`<ha-icon icon="mdi:link-variant"></ha-icon>${r.links}` : nothing}
         </span>
-        <span class="obj-size">${formatBytes(r.bytes)}</span>
+        <span class="obj-size">${formatBytes(r.bytes, L)}</span>
         ${eid ? html`<ha-icon class="obj-go" icon="mdi:chevron-right"></ha-icon>` : nothing}
       </div>
     `;

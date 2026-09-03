@@ -11,7 +11,7 @@
 
 import { expect } from "@open-wc/testing";
 import { openCreateTaskDialog } from "../dialog-mount";
-import { formatDate, setDateTimePrefs } from "../styles";
+import { formatDate, formatNumber, setProfilePrefs } from "../styles";
 
 const TAG = "maintenance-task-dialog";
 
@@ -52,17 +52,19 @@ describe("dialog-mount host selection (#129)", () => {
     stray.remove();
   });
 
-  it("feeds the HA profile date format into the prefs singleton on open (#163)", () => {
+  it("feeds the HA profile date + number formats into the prefs singleton on open (#163)", () => {
     // A strategy dashboard may never have rendered a panel or card, so the
     // dialog itself is the first (only) surface that can pick up hass.locale.
-    setDateTimePrefs({ date_format: "language", time_format: "language" }, null);
+    setProfilePrefs({ date_format: "language", time_format: "language", number_format: "language" }, null);
     expect(formatDate("2026-08-10", "en")).to.equal("08/10/2026");
-    const ha = makeHaRoot({ date_format: "DMY", time_format: "24" });
+    expect(formatNumber(1234.5, "en")).to.equal("1,234.5");
+    const ha = makeHaRoot({ date_format: "DMY", time_format: "24", number_format: "decimal_comma" });
     try {
       expect(openCreateTaskDialog()).to.equal(true);
       expect(formatDate("2026-08-10", "en")).to.equal("10/08/2026");
+      expect(formatNumber(1234.5, "en")).to.equal("1.234,5");
     } finally {
-      setDateTimePrefs({ date_format: undefined, time_format: undefined }, null);
+      setProfilePrefs({ date_format: undefined, time_format: undefined, number_format: undefined }, null);
       ha.shadowRoot!.querySelector(TAG)?.remove();
     }
   });

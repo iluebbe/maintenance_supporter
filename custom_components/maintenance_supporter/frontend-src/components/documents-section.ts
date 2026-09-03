@@ -416,7 +416,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     const isFile = doc.kind === "file";
     const cat = this._category_of(doc);
     const meta = isFile
-      ? `${t(`doc_cat_${cat}`, L)} · ${formatBytes(doc.size)}`
+      ? `${t(`doc_cat_${cat}`, L)} · ${formatBytes(doc.size, L)}`
       : t("doc_link_badge", L);
     const thumb = this._thumbs[doc.id];
     return html`

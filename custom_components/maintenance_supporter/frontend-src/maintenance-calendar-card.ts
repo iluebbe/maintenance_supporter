@@ -35,7 +35,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, formatWeekday, formatMonth, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost } from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
@@ -371,7 +371,7 @@ export class MaintenanceCalendarCard extends LitElement {
             ${recurEvery}
           </div>
           ${ev.avg_cost != null && ev.avg_cost > 0
-            ? html`<span class="cal-event-cost">${ev.avg_cost.toFixed(0)} ${currencySymbol}</span>`
+            ? html`<span class="cal-event-cost">${formatCost(ev.avg_cost, currencySymbol, L, 0)}</span>`
             : nothing}
         </div>
       `;

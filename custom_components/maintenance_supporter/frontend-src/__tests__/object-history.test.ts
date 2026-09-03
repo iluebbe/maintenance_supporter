@@ -81,7 +81,7 @@ describe("service record printable", () => {
       labels as ServiceRecordLabels,
       (iso) => iso.slice(0, 10),
       (m) => `${m} min`,
-      "€",
+      (amount) => `${amount.toFixed(2)} €`,
       "2026-08-24T12:00:00Z",
       { capped },
     );
@@ -110,7 +110,7 @@ describe("service record printable", () => {
       labels as ServiceRecordLabels,
       (iso) => iso,
       (m) => `${m}`,
-      "€",
+      (amount) => `${amount.toFixed(2)} €`,
       "2026-08-24T12:00:00Z",
     );
     expect(evil).to.not.contain("<img src=x");

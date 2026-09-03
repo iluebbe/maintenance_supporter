@@ -13,7 +13,7 @@ import { expect, fixture, html } from "@open-wc/testing";
 import "../components/battery-fleet-section.js";
 import type { MaintenanceBatteryFleetSection } from "../components/battery-fleet-section";
 import { createMockHass } from "./_test-utils.js";
-import { setDateTimePrefs } from "../styles";
+import { setProfilePrefs } from "../styles";
 
 const LOW = {
   entity_id: "sensor.lock_battery_plus", device_name: "Front Lock",
@@ -179,7 +179,7 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
         `~${pad(expected.getDate())}/${pad(expected.getMonth() + 1)}/${expected.getFullYear()}`,
       );
     } finally {
-      setDateTimePrefs({ date_format: undefined, time_format: undefined }, null);
+      setProfilePrefs({ date_format: undefined, time_format: undefined }, null);
     }
   });
 

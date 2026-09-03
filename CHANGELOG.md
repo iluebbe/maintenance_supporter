@@ -27,6 +27,18 @@ All notable changes to Maintenance Supporter are documented in this file.
   build on any native `<input type="date|time">` or direct `Intl` call outside
   it, and on any card/panel that renders dates without syncing the profile
   prefs. (#163)
+- **Numbers follow the HA profile number format too.** Costs, budgets,
+  averages, chart axes and tooltips, trigger progress labels, Weibull /
+  seasonal figures and storage sizes were rendered with a fixed English
+  decimal point (`12.50 €`) — or, in a few places, the browser locale —
+  whatever Profile → Number format said, so they never matched the entity
+  cards around them. They now honour `comma_decimal`, `decimal_comma`,
+  `space_comma`, `none` and the language default exactly like HA's own
+  formatter, and switch live without a reload. Fallout fixed on the way: the
+  cost/duration chart hard-coded `€` instead of the configured currency
+  symbol, and the standalone budget card never fed the profile in at all.
+  The same tripwire now also refuses `toFixed`/`toPrecision`/`toLocaleString`
+  outside the single formatting authority. (#163)
 
 ## [2.72.1] - 2026-09-02
 

@@ -42,7 +42,7 @@ export function buildServiceRecordHtml(
   labels: ServiceRecordLabels,
   fmtDate: (iso: string) => string,
   fmtDuration: (minutes: number) => string,
-  currencySymbol: string,
+  fmtCost: (amount: number) => string,
   generatedIso: string,
   opts: { capped?: boolean } = {},
 ): string {
@@ -70,7 +70,7 @@ export function buildServiceRecordHtml(
       return `<tr>
         <td class="nowrap">${esc(fmtDate(e.timestamp))}</td>
         <td>${esc(e.phaseName ? `${e.taskName} · ${e.phaseName}` : e.taskName)}</td>
-        <td class="num">${e.cost != null ? `${esc(e.cost.toFixed(2))} ${esc(currencySymbol)}` : esc(labels.none)}</td>
+        <td class="num">${e.cost != null ? esc(fmtCost(e.cost)) : esc(labels.none)}</td>
         <td class="num">${e.duration != null ? esc(fmtDuration(e.duration)) : esc(labels.none)}</td>
         <td class="notes">${esc(notes) || esc(labels.none)}</td>
       </tr>`;
@@ -122,7 +122,7 @@ ${rows}
   </tbody>
   <tfoot><tr>
     <td colspan="2">${esc(labels.totalLabel)}</td>
-    <td class="num">${esc(totalCost.toFixed(2))} ${esc(currencySymbol)}</td>
+    <td class="num">${esc(fmtCost(totalCost))}</td>
     <td colspan="2"></td>
   </tr></tfoot>
 </table>

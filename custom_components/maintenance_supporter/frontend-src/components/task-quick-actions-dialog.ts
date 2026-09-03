@@ -14,7 +14,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, langOf } from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, formatNumber, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
@@ -467,7 +467,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           </div>
           <div class="stat">
             <span class="stat-label">${t("total_cost", L) || "Total cost"}</span>
-            <span class="stat-value">${totalCost.toFixed(2)}</span>
+            <span class="stat-value">${formatNumber(totalCost, L, 2)}</span>
           </div>
           <div class="stat">
             <span class="stat-label">${t("avg_duration", L) || "Avg duration"}</span>
@@ -502,7 +502,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                         : nothing}
                       ${entry.cost != null || entry.duration != null
                         ? html`<div class="history-meta">
-                            ${entry.cost != null ? html`<span>💰 ${entry.cost.toFixed(2)}</span>` : nothing}
+                            ${entry.cost != null ? html`<span>💰 ${formatNumber(entry.cost, L, 2)}</span>` : nothing}
                             ${entry.duration != null ? html`<span>⏱️ ${entry.duration}m</span>` : nothing}
                           </div>`
                         : nothing}

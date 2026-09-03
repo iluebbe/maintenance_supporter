@@ -12,7 +12,7 @@
 import { html, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
-import { t, formatDate, formatDateTime, formatRecurrence } from "../styles";
+import { t, formatDate, formatDateTime, formatRecurrence, formatNumber, formatCost } from "../styles";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
 import { renderPredictionSection } from "./prediction";
@@ -351,11 +351,11 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("avg_cost", L)}</div>
-        <div class="kpi-value">${avgCost.toFixed(0)} ${ctx.currencySymbol}</div>
+        <div class="kpi-value">${formatCost(avgCost, ctx.currencySymbol, L, 0)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("avg_duration", L)}</div>
-        <div class="kpi-value">${task.average_duration ? task.average_duration.toFixed(0) : "—"} min</div>
+        <div class="kpi-value">${task.average_duration ? formatNumber(task.average_duration, L, 0) : "—"} min</div>
       </div>
     </div>
   `;
@@ -422,7 +422,7 @@ function renderRecentActivities(task: MaintenanceTask, ctx: TaskDetailContext) {
           <span class="activity-icon">${getIcon(entry.type)}</span>
           <span class="activity-date">${formatDateTime(entry.timestamp, L)}</span>
           <span class="activity-note">${entry.notes || "—"}</span>
-          ${entry.cost ? html`<span class="activity-badge">${entry.cost.toFixed(0)}${ctx.currencySymbol}</span>` : nothing}
+          ${entry.cost ? html`<span class="activity-badge">${formatCost(entry.cost, ctx.currencySymbol, L, 0)}</span>` : nothing}
           ${entry.duration ? html`<span class="activity-badge">${entry.duration}min</span>` : nothing}
         </div>
       `)}
@@ -471,7 +471,7 @@ export function renderOverviewTab(task: MaintenanceTask, ctx: TaskDetailContext)
           </div>
         ` : nothing}
         <div class="right-column">
-          ${renderCostDurationCard(task, L, ctx.costDurationToggle, (v) => ctx.setCostDurationToggle(v))}
+          ${renderCostDurationCard(task, L, ctx.costDurationToggle, (v) => ctx.setCostDurationToggle(v), ctx.currencySymbol)}
         </div>
       </div>
       ${hasWeibullData

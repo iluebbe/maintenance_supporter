@@ -106,7 +106,7 @@ export function syncLocaleFromHass(
   changedProps: Map<string, unknown>,
 ): void {
   if (changedProps.has("hass")) {
-    setDateTimePrefs(host.hass?.locale as Parameters<typeof setDateTimePrefs>[0], host.hass?.config?.country);
+    setProfilePrefs(host.hass?.locale as Parameters<typeof setProfilePrefs>[0], host.hass?.config?.country);
   }
   const lang = host.hass?.language;
   if (lang && !isLocaleLoaded(lang)) {
@@ -188,36 +188,86 @@ function langToLocale(lang?: string): string {
   return map[l] ?? "en-US";
 }
 
-/** HA per-user date/time format prefs (issue #97).
+/** HA per-user format prefs (issue #97, #163).
  *
- * hass.locale.date_format ("language"|"system"|"DMY"|"MDY"|"YMD") and
- * time_format ("language"|"system"|"12"|"24") are frontend PROFILE settings —
- * deriving the format from the UI language alone showed en users mm/dd/yyyy
- * even with dd/mm/yyyy configured. Stored on a window singleton because each
- * bundle (panel / cards / dialog-mount) gets its own module scope; every
- * surface calls setDateTimePrefs() on hass updates and whichever runs first
- * wins for all of them.
+ * hass.locale.date_format ("language"|"system"|"DMY"|"MDY"|"YMD"),
+ * time_format ("language"|"system"|"12"|"24") and number_format ("language"|
+ * "system"|"comma_decimal"|"decimal_comma"|"space_comma"|"none") are frontend
+ * PROFILE settings — deriving the format from the UI language alone showed
+ * en users mm/dd/yyyy even with dd/mm/yyyy configured. Stored on a window
+ * singleton because each bundle (panel / cards / dialog-mount) gets its own
+ * module scope; every surface calls setProfilePrefs() on hass updates and
+ * whichever runs first wins for all of them. (The window key keeps its
+ * original name so a stale cached bundle still shares the object.)
  */
-interface DateTimePrefs {
+interface ProfilePrefs {
   date?: string;
   time?: string;
+  number?: string;
   country?: string;
 }
-const _w = window as unknown as { __msDateTimePrefs?: DateTimePrefs };
-const DT_PREFS: DateTimePrefs = (_w.__msDateTimePrefs ??= {});
+const _w = window as unknown as { __msDateTimePrefs?: ProfilePrefs };
+const DT_PREFS: ProfilePrefs = (_w.__msDateTimePrefs ??= {});
 
-/** Feed HA's per-user date/time format into formatDate/formatDateTime.
+/** Feed HA's per-user date/time/number formats into the formatters below.
  *  `country` is the SERVER's configured country (#140): with the profile
- *  format left on "language" it regionalizes the language default —
+ *  date format left on "language" it regionalizes the language default —
  *  "en" + AU renders DD/MM/YYYY instead of the hard en-US mapping. */
-export function setDateTimePrefs(
-  locale?: { date_format?: string; time_format?: string },
+export function setProfilePrefs(
+  locale?: { date_format?: string; time_format?: string; number_format?: string },
   country?: string | null,
 ): void {
   if (!locale) return;
   DT_PREFS.date = locale.date_format;
   DT_PREFS.time = locale.time_format;
+  DT_PREFS.number = locale.number_format;
   if (country !== undefined) DT_PREFS.country = country || undefined;
+}
+
+/** Locale for the profile number format — mirrors HA's own
+ *  numberFormatToLocale so our figures match the entity cards next to them:
+ *  the three explicit styles pin a representative locale, "system" is the
+ *  browser, and the "language" default is the UI language WITHOUT the
+ *  server-country regionalization dates get (#140) — HA formats "de" as
+ *  1.234,56 whatever the country. */
+function numberLocale(lang?: string): string | string[] | undefined {
+  switch (DT_PREFS.number) {
+    case "comma_decimal": return ["en-US", "en"];
+    case "decimal_comma": return ["de", "es", "it"];
+    case "space_comma": return ["fr", "sv", "cs"];
+    case "system": return undefined;
+    default: return langToLocale(lang);
+  }
+}
+
+/** Format a number for display honouring the HA profile number format.
+ *  `digits` pins the fraction digits (a number = exactly that many, like
+ *  toFixed) or passes raw Intl options; the default is at most 2, no trailing
+ *  zeros. "none" mirrors HA: plain digits, no grouping, trailing zeros
+ *  dropped. Every human-facing number in the UI goes through here — SVG
+ *  coordinates use chart-utils px() instead, which must stay locale-free. */
+export function formatNumber(n: number, lang?: string, digits?: number | Intl.NumberFormatOptions): string {
+  if (!Number.isFinite(n)) return String(n);
+  const opts: Intl.NumberFormatOptions =
+    typeof digits === "number"
+      ? { minimumFractionDigits: digits, maximumFractionDigits: digits }
+      : { maximumFractionDigits: 2, ...digits };
+  if (DT_PREFS.number === "none") {
+    const f = Math.pow(10, opts.maximumFractionDigits ?? 2);
+    return String(Math.round(n * f) / f);
+  }
+  try {
+    return new Intl.NumberFormat(numberLocale(lang), opts).format(n);
+  } catch {
+    return new Intl.NumberFormat(undefined, opts).format(n);
+  }
+}
+
+/** Amount + currency symbol ("12.50 €"; the symbol is optional) — every cost
+ *  figure in the UI and the printables goes through here. */
+export function formatCost(amount: number, symbol?: string, lang?: string, digits = 2): string {
+  const num = formatNumber(amount, lang, digits);
+  return symbol ? `${num} ${symbol}` : num;
 }
 
 /** BCP-47 locale for the "language" default: the UI language regionalized
@@ -314,8 +364,8 @@ export function formatInterval(
  *  Name-only helpers (weekday / month / "Jul 3") follow the UI language like
  *  HA's own formatDateShort does — the profile date_format only orders
  *  NUMERIC dates. They still live here, not in the consumers: styles.ts is
- *  the only module allowed to call Intl for dates (see
- *  __tests__/date-format-single-source.test.ts, #163). */
+ *  the only module allowed to call Intl for dates and numbers (see
+ *  __tests__/profile-format-single-source.test.ts, #163). */
 export function weekdayName(i: number, lang?: string, style: "long" | "short" = "long"): string {
   return new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(resolveLocale(lang), { weekday: style, timeZone: "UTC" });
 }

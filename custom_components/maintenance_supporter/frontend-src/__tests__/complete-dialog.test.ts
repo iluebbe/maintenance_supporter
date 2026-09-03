@@ -260,7 +260,9 @@ describe("complete-dialog cost suggestion from parts (#104 follow-up)", () => {
     c.click();
     await el.updateComplete;
     const cost = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")][1];
-    expect(cost.value).to.equal("17.00");
+    // Machine value for the <input type="number"> — never profile-formatted
+    // ("17,00" would be rejected by the input under a decimal_comma profile).
+    expect(cost.value).to.equal("17");
     expect(chip(el), "chip hides once cost is set").to.equal(null);
   });
 

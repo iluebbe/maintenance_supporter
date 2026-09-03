@@ -5,7 +5,7 @@ import { isSafeHttpUrl } from "./helpers/url";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setDateTimePrefs, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatNumber, formatCost } from "./styles";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
@@ -1675,7 +1675,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const html = buildObjectReportHtml(
       resp.object, resp.tasks, labels,
       (iso) => (iso ? formatDate(iso, L) : ""),
-      this._currencySymbol,
+      (amount) => formatCost(amount, this._currencySymbol, L),
       new Date().toISOString(),
     );
     openHtmlInNewTab(html);
@@ -3364,17 +3364,17 @@ export class MaintenanceSupporterPanel extends LitElement {
         const pct = Math.min(100, Math.max(0, (spent / budget) * 100));
         const color = pct >= 100 ? "var(--error-color, #f44336)" : pct >= b.alert_threshold_pct ? "var(--warning-color, #ff9800)" : "var(--success-color, #4caf50)";
         return html`
-          <div class="stat-item budget-tile" title="${label}: ${spent.toFixed(2)} / ${budget.toFixed(2)} ${cs}">
-            <span class="stat-value budget-tile-value">${spent.toFixed(2)} ${cs}</span>
-            <span class="budget-tile-max">/ ${budget.toFixed(0)} ${cs}</span>
+          <div class="stat-item budget-tile" title="${label}: ${formatNumber(spent, L, 2)} / ${formatCost(budget, cs, L)}">
+            <span class="stat-value budget-tile-value">${formatCost(spent, cs, L)}</span>
+            <span class="budget-tile-max">/ ${formatCost(budget, cs, L, 0)}</span>
             <div class="budget-tile-bar"><div style="width:${pct}%; background:${color}"></div></div>
             <span class="stat-label">${label}</span>
           </div>
         `;
       }
       return html`
-        <div class="stat-item budget-tile" title="${label}: ${spent.toFixed(2)} ${cs}">
-          <span class="stat-value budget-tile-value">${spent.toFixed(2)} ${cs}</span>
+        <div class="stat-item budget-tile" title="${label}: ${formatCost(spent, cs, L)}">
+          <span class="stat-value budget-tile-value">${formatCost(spent, cs, L)}</span>
           <span class="stat-label">${label}</span>
         </div>
       `;

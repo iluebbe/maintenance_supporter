@@ -44,7 +44,7 @@ import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import type { MaintenanceTaskQuickActionsDialog } from "./components/task-quick-actions-dialog";
 import type { MaintenanceObjectQuickActionsDialog } from "./components/object-quick-actions-dialog";
 import type { HomeAssistant, MaintenanceObject } from "./types";
-import { ensureLocale, isLocaleLoaded, langOf, setDateTimePrefs } from "./styles";
+import { ensureLocale, isLocaleLoaded, langOf, setProfilePrefs } from "./styles";
 import { fillAndOpenCompleteDialog, type CompleteDialogArgs } from "./helpers/complete-dialog-args";
 
 const OBJECT_DIALOG_TAG = "maintenance-object-dialog";
@@ -102,7 +102,7 @@ function syncHass(el: HTMLElement & { hass?: HomeAssistant }): boolean {
   // dashboard no panel or card may ever have fed hass.locale into the prefs
   // singleton, so formatDate inside the dialog would fall back to the
   // language default and ignore a DMY/MDY/YMD profile setting.
-  setDateTimePrefs(hass.locale as Parameters<typeof setDateTimePrefs>[0], hass.config?.country);
+  setProfilePrefs(hass.locale as Parameters<typeof setProfilePrefs>[0], hass.config?.country);
   return true;
 }
 

@@ -15,7 +15,7 @@
 import { LitElement, html, css, svg, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t } from "../styles";
-import { niceTicks, fmtNum, fmtVal, fmtDateTick, fmtDateTime, timeTicks, needsYear } from "../renderers/chart-utils";
+import { niceTicks, fmtNum, fmtVal, fmtDateTick, fmtDateTime, timeTicks, needsYear, px } from "../renderers/chart-utils";
 
 export interface ChartPoint {
   ts: number;
@@ -170,18 +170,18 @@ export class MaintenanceTriggerChart extends LitElement {
     const toX = (ts: number) => PAD_L + ((ts - tsMin) / tsSpan) * plotW;
     const toY = (v: number) => PAD_T + (1 - (v - niceMin) / (niceMax - niceMin || 1)) * plotH;
 
-    const linePts = pts.map((p) => `${toX(p.ts).toFixed(1)},${toY(p.val).toFixed(1)}`).join(" ");
+    const linePts = pts.map((p) => `${px(toX(p.ts))},${px(toY(p.val))}`).join(" ");
     const areaPath =
-      `M${toX(pts[0].ts).toFixed(1)},${plotB} ` +
-      pts.map((p) => `L${toX(p.ts).toFixed(1)},${toY(p.val).toFixed(1)}`).join(" ") +
-      ` L${toX(pts[pts.length - 1].ts).toFixed(1)},${plotB} Z`;
+      `M${px(toX(pts[0].ts))},${plotB} ` +
+      pts.map((p) => `L${px(toX(p.ts))},${px(toY(p.val))}`).join(" ") +
+      ` L${px(toX(pts[pts.length - 1].ts))},${plotB} Z`;
 
     // Optional min/max band behind the line.
     let bandPath = "";
     const band = pts.filter((p) => p.min != null && p.max != null);
     if (band.length >= 2) {
-      const up = band.map((p) => `${toX(p.ts).toFixed(1)},${toY(p.max!).toFixed(1)}`);
-      const dn = [...band].reverse().map((p) => `${toX(p.ts).toFixed(1)},${toY(p.min!).toFixed(1)}`);
+      const up = band.map((p) => `${px(toX(p.ts))},${px(toY(p.max!))}`);
+      const dn = [...band].reverse().map((p) => `${px(toX(p.ts))},${px(toY(p.min!))}`);
       bandPath = `M${up[0]} ` + up.slice(1).map((x) => `L${x}`).join(" ") + ` L${dn.join(" L")} Z`;
     }
 
@@ -190,11 +190,11 @@ export class MaintenanceTriggerChart extends LitElement {
     const zones: { y: number; h: number; lineY: number; label: string; labelY: number }[] = [];
     if (this.thresholdBelow != null) {
       const zy = toY(this.thresholdBelow);
-      zones.push({ y: zy, h: Math.max(0, plotB - zy), lineY: zy, label: `▼ ${fmtNum(this.thresholdBelow)}`, labelY: Math.min(plotB - 4, zy + 13) });
+      zones.push({ y: zy, h: Math.max(0, plotB - zy), lineY: zy, label: `▼ ${fmtNum(this.thresholdBelow, L)}`, labelY: Math.min(plotB - 4, zy + 13) });
     }
     if (this.thresholdAbove != null) {
       const zy = toY(this.thresholdAbove);
-      zones.push({ y: PAD_T, h: Math.max(0, zy - PAD_T), lineY: zy, label: `▲ ${fmtNum(this.thresholdAbove)}`, labelY: Math.max(PAD_T + 11, zy - 5) });
+      zones.push({ y: PAD_T, h: Math.max(0, zy - PAD_T), lineY: zy, label: `▲ ${fmtNum(this.thresholdAbove, L)}`, labelY: Math.max(PAD_T + 11, zy - 5) });
     }
 
     const lastP = pts[pts.length - 1];
@@ -218,7 +218,7 @@ export class MaintenanceTriggerChart extends LitElement {
           <defs>
             <clipPath id="plot"><rect x="${PAD_L}" y="${PAD_T}" width="${plotW}" height="${plotH}" /></clipPath>
             ${zones.length
-              ? svg`<clipPath id="danger">${zones.map((z) => svg`<rect x="${PAD_L}" y="${z.y.toFixed(1)}" width="${plotW}" height="${z.h.toFixed(1)}" />`)}</clipPath>`
+              ? svg`<clipPath id="danger">${zones.map((z) => svg`<rect x="${PAD_L}" y="${px(z.y)}" width="${plotW}" height="${px(z.h)}" />`)}</clipPath>`
               : nothing}
             <!-- Diagonal hatch so the danger zone reads without relying on the
                  red tint alone (dark-theme contrast + colour-blind support). -->
@@ -232,13 +232,13 @@ export class MaintenanceTriggerChart extends LitElement {
             const y = toY(v);
             if (y < PAD_T - 1 || y > plotB + 1) return nothing;
             return svg`
-              <line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}"
+              <line x1="${PAD_L}" y1="${px(y)}" x2="${W - PAD_R}" y2="${px(y)}"
                 stroke="var(--divider-color)" stroke-width="1" opacity="0.6" />
-              <text x="${PAD_L - 7}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" class="tick-label">${fmtNum(v)}</text>`;
+              <text x="${PAD_L - 7}" y="${px(y + 3.5)}" text-anchor="end" class="tick-label">${fmtNum(v, L)}</text>`;
           })}
 
           ${zones.map(
-            (z) => svg`<rect x="${PAD_L}" y="${z.y.toFixed(1)}" width="${plotW}" height="${z.h.toFixed(1)}"
+            (z) => svg`<rect x="${PAD_L}" y="${px(z.y)}" width="${plotW}" height="${px(z.h)}"
               fill="url(#dangerHatch)" />`,
           )}
 
@@ -253,27 +253,27 @@ export class MaintenanceTriggerChart extends LitElement {
 
           ${zones.map(
             (z) => svg`
-              <line x1="${PAD_L}" y1="${z.lineY.toFixed(1)}" x2="${W - PAD_R}" y2="${z.lineY.toFixed(1)}"
+              <line x1="${PAD_L}" y1="${px(z.lineY)}" x2="${W - PAD_R}" y2="${px(z.lineY)}"
                 stroke="var(--error-color, #f44336)" stroke-width="1.5" stroke-dasharray="6,4" />
-              <text x="${W - PAD_R - 4}" y="${z.labelY.toFixed(1)}" text-anchor="end" class="zone-label">${z.label}</text>`,
+              <text x="${W - PAD_R - 4}" y="${px(z.labelY)}" text-anchor="end" class="zone-label">${z.label}</text>`,
           )}
 
           ${this.targetValue != null
-            ? svg`<line x1="${PAD_L}" y1="${toY(this.targetValue).toFixed(1)}" x2="${W - PAD_R}" y2="${toY(this.targetValue).toFixed(1)}"
+            ? svg`<line x1="${PAD_L}" y1="${px(toY(this.targetValue))}" x2="${W - PAD_R}" y2="${px(toY(this.targetValue))}"
                 stroke="var(--error-color, #f44336)" stroke-width="1.5" stroke-dasharray="6,4" />
-              <text x="${W - PAD_R - 4}" y="${(toY(this.targetValue) - 5).toFixed(1)}" text-anchor="end" class="zone-label">◆ ${fmtNum(this.targetValue)} ${this.unit}</text>`
+              <text x="${W - PAD_R - 4}" y="${px(toY(this.targetValue) - 5)}" text-anchor="end" class="zone-label">◆ ${fmtNum(this.targetValue, L)} ${this.unit}</text>`
             : nothing}
 
           ${this.projection && this.projection.length === 2
-            ? svg`<line x1="${toX(this.projection[0].ts).toFixed(1)}" y1="${toY(this.projection[0].val).toFixed(1)}"
-                x2="${Math.min(toX(this.projection[1].ts), W - PAD_R).toFixed(1)}" y2="${toY(Math.max(niceMin, Math.min(niceMax, this.projection[1].val))).toFixed(1)}"
+            ? svg`<line x1="${px(toX(this.projection[0].ts))}" y1="${px(toY(this.projection[0].val))}"
+                x2="${px(Math.min(toX(this.projection[1].ts), W - PAD_R))}" y2="${px(toY(Math.max(niceMin, Math.min(niceMax, this.projection[1].val))))}"
                 stroke="var(--warning-color, #ff9800)" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8" />`
             : nothing}
 
           ${xTicks.map((ts, i) => {
             const x = toX(ts);
             const anchor = i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle";
-            return svg`<text x="${x.toFixed(1)}" y="${H - 5}" text-anchor="${anchor}" class="tick-label">${fmtDateTick(ts, L, withYear)}</text>`;
+            return svg`<text x="${px(x)}" y="${H - 5}" text-anchor="${anchor}" class="tick-label">${fmtDateTick(ts, L, withYear)}</text>`;
           })}
 
           <line x1="${PAD_L}" y1="${plotB}" x2="${W - PAD_R}" y2="${plotB}" stroke="var(--divider-color)" stroke-width="1" />
@@ -287,19 +287,19 @@ export class MaintenanceTriggerChart extends LitElement {
                   ? "var(--warning-color, #ff9800)"
                   : "var(--info-color, #2196f3)";
             return svg`
-              <line x1="${x.toFixed(1)}" y1="${PAD_T}" x2="${x.toFixed(1)}" y2="${plotB}" stroke="${color}" stroke-width="1" opacity="0.14" />
-              <rect x="${(x - 1.5).toFixed(1)}" y="${plotB + 3}" width="3" height="${LANE_H - 6}" rx="1.5" fill="${color}">
+              <line x1="${px(x)}" y1="${PAD_T}" x2="${px(x)}" y2="${plotB}" stroke="${color}" stroke-width="1" opacity="0.14" />
+              <rect x="${px(x - 1.5)}" y="${plotB + 3}" width="3" height="${LANE_H - 6}" rx="1.5" fill="${color}">
                 <title>${fmtDateTime(e.ts, L)}</title>
               </rect>`;
           })}
 
           ${hover
             ? svg`
-                <line x1="${hover.x.toFixed(1)}" y1="${PAD_T}" x2="${hover.x.toFixed(1)}" y2="${plotB}"
+                <line x1="${px(hover.x)}" y1="${PAD_T}" x2="${px(hover.x)}" y2="${plotB}"
                   stroke="var(--secondary-text-color)" stroke-width="1" stroke-dasharray="3,3" opacity="0.7" />
-                <circle cx="${hover.x.toFixed(1)}" cy="${hover.y.toFixed(1)}" r="4.5" fill="var(--primary-color)"
+                <circle cx="${px(hover.x)}" cy="${px(hover.y)}" r="4.5" fill="var(--primary-color)"
                   stroke="var(--card-background-color, #fff)" stroke-width="2" />`
-            : svg`<circle cx="${toX(lastP.ts).toFixed(1)}" cy="${toY(lastP.val).toFixed(1)}" r="4" fill="var(--primary-color)"
+            : svg`<circle cx="${px(toX(lastP.ts))}" cy="${px(toY(lastP.val))}" r="4" fill="var(--primary-color)"
                 stroke="var(--card-background-color, #fff)" stroke-width="1.5" />`}
         </svg>
         ${hover
@@ -311,7 +311,7 @@ export class MaintenanceTriggerChart extends LitElement {
               <div class="hover-val">
                 ${fmtVal(hover.p.val, this.unit, L)}
                 ${hover.p.min != null && hover.p.max != null
-                  ? html`<span class="hover-range">(${fmtNum(hover.p.min)}–${fmtNum(hover.p.max)})</span>`
+                  ? html`<span class="hover-range">(${fmtNum(hover.p.min, L)}–${fmtNum(hover.p.max, L)})</span>`
                   : nothing}
               </div>
             </div>`

@@ -4,7 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf } from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isSafeHttpUrl } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";

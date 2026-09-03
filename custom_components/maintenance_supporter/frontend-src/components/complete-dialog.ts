@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, TaskPartLink } from "../types";
-import { t, nativeFieldStyles } from "../styles";
+import { t, nativeFieldStyles, formatCost } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
@@ -290,11 +290,11 @@ export class MaintenanceCompleteDialog extends LitElement {
     if (this._cost.trim() !== "") return nothing;
     const suggestion = this._partsCostSuggestion();
     if (suggestion == null || suggestion <= 0) return nothing;
-    const amount = `${suggestion.toFixed(2)}${this.currencySymbol ? ` ${this.currencySymbol}` : ""}`;
+    const amount = formatCost(suggestion, this.currencySymbol, L);
     return html`<button
       type="button"
       class="cost-suggestion"
-      @click=${() => (this._cost = suggestion.toFixed(2))}
+      @click=${() => (this._cost = String(Math.round(suggestion * 100) / 100))}
     >${t("cost_from_parts", L).replace("{amount}", amount)}</button>`;
   }
 

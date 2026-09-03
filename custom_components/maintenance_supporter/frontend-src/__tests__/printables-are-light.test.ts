@@ -34,7 +34,7 @@ function reportHtml(): string {
     ],
     { ...labels, scheduleLabel: () => "every 30 days", statusLabel: (s: string) => s, typeLabel: (t: string) => t } as never,
     (iso: string) => iso,
-    "€",
+    (amount: number) => `${amount.toFixed(2)} €`,
     "2026-07-29T12:00:00Z",
   );
 }

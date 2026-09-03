@@ -8,7 +8,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, DEFAULT_CURRENCY_SYMBOL, langOf } from "../styles";
+import { t, syncLocaleFromHass, DEFAULT_CURRENCY_SYMBOL, langOf, formatNumber, formatCost } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
@@ -50,10 +50,11 @@ export class MaintenanceBudgetSectionCard extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    // Standalone card: nothing else feeds the profile number format in (#163).
+    syncLocaleFromHass(this, changedProps);
     if (changedProps.has("hass") && this.hass && !this._loaded) {
       this._loaded = true;
       void this._load();
-      void ensureLocale(this._lang).then(() => this.requestUpdate());
     }
   }
 
@@ -147,7 +148,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                 <div class="track spent-only">
                   <div class="track-label-row">
                     <label>${track.label}</label>
-                    <span class="track-numbers ok">${track.spent.toFixed(0)} ${sym}</span>
+                    <span class="track-numbers ok">${formatCost(track.spent, sym, L, 0)}</span>
                   </div>
                 </div>
               `;
@@ -159,7 +160,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                 <div class="track-label-row">
                   <label>${track.label}</label>
                   <span class="track-numbers ${warn}">
-                    ${track.spent.toFixed(0)} / ${track.budget.toFixed(0)} ${sym}
+                    ${formatNumber(track.spent, L, 0)} / ${formatCost(track.budget, sym, L, 0)}
                   </span>
                 </div>
                 <div class="bar"><div class="bar-fill ${warn}" style="width:${pct}%"></div></div>

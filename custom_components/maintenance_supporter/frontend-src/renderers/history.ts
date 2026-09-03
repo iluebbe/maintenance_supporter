@@ -7,7 +7,7 @@
  */
 
 import { html, nothing } from "lit";
-import { t, formatDateTime, STATUS_ICONS } from "../styles";
+import { t, formatDateTime, formatNumber, formatCost, STATUS_ICONS } from "../styles";
 import type { MaintenanceTask, HistoryEntry, HomeAssistant } from "../types";
 import "../components/history-photo";
 
@@ -114,13 +114,13 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
           ? html`<maintenance-history-photo .hass=${ctx.hass} .docId=${entry.photo_doc_id}></maintenance-history-photo>`
           : nothing}
         <div class="history-details">
-          ${entry.cost != null ? html`<span>${t("cost", L)}: ${entry.cost.toFixed(2)} ${ctx.currencySymbol}</span>` : nothing}
+          ${entry.cost != null ? html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>` : nothing}
           ${entry.duration != null ? html`<span>${t("duration", L)}: ${entry.duration} min</span>` : nothing}
           ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}</span>` : nothing}
           ${entry.reading_value != null
             ? html`<span>${t("reading_label", L)}: ${entry.reading_value}${ctx.readingUnit ? ` ${ctx.readingUnit}` : ""}${(() => {
                 const d = ctx.readingDelta?.(entry);
-                return d == null ? "" : ` (${d >= 0 ? "+" : ""}${Number(d.toFixed(3))})`;
+                return d == null ? "" : ` (${d >= 0 ? "+" : ""}${formatNumber(d, L, { maximumFractionDigits: 3 })})`;
               })()}</span>`
             : nothing}
         </div>

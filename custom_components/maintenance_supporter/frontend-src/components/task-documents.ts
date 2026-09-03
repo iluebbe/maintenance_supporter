@@ -228,7 +228,7 @@ export class MaintenanceTaskDocuments extends LitElement {
     const isPdf = this._isPdf(doc);
     const page = this._pageFor(doc);
     const cat = (doc.tags || []).find((x) => (CATEGORIES as readonly string[]).includes(x)) || "other";
-    const meta = isFile ? formatBytes(doc.size) : t("doc_link_badge", L);
+    const meta = isFile ? formatBytes(doc.size, L) : t("doc_link_badge", L);
     return html`
       <div class="tdoc-row">
         <ha-icon class="tdoc-icon" icon=${isFile ? CATEGORY_ICONS[cat] : "mdi:link-variant"}></ha-icon>

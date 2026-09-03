@@ -7,8 +7,8 @@
  */
 
 import { html, svg, nothing } from "lit";
-import { t } from "../styles";
-import { niceTicks, fmtNum, fmtDateTick, timeTicks, needsYear } from "./chart-utils";
+import { t, formatCost } from "../styles";
+import { niceTicks, fmtNum, fmtDateTick, timeTicks, needsYear, px } from "./chart-utils";
 import type { MaintenanceTask } from "../types";
 
 const COST_CHART_H = 200;
@@ -20,6 +20,7 @@ export function renderCostDurationCard(
   lang: string,
   toggle: "cost" | "duration" | "both",
   setToggle: (val: "cost" | "duration" | "both") => void,
+  currencySymbol: string,
 ) {
   const completedEntries = task.history.filter((h) => h.type === "completed" && (h.cost != null || h.duration != null));
   if (completedEntries.length < 2) return nothing;
@@ -50,12 +51,12 @@ export function renderCostDurationCard(
           </button>` : nothing}
         </div>
       </div>
-      ${renderHistoryChart(task, lang, toggle)}
+      ${renderHistoryChart(task, lang, toggle, currencySymbol)}
     </div>
   `;
 }
 
-function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" | "duration" | "both") {
+function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" | "duration" | "both", currencySymbol: string) {
   const entries = task.history
     .filter((h) => h.type === "completed" && (h.cost != null || h.duration != null))
     .map((h) => ({ ts: new Date(h.timestamp).getTime(), cost: h.cost ?? 0, duration: h.duration ?? 0 }))
@@ -109,27 +110,27 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
           const y = costY(v);
           if (y < PAD_T - 1 || y > plotB + 1) return nothing;
           return svg`
-            <line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}" stroke="var(--divider-color)" stroke-width="1" opacity="0.55" />
-            <text x="${PAD_L - 6}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" fill="var(--primary-color)" font-size="10.5">${fmtNum(v)}€</text>`;
+            <line x1="${PAD_L}" y1="${px(y)}" x2="${W - PAD_R}" y2="${px(y)}" stroke="var(--divider-color)" stroke-width="1" opacity="0.55" />
+            <text x="${PAD_L - 6}" y="${px(y + 3.5)}" text-anchor="end" fill="var(--primary-color)" font-size="10.5">${fmtNum(v, lang)}${currencySymbol}</text>`;
         }) : nothing}
         ${showDuration ? durAxis.ticks.map((v) => {
           const y = durY(v);
           if (y < PAD_T - 1 || y > plotB + 1) return nothing;
-          return svg`<text x="${W - PAD_R + 6}" y="${(y + 3.5).toFixed(1)}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="10.5">${fmtNum(v)}m</text>`;
+          return svg`<text x="${W - PAD_R + 6}" y="${px(y + 3.5)}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="10.5">${fmtNum(v, lang)}m</text>`;
         }) : nothing}
 
         ${showCost ? entries.filter((e) => e.cost > 0).map((e) => svg`
-          <rect x="${(toX(e.ts) - barW / 2).toFixed(1)}" y="${costY(e.cost).toFixed(1)}" width="${barW.toFixed(1)}" height="${(plotB - costY(e.cost)).toFixed(1)}"
+          <rect x="${px(toX(e.ts) - barW / 2)}" y="${px(costY(e.cost))}" width="${px(barW)}" height="${px(plotB - costY(e.cost))}"
             fill="var(--primary-color)" opacity="0.6" rx="2">
-            <title>${fmtDateTick(e.ts, lang, true)}: ${e.cost.toLocaleString(lang)}€${e.duration ? ` · ${e.duration}m` : ""}</title>
+            <title>${fmtDateTick(e.ts, lang, true)}: ${formatCost(e.cost, currencySymbol, lang)}${e.duration ? ` · ${e.duration}m` : ""}</title>
           </rect>
         `) : nothing}
         ${showDuration ? svg`
-          <polyline points="${entries.map((e) => `${toX(e.ts).toFixed(1)},${durY(e.duration).toFixed(1)}`).join(" ")}"
+          <polyline points="${entries.map((e) => `${px(toX(e.ts))},${px(durY(e.duration))}`).join(" ")}"
             fill="none" stroke="var(--accent-color, #ff9800)" stroke-width="2" stroke-linejoin="round" />
           ${entries.map((e) => svg`
-            <circle cx="${toX(e.ts).toFixed(1)}" cy="${durY(e.duration).toFixed(1)}" r="3.5" fill="var(--accent-color, #ff9800)">
-              <title>${fmtDateTick(e.ts, lang, true)}: ${e.duration}m${e.cost ? ` · ${e.cost.toLocaleString(lang)}€` : ""}</title>
+            <circle cx="${px(toX(e.ts))}" cy="${px(durY(e.duration))}" r="3.5" fill="var(--accent-color, #ff9800)">
+              <title>${fmtDateTick(e.ts, lang, true)}: ${e.duration}m${e.cost ? ` · ${formatCost(e.cost, currencySymbol, lang)}` : ""}</title>
             </circle>
           `)}
         ` : nothing}
@@ -137,7 +138,7 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
         <line x1="${PAD_L}" y1="${plotB}" x2="${W - PAD_R}" y2="${plotB}" stroke="var(--divider-color)" stroke-width="1" />
         ${xTicks.map((ts, i) => {
           const anchor = i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle";
-          return svg`<text x="${toX(ts).toFixed(1)}" y="${H - 6}" text-anchor="${anchor}" fill="var(--secondary-text-color)" font-size="10">${fmtDateTick(ts, lang, withYear)}</text>`;
+          return svg`<text x="${px(toX(ts))}" y="${H - 6}" text-anchor="${anchor}" fill="var(--secondary-text-color)" font-size="10">${fmtDateTick(ts, lang, withYear)}</text>`;
         })}
       </svg>
     </div>

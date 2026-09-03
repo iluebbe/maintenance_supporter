@@ -1,7 +1,8 @@
 /** Weibull reliability analysis renderers. */
 
 import { html, svg, nothing } from "lit";
-import { t } from "../styles";
+import { t, formatNumber } from "../styles";
+import { px } from "./chart-utils";
 import type { MaintenanceTask } from "../types";
 
 export function renderWeibullSection(task: MaintenanceTask, lang: string) {
@@ -51,7 +52,7 @@ function renderBetaBadge(beta: number, lang: string) {
   return html`
     <span class="beta-badge ${cls}">
       <ha-svg-icon path="${icon}"></ha-svg-icon>
-      ${t(key, lang)} (\u03B2=${beta.toFixed(2)})
+      ${t(key, lang)} (\u03B2=${formatNumber(beta, lang, 2)})
     </span>
   `;
 }
@@ -74,15 +75,15 @@ function renderWeibullChart(beta: number, eta: number, currentInterval: number, 
     points.push([x, y]);
   }
 
-  const polyline = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const polyline = points.map(([x, y]) => `${px(x)},${px(y)}`).join(" ");
   const areaPath = `M${PAD_L},${PAD_T + chartH} ` +
-    points.map(([x, y]) => `L${x.toFixed(1)},${y.toFixed(1)}`).join(" ") +
-    ` L${points[N][0].toFixed(1)},${PAD_T + chartH} Z`;
+    points.map(([x, y]) => `L${px(x)},${px(y)}`).join(" ") +
+    ` L${px(points[N][0])},${PAD_T + chartH} Z`;
 
   const curX = PAD_L + (currentInterval / maxT) * chartW;
   const curCdf = 1.0 - Math.exp(-Math.pow(currentInterval / eta, beta));
   const curY = PAD_T + chartH - curCdf * chartH;
-  const reliability = ((1.0 - curCdf) * 100).toFixed(0);
+  const reliability = formatNumber((1.0 - curCdf) * 100, lang, 0);
 
   const recX = PAD_L + (recommended / maxT) * chartW;
   const yTicks = [0, 0.25, 0.5, 0.75, 1.0];
@@ -93,10 +94,10 @@ function renderWeibullChart(beta: number, eta: number, currentInterval: number, 
         ${yTicks.map(tick => {
           const y = PAD_T + chartH - tick * chartH;
           return svg`
-            <line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}"
+            <line x1="${PAD_L}" y1="${px(y)}" x2="${W - PAD_R}" y2="${px(y)}"
               stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${tick === 0.5 ? '4,3' : nothing}" />
-            <text x="${PAD_L - 4}" y="${(y + 3).toFixed(1)}" fill="var(--secondary-text-color)"
-              font-size="8" text-anchor="end">${(tick * 100).toFixed(0)}%</text>
+            <text x="${PAD_L - 4}" y="${px(y + 3)}" fill="var(--secondary-text-color)"
+              font-size="8" text-anchor="end">${formatNumber(tick * 100, lang, 0)}%</text>
           `;
         })}
 
@@ -109,16 +110,16 @@ function renderWeibullChart(beta: number, eta: number, currentInterval: number, 
           stroke="var(--primary-color, #03a9f4)" stroke-width="2" />
 
         ${currentInterval > 0 ? svg`
-          <line x1="${curX.toFixed(1)}" y1="${PAD_T}" x2="${curX.toFixed(1)}" y2="${(PAD_T + chartH).toFixed(1)}"
+          <line x1="${px(curX)}" y1="${PAD_T}" x2="${px(curX)}" y2="${px(PAD_T + chartH)}"
             stroke="var(--primary-color, #03a9f4)" stroke-width="1.5" stroke-dasharray="4,3" />
-          <circle cx="${curX.toFixed(1)}" cy="${curY.toFixed(1)}" r="3"
+          <circle cx="${px(curX)}" cy="${px(curY)}" r="3"
             fill="var(--primary-color, #03a9f4)" />
-          <text x="${(curX + 4).toFixed(1)}" y="${(curY - 6).toFixed(1)}" fill="var(--primary-color, #03a9f4)"
+          <text x="${px(curX + 4)}" y="${px(curY - 6)}" fill="var(--primary-color, #03a9f4)"
             font-size="9" font-weight="600">R=${reliability}%</text>
         ` : nothing}
 
         ${recommended > 0 && recommended !== currentInterval ? svg`
-          <line x1="${recX.toFixed(1)}" y1="${PAD_T}" x2="${recX.toFixed(1)}" y2="${(PAD_T + chartH).toFixed(1)}"
+          <line x1="${px(recX)}" y1="${PAD_T}" x2="${px(recX)}" y2="${px(PAD_T + chartH)}"
             stroke="var(--success-color, #4caf50)" stroke-width="1.5" stroke-dasharray="4,3" />
         ` : nothing}
 
@@ -146,7 +147,7 @@ function renderWeibullInfo(analysis: NonNullable<MaintenanceTask["interval_analy
       ${analysis.weibull_r_squared != null ? html`
         <div class="weibull-info-item">
           <span>${t("weibull_r_squared", lang)}</span>
-          <span class="weibull-info-value">${analysis.weibull_r_squared!.toFixed(3)}</span>
+          <span class="weibull-info-value">${formatNumber(analysis.weibull_r_squared!, lang, 3)}</span>
         </div>
       ` : nothing}
     </div>
@@ -174,9 +175,9 @@ function renderConfidenceInterval(analysis: NonNullable<MaintenanceTask["interva
         ${t("confidence_interval", lang)}: ${rec} ${t("days", lang)} (${low}\u2013${high})
       </div>
       <div class="confidence-bar">
-        <div class="confidence-fill" style="left:${fillLeft.toFixed(1)}%;width:${fillWidth.toFixed(1)}%"></div>
-        ${curPos >= 0 ? html`<div class="confidence-marker current" style="left:${curPos.toFixed(1)}%"></div>` : nothing}
-        <div class="confidence-marker recommended" style="left:${recPos.toFixed(1)}%"></div>
+        <div class="confidence-fill" style="left:${px(fillLeft)}%;width:${px(fillWidth)}%"></div>
+        ${curPos >= 0 ? html`<div class="confidence-marker current" style="left:${px(curPos)}%"></div>` : nothing}
+        <div class="confidence-marker recommended" style="left:${px(recPos)}%"></div>
       </div>
       <div class="confidence-labels">
         <span class="confidence-text low">${t("confidence_conservative", lang)} (${low}${t("days", lang).charAt(0)})</span>

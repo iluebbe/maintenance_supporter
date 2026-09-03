@@ -15,7 +15,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, langOf } from "../styles";
+import { t, ensureLocale, langOf, formatCost } from "../styles";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant, MaintenancePart } from "../types";
 // Per-part document links (v2.26) — the task-documents component in part mode.
@@ -360,7 +360,7 @@ export class MaintenancePartsSection extends LitElement {
           ${this._inventoryValue() !== null
             ? html`<span class="inventory-value" title=${t("parts_inventory_value", L)}
                 >${t("parts_inventory_value", L)}:
-                ${this._inventoryValue()!.toFixed(2)}&nbsp;${this.currencySymbol}</span>`
+                ${formatCost(this._inventoryValue()!, this.currencySymbol, L)}</span>`
             : nothing}
         </h3>
         ${this.canWrite && !this._editing

@@ -1,7 +1,7 @@
 /** Sensor prediction section renderer. */
 
 import { html, nothing } from "lit";
-import { t, formatDate, fireMoreInfo } from "../styles";
+import { t, formatDate, fireMoreInfo, formatNumber } from "../styles";
 import type { MaintenanceTask, AdvancedFeatures } from "../types";
 
 export function renderPredictionSection(task: MaintenanceTask, lang: string, features: AdvancedFeatures) {
@@ -34,7 +34,7 @@ export function renderPredictionSection(task: MaintenanceTask, lang: string, fea
             <ha-svg-icon path="${trendIcon}"></ha-svg-icon>
             <span class="prediction-label">${t("degradation_trend", lang)}</span>
             <span class="prediction-value ${task.degradation_trend}">${t("trend_" + task.degradation_trend, lang)}</span>
-            ${task.degradation_rate != null ? html`<span class="prediction-rate">${task.degradation_rate > 0 ? "+" : ""}${Math.abs(task.degradation_rate) >= 10 ? Math.round(task.degradation_rate).toLocaleString() : task.degradation_rate.toFixed(1)} ${task.trigger_entity_info?.unit_of_measurement || ""}/${t("day_short", lang)}</span>` : nothing}
+            ${task.degradation_rate != null ? html`<span class="prediction-rate">${task.degradation_rate > 0 ? "+" : ""}${formatNumber(task.degradation_rate, lang, Math.abs(task.degradation_rate) >= 10 ? 0 : 1)} ${task.trigger_entity_info?.unit_of_measurement || ""}/${t("day_short", lang)}</span>` : nothing}
           </div>
         ` : nothing}
         ${hasThreshold ? html`
@@ -51,7 +51,7 @@ export function renderPredictionSection(task: MaintenanceTask, lang: string, fea
           <div class="prediction-item">
             <ha-svg-icon path="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"></ha-svg-icon>
             <span class="prediction-label">${t("environmental_adjustment", lang)}</span>
-            <span class="prediction-value">${task.environmental_factor!.toFixed(2)}x</span>
+            <span class="prediction-value">${formatNumber(task.environmental_factor!, lang, 2)}x</span>
             ${task.environmental_entity ? html`<span class="prediction-entity entity-link" @click=${(ev: Event) => fireMoreInfo(ev, task.environmental_entity!)}>${task.environmental_entity}</span>` : nothing}
           </div>
         ` : nothing}

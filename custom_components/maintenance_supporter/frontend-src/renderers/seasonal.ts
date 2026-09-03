@@ -1,7 +1,8 @@
 /** Seasonal factor chart renderers. */
 
 import { html, svg, nothing } from "lit";
-import { t } from "../styles";
+import { t, formatNumber } from "../styles";
+import { px } from "./chart-utils";
 import type { MaintenanceTask, AdvancedFeatures } from "../types";
 
 const MONTH_KEYS = [
@@ -38,7 +39,7 @@ export function renderSeasonalCardCompact(task: MaintenanceTask, lang: string, f
           return html`
             <div class="seasonal-bar ${colorClass} ${isCurrentMonth ? 'current' : ''}"
                  style="height: ${height}px"
-                 title="${months[i]}: ${factor.toFixed(2)}x">
+                 title="${months[i]}: ${formatNumber(factor, lang, 2)}x">
             </div>
           `;
         })}
@@ -82,7 +83,7 @@ function renderSeasonalChart(task: MaintenanceTask, lang: string) {
         ${reason ? html`<span class="source-tag">${reason === "learned" ? t("seasonal_learned", lang) : t("seasonal_manual", lang)}</span>` : nothing}
       </div>
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${t("chart_seasonal", lang)}">
-        <line x1="0" y1="${baselineY.toFixed(1)}" x2="${W}" y2="${baselineY.toFixed(1)}"
+        <line x1="0" y1="${px(baselineY)}" x2="${W}" y2="${px(baselineY)}"
           stroke="var(--divider-color)" stroke-width="1" stroke-dasharray="4,3" />
         ${factors.map((f, i) => {
           const barH = (f / maxFactor) * chartH;
@@ -95,8 +96,8 @@ function renderSeasonalChart(task: MaintenanceTask, lang: string) {
               ? "var(--warning-color, #ff9800)"
               : "var(--secondary-text-color)";
           return svg`
-            <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}"
-              width="${barInner.toFixed(1)}" height="${barH.toFixed(1)}"
+            <rect x="${px(x)}" y="${px(y)}"
+              width="${px(barInner)}" height="${px(barH)}"
               fill="${color}" opacity="${isCurrent ? 1 : 0.5}" rx="2" />
           `;
         })}

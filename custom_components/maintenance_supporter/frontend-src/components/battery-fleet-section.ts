@@ -9,6 +9,7 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, formatDate, syncLocaleFromHass } from "../styles";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import { describeWsError } from "../ws-errors";
+import { px } from "../renderers/chart-utils";
 import type { HomeAssistant } from "../types";
 
 interface BatteryRow {
@@ -262,9 +263,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     const tMax = Math.max(tLast, projEnd ?? tLast);
     const x = (t: number) => (tMax === t0 ? P : P + ((t - t0) / (tMax - t0)) * (W - 2 * P));
     const y = (v: number) => P + (1 - Math.min(100, Math.max(0, v)) / 100) * (H - 2 * P);
-    const line = h.points.map(([t, v]) => `${x(t).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    const line = h.points.map(([t, v]) => `${px(x(t))},${px(y(v))}`).join(" ");
     const vLast = h.points[h.points.length - 1][1];
-    const yTh = y(h.threshold).toFixed(1);
+    const yTh = px(y(h.threshold));
     return html`<svg
       class="bf-spark"
       viewBox="0 0 ${W} ${H}"
@@ -277,9 +278,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       ${projEnd !== null
         ? html`<line
             class="bf-spark-proj"
-            x1=${x(tLast).toFixed(1)}
-            y1=${y(vLast).toFixed(1)}
-            x2=${x(projEnd).toFixed(1)}
+            x1=${px(x(tLast))}
+            y1=${px(y(vLast))}
+            x2=${px(x(projEnd))}
             y2=${yTh}
           ></line>`
         : nothing}

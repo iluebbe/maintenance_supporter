@@ -37,18 +37,18 @@ describe("renderTriggerProgress — delta-mode counter (issue #102)", () => {
 
   it("uses the exposed delta when present", async () => {
     const label = await labelOf(row({ trigger_current_delta: 100 }));
-    expect(label).to.contain("100.0 / 15000");
+    expect(label).to.contain("100.0 / 15,000");
   });
 
   it("computes the delta from the baseline when only the baseline is exposed", async () => {
     const label = await labelOf(row({ trigger_baseline_value: 27000 }));
-    expect(label).to.contain("0.0 / 15000");
+    expect(label).to.contain("0.0 / 15,000");
   });
 
   it("keeps the raw value for absolute-mode counters", async () => {
     const label = await labelOf(
       row({ trigger_config: { type: "counter", trigger_target_value: 30000 } as never }),
     );
-    expect(label).to.contain("27000.0 / 30000");
+    expect(label).to.contain("27,000.0 / 30,000");
   });
 });

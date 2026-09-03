@@ -1,6 +1,6 @@
 /**
- * Tripwire: dates and times have ONE formatting authority — styles.ts — and
- * ONE input element — <ms-date-field> (#163).
+ * Tripwire: dates, times AND numbers have ONE formatting authority —
+ * styles.ts — and dates ONE input element — <ms-date-field> (#163).
  *
  * History: maisun set "Date format: DMY" in the HA profile and still saw
  * mm/dd/yyyy. Two leak classes, both invisible to the component tests
@@ -17,15 +17,19 @@
  *
  *   A. No native date/time inputs anywhere — use <ms-date-field kind=…>,
  *      which wraps <ha-selector> (HA's pickers follow the profile).
- *   B. Only styles.ts may call Intl.DateTimeFormat / toLocaleDateString /
- *      toLocaleTimeString / Date.toLocaleString. Need a new shape? Add a
- *      helper there (formatDate, formatDateTime, formatDateShort,
- *      formatTimeOfDay, formatWeekday, formatMonth, weekdayName, monthName).
+ *   B. Only styles.ts may call Intl.DateTimeFormat / Intl.NumberFormat /
+ *      toLocaleDateString / toLocaleTimeString / toLocaleString. Need a new
+ *      shape? Add a helper there (formatDate, formatDateTime, formatDateShort,
+ *      formatTimeOfDay, formatWeekday, formatMonth, weekdayName, monthName,
+ *      formatNumber, formatCost).
  *   C. Every top-level surface (Lovelace card / panel) whose import closure
- *      formats dates must feed the profile into the prefs singleton via
- *      syncLocaleFromHass(this, changedProps) in updated() — or delegate to a
- *      rendered child that does (ROOT_DELEGATES). Without it the formatters
- *      silently fall back to the language default.
+ *      formats dates or numbers must feed the profile into the prefs
+ *      singleton via syncLocaleFromHass(this, changedProps) in updated() — or
+ *      delegate to a rendered child that does (ROOT_DELEGATES). Without it
+ *      the formatters silently fall back to the language default.
+ *   D. No toFixed / toPrecision outside styles.ts and chart-utils px(): a
+ *      cost rendered as `x.toFixed(2)` is "12.50" under a decimal_comma
+ *      profile (the number_format half of #163).
  */
 
 import { expect } from "@open-wc/testing";
@@ -33,19 +37,25 @@ import { expect } from "@open-wc/testing";
 type Manifest = Record<string, string>;
 
 const AUTHORITY = "styles.ts";
-const DATE_FORMATTERS =
-  /\b(formatDate|formatDateTime|formatDateShort|formatTimeOfDay|formatWeekday|formatMonth|weekdayName|monthName|fmtDateTick|fmtDateTime)\b/;
+const PROFILE_FORMATTERS =
+  /\b(formatDate|formatDateTime|formatDateShort|formatTimeOfDay|formatWeekday|formatMonth|weekdayName|monthName|fmtDateTick|fmtDateTime|formatNumber|formatCost|fmtNum|fmtVal|formatBytes)\b/;
 const NATIVE_DATE_INPUT = /\btype=["'`](date|time|datetime-local|month|week)["'`]/;
 const DIRECT_INTL: Array<[string, RegExp]> = [
   ["Intl.DateTimeFormat(", /\bIntl\.DateTimeFormat\s*\(/],
+  ["Intl.NumberFormat(", /\bIntl\.NumberFormat\s*\(/],
   [".toLocaleDateString(", /\.toLocaleDateString\s*\(/],
   [".toLocaleTimeString(", /\.toLocaleTimeString\s*\(/],
-  ["Date….toLocaleString(", /\bDate\b[^;]*\.toLocaleString\s*\(/],
+  [".toLocaleString(", /\.toLocaleString\s*\(/],
 ];
 /** Lovelace cards implement setConfig(); the panel is the @customElement root. */
 const ROOT_SURFACE = /\bsetConfig\s*\(|@customElement\(\s*["']maintenance-supporter-panel["']/;
+/** toFixed/toPrecision give "12.50" whatever the profile says. SVG/CSS
+ *  coordinates legitimately need exactly that — chart-utils px() is the one
+ *  sanctioned wrapper; human-facing figures use formatNumber. */
+const FIXED_DIGITS = /\.(toFixed|toPrecision)\s*\(/;
+const GEOMETRY_HELPER = "renderers/chart-utils.ts";
 /** The per-updated() helper, or the raw primitive for hosts without a Lit update cycle. */
-const SYNC_CALL = /\b(syncLocaleFromHass|setDateTimePrefs)\s*\(/;
+const SYNC_CALL = /\b(syncLocaleFromHass|setProfilePrefs)\s*\(/;
 /** Roots whose sync lives in a module they render / load instead of in the root itself. */
 const ROOT_DELEGATES: Record<string, string> = {
   "components/battery-fleet-card.ts": "components/battery-fleet-section.ts",
@@ -138,7 +148,7 @@ describe("date/time formatting has a single source (#163 tripwire)", () => {
     expect(hits, "native date/time inputs render in the BROWSER locale, not the HA profile format").to.deep.equal([]);
   });
 
-  it("B. only styles.ts talks to Intl for dates and times", () => {
+  it("B. only styles.ts talks to Intl for dates, times and numbers", () => {
     const hits: string[] = [];
     for (const [path, src] of Object.entries(manifest)) {
       if (path === AUTHORITY) continue;
@@ -148,19 +158,20 @@ describe("date/time formatting has a single source (#163 tripwire)", () => {
         }
       }
     }
-    expect(hits, "direct Intl calls bypass the HA profile date/time prefs — add a helper to styles.ts instead").to.deep.equal([]);
+    expect(hits, "direct Intl calls bypass the HA profile date/time/number prefs — add a helper to styles.ts instead").to.deep.equal([]);
   });
 
   it("B'. styles.ts itself still owns the formatting (guards against the rule going stale)", () => {
     const src = manifest[AUTHORITY];
     expect(src).to.match(/\.toLocaleDateString\s*\(/);
     expect(src).to.match(/\.toLocaleTimeString\s*\(/);
-    for (const name of ["formatDate", "formatDateTime", "formatDateShort", "formatTimeOfDay", "formatWeekday", "formatMonth", "weekdayName", "monthName"]) {
+    expect(src).to.match(/\bIntl\.NumberFormat\s*\(/);
+    for (const name of ["formatDate", "formatDateTime", "formatDateShort", "formatTimeOfDay", "formatWeekday", "formatMonth", "weekdayName", "monthName", "formatNumber", "formatCost"]) {
       expect(src, `styles.ts exports ${name}`).to.match(new RegExp(`export function ${name}\\(`));
     }
   });
 
-  it("C. every root surface that formats dates syncs the profile prefs", () => {
+  it("C. every root surface that formats dates or numbers syncs the profile prefs", () => {
     const roots = Object.keys(manifest).filter((p) => ROOT_SURFACE.test(manifest[p]));
     expect(roots, "root-surface detection still finds the panel and the cards").to.include.members([
       "maintenance-panel.ts",
@@ -170,15 +181,31 @@ describe("date/time formatting has a single source (#163 tripwire)", () => {
     const problems: string[] = [];
     for (const root of roots) {
       const closure = importClosure(root);
-      const formatting = [...closure].filter((p) => p !== AUTHORITY && codeLines(manifest[p]).some(([, l]) => DATE_FORMATTERS.test(l)));
+      const formatting = [...closure].filter((p) => p !== AUTHORITY && codeLines(manifest[p]).some(([, l]) => PROFILE_FORMATTERS.test(l)));
       if (!formatting.length) continue; // renders no dates — nothing to sync
       const delegate = ROOT_DELEGATES[root];
       const synced = SYNC_CALL.test(manifest[root]) || (!!delegate && closure.has(delegate) && SYNC_CALL.test(manifest[delegate]));
       if (!synced) {
-        problems.push(`${root} formats dates via ${formatting.slice(0, 3).join(", ")}${formatting.length > 3 ? ", …" : ""} but never calls syncLocaleFromHass(this, changedProps)`);
+        problems.push(`${root} formats dates/numbers via ${formatting.slice(0, 3).join(", ")}${formatting.length > 3 ? ", …" : ""} but never calls syncLocaleFromHass(this, changedProps)`);
       }
     }
     expect(problems).to.deep.equal([]);
+  });
+
+  it("D. no toFixed / toPrecision outside styles.ts and chart-utils px()", () => {
+    const hits: string[] = [];
+    for (const [path, src] of Object.entries(manifest)) {
+      if (path === AUTHORITY || path === GEOMETRY_HELPER) continue;
+      for (const [n, line] of codeLines(src)) {
+        if (FIXED_DIGITS.test(line)) hits.push(`${path}:${n}: ${line.trim()}`);
+      }
+    }
+    expect(hits, "toFixed ignores the HA profile number format — formatNumber(n, lang, digits) for figures, px(n) for SVG/CSS coordinates").to.deep.equal([]);
+  });
+
+  it("D'. chart-utils px() is the sanctioned toFixed (guards against the rule going stale)", () => {
+    expect(manifest[GEOMETRY_HELPER]).to.match(/export function px\(/);
+    expect(manifest[GEOMETRY_HELPER]).to.match(/\.toFixed\s*\(/);
   });
 
   it("C'. the closure walk sees through the panel (guards against the rule going stale)", () => {

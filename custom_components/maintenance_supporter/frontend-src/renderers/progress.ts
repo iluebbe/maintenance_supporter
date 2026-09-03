@@ -12,7 +12,8 @@
  */
 
 import { html, nothing } from "lit";
-import { t, formatDate, formatDueDays } from "../styles";
+import { t, formatDate, formatDueDays, formatNumber } from "../styles";
+import { px } from "./chart-utils";
 import { daysProgress } from "../helpers/interval";
 import type { MaintenanceTask, TaskRow, StatisticsPoint } from "../types";
 
@@ -92,7 +93,7 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const low = below ?? 0;
       const range = above - low || 1;
       pct = Math.min(100, Math.max(0, ((val - low) / range) * 100));
-      label = `${val.toFixed(1)} / ${above} ${unit}`;
+      label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(above, opts?.lang)} ${unit}`;
     } else if (below != null) {
       // Progress toward lower limit (inverted: lower is worse)
       // Use entity max, or 2x the threshold as a stable "safe" reference.
@@ -101,12 +102,12 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const high = entityMax ?? ((below * 2) || 100);
       const range = high - below || 1;
       pct = Math.min(100, Math.max(0, ((high - val) / range) * 100));
-      label = `${val.toFixed(1)} / ${below} ${unit}`;
+      label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(below, opts?.lang)} ${unit}`;
     } else if (tc.trigger_equals != null || tc.trigger_not_equals != null) {
       // Discrete = / ≠ levels have no meaningful gradient — binary bar,
       // same treatment as compound.
       const target = tc.trigger_equals != null ? `= ${tc.trigger_equals}` : `≠ ${tc.trigger_not_equals}`;
-      label = `${val.toFixed(1)} (${target}${unit ? ` ${unit}` : ""})`;
+      label = `${formatNumber(val, opts?.lang, 1)} (${target}${unit ? ` ${unit}` : ""})`;
       pct = row.trigger_active ? 100 : 0;
     } else {
       return nothing;
@@ -129,19 +130,19 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     }
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
-    label = `${val.toFixed(1)} / ${target} ${unit}`;
+    label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(target, opts?.lang)} ${unit}`;
   } else if (triggerType === "state_change") {
     const target = tc.trigger_target_changes || 1;
     const val = row.trigger_current_value ?? null;
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
-    label = `${Math.round(val)} / ${target}`;
+    label = `${formatNumber(val, opts?.lang, 0)} / ${formatNumber(target, opts?.lang, 0)}`;
   } else if (triggerType === "runtime") {
     const target = tc.trigger_runtime_hours || 100;
     const val = row.trigger_current_value ?? null;
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
-    label = `${val.toFixed(1)}h / ${target}h`;
+    label = `${formatNumber(val, opts?.lang, 1)}h / ${formatNumber(target, opts?.lang)}h`;
   } else if (triggerType === "compound") {
     const logic = tc.compound_logic || (tc as any).operator || "AND";
     const condCount = tc.conditions?.length || 0;
@@ -218,7 +219,7 @@ export function renderMiniSparkline(
     renderPoints = renderPoints.filter((_, i) => i % step === 0 || i === renderPoints.length - 1);
   }
 
-  const pts = renderPoints.map((p) => `${toX(p.ts).toFixed(1)},${toY(p.val).toFixed(1)}`).join(" ");
+  const pts = renderPoints.map((p) => `${px(toX(p.ts))},${px(toY(p.val))}`).join(" ");
   // Match the detail chart's semantics: an actively-triggered sensor tints red.
   const stroke = row.trigger_active
     ? "var(--error-color, #f44336)"

@@ -45,7 +45,7 @@ export function buildObjectReportHtml(
   tasks: MaintenanceTask[],
   labels: ReportLabels,
   fmtDate: (iso: string | null | undefined) => string,
-  currencySymbol: string,
+  fmtCost: (amount: number) => string,
   nowIso: string,
 ): string {
   const meta = ([
@@ -66,7 +66,7 @@ export function buildObjectReportHtml(
       <td>${esc(t.last_performed ? fmtDate(t.last_performed) : labels.none)}</td>
       <td>${esc(t.next_due ? fmtDate(t.next_due) : labels.none)}</td>
       <td class="num">${t.times_performed ?? 0}</td>
-      <td class="num">${(t.total_cost ?? 0).toFixed(2)} ${esc(currencySymbol)}</td>
+      <td class="num">${esc(fmtCost(t.total_cost ?? 0))}</td>
     </tr>`;
   }).join("");
 
@@ -112,7 +112,7 @@ export function buildObjectReportHtml(
       <th class="num">${esc(labels.colTimes)}</th><th class="num">${esc(labels.colCost)}</th>
     </tr></thead>
     <tbody>${rows || `<tr><td colspan="8">${esc(labels.none)}</td></tr>`}</tbody>
-    <tfoot><tr><td colspan="7">${esc(labels.totalCost)}</td><td class="num">${totalCost.toFixed(2)} ${esc(currencySymbol)}</td></tr></tfoot>
+    <tfoot><tr><td colspan="7">${esc(labels.totalCost)}</td><td class="num">${esc(fmtCost(totalCost))}</td></tr></tfoot>
   </table>
   ${obj.notes ? `<div class="notes"><strong>${esc(labels.notes)}:</strong>\n${esc(obj.notes)}</div>` : ""}
 </body></html>`;

@@ -1,6 +1,13 @@
 /** Shared chart helpers: nice axis ticks and consistent number/date formats. */
 
-import { formatDateShort, formatTimeOfDay } from "../styles";
+import { formatDateShort, formatTimeOfDay, formatNumber } from "../styles";
+
+/** SVG / CSS coordinate: one decimal, ALWAYS a dot — never a user-facing
+ *  number. The only place outside styles.ts allowed to call toFixed (tripwire
+ *  rule D); human-facing figures go through formatNumber. */
+export function px(n: number): string {
+  return n.toFixed(1);
+}
 
 /** Round axis ticks covering [min, max] — the classic "nice numbers" loop.
  *  Returns the tick values plus the (possibly widened) nice domain, so the
@@ -34,26 +41,23 @@ export function niceTicks(
   return { ticks, niceMin, niceMax };
 }
 
-/** Compact, consistent number format: 1.2M / 88k / 730 / 7.5 / 0.42 */
-export function fmtNum(v: number): string {
+/** Compact, consistent number format: 1.2M / 88k / 730 / 7.5 / 0.42 —
+ *  decimal separator per the HA profile number format. */
+export function fmtNum(v: number, lang?: string): string {
   const a = Math.abs(v);
-  if (a >= 1_000_000) return trimZero((v / 1_000_000).toFixed(a >= 10_000_000 ? 0 : 1)) + "M";
-  if (a >= 10_000) return trimZero((v / 1000).toFixed(0)) + "k";
-  if (a >= 1000) return trimZero((v / 1000).toFixed(1)) + "k";
-  if (a >= 100) return v.toFixed(0);
-  if (a >= 10) return trimZero(v.toFixed(1));
-  if (a >= 1) return trimZero(v.toFixed(1));
+  const max = (d: number) => ({ maximumFractionDigits: d });
+  if (a >= 1_000_000) return formatNumber(v / 1_000_000, lang, max(a >= 10_000_000 ? 0 : 1)) + "M";
+  if (a >= 10_000) return formatNumber(v / 1000, lang, max(0)) + "k";
+  if (a >= 1000) return formatNumber(v / 1000, lang, max(1)) + "k";
+  if (a >= 100) return formatNumber(v, lang, max(0));
+  if (a >= 1) return formatNumber(v, lang, max(1));
   if (a === 0) return "0";
-  return trimZero(v.toFixed(2));
+  return formatNumber(v, lang, max(2));
 }
 
-function trimZero(s: string): string {
-  return s.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
-}
-
-/** Full-precision value + unit for tooltips (locale-aware grouping). */
+/** Full-precision value + unit for tooltips (profile grouping/decimal). */
 export function fmtVal(v: number, unit: string, lang: string): string {
-  const s = v.toLocaleString(lang, { maximumFractionDigits: Math.abs(v) >= 100 ? 0 : 1 });
+  const s = formatNumber(v, lang, { maximumFractionDigits: Math.abs(v) >= 100 ? 0 : 1 });
   return unit ? `${s} ${unit}` : s;
 }
 
