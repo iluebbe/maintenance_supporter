@@ -37,6 +37,21 @@ const STRATEGY_TYPE = "maintenance-supporter";
 const STRATEGY_TAG = `ll-strategy-dashboard-${STRATEGY_TYPE}`;
 const EDITOR_TAG = "hui-maintenance-supporter-strategy-editor";
 
+// The four section strategies (docs/EXAMPLES.md "Section strategy" + the three
+// status sections). Registered here since v2.73.0: HA resolves a section's
+// `custom:` strategy through the same 5 s whenDefined race as a dashboard's,
+// and the heavy bundle used to be their only registration — which the shim
+// loads lazily on the FIRST dashboard-strategy generate(). So a section
+// dropped into the home dashboard (the documented use) on a fresh page had no
+// element to wait for and rendered empty unless the user had opened the
+// Maintenance Supporter dashboard first in the same page session.
+const SECTION_TYPES = [
+  "maintenance-supporter-section",
+  "maintenance-supporter-vacation",
+  "maintenance-supporter-budget",
+  "maintenance-supporter-groups",
+] as const;
+
 // Absolute URL of the full strategy bundle (served at STRATEGY_URL by the
 // integration). The shim's only dependency, loaded on demand.
 //
@@ -63,10 +78,13 @@ type DashboardStrategyClass = {
   generate(config: unknown, hass: unknown): Promise<unknown>;
 };
 
+type StrategyBundle = {
+  MaintenanceDashboardStrategy?: DashboardStrategyClass;
+  SECTION_STRATEGIES?: Record<string, DashboardStrategyClass>;
+};
+
 async function realDashboard(): Promise<DashboardStrategyClass> {
-  const mod = (await loadBundle()) as {
-    MaintenanceDashboardStrategy?: DashboardStrategyClass;
-  };
+  const mod = (await loadBundle()) as StrategyBundle;
   if (!mod.MaintenanceDashboardStrategy) {
     throw new Error(
       "[maintenance-supporter] strategy bundle loaded but did not export " +
@@ -74,6 +92,28 @@ async function realDashboard(): Promise<DashboardStrategyClass> {
     );
   }
   return mod.MaintenanceDashboardStrategy;
+}
+
+async function realSection(type: string): Promise<DashboardStrategyClass> {
+  const mod = (await loadBundle()) as StrategyBundle;
+  const real = mod.SECTION_STRATEGIES?.[type];
+  if (!real) {
+    throw new Error(
+      `[maintenance-supporter] strategy bundle loaded but has no section strategy "${type}"`,
+    );
+  }
+  return real;
+}
+
+// One tiny delegating class per section type — same lazy pattern as the
+// dashboard shim below, minus the editor (the sections have none).
+function sectionShim(type: string): CustomElementConstructor {
+  return class MaintenanceSectionStrategyShim extends HTMLElement {
+    static async generate(config: unknown, hass: unknown): Promise<unknown> {
+      const real = await realSection(type);
+      return real.generate(config, hass);
+    }
+  };
 }
 
 class MaintenanceDashboardStrategyShim extends HTMLElement {
@@ -104,6 +144,13 @@ function defineShim(): void {
   } catch {
     /* already defined in this registry — fine */
   }
+  for (const type of SECTION_TYPES) {
+    try {
+      customElements.define(`ll-strategy-section-${type}`, sectionShim(type));
+    } catch {
+      /* already defined in this registry — fine */
+    }
+  }
 }
 defineShim();
 
@@ -120,12 +167,8 @@ const w = window as unknown as {
   }>;
 };
 w.customStrategies = w.customStrategies || [];
-if (
-  !w.customStrategies.some(
-    (s) => s.type === STRATEGY_TYPE && s.strategyType === "dashboard",
-  )
-) {
-  w.customStrategies.push({
+const PICKER_ENTRIES: NonNullable<typeof w.customStrategies> = [
+  {
     type: STRATEGY_TYPE,
     strategyType: "dashboard",
     name: "Maintenance Supporter",
@@ -133,7 +176,46 @@ if (
       "Auto-generated dashboard. Group views by area, status, floor, or due date — picked from the strategy editor or YAML.",
     documentationURL:
       "https://github.com/iluebbe/maintenance_supporter#dashboard-strategy",
-  });
+  },
+  // The section entries used to be pushed by the heavy bundle only, so the
+  // "Add section" picker on a foreign dashboard listed none of them until the
+  // Maintenance Supporter dashboard had been generated once (v2.73.0).
+  {
+    type: "maintenance-supporter-section",
+    strategyType: "section",
+    name: "Maintenance Supporter — Section",
+    description:
+      "Embed maintenance tasks (filterable by area, status, due date) as a section in any dashboard view.",
+    documentationURL:
+      "https://github.com/iluebbe/maintenance_supporter#section-strategy",
+  },
+  {
+    type: "maintenance-supporter-vacation",
+    strategyType: "section",
+    name: "Maintenance Supporter — Vacation Status",
+    description: "Compact vacation-mode status banner. Tap to open settings in the panel.",
+  },
+  {
+    type: "maintenance-supporter-budget",
+    strategyType: "section",
+    name: "Maintenance Supporter — Budget Status",
+    description: "Monthly + yearly maintenance budget overview. Tap for details.",
+  },
+  {
+    type: "maintenance-supporter-groups",
+    strategyType: "section",
+    name: "Maintenance Supporter — Groups",
+    description: "List of configured task groups with member counts.",
+  },
+];
+for (const entry of PICKER_ENTRIES) {
+  if (
+    !w.customStrategies.some(
+      (s) => s.type === entry.type && s.strategyType === entry.strategyType,
+    )
+  ) {
+    w.customStrategies.push(entry);
+  }
 }
 
 // ── Self-heal ───────────────────────────────────────────────────────────────

@@ -779,6 +779,12 @@ class MaintenanceStrategyEditor extends HTMLElement {
 const SECTION_STRATEGY_TYPE = "maintenance-supporter-section";
 const SECTION_STRATEGY_TAG = `ll-strategy-section-${SECTION_STRATEGY_TYPE}`;
 
+// Method syntax on purpose: parameters check bivariantly, so the concretely
+// typed generate() of each section class satisfies this without a cast.
+type SectionStrategyClass = {
+  generate(config: never, hass: never): Promise<SectionConfig>;
+};
+
 interface MaintenanceSectionStrategyConfig {
   type: "custom:maintenance-supporter-section" | "maintenance-supporter-section";
   area_id?: string;
@@ -993,6 +999,20 @@ const GROUPS_TAG = "ll-strategy-section-maintenance-supporter-groups";
 if (!customElements.get(VACATION_TAG)) customElements.define(VACATION_TAG, MaintenanceVacationSectionStrategy);
 if (!customElements.get(BUDGET_TAG)) customElements.define(BUDGET_TAG, MaintenanceBudgetSectionStrategy);
 if (!customElements.get(GROUPS_TAG)) customElements.define(GROUPS_TAG, MaintenanceGroupsSectionStrategy);
+
+// The shim (maintenance-strategy-shim.ts) defines all four section tags
+// synchronously at boot and delegates generate() here, keyed by strategy type.
+// Until v2.73.0 the tags above were the ONLY registration, i.e. they existed
+// only after the first dashboard-strategy generate() had pulled this bundle
+// in — a section strategy dropped into a foreign dashboard on a fresh page
+// (the documented use) hit HA's 5 s whenDefined timeout and rendered empty.
+// The defines above stay as the fallback for a bundle loaded without the shim.
+export const SECTION_STRATEGIES: Record<string, SectionStrategyClass> = {
+  [SECTION_STRATEGY_TYPE]: MaintenanceSectionStrategy,
+  "maintenance-supporter-vacation": MaintenanceVacationSectionStrategy,
+  "maintenance-supporter-budget": MaintenanceBudgetSectionStrategy,
+  "maintenance-supporter-groups": MaintenanceGroupsSectionStrategy,
+};
 
 // ── fire-dom-event handler ──────────────────────────────────────────────────
 //
