@@ -2,6 +2,33 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.74.0] - 2026-09-03
+
+### ✨ Added
+
+- **Overview deep links.** The panel's start page is now addressable:
+  `/maintenance-supporter?tab=today` (also `dashboard`, `calendar`,
+  `settings`) lands on that tab, `?status=overdue|due_soon|triggered|ok`
+  and `?sort=<mode>` open the Dashboard task list pre-filtered / pre-sorted,
+  `?view=<saved view name or id>` applies a saved view — so a dashboard
+  button's `navigation_path` or a notification's `url` can open exactly the
+  list you want, e.g. the Today list. `status`/`view` imply the Dashboard
+  tab, an explicit `sort`/`status` wins over the saved view's own, unknown
+  values are ignored, and the tab and sort are remembered like a tap on
+  them. Consumed once and stripped from the address bar like the existing
+  object/task links. (Discussion #160)
+
+### 🐛 Fixed
+
+- **Deep links now also work while the panel is already open.** An in-app
+  navigation to the panel — a dashboard button's `navigation_path`, any HA
+  `navigate` action — changes only the URL:
+  HA neither remounts the panel nor hands it a new route for a query-only
+  navigation, so every `?entry_id=…`/`?task_id=…` link was silently ignored
+  unless the page was loaded fresh. The panel now listens for HA's
+  `location-changed` and re-reads the parameters from the address bar.
+  (Discussion #160)
+
 ## [2.73.0] - 2026-09-03
 
 ### 🐛 Fixed

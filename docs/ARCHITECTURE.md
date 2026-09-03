@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.73.0 | 220 source files (134 Python + 86 TypeScript) | **98% test coverage** (3,641 backend tests + 621 frontend tests)
+**Version:** 2.74.0 | 220 source files (134 Python + 86 TypeScript) | **98% test coverage** (3,641 backend tests + 631 frontend tests)
 
 ---
 
@@ -269,8 +269,8 @@ custom_components/maintenance_supporter/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
 ├── frontend-src/               (26,031 lines)  TypeScript sources (excl. __tests__/, 6,301 lines / 52 files)
-│   ├── maintenance-panel.ts     (3,334 lines)  Panel shell: today / dashboard / calendar / settings tabs,
-│   │                                           object detail, task detail, all-objects
+│   ├── maintenance-panel.ts     (4,142 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+│   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,242)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (698 lines)  Lovelace card
 │   ├── maintenance-calendar-card.ts (646 lines)  Calendar card (object filter, #83)
