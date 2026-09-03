@@ -208,6 +208,25 @@ its `entry_id` is the key (stable for the life of the object):
 | `…&task_id=<task_id>&action=complete` | the task with the completion dialog already open |
 | `…&task_id=<task_id>&action=quick_complete` | completes silently with the task's pre-filled defaults (falls back to the dialog if none are set) |
 
+Overview deep links (2.74+) land on a tab of the panel's start page — with
+the task list already filtered, sorted or switched to a saved view — so a
+dashboard button (`navigation_path`) or a notification tap can open exactly
+the list you want:
+
+| URL | Opens |
+|-----|-------|
+| `/maintenance-supporter?tab=today` | the Today tab — overdue + triggered, due today, this week |
+| `/maintenance-supporter?tab=dashboard` (also `calendar`, `settings`) | that tab |
+| `/maintenance-supporter?status=overdue` | the Dashboard task list filtered to overdue (`overdue`, `due_soon`, `triggered`, `ok`) |
+| `/maintenance-supporter?sort=object` | the list sorted by object (`due_date`, `object`, `type`, `task_name`, `area`, `assigned_user`, `group`) |
+| `/maintenance-supporter?view=Garden%20chores` | one of your saved views, by name (case-insensitive) or id |
+
+`status=` and `view=` imply the Dashboard tab; an explicit `sort=` or
+`status=` wins over the saved view's own. The tab and the sort are
+remembered like a tap on them, the status filter is not. Unknown values are
+ignored. The links work while the panel is already open, too — an in-app
+navigation re-reads them.
+
 Where the ids come from:
 
 - `maintenance_supporter.list_tasks` returns `entry_id` and `task_id` for

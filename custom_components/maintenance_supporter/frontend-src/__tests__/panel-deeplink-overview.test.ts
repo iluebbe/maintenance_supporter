@@ -1,0 +1,171 @@
+/**
+ * Overview deep links (Discussion #160, @maisun): a URL can land the panel on
+ * a tab with the task list pre-filtered / pre-sorted, or on a saved view —
+ * `?tab=today`, `?status=overdue&sort=object`, `?view=<id or name>` — so a
+ * dashboard button or a notification tap opens e.g. the Today list directly.
+ *
+ * Pins: each param lands in the right state, tab/sort persist like a tap,
+ * unknown values are ignored, the params are consumed once, and an in-app
+ * navigation to the panel while it is already mounted (HA's navigate() =
+ * pushState + `location-changed`, no remount) re-reads the URL instead of
+ * ignoring it.
+ */
+
+import { expect } from "@open-wc/testing";
+import { mountPanel, obj, resetTaskSeq, sr, task } from "./_panel-utils.js";
+
+const PAGE_PATH = window.location.pathname;
+
+type PanelState = HTMLElement & {
+  updateComplete: Promise<unknown>;
+  panel: Record<string, unknown>;
+  _overviewTab: string;
+  _filterStatus: string;
+  _sortMode: string;
+  _activeViewId: string;
+  _filterLabel: string | null;
+  _view: string;
+};
+
+const VIEWS = [
+  { id: "vgarden", name: "Garden Chores", filters: { status: "", user_id: null, label: "garden", archived: false, sort_mode: "object", group_by: "none" } },
+  { id: "voverdue", name: "Overdue only", filters: { status: "overdue", user_id: null, label: null, archived: false, sort_mode: "due_date", group_by: "none" } },
+];
+
+function setDeepLink(query: string) {
+  history.replaceState(null, "", `${window.location.pathname}?${query}`);
+}
+
+async function mount(query: string) {
+  setDeepLink(query);
+  const { el, sent } = await mountPanel(
+    [obj("e1", [task({ name: "Mow lawn", labels: ["garden"] }), task({ name: "Descale", status: "overdue", days_until_due: -3 })])],
+    { "maintenance_supporter/views/list": () => ({ views: VIEWS }) },
+  );
+  await el.updateComplete;
+  return { el: el as unknown as PanelState, sent };
+}
+
+async function settle(el: PanelState) {
+  await new Promise((r) => setTimeout(r, 20));
+  await el.updateComplete;
+}
+
+describe("overview deep links (#160)", () => {
+  beforeEach(() => {
+    resetTaskSeq();
+    localStorage.clear();
+    localStorage.setItem("msp-overview-tab", "dashboard");
+  });
+  afterEach(() => {
+    localStorage.clear();
+    history.replaceState(null, "", PAGE_PATH);
+  });
+
+  it("?tab=today lands on the Today tab, remembers it and cleans the URL", async () => {
+    const { el } = await mount("tab=today");
+    expect(el._overviewTab).to.equal("today");
+    expect(sr(el).querySelector(".today-view"), "today view rendered").to.exist;
+    expect(localStorage.getItem("msp-overview-tab")).to.equal("today");
+    expect(window.location.search).to.equal("");
+  });
+
+  it("?tab=calendar / settings switch the overview tab too", async () => {
+    const { el } = await mount("tab=settings");
+    expect(el._overviewTab).to.equal("settings");
+    expect(localStorage.getItem("msp-overview-tab")).to.equal("settings");
+  });
+
+  it("?status=overdue&sort=object filters + sorts the dashboard list (sort persists like the select)", async () => {
+    const { el } = await mount("tab=today&status=overdue&sort=object");
+    // status implies the Dashboard tab — a filter on the Today tab is pointless
+    expect(el._overviewTab).to.equal("dashboard");
+    expect(el._filterStatus).to.equal("overdue");
+    expect(el._sortMode).to.equal("object");
+    expect(localStorage.getItem("maintenance_supporter_sort")).to.equal("object");
+    const rows = [...sr(el).querySelectorAll(".task-table .task-name")].map((n) => n.textContent?.trim());
+    expect(rows, "only the overdue row remains").to.deep.equal(["Descale"]);
+    expect(window.location.search).to.equal("");
+  });
+
+  it("?view=<id> applies the saved view and lands on the Dashboard tab", async () => {
+    const { el } = await mount("tab=today&view=vgarden");
+    expect(el._activeViewId).to.equal("vgarden");
+    expect(el._filterLabel).to.equal("garden");
+    expect(el._sortMode).to.equal("object");
+    expect(el._overviewTab).to.equal("dashboard");
+    expect(localStorage.getItem("msp-overview-tab"), "implied tab persisted").to.equal("dashboard");
+    const option = sr(el).querySelector<HTMLOptionElement>("option[value='vgarden']");
+    expect(option?.selected, "view picked in the toolbar's view select").to.equal(true);
+  });
+
+  it("?view=<name> matches the saved view by name, case-insensitively", async () => {
+    const { el } = await mount("view=overdue%20ONLY");
+    expect(el._activeViewId).to.equal("voverdue");
+    expect(el._filterStatus).to.equal("overdue");
+  });
+
+  it("explicit status overrides the saved view's filter", async () => {
+    const { el } = await mount("view=vgarden&status=ok");
+    expect(el._filterStatus).to.equal("ok");
+    // a manual filter change deselects the view, exactly like the toolbar does
+    expect(el._activeViewId).to.equal("");
+  });
+
+  it("unknown values are ignored (nothing persisted, URL still cleaned)", async () => {
+    const { el } = await mount("tab=bogus&status=nope&sort=xyz&view=no-such-view");
+    expect(el._overviewTab).to.equal("dashboard");
+    expect(el._filterStatus).to.equal("");
+    expect(el._sortMode).to.equal("due_date");
+    expect(el._activeViewId).to.equal("");
+    expect(localStorage.getItem("msp-overview-tab")).to.equal("dashboard");
+    expect(localStorage.getItem("maintenance_supporter_sort")).to.be.null;
+    expect(window.location.search).to.equal("");
+  });
+
+  it("an entry_id link still routes to the object even when a tab param rides along", async () => {
+    const { el } = await mount("tab=today&entry_id=e1");
+    expect(el._view).to.equal("object");
+    expect(localStorage.getItem("msp-overview-tab")).to.equal("today");
+    expect(window.location.search).to.equal("");
+  });
+
+  it("an in-app navigation while mounted (location-changed, no remount) re-reads the URL", async () => {
+    const { el } = await mount("");
+    expect(el._overviewTab).to.equal("dashboard");
+    // The panel only owns navigations to its own url_path (HA passes it in
+    // the panel config); here that is the test page's path.
+    el.panel = { url_path: PAGE_PATH.replace(/^\//, "") };
+    await el.updateComplete;
+    // What HA's navigate() does for a dashboard button whose navigation_path
+    // is "/maintenance-supporter?tab=today" while the panel is already open.
+    const navigate = (url: string) => {
+      history.pushState(null, "", url);
+      window.dispatchEvent(new CustomEvent("location-changed"));
+    };
+    navigate(`${window.location.pathname}?tab=today`);
+    await settle(el);
+    expect(el._overviewTab).to.equal("today");
+    expect(window.location.search).to.equal("");
+    // From a task view, a later navigation lands back on the overview.
+    navigate(`${window.location.pathname}?entry_id=e1&task_id=t1`);
+    await settle(el);
+    expect(el._view).to.equal("task");
+    navigate(`${window.location.pathname}?status=overdue`);
+    await settle(el);
+    expect(el._view).to.equal("overview");
+    expect(el._overviewTab).to.equal("dashboard");
+    expect(el._filterStatus).to.equal("overdue");
+  });
+
+  it("a navigation to another panel is not ours (params untouched)", async () => {
+    const { el } = await mount("");
+    el.panel = { url_path: PAGE_PATH.replace(/^\//, "") };
+    await el.updateComplete;
+    history.pushState(null, "", "/lovelace/0?tab=today");
+    window.dispatchEvent(new CustomEvent("location-changed"));
+    await settle(el);
+    expect(el._overviewTab).to.equal("dashboard");
+    expect(window.location.search).to.equal("?tab=today");
+  });
+});

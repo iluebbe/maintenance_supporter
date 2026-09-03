@@ -283,29 +283,38 @@ _PANEL_TS = _FRONTEND / "maintenance-panel.ts"
 
 
 def test_ts_saved_view_sort_group_allowlists_match_python() -> None:
-    """The panel validates a saved view's sort_mode / group_by against inline
-    string allowlists (restated ~4× in maintenance-panel.ts). They MUST match the
-    Python VALID_SORT_MODES / VALID_GROUP_BY the sanitiser coerces against — else
-    a view the panel offers gets silently reset to due_date/none on save (a
-    non-crashing data loss). Every `[...].includes(` allowlist is checked."""
+    """The panel validates a saved view's sort_mode / group_by (localStorage, a
+    saved view, a `?sort=` deep link) against the module-level SORT_MODES /
+    GROUP_BY_MODES lists (single source since v2.74.0; before that the same
+    allowlist was restated inline ~4×). They MUST match the Python
+    VALID_SORT_MODES / VALID_GROUP_BY the sanitiser coerces against — else a
+    view the panel offers gets silently reset to due_date/none on save (a
+    non-crashing data loss). Any inline `[...].includes(` allowlist that
+    reappears is checked too."""
     from custom_components.maintenance_supporter.helpers.saved_views import (
         VALID_GROUP_BY,
         VALID_SORT_MODES,
     )
 
     src = _PANEL_TS.read_text(encoding="utf-8")
-    allowlists = re.findall(r"\[((?:\s*\"[^\"]+\",?)+)\s*\]\.includes\(", src)
-    assert allowlists, "no [...].includes( allowlists found in maintenance-panel.ts"
-    sort_seen = group_seen = 0
-    for body in allowlists:
+
+    def const_values(name: str) -> set[str]:
+        m = re.search(rf"const {name}\b[^=]*=\s*\[([^\]]*)\]", src)
+        assert m, f"const {name} = [...] not found in maintenance-panel.ts"
+        return set(re.findall(r'"([^"]+)"', m.group(1)))
+
+    assert const_values("SORT_MODES") == set(VALID_SORT_MODES)
+    assert const_values("GROUP_BY_MODES") == set(VALID_GROUP_BY)
+    # The lists must actually be what the panel validates against.
+    assert "(SORT_MODES as readonly string[]).includes(" in src
+    assert "(GROUP_BY_MODES as readonly string[]).includes(" in src
+
+    for body in re.findall(r"\[((?:\s*\"[^\"]+\",?)+)\s*\]\.includes\(", src):
         values = set(re.findall(r'"([^"]+)"', body))
         if "due_date" in values:  # a sort-mode allowlist
-            assert values == set(VALID_SORT_MODES), f"sort allowlist {values} != VALID_SORT_MODES {set(VALID_SORT_MODES)}"
-            sort_seen += 1
+            assert values == set(VALID_SORT_MODES), f"inline sort allowlist {values} != VALID_SORT_MODES"
         elif "none" in values and "user" in values:  # a group-by allowlist
-            assert values == set(VALID_GROUP_BY), f"group allowlist {values} != VALID_GROUP_BY {set(VALID_GROUP_BY)}"
-            group_seen += 1
-    assert sort_seen and group_seen, f"expected both sort+group allowlists; saw sort={sort_seen} group={group_seen}"
+            assert values == set(VALID_GROUP_BY), f"inline group allowlist {values} != VALID_GROUP_BY"
 
 
 # === WS command names (frontend literals ⊆ backend handlers) =================

@@ -114,6 +114,16 @@ interface PartsOverviewRow {
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
 type ObjectSortMode = "alphabetical" | "due_soonest" | "task_count";
 type GroupByMode = "none" | "area" | "group" | "user" | "object";
+type OverviewTab = "today" | "dashboard" | "calendar" | "settings";
+
+// Value lists for everything that arrives as a free string — localStorage,
+// a saved view, a deep-link query — and must be validated before it lands in
+// state (an unknown mode would be persisted and silently break sorting).
+const SORT_MODES: readonly SortMode[] = ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"];
+const GROUP_BY_MODES: readonly GroupByMode[] = ["none", "area", "group", "user", "object"];
+const OVERVIEW_TABS: readonly OverviewTab[] = ["today", "dashboard", "calendar", "settings"];
+/** The dashboard list's status filter options (the <select> in the toolbar). */
+const STATUS_FILTERS: readonly string[] = ["overdue", "due_soon", "triggered", "ok"];
 
 // Chart dimension constants for mini sparklines (overview)
 
@@ -210,7 +220,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _dismissedSuggestions = new Set<string>();
 
   // Dashboard redesign state
-  @state() private _overviewTab: "today" | "dashboard" | "calendar" | "settings" = (() => {
+  @state() private _overviewTab: OverviewTab = (() => {
     try {
       const v = lsGet(LS_KEYS.overviewTab);
       return v === "today" || v === "calendar" ? v : "dashboard";
@@ -305,6 +315,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _popstateHandler = (e: PopStateEvent) => this._onPopState(e);
+  private _locationChangedHandler = () => this._onLocationChanged();
 
   /** Lazy UI chunks (perf wave 2, item 5): the six dialogs + the settings
    *  view are code-split out of the entry bundle and fetched in parallel
@@ -346,6 +357,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (idle) idle(kick, { timeout: 3000 });
     else window.setTimeout(kick, 1500);
     window.addEventListener("popstate", this._popstateHandler);
+    window.addEventListener("location-changed", this._locationChangedHandler);
     window.addEventListener("keydown", this._paletteKeydown);
     if (typeof ResizeObserver !== "undefined") {
       this._tightObserver = new ResizeObserver((entries) => {
@@ -368,7 +380,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // other storage access in this file is wrapped; wrap these too.
     try {
       const saved = lsGet(LS_KEYS.taskSort);
-      if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
+      if (saved && (SORT_MODES as readonly string[]).includes(saved)) {
         this._sortMode = saved as SortMode;
       }
       const savedObj = lsGet(LS_KEYS.objectSort);
@@ -376,7 +388,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         this._objectSortMode = savedObj as ObjectSortMode;
       }
       const savedGroup = lsGet(LS_KEYS.groupBy);
-      if (savedGroup && ["none", "area", "group", "user", "object"].includes(savedGroup)) {
+      if (savedGroup && (GROUP_BY_MODES as readonly string[]).includes(savedGroup)) {
         this._groupByMode = savedGroup as GroupByMode;
       }
       const savedView = lsGet(LS_KEYS.objectView);
@@ -400,6 +412,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     window.removeEventListener("popstate", this._popstateHandler);
+    window.removeEventListener("location-changed", this._locationChangedHandler);
     window.removeEventListener("keydown", this._paletteKeydown);
     this._tightObserver?.disconnect();
     this._tightObserver = null;
@@ -413,6 +426,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._unsub = null;
     }
     this._dataLoaded = false;
+    this._initialLoadDone = false;
     this._lastConnection = null;
     this._deepLinkHandled = false;
     this._statsService?.clearCache();
@@ -674,10 +688,30 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._fetchMiniStatsForOverview();
 
     // Handle deep-link URL parameters (from QR code scan)
+    this._initialLoadDone = true;
     this._handleDeepLink();
   }
 
   private _deepLinkHandled = false;
+  /** Objects + saved views have arrived at least once — deep links that
+   *  reference them are routable. */
+  private _initialLoadDone = false;
+
+  /** In-app navigation to the panel while it is already mounted (#160): HA's
+   *  navigate() — a dashboard button's navigation_path, a notification tap
+   *  with the app open — fires `location-changed` and, since the panel path
+   *  is unchanged, neither remounts us nor hands over a new route object
+   *  (verified on HA 2026.7: the route stays identical for a query-only
+   *  navigation). The URL is the only signal, so re-read the deep-link
+   *  params from it. Navigations away from the panel are not ours. */
+  private _onLocationChanged(): void {
+    if (!this._initialLoadDone || !window.location.search) return;
+    const base = `/${typeof this.panel?.url_path === "string" ? this.panel.url_path : "maintenance-supporter"}`;
+    const path = window.location.pathname;
+    if (path !== base && !path.startsWith(`${base}/`)) return;
+    this._deepLinkHandled = false;
+    this._handleDeepLink();
+  }
 
   private _handleDeepLink(): void {
     if (this._deepLinkHandled) return;
@@ -721,6 +755,48 @@ export class MaintenanceSupporterPanel extends LitElement {
         settingsView?.scrollToSection?.(target);
       }));
       return;
+    }
+
+    // v2.74.0 (Discussion #160, @maisun): overview deep links — land on a tab
+    // with the task list pre-filtered / pre-sorted, or on a saved view, so a
+    // dashboard button or a notification tap can open e.g. the Today list:
+    //   ?tab=today|dashboard|calendar|settings
+    //   ?view=<saved view id or name>             (implies the Dashboard tab)
+    //   ?sort=due_date|object|type|task_name|area|assigned_user|group
+    //   ?status=overdue|due_soon|triggered|ok     (implies the Dashboard tab)
+    // Explicit sort/status win over the saved view's; unknown values are
+    // ignored. Like a tap, the tab (also the implied one) and the sort are
+    // remembered for the next plain visit. Consumed once and stripped like
+    // every other param.
+    const tab = params.get("tab");
+    const view = params.get("view");
+    const sort = params.get("sort");
+    const status = params.get("status");
+    if (tab !== null || view !== null || sort !== null || status !== null) {
+      cleanMsActionUrl();
+      if (this._view !== "overview") this._showOverview();
+      if ((OVERVIEW_TABS as readonly string[]).includes(tab ?? "")) {
+        this._setOverviewTab(tab as OverviewTab);
+      }
+      if (view !== null) {
+        const wanted = view.trim().toLowerCase();
+        const match = this._savedViews.find((v) => v.id === view)
+          ?? this._savedViews.find((v) => v.name.trim().toLowerCase() === wanted);
+        if (match) {
+          // Tab first: _applyView flips to the dashboard without persisting.
+          if (this._overviewTab !== "dashboard") this._setOverviewTab("dashboard");
+          this._applyView(match.id);
+        }
+      }
+      if ((SORT_MODES as readonly string[]).includes(sort ?? "")) {
+        this._sortMode = sort as SortMode;
+        this._activeViewId = "";
+        lsSet(LS_KEYS.taskSort, this._sortMode);
+      }
+      if (STATUS_FILTERS.includes(status ?? "")) {
+        if (this._overviewTab !== "dashboard") this._setOverviewTab("dashboard");
+        this._filterByStatus(status as string);
+      }
     }
 
     const entryId = params.get("entry_id");
@@ -1133,10 +1209,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Validate against the current enums before assigning — a view saved by an
     // older/renamed build could carry a mode no longer valid, which would then
     // be persisted to localStorage and silently break sorting/grouping.
-    if (["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(f.sort_mode)) {
+    if ((SORT_MODES as readonly string[]).includes(f.sort_mode)) {
       this._sortMode = f.sort_mode as SortMode;
     }
-    if (["none", "area", "group", "user", "object"].includes(f.group_by)) {
+    if ((GROUP_BY_MODES as readonly string[]).includes(f.group_by)) {
       this._groupByMode = f.group_by as GroupByMode;
     }
     // Persist sort/group like the manual controls do, so they stick after reload.
@@ -2414,7 +2490,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`<span class="status-badge ${cls}" role="img" title="${label}" aria-label="${label}"><ha-icon icon="${STATUS_ICONS[iconKey] || "mdi:circle-medium"}"></ha-icon><span class="status-label">${label}</span></span>`;
   }
 
-  private _setOverviewTab(tab: "today" | "dashboard" | "calendar" | "settings"): void {
+  private _setOverviewTab(tab: OverviewTab): void {
     this._overviewTab = tab;
     try { lsSet(LS_KEYS.overviewTab, tab); } catch { /* private mode */ }
     this._scrollContentToTop();
