@@ -6,7 +6,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
-import { t, ensureLocale, langOf } from "../styles";
+import { t, ensureLocale, langOf, formatDate, syncLocaleFromHass } from "../styles";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import { describeWsError } from "../ws-errors";
 import type { HomeAssistant } from "../types";
@@ -100,6 +100,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   }
 
   updated(changed: Map<string, unknown>): void {
+    // #163: the forecast dates go through formatDate(), which reads the HA
+    // profile date format from a window singleton — feed it here too, so a
+    // stand-alone battery-fleet card (no panel / task card on the page to do
+    // it) still renders DD/MM vs MM/DD the way the profile says.
+    syncLocaleFromHass(this, changed);
     if (changed.has("hass") && this.hass && !this._localeReady) {
       this._localeReady = true;
       ensureLocale(this._lang).then(() => this.requestUpdate());
@@ -314,8 +319,13 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     return this._fmtDate(Date.now() + daysUntil * 864e5);
   }
 
+  /** Local calendar date of an epoch, in the HA profile date format (#163 —
+   *  a direct Intl.DateTimeFormat call here ignored the profile and showed
+   *  9/2/2026 to a DD/MM/YYYY user). */
   private _fmtDate(epochMs: number): string {
-    return new Intl.DateTimeFormat(this._lang, { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(epochMs));
+    const d = new Date(epochMs);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return formatDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, this._lang);
   }
 
   /** The grouped shopping quantities as CLICKABLE chips: a type filters the

@@ -19,6 +19,7 @@ import {
 } from "../helpers/object-history";
 import { buildServiceRecordHtml, type ServiceRecordLabels } from "../helpers/service-record";
 import { openHtmlInNewTab } from "../helpers/document-url";
+import "./ms-date-field";
 import type { HistoryEntry, HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 
 /** Mirrors the backend's per-task history retention cap — a full history of
@@ -177,12 +178,24 @@ export class MaintenanceObjectHistorySection extends LitElement {
             <option value="">${t("object_history_all_tasks", L)}</option>
             ${this.tasks.map((task) => html`<option value=${task.id} ?selected=${task.id === this._filterTask}>${task.name}</option>`)}
           </select>
-          <label>${t("date_from", L)}
-            <input type="date" .value=${this._from} @change=${(e: Event) => { this._from = (e.target as HTMLInputElement).value; }} />
-          </label>
-          <label>${t("date_to", L)}
-            <input type="date" .value=${this._to} @change=${(e: Event) => { this._to = (e.target as HTMLInputElement).value; }} />
-          </label>
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${L}
+            .label=${t("date_from", L)}
+            .value=${this._from}
+            @value-changed=${(e: CustomEvent) => { this._from = e.detail.value as string; }}
+          ></ms-date-field>
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${L}
+            .label=${t("date_to", L)}
+            .value=${this._to}
+            @value-changed=${(e: CustomEvent) => { this._to = e.detail.value as string; }}
+          ></ms-date-field>
         </div>
 
         ${filtered.length === 0

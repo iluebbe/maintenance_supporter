@@ -12,6 +12,7 @@ import { property, state } from "lit/decorators.js";
 import { t, langOf } from "../styles";
 import type { HomeAssistant } from "../types";
 import { describeWsError } from "../ws-errors";
+import "./ms-date-field";
 
 export interface HistoryEntryDraft {
   entry_id: string;
@@ -228,16 +229,20 @@ export class MaintenanceHistoryEditDialog extends LitElement {
           <ha-icon icon="mdi:tag-outline"></ha-icon>
           <span>${t(d.type, L) || d.type}</span>
         </div>
-        <label>
-          <span>${t("history_edit_timestamp", L) || "Timestamp"}</span>
-          <input type="datetime-local"
-            .value=${d.timestamp.length >= 16 ? d.timestamp.slice(0, 16) : d.timestamp}
-            @change=${(e: Event) => {
-              const v = (e.target as HTMLInputElement).value;
-              // Re-add seconds if input drops them
-              this._set("timestamp", v.length === 16 ? `${v}:00` : v);
-            }} />
-        </label>
+        <ms-date-field
+          kind="datetime"
+          required
+          .hass=${this.hass}
+          .lang=${L}
+          .label=${t("history_edit_timestamp", L) || "Timestamp"}
+          .value=${d.timestamp.slice(0, 19)}
+          @value-changed=${(e: CustomEvent) => {
+            // Always "YYYY-MM-DDTHH:MM:SS" from the field; the naive value
+            // means local time, exactly as the datetime-local input did.
+            const v = e.detail.value as string;
+            if (v) this._set("timestamp", v);
+          }}
+        ></ms-date-field>
         <label>
           <span>${t("notes_label", L)}</span>
           <textarea

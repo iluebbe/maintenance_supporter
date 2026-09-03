@@ -315,6 +315,7 @@ custom_components/maintenance_supporter/
 │       ├── group-dialog.ts        (244 lines)
 │       ├── seasonal-overrides-dialog.ts (199)
 │       ├── confirm-dialog.ts      (163 lines)  Generic confirmation dialog
+│       ├── ms-date-field.ts       (182 lines)  Date/time/datetime input over <ha-selector> — follows the HA profile format (#163)
 │       └── ms-textfield.ts (116), section-card-shared-styles.ts (77), history-photo.ts (74),
 │           task-detail-view.ts (37 — thin host element over renderers/task-detail.ts)
 │

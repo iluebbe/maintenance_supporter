@@ -7,6 +7,7 @@ import { t, langOf } from "../styles";
 
 import { describeWsError } from "../ws-errors";
 import "./ms-textfield";
+import "./ms-date-field";
 
 export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -168,18 +169,24 @@ export class MaintenanceObjectDialog extends LitElement {
             @value-changed=${(e: CustomEvent) =>
               (this._areaId = (e.detail.value as string) || "")}
           ></ha-area-picker>
-          <ms-textfield
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${L}
             label="${t("installation_date_optional", L)}"
-            type="date"
             .value=${this._installationDate}
-            @input=${(e: Event) => (this._installationDate = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          <ms-textfield
+            @value-changed=${(e: CustomEvent) => (this._installationDate = e.detail.value as string)}
+          ></ms-date-field>
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${L}
             label="${t("warranty_expiry_optional", L)}"
-            type="date"
             .value=${this._warrantyExpiry}
-            @input=${(e: Event) => (this._warrantyExpiry = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
+            @value-changed=${(e: CustomEvent) => (this._warrantyExpiry = e.detail.value as string)}
+          ></ms-date-field>
           <ha-form
             .hass=${this.hass}
             .data=${{ device: this._haDeviceId || undefined }}

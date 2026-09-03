@@ -15,6 +15,7 @@ import {
 import { describeWsError } from "../ws-errors";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
+import "./ms-date-field";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "reading", "custom"];
 const PRIORITY_KEYS = ["low", "normal", "high"];
@@ -2208,12 +2209,14 @@ export class MaintenanceTaskDialog extends LitElement {
           @input=${(e: Event) => (this._endsCount = (e.target as HTMLInputElement).value)}
         ></ms-textfield>` : nothing}
       ${this._endsMode === "until" ? html`
-        <ms-textfield
+        <ms-date-field
+          kind="date"
+          .hass=${this.hass}
+          .lang=${L}
           label="${t("series_end_until_label", L)}"
-          type="date"
           .value=${this._endsUntil}
-          @input=${(e: Event) => (this._endsUntil = (e.target as HTMLInputElement).value)}
-        ></ms-textfield>` : nothing}
+          @value-changed=${(e: CustomEvent) => (this._endsUntil = e.detail.value as string)}
+        ></ms-date-field>` : nothing}
     `;
   }
 
@@ -2658,25 +2661,30 @@ export class MaintenanceTaskDialog extends LitElement {
                   </select>
                 </div>
                 ${this.scheduleTimeEnabled ? html`
-                  <ms-textfield
+                  <ms-date-field
+                    kind="time"
+                    clearable
+                    .hass=${this.hass}
+                    .lang=${L}
                     label="${t("schedule_time_optional", L)}"
-                    type="time"
                     .value=${this._scheduleTime}
                     helper="${t("schedule_time_help", L)}"
-                    @input=${(e: Event) => (this._scheduleTime = (e.target as HTMLInputElement).value)}
-                  ></ms-textfield>
+                    @value-changed=${(e: CustomEvent) => (this._scheduleTime = e.detail.value as string)}
+                  ></ms-date-field>
                 ` : nothing}
               `
             : nothing}
           ${this._renderCalendarFields()}
           ${this._scheduleType === "one_time"
             ? html`
-                <ms-textfield
+                <ms-date-field
+                  kind="date"
+                  .hass=${this.hass}
+                  .lang=${L}
                   label="${t("due_date", L)}"
-                  type="date"
                   .value=${this._dueDate}
-                  @input=${(e: Event) => (this._dueDate = (e.target as HTMLInputElement).value)}
-                ></ms-textfield>
+                  @value-changed=${(e: CustomEvent) => (this._dueDate = e.detail.value as string)}
+                ></ms-date-field>
               `
             : nothing}
           ${this._renderRecurrenceExtras()}
@@ -2722,12 +2730,15 @@ export class MaintenanceTaskDialog extends LitElement {
               </label>
             `)}
           </div>
-          <ms-textfield
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${L}
             label="${t("last_performed_optional", L)}"
-            type="date"
             .value=${this._lastPerformed}
-            @input=${(e: Event) => (this._lastPerformed = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
+            @value-changed=${(e: CustomEvent) => (this._lastPerformed = e.detail.value as string)}
+          ></ms-date-field>
           <div class="select-row">
             <label>${t("responsible_user", L)}</label>
             <select

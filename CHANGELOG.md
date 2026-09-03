@@ -4,6 +4,22 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixed
+
+- **Dates and times follow the HA profile format everywhere.** Every date,
+  time and date+time input in the panel (task due/last-performed/ends/due
+  time, object installation/warranty, backdated completion, history edit,
+  reset date, history filters, quiet hours, vacation) used the browser's
+  native picker, which renders in the *browser* locale — an English UI kept
+  showing `09/02/2026` and `12:30 PM` whatever was picked under Profile →
+  Date format / Time format. They now go through HA's own date/time
+  selectors, so DD/MM/YYYY, YYYY-MM-DD and 12/24-hour follow the profile
+  exactly like the rest of HA. Optional fields get a ✕ to clear; the
+  optional "Completed at" starts as a *Set date & time* button seeded with
+  the current minute. The battery fleet's predicted replacement date also
+  went through a raw browser formatter and ignored the profile — fixed the
+  same way, including on the standalone fleet card. (#163)
+
 ## [2.72.1] - 2026-09-02
 
 ### 🐛 Fixed

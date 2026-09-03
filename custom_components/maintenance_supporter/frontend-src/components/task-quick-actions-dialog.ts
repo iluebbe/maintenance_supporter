@@ -22,6 +22,7 @@ import { phaseLabel } from "../helpers/phases";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
+import "./ms-date-field";
 import {
   renderSeasonalCardCompact,
   renderSeasonalCardExpanded,
@@ -582,8 +583,13 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                 ? html`
                     <div class="inline-form">
                       <label>${t("reset_to_date", L) || "Reset last_performed to"}</label>
-                      <input type="date" .value=${this._resetDate}
-                        @input=${(e: Event) => { this._resetDate = (e.target as HTMLInputElement).value; }} />
+                      <ms-date-field
+                        kind="date"
+                        .hass=${this.hass}
+                        .lang=${L}
+                        .value=${this._resetDate}
+                        @value-changed=${(e: CustomEvent) => { this._resetDate = e.detail.value as string; }}
+                      ></ms-date-field>
                       <div class="inline-actions">
                         <button class="btn cancel" @click=${() => { this._showReset = false; }} ?disabled=${this._busy}>
                           ${t("cancel", L) || "Cancel"}

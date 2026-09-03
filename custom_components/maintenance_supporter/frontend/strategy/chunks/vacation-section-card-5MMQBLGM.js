@@ -1,5 +1,5 @@
 /*! maintenance_supporter frontend 2.72.1 */
-import{a as m,b as g}from"./chunk-WFBK5YNY.js";import{a as h,b as n,d as c,e as _,f as v,g as r,i as e,j as f,l as b,u as l}from"./chunk-DSQFNHSK.js";import{a as i}from"./chunk-32MW7QUN.js";var a=class extends _{constructor(){super(...arguments);this._config={type:""};this._state=null;this._busy=!1;this._error="";this._localStart="";this._localEnd="";this._localBuffer=7;this._dirty=!1;this._loaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return f(this.hass)}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._loaded&&(this._loaded=!0,this._load(),b(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/state"});this._state=t,this._localStart=t.start||"",this._localEnd=t.end||"",this._localBuffer=t.buffer_days??7,this._dirty=!1}catch(t){this._error=l(t,this._lang)}}async _toggleEnabled(t){this._busy=!0,this._error="";try{let s=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/update",enabled:t});this._state=s}catch(s){this._error=l(s,this._lang)}finally{this._busy=!1}}async _save(){if(this._isAdmin){this._busy=!0,this._error="";try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/update",start:this._localStart||null,end:this._localEnd||null,buffer_days:this._localBuffer});this._state=t,this._dirty=!1}catch(t){this._error=l(t,this._lang)}finally{this._busy=!1}}}async _endNow(){if(this._isAdmin&&window.confirm(e("vacation_end_now_confirm",this._lang)||"End vacation immediately?")){this._busy=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/end_now"});this._state=t,this._localStart=t.start||"",this._localEnd=t.end||""}catch(t){this._error=l(t,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_vacation"),window.dispatchEvent(new CustomEvent("location-changed"))}render(){let t=this._lang,s=this._state;if(!s)return n`<ha-card><div class="loading">${e("loading",t)||"Loading\u2026"}</div></ha-card>`;let p=s.is_active===!0,d=s.enabled===!0,u=s.exempt_task_ids?.length??0,y=p?e("vacation_status_active",t)||"Active now":d?e("vacation_status_scheduled",t)||"Scheduled":e("vacation_status_inactive",t)||"Inactive",$=p?"active":d?"scheduled":"inactive";return n`
+import{a as b,b as g}from"./chunk-RG5VJ6UR.js";import"./chunk-YAFKPJVJ.js";import{a as h,b as n,d as c,e as _,f as v,g as r,i as e,j as f,l as m,u as o}from"./chunk-K5VO2CHG.js";import{a as i}from"./chunk-32MW7QUN.js";var a=class extends _{constructor(){super(...arguments);this._config={type:""};this._state=null;this._busy=!1;this._error="";this._localStart="";this._localEnd="";this._localBuffer=7;this._dirty=!1;this._loaded=!1}setConfig(t){this._config=t}getCardSize(){return 2}get _lang(){return f(this.hass)}get _isAdmin(){return this.hass?.user?.is_admin??!0}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._loaded&&(this._loaded=!0,this._load(),m(this._lang).then(()=>this.requestUpdate()))}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/state"});this._state=t,this._localStart=t.start||"",this._localEnd=t.end||"",this._localBuffer=t.buffer_days??7,this._dirty=!1}catch(t){this._error=o(t,this._lang)}}async _toggleEnabled(t){this._busy=!0,this._error="";try{let s=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/update",enabled:t});this._state=s}catch(s){this._error=o(s,this._lang)}finally{this._busy=!1}}async _save(){if(this._isAdmin){this._busy=!0,this._error="";try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/update",start:this._localStart||null,end:this._localEnd||null,buffer_days:this._localBuffer});this._state=t,this._dirty=!1}catch(t){this._error=o(t,this._lang)}finally{this._busy=!1}}}async _endNow(){if(this._isAdmin&&window.confirm(e("vacation_end_now_confirm",this._lang)||"End vacation immediately?")){this._busy=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/end_now"});this._state=t,this._localStart=t.start||"",this._localEnd=t.end||""}catch(t){this._error=o(t,this._lang)}finally{this._busy=!1}}}_onDeepLink(){history.pushState(null,"","/maintenance-supporter?ms_action=open_vacation"),window.dispatchEvent(new CustomEvent("location-changed"))}render(){let t=this._lang,s=this._state;if(!s)return n`<ha-card><div class="loading">${e("loading",t)||"Loading\u2026"}</div></ha-card>`;let p=s.is_active===!0,d=s.enabled===!0,u=s.exempt_task_ids?.length??0,y=p?e("vacation_status_active",t)||"Active now":d?e("vacation_status_scheduled",t)||"Scheduled":e("vacation_status_inactive",t)||"Inactive",$=p?"active":d?"scheduled":"inactive";return n`
       <ha-card>
         <div class="card-content">
           <div class="header">
@@ -18,29 +18,41 @@ import{a as m,b as g}from"./chunk-WFBK5YNY.js";import{a as h,b as n,d as c,e as 
                   <ha-switch
                     .checked=${d}
                     .disabled=${this._busy}
-                    @change=${o=>this._toggleEnabled(o.target.checked)}
+                    @change=${l=>this._toggleEnabled(l.target.checked)}
                   ></ha-switch>
                 </div>
 
                 <div class="dates-row">
                   <div class="date-field">
                     <label>${e("vacation_start",t)||"Start"}</label>
-                    <input type="date" .value=${this._localStart}
-                      ?disabled=${this._busy}
-                      @input=${o=>{this._localStart=o.target.value,this._dirty=!0}} />
+                    <ms-date-field
+                      kind="date"
+                      clearable
+                      .hass=${this.hass}
+                      .lang=${t}
+                      .value=${this._localStart}
+                      .disabled=${this._busy}
+                      @value-changed=${l=>{this._localStart=l.detail.value,this._dirty=!0}}
+                    ></ms-date-field>
                   </div>
                   <div class="date-field">
                     <label>${e("vacation_end",t)||"End"}</label>
-                    <input type="date" .value=${this._localEnd}
-                      ?disabled=${this._busy}
-                      @input=${o=>{this._localEnd=o.target.value,this._dirty=!0}} />
+                    <ms-date-field
+                      kind="date"
+                      clearable
+                      .hass=${this.hass}
+                      .lang=${t}
+                      .value=${this._localEnd}
+                      .disabled=${this._busy}
+                      @value-changed=${l=>{this._localEnd=l.detail.value,this._dirty=!0}}
+                    ></ms-date-field>
                   </div>
                   <div class="date-field buffer">
                     <label>${e("vacation_buffer",t)||"Buffer days"}</label>
                     <input type="number" min="0" max="14"
                       .value=${String(this._localBuffer)}
                       ?disabled=${this._busy}
-                      @input=${o=>{this._localBuffer=parseInt(o.target.value,10)||0,this._dirty=!0}} />
+                      @input=${l=>{this._localBuffer=parseInt(l.target.value,10)||0,this._dirty=!0}} />
                   </div>
                 </div>
 
@@ -119,4 +131,4 @@ import{a as m,b as g}from"./chunk-WFBK5YNY.js";import{a as h,b as n,d as c,e as 
       display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
     }
     .readonly { display: flex; flex-direction: column; gap: 8px; }
-  `],i([v({attribute:!1})],a.prototype,"hass",2),i([r()],a.prototype,"_config",2),i([r()],a.prototype,"_state",2),i([r()],a.prototype,"_busy",2),i([r()],a.prototype,"_error",2),i([r()],a.prototype,"_localStart",2),i([r()],a.prototype,"_localEnd",2),i([r()],a.prototype,"_localBuffer",2),i([r()],a.prototype,"_dirty",2);customElements.get("maintenance-vacation-section-card")||customElements.define("maintenance-vacation-section-card",a);m({type:"maintenance-vacation-section-card",name:"Maintenance Supporter \u2014 Vacation",description:"Inline vacation mode toggle + dates",preview:!1});export{a as MaintenanceVacationSectionCard};
+  `],i([v({attribute:!1})],a.prototype,"hass",2),i([r()],a.prototype,"_config",2),i([r()],a.prototype,"_state",2),i([r()],a.prototype,"_busy",2),i([r()],a.prototype,"_error",2),i([r()],a.prototype,"_localStart",2),i([r()],a.prototype,"_localEnd",2),i([r()],a.prototype,"_localBuffer",2),i([r()],a.prototype,"_dirty",2);customElements.get("maintenance-vacation-section-card")||customElements.define("maintenance-vacation-section-card",a);b({type:"maintenance-vacation-section-card",name:"Maintenance Supporter \u2014 Vacation",description:"Inline vacation mode toggle + dates",preview:!1});export{a as MaintenanceVacationSectionCard};

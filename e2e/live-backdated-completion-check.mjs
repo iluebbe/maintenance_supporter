@@ -8,7 +8,9 @@
  *      on yesterday.
  *   4. Future completed_at -> WS error completed_at_in_future.
  *   5. HA service maintenance_supporter.complete with completed_at works.
- *   6. Panel complete dialog renders the datetime-local backdate field.
+ *   6. Panel complete dialog offers the backdate seed button and, once
+ *      clicked, an <ms-date-field kind="datetime"> wrapping HA's datetime
+ *      selector (#163 — follows the profile date/time format).
  *
  *  Seeds one throwaway object, deletes it afterwards.
  */
@@ -144,13 +146,28 @@ try {
     dlg.entryId = e; dlg.taskId = t; dlg.taskName = "roundtrip";
     dlg.open();
     return new Promise((res) => setTimeout(() => {
-      const input = dlg.shadowRoot && dlg.shadowRoot.querySelector('input[type="datetime-local"]');
-      const label = dlg.shadowRoot ? dlg.shadowRoot.textContent : "";
-      res({ hasInput: !!input, hasMax: !!(input && input.getAttribute("max")), label: /Completed at|Erledigt am/.test(label) });
+      const sr = dlg.shadowRoot;
+      const pick = sr && sr.querySelector(".backdate-pick");
+      const beforeClick = !!(sr && sr.querySelector("ms-date-field"));
+      if (pick) pick.click();
+      setTimeout(() => {
+        const field = sr && sr.querySelector("ms-date-field");
+        const sel = field && field.shadowRoot && field.shadowRoot.querySelector("ha-selector");
+        const label = sr ? sr.textContent : "";
+        res({
+          hasPick: !!pick, beforeClick, hasField: !!field, kind: field && field.kind,
+          seeded: !!(field && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00$/.test(field.value)),
+          selectorDefined: !!(sel && customElements.get("ha-selector")),
+          label: /Completed at|Erledigt am/.test(label),
+        });
+      }, 400);
     }, 600));
   }, { e: entryId, t: t1.task_id });
-  assert(dlgCheck.hasInput === true, `dialog renders the datetime-local field (${JSON.stringify(dlgCheck)})`);
-  assert(dlgCheck.hasMax === true, "field caps picking at now (max attribute)");
+  assert(dlgCheck.hasPick === true, `dialog offers the backdate seed button (${JSON.stringify(dlgCheck)})`);
+  assert(dlgCheck.beforeClick === false, "no datetime field before the seed click");
+  assert(dlgCheck.hasField === true && dlgCheck.kind === "datetime", "seed click renders <ms-date-field kind=datetime>");
+  assert(dlgCheck.seeded === true, "field seeded with the current minute (YYYY-MM-DDTHH:MM:00)");
+  assert(dlgCheck.selectorDefined === true, "wrapper renders HA's ha-selector (defined in the panel)");
   assert(dlgCheck.label === true, "field label localized");
 
   log("\nALL LIVE CHECKS PASSED");

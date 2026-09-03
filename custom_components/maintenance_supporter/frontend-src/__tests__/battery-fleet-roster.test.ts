@@ -13,6 +13,7 @@ import { expect, fixture, html } from "@open-wc/testing";
 import "../components/battery-fleet-section.js";
 import type { MaintenanceBatteryFleetSection } from "../components/battery-fleet-section";
 import { createMockHass } from "./_test-utils.js";
+import { setDateTimePrefs } from "../styles";
 
 const LOW = {
   entity_id: "sensor.lock_battery_plus", device_name: "Front Lock",
@@ -148,6 +149,38 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     expect(trend.getAttribute("title")).to.match(/high confidence/);
     const table = chips.find((c) => !c.classList.contains("bf-trend"))!;
     expect(table.getAttribute("title")).to.match(/Expected around/);
+  });
+
+  it("renders the predicted date in the HA profile date format, not the browser locale (#163)", async () => {
+    // The chip used to go through a bare Intl.DateTimeFormat(lang) — an
+    // English UI with Profile → Date format = DD/MM/YYYY still showed
+    // 09/23/2026 — and the standalone card never fed the profile prefs into
+    // formatDate at all. Both go through syncLocaleFromHass + formatDate now.
+    const soon = { ...HEALTHY, entity_id: "sensor.doorbell_battery_plus", device_name: "Doorbell", days_until: 12 };
+    const { hass } = createMockHass({
+      handlers: {
+        "maintenance_supporter/battery_fleet/overview": () =>
+          overview({ total: 1, all: [{ ...soon, status: "soon" }] }),
+        "maintenance_supporter/battery_fleet/overview_history": () => ({ series: {} }),
+      },
+    });
+    (hass as unknown as { locale: unknown }).locale = { date_format: "DMY", time_format: "24" };
+    try {
+      const el = await fixture<MaintenanceBatteryFleetSection>(
+        html`<maintenance-battery-fleet-section .hass=${hass}></maintenance-battery-fleet-section>`,
+      );
+      await el.updateComplete;
+      await new Promise((r) => setTimeout(r, 0));
+      await el.updateComplete;
+      const chip = roster(el)!.querySelector(".bf-predicted")!;
+      const expected = new Date(Date.now() + 12 * 864e5);
+      const pad = (n: number) => String(n).padStart(2, "0");
+      expect(chip.textContent!.trim()).to.equal(
+        `~${pad(expected.getDate())}/${pad(expected.getMonth() + 1)}/${expected.getFullYear()}`,
+      );
+    } finally {
+      setDateTimePrefs({ date_format: undefined, time_format: undefined }, null);
+    }
   });
 
   it("renders nothing when an older backend sends no roster", async () => {

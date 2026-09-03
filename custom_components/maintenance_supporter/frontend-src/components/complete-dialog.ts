@@ -7,6 +7,7 @@ import { t, nativeFieldStyles } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
+import "./ms-date-field";
 
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -65,7 +66,7 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _photoUploading = false;
   @state() private _readingValue = "";
   @state() private _restockQty = "";
-  /** #133: optional backdated completion moment (datetime-local value; "" = now). */
+  /** #133: optional backdated completion moment ("YYYY-MM-DDTHH:MM:SS" local; "" = now). */
   @state() private _completedAt = "";
   /** Keyed by `partLinkKey` — the (entry_id, part_id) pair — because two
    *  objects can carry the same part id, so part_id alone would merge pools. */
@@ -301,6 +302,13 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._open = false;
   }
 
+  /** Seed the backdate field with the current minute (local, seconds zeroed). */
+  private _pickCompletedAt(): void {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    this._completedAt = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+  }
+
   render() {
     if (!this._open) return html``;
     const L = this.lang || this.hass?.language || "en";
@@ -409,13 +417,21 @@ export class MaintenanceCompleteDialog extends LitElement {
               .value=${this._duration}
               @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
           </label>
-          <label class="field">
+          <div class="field">
             <span class="field-label">${t("completed_at_optional", L)}</span>
-            <input type="datetime-local" class="field-input"
-              max=${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
-              .value=${this._completedAt}
-              @change=${(e: Event) => (this._completedAt = (e.target as HTMLInputElement).value)} />
-          </label>
+            ${this._completedAt
+              ? html`<ms-date-field
+                  kind="datetime"
+                  clearable
+                  .hass=${this.hass}
+                  .lang=${L}
+                  .value=${this._completedAt}
+                  @value-changed=${(e: CustomEvent) => (this._completedAt = e.detail.value as string)}
+                ></ms-date-field>`
+              : html`<button type="button" class="backdate-pick" @click=${this._pickCompletedAt}>
+                  <ha-icon icon="mdi:calendar-clock"></ha-icon>${t("completed_at_pick", L)}
+                </button>`}
+          </div>
           <div class="field">
             <span class="field-label">${t("completion_photo_optional", L)}${this._req("photo")}</span>
             ${this._photoPreview
@@ -564,6 +580,26 @@ export class MaintenanceCompleteDialog extends LitElement {
       width: fit-content;
     }
     .photo-pick:hover { border-color: var(--primary-color); }
+    /* #163: the backdate moment starts EMPTY (= now); the button seeds the
+       HA date+time picker with the current minute instead of the picker's
+       own 00:00 default, so a backdated completion never lands at midnight
+       by accident. */
+    .backdate-pick {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px dashed var(--divider-color);
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      width: fit-content;
+      --mdc-icon-size: 18px;
+    }
+    .backdate-pick:hover { border-color: var(--primary-color); }
     .photo-pick input[type="file"] { display: none; }
     .photo-preview {
       position: relative;

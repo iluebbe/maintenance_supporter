@@ -12,7 +12,7 @@
 import { expect, fixture, html } from "@open-wc/testing";
 import "../components/vacation-section-card.js";
 import type { MaintenanceVacationSectionCard } from "../components/vacation-section-card";
-import { createMockHass } from "./_test-utils.js";
+import { createMockHass, pickDateField } from "./_test-utils.js";
 
 const BASE_STATE = {
   enabled: false,
@@ -51,7 +51,7 @@ describe("vacation-section-card", () => {
     const root = el.shadowRoot!;
     expect(root.querySelector("ha-card"), "card rendered").to.exist;
     expect(root.querySelector("ha-switch"), "no enable switch").to.be.null;
-    expect(root.querySelector('input[type="date"]'), "no date inputs").to.be.null;
+    expect(root.querySelector("ms-date-field"), "no date fields").to.be.null;
     expect(root.querySelector(".actions"), "no action buttons").to.be.null;
   });
 
@@ -71,11 +71,11 @@ describe("vacation-section-card", () => {
   it("editing dates + Save dispatches start/end/buffer_days", async () => {
     const { el, sent } = await mount({ isAdmin: true });
     const root = el.shadowRoot!;
-    const [start, end] = [...root.querySelectorAll<HTMLInputElement>('input[type="date"]')];
-    start.value = "2026-09-01";
-    start.dispatchEvent(new Event("input"));
-    end.value = "2026-09-10";
-    end.dispatchEvent(new Event("input"));
+    const [start, end] = [...root.querySelectorAll("ms-date-field")];
+    expect(end, "two date fields").to.exist;
+    await Promise.all([start, end].map((f) => (f as unknown as { updateComplete: Promise<unknown> }).updateComplete));
+    pickDateField(start, "2026-09-01");
+    pickDateField(end, "2026-09-10");
     const buffer = root.querySelector<HTMLInputElement>('input[type="number"]')!;
     buffer.value = "3";
     buffer.dispatchEvent(new Event("input"));

@@ -11,6 +11,7 @@ import { downloadUrl } from "../helpers/download";
 import { UserService } from "../user-service";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
+import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
  *  Empty `services` means no Companion device is linked, so their reminders
@@ -816,13 +817,25 @@ export class MaintenanceSettingsView extends LitElement {
         ${n.quiet_hours_enabled ? html`
           <div class="setting-row sub-row">
             <span class="setting-desc">${t("settings_quiet_start", L)}</span>
-            <input type="time" .value=${n.quiet_hours_start}
-              @change=${(e: Event) => this._updateSetting("quiet_hours_start", (e.target as HTMLInputElement).value)} />
+            <ms-date-field
+              kind="time"
+              required
+              .hass=${this.hass}
+              .lang=${L}
+              .value=${n.quiet_hours_start}
+              @value-changed=${(e: CustomEvent) => { const v = e.detail.value as string; if (v) this._updateSetting("quiet_hours_start", v); }}
+            ></ms-date-field>
           </div>
           <div class="setting-row sub-row">
             <span class="setting-desc">${t("settings_quiet_end", L)}</span>
-            <input type="time" .value=${n.quiet_hours_end}
-              @change=${(e: Event) => this._updateSetting("quiet_hours_end", (e.target as HTMLInputElement).value)} />
+            <ms-date-field
+              kind="time"
+              required
+              .hass=${this.hass}
+              .lang=${L}
+              .value=${n.quiet_hours_end}
+              @value-changed=${(e: CustomEvent) => { const v = e.detail.value as string; if (v) this._updateSetting("quiet_hours_end", v); }}
+            ></ms-date-field>
           </div>
         ` : nothing}
 
@@ -1000,16 +1013,28 @@ export class MaintenanceSettingsView extends LitElement {
         </label>
 
         <div class="vac-grid">
-          <label class="vac-field">
+          <div class="vac-field">
             <span class="filter-label">${t("vacation_start", L)}</span>
-            <input type="date" .value=${this._vacStart}
-              @change=${(e: Event) => this._setVacationDate("start", (e.target as HTMLInputElement).value)} />
-          </label>
-          <label class="vac-field">
+            <ms-date-field
+              kind="date"
+              clearable
+              .hass=${this.hass}
+              .lang=${L}
+              .value=${this._vacStart}
+              @value-changed=${(e: CustomEvent) => this._setVacationDate("start", e.detail.value as string)}
+            ></ms-date-field>
+          </div>
+          <div class="vac-field">
             <span class="filter-label">${t("vacation_end", L)}</span>
-            <input type="date" .value=${this._vacEnd}
-              @change=${(e: Event) => this._setVacationDate("end", (e.target as HTMLInputElement).value)} />
-          </label>
+            <ms-date-field
+              kind="date"
+              clearable
+              .hass=${this.hass}
+              .lang=${L}
+              .value=${this._vacEnd}
+              @value-changed=${(e: CustomEvent) => this._setVacationDate("end", e.detail.value as string)}
+            ></ms-date-field>
+          </div>
           <label class="vac-field">
             <span class="filter-label">${t("vacation_buffer", L)}</span>
             <input type="number" min="0" max="14" .value=${String(this._vacBuffer)}
@@ -1843,9 +1868,12 @@ export class MaintenanceSettingsView extends LitElement {
     .setting-row input[type="checkbox"] {
       width: 18px; height: 18px; flex-shrink: 0;
     }
+    .setting-row ms-date-field {
+      flex: 0 0 auto;
+      max-width: 60%;
+    }
     .setting-row input[type="number"],
-    .setting-row input[type="text"],
-    .setting-row input[type="time"] {
+    .setting-row input[type="text"] {
       width: 120px;
       padding: 6px 8px;
       border: 1px solid var(--divider-color, #e0e0e0);

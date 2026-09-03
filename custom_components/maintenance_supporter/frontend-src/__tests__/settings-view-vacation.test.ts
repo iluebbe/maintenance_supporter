@@ -89,10 +89,10 @@ describe("settings-view vacation section", () => {
       vacationStart: "2099-06-10",
       vacationEnd: "2099-06-20",
     });
-    const dateInputs = vacationSection(el)!.querySelectorAll<HTMLInputElement>(".vac-grid input[type=date]");
-    expect(dateInputs.length, "two date inputs").to.equal(2);
-    expect(dateInputs[0].value).to.equal("2099-06-10");
-    expect(dateInputs[1].value).to.equal("2099-06-20");
+    const dateFields = vacationSection(el)!.querySelectorAll<HTMLElement & { value: string }>(".vac-grid ms-date-field");
+    expect(dateFields.length, "two date fields").to.equal(2);
+    expect(dateFields[0].value).to.equal("2099-06-10");
+    expect(dateFields[1].value).to.equal("2099-06-20");
   });
 
   it("shows the active badge when vacation.is_active is true", async () => {

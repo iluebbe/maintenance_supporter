@@ -114,6 +114,23 @@ export interface CreateMockHassResult {
   subscriptions: Array<{ msg: SentMessage; push: (event: unknown) => void }>;
 }
 
+/**
+ * Pick a value in an `<ms-date-field>` the way HA's selector would report it
+ * (#163): the wrapper renders `<ha-selector>` (undefined under web-test-runner,
+ * so it is an inert unknown element) and converts the selector's own value
+ * format — "YYYY-MM-DD", "HH:MM:SS", "YYYY-MM-DD HH:MM:SS" — into the value
+ * contract the consumers store. Dispatching on the inner selector exercises
+ * that conversion end-to-end.
+ */
+export function pickDateField(field: Element | null, haValue: string | undefined): void {
+  if (!field) throw new Error("pickDateField: no <ms-date-field>");
+  const sel = field.shadowRoot?.querySelector("ha-selector");
+  if (!sel) throw new Error("pickDateField: <ms-date-field> rendered no <ha-selector>");
+  sel.dispatchEvent(new CustomEvent("value-changed", {
+    bubbles: true, composed: true, detail: { value: haValue },
+  }));
+}
+
 export interface CreateMockHassOptions {
   /** Override the default settings response (deep-merge not done — pass full shape). */
   settingsResponse?: typeof DEFAULT_SETTINGS_RESPONSE;

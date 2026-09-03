@@ -1,5 +1,5 @@
 /*! maintenance_supporter frontend 2.72.1 */
-import{a as I,f as E,h as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-2LWPONSA.js";import{a as P,b as H}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-NA5OZUO3.js";import{a as z}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-7VQJMDRP.js";import{a as c,b as q,c as o,e as b,f as p,g as S,h as A,l as x,m as d,q as s,s as j}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-2N4QCCVZ.js";var u={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},w=g=>(..._)=>({_$litDirective$:g,values:_}),f=class{constructor(_){}get _$AU(){return this._$AM._$AU}_$AT(_,e,t){this._$Ct=_,this._$AM=e,this._$Ci=t}_$AS(_,e){return this.update(_,e)}update(_,e){return this.render(...e)}};var y=class extends f{constructor(_){if(super(_),this.it=p,_.type!==u.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(_){if(_===p||_==null)return this._t=void 0,this.it=_;if(_===b)return _;if(typeof _!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(_===this.it)return this._t;this.it=_;let e=[_];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};y.directiveName="unsafeHTML",y.resultType=1;var M=w(y);var{I:Y}=S;var C=g=>g.strings===void 0;var R={},O=(g,_=R)=>g._$AH=_;var $=w(class extends f{constructor(g){if(super(g),g.type!==u.PROPERTY&&g.type!==u.ATTRIBUTE&&g.type!==u.BOOLEAN_ATTRIBUTE)throw Error("The `live` directive is not allowed on child or event bindings");if(!C(g))throw Error("`live` bindings can only contain a single expression")}render(g){return g}update(g,[_]){if(_===b||_===p)return _;let e=g.element,t=g.name;if(g.type===u.PROPERTY){if(_===e[t])return b}else if(g.type===u.BOOLEAN_ATTRIBUTE){if(!!_===e.hasAttribute(t))return b}else if(g.type===u.ATTRIBUTE&&e.getAttribute(t)===_+"")return b;return O(g),_}});var B=["EUR","USD","GBP","JPY","CHF","CAD","AUD","NZD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],l=class extends A{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._personTargets=[];this._testingUser="";this._users=[];this._savedViews=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._exportObjects=[];this._exportSelectedEntries=new Set;this._exportObjectsLoaded=!1;this._docArchiveLoading=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async e=>{e?this._testingUser=e:this._testingNotification=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification",...e?{user_id:e}:{}}),a=t.message||(t.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(a)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{e?this._testingUser="":this._testingNotification=!1}};this._allTemplates=[];this._templateCategories={};this._tplOpenGroups=new Set;this._templatesRequested=!1}get _lang(){return j(this.hass)}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new z(this.hass),this._loadSettings(),this._loadUsers()):e.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService){try{this._users=await this._userService.getUsers()}catch{this._users=[]}this._loadNotifyTargets()}}async _loadNotifyTargets(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/notify/user_targets"});this._personTargets=e.targets||[]}catch{this._personTargets=[]}}async _loadSettings(){this._loading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=e,this._hydrateVacationFromSettings()}catch{}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._savedViews=e.views||[]}catch{}this._loading=!1}_hydrateVacationFromSettings(){let e=this._settings?.vacation;e&&(this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end)}_renderBatteryNotesHint(e){let t=this._settings?.general?.battery_notes;if(!t||!t.devices)return p;let a=this._settings?.general?.battery_low_percent??20,i=t.default>a,n=s("bn_summary",e).replace("{name}","Battery Notes").replace("{pct}",String(t.default)).replace("{n}",String(t.devices)),r=(i?s("bn_above_floor",e).replace("{name}","Battery Notes"):s("bn_floor_decides",e)).replace("{floor}",String(a));return o`
+import{a as I,f as E,h as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-2LWPONSA.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-KBVV4FOX.js";import{a as P,b as H}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-NA5OZUO3.js";import{a as z}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-7VQJMDRP.js";import{a as c,b as q,c as o,e as b,f as p,g as S,h as A,l as x,m as d,q as s,s as j}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-366FXNDU.js";var u={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},w=g=>(..._)=>({_$litDirective$:g,values:_}),f=class{constructor(_){}get _$AU(){return this._$AM._$AU}_$AT(_,e,t){this._$Ct=_,this._$AM=e,this._$Ci=t}_$AS(_,e){return this.update(_,e)}update(_,e){return this.render(...e)}};var y=class extends f{constructor(_){if(super(_),this.it=p,_.type!==u.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(_){if(_===p||_==null)return this._t=void 0,this.it=_;if(_===b)return _;if(typeof _!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(_===this.it)return this._t;this.it=_;let e=[_];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};y.directiveName="unsafeHTML",y.resultType=1;var C=w(y);var{I:Y}=S;var O=g=>g.strings===void 0;var M={},R=(g,_=M)=>g._$AH=_;var $=w(class extends f{constructor(g){if(super(g),g.type!==u.PROPERTY&&g.type!==u.ATTRIBUTE&&g.type!==u.BOOLEAN_ATTRIBUTE)throw Error("The `live` directive is not allowed on child or event bindings");if(!O(g))throw Error("`live` bindings can only contain a single expression")}render(g){return g}update(g,[_]){if(_===b||_===p)return _;let e=g.element,t=g.name;if(g.type===u.PROPERTY){if(_===e[t])return b}else if(g.type===u.BOOLEAN_ATTRIBUTE){if(!!_===e.hasAttribute(t))return b}else if(g.type===u.ATTRIBUTE&&e.getAttribute(t)===_+"")return b;return R(g),_}});var B=["EUR","USD","GBP","JPY","CHF","CAD","AUD","NZD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],l=class extends A{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._personTargets=[];this._testingUser="";this._users=[];this._savedViews=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._exportObjects=[];this._exportSelectedEntries=new Set;this._exportObjectsLoaded=!1;this._docArchiveLoading=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async e=>{e?this._testingUser=e:this._testingNotification=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification",...e?{user_id:e}:{}}),a=t.message||(t.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(a)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{e?this._testingUser="":this._testingNotification=!1}};this._allTemplates=[];this._templateCategories={};this._tplOpenGroups=new Set;this._templatesRequested=!1}get _lang(){return j(this.hass)}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new z(this.hass),this._loadSettings(),this._loadUsers()):e.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService){try{this._users=await this._userService.getUsers()}catch{this._users=[]}this._loadNotifyTargets()}}async _loadNotifyTargets(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/notify/user_targets"});this._personTargets=e.targets||[]}catch{this._personTargets=[]}}async _loadSettings(){this._loading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=e,this._hydrateVacationFromSettings()}catch{}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._savedViews=e.views||[]}catch{}this._loading=!1}_hydrateVacationFromSettings(){let e=this._settings?.vacation;e&&(this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end)}_renderBatteryNotesHint(e){let t=this._settings?.general?.battery_notes;if(!t||!t.devices)return p;let a=this._settings?.general?.battery_low_percent??20,i=t.default>a,n=s("bn_summary",e).replace("{name}","Battery Notes").replace("{pct}",String(t.default)).replace("{n}",String(t.devices)),r=(i?s("bn_above_floor",e).replace("{name}","Battery Notes"):s("bn_floor_decides",e)).replace("{floor}",String(a));return o`
       <div class="bn-note${i?" warn":""}">
         <ha-icon icon="${i?"mdi:alert-outline":"mdi:battery-heart-variant"}"></ha-icon>
         <span>
@@ -280,13 +280,25 @@ import{a as I,f as E,h as T}from"/maintenance_supporter_panelfiles/panel-chunks/
         ${t.quiet_hours_enabled?o`
           <div class="setting-row sub-row">
             <span class="setting-desc">${s("settings_quiet_start",e)}</span>
-            <input type="time" .value=${t.quiet_hours_start}
-              @change=${i=>this._updateSetting("quiet_hours_start",i.target.value)} />
+            <ms-date-field
+              kind="time"
+              required
+              .hass=${this.hass}
+              .lang=${e}
+              .value=${t.quiet_hours_start}
+              @value-changed=${i=>{let n=i.detail.value;n&&this._updateSetting("quiet_hours_start",n)}}
+            ></ms-date-field>
           </div>
           <div class="setting-row sub-row">
             <span class="setting-desc">${s("settings_quiet_end",e)}</span>
-            <input type="time" .value=${t.quiet_hours_end}
-              @change=${i=>this._updateSetting("quiet_hours_end",i.target.value)} />
+            <ms-date-field
+              kind="time"
+              required
+              .hass=${this.hass}
+              .lang=${e}
+              .value=${t.quiet_hours_end}
+              @value-changed=${i=>{let n=i.detail.value;n&&this._updateSetting("quiet_hours_end",n)}}
+            ></ms-date-field>
           </div>
         `:p}
 
@@ -427,16 +439,28 @@ import{a as I,f as E,h as T}from"/maintenance_supporter_panelfiles/panel-chunks/
         </label>
 
         <div class="vac-grid">
-          <label class="vac-field">
+          <div class="vac-field">
             <span class="filter-label">${s("vacation_start",e)}</span>
-            <input type="date" .value=${this._vacStart}
-              @change=${i=>this._setVacationDate("start",i.target.value)} />
-          </label>
-          <label class="vac-field">
+            <ms-date-field
+              kind="date"
+              clearable
+              .hass=${this.hass}
+              .lang=${e}
+              .value=${this._vacStart}
+              @value-changed=${i=>this._setVacationDate("start",i.detail.value)}
+            ></ms-date-field>
+          </div>
+          <div class="vac-field">
             <span class="filter-label">${s("vacation_end",e)}</span>
-            <input type="date" .value=${this._vacEnd}
-              @change=${i=>this._setVacationDate("end",i.target.value)} />
-          </label>
+            <ms-date-field
+              kind="date"
+              clearable
+              .hass=${this.hass}
+              .lang=${e}
+              .value=${this._vacEnd}
+              @value-changed=${i=>this._setVacationDate("end",i.detail.value)}
+            ></ms-date-field>
+          </div>
           <label class="vac-field">
             <span class="filter-label">${s("vacation_buffer",e)}</span>
             <input type="number" min="0" max="14" .value=${String(this._vacBuffer)}
@@ -574,7 +598,7 @@ import{a as I,f as E,h as T}from"/maintenance_supporter_panelfiles/panel-chunks/
                 <div class="qr-print-grid">
                   ${this._qrBatchResults.map(r=>o`
                     <div class="qr-print-cell">
-                      <div class="qr-svg">${M(r.svg)}</div>
+                      <div class="qr-svg">${C(r.svg)}</div>
                       <div class="qr-label">
                         <div class="qr-label-obj">${r.object_name}</div>
                         <div class="qr-label-task">${r.task_name}</div>
@@ -797,9 +821,12 @@ import{a as I,f as E,h as T}from"/maintenance_supporter_panelfiles/panel-chunks/
     .setting-row input[type="checkbox"] {
       width: 18px; height: 18px; flex-shrink: 0;
     }
+    .setting-row ms-date-field {
+      flex: 0 0 auto;
+      max-width: 60%;
+    }
     .setting-row input[type="number"],
-    .setting-row input[type="text"],
-    .setting-row input[type="time"] {
+    .setting-row input[type="text"] {
       width: 120px;
       padding: 6px 8px;
       border: 1px solid var(--divider-color, #e0e0e0);

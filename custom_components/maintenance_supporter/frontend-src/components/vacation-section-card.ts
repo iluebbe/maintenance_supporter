@@ -17,6 +17,7 @@ import { t, ensureLocale, langOf } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
+import "./ms-date-field";
 import type { HomeAssistant } from "../types";
 
 interface VacationState {
@@ -192,21 +193,33 @@ export class MaintenanceVacationSectionCard extends LitElement {
                 <div class="dates-row">
                   <div class="date-field">
                     <label>${t("vacation_start", L) || "Start"}</label>
-                    <input type="date" .value=${this._localStart}
-                      ?disabled=${this._busy}
-                      @input=${(e: Event) => {
-                        this._localStart = (e.target as HTMLInputElement).value;
+                    <ms-date-field
+                      kind="date"
+                      clearable
+                      .hass=${this.hass}
+                      .lang=${L}
+                      .value=${this._localStart}
+                      .disabled=${this._busy}
+                      @value-changed=${(e: CustomEvent) => {
+                        this._localStart = e.detail.value as string;
                         this._dirty = true;
-                      }} />
+                      }}
+                    ></ms-date-field>
                   </div>
                   <div class="date-field">
                     <label>${t("vacation_end", L) || "End"}</label>
-                    <input type="date" .value=${this._localEnd}
-                      ?disabled=${this._busy}
-                      @input=${(e: Event) => {
-                        this._localEnd = (e.target as HTMLInputElement).value;
+                    <ms-date-field
+                      kind="date"
+                      clearable
+                      .hass=${this.hass}
+                      .lang=${L}
+                      .value=${this._localEnd}
+                      .disabled=${this._busy}
+                      @value-changed=${(e: CustomEvent) => {
+                        this._localEnd = e.detail.value as string;
                         this._dirty = true;
-                      }} />
+                      }}
+                    ></ms-date-field>
                   </div>
                   <div class="date-field buffer">
                     <label>${t("vacation_buffer", L) || "Buffer days"}</label>

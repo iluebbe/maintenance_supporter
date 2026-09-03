@@ -10,7 +10,7 @@
 import { expect, fixture, html } from "@open-wc/testing";
 import "../components/complete-dialog.js";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
-import { createMockHass } from "./_test-utils.js";
+import { createMockHass, pickDateField } from "./_test-utils.js";
 
 type MountOpts = {
   checklist?: string[];
@@ -104,12 +104,28 @@ describe("complete-dialog", () => {
     expect("completed_at" in msg).to.be.false;
   });
 
+  /** The optional backdate starts as a "Set date & time" button (#163): the
+   *  HA datetime selector has no empty state, so the field only appears once
+   *  the user asks for it, seeded with the current minute. */
+  async function openBackdate(el: MaintenanceCompleteDialog) {
+    const pick = el.shadowRoot!.querySelector<HTMLButtonElement>(".backdate-pick")!;
+    expect(pick, "backdate seed button rendered").to.exist;
+    expect(el.shadowRoot!.querySelector("ms-date-field"), "no field before the seed click").to.be.null;
+    pick.click();
+    await el.updateComplete;
+    const field = el.shadowRoot!.querySelector("ms-date-field")!;
+    expect(field, "backdate field rendered after the seed click").to.exist;
+    await (field as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    return field;
+  }
+
   it("sends completed_at with seconds re-added when a backdate is picked (#133)", async () => {
     const { el, sent } = await mount();
-    const dt = el.shadowRoot!.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
-    expect(dt, "backdate field rendered").to.exist;
-    dt.value = "2026-01-10T14:30";
-    dt.dispatchEvent(new Event("change"));
+    const field = await openBackdate(el);
+    // Seeded with the current minute, in the contract format.
+    expect((field as unknown as { value: string }).value).to.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00$/);
+    // HA's datetime selector speaks "YYYY-MM-DD HH:MM:SS".
+    pickDateField(field, "2026-01-10 14:30:00");
     await el.updateComplete;
 
     clickComplete(el);
@@ -124,10 +140,9 @@ describe("complete-dialog", () => {
     const { el, sent } = await mount();
     const future = new Date(Date.now() + 48 * 3600 * 1000);
     const pad = (n: number) => String(n).padStart(2, "0");
-    const v = `${future.getFullYear()}-${pad(future.getMonth() + 1)}-${pad(future.getDate())}T12:00`;
-    const dt = el.shadowRoot!.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
-    dt.value = v;
-    dt.dispatchEvent(new Event("change"));
+    const v = `${future.getFullYear()}-${pad(future.getMonth() + 1)}-${pad(future.getDate())} 12:00:00`;
+    const field = await openBackdate(el);
+    pickDateField(field, v);
     await el.updateComplete;
 
     clickComplete(el);
