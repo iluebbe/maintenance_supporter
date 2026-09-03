@@ -35,7 +35,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setDateTimePrefs, formatDueDays, formatWeekday, formatMonth, langOf } from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
@@ -381,8 +381,8 @@ export class MaintenanceCalendarCard extends LitElement {
       const [y, m, d] = bucket.date.split("-").map(Number);
       const date = new Date(y, m - 1, d);
       const isToday = bucket.date === todayIso;
-      const weekday = date.toLocaleDateString(L, { weekday: "short" });
-      const monthLabel = date.toLocaleDateString(L, { month: "long" });
+      const weekday = formatWeekday(date, L, "short");
+      const monthLabel = formatMonth(date, L, "long");
       return html`
         <div class="cal-day-row">
           <div class="cal-day-pill ${isToday ? "cal-today" : ""}">

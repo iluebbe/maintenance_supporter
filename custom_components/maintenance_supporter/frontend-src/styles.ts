@@ -253,7 +253,10 @@ function _formatDateObj(d: Date, lang?: string): string {
   }
 }
 
-function _formatTimeObj(d: Date, lang?: string): string {
+/** Time of day honouring the HA profile time format (12/24h). Every
+ *  clock-time string in the UI goes through here — chart crosshairs included
+ *  (#163: a bare toLocaleDateString({hour, minute}) ignored the profile). */
+export function formatTimeOfDay(d: Date, lang?: string): string {
   switch (DT_PREFS.time) {
     case "12": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: true });
     case "24": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -279,7 +282,7 @@ export function formatDateTime(iso: string | null | undefined, lang?: string): s
   if (!iso) return "—";
   try {
     const d = new Date(iso);
-    return _formatDateObj(d, lang) + " " + _formatTimeObj(d, lang);
+    return _formatDateObj(d, lang) + " " + formatTimeOfDay(d, lang);
   } catch {
     return iso;
   }
@@ -306,9 +309,37 @@ export function formatInterval(
 }
 
 /** Localized weekday name (0=Mon … 6=Sun) via Intl — 2024-01-01 is a Monday.
- *  Single source for the dialog selectors AND formatRecurrence (DRY). */
+ *  Single source for the dialog selectors AND formatRecurrence (DRY).
+ *
+ *  Name-only helpers (weekday / month / "Jul 3") follow the UI language like
+ *  HA's own formatDateShort does — the profile date_format only orders
+ *  NUMERIC dates. They still live here, not in the consumers: styles.ts is
+ *  the only module allowed to call Intl for dates (see
+ *  __tests__/date-format-single-source.test.ts, #163). */
 export function weekdayName(i: number, lang?: string, style: "long" | "short" = "long"): string {
-  return new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(langToLocale(lang), { weekday: style, timeZone: "UTC" });
+  return new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(resolveLocale(lang), { weekday: style, timeZone: "UTC" });
+}
+
+/** Localized month name (0=Jan … 11=Dec). */
+export function monthName(i: number, lang?: string, style: "long" | "short" = "long"): string {
+  return new Date(Date.UTC(2024, i, 1)).toLocaleDateString(resolveLocale(lang), { month: style, timeZone: "UTC" });
+}
+
+/** Weekday / month name of a local Date (calendar day rows). */
+export function formatWeekday(d: Date, lang?: string, style: "long" | "short" = "long"): string {
+  return weekdayName((d.getDay() + 6) % 7, lang, style);
+}
+export function formatMonth(d: Date, lang?: string, style: "long" | "short" = "long"): string {
+  return monthName(d.getMonth(), lang, style);
+}
+
+/** Short day+month ("Jul 3" / "3. Juli"), with a 2-digit year when the
+ *  caller's range needs disambiguating — chart axis ticks and tooltips. */
+export function formatDateShort(d: Date, lang?: string, withYear = false): string {
+  return d.toLocaleDateString(
+    resolveLocale(lang),
+    withYear ? { month: "short", day: "numeric", year: "2-digit" } : { month: "short", day: "numeric" },
+  );
 }
 
 /** Recurrence shape carried on the WS payload (see types.TaskSchedule). */

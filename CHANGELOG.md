@@ -18,7 +18,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   optional "Completed at" starts as a *Set date & time* button seeded with
   the current minute. The battery fleet's predicted replacement date also
   went through a raw browser formatter and ignored the profile — fixed the
-  same way, including on the standalone fleet card. (#163)
+  same way, including on the standalone fleet card. Two more leaks fell out of
+  the sweep: the chart crosshair tooltip showed the time in the browser's
+  12/24-hour convention, and dialogs opened from an entity row on a
+  strategy-generated dashboard (where no panel or card ever feeds the profile
+  in) fell back to the language default. Date/time formatting now has a
+  single authority (`styles.ts`), guarded by a tripwire test that fails the
+  build on any native `<input type="date|time">` or direct `Intl` call outside
+  it, and on any card/panel that renders dates without syncing the profile
+  prefs. (#163)
 
 ## [2.72.1] - 2026-09-02
 

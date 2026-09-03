@@ -1,5 +1,7 @@
 /** Shared chart helpers: nice axis ticks and consistent number/date formats. */
 
+import { formatDateShort, formatTimeOfDay } from "../styles";
+
 /** Round axis ticks covering [min, max] — the classic "nice numbers" loop.
  *  Returns the tick values plus the (possibly widened) nice domain, so the
  *  chart can plot against the same bounds the labels describe. */
@@ -58,21 +60,14 @@ export function fmtVal(v: number, unit: string, lang: string): string {
 /** Short date tick: "3. Juli" / "Jul 3", with year appended when the plotted
  *  range spans more than ~10 months (disambiguates "Jun … Feb" sequences). */
 export function fmtDateTick(ts: number, lang: string, withYear: boolean): string {
-  const d = new Date(ts);
-  const opts: Intl.DateTimeFormatOptions = withYear
-    ? { month: "short", day: "numeric", year: "2-digit" }
-    : { month: "short", day: "numeric" };
-  return d.toLocaleDateString(lang, opts);
+  return formatDateShort(new Date(ts), lang, withYear);
 }
 
-/** Date+time for crosshair/tooltip labels. */
+/** Date+time for crosshair/tooltip labels — the clock half follows the HA
+ *  profile time format (#163). */
 export function fmtDateTime(ts: number, lang: string): string {
-  return new Date(ts).toLocaleDateString(lang, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const d = new Date(ts);
+  return `${formatDateShort(d, lang)}, ${formatTimeOfDay(d, lang)}`;
 }
 
 /** Whether date ticks need the year: the range crosses a calendar-year

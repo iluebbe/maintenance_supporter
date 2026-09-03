@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TaskPartLink, TriggerConfig, HAUser } from "../types";
-import { formatDate, t, weekdayName, langOf } from "../styles";
+import { formatDate, t, weekdayName, monthName, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
 import {
@@ -130,8 +130,7 @@ function weekdayNames(lang?: string): string[] {
 
 /** Short localized month names, indexed 0=Jan … 11=Dec. */
 function monthNames(lang?: string): string[] {
-  const fmt = new Intl.DateTimeFormat(lang || "en", { month: "short" });
-  return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2021, i, 1)));
+  return Array.from({ length: 12 }, (_, i) => monthName(i, lang, "short"));
 }
 
 export class MaintenanceTaskDialog extends LitElement {

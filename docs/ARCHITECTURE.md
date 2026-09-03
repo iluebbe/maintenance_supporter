@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.72.1 | 219 source files (134 Python + 85 TypeScript) | **98% test coverage** (3,641 backend tests + 586 frontend tests)
+**Version:** 2.72.1 | 220 source files (134 Python + 86 TypeScript) | **98% test coverage** (3,641 backend tests + 606 frontend tests)
 
 ---
 
@@ -278,8 +278,11 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-strategy-shim.ts (348 lines)  Scoped-registry self-heal shim
 │   ├── panel-styles.ts          (1,520 lines)  Panel-specific CSS
 │   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
-│   ├── styles.ts                (1,483 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
-│   │                                           of the other 21) + shared helpers
+│   ├── styles.ts                (1,589 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
+│   │                                           of the other 21) + shared helpers; the ONLY module that formats
+│   │                                           dates/times (HA profile date_format/time_format via the
+│   │                                           __msDateTimePrefs singleton) — tripwired by
+│   │                                           __tests__/date-format-single-source.test.ts (#163)
 │   ├── types.ts                   (524 lines)  TypeScript interfaces
 │   ├── statistics-service.ts      (223 lines)  WS statistics cache
 │   ├── user-service.ts            (125 lines)  HA user list cache

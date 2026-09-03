@@ -3,7 +3,8 @@
  *  English UI always showed mm/dd/yyyy even with dd/mm/yyyy configured). */
 
 import { expect } from "@open-wc/testing";
-import { formatDate, formatDateTime, setDateTimePrefs } from "../styles";
+import { formatDate, formatDateTime, formatDateShort, formatTimeOfDay, formatWeekday, formatMonth, weekdayName, monthName, setDateTimePrefs } from "../styles";
+import { fmtDateTick, fmtDateTime } from "../renderers/chart-utils";
 
 const reset = () => setDateTimePrefs({ date_format: undefined, time_format: undefined }, null);
 
@@ -100,5 +101,44 @@ describe("server country regionalizes the language default (#140)", () => {
     setDateTimePrefs({ date_format: "language" }, "AU");
     setDateTimePrefs({ date_format: "language" });
     expect(formatDate("2026-08-10", "en")).to.equal("10/08/2026");
+  });
+});
+
+describe("name-style helpers + chart labels route through styles.ts (#163 DRY)", () => {
+  afterEach(reset);
+
+  it("formatTimeOfDay follows the profile time format", () => {
+    const d = new Date(2026, 7, 10, 14, 30);
+    setDateTimePrefs({ time_format: "24" });
+    expect(formatTimeOfDay(d, "en")).to.equal("14:30");
+    setDateTimePrefs({ time_format: "12" });
+    expect(formatTimeOfDay(d, "de")).to.match(/2:30/);
+    expect(formatTimeOfDay(d, "de").toLowerCase()).to.match(/pm|nachm/);
+  });
+
+  it("formatDateShort: day+month in the UI language, optional 2-digit year", () => {
+    const d = new Date(2026, 6, 3);
+    expect(formatDateShort(d, "en")).to.equal("Jul 3");
+    expect(formatDateShort(d, "de")).to.equal("3. Juli");
+    expect(formatDateShort(d, "en", true)).to.match(/^Jul 3, ?26$/);
+  });
+
+  it("weekday / month names come from the UI language, indexed Mon=0 / Jan=0", () => {
+    expect(weekdayName(0, "en", "short")).to.equal("Mon");
+    expect(weekdayName(6, "de", "long")).to.equal("Sonntag");
+    expect(monthName(0, "en", "short")).to.equal("Jan");
+    expect(monthName(11, "de", "long")).to.equal("Dezember");
+    const sun = new Date(2026, 6, 5); // 2026-07-05 is a Sunday
+    expect(formatWeekday(sun, "en", "short")).to.equal("Sun");
+    expect(formatMonth(sun, "de", "long")).to.equal("Juli");
+  });
+
+  it("chart crosshair label honours the profile time format (was browser/language-only)", () => {
+    const ts = new Date(2026, 6, 3, 14, 30).getTime();
+    setDateTimePrefs({ time_format: "24" });
+    expect(fmtDateTime(ts, "en")).to.equal("Jul 3, 14:30");
+    setDateTimePrefs({ time_format: "12" });
+    expect(fmtDateTime(ts, "de")).to.match(/^3\. Juli, .*2:30/);
+    expect(fmtDateTick(ts, "en", false)).to.equal("Jul 3");
   });
 });

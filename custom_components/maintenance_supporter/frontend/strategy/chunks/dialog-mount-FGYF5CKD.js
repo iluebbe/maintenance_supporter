@@ -1,0 +1,2950 @@
+/*! maintenance_supporter frontend 2.72.1 */
+import"./chunk-2ZWGU3DN.js";import{a as I,b as n,c as W,d as _,e as S,f as g,g as d,i as s,j as A,k as dt,l as ct,m as pt,n as V,o as ht,p as ut,q as tt,r as _t,s as mt,t as gt,u as vt,v as ft,w as T}from"./chunk-NPVUS63X.js";import{a as o,b as Z}from"./chunk-32MW7QUN.js";var E=class extends S{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1;this.multiline=!1;this.rows=3}_onInput(t){let i=t.target.value;this.value=i,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:i}}))}render(){return n`
+      <label class="field">
+        ${this.label?n`<span class="label">${this.label}${this.required?n`<span class="req">*</span>`:_}</span>`:_}
+        ${this.multiline?n`
+        <textarea
+          .value=${this.value??""}
+          rows=${this.rows}
+          ?required=${this.required}
+          ?disabled=${this.disabled}
+          placeholder=${this.placeholder}
+          @input=${this._onInput}
+          @change=${this._onInput}
+        ></textarea>`:n`
+        <input
+          .value=${this.value??""}
+          .type=${this.type}
+          ?required=${this.required}
+          ?disabled=${this.disabled}
+          placeholder=${this.placeholder}
+          step=${this.step??_}
+          min=${this.min??_}
+          max=${this.max??_}
+          pattern=${this.pattern??_}
+          @input=${this._onInput}
+          @change=${this._onInput}
+        />`}
+        ${this.helper?n`<span class="helper">${this.helper}</span>`:_}
+      </label>
+    `}};E.styles=I`
+    :host { display: block; }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .label {
+      font-size: 12px;
+      color: var(--secondary-text-color, #888);
+      font-weight: 500;
+    }
+    .req { color: var(--error-color, #f44336); margin-left: 2px; }
+    input {
+      padding: 8px 10px;
+      font-size: 14px;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
+      border-radius: 6px;
+      font-family: inherit;
+      width: 100%;
+      box-sizing: border-box;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--primary-color);
+    }
+    input:disabled { opacity: 0.5; cursor: not-allowed; }
+    textarea {
+      padding: 8px 10px;
+      font-size: 14px;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
+      border-radius: 6px;
+      font-family: inherit;
+      width: 100%;
+      box-sizing: border-box;
+      outline: none;
+      resize: vertical;
+    }
+    textarea:focus { border-color: var(--primary-color); }
+    textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+    .helper {
+      font-size: 11px;
+      color: var(--secondary-text-color);
+      font-style: italic;
+    }
+  `,o([g()],E.prototype,"label",2),o([g()],E.prototype,"value",2),o([g()],E.prototype,"placeholder",2),o([g()],E.prototype,"type",2),o([g({type:Boolean})],E.prototype,"required",2),o([g({type:Boolean})],E.prototype,"disabled",2),o([g()],E.prototype,"step",2),o([g()],E.prototype,"min",2),o([g()],E.prototype,"max",2),o([g()],E.prototype,"pattern",2),o([g()],E.prototype,"helper",2),o([g({type:Boolean})],E.prototype,"multiline",2),o([g({type:Number})],E.prototype,"rows",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",E);var x=class extends S{constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._haDeviceId="";this._parentEntryId="";this._entryId=null}get _lang(){return A(this.hass)}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._haDeviceId="",this._parentEntryId="",this._error="",this._open=!0}openEdit(t,i){this._entryId=t,this._name=i.name||"",this._manufacturer=i.manufacturer||"",this._model=i.model||"",this._serialNumber=i.serial_number||"",this._areaId=i.area_id||"",this._installationDate=i.installation_date||"",this._warrantyExpiry=i.warranty_expiry||"",this._documentationUrl=i.documentation_url||"",this._notes=i.notes||"",this._haDeviceId=i.ha_device_id||"",this._parentEntryId=i.parent_entry_id||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(t){this._error=T(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_parentChoices(){return(this.objects||[]).filter(t=>t.entry_id!==this._entryId)}_close(){this._open=!1}render(){if(!this._open)return n``;let t=this._lang,i=this._entryId?s("edit_object",t):s("new_object",t);return n`
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${i}</div>
+        <div class="content">
+          ${this._error?n`<div class="error">${this._error}</div>`:_}
+          <ms-textfield
+            label="${s("name",t)}"
+            required
+            .value=${this._name}
+            @input=${e=>this._name=e.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("manufacturer_optional",t)}"
+            .value=${this._manufacturer}
+            @input=${e=>this._manufacturer=e.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("model_optional",t)}"
+            .value=${this._model}
+            @input=${e=>this._model=e.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("serial_number_optional",t)}"
+            .value=${this._serialNumber}
+            @input=${e=>this._serialNumber=e.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("documentation_url_optional",t)}"
+            type="url"
+            .value=${this._documentationUrl}
+            @input=${e=>this._documentationUrl=e.target.value}
+          ></ms-textfield>
+          <ha-area-picker
+            .hass=${this.hass}
+            label="${s("area_id_optional",t)}"
+            .value=${this._areaId}
+            @value-changed=${e=>this._areaId=e.detail.value||""}
+          ></ha-area-picker>
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${t}
+            label="${s("installation_date_optional",t)}"
+            .value=${this._installationDate}
+            @value-changed=${e=>this._installationDate=e.detail.value}
+          ></ms-date-field>
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${t}
+            label="${s("warranty_expiry_optional",t)}"
+            .value=${this._warrantyExpiry}
+            @value-changed=${e=>this._warrantyExpiry=e.detail.value}
+          ></ms-date-field>
+          <ha-form
+            .hass=${this.hass}
+            .data=${{device:this._haDeviceId||void 0}}
+            .schema=${[{name:"device",selector:{device:{}}}]}
+            .computeLabel=${()=>s("link_device_optional",t)}
+            @value-changed=${e=>this._haDeviceId=e.detail.value?.device||""}
+          ></ha-form>
+          ${this._parentChoices().length?n`<label class="textarea-field">
+                <span class="textarea-label">${s("parent_object_optional",t)}</span>
+                <select
+                  class="parent-select"
+                  .value=${this._parentEntryId}
+                  @change=${e=>this._parentEntryId=e.target.value}
+                >
+                  <option value="" ?selected=${!this._parentEntryId}>
+                    ${s("parent_none",t)}
+                  </option>
+                  ${this._parentChoices().map(e=>n`<option
+                      value=${e.entry_id}
+                      ?selected=${this._parentEntryId===e.entry_id}
+                    >${e.object.name}</option>`)}
+                </select>
+              </label>`:_}
+          <label class="textarea-field">
+            <span class="textarea-label">${s("object_notes_optional",t)}</span>
+            <textarea
+              rows="3"
+              .value=${this._notes}
+              @input=${e=>this._notes=e.target.value}
+            ></textarea>
+            <span class="md-hint">${s("notes_markdown_hint",t)}</span>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${s("cancel",this._lang)}
+          </ha-button>
+          <ha-button
+            @click=${this._save}
+            .disabled=${this._loading||!this._name.trim()}
+          >
+            ${this._loading?s("saving",this._lang):s("save",this._lang)}
+          </ha-button>
+        </div>
+      </ha-dialog>
+    `}};x.styles=I`
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 300px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
+    }
+    ms-textfield {
+      display: block;
+    }
+    .textarea-field {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .textarea-label {
+      font-size: 12px; color: var(--secondary-text-color, #888); font-weight: 500;
+    }
+    .textarea-field textarea {
+      padding: 8px 10px; font-size: 14px; font-family: inherit;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color); border-radius: 6px;
+      resize: vertical;
+    }
+    .textarea-field textarea:focus {
+      outline: none; border-color: var(--primary-color);
+    }
+    .md-hint {
+      font-size: 11px; color: var(--secondary-text-color); font-style: italic;
+    }
+    .parent-select {
+      padding: 8px 10px; font-size: 14px; font-family: inherit;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color); border-radius: 6px;
+    }
+    .error {
+      color: var(--error-color, #f44336);
+      font-size: 13px;
+    }
+  `,o([g({attribute:!1})],x.prototype,"hass",2),o([g({attribute:!1})],x.prototype,"objects",2),o([d()],x.prototype,"_open",2),o([d()],x.prototype,"_loading",2),o([d()],x.prototype,"_error",2),o([d()],x.prototype,"_name",2),o([d()],x.prototype,"_manufacturer",2),o([d()],x.prototype,"_model",2),o([d()],x.prototype,"_serialNumber",2),o([d()],x.prototype,"_areaId",2),o([d()],x.prototype,"_installationDate",2),o([d()],x.prototype,"_warrantyExpiry",2),o([d()],x.prototype,"_documentationUrl",2),o([d()],x.prototype,"_notes",2),o([d()],x.prototype,"_haDeviceId",2),o([d()],x.prototype,"_parentEntryId",2),o([d()],x.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",x);var J=class{constructor(l){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=l}updateHass(l){this.hass=l}async getUsers(l=!1){let t=Date.now();if(!l&&this.usersCache&&t-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=i.users,this.cacheTimestamp=t,this.usersCache}catch(i){return console.error("Failed to fetch users:",i),this.usersCache||[]}}async assignUser(l,t,i){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:l,task_id:t,user_id:i})}async getTasksByUser(l){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:l})).tasks}getUserName(l){return!l||!this.usersCache?null:this.usersCache.find(i=>i.id===l)?.name||null}getUser(l){return!l||!this.usersCache?null:this.usersCache.find(t=>t.id===l)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(l){return l?l===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}};function N(a){return`${a.entry_id??""}\0${a.part_id}`}function bt(a,l,t,i){let e=!!a.entry_id&&a.entry_id!==l,r=e?a.entry_id:l,h=t.find(v=>v.entry_id===r),c=(h?.parts||[]).find(v=>v.id===a.part_id)||null,u=e&&h?.object?.name||"",p=c?.name||s("shared_part_unknown",i);return{part:c,foreign:e,ownerName:u,label:u?`${p} (${u})`:p}}function yt(a,l,t,i){let{part:e,label:r}=bt(a,l,t,i),h=e&&e.stock!==null&&e.stock!==void 0?` (${e.stock}${e.unit?" "+e.unit:""})`:"",c=e?.storage_location?` \u2014 ${e.storage_location}`:"";return`${a.quantity}\xD7 ${r}${h}${c}`}function $t(a,l,t,i){let r=(t.find(c=>c.entry_id===l)?.parts||[]).map(c=>({...c})),h=new Set(r.map(c=>N({part_id:c.id})));for(let c of a?.consumes_parts||[]){if(!c.entry_id||c.entry_id===l)continue;let u=N(c);if(h.has(u))continue;h.add(u);let{part:p,ownerName:v}=bt(c,l,t,i);r.push({id:c.part_id,name:p?.name||s("shared_part_unknown",i),unit:p?.unit,stock:p?.stock??null,storage_location:p?.storage_location,entry_id:c.entry_id,owner_name:v})}return r}var et=["sensor","binary_sensor","number","input_number","input_boolean","switch","climate","vacuum","cover","fan","light","water_heater","humidifier","media_player","weather","air_quality","valve","lawn_mower","lock"],xt=["sensor"],kt=["temperature","humidity","pressure"];var it=["notes","cost","duration","photo","user"],Y={notes:"notes_label",cost:"cost",duration:"duration",photo:"photo_label",user:"user_label"};var Bt=["cleaning","inspection","replacement","calibration","service","reading","custom"],Wt=["low","normal","high"],Kt=["time_based","weekdays","nth_weekday","day_of_month","sensor_based","one_time","manual"],st=["weekdays","nth_weekday","day_of_month"],wt=["threshold","counter","state_change","runtime"],Yt=[...wt,"compound"],O={alpha:"0.3",min:"7",max:"365"};function Qt(){return{entityIds:"",type:"threshold",attribute:"",above:"",below:"",equals:"",notEquals:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:"",onStates:"",carry:{}}}var Gt=new Set(["entity_id","entity_ids","type","attribute","trigger_above","trigger_below","trigger_equals","trigger_not_equals","trigger_for_minutes","trigger_target_value","trigger_delta_mode","trigger_from_state","trigger_to_state","trigger_target_changes","trigger_runtime_hours","trigger_on_states"]);function Zt(a){return{entityIds:(a.entity_ids||(a.entity_id?[a.entity_id]:[])).join(", "),type:a.type||"threshold",attribute:a.attribute||"",above:a.trigger_above?.toString()??"",below:a.trigger_below?.toString()??"",equals:a.trigger_equals?.toString()??"",notEquals:a.trigger_not_equals?.toString()??"",forMinutes:a.trigger_for_minutes?.toString()??"0",targetValue:a.trigger_target_value?.toString()??"",deltaMode:a.trigger_delta_mode||!1,fromState:a.trigger_from_state||"",toState:a.trigger_to_state||"",targetChanges:a.trigger_target_changes?.toString()??"",runtimeHours:a.trigger_runtime_hours?.toString()??"",onStates:(a.trigger_on_states||[]).join(", "),carry:Object.fromEntries(Object.entries(a).filter(([t])=>!Gt.has(t)&&!t.startsWith("_")))}}function Jt(a){let l=a.entityIds.split(",").map(i=>i.trim()).filter(Boolean);if(l.length===0)return null;let t={...a.carry||{},entity_id:l[0],entity_ids:l,type:a.type};if(a.attribute&&(t.attribute=a.attribute),a.type==="threshold"){let i=parseFloat(a.above);isNaN(i)||(t.trigger_above=i);let e=parseFloat(a.below);isNaN(e)||(t.trigger_below=e);let r=parseFloat(a.equals);isNaN(r)||(t.trigger_equals=r);let h=parseFloat(a.notEquals);isNaN(h)||(t.trigger_not_equals=h);let c=parseInt(a.forMinutes,10);isNaN(c)||(t.trigger_for_minutes=c)}else if(a.type==="counter"){let i=parseFloat(a.targetValue);isNaN(i)||(t.trigger_target_value=i),t.trigger_delta_mode=a.deltaMode}else if(a.type==="state_change"){a.fromState&&(t.trigger_from_state=a.fromState),a.toState&&(t.trigger_to_state=a.toState);let i=parseInt(a.targetChanges,10);isNaN(i)||(t.trigger_target_changes=i)}else if(a.type==="runtime"){let i=parseFloat(a.runtimeHours);isNaN(i)||(t.trigger_runtime_hours=i);let e=(a.onStates||"").split(",").map(r=>r.trim()).filter(Boolean);e.length>0&&(t.trigger_on_states=e)}return t}function Xt(a){return Array.from({length:7},(l,t)=>tt(t,a,"short"))}function te(a){return Array.from({length:12},(l,t)=>_t(t,a,"short"))}var m=class m extends S{constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.defaultWarningDays=7;this.parts=[];this._foreignOwners=[];this._open=!1;this._entityPickerFallback=!1;this._pickerProbeStrikes=0;this._loading=!1;this._error="";this._entryId="";this._taskId=null;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._earliestCompletionDays="";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._domLastDay=!1;this._domBusiness=!1;this._calOffset="0";this._seasonMonths=[];this._endsMode="never";this._endsCount="";this._endsUntil="";this._schedulePreview=[];this._schedulePreviewEnded=!1;this._previewSeq=0;this._notes="";this._documentationUrl="";this._customIcon="";this._priority="normal";this._labels="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerEquals="";this._triggerNotEquals="";this._triggerForMinutes="0";this._triggerCombinator="any";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._triggerBaselineValue="";this._liveBaselineValue=null;this._autoCompleteOnRecovery=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._triggerRuntimeMaxSession="";this._triggerOnStates="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._requireTagScan=!1;this._allowSkip=!0;this._readingUnit="";this._consumesParts={};this._partsLoadFailed=!1;this._availableTags=[];this._responsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._phaseDefs=[];this._phaseSeq=[];this._requiredCompletion=[];this._scheduleTime="";this._actionService="";this._actionTargetEntity="";this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._adaptiveEnabled=!1;this._adaptiveAlpha=O.alpha;this._adaptiveMin=O.min;this._adaptiveMax=O.max;this._adaptiveSeasonal=!0;this._adaptivePrediction=!0;this._adaptiveInitial="";this._userService=null;this._conditionAttrOptions={};this._conditionAttrPending=new Set}_adaptiveSnapshot(){return JSON.stringify([this._adaptiveEnabled,this._adaptiveAlpha,this._adaptiveMin,this._adaptiveMax,this._adaptiveSeasonal,this._adaptivePrediction])}get _lang(){return A(this.hass)}async openCreate(t,i){this._entryId=t,this._taskId=null,this._error="",!t&&i&&i.length>0?(this._objectChoices=i.map(e=>({entry_id:e.entry_id,name:e.object.name})).sort((e,r)=>e.name.localeCompare(r.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags(),this._loadParts(),this._loadForeignPools()]),this._open=!0}async openEdit(t,i){this._entryId=t,this._taskId=i.id,this._error="",this._objectChoices=[],this._name=i.name,this._type=i.type,this._scheduleType=i.schedule_type,this._intervalDays=i.interval_days!=null?String(i.interval_days):"",this._intervalUnit=i.interval_unit||"days",this._dueDate=i.due_date||"";let e=i.schedule;this._weekdays=e?.kind==="weekdays"?[...e.weekdays??[]]:[],this._nth=e?.kind==="nth_weekday"?String(e.nth??1):"1",this._nthWeekday=e?.kind==="nth_weekday"?String(e.weekday??5):"5",this._domDay=e?.kind==="day_of_month"&&(e.day??1)>=1?String(e.day??1):"1",this._domLastDay=e?.kind==="day_of_month"&&e.day===-1,this._domBusiness=e?.kind==="day_of_month"&&e.business===!0,this._calOffset=e?.offset?String(e.offset):"0",this._seasonMonths=Array.isArray(e?.season_months)?[...e.season_months]:[];let r=e?.ends;r&&typeof r.count=="number"?(this._endsMode="count",this._endsCount=String(r.count),this._endsUntil=""):r&&typeof r.until=="string"?(this._endsMode="until",this._endsUntil=r.until,this._endsCount=""):(this._endsMode="never",this._endsCount="",this._endsUntil=""),this._warningDays=i.warning_days.toString(),this._earliestCompletionDays=i.earliest_completion_days!=null?String(i.earliest_completion_days):"",this._intervalAnchor=i.interval_anchor||"completion",this._notes=i.notes||"",this._documentationUrl=i.documentation_url||"",this._customIcon=i.custom_icon||"",this._priority=i.priority||"normal",this._labels=(i.labels||[]).join(", "),this._enabled=i.enabled!==!1,this._lastPerformed=i.last_performed||"",this._nfcTagId=i.nfc_tag_id||"",this._requireTagScan=!!i.require_tag_scan,this._allowSkip=i.allow_skip!==!1,this._readingUnit=i.reading_unit||"",this._consumesParts=Object.fromEntries((i.consumes_parts||[]).map(p=>[N(p),{...p}])),this._responsibleUserId=i.responsible_user_id||null,this._assigneePool=[...i.assignee_pool||[]],this._rotationStrategy=i.rotation_strategy||"",this._checklistText=(i.checklist||[]).join(`
+`),this._phaseDefs=Object.entries(i.phases||{}).map(([p,v])=>{let{name:y,checklist:$,consumes_parts:f,required_completion_fields:w,...L}=v,z=v.consumes_parts||[],U=z.findIndex(F=>!F.entry_id),H=U>=0?z[U]:void 0;return{id:p,name:v.name||p,checklistText:(v.checklist||[]).join(`
+`),partId:H?.part_id||"",partQty:H?.quantity!=null?String(H.quantity):"",reqOverride:v.required_completion_fields!==void 0,reqFields:[...v.required_completion_fields||[]],extraParts:z.filter((F,B)=>B!==U).map(F=>({...F})),carry:L}}),this._phaseSeq=[...i.phase_sequence||[]],this._requiredCompletion=[...i.required_completion_fields||[]],this._scheduleTime=i.schedule_time||"";let h=i.on_complete_action;if(h&&h.service){this._actionService=h.service;let p=h.target?.entity_id;this._actionTargetEntity=Array.isArray(p)?p[0]||"":p||"",this._actionData=h.data&&typeof h.data=="object"?{...h.data}:{},this._actionDataJsonFallback=""}else this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="";let c=i.quick_complete_defaults;this._qcNotes=c?.notes||"",this._qcCost=c?.cost!=null?String(c.cost):"",this._qcDuration=c?.duration!=null?String(c.duration):"",this._qcFeedback=c?.feedback||"";let u=i.adaptive_config||{};if(this._environmentalEntity=u.environmental_entity||"",this._environmentalAttribute=u.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,this._adaptiveEnabled=!!u.enabled,this._adaptiveAlpha=u.ewa_alpha?.toString()??O.alpha,this._adaptiveMin=u.min_interval_days?.toString()??O.min,this._adaptiveMax=u.max_interval_days?.toString()??O.max,this._adaptiveSeasonal=u.seasonal_enabled!==!1,this._adaptivePrediction=u.sensor_prediction_enabled!==!1,this._adaptiveInitial=this._adaptiveSnapshot(),i.trigger_config){let p=i.trigger_config;this._triggerEntityId=p.entity_id||p.entity_ids&&p.entity_ids[0]||"",this._triggerEntityIds=p.entity_ids||(p.entity_id?[p.entity_id]:[]),this._triggerEntityLogic=p.entity_logic||"any",this._triggerAttribute=p.attribute||"",this._triggerType=p.type||"threshold",this._triggerAbove=p.trigger_above?.toString()||"",this._triggerBelow=p.trigger_below?.toString()||"",this._triggerEquals=p.trigger_equals?.toString()||"",this._triggerNotEquals=p.trigger_not_equals?.toString()||"",this._triggerForMinutes=p.trigger_for_minutes?.toString()||"0",this._triggerCombinator=p.trigger_combinator==="all"?"all":"any",this._triggerTargetValue=p.trigger_target_value?.toString()||"",this._triggerDeltaMode=p.trigger_delta_mode||!1,this._triggerBaselineValue=p.trigger_baseline_value?.toString()||"",this._liveBaselineValue=i.trigger_baseline_value??null,this._autoCompleteOnRecovery=p.auto_complete_on_recovery||!1,this._triggerFromState=p.trigger_from_state||"",this._triggerToState=p.trigger_to_state||"",this._triggerTargetChanges=p.trigger_target_changes?.toString()||"",this._triggerRuntimeHours=p.trigger_runtime_hours?.toString()||"",this._triggerRuntimeMaxSession=p.trigger_runtime_max_session_seconds?.toString()||"",this._triggerOnStates=(p.trigger_on_states||[]).join(", "),p.type==="compound"?(this._compoundLogic=p.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(p.conditions||[]).map(Zt)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),await Promise.all([this._loadUsers(),this._loadTags(),this._loadParts(),this._loadForeignPools()]),this._open=!0}_resetFields(){this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._earliestCompletionDays="",this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._domLastDay=!1,this._domBusiness=!1,this._calOffset="0",this._seasonMonths=[],this._endsMode="never",this._endsCount="",this._endsUntil="",this._notes="",this._documentationUrl="",this._customIcon="",this._priority="normal",this._labels="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._requireTagScan=!1,this._allowSkip=!0,this._readingUnit="",this._consumesParts={},this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._phaseDefs=[],this._phaseSeq=[],this._requiredCompletion=[],this._scheduleTime="",this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._adaptiveEnabled=!1,this._adaptiveAlpha=O.alpha,this._adaptiveMin=O.min,this._adaptiveMax=O.max,this._adaptiveSeasonal=!0,this._adaptivePrediction=!0,this._adaptiveInitial=this._adaptiveSnapshot(),this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="",this._actionTesting=!1,this._actionTestResult="",this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_resetTriggerFields(){this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._triggerAttribute="",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._triggerType="threshold",this._triggerAbove="",this._triggerBelow="",this._triggerEquals="",this._triggerNotEquals="",this._triggerForMinutes="0",this._triggerCombinator="any",this._triggerTargetValue="",this._triggerDeltaMode=!1,this._triggerBaselineValue="",this._liveBaselineValue=null,this._autoCompleteOnRecovery=!1,this._triggerFromState="",this._triggerToState="",this._triggerTargetChanges="",this._triggerRuntimeHours="",this._triggerRuntimeMaxSession="",this._triggerOnStates="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new J(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(t){console.error("Failed to load users:",t),this._availableUsers=[]}}_toggleAssignee(t){this._assigneePool=this._assigneePool.includes(t)?this._assigneePool.filter(i=>i!==t):[...this._assigneePool,t]}async _testAction(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t)){this._actionTestResult="error",this._actionTestError="Invalid service format (expected 'domain.service')",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[i,e]=t.split(".");if(!this.hass?.services?.[i]?.[e]){this._actionTestResult="error",this._actionTestError=`Service "${t}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let r=this._actionTargetEntity.trim();if(r){let h=r.split(".")[0];if(h!==i&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(i)){this._actionTestResult="error",this._actionTestError=`Service "${t}" only works on ${i}.* entities; entity "${r}" is in ${h}.* \u2014 pick a service that matches the entity domain (e.g. ${h}.${e})`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[r]){this._actionTestResult="error",this._actionTestError=`Target entity "${r}" not found in Home Assistant \u2014 the entity may have been renamed or its integration removed.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let t=JSON.parse(this._actionDataJsonFallback);if(t&&typeof t=="object"&&!Array.isArray(t))return t}catch{}return{...this._actionData}}_serviceSchema(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t))return null;let[i,e]=t.split("."),r=this.hass?.services?.[i]?.[e]?.fields;return!r||Object.keys(r).length===0?null:Object.entries(r).map(([h,c])=>({name:h,required:!!c.required,selector:c.selector||{text:{}}}))}_renderCompletionActionsSection(t){if(!this.completionActionsEnabled)return _;let i=this._serviceSchema();return n`
+      <details class="ca-section">
+        <summary>${s("on_complete_action_title",t)}</summary>
+        <p class="field-help">${s("on_complete_action_desc",t)}</p>
+        <ha-service-picker
+          .hass=${this.hass}
+          .value=${this._actionService}
+          @value-changed=${e=>{this._actionService=e.detail.value||"";let r=this._serviceSchema();if(r){let h=new Set(r.map(c=>c.name));this._actionData=Object.fromEntries(Object.entries(this._actionData).filter(([c])=>h.has(c)))}}}
+        ></ha-service-picker>
+        <ha-form
+          .hass=${this.hass}
+          .schema=${[{name:"target_entity",selector:{entity:{}}}]}
+          .data=${{target_entity:this._actionTargetEntity}}
+          .computeLabel=${()=>s("on_complete_action_target",t)}
+          @value-changed=${e=>{let r=e.detail.value;this._actionTargetEntity=r.target_entity||""}}
+        ></ha-form>
+        <p class="field-help ca-domain-hint">
+          ${s("on_complete_action_target_hint",t)}
+        </p>
+        ${i?n`
+              <ha-form
+                class="ca-data-form"
+                .hass=${this.hass}
+                .schema=${i}
+                .data=${this._actionData}
+                @value-changed=${e=>{this._actionData={...e.detail.value}}}
+              ></ha-form>
+            `:n`
+              <ms-textfield
+                label="${s("on_complete_action_data",t)}"
+                placeholder="{}"
+                .value=${this._actionDataJsonFallback}
+                @input=${e=>{this._actionDataJsonFallback=e.target.value}}
+              ></ms-textfield>
+            `}
+        <div class="ca-test-row">
+          <button type="button" ?disabled=${this._actionTesting||!this._actionService}
+            @click=${this._testAction}>
+            ${this._actionTesting?"\u2026":s("on_complete_action_test",t)}
+          </button>
+          ${this._actionTestResult==="ok"?n`<span class="ca-test-ok">${s("on_complete_action_test_success",t)}</span>`:_}
+          ${this._actionTestResult==="error"?n`<div class="ca-test-error-block">
+                <span class="ca-test-error">${s("on_complete_action_test_failed",t)}</span>
+                ${this._actionTestError?n`<div class="ca-test-error-detail">${this._actionTestError}</div>`:_}
+              </div>`:_}
+        </div>
+      </details>
+
+      <details class="ca-section">
+        <summary>${s("quick_complete_defaults_title",t)}</summary>
+        <p class="field-help">${s("quick_complete_defaults_desc",t)}</p>
+        <ms-textfield
+          label="${s("quick_complete_defaults_notes",t)}"
+          .value=${this._qcNotes}
+          @input=${e=>{this._qcNotes=e.target.value}}
+        ></ms-textfield>
+        <ms-textfield
+          label="${s("quick_complete_defaults_cost",t)}"
+          type="number" min="0" step="0.01"
+          .value=${this._qcCost}
+          @input=${e=>{this._qcCost=e.target.value}}
+        ></ms-textfield>
+        <ms-textfield
+          label="${s("quick_complete_defaults_duration",t)}"
+          type="number" min="0" step="1"
+          .value=${this._qcDuration}
+          @input=${e=>{this._qcDuration=e.target.value}}
+        ></ms-textfield>
+        <select class="qc-feedback"
+          .value=${this._qcFeedback}
+          @change=${e=>{this._qcFeedback=e.target.value}}>
+          <option value="">${s("quick_complete_defaults_feedback_none",t)}</option>
+          <option value="needed">${s("quick_complete_defaults_feedback_needed",t)}</option>
+          <option value="not_needed">${s("quick_complete_defaults_feedback_not_needed",t)}</option>
+        </select>
+      </details>
+    `}async _loadParts(){if(this.parts=[],!!this._entryId)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this.parts=t.parts||[],this._partsLoadFailed=!1}catch{this.parts=[],this._partsLoadFailed=!0}}async _loadForeignPools(){if(this._foreignOwners=[],!!this._entryId)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._foreignOwners=(t.objects||[]).filter(i=>i.entry_id!==this._entryId&&(i.parts||[]).length>0).map(i=>({entry_id:i.entry_id,name:i.object?.name||i.entry_id,parts:i.parts||[]})).sort((i,e)=>i.name.localeCompare(e.name))}catch{this._foreignOwners=[]}}async _loadTags(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=t.tags||[]}catch{this._availableTags=[]}}_fetchConditionAttributes(t){!t||!this.hass||this._conditionAttrOptions[t]||this._conditionAttrPending.has(t)||(this._conditionAttrPending.add(t),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:t}).then(i=>{let e=i;this._conditionAttrOptions={...this._conditionAttrOptions,[t]:{suggested:e.suggested_attributes||[],available:e.available_attributes||[]}}}).catch(()=>{this._conditionAttrOptions={...this._conditionAttrOptions,[t]:{suggested:[],available:[]}}}))}async _fetchEntityAttributes(t){if(!t||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:t});this._entityDomain=i.domain||"",this._suggestedAttributes=i.suggested_attributes||[],this._availableAttributes=i.available_attributes||[]}catch{this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}get _hasForeignPick(){return Object.values(this._consumesParts).some(t=>!!t.entry_id)}_renderConsumesRow(t,i){let e=N({part_id:t.id,entry_id:i}),r=this._consumesParts[e],h=i?{part_id:t.id,quantity:1,entry_id:i}:{part_id:t.id,quantity:1};return n`
+      <div class="consumes-row">
+        <label class="consumes-check">
+          <input
+            type="checkbox"
+            .checked=${r!==void 0}
+            @change=${c=>{let u={...this._consumesParts};c.target.checked?u[e]=u[e]||h:delete u[e],this._consumesParts=u}}
+          />
+          <span>${t.name}${t.unit?` (${t.unit})`:""}</span>
+        </label>
+        ${r!==void 0?n`<input
+              class="consumes-qty"
+              type="number"
+              min="0.01"
+              max="999"
+              step="0.01"
+              .value=${String(r.quantity)}
+              @input=${c=>{let u=parseFloat(c.target.value);this._consumesParts={...this._consumesParts,[e]:{...h,quantity:Number.isFinite(u)&&u>=.01?u:1}}}}
+            />`:_}
+      </div>
+    `}_toggleRequired(t,i){let e=new Set(this._requiredCompletion);i?e.add(t):e.delete(t),this._requiredCompletion=[...e]}_phaseSlug(t){let i=t.toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24)||"phase",e=i,r=2;for(;this._phaseDefs.some(h=>h.id===e);)e=`${i}-${r++}`;return e}_addPhaseDef(){let t=this._phaseSlug(`phase-${this._phaseDefs.length+1}`);this._phaseDefs=[...this._phaseDefs,{id:t,name:"",checklistText:"",partId:"",partQty:"",reqOverride:!1,reqFields:[],extraParts:[],carry:{}}]}_removePhaseDef(t){this._phaseDefs=this._phaseDefs.filter(i=>i.id!==t),this._phaseSeq=this._phaseSeq.filter(i=>i!==t)}_patchPhaseDef(t,i){this._phaseDefs=this._phaseDefs.map(e=>e.id===t?{...e,...i}:e)}_renderPhasesEditor(t){let i=e=>this._phaseDefs.find(r=>r.id===e)?.name||e;return n`
+      <h3>${s("phases_section",t)}</h3>
+      <div class="field-help">${s("phases_hint",t)}</div>
+      ${this._phaseDefs.map(e=>n`
+        <div class="phase-def">
+          <div class="phase-def-head">
+            <ms-textfield
+              label="${s("phase_name",t)}"
+              .value=${e.name}
+              @input=${r=>this._patchPhaseDef(e.id,{name:r.target.value})}
+            ></ms-textfield>
+            ${this.parts.length?n`
+              <select
+                class="phase-part"
+                .value=${e.partId}
+                @change=${r=>this._patchPhaseDef(e.id,{partId:r.target.value})}
+              >
+                <option value="">—</option>
+                ${this.parts.map(r=>n`<option value=${r.id} ?selected=${r.id===e.partId}>${r.name}</option>`)}
+              </select>
+              ${e.partId?n`
+                <input class="phase-qty" type="number" min="0.01" step="0.01" .value=${e.partQty||"1"}
+                  @input=${r=>this._patchPhaseDef(e.id,{partQty:r.target.value})} />
+              `:_}
+            `:_}
+            <mwc-icon-button class="phase-remove" @click=${()=>this._removePhaseDef(e.id)}>
+              <ha-icon icon="mdi:delete-outline"></ha-icon>
+            </mwc-icon-button>
+          </div>
+          ${this.checklistsEnabled?n`
+            <textarea
+              class="checklist-textarea phase-checklist"
+              rows="2"
+              placeholder="${s("checklist_placeholder",t)}"
+              .value=${e.checklistText}
+              @input=${r=>this._patchPhaseDef(e.id,{checklistText:r.target.value})}
+            ></textarea>
+          `:_}
+          <label class="req-option phase-req-toggle">
+            <input
+              type="checkbox"
+              .checked=${e.reqOverride}
+              @change=${r=>this._patchPhaseDef(e.id,{reqOverride:r.target.checked})}
+            />
+            <span>${s("phase_require_override",t)}</span>
+          </label>
+          ${e.reqOverride?n`
+            <div class="required-completion phase-req-fields">
+              ${it.map(r=>n`
+                <label class="req-option">
+                  <input
+                    type="checkbox"
+                    .checked=${e.reqFields.includes(r)}
+                    @change=${h=>{let c=h.target.checked,u=new Set(e.reqFields);c?u.add(r):u.delete(r),this._patchPhaseDef(e.id,{reqFields:[...u]})}}
+                  />
+                  <span>${s(Y[r],t)}</span>
+                </label>
+              `)}
+            </div>
+          `:_}
+        </div>
+      `)}
+      <ha-button appearance="plain" @click=${this._addPhaseDef}>
+        <ha-icon icon="mdi:plus"></ha-icon> ${s("phase_add",t)}
+      </ha-button>
+      ${this._phaseDefs.some(e=>e.name.trim())?n`
+        <div class="phase-seq-label">${s("phase_sequence_label",t)}</div>
+        <div class="phase-seq">
+          ${this._phaseSeq.map((e,r)=>n`
+            <span class="phase-chip">
+              ${r+1}. ${i(e)}
+              <button class="phase-chip-x" @click=${()=>{this._phaseSeq=this._phaseSeq.filter((h,c)=>c!==r)}}>✕</button>
+            </span>
+          `)}
+          <select
+            class="phase-seq-add"
+            .value=${""}
+            @change=${e=>{let r=e.target.value;r&&(this._phaseSeq=[...this._phaseSeq,r]),e.target.value=""}}
+          >
+            <option value="">+ ${s("phase_sequence_add_step",t)}</option>
+            ${this._phaseDefs.filter(e=>e.name.trim()).map(e=>n`<option value=${e.id}>${e.name}</option>`)}
+          </select>
+        </div>
+      `:_}
+    `}async _save(){if(!this._loading&&this._name.trim()){if(this._adaptiveSnapshot()!==this._adaptiveInitial){let t=parseInt(this._adaptiveMin,10),i=parseInt(this._adaptiveMax,10);if(!isNaN(t)&&!isNaN(i)&&t>i){this._error=`${s("adaptive_min_interval",this._lang)} > ${s("adaptive_max_interval",this._lang)}`;return}}if(this._triggerType==="threshold"&&this._thresholdLimitsOverlap()){this._error=s("trigger_hint_overlap",this._lang);return}this._loading=!0,this._error="";try{let t={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:Number.isNaN(parseInt(this._warningDays,10))?this.defaultWarningDays:Math.max(0,parseInt(this._warningDays,10))},i=this._earliestCompletionDays.trim();t.earliest_completion_days=i===""?null:Math.max(0,parseInt(i,10)||0),this._taskId&&(t.task_id=this._taskId),this._scheduleType==="one_time"?(t.due_date=this._dueDate||null,t.interval_days=null):st.includes(this._scheduleType)?(t.schedule={...this._buildSchedule(),...this._recurrenceExtras()},t.interval_days=null,this._taskId&&(t.due_date=null)):(this._taskId&&(t.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(t.interval_days=parseInt(this._intervalDays,10),t.interval_unit=this._intervalUnit,t.interval_anchor=this._intervalAnchor,this._scheduleType==="time_based"&&(t.schedule={kind:"interval",...this._recurrenceExtras()})):this._taskId&&(t.interval_days=null,t.interval_anchor="completion")),t.notes=this._notes||null,t.documentation_url=this._documentationUrl||null,t.custom_icon=this._customIcon||null,t.priority=this._priority,t.labels=this._labels.split(",").map(c=>c.trim()).filter(Boolean),t.enabled=this._enabled,t.last_performed=this._lastPerformed||null,t.nfc_tag_id=this._nfcTagId||null,t.require_tag_scan=this._requireTagScan,t.allow_skip=this._allowSkip,t.reading_unit=this._readingUnit.trim()||null;{let c={};for(let p of this._phaseDefs){if(!p.name.trim())continue;let v={...p.carry,name:p.name.trim()},y=p.checklistText.split(`
+`).map(f=>f.trim()).filter(Boolean);y.length&&(v.checklist=y);let $=[];if(p.partId){let f=parseFloat(p.partQty);$.push({part_id:p.partId,quantity:Number.isFinite(f)&&f>0?f:1})}for(let f of p.extraParts)$.push(f.entry_id?{part_id:f.part_id,quantity:f.quantity,entry_id:f.entry_id}:{part_id:f.part_id,quantity:f.quantity});$.length&&(v.consumes_parts=$),p.reqOverride&&(v.required_completion_fields=[...p.reqFields]),c[p.id]=v}let u=this._phaseSeq.filter(p=>p in c);t.phases=Object.keys(c).length&&u.length?c:null,t.phase_sequence=t.phases?u:null}if((this.parts.length||this._foreignOwners.length)&&(t.consumes_parts=Object.values(this._consumesParts).map(c=>c.entry_id?{part_id:c.part_id,quantity:c.quantity,entry_id:c.entry_id}:{part_id:c.part_id,quantity:c.quantity})),t.responsible_user_id=this._responsibleUserId,t.assignee_pool=this._assigneePool,t.required_completion_fields=this._requiredCompletion,t.rotation_strategy=this._assigneePool.length>=2&&this._rotationStrategy?this._rotationStrategy:null,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let c=this._compoundConditions.map(Jt).filter(u=>u!==null);if(c.length>0){let u={type:"compound",compound_logic:this._compoundLogic,conditions:c};this._autoCompleteOnRecovery&&(u.auto_complete_on_recovery=!0),this._triggerCombinator==="all"&&(u.trigger_combinator="all"),t.trigger_config=u}else this._taskId&&(t.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let c=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],u={entity_id:c[0],entity_ids:c,type:this._triggerType};if(this._triggerAttribute&&(u.attribute=this._triggerAttribute),this._autoCompleteOnRecovery&&(u.auto_complete_on_recovery=!0),this._triggerCombinator==="all"&&(u.trigger_combinator="all"),c.length>1&&(u.entity_logic=this._triggerEntityLogic),this._triggerType==="threshold"){if(this._triggerAbove){let p=parseFloat(this._triggerAbove);isNaN(p)||(u.trigger_above=p)}if(this._triggerBelow){let p=parseFloat(this._triggerBelow);isNaN(p)||(u.trigger_below=p)}if(this._triggerEquals){let p=parseFloat(this._triggerEquals);isNaN(p)||(u.trigger_equals=p)}if(this._triggerNotEquals){let p=parseFloat(this._triggerNotEquals);isNaN(p)||(u.trigger_not_equals=p)}if(this._triggerForMinutes){let p=parseInt(this._triggerForMinutes,10);isNaN(p)||(u.trigger_for_minutes=p)}}else if(this._triggerType==="counter"){if(this._triggerTargetValue){let p=parseFloat(this._triggerTargetValue);isNaN(p)||(u.trigger_target_value=p)}if(u.trigger_delta_mode=this._triggerDeltaMode,this._triggerDeltaMode&&this._triggerBaselineValue){let p=parseFloat(this._triggerBaselineValue);!isNaN(p)&&p>=0&&(u.trigger_baseline_value=p)}}else if(this._triggerType==="state_change"){if(this._triggerFromState&&(u.trigger_from_state=this._triggerFromState),this._triggerToState&&(u.trigger_to_state=this._triggerToState),this._triggerTargetChanges){let p=parseInt(this._triggerTargetChanges,10);isNaN(p)||(u.trigger_target_changes=p)}if(this._triggerForMinutes){let p=parseInt(this._triggerForMinutes,10);isNaN(p)||(u.trigger_for_minutes=p)}}else if(this._triggerType==="runtime"){if(this._triggerRuntimeHours){let v=parseFloat(this._triggerRuntimeHours);isNaN(v)||(u.trigger_runtime_hours=v)}if(this._triggerRuntimeMaxSession){let v=parseInt(this._triggerRuntimeMaxSession,10);!isNaN(v)&&v>0&&(u.trigger_runtime_max_session_seconds=v)}let p=this._triggerOnStates.split(",").map(v=>v.trim()).filter(Boolean);p.length>0&&(u.trigger_on_states=p)}t.trigger_config=u}else this._taskId&&(t.trigger_config=null);if(this.scheduleTimeEnabled&&this._scheduleType==="time_based"){let c=this._scheduleTime.trim();t.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(c)?c:null}if(this.checklistsEnabled){let c=this._checklistText.split(`
+`).map(u=>u.trim()).filter(Boolean).slice(0,100);t.checklist=c.length?c:null}if(this.completionActionsEnabled){let c=this._actionService.trim();if(c&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(c)){let y={service:c},$=this._actionTargetEntity.trim();$&&(y.target={entity_id:$});let f=this._buildActionData();Object.keys(f).length>0&&(y.data=f),t.on_complete_action=y}else t.on_complete_action=null;let u={};this._qcNotes.trim()&&(u.notes=this._qcNotes.trim());let p=parseFloat(this._qcCost);!isNaN(p)&&p>=0&&(u.cost=p);let v=parseInt(this._qcDuration,10);!isNaN(v)&&v>=0&&(u.duration=v),this._qcFeedback&&(u.feedback=this._qcFeedback),t.quick_complete_defaults=Object.keys(u).length?u:null}let e=await this.hass.connection.sendMessagePromise(t),r=this._taskId||e?.task_id,h=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;if(r&&this._scheduleType==="sensor_based"&&h)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:r,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null}),this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute}catch{}if(r&&this._adaptiveSnapshot()!==this._adaptiveInitial){let c=parseFloat(this._adaptiveAlpha),u=parseInt(this._adaptiveMin,10),p=parseInt(this._adaptiveMax,10);try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_adaptive",entry_id:this._entryId,task_id:r,enabled:this._adaptiveEnabled,...c>=.1&&c<=.9?{ewa_alpha:c}:{},...!isNaN(u)&&u>=1?{min_interval_days:u}:{},...!isNaN(p)&&p>=1?{max_interval_days:p}:{},seasonal_enabled:this._adaptiveSeasonal,sensor_prediction_enabled:this._adaptivePrediction}),this._adaptiveInitial=this._adaptiveSnapshot()}catch{}}this._open=!1,this.dispatchEvent(new CustomEvent("task-saved"))}catch(t){this._error=T(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1,this._pickerProbeTimer!==void 0&&(clearTimeout(this._pickerProbeTimer),this._pickerProbeTimer=void 0),this._pickerProbeStrikes=0}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return _;let t=this._lang,i=this._triggerType==="compound";return n`
+      <h3>${s("trigger_configuration",t)}</h3>
+      <div class="select-row">
+        <label>${s("trigger_type",t)}</label>
+        <select
+          .value=${this._triggerType}
+          @change=${e=>this._triggerType=e.target.value}
+        >
+          ${Yt.map(e=>n`<option value=${e} ?selected=${e===this._triggerType}>${s(e,t)}</option>`)}
+        </select>
+      </div>
+      ${i?this._renderCompoundEditor():n`
+        ${this._entityPickerFallback?n`
+          <ms-textfield
+            label="${s("entity_id",t)} (${s("comma_separated",t)})"
+            .value=${this._triggerEntityIds.length>0?this._triggerEntityIds.join(", "):this._triggerEntityId}
+            @input=${e=>{let h=e.target.value.split(",").map(c=>c.trim()).filter(Boolean);this._triggerEntityId=h[0]||"",this._triggerEntityIds=h,h[0]&&this._fetchEntityAttributes(h[0])}}
+          ></ms-textfield>
+        `:n`
+        <ha-form
+          class="entity-picker-form"
+          .hass=${this.hass}
+          .schema=${[{name:"trigger_entities",selector:{entity:{multiple:!0,domain:et}}}]}
+          .data=${{trigger_entities:this._triggerEntityIds.length>0?this._triggerEntityIds:this._triggerEntityId?[this._triggerEntityId]:[]}}
+          .computeLabel=${()=>s("entity_id",t)}
+          @value-changed=${e=>{let r=(e.detail.value.trigger_entities||[]).filter(Boolean);this._triggerEntityId=r[0]||"",this._triggerEntityIds=r,r[0]?this._fetchEntityAttributes(r[0]):this._fetchEntityAttributes("")}}
+        ></ha-form>`}
+        ${this._triggerEntityIds.length>1?n`
+          <div class="select-row">
+            <label>${s("entity_logic",t)}</label>
+            <select
+              .value=${this._triggerEntityLogic}
+              @change=${e=>this._triggerEntityLogic=e.target.value}
+            >
+              <option value="any" ?selected=${this._triggerEntityLogic==="any"}>${s("entity_logic_any",t)}</option>
+              <option value="all" ?selected=${this._triggerEntityLogic==="all"}>${s("entity_logic_all",t)}</option>
+            </select>
+          </div>
+        `:_}
+        ${this._renderAttributeSelect({label:s("attribute_optional",t),value:this._triggerAttribute,suggested:this._suggestedAttributes,available:this._availableAttributes,onSelect:e=>this._triggerAttribute=e})}
+        ${this._renderTriggerTypeFields()}
+        ${this._renderTriggerLiveHint()}
+      `}
+      <label>
+        <input
+          type="checkbox"
+          .checked=${this._autoCompleteOnRecovery}
+          @change=${e=>this._autoCompleteOnRecovery=e.target.checked}
+        />
+        ${s("auto_complete_on_recovery",t)}
+      </label>
+      <div class="field-help">${s("auto_complete_on_recovery_help",t)}</div>
+      <ms-textfield
+        label="${s("safety_interval",t)}"
+        type="number"
+        .value=${this._intervalDays}
+        @input=${e=>this._intervalDays=e.target.value}
+      ></ms-textfield>
+      ${this._intervalDays?this._renderUnitSelect():_}
+      ${this._intervalDays?n`
+            <div class="select-row">
+              <label>${s("trigger_combinator",t)}</label>
+              <select
+                @change=${e=>this._triggerCombinator=e.target.value}
+              >
+                <option value="any" ?selected=${this._triggerCombinator==="any"}>${s("trigger_combinator_any",t)}</option>
+                <option value="all" ?selected=${this._triggerCombinator==="all"}>${s("trigger_combinator_all",t)}</option>
+              </select>
+            </div>
+          `:_}
+    `}_patchCondition(t,i){this._compoundConditions=this._compoundConditions.map((e,r)=>r===t?{...e,...i}:e)}_addCondition(){this._compoundConditions=[...this._compoundConditions,Qt()]}_removeCondition(t){this._compoundConditions=this._compoundConditions.filter((i,e)=>e!==t)}_renderCompoundEditor(){let t=this._lang;return n`
+      <div class="select-row">
+        <label>${s("compound_logic",t)}</label>
+        <select
+          .value=${this._compoundLogic}
+          @change=${i=>this._compoundLogic=i.target.value}
+        >
+          <option value="AND" ?selected=${this._compoundLogic==="AND"}>${s("compound_logic_and",t)}</option>
+          <option value="OR" ?selected=${this._compoundLogic==="OR"}>${s("compound_logic_or",t)}</option>
+        </select>
+      </div>
+      <div class="field-help">${s("compound_help",t)}</div>
+      ${this._compoundConditions.length===0?n`<div class="field-help">${s("compound_no_conditions",t)}</div>`:this._compoundConditions.map((i,e)=>this._renderCondition(i,e))}
+      <button type="button" class="secondary-btn" @click=${()=>this._addCondition()}>
+        + ${s("compound_add_condition",t)}
+      </button>
+    `}_renderCondition(t,i){let e=this._lang,r=i+1;return n`
+      <div class="compound-condition">
+        <div class="compound-condition-head">
+          <span class="compound-condition-title">${s("compound_condition",e)} ${r}</span>
+          <button
+            type="button"
+            class="icon-btn"
+            title="${s("compound_remove_condition",e)}"
+            @click=${()=>this._removeCondition(i)}
+          >✕</button>
+        </div>
+        ${this._entityPickerFallback?n`
+          <ms-textfield
+            label="${s("entity_id",e)} (${s("comma_separated",e)})"
+            .value=${t.entityIds}
+            @input=${h=>this._patchCondition(i,{entityIds:h.target.value})}
+          ></ms-textfield>
+        `:n`
+        <ha-form
+          class="entity-picker-form"
+          .hass=${this.hass}
+          .schema=${[{name:"condition_entities",selector:{entity:{multiple:!0,domain:et}}}]}
+          .data=${{condition_entities:t.entityIds.split(",").map(h=>h.trim()).filter(Boolean)}}
+          .computeLabel=${()=>s("entity_id",e)}
+          @value-changed=${h=>{let c=(h.detail.value.condition_entities||[]).filter(Boolean);this._patchCondition(i,{entityIds:c.join(", ")})}}
+        ></ha-form>`}
+        ${this._renderConditionAttribute(t,i)}
+        <div class="select-row">
+          <label>${s("trigger_type",e)}</label>
+          <select
+            .value=${t.type}
+            @change=${h=>this._patchCondition(i,{type:h.target.value})}
+          >
+            ${wt.map(h=>n`<option value=${h} ?selected=${h===t.type}>${s(h,e)}</option>`)}
+          </select>
+        </div>
+        ${this._renderConditionTypeFields(t,i)}
+      </div>
+    `}_renderStateField(t){return this._entityPickerFallback||!t.entityId?n`
+        <ms-textfield
+          label=${t.label}
+          .value=${t.value}
+          @input=${i=>t.onInput(i.target.value)}
+        ></ms-textfield>
+      `:n`
+      <ha-form
+        class="state-picker-form"
+        .hass=${this.hass}
+        .schema=${[{name:"s",selector:{state:{entity_id:t.entityId}}}]}
+        .data=${{s:t.value}}
+        .computeLabel=${()=>t.label}
+        @value-changed=${i=>t.onInput((i.detail.value.s||"").trim())}
+      ></ha-form>
+    `}_renderOnStatesField(t){let i=this._lang;return this._entityPickerFallback||!t.entityId?n`
+        <ms-textfield
+          label="${s("runtime_on_states",i)}"
+          placeholder="on"
+          .value=${t.value}
+          @input=${e=>t.onInput(e.target.value)}
+        ></ms-textfield>
+      `:n`
+      <ha-form
+        class="state-picker-form"
+        .hass=${this.hass}
+        .schema=${[{name:"s",selector:{state:{entity_id:t.entityId,multiple:!0}}}]}
+        .data=${{s:(t.value||"").split(",").map(e=>e.trim()).filter(Boolean)}}
+        .computeLabel=${()=>s("runtime_on_states",i)}
+        @value-changed=${e=>t.onInput((e.detail.value.s||[]).join(", "))}
+      ></ha-form>
+    `}_renderAdaptiveSection(t){return this._scheduleType==="one_time"||this._scheduleType==="manual"?_:n`
+      <details class="adaptive-section" ?open=${this._adaptiveEnabled}>
+        <summary>${s("adaptive_section_title",t)}</summary>
+        <label>
+          <input
+            type="checkbox"
+            .checked=${this._adaptiveEnabled}
+            @change=${i=>this._adaptiveEnabled=i.target.checked}
+          />
+          ${s("adaptive_enabled",t)}
+        </label>
+        ${this._adaptiveEnabled?n`
+          <ms-textfield
+            label="${s("adaptive_min_interval",t)}"
+            type="number"
+            min="1"
+            .value=${this._adaptiveMin}
+            @input=${i=>this._adaptiveMin=i.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("adaptive_max_interval",t)}"
+            type="number"
+            min="1"
+            .value=${this._adaptiveMax}
+            @input=${i=>this._adaptiveMax=i.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("adaptive_ewa_alpha",t)}"
+            type="number"
+            min="0.1"
+            max="0.9"
+            step="0.1"
+            .value=${this._adaptiveAlpha}
+            @input=${i=>this._adaptiveAlpha=i.target.value}
+          ></ms-textfield>
+          <label>
+            <input
+              type="checkbox"
+              .checked=${this._adaptiveSeasonal}
+              @change=${i=>this._adaptiveSeasonal=i.target.checked}
+            />
+            ${s("adaptive_seasonal_enabled",t)}
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              .checked=${this._adaptivePrediction}
+              @change=${i=>this._adaptivePrediction=i.target.checked}
+            />
+            ${s("adaptive_prediction_enabled",t)}
+          </label>
+        `:_}
+      </details>
+    `}_renderAttributeSelect(t){let i=this._lang;return t.available.length>0?n`
+        <div class="select-row">
+          <label>${t.label}</label>
+          <select
+            .value=${t.value}
+            @change=${e=>t.onSelect(e.target.value)}
+          >
+            <option value="" ?selected=${!t.value}>${s("use_entity_state",i)}</option>
+            ${t.suggested.map(e=>n`<option value=${e} ?selected=${e===t.value}>${e} ★</option>`)}
+            ${t.available.filter(e=>!t.suggested.includes(e.name)).map(e=>n`<option value=${e.name} ?selected=${e.name===t.value}>${e.name}${e.numeric?"":" (non-numeric)"}</option>`)}
+          </select>
+        </div>
+      `:n`
+      <ms-textfield
+        label="${t.label}"
+        .value=${t.value}
+        @input=${e=>t.onSelect(e.target.value.trim())}
+      ></ms-textfield>
+    `}_renderEnvironmentalAttribute(t){this._fetchConditionAttributes(this._environmentalEntity);let i=this._conditionAttrOptions[this._environmentalEntity];return this._renderAttributeSelect({label:s("environmental_attribute_optional",t),value:this._environmentalAttribute,suggested:i?.suggested??[],available:i?.available??[],onSelect:e=>this._environmentalAttribute=e})}_renderConditionAttribute(t,i){let e=t.entityIds.split(",")[0]?.trim()||"";e&&this._fetchConditionAttributes(e);let r=e?this._conditionAttrOptions[e]:void 0;return this._renderAttributeSelect({label:s("attribute_optional",this._lang),value:t.attribute,suggested:r?.suggested??[],available:r?.available??[],onSelect:h=>this._patchCondition(i,{attribute:h})})}_renderConditionTypeFields(t,i){let e=this._lang;if(t.type==="threshold")return n`
+        <ms-textfield label="${s("trigger_above",e)}" type="number" .value=${t.above}
+          @input=${r=>this._patchCondition(i,{above:r.target.value})}></ms-textfield>
+        <ms-textfield label="${s("trigger_below",e)}" type="number" .value=${t.below}
+          @input=${r=>this._patchCondition(i,{below:r.target.value})}></ms-textfield>
+        <ms-textfield label="${s("trigger_equals",e)}" type="number" .value=${t.equals}
+          @input=${r=>this._patchCondition(i,{equals:r.target.value})}></ms-textfield>
+        <ms-textfield label="${s("trigger_not_equals",e)}" type="number" .value=${t.notEquals}
+          @input=${r=>this._patchCondition(i,{notEquals:r.target.value})}></ms-textfield>
+        <ms-textfield label="${s("for_minutes",e)}" type="number" .value=${t.forMinutes}
+          @input=${r=>this._patchCondition(i,{forMinutes:r.target.value})}></ms-textfield>
+      `;if(t.type==="counter")return n`
+        <ms-textfield label="${s("target_value",e)}" type="number" .value=${t.targetValue}
+          @input=${r=>this._patchCondition(i,{targetValue:r.target.value})}></ms-textfield>
+        <label>
+          <input type="checkbox" .checked=${t.deltaMode}
+            @change=${r=>this._patchCondition(i,{deltaMode:r.target.checked})} />
+          ${s("delta_mode",e)}
+        </label>
+      `;if(t.type==="state_change"){let r=t.entityIds.split(",")[0]?.trim()||"";return n`
+        ${this._renderStateField({label:s("from_state_optional",e),value:t.fromState,entityId:r,onInput:h=>this._patchCondition(i,{fromState:h})})}
+        ${this._renderStateField({label:s("to_state_optional",e),value:t.toState,entityId:r,onInput:h=>this._patchCondition(i,{toState:h})})}
+        <ms-textfield label="${s("target_changes",e)}" type="number" .value=${t.targetChanges}
+          @input=${h=>this._patchCondition(i,{targetChanges:h.target.value})}></ms-textfield>
+      `}if(t.type==="runtime"){let r=t.entityIds.split(",")[0]?.trim()||"";return n`
+        <ms-textfield label="${s("runtime_hours",e)}" type="number" .value=${t.runtimeHours}
+          @input=${h=>this._patchCondition(i,{runtimeHours:h.target.value})}></ms-textfield>
+        ${this._renderOnStatesField({value:t.onStates,entityId:r,onInput:h=>this._patchCondition(i,{onStates:h})})}
+      `}return _}_renderUnitSelect(){let t=this._lang;return n`
+      <div class="select-row">
+        <label>${s("interval_unit",t)}</label>
+        <select
+          .value=${this._intervalUnit}
+          @change=${i=>this._intervalUnit=i.target.value}
+        >
+          ${["days","weeks","months","years"].map(i=>n`<option value=${i} ?selected=${i===this._intervalUnit}>${s("unit_"+i,t)}</option>`)}
+        </select>
+      </div>`}_toggleWeekday(t){this._weekdays=this._weekdays.includes(t)?this._weekdays.filter(i=>i!==t):[...this._weekdays,t]}_previewScheduleDict(){if(this._scheduleType==="one_time")return this._dueDate?{kind:"one_time",due_date:this._dueDate}:null;if(st.includes(this._scheduleType))return{...this._buildSchedule(),...this._recurrenceExtras()};let t=parseInt(this._intervalDays,10);return this._scheduleType==="manual"||!t||t<=0?null:{kind:"interval",every:t,unit:this._intervalUnit,anchor:this._intervalAnchor,...this._recurrenceExtras()}}updated(t){super.updated?.(t),this._scheduleEntityPickerProbe();for(let i of t.keys())if(m._PREVIEW_RELEVANT.has(String(i))){this._schedulePreviewRefresh();return}}_scheduleEntityPickerProbe(){this._entityPickerFallback||this._pickerProbeTimer!==void 0||!this._open||this._scheduleType!=="sensor_based"||(this._pickerProbeTimer=setTimeout(()=>this._probeEntityPickers(),1500))}_probeEntityPickers(){if(this._pickerProbeTimer=void 0,this._entityPickerFallback||!this._open)return;let t=this.shadowRoot?.querySelector("ha-form.entity-picker-form"),i=(this.shadowRoot?.querySelector(".content")?.offsetHeight??0)>0;if(!t||!i){this._pickerProbeStrikes=0;return}let e=(u,p,v=0)=>{if(!(!u||v>10)){(u.tagName?.toLowerCase()??"")==="ha-entity-picker"&&p.push(u);for(let y of[u.shadowRoot,u])if(y)for(let $ of Array.from(y.children??[]))e($,p,v+1)}},r=[...this.shadowRoot?.querySelectorAll("ha-form.entity-picker-form")??[]],h=[];for(let u of r)e(u,h);let c=h.length===0||h.some(u=>u.offsetHeight===0);if(t.offsetHeight===0||c){if(this._pickerProbeStrikes+=1,this._pickerProbeStrikes>=2){this._entityPickerFallback=!0;return}this._pickerProbeTimer=setTimeout(()=>this._probeEntityPickers(),700)}else this._pickerProbeStrikes=0}_schedulePreviewRefresh(){this._previewTimer&&clearTimeout(this._previewTimer),this._previewTimer=setTimeout(()=>{this._fetchSchedulePreview()},300)}async _fetchSchedulePreview(){let t=this._open?this._previewScheduleDict():null;if(!t){this._schedulePreview=[],this._schedulePreviewEnded=!1;return}let i=++this._previewSeq;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/schedule/preview",schedule:t,...this._lastPerformed?{last_performed:this._lastPerformed}:{}});if(i!==this._previewSeq)return;this._schedulePreview=e.occurrences||[],this._schedulePreviewEnded=!!e.series_ended}catch{}}_renderSchedulePreview(){if(this._schedulePreview.length===0)return _;let t=this._lang,i=this.scheduleTimeEnabled&&this._scheduleTime?` ${this._scheduleTime}`:"",e=this._schedulePreview.map((h,c)=>{let u=new Date(`${h}T12:00:00`).getDay();return`${tt(u===0?6:u-1,t,"short")} ${V(h,t)}${c===0?i:""}`}).join(" \xB7 "),r=this._scheduleType==="time_based"&&this._intervalAnchor==="completion"?n`<div class="field-help">${s("schedule_preview_ontime",t)}</div>`:_;return n`
+      <div class="trigger-live-hint schedule-preview">
+        ${s("schedule_preview_title",t)}: ${e}${this._schedulePreviewEnded?n` <span class="field-help">${s("schedule_preview_ends",t)}</span>`:_}
+        ${r}
+      </div>
+    `}_buildSchedule(){let t=e=>{let r=parseInt(this._calOffset,10)||0;return r&&(e.offset=Math.max(-15,Math.min(r,15))),e};if(this._scheduleType==="weekdays")return t({kind:"weekdays",weekdays:[...this._weekdays].sort((e,r)=>e-r)});if(this._scheduleType==="nth_weekday")return t({kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)});let i={kind:"day_of_month",day:this._domLastDay?-1:parseInt(this._domDay,10)||1};return this._domBusiness&&(i.business=!0),t(i)}_recurrenceExtras(){let t={};if(this._seasonMonths.length&&(t.season_months=[...this._seasonMonths].sort((i,e)=>i-e)),this._endsMode==="count"){let i=parseInt(this._endsCount,10);i>=1&&(t.ends={count:i})}else this._endsMode==="until"&&this._endsUntil&&(t.ends={until:this._endsUntil});return t}_toggleSeasonMonth(t){this._seasonMonths=this._seasonMonths.includes(t)?this._seasonMonths.filter(i=>i!==t):[...this._seasonMonths,t]}_renderRecurrenceExtras(){let t=this._lang;if(!(this._scheduleType==="time_based"||st.includes(this._scheduleType)))return _;let e=te(t);return n`
+      <label class="field-label">${s("season_window_label",t)}</label>
+      <div class="field-help">${s("season_window_hint",t)}</div>
+      <div class="weekday-chips season-chips">
+        ${e.map((r,h)=>n`
+          <button
+            type="button"
+            class="season-chip ${this._seasonMonths.includes(h+1)?"selected":""}"
+            @click=${()=>this._toggleSeasonMonth(h+1)}
+          >${r}</button>`)}
+      </div>
+
+      <label class="field-label">${s("series_end_label",t)}</label>
+      <div class="select-row">
+        <select .value=${this._endsMode}
+          @change=${r=>this._endsMode=r.target.value}>
+          <option value="never" ?selected=${this._endsMode==="never"}>${s("series_end_never",t)}</option>
+          <option value="count" ?selected=${this._endsMode==="count"}>${s("series_end_after_count",t)}</option>
+          <option value="until" ?selected=${this._endsMode==="until"}>${s("series_end_until",t)}</option>
+        </select>
+      </div>
+      ${this._endsMode==="count"?n`
+        <ms-textfield
+          label="${s("series_end_count_label",t)}"
+          type="number" min="1"
+          .value=${this._endsCount}
+          @input=${r=>this._endsCount=r.target.value}
+        ></ms-textfield>`:_}
+      ${this._endsMode==="until"?n`
+        <ms-date-field
+          kind="date"
+          .hass=${this.hass}
+          .lang=${t}
+          label="${s("series_end_until_label",t)}"
+          .value=${this._endsUntil}
+          @value-changed=${r=>this._endsUntil=r.detail.value}
+        ></ms-date-field>`:_}
+    `}_renderCalendarFields(){let t=this._lang,i=Xt(t);if(this._scheduleType==="weekdays")return n`
+        <label class="field-label">${s("recurrence_on_days",t)}</label>
+        <div class="weekday-chips">
+          ${i.map((e,r)=>n`
+            <button
+              type="button"
+              class="weekday-chip ${this._weekdays.includes(r)?"selected":""}"
+              @click=${()=>this._toggleWeekday(r)}
+            >${e}</button>`)}
+        </div>
+        ${this._renderCalOffsetField()}`;if(this._scheduleType==="nth_weekday"){let e=[["1",s("ord_1",t)],["2",s("ord_2",t)],["3",s("ord_3",t)],["4",s("ord_4",t)],["5",s("ord_5",t)],["-1",s("ord_last",t)]];return n`
+        <div class="select-row">
+          <label>${s("recurrence_occurrence",t)}</label>
+          <select .value=${this._nth} @change=${r=>this._nth=r.target.value}>
+            ${e.map(([r,h])=>n`<option value=${r} ?selected=${r===this._nth}>${h}</option>`)}
+          </select>
+        </div>
+        <div class="select-row">
+          <label>${s("recurrence_weekday",t)}</label>
+          <select .value=${this._nthWeekday} @change=${r=>this._nthWeekday=r.target.value}>
+            ${i.map((r,h)=>n`<option value=${String(h)} ?selected=${String(h)===this._nthWeekday}>${r}</option>`)}
+          </select>
+        </div>
+        ${this._renderCalOffsetField()}`}return this._scheduleType==="day_of_month"?n`
+        ${this._domLastDay?_:n`
+          <ms-textfield
+            label="${s("recurrence_day",t)}"
+            type="number"
+            min="1"
+            max="31"
+            .value=${this._domDay}
+            @input=${e=>this._domDay=e.target.value}
+          ></ms-textfield>`}
+        <label class="checkbox-row">
+          <input type="checkbox" .checked=${this._domLastDay}
+            @change=${e=>this._domLastDay=e.target.checked} />
+          <span>${s("recurrence_last_day",t)}</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" .checked=${this._domBusiness}
+            @change=${e=>this._domBusiness=e.target.checked} />
+          <span>${s("recurrence_business_day",t)}</span>
+        </label>
+        ${this._renderCalOffsetField()}`:_}_renderCalOffsetField(){let t=this._lang;return n`
+      <ms-textfield
+        label="${s("recurrence_offset",t)}"
+        helper="${s("recurrence_offset_help",t)}"
+        type="number"
+        min="-15"
+        max="15"
+        .value=${this._calOffset}
+        @input=${i=>this._calOffset=i.target.value}
+      ></ms-textfield>`}_thresholdLimitsOverlap(){let t=parseFloat(this._triggerAbove),i=parseFloat(this._triggerBelow);return!isNaN(t)&&!isNaN(i)&&i>t}_renderTriggerLiveHint(){if(this._triggerType==="compound")return _;let t=this._triggerType==="threshold"&&this._thresholdLimitsOverlap()?n`<div class="trigger-live-hint warn">${s("trigger_hint_overlap",this._lang)}</div>`:_,i=this._triggerEntityId||this._triggerEntityIds[0];if(!i||!this.hass?.states)return t;let e=this.hass.states[i];if(!e)return t;let r=this._lang,h=e.attributes?.unit_of_measurement,c=typeof h=="string"&&h?` ${h}`:"",u=this._triggerAttribute?e.attributes?.[this._triggerAttribute]:e.state,p=typeof u=="number"?u:parseFloat(String(u)),v=u!=="unknown"&&u!=="unavailable"&&u!=null&&!isNaN(p),y=f=>Number.isInteger(f)?String(f):String(Math.round(f*10)/10),$=[];if(this._triggerType==="threshold"){let f=parseFloat(this._triggerAbove),w=parseFloat(this._triggerBelow);if(isNaN(f)&&isNaN(w))return _;v&&$.push(s("trigger_hint_now",r).replace("{value}",y(p)+c)),isNaN(f)||$.push(s("trigger_hint_above",r).replace("{target}",y(f)+c)),isNaN(w)||$.push(s("trigger_hint_below",r).replace("{target}",y(w)+c))}else if(this._triggerType==="counter"){let f=parseFloat(this._triggerTargetValue);if(isNaN(f))return _;this._triggerDeltaMode?this._taskId?$.push(s("trigger_hint_counter_delta_edit",r).replace("{target}",y(f)+c)):v?$.push(s("trigger_hint_counter_delta",r).replace("{value}",y(p)+c).replace("{due}",y(p+f)+c).replace("{target}",y(f)+c)):$.push(s("trigger_hint_counter_delta_edit",r).replace("{target}",y(f)+c)):(v&&$.push(s("trigger_hint_now",r).replace("{value}",y(p)+c)),$.push(s("trigger_hint_counter_abs",r).replace("{target}",y(f)+c)))}else if(this._triggerType==="runtime"){let f=parseFloat(this._triggerRuntimeHours);if(isNaN(f))return _;$.push(s("trigger_hint_runtime",r).replace("{hours}",y(f))),$.push(s("trigger_hint_state_now",r).replace("{value}",String(e.state)))}else if(this._triggerType==="state_change"){let f=parseInt(this._triggerTargetChanges,10)||1,w=this._triggerToState.trim();$.push((w?s("trigger_hint_state_change_to",r).replace("{state}",w):s("trigger_hint_state_change",r)).replace("{count}",String(f))),$.push(s("trigger_hint_state_now",r).replace("{value}",String(e.state)))}return $.length?n`<div class="trigger-live-hint">${$.join(" ")}</div>${t}`:t}_renderTriggerTypeFields(){let t=this._lang;return this._triggerType==="threshold"?n`
+        <ms-textfield
+          label="${s("trigger_above",t)}"
+          type="number"
+          step="any"
+          .value=${this._triggerAbove}
+          @input=${i=>this._triggerAbove=i.target.value}
+        ></ms-textfield>
+        <ms-textfield
+          label="${s("trigger_below",t)}"
+          type="number"
+          step="any"
+          .value=${this._triggerBelow}
+          @input=${i=>this._triggerBelow=i.target.value}
+        ></ms-textfield>
+        <ms-textfield
+          label="${s("trigger_equals",t)}"
+          type="number"
+          step="any"
+          .value=${this._triggerEquals}
+          @input=${i=>this._triggerEquals=i.target.value}
+        ></ms-textfield>
+        <ms-textfield
+          label="${s("trigger_not_equals",t)}"
+          type="number"
+          step="any"
+          .value=${this._triggerNotEquals}
+          @input=${i=>this._triggerNotEquals=i.target.value}
+        ></ms-textfield>
+        <ms-textfield
+          label="${s("for_at_least_minutes",t)}"
+          type="number"
+          .value=${this._triggerForMinutes}
+          @input=${i=>this._triggerForMinutes=i.target.value}
+        ></ms-textfield>
+      `:this._triggerType==="counter"?n`
+        <ms-textfield
+          label="${s("target_value",t)}"
+          type="number"
+          step="any"
+          .value=${this._triggerTargetValue}
+          @input=${i=>this._triggerTargetValue=i.target.value}
+        ></ms-textfield>
+        <label>
+          <input
+            type="checkbox"
+            .checked=${this._triggerDeltaMode}
+            @change=${i=>this._triggerDeltaMode=i.target.checked}
+          />
+          ${s("delta_mode",t)}
+        </label>
+        ${this._triggerDeltaMode?n`
+              <ms-textfield
+                label="${s("baseline_start_value",t)}"
+                type="number"
+                step="any"
+                .value=${this._triggerBaselineValue}
+                @input=${i=>this._triggerBaselineValue=i.target.value}
+              ></ms-textfield>
+              <div class="field-help">
+                ${this._taskId?s("baseline_start_help_edit",t):s("baseline_start_help",t)}
+                ${this._taskId&&this._liveBaselineValue!=null?n`<div class="baseline-effective">
+                      ${s("baseline_current_effective",t).replace("{value}",String(this._liveBaselineValue))}
+                    </div>`:_}
+              </div>
+            `:_}
+      `:this._triggerType==="state_change"?n`
+        ${this._renderStateField({label:s("from_state_optional",t),value:this._triggerFromState,entityId:this._triggerEntityId,onInput:i=>this._triggerFromState=i})}
+        <div class="field-help">${s("state_value_help",t)}</div>
+        ${this._renderStateField({label:s("to_state_optional",t),value:this._triggerToState,entityId:this._triggerEntityId,onInput:i=>this._triggerToState=i})}
+        <ms-textfield
+          label="${s("target_changes",t)}"
+          type="number"
+          min="1"
+          .value=${this._triggerTargetChanges}
+          @input=${i=>this._triggerTargetChanges=i.target.value}
+        ></ms-textfield>
+        <div class="field-help">${s("target_changes_help",t)}</div>
+        <ms-textfield
+          label="${s("for_at_least_minutes",t)}"
+          type="number"
+          min="0"
+          .value=${this._triggerForMinutes}
+          @input=${i=>this._triggerForMinutes=i.target.value}
+        ></ms-textfield>
+        <div class="field-help">${s("for_minutes_state_help",t)}</div>
+      `:this._triggerType==="runtime"?n`
+        <ms-textfield
+          label="${s("runtime_hours",t)}"
+          type="number"
+          step="1"
+          .value=${this._triggerRuntimeHours}
+          @input=${i=>this._triggerRuntimeHours=i.target.value}
+        ></ms-textfield>
+        <ms-textfield
+          label="${s("runtime_max_session",t)}"
+          type="number"
+          step="1"
+          .value=${this._triggerRuntimeMaxSession}
+          @input=${i=>this._triggerRuntimeMaxSession=i.target.value}
+        ></ms-textfield>
+        <div class="field-help">${s("runtime_max_session_help",t)}</div>
+        ${this._renderOnStatesField({value:this._triggerOnStates,entityId:this._triggerEntityId,onInput:i=>this._triggerOnStates=i})}
+        <div class="field-help">${s("runtime_on_states_help",t)}</div>
+      `:_}render(){if(!this._open)return n``;let t=this._lang,i=this._taskId?s("edit_task",t):s("new_task",t);return n`
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${i}</div>
+        <div class="content">
+          ${this._error?n`<div class="error">${this._error}</div>`:_}
+          ${this._taskId===null&&this._objectChoices.length>0?n`
+            <div class="select-row">
+              <label>${s("object",t)}</label>
+              <select
+                .value=${this._entryId}
+                @change=${e=>{this._entryId=e.target.value,this._consumesParts={},this._loadParts(),this._loadForeignPools()}}
+              >
+                ${this._objectChoices.map(e=>n`<option value=${e.entry_id} ?selected=${e.entry_id===this._entryId}>${e.name}</option>`)}
+              </select>
+            </div>
+          `:_}
+          <ms-textfield
+            label="${s("task_name",t)}"
+            required
+            .value=${this._name}
+            @input=${e=>this._name=e.target.value}
+          ></ms-textfield>
+          <div class="select-row">
+            <label>${s("maintenance_type",t)}</label>
+            <select
+              .value=${this._type}
+              @change=${e=>this._type=e.target.value}
+            >
+              ${Bt.map(e=>n`<option value=${e} ?selected=${e===this._type}>${s(e,t)}</option>`)}
+            </select>
+          </div>
+          ${this._type==="reading"?n`
+                <ms-textfield
+                  label="${s("reading_unit_label",t)}"
+                  .value=${this._readingUnit}
+                  @input=${e=>this._readingUnit=e.target.value}
+                ></ms-textfield>
+                <div class="field-help">${s("reading_unit_help",t)}</div>
+              `:_}
+          ${this._partsLoadFailed?n`<div class="field-help parts-load-failed">${s("parts_load_failed",t)}</div>`:_}
+          ${this.parts.length||this._foreignOwners.length?n`
+                <div class="field">
+                  <label>${s("consumes_parts_label",t)}</label>
+                  ${this.parts.map(e=>this._renderConsumesRow(e))}
+                  ${this._foreignOwners.length?n`
+                        <details class="shared-pools" ?open=${this._hasForeignPick}>
+                          <summary>${s("shared_parts_other_objects",t)}</summary>
+                          <div class="field-help">${s("shared_parts_help",t)}</div>
+                          ${this._foreignOwners.map(e=>n`
+                              <div class="shared-pool-owner">${e.name}</div>
+                              ${e.parts.map(r=>this._renderConsumesRow(r,e.entry_id))}
+                            `)}
+                        </details>
+                      `:_}
+                </div>
+              `:_}
+          <div class="select-row">
+            <label>${s("priority",t)}</label>
+            <select
+              .value=${this._priority}
+              @change=${e=>this._priority=e.target.value}
+            >
+              ${Wt.map(e=>n`<option value=${e} ?selected=${e===this._priority}>${s("priority_"+e,t)}</option>`)}
+            </select>
+          </div>
+          <div class="field">
+            <label>${s("labels",t)}</label>
+            <input
+              type="text"
+              .value=${this._labels}
+              placeholder="${s("labels_placeholder",t)}"
+              @input=${e=>this._labels=e.target.value}
+            />
+            <div class="field-help">${s("labels_help",t)}</div>
+          </div>
+          <div class="select-row">
+            <label>${s("schedule_type",t)}</label>
+            <select
+              .value=${this._scheduleType}
+              @change=${e=>this._scheduleType=e.target.value}
+            >
+              ${Kt.map(e=>n`<option value=${e} ?selected=${e===this._scheduleType}>${s(e,t)}</option>`)}
+            </select>
+          </div>
+          ${this._scheduleType==="time_based"?n`
+                <ms-textfield
+                  label="${s("interval_value",t)}"
+                  type="number"
+                  .value=${this._intervalDays}
+                  @input=${e=>this._intervalDays=e.target.value}
+                ></ms-textfield>
+                ${this._renderUnitSelect()}
+                <div class="select-row">
+                  <label>${s("interval_anchor",t)}</label>
+                  <select
+                    .value=${this._intervalAnchor}
+                    @change=${e=>this._intervalAnchor=e.target.value}
+                  >
+                    <option value="completion" ?selected=${this._intervalAnchor==="completion"}>${s("anchor_completion",t)}</option>
+                    <option value="planned" ?selected=${this._intervalAnchor==="planned"}>${s("anchor_planned",t)}</option>
+                  </select>
+                </div>
+                ${this.scheduleTimeEnabled?n`
+                  <ms-date-field
+                    kind="time"
+                    clearable
+                    .hass=${this.hass}
+                    .lang=${t}
+                    label="${s("schedule_time_optional",t)}"
+                    .value=${this._scheduleTime}
+                    helper="${s("schedule_time_help",t)}"
+                    @value-changed=${e=>this._scheduleTime=e.detail.value}
+                  ></ms-date-field>
+                `:_}
+              `:_}
+          ${this._renderCalendarFields()}
+          ${this._scheduleType==="one_time"?n`
+                <ms-date-field
+                  kind="date"
+                  .hass=${this.hass}
+                  .lang=${t}
+                  label="${s("due_date",t)}"
+                  .value=${this._dueDate}
+                  @value-changed=${e=>this._dueDate=e.detail.value}
+                ></ms-date-field>
+              `:_}
+          ${this._renderRecurrenceExtras()}
+          ${this._renderSchedulePreview()}
+          <ms-textfield
+            label="${s("warning_days",t)}"
+            type="number"
+            min="0"
+            max="365"
+            .value=${this._warningDays}
+            @input=${e=>this._warningDays=e.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("earliest_completion_days",t)}"
+            helper="${s("earliest_completion_days_help",t)}"
+            type="number"
+            .value=${this._earliestCompletionDays}
+            @input=${e=>this._earliestCompletionDays=e.target.value}
+          ></ms-textfield>
+          ${this.checklistsEnabled?n`
+            <h3>${s("checklist_steps_optional",t)}</h3>
+            <textarea
+              id="checklist-textarea"
+              class="checklist-textarea"
+              rows="5"
+              placeholder="${s("checklist_placeholder",t)}"
+              .value=${this._checklistText}
+              @input=${e=>this._checklistText=e.target.value}
+            ></textarea>
+            <div class="field-help">${s("checklist_help",t)}</div>
+          `:_}
+          ${this._renderPhasesEditor(t)}
+          <h3>${s("require_on_completion",t)}</h3>
+          <div class="required-completion">
+            ${it.map(e=>n`
+              <label class="req-option">
+                <input
+                  type="checkbox"
+                  .checked=${this._requiredCompletion.includes(e)}
+                  @change=${r=>this._toggleRequired(e,r.target.checked)}
+                />
+                <span>${s(Y[e],t)}</span>
+              </label>
+            `)}
+          </div>
+          <ms-date-field
+            kind="date"
+            clearable
+            .hass=${this.hass}
+            .lang=${t}
+            label="${s("last_performed_optional",t)}"
+            .value=${this._lastPerformed}
+            @value-changed=${e=>this._lastPerformed=e.detail.value}
+          ></ms-date-field>
+          <div class="select-row">
+            <label>${s("responsible_user",t)}</label>
+            <select
+              .value=${this._responsibleUserId||""}
+              @change=${e=>{let r=e.target.value;this._responsibleUserId=r||null}}
+            >
+              <option value="" ?selected=${!this._responsibleUserId}>${s("no_user_assigned",t)}</option>
+              ${this._availableUsers.map(e=>n`<option value=${e.id} ?selected=${e.id===this._responsibleUserId}>${e.name}</option>`)}
+            </select>
+          </div>
+          ${this._availableUsers.length>=2?n`
+            <div class="field">
+              <label>${s("shared_with",t)}</label>
+              <div class="field-help">${s("shared_with_help",t)}</div>
+              <div class="assignee-pool">
+                ${this._availableUsers.map(e=>n`
+                  <label class="pool-item">
+                    <input type="checkbox"
+                      .checked=${this._assigneePool.includes(e.id)}
+                      @change=${()=>this._toggleAssignee(e.id)} />
+                    <span>${e.name}</span>
+                  </label>`)}
+              </div>
+            </div>
+            ${this._assigneePool.length>=2?n`
+              <div class="select-row">
+                <label>${s("rotation_strategy",t)}</label>
+                <select
+                  .value=${this._rotationStrategy}
+                  @change=${e=>this._rotationStrategy=e.target.value}
+                >
+                  <option value="" ?selected=${!this._rotationStrategy}>${s("rotation_none",t)}</option>
+                  ${["round_robin","least_completed","random"].map(e=>n`<option value=${e} ?selected=${e===this._rotationStrategy}>${s("rotation_"+e,t)}</option>`)}
+                </select>
+              </div>`:_}
+          `:_}
+          ${this._renderTriggerFields()}
+          ${this._scheduleType==="sensor_based"?n`
+            ${this._entityPickerFallback?n`
+              <ms-textfield
+                label="${s("environmental_entity_optional",t)}"
+                helper="${s("environmental_entity_helper",t)}"
+                .value=${this._environmentalEntity}
+                @input=${e=>this._environmentalEntity=e.target.value.trim()}
+              ></ms-textfield>
+            `:n`
+            <ha-form
+              class="entity-picker-form"
+              .hass=${this.hass}
+              .schema=${[{name:"environmental_entity",selector:{entity:{domain:xt,device_class:kt}}}]}
+              .data=${{environmental_entity:this._environmentalEntity}}
+              .computeLabel=${()=>s("environmental_entity_optional",t)}
+              .computeHelper=${()=>s("environmental_entity_helper",t)}
+              @value-changed=${e=>{this._environmentalEntity=(e.detail.value.environmental_entity||"").trim()}}
+            ></ha-form>`}
+            ${this._environmentalEntity?this._renderEnvironmentalAttribute(t):_}
+          `:_}
+          ${this._renderAdaptiveSection(t)}
+          <ms-textfield
+            label="${s("notes_optional",t)}"
+            multiline
+            .rows=${3}
+            .helper=${s("notes_markdown_hint",t)}
+            .value=${this._notes}
+            @input=${e=>this._notes=e.target.value}
+          ></ms-textfield>
+          <ms-textfield
+            label="${s("documentation_url_optional",t)}"
+            .value=${this._documentationUrl}
+            @input=${e=>this._documentationUrl=e.target.value}
+          ></ms-textfield>
+          <ha-icon-picker
+            .hass=${this.hass}
+            label="${s("custom_icon_optional",t)}"
+            .value=${this._customIcon}
+            @value-changed=${e=>this._customIcon=e.detail.value||""}
+          ></ha-icon-picker>
+          ${this._availableTags.length>0?n`
+              <div class="select-row">
+                <label>${s("nfc_tag_id_optional",t)}</label>
+                <select
+                  .value=${this._nfcTagId}
+                  @change=${e=>this._nfcTagId=e.target.value}
+                >
+                  <option value="" ?selected=${!this._nfcTagId}>${s("no_nfc_tag",t)}</option>
+                  ${this._availableTags.map(e=>n`<option value=${e.id} ?selected=${e.id===this._nfcTagId}>${e.name}</option>`)}
+                </select>
+                <button type="button" class="link-button" @click=${this._loadTags}
+                  title="${s("nfc_tags_refresh",t)}">↻</button>
+              </div>
+            `:n`
+              <ms-textfield
+                label="${s("nfc_tag_id_optional",t)}"
+                .value=${this._nfcTagId}
+                @input=${e=>this._nfcTagId=e.target.value}
+              ></ms-textfield>
+              <div class="field-help">
+                ${s("nfc_tags_empty_help",t)}
+                <a href="/config/tags">${s("nfc_tags_open_settings",t)}</a>
+                ·
+                <button type="button" class="link-button" @click=${this._loadTags}>
+                  ${s("nfc_tags_refresh",t)}
+                </button>
+              </div>
+            `}
+          <label class="req-option">
+            <input
+              type="checkbox"
+              .checked=${this._requireTagScan}
+              @change=${e=>this._requireTagScan=e.target.checked}
+            />
+            <span>${s("require_tag_scan",t)}</span>
+          </label>
+          ${this._requireTagScan?n`<div class="field-help">${s("require_tag_scan_help",t)}</div>`:_}
+          <label class="req-option">
+            <input
+              type="checkbox"
+              .checked=${!this._allowSkip}
+              @change=${e=>this._allowSkip=!e.target.checked}
+            />
+            <span>${s("disallow_skip",t)}</span>
+          </label>
+          ${this._allowSkip?_:n`<div class="field-help">${s("disallow_skip_help",t)}</div>`}
+          <label class="toggle-row">
+            <input
+              type="checkbox"
+              .checked=${this._enabled}
+              @change=${e=>this._enabled=e.target.checked}
+            />
+            ${s("task_enabled",t)}
+          </label>
+          ${this._renderCompletionActionsSection(t)}
+        </div>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>${s("cancel",t)}</ha-button>
+          <ha-button
+            @click=${this._save}
+            .disabled=${this._loading||!this._name.trim()}
+          >
+            ${this._loading?s("saving",t):s("save",t)}
+          </ha-button>
+        </div>
+      </ha-dialog>
+    `}};m._PREVIEW_RELEVANT=new Set(["_open","_scheduleType","_intervalDays","_intervalUnit","_intervalAnchor","_dueDate","_weekdays","_nth","_nthWeekday","_domDay","_domLastDay","_domBusiness","_calOffset","_seasonMonths","_endsMode","_endsCount","_endsUntil","_lastPerformed"]),m.styles=I`
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
+    /* #129: entity/state pickers in the trigger form (ha-form + selector) */
+    .entity-picker-form,
+    .state-picker-form {
+      display: block;
+      margin: 8px 0;
+    }
+    /* v1.3.0: completion-action sections (.adaptive-section shares the shell
+       but keeps its own class — tests count .ca-section elements) */
+    .ca-section,
+    .adaptive-section {
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: 8px;
+    }
+    .ca-section > summary,
+    .adaptive-section > summary {
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .adaptive-section ms-textfield {
+      width: 100%;
+      margin-top: 8px;
+      display: block;
+    }
+    .adaptive-section label {
+      display: block;
+      margin-top: 8px;
+    }
+    .ca-section ms-textfield,
+    .ca-section ha-entity-picker,
+    .ca-section ha-service-picker,
+    .ca-section ha-form,
+    .ca-section .qc-feedback {
+      width: 100%;
+      margin-top: 8px;
+      display: block;
+    }
+    .ca-section .qc-feedback {
+      padding: 8px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+    }
+    .ca-test-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .ca-test-ok { color: var(--success-color, #4caf50); font-size: 13px; }
+    .ca-test-error { color: var(--error-color, #f44336); font-size: 13px; font-weight: 500; }
+    .ca-test-error-block { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+    .ca-test-error-detail {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      background: rgba(244, 67, 54, 0.08);
+      padding: 6px 8px; border-radius: 4px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 350px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    @media (max-width: 600px) {
+      .content {
+        min-width: 0;
+        max-height: none;
+      }
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
+    }
+    ms-textfield {
+      display: block;
+    }
+    .field-label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .checklist-textarea {
+      width: 100%;
+      min-height: 88px;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .consumes-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 0;
+    }
+    .phase-def {
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 8px;
+      margin: 6px 0;
+    }
+    .phase-def-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .phase-def-head ms-textfield {
+      flex: 1;
+      min-width: 0;
+    }
+    .phase-part {
+      max-width: 160px;
+      padding: 6px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+    }
+    .phase-qty {
+      width: 64px;
+      padding: 6px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+    }
+    .phase-checklist {
+      min-height: 56px;
+      margin-top: 6px;
+    }
+    .phase-req-toggle {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .phase-req-fields {
+      margin: 2px 0 0 22px;
+      font-size: 13px;
+    }
+    .phase-remove {
+      --mdc-icon-button-size: 36px;
+      color: var(--secondary-text-color);
+    }
+    .phase-seq-label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      margin-top: 8px;
+    }
+    .phase-seq {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+    }
+    .phase-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--secondary-background-color);
+      font-size: 13px;
+    }
+    .phase-chip-x {
+      border: none;
+      background: none;
+      color: var(--secondary-text-color);
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 12px;
+    }
+    .phase-seq-add {
+      padding: 4px 8px;
+      border: 1px dashed var(--divider-color);
+      border-radius: 12px;
+      background: transparent;
+      color: var(--secondary-text-color);
+      font-size: 13px;
+    }
+    .consumes-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+    .consumes-qty {
+      width: 64px;
+      padding: 4px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+    }
+    /* #111: other objects' pools sit behind a disclosure so the object's OWN
+       parts stay the primary list; each group is headed by the owning object's
+       name, so which pool a checkbox means is never a guess. */
+    .shared-pools {
+      margin-top: 6px;
+    }
+    .shared-pools > summary {
+      cursor: pointer;
+      padding: 2px 0;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .shared-pool-owner {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--secondary-text-color);
+    }
+    .field-help {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .baseline-effective {
+      margin-top: 2px;
+      font-weight: 500;
+      color: var(--primary-text-color);
+    }
+    /* Live computed trigger hint — reads the bound sensor and explains what
+       happens next. Info-accented so it reads as guidance, not an error. */
+    .trigger-live-hint {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      border-left: 3px solid var(--info-color, #2196f3);
+      background: rgba(33, 150, 243, 0.08);
+      border-radius: 0 6px 6px 0;
+      padding: 6px 10px;
+      margin: 4px 0;
+    }
+    .trigger-live-hint.warn {
+      color: var(--primary-text-color);
+      border-left-color: var(--warning-color, #ff9800);
+      background: rgba(255, 152, 0, 0.1);
+    }
+    .field-help a,
+    .link-button {
+      background: none;
+      border: 0;
+      padding: 0;
+      color: var(--primary-color);
+      cursor: pointer;
+      font: inherit;
+      text-decoration: underline;
+    }
+    .field-help a:hover,
+    .link-button:hover {
+      text-decoration: none;
+    }
+    /* Smaller refresh icon-button when shown next to the dropdown. */
+    .select-row .link-button {
+      margin-left: 8px;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    .select-row .link-button:hover {
+      color: var(--primary-color);
+      opacity: 0.7;
+    }
+    h3 {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: var(--primary-color);
+    }
+    .select-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .assignee-pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin-top: 4px;
+    }
+    .checkbox-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      margin: 2px 0;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .pool-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pool-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .select-row label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .select-row select {
+      padding: 8px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 14px;
+    }
+    .field-label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .weekday-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .weekday-chip {
+      padding: 6px 12px;
+      border: 1px solid var(--divider-color);
+      border-radius: 16px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .weekday-chip.selected {
+      background: var(--primary-color, #03a9f4);
+      color: var(--text-primary-color, #fff);
+      border-color: var(--primary-color, #03a9f4);
+    }
+    .season-chip {
+      padding: 6px 10px;
+      border: 1px solid var(--divider-color);
+      border-radius: 16px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .season-chip.selected {
+      background: var(--primary-color, #03a9f4);
+      color: var(--text-primary-color, #fff);
+      border-color: var(--primary-color, #03a9f4);
+    }
+    .error {
+      color: var(--error-color, #f44336);
+      font-size: 13px;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  `,o([g({attribute:!1})],m.prototype,"hass",2),o([g({type:Boolean,attribute:"checklists-enabled"})],m.prototype,"checklistsEnabled",2),o([g({type:Boolean,attribute:"schedule-time-enabled"})],m.prototype,"scheduleTimeEnabled",2),o([g({type:Boolean,attribute:"completion-actions-enabled"})],m.prototype,"completionActionsEnabled",2),o([g({type:Number,attribute:"default-warning-days"})],m.prototype,"defaultWarningDays",2),o([d()],m.prototype,"parts",2),o([d()],m.prototype,"_foreignOwners",2),o([d()],m.prototype,"_open",2),o([d()],m.prototype,"_entityPickerFallback",2),o([d()],m.prototype,"_loading",2),o([d()],m.prototype,"_error",2),o([d()],m.prototype,"_entryId",2),o([d()],m.prototype,"_taskId",2),o([d()],m.prototype,"_objectChoices",2),o([d()],m.prototype,"_name",2),o([d()],m.prototype,"_type",2),o([d()],m.prototype,"_scheduleType",2),o([d()],m.prototype,"_intervalDays",2),o([d()],m.prototype,"_intervalUnit",2),o([d()],m.prototype,"_dueDate",2),o([d()],m.prototype,"_warningDays",2),o([d()],m.prototype,"_earliestCompletionDays",2),o([d()],m.prototype,"_intervalAnchor",2),o([d()],m.prototype,"_weekdays",2),o([d()],m.prototype,"_nth",2),o([d()],m.prototype,"_nthWeekday",2),o([d()],m.prototype,"_domDay",2),o([d()],m.prototype,"_domLastDay",2),o([d()],m.prototype,"_domBusiness",2),o([d()],m.prototype,"_calOffset",2),o([d()],m.prototype,"_seasonMonths",2),o([d()],m.prototype,"_endsMode",2),o([d()],m.prototype,"_endsCount",2),o([d()],m.prototype,"_endsUntil",2),o([d()],m.prototype,"_schedulePreview",2),o([d()],m.prototype,"_schedulePreviewEnded",2),o([d()],m.prototype,"_notes",2),o([d()],m.prototype,"_documentationUrl",2),o([d()],m.prototype,"_customIcon",2),o([d()],m.prototype,"_priority",2),o([d()],m.prototype,"_labels",2),o([d()],m.prototype,"_enabled",2),o([d()],m.prototype,"_triggerEntityId",2),o([d()],m.prototype,"_triggerEntityIds",2),o([d()],m.prototype,"_triggerEntityLogic",2),o([d()],m.prototype,"_triggerAttribute",2),o([d()],m.prototype,"_triggerType",2),o([d()],m.prototype,"_triggerAbove",2),o([d()],m.prototype,"_triggerBelow",2),o([d()],m.prototype,"_triggerEquals",2),o([d()],m.prototype,"_triggerNotEquals",2),o([d()],m.prototype,"_triggerForMinutes",2),o([d()],m.prototype,"_triggerCombinator",2),o([d()],m.prototype,"_triggerTargetValue",2),o([d()],m.prototype,"_triggerDeltaMode",2),o([d()],m.prototype,"_triggerBaselineValue",2),o([d()],m.prototype,"_liveBaselineValue",2),o([d()],m.prototype,"_autoCompleteOnRecovery",2),o([d()],m.prototype,"_triggerFromState",2),o([d()],m.prototype,"_triggerToState",2),o([d()],m.prototype,"_triggerTargetChanges",2),o([d()],m.prototype,"_triggerRuntimeHours",2),o([d()],m.prototype,"_triggerRuntimeMaxSession",2),o([d()],m.prototype,"_triggerOnStates",2),o([d()],m.prototype,"_compoundLogic",2),o([d()],m.prototype,"_compoundConditions",2),o([d()],m.prototype,"_suggestedAttributes",2),o([d()],m.prototype,"_availableAttributes",2),o([d()],m.prototype,"_entityDomain",2),o([d()],m.prototype,"_lastPerformed",2),o([d()],m.prototype,"_nfcTagId",2),o([d()],m.prototype,"_requireTagScan",2),o([d()],m.prototype,"_allowSkip",2),o([d()],m.prototype,"_readingUnit",2),o([d()],m.prototype,"_consumesParts",2),o([d()],m.prototype,"_partsLoadFailed",2),o([d()],m.prototype,"_availableTags",2),o([d()],m.prototype,"_responsibleUserId",2),o([d()],m.prototype,"_assigneePool",2),o([d()],m.prototype,"_rotationStrategy",2),o([d()],m.prototype,"_availableUsers",2),o([d()],m.prototype,"_checklistText",2),o([d()],m.prototype,"_phaseDefs",2),o([d()],m.prototype,"_phaseSeq",2),o([d()],m.prototype,"_requiredCompletion",2),o([d()],m.prototype,"_scheduleTime",2),o([d()],m.prototype,"_actionService",2),o([d()],m.prototype,"_actionTargetEntity",2),o([d()],m.prototype,"_actionData",2),o([d()],m.prototype,"_actionDataJsonFallback",2),o([d()],m.prototype,"_actionTesting",2),o([d()],m.prototype,"_actionTestResult",2),o([d()],m.prototype,"_actionTestError",2),o([d()],m.prototype,"_qcNotes",2),o([d()],m.prototype,"_qcCost",2),o([d()],m.prototype,"_qcDuration",2),o([d()],m.prototype,"_qcFeedback",2),o([d()],m.prototype,"_environmentalEntity",2),o([d()],m.prototype,"_environmentalAttribute",2),o([d()],m.prototype,"_adaptiveEnabled",2),o([d()],m.prototype,"_adaptiveAlpha",2),o([d()],m.prototype,"_adaptiveMin",2),o([d()],m.prototype,"_adaptiveMax",2),o([d()],m.prototype,"_adaptiveSeasonal",2),o([d()],m.prototype,"_adaptivePrediction",2),o([d()],m.prototype,"_conditionAttrOptions",2);var rt=m;customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",rt);var b=class extends S{constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this.taskType="";this.readingUnit="";this.restockDefault=null;this.restockUnitCost=null;this.currencySymbol="";this.parts=[];this.consumesParts=[];this.consumesInfo=[];this.requiredFields=[];this.phaseLabel="";this.requireTagScan=!1;this.viaTagScan=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1;this._readingValue="";this._restockQty="";this._completedAt="";this._usedParts={};this.checklistPrefill={}}open(t={}){this._open||(this._open=!0,this.viaTagScan=!!t.viaTagScan,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState=Object.fromEntries(this.checklist.map((i,e)=>[String(e),!!this.checklistPrefill[i]]).filter(([,i])=>i)),this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1,this._readingValue="",this._restockQty=this.restockDefault!==null?String(this.restockDefault):"",this._completedAt="",this._usedParts=Object.fromEntries(this.consumesParts.map(i=>[N(i),{...i}])))}_toggleCheck(t){let i=String(t);this._checklistState={...this._checklistState,[i]:!this._checklistState[i]}}_setFeedback(t){this._feedback=t}async _onPhotoInput(t){let i=t.target,e=i.files?.[0];if(i.value="",!!e){this._photoUploading=!0,this._error="";try{let r=new FormData;r.append("entry_id",this.entryId),r.append("tags","photo"),r.append("file",e,e.name);let h=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:r});if(!h.ok){this._error=h.status===413?s("doc_too_large",this.lang):s("doc_upload_failed",this.lang);return}let c=await h.json();c.id&&(this._photoDocId=c.id,this._photoPreview=URL.createObjectURL(e))}catch{this._error=s("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let t={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(t.notes=this._notes),this._cost){let i=parseFloat(this._cost);!isNaN(i)&&i>=0&&(t.cost=i)}if(this._duration){let i=parseInt(this._duration,10);!isNaN(i)&&i>=0&&(t.duration=i)}if(this.checklist.length>0&&(t.checklist_state=this._checklistState),this.adaptiveEnabled&&(t.feedback=this._feedback),this._photoDocId&&(t.photo_doc_id=this._photoDocId),this.viaTagScan&&(t.via_tag_scan=!0),this._completedAt){if(new Date(this._completedAt).getTime()>Date.now()){this._error=s("completed_at_future_error",this.lang),this._loading=!1;return}t.completed_at=this._completedAt.length===16?`${this._completedAt}:00`:this._completedAt}if(this._readingValue!==""){let i=parseFloat(this._readingValue);isNaN(i)||(t.reading_value=i)}if(this.restockDefault!==null&&this._restockQty!==""){let i=parseFloat(this._restockQty);!isNaN(i)&&i>=1&&(t.restock_quantity=i)}this.parts.length>0&&(t.used_parts=Object.values(this._usedParts).filter(i=>Number.isFinite(i.quantity)&&i.quantity>0).map(i=>i.entry_id?{part_id:i.part_id,quantity:i.quantity,entry_id:i.entry_id}:{part_id:i.part_id,quantity:i.quantity})),await this.hass.connection.sendMessagePromise(t),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(t){this._error=T(t,this.lang,s("save_error",this.lang))}finally{this._loading=!1}}get _missingRequired(){let t={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photoDocId!=="",user:!!this.hass?.user};return this.requiredFields.filter(i=>!t[i])}_req(t){return this.requiredFields.includes(t)?n`<span class="req-mark" aria-hidden="true">*</span>`:_}_partsCostSuggestion(){if(this.restockDefault!==null){let e=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(e)||e<=0?null:Math.round(this.restockUnitCost*e*100)/100}if(!this.parts.length)return null;let t=0,i=!1;for(let e of Object.values(this._usedParts)){let r=this.parts.find(h=>N({part_id:h.id,entry_id:h.entry_id})===N(e));r?.cost!=null&&(t+=r.cost*(e.quantity||1),i=!0)}return i?Math.round(t*100)/100:null}_renderCostSuggestion(t){if(this._cost.trim()!=="")return _;let i=this._partsCostSuggestion();if(i==null||i<=0)return _;let e=`${i.toFixed(2)}${this.currencySymbol?` ${this.currencySymbol}`:""}`;return n`<button
+      type="button"
+      class="cost-suggestion"
+      @click=${()=>this._cost=i.toFixed(2)}
+    >${s("cost_from_parts",t).replace("{amount}",e)}</button>`}_close(){this._open=!1}_pickCompletedAt(){let t=new Date,i=e=>String(e).padStart(2,"0");this._completedAt=`${t.getFullYear()}-${i(t.getMonth()+1)}-${i(t.getDate())}T${i(t.getHours())}:${i(t.getMinutes())}:00`}render(){if(!this._open)return n``;let t=this.lang||this.hass?.language||"en";return n`
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${s("complete_title",t)}${this.taskName}</div>
+        ${this.phaseLabel?n`<div class="phase-line">${s("phase_current",t)}: ${this.phaseLabel}</div>`:_}
+        ${this.requireTagScan&&!this.viaTagScan?n`<div class="scan-required-note">${s("require_tag_scan_hint",t)}</div>`:_}
+        <div class="content">
+          ${this._error?n`<div class="error">${this._error}</div>`:_}
+          ${this.checklist.length>0?n`
+            <div class="checklist-section">
+              <label class="checklist-label">${s("checklist",t)}</label>
+              ${this.checklist.map((i,e)=>n`
+                <label class="checklist-item" @click=${()=>this._toggleCheck(e)}>
+                  <input type="checkbox" .checked=${!!this._checklistState[String(e)]} />
+                  <span>${i}</span>
+                </label>
+              `)}
+            </div>
+          `:_}
+          ${this.taskType==="reading"?n`
+              <label class="field">
+                <span class="field-label">${s("reading_value_label",t)}${this.readingUnit?` (${this.readingUnit})`:""}</span>
+                <input type="number" step="any" class="field-input"
+                  .value=${this._readingValue}
+                  @input=${i=>this._readingValue=i.target.value} />
+              </label>`:_}
+          ${this.parts.length?n`<div class="used-parts">
+                <span class="field-label">${s("complete_parts_used",t)}</span>
+                ${this.parts.map(i=>{let e=N({part_id:i.id,entry_id:i.entry_id}),r=this._usedParts[e],h=r!==void 0,c=i.entry_id?{part_id:i.id,quantity:1,entry_id:i.entry_id}:{part_id:i.id,quantity:1};return n`<div class="used-part-row">
+                    <label class="used-part-check">
+                      <input type="checkbox" .checked=${h}
+                        @change=${u=>{let p={...this._usedParts};u.target.checked?p[e]=p[e]||c:delete p[e],this._usedParts=p}} />
+                      <span
+                        >${i.name}${i.owner_name?n`<span class="used-part-owner"> (${i.owner_name})</span>`:_}${i.stock!==null&&i.stock!==void 0?` (${i.stock}${i.unit?" "+i.unit:""})`:""}</span
+                      >
+                    </label>
+                    ${h?n`<input class="used-part-qty" type="number" min="0.01" max="999" step="0.01"
+                          .value=${String(r.quantity)}
+                          @input=${u=>{let p=parseFloat(u.target.value);this._usedParts={...this._usedParts,[e]:{...c,quantity:Number.isFinite(p)&&p>=.01?p:1}}}} />`:_}
+                  </div>`})}
+              </div>`:this.consumesInfo.length?n`<div class="consumes-hint">
+                  ${this.consumesInfo.map(i=>n`<div>${i}</div>`)}
+                </div>`:_}
+          ${this.restockDefault!==null?n`
+              <label class="field">
+                <span class="field-label">${s("restock_quantity_label",t)}</span>
+                <input type="number" step="0.01" min="0.01" class="field-input"
+                  .value=${this._restockQty}
+                  @input=${i=>this._restockQty=i.target.value} />
+              </label>`:_}
+          <!-- Native <input>s rather than <ha-textfield>: when this dialog
+               is opened from a Lovelace card via dialog-mount, ha-textfield
+               isn't yet registered (HA loads it lazily when its own panels
+               need it) so the elements render with zero height and the user
+               only sees the title + Cancel/Complete buttons — the original
+               bug report. Native inputs always render. -->
+          <label class="field">
+            <span class="field-label">${s("notes_optional",t)}${this._req("notes")}</span>
+            <input type="text" class="field-input"
+              .value=${this._notes}
+              @input=${i=>this._notes=i.target.value} />
+          </label>
+          <label class="field">
+            <span class="field-label">${s("cost_optional",t)}${this._req("cost")}</span>
+            <input type="number" step="0.01" min="0" class="field-input"
+              .value=${this._cost}
+              @input=${i=>this._cost=i.target.value} />
+            ${this._renderCostSuggestion(t)}
+          </label>
+          <label class="field">
+            <span class="field-label">${s("duration_minutes",t)}${this._req("duration")}</span>
+            <input type="number" step="0.01" min="0" class="field-input"
+              .value=${this._duration}
+              @input=${i=>this._duration=i.target.value} />
+          </label>
+          <div class="field">
+            <span class="field-label">${s("completed_at_optional",t)}</span>
+            ${this._completedAt?n`<ms-date-field
+                  kind="datetime"
+                  clearable
+                  .hass=${this.hass}
+                  .lang=${t}
+                  .value=${this._completedAt}
+                  @value-changed=${i=>this._completedAt=i.detail.value}
+                ></ms-date-field>`:n`<button type="button" class="backdate-pick" @click=${this._pickCompletedAt}>
+                  <ha-icon icon="mdi:calendar-clock"></ha-icon>${s("completed_at_pick",t)}
+                </button>`}
+          </div>
+          <div class="field">
+            <span class="field-label">${s("completion_photo_optional",t)}${this._req("photo")}</span>
+            ${this._photoPreview?n`
+                <div class="photo-preview">
+                  <img src=${this._photoPreview} alt="" />
+                  <button type="button" class="photo-remove" @click=${this._removePhoto}
+                    title="${s("remove",t)}">✕</button>
+                </div>`:n`
+                <label class="photo-pick">
+                  <ha-icon icon="mdi:camera"></ha-icon>
+                  <span>${this._photoUploading?s("uploading",t):s("add_photo",t)}</span>
+                  <input type="file" accept="image/*" capture="environment"
+                    ?disabled=${this._photoUploading}
+                    @change=${this._onPhotoInput} />
+                </label>`}
+          </div>
+          ${this.adaptiveEnabled?n`
+            <div class="feedback-section">
+              <label class="feedback-label">${s("was_maintenance_needed",t)}</label>
+              <div class="feedback-buttons">
+                <button
+                  class="feedback-btn ${this._feedback==="needed"?"selected":""}"
+                  @click=${()=>this._setFeedback("needed")}
+                >${s("feedback_needed",t)}</button>
+                <button
+                  class="feedback-btn ${this._feedback==="not_needed"?"selected":""}"
+                  @click=${()=>this._setFeedback("not_needed")}
+                >${s("feedback_not_needed",t)}</button>
+                <button
+                  class="feedback-btn ${this._feedback==="not_sure"?"selected":""}"
+                  @click=${()=>this._setFeedback("not_sure")}
+                >${s("feedback_not_sure",t)}</button>
+              </div>
+            </div>
+          `:_}
+        </div>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${s("cancel",t)}
+          </ha-button>
+          <ha-button
+            @click=${this._complete}
+            .disabled=${this._loading||this._missingRequired.length>0}
+            title=${this._missingRequired.length?this._missingRequired.map(i=>s("err_required",t).replace("{field}",s(Y[i]??i,t))).join(" \xB7 "):""}
+          >
+            ${this._loading?s("completing",t):s("complete",t)}
+          </ha-button>
+        </div>
+      </ha-dialog>
+    `}};b.styles=[vt,I`
+    .req-mark {
+      color: var(--error-color, #f44336);
+      margin-left: 2px;
+      font-weight: 600;
+    }
+    /* #104: one-click cost suggestion from parts — quiet link-style chip. */
+    .cost-suggestion {
+      align-self: flex-start;
+      margin-top: 4px;
+      padding: 0;
+      border: none;
+      background: none;
+      color: var(--primary-color);
+      font-size: 12.5px;
+      cursor: pointer;
+      text-decoration: underline dotted;
+      text-underline-offset: 2px;
+    }
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
+    .scan-required-note {
+      margin: -4px 0 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(255, 152, 0, 0.12);
+      color: var(--primary-text-color);
+      font-size: 13px;
+    }
+    .phase-line {
+      margin-top: -8px;
+      padding-bottom: 12px;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 300px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
+    }
+    .consumes-hint {
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      border-left: 3px solid var(--primary-color);
+      padding: 4px 8px;
+      margin: 4px 0 8px;
+    }
+    /* #99: editable per-completion parts selection */
+    .used-parts { margin: 4px 0 8px; display: flex; flex-direction: column; gap: 4px; }
+    .used-part-row { display: flex; align-items: center; gap: 8px; }
+    .used-part-check {
+      display: flex; align-items: center; gap: 6px; flex: 1;
+      font-size: 13px; cursor: pointer;
+    }
+    .used-part-check input { cursor: pointer; }
+    /* #111: whose stock this row draws on. Muted but never omitted — an
+       unlabelled foreign pool is indistinguishable from an own part. */
+    .used-part-owner { color: var(--secondary-text-color); }
+    .used-part-qty {
+      width: 76px; padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 13px;
+      border: 1px solid var(--divider-color);
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+    }
+    .error {
+      color: var(--error-color, #f44336);
+      font-size: 13px;
+    }
+    /* .field/.field-label/.field-input come from nativeFieldStyles */
+    .photo-pick {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px dashed var(--divider-color);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      width: fit-content;
+    }
+    .photo-pick:hover { border-color: var(--primary-color); }
+    /* #163: the backdate moment starts EMPTY (= now); the button seeds the
+       HA date+time picker with the current minute instead of the picker's
+       own 00:00 default, so a backdated completion never lands at midnight
+       by accident. */
+    .backdate-pick {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px dashed var(--divider-color);
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      width: fit-content;
+      --mdc-icon-size: 18px;
+    }
+    .backdate-pick:hover { border-color: var(--primary-color); }
+    .photo-pick input[type="file"] { display: none; }
+    .photo-preview {
+      position: relative;
+      width: fit-content;
+    }
+    .photo-preview img {
+      max-width: 160px;
+      max-height: 160px;
+      border-radius: 8px;
+      display: block;
+    }
+    .photo-remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      background: var(--error-color, #db4437);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .checklist-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--divider-color);
+      margin-bottom: 4px;
+    }
+    .checklist-label {
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+    .checklist-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .feedback-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 0;
+      border-top: 1px solid var(--divider-color);
+    }
+    .feedback-label {
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .feedback-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .feedback-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--divider-color);
+      border-radius: 8px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .feedback-btn:hover {
+      background: var(--secondary-background-color, #f5f5f5);
+    }
+    .feedback-btn.selected {
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+      border-color: var(--primary-color);
+    }
+  `],o([g({attribute:!1})],b.prototype,"hass",2),o([g()],b.prototype,"entryId",2),o([g()],b.prototype,"taskId",2),o([g()],b.prototype,"taskName",2),o([g()],b.prototype,"lang",2),o([g({type:Array})],b.prototype,"checklist",2),o([g({type:Boolean})],b.prototype,"adaptiveEnabled",2),o([g()],b.prototype,"taskType",2),o([g()],b.prototype,"readingUnit",2),o([g({attribute:!1})],b.prototype,"restockDefault",2),o([g({attribute:!1})],b.prototype,"restockUnitCost",2),o([g()],b.prototype,"currencySymbol",2),o([g({attribute:!1})],b.prototype,"parts",2),o([g({attribute:!1})],b.prototype,"consumesParts",2),o([g({type:Array})],b.prototype,"consumesInfo",2),o([g({type:Array})],b.prototype,"requiredFields",2),o([g()],b.prototype,"phaseLabel",2),o([g({type:Boolean})],b.prototype,"requireTagScan",2),o([g({type:Boolean})],b.prototype,"viaTagScan",2),o([d()],b.prototype,"_open",2),o([d()],b.prototype,"_notes",2),o([d()],b.prototype,"_cost",2),o([d()],b.prototype,"_duration",2),o([d()],b.prototype,"_loading",2),o([d()],b.prototype,"_error",2),o([d()],b.prototype,"_checklistState",2),o([d()],b.prototype,"_feedback",2),o([d()],b.prototype,"_photoDocId",2),o([d()],b.prototype,"_photoPreview",2),o([d()],b.prototype,"_photoUploading",2),o([d()],b.prototype,"_readingValue",2),o([d()],b.prototype,"_restockQty",2),o([d()],b.prototype,"_completedAt",2),o([d()],b.prototype,"_usedParts",2),o([g({attribute:!1})],b.prototype,"checklistPrefill",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",b);var C=class extends S{constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null;this._partOptions=null;this._partQty={};this._partQtyOriginal=""}get _lang(){return A(this.hass)}openEdit(t){this._draft={...t},this._originalSnapshot={...t},this._error="",this._open=!0,this._partOptions=null,this._partQty={},this._partQtyOriginal="",this._loadPartOptions()}async _loadPartOptions(){let t=this._draft;if(t)try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/parts/overview"}),e=[];for(let h of i.parts||[]){let c=h.entry_id===t.entry_id,u=h.consumers.some(p=>p.entry_id===t.entry_id&&p.task_id===t.task_id);!c&&!u||e.push({part_id:h.part_id,name:h.name,entry_id:h.entry_id,foreign:!c,object_name:h.object_name})}for(let h of t.used_parts||[]){let c=h.entry_id||t.entry_id;e.some(u=>u.part_id===h.part_id&&u.entry_id===c)||e.push({part_id:h.part_id,name:h.name||h.part_id,entry_id:c,foreign:c!==t.entry_id,object_name:null})}let r={};for(let h of t.used_parts||[])r[`${h.entry_id||t.entry_id}:${h.part_id}`]=h.quantity??1;this._partOptions=e,this._partQty=r,this._partQtyOriginal=this._partSelectionKey()}catch{this._partOptions=[]}}_partSelectionKey(){return JSON.stringify(Object.entries(this._partQty).filter(([,t])=>t>0).sort(([t],[i])=>t.localeCompare(i)))}close(){this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null}_set(t,i){this._draft&&(this._draft={...this._draft,[t]:i})}async _save(){if(!(!this._draft||!this._originalSnapshot)){this._saving=!0,this._error="";try{let t={type:"maintenance_supporter/task/history/update",entry_id:this._draft.entry_id,task_id:this._draft.task_id,original_timestamp:this._originalSnapshot.original_timestamp};if(this._draft.timestamp!==this._originalSnapshot.timestamp&&(t.timestamp=this._draft.timestamp),this._draft.notes!==this._originalSnapshot.notes&&(t.notes=this._draft.notes),this._draft.cost!==this._originalSnapshot.cost&&(t.cost=this._draft.cost),this._draft.duration!==this._originalSnapshot.duration&&(t.duration=this._draft.duration),this._draft.completed_by!==this._originalSnapshot.completed_by&&(t.completed_by=this._draft.completed_by),this._partOptions!==null&&this._partSelectionKey()!==this._partQtyOriginal&&(t.used_parts=(this._partOptions||[]).filter(e=>(this._partQty[`${e.entry_id}:${e.part_id}`]||0)>0).map(e=>({part_id:e.part_id,quantity:this._partQty[`${e.entry_id}:${e.part_id}`],...e.foreign?{entry_id:e.entry_id}:{}}))),Object.keys(t).filter(e=>!["type","entry_id","task_id","original_timestamp"].includes(e)).length===0){this.close();return}await this.hass.connection.sendMessagePromise(t),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:this._draft.entry_id,task_id:this._draft.task_id,new_timestamp:this._draft.timestamp},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=T(t,this._lang)}finally{this._saving=!1}}}render(){if(!this._open||!this._draft)return _;let t=this._lang,i=this._draft;return n`
+      <div class="backdrop" @click=${this.close}></div>
+      <div class="dialog" role="dialog" aria-modal="true">
+        <h2>${s("history_edit_title",t)||"Edit history entry"}</h2>
+        <div class="entry-type">
+          <ha-icon icon="mdi:tag-outline"></ha-icon>
+          <span>${s(i.type,t)||i.type}</span>
+        </div>
+        <ms-date-field
+          kind="datetime"
+          required
+          .hass=${this.hass}
+          .lang=${t}
+          .label=${s("history_edit_timestamp",t)||"Timestamp"}
+          .value=${i.timestamp.slice(0,19)}
+          @value-changed=${e=>{let r=e.detail.value;r&&this._set("timestamp",r)}}
+        ></ms-date-field>
+        <label>
+          <span>${s("notes_label",t)}</span>
+          <textarea
+            rows="3"
+            @input=${e=>{let r=e.target.value;this._set("notes",r||null)}}
+            .value=${i.notes??""}></textarea>
+        </label>
+        <div class="row">
+          <label>
+            <span>${s("cost",t)||"Cost"}</span>
+            <input type="number" min="0" step="0.01"
+              .value=${i.cost!=null?String(i.cost):""}
+              @input=${e=>{let r=e.target.value;this._set("cost",r?Number(r):null)}} />
+          </label>
+          <label>
+            <span>${s("duration",t)||"Duration (min)"}</span>
+            <input type="number" min="0"
+              .value=${i.duration!=null?String(i.duration):""}
+              @input=${e=>{let r=e.target.value;this._set("duration",r?Number(r):null)}} />
+          </label>
+        </div>
+        ${this._partOptions&&this._partOptions.length>0?n`
+          <div class="parts-block">
+            <span class="parts-title">${s("complete_parts_used",t)}</span>
+            ${this._partOptions.map(e=>{let r=`${e.entry_id}:${e.part_id}`,h=this._partQty[r]||0;return n`
+                <label class="part-row-edit">
+                  <input type="checkbox" .checked=${h>0}
+                    @change=${c=>{let u=c.target.checked;this._partQty={...this._partQty,[r]:u?1:0}}} />
+                  <span class="part-label">${e.name}${e.foreign&&e.object_name?` (${e.object_name})`:""}</span>
+                  ${h>0?n`
+                    <input class="part-qty" type="number" min="0.01" max="999" step="0.01"
+                      .value=${String(h)}
+                      @input=${c=>{let u=parseFloat(c.target.value);!isNaN(u)&&u>0&&(this._partQty={...this._partQty,[r]:u})}} />
+                  `:_}
+                </label>
+              `})}
+          </div>
+        `:_}
+        ${this._error?n`<div class="error">${this._error}</div>`:_}
+        <div class="actions">
+          <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
+            ${s("cancel",t)||"Cancel"}
+          </button>
+          <button class="save" @click=${this._save} ?disabled=${this._saving}>
+            ${this._saving?s("saving",t)||"Saving\u2026":s("save",t)||"Save"}
+          </button>
+        </div>
+      </div>
+    `}};C.styles=I`
+    :host { display: contents; }
+    .backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+    .dialog {
+      position: fixed; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 95vw; max-width: 480px;
+      background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
+      color: var(--primary-text-color);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 12px;
+      z-index: 101;
+      max-height: 90vh; overflow: auto;
+    }
+    h2 { margin: 0; font-size: 18px; }
+    .entry-type {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--secondary-text-color); font-size: 13px;
+    }
+    label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+    label span { color: var(--secondary-text-color); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    input, textarea {
+      padding: 8px; font-size: 14px;
+      background: var(--secondary-background-color, #2c2c2c);
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color, #444);
+      border-radius: 6px;
+      width: 100%; box-sizing: border-box;
+      font-family: inherit;
+    }
+    .actions {
+      display: flex; gap: 8px; justify-content: flex-end;
+      margin-top: 8px;
+    }
+    button {
+      padding: 8px 16px; font-size: 14px;
+      border-radius: 6px; cursor: pointer;
+      border: none; font-weight: 500;
+    }
+    button.cancel {
+      background: transparent;
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color);
+    }
+    button.save {
+      background: var(--primary-color);
+      color: var(--text-primary-color, white);
+    }
+    button[disabled] { opacity: 0.5; cursor: wait; }
+    .error {
+      color: var(--error-color, #d32f2f);
+      font-size: 13px; padding: 8px;
+      background: rgba(211,47,47,0.1);
+      border-radius: 6px;
+    }
+    /* #130: parts on the entry */
+    .parts-block {
+      display: flex; flex-direction: column; gap: 6px;
+      border: 1px solid var(--divider-color, #444);
+      border-radius: 6px; padding: 8px;
+    }
+    .parts-title { color: var(--secondary-text-color); font-size: 13px; }
+    .part-row-edit {
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
+      font-size: 14px;
+    }
+    .part-row-edit input[type="checkbox"] { width: auto; }
+    .part-label { flex: 1; color: var(--primary-text-color); }
+    .part-qty { width: 76px; }
+  `,o([g({attribute:!1})],C.prototype,"hass",2),o([d()],C.prototype,"_open",2),o([d()],C.prototype,"_saving",2),o([d()],C.prototype,"_error",2),o([d()],C.prototype,"_draft",2),o([d()],C.prototype,"_partOptions",2),o([d()],C.prototype,"_partQty",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",C);function Et(a,l,t){let i=new Blob([a],{type:t}),e=URL.createObjectURL(i),r=document.createElement("a");r.href=e,r.download=l,r.target="_blank",r.rel="noopener",r.style.display="none",document.body.appendChild(r),r.dispatchEvent(new MouseEvent("click")),document.body.removeChild(r),setTimeout(()=>URL.revokeObjectURL(e),6e4)}function K(a){return a.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function It(a){return!a.startsWith("data:image/svg+xml,")&&!a.startsWith("data:image/png;base64,")?"":K(a)}function ee(a){return a.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var P=class extends S{constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(t,i){this._entryId=t,this._taskId=null,this._objectName=i,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(t,i,e,r){this._entryId=t,this._taskId=i,this._objectName=e,this._taskName=r,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let t=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let i={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(i.task_id=this._taskId);let e=[this.hass.connection.sendMessagePromise({...i,action:"view"})];this._taskId&&e.push(this.hass.connection.sendMessagePromise({...i,action:"complete"}));let r=await Promise.all(e);if(t!==this._generateSeq)return;this._viewResult=r[0],r.length>1&&(this._completeResult=r[1])}catch(i){if(t!==this._generateSeq)return;let e=i?.code,r=i?.message;this._error=e==="no_url"||typeof r=="string"&&r.includes("No Home Assistant URL")?s("qr_error_no_url",this.lang):s("qr_error",this.lang)}finally{t===this._generateSeq&&(this._loading=!1)}}_setUrlMode(t){this._urlMode!==t&&(this._urlMode=t,this._generate())}_print(){if(!this._viewResult)return;let t=this._viewResult,i=t.label.task_name?`${t.label.object_name} \u2014 ${t.label.task_name}`:t.label.object_name,e=[t.label.manufacturer,t.label.model].filter(Boolean).join(" "),r=window.open("","_blank","width=600,height=500");if(!r)return;let h=this.lang||"en",c=K(i),u=K(e),p=!!this._completeResult,v=K(s("qr_action_view",h)),y=K(s("qr_action_complete",h));r.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>${c}</title>
+<style>
+  /* Printable sheet \u2014 must not inherit the phone's dark theme. The QR images
+     carry their own white quiet zone and stay scannable either way, but the
+     labels below are explicit dark greys and would vanish on a WebView's dark
+     canvas. Same reasoning as helpers/report.ts. */
+  :root{color-scheme:light}
+  body{font-family:sans-serif;text-align:center;padding:20px;background:#fff;color:#1a1a1a}
+  h2{margin:0 0 4px}
+  .sub{color:#666;font-size:14px;margin-bottom:16px}
+  .qr-row{display:flex;justify-content:center;gap:24px;margin:12px 0}
+  .qr-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .qr-col img{width:${p?"200px":"280px"}}
+  .qr-label{font-size:13px;font-weight:500;color:#333}
+  .url{font-size:10px;color:#999;word-break:break-all;margin-top:8px;max-width:480px}
+</style></head><body>
+<h2>${c}</h2>
+${u?`<div class="sub">${u}</div>`:""}
+<div class="qr-row">
+  <div class="qr-col">
+    <img src="${It(this._viewResult.svg_data_uri)}" alt="QR Info" />
+    <div class="qr-label">${v}</div>
+  </div>
+  ${p?`<div class="qr-col">
+    <img src="${It(this._completeResult.svg_data_uri)}" alt="QR Complete" />
+    <div class="qr-label">${y}</div>
+  </div>`:""}
+</div>
+<div class="url">${K(this._viewResult.url)}</div>
+<script>setTimeout(()=>window.print(),300)<\/script>
+</body></html>`),r.document.close()}_downloadSvg(t,i){let e=decodeURIComponent(t.svg_data_uri.replace("data:image/svg+xml,","")),r=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;Et(e,`qr-${ee(r)}-${i}.svg`,"image/svg+xml")}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return n``;let t=this.lang||this.hass?.language||"en",i=this._taskName?`${s("qr_code",t)}: ${this._objectName} \u2014 ${this._taskName}`:`${s("qr_code",t)}: ${this._objectName}`,e=!!this._viewResult;return n`
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${i}</div>
+        <div class="content">
+          ${this._loading?n`<div class="loading">${s("qr_generating",t)}</div>`:this._error?n`<div class="error">${this._error}</div>`:e?n`
+                    <div class="qr-pair">
+                      <div class="qr-item">
+                        <img
+                          class="qr-image ${this._completeResult?"small":""}"
+                          src="${this._viewResult.svg_data_uri}"
+                          alt="QR Info"
+                        />
+                        <div class="qr-item-label">${s("qr_action_view",t)}</div>
+                        <button class="dl-btn"
+                          @click=${()=>this._downloadSvg(this._viewResult,"info")}>
+                          <ha-icon icon="mdi:download"></ha-icon>
+                          ${s("qr_download",t)}
+                        </button>
+                      </div>
+                      ${this._completeResult?n`
+                            <div class="qr-item">
+                              <img
+                                class="qr-image small"
+                                src="${this._completeResult.svg_data_uri}"
+                                alt="QR Complete"
+                              />
+                              <div class="qr-item-label">${s("qr_action_complete",t)}</div>
+                              <button class="dl-btn"
+                                @click=${()=>this._downloadSvg(this._completeResult,"complete")}>
+                                <ha-icon icon="mdi:download"></ha-icon>
+                                ${s("qr_download",t)}
+                              </button>
+                            </div>
+                          `:_}
+                    </div>
+                    <div class="url-display">${this._viewResult.url}</div>
+                  `:_}
+          <div class="action-row">
+            <label>${s("qr_url_mode",t)}</label>
+            <div class="action-toggle">
+              <button class="toggle-btn ${this._urlMode==="companion"?"active":""}"
+                @click=${()=>this._setUrlMode("companion")}>${s("qr_mode_companion",t)}</button>
+              <button class="toggle-btn ${this._urlMode==="local"?"active":""}"
+                @click=${()=>this._setUrlMode("local")}>${s("qr_mode_local",t)}</button>
+              <button class="toggle-btn ${this._urlMode==="server"?"active":""}"
+                @click=${()=>this._setUrlMode("server")}>${s("qr_mode_server",t)}</button>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${s("cancel",t)}
+          </ha-button>
+          <ha-button
+            @click=${this._print}
+            .disabled=${!e}
+          >
+            ${s("qr_print",t)}
+          </ha-button>
+        </div>
+      </ha-dialog>
+    `}};P.styles=I`
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      min-width: 300px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
+    }
+    .qr-pair {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      width: 100%;
+    }
+    .qr-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .qr-image {
+      width: 240px;
+      height: 240px;
+      image-rendering: pixelated;
+    }
+    .qr-image.small {
+      width: 180px;
+      height: 180px;
+    }
+    .qr-item-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--secondary-text-color);
+      text-align: center;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--divider-color, #e0e0e0);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--primary-text-color);
+      padding: 6px 14px;
+      border-radius: 18px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .dl-btn:hover {
+      background: var(--secondary-background-color, #f5f5f5);
+      border-color: var(--primary-color);
+    }
+    .dl-btn ha-icon {
+      --mdc-icon-size: 18px;
+    }
+    .url-display {
+      font-size: 11px;
+      color: var(--secondary-text-color);
+      word-break: break-all;
+      text-align: center;
+      max-width: 400px;
+    }
+    .loading {
+      padding: 40px 0;
+      color: var(--secondary-text-color);
+    }
+    .error {
+      padding: 20px 0;
+      color: var(--error-color, #f44336);
+    }
+    .action-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+    }
+    .action-row label {
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .action-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--divider-color, #e0e0e0);
+      border-radius: 6px;
+      padding: 3px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--primary-text-color);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 13px;
+      transition: all 0.2s;
+      line-height: 1.3;
+    }
+    .toggle-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    .toggle-btn.active {
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+  `,o([g({attribute:!1})],P.prototype,"hass",2),o([g()],P.prototype,"lang",2),o([d()],P.prototype,"_open",2),o([d()],P.prototype,"_loading",2),o([d()],P.prototype,"_error",2),o([d()],P.prototype,"_viewResult",2),o([d()],P.prototype,"_completeResult",2),o([d()],P.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",P);function St(a){let l=a.getFullYear(),t=String(a.getMonth()+1).padStart(2,"0"),i=String(a.getDate()).padStart(2,"0");return`${l}-${t}-${i}`}function ie(a,l){if(l<=0)return 0;let t=typeof a=="number"&&Number.isFinite(a)?Math.trunc(a):0;return t<0?0:t%l}function se(a){return!!(a?.phases&&a.phase_sequence&&a.phase_sequence.length>0)}function at(a){if(!a||!se(a))return null;let l=a.phase_sequence,t=ie(a.phase_cursor,l.length),i=l[t],e=a.phases?.[i];return e?{id:i,name:e.name,index:t,count:l.length,notes:e.notes,checklist:e.checklist!==void 0?e.checklist:a.checklist??[],consumesParts:e.consumes_parts!==void 0?e.consumes_parts:a.consumes_parts??[],requiredFields:e.required_completion_fields!==void 0?e.required_completion_fields:a.required_completion_fields??[]}:null}function Q(a){let l=at(a);return l?`${l.index+1}/${l.count} \xB7 ${l.name}`:""}function Tt(a){let l=a.task??null,t=l?at(l):null,i=t?t.consumesParts:l?.consumes_parts||[],e=!!l?.part_ref,r=a.objects.find(u=>u.entry_id===a.entryId)?.parts||[],h=e?r.find(u=>u.id===l.part_ref.part_id):void 0,c=a.checklistsEnabled??!0;return{entry_id:a.entryId,task_id:a.taskId,task_name:a.taskName,checklist:t?c?t.checklist:[]:a.checklist??[],adaptive_enabled:!!a.adaptiveEnabled,required_completion_fields:t?t.requiredFields:l?.required_completion_fields||[],task_type:l?.type||"",reading_unit:l?.reading_unit||"",parts:e?[]:$t({consumes_parts:i},a.entryId,a.objects,a.lang),consumes_parts:e?[]:i,phase_label:t?Q(l):"",require_tag_scan:!!l?.require_tag_scan,restock_default:e?h?.restock_quantity??1:null,restock_unit_cost:e?h?.cost??null:null,currency_symbol:a.currencySymbol??"",consumes_info:i.map(u=>yt(u,a.entryId,a.objects,a.lang)),checklist_prefill:l?.checklist_progress||{},via_tag_scan:!!a.viaTagScan}}function At(a,l,t){a.entryId=l.entry_id,a.taskId=l.task_id,a.taskName=l.task_name,a.lang=t,a.checklist=l.checklist??[],a.adaptiveEnabled=!!l.adaptive_enabled,a.requiredFields=l.required_completion_fields??[],a.taskType=l.task_type??"",a.readingUnit=l.reading_unit??"",a.parts=l.parts??[],a.consumesParts=l.consumes_parts??[],a.phaseLabel=l.phase_label??"",a.requireTagScan=!!l.require_tag_scan,a.restockDefault=l.restock_default??null,a.restockUnitCost=l.restock_unit_cost??null,a.currencySymbol=l.currency_symbol??"",a.consumesInfo=l.consumes_info??[],a.checklistPrefill=l.checklist_prefill??{},a.viaTagScan=!!l.via_tag_scan,a.open({viaTagScan:!!l.via_tag_scan})}function Pt(a,l){let t=a.interval_analysis,i=t?.weibull_beta,e=t?.weibull_eta;if(i==null||e==null||e<=0)return _;let r=a.interval_days??0,h=a.suggested_interval??r;return n`
+    <div class="weibull-section">
+      <div class="weibull-title">
+        <ha-svg-icon aria-hidden="true" path="M3,14L3.5,14.07L8.07,9.5C7.89,8.85 8.06,8.11 8.59,7.59C9.37,6.8 10.63,6.8 11.41,7.59C11.94,8.11 12.11,8.85 11.93,9.5L14.5,12.07L15,12C15.18,12 15.35,12 15.5,12.07L19.07,8.5C19,8.35 19,8.18 19,8A2,2 0 0,1 21,6A2,2 0 0,1 23,8A2,2 0 0,1 21,10C20.82,10 20.65,10 20.5,9.93L16.93,13.5C17,13.65 17,13.82 17,14A2,2 0 0,1 15,16A2,2 0 0,1 13,14L13.07,13.5L10.5,10.93C10.18,11 9.82,11 9.5,10.93L4.93,15.5L5,16A2,2 0 0,1 3,18A2,2 0 0,1 1,16A2,2 0 0,1 3,14Z"></ha-svg-icon>
+        ${s("weibull_reliability_curve",l)}
+        ${re(i,l)}
+      </div>
+      ${ae(i,e,r,h,l)}
+      ${ne(t,l)}
+      ${t?.confidence_interval_low!=null?oe(t,a,l):_}
+    </div>
+  `}function re(a,l){let t,i,e;return a<.8?(t="early_failures",i="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",e="beta_early_failures"):a<=1.2?(t="random_failures",i="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",e="beta_random_failures"):a<=3.5?(t="wear_out",i="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",e="beta_wear_out"):(t="highly_predictable",i="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",e="beta_highly_predictable"),n`
+    <span class="beta-badge ${t}">
+      <ha-svg-icon path="${i}"></ha-svg-icon>
+      ${s(e,l)} (\u03B2=${a.toFixed(2)})
+    </span>
+  `}function ae(a,l,t,i,e){let f=Math.max(t,i,l,1)*1.3,w=50,L=[];for(let q=0;q<=w;q++){let R=q/w*f,zt=1-Math.exp(-Math.pow(R/l,a)),Ut=32+R/f*260,Vt=136-zt*128;L.push([Ut,Vt])}let z=L.map(([q,R])=>`${q.toFixed(1)},${R.toFixed(1)}`).join(" "),U="M32,136 "+L.map(([q,R])=>`L${q.toFixed(1)},${R.toFixed(1)}`).join(" ")+` L${L[w][0].toFixed(1)},136 Z`,H=32+t/f*260,F=1-Math.exp(-Math.pow(t/l,a)),B=136-F*128,jt=((1-F)*100).toFixed(0),lt=32+i/f*260,Dt=[0,.25,.5,.75,1];return n`
+    <div class="weibull-chart">
+      <svg viewBox="0 0 ${300} ${160}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_weibull",e)}">
+        ${Dt.map(q=>{let R=136-q*128;return W`
+            <line x1="${32}" y1="${R.toFixed(1)}" x2="${292}" y2="${R.toFixed(1)}"
+              stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${q===.5?"4,3":_}" />
+            <text x="${28}" y="${(R+3).toFixed(1)}" fill="var(--secondary-text-color)"
+              font-size="8" text-anchor="end">${(q*100).toFixed(0)}%</text>
+          `})}
+
+        <text x="${32}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">0</text>
+        <text x="${324/2}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">${Math.round(f/2)}</text>
+        <text x="${292}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">${Math.round(f)}</text>
+
+        <path d="${U}" fill="var(--primary-color, #03a9f4)" opacity="0.08" />
+        <polyline points="${z}" fill="none"
+          stroke="var(--primary-color, #03a9f4)" stroke-width="2" />
+
+        ${t>0?W`
+          <line x1="${H.toFixed(1)}" y1="${8}" x2="${H.toFixed(1)}" y2="${136 .toFixed(1)}"
+            stroke="var(--primary-color, #03a9f4)" stroke-width="1.5" stroke-dasharray="4,3" />
+          <circle cx="${H.toFixed(1)}" cy="${B.toFixed(1)}" r="3"
+            fill="var(--primary-color, #03a9f4)" />
+          <text x="${(H+4).toFixed(1)}" y="${(B-6).toFixed(1)}" fill="var(--primary-color, #03a9f4)"
+            font-size="9" font-weight="600">R=${jt}%</text>
+        `:_}
+
+        ${i>0&&i!==t?W`
+          <line x1="${lt.toFixed(1)}" y1="${8}" x2="${lt.toFixed(1)}" y2="${136 .toFixed(1)}"
+            stroke="var(--success-color, #4caf50)" stroke-width="1.5" stroke-dasharray="4,3" />
+        `:_}
+
+        <line x1="${32}" y1="${8}" x2="${32}" y2="${136}"
+          stroke="var(--secondary-text-color)" stroke-width="1" />
+        <line x1="${32}" y1="${136}" x2="${292}" y2="${136}"
+          stroke="var(--secondary-text-color)" stroke-width="1" />
+      </svg>
+    </div>
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4)"></span> ${s("weibull_failure_probability",e)}</span>
+      ${t>0?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${s("current_interval_marker",e)}</span>`:_}
+      ${i>0&&i!==t?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${s("recommended_marker",e)}</span>`:_}
+    </div>
+  `}function ne(a,l){return n`
+    <div class="weibull-info-row">
+      <div class="weibull-info-item">
+        <span>${s("characteristic_life",l)}</span>
+        <span class="weibull-info-value">${Math.round(a.weibull_eta)} ${s("days",l)}</span>
+      </div>
+      ${a.weibull_r_squared!=null?n`
+        <div class="weibull-info-item">
+          <span>${s("weibull_r_squared",l)}</span>
+          <span class="weibull-info-value">${a.weibull_r_squared.toFixed(3)}</span>
+        </div>
+      `:_}
+    </div>
+  `}function oe(a,l,t){let i=a.confidence_interval_low,e=a.confidence_interval_high,r=l.suggested_interval??l.interval_days??0,h=l.interval_days??0,c=Math.max(0,i-5),p=e+5-c,v=(i-c)/p*100,y=(e-i)/p*100,$=(r-c)/p*100,f=h>0?(h-c)/p*100:-1;return n`
+    <div class="confidence-range">
+      <div class="confidence-range-title">
+        ${s("confidence_interval",t)}: ${r} ${s("days",t)} (${i}\u2013${e})
+      </div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" style="left:${v.toFixed(1)}%;width:${y.toFixed(1)}%"></div>
+        ${f>=0?n`<div class="confidence-marker current" style="left:${f.toFixed(1)}%"></div>`:_}
+        <div class="confidence-marker recommended" style="left:${$.toFixed(1)}%"></div>
+      </div>
+      <div class="confidence-labels">
+        <span class="confidence-text low">${s("confidence_conservative",t)} (${i}${s("days",t).charAt(0)})</span>
+        <span class="confidence-text high">${s("confidence_aggressive",t)} (${e}${s("days",t).charAt(0)})</span>
+      </div>
+    </div>
+  `}function Lt(a,l,t){let i=a.degradation_trend!=null&&a.degradation_trend!=="insufficient_data",e=a.days_until_threshold!=null,r=a.environmental_factor!=null&&a.environmental_factor!==1;if(!i&&!e&&!r)return _;let h=a.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":a.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return n`
+    <div class="prediction-section">
+      ${a.sensor_prediction_urgency?n`
+        <div class="prediction-urgency-banner">
+          <ha-svg-icon path="M1,21H23L12,2L1,21M12,18A1,1 0 0,1 11,17A1,1 0 0,1 12,16A1,1 0 0,1 13,17A1,1 0 0,1 12,18M13,15H11V10H13V15Z"></ha-svg-icon>
+          ${s("sensor_prediction_urgency",l).replace("{days}",String(Math.round(a.days_until_threshold||0)))}
+        </div>
+      `:_}
+      <div class="prediction-title">
+        <ha-svg-icon path="M2,2V4H7V2H2M22,2V4H13V2H22M7,7V9H2V7H7M22,7V9H13V7H22M7,12V14H2V12H7M22,12V14H13V12H22M7,17V19H2V17H7M22,17V19H13V17H22M9,2V19L12,22L15,19V2H9M11,4H13V17.17L12,18.17L11,17.17V4Z"></ha-svg-icon>
+        ${s("sensor_prediction",l)}
+      </div>
+      <div class="prediction-grid">
+        ${i?n`
+          <div class="prediction-item">
+            <ha-svg-icon path="${h}"></ha-svg-icon>
+            <span class="prediction-label">${s("degradation_trend",l)}</span>
+            <span class="prediction-value ${a.degradation_trend}">${s("trend_"+a.degradation_trend,l)}</span>
+            ${a.degradation_rate!=null?n`<span class="prediction-rate">${a.degradation_rate>0?"+":""}${Math.abs(a.degradation_rate)>=10?Math.round(a.degradation_rate).toLocaleString():a.degradation_rate.toFixed(1)} ${a.trigger_entity_info?.unit_of_measurement||""}/${s("day_short",l)}</span>`:_}
+          </div>
+        `:_}
+        ${e?n`
+          <div class="prediction-item">
+            <ha-svg-icon path="M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12.5,8H11V14L15.75,16.85L16.5,15.62L12.5,13.25V8M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72Z"></ha-svg-icon>
+            <span class="prediction-label">${s("days_until_threshold",l)}</span>
+            <span class="prediction-value prediction-days${a.days_until_threshold===0?" exceeded":a.sensor_prediction_urgency?" urgent":""}">${a.days_until_threshold===0?s("threshold_exceeded",l):"~"+Math.round(a.days_until_threshold)+" "+s("days",l)}</span>
+            ${a.threshold_prediction_date?n`<span class="prediction-date">${V(a.threshold_prediction_date,l)}</span>`:_}
+            ${a.threshold_prediction_confidence?n`<span class="confidence-dot ${a.threshold_prediction_confidence}"></span>`:_}
+            ${(a.prediction_cycles??0)>0?n`<span class="prediction-cycles">${s("prediction_cycles",l)}: ${a.prediction_cycles}</span>`:_}
+          </div>
+        `:_}
+        ${r&&t.environmental?n`
+          <div class="prediction-item">
+            <ha-svg-icon path="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"></ha-svg-icon>
+            <span class="prediction-label">${s("environmental_adjustment",l)}</span>
+            <span class="prediction-value">${a.environmental_factor.toFixed(2)}x</span>
+            ${a.environmental_entity?n`<span class="prediction-entity entity-link" @click=${c=>gt(c,a.environmental_entity)}>${a.environmental_entity}</span>`:_}
+          </div>
+        `:_}
+      </div>
+    </div>
+  `}function qt(a,l,t,i){let e=Math.max(a||1,l);return n`
+    <div class="interval-comparison">
+      <div class="interval-bar">
+        <div class="interval-label">
+          ${s("current",i)}: ${a??"\u2014"} ${a!=null?s("days",i):""}
+        </div>
+        <div class="interval-visual current"
+          style="width: ${a!=null?Math.min(a/e*100,100):0}%"></div>
+      </div>
+      <div class="interval-bar">
+        <div class="interval-label">
+          ${s("recommended",i)}: ${l} ${s("days",i)}
+          <span class="confidence-badge ${t}">${s(`confidence_${t}`,i)}</span>
+        </div>
+        <div class="interval-visual suggested"
+          style="width: ${Math.min(l/e*100,100)}%"></div>
+      </div>
+    </div>
+  `}var Ct=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"];function Ht(a,l,t){if(!t.seasonal||!a.seasonal_factor||a.seasonal_factor===1)return _;let i=Ct.map(c=>s(c,l)),e=new Date().getMonth(),r=a.seasonal_factors||a.interval_analysis?.seasonal_factors||null,h=r&&r.length===12?r:i.map((c,u)=>{let p=a.seasonal_factor||1,v=Math.sin((u-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,p+v))});return n`
+    <div class="seasonal-card-compact">
+      <h4>${s("seasonal_awareness",l)}</h4>
+      <div class="seasonal-mini-chart">
+        ${h.map((c,u)=>{let p=c*40,v=c<.9?"low":c>1.1?"high":"normal";return n`
+            <div class="seasonal-bar ${v} ${u===e?"current":""}"
+                 style="height: ${p}px"
+                 title="${i[u]}: ${c.toFixed(2)}x">
+            </div>
+          `})}
+      </div>
+      <div class="seasonal-legend">
+        <span class="legend-item"><span class="dot low"></span> ${s("shorter",l)||"K\xFCrzer"}</span>
+        <span class="legend-item"><span class="dot normal"></span> ${s("normal",l)||"Normal"}</span>
+        <span class="legend-item"><span class="dot high"></span> ${s("longer",l)||"L\xE4nger"}</span>
+      </div>
+    </div>
+  `}function Rt(a,l){return le(a,l)}function le(a,l){let t=a.seasonal_factors??a.interval_analysis?.seasonal_factors;if(!t||t.length!==12)return _;let i=a.interval_analysis?.seasonal_reason,e=new Date().getMonth(),r=300,h=100,c=8,p=h-c-4,v=Math.max(...t,1.5),y=r/12,$=y*.65,f=c+p-1/v*p;return n`
+    <div class="seasonal-chart">
+      <div class="seasonal-chart-title">
+        <ha-svg-icon aria-hidden="true" path="M17.75 4.09L15.22 6.03L16.13 9.09L13.5 7.28L10.87 9.09L11.78 6.03L9.25 4.09L12.44 4L13.5 1L14.56 4L17.75 4.09M21.25 11L19.61 12.25L20.2 14.23L18.5 13.06L16.8 14.23L17.39 12.25L15.75 11L17.81 10.95L18.5 9L19.19 10.95L21.25 11M18.97 15.95C19.8 15.87 20.69 17.05 20.16 17.8C19.84 18.25 19.5 18.67 19.08 19.07C15.17 23 8.84 23 4.94 19.07C1.03 15.17 1.03 8.83 4.94 4.93C5.34 4.53 5.76 4.17 6.21 3.85C6.96 3.32 8.14 4.21 8.06 5.04C7.79 7.9 8.75 10.87 10.95 13.06C13.14 15.26 16.1 16.22 18.97 15.95Z"></ha-svg-icon>
+        ${s("seasonal_chart_title",l)}
+        ${i?n`<span class="source-tag">${i==="learned"?s("seasonal_learned",l):s("seasonal_manual",l)}</span>`:_}
+      </div>
+      <svg viewBox="0 0 ${r} ${h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_seasonal",l)}">
+        <line x1="0" y1="${f.toFixed(1)}" x2="${r}" y2="${f.toFixed(1)}"
+          stroke="var(--divider-color)" stroke-width="1" stroke-dasharray="4,3" />
+        ${t.map((w,L)=>{let z=w/v*p,U=L*y+(y-$)/2,H=c+p-z,F=L===e,B=w<1?"var(--success-color, #4caf50)":w>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return W`
+            <rect x="${U.toFixed(1)}" y="${H.toFixed(1)}"
+              width="${$.toFixed(1)}" height="${z.toFixed(1)}"
+              fill="${B}" opacity="${F?1:.5}" rx="2" />
+          `})}
+      </svg>
+      <div class="seasonal-labels">
+        ${Ct.map((w,L)=>n`<span class="seasonal-label ${L===e?"active-month":""}">${s(w,l)}</span>`)}
+      </div>
+    </div>
+  `}var k=class extends S{constructor(){super(...arguments);this._open=!1;this._entryId=null;this._taskId=null;this._task=null;this._objectName="";this._busy=!1;this._error="";this._showSkip=!1;this._showReset=!1;this._showDetails=!1;this._showAdaptive=!1;this._skipReason="";this._resetDate="";this._features={adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._toast="";this._featuresLoaded=!1;this._currencySymbol=""}get _lang(){return A(this.hass)}async openFor(t,i){this._entryId=t,this._taskId=i,this._error="",this._showSkip=!1,this._showReset=!1,this._showAdaptive=!1,this._skipReason="",this._resetDate=St(new Date),this._open=!0,await Promise.all([this._loadTask(),this._loadFeatures()])}async _loadFeatures(){if(!this._featuresLoaded)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});t?.features&&(this._features={...this._features,...t.features}),this._currencySymbol=t?.budget?.currency_symbol||"",this._featuresLoaded=!0}catch{}}close(){this._open=!1,this._task=null,this._error=""}async _loadTask(){if(!(!this._entryId||!this._taskId))try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._objectName=t.object?.name||"";let i=(t.tasks||[]).find(e=>e.id===this._taskId);this._task=i??null}catch(t){this._error=T(t,this._lang)}}async _runWs(t){this._busy=!0,this._error="";try{return await this.hass.connection.sendMessagePromise(t),this._busy=!1,!0}catch(i){return this._error=T(i,this._lang),this._busy=!1,!1}}_notifyChanged(t){this.dispatchEvent(new CustomEvent("task-action-fired",{detail:{entry_id:this._entryId,task_id:this._taskId,action:t},bubbles:!0,composed:!0}))}_onComplete(){!this._entryId||!this._taskId||!this._task||import("./dialog-mount-FGYF5CKD.js").then(async({openCompleteDialog:t})=>{let i=this._task,e=[];try{e=(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects",compact:!0})).objects||[]}catch{}t(Tt({entryId:this._entryId,taskId:this._taskId,taskName:i.name,task:i,objects:e,lang:this._lang,checklist:i.checklist||[],adaptiveEnabled:!!i.adaptive_config?.enabled,currencySymbol:this._currencySymbol}))&&(this._notifyChanged("complete"),this.close())})}async _onSkipConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/skip",entry_id:this._entryId,task_id:this._taskId,reason:this._skipReason.trim()||null})&&(this._notifyChanged("skip"),this.close())}async _onResetConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/reset",entry_id:this._entryId,task_id:this._taskId,date:this._resetDate||void 0})&&(this._notifyChanged("reset"),this.close())}_onEdit(){!this._entryId||!this._taskId||import("./dialog-mount-FGYF5CKD.js").then(({openEditTaskDialog:t})=>{t(this._entryId,this._taskId),this.close()})}_onQr(){!this._entryId||!this._taskId||!this._task||import("./dialog-mount-FGYF5CKD.js").then(({openQrDialog:t})=>{t({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,object_name:this._objectName}),this.close()})}async _onDelete(){if(!this._entryId||!this._taskId)return;let t=s("delete_task_confirm",this._lang)||`Delete "${this._task?.name}"?`;if(!window.confirm(t))return;await this._runWs({type:"maintenance_supporter/task/delete",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("delete"),this.close())}async _onArchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/archive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("archive"),this.close())}async _onUnarchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/unarchive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("unarchive"),this.close())}_onOpenInPanel(){if(!this._entryId||!this._taskId)return;let t=`/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}&task_id=${encodeURIComponent(this._taskId)}`;history.pushState(null,"",t),window.dispatchEvent(new CustomEvent("location-changed")),this.close()}async _applySuggestion(){if(!this._entryId||!this._taskId||!this._task?.suggested_interval)return;await this._runWs({type:"maintenance_supporter/task/apply_suggestion",entry_id:this._entryId,task_id:this._taskId,interval:this._task.suggested_interval})&&(this._toast=s("suggestion_applied",this._lang)||"Applied",this._notifyChanged("apply_suggestion"),await this._loadTask(),setTimeout(()=>{this._toast=""},2500))}async _reanalyzeInterval(){if(!(!this._entryId||!this._taskId)){this._busy=!0,this._error="";try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/analyze_interval",entry_id:this._entryId,task_id:this._taskId});this._toast=t.recommended_interval?`${s("reanalyze_result",this._lang)||"Recomputed"}: ${ut(t.recommended_interval,"days",this._lang)} (${t.data_points} pts)`:s("reanalyze_insufficient_data",this._lang)||"Not enough data",await this._loadTask(),setTimeout(()=>{this._toast=""},3500)}catch(t){this._error=T(t,this._lang)}finally{this._busy=!1}}}_onEditHistoryEntry(t){!this._entryId||!this._taskId||import("./dialog-mount-FGYF5CKD.js").then(({openHistoryEditDialog:i})=>{i({entry_id:this._entryId,task_id:this._taskId,original_timestamp:t.timestamp,type:t.type,timestamp:t.timestamp,notes:t.notes??null,cost:t.cost??null,duration:t.duration??null,completed_by:t.completed_by??null,used_parts:t.used_parts??null})})}_renderRecommendation(t){if(!this._features.adaptive||!t.suggested_interval||t.suggested_interval===t.interval_days)return _;let i=this._lang;return n`
+      <div class="recommendation-card">
+        <h4>${s("suggested_interval",i)}</h4>
+        ${qt(t.interval_days,t.suggested_interval,t.interval_confidence||"medium",i)}
+        <div class="recommendation-actions">
+          <button class="btn primary"
+            @click=${this._applySuggestion} ?disabled=${this._busy}>
+            <ha-icon icon="mdi:check"></ha-icon>
+            ${s("apply_suggestion",i)}
+          </button>
+          <button class="btn"
+            @click=${this._reanalyzeInterval} ?disabled=${this._busy}>
+            <ha-icon icon="mdi:refresh"></ha-icon>
+            ${s("reanalyze",i)}
+          </button>
+        </div>
+      </div>
+    `}_renderAdaptive(t){let i=this._lang,e=this._features.adaptive&&t.suggested_interval&&t.suggested_interval!==t.interval_days,r=t.degradation_trend!=null&&t.degradation_trend!=="insufficient_data"||t.days_until_threshold!=null||t.environmental_factor!=null&&t.environmental_factor!==1,h=this._features.adaptive&&t.interval_analysis?.weibull_beta!=null&&t.interval_analysis?.weibull_eta!=null,c=this._features.seasonal&&t.seasonal_factor&&t.seasonal_factor!==1;return!e&&!r&&!h&&!c?n`<div class="adaptive-empty">
+        ${s("adaptive_no_data",i)||"Not enough completion history yet for adaptive analysis."}
+      </div>`:n`
+      <div class="adaptive-stack">
+        ${this._toast?n`<div class="toast">${this._toast}</div>`:_}
+        ${e?this._renderRecommendation(t):_}
+        ${r?Lt(t,i,this._features):_}
+        ${h?Pt(t,i):_}
+        ${c?n`
+          ${Ht(t,i,this._features)}
+          ${t.seasonal_factors?.length===12||t.interval_analysis?.seasonal_factors?.length===12?Rt(t,i):_}
+        `:_}
+      </div>
+    `}_renderDetails(t){let i=this._lang,e=t.history||[],r=e.filter(u=>u.type==="completed"),h=r.reduce((u,p)=>u+(typeof p.cost=="number"?p.cost:0),0),c=(()=>{let u=r.map(p=>typeof p.duration=="number"?p.duration:null).filter(p=>p!=null);return u.length?Math.round(u.reduce((p,v)=>p+v,0)/u.length):null})();return n`
+      <div class="details">
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="stat-label">${s("times_performed",i)||"Performed"}</span>
+            <span class="stat-value">${r.length}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">${s("total_cost",i)||"Total cost"}</span>
+            <span class="stat-value">${h.toFixed(2)}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">${s("avg_duration",i)||"Avg duration"}</span>
+            <span class="stat-value">${c!=null?`${c}m`:"\u2014"}</span>
+          </div>
+        </div>
+        <div class="history-header">
+          <strong>${s("history",i)||"History"}</strong>
+          <span class="history-count">${e.length}</span>
+        </div>
+        ${e.length===0?n`<div class="history-empty">${s("history_empty",i)||"No history yet."}</div>`:n`
+              <div class="history-list">
+                ${[...e].reverse().slice(0,20).map(u=>{let p=["completed","reset","skipped"].includes(u.type);return n`
+                    <div class="history-entry">
+                      <div class="history-line">
+                        <span class="history-type type-${u.type}">${s(u.type,i)}</span>
+                        <span class="history-date">${ht(u.timestamp,i)}</span>
+                        ${p?n`<button class="history-edit"
+                                   title="${s("history_edit_button",i)||"Edit"}"
+                                   @click=${()=>this._onEditHistoryEntry(u)}>
+                              <ha-icon icon="mdi:pencil"></ha-icon>
+                            </button>`:_}
+                      </div>
+                      ${u.notes?n`<div class="history-notes">${u.notes}</div>`:_}
+                      ${u.cost!=null||u.duration!=null?n`<div class="history-meta">
+                            ${u.cost!=null?n`<span>💰 ${u.cost.toFixed(2)}</span>`:_}
+                            ${u.duration!=null?n`<span>⏱️ ${u.duration}m</span>`:_}
+                          </div>`:_}
+                    </div>
+                  `})}
+                ${e.length>20?n`<div class="history-more">… +${e.length-20} ${s("older_entries",i)||"older"}</div>`:_}
+              </div>
+            `}
+      </div>
+    `}render(){if(!this._open)return _;let t=this._lang,i=this._task,e=this.hass?.user?.is_admin??!0;return n`
+      <div class="backdrop" @click=${this.close}></div>
+      <div class="dialog" role="dialog" aria-modal="true">
+        ${i?n`
+              <div class="header">
+                <div class="title">
+                  <span class="status-dot" style="background: ${Z[i.status]||"#ccc"}"></span>
+                  <span class="task-name">${i.name}</span>
+                </div>
+                <div class="object">
+                  <button class="link-inline" @click=${()=>{this._entryId&&import("./dialog-mount-FGYF5CKD.js").then(({openObjectQuickActions:r})=>{r(this._entryId),this.close()})}}>${this._objectName}</button>
+                </div>
+                <div class="quick-info">
+                  ${i.next_due?n`<span><strong>${s("next_due",t)||"Next due"}:</strong> ${V(i.next_due,t)}</span>`:_}
+                  ${i.last_performed?n`<span><strong>${s("last_performed",t)||"Last"}:</strong> ${V(i.last_performed,t)}</span>`:_}
+                  ${i.schedule?.kind&&!["manual","one_time"].includes(i.schedule.kind)||i.interval_days!=null?n`<span><strong>${s("interval",t)||"Interval"}:</strong> ${mt(i,t)}</span>`:_}
+                  ${Q(i)?n`<span><strong>${s("phase_current",t)}:</strong> ${Q(i)}</span>`:_}
+                </div>
+              </div>
+
+              ${this._error?n`<div class="error">${this._error}</div>`:_}
+
+              ${this._showSkip?n`
+                    <div class="inline-form">
+                      <label>${s("skip_reason",t)||"Skip reason (optional)"}</label>
+                      <input type="text" .value=${this._skipReason}
+                        @input=${r=>{this._skipReason=r.target.value}} />
+                      <div class="inline-actions">
+                        <button class="btn cancel" @click=${()=>{this._showSkip=!1}} ?disabled=${this._busy}>
+                          ${s("cancel",t)||"Cancel"}
+                        </button>
+                        <button class="btn primary" @click=${this._onSkipConfirm} ?disabled=${this._busy}>
+                          ${s("skip",t)||"Skip"}
+                        </button>
+                      </div>
+                    </div>
+                  `:this._showReset?n`
+                    <div class="inline-form">
+                      <label>${s("reset_to_date",t)||"Reset last_performed to"}</label>
+                      <ms-date-field
+                        kind="date"
+                        .hass=${this.hass}
+                        .lang=${t}
+                        .value=${this._resetDate}
+                        @value-changed=${r=>{this._resetDate=r.detail.value}}
+                      ></ms-date-field>
+                      <div class="inline-actions">
+                        <button class="btn cancel" @click=${()=>{this._showReset=!1}} ?disabled=${this._busy}>
+                          ${s("cancel",t)||"Cancel"}
+                        </button>
+                        <button class="btn primary" @click=${this._onResetConfirm} ?disabled=${this._busy}>
+                          ${s("reset",t)||"Reset"}
+                        </button>
+                      </div>
+                    </div>
+                  `:n`
+                    <div class="actions primary-row">
+                      <ha-button appearance="accent" variant="success" @click=${this._onComplete} .disabled=${this._busy}>
+                        <ha-icon slot="start" icon="mdi:check"></ha-icon>
+                        ${s("complete",t)||"Complete"}
+                      </ha-button>
+                      ${i.allow_skip!==!1?n`
+                            <ha-button appearance="outlined" variant="warning" @click=${()=>{this._showSkip=!0}} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>
+                              ${s("skip",t)||"Skip"}
+                            </ha-button>
+                          `:_}
+                      <ha-button appearance="outlined" variant="neutral" @click=${()=>{this._showReset=!0}} .disabled=${this._busy}>
+                        <ha-icon slot="start" icon="mdi:restart"></ha-icon>
+                        ${s("reset",t)||"Reset"}
+                      </ha-button>
+                    </div>
+                    ${e?n`
+                          <div class="actions secondary-row">
+                            <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onEdit} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:pencil"></ha-icon>
+                              ${s("edit",t)||"Edit"}
+                            </ha-button>
+                            <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onQr} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:qrcode"></ha-icon>
+                              ${s("qr_code",t)||"QR"}
+                            </ha-button>
+                            <ha-button size="small" appearance="outlined" variant="neutral"
+                              @click=${i.archived?this._onUnarchive:this._onArchive}
+                              .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="${i.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
+                              ${i.archived?s("unarchive",t)||"Unarchive":s("archive",t)||"Archive"}
+                            </ha-button>
+                            <ha-button size="small" appearance="outlined" variant="danger" class="danger" @click=${this._onDelete} .disabled=${this._busy}>
+                              <ha-icon slot="start" icon="mdi:delete"></ha-icon>
+                              ${s("delete",t)||"Delete"}
+                            </ha-button>
+                          </div>
+                        `:_}
+                    <div class="details-toggle">
+                      <button class="link" @click=${()=>{this._showDetails=!this._showDetails}}>
+                        <ha-icon icon="${this._showDetails?"mdi:chevron-up":"mdi:chevron-down"}"></ha-icon>
+                        ${this._showDetails?s("hide_details",t)||"Hide details":s("show_details",t)||"Show history + stats"}
+                      </button>
+                      ${this._features.adaptive||this._features.seasonal||this._features.environmental?n`<button class="link" @click=${()=>{this._showAdaptive=!this._showAdaptive}}>
+                            <ha-icon icon="${this._showAdaptive?"mdi:chart-line":"mdi:chart-line-variant"}"></ha-icon>
+                            ${this._showAdaptive?s("hide_stats",t)||"Hide stats":s("show_stats",t)||"Show stats + graphs"}
+                          </button>`:_}
+                    </div>
+                    ${this._showDetails?this._renderDetails(i):_}
+                    ${this._showAdaptive?this._renderAdaptive(i):_}
+                    <div class="footer">
+                      <button class="link" @click=${this._onOpenInPanel}>
+                        <ha-icon icon="mdi:open-in-new"></ha-icon>
+                        ${s("open_in_panel",t)||"Open in Maintenance panel"}
+                      </button>
+                    </div>
+                  `}
+            `:n`<div class="loading">${s("loading",t)||"Loading\u2026"}</div>`}
+      </div>
+    `}};k.styles=[ft,I`
+    :host { display: contents; }
+    .backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.5);
+    }
+    .dialog {
+      position: fixed; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 95vw; max-width: 460px;
+      max-height: 92vh; overflow: auto;
+      background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
+      color: var(--primary-text-color);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      z-index: 101;
+    }
+    .header { display: flex; flex-direction: column; gap: 6px; }
+    .title { display: flex; align-items: center; gap: 10px; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .task-name { font-size: 18px; font-weight: 600; }
+    .object { font-size: 13px; color: var(--secondary-text-color); }
+    .link-inline {
+      background: transparent; border: none; padding: 0; cursor: pointer;
+      color: var(--primary-color); font-size: inherit; font-family: inherit;
+    }
+    .link-inline:hover { text-decoration: underline; }
+    .quick-info {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      font-size: 12px; color: var(--secondary-text-color);
+      padding-top: 4px; border-top: 1px solid var(--divider-color);
+    }
+    .quick-info strong { color: var(--primary-text-color); font-weight: 500; }
+    .actions { display: flex; gap: 8px; }
+    .actions.primary-row { gap: 6px; }
+    .actions.primary-row .btn { flex: 1; }
+    .actions.primary-row ha-button { flex: 1; }
+    /* Edit + QR are admin-tools — left-align as a group; Delete is destructive
+       so it gets pushed to the far right with margin-left:auto for visual
+       separation. Earlier this row was flex-end which left a strange empty
+       gap on the left (user feedback). */
+    .actions.secondary-row {
+      padding-top: 8px; border-top: 1px solid var(--divider-color);
+      justify-content: flex-start;
+    }
+    .actions.secondary-row .btn.danger,
+    .actions.secondary-row ha-button.danger {
+      margin-left: auto;
+    }
+    .actions.secondary-row ha-button { --ha-button-font-size: 13px; }
+    .btn {
+      padding: 8px 12px; font-size: 14px;
+      border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--divider-color);
+      background: var(--secondary-background-color, transparent);
+      color: var(--primary-text-color);
+      font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.12s;
+    }
+    .btn:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+    .btn[disabled] { opacity: 0.5; cursor: wait; }
+    .btn.primary {
+      background: var(--primary-color);
+      color: var(--text-primary-color, white);
+      border-color: var(--primary-color);
+    }
+    .btn.cancel { background: transparent; }
+    .btn.ghost { padding: 6px 10px; font-size: 13px; }
+    .btn.danger { color: var(--error-color); }
+    .btn ha-icon { --mdc-icon-size: 18px; }
+    .inline-form { display: flex; flex-direction: column; gap: 8px; }
+    .inline-form label { font-size: 13px; color: var(--secondary-text-color); }
+    .inline-form input {
+      padding: 8px; font-size: 14px;
+      background: var(--secondary-background-color, #2c2c2c);
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color, #444);
+      border-radius: 6px;
+    }
+    .inline-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .footer { display: flex; justify-content: center; padding-top: 4px; }
+    .link {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--primary-color); font-size: 13px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .link:hover { text-decoration: underline; }
+    .link ha-icon { --mdc-icon-size: 14px; }
+    .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
+    .error {
+      padding: 8px; border-radius: 6px;
+      background: rgba(211,47,47,0.1);
+      color: var(--error-color, #d32f2f); font-size: 13px;
+    }
+
+    /* Details (expandable Show details section) */
+    .details-toggle { display: flex; justify-content: center; margin-top: 4px; }
+    .details {
+      display: flex; flex-direction: column; gap: 12px;
+      border-top: 1px solid var(--divider-color);
+      padding-top: 12px;
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+    }
+    .stat {
+      display: flex; flex-direction: column; gap: 2px;
+      background: var(--secondary-background-color, rgba(255,255,255,0.04));
+      padding: 8px; border-radius: 6px;
+      align-items: center;
+    }
+    .stat-label { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 16px; font-weight: 600; }
+    .history-header {
+      display: flex; align-items: baseline; gap: 8px;
+      font-size: 14px;
+    }
+    .history-count {
+      font-size: 12px; color: var(--secondary-text-color);
+      background: var(--secondary-background-color); padding: 2px 8px; border-radius: 999px;
+    }
+    .history-empty { color: var(--secondary-text-color); font-style: italic; font-size: 13px; }
+    .history-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow: auto; }
+    .history-entry {
+      padding: 6px 8px; border-radius: 6px;
+      background: var(--secondary-background-color, rgba(255,255,255,0.03));
+      font-size: 13px;
+    }
+    .history-line {
+      display: flex; align-items: center; gap: 8px;
+      justify-content: space-between;
+    }
+    .history-type {
+      font-weight: 600; font-size: 11px;
+      padding: 2px 6px; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .type-completed { background: rgba(46,125,50,0.2); color: #66bb6a; }
+    .type-skipped { background: rgba(158,158,158,0.2); color: var(--secondary-text-color); }
+    .type-reset { background: rgba(33,150,243,0.2); color: #64b5f6; }
+    .type-triggered { background: rgba(255,87,34,0.2); color: #ff8a65; }
+    .history-date { font-size: 11px; color: var(--secondary-text-color); flex: 1; text-align: right; }
+    .history-edit {
+      background: transparent; border: none; cursor: pointer;
+      padding: 4px; border-radius: 4px;
+      color: var(--secondary-text-color);
+    }
+    .history-edit:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); color: var(--primary-color); }
+    .history-edit ha-icon { --mdc-icon-size: 14px; }
+    .history-notes { margin-top: 4px; color: var(--primary-text-color); }
+    .history-meta { display: flex; gap: 12px; margin-top: 4px; color: var(--secondary-text-color); font-size: 11px; }
+    .history-more { padding: 8px; text-align: center; font-size: 12px; color: var(--secondary-text-color); font-style: italic; }
+
+    /* Adaptive section — wraps the panel renderers (which assume sharedStyles
+       are present) and adds dialog-specific layout. */
+    .adaptive-stack {
+      display: flex; flex-direction: column; gap: 12px;
+      border-top: 1px solid var(--divider-color);
+      padding-top: 12px;
+    }
+    .adaptive-empty {
+      padding: 16px; text-align: center;
+      color: var(--secondary-text-color);
+      font-style: italic; font-size: 13px;
+      border-top: 1px solid var(--divider-color);
+    }
+    .toast {
+      padding: 8px 12px; border-radius: 6px;
+      background: rgba(76, 175, 80, 0.15);
+      color: #4caf50; font-size: 13px; font-weight: 500;
+    }
+    /* The panel's recommendation-card uses ha-button. We use plain <button>
+       in this dialog's button styles. Re-style the action row to match. */
+    .recommendation-actions {
+      display: flex; gap: 8px; margin-top: 8px;
+    }
+    /* Constrain SVG charts so they fit the dialog width even on mobile. */
+    .weibull-section, .seasonal-card-compact { max-width: 100%; }
+    .weibull-chart svg { max-width: 100%; height: auto; }
+    .details-toggle { gap: 12px; flex-wrap: wrap; }
+  `],o([g({attribute:!1})],k.prototype,"hass",2),o([d()],k.prototype,"_open",2),o([d()],k.prototype,"_entryId",2),o([d()],k.prototype,"_taskId",2),o([d()],k.prototype,"_task",2),o([d()],k.prototype,"_objectName",2),o([d()],k.prototype,"_busy",2),o([d()],k.prototype,"_error",2),o([d()],k.prototype,"_showSkip",2),o([d()],k.prototype,"_showReset",2),o([d()],k.prototype,"_showDetails",2),o([d()],k.prototype,"_showAdaptive",2),o([d()],k.prototype,"_skipReason",2),o([d()],k.prototype,"_resetDate",2),o([d()],k.prototype,"_features",2),o([d()],k.prototype,"_toast",2);customElements.get("maintenance-task-quick-actions-dialog")||customElements.define("maintenance-task-quick-actions-dialog",k);function Nt(a){return!!a&&/^https?:\/\//i.test(a)}function Mt(a){return a?customElements.get("ha-markdown")?n`<ha-markdown class="notes-md" .content=${a} breaks></ha-markdown>`:n`${a}`:_}var M=class extends S{constructor(){super(...arguments);this._open=!1;this._entryId=null;this._data=null;this._busy=!1;this._error=""}get _lang(){return A(this.hass)}async openFor(t){this._entryId=t,this._error="",this._open=!0,await this._load()}close(){this._open=!1,this._data=null,this._error=""}async _load(){if(this._entryId)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._data=t}catch(t){this._error=T(t,this._lang)}}_onEditObject(){!this._entryId||!this._data||import("./dialog-mount-FGYF5CKD.js").then(({openEditObjectDialog:t})=>{t(this._entryId,this._data.object),this.close()})}_onAddTask(){this._entryId&&import("./dialog-mount-FGYF5CKD.js").then(({openCreateTaskDialog:t})=>{t(this._entryId),this.close()})}async _onDelete(){if(!this._entryId||!this._data)return;let t=s("delete_object_confirm",this._lang)||`Delete "${this._data.object.name}" and all its tasks?`;if(window.confirm(t)){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/delete",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-deleted",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(i){this._error=T(i,this._lang)}finally{this._busy=!1}}}async _onArchiveObject(){if(!this._entryId||!this._data)return;let t=!!this._data.object.archived;if(!t){let i=s("confirm_archive_object",this._lang)||"Archive this object and its tasks?";if(!window.confirm(i))return}this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:t?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-changed",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(i){this._error=T(i,this._lang)}finally{this._busy=!1}}_onTaskClick(t){this._entryId&&import("./dialog-mount-FGYF5CKD.js").then(({openTaskQuickActions:i})=>{i(this._entryId,t)})}render(){if(!this._open)return _;let t=this._lang,i=this._data,e=i?.object,r=i?.tasks||[],h=this.hass?.user?.is_admin??!0;return n`
+      <div class="backdrop" @click=${this.close}></div>
+      <div class="dialog" role="dialog" aria-modal="true">
+        ${i&&e?n`
+              <div class="header">
+                <div class="title">${e.name}</div>
+                ${this._renderMetaRow(e)}
+              </div>
+
+              ${this._error?n`<div class="error">${this._error}</div>`:_}
+
+              <div class="tasks-section">
+                <div class="section-header">
+                  <strong>${s("tasks",t)||"Tasks"}</strong>
+                  <span class="count">${r.length}</span>
+                </div>
+                ${r.length===0?n`<div class="empty">${s("no_tasks",t)||"No tasks yet."}</div>`:n`
+                      <div class="task-list">
+                        ${r.map(c=>n`
+                          <div class="task-row" @click=${()=>this._onTaskClick(c.id)}>
+                            <span class="status-dot" style="background: ${Z[c.status]||"#ccc"}"></span>
+                            <span class="task-name">${c.name}</span>
+                            <span class="task-status">${s(c.status||"ok",t)}</span>
+                          </div>
+                        `)}
+                      </div>
+                    `}
+              </div>
+
+              ${e.notes?n`
+                    <div class="notes-section">
+                      <strong>${s("object_notes_label",t)}</strong>
+                      <div class="notes-body">${Mt(e.notes)}</div>
+                    </div>
+                  `:_}
+
+              ${h?n`
+                    <div class="actions">
+                      <button class="btn primary" @click=${this._onAddTask} ?disabled=${this._busy}>
+                        <ha-icon icon="mdi:plus"></ha-icon>
+                        ${s("add_task",t)||"Add task"}
+                      </button>
+                      <button class="btn" @click=${this._onEditObject} ?disabled=${this._busy}>
+                        <ha-icon icon="mdi:pencil"></ha-icon>
+                        ${s("edit",t)||"Edit"}
+                      </button>
+                      <button class="btn" @click=${this._onArchiveObject} ?disabled=${this._busy}>
+                        <ha-icon icon="${e.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
+                        ${e.archived?s("unarchive_object",t)||"Unarchive object":s("archive_object",t)||"Archive object"}
+                      </button>
+                      <button class="btn danger" @click=${this._onDelete} ?disabled=${this._busy}>
+                        <ha-icon icon="mdi:delete"></ha-icon>
+                        ${s("delete",t)||"Delete"}
+                      </button>
+                    </div>
+                  `:_}
+            `:n`<div class="loading">${s("loading",t)||"Loading\u2026"}</div>`}
+      </div>
+    `}_renderMetaRow(t){let i=this._lang,e=[];return t.area_id&&e.push([s("area",i),t.area_id]),t.manufacturer&&e.push([s("manufacturer",i),t.manufacturer]),t.model&&e.push([s("model",i),t.model]),t.serial_number&&e.push([s("serial_number_label",i),t.serial_number]),t.installation_date&&e.push([s("installed",i),t.installation_date]),t.warranty_expiry&&e.push([s("warranty",i),t.warranty_expiry]),t.documentation_url&&e.push([s("documentation_url_label",i),t.documentation_url]),e.length===0?_:n`
+      <div class="meta">
+        ${e.map(([r,h])=>n`
+            <div class="meta-item">
+              <span class="meta-label">${r}</span>
+              <span class="meta-value">${Nt(h)?n`<a href="${h}" target="_blank" rel="noopener noreferrer">${h}</a>`:h}</span>
+            </div>
+          `)}
+      </div>
+    `}};M.styles=I`
+    :host { display: contents; }
+    .backdrop {
+      position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5);
+    }
+    .dialog {
+      position: fixed; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 95vw; max-width: 480px;
+      max-height: 92vh; overflow: auto;
+      background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
+      color: var(--primary-text-color);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      padding: 20px; z-index: 101;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .header { display: flex; flex-direction: column; gap: 6px; }
+    .title { font-size: 20px; font-weight: 600; }
+    .meta { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; border-top: 1px solid var(--divider-color); }
+    .meta-item { display: flex; gap: 8px; font-size: 12px; }
+    .meta-label { color: var(--secondary-text-color); min-width: 100px; }
+    .meta-value { color: var(--primary-text-color); flex: 1; word-break: break-word; }
+    .meta-value a { color: var(--primary-color); }
+    .tasks-section, .notes-section { display: flex; flex-direction: column; gap: 6px; }
+    .section-header { display: flex; align-items: baseline; gap: 8px; }
+    .count {
+      font-size: 11px; color: var(--secondary-text-color);
+      background: var(--secondary-background-color); padding: 2px 8px; border-radius: 999px;
+    }
+    .empty { color: var(--secondary-text-color); font-style: italic; font-size: 13px; padding: 8px 0; }
+    .task-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow: auto; }
+    .task-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px; border-radius: 6px; cursor: pointer;
+      background: var(--secondary-background-color, rgba(255,255,255,0.03));
+      transition: background 0.12s;
+    }
+    .task-row:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .task-name { flex: 1; font-size: 14px; }
+    .task-status { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; }
+    .notes-body { white-space: pre-wrap; font-size: 13px; padding: 8px; background: var(--secondary-background-color); border-radius: 6px; }
+    .notes-body ha-markdown { white-space: normal; }
+    .actions { display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid var(--divider-color); }
+    .actions .btn { flex: 1; }
+    .btn {
+      padding: 8px; font-size: 13px; border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--divider-color);
+      background: var(--secondary-background-color, transparent);
+      color: var(--primary-text-color); font-weight: 500;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+    .btn[disabled] { opacity: 0.5; cursor: wait; }
+    .btn.primary { background: var(--primary-color); color: var(--text-primary-color, white); border-color: var(--primary-color); }
+    .btn.danger { color: var(--error-color); }
+    .btn ha-icon { --mdc-icon-size: 16px; }
+    .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
+    .error { padding: 8px; border-radius: 6px; background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
+  `,o([g({attribute:!1})],M.prototype,"hass",2),o([d()],M.prototype,"_open",2),o([d()],M.prototype,"_entryId",2),o([d()],M.prototype,"_data",2),o([d()],M.prototype,"_busy",2),o([d()],M.prototype,"_error",2);customElements.get("maintenance-object-quick-actions-dialog")||customElements.define("maintenance-object-quick-actions-dialog",M);var Ft="maintenance-object-dialog",Ot="maintenance-task-dialog",de="maintenance-history-edit-dialog",ce="maintenance-complete-dialog",pe="maintenance-qr-dialog",he="maintenance-task-quick-actions-dialog",ue="maintenance-object-quick-actions-dialog";function X(){return document.querySelector("home-assistant")?.hass}function _e(){return document.querySelector("home-assistant")?.shadowRoot??document.body}function j(a){let l=_e(),t=l.querySelector(a)??document.body.querySelector(a);return t?t.parentNode!==l&&l.appendChild(t):(t=document.createElement(a),l.appendChild(t)),t}function D(a){let l=X();if(!l)return!1;a.hass=l;let t=A(l);return dt(t)||ct(t).then(()=>{a.requestUpdate?.()}),pt(l.locale,l.config?.country),!0}var nt={features:{adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1},defaultWarningDays:7,rowActionStyle:"buttons_compact"};function us(a){return ot(a).then(l=>l.rowActionStyle)}function _s(){G=null}var G=null;function ot(a){return G||(G=a.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).then(l=>({features:l.features??nt.features,defaultWarningDays:l.general?.default_warning_days??7,rowActionStyle:l.general?.row_action_style??nt.rowActionStyle})).catch(()=>nt),G)}function ms(){let a=j(Ft);return D(a)?(a.openCreate(),!0):!1}function gs(a,l){let t=j(Ft);return D(t)?(t.openEdit(a,l),!0):!1}function vs(a="",l){let t=j(Ot);if(!D(t))return!1;let i=X();return i?((async()=>{let e=await ot(i),r=t;r.checklistsEnabled=e.features.checklists,r.scheduleTimeEnabled=e.features.schedule_time,r.completionActionsEnabled=e.features.completion_actions,r.defaultWarningDays=e.defaultWarningDays,r.openCreate(a,l)})(),!0):!1}function fs(a,l){let t=j(Ot);if(!D(t))return!1;let i=X();return i?((async()=>{try{let[e,r]=await Promise.all([i.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:a}),ot(i)]),h=(e.tasks||[]).find(u=>u.id===l);if(!h){console.warn(`openEditTaskDialog: task ${l} not found in entry ${a}`);return}let c=t;c.checklistsEnabled=r.features.checklists,c.scheduleTimeEnabled=r.features.schedule_time,c.completionActionsEnabled=r.features.completion_actions,c.defaultWarningDays=r.defaultWarningDays,await c.openEdit(a,h)}catch(e){console.warn("openEditTaskDialog: failed to load task/features",e)}})(),!0):!1}function bs(a){let l=j(de);return D(l)?(l.openEdit(a),!0):!1}function ys(a){let l=j(ce);return D(l)?(At(l,a,X()?.language||"en"),!0):!1}function $s(a){let l=j(pe);return D(l)?(l.openForTask(a.entry_id,a.task_id,a.object_name,a.task_name),!0):!1}function xs(a,l){let t=j(he);return D(t)?(t.openFor(a,l),!0):!1}function ks(a){let l=j(ue);return D(l)?(l.openFor(a),!0):!1}export{_s as __resetSettingsCacheForTests,us as getRowActionStyle,ys as openCompleteDialog,ms as openCreateObjectDialog,vs as openCreateTaskDialog,gs as openEditObjectDialog,fs as openEditTaskDialog,bs as openHistoryEditDialog,ks as openObjectQuickActions,$s as openQrDialog,xs as openTaskQuickActions};
