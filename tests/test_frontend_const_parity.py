@@ -242,7 +242,8 @@ def test_status_chip_pills_are_theme_token_based() -> None:
 
 def test_every_top_level_surface_loads_locale() -> None:
     """Every top-level UI surface that renders localized text (imports ``t`` from
-    styles) must also call ``ensureLocale`` — otherwise it paints in English
+    styles) must also call ``ensureLocale`` (directly or via the
+    ``syncLocaleFromHass`` wrapper) — otherwise it paints in English
     until some *other* surface happens to fetch the locale. This is the class of
     bug where a dashboard-strategy-opened dialog / section card showed English
     while the rest of HA was translated.
@@ -265,7 +266,10 @@ def test_every_top_level_surface_loads_locale() -> None:
         assert f.exists(), f"surface missing: {f}"
         src = f.read_text(encoding="utf-8")
         renders_localized = bool(imports_t.search(src))
-        loads_locale = "ensureLocale" in src
+        # syncLocaleFromHass (styles.ts) wraps ensureLocale and additionally feeds
+        # the HA profile date/time/number formats in (#163) — surfaces that
+        # render formatted values use that instead of a bare ensureLocale.
+        loads_locale = "ensureLocale" in src or "syncLocaleFromHass" in src
         if renders_localized and not loads_locale:
             offenders.append(f.name)
     assert not offenders, (
