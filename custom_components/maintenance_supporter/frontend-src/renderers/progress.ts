@@ -48,12 +48,20 @@ export function computeTrend(
     return null; // compound: conditions may point both ways
   }
   const statsPoints = miniStatsData.get(tc.entity_id) || [];
+  // Runtime and state_change accumulate SINCE the last completion — the
+  // history's trigger_value is the count at the previous trigger, a point
+  // from before the reset. Falling back to it read a freshly reset task
+  // (100 h at the trigger, 20 h now) as "easing" while the hours climb
+  // (bug review 2026-09-04). Recorder stats and the live value only.
+  const resetsOnCompletion = type === "runtime" || type === "state_change";
   let points: { ts: number; val: number }[] =
     statsPoints.length >= 2
       ? statsPoints.map((p) => ({ ts: p.ts, val: p.val }))
-      : (row.history || [])
-          .filter((h) => h.trigger_value != null)
-          .map((h) => ({ ts: new Date(h.timestamp).getTime(), val: h.trigger_value as number }));
+      : resetsOnCompletion
+        ? []
+        : (row.history || [])
+            .filter((h) => h.trigger_value != null)
+            .map((h) => ({ ts: new Date(h.timestamp).getTime(), val: h.trigger_value as number }));
   if (row.trigger_current_value != null) points = [...points, { ts: Date.now(), val: row.trigger_current_value }];
   if (points.length < 2) return null;
   points.sort((a, b) => a.ts - b.ts);
@@ -63,9 +71,17 @@ export function computeTrend(
   // Significance is judged against the JOURNEY to the threshold, not the
   // series' own noise band: a sensor crawling 50.0 -> 50.15 under a
   // 60-threshold is flat, even though that move spans most of its range.
+  // A delta counter's series is the RAW reading (odometer), so its finish
+  // line is baseline + interval — judged against the bare interval, a car
+  // at 100 000 km with a 15 000 km service interval read "stable" forever
+  // (bug review 2026-09-04).
+  const counterTarget =
+    tc.trigger_delta_mode && row.trigger_baseline_value != null && tc.trigger_target_value != null
+      ? row.trigger_baseline_value + tc.trigger_target_value
+      : tc.trigger_target_value;
   const target =
     type === "threshold" ? (tc.trigger_above ?? tc.trigger_below)
-    : type === "counter" ? tc.trigger_target_value
+    : type === "counter" ? counterTarget
     : type === "runtime" ? tc.trigger_runtime_hours
     : tc.trigger_target_changes;
   const base = typeof target === "number" ? Math.max(Math.abs(target - vals[0]), range) : range;
@@ -88,18 +104,35 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     if (val == null) return nothing;
     const above = tc.trigger_above;
     const below = tc.trigger_below;
-    if (above != null) {
-      // Progress toward upper limit
-      const low = below ?? 0;
+    if (above != null && below != null) {
+      // Both limits = a band the reading must stay inside (OR-ed on the
+      // server): the bar measures the distance from the band's centre, so a
+      // reading near EITHER edge fills it. Measuring from `below` up to
+      // `above` painted a reading just under `below` as 0 % / green
+      // although it had already triggered (bug review 2026-09-04).
+      const mid = (above + below) / 2;
+      const half = Math.abs(above - below) / 2 || 1;
+      pct = Math.min(100, Math.max(0, (Math.abs(val - mid) / half) * 100));
+      const nearer = Math.abs(val - above) <= Math.abs(val - below) ? above : below;
+      label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(nearer, opts?.lang)} ${unit}`;
+    } else if (above != null) {
+      // Progress toward the upper limit, from a sign-aware floor: 0 for a
+      // positive limit; for a negative one (freezer "warn above −15 °C")
+      // the entity's min or 2× the limit — anchoring at 0 put the floor
+      // ABOVE the limit and rendered every safe reading as a full red bar
+      // (bug review 2026-09-04).
+      const entityMin = row.trigger_entity_info?.min;
+      const low = above > 0 ? 0 : entityMin != null && entityMin < above ? entityMin : above < 0 ? 2 * above : -100;
       const range = above - low || 1;
       pct = Math.min(100, Math.max(0, ((val - low) / range) * 100));
       label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(above, opts?.lang)} ${unit}`;
     } else if (below != null) {
-      // Progress toward lower limit (inverted: lower is worse)
-      // Use entity max, or 2x the threshold as a stable "safe" reference.
-      // Using val*2 caused a dynamic ceiling that distorted the bar.
+      // Progress toward the lower limit (inverted: lower is worse), from a
+      // sign-aware ceiling: the entity max, else 2× the limit for a
+      // positive one and 0 for a negative one (2× a negative limit is BELOW
+      // it). A fixed ceiling — val*2 made the bar wander with the reading.
       const entityMax = row.trigger_entity_info?.max;
-      const high = entityMax ?? ((below * 2) || 100);
+      const high = entityMax != null && entityMax > below ? entityMax : below > 0 ? below * 2 : below < 0 ? 0 : 100;
       const range = high - below || 1;
       pct = Math.min(100, Math.max(0, ((high - val) / range) * 100));
       label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(below, opts?.lang)} ${unit}`;

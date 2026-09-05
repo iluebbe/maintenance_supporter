@@ -48,6 +48,40 @@ describe("master-detail split (wide dashboard)", () => {
     expect(sr.querySelector(".task-row.selected"), "clicked row marked").to.not.equal(null);
   });
 
+  it("the docked detail's breadcrumb opens the full page with a history entry, scrolled to the top", async () => {
+    // Bug review 2026-09-04: showTaskView only assigned `_view` — no
+    // pushState (Back then left the panel instead of returning to the
+    // list) and the page opened at the list's scroll offset.
+    const rows = Array.from({ length: 60 }, () => task({ status: "ok" }));
+    const r = await mountPanel([obj("e1", rows)], {
+      "maintenance_supporter/settings": () => DEFAULT_SETTINGS_RESPONSE,
+    });
+    const el = r.el as PanelPriv;
+    el.style.width = "1700px";
+    await new Promise((res) => setTimeout(res, 120));
+    await el.updateComplete;
+    const sr = el.shadowRoot!;
+    await waitUntil(() => !!sr.querySelector(".split-pane"), "split pane rendered");
+    (sr.querySelector(".task-row .cell.task-name") as HTMLElement).click();
+    await el.updateComplete;
+    await waitUntil(() => !!sr.querySelector(".split-pane maintenance-task-detail-view"), "detail docked");
+
+    const content = sr.querySelector<HTMLElement>(".content")!;
+    content.scrollTop = 400;
+    await new Promise((res) => requestAnimationFrame(() => setTimeout(res, 30)));
+    expect(content.scrollTop, "list scrolled").to.be.greaterThan(100);
+
+    const entriesBefore = history.length;
+    await waitUntil(() => !!sr.querySelector(".split-pane .task-name-breadcrumb"), "breadcrumb rendered");
+    (sr.querySelector(".split-pane .task-name-breadcrumb") as HTMLElement).click();
+    await el.updateComplete;
+    expect(el._view, "full task page").to.equal("task");
+    expect(history.length, "one history entry for the page").to.equal(entriesBefore + 1);
+    expect((history.state as { msp_view?: string; msp_task?: string })?.msp_view).to.equal("task");
+    expect((history.state as { msp_task?: string })?.msp_task).to.equal("t1");
+    await waitUntil(() => content.scrollTop === 0, "page starts at the top");
+  });
+
   it("the docked pane is no inner scroller and stays in view while the list scrolls", async () => {
     // 60 rows: the list outgrows the 600px host, so `.content` scrolls.
     const rows = Array.from({ length: 60 }, () => task({ status: "ok" }));

@@ -72,6 +72,19 @@ describe("card action_style (#145)", () => {
     expect(iconButtons(buttons)).to.equal(0);
   });
 
+  it("follows a style change made elsewhere on the page once the cache is invalidated", async () => {
+    // Bug review 2026-09-04: the settings-view invalidates the page-wide
+    // cache after global/update; the card's next load fetches fresh.
+    const el = await mount({}, "icons");
+    expect(iconButtons(el)).to.equal(1);
+
+    __resetSettingsCacheForTests();
+    el.hass = mockHass("buttons_compact") as never;
+    await (el as unknown as { _loadData: () => Promise<void> })._loadData();
+    await waitUntil(() => haButtons(el) === 1, "card re-styled without a reload");
+    expect(iconButtons(el)).to.equal(0);
+  });
+
   it("show_actions: false hides both forms", async () => {
     const el = await mount({ show_actions: false }, "buttons_compact");
     expect(haButtons(el) + iconButtons(el)).to.equal(0);

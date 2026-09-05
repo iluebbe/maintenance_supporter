@@ -174,6 +174,10 @@ async def ws_vacation_preview(
                     "last_performed": task_data.get("last_performed"),
                     "created_at": task_data.get("created_at"),
                     "enabled": task_data.get("enabled", True),
+                    # The preview's Skip button must follow the task's own
+                    # rule — the row had no field and offered it to every
+                    # time-based task (bug review 2026-09-04).
+                    "allow_skip": task_data.get("allow_skip") is not False,
                 }
             )
 

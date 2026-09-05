@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "Terskel „forbruksvare lav“ (%)",
   "settings_battery_low_percent": "Terskel „batteri lavt“ (%)",
   "settings_thresholds_hint": "Standardverdier for nye Foreslåtte oppsett (gjenværende prosent) og for flåtebatterier uten egen Battery Notes-terskel. Eksisterende oppgaver beholder verdien sin.",
+  "settings_value_out_of_range": "Verdien må være mellom {min} og {max}",
   "bn_summary": "{name}: {pct} % for {n} batterier",
   "bn_floor_decides": "Din terskel på {floor} % avgjør for alle; per batteri gjelder den høyeste av de to tersklene.",
   "bn_above_floor": "Det er over din terskel på {floor} %, så {name} avgjør for alle noterte batterier.",

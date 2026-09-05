@@ -459,3 +459,35 @@ async def test_ws_vacation_end_now_future_start(
     assert payload["enabled"] is False
     # End date should NOT be clamped to today since vacation hasn't started
     assert payload["end"] == future_end
+
+
+async def test_vacation_preview_rows_carry_the_tasks_allow_skip(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+) -> None:
+    """Bug review 2026-09-04: ws_vacation_preview passes the task's
+    allow_skip through, so the UI can hide Skip for locked tasks (#150)."""
+    from .conftest import build_task_data, make_object_entry
+
+    today = dt_util.now().date()
+    locked = build_task_data(task_id="task-locked", name="Locked", interval_days=7, last_performed=today.isoformat())
+    locked["allow_skip"] = False
+    open_ = build_task_data(task_id="task-open", name="Open", interval_days=7, last_performed=today.isoformat())
+    make_object_entry(hass, tasks={"task-locked": locked, "task-open": open_})
+    await setup_integration(hass, covws_global_entry)
+    hass.config_entries.async_update_entry(
+        covws_global_entry,
+        options={
+            CONF_VACATION_ENABLED: True,
+            CONF_VACATION_START: (today + timedelta(days=1)).isoformat(),
+            CONF_VACATION_END: (today + timedelta(days=14)).isoformat(),
+        },
+    )
+
+    conn = _covws_conn()
+    await call_ws_handler(ws_vacation_preview, hass, conn, {"id": 1, "type": "maintenance_supporter/vacation/preview"})
+
+    conn.send_result.assert_called_once()
+    rows = conn.send_result.call_args[0][1]["rows"]
+    by_id = {r["task_id"]: r["allow_skip"] for r in rows}
+    assert by_id == {"task-locked": False, "task-open": True}

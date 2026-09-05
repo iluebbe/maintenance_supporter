@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TaskPartLink, TriggerConfig, HAUser } from "../types";
-import { formatDate, t, weekdayName, monthName, langOf } from "../styles";
+import { formatDate, formatNumber, t, weekdayName, monthName, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
 import {
@@ -2331,7 +2331,9 @@ export class MaintenanceTaskDialog extends LitElement {
       : st.state;
     const num = typeof raw === "number" ? raw : parseFloat(String(raw));
     const hasNum = raw !== "unknown" && raw !== "unavailable" && raw != null && !isNaN(num);
-    const fmt = (v: number) => (Number.isInteger(v) ? String(v) : String(Math.round(v * 10) / 10));
+    // Profile number format like every other figure (#163) — the hint used
+    // to print "1.2" next to a "1,2 bar" entity card (bug review 2026-09-04).
+    const fmt = (v: number) => formatNumber(v, L, { maximumFractionDigits: 1 });
 
     const parts: string[] = [];
     if (this._triggerType === "threshold") {

@@ -454,6 +454,7 @@
   "settings_consumable_threshold": "Tröskel „förbrukningsartikel låg“ (%)",
   "settings_battery_low_percent": "Tröskel „batteri lågt“ (%)",
   "settings_thresholds_hint": "Standardvärden för nya Föreslagna inställningar (återstående procent) och för flottans batterier utan egen Battery Notes-tröskel. Befintliga uppgifter behåller sitt värde.",
+  "settings_value_out_of_range": "Värdet måste vara mellan {min} och {max}",
   "bn_summary": "{name}: {pct} % för {n} batterier",
   "bn_floor_decides": "Din tröskel på {floor} % avgör för alla; per batteri gäller den högre av de två trösklarna.",
   "bn_above_floor": "Det är över din tröskel på {floor} %, så {name} avgör för alla noterade batterier.",

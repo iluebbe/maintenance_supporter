@@ -21,6 +21,7 @@ function mockHass(opts: {
   vacationStart?: string | null;
   vacationEnd?: string | null;
   exemptIds?: string[];
+  previewRows?: Array<Record<string, unknown>>;
 } = {}) {
   const settingsResponse = {
     ...DEFAULT_SETTINGS_RESPONSE,
@@ -51,7 +52,7 @@ function mockHass(opts: {
       "maintenance_supporter/vacation/end_now": () => ({
         ...settingsResponse.vacation, enabled: false, is_active: false,
       }),
-      "maintenance_supporter/vacation/preview": () => ({ rows: [], window_end: null }),
+      "maintenance_supporter/vacation/preview": () => ({ rows: opts.previewRows ?? [], window_end: null }),
     },
   });
 }
@@ -143,5 +144,43 @@ describe("settings-view vacation section", () => {
     const { el } = await mount();
     const endNow = vacationSection(el)!.querySelector(".vac-end-now");
     expect(endNow, "no end-now in default state").to.not.exist;
+  });
+  it("the preview hides Skip for a task whose skip rule is off (#150 rule in the preview)", async () => {
+    // Bug review 2026-09-04: every time-based row offered Skip — the
+    // backend then rejected it for allow_skip=false tasks.
+    const row = (task_id: string, extra: Record<string, unknown>) => ({
+      task_id,
+      entry_id: "e1",
+      object_name: "Pool",
+      task_name: task_id,
+      kind: "time_based",
+      confidence: "deterministic",
+      events: [{ date: "2099-06-12", status: "due_soon" }],
+      will_suppress: true,
+      ...extra,
+    });
+    const { el } = await mount({
+      vacationStart: "2099-06-10",
+      vacationEnd: "2099-06-20",
+      previewRows: [
+        row("Open", { allow_skip: true }),
+        row("Locked", { allow_skip: false }),
+        row("Legacy", {}),
+        row("Sensor", { kind: "sensor_based", allow_skip: true }),
+      ],
+    });
+    const section = vacationSection(el)!;
+    section.querySelector<HTMLButtonElement>(".vac-preview-toolbar button")!.click();
+    await new Promise((r) => setTimeout(r, 30));
+    await el.updateComplete;
+    const rows = Array.from(section.querySelectorAll(".vac-preview-row"));
+    expect(rows.length).to.equal(4);
+    const skipLabel = rows[0].querySelectorAll(".vac-preview-actions button")[1].textContent!.trim();
+    const hasSkip = (r: Element) =>
+      Array.from(r.querySelectorAll(".vac-preview-actions button")).some((b) => b.textContent!.trim() === skipLabel);
+    expect(hasSkip(rows[0]), "allow_skip=true keeps Skip").to.be.true;
+    expect(hasSkip(rows[1]), "allow_skip=false hides Skip").to.be.false;
+    expect(hasSkip(rows[2]), "absent field = allowed (older backend)").to.be.true;
+    expect(hasSkip(rows[3]), "sensor rows never had Skip").to.be.false;
   });
 });

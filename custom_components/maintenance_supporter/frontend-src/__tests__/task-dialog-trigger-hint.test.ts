@@ -13,8 +13,8 @@ import "../components/task-dialog.js";
 import type { MaintenanceTaskDialog } from "../components/task-dialog";
 import { createMockHass } from "./_test-utils.js";
 
-async function mountCreate(states: Record<string, unknown>): Promise<MaintenanceTaskDialog> {
-  const { hass } = createMockHass({ states });
+async function mountCreate(states: Record<string, unknown>, language = "en"): Promise<MaintenanceTaskDialog> {
+  const { hass } = createMockHass({ states, language });
   const el = await fixture<MaintenanceTaskDialog>(html`
     <maintenance-task-dialog .hass=${hass}></maintenance-task-dialog>
   `);
@@ -57,6 +57,37 @@ describe("task-dialog live trigger hint", () => {
     const text = hint(el)!;
     expect(text).to.include("1.2 bar");
     expect(text).to.include("1.5 bar");
+  });
+
+  it("formats the figures in the user's number format (bug review 2026-09-04)", async () => {
+    // Decimal comma + thousands separators for a de user — like the entity
+    // card next to the dialog; the hint used raw String(n).
+    const el = await mountCreate(
+      {
+        "sensor.odometer": { state: "100000", attributes: { unit_of_measurement: "km" } },
+        "sensor.pressure": { state: "1.25", attributes: { unit_of_measurement: "bar" } },
+      },
+      "de",
+    );
+    (el as any)._triggerEntityId = "sensor.odometer";
+    (el as any)._triggerEntityIds = ["sensor.odometer"];
+    (el as any)._triggerType = "counter";
+    (el as any)._triggerDeltaMode = true;
+    (el as any)._triggerTargetValue = "15000";
+    await el.updateComplete;
+    let text = hint(el)!;
+    expect(text).to.include("100.000 km");
+    expect(text).to.include("115.000 km");
+    expect(text).to.include("15.000 km");
+
+    (el as any)._triggerEntityId = "sensor.pressure";
+    (el as any)._triggerEntityIds = ["sensor.pressure"];
+    (el as any)._triggerType = "threshold";
+    (el as any)._triggerAbove = "1.5";
+    await el.updateComplete;
+    text = hint(el)!;
+    expect(text).to.include("1,3 bar"); // 1.25 rounded to one decimal, decimal comma
+    expect(text).to.include("1,5 bar");
   });
 
   it("renders nothing without a bound entity or without targets", async () => {

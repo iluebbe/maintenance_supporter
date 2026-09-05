@@ -84,6 +84,7 @@ import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail
 import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
+import { invalidateSettingsCache } from "./helpers/settings-cache";
 
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
 
@@ -628,8 +629,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
     // A data refresh means the open task's history may have grown (complete,
     // history edit) — the truncated list payload can't tell, so refetch.
-    if (this._view === "task" && this._selectedEntryId && this._selectedTaskId) {
-      this._fetchFullHistory(this._selectedEntryId, this._selectedTaskId);
+    if (this._detailOpen()) {
+      this._fetchFullHistory(this._selectedEntryId!, this._selectedTaskId!);
     }
     // Battery Fleet availability (batteries present + not yet set up).
     // The slim status check, NOT the overview: the full overview runs the
@@ -742,6 +743,11 @@ export class MaintenanceSupporterPanel extends LitElement {
         || msAction === "open_settings") {
       this._deepLinkHandled = true;
       cleanMsActionUrl();
+      // The Settings tab is admin-only (the tab bar hides it, the server
+      // refuses its writes) — a non-admin following a banner link lands on
+      // the dashboard instead of a tab-less settings view (bug review
+      // 2026-09-04).
+      if (!this.hass?.user?.is_admin) return;
       // Switch to the Settings tab — that's where Vacation/Budget/Groups live.
       this._overviewTab = "settings";
       // Hint the settings-view which sub-section to scroll to (its own
@@ -774,8 +780,21 @@ export class MaintenanceSupporterPanel extends LitElement {
     const status = params.get("status");
     if (tab !== null || view !== null || sort !== null || status !== null) {
       cleanMsActionUrl();
-      if (this._view !== "overview") this._showOverview();
-      if ((OVERVIEW_TABS as readonly string[]).includes(tab ?? "")) {
+      if (this._view !== "overview") {
+        // In-app navigation to the overview from a task/object page: HA's
+        // navigate() already pushed the entry for this location, so switch
+        // in place — _showOverview()'s own push put a blank entry between
+        // the two pages and Back needed two presses (bug review 2026-09-04).
+        this._view = "overview";
+        this._selectedEntryId = null;
+        this._selectedTaskId = null;
+        this._moreMenuOpen = false;
+        this._scrollContentToTop();
+      }
+      // `?tab=settings` for a non-admin is an unknown value: the tab bar
+      // hides Settings for them, and _setOverviewTab would have persisted
+      // the choice across reloads (bug review 2026-09-04).
+      if ((OVERVIEW_TABS as readonly string[]).includes(tab ?? "") && (tab !== "settings" || this.hass?.user?.is_admin)) {
         this._setOverviewTab(tab as OverviewTab);
       }
       if (view !== null) {
@@ -921,10 +940,10 @@ export class MaintenanceSupporterPanel extends LitElement {
             // truncated list payload never wins the "longer list" comparison
             // in _historyCtx, so a pushed completion stayed invisible there.
             if (
-              this._view === "task" && this._selectedEntryId && this._selectedTaskId
+              this._detailOpen()
               && (!!ev.objects || (ev.delta || []).some((d) => d.entry_id === this._selectedEntryId))
             ) {
-              void this._fetchFullHistory(this._selectedEntryId, this._selectedTaskId);
+              void this._fetchFullHistory(this._selectedEntryId!, this._selectedTaskId!);
             }
           }
         },
@@ -1269,6 +1288,28 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** Master-detail split is active: wide panel, dashboard tab, no bulk. */
   private _splitActive(): boolean {
     return this.split && !this.narrow && !this.tight && this._view === "overview" && this._overviewTab === "dashboard" && !this._bulkMode;
+  }
+
+  /** A task detail is on screen — the full page OR the docked split pane.
+   *  The refetch gates keyed on `_view === "task"` alone left the docked
+   *  detail's history frozen after a pushed completion or a data refresh
+   *  (bug review 2026-09-04). */
+  private _detailOpen(): boolean {
+    return (this._view === "task" || this._splitActive()) && !!this._selectedEntryId && !!this._selectedTaskId;
+  }
+
+  /** The docked detail's breadcrumb opens the full task page (a no-op on
+   *  the page itself). Assigning `_view` alone pushed no history entry —
+   *  Back then left the panel instead of returning to the list — and kept
+   *  the list's scroll offset (bug review 2026-09-04). The detail's tab,
+   *  history filter and full history carry over: they are already loaded. */
+  private _showFullTaskPage(entryId: string, taskId: string): void {
+    if (this._view === "task") return;
+    this._pushPanelState("task", entryId, taskId);
+    this._view = "task";
+    this._selectedEntryId = entryId;
+    this._selectedTaskId = taskId;
+    this._scrollContentToTop();
   }
 
   private _showTask(entryId: string, taskId: string): void {
@@ -3552,6 +3593,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/global/update", settings });
       this._rowActionNotice = false;
       if (backToIcons) this._rowActionStyle = "icons";
+      invalidateSettingsCache();
     } catch (err) {
       console.warn("[maintenance-supporter] row-action notice update failed", err);
     }
@@ -4053,7 +4095,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       setActiveTab: (tab) => { this._activeTab = tab; },
       toggleSection: (key) => this._toggleSection(key),
       setCostDurationToggle: (v) => { this._costDurationToggle = v; },
-      showTaskView: () => { this._view = "task"; },
+      showTaskView: () => this._showFullTaskPage(entryId, taskId),
       showObject: () => this._showObject(entryId),
       toggleMoreMenu: () => this._toggleMoreMenu(),
       closeMoreMenu: () => this._closeMoreMenu(),

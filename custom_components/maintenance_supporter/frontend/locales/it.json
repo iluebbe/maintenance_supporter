@@ -454,6 +454,7 @@
   "settings_consumable_threshold": "Soglia „consumabile basso“ (%)",
   "settings_battery_low_percent": "Soglia „batteria scarica“ (%)",
   "settings_thresholds_hint": "Valori predefiniti per le nuove Configurazioni suggerite (percentuale residua) e per le batterie della flotta senza soglia Battery Notes propria. Le attività esistenti mantengono il loro valore.",
+  "settings_value_out_of_range": "Il valore deve essere compreso tra {min} e {max}",
   "bn_summary": "{name}: {pct} % per {n} batterie",
   "bn_floor_decides": "La tua soglia del {floor} % decide per tutte; per ogni batteria conta la più alta delle due soglie.",
   "bn_above_floor": "È sopra la tua soglia del {floor} %, quindi {name} decide per tutte le batterie annotate.",

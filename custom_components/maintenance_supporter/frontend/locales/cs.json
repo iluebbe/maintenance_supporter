@@ -454,6 +454,7 @@
   "settings_consumable_threshold": "Práh „spotřební materiál nízký“ (%)",
   "settings_battery_low_percent": "Práh „baterie slabá“ (%)",
   "settings_thresholds_hint": "Výchozí hodnoty pro nová Navrhovaná nastavení (zbývající procenta) a pro baterie flotily bez vlastního prahu Battery Notes. Stávající úkoly si ponechají svou hodnotu.",
+  "settings_value_out_of_range": "Hodnota musí být mezi {min} a {max}",
   "bn_summary": "{name}: {pct} % pro {n} baterií",
   "bn_floor_decides": "Tvůj práh {floor} % rozhoduje pro všechny; u každé baterie platí vyšší z obou prahů.",
   "bn_above_floor": "To je nad tvým prahem {floor} %, takže o všech poznamenaných bateriích rozhoduje {name}.",

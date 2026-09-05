@@ -46,6 +46,7 @@ import type { MaintenanceObjectQuickActionsDialog } from "./components/object-qu
 import type { HomeAssistant, MaintenanceObject } from "./types";
 import { ensureLocale, isLocaleLoaded, langOf, setProfilePrefs } from "./styles";
 import { fillAndOpenCompleteDialog, type CompleteDialogArgs } from "./helpers/complete-dialog-args";
+import { fetchSettingsOnce, invalidateSettingsCache } from "./helpers/settings-cache";
 
 const OBJECT_DIALOG_TAG = "maintenance-object-dialog";
 const TASK_DIALOG_TAG = "maintenance-task-dialog";
@@ -106,40 +107,9 @@ function syncHass(el: HTMLElement & { hass?: HomeAssistant }): boolean {
   return true;
 }
 
-/** Settings cache used to populate task-dialog's feature-gated sections
- *  (checklists / schedule_time / completion_actions) AND its
- *  defaultWarningDays prop when the dialog is mounted from Lovelace.
- *
- *  Without this, every section that's gated on a feature flag stays
- *  hidden (default false) — that's the "ich habe nicht alles wie im
- *  Panel gefunden" symptom. The panel reads the same settings object
- *  via maintenance-panel.ts and passes it through as element properties.
- *
- *  Cache lifetime: page session. Invalidated on full HA reload (which
- *  also drops our custom-element registry).  The settings WS itself is
- *  cheap (~10ms) so even uncached this isn't a hot path concern, but
- *  caching means re-opening the dialog feels instant.
- */
-interface SettingsCache {
-  features: {
-    adaptive: boolean; predictions: boolean; seasonal: boolean;
-    environmental: boolean; budget: boolean; groups: boolean;
-    checklists: boolean; schedule_time: boolean; completion_actions: boolean;
-  };
-  defaultWarningDays: number;
-  /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
-  rowActionStyle: string;
-}
-
-const FALLBACK_SETTINGS: SettingsCache = {
-  features: {
-    adaptive: false, predictions: false, seasonal: false,
-    environmental: false, budget: false, groups: false,
-    checklists: false, schedule_time: false, completion_actions: false,
-  },
-  defaultWarningDays: 7,
-  rowActionStyle: "buttons_compact",
-};
+/** The settings the Lovelace-mounted dialogs read (feature-gated sections,
+ *  default warning days): see helpers/settings-cache.ts — one fetch per
+ *  page, shared across bundles, invalidated by whoever writes global/update. */
 
 /** The household's row-action style for surfaces outside the panel (the
  *  Lovelace card follows it unless its own `action_style` is set). */
@@ -147,28 +117,10 @@ export function getRowActionStyle(hass: HomeAssistant): Promise<string> {
   return fetchSettingsOnce(hass).then((s) => s.rowActionStyle);
 }
 
-/** Test hook: the settings cache is module-wide (one fetch per page), which
+/** Test hook: the settings cache is page-wide (one fetch per page), which
  *  makes component tests with DIFFERENT settings share the first answer. */
 export function __resetSettingsCacheForTests(): void {
-  _cachedSettings = null;
-}
-
-let _cachedSettings: Promise<SettingsCache> | null = null;
-
-function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
-  if (_cachedSettings) return _cachedSettings;
-  _cachedSettings = hass.connection
-    .sendMessagePromise<{
-      features?: SettingsCache["features"];
-      general?: { default_warning_days?: number; row_action_style?: string };
-    }>({ type: "maintenance_supporter/settings" })
-    .then((r) => ({
-      features: r.features ?? FALLBACK_SETTINGS.features,
-      defaultWarningDays: r.general?.default_warning_days ?? 7,
-      rowActionStyle: r.general?.row_action_style ?? FALLBACK_SETTINGS.rowActionStyle,
-    }))
-    .catch(() => FALLBACK_SETTINGS);
-  return _cachedSettings;
+  invalidateSettingsCache();
 }
 
 export function openCreateObjectDialog(): boolean {

@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "उपभोग्य „कम“ सीमा (%)",
   "settings_battery_low_percent": "बैटरी „कम“ सीमा (%)",
   "settings_thresholds_hint": "नए सुझाए गए सेटअप (शेष प्रतिशत) और अपनी Battery Notes सीमा न रखने वाली बेड़े की बैटरियों के लिए डिफ़ॉल्ट। मौजूदा कार्य अपना मान रखते हैं।",
+  "settings_value_out_of_range": "मान {min} और {max} के बीच होना चाहिए",
   "bn_summary": "{name}: {n} बैटरियों के लिए {pct} %",
   "bn_floor_decides": "आपकी {floor} % सीमा सभी के लिए निर्णायक है; प्रत्येक बैटरी के लिए दोनों में से ऊँची सीमा मान्य है।",
   "bn_above_floor": "यह आपकी {floor} % सीमा से ऊपर है, इसलिए सभी नोट की गई बैटरियों के लिए {name} निर्णायक है।",

@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "Consumable low threshold (%)",
   "settings_battery_low_percent": "Battery low threshold (%)",
   "settings_thresholds_hint": "Defaults for new Suggested setups (percent-remaining consumables) and for fleet batteries without their own Battery Notes threshold. Existing tasks keep their value.",
+  "settings_value_out_of_range": "Value must be between {min} and {max}",
   "bn_summary": "{name}: {pct} % for {n} batteries",
   "bn_floor_decides": "Your {floor} % floor decides for all of them; the higher of the two thresholds counts per battery.",
   "bn_above_floor": "That is above your {floor} % floor, so {name} decides for all noted batteries.",

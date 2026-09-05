@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "Limite „consumível baixo“ (%)",
   "settings_battery_low_percent": "Limite „pilha fraca“ (%)",
   "settings_thresholds_hint": "Padrões para novas Configurações sugeridas (porcentagem restante) e para pilhas da frota sem limite próprio do Battery Notes. As tarefas existentes mantêm seu valor.",
+  "settings_value_out_of_range": "O valor deve estar entre {min} e {max}",
   "bn_summary": "{name}: {pct} % para {n} pilhas",
   "bn_floor_decides": "Seu limite de {floor} % decide para todas; por pilha vale o maior dos dois limites.",
   "bn_above_floor": "Está acima do seu limite de {floor} %, então o {name} decide para todas as pilhas anotadas.",

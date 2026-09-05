@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "Schwelle „Verbrauchsmaterial niedrig“ (%)",
   "settings_battery_low_percent": "Schwelle „Batterie niedrig“ (%)",
   "settings_thresholds_hint": "Vorgaben für neue Vorgeschlagene Einrichtungen (Prozent-Restwert) und für Flotten-Batterien ohne eigene Battery-Notes-Schwelle. Bestehende Aufgaben behalten ihren Wert.",
+  "settings_value_out_of_range": "Der Wert muss zwischen {min} und {max} liegen",
   "bn_summary": "{name}: {pct} % für {n} Batterien",
   "bn_floor_decides": "Deine {floor}-%-Schwelle entscheidet für alle; pro Batterie zählt die höhere der beiden Schwellen.",
   "bn_above_floor": "Das liegt über deiner {floor}-%-Schwelle — für alle notierten Batterien entscheidet {name}.",

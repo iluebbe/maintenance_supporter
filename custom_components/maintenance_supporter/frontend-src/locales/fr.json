@@ -454,6 +454,7 @@
   "settings_consumable_threshold": "Seuil « consommable bas » (%)",
   "settings_battery_low_percent": "Seuil « pile faible » (%)",
   "settings_thresholds_hint": "Valeurs par défaut pour les nouvelles Configurations suggérées (pourcentage restant) et pour les piles de la flotte sans seuil Battery Notes propre. Les tâches existantes gardent leur valeur.",
+  "settings_value_out_of_range": "La valeur doit être comprise entre {min} et {max}",
   "bn_summary": "{name} : {pct} % pour {n} piles",
   "bn_floor_decides": "Votre seuil de {floor} % décide pour toutes ; par pile, c'est le plus élevé des deux seuils qui compte.",
   "bn_above_floor": "C'est au-dessus de votre seuil de {floor} % : {name} décide donc pour toutes les piles notées.",

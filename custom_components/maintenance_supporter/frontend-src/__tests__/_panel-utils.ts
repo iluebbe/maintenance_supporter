@@ -65,6 +65,7 @@ export function obj(entryId: string, tasks: unknown[], name = "Pool Pump") {
 export async function mountPanel(
   objects: unknown[],
   extraHandlers: Record<string, WsHandler> = {},
+  opts: { user?: { id: string; is_admin: boolean } } = {},
 ) {
   const { hass, sent, subscriptions } = createMockHass({
     handlers: {
@@ -83,7 +84,7 @@ export async function mountPanel(
     },
   });
   // The panel derives write access from hass.user (no user → read-only).
-  (hass as Record<string, unknown>).user = { id: "admin-1", is_admin: true };
+  (hass as Record<string, unknown>).user = opts.user ?? { id: "admin-1", is_admin: true };
   (hass as Record<string, unknown>).areas = {};
 
   const el = await fixture<HTMLElement & { updateComplete: Promise<unknown> }>(html`

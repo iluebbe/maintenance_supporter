@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "„Fogyóeszköz alacsony” küszöb (%)",
   "settings_battery_low_percent": "„Alacsony akkumulátor” küszöb (%)",
   "settings_thresholds_hint": "Alapértékek az új Javasolt beállításokhoz (százalékos maradék) és a saját Battery Notes-küszöb nélküli flottaelemekhez. A meglévő feladatok megtartják az értéküket.",
+  "settings_value_out_of_range": "Az értéknek {min} és {max} között kell lennie",
   "bn_summary": "{name}: {pct} % {n} elemhez",
   "bn_floor_decides": "A te {floor} %-os küszöböd dönt mindegyiknél; elemenként a két küszöb közül a magasabb számít.",
   "bn_above_floor": "Ez a te {floor} %-os küszöböd felett van, így minden feljegyzett elemnél a {name} dönt.",

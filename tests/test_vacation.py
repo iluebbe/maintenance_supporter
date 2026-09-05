@@ -366,3 +366,36 @@ def test_compute_preview_window_end_before_start_returns_empty() -> None:
     # today is after the vacation end → window_end < window_start
     result = compute_preview(state, [{"task_id": "t1", "enabled": True}], today=date(2026, 6, 1))
     assert result == []
+
+
+def test_compute_preview_rows_carry_allow_skip() -> None:
+    """Bug review 2026-09-04: the preview offered Skip for every time-based
+    task; the rows now carry the task's own allow_skip (absent = allowed)."""
+    from custom_components.maintenance_supporter.helpers.vacation import VacationState, compute_preview
+
+    today = dt_util.now().date()
+    state = VacationState(
+        enabled=True,
+        start=today + timedelta(days=1),
+        end=today + timedelta(days=14),
+        buffer_days=0,
+        exempt_task_ids=frozenset(),
+    )
+    base = {
+        "entry_id": "entry1",
+        "object_name": "Pool",
+        "schedule_type": "time_based",
+        "interval_days": 7,
+        "warning_days": 2,
+        "last_performed": today.isoformat(),
+    }
+    rows = compute_preview(
+        state,
+        [
+            {**base, "task_id": "t-default", "task_name": "Default"},
+            {**base, "task_id": "t-locked", "task_name": "Locked", "allow_skip": False},
+            {**base, "task_id": "t-open", "task_name": "Open", "allow_skip": True},
+        ],
+    )
+    by_id = {r["task_id"]: r["allow_skip"] for r in rows}
+    assert by_id == {"t-default": True, "t-locked": False, "t-open": True}

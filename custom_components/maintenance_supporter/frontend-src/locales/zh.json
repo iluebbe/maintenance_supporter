@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "耗材“不足”阈值（%）",
   "settings_battery_low_percent": "电池“电量低”阈值（%）",
   "settings_thresholds_hint": "用于新的“建议设置”（剩余百分比）以及没有自身 Battery Notes 阈值的电池组电池。现有任务保留其值。",
+  "settings_value_out_of_range": "数值必须介于 {min} 和 {max} 之间",
   "bn_summary": "{name}：{n} 块电池为 {pct}%",
   "bn_floor_decides": "你的 {floor}% 阈值对所有电池生效；每块电池取两个阈值中较高者。",
   "bn_above_floor": "这高于你的 {floor}% 阈值，因此所有已记录的电池由 {name} 决定。",

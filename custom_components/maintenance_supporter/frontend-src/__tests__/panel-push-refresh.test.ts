@@ -10,6 +10,7 @@
  */
 
 import { expect, waitUntil } from "@open-wc/testing";
+import { DEFAULT_SETTINGS_RESPONSE } from "./_test-utils.js";
 import { mountPanel, obj, resetTaskSeq, task } from "./_panel-utils.js";
 
 type PanelPriv = HTMLElement & {
@@ -103,5 +104,62 @@ describe("panel push refresh (KPIs + open-task history)", () => {
     await waitUntil(() => countHistory() > before, "task/history refetched after the delta");
     await waitUntil(() => el._fullHistory?.entries.length === 4, "full history carries the pushed completion");
     expect(el._fullHistory?.taskId).to.equal("t1");
+  });
+
+  // Bug review 2026-09-04: both refetch gates keyed on `_view === "task"`.
+  // A task docked in the wide-dashboard split pane (the view stays
+  // "overview") kept its FIRST full history for as long as it was docked —
+  // a pushed completion moved the row on the left but not the timeline on
+  // the right, and a plain data refresh did not help either.
+  describe("docked split-pane detail", () => {
+    async function dock(historyLen: () => number) {
+      const r = await mountPanel(
+        [obj("e1", [task({ name: "Alpha", history: hist(1) })])],
+        {
+          "maintenance_supporter/settings": () => DEFAULT_SETTINGS_RESPONSE,
+          "maintenance_supporter/task/history": () => ({ history: hist(historyLen()) }),
+        },
+      );
+      const el = r.el as PanelPriv & { _view: string; _loadData: () => Promise<void> };
+      el.style.width = "1700px";
+      await new Promise((res) => setTimeout(res, 120));
+      await el.updateComplete;
+      const sr = el.shadowRoot!;
+      await waitUntil(() => !!sr.querySelector(".split-pane"), "split pane rendered");
+      (sr.querySelector(".task-row .cell.task-name") as HTMLElement).click();
+      await el.updateComplete;
+      await waitUntil(() => !!sr.querySelector(".split-pane maintenance-task-detail-view"), "detail docked");
+      expect(el._view, "docked, not navigated").to.equal("overview");
+      await waitUntil(() => el._fullHistory?.entries.length === historyLen(), "full history loaded on dock");
+      const countHistory = () => r.sent.filter((m) => m.type === "maintenance_supporter/task/history").length;
+      return { el, subscriptions: r.subscriptions, countHistory };
+    }
+
+    it("a delta for the docked task's object refetches its full history", async () => {
+      let historyLen = 3;
+      const { el, subscriptions, countHistory } = await dock(() => historyLen);
+      const sub = subscriptions.find((s) => s.msg.type === "maintenance_supporter/subscribe")!;
+
+      const before = countHistory();
+      sub.push({ delta: [obj("e2", [task({ name: "Elsewhere" })], "Other")], removed: [] });
+      await settle(el);
+      expect(countHistory(), "another object: untouched").to.equal(before);
+
+      historyLen = 4;
+      sub.push({ delta: [obj("e1", [task({ id: "t1", name: "Alpha", history: hist(2) })])], removed: [] });
+      await waitUntil(() => countHistory() > before, "task/history refetched for the docked task");
+      await waitUntil(() => el._fullHistory?.entries.length === 4, "docked timeline carries the pushed completion");
+      expect(el._fullHistory?.taskId).to.equal("t1");
+    });
+
+    it("a data refresh refetches the docked task's full history", async () => {
+      let historyLen = 3;
+      const { el, countHistory } = await dock(() => historyLen);
+      const before = countHistory();
+      historyLen = 5;
+      await el._loadData();
+      await waitUntil(() => countHistory() > before, "task/history refetched by _loadData");
+      await waitUntil(() => el._fullHistory?.entries.length === 5, "docked timeline follows the refresh");
+    });
   });
 });

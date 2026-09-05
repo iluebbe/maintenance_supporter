@@ -454,6 +454,7 @@
   "settings_consumable_threshold": "Drempel „verbruiksartikel laag“ (%)",
   "settings_battery_low_percent": "Drempel „batterij laag“ (%)",
   "settings_thresholds_hint": "Standaardwaarden voor nieuwe Voorgestelde installaties (resterend percentage) en voor vlootbatterijen zonder eigen Battery Notes-drempel. Bestaande taken behouden hun waarde.",
+  "settings_value_out_of_range": "De waarde moet tussen {min} en {max} liggen",
   "bn_summary": "{name}: {pct} % voor {n} batterijen",
   "bn_floor_decides": "Jouw drempel van {floor} % beslist voor allemaal; per batterij telt de hoogste van de twee drempels.",
   "bn_above_floor": "Dat ligt boven jouw drempel van {floor} %, dus {name} beslist voor alle genoteerde batterijen.",

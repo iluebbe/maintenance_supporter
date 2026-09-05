@@ -11,6 +11,7 @@ import { downloadUrl } from "../helpers/download";
 import { UserService } from "../user-service";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
+import { invalidateSettingsCache } from "../helpers/settings-cache";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -117,6 +118,8 @@ interface VacationPreviewRow {
   confidence: "deterministic" | "estimated" | "unpredictable";
   events: Array<{ date: string; status: "due_soon" | "overdue" | "triggered_est" }>;
   will_suppress: boolean;
+  /** The task's own skip rule (#150); absent on older backends = allowed. */
+  allow_skip?: boolean;
 }
 
 // Keep in lockstep with const.BUDGET_CURRENCIES (keys + order). Parity is
@@ -269,11 +272,18 @@ export class MaintenanceSettingsView extends LitElement {
       .replace("{n}", String(bn.devices));
     const rule = (warn ? t("bn_above_floor", L).replace("{name}", "Battery Notes") : t("bn_floor_decides", L))
       .replace("{floor}", String(floor));
+    // The integration name becomes the link, the rest stays text. ja/zh
+    // punctuate with the fullwidth colon — an ASCII-only split linked the
+    // whole sentence and then duplicated its last character (bug review
+    // 2026-09-04).
+    const cut = summary.search(/[:：]/);
+    const linkText = cut < 0 ? summary : summary.slice(0, cut);
+    const rest = cut < 0 ? "" : summary.slice(cut);
     return html`
       <div class="bn-note${warn ? " warn" : ""}">
         <ha-icon icon="${warn ? "mdi:alert-outline" : "mdi:battery-heart-variant"}"></ha-icon>
         <span>
-          <a class="bn-link" href="/config/integrations/integration/battery_notes">${summary.split(":")[0]}</a>${summary.slice(summary.indexOf(":"))}
+          <a class="bn-link" href="/config/integrations/integration/battery_notes">${linkText}</a>${rest}
           ${bn.overrides.length
             ? html` · ${t("bn_overrides", L).replace("{n}", String(bn.overrides.length + bn.more))}
                 ${bn.overrides.map((o, i) => html`${i ? " · " : " "}${o.device_id
@@ -293,6 +303,9 @@ export class MaintenanceSettingsView extends LitElement {
         settings: { [key]: value },
       });
       this._settings = result as SettingsResponse;
+      // The card / Lovelace dialogs read their copy through a page-wide
+      // cache — drop it so they follow the change without a reload.
+      invalidateSettingsCache();
       this._showToast(t("settings_saved", this._lang));
       this.dispatchEvent(new CustomEvent("settings-changed"));
     } catch {
@@ -327,6 +340,23 @@ export class MaintenanceSettingsView extends LitElement {
   private _showToast(msg: string): void {
     this._toast = msg;
     setTimeout(() => { this._toast = ""; }, 3000);
+  }
+
+  /** Bounded integer settings: an out-of-range entry used to be dropped
+   *  silently while the field kept showing it (bug review 2026-09-04). Now
+   *  it is named in a toast and the field snaps back to the stored value;
+   *  a server reject snaps back through `live()` like the selects. */
+  private _onBoundedIntChange(e: Event, key: string, min: number, max: number, current: number): void {
+    const input = e.target as HTMLInputElement;
+    const v = parseInt(input.value, 10);
+    if (Number.isInteger(v) && v >= min && v <= max) {
+      void this._updateSetting(key, v);
+      return;
+    }
+    this._showToast(
+      t("settings_value_out_of_range", this._lang).replace("{min}", String(min)).replace("{max}", String(max)),
+    );
+    input.value = String(current);
   }
 
   private _downloadFile(content: string, filename: string, mime: string): void {
@@ -632,28 +662,22 @@ export class MaintenanceSettingsView extends LitElement {
         <h3>${t("settings_general", L)}</h3>
         <label class="setting-row">
           <span class="setting-label">${t("settings_default_warning", L)}</span>
-          <input type="number" min="0" max="365" .value=${String(g.default_warning_days)}
-            @change=${(e: Event) => {
-              const v = parseInt((e.target as HTMLInputElement).value, 10);
+          <input type="number" min="0" max="365" .value=${live(String(g.default_warning_days))}
+            @change=${(e: Event) =>
               // 0 = no warning window (due soon only on the due date) — #145.
-              if (v >= 0 && v <= 365) this._updateSetting("default_warning_days", v);
-            }} />
+              this._onBoundedIntChange(e, "default_warning_days", 0, 365, g.default_warning_days)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_consumable_threshold", L)}</span>
-          <input type="number" min="1" max="90" .value=${String(g.default_consumable_threshold ?? 10)}
-            @change=${(e: Event) => {
-              const v = parseInt((e.target as HTMLInputElement).value, 10);
-              if (v >= 1 && v <= 90) this._updateSetting("default_consumable_threshold", v);
-            }} />
+          <input type="number" min="1" max="90" .value=${live(String(g.default_consumable_threshold ?? 10))}
+            @change=${(e: Event) =>
+              this._onBoundedIntChange(e, "default_consumable_threshold", 1, 90, g.default_consumable_threshold ?? 10)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_battery_low_percent", L)}</span>
-          <input type="number" min="1" max="90" .value=${String(g.battery_low_percent ?? 20)}
-            @change=${(e: Event) => {
-              const v = parseInt((e.target as HTMLInputElement).value, 10);
-              if (v >= 1 && v <= 90) this._updateSetting("battery_low_percent", v);
-            }} />
+          <input type="number" min="1" max="90" .value=${live(String(g.battery_low_percent ?? 20))}
+            @change=${(e: Event) =>
+              this._onBoundedIntChange(e, "battery_low_percent", 1, 90, g.battery_low_percent ?? 20)} />
         </label>
         ${this._renderBatteryNotesHint(L)}
         <div class="setting-hint">${t("settings_thresholds_hint", L)}</div>
@@ -1128,7 +1152,7 @@ export class MaintenanceSettingsView extends LitElement {
               </div>
               <div class="vac-preview-actions">
                 <button @click=${() => this._previewActionComplete(row)}>${t("qr_action_complete", L)}</button>
-                ${row.kind === "time_based"
+                ${row.kind === "time_based" && row.allow_skip !== false
                   ? html`<button @click=${() => this._previewActionSkip(row)}>${t("qr_action_skip", L)}</button>`
                   : nothing}
                 <button class=${isExempt ? "vac-notify-on" : ""}

@@ -76,6 +76,43 @@ describe("overview deep links (#160)", () => {
     expect(localStorage.getItem("msp-overview-tab")).to.equal("settings");
   });
 
+  // Bug review 2026-09-04: the Settings tab is admin-only (the tab bar hides
+  // it), but the deep links only validated the value against OVERVIEW_TABS —
+  // a non-admin landed on a tab-less settings view, and `?tab=` persisted
+  // the choice across reloads.
+  describe("non-admin", () => {
+    const USER = { id: "u-viewer", is_admin: false };
+
+    async function mountAs(query: string) {
+      setDeepLink(query);
+      const { el } = await mountPanel([obj("e1", [task({ name: "Mow lawn" })])], {}, { user: USER });
+      await el.updateComplete;
+      return el as unknown as PanelState;
+    }
+
+    it("?tab=settings is ignored and nothing is persisted", async () => {
+      const el = await mountAs("tab=settings");
+      await settle(el);
+      expect(el._overviewTab).to.equal("dashboard");
+      expect(localStorage.getItem("msp-overview-tab")).to.equal("dashboard");
+      expect(window.location.search, "consumed").to.equal("");
+      expect(sr(el).querySelector("maintenance-settings-view"), "no settings view").to.equal(null);
+    });
+
+    it("?ms_action=open_settings is consumed without opening the tab", async () => {
+      const el = await mountAs("ms_action=open_settings");
+      await settle(el);
+      expect(el._overviewTab).to.equal("dashboard");
+      expect(window.location.search, "consumed").to.equal("");
+      expect(sr(el).querySelector("maintenance-settings-view"), "no settings view").to.equal(null);
+    });
+
+    it("the other tabs still work for them", async () => {
+      const el = await mountAs("tab=today");
+      expect(el._overviewTab).to.equal("today");
+    });
+  });
+
   it("?status=overdue&sort=object filters + sorts the dashboard list (sort persists like the select)", async () => {
     const { el } = await mount("tab=today&status=overdue&sort=object");
     // status implies the Dashboard tab — a filter on the Today tab is pointless
@@ -151,11 +188,16 @@ describe("overview deep links (#160)", () => {
     navigate(`${window.location.pathname}?entry_id=e1&task_id=t1`);
     await settle(el);
     expect(el._view).to.equal("task");
+    // Bug review 2026-09-04: HA's navigate() already pushed the entry for
+    // the overview — the panel must not push a second one (Back needed two
+    // presses to get back to the task page).
+    const entriesBefore = history.length;
     navigate(`${window.location.pathname}?status=overdue`);
     await settle(el);
     expect(el._view).to.equal("overview");
     expect(el._overviewTab).to.equal("dashboard");
     expect(el._filterStatus).to.equal("overdue");
+    expect(history.length, "only HA's own entry").to.equal(entriesBefore + 1);
   });
 
   it("a navigation to another panel is not ours (params untouched)", async () => {

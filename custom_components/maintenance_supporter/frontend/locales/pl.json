@@ -454,6 +454,7 @@
   "settings_consumable_threshold": "Próg „materiał eksploatacyjny niski” (%)",
   "settings_battery_low_percent": "Próg „bateria słaba” (%)",
   "settings_thresholds_hint": "Wartości domyślne dla nowych Sugerowanych konfiguracji (procent pozostały) i dla baterii floty bez własnego progu Battery Notes. Istniejące zadania zachowują swoją wartość.",
+  "settings_value_out_of_range": "Wartość musi mieścić się w zakresie od {min} do {max}",
   "bn_summary": "{name}: {pct} % dla {n} baterii",
   "bn_floor_decides": "Twój próg {floor} % decyduje dla wszystkich; dla każdej baterii liczy się wyższy z dwóch progów.",
   "bn_above_floor": "To powyżej twojego progu {floor} %, więc o wszystkich odnotowanych bateriach decyduje {name}.",

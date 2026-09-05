@@ -313,6 +313,8 @@ def compute_preview(
                 "confidence": confidence,
                 "events": [{"date": e.date.isoformat(), "status": e.status} for e in events],
                 "will_suppress": task_id not in state.exempt_task_ids,
+                # Absent = allowed, mirroring the task payload (#150).
+                "allow_skip": t.get("allow_skip") is not False,
             }
         )
     # Stable ordering: object name then task name, matches #40 sort

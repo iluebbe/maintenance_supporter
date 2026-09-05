@@ -44,6 +44,41 @@ describe("computeTrend", () => {
     expect(computeTrend(row({ type: "compound", conditions: [] }), stats("sensor.x", 1, 2, 3))).to.equal(null);
     expect(computeTrend(row({ type: "threshold", trigger_above: 60 }), new Map())).to.equal(null);
   });
+
+  // Bug review 2026-09-04: without recorder stats the fallback series came
+  // from the task history, whose trigger_value is the count at the PREVIOUS
+  // trigger. Runtime and state_change reset on completion, so a fresh cycle
+  // (100 h at the trigger, 20 h now) read "↘ easing" while the hours climbed.
+  describe("history fallback", () => {
+    const triggered = (value: number) => ({
+      timestamp: new Date(Date.now() - 10 * DAY).toISOString(),
+      type: "triggered",
+      trigger_value: value,
+    });
+    const withHistory = (tc: Record<string, unknown>, current: number, value: number, extra: Record<string, unknown> = {}) =>
+      ({ ...row(tc, current), history: [triggered(value)], ...extra }) as unknown as TaskRow;
+
+    it("runtime and state_change skip the pre-reset history point (no arrow, no lie)", () => {
+      expect(computeTrend(withHistory({ type: "runtime", trigger_runtime_hours: 100 }, 20, 100), new Map())).to.equal(null);
+      expect(computeTrend(withHistory({ type: "state_change", trigger_target_changes: 50 }, 10, 50), new Map())).to.equal(null);
+    });
+
+    it("a counter's history stays a valid series (the reading does not reset)", () => {
+      expect(computeTrend(withHistory({ type: "counter", trigger_target_value: 100 }, 70, 40), new Map())).to.equal("approaching");
+    });
+
+    it("a delta counter is judged against baseline + interval, not the bare interval", () => {
+      // Odometer 100 000 km, 15 000 km interval, +1 200 km in a month: 8 % of
+      // the way — an arrow, not "stable" (5 % of |15 000 − 100 000| = 4 250).
+      const car = withHistory(
+        { type: "counter", trigger_target_value: 15000, trigger_delta_mode: true },
+        101200,
+        100000,
+        { trigger_baseline_value: 100000 },
+      );
+      expect(computeTrend(car, new Map())).to.equal("approaching");
+    });
+  });
 });
 
 describe("renderTriggerProgress with a trend", () => {

@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "Kynnys „kulutustarvike vähissä“ (%)",
   "settings_battery_low_percent": "Kynnys „paristo vähissä“ (%)",
   "settings_thresholds_hint": "Oletukset uusille Ehdotetuille asetuksille (jäljellä oleva prosentti) ja paristokannan paristoille ilman omaa Battery Notes -kynnystä. Olemassa olevat tehtävät säilyttävät arvonsa.",
+  "settings_value_out_of_range": "Arvon on oltava välillä {min}–{max}",
   "bn_summary": "{name}: {pct} % {n} paristolle",
   "bn_floor_decides": "Sinun {floor} %:n kynnyksesi ratkaisee kaikille; paristoa kohden pätee korkeampi kahdesta kynnyksestä.",
   "bn_above_floor": "Se on sinun {floor} %:n kynnyksesi yläpuolella, joten {name} ratkaisee kaikille kirjatuille paristoille.",

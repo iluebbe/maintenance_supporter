@@ -456,6 +456,7 @@
   "settings_consumable_threshold": "소모품 „부족“ 임계값 (%)",
   "settings_battery_low_percent": "배터리 „부족“ 임계값 (%)",
   "settings_thresholds_hint": "새 추천 설정(남은 비율)과 자체 Battery Notes 임계값이 없는 배터리 목록 배터리의 기본값입니다. 기존 작업은 값을 유지합니다.",
+  "settings_value_out_of_range": "값은 {min}에서 {max} 사이여야 합니다",
   "bn_summary": "{name}: 배터리 {n}개에 {pct} %",
   "bn_floor_decides": "당신의 {floor} % 임계값이 모두에 적용됩니다. 배터리마다 두 임계값 중 높은 쪽이 적용됩니다.",
   "bn_above_floor": "이는 당신의 {floor} % 임계값보다 높으므로, 기록된 모든 배터리는 {name}이(가) 결정합니다.",
