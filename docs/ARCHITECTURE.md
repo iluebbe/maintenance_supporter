@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.74.0 | 220 source files (134 Python + 86 TypeScript) | **98% test coverage** (3,641 backend tests + 631 frontend tests)
+**Version:** 2.74.0 | 221 source files (134 Python + 87 TypeScript) | **98% test coverage** (3,672 backend tests + 655 frontend tests)
 
 ---
 
@@ -809,7 +809,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (98%, 3,639 tests) |
+| test-coverage (>95%) | Silver | Yes (98%, 3,672 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (`PARALLEL_UPDATES = 0` in all five platforms) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -831,7 +831,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**3,639 tests** across **212 test files** with **98% code coverage** (plus a 568-test frontend suite in real Chromium across 100 spec files, the 29-scenario journey suite, and the live e2e scripts under `e2e/`).
+**3,672 tests** across **213 test files** with **98% code coverage** (plus a 655-test frontend suite in real Chromium across 109 spec files, the 29-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

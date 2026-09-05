@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Completado el",
           "description": "Cuándo se realizó realmente el mantenimiento — para registrar a posteriori una tarea pasada. No puede estar en el futuro; si se omite, se registra ahora."
+        },
+        "via_tag_scan": {
+          "name": "Mediante escaneo de etiqueta",
+          "description": "Confirma que esta finalización proviene del escaneo de una etiqueta/código QR físico gestionado por la propia automatización — satisface el ajuste «Completar solo escaneando la etiqueta» de la tarea."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Listar tareas",
-      "description": "Devuelve una instantánea de las tareas de mantenimiento activas (id, nombre, estado, próximo vencimiento) para automatizaciones, scripts y voz. Admite filtrado por objeto y estado.",
+      "description": "Devuelve una instantánea de las tareas de mantenimiento activas (id, entity_id del sensor, nombre, estado, próximo vencimiento, última finalización, lectura actual del disparador con objetivo y unidad) para automatizaciones, scripts y voz. Admite filtrado por objeto y estado.",
       "fields": {
         "entry_id": {
           "name": "Objeto",

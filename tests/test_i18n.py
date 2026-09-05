@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 from homeassistant.core import HomeAssistant
 
 from custom_components.maintenance_supporter.helpers.i18n import normalize_language
@@ -28,6 +29,7 @@ from custom_components.maintenance_supporter.helpers.i18n import normalize_langu
 _COMPONENT = Path(__file__).resolve().parents[1] / "custom_components" / "maintenance_supporter"
 _STRINGS = _COMPONENT / "strings.json"
 _TRANSLATIONS = _COMPONENT / "translations"
+_SERVICES_YAML = _COMPONENT / "services.yaml"
 # Frontend panel/card UI strings: runtime-loaded JSON (only EN is bundled into
 # the JS). Same parity discipline as the backend translations; the 2-letter
 # codes (zh, not zh-Hans) match the frontend t() table keys.
@@ -556,3 +558,64 @@ def test_py_language_tables_placeholder_parity() -> None:
                     "missing": sorted(ref_tokens - tokens),
                     "extra": sorted(tokens - ref_tokens),
                 }
+
+
+# ---------------------------------------------------------------------------
+# services.yaml <-> strings.json
+
+
+def _services_yaml() -> dict[str, Any]:
+    return yaml.safe_load(_SERVICES_YAML.read_text(encoding="utf-8"))
+
+
+def test_services_yaml_fields_match_strings() -> None:
+    """Every service and every field in ``services.yaml`` has its name (and
+    description, where the YAML carries one) in ``strings.json`` — and,
+    through the parity tests above, in every translation.
+
+    HA takes service/field names and descriptions from the translations; a
+    field that only exists in the YAML shows its raw key in the developer
+    tools and the automation editor (``complete.via_tag_scan`` shipped that
+    way — bug review 2026-09-04).
+    """
+    yaml_services = _services_yaml()
+    strings_services = _load(_STRINGS)["services"]
+    assert set(yaml_services) == set(strings_services), {
+        "yaml_only": sorted(set(yaml_services) - set(strings_services)),
+        "strings_only": sorted(set(strings_services) - set(yaml_services)),
+    }
+    for service, spec in yaml_services.items():
+        yaml_fields = set((spec or {}).get("fields") or {})
+        string_fields = strings_services[service].get("fields") or {}
+        assert yaml_fields == set(string_fields), {
+            "service": service,
+            "yaml_only": sorted(yaml_fields - set(string_fields)),
+            "strings_only": sorted(set(string_fields) - yaml_fields),
+        }
+        for field in yaml_fields:
+            # A description is optional (self-explanatory fields such as
+            # "Model" carry none in either file), but one written in the
+            # YAML must reach the translations; the name always must.
+            expected = {"name"} | ({"description"} & set(spec["fields"][field] or {}))
+            assert expected <= set(string_fields[field]), (service, field, sorted(expected - set(string_fields[field])))
+
+
+def test_services_yaml_number_ceilings_follow_the_constants() -> None:
+    """The number selectors' bounds in ``services.yaml`` mirror the schema
+    constants — the UI must never reject what the schema accepts (``duration``
+    was capped at a day while the service takes a year; bug review
+    2026-09-04).
+    """
+    from custom_components.maintenance_supporter.const import MAX_DURATION_MINUTES
+    from custom_components.maintenance_supporter.helpers.task_fields import INTERVAL_DAYS_RANGE, WARNING_DAYS_RANGE
+
+    services = _services_yaml()
+
+    def bounds(service: str, field: str) -> tuple[int, int]:
+        number = services[service]["fields"][field]["selector"]["number"]
+        return number["min"], number["max"]
+
+    assert bounds("complete", "duration") == (0, MAX_DURATION_MINUTES)
+    for service in ("add_task", "update_task"):
+        assert bounds(service, "interval_days") == INTERVAL_DAYS_RANGE, service
+        assert bounds(service, "warning_days") == WARNING_DAYS_RANGE, service

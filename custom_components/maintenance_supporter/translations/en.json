@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Completed at",
           "description": "When the maintenance was actually performed — use it to backfill a past completion. Must not be in the future; when omitted, now is recorded."
+        },
+        "via_tag_scan": {
+          "name": "Via tag scan",
+          "description": "Assert that this completion came from a physical tag/QR scan the automation handled itself — satisfies a task's \"Only complete by scanning the tag\" setting."
         }
       }
     },

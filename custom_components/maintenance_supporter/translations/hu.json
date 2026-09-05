@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Elvégezve ekkor",
           "description": "Mikor történt ténylegesen a karbantartás — korábbi elvégzés utólagos rögzítéséhez. Nem lehet a jövőben; elhagyása esetén a mostani időpont kerül rögzítésre."
+        },
+        "via_tag_scan": {
+          "name": "Címke beolvasásával",
+          "description": "Igazolja, hogy ez az elvégzés egy fizikai címke/QR-kód beolvasásából származik, amelyet az automatizálás maga kezelt — teljesíti a feladat „Csak címke beolvasásával fejezhető be” beállítását."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Feladatok listázása",
-      "description": "Az aktív karbantartási feladatok pillanatképét adja vissza (azonosító, név, állapot, következő esedékesség) automatizálásokhoz, szkriptekhez és hangvezérléshez. Támogatja az objektum és állapot szerinti szűrést.",
+      "description": "Az aktív karbantartási feladatok pillanatképét adja vissza (azonosító, az érzékelő entity_id-ja, név, állapot, következő esedékesség, utolsó elvégzés, az eseményindító aktuális értéke céllal és mértékegységgel) automatizálásokhoz, szkriptekhez és hangvezérléshez. Támogatja az objektum és állapot szerinti szűrést.",
       "fields": {
         "entry_id": {
           "name": "Objektum",

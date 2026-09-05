@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Erledigt am",
           "description": "Wann die Wartung tatsächlich durchgeführt wurde — zum Nachtragen einer vergangenen Erledigung. Darf nicht in der Zukunft liegen; ohne Angabe wird jetzt erfasst."
+        },
+        "via_tag_scan": {
+          "name": "Per Tag-Scan",
+          "description": "Bestätigt, dass diese Erledigung aus dem Scan eines physischen Tags/QR-Codes stammt, den die Automation selbst verarbeitet hat — erfüllt die Aufgabeneinstellung „Nur per Tag-Scan abschließbar“."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Aufgaben auflisten",
-      "description": "Gibt eine Momentaufnahme der aktiven Wartungsaufgaben (id, Name, Status, nächste Fälligkeit) für Automationen, Skripte und Sprache zurück. Unterstützt Filterung nach Objekt und Status.",
+      "description": "Gibt eine Momentaufnahme der aktiven Wartungsaufgaben (id, entity_id des Sensors, Name, Status, nächste Fälligkeit, letzte Erledigung, aktueller Auslöser-Messwert mit Ziel und Einheit) für Automationen, Skripte und Sprache zurück. Unterstützt Filterung nach Objekt und Status.",
       "fields": {
         "entry_id": {
           "name": "Objekt",

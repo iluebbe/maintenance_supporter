@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Voltooid op",
           "description": "Wanneer het onderhoud daadwerkelijk is uitgevoerd — om een eerdere voltooiing achteraf in te voeren. Mag niet in de toekomst liggen; indien weggelaten wordt nu geregistreerd."
+        },
+        "via_tag_scan": {
+          "name": "Via tag-scan",
+          "description": "Bevestigt dat deze voltooiing afkomstig is van het scannen van een fysieke tag/QR-code die de automatisering zelf heeft afgehandeld — voldoet aan de taakinstelling „Alleen af te ronden via tag-scan”."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Taken weergeven",
-      "description": "Geeft een momentopname van actieve onderhoudstaken (id, naam, status, volgende vervaldatum) voor automatiseringen, scripts en spraak. Ondersteunt filteren op object en status.",
+      "description": "Geeft een momentopname van actieve onderhoudstaken (id, entity_id van de sensor, naam, status, volgende vervaldatum, laatste voltooiing, actuele triggerwaarde met doel en eenheid) voor automatiseringen, scripts en spraak. Ondersteunt filteren op object en status.",
       "fields": {
         "entry_id": {
           "name": "Object",

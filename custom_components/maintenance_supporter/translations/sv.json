@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Utförd den",
           "description": "När underhållet faktiskt utfördes — för att efterregistrera ett tidigare slutförande. Får inte ligga i framtiden; om det utelämnas registreras nu."
+        },
+        "via_tag_scan": {
+          "name": "Via tagg-skanning",
+          "description": "Intygar att detta slutförande kommer från en skanning av en fysisk tagg/QR-kod som automationen själv hanterade — uppfyller uppgiftens inställning ”Kan endast slutföras via tagg-skanning”."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Lista uppgifter",
-      "description": "Returnerar en ögonblicksbild av aktiva underhållsuppgifter (id, namn, status, nästa förfall) för automationer, skript och röst. Stöder filtrering efter objekt och status.",
+      "description": "Returnerar en ögonblicksbild av aktiva underhållsuppgifter (id, sensorns entity_id, namn, status, nästa förfall, senaste slutförande, aktuell utlösaravläsning med mål och enhet) för automationer, skript och röst. Stöder filtrering efter objekt och status.",
       "fields": {
         "entry_id": {
           "name": "Objekt",

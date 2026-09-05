@@ -30,7 +30,10 @@ complete:
       selector:
         number:
           min: 0
-          max: 1440
+          # Keep in step with MAX_DURATION_MINUTES (const.py) — the service
+          # schema accepts up to a year; a lower UI ceiling rejected multi-day
+          # jobs the WS/panel path accepts (bug review 2026-09-04).
+          max: 525600
           step: 1
           mode: box
     reading_value:
@@ -53,7 +56,7 @@ complete:
         datetime:
     via_tag_scan:
       name: Via tag scan
-      description: Assert that this completion came from a physical tag/QR scan the automation handled itself — satisfies a task's "require tag scan to complete" setting.
+      description: Assert that this completion came from a physical tag/QR scan the automation handled itself — satisfies a task's "Only complete by scanning the tag" setting.
       selector:
         boolean:
 

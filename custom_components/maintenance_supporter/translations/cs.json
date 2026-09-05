@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Dokončeno dne",
           "description": "Kdy byla údržba skutečně provedena — pro zpětné doplnění dřívějšího dokončení. Nesmí být v budoucnosti; při vynechání se zaznamená nyní."
+        },
+        "via_tag_scan": {
+          "name": "Naskenováním štítku",
+          "description": "Potvrzuje, že toto dokončení pochází z naskenování fyzického štítku/QR kódu, které automatizace sama zpracovala — splňuje nastavení úkolu „Dokončit pouze naskenováním štítku“."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Vypsat úkoly",
-      "description": "Vrátí přehled aktivních úkolů údržby (id, název, stav, další termín) pro automatizace, skripty a hlas. Podporuje filtrování podle objektu a stavu.",
+      "description": "Vrátí přehled aktivních úkolů údržby (id, entity_id senzoru, název, stav, další termín, poslední dokončení, aktuální hodnota spouštěče s cílem a jednotkou) pro automatizace, skripty a hlas. Podporuje filtrování podle objektu a stavu.",
       "fields": {
         "entry_id": {
           "name": "Objekt",

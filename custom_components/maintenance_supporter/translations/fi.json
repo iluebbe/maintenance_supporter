@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Suoritettu",
           "description": "Milloin huolto todella tehtiin — aiemman suorituksen jälkikirjaukseen. Ei saa olla tulevaisuudessa; jos jätetään pois, kirjataan nykyhetki."
+        },
+        "via_tag_scan": {
+          "name": "Tunnisteen skannauksella",
+          "description": "Vahvistaa, että tämä suoritus on peräisin fyysisen tunnisteen/QR-koodin skannauksesta, jonka automaatio käsitteli itse — täyttää tehtävän asetuksen ”Suoritus vain tunnisteen skannauksella”."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Listaa tehtävät",
-      "description": "Palauttaa tilannekuvan aktiivisista huoltotehtävistä (id, nimi, tila, seuraava eräpäivä) automaatioille, skripteille ja puheelle. Tukee suodatusta kohteen ja tilan mukaan.",
+      "description": "Palauttaa tilannekuvan aktiivisista huoltotehtävistä (id, anturin entity_id, nimi, tila, seuraava eräpäivä, viimeisin suoritus, laukaisimen nykyinen lukema tavoitteineen ja yksikköineen) automaatioille, skripteille ja puheelle. Tukee suodatusta kohteen ja tilan mukaan.",
       "fields": {
         "entry_id": {
           "name": "Kohde",

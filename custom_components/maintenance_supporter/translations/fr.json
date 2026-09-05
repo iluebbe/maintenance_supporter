@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Effectué le",
           "description": "Quand l'entretien a réellement été effectué — pour saisir a posteriori un entretien passé. Ne doit pas être dans le futur ; si omis, l'instant présent est enregistré."
+        },
+        "via_tag_scan": {
+          "name": "Via scan du tag",
+          "description": "Atteste que cette réalisation provient du scan d'un tag/QR code physique traité par l'automatisation elle-même — satisfait le réglage « Terminer uniquement en scannant le tag » de la tâche."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Lister les tâches",
-      "description": "Renvoie un instantané des tâches de maintenance actives (id, nom, statut, prochaine échéance) pour les automatisations, scripts et la voix. Prend en charge le filtrage par objet et statut.",
+      "description": "Renvoie un instantané des tâches de maintenance actives (id, entity_id du capteur, nom, statut, prochaine échéance, dernière réalisation, relevé actuel du déclencheur avec cible et unité) pour les automatisations, scripts et la voix. Prend en charge le filtrage par objet et statut.",
       "fields": {
         "entry_id": {
           "name": "Objet",

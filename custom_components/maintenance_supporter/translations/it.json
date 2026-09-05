@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Completato il",
           "description": "Quando la manutenzione è stata realmente eseguita — per registrare a posteriori un completamento passato. Non può essere nel futuro; se omesso, viene registrato adesso."
+        },
+        "via_tag_scan": {
+          "name": "Tramite scansione del tag",
+          "description": "Attesta che questo completamento proviene dalla scansione di un tag/codice QR fisico gestita dall'automazione stessa — soddisfa l'impostazione «Completa solo scansionando il tag» dell'attività."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Elenca attività",
-      "description": "Restituisce un'istantanea delle attività di manutenzione attive (id, nome, stato, prossima scadenza) per automazioni, script e voce. Supporta il filtro per oggetto e stato.",
+      "description": "Restituisce un'istantanea delle attività di manutenzione attive (id, entity_id del sensore, nome, stato, prossima scadenza, ultimo completamento, lettura attuale del trigger con obiettivo e unità) per automazioni, script e voce. Supporta il filtro per oggetto e stato.",
       "fields": {
         "entry_id": {
           "name": "Oggetto",

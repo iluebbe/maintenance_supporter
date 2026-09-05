@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Tamamlanma zamanı",
           "description": "Bakımın gerçekte ne zaman yapıldığı — geçmiş bir tamamlamayı sonradan kaydetmek için. Gelecekte olamaz; atlanırsa şimdi kaydedilir."
+        },
+        "via_tag_scan": {
+          "name": "Etiket taramasıyla",
+          "description": "Bu tamamlamanın, otomasyonun kendisinin işlediği fiziksel bir etiket/QR taramasından geldiğini doğrular — görevin “Yalnızca etiket taranarak tamamlanır” ayarını karşılar."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Görevleri Listele",
-      "description": "Otomasyonlar, betikler ve sesli komutlar için etkin bakım görevlerinin anlık görüntüsünü (kimlik, ad, durum, sonraki vade) döndür. Nesneye ve duruma göre filtrelemeyi destekler.",
+      "description": "Otomasyonlar, betikler ve sesli komutlar için etkin bakım görevlerinin anlık görüntüsünü (kimlik, sensörün entity_id'si, ad, durum, sonraki vade, son tamamlama, hedef ve birimiyle birlikte tetikleyicinin güncel okuması) döndürür. Nesneye ve duruma göre filtrelemeyi destekler.",
       "fields": {
         "entry_id": {
           "name": "Nesne",

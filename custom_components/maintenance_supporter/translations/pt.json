@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Concluído em",
           "description": "Quando a manutenção foi realmente efetuada — para registar retroativamente uma conclusão passada. Não pode estar no futuro; se omitido, é registado agora."
+        },
+        "via_tag_scan": {
+          "name": "Via leitura de etiqueta",
+          "description": "Confirma que esta conclusão proveio da leitura de uma etiqueta/código QR físico tratada pela própria automação — satisfaz a definição «Concluir apenas lendo a etiqueta» da tarefa."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Listar tarefas",
-      "description": "Devolve um instantâneo das tarefas de manutenção ativas (id, nome, estado, próximo vencimento) para automações, scripts e voz. Suporta filtragem por objeto e estado.",
+      "description": "Devolve um instantâneo das tarefas de manutenção ativas (id, entity_id do sensor, nome, estado, próximo vencimento, última conclusão, leitura atual do acionador com objetivo e unidade) para automações, scripts e voz. Suporta filtragem por objeto e estado.",
       "fields": {
         "entry_id": {
           "name": "Objeto",

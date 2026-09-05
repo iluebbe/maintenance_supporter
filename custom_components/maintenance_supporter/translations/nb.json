@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Utført den",
           "description": "Når vedlikeholdet faktisk ble utført — for å etterregistrere en tidligere fullføring. Kan ikke ligge i fremtiden; utelates den, registreres nå."
+        },
+        "via_tag_scan": {
+          "name": "Via tag-skanning",
+          "description": "Bekrefter at denne fullføringen stammer fra skanning av en fysisk tag/QR-kode som automatiseringen selv håndterte — oppfyller oppgavens innstilling «Kan bare fullføres ved tag-skanning»."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "List opp oppgaver",
-      "description": "Returnerer et øyeblikksbilde av aktive vedlikeholdsoppgaver (id, navn, status, neste forfall) for automatiseringer, skript og tale. Støtter filtrering etter objekt og status.",
+      "description": "Returnerer et øyeblikksbilde av aktive vedlikeholdsoppgaver (id, sensorens entity_id, navn, status, neste forfall, siste fullføring, gjeldende utløseravlesning med mål og enhet) for automatiseringer, skript og tale. Støtter filtrering etter objekt og status.",
       "fields": {
         "entry_id": {
           "name": "Objekt",

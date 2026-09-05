@@ -1596,6 +1596,10 @@
         "completed_at": {
           "name": "Wykonano dnia",
           "description": "Kiedy konserwacja została faktycznie wykonana — do uzupełnienia wcześniejszego wykonania. Nie może być w przyszłości; pominięcie oznacza zapis teraz."
+        },
+        "via_tag_scan": {
+          "name": "Przez skan tagu",
+          "description": "Potwierdza, że to wykonanie pochodzi ze skanu fizycznego tagu/kodu QR obsłużonego przez samą automatyzację — spełnia ustawienie zadania „Ukończenie tylko przez skan tagu”."
         }
       }
     },
@@ -1812,7 +1816,7 @@
     },
     "list_tasks": {
       "name": "Wyświetl zadania",
-      "description": "Zwraca migawkę aktywnych zadań konserwacji (id, nazwa, status, następny termin) dla automatyzacji, skryptów i głosu. Obsługuje filtrowanie według obiektu i statusu.",
+      "description": "Zwraca migawkę aktywnych zadań konserwacji (id, entity_id czujnika, nazwa, status, następny termin, ostatnie wykonanie, bieżący odczyt wyzwalacza z celem i jednostką) dla automatyzacji, skryptów i głosu. Obsługuje filtrowanie według obiektu i statusu.",
       "fields": {
         "entry_id": {
           "name": "Obiekt",
