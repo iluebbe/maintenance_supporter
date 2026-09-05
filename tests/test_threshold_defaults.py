@@ -16,6 +16,8 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.helpers.battery_fleet import (
     NATIVE_LOW_PERCENT,
     _note_low_threshold,
+    build_overview,
+    read_batteries,
 )
 from custom_components.maintenance_supporter.helpers.global_options import (
     get_battery_low_percent,
@@ -106,3 +108,43 @@ async def test_settings_payload_carries_battery_notes(hass: HomeAssistant) -> No
     await call_ws_handler(ws_get_settings, hass, conn, {"id": 1, "type": "maintenance_supporter/settings"})
     general = conn.send_result.call_args[0][1]["general"]
     assert general["battery_notes"]["devices"] == 1 and general["battery_notes"]["default"] == 10.0
+
+
+async def test_native_battery_row_carries_the_household_floor(hass: HomeAssistant) -> None:
+    """Bug review 2026-09-04: a native ``device_class: battery`` sensor was
+    judged low against the household floor but its row kept the 20 % class
+    default as ``low_threshold`` — the sparkline line, the level-bar colour
+    and the trend regression crossed 15 points below where the fleet task
+    actually fires."""
+    from datetime import date
+
+    entry = _global({CONF_BATTERY_LOW_PERCENT: 35})
+    entry.add_to_hass(hass)
+    await setup_integration(hass, entry)
+    hass.states.async_set("sensor.remote_battery", "30", {"device_class": "battery"})
+    hass.states.async_set("sensor.phone_battery", "80", {"device_class": "battery"})
+
+    by_eid = {b.entity_id: b for b in read_batteries(hass)}
+    remote, phone = by_eid["sensor.remote_battery"], by_eid["sensor.phone_battery"]
+    assert remote.source == "native" and remote.low is True
+    assert remote.low_threshold == 35.0 and phone.low_threshold == 35.0
+
+    rows = {r["entity_id"]: r for r in build_overview(list(by_eid.values()), today=date(2026, 9, 4)).all}
+    assert rows["sensor.remote_battery"]["low_threshold"] == 35.0
+
+
+async def test_pinned_percent_floor_survives_even_at_the_old_default_value(hass: HomeAssistant) -> None:
+    """Bug review 2026-09-04: the "follow the household" marker was the
+    literal 10 — a signature pinning exactly 10 % was indistinguishable from
+    the default and silently followed a household floor of 5 %."""
+    from custom_components.maintenance_supporter.helpers.signatures._model import (
+        ConsumableSignature,
+        _threshold_for,
+    )
+
+    entry = _global({CONF_DEFAULT_CONSUMABLE_THRESHOLD: 5})
+    entry.add_to_hass(hass)
+    following = ConsumableSignature(keys=("ink",), task_name="Replace Ink", direction="percent_left")
+    pinned = ConsumableSignature(keys=("ink",), task_name="Replace Ink", direction="percent_left", below_percent=10)
+    assert _threshold_for(following, hass, "sensor.ink") == 5.0
+    assert _threshold_for(pinned, hass, "sensor.ink") == 10.0

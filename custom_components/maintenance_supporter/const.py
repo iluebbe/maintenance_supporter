@@ -373,6 +373,12 @@ BATTERY_FLEET_INCLUDED = "battery_fleet_included"
 # vacuums, smart rings — the #107 filter) in the roster as rechargeables, so
 # "needs a recharge" can notify like "needs a swap". Default off: #107 stays.
 BATTERY_FLEET_TRACK_SELF_CHARGING = "battery_fleet_track_self_charging"
+# Bug review 2026-09-04: ``batt_<type>`` part ids the user DELETED. The
+# start-up reconcile re-minted them on every boot as long as the type was
+# still in the fleet, so a deleted type-part never stayed deleted. Written
+# by part/delete, honoured by the reconcile, cleared by an explicit
+# Battery-Fleet setup (the user asked for the full set again).
+BATTERY_FLEET_REMOVED_PARTS = "battery_fleet_removed_parts"
 # Task-side link: task["consumes_parts"] = [{"part_id", "quantity"}] — a
 # completion decrements each linked part's stock.
 CONF_TASK_CONSUMES_PARTS = "consumes_parts"

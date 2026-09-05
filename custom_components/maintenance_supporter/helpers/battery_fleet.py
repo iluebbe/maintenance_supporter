@@ -682,6 +682,11 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 last_replaced=None,
                 available=available,
                 source="native",
+                # The household floor decided ``low`` above — the sparkline
+                # line, the level-bar colours and the trend regression must
+                # cross at the same level, not at the 20 % class default
+                # (bug review 2026-09-04).
+                low_threshold=floor,
             )
         )
     return out

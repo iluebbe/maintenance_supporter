@@ -8,7 +8,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_PARTS, MAX_ID_LENGTH
+from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, MAX_ID_LENGTH
 from ..helpers.aggregate import object_name
 from ..helpers.parts import (
     MAX_PART_STOCK,
@@ -189,6 +189,14 @@ async def ws_delete_part(
                 td.pop(CONF_TASK_CONSUMES_PARTS, None)
             tasks[tid] = td
     new_data[CONF_TASKS] = tasks
+    # A deleted fleet type-part must STAY deleted: the start-up reconcile
+    # re-minted ``batt_<type>`` on every boot while the type was still in
+    # the fleet (bug review 2026-09-04). Tombstone it on the fleet object.
+    obj = new_data.get(CONF_OBJECT) or {}
+    if obj.get(BATTERY_FLEET_OBJECT_FLAG) is True and msg["part_id"].startswith("batt_"):
+        obj = dict(obj)
+        obj[BATTERY_FLEET_REMOVED_PARTS] = sorted(set(obj.get(BATTERY_FLEET_REMOVED_PARTS) or []) | {msg["part_id"]})
+        new_data[CONF_OBJECT] = obj
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     rd = _get_runtime_data(hass, entry.entry_id)
@@ -196,13 +204,16 @@ async def ws_delete_part(
         rd.store.remove_part(msg["part_id"])
         await rd.store.async_save()
 
-    # Remove the part's stock sensor from the entity registry (same
-    # contained-segment match the task delete uses; part ids are uuid4).
+    # Remove the part's stock sensor from the entity registry. Match from
+    # the END: fleet part ids are ``batt_<type>`` and ``_part_batt_aa`` is a
+    # prefix of ``_part_batt_aaa`` — the contained-segment match wiped the
+    # AAA sensor's registry entry along with the AA part (bug review
+    # 2026-09-04).
     from homeassistant.helpers import entity_registry as er
 
     ent_reg = er.async_get(hass)
     for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
-        if ent_entry.unique_id and f"_part_{msg['part_id']}" in ent_entry.unique_id:
+        if ent_entry.unique_id and ent_entry.unique_id.endswith(f"_part_{msg['part_id']}"):
             ent_reg.async_remove(ent_entry.entity_id)
 
     # The reconcile removes an open buy task for the now-gone part (it reloads

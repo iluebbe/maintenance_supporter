@@ -11,6 +11,7 @@ threshold trigger. No per-battery task.
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Callable
 from typing import Any
 from uuid import uuid4
@@ -24,9 +25,11 @@ from ..const import (
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_INCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_REMOVED_PARTS,
     BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
     CONF_PARTS,
+    CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
     DOMAIN,
 )
@@ -77,6 +80,10 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
 
     existing = find_fleet_entry(hass)
     if existing is not None:
+        # An explicit setup asks for the full type-part set again — forget
+        # the parts deleted since (the start-up reconcile honours them).
+        if existing.data.get(CONF_OBJECT, {}).get(BATTERY_FLEET_REMOVED_PARTS):
+            _mutate_fleet_object(hass, lambda obj: obj.pop(BATTERY_FLEET_REMOVED_PARTS, None))
         added_pids = _reconcile_type_parts(hass, existing, types, lang)
         # Track stock at 0 for the parts just added — the CREATE path below
         # does, and a part left untracked (stock None) shows no stock line
@@ -580,15 +587,7 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     legacy = parts.get("batt_unknown")
     if legacy is not None:
         stock = store.get_part_stock("batt_unknown") if store is not None else None
-        untouched = (
-            not stock
-            and not legacy.get("product_url")
-            and not legacy.get("vendor")
-            and not legacy.get("mpn")
-            and not legacy.get("gtin")
-            and not legacy.get("auto_buy_task")
-        )
-        if untouched:
+        if _legacy_unknown_untouched(entry, legacy, stock):
             parts.pop("batt_unknown")
             new_data = dict(entry.data)
             new_data[CONF_PARTS] = parts
@@ -612,10 +611,14 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
         uid = reg_entry.unique_id or ""
         if "_part_" not in uid:
             continue
-        pid = uid.split("_part_", 1)[1]
-        if pid and pid not in parts:
-            ent_reg.async_remove(reg_entry.entity_id)
-            orphans_removed += 1
+        # Match the way the sensor mints it (``…_{object_slug}_part_{pid}``)
+        # from the END — splitting at the first "_part_" mis-parsed a slug
+        # that itself contains "_part_" and swept the live sensor (bug
+        # review 2026-09-04).
+        if any(uid.endswith(f"_part_{pid}") for pid in parts):
+            continue
+        ent_reg.async_remove(reg_entry.entity_id)
+        orphans_removed += 1
 
     if store is not None and (added or pruned):
         for pid in added:
@@ -625,6 +628,45 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
 
 
 
+# The notes text v2.38 minted before the seeded texts were localized.
+_LEGACY_UNKNOWN_NOTES = re.compile(r"Typical service life ~\d+ months( \(editorial\))?\.")
+
+
+def _legacy_unknown_untouched(entry: ConfigEntry, legacy: dict[str, Any], stock: Any) -> bool:
+    """Whether the legacy "UNKNOWN battery" part still looks exactly the way
+    older versions minted it — the only state the start-up prune may remove.
+
+    Bug review 2026-09-04: the v2.70 check looked at stock, product data and
+    auto-buy only. A part the user had RENAMED, annotated, priced, re-
+    thresholded, linked to a document or wired into a task's consumption
+    was still "untouched" and vanished silently on the next start.
+    """
+    if stock:
+        return False
+    if any(
+        legacy.get(key)
+        for key in ("product_url", "vendor", "mpn", "gtin", "auto_buy_task", "cost", "doc_id", "storage_location")
+    ):
+        return False
+    if _extract_placeholder(str(legacy.get("name") or ""), "{type} battery", "type") is None:
+        return False
+    notes = str(legacy.get("notes") or "")
+    if (
+        notes
+        and _extract_placeholder(notes, "Typical service life ~{months} months.", "months") is None
+        and not _LEGACY_UNKNOWN_NOTES.fullmatch(notes)
+    ):
+        return False
+    threshold = legacy.get("reorder_threshold")
+    if not (isinstance(threshold, (int, float)) and threshold >= 2 and legacy.get("restock_quantity") == threshold * 2):
+        return False
+    for task in (entry.data.get(CONF_TASKS) or {}).values():
+        links = task.get(CONF_TASK_CONSUMES_PARTS)
+        if isinstance(links, list) and any(isinstance(x, dict) and x.get("part_id") == "batt_unknown" for x in links):
+            return False
+    return True
+
+
 def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int], lang: str) -> list[str]:
     """Add parts for battery types newly seen since setup. Returns added ids
     (the caller initializes their stock, mirroring the create path)."""
@@ -632,10 +674,11 @@ def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[s
 
     parts = dict(entry.data.get(CONF_PARTS) or {})
     existing_ids = set(parts)
+    removed = set(entry.data.get(CONF_OBJECT, {}).get(BATTERY_FLEET_REMOVED_PARTS) or [])
     added: list[str] = []
     for btype, total_qty in types.items():
         pid = f"batt_{btype.lower()}"
-        if pid not in existing_ids:
+        if pid not in existing_ids and pid not in removed:
             parts[pid] = normalize_part(_type_part(btype, total_qty, lang))
             added.append(pid)
     if added:

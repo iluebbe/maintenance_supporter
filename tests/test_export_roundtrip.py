@@ -481,7 +481,7 @@ _CSV_OBJECT_EXCLUDED = {
     # Battery-fleet identity — emitted only for the fleet object; the JSON
     # backup round-trips it (test_json_roundtrip_keeps_battery_fleet_identity).
     "battery_fleet", "battery_fleet_excluded", "battery_fleet_included",
-    "battery_fleet_track_self_charging",
+    "battery_fleet_track_self_charging", "battery_fleet_removed_parts",
 }
 
 
@@ -609,6 +609,7 @@ async def _make_fleet_entry(hass: HomeAssistant) -> MockConfigEntry:
             "battery_fleet_excluded": ["sensor.lock_battery"],
             "battery_fleet_included": ["sensor.odd_cell"],
             "battery_fleet_track_self_charging": True,
+            "battery_fleet_removed_parts": ["batt_aaa"],
         },
         "parts": {
             "batt_aa": normalize_part(
@@ -650,6 +651,7 @@ async def test_json_roundtrip_keeps_battery_fleet_identity(
     assert exported_obj.get("battery_fleet_excluded") == ["sensor.lock_battery"]
     assert exported_obj.get("battery_fleet_included") == ["sensor.odd_cell"]
     assert exported_obj.get("battery_fleet_track_self_charging") is True
+    assert exported_obj.get("battery_fleet_removed_parts") == ["batt_aaa"]
     assert payload["objects"][0]["tasks"][0].get("battery_fleet_task") is True
 
     # The restore scenario: the original fleet is gone.
@@ -668,6 +670,8 @@ async def test_json_roundtrip_keeps_battery_fleet_identity(
     assert obj.get("battery_fleet_excluded") == ["sensor.lock_battery"]
     assert obj.get("battery_fleet_included") == ["sensor.odd_cell"]
     assert obj.get("battery_fleet_track_self_charging") is True
+    # Bug review 2026-09-04: a deleted type-part stays deleted after a restore.
+    assert obj.get("battery_fleet_removed_parts") == ["batt_aaa"]
     assert find_fleet_entry(hass) is not None and find_fleet_entry(hass).entry_id == dst.entry_id
     assert list(dst.data["parts"]) == ["batt_aa"], "deterministic fleet part id was re-minted"
     dst_task = next(iter(dst.data[CONF_TASKS].values()))

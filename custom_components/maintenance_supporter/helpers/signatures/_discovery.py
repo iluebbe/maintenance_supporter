@@ -58,6 +58,25 @@ def _catalog_name_variants() -> set[str]:
     return variants
 
 
+def _matches_catalog_key(entry: er.RegistryEntry, key: str, catalog_keys: set[str]) -> bool:
+    """``_entity_matches`` where a LONGER key of the same catalog that ends
+    in ``key`` owns the entity.
+
+    The entity_id-suffix fallback made dreame's ``secondary_filter_left``
+    sensor a second source of "Replace Filter" (``…_filter_left``) next to
+    its own "Replace Secondary Filter" duty — the secondary filter's wear
+    then fired the main-filter task (bug review 2026-09-04). An exact
+    translation_key match is the integration's own word and needs no guard.
+    """
+    if entry.translation_key == key:
+        return True
+    if not _entity_matches(entry, key):
+        return False
+    return not any(
+        other != key and other.endswith(f"_{key}") and _entity_matches(entry, other) for other in catalog_keys
+    )
+
+
 def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Devices of catalogued integrations with their matchable task wiring.
 
@@ -107,6 +126,7 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             if device is not None and getattr(device, "parent_device_id", None) is None
             else ""
         ).lower()
+        catalog_keys = {key for s in catalog.tasks for key in s.keys}
         for sig in catalog.tasks:
             # Device-type gates: registry model substring and/or a
             # type-identifying sibling entity (watched siblings still count —
@@ -127,7 +147,7 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                     continue
                 # Empty keys (non-sensor domains only, tripwire-enforced) match
                 # the device's single entity of that domain — THE lawn_mower.
-                if sig.keys and not any(_entity_matches(entry, key) for key in sig.keys):
+                if sig.keys and not any(_matches_catalog_key(entry, key, catalog_keys) for key in sig.keys):
                     continue
                 group = matched.setdefault(device_id, {}).setdefault(
                     (integration, sig.task_name, sig.direction),

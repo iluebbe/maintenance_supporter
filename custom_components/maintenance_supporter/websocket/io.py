@@ -17,6 +17,7 @@ from ..const import (
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_INCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_REMOVED_PARTS,
     BATTERY_FLEET_TASK_FLAG,
     BATTERY_FLEET_TRACK_SELF_CHARGING,
     CONF_OBJECT,
@@ -132,6 +133,13 @@ def _import_fleet_identity(
             import_obj[key] = cleaned[:FLEET_LIST_CAP]
     if obj_data.get(BATTERY_FLEET_TRACK_SELF_CHARGING) is True:
         import_obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = True
+    # Deleted type-parts stay deleted after a restore too — same id rule as
+    # _keep_fleet_part_id, so nothing but ``batt_<type>`` ids get through.
+    raw_removed = obj_data.get(BATTERY_FLEET_REMOVED_PARTS)
+    if isinstance(raw_removed, list):
+        removed = sorted({p.strip() for p in raw_removed if isinstance(p, str) and _keep_fleet_part_id(True, p.strip())})
+        if removed:
+            import_obj[BATTERY_FLEET_REMOVED_PARTS] = removed[:FLEET_LIST_CAP]
     return True
 
 

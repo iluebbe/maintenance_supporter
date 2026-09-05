@@ -75,8 +75,12 @@ _DEFAULT_ABOVE_HOURS = 100
 # Canonical units between services for lifetime counters (usage_delta mode):
 # hours for operating-time counters, kilometres for odometers.
 _DEFAULT_DELTA_UNITS = 500
-# Percent floor for percent-remaining consumables (ink, toner, drum, brush %).
-_DEFAULT_BELOW_PERCENT = 10
+# Percent floor for percent-remaining consumables (ink, toner, drum, brush %)
+# — the catalog default is "follow the household setting" (#146), so the
+# field is None unless a signature pins its own floor. A sentinel value
+# (the old 10) could not tell "pinned at 10" from "default" (bug review
+# 2026-09-04).
+_DEFAULT_BELOW_PERCENT: int | None = None
 
 
 @dataclass(frozen=True)
@@ -87,7 +91,7 @@ class ConsumableSignature:
     task_name: str  # EN task name; localized through templates_i18n
     direction: str  # duration_left | percent_left | usage_above | event_present | usage_delta | runtime_hours
     below_hours: int = _DEFAULT_BELOW_HOURS
-    below_percent: int = _DEFAULT_BELOW_PERCENT
+    below_percent: int | None = _DEFAULT_BELOW_PERCENT
     above_hours: int = _DEFAULT_ABOVE_HOURS
     delta_units: int = _DEFAULT_DELTA_UNITS
     # runtime_hours signatures target a non-sensor STATE entity; empty keys
@@ -246,8 +250,8 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         return float(sig.delta_units)
     if sig.direction == "percent_left":
         # #146: catalog-default floors follow the household setting; a
-        # signature that pins its own floor keeps it.
-        if sig.below_percent == _DEFAULT_BELOW_PERCENT:
+        # signature that pins its own floor (any value, 10 included) keeps it.
+        if sig.below_percent is None:
             from ..global_options import get_consumable_threshold
 
             return float(get_consumable_threshold(hass))

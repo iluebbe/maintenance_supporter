@@ -14,6 +14,7 @@ from .const import (
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_INCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_REMOVED_PARTS,
     BATTERY_FLEET_TASK_FLAG,
     BATTERY_FLEET_TRACK_SELF_CHARGING,
     CONF_OBJECT,
@@ -219,6 +220,7 @@ def _build_export_object(
         export_obj[BATTERY_FLEET_EXCLUDED] = list(obj_data.get(BATTERY_FLEET_EXCLUDED) or [])
         export_obj[BATTERY_FLEET_INCLUDED] = list(obj_data.get(BATTERY_FLEET_INCLUDED) or [])
         export_obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = bool(obj_data.get(BATTERY_FLEET_TRACK_SELF_CHARGING))
+        export_obj[BATTERY_FLEET_REMOVED_PARTS] = list(obj_data.get(BATTERY_FLEET_REMOVED_PARTS) or [])
 
     return {
         "entry_id": entry.entry_id,

@@ -1577,10 +1577,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
                         result["pruned"],
                         result["orphans_removed"],
                     )
-                if result.get("trigger_healed"):
+                if result.get("trigger_healed") or result["added"]:
                     # #156: the recovery flag only reaches the LIVE trigger
-                    # after a reload — do it once; the next start finds it set.
-                    _LOGGER.info("Battery-fleet trigger healed (auto_complete_on_recovery) — reloading %s", entry.title)
+                    # after a reload — and so does the stock SENSOR of a part
+                    # added here: the sensor platform was set up before this
+                    # ran, so the new part had no entity until the next
+                    # restart (bug review 2026-09-04). Reload once; the next
+                    # start finds both in place and adds nothing.
+                    _LOGGER.info(
+                        "Battery-fleet reconcile needs a reload of %s (trigger healed: %s, parts added: %s)",
+                        entry.title,
+                        bool(result.get("trigger_healed")),
+                        result["added"] or "none",
+                    )
                     hass.async_create_task(hass.config_entries.async_reload(entry.entry_id))
 
             entry.async_on_unload(async_at_started(hass, _fleet_parts_at_start))

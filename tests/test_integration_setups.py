@@ -2355,3 +2355,27 @@ def test_proposal_name_variants_cover_every_language_with_suffix() -> None:
     assert proposal_name_variants("Replace Toner", None) == plain
     assert catalog_base_name("replace toner — cyan") == "replace toner"
     assert catalog_base_name("replace toner") == "replace toner"
+
+
+async def test_longer_catalog_key_owns_the_entity(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Bug review 2026-09-04: dreame's ``secondary_filter_left`` sensor also
+    ends in ``_filter_left`` — the suffix fallback adopted it into "Replace
+    Filter" as a second source, so secondary-filter wear fired the main
+    filter task. Each duty must keep exactly its own sensor, with and
+    without a translation_key (HACS-style entities carry none)."""
+    await setup_integration(hass, global_entry)
+    for uid, with_tkey in (("d_tk", True), ("d_plain", False)):
+        dev = await _seed_sensor(
+            hass,
+            "dreame_vacuum",
+            uid,
+            f"Dreame X40 {uid}",
+            [
+                ("filter_left", "filter_left" if with_tkey else None, "%"),
+                ("secondary_filter_left", "secondary_filter_left" if with_tkey else None, "%"),
+            ],
+        )
+        setup = next(s for s in discover_integration_setups(hass) if s["device_id"] == dev)
+        by_name = {t["task_name"]: t["entity_ids"] for t in setup["tasks"]}
+        assert by_name["Replace Filter"] == [f"sensor.dreame_vacuum_{uid}_filter_left"], (uid, by_name)
+        assert by_name["Replace Secondary Filter"] == [f"sensor.dreame_vacuum_{uid}_secondary_filter_left"]

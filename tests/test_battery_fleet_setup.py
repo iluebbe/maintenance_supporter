@@ -1255,3 +1255,240 @@ async def test_batteries_sensor_exposes_detailed_rows(
     assert row["type"] == "CR2450"
     assert row["quantity"] == 1
     assert "level" in row and "name" in row and "rechargeable" in row
+
+
+async def test_deleted_type_part_stays_deleted_until_an_explicit_setup(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Bug review 2026-09-04: the start-up reconcile re-minted a deleted
+    ``batt_<type>`` part on every boot while the type was still in the
+    fleet. part/delete now tombstones it, the reconcile honours the
+    tombstone, and only an explicit Battery-Fleet setup brings it back."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+    _battery(hass, "remote", "AAA", 2, low=False)
+
+    from homeassistant.helpers import entity_registry as er
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import reconcile_fleet_parts_at_start
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+    from custom_components.maintenance_supporter.websocket.parts import ws_delete_part
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    assert fleet is not None and {"batt_aa", "batt_aaa"} <= set(fleet.data[CONF_PARTS])
+
+    # The AAA stock sensor carries a user customisation — deleting the AA
+    # part must not touch it (``_part_batt_aa`` is a prefix of ``_part_batt_aaa``).
+    ent_reg = er.async_get(hass)
+    aaa_eid = next(
+        e.entity_id
+        for e in er.async_entries_for_config_entry(ent_reg, fleet.entry_id)
+        if (e.unique_id or "").endswith("_part_batt_aaa")
+    )
+    ent_reg.async_update_entity(aaa_eid, name="Keep me")
+    # HA restores a deleted entity's customisations when the same unique_id
+    # re-registers, so the tell-tale is the registry REMOVE event itself.
+    removed: list[str] = []
+    hass.bus.async_listen(
+        er.EVENT_ENTITY_REGISTRY_UPDATED,
+        lambda ev: removed.append(ev.data["entity_id"]) if ev.data.get("action") == "remove" else None,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_delete_part, hass, conn, {"id": 2, "type": "x", "entry_id": fleet.entry_id, "part_id": "batt_aa"}
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+    fleet = _fleet_entry(hass)
+    assert "batt_aa" not in fleet.data[CONF_PARTS]
+    assert fleet.data[CONF_OBJECT]["battery_fleet_removed_parts"] == ["batt_aa"]
+    assert ent_reg.async_get(aaa_eid) is not None and ent_reg.async_get(aaa_eid).name == "Keep me"
+    assert aaa_eid not in removed, removed
+
+    # Next start: the AA lock is still in the fleet — the part must NOT return.
+    result = await reconcile_fleet_parts_at_start(hass, fleet, "en")
+    assert result["added"] == []
+    assert "batt_aa" not in _fleet_entry(hass).data[CONF_PARTS]
+
+    # A NEW type still gets its part (the tombstone is per id, not a freeze).
+    _battery(hass, "clock", "C", 1, low=False)
+    result = await reconcile_fleet_parts_at_start(hass, _fleet_entry(hass), "en")
+    assert result["added"] == ["batt_c"]
+
+    # Explicit setup = "give me the full set again": tombstone cleared, part back.
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 3, "type": "x"})
+    assert conn.send_result.call_args[0][1]["parts_added"] == 1
+    fleet = _fleet_entry(hass)
+    assert "batt_aa" in fleet.data[CONF_PARTS]
+    assert "battery_fleet_removed_parts" not in fleet.data[CONF_OBJECT]
+    assert fleet.runtime_data.store.get_part_stock("batt_aa") == 0
+
+
+async def test_start_reconcile_sweep_tolerates_an_object_slug_containing_part(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Bug review 2026-09-04: the orphan sweep split the stock sensor's
+    unique_id at the FIRST ``_part_`` — an object slug that itself contains
+    ``_part_`` made every live stock sensor look orphaned, and the sweep
+    removed its registry entry on every start."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from homeassistant.helpers import entity_registry as er
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import reconcile_fleet_parts_at_start
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+
+    ent_reg = er.async_get(hass)
+    live = ent_reg.async_get_or_create(
+        "sensor", "maintenance_supporter", "maintenance_supporter_spare_part_bin_part_batt_aa", config_entry=fleet
+    ).entity_id
+    orphan = ent_reg.async_get_or_create(
+        "sensor", "maintenance_supporter", "maintenance_supporter_spare_part_bin_part_batt_gone", config_entry=fleet
+    ).entity_id
+
+    result = await reconcile_fleet_parts_at_start(hass, fleet, "en")
+    assert result["orphans_removed"] == 1
+    assert ent_reg.async_get(live) is not None
+    assert ent_reg.async_get(orphan) is None
+
+
+def _touch_name(parts: dict, tasks: dict) -> None:
+    parts["batt_unknown"]["name"] = "Mystery cells"
+
+
+def _touch_notes(parts: dict, tasks: dict) -> None:
+    parts["batt_unknown"]["notes"] = "Second drawer, left"
+
+
+def _touch_cost(parts: dict, tasks: dict) -> None:
+    parts["batt_unknown"]["cost"] = 1.5
+
+
+def _touch_threshold(parts: dict, tasks: dict) -> None:
+    parts["batt_unknown"]["reorder_threshold"] = 6
+
+
+def _touch_doc(parts: dict, tasks: dict) -> None:
+    parts["batt_unknown"]["doc_id"] = "doc1"
+
+
+def _touch_link(parts: dict, tasks: dict) -> None:
+    tid = next(iter(tasks))
+    tasks[tid] = {**tasks[tid], "consumes_parts": [{"part_id": "batt_unknown", "quantity": 1}]}
+
+
+@pytest.mark.parametrize(
+    "touch", [_touch_name, _touch_notes, _touch_cost, _touch_threshold, _touch_doc, _touch_link],
+    ids=["name", "notes", "cost", "threshold", "doc", "task_link"],
+)
+async def test_start_reconcile_keeps_an_unknown_part_the_user_edited(
+    hass: HomeAssistant, global_entry: MockConfigEntry, touch
+) -> None:
+    """Bug review 2026-09-04: "untouched" meant stock/product data/auto-buy
+    only — a renamed, annotated, priced, re-thresholded, document-linked or
+    task-consumed UNKNOWN part was still pruned on the next start."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    data = dict(fleet.data)
+    parts = {pid: dict(p) for pid, p in data[CONF_PARTS].items()}
+    parts["batt_unknown"] = {**parts["batt_aa"], "id": "batt_unknown", "name": "UNKNOWN battery"}
+    tasks = dict(data[CONF_TASKS])
+    touch(parts, tasks)
+    data[CONF_PARTS] = parts
+    data[CONF_TASKS] = tasks
+    hass.config_entries.async_update_entry(fleet, data=data)
+
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+
+    assert "batt_unknown" in _fleet_entry(hass).data[CONF_PARTS]
+
+
+async def test_start_reconcile_still_prunes_the_v238_editorial_notes_shape(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """The stricter "untouched" test must not spare the ORIGINAL shape: the
+    v2.38 seed carried "(editorial)" in the notes, in English only."""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    data = dict(fleet.data)
+    parts = dict(data[CONF_PARTS])
+    parts["batt_unknown"] = {
+        **parts["batt_aa"],
+        "id": "batt_unknown",
+        "name": "UNKNOWN battery",
+        "notes": "Typical service life ~24 months (editorial).",
+    }
+    data[CONF_PARTS] = parts
+    hass.config_entries.async_update_entry(fleet, data=data)
+
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+
+    assert "batt_unknown" not in _fleet_entry(hass).data[CONF_PARTS]
+
+
+async def test_start_reconcile_added_part_gets_its_stock_sensor_in_the_same_start(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Bug review 2026-09-04: a part the start-up reconcile adds had no
+    stock sensor until the NEXT restart — on a real boot ``async_at_started``
+    fires AFTER the sensor platform read the parts. The reconcile now
+    reloads once. (On a running instance the callback runs during the
+    platform setup and hides the gap — hence the staged boot below.)"""
+    await setup_integration(hass, global_entry)
+    _battery(hass, "lock", "AA", 2, low=True)
+
+    from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+    from homeassistant.core import CoreState
+    from homeassistant.helpers import entity_registry as er
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+
+    _battery(hass, "remote", "AAA", 2, low=False)
+    # Stage a boot: the entry (and its platforms) set up while HA is still
+    # starting, the at-started hooks fire afterwards.
+    hass.set_state(CoreState.starting)
+    await hass.config_entries.async_reload(fleet.entry_id)
+    await hass.async_block_till_done()
+    hass.set_state(CoreState.running)
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
+    await hass.async_block_till_done()
+
+    fleet = _fleet_entry(hass)
+    assert "batt_aaa" in fleet.data[CONF_PARTS]
+    ent_reg = er.async_get(hass)
+    eid = next(
+        (e.entity_id for e in er.async_entries_for_config_entry(ent_reg, fleet.entry_id) if (e.unique_id or "").endswith("_part_batt_aaa")),
+        None,
+    )
+    assert eid is not None, "no registry entry for the added part's stock sensor"
+    state = hass.states.get(eid)
+    assert state is not None and state.state == "0", state

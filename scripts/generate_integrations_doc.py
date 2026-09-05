@@ -17,6 +17,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+from custom_components.maintenance_supporter.const import DEFAULT_CONSUMABLE_THRESHOLD
+
 CATEGORY_ORDER = [
     "vacuums", "garden", "cars", "wallboxes", "heating", "air", "kitchen",
     "printers", "locks", "transports", "home_it", "pets", "personal", "xiaomi",
@@ -29,6 +31,9 @@ def _threshold_text(sig) -> str:
         h = sig.below_hours
         return f"below {h / 24:g} days remaining" if h >= 48 else f"below {h:g} h remaining"
     if d == "percent_left":
+        if sig.below_percent is None:
+            # #146: the catalog default follows the household setting.
+            return f"below the household consumable floor (default {DEFAULT_CONSUMABLE_THRESHOLD} %)"
         return f"below {sig.below_percent:g} % remaining"
     if d == "usage_above":
         return f"at {sig.above_hours:g} h counted by the device"

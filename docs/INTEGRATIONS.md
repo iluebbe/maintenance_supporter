@@ -127,20 +127,20 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Replace Side Brush | below 24 h remaining |  |
 |  |  | Replace Filter | below 24 h remaining |  |
 |  |  | Clean Sensors | below 24 h remaining |  |
-| Dreame Vacuum | `dreame_vacuum` | Replace Main Brush | below 10 % remaining |  |
-|  |  | Replace Side Brush | below 10 % remaining |  |
-|  |  | Replace Filter | below 10 % remaining |  |
-|  |  | Clean Sensors | below 10 % remaining |  |
-|  |  | Replace Mop Pads | below 10 % remaining |  |
-|  |  | Refill Detergent | below 10 % remaining |  |
-|  |  | Replace Secondary Filter | below 10 % remaining |  |
-|  |  | Replace Silver-ion Module | below 10 % remaining |  |
-| Ecovacs | `ecovacs` | Replace Main Brush | below 10 % remaining |  |
-|  |  | Replace Side Brush | below 10 % remaining |  |
-|  |  | Replace Filter | below 10 % remaining |  |
-|  |  | Replace Dust Bag | below 10 % remaining |  |
-|  |  | Replace Mop Pads | below 10 % remaining |  |
-|  |  | Replace Blades | below 10 % remaining |  |
+| Dreame Vacuum | `dreame_vacuum` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Clean Sensors | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) |  |
+|  |  | Refill Detergent | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Secondary Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Silver-ion Module | below the household consumable floor (default 10 %) |  |
+| Ecovacs | `ecovacs` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Dust Bag | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Blades | below the household consumable floor (default 10 %) |  |
 | WeBack Vacuum | `weback_vacuum` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | iRobot Roomba | `roomba` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
@@ -178,7 +178,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Segway Navimow | `navimow` | Replace Blades | every 100 h counted by the engine | lawn_mower entity; active: mowing |
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
 | Sunseeker mowers | `sunseeker` | Replace Blades | below 24 h remaining |  |
-|  |  | Replace Blades | below 10 % remaining |  |
+|  |  | Replace Blades | below the household consumable floor (default 10 %) |  |
 | Husqvarna Automower BLE | `husqvarna_automower_ble` | Replace Blades | every 100 h counted by the engine | lawn_mower entity; active: mowing |
 |  |  | Clean Undercarriage | every 25 h counted by the engine | lawn_mower entity; active: mowing |
 | Rain Bird irrigation | `rainbird` | Clean Sprinkler Heads | every 30 h counted by the engine | switch entity; active: on |
@@ -256,48 +256,48 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Plugwise (Anna/Adam) | `plugwise` | Refill Heating Water | below 1 |  |
 | Intergas InComfort | `incomfort` | Refill Heating Water | below 1 |  |
 | ATAG One | `atag` | Refill Heating Water | below 1 |  |
-| BWT Perla | `bwt_perla` | Refill Softener Salt | below 10 % remaining |  |
+| BWT Perla | `bwt_perla` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
 |  |  | Refill Softener Salt | below 7 days remaining |  |
-| EcoWater softener | `ecowater_softener` | Refill Softener Salt | below 10 % remaining |  |
+| EcoWater softener | `ecowater_softener` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
 |  |  | Refill Softener Salt | below 7 days remaining |  |
 | Wolf SmartSet | `wolflink` | Refill Heating Water | below 1 |  |
 | Palazzetti pellet stove | `palazzetti` | Empty Ash Pan | every 100 units (counter delta) |  |
 | Vaillant (myVAILLANT) | `mypyllant` | Refill Heating Water | below 1 |  |
-| Grohe Blue | `grohe_smarthome` | Replace Water Filter | below 10 % remaining |  |
-|  |  | Replace CO2 Bottle | below 10 % remaining |  |
-| iQua softener | `iqua_softener` | Refill Softener Salt | below 10 % remaining |  |
+| Grohe Blue | `grohe_smarthome` | Replace Water Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace CO2 Bottle | below the household consumable floor (default 10 %) |  |
+| iQua softener | `iqua_softener` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
 | Fumis (pellet stoves) | `fumis` | Annual Service | below 24 h remaining |  |
 | Rehlko / Kohler generators | `rehlko` | Oil Service | at 100 h counted by the device |  |
-| AquaCell softener | `aquacell` | Refill Softener Salt | below 10 % remaining |  |
+| AquaCell softener | `aquacell` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
 
 ## Air treatment — purifiers, ACs and HRV/ventilation filters
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| Dyson | `hass_dyson` | Replace Filter | below 10 % remaining |  |
-| Dreo | `dreo` | Replace Filter | below 10 % remaining |  |
-| VeSync (Levoit) | `vesync` | Replace Filter | below 10 % remaining |  |
+| Dyson | `hass_dyson` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Dreo | `dreo` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| VeSync (Levoit) | `vesync` | Replace Filter | below the household consumable floor (default 10 %) |  |
 | Daikin AC | `daikin` | Filter Cleaning | every 100 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
 | Gree AC | `gree` | Filter Cleaning | every 100 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
 | Zehnder ComfoAirQ | `comfoconnect` | Replace Ventilation Filter | below 7 days remaining |  |
 | Renson Endura Delta | `renson` | Replace Ventilation Filter | below 7 days remaining |  |
-| Philips AirPurifier (CoAP) | `philips_airpurifier_coap` | Filter Cleaning | below 10 % remaining |  |
+| Philips AirPurifier (CoAP) | `philips_airpurifier_coap` | Filter Cleaning | below the household consumable floor (default 10 %) |  |
 |  |  | Filter Cleaning | below 3 days remaining |  |
-|  |  | Replace Filter | below 10 % remaining |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Filter | below 3 days remaining |  |
-|  |  | Replace Wick | below 10 % remaining |  |
+|  |  | Replace Wick | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Wick | below 3 days remaining |  |
 | IKEA DIRIGERA (STARKVIND) | `dirigera_platform` | Replace Filter | at 4320 h counted by the device |  |
-| Blueair | `ha_blueair` | Replace Filter | below 10 % remaining |  |
-|  |  | Replace Wick | below 10 % remaining |  |
-|  |  | Replace Water Refresher | below 10 % remaining |  |
-| Coway IoCare | `coway` | Filter Cleaning | below 10 % remaining |  |
-|  |  | Replace Filter | below 10 % remaining |  |
-| Winix | `winix` | Replace Filter | below 10 % remaining |  |
+| Blueair | `ha_blueair` | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Wick | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Water Refresher | below the household consumable floor (default 10 %) |  |
+| Coway IoCare | `coway` | Filter Cleaning | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Winix | `winix` | Replace Filter | below the household consumable floor (default 10 %) |  |
 | Duco ventilation | `duco` | Replace Ventilation Filter | below 7 days remaining |  |
 | Flexit Nordic | `flexit_bacnet` | Replace Ventilation Filter | at 4380 h counted by the device |  |
 | IKEA Trådfri (STARKVIND) | `tradfri` | Replace Filter | below 3 days remaining |  |
-| Dyson (local) | `dyson_local` | Replace Filter | below 10 % remaining |  |
+| Dyson (local) | `dyson_local` | Replace Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Filter | below 3 days remaining |  |
 | Venstar thermostat | `venstar` | Replace Filter | at 300 h counted by the device |  |
 
@@ -305,11 +305,11 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| LG ThinQ | `lg_thinq` | Replace Filter | below 10 % remaining |  |
+| LG ThinQ | `lg_thinq` | Replace Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Filter | below 24 h remaining |  |
-|  |  | Replace Water Filter | below 10 % remaining |  |
-| LG ThinQ (SmartThinQ) | `smartthinq_sensors` | Replace Filter | below 10 % remaining |  |
-|  |  | Replace Water Filter | below 10 % remaining |  |
+|  |  | Replace Water Filter | below the household consumable floor (default 10 %) |  |
+| LG ThinQ (SmartThinQ) | `smartthinq_sensors` | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Water Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Clean Tub | at 30 h counted by the device |  |
 |  |  | Refill Rinse Aid | while the appliance reports 'on' | binary_sensor entity |
 |  |  | Refill Salt | while the appliance reports 'on' | binary_sensor entity |
@@ -318,17 +318,17 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Descale Appliance | while the appliance reports 'present' |  |
 |  |  | Clean Appliance | while the appliance reports 'present' |  |
 |  |  | Clean Grease Filter | while the appliance reports 'present' |  |
-| Miele | `miele` | Refill Salt | below 10 % remaining |  |
-|  |  | Refill Rinse Aid | below 10 % remaining |  |
-|  |  | Refill Detergent | below 10 % remaining |  |
+| Miele | `miele` | Refill Salt | below the household consumable floor (default 10 %) |  |
+|  |  | Refill Rinse Aid | below the household consumable floor (default 10 %) |  |
+|  |  | Refill Detergent | below the household consumable floor (default 10 %) |  |
 |  |  | Clean Tub | every 60 h counted by the engine | active: in_use; device-type gated |
-| Electrolux / AEG | `electrolux_status` | Replace Filter | below 10 % remaining |  |
-| Midea (LAN) | `midea_ac_lan` | Replace Water Filter | below 10 % remaining |  |
-|  |  | Replace Filter | below 10 % remaining |  |
+| Electrolux / AEG | `electrolux_status` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Midea (LAN) | `midea_ac_lan` | Replace Water Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
 | La Marzocco | `lamarzocco` | Backflush Espresso Group | every 100 units (counter delta) |  |
 |  |  | Replace Water Filter | every 1000 units (counter delta) |  |
-| Haier hOn (Haier/Candy/Hoover) | `hon` | Replace Filter | below 10 % remaining |  |
-|  |  | Filter Cleaning | below 10 % remaining |  |
+| Haier hOn (Haier/Candy/Hoover) | `hon` | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Filter Cleaning | below the household consumable floor (default 10 %) |  |
 |  |  | Clean Tub | every 30 units (counter delta) |  |
 | Whirlpool | `whirlpool` | Clean Tub | every 60 h counted by the engine | active: running_maincycle |
 | WashData (smart-plug cycles) | `ha_washdata` | Descaling | every 30 units (counter delta) |  |
@@ -349,11 +349,11 @@ due/auto-complete and un-adopt/re-adopt behave.
 | OctoPrint | `octoprint` | Lubricate Rails and Rods | every 200 h counted by the engine | binary_sensor entity; active: on |
 | PrusaLink | `prusalink` | Lubricate Rails and Rods | every 200 h counted by the engine | active: printing |
 | Moonraker (Klipper) | `moonraker` | Replace Nozzle | every 1000 units (counter delta) |  |
-| IPP printer | `ipp` | Replace Ink or Toner | below 10 % remaining | one task per entity |
-| Brother printer | `brother` | Replace Toner | below 10 % remaining | one task per entity |
-|  |  | Replace Drum Unit | below 10 % remaining | one task per entity |
-|  |  | Replace Belt Unit | below 10 % remaining |  |
-|  |  | Replace Fuser | below 10 % remaining |  |
+| IPP printer | `ipp` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
+| Brother printer | `brother` | Replace Toner | below the household consumable floor (default 10 %) | one task per entity |
+|  |  | Replace Drum Unit | below the household consumable floor (default 10 %) | one task per entity |
+|  |  | Replace Belt Unit | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Fuser | below the household consumable floor (default 10 %) |  |
 
 ## Smart locks — cycle-count lubrication duties
 
@@ -399,9 +399,9 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
 | PetKit | `petkit` | Replace Desiccant | below 2 days remaining |  |
-|  |  | Replace Water Filter | below 10 % remaining |  |
+|  |  | Replace Water Filter | below the household consumable floor (default 10 %) |  |
 | Litter-Robot | `litterrobot` | Empty Waste Drawer | above 90 |  |
-|  |  | Refill Litter | below 10 % remaining |  |
+|  |  | Refill Litter | below the household consumable floor (default 10 %) |  |
 |  |  | Wash Litter Box | every 150 units (counter delta) |  |
 | EHEIM Digital (aquarium) | `eheimdigital` | Filter Cleaning | below 24 h remaining |  |
 
@@ -415,10 +415,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| Xiaomi MIoT | `xiaomi_miot` | Replace Filter | below 10 % remaining |  |
-|  |  | Replace Main Brush | below 10 % remaining |  |
-| Xiaomi Home | `xiaomi_home` | Replace Filter | below 10 % remaining |  |
-|  |  | Replace Main Brush | below 10 % remaining |  |
+| Xiaomi MIoT | `xiaomi_miot` | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Main Brush | below the household consumable floor (default 10 %) |  |
+| Xiaomi Home | `xiaomi_home` | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Main Brush | below the household consumable floor (default 10 %) |  |
 
 ---
 
