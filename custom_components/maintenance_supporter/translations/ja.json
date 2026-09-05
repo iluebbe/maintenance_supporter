@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "「{task_name}」はアーカイブ済み、無効、または対象が一時停止中のため完了できません"
     },
+    "task_inactive_skip": {
+      "message": "「{task_name}」はアーカイブ済み、無効、または対象が一時停止中のためスキップできません"
+    },
     "too_early": {
       "message": "「{task_name}」は期限に近づいてからのみ完了できます"
     }

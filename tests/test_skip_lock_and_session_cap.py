@@ -12,7 +12,7 @@ windows AND in the fallback evaluator.
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -234,6 +234,36 @@ async def test_short_sessions_book_real_time_and_cap_resets_per_session(hass: Ho
     free._on_since_dt = start
     free._accumulate_elapsed(start + timedelta(hours=9))
     assert free._accumulated_seconds == 9 * 3600.0
+
+
+async def test_reset_starts_a_fresh_session_for_the_cap(hass: HomeAssistant) -> None:
+    """Bug review 2026-09-04: completing the task resets the runtime and
+    re-anchors on_since for a still-ON entity ("fresh start") — but the
+    per-session booking stayed at the cap, so the follow-up session could
+    not book a single second until the entity turned off."""
+    trig = _runtime_trigger(hass, cap=150)
+    start = dt_util.utcnow()
+
+    # Session 1 runs into the cap while still ON.
+    trig._on_since_dt = start
+    trig._accumulate_elapsed(start + timedelta(minutes=10))
+    assert trig._accumulated_seconds == 150.0
+    assert trig._session_booked == 150.0
+
+    # Completion → reset while the entity is still ON.
+    trig._coordinator.async_persist_trigger_runtime = AsyncMock()
+    trig.reset()
+    await hass.async_block_till_done()
+    assert trig._accumulated_seconds == 0.0
+    assert trig._session_booked == 0.0
+
+    # The fresh session books real time up to the cap again.
+    anchor = trig._on_since_dt
+    assert anchor is not None
+    trig._accumulate_elapsed(anchor + timedelta(minutes=2))
+    assert trig._accumulated_seconds == 120.0
+    trig._accumulate_elapsed(anchor + timedelta(hours=9))
+    assert trig._accumulated_seconds == 150.0
 
 
 async def test_fallback_evaluator_mirrors_the_cap(hass: HomeAssistant) -> None:

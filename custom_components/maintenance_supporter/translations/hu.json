@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "„{task_name}” archivált, letiltott vagy az objektuma szünetel — nem fejezhető be"
     },
+    "task_inactive_skip": {
+      "message": "„{task_name}” archivált, letiltott vagy az objektuma szünetel — nem hagyható ki"
+    },
     "too_early": {
       "message": "„{task_name}” csak a határidőhöz közelebb fejezhető be"
     }

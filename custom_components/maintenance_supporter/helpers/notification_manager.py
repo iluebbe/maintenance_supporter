@@ -30,6 +30,7 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_TASKS,
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DOMAIN,
@@ -692,7 +693,7 @@ async def async_dispatch_notify(
         url = (service_data.get("data") or {}).get("url")
         msg = service_data.get("message", "")
         if url and "](" not in msg:
-            link_text = _notif_t("open_task_link", getattr(hass.config, "language", None) or "en")
+            link_text = _notif_t("open_task_link", normalize_language(hass))
             service_data = {**service_data, "message": f"{msg}\n\n[{link_text}]({url})"}
     if hass.services.has_service(domain, name):
         await hass.services.async_call(domain, name, service_data, blocking=blocking)
@@ -811,6 +812,16 @@ class NotificationManager:
     def _lang(self) -> str:
         """Get the HA UI language as a 2-letter table key."""
         return normalize_language(self.hass)
+
+    def _skip_allowed(self, entry_id: str, task_id: str) -> bool:
+        """#150: a skip-locked task gets no "Skip" action button — the tap
+        could only fail in the action handler (bug review 2026-09-04).
+        Unknown entries/tasks keep the button (nothing to check against)."""
+        entry = self.hass.config_entries.async_get_entry(entry_id)
+        if entry is None:
+            return True
+        task = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
+        return task.get("allow_skip") is not False
 
     @property
     def enabled(self) -> bool:
@@ -1136,7 +1147,7 @@ class NotificationManager:
                     "title": f"\u2705 {_notif_t('action_complete', lang)}",
                 }
             )
-        if options.get(CONF_ACTION_SKIP_ENABLED, False):
+        if options.get(CONF_ACTION_SKIP_ENABLED, False) and self._skip_allowed(entry_id, task_id):
             actions.append(
                 {
                     "action": f"MS_SKIP_{entry_id}_{task_id}",

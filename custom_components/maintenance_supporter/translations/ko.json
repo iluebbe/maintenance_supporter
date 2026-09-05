@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "“{task_name}”은(는) 보관됨, 비활성화됨 또는 객체가 일시중지 상태이므로 완료할 수 없습니다"
     },
+    "task_inactive_skip": {
+      "message": "“{task_name}”은(는) 보관됨, 비활성화됨 또는 객체가 일시중지 상태이므로 건너뛸 수 없습니다"
+    },
     "too_early": {
       "message": "“{task_name}”은(는) 마감일에 가까워져야 완료할 수 있습니다"
     }

@@ -1427,10 +1427,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         as_missed: bool = False,
     ) -> None:
         """Skip the current maintenance cycle for a task."""
-        # Same as reset: skipping restarts the cycle — clear the double-tap
-        # window so a follow-up completion counts.
-        self._recent_manual_completions.pop(task_id, None)
-        self._clear_notification_state(task_id)
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
@@ -1442,6 +1438,29 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise ServiceValidationError(
                 f"Skipping is disabled for task {merged[task_id].get('name', task_id)!r}"
             )
+
+        # Same gate as complete_maintenance: a retired / disabled / paused
+        # task must not get a new cycle from a stale notification button or
+        # an old NFC sticker (bug review 2026-09-04).
+        _td = merged[task_id]
+        if (
+            _td.get("archived_at") is not None
+            or _td.get("enabled") is False
+            or self.entry.data.get(CONF_OBJECT, {}).get("paused_at") is not None
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="task_inactive_skip",
+                translation_placeholders={"task_name": str(_td.get("name", task_id))},
+            )
+
+        # Only now that the skip is going to happen: like reset, skipping
+        # restarts the cycle — clear the double-tap window so a follow-up
+        # completion counts, and forget the notification bookkeeping. Doing
+        # this BEFORE the gates re-armed the "task overdue" push for a locked
+        # task on every refused skip (bug review 2026-09-04).
+        self._recent_manual_completions.pop(task_id, None)
+        self._clear_notification_state(task_id)
 
         task = MaintenanceTask.from_dict(merged[task_id])
         # Skipping an already-overdue task means it lapsed → record it as MISSED

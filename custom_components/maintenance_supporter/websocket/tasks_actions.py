@@ -320,8 +320,9 @@ async def ws_skip_task(
             as_missed=msg.get("as_missed", False),
         )
     except ServiceValidationError as err:
-        # #150: the task carries a skip lock.
-        connection.send_error(msg["id"], "skip_disabled", str(err))
+        # #150: the task carries a skip lock; an inactive task keeps its own
+        # key (task_inactive_skip) so the panel can say why.
+        connection.send_error(msg["id"], err.translation_key or "skip_disabled", str(err))
         return
     connection.send_result(msg["id"], {"success": True})
 

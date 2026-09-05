@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "“{task_name}”已归档、已禁用或其对象已暂停 — 无法完成"
     },
+    "task_inactive_skip": {
+      "message": "“{task_name}”已归档、已禁用或其对象已暂停 — 无法跳过"
+    },
     "too_early": {
       "message": "“{task_name}”只能在接近到期日时完成"
     }

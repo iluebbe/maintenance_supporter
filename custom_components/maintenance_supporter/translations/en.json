@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "“{task_name}” is archived, disabled or its object is paused — it cannot be completed"
     },
+    "task_inactive_skip": {
+      "message": "“{task_name}” is archived, disabled or its object is paused — it cannot be skipped"
+    },
     "too_early": {
       "message": "“{task_name}” can only be completed closer to its due date"
     }

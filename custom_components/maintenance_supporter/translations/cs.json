@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "„{task_name}“ je archivován, zakázán nebo jeho objekt je pozastaven — nelze dokončit"
     },
+    "task_inactive_skip": {
+      "message": "„{task_name}“ je archivován, zakázán nebo jeho objekt je pozastaven — nelze přeskočit"
+    },
     "too_early": {
       "message": "„{task_name}“ lze dokončit až blíže k termínu"
     }

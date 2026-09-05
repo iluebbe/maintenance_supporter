@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "„{task_name}” jest zarchiwizowane, wyłączone lub jego obiekt jest wstrzymany — nie można ukończyć"
     },
+    "task_inactive_skip": {
+      "message": "„{task_name}” jest zarchiwizowane, wyłączone lub jego obiekt jest wstrzymany — nie można pominąć"
+    },
     "too_early": {
       "message": "„{task_name}” można ukończyć dopiero bliżej terminu"
     }

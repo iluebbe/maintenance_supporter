@@ -492,6 +492,75 @@ async def test_skip_service_multi_respects_skip_lock(
     assert not any(str(h.get("type")) in ("skipped", "missed") for h in hist2), hist2
 
 
+async def test_complete_service_multi_allows_explicit_false_via_tag_scan(
+    hass: HomeAssistant, global_config_entry: ConfigEntry
+) -> None:
+    """Bug review 2026-09-04: the fan-out guard tested ``is not None`` — an
+    explicit ``via_tag_scan: false`` (what a YAML template renders) refused
+    the whole batch although it claims nothing."""
+    await setup_integration(hass, global_config_entry)
+    entry, eids = await _two_task_entry(hass)
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_COMPLETE,
+        {"entity_id": list(eids.values()), "via_tag_scan": False},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    today = dt_util.now().date().isoformat()
+    for tid in ("multi_t1", "multi_t2"):
+        assert get_task_store_state(hass, entry.entry_id, tid).get("last_performed") == today
+
+
+async def test_complete_service_multi_survives_a_foreign_entity(
+    hass: HomeAssistant, global_config_entry: ConfigEntry
+) -> None:
+    """Bug review 2026-09-04: an entity of ANOTHER integration whose config
+    entry carries its own runtime_data blew up the coordinator lookup with an
+    AttributeError — not a HomeAssistantError, so the batch aborted before
+    the remaining tasks ran. It must be refused per entity like any other."""
+    from types import SimpleNamespace
+
+    from homeassistant.exceptions import ServiceValidationError
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    await setup_integration(hass, global_config_entry)
+    entry, eids = await _two_task_entry(hass)
+
+    foreign = MockConfigEntry(domain="other_domain", title="Foreign", unique_id="foreign_1")
+    foreign.add_to_hass(hass)
+    foreign.runtime_data = SimpleNamespace(client=object())
+    reg = er.async_get(hass)
+    foreign_eid = reg.async_get_or_create(
+        "sensor", "other_domain", "foreign_unique", config_entry=foreign
+    ).entity_id
+
+    with pytest.raises(ServiceValidationError, match="1 of 2 succeeded"):
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_COMPLETE,
+            {"entity_id": [foreign_eid, eids["multi_t1"]]},
+            blocking=True,
+        )
+    await hass.async_block_till_done()
+    today = dt_util.now().date().isoformat()
+    assert get_task_store_state(hass, entry.entry_id, "multi_t1").get("last_performed") == today
+
+
+async def test_complete_service_rejects_an_empty_entity_list(
+    hass: HomeAssistant, global_config_entry: ConfigEntry
+) -> None:
+    """Bug review 2026-09-04: ``entity_id: []`` passed the schema, ran no
+    task and reported success."""
+    import voluptuous as vol
+
+    await setup_integration(hass, global_config_entry)
+    for service in (SERVICE_COMPLETE, SERVICE_RESET, SERVICE_SKIP):
+        with pytest.raises(vol.Invalid):
+            await hass.services.async_call(DOMAIN, service, {"entity_id": []}, blocking=True)
+
+
 async def test_reset_service_accepts_comma_string(
     hass: HomeAssistant, global_config_entry: ConfigEntry
 ) -> None:

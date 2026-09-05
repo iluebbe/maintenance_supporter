@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "„{task_name}“ ist archiviert, deaktiviert oder das Objekt ist pausiert — kann nicht erledigt werden"
     },
+    "task_inactive_skip": {
+      "message": "„{task_name}“ ist archiviert, deaktiviert oder das Objekt ist pausiert — kann nicht übersprungen werden"
+    },
     "too_early": {
       "message": "„{task_name}“ kann erst näher am Fälligkeitsdatum erledigt werden"
     }

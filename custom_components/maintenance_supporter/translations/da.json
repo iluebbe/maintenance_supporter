@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "”{task_name}” er arkiveret, deaktiveret eller objektet er sat på pause — kan ikke fuldføres"
     },
+    "task_inactive_skip": {
+      "message": "”{task_name}” er arkiveret, deaktiveret eller objektet er sat på pause — kan ikke springes over"
+    },
     "too_early": {
       "message": "”{task_name}” kan først fuldføres tættere på forfaldsdatoen"
     }

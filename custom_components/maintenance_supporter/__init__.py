@@ -137,7 +137,7 @@ type MaintenanceSupporterConfigEntry = ConfigEntry[MaintenanceSupporterData]
 # --- Service Schemas ---
 SERVICE_COMPLETE_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
         vol.Optional("notes"): vol.All(cv.string, vol.Length(max=2000)),
         vol.Optional("cost"): vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)),
         vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)),
@@ -155,14 +155,14 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
 
 SERVICE_RESET_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
         vol.Optional("date"): cv.date,
     }
 )
 
 SERVICE_SKIP_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
         vol.Optional("reason"): vol.All(cv.string, vol.Length(max=2000)),
     }
 )
@@ -536,11 +536,15 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             # Per-task values must not fan out: a reading belongs to ONE
             # meter, cost/duration would multiply into the budget and the
             # averages, and one physical scan proves exactly one tag.
-            for field in ("reading_value", "cost", "duration", "via_tag_scan"):
+            for field in ("reading_value", "cost", "duration"):
                 if call.data.get(field) is not None:
                     raise ServiceValidationError(
                         f"'{field}' can only be used with a single entity_id"
                     )
+            # An explicit ``via_tag_scan: false`` claims nothing — only a
+            # TRUE flag is the one-tag-one-task proof that must not fan out.
+            if call.data.get("via_tag_scan"):
+                raise ServiceValidationError("'via_tag_scan' can only be used with a single entity_id")
         # #128: explicit person beats the call context; the context covers the
         # common case for free (a dashboard tap propagates the tapping user).
         if call.data.get("completed_by"):
@@ -2020,11 +2024,15 @@ def _get_coordinator_for_entity(hass: HomeAssistant, entity_id: str) -> Maintena
         return None
 
     config_entry = hass.config_entries.async_get_entry(config_entry_id)
-    if config_entry is None:
+    # Only OUR entries: a foreign integration's entry may carry its own
+    # runtime_data, and reading ``.coordinator`` off it raised a bare
+    # AttributeError that escaped the per-task error collection and aborted
+    # the rest of a multi-entity call (bug review 2026-09-04).
+    if config_entry is None or config_entry.domain != DOMAIN:
         return None
 
-    runtime_data: MaintenanceSupporterData | None = getattr(config_entry, "runtime_data", None)
-    if runtime_data is None:
+    runtime_data = getattr(config_entry, "runtime_data", None)
+    if not isinstance(runtime_data, MaintenanceSupporterData):
         return None
 
     return runtime_data.coordinator

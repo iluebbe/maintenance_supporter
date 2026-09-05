@@ -2013,6 +2013,9 @@
     "task_inactive": {
       "message": "«{task_name}» está arquivada, desativada ou o seu objeto está em pausa — não pode ser concluída"
     },
+    "task_inactive_skip": {
+      "message": "«{task_name}» está arquivada, desativada ou o seu objeto está em pausa — não pode ser ignorada"
+    },
     "too_early": {
       "message": "«{task_name}» só pode ser concluída mais perto da data de vencimento"
     }

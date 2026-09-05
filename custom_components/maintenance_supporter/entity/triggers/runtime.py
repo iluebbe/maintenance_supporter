@@ -371,6 +371,12 @@ class RuntimeTrigger(BaseTrigger):
         """Reset accumulated runtime (called after maintenance completion)."""
         super().reset()
         self._accumulated_seconds = 0.0
+        # A fresh start is a fresh session for the #149 cap too: the session
+        # that ran up to the completion has been booked (and cleared), the
+        # one starting now may book the cap again. Leaving the old booking in
+        # place froze a still-ON entity at zero until it next turned off
+        # (bug review 2026-09-04).
+        self._session_booked = 0.0
         # If entity is currently ON, keep tracking from now (fresh start)
         if self._on_since_dt is not None:
             now = dt_util.utcnow()
