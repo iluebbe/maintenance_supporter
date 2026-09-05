@@ -376,9 +376,18 @@ class MaintenanceStore:
         runtime[entity_id] = dict(data)
 
     def clear_trigger_runtime(self, task_id: str) -> None:
-        """Clear all trigger runtime data for a task."""
+        """Clear all trigger runtime data for a task.
+
+        Both slots: the first-setup snapshot in ``trigger_runtime_legacy`` is
+        reshaped into live per-entity state whenever ``trigger_runtime`` is
+        empty (merge_task_data), so leaving it behind resurrected the adopted
+        baseline / accumulated runtime after every clear — a baseline edited
+        in the panel was silently replaced by the first-setup value, a
+        switched runtime entity inherited the old hours (bug review 2026-09-04).
+        """
         state = self.get_task_state(task_id)
         state.pop("trigger_runtime", None)
+        state.pop("trigger_runtime_legacy", None)
 
     # ------------------------------------------------------------------
     # Merge / Split Helpers

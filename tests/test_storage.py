@@ -266,6 +266,28 @@ async def test_clear_trigger_runtime(hass: HomeAssistant) -> None:
     assert store.get_trigger_runtime("t1") == {}
 
 
+async def test_clear_trigger_runtime_drops_the_legacy_snapshot_too(hass: HomeAssistant) -> None:
+    """Bug review 2026-09-04: the first-setup snapshot (adopted baseline #102,
+    imported runtime total) is reshaped into live state whenever the
+    per-entity slot is empty — so a clear that left it behind resurrected
+    the old baseline right after the user changed it, and a switched
+    runtime entity inherited the old hours."""
+    store = MaintenanceStore(hass, "trig_5")
+    state = store._ensure_task("t1")
+    state["trigger_runtime_legacy"] = {"trigger_baseline_value": 20000}
+    store.set_trigger_runtime("t1", "sensor.odo", {"baseline_value": 20000.0})
+    static = {"id": "t1", "trigger_config": {"type": "counter", "entity_id": "sensor.odo", "trigger_baseline_value": 30000}}
+
+    store.clear_trigger_runtime("t1")
+
+    assert "trigger_runtime_legacy" not in store.get_task_state("t1")
+    merged = store.merge_task_data("t1", static)
+    # Nothing in the store any more -> the edited static baseline is what
+    # the counter trigger starts from.
+    assert "_trigger_state" not in merged["trigger_config"]
+    assert merged["trigger_config"]["trigger_baseline_value"] == 30000
+
+
 # ─── merge helpers ───────────────────────────────────────────────────
 
 

@@ -1705,6 +1705,99 @@ async def test_import_json_drops_invalid_trigger_config(
     entry_id = conn.send_result.call_args[0][1]["imported"][0]["entry_id"]
     task = list(hass.config_entries.async_get_entry(entry_id).data[CONF_TASKS].values())[0]
     assert "trigger_config" not in task
+    # Bug review 2026-09-04: the drop used to be silent — now it is reported
+    # next to the NFC warnings.
+    warnings = conn.send_result.call_args[0][1]["imported"][0]["warnings"]
+    assert any(w.startswith("Bad Trigger Task: trigger dropped") for w in warnings)
+
+
+async def test_import_json_restores_trigger_state_into_the_store(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Bug review 2026-09-04: the export merges the live per-entity trigger
+    state (accumulated runtime, counter baseline, change count) into
+    trigger_config as ``_trigger_state``; the import's validator stripped it
+    as an unknown key, so a backup restore started every sensor trigger from
+    zero. It must land in the fresh entry's Store instead."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+    hass.states.async_set("switch.pump", "off")
+
+    json_data = json.dumps(
+        {
+            "objects": [
+                {
+                    "object": {"name": "Runtime Obj"},
+                    "tasks": [
+                        {
+                            "name": "Pump Service",
+                            "schedule_type": "sensor_based",
+                            "trigger_config": {
+                                "type": "runtime",
+                                "entity_ids": ["switch.pump"],
+                                "trigger_runtime_hours": 100,
+                                "_trigger_state": {"switch.pump": {"accumulated_seconds": 180000.0}},
+                            },
+                        }
+                    ],
+                }
+            ],
+        }
+    )
+    await call_ws_handler(
+        ws_import_json, hass, conn, {"id": 1, "type": "maintenance_supporter/json/import", "json_content": json_data}
+    )
+    await hass.async_block_till_done()
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+    entry_id = result["imported"][0]["entry_id"]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    assert entry is not None
+    task_id, task = next(iter(entry.data[CONF_TASKS].items()))
+    # Static config stays clean (first setup migrated the state out) ...
+    assert "_trigger_state" not in task["trigger_config"]
+    # ... and the Store carries the 50 h the source instance had accumulated.
+    runtime = entry.runtime_data.store.get_trigger_runtime(task_id)
+    assert runtime.get("switch.pump", {}).get("accumulated_seconds") == 180000.0
+
+
+async def test_import_json_keeps_object_errors_when_a_later_task_has_a_trigger(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Bug review 2026-09-04: the per-task trigger validation rebound the
+    import-level ``errors`` list — a valid trigger on any later object reset
+    it, so the response lost the earlier object failures."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+    hass.states.async_set("sensor.temperature", "21")
+
+    json_data = json.dumps(
+        {
+            "objects": [
+                {"object": {}},  # missing name → reported in errors
+                {
+                    "object": {"name": "Good Obj"},
+                    "tasks": [
+                        {
+                            "name": "Threshold Task",
+                            "schedule_type": "sensor_based",
+                            "trigger_config": {"type": "threshold", "entity_ids": ["sensor.temperature"], "trigger_above": 30},
+                        }
+                    ],
+                },
+            ],
+        }
+    )
+    await call_ws_handler(
+        ws_import_json, hass, conn, {"id": 1, "type": "maintenance_supporter/json/import", "json_content": json_data}
+    )
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+    assert result["errors"] == [{"name": "object 1", "reason": "missing name"}]
 
 
 # ─── ws_generate_qr ──────────────────────────────────────────────────────

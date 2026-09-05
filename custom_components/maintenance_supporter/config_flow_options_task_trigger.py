@@ -179,7 +179,15 @@ class TriggerStepsMixin(TriggerConfigMixin):
 
     async def async_step_edit_trigger_proceed(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Proceed with editing the trigger after reviewing the summary."""
-        self._current_task = {}
+        # Seed the stored trigger so the shared steps see it as ``prev_tc``:
+        # the attribute step rebuilds trigger_config from the form and carries
+        # over only the panel-managed keys the flow has no field for
+        # (#53 recovery flag, #102 baseline, #149 session cap) — with an
+        # empty seed those were silently dropped on every options-flow edit
+        # (bug review 2026-09-04). The type steps also default their
+        # recovery/baseline/combinator fields from it.
+        task = self.config_entry.data.get(CONF_TASKS, {}).get(self._selected_task_id or "", {})
+        self._current_task = {"trigger_config": dict(task.get("trigger_config") or {})}
         self._trigger_on_complete = self._save_edited_trigger
         self._on_cancel = self._show_task_action_menu
         return await self.async_step_opt_sensor_select()

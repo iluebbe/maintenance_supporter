@@ -775,6 +775,56 @@ async def test_ws_update_task_baseline_change_clears_store_runtime(
     assert runtime.get("sensor.odometer", {}).get("baseline_value") != 27000.0
 
 
+async def test_ws_update_task_baseline_edit_does_not_resurrect_first_setup_snapshot(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Bug review 2026-09-04 (regression from 635f6a27): an entry set up with
+    an adopted baseline keeps that snapshot in ``trigger_runtime_legacy``;
+    merge_task_data reshapes it into live state whenever the per-entity slot
+    is empty. Clearing only the per-entity slot on a baseline edit therefore
+    handed the trigger the FIRST-SETUP baseline again — the user's new value
+    never took effect."""
+    await setup_integration(hass, global_entry, object_entry)
+    hass.states.async_set("sensor.odometer", "27000")
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    store = entry.runtime_data.store
+    # First-setup snapshot (config-flow adoption / backup import) + the live
+    # per-entity state the counter trigger persisted since.
+    store._ensure_task(TASK_ID_1)["trigger_runtime_legacy"] = {"trigger_baseline_value": 20000.0}
+    store.set_trigger_runtime(TASK_ID_1, "sensor.odometer", {"baseline_value": 20000.0})
+
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "trigger_config": {
+                "type": "counter",
+                "entity_id": "sensor.odometer",
+                "trigger_target_value": 15000.0,
+                "trigger_delta_mode": True,
+                "trigger_baseline_value": 30000.0,
+            },
+        },
+    )
+    conn.send_result.assert_called_once()
+
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    assert "trigger_runtime_legacy" not in state
+    merged = entry.runtime_data.coordinator._get_merged_tasks_data()[TASK_ID_1]
+    injected = (merged["trigger_config"].get("_trigger_state") or {}).get("sensor.odometer", {})
+    assert injected.get("baseline_value") != 20000.0
+    assert merged["trigger_config"]["trigger_baseline_value"] == 30000.0
+
+
 async def test_ws_update_task_invalid_trigger(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,

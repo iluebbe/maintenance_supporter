@@ -12,6 +12,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -1495,6 +1496,71 @@ async def test_edit_trigger_prepopulates_entities(
             break
     else:
         pytest.fail("trigger_entity key not found in schema")
+
+
+async def test_edit_trigger_keeps_panel_managed_keys(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Bug review 2026-09-04: the options-flow trigger edit started from an
+    EMPTY working task, so the attribute step's carry-over of the keys the
+    flow has no fields for (#53 recovery flag, #102 baseline, #149 session
+    cap) never had anything to carry — a mere re-save of the same counter
+    trigger dropped all three."""
+    hass.states.async_set("sensor.odometer", "27000", {"unit_of_measurement": "km"})
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
+    # Seed what the panel dialog writes and the flow cannot: recovery flag,
+    # counting start value, runtime session cap.
+    new_data = dict(object_config_entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    task = dict(new_tasks[task_id])
+    task["trigger_config"] = {
+        "type": TriggerType.COUNTER,
+        "entity_id": "sensor.odometer",
+        "entity_ids": ["sensor.odometer"],
+        "attribute": None,
+        CONF_TRIGGER_TARGET_VALUE: 15000.0,
+        CONF_TRIGGER_DELTA_MODE: True,
+        "trigger_baseline_value": 20000.0,
+        "auto_complete_on_recovery": True,
+        "trigger_runtime_max_session_seconds": 3600,
+    }
+    new_tasks[task_id] = task
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(object_config_entry, data=new_data)
+    await hass.async_block_till_done()
+
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger"})
+    assert result["step_id"] == "trigger_summary"
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger_proceed"})
+    assert result["step_id"] == "opt_sensor_select"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.odometer"]}
+    )
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.COUNTER}
+    )
+    assert result["step_id"] == "opt_trigger_counter"
+    # The stored values are the form defaults ...
+    defaults = {str(k): k.default() for k in result["data_schema"].schema if hasattr(k, "default") and k.default is not vol.UNDEFINED}
+    assert defaults["trigger_baseline_value"] == 20000.0
+    assert defaults["auto_complete_on_recovery"] is True
+    # ... and a submit that only re-enters the target keeps every one of them.
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TARGET_VALUE: 16000.0, CONF_TRIGGER_DELTA_MODE: True, CONF_TASK_WARNING_DAYS: 7},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+
+    tc = object_config_entry.data[CONF_TASKS][task_id]["trigger_config"]
+    assert tc[CONF_TRIGGER_TARGET_VALUE] == 16000.0
+    assert tc["trigger_baseline_value"] == 20000.0
+    assert tc["auto_complete_on_recovery"] is True
+    assert tc["trigger_runtime_max_session_seconds"] == 3600
 
 
 async def test_remove_trigger_selective_entity_removal(

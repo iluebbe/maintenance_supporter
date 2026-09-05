@@ -668,6 +668,9 @@ async def ws_import_json(
         # remapped onto the freshly generated tasks (mirrors part_id_map).
         task_id_map: dict[str, str] = {}
         fleet_task_seen = False
+        # Per-task import losses (an invalid trigger is dropped, not fatal) —
+        # reported next to the NFC warnings instead of vanishing silently.
+        task_warnings: list[str] = []
         tasks_list = obj_entry.get("tasks", [])
         if not isinstance(tasks_list, list):
             tasks_list = []
@@ -889,11 +892,23 @@ async def ws_import_json(
             # entirely if invalid — so import isn't a hole around trigger validation.
             tc = task_data.get("trigger_config")
             if isinstance(tc, dict):
-                errors, _warnings = _validate_trigger_config(hass, tc)
-                if errors:
+                # The export carries the live per-entity trigger state
+                # (accumulated runtime hours, counter baseline, change count)
+                # merged in as ``_trigger_state``. The validator strips it as
+                # an unknown key, so a restore silently started every
+                # sensor trigger from zero (bug review 2026-09-04). Keep it
+                # aside and re-attach it: the fresh entry's first setup
+                # migrates it into the Store like any other dynamic field.
+                trigger_state = tc.pop("_trigger_state", None)
+                tc_errors, _warnings = _validate_trigger_config(hass, tc)
+                if tc_errors:
                     task_data.pop("trigger_config", None)
+                    task_warnings.append(f"{task_name}: trigger dropped — {tc_errors[0]}")
+                elif isinstance(trigger_state, dict) and trigger_state:
+                    tc["_trigger_state"] = trigger_state
             elif tc is not None:
                 task_data.pop("trigger_config", None)
+                task_warnings.append(f"{task_name}: trigger dropped — not a mapping")
 
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)
@@ -927,8 +942,10 @@ async def ws_import_json(
                 "name": obj_name,
                 "task_count": len(import_tasks),
             }
-            if nfc_warnings:
-                entry_info["warnings"] = nfc_warnings
+            if nfc_warnings or task_warnings:
+                entry_info["warnings"] = nfc_warnings + task_warnings
+            for warning in task_warnings:
+                _LOGGER.warning("JSON import of %s: %s", obj_name, warning)
             created.append(entry_info)
 
             # Restore tracked part stocks into the new entry's Store.
