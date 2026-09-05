@@ -1658,16 +1658,20 @@
           "description": "デバイスを割り当てるエリア。"
         },
         "manufacturer": {
-          "name": "メーカー"
+          "name": "メーカー",
+          "description": "対象のメーカーです。"
         },
         "model": {
-          "name": "モデル"
+          "name": "モデル",
+          "description": "モデル名または型番です。"
         },
         "serial_number": {
-          "name": "シリアル番号"
+          "name": "シリアル番号",
+          "description": "対象のシリアル番号です。"
         },
         "installation_date": {
-          "name": "設置日"
+          "name": "設置日",
+          "description": "この対象を設置または購入した日です。"
         },
         "warranty_expiry": {
           "name": "保証期限",
@@ -1678,7 +1682,8 @@
           "description": "マニュアルまたはベンダーページへのリンク（http/https のみ）。"
         },
         "notes": {
-          "name": "メモ"
+          "name": "メモ",
+          "description": "対象に関する自由形式のメモです。部品番号、手順、設定の覚え書きなど。"
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "期日前に「まもなく期限」ウィンドウに入るまでの日数。"
         },
         "enabled": {
-          "name": "有効"
+          "name": "有効",
+          "description": "無効にすると、スケジューリングとトリガーが一時停止します。タスク自体は削除されません。"
         },
         "notes": {
-          "name": "メモ"
+          "name": "メモ",
+          "description": "このタスクに関する追加のメモまたは手順です。"
         }
       }
     },

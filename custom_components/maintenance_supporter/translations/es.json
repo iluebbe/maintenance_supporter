@@ -1658,16 +1658,20 @@
           "description": "Área a la que asignar el dispositivo."
         },
         "manufacturer": {
-          "name": "Fabricante"
+          "name": "Fabricante",
+          "description": "El fabricante del objeto."
         },
         "model": {
-          "name": "Modelo"
+          "name": "Modelo",
+          "description": "El nombre o número de modelo."
         },
         "serial_number": {
-          "name": "Número de serie"
+          "name": "Número de serie",
+          "description": "El número de serie del objeto."
         },
         "installation_date": {
-          "name": "Fecha de instalación"
+          "name": "Fecha de instalación",
+          "description": "Fecha de instalación o compra de este objeto."
         },
         "warranty_expiry": {
           "name": "Vencimiento de garantía",
@@ -1678,7 +1682,8 @@
           "description": "Enlace a un manual o página del proveedor (solo http/https)."
         },
         "notes": {
-          "name": "Notas"
+          "name": "Notas",
+          "description": "Notas libres sobre el objeto — números de pieza, procedimientos, recordatorios, etc."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Días antes del vencimiento para entrar en la ventana de «vence pronto»."
         },
         "enabled": {
-          "name": "Habilitado"
+          "name": "Habilitado",
+          "description": "Cuando está desactivado, la programación y los disparadores se pausan. La tarea no se elimina."
         },
         "notes": {
-          "name": "Notas"
+          "name": "Notas",
+          "description": "Notas adicionales o instrucciones para esta tarea."
         }
       }
     },

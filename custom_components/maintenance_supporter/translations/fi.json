@@ -1658,16 +1658,20 @@
           "description": "Alue, johon laite liitetään."
         },
         "manufacturer": {
-          "name": "Valmistaja"
+          "name": "Valmistaja",
+          "description": "Kohteen valmistaja."
         },
         "model": {
-          "name": "Malli"
+          "name": "Malli",
+          "description": "Mallin nimi tai numero."
         },
         "serial_number": {
-          "name": "Sarjanumero"
+          "name": "Sarjanumero",
+          "description": "Kohteen sarjanumero."
         },
         "installation_date": {
-          "name": "Asennuspäivä"
+          "name": "Asennuspäivä",
+          "description": "Milloin tämä kohde asennettiin tai ostettiin."
         },
         "warranty_expiry": {
           "name": "Takuun päättyminen",
@@ -1678,7 +1682,8 @@
           "description": "Linkki käyttöohjeeseen tai valmistajan sivulle (vain http/https)."
         },
         "notes": {
-          "name": "Muistiinpanot"
+          "name": "Muistiinpanot",
+          "description": "Vapaamuotoiset muistiinpanot kohteesta – osanumerot, toimenpiteet, asetusmuistutukset jne."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Päivien määrä ennen eräpäivää, jolloin tehtävä siirtyy pian erääntyvien ikkunaan."
         },
         "enabled": {
-          "name": "Käytössä"
+          "name": "Käytössä",
+          "description": "Kun pois käytöstä, aikataulutus ja laukaisimet on keskeytetty. Tehtävää ei poisteta."
         },
         "notes": {
-          "name": "Muistiinpanot"
+          "name": "Muistiinpanot",
+          "description": "Lisämuistiinpanot tai -ohjeet tälle tehtävälle."
         }
       }
     },

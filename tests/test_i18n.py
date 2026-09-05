@@ -569,9 +569,9 @@ def _services_yaml() -> dict[str, Any]:
 
 
 def test_services_yaml_fields_match_strings() -> None:
-    """Every service and every field in ``services.yaml`` has its name (and
-    description, where the YAML carries one) in ``strings.json`` — and,
-    through the parity tests above, in every translation.
+    """Every service and every field in ``services.yaml`` has its name AND
+    description — in the YAML and in ``strings.json`` — and, through the
+    parity tests above, in every translation.
 
     HA takes service/field names and descriptions from the translations; a
     field that only exists in the YAML shows its raw key in the developer
@@ -593,11 +593,13 @@ def test_services_yaml_fields_match_strings() -> None:
             "strings_only": sorted(set(string_fields) - yaml_fields),
         }
         for field in yaml_fields:
-            # A description is optional (self-explanatory fields such as
-            # "Model" carry none in either file), but one written in the
-            # YAML must reach the translations; the name always must.
-            expected = {"name"} | ({"description"} & set(spec["fields"][field] or {}))
-            assert expected <= set(string_fields[field]), (service, field, sorted(expected - set(string_fields[field])))
+            # Both files carry both texts: the YAML is what a reader of the
+            # source sees, the strings are what HA renders. Seven fields
+            # ("Model", "Notes", ...) once had no description anywhere and
+            # showed a bare label in the automation editor.
+            for source, texts in (("services.yaml", spec["fields"][field] or {}), ("strings.json", string_fields[field])):
+                missing = {"name", "description"} - set(texts)
+                assert not missing, (source, service, field, sorted(missing))
 
 
 def test_services_yaml_number_ceilings_follow_the_constants() -> None:

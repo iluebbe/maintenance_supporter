@@ -1658,16 +1658,20 @@
           "description": "기기를 할당할 구역입니다."
         },
         "manufacturer": {
-          "name": "제조사"
+          "name": "제조사",
+          "description": "대상의 제조사입니다."
         },
         "model": {
-          "name": "모델"
+          "name": "모델",
+          "description": "모델명 또는 모델 번호입니다."
         },
         "serial_number": {
-          "name": "일련번호"
+          "name": "일련번호",
+          "description": "대상의 일련번호입니다."
         },
         "installation_date": {
-          "name": "설치일"
+          "name": "설치일",
+          "description": "이 대상을 설치했거나 구입한 날짜입니다."
         },
         "warranty_expiry": {
           "name": "보증 만료일",
@@ -1678,7 +1682,8 @@
           "description": "설명서나 제조사 페이지 링크입니다(http/https만 가능)."
         },
         "notes": {
-          "name": "메모"
+          "name": "메모",
+          "description": "대상에 대한 자유 형식 메모입니다 — 부품 번호, 절차, 설정 참고 사항 등."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "기한 임박 구간에 들어가는 기한 전 일수입니다."
         },
         "enabled": {
-          "name": "사용"
+          "name": "사용",
+          "description": "끄면 일정과 트리거가 일시 중지됩니다. 작업이 삭제되지는 않습니다."
         },
         "notes": {
-          "name": "메모"
+          "name": "메모",
+          "description": "이 작업에 대한 추가 메모나 지침입니다."
         }
       }
     },

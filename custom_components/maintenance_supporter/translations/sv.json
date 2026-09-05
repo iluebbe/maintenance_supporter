@@ -1658,16 +1658,20 @@
           "description": "Område som enheten ska tilldelas."
         },
         "manufacturer": {
-          "name": "Tillverkare"
+          "name": "Tillverkare",
+          "description": "Tillverkaren av objektet."
         },
         "model": {
-          "name": "Modell"
+          "name": "Modell",
+          "description": "Modellnamn eller -nummer."
         },
         "serial_number": {
-          "name": "Serienummer"
+          "name": "Serienummer",
+          "description": "Objektets serienummer."
         },
         "installation_date": {
-          "name": "Installationsdatum"
+          "name": "Installationsdatum",
+          "description": "När objektet installerades eller köptes."
         },
         "warranty_expiry": {
           "name": "Garantins utgång",
@@ -1678,7 +1682,8 @@
           "description": "Länk till en manual eller leverantörssida (endast http/https)."
         },
         "notes": {
-          "name": "Anteckningar"
+          "name": "Anteckningar",
+          "description": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Dagar före förfall då uppgiften går in i snart-förfaller-fönstret."
         },
         "enabled": {
-          "name": "Aktiverad"
+          "name": "Aktiverad",
+          "description": "När inaktiverad pausas schemaläggning och utlösare. Uppgiften tas inte bort."
         },
         "notes": {
-          "name": "Anteckningar"
+          "name": "Anteckningar",
+          "description": "Ytterligare anteckningar eller instruktioner för denna uppgift."
         }
       }
     },

@@ -1658,16 +1658,20 @@
           "description": "A terület, amelyhez az eszközt rendeli."
         },
         "manufacturer": {
-          "name": "Gyártó"
+          "name": "Gyártó",
+          "description": "Az objektum gyártója."
         },
         "model": {
-          "name": "Modell"
+          "name": "Modell",
+          "description": "A modell neve vagy száma."
         },
         "serial_number": {
-          "name": "Sorozatszám"
+          "name": "Sorozatszám",
+          "description": "Az objektum sorozatszáma."
         },
         "installation_date": {
-          "name": "Telepítés dátuma"
+          "name": "Telepítés dátuma",
+          "description": "Mikor telepítették vagy vásárolták az objektumot."
         },
         "warranty_expiry": {
           "name": "Garancia lejárta",
@@ -1678,7 +1682,8 @@
           "description": "Hivatkozás kézikönyvre vagy gyártói oldalra (csak http/https)."
         },
         "notes": {
-          "name": "Megjegyzések"
+          "name": "Megjegyzések",
+          "description": "Szabad szöveges megjegyzések az objektumról — cikkszámok, eljárások, beállítási emlékeztetők stb."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Hány nappal az esedékesség előtt kezdődjön a hamarosan esedékes időszak."
         },
         "enabled": {
-          "name": "Engedélyezve"
+          "name": "Engedélyezve",
+          "description": "Kikapcsolva az ütemezés és a kiváltók szünetelnek. A feladat nem törlődik."
         },
         "notes": {
-          "name": "Megjegyzések"
+          "name": "Megjegyzések",
+          "description": "További megjegyzések vagy utasítások a feladathoz."
         }
       }
     },

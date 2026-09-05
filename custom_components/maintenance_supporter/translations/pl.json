@@ -1658,16 +1658,20 @@
           "description": "Obszar, do którego przypisać urządzenie."
         },
         "manufacturer": {
-          "name": "Producent"
+          "name": "Producent",
+          "description": "Producent obiektu."
         },
         "model": {
-          "name": "Model"
+          "name": "Model",
+          "description": "Nazwa lub numer modelu."
         },
         "serial_number": {
-          "name": "Numer seryjny"
+          "name": "Numer seryjny",
+          "description": "Numer seryjny obiektu."
         },
         "installation_date": {
-          "name": "Data instalacji"
+          "name": "Data instalacji",
+          "description": "Kiedy ten obiekt został zainstalowany lub kupiony."
         },
         "warranty_expiry": {
           "name": "Wygaśnięcie gwarancji",
@@ -1678,7 +1682,8 @@
           "description": "Link do instrukcji lub strony producenta (tylko http/https)."
         },
         "notes": {
-          "name": "Notatki"
+          "name": "Notatki",
+          "description": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Liczba dni przed terminem, od których zadanie wchodzi w okno „wkrótce”."
         },
         "enabled": {
-          "name": "Włączone"
+          "name": "Włączone",
+          "description": "Po wyłączeniu planowanie i wyzwalacze są wstrzymane. Zadanie nie jest usuwane."
         },
         "notes": {
-          "name": "Notatki"
+          "name": "Notatki",
+          "description": "Dodatkowe notatki lub instrukcje dla tego zadania."
         }
       }
     },

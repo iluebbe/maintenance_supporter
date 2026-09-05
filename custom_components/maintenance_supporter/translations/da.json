@@ -1658,16 +1658,20 @@
           "description": "Område, som enheden tildeles."
         },
         "manufacturer": {
-          "name": "Producent"
+          "name": "Producent",
+          "description": "Objektets producent."
         },
         "model": {
-          "name": "Model"
+          "name": "Model",
+          "description": "Modelnavnet eller -nummeret."
         },
         "serial_number": {
-          "name": "Serienummer"
+          "name": "Serienummer",
+          "description": "Objektets serienummer."
         },
         "installation_date": {
-          "name": "Installationsdato"
+          "name": "Installationsdato",
+          "description": "Hvornår dette objekt blev installeret eller købt."
         },
         "warranty_expiry": {
           "name": "Garantiudløb",
@@ -1678,7 +1682,8 @@
           "description": "Link til en manual eller leverandørside (kun http/https)."
         },
         "notes": {
-          "name": "Noter"
+          "name": "Noter",
+          "description": "Frie noter om objektet — varenumre, procedurer, indstillingspåmindelser osv."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Dage før forfald, hvor opgaven går ind i due-soon-vinduet."
         },
         "enabled": {
-          "name": "Aktiveret"
+          "name": "Aktiveret",
+          "description": "Når deaktiveret, sættes planlægning og udløsere på pause. Opgaven slettes ikke."
         },
         "notes": {
-          "name": "Noter"
+          "name": "Noter",
+          "description": "Yderligere noter eller instruktioner til denne opgave."
         }
       }
     },

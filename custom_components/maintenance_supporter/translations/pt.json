@@ -1658,16 +1658,20 @@
           "description": "Área à qual atribuir o dispositivo."
         },
         "manufacturer": {
-          "name": "Fabricante"
+          "name": "Fabricante",
+          "description": "O fabricante do objeto."
         },
         "model": {
-          "name": "Modelo"
+          "name": "Modelo",
+          "description": "O nome ou número do modelo."
         },
         "serial_number": {
-          "name": "Número de série"
+          "name": "Número de série",
+          "description": "O número de série do objeto."
         },
         "installation_date": {
-          "name": "Data de instalação"
+          "name": "Data de instalação",
+          "description": "Quando este objeto foi instalado ou adquirido."
         },
         "warranty_expiry": {
           "name": "Validade da garantia",
@@ -1678,7 +1682,8 @@
           "description": "Link para um manual ou página do fornecedor (apenas http/https)."
         },
         "notes": {
-          "name": "Notas"
+          "name": "Notas",
+          "description": "Notas livres sobre o objeto — números de peça, procedimentos, lembretes, etc."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Dias antes do vencimento para entrar na janela de «vence em breve»."
         },
         "enabled": {
-          "name": "Ativado"
+          "name": "Ativado",
+          "description": "Quando desativado, o agendamento e os acionamentos são pausados. A tarefa não é eliminada."
         },
         "notes": {
-          "name": "Notas"
+          "name": "Notas",
+          "description": "Notas ou instruções adicionais para esta tarefa."
         }
       }
     },

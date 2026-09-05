@@ -1592,16 +1592,20 @@
           "description": "Area to assign the device to."
         },
         "manufacturer": {
-          "name": "Manufacturer"
+          "name": "Manufacturer",
+          "description": "The manufacturer of the object."
         },
         "model": {
-          "name": "Model"
+          "name": "Model",
+          "description": "The model name or number."
         },
         "serial_number": {
-          "name": "Serial number"
+          "name": "Serial number",
+          "description": "The serial number of the object."
         },
         "installation_date": {
-          "name": "Installation date"
+          "name": "Installation date",
+          "description": "When this object was installed or purchased."
         },
         "warranty_expiry": {
           "name": "Warranty expiry",
@@ -1612,7 +1616,8 @@
           "description": "Link to a manual or vendor page (http/https only)."
         },
         "notes": {
-          "name": "Notes"
+          "name": "Notes",
+          "description": "Free-form notes about the object — part numbers, procedures, settings reminders, etc."
         }
       }
     },
@@ -1657,10 +1662,12 @@
           "description": "Days before due to enter the due-soon window."
         },
         "enabled": {
-          "name": "Enabled"
+          "name": "Enabled",
+          "description": "When disabled, scheduling and triggers are paused. The task is not deleted."
         },
         "notes": {
-          "name": "Notes"
+          "name": "Notes",
+          "description": "Additional notes or instructions for this task."
         }
       }
     },

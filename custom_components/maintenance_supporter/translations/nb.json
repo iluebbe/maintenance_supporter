@@ -1658,16 +1658,20 @@
           "description": "Område enheten skal tildeles."
         },
         "manufacturer": {
-          "name": "Produsent"
+          "name": "Produsent",
+          "description": "Produsenten av objektet."
         },
         "model": {
-          "name": "Modell"
+          "name": "Modell",
+          "description": "Modellnavnet eller -nummeret."
         },
         "serial_number": {
-          "name": "Serienummer"
+          "name": "Serienummer",
+          "description": "Serienummeret til objektet."
         },
         "installation_date": {
-          "name": "Installasjonsdato"
+          "name": "Installasjonsdato",
+          "description": "Når dette objektet ble installert eller kjøpt."
         },
         "warranty_expiry": {
           "name": "Garantiens utløp",
@@ -1678,7 +1682,8 @@
           "description": "Lenke til en manual eller leverandørside (kun http/https)."
         },
         "notes": {
-          "name": "Notater"
+          "name": "Notater",
+          "description": "Fritekstnotater om objektet – delenumre, prosedyrer, påminnelser om innstillinger osv."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Dager før forfall der oppgaven går inn i due-soon-vinduet."
         },
         "enabled": {
-          "name": "Aktivert"
+          "name": "Aktivert",
+          "description": "Når deaktivert, settes planlegging og utløsere på pause. Oppgaven slettes ikke."
         },
         "notes": {
-          "name": "Notater"
+          "name": "Notater",
+          "description": "Ytterligere notater eller instruksjoner for denne oppgaven."
         }
       }
     },

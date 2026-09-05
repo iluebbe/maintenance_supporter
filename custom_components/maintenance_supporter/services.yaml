@@ -135,18 +135,22 @@ add_object:
         area:
     manufacturer:
       name: Manufacturer
+      description: The manufacturer of the object.
       selector:
         text:
     model:
       name: Model
+      description: The model name or number.
       selector:
         text:
     serial_number:
       name: Serial number
+      description: The serial number of the object.
       selector:
         text:
     installation_date:
       name: Installation date
+      description: When this object was installed or purchased.
       selector:
         date:
     warranty_expiry:
@@ -161,6 +165,7 @@ add_object:
         text:
     notes:
       name: Notes
+      description: Free-form notes about the object — part numbers, procedures, settings reminders, etc.
       selector:
         text:
           multiline: true
@@ -238,11 +243,13 @@ add_task:
           mode: box
     enabled:
       name: Enabled
+      description: When disabled, scheduling and triggers are paused. The task is not deleted.
       default: true
       selector:
         boolean:
     notes:
       name: Notes
+      description: Additional notes or instructions for this task.
       selector:
         text:
           multiline: true

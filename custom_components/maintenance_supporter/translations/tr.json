@@ -1658,16 +1658,20 @@
           "description": "Cihazın atanacağı alan."
         },
         "manufacturer": {
-          "name": "Üretici"
+          "name": "Üretici",
+          "description": "Nesnenin üreticisi."
         },
         "model": {
-          "name": "Model"
+          "name": "Model",
+          "description": "Model adı veya numarası."
         },
         "serial_number": {
-          "name": "Seri numarası"
+          "name": "Seri numarası",
+          "description": "Nesnenin seri numarası."
         },
         "installation_date": {
-          "name": "Kurulum tarihi"
+          "name": "Kurulum tarihi",
+          "description": "Bu nesnenin kurulduğu veya satın alındığı tarih."
         },
         "warranty_expiry": {
           "name": "Garanti bitişi",
@@ -1678,7 +1682,8 @@
           "description": "Bir kılavuza veya satıcı sayfasına bağlantı (yalnızca http/https)."
         },
         "notes": {
-          "name": "Notlar"
+          "name": "Notlar",
+          "description": "Nesne hakkında serbest biçimli notlar — parça numaraları, prosedürler, ayar hatırlatmaları vb."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Vadesi yaklaşan penceresine girmeden önceki gün sayısı."
         },
         "enabled": {
-          "name": "Etkin"
+          "name": "Etkin",
+          "description": "Devre dışı bırakıldığında zamanlama ve tetikleyiciler duraklatılır. Görev silinmez."
         },
         "notes": {
-          "name": "Notlar"
+          "name": "Notlar",
+          "description": "Bu görev için ek notlar veya talimatlar."
         }
       }
     },

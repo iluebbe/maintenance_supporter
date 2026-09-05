@@ -694,6 +694,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _deepLinkHandled = false;
+  /** Set while an in-app deep link (see _onLocationChanged) is routed:
+   *  _pushPanelState replaces HA's freshly pushed entry instead of pushing. */
+  private _deepLinkInPlace = false;
   /** Objects + saved views have arrived at least once — deep links that
    *  reference them are routable. */
   private _initialLoadDone = false;
@@ -711,7 +714,24 @@ export class MaintenanceSupporterPanel extends LitElement {
     const path = window.location.pathname;
     if (path !== base && !path.startsWith(`${base}/`)) return;
     this._deepLinkHandled = false;
-    this._handleDeepLink();
+    // HA's navigate() already pushed the entry for this URL (state null), so
+    // the show*() helpers must take that entry over instead of stacking a
+    // second one — Back from a deep-linked task page needed two presses, the
+    // first landing on the state-less entry _onPopState ignores (bug review
+    // 2026-09-04 follow-up, same class as the overview branch).
+    this._deepLinkInPlace = true;
+    try {
+      this._handleDeepLink();
+    } finally {
+      this._deepLinkInPlace = false;
+    }
+    // Whatever the link did — a tab switch, a dialog, an unknown value — the
+    // entry has to describe the view now on screen; a later Back onto a
+    // state-less entry would restore nothing and leave the task page up.
+    const state = history.state as { msp_view?: View } | null;
+    if (!state?.msp_view) {
+      history.replaceState({ msp_view: this._view, msp_entry: this._selectedEntryId, msp_task: this._selectedTaskId }, "");
+    }
   }
 
   private _handleDeepLink(): void {
@@ -1108,10 +1128,13 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // --- Navigation ---
 
-  /** Push a browser history entry so the back button navigates within the panel. */
+  /** Push a browser history entry so the back button navigates within the
+   *  panel. An in-app deep link arrives on the entry HA's navigate() just
+   *  pushed — that one is taken over instead (see _onLocationChanged). */
   private _pushPanelState(view: View, entryId?: string | null, taskId?: string | null): void {
     const state = { msp_view: view, msp_entry: entryId || null, msp_task: taskId || null };
-    history.pushState(state, "");
+    if (this._deepLinkInPlace) history.replaceState(state, "");
+    else history.pushState(state, "");
   }
 
   /** Handle browser back/forward button. */

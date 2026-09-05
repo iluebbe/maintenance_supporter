@@ -1658,16 +1658,20 @@
           "description": "Area a cui assegnare il dispositivo."
         },
         "manufacturer": {
-          "name": "Produttore"
+          "name": "Produttore",
+          "description": "Il produttore dell'oggetto."
         },
         "model": {
-          "name": "Modello"
+          "name": "Modello",
+          "description": "Il nome o numero del modello."
         },
         "serial_number": {
-          "name": "Numero di serie"
+          "name": "Numero di serie",
+          "description": "Il numero di serie dell'oggetto."
         },
         "installation_date": {
-          "name": "Data di installazione"
+          "name": "Data di installazione",
+          "description": "Data di installazione o acquisto di questo oggetto."
         },
         "warranty_expiry": {
           "name": "Scadenza garanzia",
@@ -1678,7 +1682,8 @@
           "description": "Link a un manuale o alla pagina del produttore (solo http/https)."
         },
         "notes": {
-          "name": "Note"
+          "name": "Note",
+          "description": "Note libere sull'oggetto — numeri di parti, procedure, promemoria impostazioni, ecc."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Giorni prima della scadenza per entrare nella finestra «in scadenza»."
         },
         "enabled": {
-          "name": "Abilitato"
+          "name": "Abilitato",
+          "description": "Quando disabilitato, la pianificazione e i trigger vengono sospesi. L'attività non viene eliminata."
         },
         "notes": {
-          "name": "Note"
+          "name": "Note",
+          "description": "Note aggiuntive o istruzioni per questa attività."
         }
       }
     },

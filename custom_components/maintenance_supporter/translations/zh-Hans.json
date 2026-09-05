@@ -1658,16 +1658,20 @@
           "description": "设备所属的区域。"
         },
         "manufacturer": {
-          "name": "制造商"
+          "name": "制造商",
+          "description": "该维护项的制造商。"
         },
         "model": {
-          "name": "型号"
+          "name": "型号",
+          "description": "型号名称或编号。"
         },
         "serial_number": {
-          "name": "序列号"
+          "name": "序列号",
+          "description": "该维护项的序列号。"
         },
         "installation_date": {
-          "name": "安装日期"
+          "name": "安装日期",
+          "description": "该维护项安装或购买的日期。"
         },
         "warranty_expiry": {
           "name": "保修到期",
@@ -1678,7 +1682,8 @@
           "description": "手册或供应商页面的链接（仅限 http/https）。"
         },
         "notes": {
-          "name": "备注"
+          "name": "备注",
+          "description": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。"
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "进入“即将到期”窗口的提前天数。"
         },
         "enabled": {
-          "name": "已启用"
+          "name": "已启用",
+          "description": "禁用时，计划和触发器将暂停。任务不会被删除。"
         },
         "notes": {
-          "name": "备注"
+          "name": "备注",
+          "description": "此任务的其他备注或说明。"
         }
       }
     },

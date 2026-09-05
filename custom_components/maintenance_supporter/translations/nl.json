@@ -1658,16 +1658,20 @@
           "description": "Ruimte waaraan het apparaat wordt toegewezen."
         },
         "manufacturer": {
-          "name": "Fabrikant"
+          "name": "Fabrikant",
+          "description": "De fabrikant van het object."
         },
         "model": {
-          "name": "Model"
+          "name": "Model",
+          "description": "De modelnaam of het nummer."
         },
         "serial_number": {
-          "name": "Serienummer"
+          "name": "Serienummer",
+          "description": "Het serienummer van het object."
         },
         "installation_date": {
-          "name": "Installatiedatum"
+          "name": "Installatiedatum",
+          "description": "Wanneer dit object is geïnstalleerd of gekocht."
         },
         "warranty_expiry": {
           "name": "Garantie verloopt",
@@ -1678,7 +1682,8 @@
           "description": "Link naar een handleiding of leverancierspagina (alleen http/https)."
         },
         "notes": {
-          "name": "Notities"
+          "name": "Notities",
+          "description": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Dagen vóór de vervaldatum waarop de taak in het binnenkort-venster komt."
         },
         "enabled": {
-          "name": "Ingeschakeld"
+          "name": "Ingeschakeld",
+          "description": "Wanneer uitgeschakeld, worden planning en triggers gepauzeerd. De taak wordt niet verwijderd."
         },
         "notes": {
-          "name": "Notities"
+          "name": "Notities",
+          "description": "Aanvullende notities of instructies voor deze taak."
         }
       }
     },

@@ -1658,16 +1658,20 @@
           "description": "Oblast, do které se zařízení přiřadí."
         },
         "manufacturer": {
-          "name": "Výrobce"
+          "name": "Výrobce",
+          "description": "Výrobce objektu."
         },
         "model": {
-          "name": "Model"
+          "name": "Model",
+          "description": "Název nebo číslo modelu."
         },
         "serial_number": {
-          "name": "Sériové číslo"
+          "name": "Sériové číslo",
+          "description": "Sériové číslo objektu."
         },
         "installation_date": {
-          "name": "Datum instalace"
+          "name": "Datum instalace",
+          "description": "Kdy byl objekt instalován nebo zakoupen."
         },
         "warranty_expiry": {
           "name": "Konec záruky",
@@ -1678,7 +1682,8 @@
           "description": "Odkaz na návod nebo stránku výrobce (pouze http/https)."
         },
         "notes": {
-          "name": "Poznámky"
+          "name": "Poznámky",
+          "description": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Počet dní před termínem pro vstup do okna „brzy k termínu“."
         },
         "enabled": {
-          "name": "Povoleno"
+          "name": "Povoleno",
+          "description": "Po vypnutí jsou plánování a spouště pozastaveny. Úkol není odstraněn."
         },
         "notes": {
-          "name": "Poznámky"
+          "name": "Poznámky",
+          "description": "Další poznámky nebo pokyny pro tento úkol."
         }
       }
     },

@@ -1658,16 +1658,20 @@
           "description": "Bereich, dem das Gerät zugeordnet wird."
         },
         "manufacturer": {
-          "name": "Hersteller"
+          "name": "Hersteller",
+          "description": "Der Hersteller des Objekts."
         },
         "model": {
-          "name": "Modell"
+          "name": "Modell",
+          "description": "Die Modellbezeichnung oder -nummer."
         },
         "serial_number": {
-          "name": "Seriennummer"
+          "name": "Seriennummer",
+          "description": "Die Seriennummer des Objekts."
         },
         "installation_date": {
-          "name": "Installationsdatum"
+          "name": "Installationsdatum",
+          "description": "Wann dieses Objekt installiert oder gekauft wurde."
         },
         "warranty_expiry": {
           "name": "Garantieablauf",
@@ -1678,7 +1682,8 @@
           "description": "Link zu einer Anleitung oder Herstellerseite (nur http/https)."
         },
         "notes": {
-          "name": "Notizen"
+          "name": "Notizen",
+          "description": "Freie Notizen zum Objekt — Teilenummern, Verfahren, Einstellungs-Erinnerungen, etc."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Tage vor Fälligkeit, ab denen die Aufgabe ins Bald-fällig-Fenster eintritt."
         },
         "enabled": {
-          "name": "Aktiviert"
+          "name": "Aktiviert",
+          "description": "Wenn deaktiviert, werden Planung und Auslöser pausiert. Die Aufgabe wird nicht gelöscht."
         },
         "notes": {
-          "name": "Notizen"
+          "name": "Notizen",
+          "description": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe."
         }
       }
     },

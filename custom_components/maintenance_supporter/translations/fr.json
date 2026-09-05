@@ -1658,16 +1658,20 @@
           "description": "Zone à laquelle affecter l'appareil."
         },
         "manufacturer": {
-          "name": "Fabricant"
+          "name": "Fabricant",
+          "description": "Le fabricant de l'objet."
         },
         "model": {
-          "name": "Modèle"
+          "name": "Modèle",
+          "description": "Le nom ou numéro de modèle."
         },
         "serial_number": {
-          "name": "Numéro de série"
+          "name": "Numéro de série",
+          "description": "Le numéro de série de l'objet."
         },
         "installation_date": {
-          "name": "Date d'installation"
+          "name": "Date d'installation",
+          "description": "Date d'installation ou d'achat de cet objet."
         },
         "warranty_expiry": {
           "name": "Fin de garantie",
@@ -1678,7 +1682,8 @@
           "description": "Lien vers un manuel ou une page du fabricant (http/https uniquement)."
         },
         "notes": {
-          "name": "Notes"
+          "name": "Notes",
+          "description": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc."
         }
       }
     },
@@ -1723,10 +1728,12 @@
           "description": "Jours avant l'échéance pour entrer dans la fenêtre « bientôt dû »."
         },
         "enabled": {
-          "name": "Activé"
+          "name": "Activé",
+          "description": "Lorsque désactivé, la planification et les déclencheurs sont suspendus. La tâche n'est pas supprimée."
         },
         "notes": {
-          "name": "Notes"
+          "name": "Notes",
+          "description": "Notes supplémentaires ou instructions pour cette tâche."
         }
       }
     },

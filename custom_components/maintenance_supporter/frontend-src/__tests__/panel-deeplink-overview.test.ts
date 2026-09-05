@@ -46,6 +46,23 @@ async function mount(query: string) {
   return { el: el as unknown as PanelState, sent };
 }
 
+/** What HA's navigate() does for a dashboard button / notification tap
+ *  while the panel is already open: pushState + `location-changed`. */
+function navigate(url: string) {
+  history.pushState(null, "", url);
+  window.dispatchEvent(new CustomEvent("location-changed"));
+}
+
+/** Browser Back, resolved once the popstate has fired. Only ever called
+ *  after a navigate() in the same test, so the previous entry is this
+ *  document's own — never the runner's page. */
+function back(): Promise<void> {
+  return new Promise((resolve) => {
+    window.addEventListener("popstate", () => resolve(), { once: true });
+    history.back();
+  });
+}
+
 async function settle(el: PanelState) {
   await new Promise((r) => setTimeout(r, 20));
   await el.updateComplete;
@@ -174,12 +191,8 @@ describe("overview deep links (#160)", () => {
     // the panel config); here that is the test page's path.
     el.panel = { url_path: PAGE_PATH.replace(/^\//, "") };
     await el.updateComplete;
-    // What HA's navigate() does for a dashboard button whose navigation_path
-    // is "/maintenance-supporter?tab=today" while the panel is already open.
-    const navigate = (url: string) => {
-      history.pushState(null, "", url);
-      window.dispatchEvent(new CustomEvent("location-changed"));
-    };
+    // A dashboard button whose navigation_path is
+    // "/maintenance-supporter?tab=today" while the panel is already open.
     navigate(`${window.location.pathname}?tab=today`);
     await settle(el);
     expect(el._overviewTab).to.equal("today");
@@ -198,6 +211,47 @@ describe("overview deep links (#160)", () => {
     expect(el._overviewTab).to.equal("dashboard");
     expect(el._filterStatus).to.equal("overdue");
     expect(history.length, "only HA's own entry").to.equal(entriesBefore + 1);
+  });
+
+  // Bug review 2026-09-04 follow-up: the ?entry_id&task_id branch had the
+  // same two-press Back as the overview branch — _showTask pushed its own
+  // entry on top of the one HA's navigate() had just pushed (state null,
+  // which _onPopState ignores). The link now takes HA's entry over.
+  it("an in-app task link takes over HA's entry: one Back returns to the list", async () => {
+    const { el } = await mount("");
+    el.panel = { url_path: PAGE_PATH.replace(/^\//, "") };
+    await el.updateComplete;
+    const entriesBefore = history.length;
+    navigate(`${window.location.pathname}?entry_id=e1&task_id=t1`);
+    await settle(el);
+    expect(el._view).to.equal("task");
+    expect(window.location.search).to.equal("");
+    expect(history.length, "only HA's own entry").to.equal(entriesBefore + 1);
+    const state = history.state as { msp_view?: string; msp_task?: string } | null;
+    expect(state?.msp_view, "HA's entry carries the task page").to.equal("task");
+    expect(state?.msp_task).to.equal("t1");
+    await back();
+    await settle(el);
+    expect(el._view, "one Back press").to.equal("overview");
+  });
+
+  it("an in-app tab link stamps HA's entry so Back from a task opened later restores the list", async () => {
+    const { el } = await mount("");
+    el.panel = { url_path: PAGE_PATH.replace(/^\//, "") };
+    await el.updateComplete;
+    navigate(`${window.location.pathname}?tab=today`);
+    await settle(el);
+    expect(el._overviewTab).to.equal("today");
+    expect((history.state as { msp_view?: string } | null)?.msp_view, "HA's entry describes the overview").to.equal("overview");
+    // A task opened the normal way pushes on top of HA's entry…
+    (el as unknown as { _showTask(entryId: string, taskId: string): void })._showTask("e1", "t1");
+    await settle(el);
+    expect(el._view).to.equal("task");
+    // …and Back lands on that entry, which must restore the overview instead
+    // of leaving the task page up (a state-less entry did nothing).
+    await back();
+    await settle(el);
+    expect(el._view).to.equal("overview");
   });
 
   it("a navigation to another panel is not ours (params untouched)", async () => {
