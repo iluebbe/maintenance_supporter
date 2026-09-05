@@ -1625,15 +1625,24 @@ export const sharedStyles = css`
     .sparkline-container { max-width: 100%; overflow: hidden; }
     .sparkline-svg { height: 100px; }
 
-    .stats-bar { gap: 8px; padding: 12px; }
+    /* #150 — phones get a FIXED 10-track grid instead of auto-fit: the five
+       KPI tiles span 2 tracks each (= one full row on any width ≥ 320 px),
+       the two budget tiles span 5 each (= a full second row). auto-fit with
+       a px floor rewrapped to 3-4 columns on 360-412 px phones and left one
+       or two tiles orphaned on their own row. */
+    .stats-bar { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; padding: 12px; }
     /* min-width: 0 (NOT a fixed floor) — a fixed min-width re-enables the
        grid's auto minimum, so the 5 KPI tracks couldn't shrink below their
        label text and the last KPI clipped off-screen on phones (the header
        only *looked* cut — .content scrolls sideways, but nothing hints so).
        With 0 the tracks compress and the labels wrap to a second line. */
-    .stat-item { min-width: 0; }
-    .stat-item.clickable { padding: 4px 4px; }
-    .stat-item .stat-label { font-size: 11px; white-space: normal; text-align: center; line-height: 1.2; }
+    .stat-item { min-width: 0; grid-column: span 2; }
+    .stat-item.budget-tile { grid-column: span 5; }
+    .stat-item.clickable { padding: 4px 2px; }
+    /* ~60 px tracks: multi-word labels wrap at the space, single overlong
+       words (nl "Achterstallig") hyphenate where the browser can and hard-
+       break as the last resort — never clip. */
+    .stat-item .stat-label { font-size: 11px; white-space: normal; text-align: center; line-height: 1.2; hyphens: auto; overflow-wrap: anywhere; }
     .stat-value { font-size: 20px; }
   }
 `;

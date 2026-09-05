@@ -1167,15 +1167,24 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .sparkline-container { max-width: 100%; overflow: hidden; }
     .sparkline-svg { height: 100px; }
 
-    .stats-bar { gap: 8px; padding: 12px; }
+    /* #150 — phones get a FIXED 10-track grid instead of auto-fit: the five
+       KPI tiles span 2 tracks each (= one full row on any width ≥ 320 px),
+       the two budget tiles span 5 each (= a full second row). auto-fit with
+       a px floor rewrapped to 3-4 columns on 360-412 px phones and left one
+       or two tiles orphaned on their own row. */
+    .stats-bar { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; padding: 12px; }
     /* min-width: 0 (NOT a fixed floor) — a fixed min-width re-enables the
        grid's auto minimum, so the 5 KPI tracks couldn't shrink below their
        label text and the last KPI clipped off-screen on phones (the header
        only *looked* cut — .content scrolls sideways, but nothing hints so).
        With 0 the tracks compress and the labels wrap to a second line. */
-    .stat-item { min-width: 0; }
-    .stat-item.clickable { padding: 4px 4px; }
-    .stat-item .stat-label { font-size: 11px; white-space: normal; text-align: center; line-height: 1.2; }
+    .stat-item { min-width: 0; grid-column: span 2; }
+    .stat-item.budget-tile { grid-column: span 5; }
+    .stat-item.clickable { padding: 4px 2px; }
+    /* ~60 px tracks: multi-word labels wrap at the space, single overlong
+       words (nl "Achterstallig") hyphenate where the browser can and hard-
+       break as the last resort — never clip. */
+    .stat-item .stat-label { font-size: 11px; white-space: normal; text-align: center; line-height: 1.2; hyphens: auto; overflow-wrap: anywhere; }
     .stat-value { font-size: 20px; }
   }
 `});function Zr(s,r){let e=Jr[s];if(!e)return s;let t=a(e,r);return t&&t!==e?t:s}function Xr(s){let e=s.match(/data\['([^']+)'\]/)?.[1],t;return(t=s.match(/length of value must be at most (\d+)/))?{field:e,rule:"too_long",param:t[1]}:(t=s.match(/length of value must be at least (\d+)/))?{field:e,rule:"too_short",param:t[1]}:(t=s.match(/value must be at most (\S+)/))?{field:e,rule:"value_too_high",param:t[1]}:(t=s.match(/value must be at least (\S+)/))?{field:e,rule:"value_too_low",param:t[1]}:/required key not provided/.test(s)?{field:e,rule:"required"}:(t=s.match(/expected (\w+)/))?{field:e,rule:"wrong_type",param:t[1]}:/value must be one of/.test(s)?{field:e,rule:"invalid_choice"}:/not a valid value/.test(s)?{field:e,rule:"invalid_value"}:{field:e,rule:"unknown"}}function D(s,r,e){if(e=e??a("action_error",r),typeof s=="string")return s;if(typeof s!="object"||s===null)return e;let t=s,i=t.message||t.error?.message||"";if(!i)return e;let n=Xr(i),l=n.field?Zr(n.field,r):"",p=d=>a(d,r).replace("{field}",l).replace("{n}",n.param??"");switch(n.rule){case"too_long":return p("err_too_long");case"too_short":return p("err_too_short");case"value_too_high":return p("err_value_too_high");case"value_too_low":return p("err_value_too_low");case"required":return p("err_required");case"wrong_type":return p("err_wrong_type").replace("{type}",n.param??"");case"invalid_choice":return p("err_invalid_choice");case"invalid_value":return p("err_invalid_value");default:return i||e}}var Jr,_e=w(()=>{"use strict";q();Jr={entry_id:"object",name:"name",task_type:"maintenance_type",schedule_type:"schedule_type",interval_days:"interval_days",interval_anchor:"interval_anchor",warning_days:"warning_days",last_performed:"last_performed_optional",notes:"notes_optional",documentation_url:"documentation_url_optional",custom_icon:"custom_icon_optional",nfc_tag_id:"nfc_tag_id_optional",responsible_user_id:"responsible_user",entity_slug:"entity_slug",entity_id:"entity_id",area_id:"area_id_optional",manufacturer:"manufacturer_optional",model:"model_optional",serial_number:"serial_number_optional",installation_date:"installation_date_optional",warranty_expiry:"warranty_expiry_optional",checklist:"checklist_steps_optional",reason:"reason",feedback:"feedback",cost:"cost",duration:"duration",description:"description_optional",group_name:"name",group_description:"description_optional",environmental_entity:"environmental_entity_optional",environmental_attribute:"environmental_attribute_optional",trigger_above:"trigger_above",trigger_below:"trigger_below",trigger_equals:"trigger_equals",trigger_not_equals:"trigger_not_equals",trigger_for_minutes:"trigger_for_minutes"}});var N,wt=w(()=>{"use strict";L();W();N=class extends T{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1;this.multiline=!1;this.rows=3}_onInput(e){let t=e.target.value;this.value=t,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:t}}))}render(){return o`
