@@ -33,7 +33,7 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
 )
-from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, read_batteries
+from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, note_sibling_entity, read_batteries
 from .trigger_fallback import threshold_limits_overlap
 
 _LOGGER = logging.getLogger(__name__)
@@ -325,7 +325,12 @@ def replaced_button_for(battery_plus_entity_id: str) -> str:
             .replace("_battery_plus_low", "_battery_replaced")
             .replace("_battery_plus", "_battery_replaced")
         )
-    return battery_plus_entity_id.replace("sensor.", "button.", 1).replace("_battery_plus", "_battery_replaced")
+    # D#162 sensorless notes are read from sensor.<x>_battery_type — same button.
+    return (
+        battery_plus_entity_id.replace("sensor.", "button.", 1)
+        .replace("_battery_plus", "_battery_replaced")
+        .replace("_battery_type", "_battery_replaced")
+    )
 
 
 async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None = None) -> dict[str, Any]:
@@ -348,6 +353,10 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
         if bat is None:
             continue
         button = replaced_button_for(eid)
+        if hass.states.get(button) is None:
+            # Renamed entity ids break the naming contract — the registry
+            # still knows the note's button (D#162 rows depend on it).
+            button = note_sibling_entity(hass, eid, domain="button", uid_suffix="_battery_replaced_button") or button
         if hass.states.get(button) is not None:
             await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
             pressed += 1
@@ -448,6 +457,17 @@ def set_track_self_charging(hass: HomeAssistant, enabled: bool) -> bool:
     from ..const import BATTERY_FLEET_TRACK_SELF_CHARGING
 
     return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_TRACK_SELF_CHARGING, bool(enabled)))
+
+
+def set_due_without_sensor(hass: HomeAssistant, enabled: bool) -> bool:
+    """Persist the fleet-wide due-without-sensor option (D#162).
+
+    On by default; stored as False to switch off. Returns False when no
+    fleet exists yet.
+    """
+    from ..const import BATTERY_FLEET_DUE_WITHOUT_SENSOR
+
+    return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_DUE_WITHOUT_SENSOR, bool(enabled)))
 
 
 def find_fleet_task(entry: ConfigEntry) -> tuple[str, dict[str, Any]] | None:

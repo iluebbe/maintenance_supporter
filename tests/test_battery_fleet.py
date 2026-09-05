@@ -949,3 +949,245 @@ def test_forecast_overdue_stays_soon_never_low():
     # A regular soon/ok row does not carry the flag as True.
     all_rows = {r["device_name"]: r for r in ov.all}
     assert all_rows["Fresh"]["forecast_overdue"] is False
+
+
+# ─── sensorless notes (discussion #162) ───────────────────────────────────
+
+
+def _set_type_note(hass, slug, *, btype="CR2032", qty=1, last=None, friendly=None):
+    """A Battery Notes note on a device WITHOUT a battery level: only the
+    diagnostic type sensor (no device class) and the last-replaced timestamp
+    sensor exist — no ``battery_plus`` at all."""
+    hass.states.async_set(
+        f"sensor.{slug}_battery_type",
+        f"{btype}\u00d7{qty}",
+        {
+            "battery_type": btype,
+            "battery_quantity": qty,
+            "note": "",
+            "friendly_name": friendly or f"{slug.replace('_', ' ').title()} Battery type",
+        },
+    )
+    if last:
+        hass.states.async_set(
+            f"sensor.{slug}_battery_last_replaced",
+            last,
+            {"device_class": "timestamp", "friendly_name": f"{slug.title()} Battery last replaced"},
+        )
+
+
+def _fleet_object(hass, **flags):
+    from custom_components.maintenance_supporter.const import CONF_OBJECT, DOMAIN
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    fleet = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_OBJECT: {"id": "obj1", "name": "Fleet", "battery_fleet": True, **flags}},
+    )
+    fleet.add_to_hass(hass)
+    return fleet
+
+
+async def test_sensorless_note_becomes_a_forecast_row(hass):
+    """D#162: a device with no battery level (maisun's Xiaomi/Aqara sensors)
+    gets no battery_plus from Battery Notes — only the type sensor and the
+    last-replaced timestamp. The type sensor is read as a forecast-only row:
+    type/quantity, last replaced, never offline, no level, flagged no_sensor."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet import has_batteries
+
+    today = dt_util.now().date()
+    fresh = (today - timedelta(days=30)).isoformat() + "T10:00:00+00:00"
+    _set_type_note(hass, "hall_temp", last=fresh)
+
+    bats = read_batteries(hass)
+    assert [b.entity_id for b in bats] == ["sensor.hall_temp_battery_type"]
+    bat = bats[0]
+    assert bat.no_sensor is True and bat.available is True and bat.level is None
+    assert bat.low is False, "a fresh forecast is not due"
+    assert bat.source == "battery_notes"
+    assert (bat.device_name, bat.battery_type, bat.quantity) == ("Hall Temp", "CR2032", 1)
+    assert bat.last_replaced == today - timedelta(days=30)
+    # The fleet's gates see it (an install of ONLY such notes can be set up).
+    assert has_battery_notes(hass) is True and has_batteries(hass) is True
+    assert dict(discover_battery_types(hass)) == {"CR2032": 1}
+    # The overview row carries the flag + the anchor date for the roster.
+    ov = build_overview(bats, today=today)
+    row = ov.all[0]
+    assert row["status"] == "ok" and row["no_sensor"] is True and row["available"] is True
+    assert row["last_replaced"] == (today - timedelta(days=30)).isoformat()
+    assert row["predicted_source"] == "typical" and row["days_until"] is not None
+
+
+async def test_sensorless_note_never_doubles_a_real_reading(hass):
+    """The type sensor exists for EVERY note — a device that also has a
+    battery_plus (percentage or low-only binary) or a native row must not get
+    a second, forecast-only row: naming contract AND registry device."""
+    from homeassistant.helpers import entity_registry as er
+
+    # (a) naming: percentage note + its type sensor → the plus row only.
+    _set_note(hass, "hall_motion", device_name="Hall Motion")
+    _set_type_note(hass, "hall_motion")
+    # (b) naming: low-only binary note + its type sensor → the binary row only.
+    _set_note_binary(hass, "back_door_lock", "off")
+    _set_type_note(hass, "back_door_lock", btype="Lithium 3-volt CR2")
+    # (c) registry: renamed type sensor on a device that has a native battery.
+    device = _device_with_battery(hass, slug="remote")
+    er.async_get(hass).async_get_or_create(
+        "sensor", "battery_notes", "remote_uid_battery_type", suggested_object_id="remote_cell", device_id=device.id
+    )
+    hass.states.async_set("sensor.remote_cell", "AAA\u00d72", {"battery_type": "AAA", "battery_quantity": 2})
+
+    bats = read_batteries(hass)
+    assert sorted(b.entity_id for b in bats) == [
+        "binary_sensor.back_door_lock_battery_plus_low",
+        "sensor.hall_motion_battery_plus",
+        "sensor.remote_battery",
+    ]
+    assert not any(b.no_sensor for b in bats)
+
+
+async def test_sensorless_note_passed_forecast_is_due_by_default(hass):
+    """Nothing can ever report such a battery low — the forecast is the whole
+    signal. Default: a PASSED predicted date makes the row low (→ needs_now →
+    the fleet task fires), keeping the negative countdown + overdue flag so
+    the roster can show when the prediction ran out. B1 stays for batteries
+    WITH a sensor."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet import fleet_due_without_sensor
+
+    assert fleet_due_without_sensor(hass) is True, "no fleet object yet = default on"
+    _set_type_note(hass, "hall_temp", last="2020-01-01T00:00:00+00:00")
+    # Control: a plus WITH a level and the same ancient date stays B1.
+    _set_note(hass, "porch_motion", battery_low=False, _state="77", battery_last_replaced="2020-01-01T00:00:00+00:00")
+
+    bats = {b.entity_id: b for b in read_batteries(hass)}
+    assert bats["sensor.hall_temp_battery_type"].low is True
+    assert bats["sensor.porch_motion_battery_plus"].low is False
+
+    ov = build_overview(list(bats.values()), today=dt_util.now().date())
+    assert ov.low_count == 1 and dict(ov.needs_now) == {"CR2032": 1}
+    low = ov.low[0]
+    assert low["entity_id"] == "sensor.hall_temp_battery_type"
+    assert low["days_until"] is not None and low["days_until"] < 0
+    assert low["forecast_overdue"] is True and low["no_sensor"] is True
+    rows = {r["entity_id"]: r for r in ov.all}
+    assert rows["sensor.hall_temp_battery_type"]["status"] == "low"
+    assert rows["sensor.porch_motion_battery_plus"]["status"] == "soon"
+    assert rows["sensor.porch_motion_battery_plus"]["days_until"] == 0
+
+
+async def test_sensorless_note_due_option_off_keeps_the_forecast_only(hass):
+    """Switched off (stored False): a sensorless note only ever forecasts —
+    B1 behaviour, soon with a clamped countdown, never low."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet import fleet_due_without_sensor
+
+    _fleet_object(hass, battery_fleet_due_without_sensor=False)
+    assert fleet_due_without_sensor(hass) is False
+    _set_type_note(hass, "hall_temp", last="2020-01-01T00:00:00+00:00")
+
+    bats = read_batteries(hass)
+    assert bats[0].low is False
+    ov = build_overview(bats, today=dt_util.now().date())
+    assert ov.low_count == 0 and ov.needs_now == {}
+    assert ov.soon[0]["days_until"] == 0 and ov.soon[0]["forecast_overdue"] is True
+    assert dict(ov.needs_soon) == {"CR2032": 1}
+
+
+async def test_sensorless_note_without_a_date_or_rechargeable_is_never_due(hass):
+    # No last-replaced sensor (disabled in Battery Notes): no forecast → ok.
+    _set_type_note(hass, "no_date")
+    # A rechargeable pack: the lifetime table is no prior → never due.
+    _set_type_note(hass, "vac", btype="Rechargeable", last="2020-01-01T00:00:00+00:00")
+    # An unavailable timestamp sensor is the same as none.
+    _set_type_note(hass, "gone", last="unavailable")
+
+    bats = {b.entity_id: b for b in read_batteries(hass)}
+    assert len(bats) == 3
+    assert all(b.low is False for b in bats.values())
+    assert bats["sensor.no_date_battery_type"].last_replaced is None
+    assert bats["sensor.gone_battery_type"].last_replaced is None
+    ov = build_overview(list(bats.values()), today=dt_util.now().date())
+    assert {r["entity_id"]: r["status"] for r in ov.all} == {
+        "sensor.no_date_battery_type": "ok",
+        "sensor.vac_battery_type": "ok",
+        "sensor.gone_battery_type": "ok",
+    }
+
+
+async def test_sensorless_note_respects_exclusion_and_the_self_charging_skip(hass):
+    from homeassistant.helpers import entity_registry as er
+
+    _fleet_object(hass, battery_fleet_excluded=["sensor.hall_temp_battery_type"])
+    _set_type_note(hass, "hall_temp", last="2020-01-01T00:00:00+00:00")
+    # A mower noted by Battery Notes' auto-discovery: its type sensor sits on a
+    # self-charging device (lawn_mower entity) → skipped like every other pass.
+    device = _device_with_battery(hass, slug="mower", extra_domain="lawn_mower")
+    hass.states.async_remove("sensor.mower_battery")  # the device has NO level
+    er.async_get(hass).async_get_or_create(
+        "sensor", "battery_notes", "mower_uid_battery_type", suggested_object_id="mower_battery_type", device_id=device.id
+    )
+    _set_type_note(hass, "mower", btype="Rechargeable")
+    assert read_batteries(hass) == []
+
+
+async def test_sensorless_note_siblings_resolve_through_the_registry(hass):
+    """Renamed entity ids break the naming contract — the registry's shared
+    unique_id base still finds the last-replaced sensor and the replaced
+    button, and the device name comes from the registry device."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.maintenance_supporter.helpers.battery_fleet import note_sibling_entity
+
+    entry = MockConfigEntry(domain="battery_notes", data={})
+    entry.add_to_hass(hass)
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_or_create(config_entry_id=entry.entry_id, identifiers={("test", "aq1")}, name="Aqara Temp")
+    device = dev_reg.async_update_device(device.id, name_by_user="Kitchen Temp")
+    ent_reg = er.async_get(hass)
+    for domain, key, oid in (
+        ("sensor", "_battery_type", "kitchen_cell_type"),
+        ("sensor", "_battery_last_replaced", "kitchen_cell_date"),
+        ("button", "_battery_replaced_button", "kitchen_cell_swap"),
+    ):
+        ent_reg.async_get_or_create(domain, "battery_notes", f"sub-uid{key}", suggested_object_id=oid, device_id=device.id)
+    hass.states.async_set("sensor.kitchen_cell_type", "CR2032\u00d71", {"battery_type": "CR2032", "battery_quantity": 1})
+    hass.states.async_set("sensor.kitchen_cell_date", "2026-06-01T00:00:00+00:00", {"device_class": "timestamp"})
+    hass.states.async_set("button.kitchen_cell_swap", "unknown")
+
+    bats = read_batteries(hass)
+    assert len(bats) == 1
+    assert bats[0].device_name == "Kitchen Temp" and bats[0].last_replaced == date(2026, 6, 1)
+    assert (
+        note_sibling_entity(hass, "sensor.kitchen_cell_type", domain="button", uid_suffix="_battery_replaced_button")
+        == "button.kitchen_cell_swap"
+    )
+    # State-only entities have no registry entry → None (callers fall back).
+    assert note_sibling_entity(hass, "sensor.nope_battery_type", domain="button", uid_suffix="_battery_replaced_button") is None
+
+
+async def test_level_history_skips_sensorless_notes(hass):
+    from unittest.mock import AsyncMock, patch
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+
+    bats = [
+        _bat("Dying", "CR2032", low=True, level=8.0),
+        Battery(
+            entity_id="sensor.hall_temp_battery_type",
+            device_name="Hall Temp",
+            battery_type="CR2032",
+            quantity=1,
+            low=True,  # due by forecast — still nothing to draw
+            level=None,
+            last_replaced=date(2020, 1, 1),
+            no_sensor=True,
+        ),
+    ]
+    fake = AsyncMock(return_value=[(1000.0 + i, 50.0) for i in range(10)])
+    with patch(
+        "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor._async_fetch_statistics_points",
+        fake,
+    ):
+        out = await bf.async_level_history(hass, bats)
+    assert set(out) == {"sensor.Dying_battery_plus"}

@@ -36,7 +36,7 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
   `views/{save,delete}`, `problem_sensors/adopt`,
-  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging}`.
+  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging,set_due_without_sensor}`.
 - `@require_admin` (admin only): `global/update`, `global/test_notification`,
   `notify/user_targets`,
   bulk import **and export** (`export`, `csv/export`, `json/import`,
@@ -700,10 +700,19 @@ trend machinery — use it whenever those two booleans are all you need.
 `{}` → `{available` (any batteries at all)`, has_battery_notes, configured`
 (the fleet object exists)`, task_ok` (its task + trigger are intact)`, entry_id,
 total, low, soon, all, needs_now:{type:count}, needs_soon:{…}, types,
-excluded:[{entity_id,device_name}]}`. `all` is the full roster (#113): every
+excluded:[{entity_id,device_name}], track_self_charging, due_without_sensor}`.
+`all` is the full roster (#113): every
 tracked battery as `{entity_id, device_name, battery_type, quantity, level,
 days_until, available, predicted_source, prediction_confidence, rechargeable,
-low_threshold, status}` with status `low|soon|ok`. `low_threshold` (2.51+) is
+low_threshold, forecast_overdue, no_sensor, last_replaced, status}` with status
+`low|soon|ok`. `no_sensor` (2.75+, D#162) marks a Battery Notes note whose
+device has NO battery level at all — the row is read from the note's
+`…_battery_type` sensor (`entity_id` is that sensor), `level` is null, it is
+never offline, and `last_replaced` (ISO date or null) is the forecast's
+anchor. With `due_without_sensor` on (default) such a row turns `low` once
+its forecast has passed (negative `days_until`, `forecast_overdue` true) —
+the only way a sensorless battery can ever reach the fleet task; batteries
+WITH a sensor never escalate on a forecast alone. `low_threshold` (2.51+) is
 the battery's own low level — Battery Notes' configured threshold or the
 fleet-wide 20 % floor, whichever is higher. `predicted_source` (2.50+) is `"trend"`
 when `days_until` comes from the discharge-trend regression (then
@@ -734,7 +743,10 @@ one-click repair when `task_ok` is false. No batteries found → `not_available`
 ### `battery_fleet/mark_replaced` — `@require_write`
 `{entity_ids?}` → marks those batteries replaced (presses their Battery Notes
 button and consumes the matching type-parts). Omit `entity_ids` to mark
-everything currently low.
+everything currently low. Accepts the roster's `entity_id`s — `battery_plus`
+sensors, low binaries or (2.75+) a sensorless note's `…_battery_type`
+sensor; the button is found by Battery Notes' naming contract or, for
+renamed entities, through the registry.
 
 ### `battery_fleet/set_excluded` — `@require_write`
 `{entity_id (req), excluded (req, bool)}` → `{"success": true}`. Keeps a
@@ -763,6 +775,17 @@ roster as rechargeables: typed "Rechargeable", labelled "— recharge", never
 counted into the shopping needs. Default off (#107 behaviour). Exclusions
 still win. The current state is returned as `track_self_charging` in
 `battery_fleet/overview`. Fleet not set up → `not_configured`.
+
+### `battery_fleet/set_due_without_sensor` — `@require_write` (D#162, 2.75+)
+`{enabled (req, bool)}` → `{"success": true}`. Fleet-wide option, default
+ON: a Battery Notes note without a level sensor (only type, quantity and
+last-replaced exist — Xiaomi/Aqara-style sensors) counts as due once its
+predicted replacement date has passed, so the Low Batteries task fires for
+it. Nothing else ever could: there is no reading to say "still fine". Off →
+such notes only forecast (soon, never low). Batteries WITH a sensor are
+unaffected either way. The current state is returned as
+`due_without_sensor` in `battery_fleet/overview`. Fleet not set up →
+`not_configured`.
 
 ## Saved filter views — shared named panel-list filter combinations
 

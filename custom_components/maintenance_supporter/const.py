@@ -373,6 +373,12 @@ BATTERY_FLEET_INCLUDED = "battery_fleet_included"
 # vacuums, smart rings — the #107 filter) in the roster as rechargeables, so
 # "needs a recharge" can notify like "needs a swap". Default off: #107 stays.
 BATTERY_FLEET_TRACK_SELF_CHARGING = "battery_fleet_track_self_charging"
+# D#162: a Battery Notes note WITHOUT a level sensor (only the type sensor,
+# the last-replaced timestamp and the "replaced" button exist) has no
+# reading that could ever fire the fleet task — the forecast is all there
+# is. Default ON: a passed predicted date on such a note counts as due
+# (low → task trigger). Stored as False to switch off; absent means on.
+BATTERY_FLEET_DUE_WITHOUT_SENSOR = "battery_fleet_due_without_sensor"
 # Bug review 2026-09-04: ``batt_<type>`` part ids the user DELETED. The
 # start-up reconcile re-minted them on every boot as long as the type was
 # still in the fleet, so a deleted type-part never stayed deleted. Written

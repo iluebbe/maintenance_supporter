@@ -481,7 +481,7 @@ _CSV_OBJECT_EXCLUDED = {
     # Battery-fleet identity — emitted only for the fleet object; the JSON
     # backup round-trips it (test_json_roundtrip_keeps_battery_fleet_identity).
     "battery_fleet", "battery_fleet_excluded", "battery_fleet_included",
-    "battery_fleet_track_self_charging", "battery_fleet_removed_parts",
+    "battery_fleet_track_self_charging", "battery_fleet_due_without_sensor", "battery_fleet_removed_parts",
 }
 
 
@@ -609,6 +609,7 @@ async def _make_fleet_entry(hass: HomeAssistant) -> MockConfigEntry:
             "battery_fleet_excluded": ["sensor.lock_battery"],
             "battery_fleet_included": ["sensor.odd_cell"],
             "battery_fleet_track_self_charging": True,
+            "battery_fleet_due_without_sensor": False,  # D#162: only the opt-OUT is stored
             "battery_fleet_removed_parts": ["batt_aaa"],
         },
         "parts": {
@@ -651,6 +652,7 @@ async def test_json_roundtrip_keeps_battery_fleet_identity(
     assert exported_obj.get("battery_fleet_excluded") == ["sensor.lock_battery"]
     assert exported_obj.get("battery_fleet_included") == ["sensor.odd_cell"]
     assert exported_obj.get("battery_fleet_track_self_charging") is True
+    assert exported_obj.get("battery_fleet_due_without_sensor") is False
     assert exported_obj.get("battery_fleet_removed_parts") == ["batt_aaa"]
     assert payload["objects"][0]["tasks"][0].get("battery_fleet_task") is True
 
@@ -670,6 +672,7 @@ async def test_json_roundtrip_keeps_battery_fleet_identity(
     assert obj.get("battery_fleet_excluded") == ["sensor.lock_battery"]
     assert obj.get("battery_fleet_included") == ["sensor.odd_cell"]
     assert obj.get("battery_fleet_track_self_charging") is True
+    assert obj.get("battery_fleet_due_without_sensor") is False
     # Bug review 2026-09-04: a deleted type-part stays deleted after a restore.
     assert obj.get("battery_fleet_removed_parts") == ["batt_aaa"]
     assert find_fleet_entry(hass) is not None and find_fleet_entry(hass).entry_id == dst.entry_id
@@ -700,6 +703,7 @@ async def test_json_import_never_creates_a_second_fleet(
     obj = dst.data["object"]
     assert "battery_fleet" not in obj and "battery_fleet_excluded" not in obj
     assert "battery_fleet_included" not in obj and "battery_fleet_track_self_charging" not in obj
+    assert "battery_fleet_due_without_sensor" not in obj
     assert find_fleet_entry(hass).entry_id == src.entry_id
     (new_pid,) = dst.data["parts"]
     assert new_pid != "batt_aa"
@@ -721,6 +725,7 @@ async def test_json_import_validates_fleet_lists(hass: HomeAssistant, global_ent
                     "battery_fleet_excluded": ["sensor.b", "not an entity", 42, "sensor.a", "sensor.b"],
                     "battery_fleet_included": "sensor.not_a_list",
                     "battery_fleet_track_self_charging": "yes",
+                    "battery_fleet_due_without_sensor": "no",  # only a literal False switches it off
                 },
                 "tasks": [],
             }
@@ -735,3 +740,4 @@ async def test_json_import_validates_fleet_lists(hass: HomeAssistant, global_ent
     assert obj.get("battery_fleet_excluded") == ["sensor.a", "sensor.b"]
     assert "battery_fleet_included" not in obj
     assert "battery_fleet_track_self_charging" not in obj
+    assert "battery_fleet_due_without_sensor" not in obj

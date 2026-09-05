@@ -851,7 +851,10 @@ class BatteryFleetLowSensor(SensorEntity):
                 sticky.pop(eid, None)  # gone from the fleet
                 continue
             level = current.get("level")
-            if level is not None and float(level) >= sticky[eid] + self._HYSTERESIS_PERCENT:
+            # A sensorless note (D#162) has no level to hover — it leaves
+            # `low` only when its forecast re-anchors (or the option is
+            # switched off), and that is the real all-clear.
+            if current.get("no_sensor") or (level is not None and float(level) >= sticky[eid] + self._HYSTERESIS_PERCENT):
                 sticky.pop(eid, None)
         return len(low_ids | set(sticky))
 

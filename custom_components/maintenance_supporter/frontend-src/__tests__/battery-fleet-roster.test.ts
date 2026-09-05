@@ -57,6 +57,14 @@ async function mount(ov: unknown = overview(), history: Record<string, unknown> 
         calls.push(msg);
         return { success: true };
       },
+      "maintenance_supporter/battery_fleet/set_due_without_sensor": (msg: Record<string, unknown>) => {
+        calls.push(msg);
+        return { success: true };
+      },
+      "maintenance_supporter/battery_fleet/mark_replaced": (msg: Record<string, unknown>) => {
+        calls.push(msg);
+        return { marked: 1, pressed: 1, consumed: {} };
+      },
     },
   });
   const el = await fixture<MaintenanceBatteryFleetSection>(
@@ -407,6 +415,94 @@ describe("battery fleet track-self-charging toggle (#135)", () => {
     toggle(el)!.click();
     await new Promise((r) => setTimeout(r, 0));
     const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/set_track_self_charging");
+    expect(call).to.exist;
+    expect(call!.enabled).to.equal(false);
+  });
+});
+
+
+describe("battery fleet sensorless notes (discussion #162)", () => {
+  // A Battery Notes note on a device that reports NO battery level: read
+  // from its type sensor, no level, never offline, forecast-only.
+  const NO_SENSOR_OK = {
+    entity_id: "sensor.hall_temp_battery_type", device_name: "Hall Temp",
+    battery_type: "CR2032", quantity: 1, level: null, days_until: 200,
+    predicted_source: "typical", no_sensor: true, last_replaced: "2026-08-01",
+  };
+  const NO_SENSOR_DUE = {
+    ...NO_SENSOR_OK, entity_id: "sensor.door_battery_type", device_name: "Door",
+    days_until: -40, forecast_overdue: true,
+  };
+  const ov = () => overview({
+    total: 3,
+    low: [LOW, NO_SENSOR_DUE],
+    all: [{ ...LOW, status: "low" }, { ...NO_SENSOR_DUE, status: "low" }, { ...NO_SENSOR_OK, status: "ok" }],
+    needs_now: { AA: 2, CR2032: 1 },
+    types: ["AA", "CR2032"],
+  });
+  const rowOf = (scope: Element, name: string) =>
+    [...scope.querySelectorAll(".bf-row")].find((r) => new RegExp(name).test(r.textContent || ""))!;
+
+  async function openRoster(el: MaintenanceBatteryFleetSection) {
+    const details = roster(el) as HTMLDetailsElement;
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+  }
+
+  it("flags such rows with a No-sensor chip instead of a level, in the low list and the roster", async () => {
+    const { el } = await mount(ov());
+    await openRoster(el);
+    const lowList = el.shadowRoot!.querySelectorAll(".bf-rows")[0];
+    const due = rowOf(lowList, "Door");
+    expect(due.querySelector(".bf-nosensor")!.textContent!.trim()).to.equal("No sensor");
+    expect(due.querySelector(".bf-level"), "no percentage to show").to.equal(null);
+    expect(due.querySelector(".bf-bar"), "no level bar").to.equal(null);
+    expect(rowOf(lowList, "Front Lock").querySelector(".bf-nosensor"), "a normal row has no chip").to.equal(null);
+
+    const r = roster(el)!;
+    expect(rowOf(r, "Hall Temp").querySelector(".bf-nosensor")).to.not.equal(null);
+    expect(rowOf(r, "Front Lock").querySelector(".bf-nosensor")).to.equal(null);
+  });
+
+  it("labels a due-by-forecast row Due (not Low) and keeps the passed date visible", async () => {
+    const { el } = await mount(ov());
+    await openRoster(el);
+    const r = roster(el)!;
+    expect(rowOf(r, "Door").querySelector(".bf-status")!.textContent!.trim()).to.equal("Due");
+    expect(rowOf(r, "Front Lock").querySelector(".bf-status")!.textContent!.trim()).to.equal("Low");
+    expect(rowOf(r, "Hall Temp").querySelector(".bf-status")!.textContent!.trim()).to.equal("Healthy");
+    const date = rowOf(r, "Door").querySelector(".bf-predicted")!;
+    expect(date.classList.contains("bf-overdue")).to.equal(true);
+  });
+
+  it("offers a Replaced action on every sensorless roster row that marks just that battery", async () => {
+    const { el, calls } = await mount(ov());
+    await openRoster(el);
+    const r = roster(el)!;
+    expect(rowOf(r, "Front Lock").querySelector("button.bf-mark:not(.bf-exclude)"), "sensor rows keep the jump-only slot").to.equal(null);
+    const btn = rowOf(r, "Hall Temp").querySelector<HTMLButtonElement>("button.bf-mark:not(.bf-exclude)")!;
+    expect(btn.getAttribute("title")).to.match(/replaced/i);
+    expect(btn.classList.contains("bf-replaced"), "pinned to the empty percentage column").to.equal(true);
+    btn.click();
+    await new Promise((r2) => setTimeout(r2, 0));
+    const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/mark_replaced");
+    expect(call).to.exist;
+    expect(call!.entity_ids).to.deep.equal(["sensor.hall_temp_battery_type"]);
+  });
+
+  it("renders the due-without-sensor toggle ON by default (absent field = on) and sends the opt-out", async () => {
+    const toggle = (e: MaintenanceBatteryFleetSection) =>
+      roster(e)!.querySelector<HTMLInputElement>(".bf-due-nosensor input");
+    const { el, calls } = await mount(ov());
+    expect(toggle(el)!.checked, "absent → on").to.equal(true);
+    const { el: off } = await mount(overview({ due_without_sensor: false }));
+    expect(toggle(off)!.checked).to.equal(false);
+
+    toggle(el)!.click();
+    await new Promise((r) => setTimeout(r, 0));
+    const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/set_due_without_sensor");
     expect(call).to.exist;
     expect(call!.enabled).to.equal(false);
   });

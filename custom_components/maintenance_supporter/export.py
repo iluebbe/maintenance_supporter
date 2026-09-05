@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
+    BATTERY_FLEET_DUE_WITHOUT_SENSOR,
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_INCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
@@ -220,6 +221,8 @@ def _build_export_object(
         export_obj[BATTERY_FLEET_EXCLUDED] = list(obj_data.get(BATTERY_FLEET_EXCLUDED) or [])
         export_obj[BATTERY_FLEET_INCLUDED] = list(obj_data.get(BATTERY_FLEET_INCLUDED) or [])
         export_obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = bool(obj_data.get(BATTERY_FLEET_TRACK_SELF_CHARGING))
+        # D#162: on unless explicitly switched off (absent = on).
+        export_obj[BATTERY_FLEET_DUE_WITHOUT_SENSOR] = obj_data.get(BATTERY_FLEET_DUE_WITHOUT_SENSOR) is not False
         export_obj[BATTERY_FLEET_REMOVED_PARTS] = list(obj_data.get(BATTERY_FLEET_REMOVED_PARTS) or [])
 
     return {

@@ -35,6 +35,12 @@ interface BatteryRow {
    *  healthy. Never escalates to low/task — the row just shows the
    *  discrepancy (usual cause: an unrecorded swap). */
   forecast_overdue?: boolean;
+  /** D#162: a Battery Notes note whose device has NO battery level at
+   *  all — read from its type sensor. No level bar, never offline; the
+   *  forecast is the whole signal and (option) a passed one is `low`. */
+  no_sensor?: boolean;
+  /** ISO date the forecast anchors on (Battery Notes' last replaced). */
+  last_replaced?: string | null;
 }
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
@@ -69,6 +75,9 @@ interface Overview {
   excluded?: { entity_id: string; device_name: string }[];
   // #135 follow-up: fleet-wide "track self-charging devices" opt-in.
   track_self_charging?: boolean;
+  // D#162: a passed forecast on a sensorless note counts as due (default
+  // on — an older backend omits the field, which renders as on too).
+  due_without_sensor?: boolean;
 }
 
 export class MaintenanceBatteryFleetSection extends LitElement {
@@ -213,13 +222,22 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   // #135 follow-up: fleet-wide opt-in that keeps self-charging devices
   // (phones, vacuums, smart rings) in the roster as rechargeables.
   private async _setTrackSelf(e: Event): Promise<void> {
-    const enabled = (e.target as HTMLInputElement).checked;
+    await this._setFleetOption("set_track_self_charging", (e.target as HTMLInputElement).checked);
+  }
+
+  // D#162: fleet-wide option — a passed forecast on a sensorless note is
+  // due (fires the task). Default on; only the opt-out is stored.
+  private async _setDueWithoutSensor(e: Event): Promise<void> {
+    await this._setFleetOption("set_due_without_sensor", (e.target as HTMLInputElement).checked);
+  }
+
+  private async _setFleetOption(command: "set_track_self_charging" | "set_due_without_sensor", enabled: boolean): Promise<void> {
     if (this._marking) return;
     this._marking = true;
     this._error = "";
     try {
       await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/battery_fleet/set_track_self_charging",
+        type: `maintenance_supporter/battery_fleet/${command}`,
         enabled,
       });
       await this._load();
@@ -428,7 +446,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                       <span class="bf-dev">${b.device_name}</span>
                       ${b.available === false
                         ? html`<span class="bf-offline">${t("battery_fleet_offline", L)}</span>`
-                        : nothing}
+                        : b.no_sensor
+                          ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
+                          : nothing}
                       <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
                       ${b.rechargeable
                         ? html`<span class="bf-recharge" title=${t("battery_fleet_rechargeable", L)}
@@ -496,8 +516,15 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                     (b) => html`
                       <div class="bf-row">
                         <span class="bf-dev">${b.device_name}</span>
-                        <span class="bf-status bf-${b.status}">${t("battery_fleet_status_" + b.status, L)}</span>
+                        <span class="bf-status bf-${b.status}"
+                          >${b.no_sensor && b.status === "low"
+                            ? t("battery_fleet_status_due", L)
+                            : t("battery_fleet_status_" + b.status, L)}</span
+                        >
                         <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
+                        ${b.no_sensor
+                          ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
+                          : nothing}
                         ${b.rechargeable
                           ? html`<span class="bf-recharge" title=${t("battery_fleet_rechargeable", L)}
                               ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
@@ -506,6 +533,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         ${this._sparkline(b)}
                         ${this._levelBar(b)}
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
+                        ${b.no_sensor
+                          ? html`<button
+                              class="bf-mark bf-replaced"
+                              title=${t("battery_fleet_mark_one", L)}
+                              .disabled=${this._marking}
+                              @click=${() => this._mark([b.entity_id])}
+                            >
+                              <ha-icon icon="mdi:battery-sync"></ha-icon>
+                            </button>`
+                          : nothing}
                         ${(() => {
                           const jump = this._history?.[b.entity_id]?.jump;
                           if (!jump || this._recorded.includes(b.entity_id)) return nothing;
@@ -564,6 +601,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   ${t("battery_fleet_track_self", L)}
                 </label>
                 <div class="bf-roster-hint">${t("battery_fleet_track_self_hint", L)}</div>
+                <label class="bf-track-self bf-due-nosensor">
+                  <input
+                    type="checkbox"
+                    .checked=${ov.due_without_sensor !== false}
+                    .disabled=${this._marking}
+                    @change=${this._setDueWithoutSensor}
+                  />
+                  ${t("battery_fleet_due_without_sensor", L)}
+                </label>
+                <div class="bf-roster-hint">${t("battery_fleet_due_without_sensor_hint", L)}</div>
               </details>
             `
           : nothing}
@@ -712,12 +759,27 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-bar {
       grid-column: 6;
     }
+    /* D#162: the roster's "No sensor" chip takes the level bar's slot
+     * (such a row has no bar); column 2 stays the status chip's. */
+    .bf-status + .bf-type + .bf-nosensor {
+      grid-column: 6;
+      justify-self: start;
+      white-space: nowrap;
+    }
     .bf-level {
       grid-column: 7;
       justify-self: end;
     }
     .bf-row .bf-mark {
       grid-column: 8;
+    }
+    /* D#162: the sensorless row's Replaced action sits in the percentage
+     * slot (always empty for such a row) instead of the row-action column
+     * - a new max-content track there widens EVERY row via the subgrid
+     * and pushed the phone roster 34 px past its edge. */
+    .bf-row .bf-mark.bf-replaced {
+      grid-column: 7;
+      justify-self: end;
     }
     .bf-predicted {
       grid-column: 9;
@@ -790,6 +852,13 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       .bf-predicted,
       .bf-row .bf-mark {
         grid-row: 2;
+      }
+      /* The roster's "No sensor" chip would widen the shared bar track
+       * for EVERY row (subgrid) - on phones the missing percentage and
+       * the "Due" status already tell the story, so it yields like the
+       * bar and the sparkline do. */
+      .bf-status + .bf-type + .bf-nosensor {
+        display: none;
       }
     }
     .bf-spark-line {

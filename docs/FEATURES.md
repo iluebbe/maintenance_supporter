@@ -331,7 +331,14 @@ last-replaced date** — everything the shopping list and forecast need. That
 includes devices whose battery reports **only a low binary and no percentage**
 (some Matter locks, #121): Battery Notes creates no percentage sensor for
 those, so the fleet reads the same metadata from the low binary — real type,
-quantity, forecast; just no charge level. Battery
+quantity, forecast; just no charge level. Devices with **no battery level at
+all** (many Xiaomi/Aqara sensors) get no `battery_plus` from Battery Notes —
+only the type, quantity and last-replaced date — and still join the roster
+as **No sensor** rows: forecast from the type's typical lifetime, a
+*Replaced* action that records the swap in Battery Notes, and — because
+nothing could ever report such a battery low — a **passed forecast counts
+as due** and fires the fleet task (switchable off in the roster's
+settings; batteries with a sensor are unaffected). Battery
 Notes is **not required**, though: any device that exposes a native
 `device_class: battery` sensor or low-battery binary is picked up too, in a
 **degraded mode** (type shown as *Unknown*, quantity 1, no last-replaced
@@ -732,7 +739,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 91 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 92 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -819,7 +826,7 @@ filterable by object and status) join the long-standing `complete` / `skip` / `r
 `complete` also accepts `via_tag_scan: true` (2.67+) so an automation that
 reacts to a physical scan can complete a tag-gated task — see
 [Examples](EXAMPLES.md#complete-a-tag-gated-task-from-an-automation-267).
-For the full WebSocket API (91 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (92 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

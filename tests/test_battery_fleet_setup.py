@@ -1492,3 +1492,123 @@ async def test_start_reconcile_added_part_gets_its_stock_sensor_in_the_same_star
     assert eid is not None, "no registry entry for the added part's stock sensor"
     state = hass.states.get(eid)
     assert state is not None and state.state == "0", state
+
+
+# ─── sensorless notes (discussion #162) ───────────────────────────────────
+
+
+def _type_note(hass: HomeAssistant, slug: str, btype: str, *, last: str | None = None) -> None:
+    hass.states.async_set(
+        f"sensor.{slug}_battery_type", f"{btype}\u00d71", {"battery_type": btype, "battery_quantity": 1, "note": ""}
+    )
+    if last:
+        hass.states.async_set(f"sensor.{slug}_battery_last_replaced", last, {"device_class": "timestamp"})
+
+
+async def test_due_without_sensor_option(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """D#162: the fleet-wide toggle (default ON) decides whether a PASSED
+    forecast on a sensorless note is due — low in the overview, counted by
+    the fleet sensor — or merely soon (B1)."""
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_due_without_sensor,
+        ws_battery_fleet_setup,
+    )
+
+    await setup_integration(hass, global_entry)
+    _type_note(hass, "hall_temp", "CR2032", last="2020-01-01T00:00:00+00:00")
+    _battery(hass, "lock", "AA", 4, low=False)
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    assert not conn.send_error.called, conn.send_error.call_args
+
+    res = await _overview(hass)
+    assert res["due_without_sensor"] is True
+    assert [r["entity_id"] for r in res["low"]] == ["sensor.hall_temp_battery_type"]
+    assert res["low"][0]["no_sensor"] is True and res["needs_now"] == {"CR2032": 1}
+    await hass.async_block_till_done()
+    # The summary sensor repaints on Battery Notes events (its real update path).
+    hass.bus.async_fire("battery_notes_battery_threshold", {})
+    await hass.async_block_till_done()
+    summary = next(st for st in hass.states.async_all("sensor") if "batteries_due" in st.attributes)
+    assert summary.state == "1", "the fleet sensor counts the due note (task trigger)"
+    assert summary.attributes["batteries_due"] == ["Hall Temp — replace (CR2032)"]
+
+    conn2 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_set_due_without_sensor, hass, conn2, {"id": 2, "type": "x", "enabled": False})
+    assert not conn2.send_error.called, conn2.send_error.call_args
+    res = await _overview(hass)
+    assert res["due_without_sensor"] is False
+    assert res["low"] == [] and res["needs_now"] == {}
+    assert [r["entity_id"] for r in res["soon"]] == ["sensor.hall_temp_battery_type"]
+    assert res["soon"][0]["days_until"] == 0 and res["soon"][0]["forecast_overdue"] is True
+
+    conn3 = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_set_due_without_sensor, hass, conn3, {"id": 3, "type": "x", "enabled": True})
+    res = await _overview(hass)
+    assert res["due_without_sensor"] is True and len(res["low"]) == 1
+
+
+async def test_due_without_sensor_requires_a_fleet(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    await setup_integration(hass, global_entry)
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_due_without_sensor,
+    )
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_set_due_without_sensor, hass, conn, {"id": 1, "type": "x", "enabled": False})
+    assert conn.send_error.called
+    assert conn.send_error.call_args[0][1] == "not_configured"
+
+
+async def test_setup_works_with_sensorless_notes_only(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """An install whose every note is sensorless (maisun) must still pass the
+    setup gate and seed the type parts from the type sensors."""
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_setup
+
+    await setup_integration(hass, global_entry)
+    _type_note(hass, "hall_temp", "CR2032")
+    _type_note(hass, "door", "CR1632")
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    assert not conn.send_error.called, conn.send_error.call_args
+    fleet = _fleet_entry(hass)
+    assert fleet is not None
+    assert {"batt_cr2032", "batt_cr1632"} <= set(fleet.data[CONF_PARTS])
+
+
+async def test_mark_replaced_presses_the_type_notes_button(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """The row's Replaced action for a sensorless note presses the note's
+    button — by naming contract, or through the registry when renamed."""
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import async_mock_service
+
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_mark_replaced,
+        ws_battery_fleet_setup,
+    )
+
+    await setup_integration(hass, global_entry)
+    _type_note(hass, "hall_temp", "CR2032", last="2020-01-01T00:00:00+00:00")
+    hass.states.async_set("button.hall_temp_battery_replaced", "unknown")
+    # A renamed note: registry siblings share the unique_id base.
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create("sensor", "battery_notes", "k_battery_type", suggested_object_id="kitchen_cell")
+    ent_reg.async_get_or_create("button", "battery_notes", "k_battery_replaced_button", suggested_object_id="kitchen_swap")
+    hass.states.async_set("sensor.kitchen_cell", "AAA\u00d71", {"battery_type": "AAA", "battery_quantity": 1})
+    hass.states.async_set("button.kitchen_swap", "unknown")
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
+    calls = async_mock_service(hass, "button", "press")
+
+    conn2 = make_ws_connection()
+    await call_ws_handler(
+        ws_battery_fleet_mark_replaced,
+        hass,
+        conn2,
+        {"id": 2, "type": "x", "entity_ids": ["sensor.hall_temp_battery_type", "sensor.kitchen_cell"]},
+    )
+    res = conn2.send_result.call_args[0][1]
+    assert res["marked"] == 2 and res["pressed"] == 2
+    assert {c.data["entity_id"] for c in calls} == {"button.hall_temp_battery_replaced", "button.kitchen_swap"}

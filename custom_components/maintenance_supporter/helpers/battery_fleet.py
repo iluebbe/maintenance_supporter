@@ -11,7 +11,10 @@ Battery Notes exposes everything we need as ATTRIBUTES on its entities
 ``battery_low``, ``battery_low_threshold``, ``battery_last_replaced``. The
 percentage sensor is the primary source; LOW-ONLY sources (a Matter lock with
 just a battery-low binary, #121) are read from their ``…_battery_plus_low``
-binary instead.
+binary instead. A note whose device has NO battery level at all (D#162) gets
+no ``battery_plus`` from Battery Notes — only the ``…_battery_type`` sensor,
+the ``…_battery_last_replaced`` timestamp and the replaced button — and is
+read from the type sensor as a forecast-only row (``no_sensor``).
 
 Forecast (#114 + follow-up): the ~replacement date comes from the DISCHARGE
 TREND where recorder data supports it (``async_trend_predictions`` — the
@@ -100,6 +103,47 @@ def _is_native_battery_sensor(state: Any) -> bool:
     return not any(word in object_id for word in _HEURISTIC_EXCLUDE)
 
 
+def _is_type_note(state: Any) -> bool:
+    """Whether a sensor state is a Battery Notes ``…_battery_type`` sensor.
+
+    The type sensor carries ``battery_type`` + ``battery_quantity`` but NO
+    device class (``battery_plus`` and its low binary carry the same two
+    attributes WITH ``device_class: battery``). It exists for every note —
+    for a device without a level sensor it is the only trace (D#162).
+    """
+    attrs = state.attributes
+    return attrs.get("device_class") is None and "battery_type" in attrs and "battery_quantity" in attrs
+
+
+# Battery Notes unique_id suffixes — every entity of one note shares the
+# subentry's unique_id plus one of these, so siblings resolve through the
+# registry even after the user renamed the entity ids.
+_NOTE_UID_SUFFIXES = (
+    "_battery_last_replaced",
+    "_battery_replaced_button",
+    "_battery_plus",
+    "_battery_type",
+    "_battery_low",
+)
+
+
+def note_sibling_entity(hass: HomeAssistant, entity_id: str, *, domain: str, uid_suffix: str) -> str | None:
+    """The registry-resolved Battery Notes sibling of ``entity_id`` — e.g. the
+    ``button`` / ``_battery_replaced_button`` of a type sensor — or None when
+    the entity has no Battery Notes registry entry (state-only) or the
+    sibling was never created. Callers fall back to the naming contract."""
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    reg = ent_reg.async_get(entity_id)
+    if reg is None or reg.platform != "battery_notes" or not isinstance(reg.unique_id, str):
+        return None
+    for own in _NOTE_UID_SUFFIXES:
+        if reg.unique_id.endswith(own):
+            return ent_reg.async_get_entity_id(domain, "battery_notes", reg.unique_id[: -len(own)] + uid_suffix)
+    return None
+
+
 def _native_snapshot_cache(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     """Runtime cache of last-known native battery readings (per entity_id)."""
     from ..const import DOMAIN
@@ -156,6 +200,11 @@ class Battery:
     # crosses first on the way down). One field feeds the trend regression,
     # the sparkline threshold line and the level-bar colors alike.
     low_threshold: float = float(NATIVE_LOW_PERCENT)
+    # D#162: a Battery Notes note WITHOUT a level sensor — only the type
+    # sensor, the last-replaced timestamp and the replaced button exist.
+    # Nothing can ever report "still fine": the forecast is the whole signal,
+    # and (option, default on) a passed forecast makes it ``low``.
+    no_sensor: bool = False
 
 
 @dataclass
@@ -204,7 +253,9 @@ def build_overview(
 ) -> BatteryOverview:
     """Aggregate batteries into the fleet view.
 
-    * ``low`` = reported low right now (Battery Notes' own threshold).
+    * ``low`` = reported low right now (Battery Notes' own threshold) — or a
+      sensorless note whose forecast has passed with the due-without-sensor
+      option on (D#162; decided in :func:`read_batteries`).
     * ``soon`` = NOT low yet but predicted to reach end-of-life within
       ``horizon_days`` (deterministic last_replaced + typical-lifetime forecast).
       A battery already low is never double-counted into soon.
@@ -247,11 +298,18 @@ def build_overview(
         overdue = days_raw is not None and days_raw < 0
         days = max(0, days_raw) if days_raw is not None else None
         if bat.low:
-            ov.low.append(_row(bat, t, None, rechargeable=rechargeable))
+            # A battery reported low has no meaningful forecast left to show —
+            # except a sensorless note (D#162), where the PASSED forecast IS
+            # why it is due: keep the (negative) days and the overdue flag so
+            # the roster can show the date the prediction ran out.
+            if bat.no_sensor:
+                low_row = _row(bat, t, days_raw, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue)
+            else:
+                low_row = _row(bat, t, None, rechargeable=rechargeable)
+            ov.low.append(low_row)
             if not rechargeable:
                 ov.needs_now[t] = ov.needs_now.get(t, 0) + bat.quantity
-            # A battery reported low has no meaningful forecast left to show.
-            ov.all.append({**_row(bat, t, None, rechargeable=rechargeable), "status": "low"})
+            ov.all.append({**low_row, "status": "low"})
             continue
         if days is not None and days <= horizon_days:
             ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue))
@@ -300,6 +358,10 @@ def _row(
         # carries error bars and the sensor says fine — but the roster shows
         # the discrepancy (common cause: a swap that was never recorded).
         "forecast_overdue": forecast_overdue,
+        # D#162: no level source at all — the roster shows a "No sensor" chip
+        # instead of a level bar, and the replaced button is the row's action.
+        "no_sensor": bat.no_sensor,
+        "last_replaced": bat.last_replaced.isoformat() if bat.last_replaced else None,
     }
 
 
@@ -371,6 +433,21 @@ def fleet_track_self_charging(hass: HomeAssistant) -> bool:
     return bool(_fleet_object(hass).get(BATTERY_FLEET_TRACK_SELF_CHARGING))
 
 
+def fleet_due_without_sensor(hass: HomeAssistant) -> bool:
+    """Whether a PASSED forecast on a sensorless note counts as due (D#162).
+
+    On (the default): a Battery Notes note that has no level sensor — only
+    its type, quantity and last-replaced date — goes ``low`` once its
+    predicted replacement date has passed, so the fleet task fires for it.
+    Nothing else ever could: there is no reading to say "still fine". Off:
+    such notes only ever forecast (B1 behaviour — soon, never low). Stored
+    as False to switch off; absent means on.
+    """
+    from ..const import BATTERY_FLEET_DUE_WITHOUT_SENSOR
+
+    return _fleet_object(hass).get(BATTERY_FLEET_DUE_WITHOUT_SENSOR) is not False
+
+
 def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
     """Whether a device recharges itself — its battery is never REPLACED.
 
@@ -436,8 +513,18 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       last seen LOW that goes unavailable is retained from a runtime
       snapshot for ``_NATIVE_RETENTION`` (the Battery Notes path gets this
       for free via its retained ``battery_low`` attribute).
+    * **Sensorless notes** (D#162, pass 1b): a device with no battery level
+      at all gets no ``battery_plus`` from Battery Notes — only the
+      ``…_battery_type`` sensor (type/quantity), the
+      ``…_battery_last_replaced`` timestamp and the replaced button. The
+      type sensor becomes a forecast-only row (``no_sensor``, never
+      offline, no level): last-replaced + the type's typical lifetime
+      predicts the swap, and with ``fleet_due_without_sensor`` on a PASSED
+      forecast makes the row ``low`` — the only way such a battery can ever
+      reach the task. Devices that have any ``battery_plus`` (kept, dropped
+      or excluded) or a native row are skipped: the real reading wins.
     * Manually excluded entity_ids (fleet detail → exclude) are dropped from
-      BOTH passes.
+      ALL passes.
     * Manual includes (#135) act DEVICE-wide: whichever of a device's battery
       entities the user picked, the self-charging filter is lifted for the
       whole device in both passes — so the richest source (a Battery Notes
@@ -489,6 +576,11 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     # and taking it too would put every battery in the roster twice — and let
     # an exclusion set on the sensor row resurrect through the binary.
     note_sensor_ids: set[str] = set()
+    # Pass 1b dedupe: EVERY battery_plus entity (kept, dropped or excluded)
+    # and its device — a device that has a real reading never gets a
+    # forecast-only row on top.
+    note_binary_ids: set[str] = set()
+    note_devices_all: set[str] = set()
     for domain, binary_pass in (("sensor", False), ("binary_sensor", True)):
         for state in hass.states.async_all(domain):
             attrs = state.attributes
@@ -499,8 +591,12 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 # kept, dropped or excluded: its low binary describes the same
                 # battery and must never become a second (or resurrected) row.
                 note_sensor_ids.add(state.entity_id)
+            else:
+                note_binary_ids.add(state.entity_id)
             reg = ent_reg.async_get(state.entity_id)
             dev_id = reg.device_id if reg else None
+            if dev_id:
+                note_devices_all.add(dev_id)
             if binary_pass:
                 if dev_id and dev_id in covered_devices:
                     continue
@@ -689,6 +785,83 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 low_threshold=floor,
             )
         )
+
+    # ── Pass 1b: Battery Notes notes WITHOUT a level sensor (D#162) ────────
+    # A device that exposes no battery percentage (maisun's 30 Xiaomi/Aqara
+    # sensors) gets NO battery_plus from Battery Notes — only the diagnostic
+    # ``…_battery_type`` sensor, the ``…_battery_last_replaced`` timestamp
+    # and the replaced button. Runs AFTER the other passes so any real
+    # reading (a plus of any kind, a native row) wins the device.
+    due_without_sensor = fleet_due_without_sensor(hass)
+    today = dt_util.now().date()
+    native_devices = {rec["device_id"] for rec in native.values() if rec["device_id"]}
+    for state in hass.states.async_all("sensor"):
+        if not _is_type_note(state):
+            continue
+        eid = state.entity_id
+        attrs = state.attributes
+        reg = ent_reg.async_get(eid)
+        dev_id = reg.device_id if reg else None
+        if dev_id and (dev_id in note_devices_all or dev_id in covered_devices or dev_id in native_devices):
+            continue
+        # State-only entities have no registry entry — Battery Notes' naming
+        # contract (``sensor.X_battery_type`` ↔ ``sensor.X_battery_plus`` ↔
+        # ``binary_sensor.X_battery_plus_low``) is the fallback dedupe.
+        object_id = eid.split(".", 1)[1]
+        base = object_id[: -len("_battery_type")] if object_id.endswith("_battery_type") else None
+        if base and (f"sensor.{base}_battery_plus" in note_sensor_ids or f"binary_sensor.{base}_battery_plus_low" in note_binary_ids):
+            continue
+        if eid in excluded:
+            continue
+        if not track_self and eid not in included and dev_id not in included_devices and _self_charging(dev_id):
+            continue
+        battery_type = str(attrs.get("battery_type") or "").strip()
+        if not battery_type:
+            continue
+        # The replacement date lives on the sibling timestamp sensor (its
+        # state is the ISO timestamp) — registry first, naming second. It may
+        # be disabled in Battery Notes: then the row has no forecast at all.
+        last_eid = note_sibling_entity(hass, eid, domain="sensor", uid_suffix="_battery_last_replaced")
+        if last_eid is None and base:
+            last_eid = f"sensor.{base}_battery_last_replaced"
+        last_state = hass.states.get(last_eid) if last_eid else None
+        last_replaced = (
+            _parse_last_replaced(last_state.state) if last_state and last_state.state not in _NO_READING else None
+        )
+        # The type sensor is named "<device> Battery type" — the device name
+        # is the registry's; without a registry entry strip the entity's own
+        # name off the friendly name (English fallback for state-only notes).
+        name = None
+        if dev_id and (dev := dev_reg.async_get(dev_id)):
+            name = dev.name_by_user or dev.name
+        friendly = str(attrs.get("friendly_name") or "")
+        if not name and friendly:
+            own_name = (reg.name or reg.original_name) if reg else None
+            if own_name and friendly.endswith(own_name):
+                name = friendly[: -len(own_name)].strip()
+            else:
+                name = re.sub(r"\s+battery\s+type$", "", friendly, flags=re.IGNORECASE).strip()
+        if not name:
+            name = (base or object_id).replace("_", " ").strip().title()
+        bat = Battery(
+            entity_id=eid,
+            device_name=name,
+            battery_type=battery_type,
+            quantity=int(attrs.get("battery_quantity") or 1),
+            low=False,
+            level=None,
+            last_replaced=last_replaced,
+            available=True,
+            source="battery_notes",
+            low_threshold=floor,
+            no_sensor=True,
+        )
+        # Due = the forecast has PASSED (same arithmetic as build_overview's
+        # forecast_overdue). Rechargeables never get a table forecast.
+        if due_without_sensor and not is_rechargeable_type(battery_type):
+            pred = _predicted_date(bat)
+            bat.low = pred is not None and pred < today
+        out.append(bat)
     return out
 
 
@@ -751,19 +924,22 @@ def has_battery_notes(hass: HomeAssistant) -> bool:
     """Whether the Battery Notes integration is present (any battery_plus).
 
     Binaries count too (#121): an install whose only noted devices are
-    low-only sources has no ``battery_plus`` sensor at all.
+    low-only sources has no ``battery_plus`` sensor at all — and so does a
+    fleet of sensorless notes (D#162), which only have type sensors.
     """
     for domain in ("sensor", "binary_sensor"):
         for state in hass.states.async_all(domain):
             a = state.attributes
             if a.get("device_class") == "battery" and "battery_type" in a:
                 return True
+            if domain == "sensor" and _is_type_note(state):
+                return True
     return False
 
 
 def has_batteries(hass: HomeAssistant) -> bool:
     """Whether ANY battery is trackable — Battery Notes OR native. Gates setup."""
-    if any(_is_native_battery_sensor(s) for s in hass.states.async_all("sensor")):
+    if any(_is_native_battery_sensor(s) or _is_type_note(s) for s in hass.states.async_all("sensor")):
         return True
     return any(s.attributes.get("device_class") == "battery" for s in hass.states.async_all("binary_sensor"))
 
@@ -945,8 +1121,8 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
     out: dict[str, dict[str, Any]] = {}
 
     for bat in batteries:
-        if bat.level is None and not bat.low:
-            continue  # low-only binaries have no level series to draw
+        if bat.no_sensor or (bat.level is None and not bat.low):
+            continue  # low-only binaries / sensorless notes have no level series to draw
         cached = cache.get(bat.entity_id)
         if cached is not None and now - cached[0] < _HISTORY_CACHE_TTL:
             points = cached[1]
@@ -1013,6 +1189,7 @@ __all__ = [
     "build_overview",
     "compute_overview",
     "discover_battery_types",
+    "fleet_due_without_sensor",
     "fleet_excluded_entities",
     "fleet_included_entities",
     "fleet_track_self_charging",
@@ -1020,5 +1197,6 @@ __all__ = [
     "has_battery_notes",
     "is_rechargeable_type",
     "lifetime_months",
+    "note_sibling_entity",
     "read_batteries",
 ]
