@@ -2,10 +2,11 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TaskPartLink, TriggerConfig, HAUser } from "../types";
+import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, ReadingSlot, TaskPartLink, TriggerConfig, HAUser } from "../types";
 import { formatDate, formatNumber, t, weekdayName, monthName, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
+import { MAX_READING_SLOTS, cleanReadingSlots, newReadingSlotId } from "../helpers/reading-slots";
 import {
   ENVIRONMENTAL_PICKER_DEVICE_CLASSES,
   ENVIRONMENTAL_PICKER_DOMAINS,
@@ -249,6 +250,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _allowSkip = true;
   // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
   @state() private _readingUnit = "";
+  // #161 phase 2: named reading slots — several values per completion.
+  @state() private _readings: ReadingSlot[] = [];
   /** The picked links, keyed by `partLinkKey` — the (entry_id, part_id) pair,
    *  since the same part id can exist on two objects (battery fleet). */
   @state() private _consumesParts: Record<string, TaskPartLink> = {};
@@ -404,6 +407,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._requireTagScan = !!task.require_tag_scan;
     this._allowSkip = task.allow_skip !== false;
     this._readingUnit = task.reading_unit || "";
+    this._readings = (task.readings || []).map((s) => ({ ...s }));
     // Whole link, entry_id included — hydrating only part_id would turn every
     // shared-pool link into an own-part link on the next save (#111).
     this._consumesParts = Object.fromEntries(
@@ -557,6 +561,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._requireTagScan = false;
     this._allowSkip = true;
     this._readingUnit = "";
+    this._readings = [];
     this._consumesParts = {};
     this._responsibleUserId = null;
     this._assigneePool = [];
@@ -1052,6 +1057,45 @@ export class MaintenanceTaskDialog extends LitElement {
     this._requiredCompletion = [...next];
   }
 
+  // ── Reading slots (#161 phase 2) ─────────────────────────────────────
+
+  private _patchReading(id: string, patch: Partial<ReadingSlot>): void {
+    this._readings = this._readings.map((s) => (s.id === id ? { ...s, ...patch } : s));
+  }
+
+  private _renderReadingsEditor(L: string) {
+    return html`
+      <div class="readings-editor">
+        <div class="field-label">${t("readings_section", L)}</div>
+        <div class="field-help">${t("readings_hint", L)}</div>
+        ${this._readings.map((s) => html`
+          <div class="reading-row">
+            <ms-textfield
+              class="reading-name"
+              label="${t("reading_name_label", L)}"
+              .value=${s.name}
+              @input=${(e: Event) => this._patchReading(s.id, { name: (e.target as HTMLInputElement).value })}
+            ></ms-textfield>
+            <ms-textfield
+              class="reading-unit"
+              label="${t("reading_unit_short", L)}"
+              .value=${s.unit || ""}
+              @input=${(e: Event) => this._patchReading(s.id, { unit: (e.target as HTMLInputElement).value })}
+            ></ms-textfield>
+            <mwc-icon-button class="phase-remove reading-remove" @click=${() => (this._readings = this._readings.filter((x) => x.id !== s.id))}>
+              <ha-icon icon="mdi:delete-outline"></ha-icon>
+            </mwc-icon-button>
+          </div>
+        `)}
+        ${this._readings.length < MAX_READING_SLOTS ? html`
+          <ha-button appearance="plain" class="reading-add"
+            @click=${() => (this._readings = [...this._readings, { id: newReadingSlotId(), name: "", unit: this._readings.length ? this._readings[this._readings.length - 1].unit : this._readingUnit }])}>
+            <ha-icon icon="mdi:plus"></ha-icon> ${t("reading_add", L)}
+          </ha-button>` : nothing}
+      </div>
+    `;
+  }
+
   // ── Task phases (#139) ───────────────────────────────────────────────
 
   private _phaseSlug(name: string): string {
@@ -1265,6 +1309,10 @@ export class MaintenanceTaskDialog extends LitElement {
       data.require_tag_scan = this._requireTagScan;
       data.allow_skip = this._allowSkip;
       data.reading_unit = this._readingUnit.trim() || null;
+      // #161 phase 2: always sent — [] clears the slots (single-value task).
+      // Sent as hydrated even when the editor is hidden (type != reading), so
+      // a no-op edit never wipes stored slots (the #42/#50 wipe class).
+      data.readings = cleanReadingSlots(this._readings);
       // Task phases (#139): always sent — null clears a removed cycle.
       {
         const defs: Record<string, unknown> = {};
@@ -2581,6 +2629,7 @@ export class MaintenanceTaskDialog extends LitElement {
                   @input=${(e: Event) => (this._readingUnit = (e.target as HTMLInputElement).value)}
                 ></ms-textfield>
                 <div class="field-help">${t("reading_unit_help", L)}</div>
+                ${this._renderReadingsEditor(L)}
               `
             : nothing}
           ${this._partsLoadFailed
@@ -3069,6 +3118,16 @@ export class MaintenanceTaskDialog extends LitElement {
       --mdc-icon-button-size: 36px;
       color: var(--secondary-text-color);
     }
+    /* #161 phase 2: reading slots — name wide, unit narrow, trash. */
+    .readings-editor { margin-top: 14px; }
+    .reading-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+    .reading-row .reading-name { flex: 2; min-width: 0; }
+    .reading-row .reading-unit { flex: 1; min-width: 0; max-width: 140px; }
     .phase-seq-label {
       font-size: 12px;
       color: var(--secondary-text-color);

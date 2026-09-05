@@ -709,6 +709,7 @@
           "go_back": "Zpět",
           "interval_anchor": "Kotva intervalu",
           "reading_unit": "Jednotka odečtu (pro odečtové úkoly, např. kWh)",
+          "readings_text": "Odečty (jeden na řádek: Název | Jednotka)",
           "season_months": "Sezonni okno (mesice)",
           "ends_count": "Konci po (pocet opakovani)",
           "ends_until": "Konci k datu"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Hodnota odečtu",
           "description": "Zaznamenaná hodnota pro odečtové úkoly (odečet měřiče, kontrola hladiny)."
+        },
+        "reading_values": {
+          "name": "Odečty",
+          "description": "Hodnoty pro úkol s několika pojmenovanými odečty, podle názvu (např. Voda studená: 123.4)."
         },
         "completed_by": {
           "name": "Dokončil(a)",

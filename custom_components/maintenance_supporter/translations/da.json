@@ -709,6 +709,7 @@
           "go_back": "Gå tilbage",
           "interval_anchor": "Intervalanker",
           "reading_unit": "Aflæsningsenhed (til aflæsningsopgaver, f.eks. kWh)",
+          "readings_text": "Aflæsninger (én pr. linje: Navn | Enhed)",
           "season_months": "Saesonvindue (maaneder)",
           "ends_count": "Slutter efter (antal gange)",
           "ends_until": "Slutter paa dato"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Aflæst værdi",
           "description": "Registreret værdi for aflæsningsopgaver (måleraflæsning, niveaukontrol)."
+        },
+        "reading_values": {
+          "name": "Aflæsninger",
+          "description": "Værdier for en opgave med flere navngivne aflæsninger, efter navn (f.eks. Vand koldt: 123.4)."
         },
         "completed_by": {
           "name": "Udført af",

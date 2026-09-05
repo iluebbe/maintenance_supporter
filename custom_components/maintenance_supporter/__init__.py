@@ -143,6 +143,9 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
         vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)),
         # Meter readings (v2.20, #83): recorded value for `reading` tasks.
         vol.Optional("reading_value"): vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)),
+        # #161 phase 2: {reading name: value} for a task with reading slots —
+        # automations know meters by name; resolved case-insensitively.
+        vol.Optional("reading_values"): {cv.string: vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None)},
         # #128: who did it — a person ENTITY (validated picker, no free text);
         # resolved to the linked HA user id. Omitted -> the calling user.
         vol.Optional("completed_by"): cv.entity_id,
@@ -536,7 +539,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             # Per-task values must not fan out: a reading belongs to ONE
             # meter, cost/duration would multiply into the budget and the
             # averages, and one physical scan proves exactly one tag.
-            for field in ("reading_value", "cost", "duration"):
+            for field in ("reading_value", "reading_values", "cost", "duration"):
                 if call.data.get(field) is not None:
                     raise ServiceValidationError(
                         f"'{field}' can only be used with a single entity_id"
@@ -553,12 +556,22 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             completed_by = call.context.user_id if call.context else None
 
         async def _one(coordinator: MaintenanceCoordinator, task_id: str) -> None:
+            reading_values = None
+            if call.data.get("reading_values"):
+                from .helpers.reading_slots import resolve_reading_values_by_name
+
+                slots = (coordinator._get_merged_tasks_data().get(task_id) or {}).get("readings") or []
+                try:
+                    reading_values = resolve_reading_values_by_name(slots, call.data["reading_values"]) or None
+                except ValueError as err:
+                    raise ServiceValidationError(str(err)) from err
             await coordinator.complete_maintenance(
                 task_id=task_id,
                 notes=call.data.get("notes"),
                 cost=call.data.get("cost"),
                 duration=call.data.get("duration"),
                 reading_value=call.data.get("reading_value"),
+                reading_values=reading_values,
                 completed_by=completed_by,
                 completed_at=call.data.get("completed_at"),
                 # Proof of presence: an automation that reacted to the physical

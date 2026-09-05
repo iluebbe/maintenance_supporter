@@ -114,6 +114,21 @@ tasks (recurring ones re-anchored). Errors: `already_archived` / `not_archived`.
 (float) which is stored on the completion history entry. The panel derives
 the delta between consecutive readings client-side.
 
+**Reading slots (2.75, #161 phase 2):** `task/create`/`task/update` take
+`readings: [{id?, name, unit?}]` (≤20; a missing/invalid id is minted, `[]`
+clears) and the task response echoes `readings` with the stable ids.
+`task/complete` then takes `reading_values: {slot_id: float|null}` — the
+entry stores the snapshot `reading_values: [{id, name, unit, value}]`
+(never together with the scalar); an unknown id is refused with
+`invalid_input`, `null` means "meter not read this time".
+`task/history/update` patches `reading_value` (scalar, `null` clears) and
+`reading_values` (the same map — REPLACES the snapshot; ids may also be
+slots the task no longer has, taken from the entry's own snapshot). The
+`complete` **service** takes `reading_values` keyed by slot NAME
+(case-insensitive). The task sensor exposes `last_readings` /
+`last_reading` + `last_reading_at`; the completion event carries
+`reading_value` and `reading_values`.
+
 ### Backdated completions (#133)
 `task/complete` accepts `completed_at` (ISO datetime, naive = local; must not
 be in the future). When it is still the latest lifecycle entry the cycle

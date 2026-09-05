@@ -80,6 +80,9 @@ FULL_TASK = {
     "entity_slug": "full_field_probe",
     "adaptive_config": {"enabled": True, "ewa_alpha": 0.3, "min_interval_days": 7, "max_interval_days": 120},
     "reading_unit": "kWh",
+    # #161 phase 2: reading slots — ids survive JSON, CSV re-mints them
+    # (a CSV round-trip creates new tasks anyway; see the CSV assert).
+    "readings": [{"id": "coldwatr", "name": "Water cold", "unit": "m³"}, {"id": "electric", "name": "Electricity", "unit": "kWh"}],
     "due_override": "2026-12-24",
     "on_complete_action": {"service": "light.turn_off", "target": {"entity_id": "light.x"}},
     "quick_complete_defaults": {"notes": "qc", "cost": 5},
@@ -336,6 +339,8 @@ async def test_csv_roundtrip_keeps_object_notes_and_docs_url(
     for key in ("notes", "documentation_url", "custom_icon", "nfc_tag_id", "reading_unit",
                 "schedule_time", "priority", "labels"):
         assert dst_task.get(key) == FULL_TASK[key], f"CSV lost task.{key}"
+    # Slots ride the CSV as "Name | Unit" lines; ids are regenerated.
+    assert [(s["name"], s["unit"]) for s in dst_task["readings"]] == [(s["name"], s["unit"]) for s in FULL_TASK["readings"]]
 
 
 async def test_settings_export_import_roundtrip(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

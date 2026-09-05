@@ -737,6 +737,31 @@ export const sharedStyles = css`
     flex-wrap: wrap;
     gap: 8px;
   }
+  /* #161 phase 2 — named readings of a completion: a compact
+     name / value grid, wrapping into columns on wide screens. */
+  .history-readings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 280px));
+    gap: 2px 24px;
+    margin: 4px 0;
+    font-size: 13px;
+  }
+  .history-reading {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+  .history-reading-name {
+    color: var(--secondary-text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .history-reading-value {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
   .history-edit-btn {
     background: transparent;
     color: var(--secondary-text-color);

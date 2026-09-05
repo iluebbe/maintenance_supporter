@@ -43,6 +43,11 @@ complete:
         number:
           mode: box
           step: any
+    reading_values:
+      name: Readings
+      description: "Values for a task with several named readings, keyed by reading name (e.g. Water cold: 123.4)."
+      selector:
+        object:
     completed_by:
       name: Completed by
       description: Person who performed the maintenance (must be linked to a Home Assistant user). When omitted, the user triggering the call is recorded.

@@ -414,6 +414,9 @@ CONF_TASK_NFC_TAG = "nfc_tag_id"
 # v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...).
 CONF_TASK_READING_UNIT = "reading_unit"
 MAX_READING_UNIT_LENGTH = 32
+# #161 phase 2: named reading slots ([{id, name, unit}]) — several values per
+# completion; shapes/caps live in helpers/reading_slots.py.
+CONF_TASK_READINGS = "readings"
 MAX_NFC_TAG_LENGTH = 256
 CONF_TASK_INTERVAL_ANCHOR = "interval_anchor"
 CONF_TASK_SCHEDULE_TIME = "schedule_time"

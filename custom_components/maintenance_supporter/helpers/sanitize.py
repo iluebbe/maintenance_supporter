@@ -175,6 +175,17 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
             cleaned = [c for c in cleaned if c]
             task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
 
+    # #161 phase 2: reading slots — validated by the shared helper; an
+    # empty/invalid list simply means "single value" and is dropped.
+    rs = task_data.get("readings")
+    if rs is not None:
+        from .reading_slots import sanitize_reading_slots
+
+        slots = sanitize_reading_slots(rs)
+        if slots:
+            task_data["readings"] = slots
+        else:
+            task_data.pop("readings", None)
     lb = task_data.get("labels")
     if lb is not None:
         task_data["labels"] = sanitize_labels(lb)

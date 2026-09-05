@@ -49,6 +49,7 @@ from .const import (
     ScheduleType,
 )
 from .helpers.global_options import get_default_warning_days
+from .helpers.reading_slots import parse_reading_slots_text, reading_slots_text
 from .helpers.schedule import (
     read_legacy_fields,
 )
@@ -273,6 +274,14 @@ class TaskCrudMixin:
                         updated_task[CONF_TASK_READING_UNIT] = ru
                     else:
                         updated_task.pop(CONF_TASK_READING_UNIT, None)
+                # #161 phase 2: reading slots, one "Name | Unit" per line. Ids
+                # are kept for lines whose name already exists (delta chain).
+                if "readings_text" in user_input:
+                    slots = parse_reading_slots_text(user_input.get("readings_text") or "", task.get("readings"))
+                    if slots:
+                        updated_task["readings"] = slots
+                    else:
+                        updated_task.pop("readings", None)
 
                 from .helpers.sanitize import cap_task_fields
 
@@ -487,6 +496,9 @@ class TaskCrudMixin:
                     nfc_tag_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     vol.Optional("require_tag_scan", default=bool(task.get("require_tag_scan"))): selector.BooleanSelector(),
                     reading_unit_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    vol.Optional("readings_text", default=reading_slots_text(task.get("readings"))): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
+                    ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),

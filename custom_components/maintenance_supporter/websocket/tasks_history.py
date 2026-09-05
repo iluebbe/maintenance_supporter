@@ -59,6 +59,15 @@ from . import (
         vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
         vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
         vol.Optional("completed_by"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        # Recorded readings (#161 phase 2): a typo among nine meter values is
+        # likely, and nothing downstream depends on the entry being frozen.
+        # The scalar patches like the other fields; the slot map REPLACES the
+        # snapshot (None value = that meter unread), ids validated in the handler.
+        vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
+        vol.Optional("reading_values"): vol.Any(
+            {str: vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None)},
+            None,
+        ),
         # #130: edit the entry's part consumption. The stock is reconciled by
         # the per-part DELTA against the entry's previous used_parts; None (or
         # []) clears the consumption and returns the old quantities to stock.
@@ -153,7 +162,7 @@ async def ws_update_history_entry(
 
     # Apply patch — explicit None means "clear field" (drop the key entirely
     # so the dict stays minimal); explicit value sets it.
-    PATCHABLE = ("timestamp", "notes", "cost", "duration", "completed_by")
+    PATCHABLE = ("timestamp", "notes", "cost", "duration", "completed_by", "reading_value")
     for field in PATCHABLE:
         if field not in msg:
             continue
@@ -162,6 +171,24 @@ async def ws_update_history_entry(
             patched.pop(field, None)
         else:
             patched[field] = value
+
+    # #161 phase 2: the slot snapshot. Ids resolve against the task's current
+    # slots OR the entry's own snapshot (a slot deleted since the completion
+    # stays editable); anything else is refused rather than guessed.
+    if "reading_values" in msg:
+        from ..helpers.reading_slots import history_reading_values, resolve_reading_values
+        from . import _get_merged_tasks
+
+        slots = (_get_merged_tasks(entry).get(task_id) or {}).get("readings") or []
+        try:
+            new_values = resolve_reading_values(slots, msg["reading_values"], keep=history_reading_values(patched))
+        except ValueError as err:
+            connection.send_error(msg["id"], "invalid_input", str(err))
+            return
+        if new_values:
+            patched["reading_values"] = new_values
+        else:
+            patched.pop("reading_values", None)
 
     # #130: part consumption on the entry. The stock is adjusted by the
     # per-part delta between the stored and the submitted selection, so

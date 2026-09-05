@@ -69,8 +69,10 @@ still check things off. Tasks also appear in a native **To-do list**, so
 The *Reading* task type is made for recording values, and the schedule
 supports *last day of the month*, *last business day* (public-holiday-aware
 when HA's Workday integration is set up), and ±N-day offsets.
-Attach a photo of the meter display when completing — it lands in the task's
-history.
+One task can carry several named readings (water cold, water warm,
+electricity, …) — one field each when completing, each with its own delta
+in the history. Attach photos of the meter displays when completing — they
+land in the task's history.
 
 **"What did the car cost me this year?"**
 Every completion records cost and duration. Budgets with alerts, per-object

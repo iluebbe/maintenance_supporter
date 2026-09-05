@@ -86,6 +86,7 @@ import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache } from "./helpers/settings-cache";
 import { historyPhotoIds } from "./helpers/history-photos";
+import { entryReadingValues, readingSlotDelta } from "./helpers/reading-slots";
 
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
 
@@ -4078,6 +4079,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         if (idx <= 0) return null;
         return (entry.reading_value as number) - (readings[idx - 1].reading_value as number);
       },
+      // #161 phase 2: per-slot delta against the previous entry that
+      // carried the same slot (a skipped meter does not break the chain).
+      readingSlotDelta: (entry, slotId) => readingSlotDelta(fullHistory, entry, slotId),
     };
   }
 
@@ -4181,6 +4185,7 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  for in the template to trigger a data refresh. */
   private _openHistoryEdit(entry: HistoryEntry): void {
     if (!this._selectedEntryId || !this._selectedTaskId) return;
+    const editTask = this._getTask(this._selectedEntryId, this._selectedTaskId);
     const draft: HistoryEntryDraft = {
       entry_id: this._selectedEntryId,
       task_id: this._selectedTaskId,
@@ -4193,6 +4198,11 @@ export class MaintenanceSupporterPanel extends LitElement {
       completed_by: entry.completed_by ?? null,
       used_parts: entry.used_parts ?? null,
       photo_doc_ids: historyPhotoIds(entry),
+      reading_value: entry.reading_value ?? null,
+      reading_values: entryReadingValues(entry),
+      readings: editTask?.readings ?? [],
+      task_type: editTask?.type ?? null,
+      reading_unit: editTask?.reading_unit ?? null,
     };
     this.shadowRoot
       ?.querySelector<MaintenanceHistoryEditDialog>("maintenance-history-edit-dialog")

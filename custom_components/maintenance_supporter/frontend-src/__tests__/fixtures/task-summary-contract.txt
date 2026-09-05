@@ -107,6 +107,18 @@
     "notes": "quick note"
   },
   "reading_unit": "kWh",
+  "readings": [
+    {
+      "id": "coldwatr",
+      "name": "Water cold",
+      "unit": "m\u00b3"
+    },
+    {
+      "id": "electric",
+      "name": "Electricity",
+      "unit": "kWh"
+    }
+  ],
   "require_tag_scan": true,
   "required_completion_fields": [
     "notes",

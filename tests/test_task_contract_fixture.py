@@ -81,6 +81,8 @@ _MAXIMAL_TASK = {
     "nfc_tag_id": "contract-nfc-1",
     "require_tag_scan": True,
     "reading_unit": "kWh",
+    # #161 phase 2: reading slots.
+    "readings": [{"id": "coldwatr", "name": "Water cold", "unit": "m³"}, {"id": "electric", "name": "Electricity", "unit": "kWh"}],
     "consumes_parts": [{"part_id": "part_1", "quantity": 2}],
     # #139: cyclic content rotation — defs + sequence with a repeated step.
     "phases": {

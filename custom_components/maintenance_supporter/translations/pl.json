@@ -709,6 +709,7 @@
           "go_back": "Wróć",
           "interval_anchor": "Punkt odniesienia interwału",
           "reading_unit": "Jednostka odczytu (dla zadań odczytu, np. kWh)",
+          "readings_text": "Odczyty (jeden w wierszu: Nazwa | Jednostka)",
           "season_months": "Okno sezonowe (miesiace)",
           "ends_count": "Konczy sie po (liczbie razy)",
           "ends_until": "Konczy sie w dniu"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Wartość odczytu",
           "description": "Zarejestrowana wartość dla zadań odczytu (odczyt licznika, kontrola poziomu)."
+        },
+        "reading_values": {
+          "name": "Odczyty",
+          "description": "Wartości dla zadania z kilkoma nazwanymi odczytami, według nazwy (np. Woda zimna: 123.4)."
         },
         "completed_by": {
           "name": "Wykonane przez",

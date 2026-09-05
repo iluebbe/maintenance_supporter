@@ -20,6 +20,7 @@ import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
 import { historyPhotoIds } from "../helpers/history-photos";
+import { entryReadingValues } from "../helpers/reading-slots";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -360,6 +361,11 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         completed_by: entry.completed_by ?? null,
         used_parts: entry.used_parts ?? null,
         photo_doc_ids: historyPhotoIds(entry),
+        reading_value: entry.reading_value ?? null,
+        reading_values: entryReadingValues(entry),
+        readings: this._task?.readings ?? [],
+        task_type: this._task?.type ?? null,
+        reading_unit: this._task?.reading_unit ?? null,
       });
     });
   }

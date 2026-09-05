@@ -18,6 +18,8 @@ const TASK_LIST_KEYS = [
   "checklist",
   "labels",
   "history",
+  // #161 phase 2: reading slots (empty = single-value task).
+  "readings",
 ] as const;
 const TASK_DICT_KEYS = ["checklist_progress"] as const;
 const RESPONSE_LIST_KEYS = ["tasks", "parts"] as const;

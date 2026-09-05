@@ -87,6 +87,22 @@ export interface TriggerEntityInfo {
   step?: number | null;
 }
 
+/** #161 phase 2: one named reading a `reading` task records per completion. */
+export interface ReadingSlot {
+  id: string;
+  name: string;
+  unit?: string | null;
+}
+
+/** #161 phase 2: a slot's value on a completion — name/unit are a snapshot
+ *  taken at completion time, `id` is what deltas match on. */
+export interface ReadingValue {
+  id: string;
+  name: string;
+  unit?: string | null;
+  value: number;
+}
+
 export interface HistoryEntry {
   timestamp: string;
   type: string; // "completed" | "skipped" | "reset" | "triggered"
@@ -103,6 +119,8 @@ export interface HistoryEntry {
   photo_doc_ids?: string[] | null;
   /** v2.20 (#83): recorded value for `reading`-type tasks. */
   reading_value?: number | null;
+  /** #161 phase 2: per-slot snapshot of a task with reading slots. */
+  reading_values?: ReadingValue[] | null;
   /** #99/#130: the completion's part consumption (entry_id set for pooled). */
   used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null;
   /** v2.37: completion recorded by the system itself (trigger recovered),
@@ -275,6 +293,8 @@ export interface MaintenanceTask {
   document_count?: number;
   /** v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...). */
   reading_unit?: string | null;
+  /** #161 phase 2: reading slots ([] = single value with reading_unit). */
+  readings?: ReadingSlot[] | null;
   priority?: string | null;
   entity_slug?: string | null;
   // Auto-derived sensor + binary_sensor entity_ids (since 1.0.45)

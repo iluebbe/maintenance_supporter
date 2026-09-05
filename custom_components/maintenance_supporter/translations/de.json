@@ -709,6 +709,7 @@
           "go_back": "Zurück",
           "interval_anchor": "Intervall-Anker",
           "reading_unit": "Ableseeinheit (für Ablese-Aufgaben, z. B. kWh)",
+          "readings_text": "Ablesewerte (je Zeile: Name | Einheit)",
           "season_months": "Saisonfenster (Monate)",
           "ends_count": "Endet nach (Anzahl)",
           "ends_until": "Endet am Datum"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Ablesewert",
           "description": "Erfasster Wert für Ablese-Aufgaben (Zählerstand, Füllstandskontrolle)."
+        },
+        "reading_values": {
+          "name": "Ablesewerte",
+          "description": "Werte für eine Aufgabe mit mehreren benannten Ablesungen, nach Name (z. B. Wasser kalt: 123.4)."
         },
         "completed_by": {
           "name": "Erledigt von",

@@ -2,8 +2,8 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { HomeAssistant, TaskPartLink } from "../types";
-import { t, nativeFieldStyles, formatCost } from "../styles";
+import type { HomeAssistant, ReadingSlot, ReadingValue, TaskPartLink } from "../types";
+import { t, nativeFieldStyles, formatCost, formatNumber } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
@@ -25,6 +25,11 @@ export class MaintenanceCompleteDialog extends LitElement {
   // v2.20 (#83): task type + unit drive the reading-value field below.
   @property() public taskType = "";
   @property() public readingUnit = "";
+  /** #161 phase 2: the task's reading slots — one field each instead of
+   *  the single value; [] keeps the scalar field. */
+  @property({ attribute: false }) public readings: ReadingSlot[] = [];
+  /** The newest recorded value per slot id ("last: …" hint + warning). */
+  @property({ attribute: false }) public lastReadings: Record<string, ReadingValue> = {};
   /** Buy task (part_ref): default restock quantity — shows an editable qty field. */
   @property({ attribute: false }) public restockDefault: number | null = null;
   /** #104 follow-up: the buy task's part unit cost — powers the cost
@@ -73,6 +78,8 @@ export class MaintenanceCompleteDialog extends LitElement {
   private _uploadedIds: string[] = [];
   @state() private _photoUploading = false;
   @state() private _readingValue = "";
+  /** #161 phase 2: typed text per slot id (parsed on save; "" = unread). */
+  @state() private _readingValues: Record<string, string> = {};
   @state() private _restockQty = "";
   /** #133: optional backdated completion moment ("YYYY-MM-DDTHH:MM:SS" local; "" = now). */
   @state() private _completedAt = "";
@@ -107,6 +114,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._uploadedIds = [];
     this._photoUploading = false;
     this._readingValue = "";
+    this._readingValues = {};
     this._restockQty = this.restockDefault !== null ? String(this.restockDefault) : "";
     this._completedAt = "";
     // #99: prefill "parts used" with the task's fixed links — the user can
@@ -214,7 +222,18 @@ export class MaintenanceCompleteDialog extends LitElement {
         // normalisation as the history-edit dialog).
         data.completed_at = this._completedAt.length === 16 ? `${this._completedAt}:00` : this._completedAt;
       }
-      if (this._readingValue !== "") {
+      if (this.readings.length > 0) {
+        // #161 phase 2: only the meters actually read go out; the backend
+        // snapshots name + unit per slot id.
+        const values: Record<string, number> = {};
+        for (const slot of this.readings) {
+          const raw = (this._readingValues[slot.id] ?? "").trim();
+          if (raw === "") continue;
+          const num = parseFloat(raw.replace(",", "."));
+          if (!isNaN(num)) values[slot.id] = num;
+        }
+        if (Object.keys(values).length > 0) data.reading_values = values;
+      } else if (this._readingValue !== "") {
         const rv = parseFloat(this._readingValue);
         if (!isNaN(rv)) data.reading_value = rv;
       }
@@ -244,6 +263,29 @@ export class MaintenanceCompleteDialog extends LitElement {
     } finally {
       this._loading = false;
     }
+  }
+
+  /** #161 phase 2: one field per slot with the previous value as a hint;
+   *  a value below the last one gets a warning (meters count up — a
+   *  replaced meter or a typo), never a block. */
+  private _renderReadingField(slot: ReadingSlot, L: string) {
+    const last = this.lastReadings[slot.id];
+    const unit = slot.unit || this.readingUnit;
+    const raw = (this._readingValues[slot.id] ?? "").trim();
+    const num = raw === "" ? NaN : parseFloat(raw.replace(",", "."));
+    const below = last !== undefined && !isNaN(num) && num < last.value;
+    const lastText = last !== undefined ? formatNumber(last.value, L, { maximumFractionDigits: 3 }) : "";
+    return html`
+      <label class="field reading-field">
+        <span class="field-label">${slot.name}${unit ? ` (${unit})` : ""}</span>
+        <input type="text" inputmode="decimal" class="field-input"
+          placeholder=${last !== undefined ? t("reading_last", L).replace("{value}", lastText) : ""}
+          .value=${this._readingValues[slot.id] ?? ""}
+          @input=${(e: Event) => {
+            this._readingValues = { ...this._readingValues, [slot.id]: (e.target as HTMLInputElement).value };
+          }} />
+        ${below ? html`<span class="reading-warn">${t("reading_below_last", L).replace("{value}", lastText)}</span>` : nothing}
+      </label>`;
   }
 
   /** Required details the user has not supplied yet (drives Save + markers). */
@@ -346,7 +388,12 @@ export class MaintenanceCompleteDialog extends LitElement {
               `)}
             </div>
           ` : nothing}
-          ${this.taskType === "reading"
+          ${this.readings.length > 0
+            ? html`<div class="readings-block">
+                <span class="field-label">${t("readings_section", L)}</span>
+                ${this.readings.map((slot) => this._renderReadingField(slot, L))}
+              </div>`
+            : this.taskType === "reading"
             ? html`
               <label class="field">
                 <span class="field-label">${t("reading_value_label", L)}${this.readingUnit ? ` (${this.readingUnit})` : ""}</span>
@@ -596,6 +643,13 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-size: 13px;
     }
     /* .field/.field-label/.field-input come from nativeFieldStyles */
+    /* #161 phase 2: the per-slot reading fields */
+    .readings-block { display: flex; flex-direction: column; gap: 8px; }
+    .readings-block > .field-label { margin-bottom: -4px; }
+    .reading-warn {
+      font-size: 12px;
+      color: var(--warning-color, #ff9800);
+    }
     .photo-pick {
       display: inline-flex;
       align-items: center;

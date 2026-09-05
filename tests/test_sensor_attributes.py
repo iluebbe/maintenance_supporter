@@ -837,6 +837,7 @@ _ATTR_EXEMPT = {
     "require_tag_scan": "completion gating config, not routable state",
     "allow_skip": "skip gating config, not routable state — enforcement lives in the coordinator (#150)",
     "reading_unit": "display unit for the reading dialog; rides the WS payload",
+    "readings": "slot definitions (#161 phase 2) — the VALUES surface as last_readings; defs ride the WS payload",
     "consumes_parts": "structured part links; the parts surfaces own this",
     "checklist": "structured list — recorder bloat; served via WS",
     "labels": "list; candidate for exposure if automations need it (#134 follow-up)",

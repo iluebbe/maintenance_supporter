@@ -149,6 +149,8 @@ def _build_export_object(
             "required_completion_fields": tdata.get("required_completion_fields"),
             "rotation_strategy": tdata.get("rotation_strategy"),
             "reading_unit": tdata.get("reading_unit"),
+            # #161 phase 2: reading slots (history carries the per-slot values).
+            "readings": tdata.get("readings"),
             # Task phases (#139): defs + cycle are static config; the cursor is
             # Store-merged by merged_tasks, so a restore resumes mid-cycle
             # instead of silently restarting at step one.

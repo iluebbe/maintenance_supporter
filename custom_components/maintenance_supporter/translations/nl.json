@@ -709,6 +709,7 @@
           "go_back": "Terug",
           "interval_anchor": "Interval-anker",
           "reading_unit": "Meeteenheid (voor aflees-taken, bijv. kWh)",
+          "readings_text": "Meterstanden (één per regel: Naam | Eenheid)",
           "season_months": "Seizoensvenster (maanden)",
           "ends_count": "Eindigt na (aantal keer)",
           "ends_until": "Eindigt op datum"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Meterstand",
           "description": "Vastgelegde waarde voor aflees-taken (meterstand, niveaucontrole)."
+        },
+        "reading_values": {
+          "name": "Meterstanden",
+          "description": "Waarden voor een taak met meerdere benoemde meterstanden, op naam (bijv. Water koud: 123.4)."
         },
         "completed_by": {
           "name": "Voltooid door",

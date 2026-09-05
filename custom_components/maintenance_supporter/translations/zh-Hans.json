@@ -709,6 +709,7 @@
           "go_back": "返回",
           "interval_anchor": "计划锚点",
           "reading_unit": "读数单位（用于读数任务，如 kWh）",
+          "readings_text": "读数（每行一个：名称 | 单位）",
           "season_months": "季节窗口（月份）",
           "ends_count": "达到次数后结束",
           "ends_until": "在日期结束"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "读数值",
           "description": "读数类任务记录的值（抄表、液位检查）。"
+        },
+        "reading_values": {
+          "name": "读数",
+          "description": "适用于包含多个命名读数的任务，按读数名称填写（例如 冷水: 123.4）。"
         },
         "completed_by": {
           "name": "完成人",

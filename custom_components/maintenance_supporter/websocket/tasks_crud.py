@@ -106,6 +106,7 @@ TASK_UPDATE_FIELD_MAP = {
     "require_tag_scan": "require_tag_scan",
     "allow_skip": "allow_skip",
     "reading_unit": "reading_unit",
+    "readings": "readings",
     "consumes_parts": "consumes_parts",
     "phases": "phases",
     "phase_sequence": "phase_sequence",
@@ -201,6 +202,9 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("allow_skip"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
+        # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
+        # by helpers/reading_slots.sanitize_reading_slots at both write paths.
+        vol.Optional("readings"): vol.Any(list, None),
         # Spare parts consumed on completion: [{part_id, quantity}].
         vol.Optional("consumes_parts"): vol.Any(list, None),
         # Task phases (#139): cyclic content rotation on one cadence.
@@ -382,6 +386,12 @@ async def ws_create_task(
     # v2.20 (#83): unit for `reading`-type tasks.
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
+    if msg.get("readings"):
+        from ..helpers.reading_slots import sanitize_reading_slots
+
+        slots = sanitize_reading_slots(msg["readings"])
+        if slots:
+            task_data["readings"] = slots
     if msg.get("consumes_parts") is not None:
         from ..const import CONF_PARTS
         from ..helpers.parts import sanitize_consumes_parts
@@ -484,6 +494,9 @@ _TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("allow_skip"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
+        # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
+        # by helpers/reading_slots.sanitize_reading_slots at both write paths.
+        vol.Optional("readings"): vol.Any(list, None),
         # Spare parts consumed on completion: [{part_id, quantity}].
         vol.Optional("consumes_parts"): vol.Any(list, None),
         # Task phases (#139): cyclic content rotation on one cadence.
@@ -615,6 +628,17 @@ async def ws_update_task(
             set(entry.data.get(CONF_PARTS) or {}),
             foreign_part_ids=foreign_part_resolver(hass),
         )
+
+    # #161 phase 2: same raw-field-map lesson — validate the slot list here so
+    # both write paths persist the identical shape; an empty list clears.
+    if "readings" in msg:
+        from ..helpers.reading_slots import sanitize_reading_slots
+
+        slots = sanitize_reading_slots(msg["readings"])
+        if slots:
+            task["readings"] = slots
+        else:
+            task.pop("readings", None)
 
     # Phases (#139): the raw field-map copy above skipped validation (the
     # raw-field-map lesson) — sanitize here, and clamp the Store cursor

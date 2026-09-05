@@ -709,6 +709,7 @@
           "go_back": "Vissza",
           "interval_anchor": "Intervallum horgonya",
           "reading_unit": "Leolvasás mértékegysége (leolvasási feladatokhoz, pl. kWh)",
+          "readings_text": "Leolvasások (soronként egy: Név | Mértékegység)",
           "season_months": "Szezonális időablak (hónapok)",
           "ends_count": "Befejeződik ennyi alkalom után",
           "ends_until": "Befejeződik ezen a dátumon"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Leolvasott érték",
           "description": "A leolvasás típusú feladatokhoz rögzített érték (mérőállás, szintellenőrzés)."
+        },
+        "reading_values": {
+          "name": "Leolvasások",
+          "description": "Több nevesített leolvasással rendelkező feladat értékei, név szerint (pl. Hideg víz: 123.4)."
         },
         "completed_by": {
           "name": "Elvégezte",

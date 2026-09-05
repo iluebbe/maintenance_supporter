@@ -709,6 +709,7 @@
           "go_back": "Volver",
           "interval_anchor": "Anclaje de intervalo",
           "reading_unit": "Unidad de lectura (para tareas de lectura, p. ej. kWh)",
+          "readings_text": "Lecturas (una por línea: Nombre | Unidad)",
           "season_months": "Ventana estacional (meses)",
           "ends_count": "Termina tras (numero de veces)",
           "ends_until": "Termina en la fecha"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Valor de lectura",
           "description": "Valor registrado para tareas de lectura (lectura de contador, control de nivel)."
+        },
+        "reading_values": {
+          "name": "Lecturas",
+          "description": "Valores para una tarea con varias lecturas con nombre, por nombre (p. ej. Agua fría: 123.4)."
         },
         "completed_by": {
           "name": "Completado por",

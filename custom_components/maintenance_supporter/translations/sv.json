@@ -709,6 +709,7 @@
           "go_back": "Tillbaka",
           "interval_anchor": "Intervallankare",
           "reading_unit": "Avläsningsenhet (för avläsningsuppgifter, t.ex. kWh)",
+          "readings_text": "Avläsningar (en per rad: Namn | Enhet)",
           "season_months": "Sasongsfonster (manader)",
           "ends_count": "Slutar efter (antal ganger)",
           "ends_until": "Slutar pa datum"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Avläst värde",
           "description": "Registrerat värde för avläsningsuppgifter (mätaravläsning, nivåkontroll)."
+        },
+        "reading_values": {
+          "name": "Avläsningar",
+          "description": "Värden för en uppgift med flera namngivna avläsningar, per namn (t.ex. Vatten kallt: 123.4)."
         },
         "completed_by": {
           "name": "Slutförd av",

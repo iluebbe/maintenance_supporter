@@ -38,6 +38,7 @@ const EDITABLE: Record<string, string> = {
   // #150: per-task skip lock — round-trips through the dialog checkbox.
   allow_skip: "allow_skip",
   reading_unit: "reading_unit",
+  readings: "readings", // #161 phase 2: slot list, re-sent whole on every save
   consumes_parts: "consumes_parts",
   priority: "priority",
   checklist: "checklist",

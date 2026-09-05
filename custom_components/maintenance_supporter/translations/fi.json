@@ -709,6 +709,7 @@
           "go_back": "Palaa takaisin",
           "interval_anchor": "Aikavälin ankkuri",
           "reading_unit": "Lukeman yksikkö (lukematehtäville, esim. kWh)",
+          "readings_text": "Lukemat (yksi riviä kohti: Nimi | Yksikkö)",
           "season_months": "Kausi-ikkuna (kuukaudet)",
           "ends_count": "Paattyy (kertamaaran) jalkeen",
           "ends_until": "Paattyy paivamaarana"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Lukema",
           "description": "Kirjattu arvo lukematehtäville (mittarilukema, tason tarkistus)."
+        },
+        "reading_values": {
+          "name": "Lukemat",
+          "description": "Arvot tehtävälle, jossa on useita nimettyjä lukemia, nimen mukaan (esim. Vesi kylmä: 123.4)."
         },
         "completed_by": {
           "name": "Suorittaja",

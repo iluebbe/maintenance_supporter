@@ -22,6 +22,7 @@ from ..const import (
 from .aggregate import merged_tasks
 from .dates import INTERVAL_UNITS
 from .global_options import get_default_warning_days
+from .reading_slots import parse_reading_slots_text, reading_slots_text
 from .schedule import read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,6 +51,9 @@ _COLUMNS = [
     "interval_anchor",
     "schedule_time",
     "reading_unit",
+    # #161 phase 2: reading slots, one "Name | Unit" per line (ids are
+    # regenerated on import — a CSV round-trip creates new tasks anyway).
+    "readings",
     "warning_days",
     "last_performed",
     "notes",
@@ -124,6 +128,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "interval_anchor": sched["interval_anchor"],
                     "schedule_time": tdata.get("schedule_time", ""),
                     "reading_unit": _csv_safe(tdata.get("reading_unit", "")),
+                    "readings": "\n".join(_csv_safe(line) for line in reading_slots_text(tdata.get("readings")).splitlines()),
                     "warning_days": tdata.get("warning_days", DEFAULT_WARNING_DAYS),
                     "last_performed": tdata.get("last_performed", ""),
                     "notes": _csv_safe(tdata.get("notes", "")),
@@ -287,6 +292,11 @@ def import_objects_csv(
         reading_unit = (row.get("reading_unit") or "").strip()
         if reading_unit:
             task_data["reading_unit"] = reading_unit[:32]
+        readings_raw = row.get("readings") or ""
+        if readings_raw.strip():
+            slots = parse_reading_slots_text(readings_raw)
+            if slots:
+                task_data["readings"] = slots
 
         last_performed = (row.get("last_performed") or "").strip()
         if last_performed:

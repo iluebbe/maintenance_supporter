@@ -709,6 +709,7 @@
           "go_back": "Retour",
           "interval_anchor": "Ancrage d'intervalle",
           "reading_unit": "Unité de relevé (pour les tâches de relevé, p. ex. kWh)",
+          "readings_text": "Relevés (un par ligne : Nom | Unité)",
           "season_months": "Fenetre saisonniere (mois)",
           "ends_count": "Se termine apres (nombre de fois)",
           "ends_until": "Se termine a la date"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Valeur relevée",
           "description": "Valeur enregistrée pour les tâches de relevé (relevé de compteur, contrôle de niveau)."
+        },
+        "reading_values": {
+          "name": "Relevés",
+          "description": "Valeurs pour une tâche à plusieurs relevés nommés, par nom (ex. Eau froide : 123.4)."
         },
         "completed_by": {
           "name": "Effectué par",

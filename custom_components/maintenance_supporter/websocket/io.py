@@ -92,6 +92,20 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
         cost = clean.get("cost")
         if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
             clean.pop("cost", None)
+        # Readings (#83 / #161 phase 2): same NaN/Infinity hole — a poisoned
+        # value would break every delta after it. Malformed slot snapshots
+        # are dropped item-wise, the completion itself is kept.
+        rv = clean.get("reading_value")
+        if rv is not None and (isinstance(rv, bool) or not isinstance(rv, (int, float)) or not math.isfinite(rv)):
+            clean.pop("reading_value", None)
+        if "reading_values" in clean:
+            from ..helpers.reading_slots import history_reading_values
+
+            snapshot = history_reading_values(clean)
+            if snapshot:
+                clean["reading_values"] = snapshot
+            else:
+                clean.pop("reading_values", None)
         out.append(clean)
     return out
 
@@ -790,6 +804,7 @@ async def ws_import_json(
                 "required_completion_fields",
                 "rotation_strategy",
                 "reading_unit",
+                "readings",
                 # spare parts (ids remapped below)
                 "consumes_parts",
                 "part_ref",
@@ -935,6 +950,16 @@ async def ws_import_json(
                     cleaned = [item.strip() for item in cl if isinstance(item, str) and len(item) <= MAX_CHECKLIST_ITEM_LENGTH]
                     cleaned = [c for c in cleaned if c]
                     task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
+
+            # #161 phase 2: reading slots — same shape rules as the WS write.
+            if task_data.get("readings") is not None:
+                from ..helpers.reading_slots import sanitize_reading_slots
+
+                slots = sanitize_reading_slots(task_data["readings"])
+                if slots:
+                    task_data["readings"] = slots
+                else:
+                    task_data.pop("readings", None)
 
             # schedule_time: strict HH:MM, otherwise drop
             st = task_data.get("schedule_time")

@@ -32,6 +32,7 @@
 
 import { STATUS_ICONS } from "./status-constants";
 import { historyPhotoIds } from "./helpers/history-photos";
+import { entryReadingValues } from "./helpers/reading-slots";
 
 interface MaintenanceObjectResp {
   entry_id: string;
@@ -1143,7 +1144,13 @@ function registerLlCustomHandler(): void {
         if (!hass) return;
         try {
           const r = await hass.connection.sendMessagePromise<{
-            tasks?: Array<{ id?: string; history?: Array<Record<string, unknown>> }>;
+            tasks?: Array<{
+              id?: string;
+              type?: string;
+              reading_unit?: string | null;
+              readings?: Array<{ id: string; name: string; unit?: string | null }> | null;
+              history?: Array<Record<string, unknown>>;
+            }>;
           }>({
             type: "maintenance_supporter/object",
             entry_id: detail.entry_id,
@@ -1165,6 +1172,11 @@ function registerLlCustomHandler(): void {
             completed_by: (histEntry.completed_by as string) ?? null,
             used_parts: (histEntry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
             photo_doc_ids: historyPhotoIds(histEntry),
+            reading_value: (histEntry.reading_value as number | null) ?? null,
+            reading_values: entryReadingValues(histEntry),
+            readings: task?.readings ?? [],
+            task_type: task?.type ?? null,
+            reading_unit: task?.reading_unit ?? null,
           });
         } catch {
           deepLink("/maintenance-supporter");

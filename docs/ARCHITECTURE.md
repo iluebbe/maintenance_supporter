@@ -295,7 +295,8 @@ custom_components/maintenance_supporter/
 │   │                                           max per task, no projection for sensor-based), worksheet, report,
 │   │                                           virtual-window, object-columns, download, warranty, interval,
 │   │                                           storage-keys, format-bytes, url, notes-markdown (ha-markdown hand-off), bundle-version (stale-bundle guard),
-│   │                                           history-photos (#161: photo_doc_ids ∪ legacy photo_doc_id, cap 10), photo-upload (multipart upload + orphan cleanup)
+│   │                                           history-photos (#161: photo_doc_ids ∪ legacy photo_doc_id, cap 10), photo-upload (multipart upload + orphan cleanup),
+│   │                                           reading-slots (#161 phase 2: entry snapshot, last value per slot, per-slot delta)
 │   ├── renderers/               (1,782 lines)  task-detail (452), sparkline (361), progress (200), weibull (187),
 │   │                                           charts, history, seasonal, prediction, recommendation, chart-utils
 │   └── components/             (12,360 lines)  27 files
@@ -360,6 +361,7 @@ custom_components/maintenance_supporter/
 │   ├── aggregate.py                (85 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (35 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (26 lines)  Compatibility shim → signatures/
+│   ├── reading_slots.py           (229 lines)  #161 phase 2: reading slots — sanitize [{id,name,unit}], textarea form, resolve {id: value} / {name: value} into the entry snapshot, sensor attrs
 │   ├── global_options.py (80), pause.py (79), status.py (50), completion_photos.py (47: photo_doc_ids ∪ legacy scalar, cap 10), task_fields.py (44), notify_targets.py (39)
 │   └── signatures/              (2,873 lines)  Suggested-setups catalog: 123 integrations / 235 signatures
 │       ├── _model.py              (306 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics

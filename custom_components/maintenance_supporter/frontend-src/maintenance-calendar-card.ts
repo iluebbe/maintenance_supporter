@@ -38,10 +38,12 @@ import { calendarStyles } from "./calendar-styles";
 import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost } from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { historyPhotoIds } from "./helpers/history-photos";
+import { entryReadingValues } from "./helpers/reading-slots";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
+  ReadingSlot,
   StatisticsResponse,
 } from "./types";
 
@@ -227,11 +229,16 @@ export class MaintenanceCalendarCard extends LitElement {
   private async _openHistoryEntry(ev: CalendarEvent): Promise<void> {
     try {
       const resp = await this.hass.connection.sendMessagePromise<{
-        tasks?: Array<{ id: string; history?: Array<Record<string, unknown>> }>;
+        tasks?: Array<{
+          id: string;
+          type?: string;
+          reading_unit?: string | null;
+          readings?: ReadingSlot[] | null;
+          history?: Array<Record<string, unknown>>;
+        }>;
       }>({ type: "maintenance_supporter/object", entry_id: ev.entry_id });
-      const entry = resp.tasks
-        ?.find((tk) => tk.id === ev.task_id)
-        ?.history?.find((h) => h.timestamp === ev.history_timestamp);
+      const histTask = resp.tasks?.find((tk) => tk.id === ev.task_id);
+      const entry = histTask?.history?.find((h) => h.timestamp === ev.history_timestamp);
       if (!entry) return;
       const opened = openHistoryEditDialog({
         entry_id: ev.entry_id,
@@ -246,6 +253,11 @@ export class MaintenanceCalendarCard extends LitElement {
         used_parts:
           (entry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
         photo_doc_ids: historyPhotoIds(entry),
+        reading_value: (entry.reading_value as number | null) ?? null,
+        reading_values: entryReadingValues(entry),
+        readings: histTask?.readings ?? [],
+        task_type: histTask?.type ?? null,
+        reading_unit: histTask?.reading_unit ?? null,
       });
       if (opened) return;
     } catch {

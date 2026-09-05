@@ -109,6 +109,13 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # Meter readings (v2.20, #83): the recorded value for `reading` tasks.
         # Wide numeric bounds — meters count high, temperatures go negative.
         vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
+        # #161 phase 2: {slot_id: value} for a task with reading slots; None
+        # skips a meter this time. Ids are checked against the task's slots
+        # in the handler (unknown -> invalid_input).
+        vol.Optional("reading_values"): vol.Any(
+            {str: vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None)},
+            None,
+        ),
         # Spare parts: on an auto-created "buy" task, how many units were
         # actually bought (dialog override of the part's restock_quantity).
         vol.Optional("restock_quantity"): vol.Any(vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=9999)), None),
@@ -192,6 +199,19 @@ async def ws_complete_task(
             foreign_part_ids=foreign_part_resolver(hass),
         )
 
+    # #161 phase 2: resolve the slot values into the history snapshot.
+    reading_values = None
+    if msg.get("reading_values"):
+        from ..helpers.reading_slots import resolve_reading_values
+        from . import _get_merged_tasks
+
+        slots = (_get_merged_tasks(_entry).get(msg["task_id"]) or {}).get("readings") or []
+        try:
+            reading_values = resolve_reading_values(slots, msg["reading_values"]) or None
+        except ValueError as err:
+            connection.send_error(msg["id"], "invalid_input", str(err))
+            return
+
     try:
         await rd.coordinator.complete_maintenance(
             task_id=msg["task_id"],
@@ -202,6 +222,7 @@ async def ws_complete_task(
             feedback=msg.get("feedback"),
             photo_doc_ids=normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id")) or None,
             reading_value=msg.get("reading_value"),
+            reading_values=reading_values,
             restock_quantity=msg.get("restock_quantity"),
             used_parts=used_parts,
             completed_at=completed_at,

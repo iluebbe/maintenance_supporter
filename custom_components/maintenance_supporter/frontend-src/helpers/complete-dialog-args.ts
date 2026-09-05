@@ -14,7 +14,8 @@
  * default rather than leak the previous task's.
  */
 
-import type { MaintenanceTask, TaskPartLink } from "../types";
+import type { MaintenanceTask, ReadingSlot, ReadingValue, TaskPartLink } from "../types";
+import { lastReadingsBySlot } from "./reading-slots";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 import { describePartLink, partsForCompletion, type LinkedPart, type PartOwner } from "./shared-parts";
 import { effectivePhase, phaseLabel } from "./phases";
@@ -32,6 +33,9 @@ export interface CompleteDialogArgs {
   /** Reading tasks need type+unit or the value field never renders. */
   task_type?: string;
   reading_unit?: string;
+  /** #161 phase 2: reading slots + the newest value per slot id. */
+  readings?: ReadingSlot[];
+  last_readings?: Record<string, ReadingValue>;
   /** #99/#111: per-completion parts selection incl. shared pools. */
   parts?: LinkedPart[];
   consumes_parts?: TaskPartLink[];
@@ -97,6 +101,8 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
     required_completion_fields: phase ? phase.requiredFields : (task?.required_completion_fields || []),
     task_type: task?.type || "",
     reading_unit: task?.reading_unit || "",
+    readings: task?.readings || [],
+    last_readings: lastReadingsBySlot(task?.history),
     // #99: editable per-completion parts selection. The list carries the
     // object's own parts plus the shared pools this task draws on (#111), so
     // a foreign link is visible and untickable rather than silently absent.
@@ -121,7 +127,7 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
 export type CompleteDialogTarget = Pick<
   MaintenanceCompleteDialog,
   | "entryId" | "taskId" | "taskName" | "lang" | "checklist" | "adaptiveEnabled"
-  | "requiredFields" | "taskType" | "readingUnit" | "parts" | "consumesParts"
+  | "requiredFields" | "taskType" | "readingUnit" | "readings" | "lastReadings" | "parts" | "consumesParts"
   | "phaseLabel" | "requireTagScan" | "restockDefault" | "restockUnitCost"
   | "currencySymbol" | "consumesInfo" | "checklistPrefill" | "viaTagScan" | "open"
 >;
@@ -141,6 +147,8 @@ export function fillAndOpenCompleteDialog(
   dlg.requiredFields = args.required_completion_fields ?? [];
   dlg.taskType = args.task_type ?? "";
   dlg.readingUnit = args.reading_unit ?? "";
+  dlg.readings = args.readings ?? [];
+  dlg.lastReadings = args.last_readings ?? {};
   dlg.parts = args.parts ?? [];
   dlg.consumesParts = args.consumes_parts ?? [];
   dlg.phaseLabel = args.phase_label ?? "";

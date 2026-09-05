@@ -709,6 +709,7 @@
           "go_back": "Gå tilbake",
           "interval_anchor": "Intervallanker",
           "reading_unit": "Avlesningsenhet (for avlesningsoppgaver, f.eks. kWh)",
+          "readings_text": "Avlesninger (én per linje: Navn | Enhet)",
           "season_months": "Sesongvindu (maneder)",
           "ends_count": "Slutter etter (antall ganger)",
           "ends_until": "Slutter pa dato"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Avlest verdi",
           "description": "Registrert verdi for avlesningsoppgaver (måleravlesning, nivåkontroll)."
+        },
+        "reading_values": {
+          "name": "Avlesninger",
+          "description": "Verdier for en oppgave med flere navngitte avlesninger, etter navn (f.eks. Vann kaldt: 123.4)."
         },
         "completed_by": {
           "name": "Utført av",

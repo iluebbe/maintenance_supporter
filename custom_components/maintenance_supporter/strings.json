@@ -709,6 +709,7 @@
           "nfc_tag_id": "NFC tag ID",
           "go_back": "Go back",
           "reading_unit": "Reading unit (for reading tasks, e.g. kWh)",
+          "readings_text": "Readings (one per line: Name | Unit)",
           "season_months": "Seasonal window (months)",
           "ends_count": "Ends after (number of times)",
           "ends_until": "Ends on date"
@@ -1522,6 +1523,10 @@
         "reading_value": {
           "name": "Reading value",
           "description": "Recorded value for reading-type tasks (meter reading, level check)."
+        },
+        "reading_values": {
+          "name": "Readings",
+          "description": "Values for a task with several named readings, keyed by reading name (e.g. Water cold: 123.4)."
         },
         "completed_by": {
           "name": "Completed by",

@@ -709,6 +709,7 @@
           "go_back": "뒤로 가기",
           "interval_anchor": "주기 기준점",
           "reading_unit": "측정 단위(측정형 작업용, 예: kWh)",
+          "readings_text": "검침 항목 (한 줄에 하나: 이름 | 단위)",
           "season_months": "계절 기간(월)",
           "ends_count": "종료 횟수(반복 횟수)",
           "ends_until": "종료 날짜"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "측정값",
           "description": "측정형 작업에 기록할 값입니다(계량기 값, 수위 확인 등)."
+        },
+        "reading_values": {
+          "name": "검침값",
+          "description": "여러 개의 이름 있는 검침 항목이 있는 작업의 값으로, 항목 이름을 키로 사용합니다 (예: 냉수: 123.4)."
         },
         "completed_by": {
           "name": "완료자",

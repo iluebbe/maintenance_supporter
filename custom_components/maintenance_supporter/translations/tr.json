@@ -709,6 +709,7 @@
           "go_back": "Geri dön",
           "interval_anchor": "Aralık dayanağı",
           "reading_unit": "Okuma birimi (okuma görevleri için, örn. kWh)",
+          "readings_text": "Sayaç okumaları (her satıra bir: Ad | Birim)",
           "season_months": "Mevsimsel pencere (aylar)",
           "ends_count": "Şu kadar tekrardan sonra biter",
           "ends_until": "Şu tarihte biter"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Okuma değeri",
           "description": "Okuma türü görevler için kaydedilen değer (sayaç okuması, seviye kontrolü)."
+        },
+        "reading_values": {
+          "name": "Sayaç okumaları",
+          "description": "Birden fazla adlandırılmış okuması olan bir görev için değerler, okuma adına göre (örn. Soğuk su: 123.4)."
         },
         "completed_by": {
           "name": "Tamamlayan",

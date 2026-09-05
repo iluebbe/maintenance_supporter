@@ -82,6 +82,11 @@ class MaintenanceTask:
     # "m³", …). The value itself lives per completion in the history entry
     # (`reading_value`), so the unit is task-level config, not state.
     reading_unit: str | None = None
+    # #161 phase 2: named reading slots [{id, name, unit}] — a task with
+    # slots records `reading_values` (a per-slot snapshot) on each
+    # completion instead of the single `reading_value` scalar. Shapes and
+    # caps: helpers/reading_slots.py.
+    readings: list[dict[str, Any]] = field(default_factory=list)
 
     # --- Archive (v2.10.0) ---
     # archived_at is an ISO timestamp; None means active. When set, the task
@@ -355,6 +360,7 @@ class MaintenanceTask:
         completed_by: str | None = None,
         photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
+        reading_values: list[dict[str, Any]] | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
         completed_at: datetime | None = None,
@@ -431,6 +437,7 @@ class MaintenanceTask:
             completed_by=completed_by,
             photo_doc_ids=photo_doc_ids,
             reading_value=reading_value,
+            reading_values=reading_values,
             used_parts=used_parts,
             auto=auto,
             timestamp=ts_iso,
@@ -536,6 +543,7 @@ class MaintenanceTask:
         completed_by: str | None = None,
         photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
+        reading_values: list[dict[str, Any]] | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
         timestamp: str | None = None,
@@ -579,6 +587,10 @@ class MaintenanceTask:
         # completion entry — the delta view derives from consecutive entries.
         if reading_value is not None:
             entry["reading_value"] = reading_value
+        # #161 phase 2: per-slot snapshot [{id, name, unit, value}] — name and
+        # unit copied so a later slot rename never rewrites old entries.
+        if reading_values:
+            entry["reading_values"] = [dict(v) for v in reading_values]
         if used_parts:
             # #99: the parts actually used on THIS completion ([{part_id,
             # name, quantity}]) — explicit per-completion consumption record.
@@ -648,6 +660,8 @@ class MaintenanceTask:
             data["nfc_tag_id"] = self.nfc_tag_id
         if self.reading_unit is not None:
             data["reading_unit"] = self.reading_unit
+        if self.readings:
+            data["readings"] = self.readings
         # Only persist a non-default priority to keep stored dicts lean.
         if self.priority and self.priority != "normal":
             data["priority"] = self.priority
@@ -716,6 +730,7 @@ class MaintenanceTask:
             custom_icon=data.get("custom_icon"),
             nfc_tag_id=data.get("nfc_tag_id"),
             reading_unit=data.get("reading_unit"),
+            readings=data.get("readings") or [],
             priority=data.get("priority", "normal"),
             labels=data.get("labels", []),
             archived_at=data.get("archived_at"),

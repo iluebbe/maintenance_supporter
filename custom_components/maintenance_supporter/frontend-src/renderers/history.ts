@@ -11,6 +11,7 @@ import { t, formatDateTime, formatNumber, formatCost, STATUS_ICONS } from "../st
 import type { MaintenanceTask, HistoryEntry, HomeAssistant } from "../types";
 import "../components/history-photo";
 import { historyPhotoIds } from "../helpers/history-photos";
+import { entryReadingValues } from "../helpers/reading-slots";
 
 export interface HistoryContext {
   lang: string;
@@ -28,6 +29,8 @@ export interface HistoryContext {
   /** v2.20 (#83): unit + delta-vs-previous for reading-task entries. */
   readingUnit?: string | null;
   readingDelta?: (entry: HistoryEntry) => number | null;
+  /** #161 phase 2: delta of one slot vs. the previous entry carrying it. */
+  readingSlotDelta?: (entry: HistoryEntry, slotId: string) => number | null;
   /** #139: phase id → display name, for entries stamped with a phase_id. */
   phaseNames?: Record<string, string>;
 }
@@ -119,6 +122,21 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
                 ${photos.map((docId) => html`<maintenance-history-photo .hass=${ctx.hass} .docId=${docId}></maintenance-history-photo>`)}
               </div>`
             : nothing;
+        })()}
+        ${(() => {
+          // #161 phase 2: one line per recorded slot, delta vs. the previous
+          // completion that carried the same slot.
+          const values = entryReadingValues(entry);
+          if (values.length === 0) return nothing;
+          return html`<div class="history-readings">
+            ${values.map((v) => {
+              const d = ctx.readingSlotDelta?.(entry, v.id);
+              return html`<span class="history-reading">
+                <span class="history-reading-name">${v.name}</span>
+                <span class="history-reading-value">${formatNumber(v.value, L, { maximumFractionDigits: 3 })}${v.unit ? ` ${v.unit}` : ""}${d == null ? "" : ` (${d >= 0 ? "+" : ""}${formatNumber(d, L, { maximumFractionDigits: 3 })})`}</span>
+              </span>`;
+            })}
+          </div>`;
         })()}
         <div class="history-details">
           ${entry.cost != null ? html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>` : nothing}

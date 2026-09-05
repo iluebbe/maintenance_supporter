@@ -317,7 +317,7 @@ automation:
 Since 2.71 `entity_id` accepts a **list** (or a comma-separated string) on
 `complete`, `skip` and `reset` — every task runs its own completion rules,
 refusals are collected without blocking the others, and per-task values
-(`cost`, `duration`, `reading_value`, `via_tag_scan`) stay single-entity so
+(`cost`, `duration`, `reading_value`, `reading_values`, `via_tag_scan`) stay single-entity so
 they can't fan out into the budget.
 
 `list_tasks` rows carry everything a notification or a follow-up action
@@ -356,6 +356,22 @@ data:
   cost: 45.99
   duration: 30
 ```
+
+A reading task with several **reading slots** (2.75+) takes the values by
+slot name (case-insensitive) — a meter left out is simply not recorded:
+
+```yaml
+service: maintenance_supporter.complete
+data:
+  entity_id: sensor.utility_meters_monthly_reading
+  reading_values:
+    Water cold: 1234.5
+    Electricity: 48210
+```
+
+The newest values are on the task sensor as `last_readings`, so a template
+can show them without touching the history:
+`{{ state_attr('sensor.utility_meters_monthly_reading', 'last_readings')['Water cold'] }}`.
 
 ### Complete a tag-gated task from an automation (2.67)
 

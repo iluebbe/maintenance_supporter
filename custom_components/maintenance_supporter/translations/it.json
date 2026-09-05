@@ -709,6 +709,7 @@
           "go_back": "Indietro",
           "interval_anchor": "Ancoraggio intervallo",
           "reading_unit": "Unità di lettura (per attività di lettura, es. kWh)",
+          "readings_text": "Letture (una per riga: Nome | Unità)",
           "season_months": "Finestra stagionale (mesi)",
           "ends_count": "Termina dopo (numero di volte)",
           "ends_until": "Termina alla data"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "Valore letto",
           "description": "Valore registrato per attività di lettura (lettura contatore, controllo livello)."
+        },
+        "reading_values": {
+          "name": "Letture",
+          "description": "Valori per un'attività con più letture denominate, per nome (es. Acqua fredda: 123.4)."
         },
         "completed_by": {
           "name": "Completato da",

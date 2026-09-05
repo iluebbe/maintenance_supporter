@@ -948,6 +948,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         completed_by: str | None = None,
         photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
+        reading_values: list[dict[str, Any]] | None = None,
         restock_quantity: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
@@ -1185,6 +1186,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             completed_by=completed_by,
             photo_doc_ids=photo_doc_ids,
             reading_value=reading_value,
+            reading_values=reading_values,
             used_parts=enriched_used,
             auto=auto,
             completed_at=completed_at,
@@ -1294,6 +1296,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 duration=duration,
                 feedback=feedback,
                 completed_by=completed_by,
+                # Recorded readings (#83 scalar / #161 phase 2 slots) so an
+                # automation can forward a meter value without reading history.
+                reading_value=reading_value,
+                reading_values=reading_values,
                 # #133: the history entry's own timestamp — identical to what
                 # the history records, so automations can attribute backdated
                 # completions to the right period instead of time_fired.

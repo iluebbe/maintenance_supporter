@@ -160,6 +160,8 @@ def _build_task_summary(
         "allow_skip": task_data.get("allow_skip") is not False,
         # v2.20 (#83): unit for `reading`-type tasks; values live in history.
         "reading_unit": task_data.get("reading_unit"),
+        # #161 phase 2: reading slots [{id, name, unit}] ([] = single value).
+        "readings": task_data.get("readings") or [],
         # Spare parts: consumption links ([{part_id, quantity}]) and, on an
         # auto-created "buy" reminder, the owning part marker ({part_id}).
         "consumes_parts": task_data.get("consumes_parts"),

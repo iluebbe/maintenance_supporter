@@ -709,6 +709,7 @@
           "go_back": "戻る",
           "interval_anchor": "間隔の基準",
           "reading_unit": "検針単位（検針タスク用、例: kWh）",
+          "readings_text": "検針項目（1行に1つ：名前 | 単位）",
           "season_months": "季節ウィンドウ（月）",
           "ends_count": "回数で終了",
           "ends_until": "日付で終了"
@@ -1588,6 +1589,10 @@
         "reading_value": {
           "name": "検針値",
           "description": "検針タスクで記録する値（メーター読み取り、レベル確認）。"
+        },
+        "reading_values": {
+          "name": "検針値",
+          "description": "複数の名前付き検針項目を持つタスクの値。項目名をキーにします（例: 冷水: 123.4）。"
         },
         "completed_by": {
           "name": "実施者",

@@ -247,6 +247,13 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             "priority": task.get("priority") or DEFAULT_TASK_PRIORITY,
         }
 
+        # Recorded readings (#83 / #161 phase 2): the newest completion's
+        # value(s) — stable between completions, so templates can read a
+        # meter without parsing history. Only present once a value exists.
+        from .helpers.reading_slots import last_reading_attributes
+
+        attrs.update(last_reading_attributes(task.get("history")))
+
         # Task phases (#139): which cycle step is due — stable (changes once
         # per completion), so it belongs on the entity for automations
         # ("announce 'replace blades' only when THAT phase comes up").
