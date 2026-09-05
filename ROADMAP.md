@@ -791,15 +791,17 @@ or low-impact:
 - **Predictor**: every bounded sensor task now fetches 180 d of hourly
   statistics per 5-min refresh (was 30 d) — a per-entity TTL cache like the
   battery trend's would pay for itself on big installs.
-- **Persistence**: document ids referenced from `part.doc_id` /
-  `history[].photo_doc_id` dangle after a JSON restore (the importer mints
-  new document uuids and returns no map); multi-object restores keep
+- **Persistence**: ~~document ids referenced from `part.doc_id` /
+  `history[].photo_doc_id` dangle after a JSON restore~~ (fixed with #161 —
+  the importer now maps old → new document ids and repoints part docs and
+  completion photos); multi-object restores keep
   `parent_entry_id` / group `task_refs` / vacation exempt ids verbatim
   (two-pass id remap needed); documents of the last object removed AFTER the
   hub are never reclaimed; device *removal* only surfaces the
   `device_link_lost` repair after the next reload.
-- **Frontend (low)**: completion-photo uploads before Complete are orphaned
-  on Cancel; `openEdit` leaves `_actionTestResult` / attribute suggestions
+- **Frontend (low)**: ~~completion-photo uploads before Complete are orphaned
+  on Cancel~~ (fixed with #161 — Cancel deletes the session's uploads);
+  `openEdit` leaves `_actionTestResult` / attribute suggestions
   from the previous task until their timers clear; phases without a
   sequence step are dropped silently on save; Back/Forward into a task skips
   the full-history fetch; no data refresh on a plain HA reconnect; deep link

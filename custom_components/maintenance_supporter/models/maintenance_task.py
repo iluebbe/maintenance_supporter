@@ -353,7 +353,7 @@ class MaintenanceTask:
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
         completed_by: str | None = None,
-        photo_doc_id: str | None = None,
+        photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
@@ -429,7 +429,7 @@ class MaintenanceTask:
             checklist_state=checklist_state,
             feedback=feedback,
             completed_by=completed_by,
-            photo_doc_id=photo_doc_id,
+            photo_doc_ids=photo_doc_ids,
             reading_value=reading_value,
             used_parts=used_parts,
             auto=auto,
@@ -534,7 +534,7 @@ class MaintenanceTask:
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
         completed_by: str | None = None,
-        photo_doc_id: str | None = None,
+        photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
         auto: bool = False,
@@ -570,8 +570,11 @@ class MaintenanceTask:
             entry["feedback"] = feedback
         if completed_by is not None:
             entry["completed_by"] = completed_by
-        if photo_doc_id is not None:
-            entry["photo_doc_id"] = photo_doc_id
+        # Completion photos (#161): a capped list of document ids. Entries
+        # from before v2.75 carry a single `photo_doc_id` — readers accept
+        # both via helpers.completion_photos.history_photo_ids.
+        if photo_doc_ids:
+            entry["photo_doc_ids"] = list(photo_doc_ids)
         # Meter readings (v2.20, #83): the recorded value rides on the
         # completion entry — the delta view derives from consecutive entries.
         if reading_value is not None:

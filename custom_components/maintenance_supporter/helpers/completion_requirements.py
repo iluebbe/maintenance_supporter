@@ -56,7 +56,7 @@ def missing_completion_fields(
     notes: str | None = None,
     cost: float | None = None,
     duration: int | None = None,
-    photo_doc_id: str | None = None,
+    photo_doc_ids: list[str] | None = None,
     completed_by: str | None = None,
 ) -> list[str]:
     """Which required fields this completion attempt does NOT satisfy.
@@ -73,7 +73,7 @@ def missing_completion_fields(
         "notes": bool(notes and str(notes).strip()),
         "cost": cost is not None,
         "duration": duration is not None,
-        "photo": bool(photo_doc_id),
+        "photo": bool(photo_doc_ids),
         "user": bool(completed_by),
     }
     return [field for field in required if not supplied[field]]

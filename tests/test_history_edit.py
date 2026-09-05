@@ -899,7 +899,7 @@ def test_patchable_fields_known_to_both_frontends() -> None:
     block = ws_src.split('"maintenance_supporter/task/history/update"', 1)[1]
     block = block.split("@websocket_api.async_response", 1)[0]
     patchable = set(re.findall(r'vol\.Optional\("([a-z_]+)"\)', block))
-    assert patchable >= {"timestamp", "notes", "cost", "duration", "completed_by", "used_parts"}
+    assert patchable >= {"timestamp", "notes", "cost", "duration", "completed_by", "used_parts", "photo_doc_ids"}
 
     for ts_file in (
         component / "frontend-src" / "components" / "history-edit-dialog.ts",

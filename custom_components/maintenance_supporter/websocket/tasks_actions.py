@@ -21,6 +21,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_TEXT_LENGTH,
 )
+from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
 from ..models.maintenance_task import MaintenanceTask
 from . import (
     _get_runtime_data,
@@ -97,8 +98,13 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # QR deep-link fallback: the panel asserts the scan on a tag-gated task
         # whose quick-complete needs the full dialog (bug audit 2026-08-29).
         vol.Optional("via_tag_scan"): bool,
-        # Optional completion photo: the doc_id of an already-uploaded image
-        # (via the document upload endpoint, tagged "photo").
+        # Optional completion photos (#161): doc_ids of already-uploaded
+        # images (via the document upload endpoint, tagged "photo"). The
+        # scalar form is what pre-2.75 clients send — merged into the list.
+        vol.Optional("photo_doc_ids"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_ID_LENGTH))], vol.Length(max=MAX_COMPLETION_PHOTOS)),
+            None,
+        ),
         vol.Optional("photo_doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
         # Meter readings (v2.20, #83): the recorded value for `reading` tasks.
         # Wide numeric bounds — meters count high, temperatures go negative.
@@ -194,7 +200,7 @@ async def ws_complete_task(
             duration=msg.get("duration"),
             checklist_state=msg.get("checklist_state"),
             feedback=msg.get("feedback"),
-            photo_doc_id=msg.get("photo_doc_id"),
+            photo_doc_ids=normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id")) or None,
             reading_value=msg.get("reading_value"),
             restock_quantity=msg.get("restock_quantity"),
             used_parts=used_parts,

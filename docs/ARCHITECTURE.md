@@ -294,7 +294,8 @@ custom_components/maintenance_supporter/
 │   ├── helpers/                   (979 lines)  calendar-bucket (387: pure 7/14/30/365-day projection, 5 occurrences
 │   │                                           max per task, no projection for sensor-based), worksheet, report,
 │   │                                           virtual-window, object-columns, download, warranty, interval,
-│   │                                           storage-keys, format-bytes, url, notes-markdown (ha-markdown hand-off), bundle-version (stale-bundle guard)
+│   │                                           storage-keys, format-bytes, url, notes-markdown (ha-markdown hand-off), bundle-version (stale-bundle guard),
+│   │                                           history-photos (#161: photo_doc_ids ∪ legacy photo_doc_id, cap 10), photo-upload (multipart upload + orphan cleanup)
 │   ├── renderers/               (1,782 lines)  task-detail (452), sparkline (361), progress (200), weibull (187),
 │   │                                           charts, history, seasonal, prediction, recommendation, chart-utils
 │   └── components/             (12,360 lines)  27 files
@@ -316,7 +317,7 @@ custom_components/maintenance_supporter/
 │       ├── object-quick-actions-dialog.ts (321)
 │       ├── object-dialog.ts       (289 lines)  Add/edit object
 │       ├── budget-section-card.ts (287 lines)
-│       ├── history-edit-dialog.ts (259 lines)
+│       ├── history-edit-dialog.ts (513 lines)  Timestamp / notes / cost / duration / parts / photos (#161)
 │       ├── saved-views-dialog.ts  (247 lines)  Named panel filter/sort/group views
 │       ├── group-dialog.ts        (244 lines)
 │       ├── seasonal-overrides-dialog.ts (199)
@@ -359,7 +360,7 @@ custom_components/maintenance_supporter/
 │   ├── aggregate.py                (85 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (35 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (26 lines)  Compatibility shim → signatures/
-│   ├── global_options.py (80), pause.py (79), status.py (50), task_fields.py (44), notify_targets.py (39)
+│   ├── global_options.py (80), pause.py (79), status.py (50), completion_photos.py (47: photo_doc_ids ∪ legacy scalar, cap 10), task_fields.py (44), notify_targets.py (39)
 │   └── signatures/              (2,873 lines)  Suggested-setups catalog: 123 integrations / 235 signatures
 │       ├── _model.py              (306 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (186 lines)  Entity-registry scan → per-duty setup proposals

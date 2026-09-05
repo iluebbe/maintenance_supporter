@@ -37,13 +37,17 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
     file metadata pointing at a missing blob — the storage-hygiene repair issue
     catches those as dangling. Web-links round-trip fully. ``task_ids`` are
     carried too (as the OLD task ids); the importer remaps them onto the fresh
-    task ids so a doc's task links survive a backup/restore.
+    task ids so a doc's task links survive a backup/restore. The doc's own
+    ``id`` rides along for the same reason: history entries (completion
+    photos) and spare parts (``doc_id``) point at documents by id, and the
+    importer mints fresh ids — without the old one it could not remap them.
     """
     out: list[dict[str, Any]] = []
     for d in doc_store.for_object(object_id):
         if d.get("kind") == "weblink":
             out.append(
                 {
+                    "id": d.get("id"),
                     "kind": "weblink",
                     "url": d.get("url"),
                     "title": d.get("title"),
@@ -55,6 +59,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
         else:
             out.append(
                 {
+                    "id": d.get("id"),
                     "kind": "file",
                     "hash": d.get("hash"),
                     "title": d.get("title"),

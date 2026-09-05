@@ -19,6 +19,7 @@ import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
+import { historyPhotoIds } from "../helpers/history-photos";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -358,6 +359,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         duration: entry.duration ?? null,
         completed_by: entry.completed_by ?? null,
         used_parts: entry.used_parts ?? null,
+        photo_doc_ids: historyPhotoIds(entry),
       });
     });
   }

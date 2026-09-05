@@ -7,6 +7,11 @@ import { t, nativeFieldStyles, formatCost } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
+import {
+  MAX_COMPLETION_PHOTOS,
+  discardUploadedPhotos,
+  uploadCompletionPhoto,
+} from "../helpers/photo-upload";
 import "./ms-date-field";
 
 export class MaintenanceCompleteDialog extends LitElement {
@@ -61,8 +66,11 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _error = "";
   @state() private _checklistState: Record<string, boolean> = {};
   @state() private _feedback: string = "needed";
-  @state() private _photoDocId = "";
-  @state() private _photoPreview = "";
+  /** #161: the photos attached so far, in pick order (preview = object URL). */
+  @state() private _photos: Array<{ id: string; preview: string }> = [];
+  /** Docs uploaded by THIS dialog session; dropped again on Cancel so an
+   *  abandoned completion leaves no orphan files behind. */
+  private _uploadedIds: string[] = [];
   @state() private _photoUploading = false;
   @state() private _readingValue = "";
   @state() private _restockQty = "";
@@ -94,8 +102,9 @@ export class MaintenanceCompleteDialog extends LitElement {
         .filter(([, done]) => done),
     );
     this._feedback = "needed";
-    this._photoDocId = "";
-    this._photoPreview = "";
+    this._photos.forEach((p) => URL.revokeObjectURL(p.preview));
+    this._photos = [];
+    this._uploadedIds = [];
     this._photoUploading = false;
     this._readingValue = "";
     this._restockQty = this.restockDefault !== null ? String(this.restockDefault) : "";
@@ -118,45 +127,46 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._feedback = value;
   }
 
+  /** #161: both pickers (camera = one shot, gallery = multiple) land here.
+   *  Files upload one after another so a slow connection still shows
+   *  progress tile by tile; anything beyond the cap is dropped with a
+   *  note rather than silently. */
   private async _onPhotoInput(e: Event): Promise<void> {
     const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = Array.from(input.files ?? []);
     input.value = ""; // allow re-picking the same file
-    if (!file) return;
+    if (files.length === 0) return;
+    const room = MAX_COMPLETION_PHOTOS - this._photos.length;
+    const accepted = files.slice(0, Math.max(room, 0));
     this._photoUploading = true;
     this._error = "";
     try {
-      const form = new FormData();
-      form.append("entry_id", this.entryId);
-      form.append("tags", "photo");
-      form.append("file", file, file.name);
-      const resp = await fetch("/api/maintenance_supporter/document/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${this.hass.auth?.data?.access_token ?? ""}` },
-        body: form,
-      });
-      if (!resp.ok) {
-        this._error = resp.status === 413
-          ? t("doc_too_large", this.lang)
-          : t("doc_upload_failed", this.lang);
-        return;
+      for (const file of accepted) {
+        const id = await uploadCompletionPhoto(this.hass, this.entryId, file);
+        this._uploadedIds = [...this._uploadedIds, id];
+        this._photos = [...this._photos, { id, preview: URL.createObjectURL(file) }];
       }
-      const doc = (await resp.json()) as { id?: string };
-      if (doc.id) {
-        this._photoDocId = doc.id;
-        this._photoPreview = URL.createObjectURL(file);
+      if (files.length > accepted.length) {
+        this._error = t("photos_limit", this.lang).replace("{max}", String(MAX_COMPLETION_PHOTOS));
       }
-    } catch {
-      this._error = t("doc_upload_failed", this.lang);
+    } catch (e) {
+      const key = e instanceof Error && e.message === "doc_too_large" ? "doc_too_large" : "doc_upload_failed";
+      this._error = t(key, this.lang);
     } finally {
       this._photoUploading = false;
     }
   }
 
-  private _removePhoto(): void {
-    if (this._photoPreview) URL.revokeObjectURL(this._photoPreview);
-    this._photoDocId = "";
-    this._photoPreview = "";
+  /** ✕ on a tile: drop it from the completion AND delete the upload —
+   *  the file only ever existed for this dialog session. */
+  private _removePhoto(id: string): void {
+    const gone = this._photos.find((p) => p.id === id);
+    if (gone) URL.revokeObjectURL(gone.preview);
+    this._photos = this._photos.filter((p) => p.id !== id);
+    if (this._uploadedIds.includes(id)) {
+      this._uploadedIds = this._uploadedIds.filter((x) => x !== id);
+      void discardUploadedPhotos(this.hass, [id]);
+    }
   }
 
   private async _complete(): Promise<void> {
@@ -183,8 +193,8 @@ export class MaintenanceCompleteDialog extends LitElement {
       if (this.adaptiveEnabled) {
         data.feedback = this._feedback;
       }
-      if (this._photoDocId) {
-        data.photo_doc_id = this._photoDocId;
+      if (this._photos.length > 0) {
+        data.photo_doc_ids = this._photos.map((p) => p.id);
       }
       // Scan fallback: the backend accepts via_tag_scan on task/complete so a
       // require_tag_scan task can still be finished from the dialog the scan
@@ -226,6 +236,7 @@ export class MaintenanceCompleteDialog extends LitElement {
           );
       }
       await this.hass.connection.sendMessagePromise(data);
+      this._uploadedIds = []; // attached now — Cancel cleanup must not touch them
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
     } catch (e) {
@@ -241,7 +252,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       notes: this._notes.trim() !== "",
       cost: this._cost.trim() !== "",
       duration: this._duration.trim() !== "",
-      photo: this._photoDocId !== "",
+      photo: this._photos.length > 0,
       // "Who did it" is filled in server-side from the authenticated
       // connection (websocket/tasks_actions.py), so the dialog satisfies it
       // as long as we ARE a logged-in user. Claiming it is always satisfied
@@ -300,6 +311,11 @@ export class MaintenanceCompleteDialog extends LitElement {
 
   private _close(): void {
     this._open = false;
+    if (this._uploadedIds.length > 0) {
+      const orphans = this._uploadedIds;
+      this._uploadedIds = [];
+      void discardUploadedPhotos(this.hass, orphans);
+    }
   }
 
   /** Seed the backdate field with the current minute (local, seconds zeroed). */
@@ -433,22 +449,35 @@ export class MaintenanceCompleteDialog extends LitElement {
                 </button>`}
           </div>
           <div class="field">
-            <span class="field-label">${t("completion_photo_optional", L)}${this._req("photo")}</span>
-            ${this._photoPreview
-              ? html`
-                <div class="photo-preview">
-                  <img src=${this._photoPreview} alt="" />
-                  <button type="button" class="photo-remove" @click=${this._removePhoto}
-                    title="${t("remove", L)}">✕</button>
+            <span class="field-label">${t("completion_photos_optional", L)}${this._req("photo")}</span>
+            ${this._photos.length > 0
+              ? html`<div class="photo-strip">
+                  ${this._photos.map((p) => html`
+                    <div class="photo-preview">
+                      <img src=${p.preview} alt="" />
+                      <button type="button" class="photo-remove" @click=${() => this._removePhoto(p.id)}
+                        title="${t("remove", L)}">✕</button>
+                    </div>`)}
                 </div>`
-              : html`
-                <label class="photo-pick">
-                  <ha-icon icon="mdi:camera"></ha-icon>
-                  <span>${this._photoUploading ? t("uploading", L) : t("add_photo", L)}</span>
-                  <input type="file" accept="image/*" capture="environment"
-                    ?disabled=${this._photoUploading}
-                    @change=${this._onPhotoInput} />
-                </label>`}
+              : nothing}
+            ${this._photos.length < MAX_COMPLETION_PHOTOS
+              ? html`<div class="photo-pickers">
+                  <label class="photo-pick photo-pick-camera">
+                    <ha-icon icon="mdi:camera"></ha-icon>
+                    <span>${this._photoUploading ? t("uploading", L) : t("doc_camera", L)}</span>
+                    <input type="file" accept="image/*" capture="environment"
+                      ?disabled=${this._photoUploading}
+                      @change=${this._onPhotoInput} />
+                  </label>
+                  <label class="photo-pick photo-pick-gallery">
+                    <ha-icon icon="mdi:image-multiple"></ha-icon>
+                    <span>${t("choose_photos", L)}</span>
+                    <input type="file" accept="image/*" multiple
+                      ?disabled=${this._photoUploading}
+                      @change=${this._onPhotoInput} />
+                  </label>
+                </div>`
+              : html`<div class="photo-limit">${t("photos_limit", L).replace("{max}", String(MAX_COMPLETION_PHOTOS))}</div>`}
           </div>
           ${this.adaptiveEnabled ? html`
             <div class="feedback-section">
@@ -601,15 +630,36 @@ export class MaintenanceCompleteDialog extends LitElement {
     }
     .backdate-pick:hover { border-color: var(--primary-color); }
     .photo-pick input[type="file"] { display: none; }
+    /* #161: several photos per completion — tiles wrap into a strip,
+       the two pickers (camera / gallery) sit underneath while there is
+       room left under the cap. */
+    .photo-pickers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .photo-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 8px 0; /* room for the remove badges above the tiles */
+    }
+    .photo-limit {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
     .photo-preview {
       position: relative;
       width: fit-content;
     }
+    /* Uniform tiles: a tiny or portrait shot must not collapse the strip. */
     .photo-preview img {
-      max-width: 160px;
-      max-height: 160px;
+      width: 96px;
+      height: 96px;
+      object-fit: cover;
       border-radius: 8px;
       display: block;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
     }
     .photo-remove {
       position: absolute;

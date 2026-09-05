@@ -946,7 +946,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
         completed_by: str | None = None,
-        photo_doc_id: str | None = None,
+        photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
         restock_quantity: float | None = None,
         used_parts: list[dict[str, Any]] | None = None,
@@ -1013,7 +1013,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     notes=notes,
                     cost=cost,
                     duration=duration,
-                    photo_doc_id=photo_doc_id,
+                    photo_doc_ids=photo_doc_ids,
                     completed_by=completed_by,
                 )
             if missing:
@@ -1183,7 +1183,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             checklist_state=checklist_state,
             feedback=feedback,
             completed_by=completed_by,
-            photo_doc_id=photo_doc_id,
+            photo_doc_ids=photo_doc_ids,
             reading_value=reading_value,
             used_parts=enriched_used,
             auto=auto,
@@ -1195,10 +1195,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if is_latest:
             self._store.clear_checklist_progress(task_id)
 
-        # Link the completion photo to this task so it also surfaces under the
-        # object's documents and is deref'd correctly on cleanup. Best-effort:
-        # a bad/removed doc_id must never block the completion itself.
-        if photo_doc_id:
+        # Link the completion photos to this task so they also surface under
+        # the object's documents and are deref'd correctly on cleanup.
+        # Best-effort: a bad/removed doc_id must never block the completion.
+        for photo_doc_id in photo_doc_ids or ():
             await self._link_completion_photo(photo_doc_id, task_id)
 
         # Update adaptive scheduling if enabled. Gated on is_latest: a pure

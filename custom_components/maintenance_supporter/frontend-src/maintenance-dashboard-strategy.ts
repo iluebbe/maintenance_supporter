@@ -31,6 +31,7 @@
  */
 
 import { STATUS_ICONS } from "./status-constants";
+import { historyPhotoIds } from "./helpers/history-photos";
 
 interface MaintenanceObjectResp {
   entry_id: string;
@@ -1163,6 +1164,7 @@ function registerLlCustomHandler(): void {
             duration: (histEntry.duration as number | undefined) ?? null,
             completed_by: (histEntry.completed_by as string) ?? null,
             used_parts: (histEntry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
+            photo_doc_ids: historyPhotoIds(histEntry),
           });
         } catch {
           deepLink("/maintenance-supporter");

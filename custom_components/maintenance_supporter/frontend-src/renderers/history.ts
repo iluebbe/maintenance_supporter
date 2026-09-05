@@ -10,6 +10,7 @@ import { html, nothing } from "lit";
 import { t, formatDateTime, formatNumber, formatCost, STATUS_ICONS } from "../styles";
 import type { MaintenanceTask, HistoryEntry, HomeAssistant } from "../types";
 import "../components/history-photo";
+import { historyPhotoIds } from "../helpers/history-photos";
 
 export interface HistoryContext {
   lang: string;
@@ -110,9 +111,15 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
         </div>
         <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>
         ${entry.notes ? html`<div>${entry.notes}</div>` : nothing}
-        ${entry.photo_doc_id
-          ? html`<maintenance-history-photo .hass=${ctx.hass} .docId=${entry.photo_doc_id}></maintenance-history-photo>`
-          : nothing}
+        ${(() => {
+          // #161: photo_doc_ids (new) or the pre-multi-photo photo_doc_id scalar.
+          const photos = historyPhotoIds(entry);
+          return photos.length > 0
+            ? html`<div class="history-photos">
+                ${photos.map((docId) => html`<maintenance-history-photo .hass=${ctx.hass} .docId=${docId}></maintenance-history-photo>`)}
+              </div>`
+            : nothing;
+        })()}
         <div class="history-details">
           ${entry.cost != null ? html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>` : nothing}
           ${entry.duration != null ? html`<span>${t("duration", L)}: ${entry.duration} min</span>` : nothing}

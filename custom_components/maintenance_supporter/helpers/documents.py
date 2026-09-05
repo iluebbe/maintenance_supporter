@@ -263,6 +263,7 @@ class DocumentStore:
         docs: list[dict[str, Any]],
         task_id_map: dict[str, str] | None = None,
         part_id_map: dict[str, str] | None = None,
+        id_map: dict[str, str] | None = None,
     ) -> int:
         """Recreate document metadata for an imported object (P6).
 
@@ -272,8 +273,16 @@ class DocumentStore:
         absent and the hygiene scan flags the doc as dangling. ``task_ids`` /
         ``part_ids`` are remapped through their old→new id maps so a doc's
         task and spare-part links survive the import; ids with no mapping are
-        dropped. Returns the number created.
+        dropped. ``id_map`` (if given) is filled with old→new document ids
+        for every doc whose export carried an ``id`` — the importer uses it
+        to re-point completion photos and part ``doc_id`` links. Returns the
+        number created.
         """
+
+        def _remember(meta: dict[str, Any], new_id: str) -> None:
+            old_id = meta.get("id")
+            if id_map is not None and isinstance(old_id, str) and old_id:
+                id_map[old_id] = new_id
 
         def _remap(meta: dict[str, Any]) -> list[str]:
             if not task_id_map:
@@ -298,7 +307,9 @@ class DocumentStore:
                 # frontend would later window.open (matches ws_documents_add_link).
                 if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
                     continue
-                self.documents[uuid4().hex] = {
+                new_id = uuid4().hex
+                _remember(meta, new_id)
+                self.documents[new_id] = {
                     "object_id": object_id,
                     "kind": KIND_WEBLINK,
                     "url": url,
@@ -320,7 +331,9 @@ class DocumentStore:
                     blob = {"size": size, "mime": mime, "refcount": 0}
                     self.blobs[digest] = blob
                 blob["refcount"] += 1
-                self.documents[uuid4().hex] = {
+                new_id = uuid4().hex
+                _remember(meta, new_id)
+                self.documents[new_id] = {
                     "object_id": object_id,
                     "kind": KIND_FILE,
                     "hash": digest,

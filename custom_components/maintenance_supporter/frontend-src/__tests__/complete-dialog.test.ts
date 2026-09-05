@@ -4,7 +4,7 @@
  * The completion dialog is the money path of the whole product; until now it
  * was only covered by the lazy-load tripwire. These tests pin the exact
  * outgoing WS payload (notes / cost / duration / feedback / checklist_state /
- * photo_doc_id) and the error path (server refusal keeps the dialog open).
+ * photo_doc_ids) and the error path (server refusal keeps the dialog open).
  */
 
 import { expect, fixture, html } from "@open-wc/testing";
@@ -100,6 +100,7 @@ describe("complete-dialog", () => {
     expect("duration" in msg).to.be.false;
     expect("feedback" in msg).to.be.false;
     expect("checklist_state" in msg).to.be.false;
+    expect("photo_doc_ids" in msg).to.be.false;
     expect("photo_doc_id" in msg).to.be.false;
     expect("completed_at" in msg).to.be.false;
   });
@@ -153,43 +154,119 @@ describe("complete-dialog", () => {
     expect(el.shadowRoot!.textContent).to.include("future");
   });
 
-  it("attaches an uploaded photo as photo_doc_id", async () => {
-    const { el, sent } = await mount();
-
-    // Stub the document-upload endpoint the photo picker posts to.
+  /** #161: stub the multipart upload route; every call mints the next id. */
+  function stubUpload(ids: string[]) {
     const realFetch = window.fetch;
     const uploads: RequestInit[] = [];
+    let n = 0;
     window.fetch = (async (_url: RequestInfo | URL, init?: RequestInit) => {
       uploads.push(init!);
-      return {
-        ok: true,
-        status: 200,
-        json: async () => ({ id: "doc-photo-1", deduped: false }),
-      } as Response;
+      const id = ids[n++] ?? `doc-photo-${n}`;
+      return { ok: true, status: 200, json: async () => ({ id, deduped: false }) } as Response;
     }) as typeof window.fetch;
+    return { uploads, restore: () => { window.fetch = realFetch; } };
+  }
 
+  function pickFiles(el: MaintenanceCompleteDialog, selector: string, names: string[]) {
+    const fileInput = el.shadowRoot!.querySelector<HTMLInputElement>(selector)!;
+    const dt = new DataTransfer();
+    for (const name of names) dt.items.add(new File(["fake-png"], name, { type: "image/png" }));
+    fileInput.files = dt.files;
+    fileInput.dispatchEvent(new Event("change"));
+  }
+
+  const CAMERA = '.photo-pick-camera input[type="file"]';
+  const GALLERY = '.photo-pick-gallery input[type="file"]';
+
+  it("attaches the uploaded photos as photo_doc_ids (#161)", async () => {
+    const { el, sent } = await mount();
+    const { uploads, restore } = stubUpload(["doc-photo-1", "doc-photo-2", "doc-photo-3"]);
     try {
-      const fileInput = el.shadowRoot!.querySelector<HTMLInputElement>(
-        '.photo-pick input[type="file"]',
-      )!;
-      const dt = new DataTransfer();
-      dt.items.add(new File(["fake-png"], "done.png", { type: "image/png" }));
-      fileInput.files = dt.files;
-      fileInput.dispatchEvent(new Event("change"));
+      // The camera picker takes one shot; the gallery picker several at once.
+      pickFiles(el, CAMERA, ["done.png"]);
       await new Promise((r) => setTimeout(r, 10));
       await el.updateComplete;
+      pickFiles(el, GALLERY, ["a.png", "b.png"]);
+      await new Promise((r) => setTimeout(r, 20));
+      await el.updateComplete;
 
-      // Preview replaces the picker once the upload returns an id.
-      expect(el.shadowRoot!.querySelector(".photo-preview img")).to.exist;
-      expect(uploads.length).to.equal(1);
+      expect(el.shadowRoot!.querySelectorAll(".photo-preview img").length).to.equal(3);
+      expect(uploads.length).to.equal(3);
       const form = uploads[0].body as FormData;
       expect(form.get("entry_id")).to.equal("entry1");
       expect(form.get("tags")).to.equal("photo");
+      // The pickers stay available while there is room under the cap.
+      expect(el.shadowRoot!.querySelector(CAMERA)).to.exist;
 
       clickComplete(el);
       await new Promise((r) => setTimeout(r, 10));
       const msg = sent.find((m) => m.type === "maintenance_supporter/task/complete")!;
-      expect(msg.photo_doc_id).to.equal("doc-photo-1");
+      expect(msg.photo_doc_ids).to.deep.equal(["doc-photo-1", "doc-photo-2", "doc-photo-3"]);
+      expect("photo_doc_id" in msg).to.be.false;
+      // Completing keeps the uploads — no delete goes out.
+      expect(sent.some((m) => m.type === "maintenance_supporter/documents/delete")).to.be.false;
+    } finally {
+      restore();
+    }
+  });
+
+  it("caps a completion at 10 photos and says so (#161)", async () => {
+    const { el } = await mount();
+    const { uploads, restore } = stubUpload([]);
+    try {
+      pickFiles(el, GALLERY, Array.from({ length: 12 }, (_, i) => `p${i}.png`));
+      await new Promise((r) => setTimeout(r, 60));
+      await el.updateComplete;
+      expect(uploads.length).to.equal(10);
+      expect(el.shadowRoot!.querySelectorAll(".photo-preview img").length).to.equal(10);
+      // At the cap the pickers give way to the limit note.
+      expect(el.shadowRoot!.querySelector(CAMERA)).to.equal(null);
+      expect(el.shadowRoot!.querySelector(".photo-limit")!.textContent).to.include("10");
+      expect(el.shadowRoot!.querySelector(".error")!.textContent).to.include("10");
+    } finally {
+      restore();
+    }
+  });
+
+  it("removing a tile deletes that upload; cancelling drops the rest (#161)", async () => {
+    const { el, sent } = await mount();
+    const { restore } = stubUpload(["doc-photo-1", "doc-photo-2"]);
+    try {
+      pickFiles(el, GALLERY, ["a.png", "b.png"]);
+      await new Promise((r) => setTimeout(r, 20));
+      await el.updateComplete;
+
+      const removeButtons = el.shadowRoot!.querySelectorAll<HTMLElement>(".photo-remove");
+      expect(removeButtons.length).to.equal(2);
+      removeButtons[0].click();
+      await el.updateComplete;
+      expect(el.shadowRoot!.querySelectorAll(".photo-preview img").length).to.equal(1);
+      let deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/delete");
+      expect(deletes.map((m) => m.doc_id)).to.deep.equal(["doc-photo-1"]);
+
+      // Cancel: the remaining upload is an orphan nobody references.
+      const cancel = el.shadowRoot!.querySelector<HTMLElement>(".dialog-actions ha-button")!;
+      cancel.click();
+      await el.updateComplete;
+      deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/delete");
+      expect(deletes.map((m) => m.doc_id)).to.deep.equal(["doc-photo-1", "doc-photo-2"]);
+      expect(sent.some((m) => m.type === "maintenance_supporter/task/complete")).to.be.false;
+    } finally {
+      restore();
+    }
+  });
+
+  it("surfaces a 413 as the too-large message and keeps the picker (#161)", async () => {
+    const { el } = await mount();
+    const realFetch = window.fetch;
+    window.fetch = (async () => ({ ok: false, status: 413, json: async () => ({}) }) as Response) as typeof window.fetch;
+    try {
+      pickFiles(el, CAMERA, ["huge.png"]);
+      await new Promise((r) => setTimeout(r, 10));
+      await el.updateComplete;
+      expect(el.shadowRoot!.querySelectorAll(".photo-preview img").length).to.equal(0);
+      expect(el.shadowRoot!.querySelector(".error")!.textContent).to.include("large");
+      expect(el.shadowRoot!.querySelector(CAMERA)).to.exist;
     } finally {
       window.fetch = realFetch;
     }

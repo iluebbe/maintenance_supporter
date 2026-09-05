@@ -17,6 +17,11 @@ from ..const import (
     MAX_META_LENGTH,
     MAX_TEXT_LENGTH,
 )
+from ..helpers.completion_photos import (
+    MAX_COMPLETION_PHOTOS,
+    history_photo_ids,
+    normalize_photo_doc_ids,
+)
 from ..helpers.permissions import require_write
 from . import (
     _get_runtime_data,
@@ -30,8 +35,9 @@ from . import (
 # browser between read and write — timestamp is more stable. If multiple
 # entries share a timestamp (rare), the first match is patched.
 #
-# Patchable fields: timestamp, notes, cost, duration, completed_by and — since
-# #130 — used_parts (stock reconciled by the per-part delta). Anything else
+# Patchable fields: timestamp, notes, cost, duration, completed_by, since
+# #130 used_parts (stock reconciled by the per-part delta) and since #161
+# photo_doc_ids (add/remove completion photos after the fact). Anything else
 # (type, trigger_value, checklist_state, feedback) is intentionally read-only —
 # those carry semantic meaning that shouldn't be silently rewritten.
 #
@@ -69,6 +75,14 @@ from . import (
                 # the edit path must not accept what completion refuses.
                 vol.Length(max=10),
             ),
+            None,
+        ),
+        # #161: the entry's completion photos. Replaces the whole list; None
+        # (or []) detaches every photo from the entry. The documents
+        # themselves are never deleted here — they stay in the object's
+        # documents, the entry merely stops pointing at them.
+        vol.Optional("photo_doc_ids"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_ID_LENGTH))], vol.Length(max=MAX_COMPLETION_PHOTOS)),
             None,
         ),
     }
@@ -170,6 +184,23 @@ async def ws_update_history_entry(
             patched["used_parts"] = enriched
         else:
             patched.pop("used_parts", None)
+
+    # #161: completion photos on the entry. A new id is linked to the task
+    # like a live completion does (best-effort); a removed id keeps its
+    # document and its links — only the entry forgets it. The legacy
+    # scalar is folded into the list the moment the entry is edited.
+    if "photo_doc_ids" in msg:
+        old_photos = history_photo_ids(patched)
+        new_photos = normalize_photo_doc_ids(msg["photo_doc_ids"])
+        patched.pop("photo_doc_id", None)
+        if new_photos:
+            patched["photo_doc_ids"] = new_photos
+        else:
+            patched.pop("photo_doc_ids", None)
+        if rd and rd.coordinator:
+            for doc_id in new_photos:
+                if doc_id not in old_photos:
+                    await rd.coordinator._link_completion_photo(doc_id, task_id)
 
     history[target_index] = patched
     store.set_history(task_id, history)

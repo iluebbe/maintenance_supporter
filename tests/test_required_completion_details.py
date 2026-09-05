@@ -358,7 +358,7 @@ async def test_every_requirable_field_can_be_satisfied(
             "notes": {"notes": "did it"},
             "cost": {"cost": 12.5},
             "duration": {"duration": 30},
-            "photo": {"photo_doc_id": "doc-1"},
+            "photo": {"photo_doc_ids": ["doc-1"]},
             "user": {},  # server-side: taken from the authenticated connection
         }[field]
     )

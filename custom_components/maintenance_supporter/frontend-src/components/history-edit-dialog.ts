@@ -1,5 +1,5 @@
 /** Dialog for editing an existing history entry (timestamp / notes / cost /
- *  duration / completed_by). Backed by maintenance_supporter/task/history/update.
+ *  duration / completed_by / photos). Backed by maintenance_supporter/task/history/update.
  *
  *  Opened from:
  *    - Task detail page → history tab → Edit button per entry
@@ -12,7 +12,13 @@ import { property, state } from "lit/decorators.js";
 import { t, langOf } from "../styles";
 import type { HomeAssistant } from "../types";
 import { describeWsError } from "../ws-errors";
+import {
+  MAX_COMPLETION_PHOTOS,
+  discardUploadedPhotos,
+  uploadCompletionPhoto,
+} from "../helpers/photo-upload";
 import "./ms-date-field";
+import "./history-photo";
 
 export interface HistoryEntryDraft {
   entry_id: string;
@@ -27,6 +33,9 @@ export interface HistoryEntryDraft {
   // #130: the entry's recorded part consumption ({part_id, name, quantity,
   // entry_id? for pooled parts}); absent/empty = nothing consumed.
   used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null;
+  // #161: the entry's completion photos (callers fold the pre-multi-photo
+  // `photo_doc_id` scalar in via helpers/history-photos.historyPhotoIds).
+  photo_doc_ids?: string[] | null;
 }
 
 /** One selectable part option in the edit dialog — the object's own parts
@@ -60,6 +69,15 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   @state() private _partQty: Record<string, number> = {};
   private _partQtyOriginal = "";
 
+  // #161: the edited photo list; the original as a JSON key for the
+  // "did it change" check, plus the docs THIS session uploaded so an
+  // abandoned edit can drop them again (a removed pre-existing photo is
+  // only detached — the file stays in the object's documents).
+  @state() private _photos: string[] = [];
+  private _photosOriginal = "";
+  private _uploadedIds: string[] = [];
+  @state() private _photoUploading = false;
+
   /** Open the dialog with the given history-entry data. The caller must
    *  pass `original_timestamp` (the entry's current timestamp before edit)
    *  so the backend can find the entry. */
@@ -71,7 +89,46 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     this._partOptions = null;
     this._partQty = {};
     this._partQtyOriginal = "";
+    this._photos = [...(draft.photo_doc_ids ?? [])];
+    this._photosOriginal = JSON.stringify(this._photos);
+    this._uploadedIds = [];
+    this._photoUploading = false;
     void this._loadPartOptions();
+  }
+
+  private async _onPhotoInput(e: Event): Promise<void> {
+    const input = e.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = "";
+    const draft = this._draft;
+    if (files.length === 0 || !draft) return;
+    const room = MAX_COMPLETION_PHOTOS - this._photos.length;
+    const accepted = files.slice(0, Math.max(room, 0));
+    this._photoUploading = true;
+    this._error = "";
+    try {
+      for (const file of accepted) {
+        const id = await uploadCompletionPhoto(this.hass, draft.entry_id, file);
+        this._uploadedIds = [...this._uploadedIds, id];
+        this._photos = [...this._photos, id];
+      }
+      if (files.length > accepted.length) {
+        this._error = t("photos_limit", this._lang).replace("{max}", String(MAX_COMPLETION_PHOTOS));
+      }
+    } catch (err) {
+      const key = err instanceof Error && err.message === "doc_too_large" ? "doc_too_large" : "doc_upload_failed";
+      this._error = t(key, this._lang);
+    } finally {
+      this._photoUploading = false;
+    }
+  }
+
+  private _removePhoto(id: string): void {
+    this._photos = this._photos.filter((x) => x !== id);
+    if (this._uploadedIds.includes(id)) {
+      this._uploadedIds = this._uploadedIds.filter((x) => x !== id);
+      void discardUploadedPhotos(this.hass, [id]);
+    }
   }
 
   /** The object's own parts + pooled parts this task draws on — from the
@@ -140,6 +197,12 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     this._error = "";
     this._draft = null;
     this._originalSnapshot = null;
+    if (this._uploadedIds.length > 0) {
+      // Cancelled after uploading: nothing references those files.
+      const orphans = this._uploadedIds;
+      this._uploadedIds = [];
+      void discardUploadedPhotos(this.hass, orphans);
+    }
   }
 
   private _set<K extends keyof HistoryEntryDraft>(
@@ -188,6 +251,10 @@ export class MaintenanceHistoryEditDialog extends LitElement {
             ...(o.foreign ? { entry_id: o.entry_id } : {}),
           }));
       }
+      // #161: the photo list, only when it differs from what we opened with.
+      if (JSON.stringify(this._photos) !== this._photosOriginal) {
+        patch.photo_doc_ids = [...this._photos];
+      }
       // Nothing changed → close without WS call
       const changedKeys = Object.keys(patch).filter(
         (k) => !["type", "entry_id", "task_id", "original_timestamp"].includes(k),
@@ -197,6 +264,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
         return;
       }
       await this.hass.connection.sendMessagePromise(patch);
+      this._uploadedIds = []; // saved — they belong to the entry now
       // Notify upstream so they can refresh
       this.dispatchEvent(
         new CustomEvent("history-entry-saved", {
@@ -300,6 +368,27 @@ export class MaintenanceHistoryEditDialog extends LitElement {
             })}
           </div>
         ` : nothing}
+        <div class="photos-block">
+          <span class="parts-title">${t("completion_photos", L)}</span>
+          ${this._photos.length > 0 ? html`
+            <div class="photo-strip">
+              ${this._photos.map((id) => html`
+                <div class="photo-tile">
+                  <maintenance-history-photo .hass=${this.hass} .docId=${id}></maintenance-history-photo>
+                  <button type="button" class="photo-remove" title=${t("remove", L)}
+                    @click=${() => this._removePhoto(id)}>✕</button>
+                </div>`)}
+            </div>` : nothing}
+          ${this._photos.length < MAX_COMPLETION_PHOTOS ? html`
+            <label class="photo-add">
+              <ha-icon icon="mdi:image-plus"></ha-icon>
+              <span>${this._photoUploading ? t("uploading", L) : t("add_photos", L)}</span>
+              <input type="file" accept="image/*" multiple
+                ?disabled=${this._photoUploading}
+                @change=${this._onPhotoInput} />
+            </label>` : html`<span class="photos-hint">${t("photos_limit", L).replace("{max}", String(MAX_COMPLETION_PHOTOS))}</span>`}
+          <span class="photos-hint">${t("history_edit_photos_hint", L)}</span>
+        </div>
         ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
         <div class="actions">
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
@@ -389,6 +478,30 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     .part-row-edit input[type="checkbox"] { width: auto; }
     .part-label { flex: 1; color: var(--primary-text-color); }
     .part-qty { width: 76px; }
+    /* #161: photos on the entry */
+    .photos-block {
+      display: flex; flex-direction: column; gap: 6px;
+      border: 1px solid var(--divider-color, #444);
+      border-radius: 6px; padding: 8px;
+    }
+    .photo-strip { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+    .photo-tile { position: relative; width: fit-content; }
+    .photo-remove {
+      position: absolute; top: -4px; right: -8px;
+      width: 22px; height: 22px; border-radius: 50%; border: none;
+      background: var(--error-color, #db4437); color: #fff;
+      cursor: pointer; font-size: 11px; line-height: 1; padding: 0;
+    }
+    .photo-add {
+      display: inline-flex; flex-direction: row; align-items: center; gap: 8px;
+      width: fit-content; padding: 6px 10px;
+      border: 1px dashed var(--divider-color, #444); border-radius: 8px;
+      cursor: pointer; font-size: 13px; color: var(--secondary-text-color);
+      --mdc-icon-size: 18px;
+    }
+    .photo-add:hover { border-color: var(--primary-color); }
+    .photo-add input[type="file"] { display: none; }
+    .photos-hint { font-size: 12px; color: var(--secondary-text-color); }
   `;
 }
 

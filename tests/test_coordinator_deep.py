@@ -1263,8 +1263,8 @@ async def test_double_photo_completion_is_deduped(
 
     monkeypatch.setattr(type(coordinator), "_link_completion_photo", _slow_link)
     await asyncio.gather(
-        coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_id="doc-a"),
-        coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_id="doc-b"),
+        coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_ids=["doc-a"]),
+        coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_ids=["doc-b"]),
     )
 
     state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)

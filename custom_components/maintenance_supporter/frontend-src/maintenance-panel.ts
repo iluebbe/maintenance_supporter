@@ -85,6 +85,7 @@ import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache } from "./helpers/settings-cache";
+import { historyPhotoIds } from "./helpers/history-photos";
 
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
 
@@ -4191,6 +4192,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       duration: entry.duration ?? null,
       completed_by: entry.completed_by ?? null,
       used_parts: entry.used_parts ?? null,
+      photo_doc_ids: historyPhotoIds(entry),
     };
     this.shadowRoot
       ?.querySelector<MaintenanceHistoryEditDialog>("maintenance-history-edit-dialog")

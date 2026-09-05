@@ -96,6 +96,50 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
     return out
 
 
+def _remap_document_refs(
+    import_tasks: dict[str, dict[str, Any]],
+    import_parts: dict[str, dict[str, Any]],
+    doc_id_map: dict[str, str],
+) -> None:
+    """Re-point document references at the freshly minted doc ids.
+
+    History entries carry completion photos (``photo_doc_ids``, or the
+    pre-2.75 ``photo_doc_id`` scalar — folded into the list here) and spare
+    parts carry a ``doc_id``. Ids the export did not carry (a hand-written
+    file, a doc that vanished before the export) stay verbatim: a dangling
+    reference renders as a missing picture, which is what it is.
+    """
+    from ..helpers.completion_photos import history_photo_ids
+
+    for task_data in import_tasks.values():
+        for hist_entry in task_data.get("history") or []:
+            if not isinstance(hist_entry, dict):
+                continue
+            photos = history_photo_ids(hist_entry)
+            if not photos:
+                continue
+            hist_entry.pop("photo_doc_id", None)
+            hist_entry["photo_doc_ids"] = [doc_id_map.get(p, p) for p in photos]
+    for part in import_parts.values():
+        old = part.get("doc_id")
+        if isinstance(old, str) and old in doc_id_map:
+            part["doc_id"] = doc_id_map[old]
+
+
+async def _drop_imported_documents(doc_store: Any, object_id: str) -> None:
+    """Undo a pre-flow document import when the object never came to be.
+
+    Documents are recreated BEFORE the entry flow (their fresh ids must be
+    known to remap history photos and part doc_ids); if the flow then
+    fails they would linger as orphans nobody can reach. ``object_id`` is
+    freshly minted per import, so every doc under it is ours to drop.
+    """
+    if doc_store is None:
+        return
+    for orphan in list(doc_store.for_object(object_id)):
+        await doc_store.async_remove(orphan["id"])
+
+
 def _import_fleet_identity(
     hass: HomeAssistant,
     obj_data: dict[str, Any],
@@ -933,6 +977,27 @@ async def ws_import_json(
                 if nfc_warn:
                     nfc_warnings.append(nfc_warn)
 
+        # (roadmap P6) recreate document metadata + web-links for the object
+        # (blobs travel via the /config backup; a JSON-only import leaves
+        # file docs dangling, which the storage-hygiene repair issue catches).
+        # Done BEFORE the entry is created: the docs get fresh ids, and the
+        # history entries (completion photos, #161) and spare parts (doc_id)
+        # that point at them by id must be re-pointed before they are
+        # persisted — the export carries the old ids for exactly this.
+        doc_store = None
+        import_docs = obj_entry.get("documents")
+        if isinstance(import_docs, list) and import_docs:
+            from .. import DOCUMENT_STORE_KEY
+
+            doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+            if doc_store is not None:
+                doc_id_map: dict[str, str] = {}
+                await doc_store.async_import_documents(
+                    obj_id, import_docs, task_id_map=task_id_map, part_id_map=part_id_map, id_map=doc_id_map
+                )
+                if doc_id_map:
+                    _remap_document_refs(import_tasks, import_parts, doc_id_map)
+
         try:
             result = await hass.config_entries.flow.async_init(
                 DOMAIN,
@@ -946,6 +1011,7 @@ async def ws_import_json(
         except Exception:
             _LOGGER.exception("JSON import failed for %s", obj_name)
             errors.append({"name": obj_name, "reason": "unexpected error"})
+            await _drop_imported_documents(doc_store, obj_id)
             continue
         if result["type"] == "create_entry":
             entry_info: dict[str, Any] = {
@@ -976,21 +1042,9 @@ async def ws_import_json(
 
                     if new_entry is not None:
                         schedule_buy_task_reconcile(hass, new_entry)
-
-            # (roadmap P6) recreate document metadata + web-links for the object
-            # (blobs travel via the /config backup; a JSON-only import leaves
-            # file docs dangling, which the storage-hygiene repair issue catches).
-            import_docs = obj_entry.get("documents")
-            if isinstance(import_docs, list) and import_docs:
-                from .. import DOCUMENT_STORE_KEY
-
-                doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
-                if doc_store is not None:
-                    await doc_store.async_import_documents(
-                        obj_id, import_docs, task_id_map=task_id_map, part_id_map=part_id_map
-                    )
         else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
+            await _drop_imported_documents(doc_store, obj_id)
 
     resp: dict[str, Any] = {
         "imported": created,

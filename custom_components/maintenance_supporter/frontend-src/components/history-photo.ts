@@ -48,16 +48,20 @@ export class MaintenanceHistoryPhoto extends LitElement {
 
   static styles = css`
     .wrap { display: inline-block; margin-top: 4px; }
+    /* #161: uniform 96px tiles — several photos sit in a strip, so a
+       tiny or portrait shot must not collapse its slot. */
     img {
-      max-width: 96px;
-      max-height: 96px;
+      width: 96px;
+      height: 96px;
+      object-fit: cover;
       border-radius: 6px;
       display: block;
       border: 1px solid var(--divider-color);
+      box-sizing: border-box;
     }
     .ph {
       width: 96px;
-      height: 64px;
+      height: 96px;
       border-radius: 6px;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       margin-top: 4px;

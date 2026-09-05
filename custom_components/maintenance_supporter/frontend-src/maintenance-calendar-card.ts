@@ -37,6 +37,7 @@ import {
 import { calendarStyles } from "./calendar-styles";
 import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost } from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
+import { historyPhotoIds } from "./helpers/history-photos";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
   HomeAssistant,
@@ -244,6 +245,7 @@ export class MaintenanceCalendarCard extends LitElement {
         completed_by: (entry.completed_by as string | null) ?? null,
         used_parts:
           (entry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
+        photo_doc_ids: historyPhotoIds(entry),
       });
       if (opened) return;
     } catch {

@@ -731,6 +731,12 @@ export const sharedStyles = css`
   .history-phase-badge:has(+ .history-auto-badge) {
     margin-right: 0;
   }
+  /* #161 — a completion can carry several photos; thumbnails wrap. */
+  .history-photos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
   .history-edit-btn {
     background: transparent;
     color: var(--secondary-text-color);

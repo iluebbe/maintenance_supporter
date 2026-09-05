@@ -16,7 +16,7 @@ object with typical tasks pre-configured:
 
 ![Create from template](images/gifs/create-from-template.gif)
 
-**Complete a task** — one tap, optionally with notes, cost and a photo:
+**Complete a task** — one tap, optionally with notes, cost and photos:
 
 ![Complete a task](images/gifs/complete-task.gif)
 
@@ -124,8 +124,9 @@ documents.
 ### Complete Dialog
 Optional notes / cost / duration, an optional **Completed at** date for
 backfilling work that was done earlier (empty = now; see
-[Events](#events) for how backdated entries behave), and a completion
-photo (camera capture on mobile); checklist steps tick off right in the
+[Events](#events) for how backdated entries behave), and completion
+photos — take one with the camera or pick several from the gallery, up
+to ten per completion; checklist steps tick off right in the
 dialog. When the task
 consumes spare parts that carry unit prices, their sum appears as a
 **one-click cost suggestion** under the cost field — following your live
@@ -155,7 +156,9 @@ hint at it; printables deliberately stay plain text.
 
 ### Task History
 Every completion with cost, duration, and notes — inline-editable, searchable,
-with completion photos when attached.
+with completion photos when attached. Photos can be added to or removed
+from an entry afterwards through the entry's edit dialog (removing one
+keeps the file in the object's documents).
 
 ![Task History](images/task-history.png)
 
@@ -613,7 +616,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. On the consumption side (2.53+), the complete dialog offers the **sum of the selected parts' unit prices as a one-click cost suggestion** — following the live selection, never overwriting a cost you typed yourself. Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.44 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted. The parts section header shows the **inventory value** (2.49+, discussion #104): Σ unit price × tracked stock across the parts that have both — purely informational, it never enters any budget total
 - **Priorities** (2.17+): Low / Normal / High per task, shown as a badge (▲/▼) on task rows
 - **Labels / tags** (2.17+): lightweight comma-separated tags per task (e.g. `safety`, `seasonal`), shown as chips and searchable in the command palette
-- **Completion photos** (2.17+): attach a photo when completing a task (camera capture supported); stored via the documents engine and shown in the history timeline
+- **Completion photos** (2.17+): attach photos when completing a task — camera capture or several from the gallery at once, up to ten per completion (2.75+) — stored via the documents engine, shown as a thumbnail strip in the history timeline, and editable afterwards from the history entry (add more, detach one)
 - **Missed status + completion window** (2.17+): skipping an overdue task records it as *Missed* (distinct from a deliberate skip); an optional per-task *earliest completion* window blocks signing tasks off too early
 - **Shared maintenance & rotation** (2.17+): assign a task to several household members and rotate responsibility on each completion (round-robin / least-completed / random). Since 2.42.1 a rotation task **always carries an effective assignee** (discussion #49): the first pool member is seeded whenever the task is created, edited or imported, a storage migration repaired existing tasks on upgrade, and editing the current assignee out of the pool hands the duty to the next member. Before that, a pool configured without an initial assignee left the task invisible to every user filter (panel, card, calendar card, saved views, per-user notifications) until its first completion
 - **Native To-do entity** (2.17+): a global `todo.maintenance` list mirrors every active task; checking an item off completes the task — works with the To-do card and Assist/voice

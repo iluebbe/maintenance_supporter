@@ -97,7 +97,10 @@ export interface HistoryEntry {
   checklist_state?: Record<string, boolean> | null;
   feedback?: string | null;
   completed_by?: string | null;
+  /** Pre-#161 single completion photo — read for old entries, never written. */
   photo_doc_id?: string | null;
+  /** #161: every photo attached to this completion (see helpers/history-photos). */
+  photo_doc_ids?: string[] | null;
   /** v2.20 (#83): recorded value for `reading`-type tasks. */
   reading_value?: number | null;
   /** #99/#130: the completion's part consumption (entry_id set for pooled). */

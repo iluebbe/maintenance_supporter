@@ -261,7 +261,7 @@ it is prefixed with `Condition <index>:`.
 flat interval edit rebuilds from flat and drops the nested schedule.
 
 ### Task actions (no write gate)
-- `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure)}` → `{"success": true}` — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass)
+- `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass)
 - `task/quick_complete` `{entry_id, task_id}` → `{"success": true, "via": "quick"}` (needs stored `quick_complete_defaults`, else `no_defaults`)
 - `task/checklist_progress` `{entry_id, task_id, checklist_state (req, {item text: bool})}` →
   `{"success": true, "checklist_state": {...}}` — persists in-cycle ticks WITHOUT
@@ -326,7 +326,10 @@ another user's assignments need write permission, else `unauthorized`.
 - `task/history/update` also patches `used_parts: [{part_id, quantity,
   entry_id?}] | null` (#130) — stock is reconciled by the per-part DELTA
   against the entry's stored consumption; `null`/`[]` clears it and returns
-  the quantities.
+  the quantities — and `photo_doc_ids: [doc id] | null` (#161): the full
+  list replaces the entry's photos (a legacy `photo_doc_id` scalar is
+  folded in), newly listed ids are linked to the task, a removed id only
+  detaches the photo (the document stays with the object).
 - `task/set_environmental_entity` — `@require_write` — `{entry_id, task_id,
   environmental_entity?, environmental_attribute?}` → `{"success": true,
   environmental_entity, environmental_attribute}`. Correlates an outside signal
