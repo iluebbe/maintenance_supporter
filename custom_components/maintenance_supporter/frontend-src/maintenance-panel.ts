@@ -2611,12 +2611,15 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span class="today-dot ${row.trigger_active ? "triggered" : row.status}"></span>
             <div class="today-main">
               <div class="today-task">${row.task_name}</div>
-              <div class="today-object">${row.object_name} · ${formatDueDays(row.days_until_due, L)}${(() => {
-                const person = personOf(row);
-                return person
-                  ? html`<span class="today-person sub-chip" title="${t("responsible_user", L)}"><ha-icon icon="mdi:account-outline"></ha-icon>${person}</span>`
-                  : nothing;
-              })()}</div>
+              <div class="today-object">
+                <span class="today-object-text">${row.object_name} · ${formatDueDays(row.days_until_due, L)}</span>
+                ${(() => {
+                  const person = personOf(row);
+                  return person
+                    ? html`<span class="today-person sub-chip" title="${person}"><ha-icon icon="mdi:account-outline"></ha-icon><span class="today-person-name">${person}</span></span>`
+                    : nothing;
+                })()}
+              </div>
             </div>
             ${this._actionStyle() === "icons"
               ? html`

@@ -1,4 +1,5 @@
 import { expect } from "@open-wc/testing";
+import { setViewport } from "@web/test-runner-commands";
 import { mountPanel, obj, resetTaskSeq, sr, task } from "./_panel-utils.js";
 describe("panel shell", () => {
   beforeEach(() => {
@@ -178,6 +179,35 @@ describe("panel shell", () => {
     (el as unknown as { _filterUser: string | null })._filterUser = "u-anna";
     await el.updateComplete;
     expect(sr(el).querySelector(".today-person")).to.equal(null);
+  });
+
+  it("Today person chip stays readable on a phone next to a long object name (#169)", async () => {
+    localStorage.setItem("msp-overview-tab", "today");
+    await setViewport({ width: 360, height: 800 });
+    try {
+      const { el } = await mountPanel(
+        [
+          obj("e1", [task({ name: "Descale and clean the filter thoroughly", status: "overdue", days_until_due: -248, responsible_user_id: "u-max" })],
+            "Dishwasher in the basement utility room 12345"),
+        ],
+        { "maintenance_supporter/users/list": () => ({ users: [{ id: "u-max", name: "Maximiliane Schneider-Hoffmann" }] }) },
+      );
+      await new Promise((r) => setTimeout(r, 30));
+      await el.updateComplete;
+      const line = sr(el).querySelector<HTMLElement>(".today-object")!;
+      const chip = line.querySelector<HTMLElement>(".today-person")!;
+      const lineBox = line.getBoundingClientRect();
+      const chipBox = chip.getBoundingClientRect();
+      const visible = Math.min(chipBox.right, lineBox.right) - Math.max(chipBox.left, lineBox.left);
+      expect(visible, "chip width visible inside the line").to.be.greaterThan(80);
+      expect(chipBox.right, "chip does not overflow the line").to.be.at.most(lineBox.right + 1);
+      // The object text gave way (ellipsis), not the person.
+      const text = line.querySelector<HTMLElement>(".today-object-text")!;
+      expect(text.scrollWidth).to.be.greaterThan(text.clientWidth);
+      expect(chip.getAttribute("title")).to.equal("Maximiliane Schneider-Hoffmann");
+    } finally {
+      await setViewport({ width: 1280, height: 800 });
+    }
   });
 
   it("virtualizes the table above the threshold and moves the window on scroll", async () => {

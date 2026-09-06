@@ -399,9 +399,17 @@ export const panelStyles = css`
   .today-dot.triggered { background: #ff5722; }
   .today-main { flex: 1; min-width: 0; }
   .today-task { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .today-object { color: var(--secondary-text-color); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* #169: the responsible person, same chip as the dashboard sub-line */
-  .today-object .today-person { margin-left: 8px; font-size: 12px; vertical-align: 1px; }
+  /* #169: the sub-line is a flex row of two parts that truncate on their
+     own — a long object name shortens itself instead of pushing the
+     person chip out of the row on a phone (a single nowrap text line cut
+     the chip first, i.e. entirely). The chip keeps a readable minimum. */
+  .today-object {
+    color: var(--secondary-text-color); font-size: 12.5px;
+    display: flex; align-items: center; gap: 8px; min-width: 0;
+  }
+  .today-object-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .today-object .today-person { flex: 0 1 auto; min-width: 88px; max-width: 45%; font-size: 12px; }
+  .today-person-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
   .today-row .today-complete { flex: none; --ha-button-font-size: 13px; white-space: nowrap; }
   .today-row .today-complete ha-icon { --mdc-icon-size: 18px; }

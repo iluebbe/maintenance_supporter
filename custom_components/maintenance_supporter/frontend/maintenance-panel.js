@@ -528,9 +528,17 @@ ${I(o.notes)}</div>`:""}
   .today-dot.triggered { background: #ff5722; }
   .today-main { flex: 1; min-width: 0; }
   .today-task { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .today-object { color: var(--secondary-text-color); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* #169: the responsible person, same chip as the dashboard sub-line */
-  .today-object .today-person { margin-left: 8px; font-size: 12px; vertical-align: 1px; }
+  /* #169: the sub-line is a flex row of two parts that truncate on their
+     own — a long object name shortens itself instead of pushing the
+     person chip out of the row on a phone (a single nowrap text line cut
+     the chip first, i.e. entirely). The chip keeps a readable minimum. */
+  .today-object {
+    color: var(--secondary-text-color); font-size: 12.5px;
+    display: flex; align-items: center; gap: 8px; min-width: 0;
+  }
+  .today-object-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .today-object .today-person { flex: 0 1 auto; min-width: 88px; max-width: 45%; font-size: 12px; }
+  .today-person-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
   .today-row .today-complete { flex: none; --ha-button-font-size: 13px; white-space: nowrap; }
   .today-row .today-complete ha-icon { --mdc-icon-size: 18px; }
@@ -5250,7 +5258,10 @@ ${d.capped?`<p class="cap-note">${F(t.capNote)}</p>`:""}
             <span class="today-dot ${d.trigger_active?"triggered":d.status}"></span>
             <div class="today-main">
               <div class="today-task">${d.task_name}</div>
-              <div class="today-object">${d.object_name} · ${yt(d.days_until_due,s)}${(()=>{let n=l(d);return n?r`<span class="today-person sub-chip" title="${a("responsible_user",s)}"><ha-icon icon="mdi:account-outline"></ha-icon>${n}</span>`:p})()}</div>
+              <div class="today-object">
+                <span class="today-object-text">${d.object_name} · ${yt(d.days_until_due,s)}</span>
+                ${(()=>{let n=l(d);return n?r`<span class="today-person sub-chip" title="${n}"><ha-icon icon="mdi:account-outline"></ha-icon><span class="today-person-name">${n}</span></span>`:p})()}
+              </div>
             </div>
             ${this._actionStyle()==="icons"?r`
                 <mwc-icon-button class="btn-complete" title="${a("complete",s)}"
