@@ -87,6 +87,24 @@ await fetch(`${REST}/api/states/binary_sensor.back_door_lock_battery_plus_low`, 
     },
   }),
 });
+// (2.75, D#162) A Battery Notes note WITHOUT a level sensor: Battery Notes
+// then creates only the type sensor (+ last-replaced timestamp + replaced
+// button) — the fleet lists it as a "No sensor" row, forecast from the
+// type's typical lifetime, due once that date has passed.
+await fetch(`${REST}/api/states/sensor.attic_window_contact_battery_type`, {
+  method: "POST", headers: auth,
+  body: JSON.stringify({
+    state: "CR2032×1",
+    attributes: { battery_type: "CR2032", battery_quantity: 1, device_name: "Attic Window Contact", friendly_name: "Attic Window Contact Battery type" },
+  }),
+});
+await fetch(`${REST}/api/states/sensor.attic_window_contact_battery_last_replaced`, {
+  method: "POST", headers: auth,
+  body: JSON.stringify({
+    state: monthsAgo(19),
+    attributes: { device_class: "timestamp", device_name: "Attic Window Contact", friendly_name: "Attic Window Contact Battery last replaced" },
+  }),
+});
 log("SEEDED battery states");
 
 const api = await wsClient(REST, token);

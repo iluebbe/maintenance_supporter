@@ -499,6 +499,44 @@ log("SEED OK", JSON.stringify(seed));
     }
     log("v2.67 seed: shopping list ->", listId);
   } catch (e) { log("v2.67 shopping seed skipped:", String(e && e.message || e)); }
+  // d) (2.75, #161) Reading slots on the water meter — one row per meter —
+  //    plus three months of readings, so the history shows per-slot deltas
+  //    and the complete dialog its "last: …" hints.
+  try {
+    const { o, t } = find("Utility Meters", "Water Meter Reading");
+    if (o && t && !(t.readings || []).length) {
+      await api.send({ type: "maintenance_supporter/task/update", entry_id: o.entry_id, task_id: t.id,
+        name: t.name, task_type: t.type,
+        readings: [{ name: "Cold water", unit: "m³" }, { name: "Hot water", unit: "m³" }, { name: "Garden tap", unit: "m³" }] });
+      const full = await api.send({ type: "maintenance_supporter/object", entry_id: o.entry_id });
+      const wm = (full.tasks || []).find((x) => x.id === t.id);
+      const [cold, hot, garden] = wm.readings;
+      // Oldest first; the last one lands on the seeded last_performed day.
+      const series = [[-84, 1182.4, 341.9, 27.1], [-56, 1196.0, 349.2, 33.8], [-28, 1209.7, 356.0, 41.5]];
+      for (const [days, c, h, g] of series) {
+        await api.send({ type: "maintenance_supporter/task/complete", entry_id: o.entry_id, task_id: t.id,
+          completed_at: new Date(Date.now() + days * 864e5).toISOString().slice(0, 19),
+          reading_values: { [cold.id]: c, [hot.id]: h, [garden.id]: g } });
+      }
+      log("v2.75 seed: reading slots + 3 readings on the water meter");
+    }
+  } catch (e) { log("v2.75 reading seed skipped:", String(e && e.message || e)); }
+  // e) (2.76, #169) Member avatars: Anna gets her own initials + colour so the
+  //    settings shot shows an override next to Ben's derived default.
+  try {
+    const users = (await api.send({ type: "maintenance_supporter/users/list" })).users || [];
+    const anna = users.find((u) => u.name === "Anna");
+    const settings = await api.send({ type: "maintenance_supporter/settings" });
+    // Orange on purpose: Ben's hash-derived default happens to be the pink
+    // one, and the shot must show two members told apart.
+    const want = { initials: "AN", color: "#ef6c00" };
+    const have = (settings.member_display || {})[anna.id] || {};
+    if (anna && (have.initials !== want.initials || have.color !== want.color)) {
+      await api.send({ type: "maintenance_supporter/global/update",
+        settings: { member_display: { ...(settings.member_display || {}), [anna.id]: want } } });
+      log("v2.76 seed: Anna's avatar override");
+    }
+  } catch (e) { log("v2.76 avatar seed skipped:", String(e && e.message || e)); }
 }
 
 // Documents: upload a PDF manual to the Family Car + add a web link, and
@@ -754,6 +792,100 @@ await step("complete-dialog.png", async () => {
   await p.waitForTimeout(2500); // lazy dialog chunk + parts render
   await shot("complete-dialog.png");
   await closeDialogs();
+});
+
+// 7b. (2.75, #161) Meter reading round: two completion photos on the latest
+// reading (drawn on a canvas in the browser and uploaded like the panel
+// does — the multipart route needs the bearer token from the page), then
+// the history tab with per-slot deltas + the thumbnail strip, and the
+// complete dialog with one field per slot and the two photo pickers.
+async function showWaterMeter(tab) {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Utility Meters");
+    const t2 = o.tasks.find((x) => x.name === "Water Meter Reading");
+    panel._showTask(o.entry_id, t2.id);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(2500);
+  if (tab) {
+    await p.evaluate(({ finder, tab }) => { eval(finder); window.__panel._activeTab = tab; }, { finder: deepFindPanel, tab });
+    await p.waitForTimeout(2500); // signed thumbnails
+  }
+}
+await step("task-history-readings.png", async () => {
+  await openPanel("dashboard");
+  const seeded = await p.evaluate(async ({ finder, ha }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Utility Meters");
+    const t2 = o.tasks.find((x) => x.name === "Water Meter Reading");
+    const full = await panel.hass.connection.sendMessagePromise({ type: "maintenance_supporter/object", entry_id: o.entry_id });
+    const task = (full.tasks || []).find((x) => x.id === t2.id);
+    const done = (task.history || []).filter((h) => h.type === "completed").sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    const latest = done[done.length - 1];
+    if (!latest) return "no completion";
+    if ((latest.photo_doc_ids || []).length) return "already";
+    const token = JSON.parse(localStorage.getItem("hassTokens")).access_token;
+    const draw = (label, digits, tint) => {
+      const c = document.createElement("canvas"); c.width = 720; c.height = 540;
+      const g = c.getContext("2d");
+      g.fillStyle = tint; g.fillRect(0, 0, 720, 540);
+      g.fillStyle = "#1b1f24"; g.beginPath(); g.roundRect(60, 90, 600, 360, 28); g.fill();
+      g.fillStyle = "#e8eaed"; g.font = "bold 28px sans-serif"; g.fillText(label, 100, 150);
+      g.fillStyle = "#0d0f12"; g.beginPath(); g.roundRect(100, 190, 520, 130, 12); g.fill();
+      g.fillStyle = "#f5f5f5"; g.font = "bold 92px monospace";
+      let x = 118; for (const ch of digits) { g.fillStyle = ch === "." ? "#ff7043" : "#f5f5f5"; g.fillText(ch, x, 290); x += ch === "." ? 32 : 60; }
+      g.fillStyle = "#9aa0a6"; g.font = "22px sans-serif"; g.fillText("m³   Q3 2.5   Nr. 08-4471", 100, 380);
+      g.strokeStyle = "#ff7043"; g.lineWidth = 6; g.beginPath(); g.arc(560, 380, 34, 0, Math.PI * 2); g.stroke();
+      return new Promise((res) => c.toBlob(res, "image/jpeg", 0.86));
+    };
+    const ids = [];
+    for (const [label, digits, tint, file] of [["COLD WATER", "01209.7", "#2f3e4e", "cold-water.jpg"], ["HOT WATER", "00356.0", "#4e3a2f", "hot-water.jpg"]]) {
+      const blob = await draw(label, digits, tint);
+      const fd = new FormData(); fd.append("entry_id", o.entry_id); fd.append("tags", "photo"); fd.append("file", blob, file);
+      const r = await fetch(ha + "/api/maintenance_supporter/document/upload", { method: "POST", headers: { Authorization: "Bearer " + token }, body: fd }).then((x) => x.json());
+      if (r.id) ids.push(r.id);
+    }
+    await panel.hass.connection.sendMessagePromise({ type: "maintenance_supporter/task/history/update", entry_id: o.entry_id, task_id: t2.id, original_timestamp: latest.timestamp, photo_doc_ids: ids });
+    return ids.length + " photos";
+  }, { finder: deepFindPanel, ha: HA });
+  log("v2.75 photos:", seeded);
+  await openPanel("dashboard");
+  await showWaterMeter("history");
+  await shot("task-history-readings.png");
+});
+
+await step("complete-dialog-readings.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Utility Meters");
+    const t2 = o.tasks.find((x) => x.name === "Water Meter Reading");
+    panel._openCompleteDialog(o.entry_id, t2.id, t2.name, undefined, false);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(2500);
+  await shot("complete-dialog-readings.png");
+  await closeDialogs();
+});
+
+// 7c. (2.76, #169) Settings → Member avatars, clipped to the section.
+await step("member-avatars.png", async () => {
+  await openPanel("settings");
+  await p.waitForTimeout(2500);
+  const section = await p.evaluateHandle(({ finder }) => {
+    eval(finder);
+    const view = window.__panel.shadowRoot.querySelector("maintenance-settings-view");
+    const el = view && view.shadowRoot.querySelector(".member-avatars");
+    if (el) el.scrollIntoView({ block: "center" });
+    return el;
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(800);
+  const el = section.asElement();
+  if (!el) throw new Error("member-avatars section not found");
+  await el.screenshot({ path: OUT + "member-avatars.png" });
+  log("SHOT member-avatars.png");
 });
 
 // 8. Objects table (warranty chips green/amber/red, sortable columns)

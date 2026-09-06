@@ -115,6 +115,12 @@ already open ([Examples → Deep links](EXAMPLES.md#deep-links--open-an-object-o
 
 ![Today view](images/today-view.png)
 
+The person is an **avatar** — initials in a colour of their own, derived
+from the HA user and adjustable per member under *Settings → Member
+avatars* (2.76+):
+
+![Member avatars](images/member-avatars.png)
+
 ### Objects Table
 The *All Objects* view as a sortable table with configurable columns and CSV
 export. Warranty chips show all three states: green *valid until*, amber
@@ -138,6 +144,11 @@ the notice, and the server refuses the button — see *Proof of presence*
 below.
 
 ![Complete Dialog](images/complete-dialog.png)
+
+A *Reading* task with **reading slots** (2.75+) gets one field per meter,
+each with the previous value as a hint:
+
+![Complete dialog with reading slots](images/complete-dialog-readings.png)
 
 ### Proof of presence (2.67+)
 Tick **Require tag scan to complete** next to the task's NFC tag and the
@@ -163,6 +174,11 @@ from an entry afterwards through the entry's edit dialog (removing one
 keeps the file in the object's documents).
 
 ![Task History](images/task-history.png)
+
+A meter round with reading slots: every slot with its delta against the
+last completion that recorded it, plus the completion photos (2.75+):
+
+![Meter readings with photos in the history](images/task-history-readings.png)
 
 ### Settings Tab
 Feature toggles (advanced features are hidden until enabled), panel access
@@ -226,7 +242,8 @@ tells you what went where so you can move it somewhere better. A deleted
 object's *unshared* parts stay private and are removed with it.
 
 ### Task Dialog — Reading Type + End-of-Month Scheduling (2.18+)
-The *Reading* task type for recording meter values, scheduled for the *last
+The *Reading* task type for recording meter values — with **reading slots**
+(2.75+), one row per meter with its own unit — scheduled for the *last
 business day of the month* with an optional ±N-day offset.
 
 ![Task dialog with reading type and end-of-month schedule](images/task-dialog-schedule.png)
