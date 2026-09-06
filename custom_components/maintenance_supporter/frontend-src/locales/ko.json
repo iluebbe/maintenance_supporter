@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: 유효하지 않은 값입니다",
   "feat_schedule_time": "시각 지정 일정",
   "feat_schedule_time_desc": "작업이 자정이 아닌 지정한 시각에 기한 초과로 전환됩니다.",
-  "schedule_time_optional": "기한 시각 (선택)",
+  "schedule_time_toggle": "특정 시각에 기한",
   "schedule_time_help": "비워두면 자정(기본값)입니다. HA 시간대 기준.",
   "at_time": "시각",
   "notes_optional": "메모 (선택)",

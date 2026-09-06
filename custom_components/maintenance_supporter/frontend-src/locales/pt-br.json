@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: valor inválido",
   "feat_schedule_time": "Agendamento por horário",
   "feat_schedule_time_desc": "As tarefas ficam atrasadas em um horário específico do dia, em vez de à meia-noite.",
-  "schedule_time_optional": "Vence às (opcional)",
+  "schedule_time_toggle": "Vence em um horário específico",
   "schedule_time_help": "Vazio = meia-noite (padrão). Fuso horário do HA.",
   "at_time": "às",
   "notes_optional": "Observações (opcional)",

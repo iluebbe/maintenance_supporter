@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: geçersiz değer",
   "feat_schedule_time": "Gün içi saat zamanlaması",
   "feat_schedule_time_desc": "Görevler gece yarısı yerine günün belirli bir saatinde gecikmiş olur.",
-  "schedule_time_optional": "Vade saati (isteğe bağlı)",
+  "schedule_time_toggle": "Belirli bir saatte vadesi dolar",
   "schedule_time_help": "Boş = gece yarısı (varsayılan). HA saat dilimi.",
   "at_time": "saat",
   "notes_optional": "Notlar (isteğe bağlı)",

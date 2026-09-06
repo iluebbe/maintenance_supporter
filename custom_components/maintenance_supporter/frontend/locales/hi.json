@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: अमान्य मान",
   "feat_schedule_time": "दिन का समय निर्धारण",
   "feat_schedule_time_desc": "कार्य मध्यरात्रि के बजाय दिन के एक विशिष्ट समय पर अतिदेय हो जाते हैं।",
-  "schedule_time_optional": "इस समय देय (वैकल्पिक)",
+  "schedule_time_toggle": "किसी निश्चित समय पर देय",
   "schedule_time_help": "खाली = मध्यरात्रि (डिफ़ॉल्ट)। HA समय क्षेत्र।",
   "at_time": "बजे",
   "notes_optional": "टिप्पणियाँ (वैकल्पिक)",

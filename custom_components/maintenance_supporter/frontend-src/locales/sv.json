@@ -122,7 +122,7 @@
   "err_invalid_value": "{field}: ogiltigt värde",
   "feat_schedule_time": "Schemaläggning per tid på dygnet",
   "feat_schedule_time_desc": "Uppgifter blir försenade vid en specifik tid på dygnet istället för midnatt.",
-  "schedule_time_optional": "Förfaller kl. (valfritt)",
+  "schedule_time_toggle": "Förfaller vid en viss tid",
   "schedule_time_help": "Tomt = midnatt (standard). HA-tidszon.",
   "at_time": "kl.",
   "notes_optional": "Anteckningar (valfritt)",

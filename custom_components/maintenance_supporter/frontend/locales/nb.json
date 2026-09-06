@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: ugyldig verdi",
   "feat_schedule_time": "Planlegging med klokkeslett",
   "feat_schedule_time_desc": "Oppgaver forfaller på et bestemt klokkeslett i stedet for ved midnatt.",
-  "schedule_time_optional": "Forfaller kl. (valgfritt)",
+  "schedule_time_toggle": "Forfaller på et bestemt klokkeslett",
   "schedule_time_help": "Tom = midnatt (standard). HA-tidssone.",
   "at_time": "kl.",
   "notes_optional": "Notater (valgfritt)",

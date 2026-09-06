@@ -122,7 +122,7 @@
   "err_invalid_value": "{field}: ongeldige waarde",
   "feat_schedule_time": "Tijd-van-dag-planning",
   "feat_schedule_time_desc": "Taken vervallen op een specifieke tijd in plaats van middernacht.",
-  "schedule_time_optional": "Vervaldagstijd (optioneel)",
+  "schedule_time_toggle": "Vervalt op een vast tijdstip",
   "schedule_time_help": "Leeg = middernacht (standaard). HA-tijdzone.",
   "at_time": "om",
   "notes_optional": "Notities (optioneel)",

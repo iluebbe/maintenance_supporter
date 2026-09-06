@@ -288,7 +288,7 @@ while low).
 
 ### Time-of-day Scheduling
 
-Available when `advanced_schedule_time_visible` is enabled globally. Applies to every schedule kind that produces a due date — interval, the three calendar kinds (weekdays, nth weekday, day of month) and one-time tasks (2.77+; interval only before). Manual and sensor-based tasks have no due date, so the field is not offered there. Editable in the **panel task dialog** (HH:MM picker below the recurrence fields) and in the **Integration Options** per-task Edit Task step.
+Available when `advanced_schedule_time_visible` is enabled globally. Applies to every schedule kind that produces a due date — interval, the three calendar kinds (weekdays, nth weekday, day of month) and one-time tasks (2.77+; interval only before). Manual and sensor-based tasks have no due date, so the field is not offered there. Editable in the **panel task dialog** — tick *Due at a specific time* below the recurrence fields to reveal the HH:MM picker; unticking it clears the stored time — and in the **Integration Options** per-task Edit Task step (plain time field, submit it empty to clear).
 
 **Behaviour:**
 - On the due date, the task flips from `due_soon` to `overdue` at the configured `HH:MM` in HA's configured timezone (instead of at midnight).

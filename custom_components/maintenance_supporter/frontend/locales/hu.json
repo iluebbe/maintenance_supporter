@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: érvénytelen érték",
   "feat_schedule_time": "Napszakhoz kötött ütemezés",
   "feat_schedule_time_desc": "A feladatok nem éjfélkor, hanem egy megadott napszakban válnak lejárttá.",
-  "schedule_time_optional": "Esedékesség időpontja (opcionális)",
+  "schedule_time_toggle": "Adott időpontban esedékes",
   "schedule_time_help": "Üres = éjfél (alapértelmezés). HA időzóna.",
   "at_time": "ekkor:",
   "notes_optional": "Megjegyzések (opcionális)",

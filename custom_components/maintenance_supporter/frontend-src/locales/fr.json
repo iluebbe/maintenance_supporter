@@ -122,7 +122,7 @@
   "err_invalid_value": "{field} : valeur invalide",
   "feat_schedule_time": "Planification à l'heure",
   "feat_schedule_time_desc": "Les tâches arrivent à échéance à une heure précise plutôt qu'à minuit.",
-  "schedule_time_optional": "Échéance à l'heure (optionnel)",
+  "schedule_time_toggle": "Échéance à une heure précise",
   "schedule_time_help": "Vide = minuit (défaut). Fuseau horaire HA.",
   "at_time": "à",
   "notes_optional": "Notes (optionnel)",

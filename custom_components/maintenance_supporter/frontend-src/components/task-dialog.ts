@@ -291,6 +291,9 @@ export class MaintenanceTaskDialog extends LitElement {
 
   // Schedule time (HH:MM, advanced feature)
   @state() private _scheduleTime = "";
+  // The picker only shows once this is ticked (#168 follow-up) — most tasks
+  // are due "on the day", so the form stays lean. Unticking clears the time.
+  @state() private _scheduleTimeOn = false;
 
   // v1.3.0: on_complete_action (gated by completionActionsEnabled)
   // v1.3.1: _actionData is the parsed object (was: _actionDataJson string)
@@ -450,6 +453,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._phaseSeq = [...(task.phase_sequence || [])];
     this._requiredCompletion = [...(task.required_completion_fields || [])];
     this._scheduleTime = task.schedule_time || "";
+    this._scheduleTimeOn = !!task.schedule_time;
 
     // v1.3.0: hydrate on_complete_action + quick_complete_defaults
     const oca = task.on_complete_action;
@@ -574,6 +578,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._phaseSeq = [];
     this._requiredCompletion = [];
     this._scheduleTime = "";
+    this._scheduleTimeOn = false;
     this._environmentalEntity = "";
     this._environmentalAttribute = "";
     this._environmentalInitial = "";
@@ -1441,10 +1446,11 @@ export class MaintenanceTaskDialog extends LitElement {
         data.trigger_config = null;
       }
 
-      // Schedule time only sent when feature is enabled — empty string clears.
-      // Every date-driven kind takes one (#168), not only the interval.
+      // Schedule time only sent when feature is enabled — null clears.
+      // Every date-driven kind takes one (#168), not only the interval; an
+      // unticked checkbox (or a ticked one with an empty picker) clears it.
       if (this.scheduleTimeEnabled && SCHEDULE_TIME_KINDS.includes(this._scheduleType)) {
-        const t = this._scheduleTime.trim();
+        const t = this._scheduleTimeOn ? this._scheduleTime.trim() : "";
         data.schedule_time = /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : null;
       }
 
@@ -2157,7 +2163,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private _renderSchedulePreview() {
     if (this._schedulePreview.length === 0) return nothing;
     const L = this._lang;
-    const time = this.scheduleTimeEnabled && this._scheduleTime ? ` ${this._scheduleTime}` : "";
+    const time = this.scheduleTimeEnabled && this._scheduleTimeOn && this._scheduleTime ? ` ${this._scheduleTime}` : "";
     const chips = this._schedulePreview
       .map((iso, i) => {
         const js = new Date(`${iso}T12:00:00`).getDay(); // 0=Sun
@@ -2735,16 +2741,21 @@ export class MaintenanceTaskDialog extends LitElement {
               `
             : nothing}
           ${this.scheduleTimeEnabled && SCHEDULE_TIME_KINDS.includes(this._scheduleType) ? html`
-            <ms-date-field
-              kind="time"
-              clearable
-              .hass=${this.hass}
-              .lang=${L}
-              label="${t("schedule_time_optional", L)}"
-              .value=${this._scheduleTime}
-              helper="${t("schedule_time_help", L)}"
-              @value-changed=${(e: CustomEvent) => (this._scheduleTime = e.detail.value as string)}
-            ></ms-date-field>
+            <label class="checkbox-row schedule-time-toggle">
+              <input type="checkbox" .checked=${this._scheduleTimeOn}
+                @change=${(e: Event) => (this._scheduleTimeOn = (e.target as HTMLInputElement).checked)} />
+              <span>${t("schedule_time_toggle", L)}</span>
+            </label>
+            ${this._scheduleTimeOn ? html`
+              <ms-date-field
+                kind="time"
+                .hass=${this.hass}
+                .lang=${L}
+                .value=${this._scheduleTime}
+                helper="${t("schedule_time_help", L)}"
+                @value-changed=${(e: CustomEvent) => (this._scheduleTime = e.detail.value as string)}
+              ></ms-date-field>
+            ` : nothing}
           ` : nothing}
           ${this._renderRecurrenceExtras()}
           ${this._renderSchedulePreview()}
@@ -3284,6 +3295,10 @@ export class MaintenanceTaskDialog extends LitElement {
       width: 16px;
       height: 16px;
       cursor: pointer;
+    }
+    .schedule-time-toggle {
+      display: flex;
+      margin: 8px 0 4px;
     }
     .pool-item {
       display: inline-flex;

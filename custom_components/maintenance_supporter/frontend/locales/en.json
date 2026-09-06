@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: invalid value",
   "feat_schedule_time": "Time-of-day scheduling",
   "feat_schedule_time_desc": "Tasks become overdue at a specific time of day instead of midnight.",
-  "schedule_time_optional": "Due at time (optional)",
+  "schedule_time_toggle": "Due at a specific time",
   "schedule_time_help": "Empty = midnight (default). HA timezone.",
   "at_time": "at",
   "notes_optional": "Notes (optional)",

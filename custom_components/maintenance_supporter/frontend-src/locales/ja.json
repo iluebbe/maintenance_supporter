@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: 無効な値です",
   "feat_schedule_time": "時刻指定スケジュール",
   "feat_schedule_time_desc": "タスクが深夜0時ではなく指定した時刻に期限超過となります。",
-  "schedule_time_optional": "期限の時刻（任意）",
+  "schedule_time_toggle": "特定の時刻に期限",
   "schedule_time_help": "空欄＝深夜0時（既定）。HAのタイムゾーン。",
   "at_time": "時刻",
   "notes_optional": "メモ（任意）",

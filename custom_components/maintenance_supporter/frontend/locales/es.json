@@ -122,7 +122,7 @@
   "err_invalid_value": "{field}: valor inválido",
   "feat_schedule_time": "Programación por hora",
   "feat_schedule_time_desc": "Las tareas vencen a una hora específica en lugar de medianoche.",
-  "schedule_time_optional": "Vence a las (opcional)",
+  "schedule_time_toggle": "Vence a una hora concreta",
   "schedule_time_help": "Vacío = medianoche (predeterminado). Zona horaria HA.",
   "at_time": "a las",
   "notes_optional": "Notas (opcional)",

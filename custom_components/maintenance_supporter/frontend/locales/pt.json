@@ -122,7 +122,7 @@
   "err_invalid_value": "{field}: valor inválido",
   "feat_schedule_time": "Agendamento por hora",
   "feat_schedule_time_desc": "Tarefas vencem em um horário específico em vez de meia-noite.",
-  "schedule_time_optional": "Vence às (opcional)",
+  "schedule_time_toggle": "Vence a uma hora específica",
   "schedule_time_help": "Vazio = meia-noite (padrão). Fuso horário HA.",
   "at_time": "às",
   "notes_optional": "Notas (opcional)",

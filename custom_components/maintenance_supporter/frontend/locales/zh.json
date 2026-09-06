@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: 无效数值",
   "feat_schedule_time": "具体时间调度",
   "feat_schedule_time_desc": "任务将在特定时间点变为逾期，而非默认的午夜。",
-  "schedule_time_optional": "到期时间 (可选)",
+  "schedule_time_toggle": "在特定时间到期",
   "schedule_time_help": "留空 = 午夜 (默认)。基于 HA 时区。",
   "at_time": "于",
   "notes_optional": "备注 (可选)",

@@ -15,9 +15,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   and the Integration Options edit-task step now show the picker on every
   kind that produces a due date (interval, weekdays, nth weekday, day of
   month, one-time); manual and sensor-based tasks still have no due date
-  to refine. The weekday-workaround table in the docs is replaced by the
-  one-liner it always should have been; tasks built the old way keep
-  working unchanged.
+  to refine. In the dialog the picker sits behind a *Due at a specific
+  time* checkbox so the form stays lean for the many tasks that are due
+  "on the day" — unticking it clears the stored time. The
+  weekday-workaround table in the docs is replaced by the one-liner it
+  always should have been; tasks built the old way keep working
+  unchanged.
 
 ## [2.76.0] - 2026-09-06
 

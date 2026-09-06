@@ -122,7 +122,7 @@
   "err_invalid_value": "{field}: невірне значення",
   "feat_schedule_time": "Планування за часом доби",
   "feat_schedule_time_desc": "Задачі стають простроченими у певний час доби, а не опівночі.",
-  "schedule_time_optional": "Час прострочення (необов'язково)",
+  "schedule_time_toggle": "Термін у визначений час",
   "schedule_time_help": "Порожньо = опівночі (за замовчуванням). Часовий пояс HA.",
   "at_time": "о",
   "notes_optional": "Примітки (необов'язково)",

@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: virheellinen arvo",
   "feat_schedule_time": "Kellonajan ajoitus",
   "feat_schedule_time_desc": "Tehtävät erääntyvät tiettyyn kellonaikaan keskiyön sijaan.",
-  "schedule_time_optional": "Erääntyy klo (valinnainen)",
+  "schedule_time_toggle": "Erääntyy tiettyyn kellonaikaan",
   "schedule_time_help": "Tyhjä = keskiyö (oletus). HA:n aikavyöhyke.",
   "at_time": "klo",
   "notes_optional": "Muistiinpanot (valinnainen)",

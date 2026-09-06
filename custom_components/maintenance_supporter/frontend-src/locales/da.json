@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: ugyldig værdi",
   "feat_schedule_time": "Planlægning efter tidspunkt på dagen",
   "feat_schedule_time_desc": "Opgaver bliver forfaldne på et bestemt tidspunkt på dagen i stedet for midnat.",
-  "schedule_time_optional": "Forfalder kl. (valgfrit)",
+  "schedule_time_toggle": "Forfalder på et bestemt tidspunkt",
   "schedule_time_help": "Tom = midnat (standard). HA-tidszone.",
   "at_time": "kl.",
   "notes_optional": "Noter (valgfrit)",

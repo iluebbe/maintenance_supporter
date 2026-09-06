@@ -124,7 +124,7 @@
   "err_invalid_value": "{field}: ungültiger Wert",
   "feat_schedule_time": "Uhrzeit-Scheduling",
   "feat_schedule_time_desc": "Tasks werden zu einer festen Uhrzeit fällig statt um Mitternacht.",
-  "schedule_time_optional": "Fällig um (optional)",
+  "schedule_time_toggle": "Zu einer bestimmten Uhrzeit fällig",
   "schedule_time_help": "Leer = Mitternacht (Default). HA-Zeitzone.",
   "at_time": "um",
   "notes_optional": "Notizen (optional)",
