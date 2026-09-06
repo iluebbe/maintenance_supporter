@@ -168,3 +168,28 @@ describe("task-dialog live trigger hint", () => {
     expect(text).to.include("100 h");
   });
 });
+
+describe("task-dialog state-change latch hint (#167)", () => {
+  const latchHint = (el: MaintenanceTaskDialog): boolean =>
+    [...el.shadowRoot!.querySelectorAll(".field-help")].some((n) => /latch/i.test(n.textContent || ""));
+
+  it("explains the latch (incl. the from-only recovery) for a single transition with a pattern", async () => {
+    const el = await mountCreate({ "sensor.dock_error": { state: "ok", attributes: {} } });
+    (el as any)._triggerEntityId = "sensor.dock_error";
+    (el as any)._triggerEntityIds = ["sensor.dock_error"];
+    (el as any)._triggerType = "state_change";
+    (el as any)._triggerFromState = "ok";
+    (el as any)._triggerTargetChanges = "1";
+    await el.updateComplete;
+    expect(latchHint(el), "from-only, target 1").to.equal(true);
+
+    (el as any)._triggerTargetChanges = "3";
+    await el.updateComplete;
+    expect(latchHint(el), "a counter is no latch").to.equal(false);
+
+    (el as any)._triggerTargetChanges = "";
+    (el as any)._triggerFromState = "";
+    await el.updateComplete;
+    expect(latchHint(el), "no pattern = no latch semantics").to.equal(false);
+  });
+});

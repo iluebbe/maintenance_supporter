@@ -176,3 +176,131 @@ async def test_state_change_latch_recovered_during_downtime_clears_quietly(
         after = await _read(hass, obj.entry_id)
     assert after["trigger_active"] is False, "latch left its alert state during downtime -> inactive"
     assert after["times_performed"] == 0, "must not auto-complete an unobserved recovery"
+
+
+# ─── #167: from-only pattern ("from ok to any") ──────────────────────────
+
+_DOCK = "sensor.robot_dock_error"
+
+
+def _build_from_only(hass: HomeAssistant, *, persisted_count: int = 0) -> MockConfigEntry:
+    """A dock-error sensor with a dozen fault states: the user can only name
+    the healthy state, so the pattern is `from: ok` → `to: (any)`."""
+    trigger_config: dict[str, Any] = {
+        "type": "state_change",
+        "entity_id": _DOCK,
+        "entity_ids": [_DOCK],
+        "trigger_from_state": "ok",
+        "trigger_target_changes": 1,
+        "auto_complete_on_recovery": True,
+    }
+    if persisted_count:
+        trigger_config["trigger_change_count"] = persisted_count
+    task = build_task_data(
+        last_performed="2026-03-01",
+        schedule_type=ScheduleType.SENSOR_BASED,
+        interval_days=None,
+        trigger_config=trigger_config,
+    )
+    obj = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Robot vacuum",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Robot vacuum", object_id="objid_rv"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user", unique_id="maintenance_supporter_rv",
+    )
+    obj.add_to_hass(hass)
+    return obj
+
+
+async def test_from_only_latch_recovers_when_the_entity_returns_to_the_from_state(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#167: `from ok → any` fires on the first fault, does NOT re-fire while
+    the sensor moves between fault states, and recovers (auto-completing once)
+    the moment it is back to `ok`. Before the fix the recovery was hard-wired
+    to a To-state, so this latch never cleared."""
+    hass.states.async_set(_DOCK, "ok")
+    obj = _build_from_only(hass)
+    with freeze_time("2026-05-01 09:00:00"):
+        await setup_integration(hass, global_entry, obj)
+        await hass.async_block_till_done()
+        p0 = (await _read(hass, obj.entry_id))["times_performed"]
+
+        hass.states.async_set(_DOCK, "duct_blockage")
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is True
+
+        # Another fault is not a recovery — and not a second trigger either.
+        hass.states.async_set(_DOCK, "water_empty")
+        await hass.async_block_till_done()
+        mid = await _read(hass, obj.entry_id)
+        assert mid["trigger_active"] is True
+        assert mid["times_performed"] == p0
+
+        hass.states.async_set(_DOCK, "ok")
+        await hass.async_block_till_done()
+        rec = await _read(hass, obj.entry_id)
+        assert rec["trigger_active"] is False, "back to the From-state must clear the latch"
+        assert rec["times_performed"] == p0 + 1, "recovery did not auto-complete exactly once"
+
+    with freeze_time("2026-06-01 09:00:00"):
+        hass.states.async_set(_DOCK, "no_dustbin")
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is True, "next fault must re-fire"
+        hass.states.async_set(_DOCK, "ok")
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["times_performed"] == p0 + 2
+
+
+@pytest.mark.parametrize(
+    ("live_state", "expect_active"),
+    [("ok", False), ("duct_blockage", True)],
+)
+async def test_from_only_latch_restart_reconcile(
+    hass: HomeAssistant, global_entry: MockConfigEntry, live_state: str, expect_active: bool
+) -> None:
+    """Startup restore for the from-only pattern: a latch persisted as active
+    clears QUIETLY when the entity is back in its From-state, and stays active
+    while it still reports a fault."""
+    hass.states.async_set(_DOCK, live_state)
+    obj = _build_from_only(hass, persisted_count=1)
+    with freeze_time("2026-05-01 09:00:00"):
+        await setup_integration(hass, global_entry, obj)
+        await hass.async_block_till_done()
+        after = await _read(hass, obj.entry_id)
+    assert after["trigger_active"] is expect_active
+    assert after["times_performed"] == 0, "an unobserved recovery must not auto-complete"
+
+
+async def test_counter_without_pattern_keeps_counting(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Neither From nor To set: a pure change counter — no latch semantics
+    sneak in through the new predicate (target 3 → third change fires)."""
+    hass.states.async_set(_DOCK, "a")
+    task = build_task_data(
+        last_performed="2026-03-01",
+        schedule_type=ScheduleType.SENSOR_BASED,
+        interval_days=None,
+        trigger_config={"type": "state_change", "entity_id": _DOCK, "entity_ids": [_DOCK], "trigger_target_changes": 3},
+    )
+    obj = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Counter",
+        data=build_object_entry_data(object_data=build_object_data(name="Counter", object_id="objid_ct"), tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_ct",
+    )
+    obj.add_to_hass(hass)
+    with freeze_time("2026-05-01 09:00:00"):
+        await setup_integration(hass, global_entry, obj)
+        await hass.async_block_till_done()
+        for state in ("b", "a"):
+            hass.states.async_set(_DOCK, state)
+            await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is False
+        hass.states.async_set(_DOCK, "c")
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is True
+        # Still counting, not a latch: moving on does not clear it.
+        hass.states.async_set(_DOCK, "a")
+        await hass.async_block_till_done()
+        assert (await _read(hass, obj.entry_id))["trigger_active"] is True

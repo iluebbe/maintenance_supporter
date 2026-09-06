@@ -541,6 +541,7 @@
   "group_by_label": "Grupper etter",
   "state_value_help": "Bruk HA-tilstandsverdien (vanligvis små bokstaver, f.eks. \"on\"/\"off\"). Store/små bokstaver normaliseres ved lagring.",
   "target_changes_help": "Antall samsvarende overganger før utløseren aktiveres (standard: 1).",
+  "state_latch_help": "Med 1 overgang er utløseren en lås: den tilbakestilles når entiteten forlater Til-tilstanden — eller, hvis bare en Fra-tilstand er satt, når den går tilbake til den.",
   "for_minutes_state_help": "0 teller hver endring umiddelbart. Med minutter må den nye tilstanden først holde seg — korte blink verken utløser eller telles da.",
   "qr_print_title": "Skriv ut QR-koder",
   "qr_print_desc": "Generer en utskrivbar side med QR-koder som kan klippes ut og festes på utstyret ditt.",

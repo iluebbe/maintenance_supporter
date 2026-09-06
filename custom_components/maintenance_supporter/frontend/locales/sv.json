@@ -539,6 +539,7 @@
   "group_by_label": "Gruppera efter",
   "state_value_help": "Använd HA-tillståndsvärdet (vanligtvis med små bokstäver, t.ex. \"on\"/\"off\"). Versaler normaliseras vid sparande.",
   "target_changes_help": "Antal matchande övergångar innan utlösaren aktiveras (standard: 1).",
+  "state_latch_help": "Med 1 övergång är utlösaren en spärr: den återställs när entiteten lämnar Till-tillståndet — eller, om bara ett Från-tillstånd är satt, när den återgår till det.",
   "for_minutes_state_help": "0 räknar varje ändring direkt. Med minuter måste det nya tillståndet först hålla i sig — korta blinkningar varken utlöser eller räknas då.",
   "qr_print_title": "Skriv ut QR-koder",
   "qr_print_desc": "Skapa en utskriftssida med QR-koder att klippa ut och sätta på din utrustning.",

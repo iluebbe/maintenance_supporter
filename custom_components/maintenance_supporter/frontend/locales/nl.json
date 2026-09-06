@@ -539,6 +539,7 @@
   "group_by_label": "Groeperen op",
   "state_value_help": "Gebruik de HA-statuswaarde (meestal in kleine letters, bv. \"on\"/\"off\"). Hoofdletters worden bij opslaan genormaliseerd.",
   "target_changes_help": "Aantal overeenkomende overgangen voordat de trigger wordt geactiveerd (standaard: 1).",
+  "state_latch_help": "Bij 1 overgang werkt de trigger als vergrendeling: hij herstelt zodra de entiteit de Naar-status verlaat — of, als alleen een Van-status is ingesteld, zodra ze daarnaar terugkeert.",
   "for_minutes_state_help": "0 telt elke wijziging direct. Met minuten moet de nieuwe status eerst zo lang aanhouden — kort flikkeren triggert dan niet en telt niet mee.",
   "qr_print_title": "QR-codes afdrukken",
   "qr_print_desc": "Genereer een afdrukpagina met QR-codes om uit te knippen en op je apparaten te plakken.",

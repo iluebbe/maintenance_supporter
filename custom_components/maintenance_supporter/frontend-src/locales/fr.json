@@ -539,6 +539,7 @@
   "group_by_label": "Grouper par",
   "state_value_help": "Utilisez la valeur d'état HA (généralement en minuscules, p. ex. \"on\"/\"off\"). La casse est normalisée à l'enregistrement.",
   "target_changes_help": "Nombre de transitions correspondantes avant le déclenchement (par défaut : 1).",
+  "state_latch_help": "Avec 1 transition, le déclencheur est un verrou : il se rétablit quand l'entité quitte l'état « vers » — ou, si seul un état « depuis » est défini, quand elle y revient.",
   "for_minutes_state_help": "0 compte chaque changement immédiatement. Avec des minutes, le nouvel état doit d'abord se maintenir — un bref clignotement ne déclenche ni ne compte alors.",
   "qr_print_title": "Imprimer les QR codes",
   "qr_print_desc": "Générer une page imprimable de QR codes à découper et coller sur votre équipement.",

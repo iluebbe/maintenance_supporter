@@ -2539,6 +2539,9 @@ export class MaintenanceTaskDialog extends LitElement {
           @input=${(e: Event) => (this._triggerTargetChanges = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
         <div class="field-help">${t("target_changes_help", L)}</div>
+        ${(this._triggerTargetChanges || "1") === "1" && (this._triggerFromState || this._triggerToState)
+          ? html`<div class="field-help">${t("state_latch_help", L)}</div>`
+          : nothing}
         <ms-textfield
           label="${t("for_at_least_minutes", L)}"
           type="number"

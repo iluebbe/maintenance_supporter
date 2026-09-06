@@ -539,6 +539,7 @@
   "group_by_label": "Raggruppa per",
   "state_value_help": "Usa il valore di stato HA (di solito minuscolo, es. \"on\"/\"off\"). Il case viene normalizzato al salvataggio.",
   "target_changes_help": "Numero di transizioni corrispondenti prima che il trigger si attivi (predefinito: 1).",
+  "state_latch_help": "Con 1 transizione il trigger è un latch: si ripristina quando l'entità lascia lo stato di destinazione — oppure, se è impostato solo lo stato di partenza, quando vi ritorna.",
   "for_minutes_state_help": "0 conta ogni cambiamento subito. Con i minuti, il nuovo stato deve prima mantenersi — un breve sfarfallio allora non attiva né conta.",
   "qr_print_title": "Stampa codici QR",
   "qr_print_desc": "Genera una pagina stampabile di codici QR da ritagliare e applicare sulle apparecchiature.",

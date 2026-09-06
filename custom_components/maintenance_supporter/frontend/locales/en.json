@@ -547,6 +547,7 @@
   "group_by_label": "Group by",
   "state_value_help": "Use the HA state value (usually lowercase, e.g. \"on\"/\"off\"). Case is normalised on save.",
   "target_changes_help": "Number of matching transitions before the trigger fires (default: 1).",
+  "state_latch_help": "With 1 transition the trigger is a latch: it recovers when the entity leaves the To-state — or, with only a From-state set, when it returns to that state.",
   "for_minutes_state_help": "0 counts every change immediately. Set minutes and the new state must hold that long first — brief flickers then neither trigger nor count.",
   "qr_print_title": "Print QR codes",
   "qr_print_desc": "Generate a printable page of QR codes to cut out and stick on your equipment.",

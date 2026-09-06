@@ -496,6 +496,16 @@ Activates after a specified number of state transitions.
 | `trigger_to_state` | string | `""` | Target state to count transitions to (empty = any state) |
 | `trigger_target_changes` | int | *(required)* | Number of transitions before triggering |
 
+With `trigger_target_changes: 1` the trigger is a **latch**: it activates on
+the first matching transition and recovers by itself when the entity leaves
+its alert state — the To-state when one is set, or, with only a From-state
+set (2.75+, #167), anything but that From-state. `from: ok` → `to: (any)` on
+a dock/error sensor with a dozen fault states therefore fires on the first
+fault, does not re-fire while the sensor moves between faults, and clears the
+moment it reads `ok` again; *Auto-complete when the sensor recovers* records
+that recovery as a completion. With neither state set the trigger is a pure
+change counter that only resets on completion.
+
 ### Runtime Trigger
 
 Activates after accumulated operating hours reach a target.

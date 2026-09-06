@@ -92,6 +92,28 @@ class StateChangeTrigger(BaseTrigger):
         if self._restored_pending_dt is None:
             self._restored_pending_state = None
 
+    def _in_alert_state(self, state: str | None) -> bool | None:
+        """Whether *state* is the latch's ALERT state (#167).
+
+        A single-shot trigger (target_changes == 1) is a latch that recovers
+        when the entity leaves its alert state. What "alert" means follows
+        the configured pattern:
+
+        - To-state set: alert == the To-state (leaving it recovers).
+        - Only a From-state set ("from ok to any" — a dock/error sensor with
+          a dozen fault states): alert == anything BUT the From-state, so the
+          latch recovers when the entity returns to it. Before #167 the
+          recovery was hard-wired to the To-state and such a latch never
+          cleared — although the dialog offers both fields as optional and
+          auto-complete-on-recovery right next to them.
+        - Neither set: no latch semantics (None) — a pure change counter.
+        """
+        if self._to_state is not None:
+            return _norm_state(state) == self._to_state
+        if self._from_state is not None:
+            return _norm_state(state) != self._from_state
+        return None
+
     async def async_setup(self) -> None:
         """Set up state change trigger.
 
@@ -150,7 +172,7 @@ class StateChangeTrigger(BaseTrigger):
         """
         if self._change_count < self._target_changes:
             return
-        if self._to_state is not None and self._target_changes == 1 and _norm_state(live_state) != self._to_state:
+        if self._target_changes == 1 and self._in_alert_state(live_state) is False:
             self._change_count = 0
             self._current_value = 0.0
             self._triggered = False
@@ -386,16 +408,13 @@ class StateChangeTrigger(BaseTrigger):
 
         # Latch recovery: a single-shot state alarm (target_changes == 1 — an
         # adopted problem sensor or an appliance event) clears when the entity
-        # leaves its alert state. Reset the counter so the next occurrence can
-        # fire again, and run the deactivation path — which auto-completes on
-        # recovery when opted in. Multi-count triggers keep accumulating and
-        # only reset on manual completion, so they are untouched here.
-        elif (
-            self._to_state is not None
-            and self._target_changes == 1
-            and self._triggered
-            and _norm_state(new_val) != self._to_state
-        ):
+        # leaves its alert state (see _in_alert_state for what that means on
+        # a from-only pattern, #167). Reset the counter so the next
+        # occurrence can fire again, and run the deactivation path — which
+        # auto-completes on recovery when opted in. Multi-count triggers keep
+        # accumulating and only reset on manual completion, so they are
+        # untouched here.
+        elif self._target_changes == 1 and self._triggered and self._in_alert_state(new_val) is False:
             self._change_count = 0
             self._current_value = 0.0
             self._persist_runtime_soon()

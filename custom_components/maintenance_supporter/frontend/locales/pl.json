@@ -539,6 +539,7 @@
   "group_by_label": "Grupuj wg",
   "state_value_help": "Użyj wartości stanu HA (zwykle małymi literami, np. \"on\"/\"off\"). Wielkość liter jest normalizowana przy zapisie.",
   "target_changes_help": "Liczba pasujących przejść przed wyzwoleniem (domyślnie: 1).",
+  "state_latch_help": "Przy 1 przejściu wyzwalacz działa jak zatrzask: resetuje się, gdy encja opuści stan docelowy — lub, gdy ustawiono tylko stan początkowy, gdy do niego wróci.",
   "for_minutes_state_help": "0 liczy każdą zmianę od razu. Z minutami nowy stan musi się najpierw utrzymać — krótkie mignięcia wtedy nie wyzwalają i nie liczą się.",
   "qr_print_title": "Drukuj kody QR",
   "qr_print_desc": "Wygeneruj stronę do druku z kodami QR do wycięcia i naklejenia na sprzęcie.",

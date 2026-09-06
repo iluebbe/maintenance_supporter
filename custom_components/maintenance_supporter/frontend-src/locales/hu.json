@@ -547,6 +547,7 @@
   "group_by_label": "Csoportosítás",
   "state_value_help": "A HA állapotértékét használja (általában kisbetűs, pl. „on”/„off”). A kis- és nagybetűk mentéskor normalizálódnak.",
   "target_changes_help": "Az egyező átmenetek száma a kiváltás előtt (alapértelmezés: 1).",
+  "state_latch_help": "1 átmenetnél a trigger reteszként működik: helyreáll, amikor az entitás elhagyja a cél-állapotot — vagy, ha csak kiinduló állapot van megadva, amikor visszatér abba.",
   "for_minutes_state_help": "A 0 minden változást azonnal számol. Percekkel az új állapotnak előbb fenn kell maradnia — a rövid villanás ekkor se nem indít, se nem számít.",
   "qr_print_title": "QR-kódok nyomtatása",
   "qr_print_desc": "Nyomtatható oldal QR-kódokkal — vágja ki és ragassza fel a berendezésekre.",

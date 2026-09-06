@@ -541,6 +541,7 @@
   "group_by_label": "Ryhmittele",
   "state_value_help": "Käytä HA:n tila-arvoa (yleensä pienillä kirjaimilla, esim. \"on\"/\"off\"). Kirjainkoko normalisoidaan tallennettaessa.",
   "target_changes_help": "Vastaavien siirtymien määrä ennen laukaisua (oletus: 1).",
+  "state_latch_help": "Yhdellä siirtymällä liipaisin on salpa: se palautuu, kun entiteetti poistuu Kohde-tilasta — tai, jos vain Lähtö-tila on asetettu, kun se palaa siihen.",
   "for_minutes_state_help": "0 laskee jokaisen muutoksen heti. Minuuteilla uuden tilan on ensin pysyttävä — lyhyet välähdykset eivät silloin laukaise eivätkä kirjaudu.",
   "qr_print_title": "Tulosta QR-koodit",
   "qr_print_desc": "Luo tulostettava sivu QR-koodeja, jotka voit leikata ja kiinnittää laitteisiin.",

@@ -539,6 +539,7 @@
   "group_by_label": "Seskupit podle",
   "state_value_help": "Použijte hodnotu stavu HA (obvykle malými písmeny, např. \"on\"/\"off\"). Velikost písmen se při uložení normalizuje.",
   "target_changes_help": "Počet odpovídajících přechodů, po kterých se trigger spustí (výchozí: 1).",
+  "state_latch_help": "Při 1 přechodu je spouštěč západka: obnoví se, když entita opustí cílový stav — nebo, je-li nastaven jen výchozí stav, když se do něj vrátí.",
   "for_minutes_state_help": "0 počítá každou změnu ihned. S minutami musí nový stav nejprve vydržet — krátké bliknutí pak nespustí ani se nepočítá.",
   "qr_print_title": "Tisk QR kódů",
   "qr_print_desc": "Vygeneruj tiskovou stránku s QR kódy k vystřižení a nalepení na zařízení.",

@@ -539,6 +539,7 @@
   "group_by_label": "Agrupar por",
   "state_value_help": "Usa el valor de estado de HA (normalmente en minúsculas, p. ej. \"on\"/\"off\"). Las mayúsculas se normalizan al guardar.",
   "target_changes_help": "Número de transiciones coincidentes antes de que se dispare el trigger (predeterminado: 1).",
+  "state_latch_help": "Con 1 transición el disparador es un cerrojo: se recupera cuando la entidad abandona el estado destino — o, si solo hay un estado origen, cuando vuelve a él.",
   "for_minutes_state_help": "0 cuenta cada cambio de inmediato. Con minutos, el nuevo estado debe mantenerse primero — un parpadeo breve entonces ni dispara ni cuenta.",
   "qr_print_title": "Imprimir códigos QR",
   "qr_print_desc": "Genera una página imprimible de códigos QR para recortar y pegar en tus equipos.",

@@ -534,6 +534,7 @@
   "group_by_label": "Agrupar por",
   "state_value_help": "Use o valor de estado HA (normalmente em minúsculas, p. ex. \"on\"/\"off\"). As maiúsculas são normalizadas ao guardar.",
   "target_changes_help": "Número de transições correspondentes antes do trigger disparar (predefinido: 1).",
+  "state_latch_help": "Com 1 transição o gatilho é um trinco: recupera quando a entidade sai do estado de destino — ou, se só houver um estado de origem, quando volta a ele.",
   "for_minutes_state_help": "0 conta cada mudança de imediato. Com minutos, o novo estado tem de se manter primeiro — uma oscilação breve então não dispara nem conta.",
   "qr_print_title": "Imprimir códigos QR",
   "qr_print_desc": "Gera uma página imprimível de códigos QR para recortar e colar nos equipamentos.",

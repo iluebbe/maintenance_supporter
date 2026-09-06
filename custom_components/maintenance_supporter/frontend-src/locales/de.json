@@ -541,6 +541,7 @@
   "group_by_label": "Gruppieren nach",
   "state_value_help": "Verwende den HA-Zustandswert (meist kleingeschrieben, z. B. \"on\"/\"off\"). Groß-/Kleinschreibung wird beim Speichern normalisiert.",
   "target_changes_help": "Anzahl der passenden Übergänge, nach denen der Trigger auslöst (Standard: 1).",
+  "state_latch_help": "Bei 1 Übergang ist der Trigger ein Latch: Er erholt sich, wenn die Entität den Nach-Zustand verlässt — oder, wenn nur ein Von-Zustand gesetzt ist, sobald sie dorthin zurückkehrt.",
   "for_minutes_state_help": "0 zählt jede Änderung sofort. Mit Minuten muss der neue Zustand erst so lange bestehen — kurzes Flackern löst dann weder aus noch zählt es.",
   "qr_print_title": "QR-Codes drucken",
   "qr_print_desc": "Erzeuge eine Druckseite mit QR-Codes zum Ausschneiden und Anbringen an den Geräten.",
