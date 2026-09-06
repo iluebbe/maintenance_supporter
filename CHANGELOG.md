@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Time of day on calendar and one-time schedules** (#168): the
+  *Due at time* field was only offered on interval tasks, so "every Sunday
+  at 21:00" had to be composed from a 7-day interval created on a Sunday
+  with planned anchoring. The backend never cared about the kind — the
+  status flip, the timed calendar event and the WS field all worked for
+  any schedule — only the two editors gated it. The panel's task dialog
+  and the Integration Options edit-task step now show the picker on every
+  kind that produces a due date (interval, weekdays, nth weekday, day of
+  month, one-time); manual and sensor-based tasks still have no due date
+  to refine. The weekday-workaround table in the docs is replaced by the
+  one-liner it always should have been; tasks built the old way keep
+  working unchanged.
+
 ## [2.76.0] - 2026-09-06
 
 ### ✨ Added

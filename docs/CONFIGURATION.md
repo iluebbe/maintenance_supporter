@@ -53,7 +53,7 @@ These toggles control which advanced feature sections appear in the UI. Disablin
 | `advanced_budget_visible` | bool | `false` | Show budget tracking settings and dashboard |
 | `advanced_groups_visible` | bool | `false` | Show task grouping management section in the panel with create / edit / delete controls |
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
-| `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on time-based tasks. When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
+| `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on every date-driven task (interval, calendar kinds, one-time). When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
 | `advanced_completion_actions_visible` | bool | `false` | (1.3.0+) Expose the `on_complete_action` (HA service-call) and `quick_complete_defaults` sections in the task dialog, plus the new `quick_complete` QR action. When off, existing values stay persisted but the UI hides them — beginners aren't confronted with service-call YAML |
 
 > **Operator mode (read-only end-user view, 1.0.44+)** is not a global flag — it's derived from the HA user role plus an explicit per-user override list:
@@ -199,7 +199,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
 | `schedule` | object | *(derived)* | — | Nested recurrence object — the canonical storage form since v2.7. Calendar kinds (only expressible here): `{"kind": "weekdays", "weekdays": [0,3]}` (0=Mon … 6=Sun), `{"kind": "nth_weekday", "nth": 1, "weekday": 5, "months": [1,4,7,10]}` (nth 1–5 or -1=last; e.g. "1st Saturday"; `months` optional), `{"kind": "day_of_month", "day": 15}` (1–31, clamped to month length; `day: -1` = **last day of the month**, add `"business": true` to roll back to the previous business day — plain Mon–Fri, or the **Workday integration's** calendar (public holidays, custom working weekdays) when one is configured — 2.18+, #83). Every calendar kind also accepts `"offset": ±N` (clamped ±15) to shift the computed date, e.g. `{"kind": "day_of_month", "day": -1, "business": true, "offset": -2}` = *two days before the last business day*. The flat `schedule_type`/`interval_days`/`interval_unit`/`due_date` above are still accepted on create/import for the `time_based`/`one_time` kinds and are always echoed in API responses; the nested `schedule` is echoed alongside them. **Recurrence extras** (2.22+, any recurring kind): `"season_months": [4,5,…,10]` restricts the schedule to those months — an off-season due date rolls forward into the next active month: **interval** kinds land on the 1st of that month ("due once the season starts"), while **calendar** kinds keep their pattern inside the window (a *2nd Saturday* task comes due on the 2nd Saturday of the active month, not on the 1st; if the pattern misses that month, the search continues into the next one); `"ends": {"count": N}` and/or `"ends": {"until": "YYYY-MM-DD"}` make the series finite — after N completions (or once the next occurrence would fall past the date) the task stops re-arming and reads *done* (`count` wins when both are set). Both round-trip through export/import. |
 | `due_override` (2.22+) | date | *(none)* | — | **Postpone a single occurrence** — a one-shot due-date override for the current cycle, set via the panel's *Postpone…* action or the `maintenance_supporter/task/postpone` WS command (`entry_id`, `task_id`, `until`). The next completion consumes it and the normal cadence resumes. Dynamic state (lives in the Store, not the config entry); exposed on the task's WS payload. Distinct from snooze (notifications only) and reset (re-anchors the recurrence). |
-| `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on `time_based` tasks only. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |
+| `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on every kind that produces a due date — `time_based`, `one_time`, `weekdays`, `nth_weekday`, `day_of_month` (2.77+; interval only before). Not offered on `manual` or `sensor_based` tasks, which have no due date to refine. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |
 | `warning_days` | int | 7 | 0–365 | Days before due date when status changes to `due_soon`. `0` = warn only on the due date itself (allowed per task and, since 2.68, as the global `default_warning_days`). **Capped by the schedule's own span**: the effective warning window is `min(warning_days, interval span in days)`, so 14 warning days on a 7-day task behave as 7 (a task can never be "due soon" for longer than one whole cycle) |
 | `required_completion_fields` | list | `[]` | Details the task demands on completion — any of `notes`, `cost`, `duration`, `photo`, `user`. Enforced centrally, so a button press, to-do tick, NFC tap, notification button, voice command or service call is refused rather than recording a bare completion; automatic completions (trigger recovery) are exempt |
 | `last_performed` | date | *(none)* | — | Date the task was last completed. When unset, `next_due` is anchored on `created_at` (set to today on creation), so the task transitions to OVERDUE after `interval_days` instead of being due "today" forever. |
@@ -288,7 +288,7 @@ while low).
 
 ### Time-of-day Scheduling
 
-Available when `advanced_schedule_time_visible` is enabled globally. Applies to `time_based` tasks only. Editable in the **panel task dialog** (HH:MM picker directly under "Interval anchor") and in the **Integration Options** per-task Edit Task step.
+Available when `advanced_schedule_time_visible` is enabled globally. Applies to every schedule kind that produces a due date — interval, the three calendar kinds (weekdays, nth weekday, day of month) and one-time tasks (2.77+; interval only before). Manual and sensor-based tasks have no due date, so the field is not offered there. Editable in the **panel task dialog** (HH:MM picker below the recurrence fields) and in the **Integration Options** per-task Edit Task step.
 
 **Behaviour:**
 - On the due date, the task flips from `due_soon` to `overdue` at the configured `HH:MM` in HA's configured timezone (instead of at midnight).
@@ -297,16 +297,7 @@ Available when `advanced_schedule_time_visible` is enabled globally. Applies to 
 
 **Off-behaviour:** When the feature flag is toggled **off**, the coordinator strips `schedule_time` before computing status — tasks revert to the legacy midnight semantic. The stored value stays on disk and re-applies the moment the flag is toggled back on.
 
-**Weekday pattern _with a time of day_:** For a plain weekday schedule, use the native **Weekdays** kind (`schedule: {"kind": "weekdays", "weekdays": [...]}`). Because `schedule_time` applies to `time_based` tasks only, pinning a weekday to a _specific time_ (e.g. "every Tuesday at 19:00") is still composed from a time-based interval:
-
-| Field | Value | Why |
-|---|---|---|
-| Task creation date | desired weekday (e.g. Tuesday) | `created_at` anchors the first `next_due` on the same weekday |
-| `interval_days` | `7` | Weekly recurrence |
-| `schedule_time` | `"19:00"` (any HH:MM) | Sub-day transition to OVERDUE |
-| `interval_anchor` | `planned` | Anchors from the previously *planned* due date, so a late completion on Wednesday doesn't drag the next cycle into Wednesday territory — the task stays on Tuesdays |
-
-With `interval_anchor = completion` (the default), the schedule drifts whenever you complete late. Pick the anchor based on whether staying on a specific weekday matters more than guaranteeing a full interval between completions.
+**Weekday pattern _with a time of day_:** use the native **Weekdays** kind (`schedule: {"kind": "weekdays", "weekdays": [...]}`) and set `schedule_time` on it — "every Tuesday at 19:00" is `weekdays: [1]` + `schedule_time: "19:00"`. The calendar kinds never drift on a late completion, so the old workaround (a 7-day interval created on the target weekday with `interval_anchor: planned`) is no longer needed; existing tasks built that way keep working unchanged.
 
 ### Completion Actions (1.3.0+)
 

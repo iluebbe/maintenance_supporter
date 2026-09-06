@@ -10,6 +10,7 @@ from homeassistant.helpers import selector
 
 from .config_flow_helpers import (
     CALENDAR_KIND_VALUES,
+    SCHEDULE_TIME_KINDS,
     apply_season_ends,
     calendar_current,
     calendar_schema,
@@ -398,16 +399,6 @@ class TaskCrudMixin:
                                 CONF_TASK_INTERVAL_ANCHOR,
                                 default=sched["interval_anchor"],
                             ): interval_anchor_selector(),
-                            **(
-                                {
-                                    vol.Optional(
-                                        CONF_TASK_SCHEDULE_TIME,
-                                        default=task.get("schedule_time", ""),
-                                    ): _OptionalTimeSelector(),
-                                }
-                                if self._get_global_options().get(CONF_ADVANCED_SCHEDULE_TIME, False)
-                                else dict[Any, Any]()
-                            ),
                         }
                         if sched["schedule_type"] == ScheduleType.TIME_BASED
                         else dict[Any, Any]()
@@ -428,6 +419,20 @@ class TaskCrudMixin:
                     **(
                         season_ends_schema(task.get("schedule"))
                         if sched["schedule_type"] == ScheduleType.TIME_BASED or sched["schedule_type"] in CALENDAR_KIND_VALUES
+                        else dict[Any, Any]()
+                    ),
+                    # Time of day (#168): every date-driven kind — "each Sunday at
+                    # 21:00" needs it as much as a 7-day interval does. Only present
+                    # while the global advanced flag is on; clear by submitting "".
+                    **(
+                        {
+                            vol.Optional(
+                                CONF_TASK_SCHEDULE_TIME,
+                                default=task.get("schedule_time", ""),
+                            ): _OptionalTimeSelector(),
+                        }
+                        if self._get_global_options().get(CONF_ADVANCED_SCHEDULE_TIME, False)
+                        and sched["schedule_type"] in SCHEDULE_TIME_KINDS
                         else dict[Any, Any]()
                     ),
                     vol.Optional(

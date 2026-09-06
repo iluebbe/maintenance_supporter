@@ -645,7 +645,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Virtualized task table** (2.17+): with hundreds of tasks, only the visible window is rendered — large installs stay snappy
 - **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations
 - **Interval anchoring**: choose between completion-based (default) or planned-date anchoring to prevent schedule drift
-- **Time-of-day scheduling** (optional, advanced): tasks flip to OVERDUE at a configured `HH:MM` in HA's timezone instead of at midnight. Calendar events become timed 30-min blocks so mobile calendars can set real reminders. Enable under Settings → Features.
+- **Time-of-day scheduling** (optional, advanced): tasks flip to OVERDUE at a configured `HH:MM` in HA's timezone instead of at midnight. Works on every kind that has a due date — intervals, weekdays, nth weekday, day of month and one-time tasks (2.77+; intervals only before), so "every Sunday at 21:00" is the Weekdays kind plus a time. Calendar events become timed 30-min blocks so mobile calendars can set real reminders. Enable under Settings → Features.
 - Assign tasks to responsible Home Assistant users with per-user notification routing — and since 2.44 a **per-person self-test** under Settings → Notifications: each household member is listed with the notify services they actually resolve to, plus a button that sends a test to exactly those. Members without a Companion device are named as such instead of quietly falling back, so "will this person get their reminders?" can be answered before a task comes due
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task

@@ -22,6 +22,9 @@ const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibra
 const PRIORITY_KEYS = ["low", "normal", "high"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "sensor_based", "one_time", "manual"];
 const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month"];
+// #168: kinds that produce a due DATE and therefore take a time of day
+// (mirrors SCHEDULE_TIME_KINDS in config_flow_helpers.py).
+const SCHEDULE_TIME_KINDS = ["time_based", "one_time", ...CALENDAR_KINDS];
 const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 // The type selector additionally offers "compound" (a group of conditions
 // joined by AND/OR); its per-condition sub-type is limited to the flat kinds.
@@ -1439,7 +1442,8 @@ export class MaintenanceTaskDialog extends LitElement {
       }
 
       // Schedule time only sent when feature is enabled — empty string clears.
-      if (this.scheduleTimeEnabled && this._scheduleType === "time_based") {
+      // Every date-driven kind takes one (#168), not only the interval.
+      if (this.scheduleTimeEnabled && SCHEDULE_TIME_KINDS.includes(this._scheduleType)) {
         const t = this._scheduleTime.trim();
         data.schedule_time = /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : null;
       }
@@ -2715,18 +2719,6 @@ export class MaintenanceTaskDialog extends LitElement {
                     <option value="planned" ?selected=${this._intervalAnchor === "planned"}>${t("anchor_planned", L)}</option>
                   </select>
                 </div>
-                ${this.scheduleTimeEnabled ? html`
-                  <ms-date-field
-                    kind="time"
-                    clearable
-                    .hass=${this.hass}
-                    .lang=${L}
-                    label="${t("schedule_time_optional", L)}"
-                    .value=${this._scheduleTime}
-                    helper="${t("schedule_time_help", L)}"
-                    @value-changed=${(e: CustomEvent) => (this._scheduleTime = e.detail.value as string)}
-                  ></ms-date-field>
-                ` : nothing}
               `
             : nothing}
           ${this._renderCalendarFields()}
@@ -2742,6 +2734,18 @@ export class MaintenanceTaskDialog extends LitElement {
                 ></ms-date-field>
               `
             : nothing}
+          ${this.scheduleTimeEnabled && SCHEDULE_TIME_KINDS.includes(this._scheduleType) ? html`
+            <ms-date-field
+              kind="time"
+              clearable
+              .hass=${this.hass}
+              .lang=${L}
+              label="${t("schedule_time_optional", L)}"
+              .value=${this._scheduleTime}
+              helper="${t("schedule_time_help", L)}"
+              @value-changed=${(e: CustomEvent) => (this._scheduleTime = e.detail.value as string)}
+            ></ms-date-field>
+          ` : nothing}
           ${this._renderRecurrenceExtras()}
           ${this._renderSchedulePreview()}
           <ms-textfield

@@ -32,6 +32,11 @@ _LOGGER = logging.getLogger(__name__)
 # Hardcoded English labels for the weekday/occurrence sub-options keep the
 # config-flow i18n surface small; the kind names are translated via strings.json.
 CALENDAR_KIND_VALUES = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
+# #168: every kind that produces a due DATE takes a time of day — the
+# interval, the three calendar kinds and a one-off. Sensor-based and
+# manual tasks have no due date to refine. Mirrors SCHEDULE_TIME_KINDS in
+# the panel's task-dialog.ts.
+SCHEDULE_TIME_KINDS = ("time_based", "one_time", *CALENDAR_KIND_VALUES)
 _WEEKDAY_LABELS = (
     "Monday",
     "Tuesday",
