@@ -179,6 +179,8 @@ async def test_every_completion_surface_produces_the_same_envelope(hass: HomeAss
         assert payload["task_id"] == TASK_ID_1, name
         assert payload["task_name"] == "Filter Swap", name
         assert payload["object_name"] == "Espresso", name
+        # The task sensor rides along (HA's logbook entity filter keys on it).
+        assert payload["entity_id"] == sensor_eid, name
 
         # History gained exactly one completion.
         coordinator = obj_entry.runtime_data.coordinator

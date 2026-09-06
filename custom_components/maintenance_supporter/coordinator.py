@@ -15,6 +15,7 @@ from homeassistant.util import dt as dt_util
 if TYPE_CHECKING:
     from .calendar import MaintenanceCalendar
     from .todo import MaintenanceTodoList
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -47,6 +48,8 @@ from .const import (
     MaintenanceStatus,
     ScheduleType,
     TriggerEntityState,
+    slugify_object_name,
+    task_unique_id,
 )
 from .helpers.budget import compute_spend
 from .helpers.entry_tasks import write_task
@@ -1549,7 +1552,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         Guarantees that every EVENT_TASK_COMPLETED/SKIPPED/RESET payload
         carries the four identification keys (entry_id, task_id, task_name,
-        object_name) — listeners can rely on them being present.
+        object_name) — listeners can rely on them being present — plus
+        ``entity_id``: the task's sensor entity (None only when the entity
+        platform has not registered it yet). HA's logbook filters custom
+        events by that key inside the event data, so without it a
+        completion never appeared on the sensor's own timeline, and
+        automations get the entity to act on without a registry lookup.
         Variant-specific fields (notes, cost, reason, reset_date, …) are
         passed via **extra.
         """
@@ -1558,8 +1566,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "task_id": task_id,
             "task_name": task.name,
             "object_name": self.maintenance_object.name,
+            "entity_id": self.task_sensor_entity_id(task_id),
             **extra,
         }
+
+    def task_sensor_entity_id(self, task_id: str) -> str | None:
+        """The registered entity_id of a task's status sensor, if any."""
+        unique_id = task_unique_id(slugify_object_name(self.maintenance_object.name), task_id)
+        return er.async_get(self.hass).async_get_entity_id("sensor", DOMAIN, unique_id)
 
     async def async_apply_suggested_interval(self, task_id: str, interval: int) -> None:
         """Apply a suggested interval to a task (static config → ConfigEntry)."""

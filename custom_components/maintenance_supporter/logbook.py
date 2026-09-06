@@ -210,7 +210,17 @@ def _entry_name(data: Mapping[str, Any]) -> str:
 
 
 def _task_entity_id(hass: HomeAssistant, data: Mapping[str, Any]) -> str | None:
-    """Resolve the task's sensor entity so the entry lands on its timeline."""
+    """Resolve the task's sensor entity so the entry lands on its timeline.
+
+    Since 2.75 the event carries the sensor's entity_id itself — that keeps
+    the attribution for entries whose task has since been deleted (the
+    registry lookup below then finds nothing) and is what HA's logbook
+    entity filter matches on. Older recorded events fall back to the
+    lookup by the object name + task id.
+    """
+    carried = data.get("entity_id")
+    if isinstance(carried, str) and carried.startswith("sensor."):
+        return carried
     obj = data.get("object_name")
     task_id = data.get("task_id")
     if not obj or not task_id:

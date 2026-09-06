@@ -63,6 +63,27 @@ async def test_completed_entry_carries_details(hass: HomeAssistant) -> None:
     assert entry["name"] == "Oil Change (Family Car)"
     assert entry["message"] == "was completed — 95.0, 45 min, OEM filter"
     assert entry["icon"] == "mdi:check-circle"
+    # No entity_id in the payload and no registry entry → no attribution.
+    assert "entity_id" not in entry
+
+
+async def test_completed_entry_uses_the_carried_entity_id(hass: HomeAssistant) -> None:
+    """Since 2.75 the event carries the sensor's entity_id — the logbook keeps
+    the attribution even after the task (and its registry entry) is gone."""
+    callbacks = _collect(hass)
+    entry = callbacks[EVENT_TASK_COMPLETED](
+        Event(
+            EVENT_TASK_COMPLETED,
+            {
+                "entry_id": "e1",
+                "task_id": "t1",
+                "task_name": "Oil Change",
+                "object_name": "Family Car",
+                "entity_id": "sensor.family_car_oil_change",
+            },
+        )
+    )
+    assert entry["entity_id"] == "sensor.family_car_oil_change"
 
 
 async def test_completed_entry_is_localized(hass: HomeAssistant) -> None:
