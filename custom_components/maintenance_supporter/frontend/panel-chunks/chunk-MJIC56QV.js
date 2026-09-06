@@ -1,2 +1,2 @@
-/*! maintenance_supporter frontend 2.75.0 */
+/*! maintenance_supporter frontend 2.76.0 */
 function c(o,t,e){let l=new Blob([o],{type:e}),d=URL.createObjectURL(l),n=document.createElement("a");n.href=d,n.download=t,n.target="_blank",n.rel="noopener",n.style.display="none",document.body.appendChild(n),n.dispatchEvent(new MouseEvent("click")),document.body.removeChild(n),setTimeout(()=>URL.revokeObjectURL(d),6e4)}function r(o,t){let e=document.createElement("a");e.href=o,e.download=t,e.target="_blank",e.rel="noopener",e.style.display="none",document.body.appendChild(e),e.dispatchEvent(new MouseEvent("click")),document.body.removeChild(e)}export{c as a,r as b};

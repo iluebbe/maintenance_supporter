@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.76.0] - 2026-09-06
+
+### ✨ Added
+
+- **The responsible person on the Today tab — as a member avatar** (#169):
+  every Today row now names the assigned person, and every place that
+  names one (Today rows, the dashboard sub-line, the task page, the
+  Lovelace card) shows them as an **avatar** — initials in a colour of
+  their own. On phones the Today row keeps the avatar alone, so the object
+  name keeps its room; while the list is filtered by a person the chip is
+  left out. Initials derive from the HA user name and the colour from a
+  stable palette pick per user, so members differ without any setup;
+  *Settings → Member avatars* lets an admin set initials (1–3 characters)
+  and pick one of twelve palette colours per member — two "M"s stay
+  tellable apart. New global setting `member_display` (per user id; left
+  out of the settings export like the other user-id-bound keys);
+  `users/list` carries `initials` and `color` for every caller.
+
+### 📚 Docs
+
+- Screenshot set refreshed on the demo seed: reading slots in the complete
+  dialog and the history (with completion photos), the member-avatar
+  settings, and a Battery Notes note without a level sensor in the fleet.
+
 ## [2.75.0] - 2026-09-06
 
 Two feature requests and a bug review in one release: several photos and
