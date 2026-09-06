@@ -830,7 +830,11 @@ filterable by object and status) join the long-standing `complete` / `skip` / `r
 [Examples](EXAMPLES.md#attribute-and-assign-chores-from-automations-128).
 `complete` also accepts `via_tag_scan: true` (2.67+) so an automation that
 reacts to a physical scan can complete a tag-gated task — see
-[Examples](EXAMPLES.md#complete-a-tag-gated-task-from-an-automation-267).
+[Examples](EXAMPLES.md#complete-a-tag-gated-task-from-an-automation-267) —
+and, for a reading task with several named readings, `reading_values`
+keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
+photos need an upload and are therefore a panel/card affair, not a service
+parameter.
 For the full WebSocket API (92 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)

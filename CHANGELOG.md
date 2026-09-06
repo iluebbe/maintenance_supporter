@@ -2,6 +2,200 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.75.0] - 2026-09-06
+
+Two feature requests and a bug review in one release: several photos and
+several named readings per completion (#161, #164), batteries without a
+level sensor in the fleet (discussion #162), the from-only state-change
+latch (#167), the KPI bar on phones (#150), and the bug review of
+2026-09-04 — every fix carries a regression test that is red without it.
+
+### ✨ Added
+
+- **Several photos per completion** (#161 phase 1, also covers #164): the
+  complete dialog now takes any number of photos up to ten — one shot via
+  the camera picker or several at once from the gallery — shown as a
+  thumbnail strip with per-photo remove. The history timeline renders every
+  photo of an entry, and the history entry's edit dialog can add more photos
+  or detach one afterwards (detaching keeps the file in the object's
+  documents). WS: `task/complete` takes `photo_doc_ids` (the old
+  `photo_doc_id` scalar is still accepted), `task/history/update` patches
+  `photo_doc_ids`; entries written before this release keep their single
+  `photo_doc_id` and are read as a one-photo list.
+
+- **Several named readings per task** (#161 phase 2): a *Reading* task can
+  declare reading slots — one row per meter (name + unit, up to 20) in the
+  task dialog or as `Name | Unit` lines in the options flow. The complete
+  dialog shows one field per slot with the previous value as a hint and
+  warns when a value is lower than the last one; the history timeline lists
+  every slot with its delta against the last completion that recorded that
+  slot; the history entry's edit dialog can correct values or fill in a
+  meter that was skipped. Names and units are snapshotted on each entry, so
+  renaming a slot never rewrites old history. The task sensor exposes the
+  newest values as `last_readings` (`{name: value}`; `last_reading` for
+  single-value tasks, plus `last_reading_at`), the completion event carries
+  `reading_value` / `reading_values`, and the `complete` service takes
+  `reading_values` keyed by reading name. WS: `task/create|update`
+  `readings`, `task/complete` `reading_values: {slot_id: value}`,
+  `task/history/update` `reading_value` + `reading_values`. Slots round-trip
+  through JSON export/import (ids kept) and CSV (ids regenerated).
+
+  Follow-up: the single `reading_value` is refused on a task with slots
+  (`reading_slots_required`), a slot without a unit inherits the task's
+  `reading_unit` into the snapshot, duplicate slot names are dropped (the
+  dialog flags them), a backdated completion compares its "last" hint
+  against the value before its own date, the quick-actions dialog's history
+  shows readings and photos, and the logbook line carries the readings.
+
+- **Battery fleet: batteries without a level sensor (discussion #162).**
+  Battery Notes lets you record type, quantity and last replacement for a
+  device that reports no battery level at all — such a note used to be
+  invisible to the fleet. The roster and the low list now carry these
+  batteries as *No sensor* rows (type, quantity, last replaced, typical
+  forecast, shopping list), the roster row gets a Replaced action (presses
+  the note's *Battery replaced* button), and a passed forecast counts as
+  *Due*: the *Low batteries* task fires and the notification names the
+  battery. Per-fleet toggle *Treat a passed forecast as due when a battery
+  has no sensor* (default on, stored only as an opt-out, round-trips through
+  JSON export/import); rechargeable types never turn due by forecast. Rows
+  that already have a sensor are untouched. New write command
+  `battery_fleet/set_due_without_sensor`; `battery_fleet/overview` gains
+  `due_without_sensor` plus `no_sensor` / `last_replaced` per row. 92 WS
+  commands.
+
+### 🐛 Fixed
+
+**Completion photos, readings, logbook**
+- **JSON import re-points document references** — restoring an object from
+  a JSON export now maps the exported document ids to the freshly created
+  ones, so completion photos and spare-part documents (`part.doc_id`) no
+  longer dangle after a restore; a failed import drops the documents it had
+  already recreated instead of leaving orphans.
+- **Cancelled completions leave no orphan photos** — photos uploaded in the
+  complete dialog (or the history edit dialog) are deleted again when the
+  dialog is cancelled or a tile is removed before saving.
+- **Logbook attribution** — completions, skips and resets now show up in
+  the HA logbook under the task's own sensor (the entity's logbook card
+  and the `?entity=` filter): the lifecycle events carry the sensor's
+  `entity_id`, which is also what keeps the attribution after a task is
+  deleted and hands automations the entity to act on.
+- **State-change latch recovers on a "from X to any" pattern** (#167): a
+  single-transition trigger with only a From-state set (`from: ok` on a
+  dock/error sensor with a dozen fault states) fired fine but never
+  recovered — the recovery was hard-wired to a To-state — so
+  *Auto-complete when the sensor recovers* never ran and the task stayed
+  due until completed by hand. The latch now clears when the entity
+  returns to its From-state (fault → fault keeps it), and the restart
+  reconcile applies the same rule. The task dialog explains the latch
+  semantics under the transition count.
+
+**Trigger state and flows**
+
+- **Editing a trigger baseline in the panel no longer resurrects the
+  adopted first-setup value.** `clear_trigger_runtime` dropped only the
+  per-entity slot; the first-setup snapshot was reshaped into live state
+  whenever that slot was empty, so a baseline edited in the panel was
+  silently replaced and a switched runtime entity inherited the old hours.
+- **The options-flow trigger edit keeps the panel-managed keys.** A plain
+  re-save in the options flow dropped the recovery flag (#53), the baseline
+  (#102) and the session cap (#149) because the edit started from an empty
+  working task. The stored trigger config seeds the edit now.
+- **JSON restore keeps sensor trigger state.** The import validator
+  stripped the exported `_trigger_state`, so every restored sensor trigger
+  started from zero; it is kept aside and re-attached. The same block lost
+  earlier object failures whenever a later task carried a valid trigger;
+  dropped triggers are now reported in the entry's warnings.
+
+**Skip / services / notifications**
+
+- **Skip refuses archived, disabled and paused tasks** with its own
+  `task_inactive_skip` reason (the gate `complete` already had), and clears
+  the notification state and double-tap window only once the skip actually
+  happens — a refused skip used to re-arm the overdue push and forget the
+  just-recorded completion.
+- **Multi-entity services:** a foreign integration's entity no longer
+  aborts a multi-entity `complete`/`reset`/`skip` with a bare error, an
+  explicit `via_tag_scan: false` is accepted in a multi-entity call, and an
+  empty entity list is rejected instead of reporting success.
+- **Runtime session cap (#149):** `reset` starts a fresh session — a
+  still-ON entity could not book a single second after a completion until
+  it next turned off.
+- **Notifications:** no "Skip" button for skip-locked tasks (#150); the
+  persistent-notification link text follows the UI language like every
+  other string (pt-BR / zh-Hans fell through to English).
+
+**Battery fleet and discovery**
+
+- **Suggested setups:** a longer catalog key that ends in a shorter one
+  (Dreame `secondary_filter_left` vs `filter_left`) owns its entity — the
+  secondary filter had been adopted into "Replace Filter" as a second
+  source.
+- **Deleted `batt_<type>` parts stay deleted.** Deleting a fleet part
+  tombstones it, the start-up reconcile honours the tombstone, an explicit
+  Battery-Fleet setup clears it, and JSON export/import round-trips the list.
+- **Part/stock matching by full unique_id suffix** — `_part_batt_aa` was a
+  prefix of `_part_batt_aaa`, and an object slug containing `_part_` looked
+  orphaned to the start-up sweep.
+- **Native `device_class: battery` rows use the household floor** — the
+  sparkline line, level bars and trend regression crossed at the 20 %
+  default while `low` fired at the configured setting.
+- **The legacy "unknown battery" prune leaves customised parts alone**
+  (renamed, annotated, priced, re-thresholded, document-linked or wired into
+  a task's consumption).
+- **A part added by the start-up reconcile gets its stock sensor in the
+  same start** (one reload, like the trigger heal).
+- **Signatures pinning exactly 10 %** no longer follow the household
+  consumable floor (the default marker was the literal 10);
+  docs/INTEGRATIONS.md regenerated.
+
+**Panel and cards**
+
+- **Split view:** the docked detail refetches history/details after a push
+  like the full task page; its breadcrumb opens the full page with a history
+  entry and scrolled to the top.
+- **In-app deep links take over HA's history entry.** A dashboard button or
+  notification tap while the panel is open (`?entry_id&task_id`, `?tab=`,
+  `?status=` ...) used to stack a second, state-less entry: Back from the
+  linked task page needed two presses, and Back from a task opened after a
+  tab link restored nothing. One entry now, and it always describes the view
+  on screen.
+- **`?tab=settings` / `open_settings` deep links are ignored for
+  non-admin users** (the tab is admin-only).
+- **Trend arrow and threshold bar:** counter targets that reset on
+  completion compare the post-completion delta; the bar keeps sign and band
+  for negative/decreasing triggers.
+- **One settings cache for the whole page.** Panel, card and dialog bundles
+  share a single cache, failed fetches are not cached, and every setting
+  save invalidates it — a row-action style changed in Settings reaches the
+  cards without a reload.
+- **Vacation preview hides Skip** for tasks whose skip rule is off.
+- **Settings thresholds:** bounded inputs (0–365 warning days, 1–90 %)
+  with an out-of-range toast and snap-back instead of a silently rejected
+  save; the Battery Notes hint links only the integration name (also behind
+  the fullwidth colon of ja/zh); the trigger live hint formats figures in
+  the profile number format.
+- **KPI bar on phones (#150):** the ten counters wrap into a fixed 10-track
+  grid on narrow screens (two rows of five) instead of a ragged flow; the
+  outlined Skip counter stays outlined on purpose (it is the one "did not
+  happen" figure in the row).
+
+**Service strings and docs**
+
+- **`complete.via_tag_scan` has names and descriptions in all 22
+  languages** — it existed only in services.yaml, so the developer tools and
+  the automation editor showed the raw key.
+- **`list_tasks` description** matches the English wording (sensor
+  entity_id, last completion, live reading) in the other 21 languages.
+- **`complete.duration`** selector accepts up to a year, like the service
+  schema (was capped at one day in the UI).
+- **Every service field has a description** — `add_object` manufacturer /
+  model / serial number / installation date / notes and `add_task` enabled /
+  notes showed a bare label in the automation editor (wording shared with the
+  setup flows, all 22 languages).
+- New tripwires: services.yaml ↔ strings.json field parity (name AND
+  description, both files) and number bounds vs. the schema constants;
+  ARCHITECTURE.md counts refreshed.
+
 ## [2.74.0] - 2026-09-03
 
 ### ✨ Added

@@ -597,6 +597,30 @@ gamification, approval workflow.
 
 ## Near-term (planned)
 
+### ✅ Several named readings per task — reading slots (#161) — shipped 2.75
+
+A *Reading* task declares slots (`readings: [{id, name, unit}]`, up to 20);
+each completion stores a per-slot snapshot with deltas per slot in the
+timeline, editable afterwards, exposed as `last_readings` on the sensor and
+accepted by the `complete` service by name. Ideas kept for later (not
+promised): an optional HA entity per slot with `state_class:
+total_increasing` so manual water/gas/electricity readings feed the Energy
+dashboard, and a sparkline per slot.
+
+### 💡 State-change trigger: several From/To states per side (#167 follow-up)
+
+The from-only recovery gap is fixed (2.75): a single-transition latch with
+only a From-state clears when the entity returns to it. The reporter's
+wider proposal — a *list* of states on either side ("fires from a
+non-selected state into any selected To-state, never between two selected
+ones, recovers on the way out") — would take `trigger_from_state` /
+`trigger_to_state` from `str` to `str | list[str]` across the WS schema,
+the validation normaliser, set-based matching in the trigger, a chip /
+multi-select state field in the task dialog (ideally offering the entity's
+`options` or observed states), the options-flow text form and the docs.
+About a session; do it when a second request for multi-state patterns
+shows up.
+
 ### 💡 Calendar-event triggers with per-event memory (discussion #157)
 Waste-collection-style sensors keep a task's trigger condition true for the
 whole event window, so a completed task re-fires while the pickup is still
@@ -1603,7 +1627,9 @@ What follows:
   commercial setups (dovetails with operator mode).
 - ✅ **Photo attachments** — **Shipped.** Attach a photo when completing a task;
   stored via the DocumentStore (deduped, backup-safe) and shown as a thumbnail
-  in the history timeline.
+  in the history timeline. Since 2.75 (#161/#164): several photos per
+  completion (camera + gallery pickers), a thumbnail strip in the timeline,
+  and photos can be added to / detached from an entry afterwards.
 
 ---
 
