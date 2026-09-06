@@ -105,7 +105,8 @@ manual + web link), and the object's tasks with assignment badges.
 
 ### Today View
 The panel's default landing tab — what needs attention now, bucketed into
-*Overdue / Due today / This week* with one-tap complete. Deep-linkable
+*Overdue / Due today / This week* with one-tap complete; each row names
+the responsible person when one is assigned (2.76+, #169). Deep-linkable
 (2.74+): `/maintenance-supporter?tab=today`, `?status=overdue`,
 `?sort=object` or `?view=<saved view>` open the panel on exactly that list —
 from a dashboard button or a notification tap, even while the panel is

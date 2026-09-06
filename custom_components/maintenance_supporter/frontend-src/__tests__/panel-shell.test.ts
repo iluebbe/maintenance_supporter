@@ -156,6 +156,30 @@ describe("panel shell", () => {
     expect(textOf(overdueSection)).to.include("Late");
   });
 
+  it("Today rows name the responsible person, except under the person filter (#169)", async () => {
+    localStorage.setItem("msp-overview-tab", "today");
+    const { el } = await mountPanel(
+      [
+        obj("e1", [
+          task({ name: "Assigned", status: "overdue", days_until_due: -1, responsible_user_id: "u-anna" }),
+          task({ name: "Nobody", status: "overdue", days_until_due: -2 }),
+        ]),
+      ],
+      { "maintenance_supporter/users/list": () => ({ users: [{ id: "u-anna", name: "Anna" }] }) },
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    await el.updateComplete;
+    const rowOf = (name: string) =>
+      [...sr(el).querySelectorAll(".today-row")].find((r) => r.querySelector(".today-task")?.textContent?.trim() === name)!;
+    expect(rowOf("Assigned").querySelector(".today-person")!.textContent).to.include("Anna");
+    expect(rowOf("Nobody").querySelector(".today-person")).to.equal(null);
+
+    // Filtering by that person makes the chip redundant — every row is hers.
+    (el as unknown as { _filterUser: string | null })._filterUser = "u-anna";
+    await el.updateComplete;
+    expect(sr(el).querySelector(".today-person")).to.equal(null);
+  });
+
   it("virtualizes the table above the threshold and moves the window on scroll", async () => {
     const many = Array.from({ length: 150 }, (_, i) =>
       task({ name: `Bulk ${String(i).padStart(3, "0")}`, days_until_due: (i % 40) + 1 }),

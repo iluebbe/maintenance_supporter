@@ -400,6 +400,8 @@ export const panelStyles = css`
   .today-main { flex: 1; min-width: 0; }
   .today-task { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .today-object { color: var(--secondary-text-color); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* #169: the responsible person, same chip as the dashboard sub-line */
+  .today-object .today-person { margin-left: 8px; font-size: 12px; vertical-align: 1px; }
   .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
   .today-row .today-complete { flex: none; --ha-button-font-size: 13px; white-space: nowrap; }
   .today-row .today-complete ha-icon { --mdc-icon-size: 18px; }
