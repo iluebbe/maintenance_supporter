@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "Дата выполнения не может быть в будущем."
     },
+    "reading_slots_required": {
+      "message": "Эта задача записывает именованные показания — используйте reading_values вместо reading_value."
+    },
     "tag_scan_required": {
       "message": "«{task_name}» можно завершить только сканированием метки — подойдите и отсканируйте NFC-метку или QR-код на самом устройстве."
     },

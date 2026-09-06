@@ -743,6 +743,7 @@
   "reading_name_label": "Название показания",
   "reading_unit_short": "Единица",
   "reading_add": "Добавить показание",
+  "reading_duplicate_name": "Название уже используется",
   "reading_last": "последнее: {value}",
   "reading_below_last": "Меньше предыдущего показания ({value})",
   "settings_templates_label": "Галерея шаблонов",

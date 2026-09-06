@@ -52,13 +52,16 @@ def sanitize_reading_slots(raw: Any) -> list[dict[str, Any]]:
     """Validate a task's slot list from ANY write path.
 
     Keeps ``[{id, name, unit}]`` with a non-empty name; a missing/invalid id
-    gets a fresh one, a duplicated id is dropped (the first wins), the list
-    is capped. Anything that is not a list of mappings yields ``[]``.
+    gets a fresh one, a duplicated id OR name (case-insensitive) is dropped
+    (the first wins — names key the sensor attribute and the service call,
+    so they must be unique), the list is capped. Anything that is not a
+    list of mappings yields ``[]``.
     """
     if not isinstance(raw, list):
         return []
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
+    seen_names: set[str] = set()
     for item in raw:
         if not isinstance(item, Mapping):
             continue
@@ -71,9 +74,10 @@ def sanitize_reading_slots(raw: Any) -> list[dict[str, Any]]:
         slot_id = item.get("id")
         if not isinstance(slot_id, str) or not _SLOT_ID_RE.match(slot_id):
             slot_id = new_slot_id()
-        if slot_id in seen:
+        if slot_id in seen or name.casefold() in seen_names:
             continue
         seen.add(slot_id)
+        seen_names.add(name.casefold())
         out.append({"id": slot_id, "name": name, "unit": _clean_unit(item.get("unit"))})
         if len(out) >= MAX_READING_SLOTS:
             break
@@ -123,6 +127,7 @@ def resolve_reading_values(
     values: Mapping[str, Any] | None,
     *,
     keep: Iterable[Mapping[str, Any]] | None = None,
+    default_unit: str | None = None,
 ) -> list[dict[str, Any]]:
     """Turn ``{slot_id: value}`` into the history snapshot, in slot order.
 
@@ -130,6 +135,8 @@ def resolve_reading_values(
     neither a current slot nor present in ``keep`` (an edited entry's own
     snapshot, whose slot may have been deleted since) raise ``ValueError``
     naming the id — the WS layer turns that into ``invalid_input``.
+    A current slot without a unit snapshots ``default_unit`` (the task's
+    ``reading_unit``) — the same fallback the complete dialog shows.
     """
     if not values:
         return []
@@ -138,7 +145,7 @@ def resolve_reading_values(
         known[snap["id"]] = {"id": snap["id"], "name": snap["name"], "unit": snap.get("unit")}
     current = sanitize_reading_slots(list(slots or []))
     for slot in current:
-        known[slot["id"]] = slot
+        known[slot["id"]] = {**slot, "unit": slot.get("unit") or _clean_unit(default_unit)}
     order = [s["id"] for s in current] + [sid for sid in known if sid not in {s["id"] for s in current}]
     unknown = [sid for sid in values if sid not in known]
     if unknown:
@@ -158,6 +165,8 @@ def resolve_reading_values(
 def resolve_reading_values_by_name(
     slots: Iterable[Mapping[str, Any]] | None,
     values: Mapping[str, Any] | None,
+    *,
+    default_unit: str | None = None,
 ) -> list[dict[str, Any]]:
     """Service-call form: ``{name: value}`` (case-insensitive; an id works too).
 
@@ -176,7 +185,7 @@ def resolve_reading_values_by_name(
         if slot_id is None:
             raise ValueError(f"unknown reading: {key}")
         by_id[slot_id] = value
-    return resolve_reading_values(current, by_id)
+    return resolve_reading_values(current, by_id, default_unit=default_unit)
 
 
 def history_reading_values(entry: Mapping[str, Any] | None) -> list[dict[str, Any]]:

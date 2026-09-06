@@ -160,6 +160,17 @@ async def ws_update_history_entry(
 
     patched = dict(history[target_index])
 
+    # #161 phase 2: "never both" — the scalar cannot be set on an entry that
+    # carries a slot snapshot, nor on a task that records slots.
+    if msg.get("reading_value") is not None:
+        from . import _get_merged_tasks
+
+        if patched.get("reading_values") or (_get_merged_tasks(entry).get(task_id) or {}).get("readings"):
+            connection.send_error(
+                msg["id"], "invalid_input", "This entry records named readings — patch reading_values instead"
+            )
+            return
+
     # Apply patch — explicit None means "clear field" (drop the key entirely
     # so the dict stays minimal); explicit value sets it.
     PATCHABLE = ("timestamp", "notes", "cost", "duration", "completed_by", "reading_value")
@@ -179,14 +190,21 @@ async def ws_update_history_entry(
         from ..helpers.reading_slots import history_reading_values, resolve_reading_values
         from . import _get_merged_tasks
 
-        slots = (_get_merged_tasks(entry).get(task_id) or {}).get("readings") or []
+        slot_task = _get_merged_tasks(entry).get(task_id) or {}
         try:
-            new_values = resolve_reading_values(slots, msg["reading_values"], keep=history_reading_values(patched))
+            new_values = resolve_reading_values(
+                slot_task.get("readings") or [],
+                msg["reading_values"],
+                keep=history_reading_values(patched),
+                default_unit=slot_task.get("reading_unit"),
+            )
         except ValueError as err:
             connection.send_error(msg["id"], "invalid_input", str(err))
             return
         if new_values:
             patched["reading_values"] = new_values
+            # The snapshot supersedes a scalar from the pre-slot era.
+            patched.pop("reading_value", None)
         else:
             patched.pop("reading_values", None)
 

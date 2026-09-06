@@ -220,8 +220,16 @@ def _task_entity_id(hass: HomeAssistant, data: Mapping[str, Any]) -> str | None:
 
 
 def _detail_suffix(data: Mapping[str, Any]) -> str:
-    """Language-neutral completion details: cost, duration, notes."""
+    """Language-neutral completion details: readings, cost, duration, notes."""
     parts: list[str] = []
+    # Recorded readings (#83 scalar / #161 phase 2 slots) — the value IS the
+    # point of a meter task, so it leads the line.
+    if (reading := data.get("reading_value")) is not None:
+        parts.append(str(reading))
+    for snap in data.get("reading_values") or []:
+        if isinstance(snap, Mapping) and snap.get("value") is not None:
+            unit = f" {snap['unit']}" if snap.get("unit") else ""
+            parts.append(f"{snap.get('name', '')} {snap['value']}{unit}".strip())
     if (cost := data.get("cost")) is not None:
         parts.append(str(cost))
     if (duration := data.get("duration")) is not None:

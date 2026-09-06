@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "Fullføringsdatoen kan ikke ligge i fremtiden."
     },
+    "reading_slots_required": {
+      "message": "Denne oppgaven registrerer navngitte avlesninger — bruk reading_values i stedet for reading_value."
+    },
     "tag_scan_required": {
       "message": "«{task_name}» kan bare fullføres ved å skanne taggen — gå bort og skann NFC-taggen eller QR-koden på selve tingen."
     },

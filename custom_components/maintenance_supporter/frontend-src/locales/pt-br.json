@@ -749,6 +749,7 @@
   "reading_name_label": "Nome da leitura",
   "reading_unit_short": "Unidade",
   "reading_add": "Adicionar leitura",
+  "reading_duplicate_name": "Nome já em uso",
   "reading_last": "último: {value}",
   "reading_below_last": "Menor que a última leitura ({value})",
   "settings_templates_label": "Galeria de modelos",

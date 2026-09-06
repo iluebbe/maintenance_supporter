@@ -743,6 +743,7 @@
   "reading_name_label": "Aflæsningens navn",
   "reading_unit_short": "Enhed",
   "reading_add": "Tilføj aflæsning",
+  "reading_duplicate_name": "Navnet er allerede i brug",
   "reading_last": "sidst: {value}",
   "reading_below_last": "Lavere end sidste aflæsning ({value})",
   "settings_templates_label": "Skabelongalleri",

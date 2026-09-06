@@ -560,9 +560,16 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             if call.data.get("reading_values"):
                 from .helpers.reading_slots import resolve_reading_values_by_name
 
-                slots = (coordinator._get_merged_tasks_data().get(task_id) or {}).get("readings") or []
+                slot_task = coordinator._get_merged_tasks_data().get(task_id) or {}
                 try:
-                    reading_values = resolve_reading_values_by_name(slots, call.data["reading_values"]) or None
+                    reading_values = (
+                        resolve_reading_values_by_name(
+                            slot_task.get("readings") or [],
+                            call.data["reading_values"],
+                            default_unit=slot_task.get("reading_unit"),
+                        )
+                        or None
+                    )
                 except ValueError as err:
                     raise ServiceValidationError(str(err)) from err
             await coordinator.complete_maintenance(

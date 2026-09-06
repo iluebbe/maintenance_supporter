@@ -743,6 +743,7 @@
   "reading_name_label": "Назва показання",
   "reading_unit_short": "Одиниця",
   "reading_add": "Додати показання",
+  "reading_duplicate_name": "Назва вже використовується",
   "reading_last": "останнє: {value}",
   "reading_below_last": "Менше за попереднє показання ({value})",
   "settings_templates_label": "Галерея шаблонів",

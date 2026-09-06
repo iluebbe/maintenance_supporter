@@ -743,6 +743,7 @@
   "reading_name_label": "Lukeman nimi",
   "reading_unit_short": "Yksikkö",
   "reading_add": "Lisää lukema",
+  "reading_duplicate_name": "Nimi on jo käytössä",
   "reading_last": "viimeksi: {value}",
   "reading_below_last": "Pienempi kuin edellinen lukema ({value})",
   "settings_templates_label": "Mallipohjagalleria",

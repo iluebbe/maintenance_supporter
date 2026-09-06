@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "Datum dokončení nesmí být v budoucnosti."
     },
+    "reading_slots_required": {
+      "message": "Tento úkol zaznamenává pojmenované odečty — použijte reading_values místo reading_value."
+    },
     "tag_scan_required": {
       "message": "„{task_name}“ lze dokončit pouze naskenováním štítku — dojděte k zařízení a naskenujte NFC štítek nebo QR kód přímo na něm."
     },

@@ -749,6 +749,7 @@
   "reading_name_label": "Leolvasás neve",
   "reading_unit_short": "Mértékegység",
   "reading_add": "Leolvasás hozzáadása",
+  "reading_duplicate_name": "A név már foglalt",
   "reading_last": "legutóbb: {value}",
   "reading_below_last": "Kisebb az előző leolvasásnál ({value})",
   "settings_templates_label": "Sablongaléria",

@@ -985,6 +985,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     translation_key="completed_at_in_future",
                 )
 
+        # #161 phase 2: a task with reading slots records the per-slot
+        # snapshot, never the single scalar — refused HERE so an old cached
+        # bundle or an automation cannot mix the two shapes on one entry.
+        if reading_value is not None and merged[task_id].get("readings"):
+            raise ServiceValidationError(
+                "This task records named readings — use reading_values instead of reading_value",
+                translation_domain=DOMAIN,
+                translation_key="reading_slots_required",
+            )
+
         # Required completion details. Checked HERE — the one point every
         # surface funnels through — so a task demanding a note cannot be
         # closed out from a button, the to-do list, an NFC tag, a

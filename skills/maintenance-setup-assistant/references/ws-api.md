@@ -119,8 +119,12 @@ the delta between consecutive readings client-side.
 clears) and the task response echoes `readings` with the stable ids.
 `task/complete` then takes `reading_values: {slot_id: float|null}` — the
 entry stores the snapshot `reading_values: [{id, name, unit, value}]`
-(never together with the scalar); an unknown id is refused with
-`invalid_input`, `null` means "meter not read this time".
+(a slot without a unit snapshots the task's `reading_unit`); an unknown id
+is refused with `invalid_input`, `null` means "meter not read this time".
+"Never both": on a task with slots the scalar `reading_value` is refused
+(`reading_slots_required` — WS, service and history edit alike), and a
+slot patch on a scalar-era entry drops the scalar. Slot names are unique
+per task (case-insensitive; duplicates are dropped by the sanitizer).
 `task/history/update` patches `reading_value` (scalar, `null` clears) and
 `reading_values` (the same map — REPLACES the snapshot; ids may also be
 slots the task no longer has, taken from the entry's own snapshot). The

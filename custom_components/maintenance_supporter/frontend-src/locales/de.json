@@ -743,6 +743,7 @@
   "reading_name_label": "Name der Ablesung",
   "reading_unit_short": "Einheit",
   "reading_add": "Ablesung hinzufügen",
+  "reading_duplicate_name": "Name bereits vergeben",
   "reading_last": "zuletzt: {value}",
   "reading_below_last": "Kleiner als der letzte Wert ({value})",
   "settings_templates_label": "Vorlagen-Galerie",

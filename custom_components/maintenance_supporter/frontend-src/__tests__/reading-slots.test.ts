@@ -18,8 +18,11 @@ import { expect, fixture, html } from "@open-wc/testing";
 import { render } from "lit";
 import {
   cleanReadingSlots,
+  duplicateReadingSlotIds,
   entryReadingValues,
+  lastReadingBefore,
   lastReadingsBySlot,
+  readingHistory,
   readingSlotDelta,
 } from "../helpers/reading-slots.js";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args.js";
@@ -27,6 +30,8 @@ import { renderHistoryEntry, type HistoryContext } from "../renderers/history.js
 import "../components/task-dialog.js";
 import "../components/complete-dialog.js";
 import "../components/history-edit-dialog.js";
+import "../components/task-quick-actions-dialog.js";
+import type { MaintenanceTaskQuickActionsDialog } from "../components/task-quick-actions-dialog";
 import type { MaintenanceTaskDialog } from "../components/task-dialog";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 import type { HistoryEntryDraft, MaintenanceHistoryEditDialog } from "../components/history-edit-dialog";
@@ -72,14 +77,26 @@ describe("reading-slots helper (#161 phase 2)", () => {
     expect(readingSlotDelta(HISTORY, HISTORY[1], "warm")).to.equal(null);
   });
 
-  it("cleans the editor rows (empty names dropped, trimmed, capped)", () => {
+  it("lastReadingBefore honours the completion moment (backdated entries)", () => {
+    const entries = readingHistory(HISTORY);
+    expect(entries.map((e) => e.values.length)).to.deep.equal([2, 1, 2]);
+    expect(lastReadingBefore(entries, "cold")!.value).to.equal(125);
+    // A completion dated mid-February sees January, not March.
+    expect(lastReadingBefore(entries, "cold", new Date("2026-02-15T10:00:00").getTime())!.value).to.equal(110);
+    expect(lastReadingBefore(entries, "warm", new Date("2026-02-15T10:00:00").getTime())!.value).to.equal(50);
+    expect(lastReadingBefore(entries, "cold", new Date("2025-12-01T10:00:00").getTime())).to.equal(undefined);
+  });
+
+  it("cleans the editor rows (empty names dropped, trimmed, duplicate ids/names dropped, capped)", () => {
     const rows = cleanReadingSlots([
       { id: "a", name: "  Gas ", unit: " m³ " },
       { id: "b", name: "   " },
       { id: "a", name: "dupe" },
       { id: "c", name: "Oil", unit: "" },
+      { id: "d", name: "GAS" },
     ]);
     expect(rows).to.deep.equal([{ id: "a", name: "Gas", unit: "m³" }, { id: "c", name: "Oil", unit: null }]);
+    expect([...duplicateReadingSlotIds([{ id: "a", name: "Gas" }, { id: "d", name: "gas " }, { id: "e", name: "Oil" }])]).to.deep.equal(["d"]);
     expect(cleanReadingSlots(Array.from({ length: 25 }, (_, i) => ({ id: `s${i}`, name: `m${i}` }))).length).to.equal(20);
   });
 });
@@ -95,12 +112,14 @@ describe("task-dialog reading slots editor (#161 phase 2)", () => {
     } as never);
     await el.updateComplete;
     if (mutate) { mutate(el); await el.updateComplete; }
-    // Row count BEFORE save — a successful save closes (empties) the dialog.
+    // Row count (and the duplicate-name hint) BEFORE save — a successful save
+    // closes (empties) the dialog.
     const rows = el.shadowRoot!.querySelectorAll(".reading-row").length;
+    const dupHint = !!el.shadowRoot!.querySelector(".reading-dup");
     await (el as unknown as { _save: () => Promise<void> })._save();
     const update = sent.find((m) => m.type === "maintenance_supporter/task/update") as Record<string, unknown>;
     expect(update, "update message sent").to.exist;
-    return { el, update, rows };
+    return { el, update, rows, dupHint };
   }
 
   it("hydrates the slots, renders one row each and re-emits them on save", async () => {
@@ -122,6 +141,19 @@ describe("task-dialog reading slots editor (#161 phase 2)", () => {
     expect((after.readings as Array<{ id: string }>).map((s) => s.id)).to.deep.equal(["cold", "power"]);
   });
 
+  it("flags a row whose name repeats an earlier one", async () => {
+    const { rows, update, el, dupHint } = await openAndSave({ readings: SLOTS.slice(0, 1) }, (dlg) => {
+      (dlg as unknown as { _readings: Array<{ id: string; name: string }> })._readings = [
+        { id: "cold", name: "Water cold" },
+        { id: "x", name: "water COLD" },
+      ];
+    });
+    expect(rows).to.equal(2);
+    expect(dupHint, "duplicate-name hint shown before save").to.equal(true);
+    expect(el.shadowRoot!.querySelector(".reading-dup"), "dialog is closed after save").to.equal(null);
+    expect(update.readings).to.deep.equal([{ id: "cold", name: "Water cold", unit: null }]);
+  });
+
   it("a non-reading task hides the editor but never wipes stored slots on save", async () => {
     const { rows, update } = await openAndSave({ type: "cleaning", readings: SLOTS });
     expect(rows).to.equal(0);
@@ -132,12 +164,12 @@ describe("task-dialog reading slots editor (#161 phase 2)", () => {
 });
 
 describe("complete-dialog reading slots (#161 phase 2)", () => {
-  async function mount(readings = SLOTS, lastReadings = lastReadingsBySlot(HISTORY)) {
+  async function mount(readings = SLOTS, history = readingHistory(HISTORY)) {
     const { hass, sent } = createMockHass({ handlers: { "maintenance_supporter/task/complete": () => ({ success: true }) } });
     const el = await fixture<MaintenanceCompleteDialog>(html`
       <maintenance-complete-dialog
         .hass=${hass} .entryId=${"entry1"} .taskId=${"task1"} .taskName=${"Meter round"} .lang=${"en"}
-        .taskType=${"reading"} .readingUnit=${""} .readings=${readings} .lastReadings=${lastReadings}
+        .taskType=${"reading"} .readingUnit=${""} .readings=${readings} .readingHistory=${history}
       ></maintenance-complete-dialog>`);
     el.open();
     await el.updateComplete;
@@ -193,7 +225,57 @@ describe("complete-dialog reading slots (#161 phase 2)", () => {
     const task = { id: "t1", name: "Meter round", type: "reading", readings: SLOTS, history: HISTORY } as unknown as MaintenanceTask;
     const args = buildCompleteDialogArgs({ entryId: "e1", taskId: "t1", taskName: "Meter round", task, objects: [], lang: "en" });
     expect(args.readings).to.deep.equal(SLOTS);
-    expect(args.last_readings!.cold.value).to.equal(125);
+    expect(args.reading_history!.length).to.equal(3);
+    expect(lastReadingBefore(args.reading_history!, "cold")!.value).to.equal(125);
+  });
+
+  it("a backdated completion compares against the value before ITS date", async () => {
+    const { el } = await mount();
+    // Seed the backdate field, then set mid-February (HA selector speaks "YYYY-MM-DD HH:MM:SS").
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".backdate-pick")!.click();
+    await el.updateComplete;
+    const field = el.shadowRoot!.querySelector("ms-date-field")!;
+    await (field as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    field.dispatchEvent(new CustomEvent("value-changed", { detail: { value: "2026-02-15 10:00:00" }, bubbles: true, composed: true }));
+    await el.updateComplete;
+    expect(inputs(el)[0].placeholder).to.include("110");
+    await type(el, 0, "115"); // above January's 110 → no warning, although below March's 125
+    expect(el.shadowRoot!.querySelector(".reading-warn")).to.equal(null);
+    await type(el, 0, "105");
+    expect(el.shadowRoot!.querySelector(".reading-warn")!.textContent).to.include("110");
+  });
+});
+
+describe("quick-actions dialog history readings + photos (#161 parity)", () => {
+  it("lists the slot values with deltas, the scalar, and the photo strip", async () => {
+    const task = {
+      id: "t1", name: "Meter round", type: "reading", reading_unit: "kWh", readings: SLOTS, schedule_type: "time_based",
+      status: "ok", enabled: true, warning_days: 7, interval_days: 30,
+      history: [
+        ...HISTORY,
+        { timestamp: "2026-04-01T10:00:00", type: "completed", reading_value: 42, photo_doc_ids: ["ph1", "ph2"] },
+      ],
+    };
+    const { hass } = createMockHass({
+      handlers: {
+        "maintenance_supporter/object": () => ({ object: { name: "Flat" }, tasks: [task] }),
+        "auth/sign_path": () => ({ path: "/api/maintenance_supporter/document/x?authSig=y" }),
+      },
+    });
+    const el = await fixture<MaintenanceTaskQuickActionsDialog>(html`<maintenance-task-quick-actions-dialog .hass=${hass}></maintenance-task-quick-actions-dialog>`);
+    await el.openFor("e1", "t1");
+    (el as unknown as { _showDetails: boolean })._showDetails = true;
+    // Settle deterministically: the task arrives via the mocked WS round-trip.
+    for (let i = 0; i < 50 && el.shadowRoot!.querySelectorAll(".history-readings").length < 4; i++) {
+      await new Promise((r) => setTimeout(r, 10));
+      await el.updateComplete;
+    }
+    const blocks = [...el.shadowRoot!.querySelectorAll(".history-readings")].map((b) => b.textContent!.replace(/\s+/g, " ").trim());
+    expect(blocks.length).to.equal(4);
+    // Newest first: the scalar entry (with the task unit), then March with deltas.
+    expect(blocks[0]).to.include("42 kWh");
+    expect(blocks[1]).to.include("Water cold").and.include("125 m³ (+15)").and.include("Water warm").and.include("(+8)");
+    expect(el.shadowRoot!.querySelectorAll(".history-photos maintenance-history-photo").length).to.equal(2);
   });
 });
 

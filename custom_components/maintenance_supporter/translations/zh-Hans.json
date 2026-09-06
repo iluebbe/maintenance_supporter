@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "完成日期不能是未来时间。"
     },
+    "reading_slots_required": {
+      "message": "此任务记录命名读数——请使用 reading_values 而不是 reading_value。"
+    },
     "tag_scan_required": {
       "message": "“{task_name}”只能通过扫描其标签来完成——请走到设备旁，扫描其上的 NFC 标签或二维码。"
     },

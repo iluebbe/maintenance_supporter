@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "Suorituspäivä ei voi olla tulevaisuudessa."
     },
+    "reading_slots_required": {
+      "message": "Tämä tehtävä tallentaa nimettyjä lukemia — käytä reading_values-kenttää reading_value-kentän sijaan."
+    },
     "tag_scan_required": {
       "message": "”{task_name}” voidaan suorittaa vain skannaamalla sen tunniste — mene paikalle ja skannaa NFC-tunniste tai QR-koodi itse laitteesta."
     },

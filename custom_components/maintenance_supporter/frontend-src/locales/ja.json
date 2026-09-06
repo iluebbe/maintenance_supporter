@@ -743,6 +743,7 @@
   "reading_name_label": "検針項目名",
   "reading_unit_short": "単位",
   "reading_add": "検針項目を追加",
+  "reading_duplicate_name": "この名前は既に使われています",
   "reading_last": "前回: {value}",
   "reading_below_last": "前回の値（{value}）より小さい",
   "settings_templates_label": "テンプレートギャラリー",

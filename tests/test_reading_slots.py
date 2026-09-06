@@ -367,11 +367,35 @@ async def test_history_edit_patches_scalar_and_replaces_the_slot_snapshot(hass: 
     entry = next(h for h in _completed(hass, obj) if h["timestamp"] == ts)
     assert "reading_values" not in entry
 
-    # The scalar is patchable like notes: set, then cleared.
-    await edit("2026-04-01T10:00:00", reading_value=8.25)
-    assert next(h for h in _completed(hass, obj) if h["timestamp"].startswith("2026-04"))["reading_value"] == 8.25
-    await edit("2026-04-01T10:00:00", reading_value=None)
-    assert "reading_value" not in next(h for h in _completed(hass, obj) if h["timestamp"].startswith("2026-04"))
+
+
+async def test_history_edit_patches_the_scalar_on_a_single_value_task(hass: HomeAssistant) -> None:
+    """The scalar is patchable like notes on a task WITHOUT slots: set, then cleared."""
+    ts = "2026-04-01T10:00:00"
+    obj = _object(hass, history=[{"timestamp": ts, "type": HistoryEntryType.COMPLETED, "reading_value": 7}])
+    await setup_integration(hass, _global(hass), obj)
+
+    async def edit(**fields):
+        conn = _conn()
+        await call_ws_handler(
+            ws_update_history_entry,
+            hass,
+            conn,
+            {
+                "id": 5,
+                "type": "maintenance_supporter/task/history/update",
+                "entry_id": obj.entry_id,
+                "task_id": TASK_ID_1,
+                "original_timestamp": ts,
+                **fields,
+            },
+        )
+        assert conn.send_result.called, conn.send_error.call_args
+
+    await edit(reading_value=8.25)
+    assert _completed(hass, obj)[0]["reading_value"] == 8.25
+    await edit(reading_value=None)
+    assert "reading_value" not in _completed(hass, obj)[0]
 
 
 # ─── service + sensor ────────────────────────────────────────────────────
@@ -527,3 +551,121 @@ async def test_options_flow_edit_task_readings_text(hass: HomeAssistant) -> None
     result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={**base, "readings_text": ""})
     assert result["type"] == FlowResultType.MENU
     assert "readings" not in obj.data["tasks"][TASK_ID_1]
+
+
+# ─── follow-up round (invariants) ────────────────────────────────────────
+
+
+def test_sanitize_drops_duplicate_names_case_insensitively() -> None:
+    slots = sanitize_reading_slots(
+        [{"id": "a", "name": "Water cold"}, {"id": "b", "name": "water COLD"}, {"id": "c", "name": "Gas"}]
+    )
+    assert [s["id"] for s in slots] == ["a", "c"]
+
+
+def test_resolve_snapshots_the_task_unit_for_unitless_slots() -> None:
+    slots = [{"id": "a", "name": "Main meter"}, {"id": "b", "name": "Sub meter", "unit": "l"}]
+    snap = resolve_reading_values(slots, {"a": 1, "b": 2}, default_unit="m³")
+    assert [(s["id"], s["unit"]) for s in snap] == [("a", "m³"), ("b", "l")]
+    # A kept (retired) snapshot keeps ITS unit, the fallback only applies to current slots.
+    kept = resolve_reading_values(slots[:1], {"old": 3}, keep=[{"id": "old", "name": "Old", "unit": None, "value": 1}], default_unit="m³")
+    assert kept[0]["unit"] is None
+    by_name = resolve_reading_values_by_name(slots, {"main meter": 5}, default_unit="kWh")
+    assert by_name[0]["unit"] == "kWh"
+
+
+async def test_scalar_is_refused_on_a_slot_task_everywhere(hass: HomeAssistant) -> None:
+    """'Never both': WS complete, the service and the history edit refuse the
+    scalar once the task records slots; the snapshot supersedes a scalar."""
+    obj = _object(
+        hass,
+        readings=SLOTS,
+        history=[{"timestamp": "2026-04-01T10:00:00", "type": HistoryEntryType.COMPLETED, "reading_value": 7}],
+    )
+    await setup_integration(hass, _global(hass), obj)
+
+    conn = await _complete(hass, obj, reading_value=12)
+    assert conn.send_error.called and conn.send_error.call_args[0][1] == "reading_slots_required"
+    assert len(_completed(hass, obj)) == 1
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, SERVICE_COMPLETE, {"entity_id": _sensor_id(hass, obj), "reading_value": 12}, blocking=True
+        )
+    assert len(_completed(hass, obj)) == 1
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 5,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": "2026-04-01T10:00:00",
+            "reading_value": 8,
+        },
+    )
+    assert conn.send_error.called and conn.send_error.call_args[0][1] == "invalid_input"
+
+    # Migrating a scalar-era entry to slots drops the scalar.
+    conn = _conn()
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 6,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": "2026-04-01T10:00:00",
+            "reading_values": {"cold": 7},
+        },
+    )
+    assert conn.send_result.called, conn.send_error.call_args
+    entry = _completed(hass, obj)[0]
+    assert "reading_value" not in entry and entry["reading_values"][0]["value"] == 7.0
+
+
+async def test_complete_snapshots_the_task_unit(hass: HomeAssistant) -> None:
+    obj = _object(hass, readings=[{"id": "a", "name": "Main"}, {"id": "b", "name": "Sub", "unit": "l"}])
+    entry_data = dict(obj.data)
+    tasks = dict(entry_data["tasks"])
+    tasks[TASK_ID_1] = {**tasks[TASK_ID_1], "reading_unit": "m³"}
+    entry_data["tasks"] = tasks
+    hass.config_entries.async_update_entry(obj, data=entry_data)
+    await setup_integration(hass, _global(hass), obj)
+    conn = await _complete(hass, obj, reading_values={"a": 1, "b": 2})
+    assert conn.send_result.called, conn.send_error.call_args
+    snap = _completed(hass, obj)[-1]["reading_values"]
+    assert [(s["id"], s["unit"]) for s in snap] == [("a", "m³"), ("b", "l")]
+
+
+async def test_logbook_line_carries_the_readings(hass: HomeAssistant) -> None:
+    from homeassistant.core import Event
+
+    from custom_components.maintenance_supporter.logbook import async_describe_events
+
+    callbacks: dict = {}
+    async_describe_events(hass, lambda domain, event_type, describe: callbacks.__setitem__(event_type, describe))
+    entry = callbacks[EVENT_TASK_COMPLETED](
+        Event(
+            EVENT_TASK_COMPLETED,
+            {
+                "entry_id": "e1",
+                "task_id": "t1",
+                "task_name": "Meter round",
+                "object_name": "Flat",
+                "reading_values": [{"id": "cold", "name": "Water cold", "unit": "m³", "value": 12.5}, {"id": "p", "name": "Power", "unit": None, "value": 3}],
+                "cost": 1.0,
+            },
+        )
+    )
+    assert entry["message"] == "was completed — Water cold 12.5 m³, Power 3, 1.0"
+    scalar = callbacks[EVENT_TASK_COMPLETED](
+        Event(EVENT_TASK_COMPLETED, {"entry_id": "e1", "task_id": "t1", "task_name": "M", "object_name": "F", "reading_value": 77.5})
+    )
+    assert scalar["message"] == "was completed — 77.5"

@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "La date d'achèvement ne peut pas être dans le futur."
     },
+    "reading_slots_required": {
+      "message": "Cette tâche enregistre des relevés nommés — utilisez reading_values au lieu de reading_value."
+    },
     "tag_scan_required": {
       "message": "« {task_name} » ne peut être terminé qu'en scannant son tag — allez scanner le tag NFC ou le QR code sur l'objet lui-même."
     },

@@ -749,6 +749,7 @@
   "reading_name_label": "Reading name",
   "reading_unit_short": "Unit",
   "reading_add": "Add reading",
+  "reading_duplicate_name": "Name already used",
   "reading_last": "last: {value}",
   "reading_below_last": "Lower than the last reading ({value})",
   "settings_templates_label": "Template gallery",

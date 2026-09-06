@@ -52,6 +52,36 @@ export function lastReadingsBySlot(history: readonly HistoryEntry[] | null | und
   return out;
 }
 
+/** One dated slot snapshot — what the complete dialog needs to find the
+ *  last value BEFORE a backdated completion moment. */
+export interface ReadingHistoryEntry {
+  timestamp: string;
+  values: ReadingValue[];
+}
+
+/** The slot snapshots of a history, oldest first (scalar-only entries drop out). */
+export function readingHistory(history: readonly HistoryEntry[] | null | undefined): ReadingHistoryEntry[] {
+  return readingEntries(history ?? [])
+    .map((h) => ({ timestamp: h.timestamp, values: entryReadingValues(h) }))
+    .filter((h) => h.values.length > 0);
+}
+
+/** The last value of one slot recorded strictly BEFORE `beforeMs` (all of
+ *  history when undefined) — a January reading backfilled in March must
+ *  compare against December, not against March. */
+export function lastReadingBefore(entries: readonly ReadingHistoryEntry[], slotId: string, beforeMs?: number): ReadingValue | undefined {
+  let last: ReadingValue | undefined;
+  for (const h of entries) {
+    if (beforeMs !== undefined) {
+      const ts = new Date(h.timestamp).getTime();
+      if (!isNaN(ts) && ts >= beforeMs) break;
+    }
+    const v = h.values.find((x) => x.id === slotId);
+    if (v) last = v;
+  }
+  return last;
+}
+
 /** Delta of one slot against the previous completion that carried the same
  *  slot id (not the previous entry — a meter skipped once must not break
  *  the chain). null when there is no earlier value. */
@@ -67,14 +97,31 @@ export function readingSlotDelta(history: readonly HistoryEntry[], entry: Histor
   return previous == null ? null : current.value - previous;
 }
 
-/** The slot list a task editor works on: dropped empties, trimmed names. */
+/** Ids of editor rows whose name repeats an EARLIER row (case-insensitive)
+ *  — the backend keeps the first and drops the rest, so warn on those. */
+export function duplicateReadingSlotIds(slots: readonly ReadingSlot[]): Set<string> {
+  const seen = new Set<string>();
+  const dupes = new Set<string>();
+  for (const s of slots) {
+    const key = (s.name || "").trim().toLowerCase();
+    if (!key) continue;
+    if (seen.has(key)) dupes.add(s.id);
+    else seen.add(key);
+  }
+  return dupes;
+}
+
+/** The slot list a task editor works on: dropped empties, trimmed names,
+ *  duplicate ids AND names dropped (first wins — mirrors the backend). */
 export function cleanReadingSlots(slots: readonly ReadingSlot[]): ReadingSlot[] {
   const out: ReadingSlot[] = [];
   const seen = new Set<string>();
+  const seenNames = new Set<string>();
   for (const s of slots) {
     const name = (s.name || "").trim();
-    if (!name || seen.has(s.id)) continue;
+    if (!name || seen.has(s.id) || seenNames.has(name.toLowerCase())) continue;
     seen.add(s.id);
+    seenNames.add(name.toLowerCase());
     out.push({ id: s.id, name, unit: (s.unit || "").trim() || null });
     if (out.length >= MAX_READING_SLOTS) break;
   }

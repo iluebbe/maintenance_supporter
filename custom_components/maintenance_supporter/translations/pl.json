@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "Data wykonania nie może być w przyszłości."
     },
+    "reading_slots_required": {
+      "message": "To zadanie zapisuje nazwane odczyty — użyj reading_values zamiast reading_value."
+    },
     "tag_scan_required": {
       "message": "„{task_name}” można ukończyć tylko przez zeskanowanie tagu — podejdź i zeskanuj tag NFC lub kod QR na samym urządzeniu."
     },

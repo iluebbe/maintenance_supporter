@@ -20,7 +20,8 @@ import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
 import { historyPhotoIds } from "../helpers/history-photos";
-import { entryReadingValues } from "../helpers/reading-slots";
+import { entryReadingValues, readingSlotDelta } from "../helpers/reading-slots";
+import "./history-photo";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -447,6 +448,30 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     `;
   }
 
+  /** #161: the entry's readings — per-slot lines with the delta against the
+   *  previous entry carrying the slot, or the single value of a scalar task.
+   *  Parity with the panel timeline for the Lovelace / strategy path. */
+  private _renderHistoryReadings(entry: HistoryEntry, history: HistoryEntry[], L: string) {
+    const values = entryReadingValues(entry);
+    const fmt = (n: number) => formatNumber(n, L, { maximumFractionDigits: 3 });
+    if (values.length > 0) {
+      return html`<div class="history-readings">
+        ${values.map((v) => {
+          const d = readingSlotDelta(history, entry, v.id);
+          return html`<span class="history-reading"><span class="history-reading-name">${v.name}</span>
+            <span class="history-reading-value">${fmt(v.value)}${v.unit ? ` ${v.unit}` : ""}${d == null ? "" : ` (${d >= 0 ? "+" : ""}${fmt(d)})`}</span></span>`;
+        })}
+      </div>`;
+    }
+    if (entry.reading_value != null) {
+      const unit = this._task?.reading_unit ? ` ${this._task.reading_unit}` : "";
+      return html`<div class="history-readings"><span class="history-reading">
+        <span class="history-reading-name">${t("reading_label", L)}</span>
+        <span class="history-reading-value">${fmt(entry.reading_value)}${unit}</span></span></div>`;
+    }
+    return nothing;
+  }
+
   /** Read-only details panel: stats + history. Shown when the user clicks
    *  "Show details" in the dialog. Edit-buttons on history entries open the
    *  existing history-edit dialog (which lives in the same dialog-mount). */
@@ -508,6 +533,15 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                       ${entry.notes
                         ? html`<div class="history-notes">${entry.notes}</div>`
                         : nothing}
+                      ${this._renderHistoryReadings(entry, history, L)}
+                      ${(() => {
+                        const photos = historyPhotoIds(entry);
+                        return photos.length
+                          ? html`<div class="history-photos">
+                              ${photos.map((docId) => html`<maintenance-history-photo .hass=${this.hass} .docId=${docId}></maintenance-history-photo>`)}
+                            </div>`
+                          : nothing;
+                      })()}
                       ${entry.cost != null || entry.duration != null
                         ? html`<div class="history-meta">
                             ${entry.cost != null ? html`<span>💰 ${formatNumber(entry.cost, L, 2)}</span>` : nothing}
@@ -838,6 +872,12 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .history-edit ha-icon { --mdc-icon-size: 14px; }
     .history-notes { margin-top: 4px; color: var(--primary-text-color); }
     .history-meta { display: flex; gap: 12px; margin-top: 4px; color: var(--secondary-text-color); font-size: 11px; }
+    /* #161: readings + photos on the entry (panel-timeline parity) */
+    .history-readings { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-top: 4px; font-size: 12px; }
+    .history-reading { display: inline-flex; gap: 6px; }
+    .history-reading-name { color: var(--secondary-text-color); }
+    .history-reading-value { font-variant-numeric: tabular-nums; }
+    .history-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
     .history-more { padding: 8px; text-align: center; font-size: 12px; color: var(--secondary-text-color); font-style: italic; }
 
     /* Adaptive section — wraps the panel renderers (which assume sharedStyles

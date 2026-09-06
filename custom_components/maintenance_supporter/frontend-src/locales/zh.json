@@ -743,6 +743,7 @@
   "reading_name_label": "读数名称",
   "reading_unit_short": "单位",
   "reading_add": "添加读数",
+  "reading_duplicate_name": "名称已被使用",
   "reading_last": "上次：{value}",
   "reading_below_last": "低于上次读数（{value}）",
   "settings_templates_label": "模板库",

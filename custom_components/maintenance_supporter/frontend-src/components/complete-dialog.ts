@@ -2,7 +2,8 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { HomeAssistant, ReadingSlot, ReadingValue, TaskPartLink } from "../types";
+import type { HomeAssistant, ReadingSlot, TaskPartLink } from "../types";
+import { lastReadingBefore, type ReadingHistoryEntry } from "../helpers/reading-slots";
 import { t, nativeFieldStyles, formatCost, formatNumber } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
@@ -28,8 +29,11 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** #161 phase 2: the task's reading slots — one field each instead of
    *  the single value; [] keeps the scalar field. */
   @property({ attribute: false }) public readings: ReadingSlot[] = [];
-  /** The newest recorded value per slot id ("last: …" hint + warning). */
-  @property({ attribute: false }) public lastReadings: Record<string, ReadingValue> = {};
+  /** The task's dated slot snapshots (oldest first) — the "last: …" hint
+   *  and the lower-than-last warning compare against the last value BEFORE
+   *  the completion moment, so a backdated entry is judged by its own
+   *  date rather than by the newest reading. */
+  @property({ attribute: false }) public readingHistory: ReadingHistoryEntry[] = [];
   /** Buy task (part_ref): default restock quantity — shows an editable qty field. */
   @property({ attribute: false }) public restockDefault: number | null = null;
   /** #104 follow-up: the buy task's part unit cost — powers the cost
@@ -269,7 +273,8 @@ export class MaintenanceCompleteDialog extends LitElement {
    *  a value below the last one gets a warning (meters count up — a
    *  replaced meter or a typo), never a block. */
   private _renderReadingField(slot: ReadingSlot, L: string) {
-    const last = this.lastReadings[slot.id];
+    const at = this._completedAt ? new Date(this._completedAt).getTime() : NaN;
+    const last = lastReadingBefore(this.readingHistory, slot.id, isNaN(at) ? undefined : at);
     const unit = slot.unit || this.readingUnit;
     const raw = (this._readingValues[slot.id] ?? "").trim();
     const num = raw === "" ? NaN : parseFloat(raw.replace(",", "."));

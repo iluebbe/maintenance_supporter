@@ -2023,6 +2023,9 @@
     "completed_at_in_future": {
       "message": "Az elvégzés dátuma nem lehet a jövőben."
     },
+    "reading_slots_required": {
+      "message": "Ez a feladat nevesített leolvasásokat rögzít — a reading_value helyett a reading_values mezőt használja."
+    },
     "tag_scan_required": {
       "message": "A(z) „{task_name}” csak a címke beolvasásával fejezhető be — menj oda, és olvasd be az NFC-címkét vagy a QR-kódot magán az eszközön."
     },

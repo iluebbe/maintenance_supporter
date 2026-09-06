@@ -743,6 +743,7 @@
   "reading_name_label": "Název odečtu",
   "reading_unit_short": "Jednotka",
   "reading_add": "Přidat odečet",
+  "reading_duplicate_name": "Název je již použit",
   "reading_last": "naposledy: {value}",
   "reading_below_last": "Nižší než poslední odečet ({value})",
   "settings_templates_label": "Galerie šablon",

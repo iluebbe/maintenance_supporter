@@ -205,9 +205,14 @@ async def ws_complete_task(
         from ..helpers.reading_slots import resolve_reading_values
         from . import _get_merged_tasks
 
-        slots = (_get_merged_tasks(_entry).get(msg["task_id"]) or {}).get("readings") or []
+        slot_task = _get_merged_tasks(_entry).get(msg["task_id"]) or {}
         try:
-            reading_values = resolve_reading_values(slots, msg["reading_values"]) or None
+            reading_values = (
+                resolve_reading_values(
+                    slot_task.get("readings") or [], msg["reading_values"], default_unit=slot_task.get("reading_unit")
+                )
+                or None
+            )
         except ValueError as err:
             connection.send_error(msg["id"], "invalid_input", str(err))
             return

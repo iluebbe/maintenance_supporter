@@ -743,6 +743,7 @@
   "reading_name_label": "रीडिंग का नाम",
   "reading_unit_short": "इकाई",
   "reading_add": "रीडिंग जोड़ें",
+  "reading_duplicate_name": "नाम पहले से उपयोग में है",
   "reading_last": "पिछला: {value}",
   "reading_below_last": "पिछली रीडिंग ({value}) से कम",
   "settings_templates_label": "टेम्पलेट गैलरी",

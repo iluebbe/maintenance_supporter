@@ -743,6 +743,7 @@
   "reading_name_label": "Naam meterstand",
   "reading_unit_short": "Eenheid",
   "reading_add": "Meterstand toevoegen",
+  "reading_duplicate_name": "Naam al in gebruik",
   "reading_last": "laatst: {value}",
   "reading_below_last": "Lager dan de vorige meterstand ({value})",
   "settings_templates_label": "Sjabloongalerij",

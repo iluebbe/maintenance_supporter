@@ -749,6 +749,7 @@
   "reading_name_label": "검침 항목 이름",
   "reading_unit_short": "단위",
   "reading_add": "검침 항목 추가",
+  "reading_duplicate_name": "이미 사용 중인 이름입니다",
   "reading_last": "지난번: {value}",
   "reading_below_last": "지난 검침값({value})보다 작습니다",
   "settings_templates_label": "템플릿 갤러리",

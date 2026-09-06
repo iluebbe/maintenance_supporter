@@ -743,6 +743,7 @@
   "reading_name_label": "Avläsningens namn",
   "reading_unit_short": "Enhet",
   "reading_add": "Lägg till avläsning",
+  "reading_duplicate_name": "Namnet används redan",
   "reading_last": "senast: {value}",
   "reading_below_last": "Lägre än senaste avläsningen ({value})",
   "settings_templates_label": "Mallgalleri",

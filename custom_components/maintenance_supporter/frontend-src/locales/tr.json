@@ -749,6 +749,7 @@
   "reading_name_label": "Okuma adı",
   "reading_unit_short": "Birim",
   "reading_add": "Okuma ekle",
+  "reading_duplicate_name": "Bu ad zaten kullanılıyor",
   "reading_last": "son: {value}",
   "reading_below_last": "Son okumadan ({value}) düşük",
   "settings_templates_label": "Şablon galerisi",

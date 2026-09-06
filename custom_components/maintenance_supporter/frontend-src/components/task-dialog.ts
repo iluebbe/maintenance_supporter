@@ -6,7 +6,7 @@ import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, ReadingSlot, TaskP
 import { formatDate, formatNumber, t, weekdayName, monthName, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
-import { MAX_READING_SLOTS, cleanReadingSlots, newReadingSlotId } from "../helpers/reading-slots";
+import { MAX_READING_SLOTS, cleanReadingSlots, duplicateReadingSlotIds, newReadingSlotId } from "../helpers/reading-slots";
 import {
   ENVIRONMENTAL_PICKER_DEVICE_CLASSES,
   ENVIRONMENTAL_PICKER_DOMAINS,
@@ -1064,11 +1064,13 @@ export class MaintenanceTaskDialog extends LitElement {
   }
 
   private _renderReadingsEditor(L: string) {
+    const dupes = duplicateReadingSlotIds(this._readings);
     return html`
       <div class="readings-editor">
         <div class="field-label">${t("readings_section", L)}</div>
         <div class="field-help">${t("readings_hint", L)}</div>
         ${this._readings.map((s) => html`
+          ${dupes.has(s.id) ? html`<div class="field-help reading-dup">${t("reading_duplicate_name", L)}</div>` : nothing}
           <div class="reading-row">
             <ms-textfield
               class="reading-name"
@@ -3128,6 +3130,7 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     .reading-row .reading-name { flex: 2; min-width: 0; }
     .reading-row .reading-unit { flex: 1; min-width: 0; max-width: 140px; }
+    .reading-dup { color: var(--warning-color, #ff9800); margin-top: 6px; }
     .phase-seq-label {
       font-size: 12px;
       color: var(--secondary-text-color);

@@ -743,6 +743,7 @@
   "reading_name_label": "Avlesningens navn",
   "reading_unit_short": "Enhet",
   "reading_add": "Legg til avlesning",
+  "reading_duplicate_name": "Navnet er allerede i bruk",
   "reading_last": "sist: {value}",
   "reading_below_last": "Lavere enn forrige avlesning ({value})",
   "settings_templates_label": "Malgalleri",

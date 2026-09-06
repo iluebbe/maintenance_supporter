@@ -743,6 +743,7 @@
   "reading_name_label": "Nazwa odczytu",
   "reading_unit_short": "Jednostka",
   "reading_add": "Dodaj odczyt",
+  "reading_duplicate_name": "Nazwa już użyta",
   "reading_last": "ostatnio: {value}",
   "reading_below_last": "Mniej niż ostatni odczyt ({value})",
   "settings_templates_label": "Galeria szablonów",
