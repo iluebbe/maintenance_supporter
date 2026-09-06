@@ -610,6 +610,9 @@ export interface HomeAssistant {
 export interface HAUser {
   id: string;
   name: string;
+  /** #169 follow-up: avatar (override or derived), sent to every caller. */
+  initials?: string;
+  color?: string;
   // Only returned to admin callers of users/list; absent for non-admins.
   is_admin?: boolean;
   is_owner?: boolean;

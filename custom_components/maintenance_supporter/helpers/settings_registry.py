@@ -46,6 +46,7 @@ from ..const import (
     CONF_DISABLED_TEMPLATE_IDS,
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
+    CONF_MEMBER_DISPLAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
@@ -125,6 +126,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_ADMIN_PANEL_USER_IDS, list),
     SettingSpec(CONF_OPERATOR_WRITE_ENABLED, bool),
     SettingSpec(CONF_OBJECTS_TABLE_COLUMNS, list),
+    # #169 follow-up: member avatars (bespoke palette/initials sanitiser)
+    SettingSpec(CONF_MEMBER_DISPLAY, dict),
     # v2.21: hidden template ids (bespoke known-id sanitiser in the handler)
     SettingSpec(CONF_DISABLED_TEMPLATE_IDS, list),
     # Archive automation

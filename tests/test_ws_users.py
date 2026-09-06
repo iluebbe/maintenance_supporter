@@ -423,7 +423,9 @@ async def test_ws_list_users_strips_flags_for_non_admin(
     result = conn.send_result.call_args[0][1]
     assert len(result["users"]) == 2
     for u in result["users"]:
-        assert set(u.keys()) == {"id", "name"}
+        # #169 follow-up: the avatar (initials + colour) is display data every
+        # caller gets; the governance flags stay admin-only.
+        assert set(u.keys()) == {"id", "name", "initials", "color"}
 
 
 async def test_ws_tasks_by_user_self_allowed(

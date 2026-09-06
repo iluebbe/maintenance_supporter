@@ -5,10 +5,11 @@ import { property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { live } from "lit/directives/live.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
-import { t, langOf } from "../styles";
+import { t, langOf, personStyles } from "../styles";
 import { signApiPath } from "../helpers/document-url";
 import { downloadUrl } from "../helpers/download";
 import { UserService } from "../user-service";
+import { AVATAR_PALETTE, personOf, renderPersonAvatar } from "../helpers/person";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
 import { invalidateSettingsCache } from "../helpers/settings-cache";
@@ -27,6 +28,8 @@ interface PersonNotifyTarget {
 interface SettingsResponse {
   features: AdvancedFeatures;
   admin_panel_user_ids?: string[];
+  /** #169 follow-up: per-member avatar overrides. */
+  member_display?: Record<string, { initials?: string; color?: string }>;
   operator_write_enabled?: boolean;
   objects_table_columns?: string[];
   /** v2.21: template-gallery curation — hidden template ids. */
@@ -296,6 +299,62 @@ export class MaintenanceSettingsView extends LitElement {
       </div>`;
   }
 
+  /** #169 follow-up: Settings → household members — the avatar each member
+   *  gets in task lists (initials + a palette colour). Defaults come from
+   *  the backend (name / user id); an override is stored per user id. */
+  private _renderMemberAvatars(L: string) {
+    if (!this._users.length) return nothing;
+    const overrides = this._settings?.member_display || {};
+    return html`
+      <div class="settings-section member-avatars" data-section="member_avatars">
+        <h3>${t("member_avatars", L)}</h3>
+        <p class="section-desc">${t("member_avatars_hint", L)}</p>
+        ${this._users.map((u) => {
+          const person = personOf(u)!;
+          const override = overrides[u.id] || {};
+          return html`
+            <div class="member-avatar-row">
+              ${renderPersonAvatar(person)}
+              <span class="member-avatar-name">${u.name}</span>
+              <input class="member-initials" type="text" maxlength="3" autocomplete="off"
+                aria-label="${t("member_initials", L)}"
+                placeholder="${person.initials}"
+                .value=${override.initials ?? ""}
+                @change=${(e: Event) => this._setMemberAvatar(u.id, { initials: (e.target as HTMLInputElement).value })} />
+              <span class="member-palette" role="radiogroup" aria-label="${t("member_color", L)}">
+                ${AVATAR_PALETTE.map((color) => html`
+                  <button type="button" class="member-swatch${person.color === color ? " selected" : ""}"
+                    style="--person-color: ${color}" title=${color} aria-label=${color}
+                    @click=${() => this._setMemberAvatar(u.id, { color })}></button>`)}
+              </span>
+              ${override.initials || override.color
+                ? html`<button class="ha-button secondary member-reset" @click=${() => this._setMemberAvatar(u.id, null)}>${t("member_avatar_reset", L)}</button>`
+                : nothing}
+            </div>`;
+        })}
+      </div>`;
+  }
+
+  /** Merge one member's override into the map and save; null resets the member. */
+  private async _setMemberAvatar(userId: string, patch: { initials?: string; color?: string } | null): Promise<void> {
+    const current = { ...(this._settings?.member_display || {}) };
+    if (patch === null) {
+      delete current[userId];
+    } else {
+      const next = { ...(current[userId] || {}), ...patch };
+      if ("initials" in patch && !(patch.initials || "").trim()) delete next.initials;
+      if (Object.keys(next).length) current[userId] = next;
+      else delete current[userId];
+    }
+    await this._updateSetting("member_display", current);
+    // The avatars come back resolved through users/list — refresh the cache.
+    try {
+      this._users = (await this._userService?.getUsers(true)) ?? this._users;
+    } catch {
+      /* keep the stale list; the next open reloads it */
+    }
+  }
+
   private async _updateSetting(key: string, value: unknown): Promise<void> {
     try {
       const result = await this.hass.connection.sendMessagePromise({
@@ -375,6 +434,7 @@ export class MaintenanceSettingsView extends LitElement {
     return html`
       ${this._renderFeatures(L)}
       ${this._renderPanelAccess(L)}
+      ${this._renderMemberAvatars(L)}
       ${this._renderGeneral(L)}
       ${this._renderObjectsColumns(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
@@ -1785,7 +1845,7 @@ export class MaintenanceSettingsView extends LitElement {
 
   // --- Styles ---
 
-  static styles = css`
+  static styles = [personStyles, css`
     .bn-note {
       display: flex; align-items: flex-start; gap: 10px;
       margin: 6px 0 10px; padding: 10px 12px; border-radius: 8px;
@@ -1860,6 +1920,21 @@ export class MaintenanceSettingsView extends LitElement {
     .notify-person-target.muted {
       font-style: italic;
     }
+    /* #169 follow-up: member avatar editor */
+    .member-avatar-row { display: flex; align-items: center; gap: 10px; padding: 6px 0 0; flex-wrap: wrap; }
+    .member-avatar-name { font-weight: 500; min-width: 120px; }
+    .member-initials {
+      width: 4.5em; padding: 4px 6px; text-align: center; text-transform: uppercase;
+      border: 1px solid var(--divider-color, #e0e0e0); border-radius: 6px;
+      background: var(--card-background-color); color: var(--primary-text-color); font: inherit;
+    }
+    .member-palette { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+    .member-swatch {
+      width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; padding: 0;
+      background: var(--person-color); cursor: pointer;
+    }
+    .member-swatch.selected { border-color: var(--primary-text-color); box-shadow: 0 0 0 2px var(--card-background-color) inset; }
+    .member-reset { --ha-button-font-size: 12px; }
     /* v2.27: template gallery clustered by category */
     .tpl-group { margin-top: 14px; }
     .tpl-group-head {
@@ -2283,7 +2358,7 @@ export class MaintenanceSettingsView extends LitElement {
       .qr-print-cell .qr-svg { max-width: 48mm; }
       .qr-label { font-size: 9pt; }
     }
-  `;
+  `];
 }
 
 customElements.define("maintenance-settings-view", MaintenanceSettingsView);

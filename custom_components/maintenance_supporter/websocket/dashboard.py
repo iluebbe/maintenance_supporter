@@ -41,6 +41,7 @@ from ..const import (
     CONF_DISABLED_TEMPLATE_IDS,
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
+    CONF_MEMBER_DISPLAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
@@ -145,6 +146,8 @@ def _build_full_settings(
         "operator_write_enabled": options.get(CONF_OPERATOR_WRITE_ENABLED, False),
         # (#67): ordered objects-table columns for the panel All-Objects view.
         "objects_table_columns": options.get(CONF_OBJECTS_TABLE_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS),
+        # #169 follow-up: per-member avatar overrides (initials / palette colour).
+        "member_display": options.get(CONF_MEMBER_DISPLAY, {}),
         # v2.21: template-gallery curation (ids hidden from the pickers).
         "disabled_template_ids": options.get(CONF_DISABLED_TEMPLATE_IDS, []),
         # v2.10.0: archive automation thresholds (panel Settings → Archive).
@@ -715,6 +718,13 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             seen_cols.add(v)
             cols.append(v)
         filtered[CONF_OBJECTS_TABLE_COLUMNS] = cols or list(DEFAULT_OBJECTS_TABLE_COLUMNS)
+
+    # #169 follow-up: member avatars — initials capped, colours from the
+    # palette only, empty entries dropped (an empty map clears every override).
+    if CONF_MEMBER_DISPLAY in filtered:
+        from ..helpers.member_display import sanitize_member_display
+
+        filtered[CONF_MEMBER_DISPLAY] = sanitize_member_display(filtered[CONF_MEMBER_DISPLAY])
 
     # v2.21: disabled_template_ids — keep only ids of templates that actually
     # exist (a typo/stale id must not linger invisibly), dedupe.

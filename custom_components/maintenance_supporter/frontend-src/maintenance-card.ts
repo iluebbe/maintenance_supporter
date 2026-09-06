@@ -18,6 +18,7 @@ import type {
   SavedViewFilters,
 } from "./types";
 import { UserService } from "./user-service";
+import { personOf, renderPersonAvatar, type PersonDisplay } from "./helpers/person";
 import { phaseLabel } from "./helpers/phases";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import "./maintenance-card-editor";
@@ -58,6 +59,8 @@ export class MaintenanceSupporterCard extends LitElement {
   /** id → display name for the assignee badge. Empty until users/list
    *  resolves; the badge stays hidden rather than showing a raw uuid. */
   @state() private _userNames: Record<string, string> = {};
+  /** #169 follow-up: id → avatar (initials + colour) for the badge. */
+  private _userPersons: Record<string, PersonDisplay> = {};
   private _userService: UserService | null = null;
   private _userNamesLoaded = false;
   /** entry_id → (task_id → documents) for the row chips. */
@@ -199,6 +202,7 @@ export class MaintenanceSupporterCard extends LitElement {
     else this._userService.updateHass(this.hass);
     try {
       const users = await this._userService.getUsers();
+      this._userPersons = Object.fromEntries(users.map((u) => [u.id, personOf(u)!]));
       this._userNames = Object.fromEntries(users.map((u) => [u.id, u.name]));
     } catch {
       // leave whatever we had; the badge hides for unresolved ids
@@ -481,13 +485,13 @@ export class MaintenanceSupporterCard extends LitElement {
                           ? html`<div class="task-meta">
                               ${object_name} · ${t(task.type, L)}${phaseLabel(task) ? html` · ${phaseLabel(task)}` : nothing}${this._assigneeName(task)
                                 ? html` · <span class="assignee"
-                                    ><ha-icon icon="mdi:account"></ha-icon>${this._assigneeName(task)}</span
+                                    >${renderPersonAvatar(this._userPersons[task.responsible_user_id!])}${this._assigneeName(task)}</span
                                   >`
                                 : nothing}
                             </div>`
                           : this._assigneeName(task)
                             ? html`<div class="task-meta compact-assignee" title="${this._assigneeName(task)}">
-                                <ha-icon icon="mdi:account"></ha-icon>${this._assigneeName(task)}
+                                ${renderPersonAvatar(this._userPersons[task.responsible_user_id!])}${this._assigneeName(task)}
                               </div>`
                             : nothing}
                       </div>
@@ -673,9 +677,11 @@ export class MaintenanceSupporterCard extends LitElement {
       .assignee, .compact-assignee {
         display: inline-flex;
         align-items: center;
-        gap: 2px;
+        gap: 4px;
         white-space: nowrap;
+        vertical-align: middle;
       }
+      .assignee .person-avatar, .compact-assignee .person-avatar { width: 16px; height: 16px; font-size: 8.5px; }
       .assignee ha-icon, .compact-assignee ha-icon {
         --mdc-icon-size: 13px;
         width: 13px;

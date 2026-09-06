@@ -105,8 +105,9 @@ manual + web link), and the object's tasks with assignment badges.
 
 ### Today View
 The panel's default landing tab — what needs attention now, bucketed into
-*Overdue / Due today / This week* with one-tap complete; each row names
-the responsible person when one is assigned (2.76+, #169). Deep-linkable
+*Overdue / Due today / This week* with one-tap complete; each row shows
+the responsible person's avatar — initials in their colour — plus the name
+on wide screens (2.76+, #169). Deep-linkable
 (2.74+): `/maintenance-supporter?tab=today`, `?status=overdue`,
 `?sort=object` or `?view=<saved view>` open the panel on exactly that list —
 from a dashboard button or a notification tap, even while the panel is
@@ -621,6 +622,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Completion photos** (2.17+): attach photos when completing a task — camera capture or several from the gallery at once, up to ten per completion (2.75+) — stored via the documents engine, shown as a thumbnail strip in the history timeline, and editable afterwards from the history entry (add more, detach one)
 - **Missed status + completion window** (2.17+): skipping an overdue task records it as *Missed* (distinct from a deliberate skip); an optional per-task *earliest completion* window blocks signing tasks off too early
 - **Shared maintenance & rotation** (2.17+): assign a task to several household members and rotate responsibility on each completion (round-robin / least-completed / random). Since 2.42.1 a rotation task **always carries an effective assignee** (discussion #49): the first pool member is seeded whenever the task is created, edited or imported, a storage migration repaired existing tasks on upgrade, and editing the current assignee out of the pool hands the duty to the next member. Before that, a pool configured without an initial assignee left the task invisible to every user filter (panel, card, calendar card, saved views, per-user notifications) until its first completion
+- **Member avatars** (2.76+, #169): the responsible person appears as initials in a colour of their own — next to Today rows, in the dashboard sub-line, on the task page and in the Lovelace card. Initials and colour derive from the HA user by default; *Settings → Member avatars* lets an admin set initials (1–3 characters) and pick one of twelve palette colours per member, so two "M"s stay tellable apart on a phone where only the avatar fits
 - **Native To-do entity** (2.17+): a global `todo.maintenance` list mirrors every active task; checking an item off completes the task — works with the To-do card and Assist/voice
 - **Snooze from the panel** (2.17+): the notification snooze is also available in the task ⋮ menu
 - **Virtualized task table** (2.17+): with hundreds of tasks, only the visible window is rendered — large installs stay snappy

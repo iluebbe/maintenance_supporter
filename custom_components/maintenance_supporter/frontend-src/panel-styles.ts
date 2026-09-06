@@ -408,8 +408,12 @@ export const panelStyles = css`
     display: flex; align-items: center; gap: 8px; min-width: 0;
   }
   .today-object-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .today-object .today-person { flex: 0 1 auto; min-width: 88px; max-width: 45%; font-size: 12px; }
-  .today-person-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .today-object .today-person { flex: 0 0 auto; min-width: 0; max-width: 45%; font-size: 12px; }
+  .today-object .today-person .person-avatar { width: 18px; height: 18px; font-size: 9px; }
+  /* Narrow: the avatar alone — initials + colour identify the member,
+     the object name keeps its room. */
+  :host([narrow]) .today-object .today-person .person-name,
+  :host([tight]) .today-object .today-person .person-name { display: none; }
   .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
   .today-row .today-complete { flex: none; --ha-button-font-size: 13px; white-space: nowrap; }
   .today-row .today-complete ha-icon { --mdc-icon-size: 18px; }
@@ -542,6 +546,8 @@ export const panelStyles = css`
     --mdc-icon-size: 14px;
     opacity: 0.75;
   }
+  /* #169 follow-up: the member avatar sits inside the pill at chip height */
+  .sub-chip .person-avatar { width: 16px; height: 16px; font-size: 8.5px; margin-left: -4px; }
 
   /* Row action buttons (Complete / Skip): right-aligned in their column and a
      bit larger — the default mwc glyph reads small inside its padded button. */
@@ -868,16 +874,17 @@ export const panelStyles = css`
   .user-badge {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    padding: 2px 8px;
+    gap: 5px;
+    padding: 2px 8px 2px 3px;
     margin-left: 8px;
-    background: var(--primary-color);
-    color: var(--text-primary-color);
-    border-radius: 10px;
+    background: var(--secondary-background-color, rgba(127, 127, 127, 0.12));
+    color: var(--primary-text-color);
+    border-radius: 12px;
     font-size: 11px;
     font-weight: 500;
     line-height: 1.4;
   }
+  .user-badge .person-avatar { width: 18px; height: 18px; font-size: 9px; }
 
   .user-badge ha-icon {
     --mdc-icon-size: 12px;

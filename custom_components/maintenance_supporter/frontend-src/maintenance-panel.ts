@@ -78,6 +78,7 @@ import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helper
 import { renderTriggerProgress, renderMiniSparkline, computeTrend } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
 import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
+import { renderPersonChip, type PersonDisplay } from "./helpers/person";
 // The task-detail sub-view as a web component (light-DOM, panel styles apply).
 // Side-effect import: type-only imports get tree-shaken and the element
 // would never register.
@@ -2594,13 +2595,15 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderTodaySection(titleKey: string, rows: TaskRow[], cls: string) {
     if (rows.length === 0) return nothing;
     const L = this._lang;
-    // #169: name the responsible person like the dashboard rows do. With
-    // the person filter active every row belongs to the same person, so
-    // the chip would only repeat the filter — leave it out then.
-    const personOf = (row: TaskRow): string | null =>
+    // #169: name the responsible person like the dashboard rows do — as the
+    // member's avatar (initials in their colour) plus the name; narrow
+    // layouts keep only the avatar. With the person filter active every
+    // row belongs to the same person, so the chip would only repeat the
+    // filter — leave it out then.
+    const personOf = (row: TaskRow): PersonDisplay | null =>
       this._filterUser || !row.responsible_user_id
         ? null
-        : this._userService?.getUserName(row.responsible_user_id) ?? null;
+        : this._userService?.getPerson(row.responsible_user_id) ?? null;
     return html`
       <div class="today-section">
         <div class="today-section-header ${cls}">
@@ -2613,12 +2616,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="today-task">${row.task_name}</div>
               <div class="today-object">
                 <span class="today-object-text">${row.object_name} · ${formatDueDays(row.days_until_due, L)}</span>
-                ${(() => {
-                  const person = personOf(row);
-                  return person
-                    ? html`<span class="today-person sub-chip" title="${person}"><ha-icon icon="mdi:account-outline"></ha-icon><span class="today-person-name">${person}</span></span>`
-                    : nothing;
-                })()}
+                ${renderPersonChip(personOf(row), "today-person")}
               </div>
             </div>
             ${this._actionStyle() === "icons"
@@ -3589,10 +3587,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span class="sub-chip">
               <ha-icon icon="mdi:map-marker-outline"></ha-icon>${areaName}
             </span>` : nothing}
-          ${userName ? html`
-            <span class="sub-chip" title="${t("responsible_user", L)}">
-              <ha-icon icon="mdi:account-outline"></ha-icon>${userName}
-            </span>` : nothing}
+          ${userName ? renderPersonChip(this._userService?.getPerson(row.responsible_user_id) ?? null, "sub-chip") : nothing}
           ${(row.labels || []).map((label) => html`
             <span class="sub-chip label-chip" title="${t("labels", L)}">
               <ha-icon icon="mdi:tag-outline"></ha-icon>${label}
@@ -3816,7 +3811,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     : nothing}
                 </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
-                <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null)}</span>
+                <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
@@ -4135,6 +4130,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       sparkline: this._sparklineCtx,
       history: this._historyCtx(),
       getUserName: (id) => this._userService?.getUserName(id) ?? null,
+      getPerson: (id) => this._userService?.getPerson(id) ?? null,
       setActiveTab: (tab) => { this._activeTab = tab; },
       toggleSection: (key) => this._toggleSection(key),
       setCostDurationToggle: (v) => { this._costDurationToggle = v; },

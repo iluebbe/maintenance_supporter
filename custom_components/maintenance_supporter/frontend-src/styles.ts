@@ -472,7 +472,23 @@ export const nativeFieldStyles = css`
   .field-input:focus { outline: none; border-color: var(--primary-color); }
 `;
 
+/** Household member avatar (#169 follow-up): initials in the member's
+ *  palette colour. Part of sharedStyles (panel, card, dialogs) and pulled
+ *  in on its own by surfaces with their own stylesheet (settings view). */
+export const personStyles = css`
+  .person-chip { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; vertical-align: middle; }
+  .person-avatar {
+    width: 22px; height: 22px; border-radius: 50%; flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--person-color, #546e7a); color: #fff;
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .person-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+`;
+
 export const sharedStyles = css`
+  ${personStyles}
   :host {
     --maint-ok-color: var(--success-color, #4caf50);
     --maint-due-soon-color: var(--warning-color, #ff9800);

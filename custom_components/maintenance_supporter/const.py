@@ -173,6 +173,9 @@ CONF_OPERATOR_WRITE_ENABLED = "operator_write_enabled"
 # show. Selectable from KNOWN_OBJECT_TABLE_COLUMNS only — known object fields,
 # never arbitrary state attributes.
 CONF_OBJECTS_TABLE_COLUMNS = "objects_table_columns"
+# #169 follow-up: per-member avatar overrides {user_id: {initials, color}}
+# — shapes/palette in helpers/member_display.py.
+CONF_MEMBER_DISPLAY = "member_display"
 
 # v2.21: template-gallery curation — ids of built-in templates the admin has
 # hidden from the "From template" pickers (panel gallery + config flow). The

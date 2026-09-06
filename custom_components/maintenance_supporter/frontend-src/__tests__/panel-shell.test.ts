@@ -198,8 +198,12 @@ describe("panel shell", () => {
       const chip = line.querySelector<HTMLElement>(".today-person")!;
       const lineBox = line.getBoundingClientRect();
       const chipBox = chip.getBoundingClientRect();
+      // Narrow: the avatar alone (initials in the member's colour), fully inside the line.
+      const avatar = chip.querySelector<HTMLElement>(".person-avatar")!;
+      expect(avatar.textContent!.trim()).to.equal("MS");
+      expect(getComputedStyle(chip.querySelector(".person-name")!).display, "name hidden on narrow").to.equal("none");
       const visible = Math.min(chipBox.right, lineBox.right) - Math.max(chipBox.left, lineBox.left);
-      expect(visible, "chip width visible inside the line").to.be.greaterThan(80);
+      expect(visible, "avatar visible inside the line").to.be.greaterThan(16);
       expect(chipBox.right, "chip does not overflow the line").to.be.at.most(lineBox.right + 1);
       // The object text gave way (ellipsis), not the person.
       const text = line.querySelector<HTMLElement>(".today-object-text")!;

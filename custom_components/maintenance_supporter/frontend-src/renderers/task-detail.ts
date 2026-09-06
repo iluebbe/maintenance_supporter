@@ -12,6 +12,7 @@
 import { html, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
+import { renderPersonAvatar, type PersonDisplay } from "../helpers/person";
 import { t, formatDate, formatDateTime, formatRecurrence, formatNumber, formatCost } from "../styles";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
@@ -57,6 +58,8 @@ export interface TaskDetailContext {
   sparkline: SparklineContext;
   history: HistoryContext;
   getUserName: (userId: string) => string | null;
+  /** #169 follow-up: avatar + name of a member (null = unknown / not loaded). */
+  getPerson?: (userId: string) => PersonDisplay | null;
   // ── Panel-owned state mutations ────────────────────────────────────────
   setActiveTab: (tab: "overview" | "history") => void;
   toggleSection: (key: string) => void;
@@ -89,8 +92,13 @@ export interface TaskDetailContext {
 export function renderUserBadge(
   task: MaintenanceTask,
   getUserName: (userId: string) => string | null,
+  getPerson?: (userId: string) => PersonDisplay | null,
 ) {
   if (!task.responsible_user_id) return nothing;
+  const person = getPerson?.(task.responsible_user_id) ?? null;
+  if (person) {
+    return html`<span class="user-badge">${renderPersonAvatar(person)}${person.name}</span>`;
+  }
   const userName = getUserName(task.responsible_user_id);
   if (!userName) return nothing;
   return html`
@@ -120,7 +128,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         ${task.due_override ? html`<span class="postponed-badge" title="${t("postponed_to", L)}">
           <ha-icon icon="mdi:calendar-arrow-right"></ha-icon>${formatDate(task.due_override, L)}
         </span>` : nothing}
-        ${renderUserBadge(task, ctx.getUserName)}
+        ${renderUserBadge(task, ctx.getUserName, ctx.getPerson)}
         ${task.nfc_tag_id
           ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
           : !isOperator ? html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"

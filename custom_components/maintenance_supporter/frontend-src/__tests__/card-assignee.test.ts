@@ -34,7 +34,7 @@ const OBJECTS = [
 ];
 
 const USERS = [
-  { id: "u1", name: "Alice", is_admin: false, is_owner: false },
+  { id: "u1", name: "Alice", is_admin: false, is_owner: false, initials: "AL", color: "#1565c0" },
   { id: "u2", name: "Bob", is_admin: false, is_owner: false },
 ];
 
@@ -85,6 +85,16 @@ describe("maintenance-card assignee badge", () => {
     const rows = metaText(el);
     expect(rows[0]).to.contain("Alice");
     expect(rows[0]).to.contain("Kitchen"); // object name still there
+  });
+
+  it("shows the member's avatar (initials in their colour) before the name (#169 follow-up)", async () => {
+    const { el } = await mount();
+    await waitUntil(() => metaText(el).some((m) => m.includes("Alice")), "name resolved", { timeout: 2000 });
+    const avatar = el.shadowRoot!.querySelector<HTMLElement>(".assignee .person-avatar")!;
+    expect(avatar, "avatar rendered").to.exist;
+    expect(avatar.textContent!.trim()).to.equal("AL");
+    expect(avatar.style.getPropertyValue("--person-color")).to.equal("#1565c0");
+    expect(el.shadowRoot!.querySelector(".assignee ha-icon"), "no account icon any more").to.equal(null);
   });
 
   it("renders nothing for an unassigned task", async () => {

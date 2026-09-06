@@ -42,13 +42,19 @@ async def ws_list_users(
     # just id + name (needed for the assignee selector and name display) so they
     # cannot enumerate who is an admin/owner via this command.
     caller_is_admin = connection.user is not None and connection.user.is_admin
+    # #169 follow-up: every caller gets the avatar (initials + colour) — the
+    # resolved value, i.e. the admin override or the name/id-derived default.
+    from ..helpers.global_options import get_global_options
+    from ..helpers.member_display import member_display
+
+    options = get_global_options(hass)
 
     for user in await hass.auth.async_get_users():
         # Filter out system users and inactive users
         if not user.is_active or user.system_generated:
             continue
 
-        entry: dict[str, Any] = {"id": user.id, "name": user.name}
+        entry: dict[str, Any] = {"id": user.id, "name": user.name, **member_display(options, user.id, user.name)}
         if caller_is_admin:
             entry["is_admin"] = user.is_admin
             entry["is_owner"] = user.is_owner

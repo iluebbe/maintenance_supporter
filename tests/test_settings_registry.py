@@ -63,12 +63,13 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 53 writable settings, each mapped to a concrete Python type.
-    assert len(ALLOWED_SETTING_KEYS) == 53
+    # 54 writable settings, each mapped to a concrete Python type
+    # (#169 follow-up added the dict-typed member_display).
+    assert len(ALLOWED_SETTING_KEYS) == 54
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 53
+    assert len(keys) == len(set(keys)) == 54
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

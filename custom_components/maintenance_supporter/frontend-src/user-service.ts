@@ -4,6 +4,7 @@
  */
 
 import type { HomeAssistant, HAUser } from "./types";
+import { personOf, type PersonDisplay } from "./helpers/person";
 
 export class UserService {
   private hass: HomeAssistant;
@@ -92,6 +93,11 @@ export class UserService {
   /**
    * Get full user object by ID (from cache)
    */
+  /** Avatar + name for a user id (null until users are loaded / unknown id). */
+  getPerson(userId: string | null): PersonDisplay | null {
+    return personOf(this.getUser(userId));
+  }
+
   getUser(userId: string | null): HAUser | null {
     if (!userId || !this.usersCache) {
       return null;
