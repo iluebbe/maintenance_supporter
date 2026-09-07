@@ -17,6 +17,7 @@
  *   qr-quick-complete.gif      scanned QR deep link → silent complete + toast
  *   tag-scan-required.gif      a tag-gated task: the dialog warns, the server refuses
  *   shopping-list-sync.gif     buy reminder in the household to-do list → check-off restocks
+ *   notification-event.gif     your own notification rule: the event and its payload in Developer tools
  *
  * Still open: suggested-setups needs a signature-matching integration on the
  * demo instance (the shots seed is template-sensor-only, so discovery finds
@@ -691,6 +692,136 @@ const flowShoppingListSync = async (p, mark) => {
   await p.waitForTimeout(2500);
 };
 
+/** One node-side WS call against the demo instance (settings toggles, the
+ *  "Send test" the flow below fires while the browser is on another page). */
+async function wsSend(token, msg) {
+  const ws = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
+  await new Promise((res) => { ws.onopen = res; });
+  const result = await new Promise((res) => {
+    ws.onmessage = (ev) => {
+      const m = JSON.parse(ev.data);
+      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
+      else if (m.type === "auth_ok") ws.send(JSON.stringify({ ...msg, id: 1 }));
+      else if (m.type === "result") res(m.result);
+    };
+  });
+  ws.close();
+  return result;
+}
+
+/** #165: the notification event. Settings → "Your own notification rule"
+ *  (toggle on, a template in the box), then Developer tools → Events listens
+ *  to `maintenance_supporter_notification`, and the Settings test — fired
+ *  from node while the recording stays on the listener — lands there with
+ *  the merged payload. The chain nobody sees otherwise: the event exists,
+ *  and this is what is inside it. Notifications are switched on only for
+ *  this clip (event-only, so nothing is delivered). */
+const flowNotificationEvent = (token) => async (p, mark) => {
+  const tpl = '{"category": "maintenance", "critical": {{ priority == "high" }}, "navigate_to": "{{ url }}"}';
+  // A stray persistent notification (HA's own "login attempt failed" from an
+  // unauthenticated readiness curl) would put a badge on every frame.
+  await wsSend(token, { type: "call_service", domain: "persistent_notification", service: "dismiss_all" });
+  await wsSend(token, { type: "maintenance_supporter/global/update", settings: {
+    notifications_enabled: true, notify_service: "notify.persistent_notification",
+    notify_event_only: false, notify_extra_data: "",
+  } });
+  try {
+    await openPanel(p);
+    await p.waitForTimeout(1500);
+    await p.evaluate((fnStr) => { const panel = eval(`(${fnStr})`)(); panel._setOverviewTab ? panel._setOverviewTab("settings") : (panel._overviewTab = "settings"); }, panelOf.toString());
+    await p.waitForTimeout(2500);
+    mark();
+    const r = await p.evaluate((fnStr) => {
+      const panel = eval(`(${fnStr})`)();
+      const view = panel.shadowRoot.querySelector("maintenance-settings-view");
+      const sec = view?.shadowRoot?.querySelector(".notify-rule");
+      if (!sec) return "no section";
+      sec.scrollIntoView({ block: "center" });
+      return "scrolled";
+    }, panelOf.toString());
+    log("  " + r);
+    await p.waitForTimeout(1600);
+    // Tick "Only fire the event" — the real checkbox, so the write goes through the UI.
+    await p.evaluate((fnStr) => {
+      const panel = eval(`(${fnStr})`)();
+      const view = panel.shadowRoot.querySelector("maintenance-settings-view");
+      view.shadowRoot.querySelector(".notify-rule input[type=checkbox]").click();
+    }, panelOf.toString());
+    await p.waitForTimeout(1400);
+    await p.evaluate(({ fnStr, tpl }) => {
+      const panel = eval(`(${fnStr})`)();
+      const view = panel.shadowRoot.querySelector("maintenance-settings-view");
+      const ta = view.shadowRoot.querySelector("textarea.notify-extra");
+      ta.focus(); ta.value = tpl;
+      ta.dispatchEvent(new Event("change", { bubbles: true }));
+    }, { fnStr: panelOf.toString(), tpl });
+    await p.waitForTimeout(2200);
+    // Developer tools → Events → listen.
+    await p.goto(`${HA}/developer-tools/event`, { waitUntil: "domcontentloaded" });
+    await p.waitForTimeout(3500);
+    const l = await p.evaluate(() => {
+      const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+        while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+          if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return o; };
+      const card = deep((el) => el.tagName === "EVENT-SUBSCRIBE-CARD")[0];
+      if (!card) return "no subscribe card";
+      // HA 2026.7: <ha-input> wraps Web Awesome's <wa-input>, whose native
+      // <input> sits two shadow roots down — drive that one; its input event
+      // is composed and walks back up to the card's listener.
+      const inner = (root) => { const st = [root]; let n = 0;
+        while (st.length && n < 5000) { const el = st.pop(); n++; if (!el) continue;
+          if (el.tagName === "INPUT") return el; if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return null; };
+      const host = card.shadowRoot.querySelector("ha-input, ha-textfield");
+      const input = host ? inner(host) : null;
+      if (!input) return "no field";
+      input.focus();
+      input.value = "maintenance_supporter_notification";
+      input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+      card.scrollIntoView({ block: "start" });
+      return "typed";
+    });
+    log("  event field -> " + l);
+    await p.waitForTimeout(1200);
+    const b = await p.evaluate(() => {
+      const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+        while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+          if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return o; };
+      const card = deep((el) => el.tagName === "EVENT-SUBSCRIBE-CARD")[0];
+      const btn = [...card.shadowRoot.querySelectorAll("ha-button, mwc-button, button")].find((x) => /start listening/i.test(x.textContent || ""));
+      if (!btn) return "no button";
+      if (btn.disabled || btn.hasAttribute("disabled")) return "button still disabled";
+      btn.click();
+      return "listening";
+    });
+    log("  " + b);
+    await p.waitForTimeout(1800);
+    // The Settings "Send test", fired from node — the browser stays on the listener.
+    const t = await wsSend(token, { type: "maintenance_supporter/global/test_notification" });
+    log("  send test -> " + JSON.stringify(t).slice(0, 80));
+    await p.waitForTimeout(2500);
+    // The payload's tail is the point (target, title, message, data with the
+    // template's keys) — bring the END of the event card into view.
+    await p.evaluate(() => {
+      const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+        while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+          if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return o; };
+      const card = deep((el) => el.tagName === "EVENT-SUBSCRIBE-CARD")[0];
+      const ev = card?.shadowRoot?.querySelector(".events-card");
+      if (ev) ev.scrollIntoView({ block: "end", behavior: "smooth" });
+    });
+    await p.waitForTimeout(4500);           // hold on the event payload
+  } finally {
+    await wsSend(token, { type: "maintenance_supporter/global/update", settings: {
+      notifications_enabled: false, notify_service: "", notify_event_only: false, notify_extra_data: "",
+    } });
+  }
+};
+
 // ── demo-cards dashboard: ensure BOTH cards (task card + calendar card) ─────
 async function ensureDemoCards(token) {
   const ws = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
@@ -738,6 +869,7 @@ const FLOWS = {
   "qr-quick-complete": flowQrQuickComplete,
   "tag-scan-required": flowTagScanRequired,
   "shopping-list-sync": flowShoppingListSync,
+  "notification-event": flowNotificationEvent(token),
 };
 const only = process.argv[2];
 for (const [name, flow] of Object.entries(FLOWS)) {

@@ -92,7 +92,9 @@ Visible only when `notifications_enabled` is `true`.
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
 | `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |
 
-Scheduled (non-reactive) reminders and notification scoping:
+Scheduled (non-reactive) reminders, notification scoping and your own notification rule (2.80+):
+
+![Settings: your own notification rule](images/notification-rule.png)
 
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|

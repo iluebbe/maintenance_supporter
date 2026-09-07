@@ -927,6 +927,39 @@ await step("member-avatars.png", async () => {
   log("SHOT member-avatars.png");
 });
 
+// 7d. (2.80, #165) Settings → Your own notification rule, clipped to the
+// section. Notifications are switched on ONLY for this shot (event-only, so
+// nothing is delivered and no sidebar badge appears in the other shots).
+await step("notification-rule.png", async () => {
+  const tpl = '{"category": "maintenance", "critical": {{ priority == "high" }}, "navigate_to": "{{ url }}"}';
+  // The node-side WS client is closed by now — go through the panel's hass.
+  const update = (settings) => p.evaluate(({ finder, settings }) => {
+    eval(finder);
+    return window.__panel.hass.callWS({ type: "maintenance_supporter/global/update", settings });
+  }, { finder: deepFindPanel, settings });
+  await openPanel("settings");
+  await update({ notifications_enabled: true, notify_service: "notify.persistent_notification",
+    notify_event_only: true, notify_extra_data: tpl });
+  try {
+    await openPanel("settings");
+    await p.waitForTimeout(2500);
+    const section = await p.evaluateHandle(({ finder }) => {
+      eval(finder);
+      const view = window.__panel.shadowRoot.querySelector("maintenance-settings-view");
+      const el = view && view.shadowRoot.querySelector(".notify-rule");
+      if (el) { el.style.padding = "10px 14px"; el.scrollIntoView({ block: "center" }); } // breathing room for the clip
+      return el;
+    }, { finder: deepFindPanel });
+    await p.waitForTimeout(800);
+    const el = section.asElement();
+    if (!el) throw new Error("notify-rule section not found");
+    await el.screenshot({ path: OUT + "notification-rule.png" });
+    log("SHOT notification-rule.png");
+  } finally {
+    await update({ notifications_enabled: false, notify_service: "", notify_event_only: false, notify_extra_data: "" });
+  }
+});
+
 // 8. Objects table (warranty chips green/amber/red, sortable columns)
 await step("objects-table.png", async () => {
   await p.evaluate(({ finder }) => {

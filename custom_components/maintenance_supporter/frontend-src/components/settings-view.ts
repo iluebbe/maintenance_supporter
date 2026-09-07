@@ -971,6 +971,7 @@ export class MaintenanceSettingsView extends LitElement {
         </label>
         <div class="setting-hint">${t("settings_notify_scope_hint", L)}</div>
 
+        <div class="notify-rule">
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_notify_rule", L)}</h4>
         <div class="setting-hint">${t("settings_notify_rule_hint", L)}</div>
         <label class="setting-row">
@@ -987,6 +988,7 @@ export class MaintenanceSettingsView extends LitElement {
           ></textarea>
         </label>
         <div class="setting-hint">${t("settings_notify_extra_data_hint", L)}</div>
+        </div>
 
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_actions", L)}</h4>
         <label class="setting-row">

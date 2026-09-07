@@ -77,6 +77,10 @@ only UI is the confirmation toast:
 
 ![Shopping-list sync](images/gifs/shopping-list-sync.gif)
 
+**Your own notification rule (2.80)** — the event behind every notification, with the template's extra keys, as Developer tools sees it
+
+![The notification event and its payload](images/gifs/notification-event.gif)
+
 ## Screenshots
 
 | Dashboard | Task Detail | Mobile |
@@ -711,6 +715,8 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Daily notification limits
 - Mobile actionable notifications via Companion App: Complete, Skip, Snooze
 - **Your own notification rule** (2.80+, #165) — every notification the integration is about to send also fires the event `maintenance_supporter_notification` (kind, status, object and task with their reference numbers, priority, due data, the notify target, title, message and the payload's `data`), so an automation can route it anywhere — into a notification hub such as Ticker, or straight to Telegram / Pushover with their own fields. Two settings under *Settings → Notifications → Your own notification rule*: **Only fire the event, send nothing myself** hands the whole delivery to your automation (repeat intervals, quiet hours and the daily cap still decide *when* the event fires), and **Extra notification data (template)** — JSON or YAML with Jinja, rendered with the same variables — is merged into every notify call's `data` (your keys win), which is how a Ticker `category`, a Pushover `priority` or a Telegram `parse_mode` rides along without an integration-specific option. The *Send test* button walks the same path, so both can be verified from Settings
+
+  ![Settings: your own notification rule](images/notification-rule.png)
 - **Notification title style** (1.4.0+) — choose what appears as the notification's *title*: per-status text (default), the object name, or the task name. Helps when phones stack notifications and only the title is visible without expanding the stack
 
 ### Budget Tracking
