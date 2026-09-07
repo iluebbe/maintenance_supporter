@@ -249,6 +249,7 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
         _, wrote_new = await hass.async_add_executor_job(store._store_blob_sync, content)
         if wrote_new:
             written += 1
+        store.notify_blob_added(digest)
 
     # 2) Re-attach metadata to the matching object (id, then name).
     ids, by_name = _object_name_map(hass)

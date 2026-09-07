@@ -2,6 +2,7 @@
 
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
+import { queryTokens, scoreFields } from "./helpers/search-match";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
@@ -22,6 +23,35 @@ import { effectivePhase } from "./helpers/phases";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
+
+// Global search (#171): what the panel needs to know about a hit — enough
+// to render one row and to act on it (open the page / the document).
+interface SearchHit {
+  kind: "object" | "task" | "part" | "document" | "content" | "history";
+  entryId: string;
+  taskId?: string;
+  docId?: string;
+  docKind?: string | null;
+  url?: string | null;
+  page?: number | null;
+  label: string;
+  sub: string;
+  snippet?: string;
+  score: number;
+  icon: string;
+}
+interface RemoteDocHit {
+  id: string; entry_id: string; object_name: string; kind: string; title?: string | null; filename?: string | null;
+  url?: string | null; tags?: string[]; match: "meta" | "content"; page?: number | null; snippet?: string; score: number;
+}
+interface RemoteHistoryHit {
+  entry_id: string; task_id: string; task_name: string; object_name: string; timestamp?: string | null;
+  type?: string | null; snippet: string; score: number;
+}
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 250;
+const SEARCH_GROUP_CAP = { objects: 6, tasks: 10, parts: 6, documents: 8, history: 6 } as const;
+const MDI_MAGNIFY = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -274,10 +304,15 @@ export class MaintenanceSupporterPanel extends LitElement {
     catch { return new Set(); }
   })();
   // v2.15.0: command palette ("/" since 2.18.1 — Ctrl+K clashed with HA's own
-  // global search) — global fuzzy search over objects + tasks.
+  // global search); 2.78 (#171): the panel's global search — a magnifier in
+  // the header opens it too, results are grouped (objects / tasks / parts
+  // from the loaded data, documents + history notes from the server).
   @state() private _paletteOpen = false;
   @state() private _paletteQuery = "";
   @state() private _paletteActive = 0;
+  @state() private _searchRemote: { query: string; documents: RemoteDocHit[]; history: RemoteHistoryHit[] } | null = null;
+  private _searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private _searchSeq = 0;
   // v2.15.0: template gallery (surfaces the config-flow object templates).
   @state() private _templateGalleryOpen = false;
   @state() private _templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean }> = [];
@@ -1412,10 +1447,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     undo?.();
   }
 
-  // --- Command palette ("/") ---
+  // --- Global search ("/" or the header's magnifier; #171) ---
 
   private _paletteKeydown = (e: KeyboardEvent): void => {
-    // "/" opens the palette (GitHub/Discourse convention; Shift+7 on a German
+    // "/" opens the search (GitHub/Discourse convention; Shift+7 on a German
     // layout still yields key === "/"). Deliberately NOT Ctrl/Cmd+K: that is
     // HA's own global-search hotkey, and this window-level preventDefault
     // would shadow it whenever the panel is open.
@@ -1445,6 +1480,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._paletteQuery = "";
     this._paletteActive = 0;
     this._paletteOpen = true;
+    this._searchRemote = null;
     this.updateComplete.then(() => {
       this.shadowRoot?.querySelector<HTMLInputElement>(".palette-input")?.focus();
     });
@@ -1453,62 +1489,182 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _closePalette(): void {
     this._paletteOpen = false;
     this._paletteQuery = "";
+    this._searchRemote = null;
+    if (this._searchTimer) { clearTimeout(this._searchTimer); this._searchTimer = null; }
   }
 
-  private get _paletteResults(): Array<{ kind: "object" | "task"; entryId: string; taskId?: string; label: string; sub: string }> {
-    const q = this._paletteQuery.trim().toLowerCase();
-    const out: Array<{ kind: "object" | "task"; entryId: string; taskId?: string; label: string; sub: string }> = [];
+  private _onPaletteInput(value: string): void {
+    this._paletteQuery = value;
+    this._paletteActive = 0;
+    // Documents and history notes live on the server — ask once the user
+    // pauses, and drop answers that arrive for an older query.
+    if (this._searchTimer) clearTimeout(this._searchTimer);
+    const q = value.trim();
+    if (q.length < SEARCH_MIN_CHARS) { this._searchRemote = null; return; }
+    this._searchTimer = setTimeout(() => {
+      this._searchTimer = null;
+      const seq = ++this._searchSeq;
+      this.hass.connection.sendMessagePromise<{ documents: RemoteDocHit[]; history: RemoteHistoryHit[] }>({
+        type: "maintenance_supporter/search", query: q, limit: SEARCH_GROUP_CAP.documents,
+      }).then((res) => {
+        if (seq !== this._searchSeq || !this._paletteOpen) return;
+        this._searchRemote = { query: q, documents: res.documents || [], history: res.history || [] };
+      }).catch(() => { /* the local groups still answer; the server groups just stay empty */ });
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
+  /** Objects, tasks and parts from the data the panel already holds, plus the
+   *  server's document and history-note hits — grouped, each group ranked
+   *  and capped. The flat array is what the keyboard walks. */
+  private get _paletteResults(): SearchHit[] {
+    const L = this._lang;
+    const q = this._paletteQuery.trim();
+    if (q.length < SEARCH_MIN_CHARS) return [];
+    const tokens = queryTokens(q);
+    if (!tokens.length) return [];
+    const objects: SearchHit[] = [];
+    const tasks: SearchHit[] = [];
+    const parts: SearchHit[] = [];
     for (const obj of this._objects) {
-      const oname = obj.object.name || "";
-      if (!q || oname.toLowerCase().includes(q)) {
-        out.push({ kind: "object", entryId: obj.entry_id, label: oname, sub: t("object", this._lang) });
+      const o = obj.object;
+      if (o.archived) continue;
+      const oname = o.name || "";
+      const oscore = scoreFields(tokens, [
+        { text: oname, weight: 3 }, { text: o.manufacturer, weight: 2 }, { text: o.model, weight: 2 },
+        { text: o.serial_number, weight: 2 }, { text: o.notes, weight: 1 },
+      ]);
+      if (oscore > 0) {
+        const detail = [o.manufacturer, o.model].filter(Boolean).join(" ");
+        objects.push({ kind: "object", entryId: obj.entry_id, label: oname, sub: detail || t("object", L), score: oscore, icon: "mdi:package-variant-closed" });
       }
       for (const task of obj.tasks) {
         if (task.archived) continue;
-        const tname = task.name || "";
-        const labelHit = (task.labels || []).some((lb) => lb.toLowerCase().includes(q));
-        if (!q || tname.toLowerCase().includes(q) || oname.toLowerCase().includes(q) || labelHit) {
+        const labels = (task.labels || []).join(" ");
+        const tscore = scoreFields(tokens, [
+          { text: task.name, weight: 3 }, { text: oname, weight: 2 }, { text: labels, weight: 2 }, { text: task.notes, weight: 1 },
+        ]);
+        if (tscore > 0) {
           const labelSub = (task.labels || []).length ? `  #${(task.labels || []).join(" #")}` : "";
-          out.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: tname, sub: oname + labelSub });
+          tasks.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: task.name || "", sub: oname + labelSub, score: tscore, icon: "mdi:clipboard-check-outline" });
         }
       }
-      if (out.length > 60) break; // cap the working set; sliced below
+      for (const part of obj.parts || []) {
+        const pscore = scoreFields(tokens, [
+          { text: part.name, weight: 3 }, { text: part.mpn, weight: 2 }, { text: part.vendor, weight: 1 },
+          { text: part.storage_location, weight: 1 }, { text: part.notes, weight: 1 },
+        ]);
+        if (pscore > 0) {
+          parts.push({ kind: "part", entryId: obj.entry_id, label: part.name || "", sub: [oname, part.mpn].filter(Boolean).join(" · "), score: pscore, icon: "mdi:cog-outline" });
+        }
+      }
     }
-    return out.slice(0, 40);
+    const byScore = (a: SearchHit, b: SearchHit) => b.score - a.score || a.label.localeCompare(b.label);
+    const out: SearchHit[] = [
+      ...objects.sort(byScore).slice(0, SEARCH_GROUP_CAP.objects),
+      ...tasks.sort(byScore).slice(0, SEARCH_GROUP_CAP.tasks),
+      ...parts.sort(byScore).slice(0, SEARCH_GROUP_CAP.parts),
+    ];
+    const remote = this._searchRemote && this._searchRemote.query === q ? this._searchRemote : null;
+    if (remote) {
+      // Metadata hits ("Documents") before content hits ("In documents") —
+      // the server ranks across both, the groups keep each ranked run.
+      const docs = remote.documents.slice(0, SEARCH_GROUP_CAP.documents);
+      for (const d of [...docs.filter((x) => x.match !== "content"), ...docs.filter((x) => x.match === "content")]) {
+        out.push({
+          kind: d.match === "content" ? "content" : "document",
+          entryId: d.entry_id, docId: d.id, docKind: d.kind, url: d.url, page: d.page ?? null,
+          label: d.title || d.filename || d.url || "", sub: d.object_name || "", snippet: d.snippet || "",
+          score: d.score, icon: d.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline",
+        });
+      }
+      for (const h of remote.history.slice(0, SEARCH_GROUP_CAP.history)) {
+        out.push({
+          kind: "history", entryId: h.entry_id, taskId: h.task_id, label: h.task_name || "",
+          sub: [h.object_name, h.timestamp ? formatDate(h.timestamp, L) : ""].filter(Boolean).join(" · "),
+          snippet: h.snippet || "", score: h.score, icon: h.type === "skipped" ? "mdi:skip-next-circle-outline" : "mdi:note-text-outline",
+        });
+      }
+    }
+    return out;
   }
 
-  private _selectPaletteResult(r: { kind: "object" | "task"; entryId: string; taskId?: string }): void {
+  private _selectPaletteResult(r: SearchHit): void {
+    const query = this._paletteQuery.trim();
     this._closePalette();
-    if (r.kind === "task" && r.taskId) this._showTask(r.entryId, r.taskId);
-    else this._showObject(r.entryId);
+    switch (r.kind) {
+      case "task":
+        if (r.taskId) this._showTask(r.entryId, r.taskId);
+        return;
+      case "history":
+        if (!r.taskId) return;
+        this._showTask(r.entryId, r.taskId);
+        // Land on the history tab with the notes filter pre-filled, so the
+        // matching entry is on screen instead of somewhere down the timeline.
+        this._activeTab = "history";
+        this._historySearch = query;
+        return;
+      case "document":
+      case "content":
+        if (r.docKind === "weblink") {
+          if (isSafeHttpUrl(r.url)) window.open(r.url!, "_blank", "noopener");
+        } else if (r.docId) {
+          // A content hit opens the PDF on the matching page (browser viewers
+          // honour #page=N; the Companion app's external viewer may not).
+          void openSignedDocument(this.hass, r.docId, r.page ? `#page=${r.page}` : "").catch(() => { /* helper closed its tab */ });
+        }
+        return;
+      default:
+        this._showObject(r.entryId);
+    }
   }
 
   private _renderPalette() {
     if (!this._paletteOpen) return nothing;
     const L = this._lang;
     const results = this._paletteResults;
+    const q = this._paletteQuery.trim();
+    const groupTitle: Record<SearchHit["kind"], string> = {
+      object: t("objects", L), task: t("tasks", L), part: t("search_group_parts", L),
+      document: t("documents", L), content: t("search_group_content", L), history: t("search_group_history", L),
+    };
+    const waiting = q.length >= SEARCH_MIN_CHARS && (!this._searchRemote || this._searchRemote.query !== q);
+    let lastKind: SearchHit["kind"] | null = null;
     return html`
       <div class="palette-backdrop" @click=${() => this._closePalette()}>
-        <div class="palette" @click=${(e: Event) => e.stopPropagation()}>
+        <div class="palette" role="dialog" aria-label=${t("search_open", L)} @click=${(e: Event) => e.stopPropagation()}>
           <input
             class="palette-input"
             type="text"
             placeholder="${t("palette_placeholder", L)}"
             .value=${this._paletteQuery}
-            @input=${(e: Event) => { this._paletteQuery = (e.target as HTMLInputElement).value; this._paletteActive = 0; }}
+            @input=${(e: Event) => this._onPaletteInput((e.target as HTMLInputElement).value)}
           />
           <div class="palette-results">
-            ${results.length === 0
-              ? html`<div class="palette-empty">${t("palette_no_results", L)}</div>`
-              : results.map((r, i) => html`
-                  <div class="palette-item ${i === this._paletteActive ? "active" : ""}"
-                    @mouseenter=${() => { this._paletteActive = i; }}
-                    @click=${() => this._selectPaletteResult(r)}>
-                    <ha-icon icon="${r.kind === "task" ? "mdi:clipboard-check-outline" : "mdi:package-variant-closed"}"></ha-icon>
-                    <span class="palette-label">${r.label}</span>
-                    <span class="palette-sub">${r.sub}</span>
-                  </div>
-                `)}
+            ${q.length < SEARCH_MIN_CHARS
+              ? html`<div class="palette-empty">${t("search_empty_hint", L)}</div>`
+              : results.length === 0
+                ? html`<div class="palette-empty">${waiting ? t("search_searching", L) : t("palette_no_results", L)}</div>`
+                : results.map((r, i) => {
+                    const header = r.kind !== lastKind ? html`<div class="palette-group">${groupTitle[r.kind]}</div>` : nothing;
+                    lastKind = r.kind;
+                    return html`
+                      ${header}
+                      <div class="palette-item ${i === this._paletteActive ? "active" : ""} ${r.snippet ? "has-snippet" : ""}"
+                        @mouseenter=${() => { this._paletteActive = i; }}
+                        @click=${() => this._selectPaletteResult(r)}>
+                        <ha-icon icon="${r.icon}"></ha-icon>
+                        <div class="palette-main">
+                          <div class="palette-line">
+                            <span class="palette-label">${r.label}</span>
+                            ${r.page ? html`<span class="palette-page">${t("search_page", L).replace("{page}", String(r.page))}</span>` : nothing}
+                            <span class="palette-sub">${r.sub}</span>
+                          </div>
+                          ${r.snippet ? html`<div class="palette-snippet">${r.snippet}</div>` : nothing}
+                        </div>
+                      </div>
+                    `;
+                  })}
+            ${results.length > 0 && waiting ? html`<div class="palette-group palette-waiting">${t("search_searching", L)}</div>` : nothing}
           </div>
           <div class="palette-hint">${t("palette_hint", L)}</div>
         </div>
@@ -2386,6 +2542,20 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  /** The magnifier that opens the global search (#171) — in the header
+   *  wherever the header is on screen, in the overview's tab bar on wide
+   *  screens (no header there), so it is one tap away on every view. */
+  private _renderSearchButton(cls: string) {
+    const L = this._lang;
+    return html`<ha-icon-button
+      class=${cls}
+      .path=${MDI_MAGNIFY}
+      .label=${t("search_open", L)}
+      title=${t("search_open", L)}
+      @click=${() => this._openPalette()}
+    ></ha-icon-button>`;
+  }
+
   private _renderHeader() {
     const crumbs: { label: string; action?: () => void }[] = [
       { label: t("maintenance", this._lang), action: () => this._showOverview() },
@@ -2426,6 +2596,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             `
           )}
         </div>
+        ${this._renderSearchButton("header-search")}
       </div>
     `;
   }
@@ -2498,6 +2669,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${t("settings", L)}
           </div>
         ` : nothing}
+        ${this.narrow ? nothing : this._renderSearchButton("tab-search")}
       </div>
       ${this._overviewTab === "today"
         ? this._renderToday()

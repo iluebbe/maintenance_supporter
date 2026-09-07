@@ -101,15 +101,21 @@ async function ensureIntegration(token) {
 
 // A tiny but structurally complete one-page PDF ("Owner's Manual") so the
 // documents section has a real file entry with a plausible size.
-function minimalPdf(title) {
-  const content = `BT /F1 24 Tf 72 770 Td (${title}) Tj ET`;
+// `pages`: extra page texts (2.78, #171) — the text layer the full-text
+// search indexes, so a demo query can land on page 2 with a snippet.
+function minimalPdf(title, pages = []) {
+  const texts = [title, ...pages];
+  const fontId = 3 + 2 * texts.length;
   const objs = [
     "<< /Type /Catalog /Pages 2 0 R >>",
-    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Type /Pages /Kids [${texts.map((_, i) => `${3 + 2 * i} 0 R`).join(" ")}] /Count ${texts.length} >>`,
   ];
+  texts.forEach((text, i) => {
+    const content = `BT /F1 ${i === 0 ? 24 : 12} Tf 72 770 Td (${text.replace(/[()\\]/g, (m) => "\\" + m)}) Tj ET`;
+    objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents ${4 + 2 * i} 0 R /Resources << /Font << /F1 ${fontId} 0 R >> >> >>`);
+    objs.push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+  });
+  objs.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
   let body = "%PDF-1.4\n";
   const offsets = [];
   objs.forEach((o, i) => { offsets.push(body.length); body += `${i + 1} 0 obj ${o} endobj\n`; });
@@ -537,6 +543,22 @@ log("SEED OK", JSON.stringify(seed));
       log("v2.76 seed: Anna's avatar override");
     }
   } catch (e) { log("v2.76 avatar seed skipped:", String(e && e.message || e)); }
+  // f) (2.78, #171) A two-page workshop manual on the Family Car whose second
+  //    page carries a fault code — the search screenshot finds it by content.
+  try {
+    const car = (await api.send({ type: "maintenance_supporter/objects" })).objects.find((x) => x.object.name === "Family Car");
+    const docs = car ? (await api.send({ type: "maintenance_supporter/documents/list", entry_id: car.entry_id })).documents || [] : [];
+    if (car && !docs.some((d) => d.title === "Workshop manual")) {
+      const fd2 = new FormData();
+      fd2.append("entry_id", car.entry_id); fd2.append("title", "Workshop manual"); fd2.append("tags", "manual");
+      fd2.append("file", new Blob([minimalPdf("Skoda Octavia - Workshop manual", [
+        "Section 7 - Engine management. Fault code P0420: catalyst efficiency below threshold - check the rear oxygen sensor before replacing the catalytic converter.",
+        "Section 8 - Brakes. Replace brake fluid every two years regardless of mileage.",
+      ])], { type: "application/pdf" }), "octavia-workshop-manual.pdf");
+      await fetch(REST + "/api/maintenance_supporter/document/upload", { method: "POST", headers: { Authorization: "Bearer " + token }, body: fd2 }).then(j);
+      log("v2.78 seed: workshop manual with a text layer");
+    }
+  } catch (e) { log("v2.78 manual seed skipped:", String(e && e.message || e)); }
 }
 
 // Documents: upload a PDF manual to the Family Car + add a web link, and
@@ -854,6 +876,23 @@ await step("task-history-readings.png", async () => {
   await openPanel("dashboard");
   await showWaterMeter("history");
   await shot("task-history-readings.png");
+});
+
+// 7d. (2.78, #171) Global search: the tab-bar magnifier opens it, a fault
+// code typed in finds the workshop manual by its contents (page + snippet).
+await step("search.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => { eval(finder); window.__panel.shadowRoot.querySelector(".tab-search").click(); }, { finder: deepFindPanel });
+  await p.waitForTimeout(400);
+  let found = false;
+  for (let i = 0; i < 20 && !found; i++) {
+    await p.evaluate(({ finder }) => { eval(finder); const input = window.__panel.shadowRoot.querySelector(".palette-input"); input.value = "p0420 catalyst"; input.dispatchEvent(new Event("input")); }, { finder: deepFindPanel });
+    await p.waitForTimeout(1200);
+    found = await p.evaluate(({ finder }) => { eval(finder); return !!window.__panel.shadowRoot.querySelector(".palette-page"); }, { finder: deepFindPanel });
+    if (!found) await p.waitForTimeout(2000); // extraction may still be running
+  }
+  await shot("search.png");
+  await p.keyboard.press("Escape");
 });
 
 await step("complete-dialog-readings.png", async () => {

@@ -2,6 +2,36 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **A search that forgives** (#171): the command palette becomes the panel's
+  global search, with a magnifier in the tab bar (wide screens) and the
+  header (phones, object and task pages) — until now it opened on `/`
+  only, which no touch user could find. Results come grouped and ranked:
+  Objects · Tasks · Spare parts · Documents · In documents · History
+  notes. Matching is tolerant: every word must hit somewhere, in any
+  order; prefix, substring or one typo; case, diacritics and `ue/oe/ae/ss`
+  spellings folded; separators ignored (`e24` finds `E-24`). Objects are
+  found by manufacturer, model, serial number and notes, tasks by labels
+  and notes, spare parts by name and part number.
+- **Full-text search inside uploaded documents**: the text layer of PDFs
+  (born-digital or already OCR'd) and text files is extracted once per
+  file into a sidecar under `/config` and indexed in memory; a content
+  hit shows the page and a snippet and opens the PDF on that page. New
+  uploads are extracted in the background, the existing library a couple
+  of minutes after start, one file at a time. No OCR — photos and
+  scan-only PDFs stay outside the content search; the Document storage
+  card says how many files are indexed and how many have no text layer.
+- **History notes** across every task are searchable; a hit opens the
+  task's history tab with the notes filter pre-filled.
+- **Document lists get a local filter** from eight documents up (object
+  page and task documents). `documents/search` uses the same tolerant
+  matcher. New WS command `search`; the palette's over-eager result cap
+  (which stopped scanning objects after ~60 candidates) and the archived
+  objects it still listed are gone.
+
 ## [2.77.0] - 2026-09-06
 
 ### 🐛 Fixed

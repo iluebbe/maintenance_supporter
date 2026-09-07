@@ -613,13 +613,32 @@ global config.
 
 ### `documents/search` — read
 `{query (req, ≤200)}` → `{results:[{id,entry_id,object_name,kind,title,filename,
-url,size,tags}]}`. Substring match over title / filename / url / mime / tags
-across **all** objects; ≤50 hits. The fastest way to answer "do we already have
-the manual for X?".
+url,size,tags}]}`. Tolerant match over title / filename / url / mime / tags
+across **all** objects, best first, ≤50 hits: every word of the query must
+match somewhere (prefix, substring or one typo; case, diacritics and `ue/oe/
+ae/ss` spellings folded). The fastest way to answer "do we already have the
+manual for X?".
+
+### `search` — read
+`{query (req, ≤200), limit? (1–20, default 8)}` → `{documents:[…], history:[…]}`
+— the server half of the panel's global search (2.78, #171). `documents` are
+the tolerant metadata hits above PLUS **content hits** from the full-text
+index over uploaded files (`match: "meta"|"content"`, `page`, `snippet`,
+`score`; a document matching both keeps the page). The index holds the TEXT
+LAYER of PDFs (born-digital or already OCR'd) and `text/*` files — there is
+no OCR, photos and scan-only PDFs are invisible to it. `history` are task
+history entries whose `notes` match: `{entry_id, task_id, task_name,
+object_name, timestamp, type, snippet, score}`. Both lists best first,
+`limit` each. Objects, tasks and parts are NOT here — the panel matches those
+from data it already holds.
 
 ### `documents/storage` — read
 `{}` → the global storage summary (physical vs logical bytes, per object and
 category). Blobs are refcounted — the same file on two objects costs bytes once.
+`search_index` (2.78) says how much of the library the full-text search can
+see: `{total, indexed, no_text, unsupported, pending}` — `no_text` are PDFs
+without a text layer (scans), `unsupported` photos and other binaries,
+`pending` files the delayed backfill has not reached yet.
 
 ### `documents/add_link` — `@require_write`
 `{entry_id (req), url (req, absolute http/https), title?, tags? (≤20 × ≤64)}` →

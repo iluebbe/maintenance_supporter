@@ -60,6 +60,7 @@ from .const import (
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_PANEL_ENABLED,
     DEFAULT_WARNING_DAYS,
+    DOCUMENT_TEXT_INDEX_KEY,
     DOMAIN,
     EVENT_UNSUBS_KEY,
     GLOBAL_UNIQUE_ID,
@@ -457,6 +458,16 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     doc_store = DocumentStore(hass)
     await doc_store.async_load()
     hass.data[DOMAIN][DOCUMENT_STORE_KEY] = doc_store
+
+    # Full-text index over the blobs (#171): extraction meta loads now, the
+    # sidecars are read on the first search, new blobs are extracted as they
+    # arrive and the existing library is backfilled after HA started.
+    from .helpers.document_text import DocumentTextIndex
+
+    text_index = DocumentTextIndex(hass, doc_store)
+    await text_index.async_load()
+    doc_store.text_index = text_index
+    hass.data[DOMAIN][DOCUMENT_TEXT_INDEX_KEY] = text_index
 
 
     # Authenticated upload + serve endpoints for document blobs (the blobs live
@@ -1433,6 +1444,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # HA-started so the store has finished loading.
         entry.async_on_unload(async_at_started(hass, _check_document_storage_issues))
 
+        # Backfill the document search index (#171) a couple of minutes after
+        # start — pypdf is CPU work, and boot is the wrong moment for it.
+        entry.async_on_unload(async_at_started(hass, _schedule_document_text_backfill))
+
         # A global entry now exists — clear the orphan repair issue immediately
         # (e.g. right after the repair flow recreated it, when HA is already
         # started and the async_at_started check above won't fire again).
@@ -1726,6 +1741,16 @@ def _verify_notify_service(hass: HomeAssistant) -> None:
 _DOC_STORAGE_ISSUE_ID = "document_storage_issues"
 
 
+@callback
+def _schedule_document_text_backfill(hass: HomeAssistant) -> None:
+    """Kick off the delayed full-text backfill (see helpers/document_text)."""
+    from .helpers.document_text import DocumentTextIndex
+
+    index = hass.data.get(DOMAIN, {}).get(DOCUMENT_TEXT_INDEX_KEY)
+    if isinstance(index, DocumentTextIndex):
+        index.schedule_backfill()
+
+
 async def _check_document_storage_issues(hass: HomeAssistant) -> None:
     """Sync the document-storage repair issue with the current on-disk reality.
 
@@ -1945,6 +1970,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         shopping_sync = hass.data.get(DOMAIN, {}).pop(SHOPPING_SYNC_KEY, None)
         if shopping_sync is not None:
             shopping_sync.async_teardown()
+        text_index = hass.data.get(DOMAIN, {}).get(DOCUMENT_TEXT_INDEX_KEY)
+        if text_index is not None:
+            text_index.cancel()
 
     # Flush a pending debounced store save BEFORE tearing down — belt and
     # suspenders next to the store cache: disk is current the moment the entry

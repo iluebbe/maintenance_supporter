@@ -31,7 +31,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |    +-------------------+
 |   WebSocket API   |--->|                   +--->|  Button Entities  |
-| (92 commands)     |    +--------+----------+    | (complete / skip /|
+| (93 commands)     |    +--------+----------+    | (complete / skip /|
 | - CRUD objects    |             |          |    |  reset, per task) |
 | - statistics      |             |          |    +-------------------+
 | - subscribe       |             |          |    +-------------------+
@@ -229,7 +229,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (338 lines)  Accumulated operating hours trigger
 │       └── compound.py            (282 lines)  AND/OR compound trigger
 │
-├── websocket/                   (7,135 lines)  92 WS commands, split by domain
+├── websocket/                   (7,135 lines)  93 WS commands, split by domain
 │   ├── __init__.py                (627 lines)  Shared helpers + registration
 │   ├── objects.py                 (998 lines)  Object CRUD + archive/pause/replace + entity introspection (13)
 │   ├── tasks.py                    (74 lines)  Backward-compat re-export shim (no handlers of its own)
@@ -732,7 +732,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-92 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
+93 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
 
 **History payload diet (perf):** task summaries in `objects`/`task/list` carry only the most recent `_HISTORY_WINDOW` (20) history entries plus `history_count` — full histories made the list payload scale with history depth (906 KB at 40 entries/task, store cap 500). The detail view fetches the complete record lazily via `task/history` when a task is opened; a data refresh while a task is open refetches. Benchmarked by the committed harness `e2e/perf-seed.mjs` (prod-scale seed via `json/import`, real history entries) + `e2e/perf-panel.mjs` (cold-load timeline, per-WS payload bytes, long tasks; one subprocess per run and a single in-page evaluate per page — the remote playwright run-server wedges on more, see the script headers).
 
@@ -758,6 +758,7 @@ Multi-channel notification with:
 | **Suggested setups** | `integration_setups/discover`, `integration_setups/adopt` *(write)* — signature-catalog discovery → objects with triggers pre-wired |
 | **Battery fleet** | `battery_fleet/overview`, `battery_fleet/setup` *(write)*, `battery_fleet/mark_replaced` *(write)*, `battery_fleet/set_excluded` *(write)* |
 | **Documents** (2.11.0) | `documents/list`, `documents/storage`, `documents/add_link`, `documents/update`, `documents/delete`, `documents/search` — file binaries never travel over WS; they go through four authenticated HTTP views in `views.py` |
+| **Search** (2.78, #171) | `search` — the server half of the panel's global search: document metadata + content hits (page, snippet) from the full-text index, history-note hits; objects / tasks / parts are matched in the panel |
 
 File binaries are handled by `views.py`, outside the WS API:
 
@@ -772,7 +773,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 92 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 93 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
@@ -789,6 +790,14 @@ The backend exposes 92 WS commands; most are consumed by the Lit panel. A couple
 None of these are **missing/broken** — every frontend call has a matching backend handler, and every advanced-feature flag now has a working UI binding. Before deleting `task/list` or `templates`, check whether any automation/script relies on them.
 
 Two remaining Config-Flow-only surfaces are design choices, not drift: **adaptive tuning knobs** (`adaptive_enabled`, `ewa_alpha`, `min/max_interval_days`, `seasonal_enabled`, `sensor_prediction_enabled`) and **compound-trigger editing** are exposed only via per-task Options → Adaptive Scheduling / Edit Trigger steps. The panel reads them but does not edit them.
+
+### Global search and the document text index (2.78, #171)
+
+One tolerant matcher, two copies kept in step: `helpers/search_match.py` (server) and `frontend-src/helpers/search-match.ts` (panel) — tests pin the same examples on both sides. Folding is length-preserving (an offset into the folded text is an offset into the original, so snippets are cut from the original), German digraph spellings become query *variants* (`spuel` → also `spul`; the original is always kept so `bauer` never turns into a miss), words match by exact / prefix / substring / one edit (optimal string alignment, tokens ≥ 5 chars), and the AND rule makes every query word find *something* in the candidate. Scores are per-token bests times a per-field weight (name 3 · model/serial/labels 2 · notes 1), so a name hit outranks a notes hit.
+
+**Split by where the data lives.** Objects, tasks and spare parts are matched in the panel from `_objects` (already loaded, a few thousand words — instant per keystroke). Documents and history notes are not in the browser, so `maintenance_supporter/search` answers those after a 250 ms debounce; stale answers are dropped by sequence number. Results are grouped (Objects · Tasks · Spare parts · Documents · In documents · History notes), capped per group, and the keyboard walks the flat list.
+
+**Content index** (`helpers/document_text.py`): blobs are content-addressed, so extraction happens once per SHA-256 — `pypdf` (already a manifest requirement for the page-range view) pulls the text layer of a PDF (≤ 150 pages / 120 K chars, `\f` between pages), `text/*` files are read as they are, everything else is `unsupported`; a PDF with no words is `empty` (a scan). There is deliberately **no OCR** — no engine ships in an HA container. The text lands in a sidecar `docs/text/<sha256>.txt` next to the blobs (same backup scope, dies with the blob in `_delete_blob_sync`), the per-blob status in `.storage/maintenance_supporter.document_text` (versioned by `EXTRACT_VERSION`, so an improved extractor re-runs everything). In memory only an inverted index (word → blob → count) exists, built lazily from the sidecars on the first search; a hit's snippet is cut from the sidecar of the top results only, the page from the count of page breaks before the offset (`#page=N` on the signed serve URL opens the PDF there). Extraction is executor work and never inline with an upload: `DocumentStore.notify_blob_added` schedules a background task; the existing library is backfilled by `async_at_started` + 120 s, one blob at a time with a pause, one log line at the end. `documents/storage` reports `search_index` counts so the UI can say why a scan is not found.
 
 ### Time-of-day scheduling (v1.0.41)
 

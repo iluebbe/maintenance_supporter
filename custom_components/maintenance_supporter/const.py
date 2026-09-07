@@ -16,6 +16,7 @@ DOMAIN = "maintenance_supporter"
 # at all (the #86 panel-flag desync came from exactly this literal-key class).
 NOTIFICATION_MANAGER_KEY = "_notification_manager"
 DOCUMENT_STORE_KEY = "_document_store"
+DOCUMENT_TEXT_INDEX_KEY = "_document_text_index"
 BUDGET_CACHE_KEY = "_budget_cache"
 EVENT_UNSUBS_KEY = "_event_unsubs"
 # TOP-LEVEL hass.data key (survives the DOMAIN pop on last-entry unload):

@@ -213,4 +213,30 @@ describe("documents-section", () => {
     label.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     expect(clicked, "Enter triggers the hidden file input").to.be.true;
   });
+
+  it("offers a local filter from 8 documents up and filters tolerantly (#171)", async () => {
+    const many = Array.from({ length: 9 }, (_, i) => ({
+      ...FILE_DOC, id: `f${i}`, title: i === 4 ? "Garantie Spülmaschine" : `Rechnung ${i}`, filename: `r${i}.pdf`, tags: i === 4 ? ["warranty"] : ["invoice"],
+    }));
+    const { el } = await mount(true, many);
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>(".doc-filter input");
+    expect(input, "filter box shown").to.exist;
+    expect(el.shadowRoot!.querySelectorAll(".doc-row").length).to.equal(9);
+    input!.value = "spuel garant";
+    input!.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    const rows = [...el.shadowRoot!.querySelectorAll(".doc-row")];
+    expect(rows.length).to.equal(1);
+    expect(rows[0].textContent).to.contain("Garantie Spülmaschine");
+    input!.value = "nichts";
+    input!.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector(".doc-empty")!.textContent).to.contain("No matching documents");
+    expect(el.shadowRoot!.querySelector("h3")!.textContent, "count stays the full count").to.contain("(9)");
+  });
+
+  it("keeps the list uncluttered below 8 documents — no filter box", async () => {
+    const { el } = await mount();
+    expect(el.shadowRoot!.querySelector(".doc-filter")).to.be.null;
+  });
 });

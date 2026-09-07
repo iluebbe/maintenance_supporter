@@ -127,7 +127,7 @@ for you — always previewing before it writes.
 | **Documents** | Attach manuals/invoices/photos per object — backup-safe, deduplicated, searchable, linkable to tasks (PDF page jump) | [Features → Documents](docs/FEATURES.md#documents--manuals-2110) |
 | **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors, buy reminders mirrored into your HA shopping list (check one off at the store, the part is restocked). Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags — optionally as **proof of presence** (a task only a scan at the thing itself may complete), on-complete service calls back to the device | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
-| **Dashboards** | Sidebar panel (Today view, `/` command palette, bulk actions, saved filter views), Lovelace card, calendar card, battery-fleet card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
+| **Dashboards** | Sidebar panel (Today view, global search across objects, tasks, parts, document contents and notes, bulk actions, saved filter views), Lovelace card, calendar card, battery-fleet card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
 | **Localization** | Full UI in 22 languages across panel, config flow, and notifications; dates, times and numbers follow your HA profile formats | [Features → Frontend](docs/FEATURES.md#frontend) |
 
 ## Entities & automation hooks
@@ -167,7 +167,7 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Every configurable parameter (global, per-object, per-task, triggers) |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Use-case recipes, automation YAML, cards & dashboard strategies |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Known limitations, common issues, debug logging, uninstalling |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (92 commands), tests |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (93 commands), tests |
 | [ROADMAP.md](ROADMAP.md) | What's planned and what shipped — ideas welcome via [Discussions](https://github.com/iluebbe/maintenance_supporter/discussions) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 

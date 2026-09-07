@@ -18,7 +18,7 @@ import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
@@ -27,6 +27,9 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from ..const import DOMAIN, MAX_DOCS_PER_OBJECT, SIGNAL_DOCUMENTS_UPDATED
+
+if TYPE_CHECKING:
+    from .document_text import DocumentTextIndex
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,6 +63,10 @@ class DocumentStore:
         self.hass = hass
         self._store: Store[dict[str, Any]] = Store(hass, DOC_STORE_VERSION, DOC_STORE_KEY)
         self._data: dict[str, Any] = {"documents": {}, "blobs": {}}
+        # The full-text index (#171) follows the blob lifecycle: told about
+        # every new blob, told when the last reference goes. Optional so the
+        # store stays usable on its own (tests, tooling).
+        self.text_index: DocumentTextIndex | None = None
 
     # ------------------------------------------------------------------
     # Paths
@@ -214,12 +221,19 @@ class DocumentStore:
         await self._async_save()
         if not wrote_new and not deduped:
             _LOGGER.debug("Adopted pre-existing blob %s into registry", digest[:12])
+        self.notify_blob_added(digest)
         return {
             "id": doc_id,
             "deduped": deduped,
             "duplicate_in_object": duplicate_in_object,
             **doc,
         }
+
+    def notify_blob_added(self, digest: str) -> None:
+        """A blob is (now) referenced — let the text index extract it in the
+        background. Idempotent: an already-extracted blob is a no-op."""
+        if self.text_index is not None:
+            self.text_index.schedule(digest)
 
     def _store_blob_sync(self, content: bytes) -> tuple[str, bool]:
         """Hash content and write the blob if absent. Returns (digest, wrote_new)."""
@@ -477,15 +491,24 @@ class DocumentStore:
         if blob["refcount"] <= 0:
             size = int(blob.get("size", 0))
             self.blobs.pop(digest, None)
+            if self.text_index is not None:
+                await self.text_index.async_forget(digest)
             await self.hass.async_add_executor_job(self._delete_blob_sync, digest)
             return size
         return 0
 
     def _delete_blob_sync(self, digest: str) -> None:
+        """Delete a blob file and its extracted-text sidecar (executor)."""
+        from .document_text import text_sidecar_path
+
         try:
             self.blob_path(digest).unlink(missing_ok=True)
         except OSError:
             _LOGGER.warning("Could not delete blob %s", digest[:12])
+        try:
+            text_sidecar_path(self.hass, digest).unlink(missing_ok=True)
+        except (OSError, ValueError):
+            _LOGGER.debug("Could not delete text sidecar %s", digest[:12])
 
     # ------------------------------------------------------------------
     # Storage summary (backs the sensor + the panel overview)

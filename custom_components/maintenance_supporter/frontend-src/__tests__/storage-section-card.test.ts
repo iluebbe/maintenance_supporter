@@ -125,4 +125,15 @@ describe("storage-section-card", () => {
     expect(el.shadowRoot!.querySelector(".obj-name")!.textContent!.trim()).to.equal("01234567");
     expect(el.shadowRoot!.querySelector(".obj-row.clickable"), "unknown object not clickable").to.not.exist;
   });
+
+  it("shows how much of the library the full-text search can see (#171)", async () => {
+    const el = await mount({ ...SUMMARY, search_index: { total: 12, indexed: 9, no_text: 2, unsupported: 1, pending: 0 } });
+    await expand(el);
+    const status = el.shadowRoot!.querySelector(".index-status")!;
+    expect(status.textContent!.replace(/\s+/g, " ")).to.contain("9 of 12 files indexed");
+    expect(status.textContent).to.contain("3 without text layer");
+    const none = await mount({ ...SUMMARY, search_index: { total: 0, indexed: 0, no_text: 0, unsupported: 0, pending: 0 } });
+    await expand(none);
+    expect(none.shadowRoot!.querySelector(".index-status"), "no line without files").to.be.null;
+  });
 });

@@ -425,7 +425,10 @@ export const panelStyles = css`
   }
   .today-empty ha-icon { --mdc-icon-size: 56px; color: var(--success-color, #4caf50); }
 
-  /* Command palette (Ctrl/Cmd+K). */
+  .header .header-search { margin-left: auto; color: var(--app-header-text-color, white); --ha-icon-button-size: 40px; flex: none; }
+  .tab-bar .tab-search { margin-left: auto; align-self: center; color: var(--secondary-text-color); --ha-icon-button-size: 40px; flex: none; }
+
+  /* Global search overlay ("/" or the header magnifier; #171). */
   .palette-backdrop {
     position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,.4);
     display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh;
@@ -447,8 +450,15 @@ export const panelStyles = css`
   }
   .palette-item.active { background: color-mix(in srgb, var(--primary-color) 14%, transparent); }
   .palette-item ha-icon { --mdc-icon-size: 20px; color: var(--secondary-text-color); flex: none; }
+  .palette-main { min-width: 0; flex: 1; }
+  .palette-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .palette-label { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .palette-sub { margin-left: auto; color: var(--secondary-text-color); font-size: 12.5px; flex: none; padding-left: 10px; }
+  .palette-sub { margin-left: auto; color: var(--secondary-text-color); font-size: 12.5px; flex: none; padding-left: 10px; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .palette-page { flex: none; font-size: 11.5px; padding: 1px 7px; border-radius: 10px; background: color-mix(in srgb, var(--primary-color) 14%, transparent); color: var(--primary-color); }
+  .palette-snippet { font-size: 12.5px; color: var(--secondary-text-color); margin-top: 2px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .palette-group { padding: 10px 16px 4px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary-text-color); }
+  .palette-group + .palette-item { border-top: none; }
+  .palette-waiting { font-weight: 400; text-transform: none; letter-spacing: 0; padding-bottom: 10px; }
   .palette-empty { padding: 20px 16px; color: var(--secondary-text-color); text-align: center; }
   .palette-hint { padding: 8px 16px; font-size: 12px; color: var(--secondary-text-color); border-top: 1px solid var(--divider-color); }
 

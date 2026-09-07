@@ -16,6 +16,7 @@ import { downloadUrl } from "../helpers/download";
 import { downloadSignedDocument, openSignedDocument, signDocumentPath } from "../helpers/document-url";
 import { formatBytes } from "../helpers/format-bytes";
 import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
+import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter";
 import type { HomeAssistant } from "../types";
 
 interface MaintenanceDocument {
@@ -36,6 +37,8 @@ export class MaintenanceDocumentsSection extends LitElement {
   @property({ type: Boolean }) public canWrite = false;
 
   @state() private _docs: MaintenanceDocument[] = [];
+  // Local filter (#171) — shown once the list is long enough to need one.
+  @state() private _filter = "";
   @state() private _loaded = false;
   @state() private _busy = false;
   @state() private _error = "";
@@ -389,15 +392,23 @@ export class MaintenanceDocumentsSection extends LitElement {
           `
         : nothing}
 
+      ${this._loaded && this._docs.length >= DOC_FILTER_MIN
+        ? html`<div class="doc-filter">
+            <ha-icon icon="mdi:magnify"></ha-icon>
+            <input type="search" aria-label=${t("doc_search", L)} placeholder=${t("doc_search", L)}
+              .value=${this._filter} @input=${(e: Event) => (this._filter = (e.target as HTMLInputElement).value)} />
+          </div>`
+        : nothing}
       ${!this._loaded
         ? html`<div class="doc-empty">${t("loading", L)}</div>`
         : this._docs.length === 0
           ? html`<div class="doc-empty">${t("documents_empty", L)}</div>`
-          : html`
-              <div class="doc-list">
-                ${this._docs.map((doc) => this._renderDoc(doc, L))}
-              </div>
-            `}
+          : (() => {
+              const shown = filterDocuments(this._docs, this._filter);
+              return shown.length === 0
+                ? html`<div class="doc-empty">${t("doc_search_none", L)}</div>`
+                : html`<div class="doc-list">${shown.map((doc) => this._renderDoc(doc, L))}</div>`;
+            })()}
 
       ${this._lightboxUrl
         ? html`<div class="lightbox" @click=${() => (this._lightboxUrl = "")}>
@@ -561,6 +572,14 @@ export class MaintenanceDocumentsSection extends LitElement {
     .doc-msg.error { color: var(--error-color, #f44336); }
     .doc-msg.hint { color: var(--secondary-text-color, #888); }
     .doc-empty { color: var(--secondary-text-color, #888); font-size: 13px; padding: 8px 0; }
+    .doc-filter { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; }
+    .doc-filter ha-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color, #888); }
+    .doc-filter input {
+      flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 6px;
+      border: 1px solid var(--divider-color); background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+    }
+    .doc-filter input:focus { outline: none; border-color: var(--primary-color); }
     .doc-list { display: flex; flex-direction: column; gap: 4px; }
     .doc-row {
       display: flex; align-items: center; gap: 12px; padding: 8px 10px;

@@ -183,4 +183,17 @@ describe("task-documents in part mode", () => {
     const { el } = await mountPart([P_LINKED]);
     expect(el.shadowRoot!.querySelector(".tdoc-page")).to.not.exist;
   });
+
+  it("offers a local filter once 8+ documents are linked (#171)", async () => {
+    const many = Array.from({ length: 8 }, (_, i) => ({ ...LINKED, id: `l${i}`, title: i === 2 ? "Schaltplan" : `Manual ${i}`, filename: `m${i}.pdf` }));
+    const { el } = await mount(true, many);
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>(".doc-filter input");
+    expect(input, "filter box shown").to.exist;
+    input!.value = "schaltpl";
+    input!.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    const rows = [...el.shadowRoot!.querySelectorAll(".tdoc-row")];
+    expect(rows.length).to.equal(1);
+    expect(rows[0].textContent).to.contain("Schaltplan");
+  });
 });

@@ -583,6 +583,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_documents_search,
         ws_documents_storage,
         ws_documents_update,
+        ws_search,
     )
     from .groups import (
         ws_create_group,
@@ -757,6 +758,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_documents_update)
     websocket_api.async_register_command(hass, ws_documents_delete)
     websocket_api.async_register_command(hass, ws_documents_search)
+    websocket_api.async_register_command(hass, ws_search)
 
 
 def foreign_part_resolver(hass):

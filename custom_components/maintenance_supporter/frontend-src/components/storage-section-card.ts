@@ -23,6 +23,8 @@ interface StorageSummary {
   link_count: number;
   document_count: number;
   by_object: Record<string, { bytes: number; files: number; links: number }>;
+  /** #171: how much of the library the full-text search can see. */
+  search_index?: { total: number; indexed: number; no_text: number; unsupported: number; pending: number };
 }
 
 interface PanelObject {
@@ -221,6 +223,16 @@ export class MaintenanceStorageSectionCard extends LitElement {
                       : nothing}
                   </div>
 
+                  ${s.search_index && s.search_index.total > 0
+                    ? html`<div class="index-status">
+                        <ha-icon icon="mdi:text-search"></ha-icon>
+                        ${t("search_index_status", L)
+                          .replace("{indexed}", String(s.search_index.indexed))
+                          .replace("{total}", String(s.search_index.total))
+                          .replace("{no_text}", String(s.search_index.no_text + s.search_index.unsupported))
+                          .replace("{pending}", String(s.search_index.pending))}
+                      </div>`
+                    : nothing}
                   <div class="doc-search">
                     <ha-icon icon="mdi:magnify"></ha-icon>
                     <input
@@ -284,6 +296,11 @@ export class MaintenanceStorageSectionCard extends LitElement {
   static styles = css`
     ha-card { margin-top: 16px; }
     .card-content { padding: 16px; }
+    .index-status {
+      display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 12.5px;
+      color: var(--secondary-text-color, #888);
+    }
+    .index-status ha-icon { --mdc-icon-size: 18px; }
     .doc-search {
       display: flex; align-items: center; gap: 6px; margin: 10px 0 4px;
       padding: 2px 10px; border-radius: 8px;

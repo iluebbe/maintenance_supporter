@@ -28,6 +28,7 @@ from ..const import (
     MAX_URL_LENGTH,
 )
 from ..helpers.permissions import require_write
+from ..helpers.search_match import query_tokens, score_fields, snippet
 from . import _get_object_entries, _load_object_entry, object_id_for_entry
 from .tasks import _is_safe_url
 
@@ -89,8 +90,18 @@ async def ws_documents_storage(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Return the global storage summary (physical vs logical, per object/category)."""
-    connection.send_result(msg["id"], _get_store(hass).storage_summary())
+    """Return the global storage summary (physical vs logical, per object/category).
+
+    ``search_index`` (#171) says how much of the library is full-text
+    searchable: ``indexed`` blobs carry a text layer, ``no_text`` are scans /
+    image-only PDFs, ``unsupported`` are photos and other binaries,
+    ``pending`` still wait for the backfill.
+    """
+    store = _get_store(hass)
+    summary = store.storage_summary()
+    if store.text_index is not None:
+        summary["search_index"] = store.text_index.summary()
+    connection.send_result(msg["id"], summary)
 
 
 @websocket_api.websocket_command(
@@ -193,8 +204,42 @@ async def ws_documents_delete(
     connection.send_result(msg["id"], {"success": True, "bytes_freed": freed})
 
 
-_SEARCH_FIELDS = ("title", "filename", "url", "mime")
 _SEARCH_MAX_RESULTS = 50
+#: Field weights for the tolerant matcher — the title is what people remember,
+#: the file name and tags come next, a URL or MIME rarely.
+_DOC_FIELD_WEIGHTS = (("title", 3), ("filename", 2), ("url", 1), ("mime", 1))
+
+
+def _object_map(hass: HomeAssistant) -> dict[str, tuple[str, str]]:
+    """object id -> (entry_id, name), so hits carry a human-readable location."""
+    obj_map: dict[str, tuple[str, str]] = {}
+    for entry in _get_object_entries(hass):
+        obj = entry.data.get(CONF_OBJECT, {})
+        oid = obj.get("id")
+        if isinstance(oid, str) and oid:
+            obj_map[oid] = (entry.entry_id, obj.get("name", ""))
+    return obj_map
+
+
+def _doc_hit(did: str, doc: dict[str, Any], obj_map: dict[str, tuple[str, str]]) -> dict[str, Any]:
+    entry_id, name = obj_map.get(doc.get("object_id", ""), ("", ""))
+    return {
+        "id": did,
+        "entry_id": entry_id,
+        "object_name": name,
+        "kind": doc.get("kind"),
+        "title": doc.get("title"),
+        "filename": doc.get("filename"),
+        "url": doc.get("url"),
+        "size": doc.get("size"),
+        "tags": doc.get("tags") or [],
+    }
+
+
+def _doc_meta_score(tokens: list[tuple[str, ...]], doc: dict[str, Any]) -> int:
+    fields: list[tuple[str, int]] = [(str(doc.get(f) or ""), w) for f, w in _DOC_FIELD_WEIGHTS]
+    fields.extend((str(tag), 2) for tag in (doc.get("tags") or []))
+    return score_fields(tokens, fields)
 
 
 @websocket_api.websocket_command(
@@ -209,40 +254,119 @@ async def ws_documents_search(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Find documents across all objects by title / filename / tag (read, open)."""
-    query = msg["query"].strip().lower()
-    if not query:
+    """Find documents across all objects by title / filename / tag (read, open).
+
+    Tolerant matching (#171): every word of the query must match somewhere —
+    as a prefix, a substring or with one typo, diacritics folded — and hits
+    come back best first.
+    """
+    tokens = query_tokens(msg["query"])
+    if not tokens:
         connection.send_result(msg["id"], {"results": []})
         return
-
-    # object id -> (entry_id, name), so hits carry a human-readable location.
-    obj_map: dict[str, tuple[str, str]] = {}
-    for entry in _get_object_entries(hass):
-        obj = entry.data.get(CONF_OBJECT, {})
-        oid = obj.get("id")
-        if isinstance(oid, str) and oid:
-            obj_map[oid] = (entry.entry_id, obj.get("name", ""))
-
+    obj_map = _object_map(hass)
     store = _get_store(hass)
-    results: list[dict[str, Any]] = []
+    scored: list[tuple[int, str, dict[str, Any]]] = []
     for did, doc in store.documents.items():
-        haystack = " ".join([str(doc.get(f) or "") for f in _SEARCH_FIELDS] + list(doc.get("tags") or [])).lower()
-        if query not in haystack:
-            continue
-        entry_id, name = obj_map.get(doc.get("object_id", ""), ("", ""))
-        results.append(
-            {
-                "id": did,
-                "entry_id": entry_id,
-                "object_name": name,
-                "kind": doc.get("kind"),
-                "title": doc.get("title"),
-                "filename": doc.get("filename"),
-                "url": doc.get("url"),
-                "size": doc.get("size"),
-                "tags": doc.get("tags") or [],
-            }
-        )
-        if len(results) >= _SEARCH_MAX_RESULTS:
-            break
+        score = _doc_meta_score(tokens, doc)
+        if score > 0:
+            scored.append((score, did, doc))
+    scored.sort(key=lambda item: -item[0])
+    results = [_doc_hit(did, doc, obj_map) for _, did, doc in scored[:_SEARCH_MAX_RESULTS]]
     connection.send_result(msg["id"], {"results": results})
+
+
+_GLOBAL_SEARCH_MAX = 20
+_HISTORY_NOTE_MAX = 4000
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/search",
+        vol.Required("query"): vol.All(str, vol.Length(max=MAX_NAME_LENGTH)),
+        vol.Optional("limit", default=8): vol.All(int, vol.Range(min=1, max=_GLOBAL_SEARCH_MAX)),
+    }
+)
+@websocket_api.async_response
+async def ws_search(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """The server side of the panel's global search (#171, read, open).
+
+    Objects, tasks and parts are matched in the panel from data it already
+    holds; this command covers what is NOT in the browser: documents (by
+    title / file name / tags AND by their extracted text — page + snippet)
+    and the notes written into task histories. Both lists come back best
+    first, ``limit`` each.
+    """
+    from ..helpers.aggregate import merged_tasks, object_name
+
+    tokens = query_tokens(msg["query"])
+    limit = max(1, min(int(msg.get("limit", 8)), _GLOBAL_SEARCH_MAX))
+    if not tokens:
+        connection.send_result(msg["id"], {"documents": [], "history": []})
+        return
+    obj_map = _object_map(hass)
+    store = _get_store(hass)
+
+    # Documents: metadata hits first, then content hits from the text index
+    # (a document that matches both keeps the higher score and gains the page).
+    doc_hits: dict[str, dict[str, Any]] = {}
+    for did, doc in store.documents.items():
+        score = _doc_meta_score(tokens, doc)
+        if score > 0:
+            doc_hits[did] = {**_doc_hit(did, doc, obj_map), "score": score * 10, "match": "meta", "page": None, "snippet": ""}
+    if store.text_index is not None:
+        by_digest: dict[str, list[str]] = {}
+        for did, doc in store.documents.items():
+            digest = doc.get("hash")
+            if isinstance(digest, str) and digest:
+                by_digest.setdefault(digest, []).append(did)
+        for hit in await store.text_index.async_search(msg["query"], limit=limit * 2):
+            for did in by_digest.get(hit["digest"], []):
+                cur = doc_hits.get(did)
+                if cur is None:
+                    doc_hits[did] = {
+                        **_doc_hit(did, store.documents[did], obj_map),
+                        "score": hit["score"],
+                        "match": "content",
+                        "page": hit["page"],
+                        "snippet": hit["snippet"],
+                    }
+                else:
+                    cur["page"] = hit["page"]
+                    cur["snippet"] = hit["snippet"]
+                    cur["score"] = max(cur["score"], hit["score"]) + min(cur["score"], hit["score"]) // 4
+    documents = sorted(doc_hits.values(), key=lambda d: -d["score"])[:limit]
+
+    # History notes across every task of every object.
+    history: list[dict[str, Any]] = []
+    for entry in _get_object_entries(hass):
+        oname = object_name(entry)
+        for tid, td in merged_tasks(entry).items():
+            for h in td.get("history") or []:
+                notes = h.get("notes") if isinstance(h, dict) else None
+                if not isinstance(notes, str) or not notes.strip():
+                    continue
+                score = score_fields(tokens, [(notes[:_HISTORY_NOTE_MAX], 1)])
+                if score <= 0:
+                    continue
+                piece, _at = snippet(notes, tokens[0][0], radius=60)
+                history.append(
+                    {
+                        "entry_id": entry.entry_id,
+                        "task_id": tid,
+                        "task_name": str(td.get("name") or ""),
+                        "object_name": oname,
+                        "timestamp": h.get("timestamp"),
+                        "type": h.get("type"),
+                        "snippet": piece or " ".join(notes.split())[:160],
+                        "score": score,
+                    }
+                )
+    # Best first; equal scores newest first (two stable sorts).
+    history.sort(key=lambda h: str(h.get("timestamp") or ""), reverse=True)
+    history.sort(key=lambda h: -h["score"])
+    connection.send_result(msg["id"], {"documents": documents, "history": history[:limit]})

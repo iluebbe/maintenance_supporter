@@ -18,6 +18,7 @@ import { downloadSignedDocument, openSignedDocument } from "../helpers/document-
 import { isSafeHttpUrl } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
 import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
+import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter";
 import type { HomeAssistant } from "../types";
 
 interface Doc {
@@ -47,6 +48,8 @@ export class MaintenanceTaskDocuments extends LitElement {
   @state() private _busy = false;
   @state() private _error = "";
   @state() private _attachId = "";
+  // Local filter (#171) — shown once the linked list is long enough to need one.
+  @state() private _filter = "";
 
   private _loadedKey = "";
   private _localeReady = false;
@@ -199,9 +202,21 @@ export class MaintenanceTaskDocuments extends LitElement {
       <div class="task-docs">
         <h3><ha-icon icon="mdi:paperclip"></ha-icon> ${t("documents", L)} (${linked.length})</h3>
         ${this._error ? html`<div class="tdoc-error">${this._error}</div>` : nothing}
+        ${linked.length >= DOC_FILTER_MIN
+          ? html`<div class="doc-filter">
+              <ha-icon icon="mdi:magnify"></ha-icon>
+              <input type="search" aria-label=${t("doc_search", L)} placeholder=${t("doc_search", L)}
+                .value=${this._filter} @input=${(e: Event) => (this._filter = (e.target as HTMLInputElement).value)} />
+            </div>`
+          : nothing}
         ${linked.length === 0
           ? html`<div class="tdoc-empty">${t(this.partId ? "doc_part_none" : "doc_task_none", L)}</div>`
-          : html`<div class="tdoc-list">${linked.map((d) => this._renderRow(d, L))}</div>`}
+          : (() => {
+              const shown = filterDocuments(linked, this._filter);
+              return shown.length === 0
+                ? html`<div class="tdoc-empty">${t("doc_search_none", L)}</div>`
+                : html`<div class="tdoc-list">${shown.map((d) => this._renderRow(d, L))}</div>`;
+            })()}
         ${this.canWrite && available.length
           ? html`<div class="tdoc-attach">
               <select
@@ -295,6 +310,14 @@ export class MaintenanceTaskDocuments extends LitElement {
     .tdoc-empty { color: var(--secondary-text-color, #888); font-size: 13px; padding: 2px 0 8px; }
     .tdoc-error { color: var(--error-color, #f44336); font-size: 13px; margin: 4px 0; }
     .tdoc-list { display: flex; flex-direction: column; gap: 4px; }
+    .doc-filter { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; }
+    .doc-filter ha-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color, #888); }
+    .doc-filter input {
+      flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 6px;
+      border: 1px solid var(--divider-color); background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+    }
+    .doc-filter input:focus { outline: none; border-color: var(--primary-color); }
     .tdoc-row {
       display: flex; align-items: center; gap: 10px; padding: 6px 10px;
       border: 1px solid var(--divider-color); border-radius: 8px;
