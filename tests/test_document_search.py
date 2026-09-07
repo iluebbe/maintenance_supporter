@@ -134,6 +134,12 @@ def _store(hass: HomeAssistant) -> DocumentStore:
     return store
 
 
+# Extraction is a BACKGROUND task (must never hold up HA's start or stop),
+# so plain async_block_till_done() does not wait for it — the tests ask for
+# the background tasks explicitly. Locally the executor was simply fast
+# enough; CI's HA legs showed the race.
+
+
 def _index(hass: HomeAssistant) -> DocumentTextIndex:
     index: DocumentTextIndex = hass.data[DOMAIN][DOCUMENT_TEXT_INDEX_KEY]
     return index
@@ -192,7 +198,7 @@ async def test_upload_extracts_in_the_background_and_search_finds_page_and_snipp
     await setup_integration(hass, global_entry, object_entry)
     store = _store(hass)
     doc = await store.async_add_file(OBJECT_ID_1, content=MANUAL, filename="manual.pdf", mime="application/pdf", tags=["manual"])
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
     index = _index(hass)
     digest = doc["hash"]
     assert index.meta[digest]["status"] == STATUS_TEXT
@@ -217,7 +223,7 @@ async def test_last_dereference_drops_sidecar_meta_and_index(
     store = _store(hass)
     a = await store.async_add_file(OBJECT_ID_1, content=MANUAL, filename="a.pdf", mime="application/pdf")
     b = await store.async_add_file(OBJECT_ID_1, content=MANUAL, filename="b.pdf", mime="application/pdf")
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
     index = _index(hass)
     digest = a["hash"]
     assert b["hash"] == digest and b["deduped"]
@@ -228,7 +234,7 @@ async def test_last_dereference_drops_sidecar_meta_and_index(
     assert await index.async_search("zulauf")
 
     await store.async_remove(b["id"])  # last reference
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
     assert digest not in index.meta
     assert not text_sidecar_path(hass, digest).exists()
     assert await index.async_search("zulauf") == []
@@ -266,7 +272,7 @@ async def test_summary_counts_no_text_layer_and_unsupported(
     await store.async_add_file(OBJECT_ID_1, content=MANUAL, filename="m.pdf", mime="application/pdf")
     await store.async_add_file(OBJECT_ID_1, content=make_pdf([""]), filename="scan.pdf", mime="application/pdf")
     await store.async_add_file(OBJECT_ID_1, content=b"\xff\xd8\xff", filename="p.jpg", mime="image/jpeg")
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
     conn = _conn()
     await call_ws_handler(ws_documents_storage, hass, conn, {"id": 1, "type": "x"})
     summary = conn.send_result.call_args[0][1]
@@ -283,7 +289,7 @@ async def test_documents_search_is_tolerant_and_ranked(
     store = _store(hass)
     await store.async_add_file(OBJECT_ID_1, content=b"x", filename="Bedienungsanleitung.pdf", mime="application/pdf", tags=["manual"])
     await store.async_add_weblink(OBJECT_ID_1, url="https://x/warranty", title="Garantie Spülmaschine", tags=["warranty"])
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
 
     async def search(q: str) -> list[dict]:
         conn = _conn()
@@ -303,7 +309,7 @@ async def test_global_search_returns_documents_with_content_hits_and_history_not
     store = _store(hass)
     manual = await store.async_add_file(OBJECT_ID_1, content=MANUAL, filename="manual.pdf", mime="application/pdf", tags=["manual"])
     await store.async_add_weblink(OBJECT_ID_1, url="https://x/e24", title="Fehlercode E24 Video")
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
 
     async def search(q: str) -> dict:
         conn = _conn()
@@ -340,7 +346,7 @@ async def test_global_search_limit_is_honoured(
     store = _store(hass)
     for i in range(5):
         await store.async_add_weblink(OBJECT_ID_1, url=f"https://x/{i}", title=f"Filter Anleitung {i}")
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
     conn = _conn()
     await call_ws_handler(ws_search, hass, conn, {"id": 1, "type": "x", "query": "filter", "limit": 2})
     assert len(conn.send_result.call_args[0][1]["documents"]) == 2
@@ -354,7 +360,7 @@ async def test_history_search_sees_store_merged_history(
     await setup_integration(hass, global_entry, object_entry)
     coordinator = object_entry.runtime_data.coordinator
     await coordinator.complete_maintenance(TASK_ID_1, notes="Wasserhahn tropfte, Dichtring getauscht", unattended=True)
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)
     conn = _conn()
     await call_ws_handler(ws_search, hass, conn, {"id": 1, "type": "x", "query": "dichtring"})
     hits = conn.send_result.call_args[0][1]["history"]
