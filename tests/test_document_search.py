@@ -24,8 +24,10 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from custom_components.maintenance_supporter.helpers import document_text as dt
 from custom_components.maintenance_supporter.helpers.document_text import (
     STATUS_EMPTY,
+    STATUS_ERROR,
     STATUS_TEXT,
     STATUS_UNSUPPORTED,
     DocumentTextIndex,
@@ -115,6 +117,8 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task["history"] = [
         {"type": "completed", "timestamp": "2026-05-01T10:00:00", "notes": "Zulauffilter gereinigt, Dichtung sah gut aus"},
         {"type": "skipped", "timestamp": "2026-03-01T10:00:00", "notes": "Kein Ersatzteil da"},
+        {"type": "completed", "timestamp": "2026-01-01T10:00:00"},  # no notes at all
+        {"type": "completed", "timestamp": "2025-12-01T10:00:00", "notes": "   "},
     ]
     entry = MockConfigEntry(
         version=1,
@@ -365,3 +369,129 @@ async def test_history_search_sees_store_merged_history(
     await call_ws_handler(ws_search, hass, conn, {"id": 1, "type": "x", "query": "dichtring"})
     hits = conn.send_result.call_args[0][1]["history"]
     assert len(hits) == 1 and "Dichtring" in hits[0]["snippet"]
+
+# ─── edges (coverage of the branches a happy path never takes) ───────────────
+
+
+def test_extract_edge_cases_via_a_fake_reader(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Encrypted → error; a page that raises is skipped; the page and char
+    caps cut the text; a text/* file that cannot be read → error."""
+    path = tmp_path / "x.pdf"
+    path.write_bytes(b"%PDF-1.4 fake")
+
+    class Page:
+        def __init__(self, text: str | Exception) -> None:
+            self._text = text
+
+        def extract_text(self) -> str:
+            if isinstance(self._text, Exception):
+                raise self._text
+            return self._text
+
+    class Reader:
+        encrypted = False
+        pages: list[Page] = []
+
+        def __init__(self, _p: str) -> None:
+            self.is_encrypted = Reader.encrypted
+
+        def decrypt(self, _pw: str) -> None:
+            raise ValueError("no")
+
+    import pypdf
+
+    monkeypatch.setattr(pypdf, "PdfReader", Reader)
+    Reader.encrypted = True
+    assert extract_text_sync(path, "application/pdf")["status"] == STATUS_ERROR
+    Reader.encrypted = False
+    Reader.pages = [Page("Erste Seite mit Woertern"), Page(RuntimeError("broken page")), Page("Dritte Seite Woerter hier")]
+    monkeypatch.setattr(dt, "MAX_PAGES", 2)
+    result = extract_text_sync(path, "application/pdf")
+    assert result["status"] == STATUS_TEXT and result["indexed_pages"] == 2 and result["pages"] == 3
+    assert result["text"] == "Erste Seite mit Woertern" + "\f"
+    monkeypatch.setattr(dt, "MAX_PAGES", 150)
+    monkeypatch.setattr(dt, "MAX_CHARS", 30)
+    Reader.pages = [Page("Erste Seite mit Woertern und noch mehr Text"), Page("zweite")]
+    result = extract_text_sync(path, "application/pdf")
+    assert result["chars"] == 30 and result["indexed_pages"] == 1
+    assert extract_text_sync(tmp_path / "missing.txt", "text/plain")["status"] == STATUS_ERROR
+
+
+def test_sidecar_path_rejects_a_bad_digest(hass: HomeAssistant) -> None:
+    with pytest.raises(ValueError):
+        text_sidecar_path(hass, "../etc/passwd")
+
+
+async def test_index_edges(hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry) -> None:
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    index = _index(hass)
+    # A text file with one-letter words and a word shared with the manual.
+    note = await store.async_add_file(OBJECT_ID_1, content="Kühlschrank a Notiz Zulauf".encode(), filename="n.txt", mime="text/plain")
+    manual = await store.async_add_file(OBJECT_ID_1, content=MANUAL, filename="m.pdf", mime="application/pdf")
+    await hass.async_block_till_done(wait_background_tasks=True)
+    assert {h["digest"] for h in await index.async_search("zulauf")} == {note["hash"], manual["hash"]}
+    assert await index.async_search("   ") == []
+    assert index._match_words(("",)) == {}
+    # Unknown blob / already extracted / double schedule are no-ops.
+    assert await index.async_extract("00" * 32) is None
+    index.schedule(manual["hash"])
+    index._pending.add(note["hash"])
+    index.schedule(note["hash"])
+    index._pending.discard(note["hash"])
+    await index.async_ensure_loaded()  # already loaded → early return
+    # A sidecar that vanished under us: the meta entry goes, the search stays quiet.
+    text_sidecar_path(hass, note["hash"]).unlink()
+    assert index._read_sidecar_sync(note["hash"]) == ""
+    index._loaded = False
+    index._index.clear()
+    index._vocab_dirty = True
+    await index.async_ensure_loaded()
+    assert note["hash"] not in index.meta
+    # A hit whose sidecar is gone still answers, without page or snippet.
+    index._add_to_index(note["hash"], "zulauf")
+    ghost = next(h for h in await index.async_search("zulauf") if h["digest"] == note["hash"])
+    assert ghost["page"] is None and ghost["snippet"] == ""
+
+
+async def test_backfill_scheduling_and_failure_logging(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    await setup_integration(hass, global_entry, object_entry)
+    index = _index(hass)
+    calls: list[str] = []
+
+    async def _boom() -> dict[str, int]:
+        calls.append("x")
+        raise RuntimeError("disk on fire")
+
+    monkeypatch.setattr(index, "async_backfill", _boom)
+    index.schedule_backfill(delay=5)
+    index.schedule_backfill(delay=5)  # re-arming cancels the first timer
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=6))
+    await hass.async_block_till_done()
+    assert calls == ["x"]
+    assert "Document search backfill failed" in caplog.text
+    index.schedule_backfill(delay=60)
+    index.cancel()
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=120))
+    await hass.async_block_till_done()
+    assert calls == ["x"]
+
+
+async def test_global_search_document_matching_both_meta_and_content(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry
+) -> None:
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    doc = await store.async_add_file(OBJECT_ID_1, content=MANUAL, filename="e24-guide.pdf", mime="application/pdf", title="Fehlercode E24")
+    await hass.async_block_till_done(wait_background_tasks=True)
+    conn = _conn()
+    await call_ws_handler(ws_search, hass, conn, {"id": 1, "type": "x", "query": "e24"})
+    hit = next(d for d in conn.send_result.call_args[0][1]["documents"] if d["id"] == doc["id"])
+    assert hit["match"] == "meta" and hit["page"] == 2 and "E24" in hit["snippet"]

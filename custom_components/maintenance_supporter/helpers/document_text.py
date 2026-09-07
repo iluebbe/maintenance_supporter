@@ -422,8 +422,6 @@ class DocumentTextIndex:
             if not per_digest:
                 return []
         ranked = sorted(per_digest.items(), key=lambda kv: -kv[1][0])[:limit]
-        if not ranked:
-            return []
 
         def _snippets() -> list[dict[str, Any]]:
             out: list[dict[str, Any]] = []

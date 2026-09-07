@@ -48,6 +48,7 @@ def test_query_tokens_add_digraph_variants_without_losing_the_original() -> None
 
 
 def test_within_one_edit() -> None:
+    assert within_one_edit("abc", "abc")
     assert within_one_edit("reinigen", "reinigne")  # transposition
     assert within_one_edit("filter", "fiter")  # deletion
     assert within_one_edit("filter", "fillter")  # insertion
@@ -58,6 +59,7 @@ def test_within_one_edit() -> None:
 
 def test_word_score_ladder() -> None:
     assert word_score(("filter",), "filter") == SCORE_EXACT
+    assert word_score(("", "filter"), "filter") == SCORE_EXACT  # empty variants are skipped
     assert word_score(("filt",), "filter") == SCORE_PREFIX
     assert word_score(("leitung",), "bedienungsanleitung") == SCORE_SUBSTRING
     assert word_score(("reinigne",), "reinigen") == SCORE_FUZZY
