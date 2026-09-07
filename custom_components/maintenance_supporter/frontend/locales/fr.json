@@ -695,6 +695,8 @@
   "completion_photos_optional": "Photos de fin de tâche (facultatif)",
   "completion_photos": "Photos de fin de tâche",
   "choose_photos": "Choisir des photos",
+  "choose_photo": "Choisir une photo",
+  "photos_android_hint": "L'application Android ne transmet qu'une photo par sélection — chaque sélection est ajoutée.",
   "add_photos": "Ajouter des photos",
   "photos_limit": "Jusqu'à {max} photos par fin de tâche",
   "history_edit_photos_hint": "Une photo retirée ici reste dans les documents de l'objet.",

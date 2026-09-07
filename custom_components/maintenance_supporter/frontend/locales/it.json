@@ -695,6 +695,8 @@
   "completion_photos_optional": "Foto di completamento (facoltativo)",
   "completion_photos": "Foto di completamento",
   "choose_photos": "Scegli foto",
+  "choose_photo": "Scegli foto",
+  "photos_android_hint": "L'app Android passa una foto per selezione — ogni selezione viene aggiunta.",
   "add_photos": "Aggiungi foto",
   "photos_limit": "Fino a {max} foto per completamento",
   "history_edit_photos_hint": "Una foto rimossa qui resta nei documenti dell'oggetto.",

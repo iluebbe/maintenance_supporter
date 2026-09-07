@@ -701,6 +701,8 @@
   "completion_photos_optional": "Fotók az elvégzésről (nem kötelező)",
   "completion_photos": "Fotók az elvégzésről",
   "choose_photos": "Fotók kiválasztása",
+  "choose_photo": "Fotó kiválasztása",
+  "photos_android_hint": "Az Android-alkalmazás választásonként egy fotót ad át — minden választás hozzáadódik.",
   "add_photos": "Fotók hozzáadása",
   "photos_limit": "Legfeljebb {max} fotó elvégzésenként",
   "history_edit_photos_hint": "Az itt eltávolított fotó megmarad az objektum dokumentumai között.",

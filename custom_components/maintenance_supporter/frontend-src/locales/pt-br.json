@@ -701,6 +701,8 @@
   "completion_photos_optional": "Fotos de conclusão (opcional)",
   "completion_photos": "Fotos de conclusão",
   "choose_photos": "Escolher fotos",
+  "choose_photo": "Escolher foto",
+  "photos_android_hint": "O app Android entrega uma foto por seleção — cada seleção é adicionada.",
   "add_photos": "Adicionar fotos",
   "photos_limit": "Até {max} fotos por conclusão",
   "history_edit_photos_hint": "Uma foto removida aqui continua nos documentos do objeto.",

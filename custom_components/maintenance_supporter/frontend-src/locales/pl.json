@@ -695,6 +695,8 @@
   "completion_photos_optional": "Zdjęcia z wykonania (opcjonalnie)",
   "completion_photos": "Zdjęcia z wykonania",
   "choose_photos": "Wybierz zdjęcia",
+  "choose_photo": "Wybierz zdjęcie",
+  "photos_android_hint": "Aplikacja na Androida przekazuje jedno zdjęcie na wybór — każdy wybór jest dodawany.",
   "add_photos": "Dodaj zdjęcia",
   "photos_limit": "Maksymalnie {max} zdjęć na wykonanie",
   "history_edit_photos_hint": "Zdjęcie usunięte tutaj pozostaje w dokumentach obiektu.",

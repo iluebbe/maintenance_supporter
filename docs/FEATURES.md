@@ -357,7 +357,9 @@ quantity, forecast; just no charge level. Devices with **no battery level at
 all** (many Xiaomi/Aqara sensors) get no `battery_plus` from Battery Notes —
 only the type, quantity and last-replaced date — and still join the roster
 as **No sensor** rows: forecast from the type's typical lifetime, a
-*Replaced* action that records the swap in Battery Notes, and — because
+*Replaced* action that records the swap in Battery Notes (2.79+: that
+action sits on every Battery Notes row with a replaced button, low-only
+binary rows included), and — because
 nothing could ever report such a battery low — a **passed forecast counts
 as due** and fires the fleet task (switchable off in the roster's
 settings; batteries with a sensor are unaffected). Battery

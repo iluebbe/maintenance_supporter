@@ -695,6 +695,8 @@
   "completion_photos_optional": "完了写真（任意）",
   "completion_photos": "完了写真",
   "choose_photos": "写真を選択",
+  "choose_photo": "写真を選択",
+  "photos_android_hint": "Android アプリは1回の選択につき写真1枚を渡します。選択するたびに追加されます。",
   "add_photos": "写真を追加",
   "photos_limit": "1回の完了につき最大{max}枚",
   "history_edit_photos_hint": "ここで外した写真は対象のドキュメントに残ります。",

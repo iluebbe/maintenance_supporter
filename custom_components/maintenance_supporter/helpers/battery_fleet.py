@@ -205,6 +205,11 @@ class Battery:
     # Nothing can ever report "still fine": the forecast is the whole signal,
     # and (option, default on) a passed forecast makes it ``low``.
     no_sensor: bool = False
+    # D#162 follow-up: Battery Notes minted a replaced button for this note
+    # — the roster offers the per-row Replaced action. Decided in
+    # read_batteries for EVERY Battery Notes row (a low-only binary row has
+    # no level either and needs it just as much as a sensorless one).
+    can_mark_replaced: bool = False
 
 
 @dataclass
@@ -361,6 +366,7 @@ def _row(
         # D#162: no level source at all — the roster shows a "No sensor" chip
         # instead of a level bar, and the replaced button is the row's action.
         "no_sensor": bat.no_sensor,
+        "can_mark_replaced": bat.can_mark_replaced,
         "last_replaced": bat.last_replaced.isoformat() if bat.last_replaced else None,
     }
 
@@ -862,7 +868,22 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             pred = _predicted_date(bat)
             bat.low = pred is not None and pred < today
         out.append(bat)
+    for bat in out:
+        if bat.source == "battery_notes":
+            bat.can_mark_replaced = has_replaced_button(hass, bat.entity_id)
     return out
+
+
+def has_replaced_button(hass: HomeAssistant, entity_id: str) -> bool:
+    """Whether Battery Notes minted a replaced button for this note's row
+    (naming contract first, registry sibling second — the same lookup
+    :func:`battery_fleet_setup.async_mark_replaced` presses)."""
+    from .battery_fleet_setup import replaced_button_for
+
+    if hass.states.get(replaced_button_for(entity_id)) is not None:
+        return True
+    sibling = note_sibling_entity(hass, entity_id, domain="button", uid_suffix="_battery_replaced_button")
+    return sibling is not None and hass.states.get(sibling) is not None
 
 
 def battery_notes_summary(hass: HomeAssistant) -> dict[str, Any] | None:

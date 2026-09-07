@@ -701,6 +701,8 @@
   "completion_photos_optional": "Tamamlama fotoğrafları (isteğe bağlı)",
   "completion_photos": "Tamamlama fotoğrafları",
   "choose_photos": "Fotoğraf seç",
+  "choose_photo": "Fotoğraf seç",
+  "photos_android_hint": "Android uygulaması her seçimde bir fotoğraf iletir — her seçim eklenir.",
   "add_photos": "Fotoğraf ekle",
   "photos_limit": "Tamamlama başına en fazla {max} fotoğraf",
   "history_edit_photos_hint": "Burada kaldırılan fotoğraf nesnenin belgelerinde kalır.",

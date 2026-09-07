@@ -695,6 +695,8 @@
   "completion_photos_optional": "Fotos ved fuldførelse (valgfrit)",
   "completion_photos": "Fotos ved fuldførelse",
   "choose_photos": "Vælg fotos",
+  "choose_photo": "Vælg foto",
+  "photos_android_hint": "Android-appen afleverer ét foto pr. valg — hvert valg tilføjes.",
   "add_photos": "Tilføj fotos",
   "photos_limit": "Højst {max} fotos pr. fuldførelse",
   "history_edit_photos_hint": "Et foto, der fjernes her, bliver i objektets dokumenter.",

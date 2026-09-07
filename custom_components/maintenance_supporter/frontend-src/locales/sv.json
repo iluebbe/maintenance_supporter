@@ -695,6 +695,8 @@
   "completion_photos_optional": "Foton vid slutförande (valfritt)",
   "completion_photos": "Foton vid slutförande",
   "choose_photos": "Välj foton",
+  "choose_photo": "Välj foto",
+  "photos_android_hint": "Android-appen lämnar över ett foto per val — varje val läggs till.",
   "add_photos": "Lägg till foton",
   "photos_limit": "Högst {max} foton per slutförande",
   "history_edit_photos_hint": "Ett foto som tas bort här finns kvar bland objektets dokument.",

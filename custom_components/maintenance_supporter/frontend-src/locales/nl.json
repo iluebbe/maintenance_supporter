@@ -695,6 +695,8 @@
   "completion_photos_optional": "Foto's bij afronding (optioneel)",
   "completion_photos": "Foto's bij afronding",
   "choose_photos": "Foto's kiezen",
+  "choose_photo": "Foto kiezen",
+  "photos_android_hint": "De Android-app geeft één foto per keuze door — elke keuze wordt toegevoegd.",
   "add_photos": "Foto's toevoegen",
   "photos_limit": "Maximaal {max} foto's per afronding",
   "history_edit_photos_hint": "Een hier verwijderde foto blijft bewaard in de documenten van het object.",

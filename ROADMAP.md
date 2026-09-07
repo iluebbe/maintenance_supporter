@@ -607,6 +607,20 @@ promised): an optional HA entity per slot with `state_class:
 total_increasing` so manual water/gas/electricity readings feed the Energy
 dashboard, and a sparkline per slot.
 
+### 💡 Upstream: Android Companion drops multi-file picks (#161 follow-up)
+
+The Android Companion app returns NOTHING for `<input type="file" multiple>`:
+its file chooser (`frontend/filechooser/FileChooserEffect.kt`) hands the
+result back through `WebChromeClient.FileChooserParams.parseResult`, and
+Chromium's implementation only reads `intent.getData()` — a multi-select
+stores its URIs in `intent.clipData`, so the WebView gets `null`. Single
+picks work, iOS and browsers are unaffected. The complete dialog's gallery
+picker is single-select inside the Android app since 2.79 (one photo per
+pick, each pick added, with a hint). The real fix is upstream in
+home-assistant/android: collect `clipData` URIs in `parseResult`, fall back
+to `parseResult` otherwise (~10 lines). File an issue/PR there; once it
+ships, drop the Android fallback in `helpers/companion.ts`.
+
 ### 💡 State-change trigger: several From/To states per side (#167 follow-up)
 
 The from-only recovery gap is fixed (2.75): a single-transition latch with

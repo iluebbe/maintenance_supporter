@@ -178,6 +178,36 @@ describe("complete-dialog", () => {
   const CAMERA = '.photo-pick-camera input[type="file"]';
   const GALLERY = '.photo-pick-gallery input[type="file"]';
 
+  it("falls back to one photo per pick inside the Android Companion app (#161 follow-up)", async () => {
+    // The Android app's file chooser drops a multi-select on the floor
+    // (parseResult ignores ClipData) — the gallery picker is single there.
+    (window as unknown as { externalApp?: unknown }).externalApp = {};
+    try {
+      const { el } = await mount();
+      const gallery = el.shadowRoot!.querySelector<HTMLInputElement>(GALLERY)!;
+      expect(gallery.multiple, "no multi-select affordance on Android").to.equal(false);
+      expect(el.shadowRoot!.querySelector(".photo-pick-gallery span")!.textContent!.trim()).to.equal("Choose photo");
+      expect(el.shadowRoot!.querySelector(".photo-android-hint")!.textContent).to.contain("one photo per pick");
+      const { uploads, restore } = stubUpload(["p1", "p2"]);
+      try {
+        pickFiles(el, GALLERY, ["a.png"]);
+        await new Promise((r) => setTimeout(r, 10));
+        pickFiles(el, GALLERY, ["b.png"]);
+        await new Promise((r) => setTimeout(r, 20));
+        await el.updateComplete;
+        expect(uploads.length, "each single pick is added").to.equal(2);
+        expect(el.shadowRoot!.querySelectorAll(".photo-preview img").length).to.equal(2);
+      } finally {
+        restore();
+      }
+    } finally {
+      delete (window as unknown as { externalApp?: unknown }).externalApp;
+    }
+    const { el: plain } = await mount();
+    expect(plain.shadowRoot!.querySelector<HTMLInputElement>(GALLERY)!.multiple, "browsers keep multi-select").to.equal(true);
+    expect(plain.shadowRoot!.querySelector(".photo-android-hint")).to.equal(null);
+  });
+
   it("attaches the uploaded photos as photo_doc_ids (#161)", async () => {
     const { el, sent } = await mount();
     const { uploads, restore } = stubUpload(["doc-photo-1", "doc-photo-2", "doc-photo-3"]);

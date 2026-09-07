@@ -695,6 +695,8 @@
   "completion_photos_optional": "Фото виконання (необов'язково)",
   "completion_photos": "Фото виконання",
   "choose_photos": "Вибрати фото",
+  "choose_photo": "Вибрати фото",
+  "photos_android_hint": "Застосунок для Android передає по одному фото за вибір — кожен вибір додається.",
   "add_photos": "Додати фото",
   "photos_limit": "До {max} фото на одне виконання",
   "history_edit_photos_hint": "Видалене тут фото залишається в документах об'єкта.",

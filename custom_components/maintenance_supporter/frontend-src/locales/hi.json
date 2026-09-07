@@ -695,6 +695,8 @@
   "completion_photos_optional": "पूर्णता की तस्वीरें (वैकल्पिक)",
   "completion_photos": "पूर्णता की तस्वीरें",
   "choose_photos": "तस्वीरें चुनें",
+  "choose_photo": "फ़ोटो चुनें",
+  "photos_android_hint": "Android ऐप प्रति चयन एक फ़ोटो देता है — हर चयन जोड़ा जाता है।",
   "add_photos": "तस्वीरें जोड़ें",
   "photos_limit": "प्रति पूर्णता अधिकतम {max} तस्वीरें",
   "history_edit_photos_hint": "यहाँ हटाई गई तस्वीर ऑब्जेक्ट के दस्तावेज़ों में बनी रहती है।",

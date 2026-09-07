@@ -330,6 +330,20 @@ async def test_low_only_binary_note_supplies_the_type(hass):
     assert dict(discover_battery_types(hass))["LITHIUM 3-VOLT CR2"] == 1
 
 
+async def test_low_only_binary_note_offers_replaced_when_the_button_exists(hass):
+    # D#162 follow-up (maisun's 30 Xiaomi devices): a low-only binary row has
+    # no level either — once Battery Notes minted its replaced button, the
+    # roster gets the per-row Replaced action, exactly like a sensorless row.
+    _binary_note_device(hass, "bathroom_window", with_percent_sensor=False)
+    _set_note_binary(hass, "bathroom_window", "off")
+    assert read_batteries(hass)[0].can_mark_replaced is False
+    hass.states.async_set("button.bathroom_window_battery_replaced", "unknown", {})
+    bat = read_batteries(hass)[0]
+    assert bat.can_mark_replaced is True
+    row = build_overview([bat], today=date(2026, 9, 7), horizon_days=30).all[0]
+    assert row["can_mark_replaced"] is True and row["no_sensor"] is False
+
+
 async def test_low_only_binary_note_reports_low_when_on(hass):
     _binary_note_device(hass, "shed_lock", with_percent_sensor=False)
     _set_note_binary(hass, "shed_lock", "on")

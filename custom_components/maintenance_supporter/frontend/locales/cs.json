@@ -695,6 +695,8 @@
   "completion_photos_optional": "Fotky z dokončení (volitelné)",
   "completion_photos": "Fotky z dokončení",
   "choose_photos": "Vybrat fotky",
+  "choose_photo": "Vybrat fotku",
+  "photos_android_hint": "Aplikace pro Android předá jednu fotku na výběr — každý výběr se přidá.",
   "add_photos": "Přidat fotky",
   "photos_limit": "Nejvýše {max} fotek na dokončení",
   "history_edit_photos_hint": "Zde odebraná fotka zůstává v dokumentech objektu.",

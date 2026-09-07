@@ -701,6 +701,8 @@
   "completion_photos_optional": "Completion photos (optional)",
   "completion_photos": "Completion photos",
   "choose_photos": "Choose photos",
+  "choose_photo": "Choose photo",
+  "photos_android_hint": "The Android app hands over one photo per pick — each pick is added.",
   "add_photos": "Add photos",
   "photos_limit": "Up to {max} photos per completion",
   "history_edit_photos_hint": "Removing a photo here keeps the file in the object's documents.",

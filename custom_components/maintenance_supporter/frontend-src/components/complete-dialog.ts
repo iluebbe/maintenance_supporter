@@ -7,6 +7,7 @@ import { lastReadingBefore, type ReadingHistoryEntry } from "../helpers/reading-
 import { t, nativeFieldStyles, formatCost, formatNumber } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
+import { isAndroidCompanion } from "../helpers/companion";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import {
   MAX_COMPLETION_PHOTOS,
@@ -138,6 +139,12 @@ export class MaintenanceCompleteDialog extends LitElement {
   private _setFeedback(value: string): void {
     this._feedback = value;
   }
+
+  /** The Android Companion app answers a multi-select with an empty file
+   *  list (its chooser ignores the intent's ClipData — #161 follow-up), so
+   *  the gallery picker is single-select there and a hint says each pick
+   *  is added. Evaluated once per dialog; the host does not change. */
+  private readonly _singlePick = isAndroidCompanion();
 
   /** #161: both pickers (camera = one shot, gallery = multiple) land here.
    *  Files upload one after another so a slow connection still shows
@@ -523,12 +530,13 @@ export class MaintenanceCompleteDialog extends LitElement {
                   </label>
                   <label class="photo-pick photo-pick-gallery">
                     <ha-icon icon="mdi:image-multiple"></ha-icon>
-                    <span>${t("choose_photos", L)}</span>
-                    <input type="file" accept="image/*" multiple
+                    <span>${t(this._singlePick ? "choose_photo" : "choose_photos", L)}</span>
+                    <input type="file" accept="image/*" ?multiple=${!this._singlePick}
                       ?disabled=${this._photoUploading}
                       @change=${this._onPhotoInput} />
                   </label>
-                </div>`
+                </div>
+                ${this._singlePick ? html`<div class="photo-limit photo-android-hint">${t("photos_android_hint", L)}</div>` : nothing}`
               : html`<div class="photo-limit">${t("photos_limit", L).replace("{max}", String(MAX_COMPLETION_PHOTOS))}</div>`}
           </div>
           ${this.adaptiveEnabled ? html`
@@ -707,6 +715,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-size: 12px;
       color: var(--secondary-text-color);
     }
+    .photo-android-hint { margin-top: 4px; }
     .photo-preview {
       position: relative;
       width: fit-content;

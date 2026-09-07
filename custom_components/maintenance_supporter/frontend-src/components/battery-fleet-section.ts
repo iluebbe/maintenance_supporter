@@ -39,6 +39,8 @@ interface BatteryRow {
    *  all — read from its type sensor. No level bar, never offline; the
    *  forecast is the whole signal and (option) a passed one is `low`. */
   no_sensor?: boolean;
+  /** D#162 follow-up: the note has a replaced button → per-row Replaced action. */
+  can_mark_replaced?: boolean;
   /** ISO date the forecast anchors on (Battery Notes' last replaced). */
   last_replaced?: string | null;
 }
@@ -533,7 +535,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         ${this._sparkline(b)}
                         ${this._levelBar(b)}
                         ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
-                        ${b.no_sensor
+                        ${b.no_sensor || b.can_mark_replaced
                           ? html`<button
                               class="bf-mark bf-replaced"
                               title=${t("battery_fleet_mark_one", L)}

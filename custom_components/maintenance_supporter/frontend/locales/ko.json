@@ -701,6 +701,8 @@
   "completion_photos_optional": "완료 사진 (선택)",
   "completion_photos": "완료 사진",
   "choose_photos": "사진 선택",
+  "choose_photo": "사진 선택",
+  "photos_android_hint": "Android 앱은 선택할 때마다 사진 한 장씩 전달합니다. 선택할 때마다 추가됩니다.",
   "add_photos": "사진 추가",
   "photos_limit": "완료당 최대 {max}장",
   "history_edit_photos_hint": "여기서 제거한 사진은 대상의 문서에 그대로 남습니다.",

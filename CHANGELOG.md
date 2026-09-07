@@ -2,6 +2,26 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Photos from the gallery inside the Android Companion app** (#161
+  follow-up): picking several photos at once added nothing — the Android
+  app's file chooser returns an empty list for a multi-select (its
+  `parseResult` ignores the intent's ClipData; single picks and iOS are
+  fine). Inside the Android app the gallery picker is now single-select
+  and says so: one photo per pick, each pick is added, up to ten. The
+  upstream fix is on the roadmap.
+- **Battery fleet: Replaced action on every Battery Notes row**
+  (discussion #162 follow-up): the per-row Replaced button only showed on
+  sensorless notes. A note whose device reports a battery-low signal but
+  no level (the low-only binary rows, #121) has no level bar either and
+  needs the action just as much — it now appears on any Battery Notes
+  row whose replaced button exists (`can_mark_replaced` in the overview
+  rows). Pressing it records the swap in Battery Notes and consumes the
+  type's spare from the fleet's parts, as before.
+
 ## [2.78.0] - 2026-09-07
 
 ### ✨ Added

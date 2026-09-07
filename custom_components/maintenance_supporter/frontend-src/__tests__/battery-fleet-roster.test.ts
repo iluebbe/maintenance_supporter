@@ -492,6 +492,32 @@ describe("battery fleet sensorless notes (discussion #162)", () => {
     expect(call!.entity_ids).to.deep.equal(["sensor.hall_temp_battery_type"]);
   });
 
+  it("offers the Replaced action on any Battery Notes row that has a replaced button — a low-only binary row too (D#162 follow-up)", async () => {
+    // maisun's 30 Xiaomi devices: no level, but a Battery Notes low binary
+    // and a replaced button → same action as a sensorless row.
+    const LOW_ONLY = {
+      entity_id: "binary_sensor.bathroom_window_battery_plus_low", device_name: "Bathroom Window",
+      battery_type: "CR1632", quantity: 1, level: null, days_until: 0, forecast_overdue: true,
+      predicted_source: "typical", can_mark_replaced: true, last_replaced: "2024-01-01",
+    };
+    const { el, calls } = await mount(overview({
+      total: 2,
+      soon: [LOW_ONLY],
+      all: [{ ...LOW_ONLY, status: "soon" }, { ...LOW, status: "low" }],
+      types: ["AA", "CR1632"],
+    }));
+    await openRoster(el);
+    const r = roster(el)!;
+    const btn = rowOf(r, "Bathroom Window").querySelector<HTMLButtonElement>("button.bf-replaced")!;
+    expect(btn, "Replaced action on the low-only binary row").to.exist;
+    expect(rowOf(r, "Bathroom Window").querySelector(".bf-nosensor"), "not a No-sensor row").to.equal(null);
+    expect(rowOf(r, "Front Lock").querySelector("button.bf-replaced"), "no button reported → no action").to.equal(null);
+    btn.click();
+    await new Promise((r2) => setTimeout(r2, 0));
+    const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/mark_replaced");
+    expect(call!.entity_ids).to.deep.equal(["binary_sensor.bathroom_window_battery_plus_low"]);
+  });
+
   it("renders the due-without-sensor toggle ON by default (absent field = on) and sends the opt-out", async () => {
     const toggle = (e: MaintenanceBatteryFleetSection) =>
       roster(e)!.querySelector<HTMLInputElement>(".bf-due-nosensor input");
