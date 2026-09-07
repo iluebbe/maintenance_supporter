@@ -369,7 +369,7 @@ async def _send_test_to(
 ) -> str:
     """Send the test payload to every resolved service; "success" if any went."""
     try:
-        from .helpers.notification_manager import async_dispatch_notify
+        from .helpers.notify_hooks import KIND_TEST, async_emit_and_dispatch, notification_context
 
         push_msg = _get_test_result_text(hass, "push_message")
         service_data: dict[str, Any] = {
@@ -389,9 +389,12 @@ async def _send_test_to(
                 test_actions.append({"action": "MS_TEST_SNOOZE", "title": "\U0001f4a4 Snooze"})
             service_data["data"] = {"actions": test_actions}
         # Dual-path: legacy notify service OR notify entity (send_message).
+        # #165: the test walks the same hook as a real notification, so the
+        # event and the extra-data template can be verified from Settings.
+        context = notification_context(hass, KIND_TEST)
         sent_any = False
         for service in services:
-            if await async_dispatch_notify(hass, service, service_data, blocking=True):
+            if await async_emit_and_dispatch(hass, service, service_data, context, blocking=True):
                 sent_any = True
         return "success" if sent_any else "failed"
     except Exception:  # noqa: BLE001 - any failure mode reports "failed" to the UI

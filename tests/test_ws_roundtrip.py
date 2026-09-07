@@ -751,6 +751,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # sorted descending), so provide it already in canonical form.
     "reminder_lead_days": [14, 3, 0],
     "notify_scope_view_id": "view123",
+    "notify_event_only": True,
+    "notify_extra_data": '{"category": "maintenance"}',
     "budget_monthly": 42.50,
     "budget_yearly": 500.0,
     "budget_alerts_enabled": True,
@@ -829,6 +831,8 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "notification_title_style": settings["notifications"]["title_style"],
         "reminder_lead_days": settings["notifications"]["reminder_lead_days"],
         "notify_scope_view_id": settings["notifications"]["scope_view_id"],
+        "notify_event_only": settings["notifications"]["event_only"],
+        "notify_extra_data": settings["notifications"]["extra_data"],
         "action_complete_enabled": settings["actions"]["complete_enabled"],
         "action_skip_enabled": settings["actions"]["skip_enabled"],
         "action_snooze_enabled": settings["actions"]["snooze_enabled"],

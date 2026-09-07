@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Your own notification rule** (#165): every notification the
+  integration is about to send now also fires
+  `maintenance_supporter_notification` — kind, status, object and task
+  with their reference numbers, priority, due data, the notify target,
+  title, message and the payload — so an automation can route it into a
+  hub such as Ticker or straight to Telegram / Pushover. Two settings
+  under Notifications: *Only fire the event, send nothing myself* hands
+  delivery to your automation (intervals, quiet hours and the daily cap
+  still gate the event), and *Extra notification data (template)* —
+  JSON/YAML with Jinja over the same variables — is merged into every
+  notify call's `data` (your keys win): a Ticker `category`, a Pushover
+  `priority`, a Telegram `parse_mode`, without an option per notifier.
+  The Settings *Send test* walks the same path.
+
 ## [2.79.0] - 2026-09-07
 
 ### ✨ Added

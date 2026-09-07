@@ -77,6 +77,9 @@ interface SettingsResponse {
     bundle_threshold: number;
     reminder_lead_days: number[];
     scope_view_id: string;
+    /** #165: your own notification rule — event-only delivery + extra-data template. */
+    event_only?: boolean;
+    extra_data?: string;
   };
   actions: {
     complete_enabled: boolean;
@@ -967,6 +970,23 @@ export class MaintenanceSettingsView extends LitElement {
           </select>
         </label>
         <div class="setting-hint">${t("settings_notify_scope_hint", L)}</div>
+
+        <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_notify_rule", L)}</h4>
+        <div class="setting-hint">${t("settings_notify_rule_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_notify_event_only", L)}</span>
+          <input type="checkbox" .checked=${!!n.event_only}
+            @change=${(e: Event) => this._updateSetting("notify_event_only", (e.target as HTMLInputElement).checked)} />
+        </label>
+        <div class="setting-hint">${t("settings_notify_event_only_hint", L)}</div>
+        <label class="setting-row setting-row-block">
+          <span class="setting-label">${t("settings_notify_extra_data", L)}</span>
+          <textarea class="import-area notify-extra" .value=${live(n.extra_data || "")} maxlength="2000" spellcheck="false"
+            placeholder=${'{"category": "maintenance", "critical": {{ priority == "high" }}, "navigate_to": "{{ url }}"}'}
+            @change=${(e: Event) => this._updateSetting("notify_extra_data", (e.target as HTMLTextAreaElement).value)}
+          ></textarea>
+        </label>
+        <div class="setting-hint">${t("settings_notify_extra_data_hint", L)}</div>
 
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_actions", L)}</h4>
         <label class="setting-row">
@@ -2026,6 +2046,8 @@ export class MaintenanceSettingsView extends LitElement {
 
     .import-section { margin-top: 16px; }
 
+    .setting-row-block { flex-direction: column; align-items: stretch; gap: 6px; }
+    .notify-extra { min-height: 72px; font-family: var(--code-font-family, monospace); font-size: 12.5px; }
     .import-area {
       width: 100%;
       min-height: 120px;

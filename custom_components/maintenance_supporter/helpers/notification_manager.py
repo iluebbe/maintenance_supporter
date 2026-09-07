@@ -38,6 +38,16 @@ from ..const import (
 )
 from .global_options import get_global_options
 from .i18n import normalize_language
+from .notify_hooks import (
+    KIND_BUDGET,
+    KIND_BUNDLE,
+    KIND_DIGEST,
+    KIND_LEAD_TIME,
+    KIND_STATUS,
+    KIND_WARRANTY,
+    async_emit_and_dispatch,
+    notification_context,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -768,6 +778,7 @@ class NotificationManager:
         message: str,
         entry_id: str,
         task_id: str,
+        context: Mapping[str, Any],
     ) -> bool:
         """Resolve targets (per-user services, else the global service) and
         fan the notification out; True when at least one send succeeded.
@@ -804,6 +815,7 @@ class NotificationManager:
                 message=message,
                 entry_id=entry_id,
                 task_id=task_id,
+                context=context,
             ):
                 success = True
         return success
@@ -1045,12 +1057,25 @@ class NotificationManager:
         lang = self._lang
         title, message = self._build_message(new_status, lang, task_name, object_name, days_until_due, next_due)
 
+        context = notification_context(
+            self.hass,
+            KIND_STATUS,
+            status=new_status,
+            entry_id=entry_id,
+            task_id=task_id,
+            task_name=task_name,
+            object_name=object_name,
+            days_until_due=days_until_due,
+            next_due=next_due,
+            responsible_user_id=responsible_user_id,
+        )
         if not await self._resolve_and_send(
             responsible_user_id,
             title=title,
             message=message,
             entry_id=entry_id,
             task_id=task_id,
+            context=context,
         ):
             return
 
@@ -1122,6 +1147,7 @@ class NotificationManager:
         message: str,
         entry_id: str,
         task_id: str,
+        context: Mapping[str, Any] | None = None,
     ) -> bool:
         """Send notification via specific service, optionally with action buttons.
 
@@ -1171,8 +1197,10 @@ class NotificationManager:
         if actions:
             service_data["data"]["actions"] = actions[:3]  # Android supports max 3
 
+        if context is None:
+            context = notification_context(self.hass, KIND_STATUS, entry_id=entry_id, task_id=task_id)
         try:
-            return await async_dispatch_notify(self.hass, service, service_data)
+            return await async_emit_and_dispatch(self.hass, service, service_data, context)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send notification to %s", service)
             return False
@@ -1227,8 +1255,18 @@ class NotificationManager:
             url=f"/maintenance-supporter?entry_id={entry_id}",
         )
 
+        context = notification_context(
+            self.hass,
+            KIND_BUNDLE,
+            entry_id=entry_id,
+            object_name=object_name,
+            tasks=[
+                {"task_id": t.get("task_id"), "task_name": t.get("task_name"), "status": t.get("status")}
+                for t in tasks
+            ],
+        )
         try:
-            if await async_dispatch_notify(self.hass, self.notify_service, service_data):
+            if await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context):
                 self._last_notified[bundle_key] = dt_util.now()
                 self._daily_count += 1
                 _LOGGER.debug("Bundled notification sent: %s - %s", title, message)
@@ -1252,8 +1290,9 @@ class NotificationManager:
             _notif_t("digest_message", lang, overdue=str(overdue), due_soon=str(due_soon)),
             tag="maintenance_weekly_digest",
         )
+        context = notification_context(self.hass, KIND_DIGEST, overdue=overdue, due_soon=due_soon)
         try:
-            await async_dispatch_notify(self.hass, self.notify_service, service_data)
+            await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
             _LOGGER.debug("Weekly digest sent: %s overdue, %s due soon", overdue, due_soon)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send weekly digest")
@@ -1278,8 +1317,9 @@ class NotificationManager:
             ),
             tag="maintenance_warranty_reminder",
         )
+        context = notification_context(self.hass, KIND_WARRANTY, names=list(names), days=days)
         try:
-            await async_dispatch_notify(self.hass, self.notify_service, service_data)
+            await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
             _LOGGER.debug("Warranty reminder sent: %s object(s)", len(names))
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send warranty reminder")
@@ -1330,12 +1370,25 @@ class NotificationManager:
             due=next_due if next_due is not None else "?",
         )
 
+        context = notification_context(
+            self.hass,
+            KIND_LEAD_TIME,
+            status="due_soon",
+            entry_id=entry_id,
+            task_id=task_id,
+            task_name=task_name,
+            object_name=object_name,
+            days_until_due=days,
+            next_due=next_due,
+            responsible_user_id=responsible_user_id,
+        )
         if await self._resolve_and_send(
             responsible_user_id,
             title=title,
             message=message,
             entry_id=entry_id,
             task_id=task_id,
+            context=context,
         ):
             self._daily_count += 1
             _LOGGER.debug("Lead reminder sent: %s due in %s day(s)", task_name, days)
@@ -1376,8 +1429,9 @@ class NotificationManager:
 
         service_data = _service_payload(title, message, tag=f"maintenance_budget_{period}")
 
+        context = notification_context(self.hass, KIND_BUDGET, period=period, spent=spent, budget=budget, percent=pct)
         try:
-            if await async_dispatch_notify(self.hass, self.notify_service, service_data):
+            if await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context):
                 self._last_notified[budget_key] = dt_util.now()
                 self._daily_count += 1
                 _LOGGER.debug("Budget alert sent: %s - %s", title, message)

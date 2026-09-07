@@ -53,6 +53,8 @@ from ..const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
+    CONF_NOTIFY_EVENT_ONLY,
+    CONF_NOTIFY_EXTRA_DATA,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SCOPE_VIEW_ID,
@@ -74,6 +76,7 @@ from ..const import (
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
+    MAX_NOTIFY_EXTRA_DATA_LENGTH,
 )
 
 
@@ -151,6 +154,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # title_style is enum-validated by a bespoke rule in the handler.
     SettingSpec(CONF_NOTIFICATION_TITLE_STYLE, str),
     SettingSpec(CONF_NOTIFY_SCOPE_VIEW_ID, str, max_len=64),
+    # #165: your own notification rule
+    SettingSpec(CONF_NOTIFY_EVENT_ONLY, bool),
+    SettingSpec(CONF_NOTIFY_EXTRA_DATA, str, max_len=MAX_NOTIFY_EXTRA_DATA_LENGTH),
     # Actions
     SettingSpec(CONF_ACTION_COMPLETE_ENABLED, bool),
     SettingSpec(CONF_ACTION_SKIP_ENABLED, bool),

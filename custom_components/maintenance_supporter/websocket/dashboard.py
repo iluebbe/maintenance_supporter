@@ -48,6 +48,8 @@ from ..const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
+    CONF_NOTIFY_EVENT_ONLY,
+    CONF_NOTIFY_EXTRA_DATA,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SCOPE_VIEW_ID,
@@ -208,6 +210,10 @@ def _build_full_settings(
             # v2.26: notification routing — saved-view id scoping which
             # tasks may notify ("" = all tasks).
             "scope_view_id": options.get(CONF_NOTIFY_SCOPE_VIEW_ID, ""),
+            # #165: your own notification rule — event-only delivery and the
+            # extra-data template merged into every notify payload.
+            "event_only": options.get(CONF_NOTIFY_EVENT_ONLY, False),
+            "extra_data": options.get(CONF_NOTIFY_EXTRA_DATA, ""),
         },
         "actions": {
             "complete_enabled": options.get(CONF_ACTION_COMPLETE_ENABLED, False),

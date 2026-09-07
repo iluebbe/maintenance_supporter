@@ -516,6 +516,13 @@ values dropped. Keys relevant to setup:
 - `shopping_list_entity` (str; a `todo.*` entity id, `""` = off) — 2.67: mirrors
   the auto buy reminders into that to-do list; check-off completes + restocks
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
+- `notify_event_only` (bool; 2.80, #165) — fire `maintenance_supporter_notification`
+  and send nothing (an automation delivers); `notify_extra_data` (str ≤ 2000;
+  JSON/YAML with Jinja over kind/status/priority/object_name/task_name/
+  object_ref/task_ref/days_until_due/next_due/url/target/title/message) —
+  merged into every notify call's `data`, the user's keys win. The event
+  fires for EVERY send (status, lead_time, bundle, digest, warranty, budget,
+  test) with the same fields plus `target`, `title`, `message`, `data`.
 - `notify_{due_soon,overdue,triggered}_enabled` (bool) + `_interval_hours` (0..720)
 - `quiet_hours_enabled`, `quiet_hours_start`/`end` ("HH:MM")
 - `budget_monthly`/`budget_yearly` (float), `budget_currency` (EUR,USD,GBP,…),

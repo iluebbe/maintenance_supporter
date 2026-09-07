@@ -164,6 +164,34 @@ After 30 days another automation flips the same light to red — and now your ph
 
 #### Pure event-driven — for power users who prefer YAML automations
 
+### Route notifications yourself (Ticker, Telegram, Pushover …)
+
+Every notification the integration sends also fires `maintenance_supporter_notification` (2.80+, #165). Switch on *Settings → Notifications → Only fire the event, send nothing myself* and let an automation deliver — here into [Ticker](https://github.com/analytix-energy-solutions/ticker), with the task's priority deciding the category:
+
+```yaml
+automation:
+  - alias: Maintenance → Ticker
+    triggers:
+      - trigger: event
+        event_type: maintenance_supporter_notification
+    actions:
+      - action: ticker.notify
+        data:
+          category: "{{ 'urgent' if trigger.event.data.priority == 'high' else 'maintenance' }}"
+          title: "{{ trigger.event.data.title }}"
+          message: "{{ trigger.event.data.message }} (#{{ trigger.event.data.task_ref }})"
+          critical: "{{ trigger.event.data.status == 'overdue' }}"
+          navigate_to: "{{ trigger.event.data.url }}"
+```
+
+If you would rather keep the integration's own sending and only add fields, use *Extra notification data (template)* instead — it is merged into every notify call's `data`:
+
+```jinja
+{"category": "maintenance", "critical": {{ priority == "high" }}, "navigate_to": "{{ url }}"}
+```
+
+### Completion automations without on_complete_action
+
 You don't *have* to set `on_complete_action`. Every completion (panel button, complete-QR, quick-complete-QR, mobile action) fires the integration event `maintenance_supporter_task_completed`. Wire your own automation:
 
 ```yaml

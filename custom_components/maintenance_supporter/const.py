@@ -278,6 +278,13 @@ CONF_NOTIFICATION_TITLE_STYLE = "notification_title_style"
 # MATCHING that view's task-selecting filters (label + responsible user) send
 # reminders. "" = no scope (all tasks). See helpers/saved_views.view_matches_task.
 CONF_NOTIFY_SCOPE_VIEW_ID = "notify_scope_view_id"
+# #165: your own notification rule — fire the event and send nothing
+# yourself (an automation routes), and/or merge template-rendered extra
+# keys into every notify payload's `data` (Ticker category, Pushover
+# priority, Telegram parse_mode …).
+CONF_NOTIFY_EVENT_ONLY = "notify_event_only"
+CONF_NOTIFY_EXTRA_DATA = "notify_extra_data"
+MAX_NOTIFY_EXTRA_DATA_LENGTH = 2000
 NOTIFICATION_TITLE_STYLES = ("default", "object_name", "task_name")
 
 # --- Config Keys: Notification Actions ---
@@ -589,6 +596,9 @@ EVENT_TRIGGER_DEACTIVATED = f"{DOMAIN}_trigger_deactivated"
 # state mutation has persisted. Power users wire HA automations on these;
 # the integration's own action_listener also subscribes to the COMPLETED
 # event to dispatch the per-task on_complete_action service-call.
+# #165: one event per notification the integration is about to send —
+# the hook for user-written routing (see helpers/notify_hooks.py).
+EVENT_NOTIFICATION = f"{DOMAIN}_notification"
 EVENT_TASK_COMPLETED = f"{DOMAIN}_task_completed"
 EVENT_TASK_SKIPPED = f"{DOMAIN}_task_skipped"
 EVENT_TASK_RESET = f"{DOMAIN}_task_reset"
