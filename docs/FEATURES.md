@@ -739,7 +739,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 ![Global search: a manual found by its contents, with page and snippet](images/search.png)
 
 ### Documents & manuals (2.11.0+)
-- **Attach files to any object** — PDFs, manuals, photos, receipts, spare-part lists. Stored **backup-safe under `/config`** (so they ride along in every Home Assistant backup) and **content-addressed with reference counting**, so uploading the same file to several objects keeps a single shared copy — a hint tells you when an upload deduped and cost no extra space
+- **Attach files to any object** — PDFs, manuals, photos, receipts, spare-part lists. Stored **backup-safe under `/config`** (so they ride along in every Home Assistant backup) and **content-addressed with reference counting**, so uploading the same file to several objects keeps a single shared copy — a hint tells you when an upload deduped and cost no extra space. The full-text search's extracted text (2.78+) sits next to the files under `maintenance_supporter/docs/text/` — same backup scope, removed with the file
 - **Categories + tags** — file each document as *Manual / Warranty / Invoice / Spare parts / Photo / Other* (localized) plus optional free tags, driving filtering and the storage-by-category breakdown
 - **Open in place** — click a document to open it: images pop into an in-app lightbox, PDFs and other files open inline in a new tab; image documents show a thumbnail in the list. Separate download button, and inline **edit** of title/category
 - **Fast capture** — multi-file upload, drag & drop onto the object, and **camera capture** on mobile; optional **web-links** (zero storage, not part of the backup) for manuals that live online

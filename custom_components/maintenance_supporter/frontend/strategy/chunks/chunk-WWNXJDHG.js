@@ -1,5 +1,5 @@
-/*! maintenance_supporter frontend 2.77.0 */
-import{a as t}from"./chunk-TJO7LSBV.js";function e(o){let r=window;r.customCards=r.customCards||[],r.customCards.some(a=>a.type===o.type)||r.customCards.push(o)}var d=t`
+/*! maintenance_supporter frontend 2.78.0 */
+import{a as t}from"./chunk-DGX7TTAE.js";function e(o){let r=window;r.customCards=r.customCards||[],r.customCards.some(a=>a.type===o.type)||r.customCards.push(o)}var d=t`
   ha-card { overflow: hidden; }
   .card-content {
     padding: 16px;

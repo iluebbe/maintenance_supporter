@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.77.0 | 228 source files (137 Python + 91 TypeScript) | **98% test coverage** (3,735 backend tests + 718 frontend tests)
+**Version:** 2.78.0 | 232 source files (139 Python + 93 TypeScript) | **98% test coverage** (3,761 backend tests + 736 frontend tests)
 
 ---
 
@@ -246,7 +246,7 @@ custom_components/maintenance_supporter/
 │   ├── dashboard.py               (699 lines)  subscribe, statistics, settings, schedule/preview, budget, global update/test (7)
 │   ├── vacation.py                (234 lines)  Vacation-mode CRUD (4)
 │   ├── parts.py                   (253 lines)  Spare-parts CRUD + restock (4)
-│   ├── documents.py               (251 lines)  Document metadata list/add/update/delete/search/storage (6)
+│   ├── documents.py               (372 lines)  Document metadata list/add/update/delete/search/storage + global `search` (7)
 │   ├── problem_sensors.py         (174 lines)  Discover + adopt HA `device_class: problem` sensors (2)
 │   ├── saved_views.py             (101 lines)  Saved panel-filter views (3)
 │   ├── battery_fleet.py           (120 lines)  overview / setup / mark_replaced / set_excluded (4)
@@ -333,7 +333,9 @@ custom_components/maintenance_supporter/
 │   ├── interval_analyzer.py       (687 lines)  EWA + Weibull + seasonal analysis (pure Python)
 │   ├── schedule.py                (643 lines)  Schedule value object (discriminated-union recurrence) + adapters
 │   ├── sensor_predictor.py        (637 lines)  Degradation + environmental correlation
-│   ├── documents.py               (546 lines)  Content-addressed manual/PDF storage + web links
+│   ├── documents.py               (641 lines)  Content-addressed manual/PDF storage + web links
+│   ├── document_text.py           (446 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
+│   ├── search_match.py            (212 lines)  Tolerant matcher (fold, digraph variants, one-edit typos, AND rule) — TS twin in the panel
 │   ├── battery_fleet.py           (478 lines)  Battery Notes aggregation, native-battery fallback, forecast
 │   ├── parts.py                   (487 lines)  Spare-parts rules: GTIN, stock transitions, buy-task reconciler
 │   ├── shared_parts.py            (218 lines)  Pools shared across objects (#111): borrower lookup, owner-deletion transfer
