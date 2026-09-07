@@ -469,6 +469,14 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     doc_store.text_index = text_index
     hass.data[DOMAIN][DOCUMENT_TEXT_INDEX_KEY] = text_index
 
+    # Reference numbers (#170): the object-level counter lives in its own
+    # small Store; objects are numbered when their entry is set up.
+    from .helpers.reference_numbers import REFERENCE_NUMBERS_KEY, ReferenceNumbers
+
+    reference_numbers = ReferenceNumbers(hass)
+    await reference_numbers.async_load()
+    hass.data[DOMAIN][REFERENCE_NUMBERS_KEY] = reference_numbers
+
 
     # Authenticated upload + serve endpoints for document blobs (the blobs live
     # under /config, so they must never be exposed via an unauthenticated path).
@@ -1582,6 +1590,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
             if retranslate_seeded_texts(hass, entry, normalize_language(hass)):
                 _LOGGER.info("Retranslated the battery fleet's seeded texts for %s", entry.title)
+
+        # #170: give this object (and any other still unnumbered one) its
+        # reference number before the first refresh numbers the tasks.
+        from .helpers.reference_numbers import REFERENCE_NUMBERS_KEY, ReferenceNumbers
+
+        reference_numbers = hass.data[DOMAIN].get(REFERENCE_NUMBERS_KEY)
+        if isinstance(reference_numbers, ReferenceNumbers):
+            await reference_numbers.async_assign_objects()
 
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)

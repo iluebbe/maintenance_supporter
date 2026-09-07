@@ -280,6 +280,25 @@ _GLOBAL_SEARCH_MAX = 20
 _HISTORY_NOTE_MAX = 4000
 
 
+def _history_hit(entry_id: str, task_id: str, td: dict[str, Any], object_name: str, h: dict[str, Any], *, score: int) -> dict[str, Any]:
+    """One history hit of the global search; ``ref`` is the completion's
+    reference ("8.3-2", #170) when the object, task and entry all carry one."""
+    from ..helpers.reference_numbers import format_entry_ref
+
+    obj_ref = td.get("_object_ref")
+    return {
+        "entry_id": entry_id,
+        "task_id": task_id,
+        "task_name": str(td.get("name") or ""),
+        "object_name": object_name,
+        "timestamp": h.get("timestamp"),
+        "type": h.get("type"),
+        "ref": format_entry_ref(obj_ref, td.get("ref_no"), h.get("ref_no")),
+        "snippet": "",
+        "score": score,
+    }
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/search",
@@ -302,9 +321,33 @@ async def ws_search(
     first, ``limit`` each.
     """
     from ..helpers.aggregate import merged_tasks, object_name
+    from ..helpers.reference_numbers import parse_ref
 
-    tokens = query_tokens(msg["query"])
+    query = msg["query"]
     limit = max(1, min(int(msg.get("limit", 8)), _GLOBAL_SEARCH_MAX))
+
+    # A typed reference ("8.3-2", #170) names ONE completion — answer with
+    # exactly that entry; objects and tasks by reference the panel resolves
+    # from its own data.
+    parsed = parse_ref(query)
+    if parsed is not None and parsed[2] is not None:
+        obj_ref, task_ref, entry_ref = parsed
+        for entry in _get_object_entries(hass):
+            if (entry.data.get(CONF_OBJECT) or {}).get("ref_no") != obj_ref:
+                continue
+            for tid, td in merged_tasks(entry).items():
+                if td.get("ref_no") != task_ref:
+                    continue
+                for h in td.get("history") or []:
+                    if isinstance(h, dict) and h.get("ref_no") == entry_ref:
+                        hit = _history_hit(entry.entry_id, tid, {**td, "_object_ref": obj_ref}, object_name(entry), h, score=1000)
+                        hit["snippet"] = " ".join(str(h.get("notes") or "").split())[:160]
+                        connection.send_result(msg["id"], {"documents": [], "history": [hit]})
+                        return
+        connection.send_result(msg["id"], {"documents": [], "history": []})
+        return
+
+    tokens = query_tokens(query)
     if not tokens:
         connection.send_result(msg["id"], {"documents": [], "history": []})
         return
@@ -345,7 +388,9 @@ async def ws_search(
     history: list[dict[str, Any]] = []
     for entry in _get_object_entries(hass):
         oname = object_name(entry)
+        obj_ref = (entry.data.get(CONF_OBJECT) or {}).get("ref_no")
         for tid, td in merged_tasks(entry).items():
+            td = {**td, "_object_ref": obj_ref}
             for h in td.get("history") or []:
                 notes = h.get("notes") if isinstance(h, dict) else None
                 if not isinstance(notes, str) or not notes.strip():
@@ -354,18 +399,9 @@ async def ws_search(
                 if score <= 0:
                     continue
                 piece, _at = snippet(notes, tokens[0][0], radius=60)
-                history.append(
-                    {
-                        "entry_id": entry.entry_id,
-                        "task_id": tid,
-                        "task_name": str(td.get("name") or ""),
-                        "object_name": oname,
-                        "timestamp": h.get("timestamp"),
-                        "type": h.get("type"),
-                        "snippet": piece or " ".join(notes.split())[:160],
-                        "score": score,
-                    }
-                )
+                hit = _history_hit(entry.entry_id, tid, td, oname, h, score=score)
+                hit["snippet"] = piece or " ".join(notes.split())[:160]
+                history.append(hit)
     # Best first; equal scores newest first (two stable sorts).
     history.sort(key=lambda h: str(h.get("timestamp") or ""), reverse=True)
     history.sort(key=lambda h: -h["score"])

@@ -204,6 +204,7 @@ MAX_ADOPTED_NOTES = 100
 # these; the WS update handler drops anything outside this set.
 KNOWN_OBJECT_TABLE_COLUMNS = [
     "name",
+    "ref_no",  # #170 reference number — opt-in column
     "manufacturer",
     "model",
     "serial_number",

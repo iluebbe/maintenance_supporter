@@ -133,7 +133,7 @@ try {
   // Printable service record opens as a popup with content + total.
   const [popup] = await Promise.all([
     page.waitForEvent("popup", { timeout: 15000 }),
-    page.evaluate(() => {
+    page.evaluate(async () => {
       const sr = (el) => el && el.shadowRoot;
       const st = [document.documentElement]; let sec = null; let n = 0;
       while (st.length && n++ < 5000) {
@@ -142,7 +142,17 @@ try {
         const r = sr(el); if (r) st.push(...r.querySelectorAll("*"));
         else if (el.children) st.push(...el.children);
       }
+      // 2.79 (#170): the button opens the print options — pick the by-task
+      // layout with QR codes for the docs shot, then Print.
       sr(sec).querySelector(".print-btn").click();
+      await sec.updateComplete;
+      sr(sec).querySelector('input[value="by_task"]').click();
+      await sec.updateComplete;
+      const boxes = [...sr(sec).querySelectorAll(".print-options input[type=checkbox]")];
+      const qr = boxes[boxes.length - 1];
+      if (!qr.checked) qr.click();
+      await sec.updateComplete;
+      sr(sec).querySelector(".po-print").click();
     }),
   ]);
   await popup.waitForLoadState("domcontentloaded");

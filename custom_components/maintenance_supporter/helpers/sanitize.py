@@ -116,7 +116,17 @@ _FRESH_COPY_STRIP_KEYS = (
     "adaptive_config",
     "archived_at",
     "archived_reason",
+    # #170: a copy is a new task — it gets its own reference number.
+    "ref_no",
 )
+
+
+def strip_object_reference(obj: dict[str, Any]) -> dict[str, Any]:
+    """A copied / successor object is a new object (#170): drop the reference
+    number and the task counter so the setup pass numbers it afresh."""
+    obj.pop("ref_no", None)
+    obj.pop("next_task_ref", None)
+    return obj
 
 
 def strip_task_runtime_state(task: dict[str, Any]) -> dict[str, Any]:
@@ -163,6 +173,12 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
         else:
             lo, hi = EARLIEST_COMPLETION_RANGE
             task_data["earliest_completion_days"] = max(lo, min(ecd, hi))
+
+    # #170: a reference number is a positive int or nothing — junk from a
+    # hand-edited backup must not poison the counters.
+    ref = task_data.get("ref_no")
+    if ref is not None and (not isinstance(ref, int) or isinstance(ref, bool) or ref < 1):
+        task_data.pop("ref_no", None)
 
     cl = task_data.get("checklist")
     if cl is not None:

@@ -43,6 +43,11 @@ class MaintenanceObject:
     predecessor_entry_id: str | None = None
     replaced_by_entry_id: str | None = None
     task_ids: list[str] = field(default_factory=list)
+    # #170: human-readable reference number ("8") — assigned once by
+    # helpers.reference_numbers, never reused; next_task_ref is the object's
+    # high-water mark for its tasks' numbers ("8.3").
+    ref_no: int | None = None
+    next_task_ref: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary for config entry storage."""
@@ -64,6 +69,8 @@ class MaintenanceObject:
             "predecessor_entry_id": self.predecessor_entry_id,
             "replaced_by_entry_id": self.replaced_by_entry_id,
             "task_ids": self.task_ids,
+            **({"ref_no": self.ref_no} if self.ref_no is not None else {}),
+            **({"next_task_ref": self.next_task_ref} if self.next_task_ref is not None else {}),
         }
 
     @classmethod
@@ -87,6 +94,8 @@ class MaintenanceObject:
             predecessor_entry_id=data.get("predecessor_entry_id"),
             replaced_by_entry_id=data.get("replaced_by_entry_id"),
             task_ids=data.get("task_ids", []),
+            ref_no=data.get("ref_no"),
+            next_task_ref=data.get("next_task_ref"),
         )
 
     @property

@@ -66,6 +66,8 @@ const EDITABLE: Record<string, string> = {
 
 const READONLY = new Set([
   "id",
+  // #170: reference number ("8.3") — assigned by the backend, never edited.
+  "ref_no",
   // Payload diet: total history entries beyond the truncated list window —
   // pure summary info; the detail fetches the full record via task/history.
   "history_count",

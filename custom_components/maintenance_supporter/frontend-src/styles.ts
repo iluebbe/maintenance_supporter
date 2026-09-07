@@ -487,8 +487,19 @@ export const personStyles = css`
   .person-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 `;
 
+/** #170: the muted reference-number chip ("#8.3") — shared by every surface. */
+export const refStyles = css`
+  .ref-chip {
+    display: inline-block; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 3px 6px;
+    border-radius: 6px; border: 1px solid var(--divider-color); color: var(--secondary-text-color);
+    font-variant-numeric: tabular-nums; letter-spacing: .02em; vertical-align: middle; white-space: nowrap;
+    user-select: all;
+  }
+`;
+
 export const sharedStyles = css`
   ${personStyles}
+  ${refStyles}
   :host {
     --maint-ok-color: var(--success-color, #4caf50);
     --maint-due-soon-color: var(--warning-color, #ff9800);

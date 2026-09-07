@@ -61,6 +61,8 @@ export function buildTaskWorksheetHtml(
   excerpt: WorksheetExcerpt | null,
   nowIso: string,
   partsLines: string[] = [],
+  /** #170: the task's reference ("8.3") — printed next to the title. */
+  taskRef: string | null = null,
 ): string {
   const meta: Array<[string, string]> = [
     [L.object, esc(objectName)],
@@ -97,6 +99,7 @@ export function buildTaskWorksheetHtml(
   header { display: flex; justify-content: space-between; align-items: flex-start;
            border-bottom: 3px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
   h1 { font-size: 22px; margin: 0 0 2px; }
+  h1 .ref { font-size: 12px; font-weight: 500; color: #555; border: 1px solid #ccc; border-radius: 5px; padding: 1px 6px; vertical-align: middle; font-variant-numeric: tabular-nums; }
   .obj { font-size: 14px; color: #444; }
   .qr-row { display: flex; gap: 18px; }
   .qr { margin: 0; text-align: center; }
@@ -123,7 +126,7 @@ export function buildTaskWorksheetHtml(
 <body>
   <header>
     <div>
-      <h1>${esc(task.name)}</h1>
+      <h1>${esc(task.name)}${taskRef ? ` <span class="ref">#${esc(taskRef)}</span>` : ""}</h1>
       <div class="obj">${esc(objectName)}</div>
     </div>
     <div class="qr-row">

@@ -152,6 +152,8 @@ def _build_task_summary(
         "warning_days": task_data.get("warning_days", DEFAULT_WARNING_DAYS),
         "last_performed": task_data.get("last_performed"),
         "notes": task_data.get("notes"),
+        # #170: reference number within the object ("8.3" = object 8, task 3).
+        "ref_no": task_data.get("ref_no"),
         "documentation_url": task_data.get("documentation_url"),
         "custom_icon": task_data.get("custom_icon"),
         "nfc_tag_id": task_data.get("nfc_tag_id"),
@@ -374,6 +376,8 @@ def _build_object_response(
             "documentation_url": obj_data.get("documentation_url"),
             # v1.4.10 (#46): free-form notes shown below the meta block.
             "notes": obj_data.get("notes"),
+            # #170: the object's reference number ("8").
+            "ref_no": obj_data.get("ref_no"),
             # v2.10.0 archive: object-level archived state. `archived` bool +
             # the raw timestamp so the panel can hide it by default and show
             # "archived on …" in the Archived section.

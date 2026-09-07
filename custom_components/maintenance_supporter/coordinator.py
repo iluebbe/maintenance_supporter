@@ -163,6 +163,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             obj_data.get("name"),
         )
 
+    def _assign_task_refs(self) -> None:
+        """#170: number tasks that have none yet (every creation path ends in
+        a refresh, so this is the one place), and completions recorded before
+        the numbering existed — oldest first, so a first start after the
+        update yields the numbering a user would have written down by hand.
+        No-op when everything is numbered."""
+        from .helpers.reference_numbers import assign_history_refs, assign_task_refs
+
+        new_data = assign_task_refs(dict(self.entry.data))
+        if new_data is not None:
+            self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+        if assign_history_refs(self._store, self.entry.data.get(CONF_TASKS, {})):
+            self._store.async_delay_save()
+
     @property
     def maintenance_object(self) -> MaintenanceObject:
         """Return the maintenance object from config entry data."""
@@ -179,6 +193,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Seasonal pause (N3): auto-resume on the first refresh on/after
         # paused_until, then continue this refresh un-paused.
         await self._async_maybe_auto_resume()
+        self._assign_task_refs()
 
         obj = self.maintenance_object
         tasks = self.tasks
@@ -1204,6 +1219,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             auto=auto,
             completed_at=completed_at,
         )
+        # #170: the completion's reference number ("8.3-2") — handed out here,
+        # in the one place every completion path passes, from the task's
+        # high-water counter, so a deleted or backdated entry never renumbers.
+        if task.history:
+            from .helpers.reference_numbers import next_history_ref
+
+            task.history[-1]["ref_no"] = next_history_ref(self._store, task_id, task.history)
         # #73: a completed cycle retires its in-cycle checklist ticks — the
         # snapshot that matters is in the history entry above. A pure backfill
         # closed no current cycle, so the live ticks stay.

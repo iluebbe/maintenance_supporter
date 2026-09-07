@@ -119,6 +119,7 @@
       "unit": "kWh"
     }
   ],
+  "ref_no": 1,
   "require_tag_scan": true,
   "required_completion_fields": [
     "notes",

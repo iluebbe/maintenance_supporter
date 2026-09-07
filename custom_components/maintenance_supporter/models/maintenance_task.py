@@ -110,6 +110,10 @@ class MaintenanceTask:
     # --- History ---
     history: list[dict[str, Any]] = field(default_factory=list)
 
+    # #170: reference number within the object ("8.3" = object 8, task 3) —
+    # assigned once by the coordinator's refresh, never reused.
+    ref_no: int | None = None
+
     # --- Runtime (not persisted) ---
     _trigger_active: bool = field(default=False, repr=False)
     _trigger_current_value: float | None = field(default=None, repr=False)
@@ -669,6 +673,8 @@ class MaintenanceTask:
             data["labels"] = self.labels
         if self.earliest_completion_days is not None:
             data["earliest_completion_days"] = self.earliest_completion_days
+        if self.ref_no is not None:
+            data["ref_no"] = self.ref_no
         if self.archived_at is not None:
             data["archived_at"] = self.archived_at
         if self.archived_reason is not None:
@@ -718,6 +724,7 @@ class MaintenanceTask:
             schedule_raw=data.get("schedule") if isinstance(data.get("schedule"), dict) else None,
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
             earliest_completion_days=data.get("earliest_completion_days"),
+            ref_no=data.get("ref_no"),
             last_performed=data.get("last_performed"),
             created_at=data.get("created_at"),
             interval_anchor=sched["interval_anchor"],

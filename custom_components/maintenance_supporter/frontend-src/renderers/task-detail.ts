@@ -14,6 +14,7 @@ import { isSafeHttpUrl } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPersonAvatar, type PersonDisplay } from "../helpers/person";
 import { t, formatDate, formatDateTime, formatRecurrence, formatNumber, formatCost } from "../styles";
+import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
 import { renderPredictionSection } from "./prediction";
@@ -33,6 +34,8 @@ export interface TaskDetailContext {
   taskId: string;
   /** Parent object's display name (breadcrumb + object-manual label). */
   objectName: string;
+  /** #170: the task's reference ("8.3"), null until the backend numbered it. */
+  taskRef?: string | null;
   /** Parent object's documentation_url (raw; sanitised here). */
   objectDocUrl: string | null | undefined;
   /** Parent object's manual-tagged documents — the fallback for the manual
@@ -122,6 +125,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
     <div class="task-header">
       <div class="task-header-title">
         <span class="task-name-breadcrumb" @click=${() => ctx.showTaskView()}>${task.name}</span>
+        ${renderRefChip(ctx.taskRef ?? null, t("ref_number", L))}
         <span class="breadcrumb-separator">·</span>
         <span class="object-name-breadcrumb" @click=${() => ctx.showObject()}>${ctx.objectName}</span>
         <span class="status-chip ${statusClass}">${statusText}</span>

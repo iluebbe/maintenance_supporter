@@ -63,6 +63,9 @@ object), `parent_entry_id` (nest under another maintenance object — written to
 device registry as `via_device_id` after setup),
 `task_ids`, `archived_at?`, `paused_at?`/`paused_until?` (seasonal pause),
 `predecessor_entry_id?`/`replaced_by_entry_id?` (the `object/replace` chain),
+`ref_no` (2.79, #170: the object's reference number — read-only, assigned on
+setup; tasks carry theirs as `ref_no` too, completed history entries as
+well: `8.3-2` = object 8, task 3, completion 2),
 and `parts` (spare parts, see below). The `objects` / `object` responses add
 two computed (never stored) fields: `document_count` and `manual_docs`
 (attached documents tagged "manual" as `{id, title, kind, url?}` — the panel's
@@ -628,9 +631,12 @@ index over uploaded files (`match: "meta"|"content"`, `page`, `snippet`,
 LAYER of PDFs (born-digital or already OCR'd) and `text/*` files — there is
 no OCR, photos and scan-only PDFs are invisible to it. `history` are task
 history entries whose `notes` match: `{entry_id, task_id, task_name,
-object_name, timestamp, type, snippet, score}`. Both lists best first,
-`limit` each. Objects, tasks and parts are NOT here — the panel matches those
-from data it already holds.
+object_name, timestamp, type, ref, snippet, score}` (`ref` = the completion's
+reference `8.3-2`, null when unnumbered). A query that IS a reference with a
+completion part (`8.3-2`) returns exactly that entry (score 1000) and no
+documents. Both lists best first, `limit` each. Objects, tasks and parts are
+NOT here — the panel matches those from data it already holds (a typed `8` or
+`8.3` too).
 
 ### `documents/storage` — read
 `{}` → the global storage summary (physical vs logical bytes, per object and

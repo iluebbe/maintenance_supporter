@@ -11,6 +11,7 @@ import { t, formatDateTime, formatNumber, formatCost, STATUS_ICONS } from "../st
 import type { MaintenanceTask, HistoryEntry, HomeAssistant } from "../types";
 import "../components/history-photo";
 import { historyPhotoIds } from "../helpers/history-photos";
+import { renderRefChip } from "../helpers/reference";
 import { entryReadingValues } from "../helpers/reading-slots";
 
 export interface HistoryContext {
@@ -33,6 +34,8 @@ export interface HistoryContext {
   readingSlotDelta?: (entry: HistoryEntry, slotId: string) => number | null;
   /** #139: phase id → display name, for entries stamped with a phase_id. */
   phaseNames?: Record<string, string>;
+  /** #170: the task's reference ("8.3") — completions render "#8.3-<n>". */
+  taskRef?: string | null;
 }
 
 // Every HistoryEntryType is filterable (drift audit 2026-08: the repair-flow
@@ -74,7 +77,8 @@ export function renderHistoryList(task: MaintenanceTask, ctx: HistoryContext) {
   // Apply search filter
   if (ctx.search) {
     const search = ctx.search.toLowerCase();
-    filtered = filtered.filter((h) => h.notes?.toLowerCase().includes(search));
+    // #170: "8.3-2" (or just "-2") in the notes filter finds the entry by number.
+    filtered = filtered.filter((h) => h.notes?.toLowerCase().includes(search) || (entryRefOf(ctx, h) ?? "").toLowerCase().endsWith(search));
   }
 
   if (filtered.length === 0) {
@@ -86,6 +90,11 @@ export function renderHistoryList(task: MaintenanceTask, ctx: HistoryContext) {
       ${[...filtered].reverse().map((entry: HistoryEntry) => renderHistoryEntry(entry, ctx))}
     </div>
   `;
+}
+
+/** "8.3-2" for a numbered completion, null otherwise. */
+function entryRefOf(ctx: HistoryContext, entry: HistoryEntry): string | null {
+  return ctx.taskRef && entry.ref_no ? `${ctx.taskRef}-${entry.ref_no}` : null;
 }
 
 export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
@@ -102,6 +111,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
       <div class="history-content">
         <div class="history-row">
           <strong>${t(entry.type, L)}</strong>
+          ${renderRefChip(entryRefOf(ctx, entry), t("ref_number", L))}
           ${entry.phase_id ? html`<span class="history-phase-badge">${ctx.phaseNames?.[entry.phase_id] || entry.phase_id}</span>` : nothing}
           ${entry.auto ? html`<span class="history-auto-badge">${t("history_auto", L)}</span>` : nothing}
           ${editable

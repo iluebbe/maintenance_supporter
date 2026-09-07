@@ -4,6 +4,27 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **A traceable service booklet** (#170): the printable service record can
+  now say what was done, not only that it was done. The print button opens
+  an options panel — layout *Chronological* or *By task* (a header per task
+  with schedule, linked documents with page hints and an optional QR code
+  that opens the task, then its completions indented) — with one switch
+  per block that lands on paper: readings with deltas, parts used, photos
+  as thumbnails with file names, the checklist tally, notes, cost and
+  duration, who did it, reference numbers. Choices are remembered.
+- **Reference numbers** (#170): object `#8`, task `#8.3`, completion
+  `#8.3-2` — assigned once in creation order, never reused or shifted, so
+  paper, photos and notes can name a job. Shown as chips on the object
+  page, task page, history entries and an optional objects-table column,
+  printed on the booklet and the work sheet; the global search answers
+  `8`, `8.3` and `8.3-2` directly and the history notes filter accepts
+  them. Existing installs are numbered on the first start after the
+  update (objects by creation date, tasks by creation date, completions
+  by date). JSON backups carry the numbers; a copied object or task
+  starts fresh.
+
 ### 🐛 Fixed
 
 - **Photos from the gallery inside the Android Companion app** (#161

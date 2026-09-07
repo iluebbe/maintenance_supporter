@@ -35,7 +35,7 @@ from ..const import (
 )
 from ..helpers.pause import reanchor_recurring_task
 from ..helpers.permissions import require_write
-from ..helpers.sanitize import cap_object_fields, strip_task_runtime_state
+from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
 from . import (
     _build_object_response,
     _get_object_entries,
@@ -490,6 +490,7 @@ async def ws_duplicate_object(
     new_obj[CONF_OBJECT_SERIAL_NUMBER] = None
     new_obj["task_ids"] = []
     new_obj.pop("archived_at", None)
+    strip_object_reference(new_obj)
 
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
@@ -874,6 +875,7 @@ async def ws_replace_object(
     for key in ("archived_at", "paused_at", "paused_until", "replaced_by_entry_id"):
         new_obj.pop(key, None)
     new_obj["predecessor_entry_id"] = entry.entry_id
+    strip_object_reference(new_obj)
 
     # Carry the parts shelf — the spares don't change when the machine dies.
     # Fresh ids (like tasks); consumption links are remapped below and the

@@ -18,6 +18,8 @@ export interface ObjectColumnDef {
 /** Canonical order + label mapping. Most labels reuse existing i18n keys. */
 export const OBJECT_COLUMNS: ObjectColumnDef[] = [
   { key: "name", labelKey: "name", required: true },
+  // #170: the object's reference number — off by default, one click away.
+  { key: "ref_no", labelKey: "ref_number" },
   { key: "manufacturer", labelKey: "manufacturer" },
   { key: "model", labelKey: "model" },
   { key: "serial_number", labelKey: "serial_number_label" },

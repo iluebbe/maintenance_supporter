@@ -140,6 +140,9 @@ def _build_export_object(
             "priority": tdata.get("priority", "normal"),
             "labels": tdata.get("labels") or [],
             "earliest_completion_days": tdata.get("earliest_completion_days"),
+            # #170: reference number — a restore keeps "8.3" on the booklets
+            # already printed; a colliding import is renumbered on setup.
+            "ref_no": tdata.get("ref_no"),
             "on_complete_action": tdata.get("on_complete_action"),
             "quick_complete_defaults": tdata.get("quick_complete_defaults"),
             "assignee_pool": tdata.get("assignee_pool") or [],
@@ -219,6 +222,10 @@ def _build_export_object(
         # restore — with every task still archived (reason "object") and
         # object/unarchive refusing because the object "isn't archived".
         "archived_at": obj_data.get("archived_at"),
+        # #170: the object's reference number + its task counter (the
+        # high-water mark, so numbers are not reused after a restore).
+        "ref_no": obj_data.get("ref_no"),
+        "next_task_ref": obj_data.get("next_task_ref"),
     }
     # Battery fleet identity — only emitted for the fleet object so a plain
     # object's export stays byte-identical to earlier versions. The importer

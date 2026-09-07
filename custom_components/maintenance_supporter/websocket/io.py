@@ -47,6 +47,11 @@ from . import _get_object_entries, _load_object_entry
 _LOGGER = logging.getLogger(__name__)
 
 
+def _ref_or_none(value: Any) -> int | None:
+    """#170: a reference number / counter from a backup — positive int or nothing."""
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
+
+
 def _iso_marker(value: Any) -> str | None:
     """Keep ``value`` only if it parses as an ISO date/datetime, else drop it.
 
@@ -686,6 +691,10 @@ async def ws_import_json(
             # semantics as paused_at, so it gets the same ISO validation. Its
             # tasks carry their own archived_* pair (mirrored below).
             "archived_at": _iso_marker(obj_data.get("archived_at")),
+            # #170: keep the numbers a backup carries (collisions are
+            # renumbered by the setup pass); bool/negative junk is dropped.
+            "ref_no": _ref_or_none(obj_data.get("ref_no")),
+            "next_task_ref": _ref_or_none(obj_data.get("next_task_ref")),
             "task_ids": [],
         }
 
@@ -798,6 +807,7 @@ async def ws_import_json(
                 "priority",
                 "labels",
                 "earliest_completion_days",
+                "ref_no",
                 "on_complete_action",
                 "quick_complete_defaults",
                 "assignee_pool",

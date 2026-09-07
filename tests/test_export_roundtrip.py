@@ -73,6 +73,7 @@ FULL_TASK = {
     "allow_skip": False,
     "required_completion_fields": ["cost"],
     "earliest_completion_days": 3,
+    "ref_no": 7,
     "priority": "high",
     "labels": ["alpha", "beta"],
     "checklist": ["step1", "step2"],
@@ -467,6 +468,7 @@ _CSV_TASK_EXCLUDED = {
     "on_complete_action", "quick_complete_defaults",  # nested service configs
     "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)
     "required_completion_fields", "earliest_completion_days",  # niche gates
+    "ref_no",  # #170 reference number — assigned, never typed into a sheet
     "require_tag_scan",  # completion gate (JSON backup carries it)
     "allow_skip",  # skip lock (#150) - JSON backup carries it
     "entity_slug",  # instance-specific entity naming
@@ -483,6 +485,7 @@ _CSV_OBJECT_EXCLUDED = {
     "predecessor_entry_id", "replaced_by_entry_id",
     "paused_at", "paused_until",  # seasonal pause state (JSON backup carries it)
     "archived_at",  # object archive marker (JSON backup carries it)
+    "ref_no", "next_task_ref",  # #170 reference number + counter (JSON backup carries them; a sheet must not renumber)
     # Battery-fleet identity — emitted only for the fleet object; the JSON
     # backup round-trips it (test_json_roundtrip_keeps_battery_fleet_identity).
     "battery_fleet", "battery_fleet_excluded", "battery_fleet_included",

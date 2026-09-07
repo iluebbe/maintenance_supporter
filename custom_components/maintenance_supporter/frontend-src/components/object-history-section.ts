@@ -10,21 +10,33 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost } from "../styles";
+import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost, formatNumber, formatRecurrence } from "../styles";
 import {
   filterObjectHistory,
   mergeObjectHistory,
   objectHistoryTotals,
   type ObjectHistoryEntry,
 } from "../helpers/object-history";
-import { buildServiceRecordHtml, type ServiceRecordLabels } from "../helpers/service-record";
-import { openHtmlInNewTab } from "../helpers/document-url";
+import {
+  buildServiceRecordHtml,
+  DEFAULT_INCLUDE,
+  type ServiceRecordInclude,
+  type ServiceRecordLabels,
+  type ServiceRecordLayout,
+  type ServiceRecordPhoto,
+  type ServiceRecordTask,
+} from "../helpers/service-record";
+import { openHtmlInNewTab, signDocumentPath } from "../helpers/document-url";
+import { objectRef, taskRef } from "../helpers/reference";
+import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import "./ms-date-field";
 import type { HistoryEntry, HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 
 /** Mirrors the backend's per-task history retention cap — a full history of
  * exactly this length has probably been trimmed, which the record must say. */
 const HISTORY_RETENTION_CAP = 500;
+/** Photos signed for one booklet — one WS call each; beyond this, names only. */
+const MAX_BOOKLET_PHOTOS = 60;
 
 export class MaintenanceObjectHistorySection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -42,9 +54,33 @@ export class MaintenanceObjectHistorySection extends LitElement {
   @state() private _from = "";
   @state() private _to = "";
   @state() private _expanded = false;
+  // #170: the print options panel (layout + what lands on paper), remembered
+  // per browser so the second booklet needs one click.
+  @state() private _printOpen = false;
+  @state() private _printLayout: ServiceRecordLayout = "chronological";
+  @state() private _printInclude: ServiceRecordInclude = { ...DEFAULT_INCLUDE };
+  @state() private _printing = false;
 
   private _loadedFor: string | null = null;
   private _localeReady = false;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    try {
+      const saved = JSON.parse(lsGet(LS_KEYS.printOptions) || "null") as { layout?: ServiceRecordLayout; include?: Partial<ServiceRecordInclude> } | null;
+      if (saved?.layout === "by_task" || saved?.layout === "chronological") this._printLayout = saved.layout;
+      if (saved?.include && typeof saved.include === "object") this._printInclude = { ...DEFAULT_INCLUDE, ...saved.include };
+    } catch { /* corrupt or absent → defaults */ }
+  }
+
+  private _savePrintOptions(): void {
+    lsSet(LS_KEYS.printOptions, JSON.stringify({ layout: this._printLayout, include: this._printInclude }));
+  }
+
+  private _toggleInclude(key: keyof ServiceRecordInclude, on: boolean): void {
+    this._printInclude = { ...this._printInclude, [key]: on };
+    this._savePrintOptions();
+  }
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -98,6 +134,8 @@ export class MaintenanceObjectHistorySection extends LitElement {
         id: task.id,
         name: task.name,
         history: this._full[task.id] ?? task.history ?? [],
+        ref_no: task.ref_no,
+        reading_unit: task.reading_unit,
       })),
     );
   }
@@ -110,10 +148,70 @@ export class MaintenanceObjectHistorySection extends LitElement {
     this.dispatchEvent(new CustomEvent("open-task", { detail: { taskId }, bubbles: true, composed: true }));
   }
 
-  private _print(filtered: ReadonlyArray<ObjectHistoryEntry>): void {
+  /** #170: everything the booklet prints beyond the entries — linked
+   *  documents per task, signed photo urls (short-lived, the sheet renders
+   *  right away), QR codes per task — each best-effort: a failed lookup
+   *  degrades to "no photo / no QR", never to no booklet. */
+  private async _bookletData(filtered: ReadonlyArray<ObjectHistoryEntry>): Promise<{ tasks: ServiceRecordTask[]; photos: Record<string, ServiceRecordPhoto> }> {
+    const inc = this._printInclude;
+    const L = this._lang;
+    let docs: Array<{ id: string; title?: string | null; filename?: string | null; tags?: string[] | null; task_ids?: string[] | null; task_pages?: Record<string, number> | null }> = [];
+    if (inc.documents || inc.photos) {
+      try {
+        const res = (await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/documents/list", entry_id: this.entryId })) as { documents?: typeof docs };
+        docs = res.documents || [];
+      } catch { docs = []; }
+    }
+    const qr = new Map<string, string>();
+    if (inc.qr && this._printLayout === "by_task") {
+      await Promise.all(this.tasks.map(async (task) => {
+        try {
+          const res = (await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/qr/generate", entry_id: this.entryId, task_id: task.id, url_mode: "server", action: "view" })) as { svg_data_uri?: string };
+          if (res.svg_data_uri) qr.set(task.id, res.svg_data_uri);
+        } catch { /* no QR for this task */ }
+      }));
+    }
+    const tasks: ServiceRecordTask[] = this.tasks.map((task) => ({
+      id: task.id,
+      name: task.name,
+      ref: taskRef(this.object, task),
+      schedule: formatRecurrence(task, L) || null,
+      // Completion photos are linked to their task too — they print as photos
+      // under the entry, not as "linked documents" of the task.
+      documents: docs
+        .filter((d) => (d.task_ids || []).includes(task.id) && !(d.tags || []).includes("photo"))
+        .map((d) => ({ title: d.title || d.filename || "", page: d.task_pages?.[task.id] ?? null })),
+      qrDataUri: qr.get(task.id) ?? null,
+    }));
+    const photos: Record<string, ServiceRecordPhoto> = {};
+    if (inc.photos) {
+      const ids = [...new Set(filtered.filter((e) => e.type === "completed").flatMap((e) => e.photoIds))].slice(0, MAX_BOOKLET_PHOTOS);
+      const byId = new Map(docs.map((d) => [d.id, d]));
+      await Promise.all(ids.map(async (id) => {
+        const d = byId.get(id);
+        const name = d?.title || d?.filename || id.slice(0, 8);
+        try {
+          photos[id] = { name, url: new URL(await signDocumentPath(this.hass, id), window.location.origin).href };
+        } catch {
+          photos[id] = { name, url: null };
+        }
+      }));
+    }
+    return { tasks, photos };
+  }
+
+  private async _print(filtered: ReadonlyArray<ObjectHistoryEntry>): Promise<void> {
     const L = this._lang;
     const o = this.object;
-    if (!o) return;
+    if (!o || this._printing) return;
+    this._printing = true;
+    let data: { tasks: ServiceRecordTask[]; photos: Record<string, ServiceRecordPhoto> };
+    try {
+      data = await this._bookletData(filtered);
+    } finally {
+      this._printing = false;
+    }
+    this._printOpen = false;
     const labels: ServiceRecordLabels = {
       title: t("service_record_title", L),
       generated: t("report_generated", L),
@@ -131,6 +229,14 @@ export class MaintenanceObjectHistorySection extends LitElement {
       entriesLabel: (n) => `${n} ${t("service_record_entries", L)}`,
       capNote: t("object_history_cap_note", L),
       none: "—",
+      readings: t("print_inc_readings", L),
+      parts: t("print_inc_parts", L),
+      photos: t("print_inc_photos", L),
+      documents: t("print_inc_documents", L),
+      checklist: t("print_inc_checklist", L),
+      refNumber: t("ref_number", L),
+      scanHint: t("report_scan_hint", L),
+      page: (n) => t("search_page", L).replace("{page}", String(n)),
     };
     const printable = filtered.map((e) => ({
       ...e,
@@ -144,9 +250,56 @@ export class MaintenanceObjectHistorySection extends LitElement {
       (minutes) => `${minutes} min`,
       (amount) => formatCost(amount, this.currencySymbol, L),
       new Date().toISOString(),
-      { capped: this._capped },
+      {
+        capped: this._capped,
+        options: { layout: this._printLayout, include: this._printInclude },
+        data: { objectRef: objectRef(o), tasks: data.tasks, photos: data.photos, fmtNumber: (n) => formatNumber(n, L) },
+      },
     );
     openHtmlInNewTab(htmlDoc);
+  }
+
+  /** The print options panel (#170): layout + one switch per block. */
+  private _renderPrintOptions(filtered: ReadonlyArray<ObjectHistoryEntry>) {
+    const L = this._lang;
+    const inc = this._printInclude;
+    const box = (key: keyof ServiceRecordInclude, labelKey: string, disabled = false) => html`
+      <label class="opt ${disabled ? "disabled" : ""}">
+        <input type="checkbox" .checked=${inc[key]} ?disabled=${disabled}
+          @change=${(e: Event) => this._toggleInclude(key, (e.target as HTMLInputElement).checked)} />
+        <span>${t(labelKey, L)}</span>
+      </label>`;
+    const byTask = this._printLayout === "by_task";
+    return html`
+      <div class="print-options" role="dialog" aria-label=${t("print_options_title", L)}>
+        <div class="po-title">${t("print_options_title", L)}</div>
+        <div class="po-group">
+          <span class="po-label">${t("print_layout", L)}</span>
+          <label class="opt"><input type="radio" name="layout" value="chronological" .checked=${!byTask}
+            @change=${() => { this._printLayout = "chronological"; this._savePrintOptions(); }} /><span>${t("print_layout_chronological", L)}</span></label>
+          <label class="opt"><input type="radio" name="layout" value="by_task" .checked=${byTask}
+            @change=${() => { this._printLayout = "by_task"; this._savePrintOptions(); }} /><span>${t("print_layout_by_task", L)}</span></label>
+        </div>
+        <div class="po-group">
+          <span class="po-label">${t("print_include", L)}</span>
+          ${box("readings", "print_inc_readings")}
+          ${box("parts", "print_inc_parts")}
+          ${box("photos", "print_inc_photos")}
+          ${box("checklist", "print_inc_checklist")}
+          ${box("notes", "print_inc_notes")}
+          ${box("costs", "print_inc_costs")}
+          ${box("person", "print_inc_person")}
+          ${box("refs", "print_inc_refs")}
+          ${box("documents", "print_inc_documents", !byTask)}
+          ${box("qr", "print_inc_qr", !byTask)}
+        </div>
+        <div class="po-actions">
+          <ha-button appearance="plain" @click=${() => { this._printOpen = false; }}>${t("cancel", L)}</ha-button>
+          <ha-button appearance="filled" class="po-print" .disabled=${this._printing} @click=${() => this._print(filtered)}>
+            ${this._printing ? t("loading", L) : t("print_button", L)}
+          </ha-button>
+        </div>
+      </div>`;
   }
 
   render() {
@@ -167,11 +320,12 @@ export class MaintenanceObjectHistorySection extends LitElement {
           ${t("object_history_section", L)}
           <span class="count">${filtered.length}</span>
           ${this._loading ? html`<span class="loading-hint">${t("loading", L)}</span>` : nothing}
-          <ha-button appearance="plain" class="print-btn" @click=${() => this._print(filtered)}>
+          <ha-button appearance="plain" class="print-btn" @click=${() => { this._printOpen = !this._printOpen; }}>
             <ha-icon icon="mdi:printer-outline"></ha-icon>
             ${t("service_record_print", L)}
           </ha-button>
         </h3>
+        ${this._printOpen ? this._renderPrintOptions(filtered) : nothing}
 
         <div class="filters">
           <select .value=${this._filterTask} @change=${(e: Event) => { this._filterTask = (e.target as HTMLSelectElement).value; }}>
@@ -242,6 +396,16 @@ export class MaintenanceObjectHistorySection extends LitElement {
     .loading-hint { font-size: 12px; color: var(--secondary-text-color); font-weight: 400; }
     .print-btn { margin-left: auto; }
     .print-btn ha-icon { --mdc-icon-size: 16px; margin-right: 4px; }
+    .print-options {
+      border: 1px solid var(--divider-color); border-radius: 10px; padding: 12px 14px; margin: 0 0 12px;
+      background: var(--card-background-color); display: flex; flex-direction: column; gap: 10px; font-size: 13px;
+    }
+    .po-title { font-weight: 600; }
+    .po-group { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    .po-label { color: var(--secondary-text-color); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; min-width: 64px; }
+    .opt { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .opt.disabled { opacity: .5; cursor: default; }
+    .po-actions { display: flex; justify-content: flex-end; gap: 8px; }
     .filters {
       display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
       margin-bottom: 10px; font-size: 13px; color: var(--secondary-text-color);

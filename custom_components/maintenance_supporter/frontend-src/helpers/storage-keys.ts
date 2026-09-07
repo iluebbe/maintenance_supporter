@@ -8,6 +8,8 @@
  */
 
 export const LS_KEYS = {
+  /** #170: service-booklet print options (layout + include switches). */
+  printOptions: "msp-print-options",
   overviewTab: "msp-overview-tab",
   collapsedSections: "msp-collapsed-sections",
   chartRange: "msp-chart-range",

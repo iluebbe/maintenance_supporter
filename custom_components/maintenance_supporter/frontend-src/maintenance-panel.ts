@@ -3,6 +3,7 @@
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
 import { queryTokens, scoreFields } from "./helpers/search-match";
+import { objectRef, parseRef, renderRefChip, taskRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
@@ -34,6 +35,8 @@ interface SearchHit {
   docKind?: string | null;
   url?: string | null;
   page?: number | null;
+  /** #170: the hit's reference ("8.3", "8.3-2") when numbered. */
+  ref?: string | null;
   label: string;
   sub: string;
   snippet?: string;
@@ -46,7 +49,7 @@ interface RemoteDocHit {
 }
 interface RemoteHistoryHit {
   entry_id: string; task_id: string; task_name: string; object_name: string; timestamp?: string | null;
-  type?: string | null; snippet: string; score: number;
+  type?: string | null; snippet: string; score: number; ref?: string | null;
 }
 const SEARCH_MIN_CHARS = 2;
 const SEARCH_DEBOUNCE_MS = 250;
@@ -1519,12 +1522,40 @@ export class MaintenanceSupporterPanel extends LitElement {
   private get _paletteResults(): SearchHit[] {
     const L = this._lang;
     const q = this._paletteQuery.trim();
-    if (q.length < SEARCH_MIN_CHARS) return [];
+    // A one-digit reference ("8") is a complete query; text needs two chars.
+    if (q.length < SEARCH_MIN_CHARS && !parseRef(q)) return [];
     const tokens = queryTokens(q);
     if (!tokens.length) return [];
     const objects: SearchHit[] = [];
     const tasks: SearchHit[] = [];
     const parts: SearchHit[] = [];
+    // #170: a typed reference ("8", "8.3", "8.3-2") names things exactly —
+    // the object (with its tasks), one task, or (via the server) one
+    // completion. Only when nothing carries that number does the text
+    // matching below get its turn.
+    const ref = parseRef(q);
+    if (ref) {
+      for (const obj of this._objects) {
+        const o = obj.object;
+        if (o.ref_no !== ref.object) continue;
+        const oref = objectRef(o)!;
+        if (ref.task == null) {
+          objects.push({ kind: "object", entryId: obj.entry_id, label: o.name || "", sub: t("object", L), score: 1000, icon: "mdi:package-variant-closed", ref: oref });
+        }
+        for (const task of obj.tasks) {
+          if (task.archived || (ref.task != null && task.ref_no !== ref.task)) continue;
+          tasks.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: task.name || "", sub: o.name || "", score: ref.task == null ? 900 : 1000, icon: "mdi:clipboard-check-outline", ref: taskRef(o, task) });
+        }
+      }
+      if (objects.length || tasks.length) {
+        const remoteRef = this._searchRemote && this._searchRemote.query === q ? this._searchRemote : null;
+        const hits: SearchHit[] = [...objects, ...tasks.slice(0, SEARCH_GROUP_CAP.tasks)];
+        for (const h of remoteRef?.history.slice(0, 1) ?? []) {
+          hits.push({ kind: "history", entryId: h.entry_id, taskId: h.task_id, label: h.task_name || "", sub: [h.object_name, h.timestamp ? formatDate(h.timestamp, L) : ""].filter(Boolean).join(" · "), snippet: h.snippet || "", score: h.score, icon: "mdi:note-text-outline", ref: h.ref ?? null });
+        }
+        return hits;
+      }
+    }
     for (const obj of this._objects) {
       const o = obj.object;
       if (o.archived) continue;
@@ -1535,7 +1566,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       ]);
       if (oscore > 0) {
         const detail = [o.manufacturer, o.model].filter(Boolean).join(" ");
-        objects.push({ kind: "object", entryId: obj.entry_id, label: oname, sub: detail || t("object", L), score: oscore, icon: "mdi:package-variant-closed" });
+        objects.push({ kind: "object", entryId: obj.entry_id, label: oname, sub: detail || t("object", L), score: oscore, icon: "mdi:package-variant-closed", ref: objectRef(o) });
       }
       for (const task of obj.tasks) {
         if (task.archived) continue;
@@ -1545,7 +1576,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ]);
         if (tscore > 0) {
           const labelSub = (task.labels || []).length ? `  #${(task.labels || []).join(" #")}` : "";
-          tasks.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: task.name || "", sub: oname + labelSub, score: tscore, icon: "mdi:clipboard-check-outline" });
+          tasks.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: task.name || "", sub: oname + labelSub, score: tscore, icon: "mdi:clipboard-check-outline", ref: taskRef(o, task) });
         }
       }
       for (const part of obj.parts || []) {
@@ -1579,7 +1610,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
       for (const h of remote.history.slice(0, SEARCH_GROUP_CAP.history)) {
         out.push({
-          kind: "history", entryId: h.entry_id, taskId: h.task_id, label: h.task_name || "",
+          kind: "history", entryId: h.entry_id, taskId: h.task_id, label: h.task_name || "", ref: h.ref ?? null,
           sub: [h.object_name, h.timestamp ? formatDate(h.timestamp, L) : ""].filter(Boolean).join(" · "),
           snippet: h.snippet || "", score: h.score, icon: h.type === "skipped" ? "mdi:skip-next-circle-outline" : "mdi:note-text-outline",
         });
@@ -1640,7 +1671,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             @input=${(e: Event) => this._onPaletteInput((e.target as HTMLInputElement).value)}
           />
           <div class="palette-results">
-            ${q.length < SEARCH_MIN_CHARS
+            ${q.length < SEARCH_MIN_CHARS && !parseRef(q)
               ? html`<div class="palette-empty">${t("search_empty_hint", L)}</div>`
               : results.length === 0
                 ? html`<div class="palette-empty">${waiting ? t("search_searching", L) : t("palette_no_results", L)}</div>`
@@ -1656,6 +1687,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                         <div class="palette-main">
                           <div class="palette-line">
                             <span class="palette-label">${r.label}</span>
+                            ${r.ref ? html`<span class="ref-chip">#${r.ref}</span>` : nothing}
                             ${r.page ? html`<span class="palette-page">${t("search_page", L).replace("{page}", String(r.page))}</span>` : nothing}
                             <span class="palette-sub">${r.sub}</span>
                           </div>
@@ -2350,6 +2382,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         excerpt,
         new Date().toISOString(),
         partsLines,
+        taskRef(obj.object, task),
       );
       openHtmlInNewTab(html);
     } finally {
@@ -3577,6 +3610,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         return html`<td class="oc-notes" title=${o.notes || ""}>${o.notes || "—"}</td>`;
       case "task_count":
         return html`<td class="oc-task_count">${obj.tasks.length}</td>`;
+      case "ref_no":
+        return html`<td class="oc-ref_no">${objectRef(o) ? `#${objectRef(o)}` : "—"}</td>`;
       case "actions":
         return html`<td class="oc-actions">
           <mwc-icon-button title="${t("qr_code", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openQrForObject(obj.entry_id, o.name); }}>
@@ -3884,7 +3919,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`
       <div class="detail-section">
         <div class="detail-header">
-          <h2>${o.name}</h2>
+          <h2>${o.name} ${renderRefChip(objectRef(o), t("ref_number", L))}</h2>
           <div class="action-buttons">
             ${!isOperator ? html`
               <ha-button appearance="filled" @click=${() => {
@@ -4252,6 +4287,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       setSearch: (s) => { this._historySearch = s; },
       openEdit: (entry) => this._openHistoryEdit(entry),
       readingUnit: task?.reading_unit ?? null,
+      taskRef: taskRef(this._selectedEntryId ? this._getObject(this._selectedEntryId)?.object : null, task),
       // #139: name the phase badge on entries stamped with a phase_id.
       phaseNames: Object.fromEntries(
         Object.entries(task?.phases || {}).map(([id, def]) => [id, def.name]),
@@ -4280,6 +4316,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       entryId,
       taskId,
       objectName: obj?.object.name || "",
+      taskRef: taskRef(obj?.object, obj?.tasks.find((tk) => tk.id === taskId)),
       objectDocUrl: obj?.object?.documentation_url ?? null,
       objectManualDocs: obj?.object?.manual_docs ?? [],
       openManualDoc: (doc) => this._openManualDoc(doc),

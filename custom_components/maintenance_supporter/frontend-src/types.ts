@@ -3,6 +3,8 @@
 export interface MaintenanceObject {
   id: string;
   name: string;
+  /** #170: reference number ("8") — assigned once by the backend, never reused. */
+  ref_no?: number | null;
   area_id?: string | null;
   manufacturer?: string | null;
   model?: string | null;
@@ -105,6 +107,8 @@ export interface ReadingValue {
 
 export interface HistoryEntry {
   timestamp: string;
+  /** #170: completion number within the task ("8.3-2"); skips carry none. */
+  ref_no?: number | null;
   type: string; // "completed" | "skipped" | "reset" | "triggered"
   notes?: string | null;
   cost?: number | null;
@@ -194,6 +198,8 @@ export interface TaskSchedule {
 export interface MaintenanceTask {
   id: string;
   name: string;
+  /** #170: reference number within the object ("8.3" = object 8, task 3). */
+  ref_no?: number | null;
   type: string; // "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "reading" | "custom"
   enabled: boolean;
   /** #150: false = the skip lock — Skip hidden everywhere, server refuses. */
