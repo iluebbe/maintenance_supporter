@@ -168,13 +168,16 @@ async def test_bundle_lead_and_digest_carry_their_kinds(hass: HomeAssistant) -> 
     await mgr.async_send_lead_reminder(obj.entry_id, TASK_ID_1, "Filter reinigen", "Spülmaschine", days=3, next_due="2026-09-10")
     await mgr.async_send_weekly_digest(overdue=2, due_soon=5)
     await hass.async_block_till_done()
-    kinds = [e.data["kind"] for e in events]
-    assert kinds == ["bundle", "lead_time", "digest"]
-    bundle = events[0].data
+    # Three sends, three events — matched by kind, not by arrival order: the
+    # bundle's send runs as a background task on some cores, so its event can
+    # land after the lead reminder's (flaked once on the HA-stable CI leg).
+    by_kind = {e.data["kind"]: e.data for e in events}
+    assert sorted(by_kind) == ["bundle", "digest", "lead_time"] and len(events) == 3
+    bundle = by_kind["bundle"]
     assert bundle["object_ref"] == "8" and [t["task_id"] for t in bundle["tasks"]] == [TASK_ID_1, "t2"]
-    lead = events[1].data
+    lead = by_kind["lead_time"]
     assert lead["status"] == "due_soon" and lead["days_until_due"] == 3 and lead["task_ref"] == "8.3"
-    assert events[2].data["overdue"] == 2 and events[2].data["due_soon"] == 5
+    assert by_kind["digest"]["overdue"] == 2 and by_kind["digest"]["due_soon"] == 5
 
 
 async def test_send_test_walks_the_hook(hass: HomeAssistant) -> None:
