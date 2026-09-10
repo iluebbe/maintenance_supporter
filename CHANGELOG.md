@@ -2,6 +2,35 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.81.0] - 2026-09-10
+
+### ✨ Added
+
+- **No notifications for this task** (#173): a checkbox in the task
+  dialog mutes one task — no status notifications, repeats, lead-time
+  reminders and no seat in a bundle. Dashboard, entities and the weekly
+  digest are unaffected; the task header shows a bell-off badge.
+  Field `notify_enabled` on `task/create`, `task/update`, the summary and
+  the JSON backup.
+- The 2.80 notification-rule settings (*Only fire the event*, *Extra
+  notification data*) are now also in the integration's Configure dialog
+  → Notification Settings (#173).
+
+### 🐛 Fixed
+
+- **Notifications trailed a sensor trigger by up to five minutes**
+  (#175): a trigger flipping on or off now asks the coordinator for a
+  (debounced) refresh, so the *triggered* reminder and the
+  `maintenance_supporter_notification` event follow within seconds
+  instead of waiting for the next update tick. A trigger re-activating on
+  a real sensor edge shortly after a completion also lifts the 10-minute
+  post-completion cooldown, so that refresh no longer wipes the fresh latch.
+- **Event-only without a notify service** (#173): with *Only fire the
+  event* on and no notify service configured, nothing fired — the send
+  was refused for lack of a target before the event hook ran. The
+  event now fires with an empty target (status changes, bundles,
+  digest, warranty, budget and the Settings test).
+
 ## [2.80.0] - 2026-09-07
 
 ### ✨ Added

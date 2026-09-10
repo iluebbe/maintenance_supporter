@@ -383,6 +383,8 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
                 continue
             if task_data.get("archived_at") is not None:
                 continue
+            if task_data.get("notify_enabled") is False:
+                continue  # #173: muted task — no lead reminders either
             task = MaintenanceTask.from_dict(task_data)
             days = task.days_until_due
             # days == 0 is a valid lead ("on the due date"); negatives are the

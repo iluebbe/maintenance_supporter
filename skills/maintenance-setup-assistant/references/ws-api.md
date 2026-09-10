@@ -239,6 +239,7 @@ template's tasks** in one call. `object/duplicate` `{entry_id}` → `{entry_id}`
   "nfc_tag_id": "…",                   // duplicate = warning, not error
   "require_tag_scan": false,           // 2.67 proof of presence: only an NFC/QR scan may complete
   "allow_skip": true,                  // #150: false = skip lock (server refuses task/skip + voice SkipTask)
+  "notify_enabled": true,              // #173: false = no reminders for this task (status, repeats, lead-time, bundles); stored only when false
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
   "phases": {                          // #139 cycle phases (≤10 defs) | null clears
     "flip":    { "name": "Flip blades" },            // per-phase overrides (optional):

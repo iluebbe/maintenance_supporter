@@ -796,6 +796,7 @@ async def ws_import_json(
                 "nfc_tag_id",
                 "require_tag_scan",
                 "allow_skip",
+                "notify_enabled",
                 "responsible_user_id",
                 "entity_slug",
                 "trigger_config",

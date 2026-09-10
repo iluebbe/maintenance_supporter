@@ -204,6 +204,8 @@ export interface MaintenanceTask {
   enabled: boolean;
   /** #150: false = the skip lock — Skip hidden everywhere, server refuses. */
   allow_skip?: boolean;
+  /** #173: false = this task sends no reminders (dashboard/entities unaffected). */
+  notify_enabled?: boolean;
   schedule_type: string; // "time_based" | "sensor_based" | "one_time" | "manual" | calendar kind
   interval_days?: number | null;
   interval_unit?: string; // "days" | "weeks" | "months" | "years"
@@ -544,6 +546,8 @@ export interface TaskRow {
   enabled: boolean;
   /** #150: false = skip locked for this task. */
   allow_skip: boolean;
+  /** #173: false = no reminders for this task. */
+  notify_enabled: boolean;
   nfc_tag_id: string | null;
   priority: string;
   labels: string[];

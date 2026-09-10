@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Max. Benachrichtigungen pro Tag",
           "notification_bundling_enabled": "Benachrichtigungen bündeln",
           "notification_bundle_threshold": "Bündelungsschwelle",
-          "notification_title_style": "Format des Benachrichtigungs-Titels"
+          "notification_title_style": "Format des Benachrichtigungs-Titels",
+          "notify_event_only": "Nur das Event auslösen, selbst nichts senden",
+          "notify_extra_data": "Zusätzliche Benachrichtigungsdaten (Template)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Wie oft die Erinnerung wiederholt werden soll. 0 = einmalige Benachrichtigung.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Maximale Anzahl Benachrichtigungen pro Tag. 0 = unbegrenzt.",
           "notification_bundling_enabled": "Eine zusammengefasste Benachrichtigung senden, wenn mehrere Aufgaben Aufmerksamkeit erfordern.",
           "notification_bundle_threshold": "Mindestanzahl an Aufgaben, um eine gebündelte Benachrichtigung auszulösen.",
-          "notification_title_style": "Was als TITEL der Benachrichtigung erscheint. „Standard“ behält den Status-Text (z. B. „Wartung überfällig!“). Objekt- / Aufgabenname helfen, wenn das Smartphone Benachrichtigungen stapelt."
+          "notification_title_style": "Was als TITEL der Benachrichtigung erscheint. „Standard“ behält den Status-Text (z. B. „Wartung überfällig!“). Objekt- / Aufgabenname helfen, wenn das Smartphone Benachrichtigungen stapelt.",
+          "notify_event_only": "Jede Benachrichtigung löst das Event maintenance_supporter_notification aus. Mit dieser Option übernimmt deine Automation die komplette Zustellung — Wiederholungsintervalle, Ruhezeiten und das Tageslimit bestimmen weiterhin, wann das Event kommt.",
+          "notify_extra_data": "JSON oder YAML mit Jinja, wird in die data jedes notify-Aufrufs gemischt (deine Schlüssel gewinnen). Variablen: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

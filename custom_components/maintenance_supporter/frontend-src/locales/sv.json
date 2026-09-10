@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Närvarobevis: ”Klar” är blockerad överallt tills NFC-taggen eller QR-koden på själva saken har skannats. Automationer kan skicka 'via_tag_scan' till complete-tjänsten.",
   "disallow_skip": "Tillåt inte att hoppa över",
   "disallow_skip_help": "Åtgärden Hoppa över försvinner från alla ytor och servern nekar även hopp från automationer och röst.",
+  "no_notifications": "Inga aviseringar för den här uppgiften",
+  "no_notifications_help": "Inga påminnelser för den här uppgiften — inga statusaviseringar, upprepningar, förhandspåminnelser eller buntar. Den syns fortfarande på instrumentpanelen och i sina entiteter; veckosammanfattningen räknar den fortfarande.",
   "require_tag_scan_hint": "Den här uppgiften slutförs endast genom att skanna dess NFC-tagg eller QR-kod på själva saken — att spara här kommer att nekas."
 }

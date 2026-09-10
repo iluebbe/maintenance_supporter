@@ -251,6 +251,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _nfcTagId = "";
   @state() private _requireTagScan = false;
   @state() private _allowSkip = true;
+  @state() private _notifyEnabled = true;
   // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
   @state() private _readingUnit = "";
   // #161 phase 2: named reading slots — several values per completion.
@@ -412,6 +413,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._nfcTagId = task.nfc_tag_id || "";
     this._requireTagScan = !!task.require_tag_scan;
     this._allowSkip = task.allow_skip !== false;
+    this._notifyEnabled = task.notify_enabled !== false;
     this._readingUnit = task.reading_unit || "";
     this._readings = (task.readings || []).map((s) => ({ ...s }));
     // Whole link, entry_id included — hydrating only part_id would turn every
@@ -1318,6 +1320,7 @@ export class MaintenanceTaskDialog extends LitElement {
       data.nfc_tag_id = this._nfcTagId || null;
       data.require_tag_scan = this._requireTagScan;
       data.allow_skip = this._allowSkip;
+      data.notify_enabled = this._notifyEnabled;
       data.reading_unit = this._readingUnit.trim() || null;
       // #161 phase 2: always sent — [] clears the slots (single-value task).
       // Sent as hydrated even when the editor is hidden (type != reading), so
@@ -2953,6 +2956,15 @@ export class MaintenanceTaskDialog extends LitElement {
             <span>${t("disallow_skip", L)}</span>
           </label>
           ${!this._allowSkip ? html`<div class="field-help">${t("disallow_skip_help", L)}</div>` : nothing}
+          <label class="req-option">
+            <input
+              type="checkbox"
+              .checked=${!this._notifyEnabled}
+              @change=${(e: Event) => (this._notifyEnabled = !(e.target as HTMLInputElement).checked)}
+            />
+            <span>${t("no_notifications", L)}</span>
+          </label>
+          ${!this._notifyEnabled ? html`<div class="field-help">${t("no_notifications_help", L)}</div>` : nothing}
           <label class="toggle-row">
             <input
               type="checkbox"

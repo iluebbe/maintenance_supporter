@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Yerinde olma kanıtı: Cihazın üzerindeki NFC etiketi veya QR kodu taranana kadar 'Tamamlandı' her yerde engellenir. Otomasyonlar complete servisine 'via_tag_scan' iletebilir.",
   "disallow_skip": "Atlamaya izin verme",
   "disallow_skip_help": "Atla eylemi tüm yüzeylerden kaybolur; sunucu otomasyonlardan ve sesten gelen atlamayı da reddeder.",
+  "no_notifications": "Bu görev için bildirim yok",
+  "no_notifications_help": "Bu görev için hatırlatma yok — durum bildirimi, tekrar, önceden hatırlatma veya toplu bildirim gönderilmez. Panoda ve varlıklarında görünmeye devam eder; haftalık özet onu saymaya devam eder.",
   "require_tag_scan_hint": "Bu görev yalnızca cihazın üzerindeki NFC etiketi veya QR kodu taranarak tamamlanır — buradan kaydetme reddedilecektir."
 }

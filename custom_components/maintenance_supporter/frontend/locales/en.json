@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Proof of presence: Done is blocked on every surface until the NFC tag or QR code on the thing itself is scanned. Automations can pass 'via_tag_scan' to the complete service.",
   "disallow_skip": "Don't allow skipping",
   "disallow_skip_help": "The Skip action disappears from every surface, and the server refuses a skip from automations and voice too.",
+  "no_notifications": "No notifications for this task",
+  "no_notifications_help": "No reminders for this task — no status notifications, repeats, lead-time reminders or bundles. It still shows on the dashboard and in its entities; the weekly digest still counts it.",
   "require_tag_scan_hint": "This task completes only by scanning its NFC tag or QR code on the thing itself — saving here will be refused."
 }

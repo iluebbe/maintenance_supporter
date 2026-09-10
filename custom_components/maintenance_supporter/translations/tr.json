@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Günlük en fazla bildirim",
           "notification_bundling_enabled": "Bildirimleri grupla",
           "notification_bundle_threshold": "Gruplama eşiği",
-          "notification_title_style": "Bildirim başlığı stili"
+          "notification_title_style": "Bildirim başlığı stili",
+          "notify_event_only": "Yalnızca olayı tetikle, kendim hiçbir şey gönderme",
+          "notify_extra_data": "Ek bildirim verisi (şablon)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Vadesi yaklaşan hatırlatmasının ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Günlük en fazla bildirim sayısı. Sınırsız için 0 yapın.",
           "notification_bundling_enabled": "Birden çok görev ilgi gerektirdiğinde tek bir özet bildirimi gönder.",
           "notification_bundle_threshold": "Gruplanmış bildirimi tetiklemek için gereken en az görev sayısı.",
-          "notification_title_style": "Bildirimin BAŞLIĞI olarak ne görüneceği. Varsayılan, duruma özgü metni korur (örn. 'Bakım gecikti!'). Nesne adı / Görev adı, telefon bildirimleri üst üste yığıldığında yardımcı olur."
+          "notification_title_style": "Bildirimin BAŞLIĞI olarak ne görüneceği. Varsayılan, duruma özgü metni korur (örn. 'Bakım gecikti!'). Nesne adı / Görev adı, telefon bildirimleri üst üste yığıldığında yardımcı olur.",
+          "notify_event_only": "Her bildirim maintenance_supporter_notification olayını tetikler. Bu açıkken teslimatın tamamını otomasyonun üstlenir — tekrar aralıkları, sessiz saatler ve günlük sınır olayın ne zaman geleceğine karar vermeye devam eder.",
+          "notify_extra_data": "Jinja içeren JSON veya YAML, her notify çağrısının data alanına birleştirilir (senin anahtarların kazanır). Değişkenler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

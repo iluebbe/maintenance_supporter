@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Max. meldingen per dag",
           "notification_bundling_enabled": "Meldingen bundelen",
           "notification_bundle_threshold": "Bundeldrempel",
-          "notification_title_style": "Stijl van meldingstitel"
+          "notification_title_style": "Stijl van meldingstitel",
+          "notify_event_only": "Alleen het event afvuren, zelf niets versturen",
+          "notify_extra_data": "Extra notificatiegegevens (sjabloon)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hoe vaak de herinnering voor bijna verlopen wordt herhaald. Stel in op 0 voor een enkele melding.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Maximaal aantal meldingen per dag. Stel in op 0 voor onbeperkt.",
           "notification_bundling_enabled": "Een enkele samenvattingsmelding verzenden wanneer meerdere taken aandacht vereisen.",
           "notification_bundle_threshold": "Minimaal aantal taken om een gebundelde melding te activeren.",
-          "notification_title_style": "Wat verschijnt als TITEL van de melding. Standaard behoudt de status-tekst (bijv. 'Onderhoud achterstallig!'). Objectnaam / taaknaam helpen wanneer de telefoon meldingen stapelt."
+          "notification_title_style": "Wat verschijnt als TITEL van de melding. Standaard behoudt de status-tekst (bijv. 'Onderhoud achterstallig!'). Objectnaam / taaknaam helpen wanneer de telefoon meldingen stapelt.",
+          "notify_event_only": "Elke notificatie vuurt het event maintenance_supporter_notification af. Met deze optie verzorgt jouw automatisering de volledige bezorging — herhaalintervallen, stille uren en de daglimiet bepalen nog steeds wanneer het event komt.",
+          "notify_extra_data": "JSON of YAML met Jinja, samengevoegd in de data van elke notify-aanroep (jouw sleutels winnen). Variabelen: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

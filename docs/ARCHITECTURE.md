@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.80.0 | 236 source files (141 Python + 95 TypeScript) | **98% test coverage** (3,779 backend tests + 753 frontend tests)
+**Version:** 2.81.0 | 236 source files (141 Python + 95 TypeScript) | **98% test coverage** (3,792 backend tests + 757 frontend tests)
 
 ---
 
@@ -731,7 +731,9 @@ Multi-channel notification with:
 - **Budget alerts**: Monthly/yearly budget threshold alerts with 24h rate limiting
 - **NFC tag linking**: Tasks can be linked to NFC tags via `nfc_tag_id`. Scanning a tag fires HA's `tag_scanned` event, which the integration listens for in `async_setup()` and auto-completes the matching task
 - **Test notification**: Available via Options Flow and `global/test_notification` WS command to verify service config
-- **Your own notification rule** (2.80, #165): every send — status change, repeat, lead-time reminder, bundle, digest, warranty, budget alert and the test — goes through `helpers/notify_hooks.async_emit_and_dispatch`. It renders the `notify_extra_data` template (HA `Template`, JSON or YAML result, must be a mapping; a failure is logged once and ignored) into the payload's `data`, fires `maintenance_supporter_notification` with the notification context (`notification_context`: kind, status, object/task refs, priority, due data, deep link, target, title, message, data) and then either sends via `async_dispatch_notify` or — with `notify_event_only` — stops after the event, reporting success so the rate limiting still counts the send. The manager's gating (intervals, quiet hours, daily cap) sits BEFORE the hook, so the event inherits it
+- **Your own notification rule** (2.80, #165): every send — status change, repeat, lead-time reminder, bundle, digest, warranty, budget alert and the test — goes through `helpers/notify_hooks.async_emit_and_dispatch`. It renders the `notify_extra_data` template (HA `Template`, JSON or YAML result, must be a mapping; a failure is logged once and ignored) into the payload's `data`, fires `maintenance_supporter_notification` with the notification context (`notification_context`: kind, status, object/task refs, priority, due data, deep link, target, title, message, data) and then either sends via `async_dispatch_notify` or — with `notify_event_only` — stops after the event, reporting success so the rate limiting still counts the send. The manager's gating (intervals, quiet hours, daily cap) sits BEFORE the hook, so the event inherits it. Event-only needs no notify service: `_resolve_and_send` hands the hook an empty target (2.81, #173)
+- **Per-task mute** (2.81, #173): `notify_enabled: false` on a task (stored only when false, like `allow_skip`) is filtered in `coordinator._async_notify_status_changes` — after the status/snooze filter and before the bundle threshold, so a muted task neither rides in a bundle nor forces one — and skipped by the lead-time reminders. The flag lives in `entry.data`, which the computed task result (model dict) drops, hence the lookup by task id
+- **Trigger flips reach the notifier now** (2.81, #175): `BaseTrigger._on_trigger_activated/_deactivated` (and the compound twin) call `coordinator.async_request_refresh()` — debounced by HA's ten-second cooldown — because the status-change notification is decided in the coordinator refresh; before, a flip waited for the next 5-minute tick (0–5 min latency). A real activation edge also calls `coordinator.note_trigger_edge()`, lifting the 10-minute post-completion cooldown (which guards only the fallback sweep) so the refresh keeps the fresh latch
 
 ---
 

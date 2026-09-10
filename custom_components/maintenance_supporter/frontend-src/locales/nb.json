@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Tilstedeværelsesbevis: «Fullført» er blokkert overalt til NFC-taggen eller QR-koden på selve tingen er skannet. Automatiseringer kan sende 'via_tag_scan' til complete-tjenesten.",
   "disallow_skip": "Ikke tillat å hoppe over",
   "disallow_skip_help": "Handlingen Hopp over forsvinner fra alle flater, og serveren avviser også hopp fra automatiseringer og tale.",
+  "no_notifications": "Ingen varsler for denne oppgaven",
+  "no_notifications_help": "Ingen påminnelser for denne oppgaven — ingen statusvarsler, gjentakelser, forhåndspåminnelser eller bunter. Den vises fortsatt på dashbordet og i entitetene sine; ukesoppsummeringen teller den fortsatt med.",
   "require_tag_scan_hint": "Denne oppgaven fullføres bare ved å skanne NFC-taggen eller QR-koden på selve tingen — lagring her vil bli avvist."
 }

@@ -162,7 +162,7 @@ async def async_emit_and_dispatch(
     data = dict(payload.get("data") or {})
     template_text = options.get(CONF_NOTIFY_EXTRA_DATA)
     if isinstance(template_text, str) and template_text.strip():
-        variables = {**context, "target": target, "title": payload.get("title"), "message": payload.get("message")}
+        variables = {**context, "target": target or None, "title": payload.get("title"), "message": payload.get("message")}
         extra = render_extra_data(hass, template_text, variables)
         if extra:
             data = {**data, **extra}
@@ -170,9 +170,11 @@ async def async_emit_and_dispatch(
         payload["data"] = data
     hass.bus.async_fire(
         EVENT_NOTIFICATION,
-        {**context, "target": target, "title": payload.get("title"), "message": payload.get("message"), "data": data},
+        {**context, "target": target or None, "title": payload.get("title"), "message": payload.get("message"), "data": data},
     )
     if options.get(CONF_NOTIFY_EVENT_ONLY, False):
-        _LOGGER.debug("notify_event_only: event fired, nothing sent to %s", target)
+        _LOGGER.debug("notify_event_only: event fired, nothing sent to %s", target or "(no service)")
         return True
+    if not target:
+        return False
     return await async_dispatch_notify(hass, target, payload, blocking=blocking)

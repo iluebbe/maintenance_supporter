@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Notificaciones máx. por día",
           "notification_bundling_enabled": "Agrupar notificaciones",
           "notification_bundle_threshold": "Umbral de agrupación",
-          "notification_title_style": "Estilo del título de notificación"
+          "notification_title_style": "Estilo del título de notificación",
+          "notify_event_only": "Solo lanzar el evento, no enviar nada",
+          "notify_extra_data": "Datos de notificación adicionales (plantilla)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Frecuencia de repetición del recordatorio próximo a vencer. Establecer a 0 para una sola notificación.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Número máximo de notificaciones por día. Establecer a 0 para ilimitado.",
           "notification_bundling_enabled": "Enviar una notificación resumida cuando varias tareas requieran atención.",
           "notification_bundle_threshold": "Número mínimo de tareas para activar una notificación agrupada.",
-          "notification_title_style": "Lo que aparece como TÍTULO de la notificación. Por defecto se conserva el texto por estado (p. ej., '¡Mantenimiento vencido!'). Nombre del objeto / tarea ayudan cuando el teléfono apila notificaciones."
+          "notification_title_style": "Lo que aparece como TÍTULO de la notificación. Por defecto se conserva el texto por estado (p. ej., '¡Mantenimiento vencido!'). Nombre del objeto / tarea ayudan cuando el teléfono apila notificaciones.",
+          "notify_event_only": "Cada notificación lanza el evento maintenance_supporter_notification. Con esta opción tu automatización se encarga de toda la entrega — los intervalos de repetición, las horas de silencio y el límite diario siguen decidiendo cuándo se lanza el evento.",
+          "notify_extra_data": "JSON o YAML con Jinja, fusionado en los data de cada llamada notify (tus claves prevalecen). Variables: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

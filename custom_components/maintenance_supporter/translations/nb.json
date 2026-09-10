@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Maks antall varsler per dag",
           "notification_bundling_enabled": "Samle varsler",
           "notification_bundle_threshold": "Terskel for samling",
-          "notification_title_style": "Tittelstil for varsel"
+          "notification_title_style": "Tittelstil for varsel",
+          "notify_event_only": "Utløs bare hendelsen, send ingenting selv",
+          "notify_extra_data": "Ekstra varslingsdata (mal)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hvor ofte påminnelsen om snart forfall skal gjentas. Sett til 0 for ett enkelt varsel.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Maksimalt antall varsler per dag. Sett til 0 for ubegrenset.",
           "notification_bundling_enabled": "Send ett enkelt oppsummeringsvarsel når flere oppgaver trenger oppmerksomhet.",
           "notification_bundle_threshold": "Minste antall oppgaver for å utløse et samlet varsel.",
-          "notification_title_style": "Det som vises som varselets TITTEL. Standard beholder teksten per status (f.eks. «Vedlikehold forfalt!»). Objektnavn / Oppgavenavn hjelper når telefonvarsler stables."
+          "notification_title_style": "Det som vises som varselets TITTEL. Standard beholder teksten per status (f.eks. «Vedlikehold forfalt!»). Objektnavn / Oppgavenavn hjelper når telefonvarsler stables.",
+          "notify_event_only": "Hvert varsel utløser hendelsen maintenance_supporter_notification. Med dette på står automasjonen din for hele leveringen — gjentakelsesintervaller, stille timer og dagsgrensen avgjør fortsatt når hendelsen kommer.",
+          "notify_extra_data": "JSON eller YAML med Jinja, flettes inn i data i hvert notify-kall (dine nøkler vinner). Variabler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

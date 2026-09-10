@@ -278,6 +278,9 @@ log("INTEGRATION READY");
 // in-page evaluate; the dockered playwright-server wedges on those often
 // enough that the whole run died — plain WS from node has no browser in the loop.
 const api = await wsClient(REST, token);
+// A readiness curl without a valid token leaves HA's own "login attempt failed"
+// notification behind — a sidebar badge in every shot. Clear it first.
+await api.send({ type: "call_service", domain: "persistent_notification", service: "dismiss_all" }).catch(() => null);
 // Retry-friendly: a wedged browser step aborts the run AFTER seeding — a
 // rerun must not seed on top of the existing dataset.
 const preSeeded = ((await api.send({ type: "maintenance_supporter/objects" })).objects || []).length > 0;

@@ -43,6 +43,8 @@ from .const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
+    CONF_NOTIFY_EVENT_ONLY,
+    CONF_NOTIFY_EXTRA_DATA,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SERVICE,
@@ -61,6 +63,7 @@ from .const import (
     DEFAULT_PANEL_ENABLED,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DEFAULT_WARNING_DAYS,
+    MAX_NOTIFY_EXTRA_DATA_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
     TIME_HHMMSS_PATTERN,
 )
@@ -351,6 +354,10 @@ async def send_test_notification(
 
     notify_service = str(options.get(CONF_NOTIFY_SERVICE, ""))
     if not notify_service:
+        if options.get(CONF_NOTIFY_EVENT_ONLY, False):
+            # #173: event-only needs no service — the test fires the event
+            # so the user's automation can be checked from Settings.
+            return await _send_test_to(hass, options, [""])
         return "no_service"
 
     # Format-only validation — existence is left to the async_call below so
@@ -670,6 +677,10 @@ class GlobalOptionsFlow(OptionsFlow):
     async def async_step_notification_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Per-status notification toggles, intervals, quiet hours, daily limit."""
         if user_input is not None:
+            # Same cap as the WS settings path (settings registry max_len).
+            extra = user_input.get(CONF_NOTIFY_EXTRA_DATA)
+            if isinstance(extra, str):
+                user_input[CONF_NOTIFY_EXTRA_DATA] = extra[:MAX_NOTIFY_EXTRA_DATA_LENGTH]
             return self._save_and_return(user_input)
 
         current = self._current
@@ -769,6 +780,18 @@ class GlobalOptionsFlow(OptionsFlow):
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="notification_title_style",
                         )
+                    ),
+                    # 2.80 (#165) / #173: your own notification rule — the same
+                    # two settings the panel's Settings tab offers.
+                    vol.Optional(
+                        CONF_NOTIFY_EVENT_ONLY,
+                        default=current.get(CONF_NOTIFY_EVENT_ONLY, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_NOTIFY_EXTRA_DATA,
+                        description={"suggested_value": current.get(CONF_NOTIFY_EXTRA_DATA, "")},
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
                     ),
                 }
             ),

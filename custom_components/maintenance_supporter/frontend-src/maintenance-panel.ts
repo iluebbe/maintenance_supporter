@@ -1091,6 +1091,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           task_id: task.id,
           object_name: obj.object.name,
           allow_skip: task.allow_skip !== false,
+          notify_enabled: task.notify_enabled !== false,
           task_name: task.name,
           type: task.type,
           schedule_type: task.schedule_type,

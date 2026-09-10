@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Důkaz přítomnosti: „Hotovo“ je všude blokováno, dokud nenaskenujete NFC štítek nebo QR kód na zařízení. Automatizace mohou službě complete předat 'via_tag_scan'.",
   "disallow_skip": "Nepovolit přeskočení",
   "disallow_skip_help": "Akce Přeskočit zmizí ze všech ploch a server odmítne přeskočení i z automatizací a hlasu.",
+  "no_notifications": "Bez oznámení pro tento úkol",
+  "no_notifications_help": "Bez připomínek pro tento úkol — žádná oznámení o stavu, opakování, předstihové připomínky ani souhrny. Zůstává vidět na přehledu a ve svých entitách; týdenní přehled ho stále počítá.",
   "require_tag_scan_hint": "Tento úkol lze dokončit pouze naskenováním jeho NFC štítku nebo QR kódu na zařízení — uložení zde bude odmítnuto."
 }

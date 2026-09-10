@@ -21,6 +21,7 @@ from ..const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
+    CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SERVICE,
@@ -804,8 +805,13 @@ class NotificationManager:
         if not target_services and self.notify_service:
             target_services = [self.notify_service]
         if not target_services:
-            _LOGGER.warning("No notification services available")
-            return False
+            if self.event_only:
+                # #173: "only fire the event" needs no notify service — the
+                # automation IS the delivery. One event, empty target.
+                target_services = [""]
+            else:
+                _LOGGER.warning("No notification services available")
+                return False
 
         success = False
         for service in target_services:
@@ -844,6 +850,17 @@ class NotificationManager:
     def notify_service(self) -> str:
         """Get the configured notify service."""
         return str(self._global_options.get(CONF_NOTIFY_SERVICE, ""))
+
+    @property
+    def _has_target(self) -> bool:
+        """A send has somewhere to go: a notify service, or event-only mode
+        (#173), where the event itself is the delivery."""
+        return bool(self.notify_service) or self.event_only
+
+    @property
+    def event_only(self) -> bool:
+        """#165/#173: the user routes every notification through the event."""
+        return bool(self._global_options.get(CONF_NOTIFY_EVENT_ONLY, False))
 
     @property
     def title_style(self) -> str:
@@ -1213,7 +1230,7 @@ class NotificationManager:
     ) -> None:
         """Send a single bundled notification summarising multiple tasks."""
         self.async_verify_configured_service()
-        if not self.enabled or not self.notify_service:
+        if not self.enabled or not self._has_target:
             return
 
         if self._is_quiet_hours():
@@ -1282,7 +1299,7 @@ class NotificationManager:
         hour the user chose by enabling the digest).
         """
         self.async_verify_configured_service()
-        if not self.enabled or not self.notify_service:
+        if not self.enabled or not self._has_target:
             return
         lang = self._lang
         service_data = _service_payload(
@@ -1303,7 +1320,7 @@ class NotificationManager:
         a scheduled once-a-day send that skips rate-limit / quiet-hours gating.
         """
         self.async_verify_configured_service()
-        if not self.enabled or not self.notify_service or not names:
+        if not self.enabled or not self._has_target or not names:
             return
         lang = self._lang
         service_data = _service_payload(
@@ -1401,7 +1418,7 @@ class NotificationManager:
         currency_symbol: str = "€",
     ) -> None:
         """Send a budget threshold alert notification."""
-        if not self.enabled or not self.notify_service:
+        if not self.enabled or not self._has_target:
             return
 
         if self._is_quiet_hours():

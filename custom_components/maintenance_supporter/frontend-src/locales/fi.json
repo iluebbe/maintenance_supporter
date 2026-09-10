@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Läsnäolotodistus: ”Valmis” on estetty kaikkialla, kunnes laitteen NFC-tunniste tai QR-koodi on skannattu. Automaatiot voivat välittää 'via_tag_scan' complete-palvelulle.",
   "disallow_skip": "Estä ohittaminen",
   "disallow_skip_help": "Ohita-toiminto katoaa kaikista näkymistä, ja palvelin hylkää ohituksen myös automaatioista ja puheesta.",
+  "no_notifications": "Ei ilmoituksia tästä tehtävästä",
+  "no_notifications_help": "Ei muistutuksia tästä tehtävästä — ei tilailmoituksia, toistoja, ennakkomuistutuksia eikä niputuksia. Se näkyy yhä kojelaudalla ja entiteeteissään; viikkokooste laskee sen edelleen mukaan.",
   "require_tag_scan_hint": "Tämä tehtävä valmistuu vain skannaamalla sen NFC-tunniste tai QR-koodi itse laitteesta — tallennus tässä estetään."
 }

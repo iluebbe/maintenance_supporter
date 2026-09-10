@@ -71,6 +71,7 @@ FULL_TASK = {
     "nfc_tag_id": "nfc-123",
     "require_tag_scan": True,
     "allow_skip": False,
+    "notify_enabled": False,
     "required_completion_fields": ["cost"],
     "earliest_completion_days": 3,
     "ref_no": 7,
@@ -471,6 +472,7 @@ _CSV_TASK_EXCLUDED = {
     "ref_no",  # #170 reference number — assigned, never typed into a sheet
     "require_tag_scan",  # completion gate (JSON backup carries it)
     "allow_skip",  # skip lock (#150) - JSON backup carries it
+    "notify_enabled",  # per-task mute (#173) - JSON backup carries it
     "entity_slug",  # instance-specific entity naming
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
     # #139: nested defs + cycle + Store cursor — structured state that doesn't

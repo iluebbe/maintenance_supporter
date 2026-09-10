@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Prova de presença: “Concluído” fica bloqueado em toda parte até escanear a etiqueta NFC ou o código QR no próprio objeto. Automações podem passar 'via_tag_scan' ao serviço complete.",
   "disallow_skip": "Não permitir pular",
   "disallow_skip_help": "A ação Pular desaparece de todas as telas e o servidor também recusa pular via automações e voz.",
+  "no_notifications": "Sem notificações para esta tarefa",
+  "no_notifications_help": "Sem lembretes para esta tarefa — sem notificações de status, repetições, avisos antecipados ou agrupamentos. Ela continua aparecendo no painel e em suas entidades; o resumo semanal ainda a conta.",
   "require_tag_scan_hint": "Esta tarefa só é concluída escaneando sua etiqueta NFC ou código QR no próprio objeto — salvar aqui será recusado."
 }

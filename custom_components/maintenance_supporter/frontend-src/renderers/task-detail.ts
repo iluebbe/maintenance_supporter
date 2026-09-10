@@ -133,6 +133,9 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
           <ha-icon icon="mdi:calendar-arrow-right"></ha-icon>${formatDate(task.due_override, L)}
         </span>` : nothing}
         ${renderUserBadge(task, ctx.getUserName, ctx.getPerson)}
+        ${task.notify_enabled === false
+          ? html`<span class="nfc-badge muted-badge" title="${t("no_notifications", L)}"><ha-icon icon="mdi:bell-off-outline"></ha-icon></span>`
+          : nothing}
         ${task.nfc_tag_id
           ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
           : !isOperator ? html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"

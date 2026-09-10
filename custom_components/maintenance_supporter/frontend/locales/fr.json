@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Preuve de présence : « Terminé » est bloqué partout tant que le tag NFC ou le QR code sur l'objet n'a pas été scanné. Les automatisations peuvent passer 'via_tag_scan' au service complete.",
   "disallow_skip": "Ne pas autoriser à ignorer",
   "disallow_skip_help": "L'action Ignorer disparaît de toutes les surfaces et le serveur refuse aussi un saut via les automatisations et la voix.",
+  "no_notifications": "Aucune notification pour cette tâche",
+  "no_notifications_help": "Aucun rappel pour cette tâche — ni notifications de statut, ni répétitions, ni rappels anticipés, ni regroupements. Elle reste visible sur le tableau de bord et dans ses entités ; le résumé hebdomadaire la compte toujours.",
   "require_tag_scan_hint": "Cette tâche ne se termine qu'en scannant son tag NFC ou son QR code sur l'objet — l'enregistrement ici sera refusé."
 }

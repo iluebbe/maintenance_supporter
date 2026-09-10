@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Max notifications per day",
           "notification_bundling_enabled": "Bundle notifications",
           "notification_bundle_threshold": "Bundle threshold",
-          "notification_title_style": "Notification title style"
+          "notification_title_style": "Notification title style",
+          "notify_event_only": "Only fire the event, send nothing myself",
+          "notify_extra_data": "Extra notification data (template)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "How often to repeat the due-soon reminder. Set to 0 for a single notification.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Maximum number of notifications per day. Set to 0 for unlimited.",
           "notification_bundling_enabled": "Send a single summary notification when multiple tasks need attention.",
           "notification_bundle_threshold": "Minimum number of tasks to trigger a bundled notification.",
-          "notification_title_style": "What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack."
+          "notification_title_style": "What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack.",
+          "notify_event_only": "Every notification fires the event maintenance_supporter_notification. With this on, your automation is the whole delivery — repeat intervals, quiet hours and the daily cap still decide when the event fires.",
+          "notify_extra_data": "JSON or YAML with Jinja, merged into every notify call's data (your keys win). Variables: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "budget_settings": {

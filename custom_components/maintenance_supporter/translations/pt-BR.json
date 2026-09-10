@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Máx. de notificações por dia",
           "notification_bundling_enabled": "Agrupar notificações",
           "notification_bundle_threshold": "Limite para agrupar",
-          "notification_title_style": "Estilo do título da notificação"
+          "notification_title_style": "Estilo do título da notificação",
+          "notify_event_only": "Disparar apenas o evento, não enviar nada",
+          "notify_extra_data": "Dados de notificação adicionais (modelo)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Com que frequência repetir o lembrete de vencimento próximo. Use 0 para uma única notificação.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Número máximo de notificações por dia. Use 0 para ilimitado.",
           "notification_bundling_enabled": "Envia uma única notificação de resumo quando várias tarefas precisam de atenção.",
           "notification_bundle_threshold": "Número mínimo de tarefas para disparar uma notificação agrupada.",
-          "notification_title_style": "O que aparece como TÍTULO da notificação. O padrão mantém o texto por status (ex.: 'Manutenção atrasada!'). Nome do objeto / Nome da tarefa ajudam quando as notificações do celular se empilham."
+          "notification_title_style": "O que aparece como TÍTULO da notificação. O padrão mantém o texto por status (ex.: 'Manutenção atrasada!'). Nome do objeto / Nome da tarefa ajudam quando as notificações do celular se empilham.",
+          "notify_event_only": "Cada notificação dispara o evento maintenance_supporter_notification. Com esta opção sua automação cuida de toda a entrega — intervalos de repetição, horas de silêncio e limite diário continuam decidindo quando o evento dispara.",
+          "notify_extra_data": "JSON ou YAML com Jinja, mesclado nos data de cada chamada notify (suas chaves prevalecem). Variáveis: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

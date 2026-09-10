@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Dowód obecności: „Gotowe” jest wszędzie zablokowane, dopóki nie zeskanujesz tagu NFC lub kodu QR na urządzeniu. Automatyzacje mogą przekazać 'via_tag_scan' do usługi complete.",
   "disallow_skip": "Nie zezwalaj na pomijanie",
   "disallow_skip_help": "Akcja Pomiń znika ze wszystkich widoków, a serwer odrzuca pominięcie także z automatyzacji i głosu.",
+  "no_notifications": "Bez powiadomień dla tego zadania",
+  "no_notifications_help": "Bez przypomnień dla tego zadania — bez powiadomień o statusie, powtórzeń, wcześniejszych przypomnień i pakietów. Nadal widać je na pulpicie i w jego encjach; tygodniowe podsumowanie wciąż je liczy.",
   "require_tag_scan_hint": "To zadanie można ukończyć tylko skanując jego tag NFC lub kod QR na urządzeniu — zapis tutaj zostanie odrzucony."
 }

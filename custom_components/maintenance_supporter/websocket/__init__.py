@@ -160,6 +160,8 @@ def _build_task_summary(
         "require_tag_scan": bool(task_data.get("require_tag_scan", False)),
         # #150: skip lock — False disables skipping on every surface.
         "allow_skip": task_data.get("allow_skip") is not False,
+        # #173: False = this task sends no reminders.
+        "notify_enabled": task_data.get("notify_enabled") is not False,
         # v2.20 (#83): unit for `reading`-type tasks; values live in history.
         "reading_unit": task_data.get("reading_unit"),
         # #161 phase 2: reading slots [{id, name, unit}] ([] = single value).

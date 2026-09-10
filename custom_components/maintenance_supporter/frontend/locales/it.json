@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Prova di presenza: «Fatto» è bloccato ovunque finché non viene scansionato il tag NFC o il codice QR sull'oggetto. Le automazioni possono passare 'via_tag_scan' al servizio complete.",
   "disallow_skip": "Non consentire di saltare",
   "disallow_skip_help": "L'azione Salta scompare da tutte le superfici e il server rifiuta anche i salti da automazioni e voce.",
+  "no_notifications": "Nessuna notifica per questa attività",
+  "no_notifications_help": "Nessun promemoria per questa attività — niente notifiche di stato, ripetizioni, promemoria anticipati o raggruppamenti. Resta visibile nella dashboard e nelle sue entità; il riepilogo settimanale la conta ancora.",
   "require_tag_scan_hint": "Questa attività si completa solo scansionando il suo tag NFC o codice QR sull'oggetto — il salvataggio qui verrà rifiutato."
 }

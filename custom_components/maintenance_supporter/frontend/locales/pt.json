@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Prova de presença: «Concluído» fica bloqueado em todo o lado até ler a etiqueta NFC ou o código QR no próprio objeto. As automações podem passar 'via_tag_scan' ao serviço complete.",
   "disallow_skip": "Não permitir ignorar",
   "disallow_skip_help": "A ação Ignorar desaparece de todas as superfícies e o servidor também recusa ignorar via automações e voz.",
+  "no_notifications": "Sem notificações para esta tarefa",
+  "no_notifications_help": "Sem lembretes para esta tarefa — sem notificações de estado, repetições, avisos antecipados ou agrupamentos. Continua a aparecer no painel e nas suas entidades; o resumo semanal continua a contá-la.",
   "require_tag_scan_hint": "Esta tarefa só é concluída lendo a sua etiqueta NFC ou código QR no próprio objeto — guardar aqui será recusado."
 }

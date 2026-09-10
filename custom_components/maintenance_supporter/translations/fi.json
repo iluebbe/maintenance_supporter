@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Enimmäismäärä ilmoituksia päivässä",
           "notification_bundling_enabled": "Niputa ilmoitukset",
           "notification_bundle_threshold": "Niputuksen kynnysarvo",
-          "notification_title_style": "Ilmoituksen otsikon tyyli"
+          "notification_title_style": "Ilmoituksen otsikon tyyli",
+          "notify_event_only": "Laukaise vain tapahtuma, älä lähetä mitään",
+          "notify_extra_data": "Lisätiedot ilmoitukseen (malli)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Kuinka usein pian erääntyy -muistutus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Ilmoitusten enimmäismäärä päivässä. Aseta arvoon 0 rajoittamattomille.",
           "notification_bundling_enabled": "Lähetä yksi yhteenvetoilmoitus, kun useat tehtävät vaativat huomiota.",
           "notification_bundle_threshold": "Tehtävien vähimmäismäärä, joka laukaisee niputetun ilmoituksen.",
-          "notification_title_style": "Mikä näkyy ilmoituksen OTSIKKONA. Oletus säilyttää tilakohtaisen tekstin (esim. 'Huolto myöhässä!'). Kohteen nimi / Tehtävän nimi auttavat, kun puhelinilmoitukset pinoutuvat."
+          "notification_title_style": "Mikä näkyy ilmoituksen OTSIKKONA. Oletus säilyttää tilakohtaisen tekstin (esim. 'Huolto myöhässä!'). Kohteen nimi / Tehtävän nimi auttavat, kun puhelinilmoitukset pinoutuvat.",
+          "notify_event_only": "Jokainen ilmoitus laukaisee tapahtuman maintenance_supporter_notification. Tällä asetuksella automaatiosi hoitaa koko toimituksen — toistovälit, hiljaiset tunnit ja päiväraja määräävät yhä, milloin tapahtuma tulee.",
+          "notify_extra_data": "JSON tai YAML Jinjalla, yhdistetään jokaisen notify-kutsun data-kenttään (omat avaimesi voittavat). Muuttujat: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

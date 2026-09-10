@@ -219,7 +219,9 @@ async def test_no_user_action_path_still_uses_the_debounced_refresh() -> None:
     from pathlib import Path
 
     src = Path(__file__).parent.parent / "custom_components" / "maintenance_supporter"
-    allowed = {"entity/triggers/counter.py", "entity/summary_coordinator.py"}
+    # base_trigger: the trigger flip itself (#175) — the one path the
+    # debounced refresh is FOR (compound reuses the base helper).
+    allowed = {"entity/triggers/counter.py", "entity/triggers/base_trigger.py", "entity/summary_coordinator.py"}
     offenders = []
     for path in src.rglob("*.py"):
         rel = path.relative_to(src).as_posix()

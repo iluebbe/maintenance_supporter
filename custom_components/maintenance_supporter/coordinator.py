@@ -747,6 +747,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for row in notifiable
             if nm._is_status_enabled(row[2]) and not nm._is_snoozed(f"{self.entry.entry_id}_{row[0]}_{row[2]}")
         ]
+        # #173: a task muted in its own settings sends nothing — neither on
+        # its own nor inside a bundle. The flag lives in the task's config
+        # (entry.data), which the computed task_result (model dict) drops.
+        task_configs = self.entry.data.get(CONF_TASKS) or {}
+        notifiable = [row for row in notifiable if (task_configs.get(row[0]) or {}).get("notify_enabled") is not False]
 
         # v2.26 notification routing: a saved-view scope ("only notify about
         # view X") drops tasks the view's label/user filters don't match —
@@ -1520,6 +1525,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._lifecycle_event_payload(task, task_id, reason=reason),
         )
 
+
+    def note_trigger_edge(self, task_id: str) -> None:
+        """A trigger just latched on a REAL state edge — lift the post-completion
+        cooldown for that task.
+
+        The cooldown (``_recently_completed``, 10 min) exists so the fallback
+        sweep does not re-activate a task off the still-low sensor value right
+        after a completion; the event-driven trigger itself is reset on
+        completion, so a new activation from it is a genuine edge. Without
+        this, the refresh a flip now requests (#175) — and before that, any
+        5-minute tick inside the window — wiped the fresh latch again.
+        """
+        self._recently_completed.pop(task_id, None)
 
     async def async_refresh_now(self) -> None:
         """Recompute immediately — for changes a person just made.

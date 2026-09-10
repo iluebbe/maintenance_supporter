@@ -126,6 +126,8 @@ def _build_export_object(
             "require_tag_scan": tdata.get("require_tag_scan"),
             # #150: per-task skip lock.
             "allow_skip": tdata.get("allow_skip"),
+            # #173: per-task notification mute.
+            "notify_enabled": tdata.get("notify_enabled"),
             "responsible_user_id": tdata.get("responsible_user_id"),
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),

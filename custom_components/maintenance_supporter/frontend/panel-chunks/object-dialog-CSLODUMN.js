@@ -1,2 +1,0 @@
-/*! maintenance_supporter frontend 2.80.0 */
-import{a}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-KIBYSZCP.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-7G3267J5.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-2AIQAMK4.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-3IZWSKBJ.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-NAI3MD3R.js";export{a as MaintenanceObjectDialog};

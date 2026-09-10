@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Jelenlét-igazolás: a „Kész” mindenhol blokkolva van, amíg be nem olvasod az eszközön lévő NFC-címkét vagy QR-kódot. Az automatizálások 'via_tag_scan' értéket adhatnak át a complete szolgáltatásnak.",
   "disallow_skip": "Kihagyás tiltása",
   "disallow_skip_help": "A Kihagyás művelet minden felületről eltűnik, és a szerver az automatizálásokból és hangból érkező kihagyást is elutasítja.",
+  "no_notifications": "Nincs értesítés ehhez a feladathoz",
+  "no_notifications_help": "Nincs emlékeztető ehhez a feladathoz — sem állapotértesítés, sem ismétlés, sem előzetes emlékeztető, sem csoportos üzenet. Továbbra is látszik a műszerfalon és az entitásaiban; a heti összefoglaló továbbra is számolja.",
   "require_tag_scan_hint": "Ez a feladat csak az eszközön lévő NFC-címke vagy QR-kód beolvasásával fejezhető be — az itteni mentés el lesz utasítva."
 }

@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Prueba de presencia: «Hecho» queda bloqueado en todas partes hasta escanear la etiqueta NFC o el código QR del propio objeto. Las automatizaciones pueden pasar 'via_tag_scan' al servicio complete.",
   "disallow_skip": "No permitir omitir",
   "disallow_skip_help": "La acción Omitir desaparece de todas las superficies y el servidor también rechaza omisiones desde automatizaciones y voz.",
+  "no_notifications": "Sin notificaciones para esta tarea",
+  "no_notifications_help": "Sin recordatorios para esta tarea — ni notificaciones de estado, ni repeticiones, ni avisos anticipados, ni agrupaciones. Sigue apareciendo en el panel y en sus entidades; el resumen semanal la sigue contando.",
   "require_tag_scan_hint": "Esta tarea solo se completa escaneando su etiqueta NFC o código QR en el propio objeto; guardar aquí será rechazado."
 }

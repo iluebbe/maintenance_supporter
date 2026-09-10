@@ -597,7 +597,9 @@
           "max_notifications_per_day": "每日最高通知次数",
           "notification_bundling_enabled": "合并通知",
           "notification_bundle_threshold": "合并阈值",
-          "notification_title_style": "通知标题样式"
+          "notification_title_style": "通知标题样式",
+          "notify_event_only": "仅触发事件，自己不发送",
+          "notify_extra_data": "额外通知数据（模板）"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "即将到期提醒的重复频率。设置为 0 则仅通知一次。",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "每天允许发送的最大通知数量。设置为 0 表示不限制。",
           "notification_bundling_enabled": "当多项任务需要处理时，发送一条汇总通知。",
           "notification_bundle_threshold": "触发合并通知所需的最少任务数量。",
-          "notification_title_style": "通知的标题显示内容。默认保持状态文本（如：‘维护已超期！’）。当手机通知堆叠时，‘维护项名称 / 任务名称’ 更有帮助。"
+          "notification_title_style": "通知的标题显示内容。默认保持状态文本（如：‘维护已超期！’）。当手机通知堆叠时，‘维护项名称 / 任务名称’ 更有帮助。",
+          "notify_event_only": "每条通知都会触发事件 maintenance_supporter_notification。开启后由你的自动化负责全部投递——重复间隔、静默时段和每日上限仍决定事件何时触发。",
+          "notify_extra_data": "含 Jinja 的 JSON 或 YAML，合并到每次 notify 调用的 data 中（你的键优先）。变量：kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message。"
         }
       },
       "notification_actions": {

@@ -62,6 +62,7 @@
   "next_due": null,
   "nfc_tag_id": "contract-nfc-1",
   "notes": "Contract notes",
+  "notify_enabled": true,
   "on_complete_action": {
     "data": {
       "transition": 2

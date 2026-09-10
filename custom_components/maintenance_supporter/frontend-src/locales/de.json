@@ -995,5 +995,7 @@
   "require_tag_scan_help": "Anwesenheitsnachweis: „Erledigt“ ist überall blockiert, bis das NFC-Tag oder der QR-Code am Gerät gescannt wurde. Automationen können 'via_tag_scan' an den complete-Dienst übergeben.",
   "disallow_skip": "Überspringen nicht erlauben",
   "disallow_skip_help": "Die Aktion Überspringen verschwindet von allen Oberflächen; auch Automationen und Sprachbefehle werden abgewiesen.",
+  "no_notifications": "Keine Benachrichtigungen für diese Aufgabe",
+  "no_notifications_help": "Keine Erinnerungen für diese Aufgabe — keine Status-Benachrichtigungen, Wiederholungen, Vorlauf-Erinnerungen oder Bündel. Sie erscheint weiterhin im Dashboard und in ihren Entitäten; der Wochen-Digest zählt sie weiterhin mit.",
   "require_tag_scan_hint": "Diese Aufgabe kann nur per Scan des NFC-Tags oder QR-Codes am Gerät erledigt werden — Speichern hier wird abgelehnt."
 }

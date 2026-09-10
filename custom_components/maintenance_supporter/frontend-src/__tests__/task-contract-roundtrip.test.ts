@@ -37,6 +37,8 @@ const EDITABLE: Record<string, string> = {
   require_tag_scan: "require_tag_scan",
   // #150: per-task skip lock — round-trips through the dialog checkbox.
   allow_skip: "allow_skip",
+  // #173: per-task notification mute — same checkbox idiom.
+  notify_enabled: "notify_enabled",
   reading_unit: "reading_unit",
   readings: "readings", // #161 phase 2: slot list, re-sent whole on every save
   consumes_parts: "consumes_parts",

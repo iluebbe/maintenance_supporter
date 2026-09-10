@@ -597,7 +597,9 @@
           "max_notifications_per_day": "하루 최대 알림 수",
           "notification_bundling_enabled": "알림 묶어 보내기",
           "notification_bundle_threshold": "묶음 기준 수",
-          "notification_title_style": "알림 제목 스타일"
+          "notification_title_style": "알림 제목 스타일",
+          "notify_event_only": "이벤트만 발생시키고 직접 보내지 않음",
+          "notify_extra_data": "추가 알림 데이터(템플릿)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "기한 임박 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "하루에 보낼 최대 알림 수입니다. 0으로 설정하면 무제한입니다.",
           "notification_bundling_enabled": "여러 작업이 주의가 필요할 때 하나의 요약 알림으로 보냅니다.",
           "notification_bundle_threshold": "묶음 알림을 보내기 위한 최소 작업 수입니다.",
-          "notification_title_style": "알림의 제목으로 표시할 내용입니다. 기본값은 상태별 문구(예: '유지보수 기한 초과!')를 유지합니다. 휴대폰에 알림이 쌓일 때는 대상 이름/작업 이름이 도움이 됩니다."
+          "notification_title_style": "알림의 제목으로 표시할 내용입니다. 기본값은 상태별 문구(예: '유지보수 기한 초과!')를 유지합니다. 휴대폰에 알림이 쌓일 때는 대상 이름/작업 이름이 도움이 됩니다.",
+          "notify_event_only": "모든 알림은 maintenance_supporter_notification 이벤트를 발생시킵니다. 켜면 전달 전체를 자동화가 담당합니다. 반복 간격, 무음 시간, 일일 한도는 여전히 이벤트 발생 시점을 결정합니다.",
+          "notify_extra_data": "Jinja가 포함된 JSON 또는 YAML로, 모든 notify 호출의 data에 병합됩니다(사용자 키가 우선). 변수: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

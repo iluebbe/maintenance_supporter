@@ -105,6 +105,7 @@ TASK_UPDATE_FIELD_MAP = {
     "nfc_tag_id": "nfc_tag_id",
     "require_tag_scan": "require_tag_scan",
     "allow_skip": "allow_skip",
+    "notify_enabled": "notify_enabled",
     "reading_unit": "reading_unit",
     "readings": "readings",
     "consumes_parts": "consumes_parts",
@@ -200,6 +201,10 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         # #150: per-task skip lock — false hides Skip in the UIs and the
         # coordinator refuses (WS + voice), so automations cannot skip either.
         vol.Optional("allow_skip"): vol.Any(bool, None),
+        # #173: per-task notification mute — false = no reminders for this
+        # task (status changes, repeats, lead-time, bundles); the dashboard
+        # and entities still show it.
+        vol.Optional("notify_enabled"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
@@ -383,6 +388,9 @@ async def ws_create_task(
     # #150: stored only when False — absence means skipping is allowed.
     if msg.get("allow_skip") is False:
         task_data["allow_skip"] = False
+    # #173: same shape — stored only when False (absence = notifications on).
+    if msg.get("notify_enabled") is False:
+        task_data["notify_enabled"] = False
     # v2.20 (#83): unit for `reading`-type tasks.
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
@@ -492,6 +500,10 @@ _TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         # #150: per-task skip lock — false hides Skip in the UIs and the
         # coordinator refuses (WS + voice), so automations cannot skip either.
         vol.Optional("allow_skip"): vol.Any(bool, None),
+        # #173: per-task notification mute — false = no reminders for this
+        # task (status changes, repeats, lead-time, bundles); the dashboard
+        # and entities still show it.
+        vol.Optional("notify_enabled"): vol.Any(bool, None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
@@ -612,6 +624,12 @@ async def ws_update_task(
             task["allow_skip"] = False
         else:
             task.pop("allow_skip", None)
+    # #173: notify_enabled follows the same only-when-False rule.
+    if "notify_enabled" in msg:
+        if msg["notify_enabled"] is False:
+            task["notify_enabled"] = False
+        else:
+            task.pop("notify_enabled", None)
 
     # The loop above copies values verbatim, which is wrong for part links:
     # `task/create` validates them and `task/update` did not, so an edit could

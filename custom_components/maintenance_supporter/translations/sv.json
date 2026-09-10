@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Max aviseringar per dag",
           "notification_bundling_enabled": "Buntla aviseringar",
           "notification_bundle_threshold": "Buntningströskel",
-          "notification_title_style": "Stil för aviseringstitel"
+          "notification_title_style": "Stil för aviseringstitel",
+          "notify_event_only": "Utlös bara händelsen, skicka inget själv",
+          "notify_extra_data": "Extra aviseringsdata (mall)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hur ofta ”snart förfaller”-påminnelsen ska upprepas. Ange 0 för en enskild avisering.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Maximalt antal aviseringar per dag. Ange 0 för obegränsat.",
           "notification_bundling_enabled": "Skicka en enda sammanfattande avisering när flera uppgifter behöver uppmärksamhet.",
           "notification_bundle_threshold": "Minsta antal uppgifter för att utlösa en buntad avisering.",
-          "notification_title_style": "Vad som visas som aviseringens TITEL. Standard behåller texten per status (t.ex. ”Underhåll försenat!”). Objektnamn / uppgiftsnamn hjälper när telefonen staplar aviseringar."
+          "notification_title_style": "Vad som visas som aviseringens TITEL. Standard behåller texten per status (t.ex. ”Underhåll försenat!”). Objektnamn / uppgiftsnamn hjälper när telefonen staplar aviseringar.",
+          "notify_event_only": "Varje avisering utlöser händelsen maintenance_supporter_notification. Med detta på sköter din automation hela leveransen — upprepningsintervall, tysta timmar och dagsgränsen avgör fortfarande när händelsen kommer.",
+          "notify_extra_data": "JSON eller YAML med Jinja, slås ihop med data i varje notify-anrop (dina nycklar vinner). Variabler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

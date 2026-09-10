@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Maks. powiadomień dziennie",
           "notification_bundling_enabled": "Łącz powiadomienia",
           "notification_bundle_threshold": "Próg łączenia",
-          "notification_title_style": "Styl tytułu powiadomienia"
+          "notification_title_style": "Styl tytułu powiadomienia",
+          "notify_event_only": "Tylko wyzwalaj zdarzenie, nic nie wysyłaj",
+          "notify_extra_data": "Dodatkowe dane powiadomienia (szablon)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Jak często powtarzać przypomnienie „wkrótce wymagane”. Ustaw 0 dla pojedynczego powiadomienia.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Maksymalna liczba powiadomień dziennie. Ustaw 0 dla nieograniczonej liczby.",
           "notification_bundling_enabled": "Wyślij jedno zbiorcze powiadomienie, gdy wiele zadań wymaga uwagi.",
           "notification_bundle_threshold": "Minimalna liczba zadań do wyzwolenia łączonego powiadomienia.",
-          "notification_title_style": "Co pojawia się jako TYTUŁ powiadomienia. Domyślnie zachowywany jest tekst dla statusu (np. „Konserwacja przeterminowana!”). Nazwa obiektu / zadania pomaga, gdy telefon układa powiadomienia w stos."
+          "notification_title_style": "Co pojawia się jako TYTUŁ powiadomienia. Domyślnie zachowywany jest tekst dla statusu (np. „Konserwacja przeterminowana!”). Nazwa obiektu / zadania pomaga, gdy telefon układa powiadomienia w stos.",
+          "notify_event_only": "Każde powiadomienie wyzwala zdarzenie maintenance_supporter_notification. Z tą opcją całą dostawę przejmuje Twoja automatyzacja — interwały powtórzeń, ciche godziny i dzienny limit nadal decydują, kiedy zdarzenie się pojawi.",
+          "notify_extra_data": "JSON lub YAML z Jinja, scalane z data każdego wywołania notify (Twoje klucze mają pierwszeństwo). Zmienne: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {

@@ -82,6 +82,9 @@ PANEL_ONLY = {
     # config-flow toggle would only duplicate the checkbox - same class as
     # required_completion_fields above.
     "allow_skip",
+    # #173: per-task notification mute — a panel-dialog checkbox next to the
+    # skip lock; same reasoning as allow_skip.
+    "notify_enabled",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by

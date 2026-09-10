@@ -198,6 +198,13 @@ describe("task-detail renderer", () => {
     ]);
   });
 
+  it("shows a bell-off badge for a muted task (#173), and none otherwise", () => {
+    const muted = mount(task({ notify_enabled: false }), ctx());
+    expect(muted.querySelector(".muted-badge")).to.exist;
+    const loud = mount(task(), ctx());
+    expect(loud.querySelector(".muted-badge")).to.not.exist;
+  });
+
   it("shows a postponed badge when the task has a due_override, and none otherwise", () => {
     const plain = mount(task(), ctx());
     expect(plain.querySelector(".postponed-badge")).to.be.null;

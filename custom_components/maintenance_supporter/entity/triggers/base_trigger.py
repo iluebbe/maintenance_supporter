@@ -220,6 +220,17 @@ class BaseTrigger(ABC):
         Returns True if trigger should be active.
         """
 
+
+    def _request_coordinator_refresh(self) -> None:
+        """#175: a trigger flip must reach the coordinator now, not on the
+        next 5-minute tick. Notifications (and the ``maintenance_supporter_
+        notification`` event) are decided in the coordinator's refresh from the
+        status change, so without this the reminder trailed the flip by up to a
+        full update interval — 30 s once, 4 min the next time. Debounced on
+        purpose (HA's ten-second window): a noisy sensor must not recompute the
+        object on every state change; user actions use async_refresh_now."""
+        self.hass.async_create_task(self._coordinator.async_request_refresh())
+
     def _on_trigger_activated(self, value: float) -> None:
         """Handle trigger activation."""
         _LOGGER.info(
@@ -238,6 +249,8 @@ class BaseTrigger(ABC):
 
         # Add history entry for the trigger activation
         self.hass.async_create_task(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=value))
+        self._coordinator.note_trigger_edge(self._task_id)
+        self._request_coordinator_refresh()
 
         # Fire event
         self.hass.bus.async_fire(
@@ -266,6 +279,8 @@ class BaseTrigger(ABC):
             current_value=value,
             trigger_entity_id=self.entity_id,
         )
+
+        self._request_coordinator_refresh()
 
         # Fire event
         self.hass.bus.async_fire(

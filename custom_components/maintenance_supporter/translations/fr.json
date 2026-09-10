@@ -597,7 +597,9 @@
           "max_notifications_per_day": "Notifications max par jour",
           "notification_bundling_enabled": "Regrouper les notifications",
           "notification_bundle_threshold": "Seuil de regroupement",
-          "notification_title_style": "Style du titre de notification"
+          "notification_title_style": "Style du titre de notification",
+          "notify_event_only": "Déclencher seulement l'événement, ne rien envoyer moi-même",
+          "notify_extra_data": "Données de notification supplémentaires (modèle)"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Fréquence de répétition du rappel bientôt dû. Définir à 0 pour une seule notification.",
@@ -607,7 +609,9 @@
           "max_notifications_per_day": "Nombre maximum de notifications par jour. Définir à 0 pour illimité.",
           "notification_bundling_enabled": "Envoyer une notification résumée lorsque plusieurs tâches nécessitent attention.",
           "notification_bundle_threshold": "Nombre minimum de tâches pour déclencher une notification groupée.",
-          "notification_title_style": "Ce qui apparaît comme TITRE de la notification. Par défaut, le texte par statut est conservé (p. ex. « Maintenance en retard ! »). Nom de l'objet / tâche aide quand le téléphone empile les notifications."
+          "notification_title_style": "Ce qui apparaît comme TITRE de la notification. Par défaut, le texte par statut est conservé (p. ex. « Maintenance en retard ! »). Nom de l'objet / tâche aide quand le téléphone empile les notifications.",
+          "notify_event_only": "Chaque notification déclenche l'événement maintenance_supporter_notification. Avec cette option, votre automatisation assure toute la livraison — les intervalles de rappel, les heures calmes et la limite quotidienne décident toujours du moment de l'événement.",
+          "notify_extra_data": "JSON ou YAML avec Jinja, fusionné dans les data de chaque appel notify (vos clés l'emportent). Variables : kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
       },
       "notification_actions": {
