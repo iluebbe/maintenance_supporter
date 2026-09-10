@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 📝 Docs
+
+- Counter trigger: what happens when the source counter drops, resets
+  or jumps (discussion #172 / WashData 0.5.6 odometer), and when to
+  count cycles with the state-change trigger instead. The WashData
+  catalog note records that the `cycle_count` sensor is a capped
+  stored-records count up to 0.5.5 and the lifetime odometer from 0.5.6.
+
 ## [2.81.0] - 2026-09-10
 
 ### ✨ Added

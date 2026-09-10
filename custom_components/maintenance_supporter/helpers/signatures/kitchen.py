@@ -233,11 +233,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ha_washdata": IntegrationSignature(
         name="WashData (smart-plug cycles)",
-        verified="2026-08-02 @ 3dg1luk43/ha_washdata main sensor.py + const.py (HACS default)",
+        verified="2026-09-10 @ 3dg1luk43/ha_washdata main (0.5.5) + branch 0.5.6 sensor.py/manager.py (HACS default)",
         source=(
-            "HACS ha_washdata: tk 'cycle_count' (unit 'cycles') — lifetime "
-            "count of appliance cycles DETECTED from smart-plug power "
-            "monitoring. The integration ships its OWN maintenance taxonomy "
+            "HACS ha_washdata: tk 'cycle_count' (unit 'cycles'). CAVEAT up to "
+            "0.5.5: the sensor is len(stored cycle records), capped at "
+            "DEFAULT_MAX_PAST_CYCLES=200 and lowered when a record is deleted "
+            "— a delta task freezes once the cap is reached (our D#172, "
+            "upstream discussion 414). From 0.5.6 (PR #420) the SAME entity "
+            "reports the monotonic lifetime odometer (old value in attribute "
+            "'stored_cycles'; state_class total, user-correctable downward), "
+            "so the value jumps once on that update — a Reset re-anchors the "
+            "task. Cycles are DETECTED from smart-plug power monitoring. The "
+            "integration ships its OWN maintenance taxonomy "
             "(MAINTENANCE_EVENT_TYPES + DEFAULT_MAINTENANCE_REMINDER_CYCLES: "
             "descale 30 / filter_clean 50 / drum_clean 100), but shows it "
             "only inside its panel — no due-entity, no notifications. These "

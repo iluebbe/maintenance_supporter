@@ -485,6 +485,22 @@ Activates when an accumulated value reaches a target.
 | `trigger_target_value` | float | *(required)* | Target accumulated value to trigger maintenance |
 | `trigger_delta_mode` | bool | `false` | If `true`, counts the change since last completion. If `false`, uses absolute value |
 
+**When the source counter drops or jumps** (delta mode): the baseline is the
+reading at the last completion. A decrease that stays *above* the baseline is
+treated as a correction — a deleted ghost cycle simply lowers "since last
+service" by one. A reading *below* the baseline is treated as a reset or
+rollover (device reboot, meter wrap, a record deleted that predates the
+service): the baseline moves to the new reading and counting starts from
+there. A sudden *increase* is never questioned — if an integration changes
+what its sensor means (WashData 0.5.6 turned its stored-records count into a
+lifetime odometer on the same entity), the task fires once on the jump; press
+*Reset* (or complete it) right after such an update so the baseline
+re-anchors. If a device only offers a status and no counter, count cycles
+with the [State Change Trigger](#state-change-trigger) instead
+(`trigger_target_changes: 30` on `running → finished`); it counts what the
+machine actually does but cannot catch up on cycles that ran while Home
+Assistant was offline, which the delta counter can.
+
 ### State Change Trigger
 
 Activates after a specified number of state transitions.
