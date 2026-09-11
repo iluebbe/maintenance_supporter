@@ -32,6 +32,7 @@ from __future__ import annotations
 import logging
 import re
 from collections import OrderedDict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Any, cast
@@ -41,26 +42,17 @@ from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
 
-# Editorial typical service life per battery type, in MONTHS — the forecast
-# anchor (battery_last_replaced + lifetime = predicted replacement). These are
-# deliberately conservative sensor-use estimates and are meant to be tunable;
-# unknown types fall back to DEFAULT_LIFETIME_MONTHS.
-TYPICAL_LIFETIME_MONTHS: dict[str, int] = {
-    "AAAA": 10,
-    "AAA": 10,
-    "AA": 12,
-    "C": 18,
-    "D": 24,
-    "9V": 12,
-    "CR2": 18,
-    "CR123A": 18,
-    "CR2032": 18,
-    "CR2450": 24,
-    "CR2477": 24,
-    "CR2016": 18,
-    "CR2025": 18,
-}
-DEFAULT_LIFETIME_MONTHS = 12
+# The typical-lifetime table, the household overrides and the learned values
+# live in battery_lifetime (D#162 follow-up); the names stay importable here.
+from .battery_lifetime import (
+    TYPICAL_LIFETIME_MONTHS,
+    LifetimeInfo,
+    canonical_type,
+    has_type_forecast,
+    lifetime_resolver,
+    observe_replacements,
+    table_lifetime_months,
+)
 
 # How far ahead "needed soon" looks by default (days).
 DEFAULT_HORIZON_DAYS = 28
@@ -177,8 +169,11 @@ def is_rechargeable_type(battery_type: Any) -> bool:
 
 
 def lifetime_months(battery_type: str) -> int:
-    """Typical service life for a (canonicalized) battery type."""
-    return TYPICAL_LIFETIME_MONTHS.get(_norm_type(battery_type), DEFAULT_LIFETIME_MONTHS)
+    """Typical service life for a battery type — the built-in table value
+    (aliases such as LR6/PP3/CR123 folded onto the table key). The forecast
+    itself goes through :func:`battery_lifetime.lifetime_resolver`, which
+    puts the household's override and the learned value in front of it."""
+    return table_lifetime_months(battery_type)
 
 
 @dataclass
@@ -237,10 +232,11 @@ class BatteryOverview:
         return len(self.low)
 
 
-def _predicted_date(bat: Battery) -> date | None:
+def _predicted_date(bat: Battery, months: int | None = None) -> date | None:
     if bat.last_replaced is None:
         return None
-    months = lifetime_months(bat.battery_type)
+    if months is None:
+        months = lifetime_months(bat.battery_type)
     # Month arithmetic without dateutil: add whole months, clamp the day.
     y, m = bat.last_replaced.year, bat.last_replaced.month + months
     y += (m - 1) // 12
@@ -255,8 +251,13 @@ def build_overview(
     today: date,
     horizon_days: int = DEFAULT_HORIZON_DAYS,
     trend_predictions: dict[str, tuple[int, str]] | None = None,
+    lifetime_for: Callable[[Any], LifetimeInfo] | None = None,
 ) -> BatteryOverview:
     """Aggregate batteries into the fleet view.
+
+    ``lifetime_for`` resolves a type's lifetime (override > learned > table >
+    default, see battery_lifetime); without it the table alone is used —
+    the pure-function tests and the summary sensors call it that way.
 
     * ``low`` = reported low right now (Battery Notes' own threshold) — or a
       sensorless note whose forecast has passed with the due-without-sensor
@@ -286,11 +287,14 @@ def build_overview(
         # "replace the vacuum's pack" dated from the day the device was added),
         # so they get a ~date only when the trend has earned one.
         trend = (trend_predictions or {}).get(bat.entity_id)
+        info = lifetime_for(bat.battery_type) if lifetime_for else LifetimeInfo(lifetime_months(bat.battery_type), "table")
         if trend is not None:
             days_raw: int | None = trend[0]
             source, confidence = "trend", trend[1]
         else:
-            pred = None if rechargeable else _predicted_date(bat)
+            # No type lifetime for rechargeables (the table describes primary
+            # cells) nor for "Manual" / "Irreplaceable" / "Solar" notes.
+            pred = None if rechargeable or not has_type_forecast(bat.battery_type) else _predicted_date(bat, info.months)
             days_raw = (pred - today).days if pred is not None else None
             source, confidence = "typical", None
         # B1 (decided 2026-08): a PASSED prediction while the battery still
@@ -308,21 +312,21 @@ def build_overview(
             # why it is due: keep the (negative) days and the overdue flag so
             # the roster can show the date the prediction ran out.
             if bat.no_sensor:
-                low_row = _row(bat, t, days_raw, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue)
+                low_row = _row(bat, t, days_raw, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info)
             else:
-                low_row = _row(bat, t, None, rechargeable=rechargeable)
+                low_row = _row(bat, t, None, rechargeable=rechargeable, lifetime=info)
             ov.low.append(low_row)
             if not rechargeable:
                 ov.needs_now[t] = ov.needs_now.get(t, 0) + bat.quantity
             ov.all.append({**low_row, "status": "low"})
             continue
         if days is not None and days <= horizon_days:
-            ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue))
+            ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info))
             if not rechargeable:
                 ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
-            ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue), "status": "soon"})
+            ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info), "status": "soon"})
             continue
-        ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable), "status": "ok"})
+        ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, lifetime=info), "status": "ok"})
 
     ov.soon.sort(key=lambda r: r["days_until"] if r["days_until"] is not None else 1 << 30)
     ov.types = sorted(types_seen)
@@ -340,9 +344,16 @@ def _row(
     *,
     rechargeable: bool = False,
     forecast_overdue: bool = False,
+    lifetime: LifetimeInfo | None = None,
 ) -> dict[str, Any]:
     return {
         "entity_id": bat.entity_id,
+        # D#162 follow-up: which lifetime the "typical" forecast used and where
+        # it came from — the roster tooltip says "18 months, learned from 5
+        # replacements" instead of a bare date.
+        "lifetime_months": lifetime.months if lifetime else None,
+        "lifetime_source": lifetime.source if lifetime else None,
+        "lifetime_samples": lifetime.samples if lifetime else 0,
         "device_name": bat.device_name,
         "battery_type": canon_type,
         "quantity": bat.quantity,
@@ -973,7 +984,9 @@ def compute_overview(hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON
     :func:`async_compute_overview` instead.
     """
     today = dt_util.now().date()
-    return build_overview(read_batteries(hass), today=today, horizon_days=horizon_days)
+    batteries = read_batteries(hass)
+    observe_replacements(hass, batteries)
+    return build_overview(batteries, today=today, horizon_days=horizon_days, lifetime_for=lifetime_resolver(hass))
 
 
 # ── discharge-trend forecast (#114 follow-up) ───────────────────────────────
@@ -1048,8 +1061,11 @@ async def async_trend_predictions(hass: HomeAssistant, batteries: list[Battery])
 async def async_compute_overview(hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON_DAYS) -> BatteryOverview:
     """Read + trend-enrich + aggregate (the panel's entry point)."""
     batteries = read_batteries(hass)
+    observe_replacements(hass, batteries)
     trends = await async_trend_predictions(hass, batteries)
-    return build_overview(batteries, today=dt_util.now().date(), horizon_days=horizon_days, trend_predictions=trends)
+    return build_overview(
+        batteries, today=dt_util.now().date(), horizon_days=horizon_days, trend_predictions=trends, lifetime_for=lifetime_resolver(hass)
+    )
 
 
 # ── level history for the roster sparklines ────────────────────────────────
@@ -1208,6 +1224,7 @@ __all__ = [
     "async_trend_predictions",
     "battery_notes_summary",
     "build_overview",
+    "canonical_type",
     "compute_overview",
     "discover_battery_types",
     "fleet_due_without_sensor",

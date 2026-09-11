@@ -364,7 +364,7 @@ those, so the fleet reads the same metadata from the low binary — real type,
 quantity, forecast; just no charge level. Devices with **no battery level at
 all** (many Xiaomi/Aqara sensors) get no `battery_plus` from Battery Notes —
 only the type, quantity and last-replaced date — and still join the roster
-as **No sensor** rows: forecast from the type's typical lifetime, a
+as **No sensor** rows: forecast from the type's typical lifetime (see *Typical battery lifetimes* below), a
 *Replaced* action that records the swap in Battery Notes (2.79+: that
 action sits on every Battery Notes row with a replaced button, low-only
 binary rows included), and — because
@@ -529,6 +529,8 @@ false` (or the editor toggle) hides it. Names are resolved through a
 read-tier command, so household members without admin rights see them too.
 
 ![Lovelace Card](images/lovelace-card.png)
+
+**Typical battery lifetimes** (2.83+, D#162) — only batteries **without a percentage** use them: a Battery Notes note that has just a type and a last-replaced date, or a sensor that only reports *low*. Their due date is *last replaced + typical lifetime*; batteries that report a level get their forecast from the measured discharge instead. The table under *Settings → Typical battery lifetimes* lists your fleet's types first with the value in use and where it comes from: your own value (always wins), the value **learned from your fleet** (the median interval between recorded replacements, once a type has three — pooled across all devices of that type, so it arrives years before a single device could teach it), the built-in table, or the 12-month default for an unknown type. The table speaks Battery Notes' type vocabulary (AA, CR2032, CR123A, LS14250, PP3 …) and folds aliases onto it (LR6 → AA, CR123 → CR123A). Every replacement the fleet sees — the roster's *Replaced* action, Battery Notes' own button or service, a corrected date — is logged, so the learning needs nothing from you. Battery Notes itself carries no lifetime data; *Manual*, *Irreplaceable* and *Solar* notes get no type forecast. The roster's ~date tooltip names the lifetime and its source.
 
 ### Battery Fleet Card
 The `custom:maintenance-battery-fleet-card` (#135) puts the full fleet view on

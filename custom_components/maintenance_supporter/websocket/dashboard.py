@@ -29,6 +29,7 @@ from ..const import (
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
+    CONF_BATTERY_LIFETIME_MONTHS,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
@@ -115,11 +116,23 @@ _LOGGER = logging.getLogger(__name__)
 _ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
 
 
+def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """The lifetime table as Settings shows it — fleet types first."""
+    try:
+        from ..helpers.battery_fleet import discover_battery_types
+        from ..helpers.battery_lifetime import lifetime_catalog
+
+        return lifetime_catalog(hass, list(discover_battery_types(hass)))
+    except Exception:  # noqa: BLE001 - a settings read must never fail on the fleet
+        return []
+
+
 def _build_full_settings(
     options: Mapping[str, Any],
     *,
     notify_targets: list[str] | None = None,
     battery_notes: dict[str, Any] | None = None,
+    battery_lifetimes: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Build a full settings dict from global entry options.
 
@@ -168,6 +181,11 @@ def _build_full_settings(
             # #146: household "low" floors for discovery + the battery fleet.
             "default_consumable_threshold": options.get(CONF_DEFAULT_CONSUMABLE_THRESHOLD, DEFAULT_CONSUMABLE_THRESHOLD),
             "battery_low_percent": options.get(CONF_BATTERY_LOW_PERCENT, DEFAULT_BATTERY_LOW_PERCENT),
+            # D#162 follow-up: the household's per-type lifetime overrides and,
+            # computed by the caller, the effective lifetime catalog Settings
+            # renders (type, months, source: override / learned / table / default).
+            "battery_lifetime_months": dict(options.get(CONF_BATTERY_LIFETIME_MONTHS) or {}),
+            "battery_lifetimes": list(battery_lifetimes or []),
             # Computed, never stored: what Battery Notes currently reports
             # (default + up to 5 named override devices) — the Settings hint.
             "battery_notes": battery_notes,
@@ -268,7 +286,7 @@ async def ws_get_settings(
     if global_entry is None:
         connection.send_result(
             msg["id"],
-            _build_full_settings({}, notify_targets=build_notify_targets(hass), battery_notes=bn),
+            _build_full_settings({}, notify_targets=build_notify_targets(hass), battery_notes=bn, battery_lifetimes=_battery_lifetime_catalog(hass)),
         )
         return
 
@@ -279,6 +297,7 @@ async def ws_get_settings(
             options,
             notify_targets=build_notify_targets(hass, current=options.get(CONF_NOTIFY_SERVICE, "")),
             battery_notes=bn,
+            battery_lifetimes=_battery_lifetime_catalog(hass),
         ),
     )
 
@@ -732,6 +751,13 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
 
         filtered[CONF_MEMBER_DISPLAY] = sanitize_member_display(filtered[CONF_MEMBER_DISPLAY])
 
+    # D#162 follow-up: battery lifetime overrides — canonical type keys, months
+    # within range, junk dropped (an empty map clears every override).
+    if CONF_BATTERY_LIFETIME_MONTHS in filtered:
+        from ..helpers.battery_lifetime import sanitize_lifetime_overrides
+
+        filtered[CONF_BATTERY_LIFETIME_MONTHS] = sanitize_lifetime_overrides(filtered[CONF_BATTERY_LIFETIME_MONTHS])
+
     # v2.21: disabled_template_ids — keep only ids of templates that actually
     # exist (a typo/stale id must not linger invisibly), dedupe.
     if CONF_DISABLED_TEMPLATE_IDS in filtered:
@@ -813,6 +839,7 @@ async def ws_update_global_settings(
         _build_full_settings(
             merged,
             notify_targets=build_notify_targets(hass, current=merged.get(CONF_NOTIFY_SERVICE, "")),
+            battery_lifetimes=_battery_lifetime_catalog(hass),
         ),
     )
 

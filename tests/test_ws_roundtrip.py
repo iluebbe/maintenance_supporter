@@ -765,6 +765,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "disabled_template_ids": ["vehicle_bicycle", "pool_pump"],
     # #169 follow-up: member avatar overrides (palette colour only).
     "member_display": {"user-1": {"initials": "MS", "color": "#1565c0"}},
+    # D#162 follow-up: per-type lifetime overrides (canonical keys, months).
+    "battery_lifetime_months": {"CR2032": 24, "AA": 9},
     # v2.10.0 archive automation (panel-managed int settings).
     "archive_oneoff_days": 21,
     "delete_archived_oneoff_days": 30,
@@ -848,6 +850,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "budget_currency": settings["budget"]["currency"],
         "objects_table_columns": settings["objects_table_columns"],
         "member_display": settings["member_display"],
+        "battery_lifetime_months": settings["general"]["battery_lifetime_months"],
         "disabled_template_ids": settings["disabled_template_ids"],
         "archive_oneoff_days": settings["archive"]["oneoff_days"],
         "delete_archived_oneoff_days": settings["archive"]["delete_archived_oneoff_days"],

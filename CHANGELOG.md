@@ -2,6 +2,31 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Typical battery lifetimes** (D#162): a table under Settings — your
+  fleet's types first — showing the lifetime the forecast uses for
+  batteries *without* a percentage and where it comes from: your own value,
+  the value learned from your fleet's recorded replacements (median
+  interval, once a type has three, pooled across devices), the built-in
+  table, or the 12-month default. The table now knows CR1632, CR2430,
+  CR3032, LS14250, LR44, A23 … and folds Battery Notes' aliases (LR6 → AA,
+  PP3 → 9V, CR123 → CR123A); Manual / Irreplaceable / Solar notes get no
+  type forecast. Setting `battery_lifetime_months`; the roster's ~date
+  tooltip names the lifetime and its source.
+- Battery fleet: the **due-soon batteries are listed as rows** under the
+  "Needed soon" summary, and the roster of all tracked batteries is
+  **open by default** (a collapse is remembered per browser).
+
+### 🐛 Fixed
+
+- Battery fleet roster on phones: the *Replaced* action overlapped the
+  percentage on rows that have both (since 2.79). With a level present the
+  action now takes the row-action column; on narrow screens it sits on the
+  first line next to the status chip.
+
 ## [2.82.0] - 2026-09-11
 
 ### ✨ Added

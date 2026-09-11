@@ -10,6 +10,8 @@
 export const LS_KEYS = {
   /** #170: service-booklet print options (layout + include switches). */
   printOptions: "msp-print-options",
+  /** D#162: the battery roster starts open; a deliberate collapse is remembered. */
+  batteryRosterOpen: "msp-bf-roster-open",
   overviewTab: "msp-overview-tab",
   collapsedSections: "msp-collapsed-sections",
   chartRange: "msp-chart-range",

@@ -525,6 +525,7 @@ values dropped. Keys relevant to setup:
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
 - `notify_event_only` (bool; 2.80, #165) — fire `maintenance_supporter_notification`
   and send nothing (an automation delivers); `notify_extra_data` (str ≤ 2000;
+- `battery_lifetime_months` (2.83): `{type: months}` per-type typical lifetime overrides (canonical Battery Notes types, 1–240); the settings response echoes `general.battery_lifetime_months` and a computed `general.battery_lifetimes` catalog `[{type, months, source: override|learned|table|default, samples, default_months, learned_months, override_months, in_fleet}]`. `battery_fleet/overview` rows carry `lifetime_months` / `lifetime_source` / `lifetime_samples`.
   JSON/YAML with Jinja over kind/status/priority/object_name/task_name/
   object_ref/task_ref/days_until_due/next_due/url/target/title/message) —
   merged into every notify call's `data`, the user's keys win. The event

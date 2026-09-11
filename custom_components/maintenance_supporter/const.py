@@ -137,6 +137,8 @@ DEFAULT_ROW_ACTION_STYLE = "buttons_compact"
 # floor for batteries without their own Battery Notes threshold.
 CONF_DEFAULT_CONSUMABLE_THRESHOLD = "default_consumable_threshold"
 CONF_BATTERY_LOW_PERCENT = "battery_low_percent"
+# D#162 follow-up: per-type typical lifetime overrides {canonical type: months}
+CONF_BATTERY_LIFETIME_MONTHS = "battery_lifetime_months"
 DEFAULT_CONSUMABLE_THRESHOLD = 10
 DEFAULT_BATTERY_LOW_PERCENT = 20
 THRESHOLD_PERCENT_RANGE: tuple[int, int] = (1, 90)

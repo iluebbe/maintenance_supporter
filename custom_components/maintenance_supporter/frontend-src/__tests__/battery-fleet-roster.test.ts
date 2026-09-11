@@ -111,9 +111,33 @@ describe("battery fleet roster", () => {
     expect(chips.some((c) => c.includes("bf-ok"))).to.equal(true);
   });
 
-  it("stays collapsed, so the section still opens on what needs doing", async () => {
+  it("opens by default (D#162); a remembered collapse stays collapsed", async () => {
+    try { localStorage.removeItem("msp-bf-roster-open"); } catch { /* ignore */ }
     const { el } = await mount();
-    expect((roster(el) as HTMLDetailsElement).open).to.equal(false);
+    expect((roster(el) as HTMLDetailsElement).open).to.equal(true);
+    try { localStorage.setItem("msp-bf-roster-open", "0"); } catch { /* ignore */ }
+    const { el: el2 } = await mount();
+    expect((roster(el2) as HTMLDetailsElement).open).to.equal(false);
+    try { localStorage.removeItem("msp-bf-roster-open"); } catch { /* ignore */ }
+  });
+
+  it("lists the due-soon batteries as rows under the soon summary (D#162)", async () => {
+    const soon = { ...HEALTHY, entity_id: "sensor.doorbell_battery_plus", device_name: "Doorbell", days_until: 12, can_mark_replaced: true, level: 40 };
+    const { el } = await mount(overview({ total: 3, soon: [soon], needs_soon: { AA: 1 }, all: [{ ...LOW, status: "low" }, { ...soon, status: "soon" }, { ...HEALTHY, status: "ok" }] }));
+    const rows = el.shadowRoot!.querySelectorAll(".bf-soon-rows .bf-row");
+    expect(rows.length).to.equal(1);
+    expect(rows[0].textContent).to.contain("Doorbell");
+    expect(rows[0].querySelector(".bf-mark.bf-replaced"), "replaced action on the soon row").to.exist;
+  });
+
+  it("the ~date tooltip names the lifetime and its source; a row with a level parks Replaced in the action column", async () => {
+    const soon = { ...HEALTHY, entity_id: "sensor.doorbell_battery_plus", device_name: "Doorbell", days_until: 12, level: 40, can_mark_replaced: true, lifetime_months: 18, lifetime_source: "learned", lifetime_samples: 5 };
+    const { el } = await mount(overview({ total: 2, all: [{ ...soon, status: "soon" }, { ...HEALTHY, status: "ok" }] }));
+    const pred = el.shadowRoot!.querySelector<HTMLElement>(".bf-roster .bf-predicted")!;
+    expect(pred.title).to.contain("18 months").and.to.contain("learned from 5 replacements");
+    const btn = el.shadowRoot!.querySelector<HTMLElement>(".bf-roster .bf-row .bf-level + .bf-mark.bf-replaced")!;
+    expect(btn, "replaced button follows the level cell").to.exist;
+    expect(getComputedStyle(btn).gridColumnStart).to.equal("8");
   });
 
 it("shows the predicted replacement date where a forecast exists (#114)", async () => {

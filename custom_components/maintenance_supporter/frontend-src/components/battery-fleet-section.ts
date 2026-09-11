@@ -41,6 +41,10 @@ interface BatteryRow {
   no_sensor?: boolean;
   /** D#162 follow-up: the note has a replaced button → per-row Replaced action. */
   can_mark_replaced?: boolean;
+  /** D#162 follow-up: which type lifetime the typical forecast used. */
+  lifetime_months?: number | null;
+  lifetime_source?: "override" | "learned" | "table" | "default" | null;
+  lifetime_samples?: number;
   /** ISO date the forecast anchors on (Battery Notes' last replaced). */
   last_replaced?: string | null;
 }
@@ -252,8 +256,37 @@ export class MaintenanceBatteryFleetSection extends LitElement {
 
   /** Lazy: the recorder-backed history is fetched once, when the roster is
    *  first expanded — most panel visits never open it. */
+  /** D#162: the roster is open unless this browser collapsed it before. */
+  private _rosterOpen(): boolean {
+    return lsGet(LS_KEYS.batteryRosterOpen) !== "0";
+  }
+
+  /** The ~date tooltip: trend (with confidence) or the type lifetime with
+   *  where it came from — "18 months typical for CR2032 (learned from 5
+   *  replacements)" (D#162 follow-up). */
+  private _predictedTitle(b: BatteryRow, L: string): string {
+    if (b.forecast_overdue) return t("battery_fleet_forecast_overdue", L);
+    const date = this._predictedDate(b.days_until ?? 0);
+    if (b.predicted_source === "trend") {
+      return t("battery_fleet_predicted_trend", L)
+        .replace("{date}", date)
+        .replace("{confidence}", t("cal_confidence_" + (b.prediction_confidence || "medium"), L));
+    }
+    if (b.lifetime_months != null && b.lifetime_source) {
+      const source = t("lifetime_source_" + b.lifetime_source, L).replace("{n}", String(b.lifetime_samples ?? 0));
+      return t("battery_fleet_predicted_typical", L)
+        .replace("{date}", date)
+        .replace("{months}", String(b.lifetime_months))
+        .replace("{type}", b.battery_type)
+        .replace("{source}", source);
+    }
+    return t("battery_fleet_predicted_on", L).replace("{date}", date);
+  }
+
   private _loadHistory = async (e: Event): Promise<void> => {
-    if (!(e.target as HTMLDetailsElement).open || this._historyRequested) return;
+    const open = (e.target as HTMLDetailsElement).open;
+    lsSet(LS_KEYS.batteryRosterOpen, open ? "1" : "0");
+    if (!open || this._historyRequested) return;
     this._historyRequested = true;
     try {
       const res = await this.hass.connection.sendMessagePromise<{ series: HistorySeries }>({
@@ -493,11 +526,36 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 <span class="bf-list">${this._shoppingLine(ov.needs_soon)}</span>
                 <div class="bf-soon-hint">${t("battery_fleet_soon_hint", L)}</div>
               </div>
+              <div class="bf-rows bf-soon-rows">
+                ${ov.soon.map(
+                  (b) => html`
+                    <div class="bf-row">
+                      <span class="bf-dev">${b.device_name}</span>
+                      ${b.no_sensor
+                        ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
+                        : nothing}
+                      <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
+                      ${this._levelBar(b)}
+                      ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
+                      ${b.days_until != null
+                        ? html`<span class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
+                            title=${this._predictedTitle(b, L)}
+                            >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span>`
+                        : nothing}
+                      ${b.no_sensor || b.can_mark_replaced
+                        ? html`<button class="bf-mark bf-replaced" title=${t("battery_fleet_mark_one", L)} .disabled=${this._marking} @click=${() => this._mark([b.entity_id])}>
+                            <ha-icon icon="mdi:battery-sync"></ha-icon>
+                          </button>`
+                        : nothing}
+                    </div>
+                  `,
+                )}
+              </div>
             `
           : nothing}
         ${ov.all?.length
           ? html`
-              <details class="bf-roster" @toggle=${this._loadHistory}>
+              <details class="bf-roster" ?open=${this._rosterOpen()} @toggle=${this._loadHistory}>
                 <summary>${t("battery_fleet_all", L)} (${ov.all.length})</summary>
                 <div class="bf-roster-tools">
                   <button
@@ -560,13 +618,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                         ${b.days_until != null
                           ? html`<span
                               class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
-                              title=${b.forecast_overdue
-                                ? t("battery_fleet_forecast_overdue", L)
-                                : b.predicted_source === "trend"
-                                  ? t("battery_fleet_predicted_trend", L)
-                                      .replace("{date}", this._predictedDate(b.days_until))
-                                      .replace("{confidence}", t("cal_confidence_" + (b.prediction_confidence || "medium"), L))
-                                  : t("battery_fleet_predicted_on", L).replace("{date}", this._predictedDate(b.days_until))}
+                              title=${this._predictedTitle(b, L)}
                               >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span
                             >`
                           : nothing}
@@ -783,6 +835,13 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       grid-column: 7;
       justify-self: end;
     }
+    /* D#162 (maisun's iPhone): since 2.79 rows WITH a level offer Replaced
+     * too — level and button shared column 7 and overlapped. With a
+     * percentage present the button takes the row-action column instead. */
+    .bf-row .bf-level + .bf-mark.bf-replaced {
+      grid-column: 8;
+      justify-self: start;
+    }
     .bf-predicted {
       grid-column: 9;
       justify-self: end;
@@ -854,6 +913,17 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       .bf-predicted,
       .bf-row .bf-mark {
         grid-row: 2;
+      }
+      /* Phone: a row with BOTH a percentage and the Replaced action parks the
+       * action on line 1 next to the status chip (the name yields the last
+       * column) so line 2 keeps type / % / date / eye without overflowing. */
+      .bf-row .bf-level + .bf-mark.bf-replaced {
+        grid-row: 1;
+        grid-column: 8;
+        justify-self: end;
+      }
+      .bf-row:has(.bf-level + .bf-mark.bf-replaced) .bf-dev {
+        grid-column: 1 / 8;
       }
       /* The roster's "No sensor" chip would widen the shared bar track
        * for EVERY row (subgrid) - on phones the missing percentage and

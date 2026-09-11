@@ -51,6 +51,18 @@ interface SettingsResponse {
     /** #146: household "low" floors (percent) for discovery + battery fleet. */
     default_consumable_threshold?: number;
     battery_low_percent?: number;
+    /** D#162 follow-up: per-type lifetime overrides + the computed catalog. */
+    battery_lifetime_months?: Record<string, number>;
+    battery_lifetimes?: {
+      type: string;
+      months: number;
+      source: "override" | "learned" | "table" | "default";
+      samples: number;
+      default_months: number;
+      learned_months: number | null;
+      override_months: number | null;
+      in_fleet: boolean;
+    }[];
     /** Computed: what Battery Notes reports (null when not installed). */
     battery_notes?: {
       default: number;
@@ -267,6 +279,51 @@ export class MaintenanceSettingsView extends LitElement {
   /** #146 follow-up: what Battery Notes currently reports, with the rule
    *  spelled out — warn-toned when its default sits above our floor (then a
    *  lowered floor would silently change nothing for noted batteries). */
+  /** D#162 follow-up: the typical-lifetime table — fleet types first, each
+   *  with its effective months and where they come from; editing a value
+   *  writes the household override, "Use default" removes it. Only batteries
+   *  WITHOUT a percentage use these (the hint says so). */
+  private _renderBatteryLifetimes(L: string) {
+    const rows = this._settings?.general?.battery_lifetimes;
+    if (!rows || !rows.length) return nothing;
+    const overrides = this._settings?.general?.battery_lifetime_months ?? {};
+    const sourceLabel = (r: NonNullable<typeof rows>[number]) =>
+      t("lifetime_source_" + r.source, L).replace("{n}", String(r.samples));
+    const commit = (type: string, raw: string) => {
+      const months = Number.parseInt(raw, 10);
+      if (!Number.isFinite(months) || months < 1 || months > 240) return;
+      this._updateSetting("battery_lifetime_months", { ...overrides, [type]: months });
+    };
+    const reset = (type: string) => {
+      const next = { ...overrides };
+      delete next[type];
+      this._updateSetting("battery_lifetime_months", next);
+    };
+    const fleetRows = rows.filter((r) => r.in_fleet);
+    const otherRows = rows.filter((r) => !r.in_fleet);
+    const row = (r: NonNullable<typeof rows>[number]) => html`
+      <div class="bl-row ${r.source === "override" ? "bl-override" : ""}">
+        <span class="bl-type">${r.type}${r.in_fleet ? html` <span class="bl-fleet">${t("settings_battery_lifetime_in_fleet", L)}</span>` : nothing}</span>
+        <input class="bl-months" type="number" min="1" max="240" .value=${live(String(r.months))}
+          @change=${(e: Event) => commit(r.type, (e.target as HTMLInputElement).value)} />
+        <span class="bl-unit">${t("settings_battery_lifetime_months", L)}</span>
+        <span class="bl-source">${sourceLabel(r)}</span>
+        ${r.source === "override"
+          ? html`<button type="button" class="bl-reset" @click=${() => reset(r.type)}>${t("settings_battery_lifetime_reset", L)}</button>`
+          : nothing}
+      </div>`;
+    return html`
+      <h4 class="bl-title">${t("settings_battery_lifetimes", L)}</h4>
+      <div class="setting-hint">${t("settings_battery_lifetimes_hint", L)}</div>
+      <div class="bl-table">
+        ${fleetRows.map(row)}
+        ${otherRows.length
+          ? html`<details class="bl-more"><summary>${otherRows.length} ×</summary>${otherRows.map(row)}</details>`
+          : nothing}
+      </div>
+    `;
+  }
+
   private _renderBatteryNotesHint(L: string) {
     const bn = this._settings?.general?.battery_notes;
     if (!bn || !bn.devices) return nothing;
@@ -743,6 +800,7 @@ export class MaintenanceSettingsView extends LitElement {
               this._onBoundedIntChange(e, "battery_low_percent", 1, 90, g.battery_low_percent ?? 20)} />
         </label>
         ${this._renderBatteryNotesHint(L)}
+        ${this._renderBatteryLifetimes(L)}
         <div class="setting-hint">${t("settings_thresholds_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_row_actions", L)}</span>
@@ -2051,6 +2109,22 @@ export class MaintenanceSettingsView extends LitElement {
     .import-section { margin-top: 16px; }
 
     .setting-row-block { flex-direction: column; align-items: stretch; gap: 6px; }
+    /* D#162 follow-up: battery lifetime table */
+    .bl-title { margin: 16px 0 8px; font-size: 14px; }
+    .bl-table { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 12px; }
+    .bl-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px max-content minmax(0, 1.4fr) max-content; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--divider-color); }
+    .bl-type { font-weight: 500; }
+    .bl-fleet { font-size: 11px; color: var(--secondary-text-color); font-weight: 400; margin-left: 4px; }
+    .bl-months { width: 72px; padding: 4px 6px; border: 1px solid var(--divider-color); border-radius: 4px; background: var(--card-background-color); color: var(--primary-text-color); font: inherit; }
+    .bl-unit, .bl-source { font-size: 12px; color: var(--secondary-text-color); }
+    .bl-override .bl-source { color: var(--primary-color); }
+    .bl-reset { background: none; border: 1px solid var(--divider-color); border-radius: 12px; padding: 2px 10px; font-size: 12px; color: var(--primary-text-color); cursor: pointer; }
+    .bl-more > summary { cursor: pointer; font-size: 12px; color: var(--secondary-text-color); padding: 4px 0; }
+    @media (max-width: 640px) {
+      .bl-row { grid-template-columns: minmax(0, 1fr) 64px max-content; }
+      .bl-source { grid-column: 1 / 3; }
+      .bl-reset { grid-column: 3; justify-self: end; }
+    }
     .notify-extra { min-height: 72px; font-family: var(--code-font-family, monospace); font-size: 12.5px; }
     .import-area {
       width: 100%;

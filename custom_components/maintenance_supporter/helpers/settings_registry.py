@@ -34,6 +34,7 @@ from ..const import (
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
+    CONF_BATTERY_LIFETIME_MONTHS,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
@@ -101,6 +102,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # #146: household "low" floors (percent) for discovery and the battery fleet.
     SettingSpec(CONF_DEFAULT_CONSUMABLE_THRESHOLD, int, int_range=(1, 90)),
     SettingSpec(CONF_BATTERY_LOW_PERCENT, int, int_range=(1, 90)),
+    # D#162 follow-up: {battery type: typical lifetime in months} — the forecast
+    # anchor for batteries without a level sensor (sanitised in dashboard.py).
+    SettingSpec(CONF_BATTERY_LIFETIME_MONTHS, dict),
     SettingSpec(CONF_NOTIFICATIONS_ENABLED, bool),
     SettingSpec(CONF_NOTIFY_SERVICE, str, max_len=200),
     # todo.* entity the buy-task shopping sync mirrors into ("" = off);
