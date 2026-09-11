@@ -17,6 +17,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   a new reference number under the target and its entities are recreated
   there. WS `task/move` (94 commands).
 
+### 🐛 Fixed
+
+- A sensor-driven task's interval read **Manual** in the task header, the
+  rows and the quick actions; it now says *Sensor-based*, with the safety
+  interval appended when one is set.
+
 ### 📝 Docs
 
 - Counter trigger: what happens when the source counter drops, resets

@@ -410,6 +410,14 @@ interface RecurrenceLike {
  *  day_of_month / one_time / manual. Used by the panel, card, and quick-actions. */
 export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
   const s = task.schedule;
+  // A sensor-driven task is not "Manual": say so, and append the safety
+  // interval when one is set (the KPI card read "Manual" for the HVAC filter
+  // in the docs shot — reported as "schief").
+  if (task.schedule_type === "sensor_based") {
+    const base = t("sensor_based", lang);
+    const every = s && s.kind === "interval" && s.every ? s.every : task.interval_days;
+    return every ? `${base} · ${formatInterval(every, (s && s.kind === "interval" ? s.unit : task.interval_unit) || "days", lang)}` : base;
+  }
   // (#83) ±N-day shift suffix shared by the calendar kinds.
   const off = s?.offset ? ` ${s.offset > 0 ? "+" : "−"}${Math.abs(s.offset)}d` : "";
   switch (s?.kind) {
