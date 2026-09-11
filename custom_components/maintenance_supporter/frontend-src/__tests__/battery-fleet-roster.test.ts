@@ -131,10 +131,10 @@ describe("battery fleet roster", () => {
   });
 
   it("the ~date tooltip names the lifetime and its source; a row with a level parks Replaced in the action column", async () => {
-    const soon = { ...HEALTHY, entity_id: "sensor.doorbell_battery_plus", device_name: "Doorbell", days_until: 12, level: 40, can_mark_replaced: true, lifetime_months: 18, lifetime_source: "learned", lifetime_samples: 5 };
+    const soon = { ...HEALTHY, entity_id: "sensor.doorbell_battery_plus", device_name: "Doorbell", days_until: 12, level: 40, can_mark_replaced: true, lifetime_months: 18, lifetime_source: "learned_model", lifetime_samples: 5 };
     const { el } = await mount(overview({ total: 2, all: [{ ...soon, status: "soon" }, { ...HEALTHY, status: "ok" }] }));
     const pred = el.shadowRoot!.querySelector<HTMLElement>(".bf-roster .bf-predicted")!;
-    expect(pred.title).to.contain("18 months").and.to.contain("learned from 5 replacements");
+    expect(pred.title).to.contain("18 months").and.to.contain("learned from 5 replacements on devices of this model");
     const btn = el.shadowRoot!.querySelector<HTMLElement>(".bf-roster .bf-row .bf-level + .bf-mark.bf-replaced")!;
     expect(btn, "replaced button follows the level cell").to.exist;
     expect(getComputedStyle(btn).gridColumnStart).to.equal("8");

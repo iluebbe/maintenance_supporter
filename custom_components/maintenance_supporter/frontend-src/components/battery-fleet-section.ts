@@ -43,7 +43,7 @@ interface BatteryRow {
   can_mark_replaced?: boolean;
   /** D#162 follow-up: which type lifetime the typical forecast used. */
   lifetime_months?: number | null;
-  lifetime_source?: "override" | "learned" | "table" | "default" | null;
+  lifetime_source?: "override" | "learned_device" | "learned_model" | "table" | "default" | null;
   lifetime_samples?: number;
   /** ISO date the forecast anchors on (Battery Notes' last replaced). */
   last_replaced?: string | null;

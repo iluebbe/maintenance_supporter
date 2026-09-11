@@ -205,6 +205,11 @@ class Battery:
     # read_batteries for EVERY Battery Notes row (a low-only binary row has
     # no level either and needs it just as much as a sensorless one).
     can_mark_replaced: bool = False
+    # D#162 follow-up: "manufacturer|model" of the device (device registry)
+    # — the pool a learned lifetime is drawn from. A CR2032 in a door sensor
+    # and one in a thermostat share nothing but the cell; devices of the same
+    # model do. Empty when the device is unknown.
+    model_key: str = ""
 
 
 @dataclass
@@ -251,13 +256,14 @@ def build_overview(
     today: date,
     horizon_days: int = DEFAULT_HORIZON_DAYS,
     trend_predictions: dict[str, tuple[int, str]] | None = None,
-    lifetime_for: Callable[[Any], LifetimeInfo] | None = None,
+    lifetime_for: Callable[[Battery], LifetimeInfo] | None = None,
 ) -> BatteryOverview:
     """Aggregate batteries into the fleet view.
 
-    ``lifetime_for`` resolves a type's lifetime (override > learned > table >
-    default, see battery_lifetime); without it the table alone is used —
-    the pure-function tests and the summary sensors call it that way.
+    ``lifetime_for`` resolves a battery's lifetime (override > this device's
+    own replacements > devices of the same model > table > default, see
+    battery_lifetime); without it the table alone is used — the pure-function
+    tests and the summary sensors call it that way.
 
     * ``low`` = reported low right now (Battery Notes' own threshold) — or a
       sensorless note whose forecast has passed with the due-without-sensor
@@ -287,7 +293,7 @@ def build_overview(
         # "replace the vacuum's pack" dated from the day the device was added),
         # so they get a ~date only when the trend has earned one.
         trend = (trend_predictions or {}).get(bat.entity_id)
-        info = lifetime_for(bat.battery_type) if lifetime_for else LifetimeInfo(lifetime_months(bat.battery_type), "table")
+        info = lifetime_for(bat) if lifetime_for else LifetimeInfo(lifetime_months(bat.battery_type), "table")
         if trend is not None:
             days_raw: int | None = trend[0]
             source, confidence = "trend", trend[1]
@@ -354,6 +360,7 @@ def _row(
         "lifetime_months": lifetime.months if lifetime else None,
         "lifetime_source": lifetime.source if lifetime else None,
         "lifetime_samples": lifetime.samples if lifetime else 0,
+        "model_key": bat.model_key,
         "device_name": bat.device_name,
         "battery_type": canon_type,
         "quantity": bat.quantity,
@@ -463,6 +470,23 @@ def fleet_due_without_sensor(hass: HomeAssistant) -> bool:
     from ..const import BATTERY_FLEET_DUE_WITHOUT_SENSOR
 
     return _fleet_object(hass).get(BATTERY_FLEET_DUE_WITHOUT_SENSOR) is not False
+
+
+def device_model_key(hass: HomeAssistant, device_id: str | None) -> str:
+    """"manufacturer|model" (lowercased) for a device registry id, "" when
+    unknown — the learning pool key (see battery_lifetime)."""
+    if not device_id:
+        return ""
+    from homeassistant.helpers import device_registry as dr
+
+    device = dr.async_get(hass).async_get(device_id)
+    if device is None:
+        return ""
+    manufacturer = (device.manufacturer or "").strip().lower()
+    model = (device.model or device.model_id or "").strip().lower()
+    if not model:
+        return ""
+    return f"{manufacturer}|{model}"
 
 
 def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
@@ -687,6 +711,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                     device_name=attrs.get("device_name") or attrs.get("friendly_name") or state.entity_id,
                     battery_type=str(attrs.get("battery_type") or "Unknown"),
                     quantity=int(attrs.get("battery_quantity") or 1),
+                    model_key=device_model_key(hass, dev_id),
                     low=low,
                     level=level,
                     last_replaced=last_replaced,
@@ -790,6 +815,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 device_name=name or rec["eid"],
                 battery_type="Rechargeable" if rec.get("self_charging") else "Unknown",
                 quantity=1,
+                model_key=device_model_key(hass, rec.get("device_id")),
                 low=low,
                 level=level,
                 last_replaced=None,
@@ -865,6 +891,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             device_name=name,
             battery_type=battery_type,
             quantity=int(attrs.get("battery_quantity") or 1),
+            model_key=device_model_key(hass, dev_id),
             low=False,
             level=None,
             last_replaced=last_replaced,

@@ -1,10 +1,12 @@
 """Battery lifetimes (D#162 follow-up): Battery Notes' type vocabulary folds
 onto the table, the table knows the common coin/lithium cells, "Manual" /
-"Irreplaceable" / "Solar" get no type forecast, overrides beat learned beat
-table beat default, the fleet logs every last-replaced date it sees and
-learns a type's lifetime from the pooled intervals once three exist, the
-settings sanitiser keeps only sane entries, and the overview rows say which
-lifetime they used.
+"Irreplaceable" / "Solar" get no type forecast, the resolution order is
+override > this device's own replacements > devices of the same model >
+table > default, the fleet logs every last-replaced date it sees (with the
+device model) and learns per model — never fleet-wide per type, a CR2032 in
+a door sensor says nothing about one in a thermostat — the settings
+sanitiser keeps only sane entries, and the overview rows say which lifetime
+they used.
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ from custom_components.maintenance_supporter.helpers.battery_fleet import Batter
 from custom_components.maintenance_supporter.helpers.battery_lifetime import (
     DEFAULT_LIFETIME_MONTHS,
     TYPICAL_LIFETIME_MONTHS,
+    Learned,
     LifetimeInfo,
     canonical_type,
     has_type_forecast,
@@ -29,8 +32,8 @@ from custom_components.maintenance_supporter.helpers.battery_lifetime import (
 )
 
 
-def _bat(name: str, btype: str, *, last: date | None = None, level: float | None = None) -> Battery:
-    return Battery(entity_id=f"sensor.{name}_battery_plus", device_name=name, battery_type=btype, quantity=1, low=False, level=level, last_replaced=last)
+def _bat(name: str, btype: str, *, last: date | None = None, level: float | None = None, model: str = "") -> Battery:
+    return Battery(entity_id=f"sensor.{name}_battery_plus", device_name=name, battery_type=btype, quantity=1, low=False, level=level, last_replaced=last, model_key=model)
 
 
 # ─── vocabulary ────────────────────────────────────────────────────────────
@@ -74,13 +77,18 @@ def test_manual_irreplaceable_and_solar_have_no_type_forecast() -> None:
 # ─── precedence ─────────────────────────────────────────────────────────────
 
 
-def test_resolve_precedence_override_learned_table_default() -> None:
+def test_resolve_precedence_override_device_model_table_default() -> None:
     overrides = {"CR2032": 30}
-    learned = {"CR2032": (20, 4), "AA": (9, 5)}
-    assert resolve_lifetime("cr2032", overrides=overrides, learned=learned) == LifetimeInfo(30, "override")
-    assert resolve_lifetime("LR6", overrides=overrides, learned=learned) == LifetimeInfo(9, "learned", 5)
-    assert resolve_lifetime("AAA", overrides=overrides, learned=learned) == LifetimeInfo(TYPICAL_LIFETIME_MONTHS["AAA"], "table")
-    assert resolve_lifetime("XYZ99", overrides=overrides, learned=learned) == LifetimeInfo(DEFAULT_LIFETIME_MONTHS, "default")
+    learned = Learned(by_device={"sensor.door_battery_plus": (11, 2)}, by_model={("CR2032", "aqara|door"): (20, 4), ("AA", "acme|lock"): (9, 5)})
+    # override beats everything, even a device's own history
+    assert resolve_lifetime("cr2032", overrides=overrides, learned=learned, entity_id="sensor.door_battery_plus", model_key="aqara|door") == LifetimeInfo(30, "override")
+    # a device's own intervals beat its model's pool
+    assert resolve_lifetime("AA", overrides={}, learned=learned, entity_id="sensor.door_battery_plus", model_key="acme|lock") == LifetimeInfo(11, "learned_device", 2)
+    # the same-model pool beats the table — but only for that model
+    assert resolve_lifetime("LR6", overrides={}, learned=learned, entity_id="sensor.other", model_key="acme|lock") == LifetimeInfo(9, "learned_model", 5)
+    assert resolve_lifetime("LR6", overrides={}, learned=learned, entity_id="sensor.other", model_key="other|thing") == LifetimeInfo(TYPICAL_LIFETIME_MONTHS["AA"], "table")
+    assert resolve_lifetime("LR6", overrides={}, learned=learned, entity_id="sensor.other", model_key="") == LifetimeInfo(TYPICAL_LIFETIME_MONTHS["AA"], "table")
+    assert resolve_lifetime("XYZ99", overrides={}, learned=learned) == LifetimeInfo(DEFAULT_LIFETIME_MONTHS, "default")
 
 
 def test_sanitize_overrides_keeps_only_sane_entries() -> None:
@@ -95,12 +103,18 @@ def test_sanitize_overrides_keeps_only_sane_entries() -> None:
 
 def test_overview_rows_carry_lifetime_and_forecast_follows_it() -> None:
     today = date(2026, 9, 11)
-    bats = [_bat("Door", "CR2032", last=date(2025, 9, 11)), _bat("Vac", "Rechargeable", last=date(2025, 1, 1)), _bat("Plug", "Manual", last=date(2024, 1, 1))]
-    resolver = lambda raw: resolve_lifetime(raw, overrides={"CR2032": 14}, learned={})  # noqa: E731
+    bats = [
+        _bat("Door", "CR2032", last=date(2025, 9, 11), model="aqara|door"),
+        _bat("Vac", "Rechargeable", last=date(2025, 1, 1)),
+        _bat("Plug", "Manual", last=date(2024, 1, 1)),
+    ]
+    learned = Learned(by_device={}, by_model={("CR2032", "aqara|door"): (14, 3)})
+    resolver = lambda b: resolve_lifetime(b.battery_type, overrides={}, learned=learned, entity_id=b.entity_id, model_key=b.model_key)  # noqa: E731
     ov = build_overview(bats, today=today, horizon_days=90, lifetime_for=resolver)
     door = next(r for r in ov.all if r["device_name"] == "Door")
     # 14 months from 2025-09-11 → 2026-11-11 → 61 days
-    assert door["lifetime_months"] == 14 and door["lifetime_source"] == "override"
+    assert door["lifetime_months"] == 14 and door["lifetime_source"] == "learned_model" and door["lifetime_samples"] == 3
+    assert door["model_key"] == "aqara|door"
     assert door["days_until"] == 61 and door["status"] == "soon"
     vac = next(r for r in ov.all if r["device_name"] == "Vac")
     plug = next(r for r in ov.all if r["device_name"] == "Plug")
@@ -129,41 +143,65 @@ class _FakeStore:
         self.saves += 1
 
 
-def test_observe_and_learn(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_observe_and_learn_per_model_not_per_type(monkeypatch: pytest.MonkeyPatch) -> None:
     store = _FakeStore()
     monkeypatch.setattr(bl, "_fleet_store_and_task", lambda hass: (store, "fleet-task"))
     hass = object()
+    DOOR, THERMO = "aqara|door", "acme|thermostat"
     # First sight: one date per device — no interval yet.
-    bats = [_bat("A", "CR2032", last=date(2024, 1, 1)), _bat("B", "cr2032", last=date(2024, 6, 1)), _bat("C", "LR6", last=date(2024, 1, 1))]
+    bats = [_bat("A", "CR2032", last=date(2024, 1, 1), model=DOOR), _bat("B", "cr2032", last=date(2024, 6, 1), model=DOOR), _bat("T", "CR2032", last=date(2024, 1, 1), model=THERMO)]
     assert bl.observe_replacements(hass, bats) == 3
     assert store.saves == 1
     assert bl.observe_replacements(hass, bats) == 0, "unchanged dates are not re-logged"
-    assert bl.learned_lifetimes(hass) == {}
-    # Replacements happen: A twice, B once, C once → CR2032 gets 3 intervals (18, 17, 19 months), AA one.
-    bats = [_bat("A", "CR2032", last=date(2025, 7, 1)), _bat("B", "cr2032", last=date(2025, 11, 1)), _bat("C", "LR6", last=date(2025, 1, 1))]
+    assert bl.learned_lifetimes(hass) == Learned.empty()
+    # Door sensors: A replaced twice, B once → 3 pooled intervals (18, 17, 19 months).
+    # The thermostat (same CELL, other model) is replaced after 6 months → must not pollute the door pool.
+    bats = [_bat("A", "CR2032", last=date(2025, 7, 1), model=DOOR), _bat("B", "cr2032", last=date(2025, 11, 1), model=DOOR), _bat("T", "CR2032", last=date(2024, 7, 1), model=THERMO)]
     bl.observe_replacements(hass, bats)
-    bats = [_bat("A", "CR2032", last=date(2027, 2, 1)), _bat("B", "cr2032", last=date(2025, 11, 1)), _bat("C", "LR6", last=date(2025, 1, 1))]
+    bats = [_bat("A", "CR2032", last=date(2027, 2, 1), model=DOOR), _bat("B", "cr2032", last=date(2025, 11, 1), model=DOOR), _bat("T", "CR2032", last=date(2025, 1, 1), model=THERMO)]
     bl.observe_replacements(hass, bats)
     learned = bl.learned_lifetimes(hass)
-    assert "AA" not in learned, "one interval is not enough"
-    months, samples = learned["CR2032"]
+    months, samples = learned.by_model[("CR2032", DOOR)]
     assert samples == 3 and 17 <= months <= 19
-    # A same-day re-seed or a typo-sized interval is ignored.
-    bats = [_bat("A", "CR2032", last=date(2027, 2, 3))]
-    bl.observe_replacements(hass, bats)
-    assert bl.learned_lifetimes(hass)["CR2032"][1] == 3
-    # The log is capped per device.
+    assert ("CR2032", THERMO) not in learned.by_model, "two intervals are not enough for a model pool"
+    # Device A's own two intervals → its own value, which beats the pool for A only.
+    assert learned.by_device["sensor.A_battery_plus"][1] == 2
+    assert "sensor.B_battery_plus" not in learned.by_device
+    assert resolve_lifetime("CR2032", overrides={}, learned=learned, entity_id="sensor.A_battery_plus", model_key=DOOR).source == "learned_device"
+    assert resolve_lifetime("CR2032", overrides={}, learned=learned, entity_id="sensor.B_battery_plus", model_key=DOOR).source == "learned_model"
+    # The thermostat has two intervals of its OWN → learned_device; its model has no pool.
+    assert resolve_lifetime("CR2032", overrides={}, learned=learned, entity_id="sensor.T_battery_plus", model_key=THERMO).source == "learned_device"
+    assert resolve_lifetime("CR2032", overrides={}, learned=learned, entity_id="sensor.T2_battery_plus", model_key=THERMO).source == "table"
+    # A same-day re-seed or a typo-sized interval is ignored; the log is capped.
+    bl.observe_replacements(hass, [_bat("A", "CR2032", last=date(2027, 2, 3), model=DOOR)])
+    assert bl.learned_lifetimes(hass).by_model[("CR2032", DOOR)][1] == 3
     entry = store.tasks["fleet-task"][bl.REPLACEMENT_LOG_KEY]["sensor.A_battery_plus"]
-    assert entry["type"] == "CR2032" and len(entry["dates"]) <= bl._LOG_DATES_CAP
+    assert entry["type"] == "CR2032" and entry["model"] == DOOR and len(entry["dates"]) <= bl._LOG_DATES_CAP
 
 
-def test_catalog_lists_fleet_types_first_with_sources(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_unknown_model_never_pools(monkeypatch: pytest.MonkeyPatch) -> None:
+    store = _FakeStore()
+    monkeypatch.setattr(bl, "_fleet_store_and_task", lambda hass: (store, "fleet-task"))
+    hass = object()
+    for d in (date(2024, 1, 1), date(2025, 1, 1), date(2026, 1, 1), date(2027, 1, 1)):
+        bl.observe_replacements(hass, [_bat("X", "AA", last=d), _bat("Y", "AA", last=d)])
+    learned = bl.learned_lifetimes(hass)
+    assert learned.by_model == {}, "no model key → no pool (the type alone is not a pool)"
+    assert learned.by_device["sensor.X_battery_plus"][1] == 3, "the device still learns from itself"
+
+
+def test_catalog_lists_fleet_types_first_with_learned_models(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(bl, "lifetime_overrides", lambda hass: {"CR2032": 30})
-    monkeypatch.setattr(bl, "learned_lifetimes", lambda hass: {"AA": (9, 4)})
-    rows = lifetime_catalog(object(), ["LR6", "cr2032", "Manual", "XYZ99"])
+    monkeypatch.setattr(bl, "learned_lifetimes", lambda hass: Learned(by_device={}, by_model={("AA", "acme|lock"): (9, 4), ("AA", "acme|remote"): (14, 3)}))
+    rows = lifetime_catalog(object(), ["LR6", "cr2032", "Manual", "XYZ99"], model_names={"acme|lock": "Acme Lock"})
     by_type = {r["type"]: r for r in rows}
     assert [r["type"] for r in rows[:3]] == ["AA", "CR2032", "XYZ99"], "fleet types (canonical, sorted) come first"
-    assert by_type["AA"] == {"type": "AA", "months": 9, "source": "learned", "samples": 4, "default_months": 12, "learned_months": 9, "override_months": None, "in_fleet": True}
+    aa = by_type["AA"]
+    assert aa["source"] == "table" and aa["months"] == 12, "a learned value never replaces the type row"
+    assert aa["learned_models"] == [
+        {"model": "Acme Lock", "model_key": "acme|lock", "months": 9, "samples": 4},
+        {"model": "acme|remote", "model_key": "acme|remote", "months": 14, "samples": 3},
+    ]
     assert by_type["CR2032"]["source"] == "override" and by_type["CR2032"]["override_months"] == 30 and by_type["CR2032"]["default_months"] == 18
     assert by_type["XYZ99"]["source"] == "default" and by_type["XYZ99"]["months"] == DEFAULT_LIFETIME_MONTHS
     assert "MANUAL" not in by_type
@@ -173,4 +211,4 @@ def test_catalog_lists_fleet_types_first_with_sources(monkeypatch: pytest.Monkey
 def test_no_fleet_means_no_log_and_no_learning() -> None:
     hass = SimpleNamespace(config_entries=SimpleNamespace(async_entries=lambda domain: []))
     assert bl.observe_replacements(hass, [_bat("A", "AA", last=date(2024, 1, 1))]) == 0
-    assert bl.learned_lifetimes(hass) == {}
+    assert bl.learned_lifetimes(hass) == Learned.empty()

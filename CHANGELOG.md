@@ -9,9 +9,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Typical battery lifetimes** (D#162): a table under Settings — your
   fleet's types first — showing the lifetime the forecast uses for
   batteries *without* a percentage and where it comes from: your own value,
-  the value learned from your fleet's recorded replacements (median
-  interval, once a type has three, pooled across devices), the built-in
-  table, or the 12-month default. The table now knows CR1632, CR2430,
+  the value learned from the device's own replacements or from devices of
+  the same model (median interval; never pooled by cell type alone), the
+  built-in table, or the 12-month default. The table now knows CR1632, CR2430,
   CR3032, LS14250, LR44, A23 … and folds Battery Notes' aliases (LR6 → AA,
   PP3 → 9V, CR123 → CR123A); Manual / Irreplaceable / Solar notes get no
   type forecast. Setting `battery_lifetime_months`; the roster's ~date

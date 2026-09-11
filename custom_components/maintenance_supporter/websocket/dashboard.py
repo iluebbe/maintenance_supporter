@@ -119,10 +119,22 @@ _ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
 def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
     """The lifetime table as Settings shows it — fleet types first."""
     try:
-        from ..helpers.battery_fleet import discover_battery_types
+        # Readable "Manufacturer Model" per pool key for the learned rows.
+        from homeassistant.helpers import device_registry as dr
+
+        from ..helpers.battery_fleet import discover_battery_types, read_batteries
         from ..helpers.battery_lifetime import lifetime_catalog
 
-        return lifetime_catalog(hass, list(discover_battery_types(hass)))
+        names: dict[str, str] = {}
+        dev_reg = dr.async_get(hass)
+        for bat in read_batteries(hass):
+            if bat.model_key and bat.model_key not in names:
+                for device in dev_reg.devices.values():
+                    key = f"{(device.manufacturer or '').strip().lower()}|{(device.model or device.model_id or '').strip().lower()}"
+                    if key == bat.model_key:
+                        names[bat.model_key] = " ".join(x for x in (device.manufacturer, device.model or device.model_id) if x)
+                        break
+        return lifetime_catalog(hass, list(discover_battery_types(hass)), model_names=names)
     except Exception:  # noqa: BLE001 - a settings read must never fail on the fleet
         return []
 

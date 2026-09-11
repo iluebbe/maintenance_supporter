@@ -56,11 +56,11 @@ interface SettingsResponse {
     battery_lifetimes?: {
       type: string;
       months: number;
-      source: "override" | "learned" | "table" | "default";
-      samples: number;
+      source: "override" | "table" | "default";
       default_months: number;
-      learned_months: number | null;
       override_months: number | null;
+      /** What the fleet learned for this type, per device model (never applied type-wide). */
+      learned_models: { model: string; model_key: string; months: number; samples: number }[];
       in_fleet: boolean;
     }[];
     /** Computed: what Battery Notes reports (null when not installed). */
@@ -287,8 +287,15 @@ export class MaintenanceSettingsView extends LitElement {
     const rows = this._settings?.general?.battery_lifetimes;
     if (!rows || !rows.length) return nothing;
     const overrides = this._settings?.general?.battery_lifetime_months ?? {};
-    const sourceLabel = (r: NonNullable<typeof rows>[number]) =>
-      t("lifetime_source_" + r.source, L).replace("{n}", String(r.samples));
+    const sourceLabel = (r: NonNullable<typeof rows>[number]) => t("lifetime_source_" + r.source, L);
+    const unit = t("settings_battery_lifetime_months", L);
+    const learnedLine = (r: NonNullable<typeof rows>[number]) =>
+      r.learned_models.length
+        ? html`<div class="bl-learned">${t("settings_battery_lifetime_learned_models", L).replace(
+            "{list}",
+            r.learned_models.map((m) => `${m.model} ${m.months} ${unit} (${m.samples})`).join(" · "),
+          )}</div>`
+        : nothing;
     const commit = (type: string, raw: string) => {
       const months = Number.parseInt(raw, 10);
       if (!Number.isFinite(months) || months < 1 || months > 240) return;
@@ -311,6 +318,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${r.source === "override"
           ? html`<button type="button" class="bl-reset" @click=${() => reset(r.type)}>${t("settings_battery_lifetime_reset", L)}</button>`
           : nothing}
+        ${learnedLine(r)}
       </div>`;
     return html`
       <h4 class="bl-title">${t("settings_battery_lifetimes", L)}</h4>
@@ -2118,6 +2126,7 @@ export class MaintenanceSettingsView extends LitElement {
     .bl-months { width: 72px; padding: 4px 6px; border: 1px solid var(--divider-color); border-radius: 4px; background: var(--card-background-color); color: var(--primary-text-color); font: inherit; }
     .bl-unit, .bl-source { font-size: 12px; color: var(--secondary-text-color); }
     .bl-override .bl-source { color: var(--primary-color); }
+    .bl-learned { grid-column: 1 / -1; font-size: 12px; color: var(--secondary-text-color); }
     .bl-reset { background: none; border: 1px solid var(--divider-color); border-radius: 12px; padding: 2px 10px; font-size: 12px; color: var(--primary-text-color); cursor: pointer; }
     .bl-more > summary { cursor: pointer; font-size: 12px; color: var(--secondary-text-color); padding: 4px 0; }
     @media (max-width: 640px) {

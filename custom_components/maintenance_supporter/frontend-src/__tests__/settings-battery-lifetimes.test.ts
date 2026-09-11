@@ -10,9 +10,9 @@ import type { MaintenanceSettingsView } from "../components/settings-view";
 import { DEFAULT_FEATURES, DEFAULT_SETTINGS_RESPONSE, createMockHass } from "./_test-utils.js";
 
 const CATALOG = [
-  { type: "CR2032", months: 24, source: "override", samples: 0, default_months: 18, learned_months: null, override_months: 24, in_fleet: true },
-  { type: "AA", months: 9, source: "learned", samples: 4, default_months: 12, learned_months: 9, override_months: null, in_fleet: true },
-  { type: "CR2450", months: 24, source: "table", samples: 0, default_months: 24, learned_months: null, override_months: null, in_fleet: false },
+  { type: "CR2032", months: 24, source: "override", default_months: 18, override_months: 24, learned_models: [], in_fleet: true },
+  { type: "AA", months: 12, source: "table", default_months: 12, override_months: null, learned_models: [{ model: "Acme Lock", model_key: "acme|lock", months: 9, samples: 4 }], in_fleet: true },
+  { type: "CR2450", months: 24, source: "table", default_months: 24, override_months: null, learned_models: [], in_fleet: false },
 ];
 
 describe("settings: typical battery lifetimes (D#162)", () => {
@@ -50,8 +50,9 @@ describe("settings: typical battery lifetimes (D#162)", () => {
     const r = rows(el);
     expect(r.map((x) => x.querySelector(".bl-type")!.textContent!.trim().split(" ")[0])).to.deep.equal(["CR2032", "AA", "CR2450"]);
     expect(r[0].textContent).to.contain("your setting");
-    expect(r[1].textContent).to.contain("learned from 4 replacements");
+    expect(r[1].textContent).to.contain("built-in table").and.to.contain("Learned per model: Acme Lock 9 months (4)");
     expect(r[2].textContent).to.contain("built-in table");
+    expect(r[2].querySelector(".bl-learned")).to.not.exist;
     expect(r[0].querySelector<HTMLInputElement>("input.bl-months")!.value).to.equal("24");
     expect(el.shadowRoot!.querySelector(".bl-more"), "non-fleet types behind a disclosure").to.exist;
   });
