@@ -482,8 +482,9 @@ def device_model_key(hass: HomeAssistant, device_id: str | None) -> str:
     device = dr.async_get(hass).async_get(device_id)
     if device is None:
         return ""
-    manufacturer = (device.manufacturer or "").strip().lower()
-    model = (device.model or device.model_id or "").strip().lower()
+    # HA 2026.9 may hand back a ChildDeviceEntry, which has no make/model.
+    manufacturer = str(getattr(device, "manufacturer", None) or "").strip().lower()
+    model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "").strip().lower()
     if not model:
         return ""
     return f"{manufacturer}|{model}"

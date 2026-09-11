@@ -130,9 +130,11 @@ def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
         for bat in read_batteries(hass):
             if bat.model_key and bat.model_key not in names:
                 for device in dev_reg.devices.values():
-                    key = f"{(device.manufacturer or '').strip().lower()}|{(device.model or device.model_id or '').strip().lower()}"
+                    manufacturer = str(getattr(device, "manufacturer", None) or "")
+                    model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "")
+                    key = f"{manufacturer.strip().lower()}|{model.strip().lower()}"
                     if key == bat.model_key:
-                        names[bat.model_key] = " ".join(x for x in (device.manufacturer, device.model or device.model_id) if x)
+                        names[bat.model_key] = " ".join(x for x in (manufacturer, model) if x)
                         break
         return lifetime_catalog(hass, list(discover_battery_types(hass)), model_names=names)
     except Exception:  # noqa: BLE001 - a settings read must never fail on the fleet
