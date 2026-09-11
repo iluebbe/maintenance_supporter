@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Agrupar notificações",
           "notification_bundle_threshold": "Limite para agrupar",
           "notification_title_style": "Estilo do título da notificação",
+          "notify_completed": "Notificações de conclusão",
           "notify_event_only": "Disparar apenas o evento, não enviar nada",
           "notify_extra_data": "Dados de notificação adicionais (modelo)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Envia uma única notificação de resumo quando várias tarefas precisam de atenção.",
           "notification_bundle_threshold": "Número mínimo de tarefas para disparar uma notificação agrupada.",
           "notification_title_style": "O que aparece como TÍTULO da notificação. O padrão mantém o texto por status (ex.: 'Manutenção atrasada!'). Nome do objeto / Nome da tarefa ajudam quando as notificações do celular se empilham.",
+          "notify_completed": "Aviso para a casa quando uma tarefa é concluída, com o motivo (painel, leitura QR/NFC, lista de tarefas, voz, recuperação do sensor…). \"Só automáticas\" anuncia apenas as conclusões que ninguém fez na hora: recuperação do sensor, item marcado na lista de compras, chamada de serviço de uma automação.",
           "notify_event_only": "Cada notificação dispara o evento maintenance_supporter_notification. Com esta opção sua automação cuida de toda a entrega — intervalos de repetição, horas de silêncio e limite diário continuam decidindo quando o evento dispara.",
           "notify_extra_data": "JSON ou YAML com Jinja, mesclado nos data de cada chamada notify (suas chaves prevalecem). Variáveis: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Gatilho ou intervalo (o primeiro)",
         "all": "Gatilho e intervalo (ambos exigidos)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Desligado",
+        "automatic": "Só conclusões automáticas",
+        "all": "Todas as conclusões"
       }
     },
     "notification_title_style": {

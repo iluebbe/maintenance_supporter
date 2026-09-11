@@ -41,6 +41,7 @@ from .const import (
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
+    CONF_NOTIFY_COMPLETED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
@@ -65,6 +66,7 @@ from .const import (
     DEFAULT_WARNING_DAYS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
+    NOTIFY_COMPLETED_MODES,
     TIME_HHMMSS_PATTERN,
 )
 from .helpers.i18n import normalize_language
@@ -779,6 +781,17 @@ class GlobalOptionsFlow(OptionsFlow):
                             options=["default", "object_name", "task_name"],
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="notification_title_style",
+                        )
+                    ),
+                    # #173 follow-up: completion notifications (activity kind).
+                    vol.Optional(
+                        CONF_NOTIFY_COMPLETED,
+                        default=current.get(CONF_NOTIFY_COMPLETED, "off"),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=list(NOTIFY_COMPLETED_MODES),
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="notify_completed",
                         )
                     ),
                     # 2.80 (#165) / #173: your own notification rule — the same

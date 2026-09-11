@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "合并通知",
           "notification_bundle_threshold": "合并阈值",
           "notification_title_style": "通知标题样式",
+          "notify_completed": "完成通知",
           "notify_event_only": "仅触发事件，自己不发送",
           "notify_extra_data": "额外通知数据（模板）"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "当多项任务需要处理时，发送一条汇总通知。",
           "notification_bundle_threshold": "触发合并通知所需的最少任务数量。",
           "notification_title_style": "通知的标题显示内容。默认保持状态文本（如：‘维护已超期！’）。当手机通知堆叠时，‘维护项名称 / 任务名称’ 更有帮助。",
+          "notify_completed": "任务完成时通知家庭成员，并附上原因（面板、二维码/NFC 扫描、待办清单、语音、传感器恢复等）。“仅自动”只通报无人现场操作的完成：传感器恢复、购物清单勾选、自动化的服务调用。",
           "notify_event_only": "每条通知都会触发事件 maintenance_supporter_notification。开启后由你的自动化负责全部投递——重复间隔、静默时段和每日上限仍决定事件何时触发。",
           "notify_extra_data": "含 Jinja 的 JSON 或 YAML，合并到每次 notify 调用的 data 中（你的键优先）。变量：kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message。"
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "触发器或间隔（先到者）",
         "all": "触发器与间隔（两者皆需）"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "关闭",
+        "automatic": "仅自动完成",
+        "all": "所有完成"
       }
     },
     "notification_title_style": {

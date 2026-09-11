@@ -739,6 +739,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "notification_bundling_enabled": True,
     "notification_bundle_threshold": 4,
     "notification_title_style": "object_name",
+    # #173 follow-up: completion notifications (off | automatic | all).
+    "notify_completed": "automatic",
     "action_complete_enabled": True,
     "action_skip_enabled": True,
     "action_snooze_enabled": True,
@@ -831,6 +833,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "notification_bundling_enabled": settings["notifications"]["bundling_enabled"],
         "notification_bundle_threshold": settings["notifications"]["bundle_threshold"],
         "notification_title_style": settings["notifications"]["title_style"],
+        "notify_completed": settings["notifications"]["completed"],
         "reminder_lead_days": settings["notifications"]["reminder_lead_days"],
         "notify_scope_view_id": settings["notifications"]["scope_view_id"],
         "notify_event_only": settings["notifications"]["event_only"],

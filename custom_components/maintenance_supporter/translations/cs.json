@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Sdružit oznámení",
           "notification_bundle_threshold": "Práh sdružování",
           "notification_title_style": "Styl titulku oznámení",
+          "notify_completed": "Oznámení o dokončení",
           "notify_event_only": "Pouze vyvolat událost, nic neodesílat",
           "notify_extra_data": "Další data oznámení (šablona)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Odeslat jedno souhrnné oznámení, když více úkolů vyžaduje pozornost.",
           "notification_bundle_threshold": "Minimální počet úkolů pro spuštění sdruženého oznámení.",
           "notification_title_style": "Co se zobrazuje jako TITULEK oznámení. Výchozí zachovává text podle stavu (např. „Údržba po termínu!“). Název objektu / úkolu pomáhá, když telefon stohuje oznámení.",
+          "notify_completed": "Zpráva pro domácnost, když je úkol dokončen, s důvodem (panel, sken QR/NFC, seznam úkolů, hlas, zotavení senzoru…). „Jen automatická“ hlásí pouze dokončení, která nikdo neudělal na místě: zotavení senzoru, odškrtnutí v nákupním seznamu, volání služby automatizací.",
           "notify_event_only": "Každé oznámení vyvolá událost maintenance_supporter_notification. S touto volbou celé doručení zajišťuje vaše automatizace — intervaly opakování, tiché hodiny a denní limit stále rozhodují, kdy událost přijde.",
           "notify_extra_data": "JSON nebo YAML s Jinja, sloučí se do data každého volání notify (vaše klíče mají přednost). Proměnné: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Spouštěč nebo interval (co dřív)",
         "all": "Spouštěč a interval (obojí vyžadováno)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Vypnuto",
+        "automatic": "Jen automatická dokončení",
+        "all": "Všechna dokončení"
       }
     },
     "notification_title_style": {

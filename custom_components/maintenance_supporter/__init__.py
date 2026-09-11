@@ -595,6 +595,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                     raise ServiceValidationError(str(err)) from err
             await coordinator.complete_maintenance(
                 task_id=task_id,
+                source="service",
                 notes=call.data.get("notes"),
                 cost=call.data.get("cost"),
                 duration=call.data.get("duration"),
@@ -902,6 +903,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 await runtime_data.coordinator.complete_maintenance(
                     task_id=task_id,
                     unattended=True,
+                    source="notification_action",
                     # mobile_app fires the action with the registration's
                     # user in the context - credit them (#128 attribution,
                     # feeds least_completed rotation); bug audit 2026-08-29.
@@ -976,6 +978,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                         completed_by=user_id,
                         notes="Completed via NFC tag",
                         unattended=True,
+                        source="nfc",
                         tag_verified=True,
                     )
                 except ServiceValidationError as err:

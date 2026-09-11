@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Łącz powiadomienia",
           "notification_bundle_threshold": "Próg łączenia",
           "notification_title_style": "Styl tytułu powiadomienia",
+          "notify_completed": "Powiadomienia o wykonaniu",
           "notify_event_only": "Tylko wyzwalaj zdarzenie, nic nie wysyłaj",
           "notify_extra_data": "Dodatkowe dane powiadomienia (szablon)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Wyślij jedno zbiorcze powiadomienie, gdy wiele zadań wymaga uwagi.",
           "notification_bundle_threshold": "Minimalna liczba zadań do wyzwolenia łączonego powiadomienia.",
           "notification_title_style": "Co pojawia się jako TYTUŁ powiadomienia. Domyślnie zachowywany jest tekst dla statusu (np. „Konserwacja przeterminowana!”). Nazwa obiektu / zadania pomaga, gdy telefon układa powiadomienia w stos.",
+          "notify_completed": "Wiadomość dla domowników, gdy zadanie zostanie wykonane, z powodem (panel, skan QR/NFC, lista zadań, głos, powrót czujnika do normy…). „Tylko automatyczne” zgłasza wyłącznie wykonania, których nikt nie zrobił na miejscu: powrót czujnika, odhaczenie na liście zakupów, wywołanie usługi przez automatyzację.",
           "notify_event_only": "Każde powiadomienie wyzwala zdarzenie maintenance_supporter_notification. Z tą opcją całą dostawę przejmuje Twoja automatyzacja — interwały powtórzeń, ciche godziny i dzienny limit nadal decydują, kiedy zdarzenie się pojawi.",
           "notify_extra_data": "JSON lub YAML z Jinja, scalane z data każdego wywołania notify (Twoje klucze mają pierwszeństwo). Zmienne: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Wyzwalacz lub interwał (co pierwsze)",
         "all": "Wyzwalacz i interwał (oba wymagane)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Wył.",
+        "automatic": "Tylko automatyczne wykonania",
+        "all": "Wszystkie wykonania"
       }
     },
     "notification_title_style": {

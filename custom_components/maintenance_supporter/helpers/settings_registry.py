@@ -52,6 +52,7 @@ from ..const import (
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
+    CONF_NOTIFY_COMPLETED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
@@ -157,6 +158,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_NOTIFICATION_BUNDLE_THRESHOLD, int, int_range=(2, 20)),
     # title_style is enum-validated by a bespoke rule in the handler.
     SettingSpec(CONF_NOTIFICATION_TITLE_STYLE, str),
+    # #173 follow-up: completion notifications off / automatic / all (enum-checked in dashboard.py).
+    SettingSpec(CONF_NOTIFY_COMPLETED, str, max_len=16),
     SettingSpec(CONF_NOTIFY_SCOPE_VIEW_ID, str, max_len=64),
     # #165: your own notification rule
     SettingSpec(CONF_NOTIFY_EVENT_ONLY, bool),

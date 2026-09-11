@@ -173,6 +173,7 @@ class MaintenanceTodoList(TodoListEntity):
             task_id,
             notes="Completed from the To-do list",
             unattended=True,
+            source="todo",
             # HA's entity-service call carries the user in the context.
             completed_by=self._context.user_id if self._context else None,
         )

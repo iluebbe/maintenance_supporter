@@ -978,8 +978,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         unattended: bool = False,
         completed_at: datetime | None = None,
         tag_verified: bool = False,
+        source: str | None = None,
     ) -> None:
         """Mark a task as completed and persist.
+
+        ``source`` (#173 follow-up) names the surface: panel, qr, nfc, button,
+        todo, voice, notification_action, shopping_list, service,
+        auto_recovery — carried by the completed event and by the optional
+        completion notification (``notify_completed``).
 
         ``unattended`` marks a surface that cannot ask a human for anything —
         a button press, a to-do tick, an NFC tap, a notification button, a
@@ -1336,6 +1342,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 duration=duration,
                 feedback=feedback,
                 completed_by=completed_by,
+                # #173 follow-up: which surface completed it (see COMPLETION_SOURCES).
+                source=source or ("auto_recovery" if auto else None),
                 # Recorded readings (#83 scalar / #161 phase 2 slots) so an
                 # automation can forward a meter value without reading history.
                 reading_value=reading_value,
@@ -1350,6 +1358,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 backfill=not is_latest,
             ),
         )
+        # #173 follow-up: the opt-in completion notification (household news).
+        # A backfill is bookkeeping, not news.
+        if is_latest:
+            await self._async_notify_completed(task_id, task, source or ("auto_recovery" if auto else None), completed_by, effective_ts.isoformat())
 
     async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None:
         """Record a completion because the task's trigger cleared itself (#53).
@@ -1525,6 +1537,26 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._lifecycle_event_payload(task, task_id, reason=reason),
         )
 
+
+    async def _async_notify_completed(self, task_id: str, task: MaintenanceTask, source: str | None, completed_by: str | None, completed_at: str) -> None:
+        from .helpers.notification_manager import NotificationManager
+
+        nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+        if not isinstance(nm, NotificationManager):
+            return
+        try:
+            await nm.async_task_completed(
+                entry_id=self.entry.entry_id,
+                task_id=task_id,
+                task_name=task.name,
+                object_name=self.maintenance_object.name,
+                source=source,
+                completed_by=completed_by,
+                completed_at=completed_at,
+                task_data=(self.entry.data.get(CONF_TASKS) or {}).get(task_id),
+            )
+        except Exception:  # noqa: BLE001 - a notification must never fail the completion
+            _LOGGER.debug("Completion notification failed for %s", task_id, exc_info=True)
 
     def note_trigger_edge(self, task_id: str) -> None:
         """A trigger just latched on a REAL state edge — lift the post-completion

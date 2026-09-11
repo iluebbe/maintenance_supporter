@@ -733,7 +733,33 @@ Multi-channel notification with:
 - **Test notification**: Available via Options Flow and `global/test_notification` WS command to verify service config
 - **Your own notification rule** (2.80, #165): every send — status change, repeat, lead-time reminder, bundle, digest, warranty, budget alert and the test — goes through `helpers/notify_hooks.async_emit_and_dispatch`. It renders the `notify_extra_data` template (HA `Template`, JSON or YAML result, must be a mapping; a failure is logged once and ignored) into the payload's `data`, fires `maintenance_supporter_notification` with the notification context (`notification_context`: kind, status, object/task refs, priority, due data, deep link, target, title, message, data) and then either sends via `async_dispatch_notify` or — with `notify_event_only` — stops after the event, reporting success so the rate limiting still counts the send. The manager's gating (intervals, quiet hours, daily cap) sits BEFORE the hook, so the event inherits it. Event-only needs no notify service: `_resolve_and_send` hands the hook an empty target (2.81, #173)
 - **Per-task mute** (2.81, #173): `notify_enabled: false` on a task (stored only when false, like `allow_skip`) is filtered in `coordinator._async_notify_status_changes` — after the status/snooze filter and before the bundle threshold, so a muted task neither rides in a bundle nor forces one — and skipped by the lead-time reminders. The flag lives in `entry.data`, which the computed task result (model dict) drops, hence the lookup by task id
+- **Completion notifications** (2.83, #173 follow-up): the `completed` kind — an *activity* notification (household news, nothing to do). `coordinator.complete_maintenance` names its `source` (every surface passes one: panel, qr, nfc, button, todo, voice, notification_action, shopping_list, service, auto_recovery — the event `maintenance_supporter_task_completed` carries it too) and, for the latest completion only (a backfill is bookkeeping), calls `NotificationManager.async_task_completed`. Setting `notify_completed`: `off` (default) / `automatic` (only sources with no person acting on the spot: shopping_list, service, auto_recovery) / `all`. Routed to the household service only — never to the responsible person's devices, the one who just pressed Complete needs no push — and gated by the per-task mute, the scope view, quiet hours and the daily cap; no repeat, no snooze. The message names the reason and, when known, the actor; the event adds `reason`, `completed_by`, `completed_by_name`, `completed_at`
 - **Trigger flips reach the notifier now** (2.81, #175): `BaseTrigger._on_trigger_activated/_deactivated` (and the compound twin) call `coordinator.async_request_refresh()` — debounced by HA's ten-second cooldown — because the status-change notification is decided in the coordinator refresh; before, a flip waited for the next 5-minute tick (0–5 min latency). A real activation edge also calls `coordinator.note_trigger_edge()`, lifting the 10-minute post-completion cooldown (which guards only the fallback sweep) so the refresh keeps the fresh latch
+
+### Notification model
+
+Every notification is one **kind**, and every kind belongs to a **category** that fixes what it is for, who gets it and which gates apply. The matrix lives in code (`helpers/notify_hooks.NOTIFICATION_KINDS`, a `KindSpec` per kind) and `tests/test_notify_completed.py` keeps this table in step with it, so a new kind cannot ship undocumented or ungated. The event `maintenance_supporter_notification` carries the `category` next to the `kind`.
+
+| Category | What it is | Routing | Actions |
+|----------|------------|---------|---------|
+| **reminder** | Personal and actionable: something is (about to be) due | the responsible person's devices, else the household service | Complete / Skip / Snooze buttons |
+| **summary** | A household overview of several tasks | household service | open the panel |
+| **alert** | Household, informational with urgency (money, warranty) | household service | — |
+| **activity** | Household news: something happened, nothing to do | household service, never the actor | — |
+| **test** | The Settings *Send test* button | whatever the user picked | — |
+
+| Kind | Category | Routing | Switched on by | Gates |
+|------|----------|---------|----------------|-------|
+| `status` | reminder | personal | notify_<status>_enabled + interval | `enabled`, `target`, `kind_enabled`, `task_mute`, `snooze`, `vacation`, `scope`, `quiet_hours`, `daily_cap`, `repeat` |
+| `lead_time` | reminder | personal | reminder_lead_days | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `quiet_hours`, `daily_cap` |
+| `bundle` | summary | household | notification_bundling_enabled + threshold | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `scope`, `quiet_hours`, `daily_cap` |
+| `digest` | summary | household | weekly_digest_enabled | `enabled`, `target` |
+| `warranty` | alert | household | warranty_reminder_enabled + days | `enabled`, `target`, `quiet_hours`, `daily_cap` |
+| `budget` | alert | household | budget_alerts_enabled + threshold | `enabled`, `target`, `quiet_hours`, `daily_cap` |
+| `completed` | activity | household | notify_completed (off / automatic / all) | `enabled`, `target`, `kind_enabled`, `task_mute`, `scope`, `quiet_hours`, `daily_cap` |
+| `test` | test | household | — | `target` |
+
+Gates: `enabled` = notifications on at all; `target` = a notify service or event-only mode; `kind_enabled` = the kind's own switch (per-status toggles, the completion mode); `task_mute` = the task's *No notifications*; `snooze` = the per-task snooze; `vacation` = the vacation mode's silence; `scope` = the saved-view scope; `quiet_hours`; `daily_cap` = max notifications per day; `repeat` = the per-status repeat interval. The digest deliberately ignores quiet hours and the cap (it is scheduled) and the test ignores everything but the target (it exists to verify the target).
 
 ---
 

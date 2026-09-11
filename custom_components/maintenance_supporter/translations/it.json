@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Raggruppa notifiche",
           "notification_bundle_threshold": "Soglia di raggruppamento",
           "notification_title_style": "Stile del titolo di notifica",
+          "notify_completed": "Notifiche di completamento",
           "notify_event_only": "Attiva solo l'evento, non inviare nulla",
           "notify_extra_data": "Dati di notifica aggiuntivi (template)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Inviare una notifica riepilogativa quando più attività richiedono attenzione.",
           "notification_bundle_threshold": "Numero minimo di attività per attivare una notifica raggruppata.",
           "notification_title_style": "Cosa appare come TITOLO della notifica. Predefinito mantiene il testo per stato (es. «Manutenzione in ritardo!»). Nome oggetto / attività aiuta quando il telefono accumula le notifiche.",
+          "notify_completed": "Una nota per la famiglia quando un'attività viene completata, con il motivo (pannello, scansione QR/NFC, lista to-do, voce, ripristino del sensore…). \"Solo automatici\" annuncia solo i completamenti che nessuno ha fatto sul posto: ripristino del sensore, spunta nella lista della spesa, chiamata di servizio di un'automazione.",
           "notify_event_only": "Ogni notifica genera l'evento maintenance_supporter_notification. Con questa opzione la tua automazione gestisce l'intera consegna — intervalli di ripetizione, ore silenziose e limite giornaliero decidono ancora quando scatta l'evento.",
           "notify_extra_data": "JSON o YAML con Jinja, unito ai data di ogni chiamata notify (le tue chiavi vincono). Variabili: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Trigger o intervallo (il primo)",
         "all": "Trigger e intervallo (entrambi richiesti)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Off",
+        "automatic": "Solo completamenti automatici",
+        "all": "Tutti i completamenti"
       }
     },
     "notification_title_style": {

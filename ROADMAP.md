@@ -621,16 +621,6 @@ home-assistant/android: collect `clipData` URIs in `parseResult`, fall back
 to `parseResult` otherwise (~10 lines). File an issue/PR there; once it
 ships, drop the Android fallback in `helpers/companion.ts`.
 
-### 💡 Completion notification with a reason (#173 follow-up)
-
-An opt-in push when a task is completed — with the reason (manual,
-auto-completed on sensor recovery, tag scan, QR) — as one more `kind`
-(`completed`) walking the same hook, so it also fires
-`maintenance_supporter_notification`. Today the completion is only an
-event (`maintenance_supporter_task_completed`) an automation has to pick
-up. Small: a global toggle, the reason from the completion chokepoint's
-`source`, one message template ×22 languages.
-
 ### 💡 The whole panel as a Lovelace card (#174)
 
 Embed the complete panel UI in a card (a panel-view single card) so it

@@ -384,6 +384,7 @@ class CompleteTaskIntent(intent.IntentHandler):
                 # sentinel that never matched a pool member (bug audit 2026-08-29).
                 completed_by=intent_obj.context.user_id if intent_obj.context else None,
                 unattended=True,
+                source="voice",
             )
         except ServiceValidationError as err:
             # The task demands details voice cannot capture (a photo, a cost).

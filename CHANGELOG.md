@@ -6,6 +6,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Completion notifications** (#173 follow-up): an opt-in notification when
+  a task is completed, with the reason (panel, QR / NFC scan, to-do list,
+  voice, notification button, shopping-list check-off, service call, sensor
+  recovery) and, when known, who did it. Setting `notify_completed`:
+  *Automatic completions only* announces just the completions nobody made on
+  the spot, *All completions* is the shared household log. Household service
+  only (never the actor's own devices); per-task mute, scope view, quiet hours
+  and the daily cap apply. Settings → Notifications and the Configure dialog.
+  The event `maintenance_supporter_task_completed` now carries `source`, and
+  the notification event `maintenance_supporter_notification` a `category`
+  (reminder / summary / alert / activity / test) next to the `kind` — the
+  notification model is written up in ARCHITECTURE → Notification model.
 - **Typical battery lifetimes** (D#162): a table under Settings — your
   fleet's types first — showing the lifetime the forecast uses for
   batteries *without* a percentage and where it comes from: your own value,

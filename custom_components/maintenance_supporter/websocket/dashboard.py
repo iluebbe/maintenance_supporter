@@ -47,6 +47,7 @@ from ..const import (
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
+    CONF_NOTIFY_COMPLETED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
@@ -237,6 +238,8 @@ def _build_full_settings(
             "bundle_threshold": options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
             # v1.4.0 (#44): default keeps backwards-compatible per-status titles
             "title_style": options.get(CONF_NOTIFICATION_TITLE_STYLE, "default"),
+            # #173 follow-up: completion notifications (off | automatic | all).
+            "completed": options.get(CONF_NOTIFY_COMPLETED, "off"),
             # Multiple lead-time reminders (days before due); [] = off.
             "reminder_lead_days": options.get(CONF_REMINDER_LEAD_DAYS, []),
             # v2.26: notification routing — saved-view id scoping which
@@ -685,8 +688,14 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # v1.4.0 (#44): enum-validate notification_title_style. Anything outside
     # the known set is dropped silently so a bogus value can't get into the
     # ConfigEntry options.
-    from ..const import NOTIFICATION_TITLE_STYLES
+    from ..const import NOTIFICATION_TITLE_STYLES, NOTIFY_COMPLETED_MODES
 
+    if CONF_NOTIFY_COMPLETED in filtered and filtered[CONF_NOTIFY_COMPLETED] not in NOTIFY_COMPLETED_MODES:
+        filtered[CONF_NOTIFY_COMPLETED] = "off"
+    from ..const import NOTIFY_COMPLETED_MODES
+
+    if CONF_NOTIFY_COMPLETED in filtered and filtered[CONF_NOTIFY_COMPLETED] not in NOTIFY_COMPLETED_MODES:
+        filtered[CONF_NOTIFY_COMPLETED] = "off"
     if CONF_NOTIFICATION_TITLE_STYLE in filtered and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES:
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
 

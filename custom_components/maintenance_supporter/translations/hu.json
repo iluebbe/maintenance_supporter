@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Értesítések összevonása",
           "notification_bundle_threshold": "Összevonási küszöb",
           "notification_title_style": "Értesítés címének stílusa",
+          "notify_completed": "Elvégzési értesítések",
           "notify_event_only": "Csak az eseményt váltsa ki, ne küldjön semmit",
           "notify_extra_data": "További értesítési adatok (sablon)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Egyetlen összefoglaló értesítés küldése, ha több feladat igényel figyelmet.",
           "notification_bundle_threshold": "Az összevont értesítéshez szükséges minimális feladatszám.",
           "notification_title_style": "Mi jelenjen meg az értesítés CÍMEKÉNT. Az alapértelmezés az állapotonkénti szöveget tartja meg (pl. „Karbantartás lejárt!”). Az objektumnév / feladatnév akkor segít, ha a telefonon egymásra tornyosulnak az értesítések.",
+          "notify_completed": "Üzenet a háztartásnak, ha egy feladat elkészült, az okkal együtt (panel, QR-/NFC-beolvasás, teendőlista, hang, érzékelő helyreállása…). A „Csak automatikus” csak azokat jelenti, amelyeket senki nem végzett el a helyszínen: érzékelő helyreállása, kipipálás a bevásárlólistán, automatizálás szolgáltatáshívása.",
           "notify_event_only": "Minden értesítés kiváltja a maintenance_supporter_notification eseményt. Bekapcsolva a teljes kézbesítést az automatizálásod végzi — az ismétlési időközök, a csendes órák és a napi korlát továbbra is meghatározzák, mikor jön az esemény.",
           "notify_extra_data": "JSON vagy YAML Jinjával, minden notify hívás data mezőjébe beolvasztva (a te kulcsaid nyernek). Változók: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Trigger vagy időköz (amelyik előbb)",
         "all": "Trigger és időköz (mindkettő szükséges)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Ki",
+        "automatic": "Csak automatikus elvégzések",
+        "all": "Minden elvégzés"
       }
     },
     "notification_title_style": {

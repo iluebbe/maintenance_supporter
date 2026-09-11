@@ -311,6 +311,7 @@ class ShoppingListSync:
                 task_id=task_id,
                 notes="Completed from the shopping list",
                 unattended=True,
+                source="shopping_list",
             )
         except Exception as err:  # noqa: BLE001 — a broken entry must not stall the whole pass
             # The row is dropped and re-added by the same pass, so the tick

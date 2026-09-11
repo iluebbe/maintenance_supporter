@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Meldingen bundelen",
           "notification_bundle_threshold": "Bundeldrempel",
           "notification_title_style": "Stijl van meldingstitel",
+          "notify_completed": "Voltooiingsmeldingen",
           "notify_event_only": "Alleen het event afvuren, zelf niets versturen",
           "notify_extra_data": "Extra notificatiegegevens (sjabloon)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Een enkele samenvattingsmelding verzenden wanneer meerdere taken aandacht vereisen.",
           "notification_bundle_threshold": "Minimaal aantal taken om een gebundelde melding te activeren.",
           "notification_title_style": "Wat verschijnt als TITEL van de melding. Standaard behoudt de status-tekst (bijv. 'Onderhoud achterstallig!'). Objectnaam / taaknaam helpen wanneer de telefoon meldingen stapelt.",
+          "notify_completed": "Huishoudnieuws wanneer een taak is voltooid, met de reden (paneel, QR-/NFC-scan, takenlijst, spraak, sensorherstel …). \"Alleen automatisch\" meldt alleen voltooiingen die niemand ter plekke deed — sensorherstel, afvinken op de boodschappenlijst, een service-aanroep van een automatisering.",
           "notify_event_only": "Elke notificatie vuurt het event maintenance_supporter_notification af. Met deze optie verzorgt jouw automatisering de volledige bezorging — herhaalintervallen, stille uren en de daglimiet bepalen nog steeds wanneer het event komt.",
           "notify_extra_data": "JSON of YAML met Jinja, samengevoegd in de data van elke notify-aanroep (jouw sleutels winnen). Variabelen: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Trigger of interval (eerst vervuld)",
         "all": "Trigger en interval (beide vereist)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Uit",
+        "automatic": "Alleen automatische voltooiingen",
+        "all": "Alle voltooiingen"
       }
     },
     "notification_title_style": {

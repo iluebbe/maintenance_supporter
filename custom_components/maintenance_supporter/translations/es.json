@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Agrupar notificaciones",
           "notification_bundle_threshold": "Umbral de agrupación",
           "notification_title_style": "Estilo del título de notificación",
+          "notify_completed": "Notificaciones de finalización",
           "notify_event_only": "Solo lanzar el evento, no enviar nada",
           "notify_extra_data": "Datos de notificación adicionales (plantilla)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Enviar una notificación resumida cuando varias tareas requieran atención.",
           "notification_bundle_threshold": "Número mínimo de tareas para activar una notificación agrupada.",
           "notification_title_style": "Lo que aparece como TÍTULO de la notificación. Por defecto se conserva el texto por estado (p. ej., '¡Mantenimiento vencido!'). Nombre del objeto / tarea ayudan cuando el teléfono apila notificaciones.",
+          "notify_completed": "Aviso para el hogar cuando se completa una tarea, con el motivo (panel, escaneo QR/NFC, lista de tareas, voz, recuperación del sensor…). «Solo automáticas» anuncia solo las finalizaciones que nadie hizo en el sitio: recuperación del sensor, marcado en la lista de la compra, llamada de servicio de una automatización.",
           "notify_event_only": "Cada notificación lanza el evento maintenance_supporter_notification. Con esta opción tu automatización se encarga de toda la entrega — los intervalos de repetición, las horas de silencio y el límite diario siguen decidiendo cuándo se lanza el evento.",
           "notify_extra_data": "JSON o YAML con Jinja, fusionado en los data de cada llamada notify (tus claves prevalecen). Variables: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Disparador o intervalo (el primero)",
         "all": "Disparador e intervalo (ambos requeridos)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Desactivado",
+        "automatic": "Solo finalizaciones automáticas",
+        "all": "Todas las finalizaciones"
       }
     },
     "notification_title_style": {

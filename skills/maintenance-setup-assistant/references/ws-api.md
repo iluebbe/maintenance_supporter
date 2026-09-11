@@ -525,12 +525,15 @@ values dropped. Keys relevant to setup:
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
 - `notify_event_only` (bool; 2.80, #165) — fire `maintenance_supporter_notification`
   and send nothing (an automation delivers); `notify_extra_data` (str ≤ 2000;
-- `battery_lifetime_months` (2.83): `{type: months}` per-type typical lifetime overrides (canonical Battery Notes types, 1–240); the settings response echoes `general.battery_lifetime_months` and a computed `general.battery_lifetimes` catalog `[{type, months, source: override|table|default, default_months, override_months, learned_models: [{model, model_key, months, samples}], in_fleet}]`. `battery_fleet/overview` rows carry `lifetime_months` / `lifetime_source` (override | learned_device | learned_model | table | default) / `lifetime_samples` / `model_key`.
   JSON/YAML with Jinja over kind/status/priority/object_name/task_name/
   object_ref/task_ref/days_until_due/next_due/url/target/title/message) —
   merged into every notify call's `data`, the user's keys win. The event
   fires for EVERY send (status, lead_time, bundle, digest, warranty, budget,
   test) with the same fields plus `target`, `title`, `message`, `data`.
+- `notify_completed` (str; 2.83, #173 follow-up) — `off` | `automatic` | `all`: completion
+  notifications (activity kind, household service only) with the reason from the
+  completion's `source`; the settings response echoes `notifications.completed`
+- `battery_lifetime_months` (2.83): `{type: months}` per-type typical lifetime overrides (canonical Battery Notes types, 1–240); the settings response echoes `general.battery_lifetime_months` and a computed `general.battery_lifetimes` catalog `[{type, months, source: override|table|default, default_months, override_months, learned_models: [{model, model_key, months, samples}], in_fleet}]`. `battery_fleet/overview` rows carry `lifetime_months` / `lifetime_source` (override | learned_device | learned_model | table | default) / `lifetime_samples` / `model_key`.
 - `notify_{due_soon,overdue,triggered}_enabled` (bool) + `_interval_hours` (0..720)
 - `quiet_hours_enabled`, `quiet_hours_start`/`end` ("HH:MM")
 - `budget_monthly`/`budget_yearly` (float), `budget_currency` (EUR,USD,GBP,…),

@@ -91,6 +91,8 @@ interface SettingsResponse {
     scope_view_id: string;
     /** #165: your own notification rule — event-only delivery + extra-data template. */
     event_only?: boolean;
+    /** #173 follow-up: completion notifications — off | automatic | all. */
+    completed?: string;
     extra_data?: string;
   };
   actions: {
@@ -1036,6 +1038,16 @@ export class MaintenanceSettingsView extends LitElement {
           </select>
         </label>
         <div class="setting-hint">${t("settings_notify_scope_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_notify_completed", L)}</span>
+          <select class="notify-completed" .value=${live(n.completed || "off")}
+            @change=${(e: Event) => this._updateSetting("notify_completed", (e.target as HTMLSelectElement).value)}>
+            <option value="off">${t("notify_completed_off", L)}</option>
+            <option value="automatic">${t("notify_completed_automatic", L)}</option>
+            <option value="all">${t("notify_completed_all", L)}</option>
+          </select>
+        </label>
+        <div class="setting-hint">${t("settings_notify_completed_hint", L)}</div>
 
         <div class="notify-rule">
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_notify_rule", L)}</h4>

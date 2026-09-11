@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "通知をまとめる",
           "notification_bundle_threshold": "まとめるしきい値",
           "notification_title_style": "通知タイトルのスタイル",
+          "notify_completed": "完了通知",
           "notify_event_only": "イベントのみ発火し、自分では送信しない",
           "notify_extra_data": "追加の通知データ（テンプレート）"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "複数のタスクが注意を必要とするときに、1 件のまとめ通知を送信します。",
           "notification_bundle_threshold": "まとめ通知をトリガーするタスクの最小数です。",
           "notification_title_style": "通知のタイトルとして表示される内容です。既定ではステータスごとのテキスト (例: 「メンテナンスが期限切れです!」) を維持します。対象名 / タスク名は、スマートフォンの通知が積み重なるときに役立ちます。",
+          "notify_completed": "タスクが完了したときに理由付きで家族に知らせます（パネル、QR/NFC スキャン、To-do リスト、音声、センサーの回復など）。「自動のみ」は、その場で誰も操作していない完了だけを通知します：センサーの回復、買い物リストのチェック、オートメーションのサービス呼び出し。",
           "notify_event_only": "すべての通知はイベント maintenance_supporter_notification を発火します。有効にすると配信はすべてあなたのオートメーションが担当します。繰り返し間隔・静音時間・1日の上限は引き続きイベントの発火タイミングを決めます。",
           "notify_extra_data": "Jinja 付きの JSON または YAML。各 notify 呼び出しの data にマージされます（あなたのキーが優先）。変数: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message。"
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "トリガーまたは間隔（先に満たした方）",
         "all": "トリガーと間隔（両方必須）"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "オフ",
+        "automatic": "自動完了のみ",
+        "all": "すべての完了"
       }
     },
     "notification_title_style": {

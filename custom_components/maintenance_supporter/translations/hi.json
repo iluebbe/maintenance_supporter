@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "सूचनाएँ बंडल करें",
           "notification_bundle_threshold": "बंडल थ्रेशोल्ड",
           "notification_title_style": "सूचना शीर्षक शैली",
+          "notify_completed": "पूर्णता सूचनाएँ",
           "notify_event_only": "केवल इवेंट फायर करें, स्वयं कुछ न भेजें",
           "notify_extra_data": "अतिरिक्त सूचना डेटा (टेम्पलेट)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "जब कई कार्यों पर ध्यान देने की आवश्यकता हो तो एक एकल सारांश सूचना भेजें।",
           "notification_bundle_threshold": "एक बंडल सूचना ट्रिगर करने के लिए कार्यों की न्यूनतम संख्या।",
           "notification_title_style": "सूचना के शीर्षक के रूप में क्या दिखाई देता है। डिफ़ॉल्ट प्रति-स्थिति पाठ रखता है (उदा. 'रखरखाव अतिदेय!')। फ़ोन सूचनाएँ ढेर होने पर ऑब्जेक्ट नाम / कार्य नाम सहायक होते हैं।",
+          "notify_completed": "किसी कार्य के पूरा होने पर परिवार को कारण सहित सूचना (पैनल, QR/NFC स्कैन, टू-डू सूची, आवाज़, सेंसर रिकवरी…)। \"केवल स्वचालित\" सिर्फ़ वे पूर्णताएँ बताता है जो किसी ने मौके पर नहीं कीं: सेंसर रिकवरी, खरीदारी सूची में टिक, ऑटोमेशन का सर्विस कॉल।",
           "notify_event_only": "हर सूचना maintenance_supporter_notification इवेंट फायर करती है। इसे चालू करने पर पूरी डिलीवरी आपका ऑटोमेशन करता है — दोहराव अंतराल, शांत घंटे और दैनिक सीमा अब भी तय करते हैं कि इवेंट कब आए।",
           "notify_extra_data": "Jinja के साथ JSON या YAML, हर notify कॉल के data में मिलाया जाता है (आपकी कुंजियाँ प्राथमिकता पाती हैं)। वेरिएबल: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message।"
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "ट्रिगर या अंतराल (जो पहले हो)",
         "all": "ट्रिगर और अंतराल (दोनों आवश्यक)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "बंद",
+        "automatic": "केवल स्वचालित पूर्णताएँ",
+        "all": "सभी पूर्णताएँ"
       }
     },
     "notification_title_style": {

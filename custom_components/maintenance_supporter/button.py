@@ -120,6 +120,7 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
                 self._task_id,
                 notes="Completed from dashboard button",
                 unattended=True,
+                source="button",
                 completed_by=self._context.user_id if self._context else None,
             )
         elif self._action == "skip":

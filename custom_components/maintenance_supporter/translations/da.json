@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Saml notifikationer",
           "notification_bundle_threshold": "Samlingstærskel",
           "notification_title_style": "Stil for notifikationstitel",
+          "notify_completed": "Notifikationer om udførelse",
           "notify_event_only": "Udløs kun hændelsen, send intet selv",
           "notify_extra_data": "Ekstra notifikationsdata (skabelon)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Send en enkelt opsummerende notifikation, når flere opgaver kræver opmærksomhed.",
           "notification_bundle_threshold": "Minimum antal opgaver for at udløse en samlet notifikation.",
           "notification_title_style": "Hvad der vises som notifikationens TITEL. Standard bevarer teksten pr. status (f.eks. 'Vedligeholdelse overskredet!'). Objektnavn / Opgavenavn hjælper, når telefonnotifikationer stables.",
+          "notify_completed": "En besked til husstanden, når en opgave er udført, med årsagen (panel, QR-/NFC-scanning, to-do-liste, stemme, sensorgendannelse …). \"Kun automatiske\" melder kun udførelser, som ingen lavede på stedet: sensorgendannelse, afkrydsning på indkøbslisten, et servicekald fra en automatisering.",
           "notify_event_only": "Hver notifikation udløser hændelsen maintenance_supporter_notification. Med dette slået til står din automatisering for hele leveringen — gentagelsesintervaller, stille timer og dagsgrænsen afgør stadig, hvornår hændelsen kommer.",
           "notify_extra_data": "JSON eller YAML med Jinja, flettes ind i data i hvert notify-kald (dine nøgler vinder). Variabler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Trigger eller interval (først opfyldt)",
         "all": "Trigger og interval (begge kræves)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Fra",
+        "automatic": "Kun automatiske udførelser",
+        "all": "Alle udførelser"
       }
     },
     "notification_title_style": {

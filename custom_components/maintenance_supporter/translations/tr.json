@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Bildirimleri grupla",
           "notification_bundle_threshold": "Gruplama eşiği",
           "notification_title_style": "Bildirim başlığı stili",
+          "notify_completed": "Tamamlama bildirimleri",
           "notify_event_only": "Yalnızca olayı tetikle, kendim hiçbir şey gönderme",
           "notify_extra_data": "Ek bildirim verisi (şablon)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Birden çok görev ilgi gerektirdiğinde tek bir özet bildirimi gönder.",
           "notification_bundle_threshold": "Gruplanmış bildirimi tetiklemek için gereken en az görev sayısı.",
           "notification_title_style": "Bildirimin BAŞLIĞI olarak ne görüneceği. Varsayılan, duruma özgü metni korur (örn. 'Bakım gecikti!'). Nesne adı / Görev adı, telefon bildirimleri üst üste yığıldığında yardımcı olur.",
+          "notify_completed": "Bir görev tamamlandığında ev halkına nedeniyle birlikte haber verir (panel, QR/NFC tarama, yapılacaklar listesi, ses, sensör toparlanması…). \"Yalnızca otomatik\" sadece kimsenin yerinde yapmadığı tamamlamaları bildirir: sensör toparlanması, alışveriş listesinde işaretleme, bir otomasyonun servis çağrısı.",
           "notify_event_only": "Her bildirim maintenance_supporter_notification olayını tetikler. Bu açıkken teslimatın tamamını otomasyonun üstlenir — tekrar aralıkları, sessiz saatler ve günlük sınır olayın ne zaman geleceğine karar vermeye devam eder.",
           "notify_extra_data": "Jinja içeren JSON veya YAML, her notify çağrısının data alanına birleştirilir (senin anahtarların kazanır). Değişkenler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Tetikleyici veya aralık (ilk gerçekleşen)",
         "all": "Tetikleyici ve aralık (her ikisi gerekli)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Kapalı",
+        "automatic": "Yalnızca otomatik tamamlamalar",
+        "all": "Tüm tamamlamalar"
       }
     },
     "notification_title_style": {

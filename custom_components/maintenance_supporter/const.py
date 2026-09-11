@@ -288,6 +288,26 @@ CONF_NOTIFY_EVENT_ONLY = "notify_event_only"
 CONF_NOTIFY_EXTRA_DATA = "notify_extra_data"
 MAX_NOTIFY_EXTRA_DATA_LENGTH = 2000
 NOTIFICATION_TITLE_STYLES = ("default", "object_name", "task_name")
+# #173 follow-up: completion notifications — off, only completions no person
+# made on the spot (sensor recovery, shopping-list sync, an automation's
+# service call), or every completion.
+CONF_NOTIFY_COMPLETED = "notify_completed"
+NOTIFY_COMPLETED_MODES = ("off", "automatic", "all")
+# Completion sources (``complete_maintenance(source=…)``): where a completion
+# came from. The "automatic" ones had no person acting on the spot.
+COMPLETION_SOURCES = (
+    "panel",
+    "qr",
+    "nfc",
+    "button",
+    "todo",
+    "voice",
+    "notification_action",
+    "shopping_list",
+    "service",
+    "auto_recovery",
+)
+COMPLETION_SOURCES_AUTOMATIC = frozenset({"shopping_list", "service", "auto_recovery"})
 
 # --- Config Keys: Notification Actions ---
 CONF_ACTION_COMPLETE_ENABLED = "action_complete_enabled"

@@ -219,6 +219,7 @@ async def ws_complete_task(
 
     try:
         await rd.coordinator.complete_maintenance(
+            source="panel",
             task_id=msg["task_id"],
             notes=msg.get("notes"),
             cost=msg.get("cost"),
@@ -304,6 +305,7 @@ async def ws_quick_complete_task(
 
     try:
         await rd.coordinator.complete_maintenance(
+            source="qr",
             task_id=msg["task_id"],
             notes=defaults.get("notes"),
             cost=defaults.get("cost"),

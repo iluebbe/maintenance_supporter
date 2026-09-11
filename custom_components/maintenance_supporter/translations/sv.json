@@ -598,6 +598,7 @@
           "notification_bundling_enabled": "Buntla aviseringar",
           "notification_bundle_threshold": "Buntningströskel",
           "notification_title_style": "Stil för aviseringstitel",
+          "notify_completed": "Aviseringar om slutförande",
           "notify_event_only": "Utlös bara händelsen, skicka inget själv",
           "notify_extra_data": "Extra aviseringsdata (mall)"
         },
@@ -610,6 +611,7 @@
           "notification_bundling_enabled": "Skicka en enda sammanfattande avisering när flera uppgifter behöver uppmärksamhet.",
           "notification_bundle_threshold": "Minsta antal uppgifter för att utlösa en buntad avisering.",
           "notification_title_style": "Vad som visas som aviseringens TITEL. Standard behåller texten per status (t.ex. ”Underhåll försenat!”). Objektnamn / uppgiftsnamn hjälper när telefonen staplar aviseringar.",
+          "notify_completed": "Ett meddelande till hushållet när en uppgift slutförts, med orsaken (panel, QR-/NFC-skanning, att-göra-lista, röst, sensoråterhämtning …). \"Endast automatiska\" meddelar bara slutföranden som ingen gjorde på plats: sensoråterhämtning, avbockning i inköpslistan, ett tjänsteanrop från en automation.",
           "notify_event_only": "Varje avisering utlöser händelsen maintenance_supporter_notification. Med detta på sköter din automation hela leveransen — upprepningsintervall, tysta timmar och dagsgränsen avgör fortfarande när händelsen kommer.",
           "notify_extra_data": "JSON eller YAML med Jinja, slås ihop med data i varje notify-anrop (dina nycklar vinner). Variabler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
         }
@@ -1559,6 +1561,13 @@
       "options": {
         "any": "Utlösare eller intervall (först uppfylld)",
         "all": "Utlösare och intervall (båda krävs)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Av",
+        "automatic": "Endast automatiska slutföranden",
+        "all": "Alla slutföranden"
       }
     },
     "notification_title_style": {
