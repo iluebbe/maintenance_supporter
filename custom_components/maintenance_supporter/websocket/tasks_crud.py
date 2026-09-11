@@ -943,3 +943,50 @@ async def ws_duplicate_task(
     await async_persist_task(hass, entry, new_task)
 
     connection.send_result(msg["id"], {"task_id": new_task["id"]})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/task/move",
+        vol.Required("entry_id"): str,
+        vol.Required("task_id"): str,
+        vol.Required("target_entry_id"): str,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_move_task(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Move a task to another object — config, history, readings and trigger
+    state travel with it; the task gets a new reference number and its
+    entities are recreated under the target object (forum #23)."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    if msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+    target = _load_object_entry(
+        hass, connection, {**msg, "entry_id": msg["target_entry_id"]}, not_found_message="Target object not found"
+    )
+    if target is None:
+        return
+    if target.entry_id == entry.entry_id:
+        connection.send_error(msg["id"], "invalid_target", "The task already belongs to that object")
+        return
+    if (target.data.get(CONF_OBJECT) or {}).get("archived_at"):
+        connection.send_error(msg["id"], "invalid_target", "The target object is archived")
+        return
+    from .tasks_persist import async_move_task
+
+    try:
+        await async_move_task(hass, entry, target, msg["task_id"])
+    except ValueError as err:
+        connection.send_error(msg["id"], "limit_reached", str(err))
+        return
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.config_entries.async_reload(target.entry_id)
+    connection.send_result(msg["id"], {"task_id": msg["task_id"], "entry_id": target.entry_id})

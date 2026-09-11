@@ -16,6 +16,8 @@ export interface PromptOptions extends ConfirmOptions {
   inputLabel?: string;
   inputType?: string; // "text" | "date" etc.
   inputValue?: string;
+  /** Render a <select> instead of a text input (task/move picks an object). */
+  options?: { value: string; label: string }[];
 }
 
 export interface PromptResult {
@@ -33,6 +35,7 @@ export class MaintenanceConfirmDialog extends LitElement {
   @state() private _danger = false;
   @state() private _inputLabel = "";
   @state() private _inputType = "";
+  @state() private _options: { value: string; label: string }[] | null = null;
   @state() private _inputValue = "";
 
   private _resolve: ((value: boolean) => void) | null = null;
@@ -45,6 +48,7 @@ export class MaintenanceConfirmDialog extends LitElement {
     this._danger = opts.danger || false;
     this._inputLabel = "";
     this._inputType = "";
+    this._options = null;
     this._inputValue = "";
     this._open = true;
     return new Promise<boolean>((resolve) => {
@@ -60,6 +64,7 @@ export class MaintenanceConfirmDialog extends LitElement {
     this._danger = opts.danger || false;
     this._inputLabel = opts.inputLabel || "";
     this._inputType = opts.inputType || "text";
+    this._options = opts.options && opts.options.length ? opts.options : null;
     this._inputValue = opts.inputValue || "";
     this._open = true;
     return new Promise<PromptResult>((resolve) => {
@@ -104,10 +109,15 @@ export class MaintenanceConfirmDialog extends LitElement {
                  the pause/replace prompts; same fix as complete-dialog). -->
             <label class="field">
               <span class="field-label">${this._inputLabel}</span>
-              <input class="field-input"
-                type="${this._inputType || "text"}"
-                .value=${this._inputValue}
-                @input=${(e: Event) => (this._inputValue = (e.target as HTMLInputElement).value)} />
+              ${this._options
+                ? html`<select class="field-input field-select"
+                    @change=${(e: Event) => (this._inputValue = (e.target as HTMLSelectElement).value)}>
+                    ${this._options.map((o) => html`<option value=${o.value} ?selected=${o.value === this._inputValue}>${o.label}</option>`)}
+                  </select>`
+                : html`<input class="field-input"
+                    type="${this._inputType || "text"}"
+                    .value=${this._inputValue}
+                    @input=${(e: Event) => (this._inputValue = (e.target as HTMLInputElement).value)} />`}
             </label>
           ` : nothing}
         </div>

@@ -78,6 +78,8 @@ export interface TaskDetailContext {
   toggleArchive: (archived: boolean) => void;
   openQr: (taskName: string) => void;
   duplicateTask: () => void;
+  /** Forum #23: move the task to another object. */
+  moveTask: () => void;
   promptReset: () => void;
   promptPostpone: () => void;
   snoozeTask: () => void;
@@ -160,6 +162,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
               <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
               ${!isOperator ? html`
                 <div class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
+                <div class="popup-menu-item" @click=${() => ctx.moveTask()}>${t("move_task", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>

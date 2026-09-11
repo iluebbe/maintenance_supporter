@@ -13,7 +13,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, langOf } from "../styles";
+import { t, ensureLocale, langOf, syncLocaleFromHass } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
@@ -66,6 +66,8 @@ export class MaintenanceVacationSectionCard extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    // #163 tripwire: the date field's typed-entry placeholder formats a date.
+    syncLocaleFromHass(this, changedProps);
     if (changedProps.has("hass") && this.hass && !this._loaded) {
       this._loaded = true;
       void this._load();

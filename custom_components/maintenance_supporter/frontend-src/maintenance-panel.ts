@@ -2049,6 +2049,32 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (res?.task_id) this._showTask(entryId, res.task_id);
   }
 
+  // Forum #23: a task created on the wrong object — move it instead of
+  // re-creating it. Config, history, readings and trigger state travel with
+  // the task; it gets a new reference number and entities under the target.
+  private async _moveTask(entryId: string, taskId: string): Promise<void> {
+    this._moreMenuOpen = false;
+    const others = this._objects
+      .filter((o) => o.entry_id !== entryId && !o.object.archived_at)
+      .sort((a, b) => (a.object.name || "").localeCompare(b.object.name || ""));
+    if (!others.length) return;
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const result = await dlg?.prompt({
+      title: t("move_task_title", this._lang),
+      message: t("move_task_message", this._lang),
+      confirmText: t("move_task_title", this._lang),
+      inputLabel: t("move_task_target", this._lang),
+      inputValue: others[0].entry_id,
+      options: others.map((o) => ({ value: o.entry_id, label: o.object.name || o.entry_id })),
+    });
+    if (!result?.confirmed || !result.value) return;
+    const res = await this._runAction<{ task_id?: string; entry_id?: string }>(
+      { type: "maintenance_supporter/task/move", entry_id: entryId, task_id: taskId, target_entry_id: result.value },
+      { successToast: t("task_moved", this._lang) },
+    );
+    if (res?.entry_id && res.task_id) this._showTask(res.entry_id, res.task_id);
+  }
+
   private async _toggleArchiveTask(entryId: string, taskId: string, archived: boolean): Promise<void> {
     const res = await this._runAction({
       type: archived
@@ -4354,6 +4380,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       toggleArchive: (archived) => this._toggleArchiveTask(entryId, taskId, archived),
       openQr: (taskName) => this._openQrForTask(entryId, taskId, obj?.object.name || "", taskName),
       duplicateTask: () => this._duplicateTask(entryId, taskId),
+      moveTask: () => this._moveTask(entryId, taskId),
       promptReset: () => this._promptResetTask(entryId, taskId),
       promptPostpone: () => this._promptPostponeTask(entryId, taskId),
       snoozeTask: () => this._snoozeTask(entryId, taskId),

@@ -227,6 +227,12 @@ class MaintenanceStore:
         """Remove all state for a deleted task."""
         self._data.get("tasks", {}).pop(task_id, None)
 
+    def put_task_state(self, task_id: str, state: dict[str, Any]) -> None:
+        """Replace a task's dynamic state wholesale — the task/move path carries
+        history, last_performed, adaptive config and trigger runtime from one
+        object's Store to another's."""
+        self._data.setdefault("tasks", {})[task_id] = dict(state)
+
     # --- in-cycle checklist progress (#73) -----------------------------------
 
     def set_checklist_progress(self, task_id: str, state: dict[str, bool]) -> None:

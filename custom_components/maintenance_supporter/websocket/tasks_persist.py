@@ -223,3 +223,90 @@ async def async_update_task_simple(
     new_data[CONF_TASKS] = new_tasks
     hass.config_entries.async_update_entry(entry, data=new_data)
     await hass.config_entries.async_reload(entry_id)
+
+
+async def async_move_task(
+    hass: HomeAssistant,
+    source: ConfigEntry,
+    target: ConfigEntry,
+    task_id: str,
+) -> None:
+    """Move a task — config AND dynamic state — from one object entry to another.
+
+    What travels: the task's config (schedule, trigger, checklist, parts links,
+    slug, NFC tag …) and its Store state (history, last_performed, planned
+    due, adaptive config, phase cursor, checklist progress, trigger runtime
+    incl. counter baselines). Group memberships follow the task. What does
+    not: the reference number (``ref_no`` and the history entries' numbers —
+    the target object numbers it afresh on its next refresh) and document
+    links (documents belong to the source object; ``async_delete_task``
+    unlinks them). Part links keep an explicit ``entry_id`` so a link to one
+    of the source object's parts still resolves as a foreign-pool link.
+
+    Both entries are reloaded by the caller: the source drops the task's
+    entities, the target creates them under its own object slug.
+    Raises ValueError when the target is full.
+    """
+    from copy import deepcopy
+
+    from ..const import MAX_TASKS_PER_OBJECT
+    from .tasks_crud import async_delete_task
+
+    task_data = deepcopy(dict(source.data[CONF_TASKS][task_id]))
+    task_data.pop("ref_no", None)
+    links = task_data.get("consumes_parts")
+    if isinstance(links, list):
+        task_data["consumes_parts"] = [
+            {**link, "entry_id": link.get("entry_id") or source.entry_id} if isinstance(link, dict) else link for link in links
+        ]
+
+    src_rd = _get_runtime_data(hass, source.entry_id)
+    src_store = getattr(src_rd, "store", None) if src_rd else None
+    state = deepcopy(src_store.get_task_state(task_id)) if src_store is not None else {}
+    state.pop("next_history_ref", None)
+    for entry in state.get("history") or []:
+        if isinstance(entry, dict):
+            entry.pop("ref_no", None)
+
+    # Group memberships: snapshot, let the delete sweep them, re-add under the target.
+    from ..const import CONF_GROUPS
+    from ..helpers.global_options import get_global_entry
+
+    member_groups: list[str] = []
+    global_entry = get_global_entry(hass)
+    if global_entry is not None:
+        for gid, group in (dict(global_entry.options or global_entry.data).get(CONF_GROUPS) or {}).items():
+            if any(isinstance(r, dict) and r.get("task_id") == task_id for r in group.get("task_refs", [])):
+                member_groups.append(gid)
+
+    existing = target.data.get(CONF_TASKS, {})
+    if len(existing) >= MAX_TASKS_PER_OBJECT:
+        raise ValueError(f"The target object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks")
+
+    await async_delete_task(hass, source, task_id)
+
+    new_data = dict(target.data)
+    new_tasks = dict(new_data.get(CONF_TASKS, {}))
+    new_tasks[task_id] = task_data
+    new_data[CONF_TASKS] = new_tasks
+    obj = dict(new_data.get(CONF_OBJECT, {}))
+    obj["task_ids"] = [*obj.get("task_ids", []), task_id]
+    new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(target, data=new_data)
+
+    tgt_rd = _get_runtime_data(hass, target.entry_id)
+    tgt_store = getattr(tgt_rd, "store", None) if tgt_rd else None
+    if tgt_store is not None:
+        tgt_store.put_task_state(task_id, state)
+        await tgt_store.async_save()
+
+    if member_groups and global_entry is not None:
+        options = dict(global_entry.options or global_entry.data)
+        groups = dict(options.get(CONF_GROUPS) or {})
+        for gid in member_groups:
+            group = groups.get(gid)
+            if group is None:
+                continue
+            groups[gid] = {**group, "task_refs": [*group.get("task_refs", []), {"entry_id": target.entry_id, "task_id": task_id}]}
+        options[CONF_GROUPS] = groups
+        hass.config_entries.async_update_entry(global_entry, options=options)

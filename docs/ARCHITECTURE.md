@@ -31,7 +31,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |    +-------------------+
 |   WebSocket API   |--->|                   +--->|  Button Entities  |
-| (93 commands)     |    +--------+----------+    | (complete / skip /|
+| (94 commands)     |    +--------+----------+    | (complete / skip /|
 | - CRUD objects    |             |          |    |  reset, per task) |
 | - statistics      |             |          |    +-------------------+
 | - subscribe       |             |          |    +-------------------+
@@ -229,7 +229,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (338 lines)  Accumulated operating hours trigger
 │       └── compound.py            (282 lines)  AND/OR compound trigger
 │
-├── websocket/                   (7,135 lines)  93 WS commands, split by domain
+├── websocket/                   (7,135 lines)  94 WS commands, split by domain
 │   ├── __init__.py                (627 lines)  Shared helpers + registration
 │   ├── objects.py                 (998 lines)  Object CRUD + archive/pause/replace + entity introspection (13)
 │   ├── tasks.py                    (74 lines)  Backward-compat re-export shim (no handlers of its own)
@@ -739,7 +739,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-93 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
+94 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
 
 **History payload diet (perf):** task summaries in `objects`/`task/list` carry only the most recent `_HISTORY_WINDOW` (20) history entries plus `history_count` — full histories made the list payload scale with history depth (906 KB at 40 entries/task, store cap 500). The detail view fetches the complete record lazily via `task/history` when a task is opened; a data refresh while a task is open refetches. Benchmarked by the committed harness `e2e/perf-seed.mjs` (prod-scale seed via `json/import`, real history entries) + `e2e/perf-panel.mjs` (cold-load timeline, per-WS payload bytes, long tasks; one subprocess per run and a single in-page evaluate per page — the remote playwright run-server wedges on more, see the script headers).
 
@@ -748,7 +748,7 @@ Multi-channel notification with:
 | **Read** | `objects`, `object`, `statistics`, `subscribe`, `templates`, `budget_status`, `groups`, `settings`, `tasks/by_user`, `version` |
 | **Schedule preview** | `schedule/preview` (#83) — next-dates preview for a candidate recurrence, without persisting anything |
 | **Object CRUD** | `object/create`, `object/update`, `object/delete`, `object/duplicate`, `object/from_template`, `object/archive`, `object/unarchive`, `object/pause`, `object/resume`, `object/replace` |
-| **Task CRUD** | `task/list`, `task/create`, `task/update`, `task/delete`, `task/duplicate` |
+| **Task CRUD** | `task/list`, `task/create`, `task/update`, `task/delete`, `task/duplicate`, `task/move` (2.82) |
 | **Task Actions** | `task/complete`, `task/quick_complete`, `task/skip`, `task/reset`, `task/snooze`, `task/postpone` (2.22+), `task/archive`, `task/unarchive`, `task/history/update` |
 | **Group CRUD** | `group/create`, `group/update`, `group/delete` |
 | **Parts** (2.23) | `part/create`, `part/update`, `part/delete`, `part/restock` — spare-parts inventory; parts ride the objects payload |
@@ -780,7 +780,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 93 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 94 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

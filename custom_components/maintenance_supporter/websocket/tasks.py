@@ -22,6 +22,7 @@ from .tasks_crud import (
     ws_create_task,
     ws_delete_task,
     ws_duplicate_task,
+    ws_move_task,
     ws_update_task,
 )
 from .tasks_history import ws_update_history_entry
@@ -67,6 +68,7 @@ __all__ = [
     "ws_delete_task",
     "ws_duplicate_task",
     "ws_list_tasks",
+    "ws_move_task",
     "ws_postpone_task",
     "ws_quick_complete_task",
     "ws_reset_task",

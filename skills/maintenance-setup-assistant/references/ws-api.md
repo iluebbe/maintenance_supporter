@@ -278,10 +278,16 @@ it is prefixed with `Condition <index>:`.
 > record the completed step as `phase_id`. Correct the cursor via
 > `task/set_phase`.
 
-### `task/update` / `task/delete` / `task/duplicate` / `task/archive` / `task/unarchive` — `@require_write`
+### `task/update` / `task/delete` / `task/duplicate` / `task/move` / `task/archive` / `task/unarchive` — `@require_write`
 `update`: `{entry_id, task_id, + any task field}` (partial). `delete`:
 `{entry_id, task_id}`. Recurrence edit: an explicit nested `schedule` wins; a
 flat interval edit rebuilds from flat and drops the nested schedule.
+`move` (2.82): `{entry_id, task_id, target_entry_id}` → `{task_id, entry_id}` — the task
+keeps its id, config, history, readings, adaptive config, trigger runtime and
+group memberships; it gets a new reference number under the target object and
+its entities are recreated there (source and target entries reload). Document
+links stay with the source object. Errors: `not_found`, `invalid_target`
+(same object / archived target), `limit_reached`.
 
 ### Task actions (no write gate)
 - `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass)

@@ -186,13 +186,13 @@ describe("task-detail renderer", () => {
       toggleArchive: () => calls.push("archive"),
     }));
     const items = [...host.querySelectorAll(".popup-menu-item")];
-    // edit, qr, worksheet, duplicate, reset, postpone, snooze, archive, delete
-    expect(items.length).to.equal(9);
-    (items[5] as HTMLElement).click(); // postpone
-    (items[6] as HTMLElement).click(); // snooze
+    // edit, qr, worksheet, duplicate, move (#23), reset, postpone, snooze, archive, delete
+    expect(items.length).to.equal(10);
+    (items[6] as HTMLElement).click(); // postpone
+    (items[7] as HTMLElement).click(); // snooze
     (items[2] as HTMLElement).click(); // work sheet (v2.21)
-    (items[7] as HTMLElement).click(); // archive (demoted from the header)
-    (items[8] as HTMLElement).click(); // delete (danger)
+    (items[8] as HTMLElement).click(); // archive (demoted from the header)
+    (items[9] as HTMLElement).click(); // delete (danger)
     expect(calls).to.deep.equal([
       "close", "postpone", "close", "snooze", "close", "worksheet", "close", "archive", "close", "delete",
     ]);

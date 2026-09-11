@@ -4,6 +4,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Type the date** (forum #23): every date field has a keyboard button
+  next to Home Assistant's picker — type `1978-03-15`, a bare year, `03/1978`
+  or the date in your profile's format and press Enter. HA's picker only
+  steps month by month and its text field is read-only, so an installation
+  date from 1978 was hundreds of clicks away.
+- **Move a task to another object** (forum #23): *⋮ → Move to another
+  object…* in the task header. Config, history, readings, adaptive
+  settings, trigger state and group memberships move with the task; it gets
+  a new reference number under the target and its entities are recreated
+  there. WS `task/move` (94 commands).
+
 ### 📝 Docs
 
 - Counter trigger: what happens when the source counter drops, resets

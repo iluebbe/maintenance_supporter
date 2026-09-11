@@ -27,6 +27,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_EXTRA_DATA,
+    CONF_QUIET_HOURS_ENABLED,
     CONF_REMINDER_LEAD_DAYS,
     CONF_TASKS,
     DOMAIN,
@@ -53,6 +54,7 @@ from .conftest import (
 
 def _global(hass: HomeAssistant, *, notify_service: str = "notify.test", **options: object) -> MockConfigEntry:
     data = build_global_entry_data(notifications_enabled=True, notify_service=notify_service)
+    data[CONF_QUIET_HOURS_ENABLED] = False  # the default quiet hours would silence a night-time run
     data.update(options)
     entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
     entry.add_to_hass(hass)

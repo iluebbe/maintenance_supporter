@@ -21,6 +21,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_EXTRA_DATA,
+    CONF_QUIET_HOURS_ENABLED,
     DOMAIN,
     EVENT_NOTIFICATION,
     GLOBAL_UNIQUE_ID,
@@ -40,6 +41,7 @@ from .conftest import TASK_ID_1, build_global_entry_data, build_object_data, bui
 
 def _global(hass: HomeAssistant, **options: object) -> MockConfigEntry:
     data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
+    data[CONF_QUIET_HOURS_ENABLED] = False  # the default quiet hours would silence a night-time CI run
     data.update(options)
     entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
     entry.add_to_hass(hass)

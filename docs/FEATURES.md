@@ -133,6 +133,10 @@ documents.
 
 ![Objects table](images/objects-table.png)
 
+**Type the date** (2.82+) — every date field (installation date, warranty expiry, last performed, due date …) has a keyboard button next to Home Assistant's picker: type `1978-03-15`, just `1978`, `03/1978`, or the date in your profile's own format and press Enter. The picker only steps month by month, so an installation date from 1978 was hundreds of clicks away.
+
+**Move a task to another object** (2.82+) — a task created on the wrong object: *⋮ → Move to another object…* in the task header. Config, history, readings, adaptive settings, trigger state (incl. counter baselines) and group memberships travel with it; it gets a new reference number under the target object and its entities are recreated there. Documents stay with the object they were uploaded to.
+
 ### Complete Dialog
 Optional notes / cost / duration, an optional **Completed at** date for
 backfilling work that was done earlier (empty = now; see
@@ -787,7 +791,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 93 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 94 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -880,7 +884,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (93 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (94 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 
