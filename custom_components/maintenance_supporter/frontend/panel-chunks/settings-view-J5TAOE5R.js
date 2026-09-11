@@ -1,9 +1,9 @@
-/*! maintenance_supporter frontend 2.81.0 */
-import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6CUDPAR6.js";import{a as C,g as B}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6PQYSM4X.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-RUFOQXLW.js";import{a as H,b as I}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-VHXBFIC3.js";import{a as z,b as M,c as R,e as O}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-FJO3XLNZ.js";import{L as P,a as c,b as q,c as r,e as y,f as d,g as S,h as A,l as w,m as p,q as s,s as j}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-4DHFS2BB.js";var m={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},k=h=>(..._)=>({_$litDirective$:h,values:_}),$=class{constructor(_){}get _$AU(){return this._$AM._$AU}_$AT(_,e,t){this._$Ct=_,this._$AM=e,this._$Ci=t}_$AS(_,e){return this.update(_,e)}update(_,e){return this.render(...e)}};var x=class extends ${constructor(_){if(super(_),this.it=d,_.type!==m.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(_){if(_===d||_==null)return this._t=void 0,this.it=_;if(_===y)return _;if(typeof _!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(_===this.it)return this._t;this.it=_;let e=[_];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};x.directiveName="unsafeHTML",x.resultType=1;var N=k(x);var{I:L}=S;var U=h=>h.strings===void 0;var K={},D=(h,_=K)=>h._$AH=_;var b=k(class extends ${constructor(h){if(super(h),h.type!==m.PROPERTY&&h.type!==m.ATTRIBUTE&&h.type!==m.BOOLEAN_ATTRIBUTE)throw Error("The `live` directive is not allowed on child or event bindings");if(!U(h))throw Error("`live` bindings can only contain a single expression")}render(h){return h}update(h,[_]){if(_===y||_===d)return _;let e=h.element,t=h.name;if(h.type===m.PROPERTY){if(_===e[t])return y}else if(h.type===m.BOOLEAN_ATTRIBUTE){if(!!_===e.hasAttribute(t))return y}else if(h.type===m.ATTRIBUTE&&e.getAttribute(t)===_+"")return y;return D(h),_}});var Q=["EUR","USD","GBP","JPY","CHF","CAD","AUD","NZD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],l=class extends A{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._personTargets=[];this._testingUser="";this._users=[];this._savedViews=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._exportObjects=[];this._exportSelectedEntries=new Set;this._exportObjectsLoaded=!1;this._docArchiveLoading=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async e=>{e?this._testingUser=e:this._testingNotification=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification",...e?{user_id:e}:{}}),a=t.message||(t.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(a)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{e?this._testingUser="":this._testingNotification=!1}};this._allTemplates=[];this._templateCategories={};this._tplOpenGroups=new Set;this._templatesRequested=!1}get _lang(){return j(this.hass)}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new O(this.hass),this._loadSettings(),this._loadUsers()):e.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService){try{this._users=await this._userService.getUsers()}catch{this._users=[]}this._loadNotifyTargets()}}async _loadNotifyTargets(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/notify/user_targets"});this._personTargets=e.targets||[]}catch{this._personTargets=[]}}async _loadSettings(){this._loading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=e,this._hydrateVacationFromSettings()}catch{}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._savedViews=e.views||[]}catch{}this._loading=!1}_hydrateVacationFromSettings(){let e=this._settings?.vacation;e&&(this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end)}_renderBatteryNotesHint(e){let t=this._settings?.general?.battery_notes;if(!t||!t.devices)return d;let a=this._settings?.general?.battery_low_percent??20,i=t.default>a,n=s("bn_summary",e).replace("{name}","Battery Notes").replace("{pct}",String(t.default)).replace("{n}",String(t.devices)),o=(i?s("bn_above_floor",e).replace("{name}","Battery Notes"):s("bn_floor_decides",e)).replace("{floor}",String(a)),g=n.search(/[:：]/),f=g<0?n:n.slice(0,g),v=g<0?"":n.slice(g);return r`
+/*! maintenance_supporter frontend 2.82.0 */
+import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-IL2HOGSI.js";import{a as C,g as B}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-WTWETRW4.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-IOW4PMB5.js";import{a as H,b as I}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-ZSJQYRHU.js";import{a as z,b as M,c as O,e as R}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-B4ELBSAY.js";import{L as P,a as c,b as q,c as r,e as y,f as d,g as S,h as A,l as w,m as p,q as s,s as j}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-4OPY4VQ5.js";var m={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},k=h=>(..._)=>({_$litDirective$:h,values:_}),$=class{constructor(_){}get _$AU(){return this._$AM._$AU}_$AT(_,e,t){this._$Ct=_,this._$AM=e,this._$Ci=t}_$AS(_,e){return this.update(_,e)}update(_,e){return this.render(...e)}};var x=class extends ${constructor(_){if(super(_),this.it=d,_.type!==m.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(_){if(_===d||_==null)return this._t=void 0,this.it=_;if(_===y)return _;if(typeof _!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(_===this.it)return this._t;this.it=_;let e=[_];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};x.directiveName="unsafeHTML",x.resultType=1;var N=k(x);var{I:L}=S;var U=h=>h.strings===void 0;var K={},D=(h,_=K)=>h._$AH=_;var f=k(class extends ${constructor(h){if(super(h),h.type!==m.PROPERTY&&h.type!==m.ATTRIBUTE&&h.type!==m.BOOLEAN_ATTRIBUTE)throw Error("The `live` directive is not allowed on child or event bindings");if(!U(h))throw Error("`live` bindings can only contain a single expression")}render(h){return h}update(h,[_]){if(_===y||_===d)return _;let e=h.element,t=h.name;if(h.type===m.PROPERTY){if(_===e[t])return y}else if(h.type===m.BOOLEAN_ATTRIBUTE){if(!!_===e.hasAttribute(t))return y}else if(h.type===m.ATTRIBUTE&&e.getAttribute(t)===_+"")return y;return D(h),_}});var Q=["EUR","USD","GBP","JPY","CHF","CAD","AUD","NZD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],l=class extends A{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._personTargets=[];this._testingUser="";this._users=[];this._savedViews=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._exportObjects=[];this._exportSelectedEntries=new Set;this._exportObjectsLoaded=!1;this._docArchiveLoading=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async e=>{e?this._testingUser=e:this._testingNotification=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification",...e?{user_id:e}:{}}),a=t.message||(t.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(a)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{e?this._testingUser="":this._testingNotification=!1}};this._allTemplates=[];this._templateCategories={};this._tplOpenGroups=new Set;this._templatesRequested=!1}get _lang(){return j(this.hass)}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new R(this.hass),this._loadSettings(),this._loadUsers()):e.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService){try{this._users=await this._userService.getUsers()}catch{this._users=[]}this._loadNotifyTargets()}}async _loadNotifyTargets(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/notify/user_targets"});this._personTargets=e.targets||[]}catch{this._personTargets=[]}}async _loadSettings(){this._loading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=e,this._hydrateVacationFromSettings()}catch{}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._savedViews=e.views||[]}catch{}this._loading=!1}_hydrateVacationFromSettings(){let e=this._settings?.vacation;e&&(this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end)}_renderBatteryNotesHint(e){let t=this._settings?.general?.battery_notes;if(!t||!t.devices)return d;let a=this._settings?.general?.battery_low_percent??20,i=t.default>a,n=s("bn_summary",e).replace("{name}","Battery Notes").replace("{pct}",String(t.default)).replace("{n}",String(t.devices)),o=(i?s("bn_above_floor",e).replace("{name}","Battery Notes"):s("bn_floor_decides",e)).replace("{floor}",String(a)),g=n.search(/[:：]/),b=g<0?n:n.slice(0,g),v=g<0?"":n.slice(g);return r`
       <div class="bn-note${i?" warn":""}">
         <ha-icon icon="${i?"mdi:alert-outline":"mdi:battery-heart-variant"}"></ha-icon>
         <span>
-          <a class="bn-link" href="/config/integrations/integration/battery_notes">${f}</a>${v}
+          <a class="bn-link" href="/config/integrations/integration/battery_notes">${b}</a>${v}
           ${t.overrides.length?r` · ${s("bn_overrides",e).replace("{n}",String(t.overrides.length+t.more))}
                 ${t.overrides.map((u,F)=>r`${F?" \xB7 ":" "}${u.device_id?r`<a class="bn-link" href="/config/devices/device/${u.device_id}">${u.name}</a>`:u.name} (${u.threshold} %)`)}
                 ${t.more?r` <span class="bn-more">${s("bn_more",e).replace("{n}",String(t.more))}</span>`:d}`:d}
@@ -15,7 +15,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
         <p class="section-desc">${s("member_avatars_hint",e)}</p>
         ${this._users.map(a=>{let i=M(a),n=t[a.id]||{};return r`
             <div class="member-avatar-row">
-              ${R(i)}
+              ${O(i)}
               <span class="member-avatar-name">${a.name}</span>
               <input class="member-initials" type="text" maxlength="3" autocomplete="off"
                 aria-label="${s("member_initials",e)}"
@@ -44,7 +44,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
       ${this._renderImportExport(e)}
       ${this._renderTemplateToggles(e)}
       ${this._toast?r`<div class="settings-toast">${this._toast}</div>`:d}
-    `}scrollToSection(e){requestAnimationFrame(()=>{let t=this.shadowRoot;if(!t)return;let a=t.querySelector(`[data-section="${e}"]`)??t.querySelector(`[data-section-alt="${e}"]`);a&&a.scrollIntoView({behavior:"smooth",block:"start"})})}_renderPanelAccess(e){let t=new Set(this._settings.admin_panel_user_ids||[]),a=this._users.filter(o=>!o.is_admin),i=this._settings.operator_write_enabled??!1,n=(o,g)=>{let f=new Set(t);g?f.add(o):f.delete(o),this._updateSetting("admin_panel_user_ids",[...f])};return r`
+    `}scrollToSection(e){requestAnimationFrame(()=>{let t=this.shadowRoot;if(!t)return;let a=t.querySelector(`[data-section="${e}"]`)??t.querySelector(`[data-section-alt="${e}"]`);a&&a.scrollIntoView({behavior:"smooth",block:"start"})})}_renderPanelAccess(e){let t=new Set(this._settings.admin_panel_user_ids||[]),a=this._users.filter(o=>!o.is_admin),i=this._settings.operator_write_enabled??!1,n=(o,g)=>{let b=new Set(t);g?b.add(o):b.delete(o),this._updateSetting("admin_panel_user_ids",[...b])};return r`
       <div class="settings-section">
         <h3>${s("settings_panel_access",e)} ${i&&t.size>0?r`<span class="section-badge">${t.size}</span>`:d}</h3>
         <p class="section-desc">${s("settings_panel_access_desc",e)}</p>
@@ -88,7 +88,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
       <div class="settings-section" data-section="templates">
         <h3>${s("settings_templates_label",e)}</h3>
         <p class="section-desc">${s("settings_templates_hint",e)}</p>
-        ${[...a.entries()].filter(([,n])=>n.length>0).map(([n,o])=>{let g=o.filter(v=>!t.has(v.id)).length,f=this._tplOpenGroups.has(n);return r`
+        ${[...a.entries()].filter(([,n])=>n.length>0).map(([n,o])=>{let g=o.filter(v=>!t.has(v.id)).length,b=this._tplOpenGroups.has(n);return r`
             <div class="tpl-group">
               <div
                 class="tpl-group-head"
@@ -97,7 +97,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
                 @click=${()=>this._toggleTplGroupOpen(n)}
                 @keydown=${v=>{(v.key==="Enter"||v.key===" ")&&(v.preventDefault(),this._toggleTplGroupOpen(n))}}
               >
-                <ha-icon class="tpl-chevron" icon=${f?"mdi:chevron-down":"mdi:chevron-right"}></ha-icon>
+                <ha-icon class="tpl-chevron" icon=${b?"mdi:chevron-down":"mdi:chevron-right"}></ha-icon>
                 <ha-icon icon=${this._templateCategories[n]?.icon||"mdi:folder-outline"}></ha-icon>
                 <span class="tpl-group-name">${i(n)}</span>
                 <span class="tpl-group-count">${g}/${o.length}</span>
@@ -109,7 +109,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
                   @change=${v=>this._toggleTemplateGroup(o.map(u=>u.id),v.target.checked)}
                 />
               </div>
-              ${f?o.map(v=>r`
+              ${b?o.map(v=>r`
                     <label class="setting-row tpl-row">
                       <span class="setting-label">${v.name}</span>
                       <input
@@ -143,24 +143,24 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
         <h3>${s("settings_general",e)}</h3>
         <label class="setting-row">
           <span class="setting-label">${s("settings_default_warning",e)}</span>
-          <input type="number" min="0" max="365" .value=${b(String(t.default_warning_days))}
+          <input type="number" min="0" max="365" .value=${f(String(t.default_warning_days))}
             @change=${n=>this._onBoundedIntChange(n,"default_warning_days",0,365,t.default_warning_days)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_consumable_threshold",e)}</span>
-          <input type="number" min="1" max="90" .value=${b(String(t.default_consumable_threshold??10))}
+          <input type="number" min="1" max="90" .value=${f(String(t.default_consumable_threshold??10))}
             @change=${n=>this._onBoundedIntChange(n,"default_consumable_threshold",1,90,t.default_consumable_threshold??10)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_battery_low_percent",e)}</span>
-          <input type="number" min="1" max="90" .value=${b(String(t.battery_low_percent??20))}
+          <input type="number" min="1" max="90" .value=${f(String(t.battery_low_percent??20))}
             @change=${n=>this._onBoundedIntChange(n,"battery_low_percent",1,90,t.battery_low_percent??20)} />
         </label>
         ${this._renderBatteryNotesHint(e)}
         <div class="setting-hint">${s("settings_thresholds_hint",e)}</div>
         <label class="setting-row">
           <span class="setting-label">${s("settings_row_actions",e)}</span>
-          <select .value=${b(t.row_action_style||"buttons_compact")}
+          <select .value=${f(t.row_action_style||"buttons_compact")}
             @change=${n=>this._updateSetting("row_action_style",n.target.value)}>
             ${["buttons_compact","buttons","icons"].map(n=>r`
               <option value=${n} ?selected=${(t.row_action_style||"buttons_compact")===n}>${s(`row_actions_${n}`,e)}</option>`)}
@@ -168,7 +168,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_currency",e)}</span>
-          <select .value=${b(i.currency)} @change=${n=>this._updateSetting("budget_currency",n.target.value)}>
+          <select .value=${f(i.currency)} @change=${n=>this._updateSetting("budget_currency",n.target.value)}>
             ${Q.map(n=>r`<option value=${n} ?selected=${i.currency===n}>${n}</option>`)}
           </select>
         </label>
@@ -236,7 +236,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
 
         <label class="setting-row">
           <span class="setting-label" title=${s("settings_shopping_list_help",e)}>${s("settings_shopping_list",e)}</span>
-          <select .value=${b(t.shopping_list_entity||"")}
+          <select .value=${f(t.shopping_list_entity||"")}
             @change=${n=>this._updateSetting("shopping_list_entity",n.target.value)}>
             <option value="" ?selected=${!t.shopping_list_entity}>${s("shopping_list_none",e)}</option>
             ${this._todoEntities(t.shopping_list_entity||"").map(n=>r`
@@ -352,7 +352,7 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
         <label class="setting-row">
           <span class="setting-label">${s("settings_notify_scope",e)}</span>
           <select
-            .value=${b(t.scope_view_id||"")}
+            .value=${f(t.scope_view_id||"")}
             @change=${i=>this._updateSetting("notify_scope_view_id",i.target.value)}
           >
             <option value="" ?selected=${!t.scope_view_id}>${s("settings_notify_scope_all",e)}</option>
@@ -372,7 +372,9 @@ import{a as E,c as T}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6
         <div class="setting-hint">${s("settings_notify_event_only_hint",e)}</div>
         <label class="setting-row setting-row-block">
           <span class="setting-label">${s("settings_notify_extra_data",e)}</span>
-          <textarea class="import-area notify-extra" .value=${b(t.extra_data||"")} maxlength="2000" spellcheck="false"
+          <!-- No live(): the view re-renders on every hass update and live()
+               would snap the DOM back to the stored value mid-typing (#176). -->
+          <textarea class="import-area notify-extra" .value=${t.extra_data||""} maxlength="2000" spellcheck="false"
             placeholder=${'{"category": "maintenance", "critical": {{ priority == "high" }}, "navigate_to": "{{ url }}"}'}
             @change=${i=>this._updateSetting("notify_extra_data",i.target.value)}
           ></textarea>

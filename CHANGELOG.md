@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.82.0] - 2026-09-11
 
 ### ✨ Added
 
@@ -19,6 +19,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Extra notification data kept clearing while typing** (#176): the
+  Settings textarea forced the stored value back into the field on every
+  re-render, so only a blur within a second or so saved anything. It now
+  keeps what you type until you leave the field.
 - A sensor-driven task's interval read **Manual** in the task header, the
   rows and the quick actions; it now says *Sensor-based*, with the safety
   interval appended when one is set.

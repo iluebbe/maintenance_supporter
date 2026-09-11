@@ -71,4 +71,17 @@ describe("settings: your own notification rule (#165)", () => {
     expect(updates.at(-1)).to.deep.equal({ notify_extra_data: "category: maintenance" });
     expect(textarea(el).value).to.equal("category: maintenance");
   });
+  it("typing survives a re-render (#176: no live() on the textarea)", async () => {
+    const { el, updates } = await mount({ extra_data: "" });
+    const ta = textarea(el);
+    ta.value = '{"category": "ma';
+    ta.dispatchEvent(new Event("input"));
+    // A hass update re-renders the view — the half-typed text must stay.
+    el.hass = { ...el.hass } as typeof el.hass;
+    await el.updateComplete;
+    el.requestUpdate();
+    await el.updateComplete;
+    expect(textarea(el).value).to.equal('{"category": "ma');
+    expect(updates).to.deep.equal([]);
+  });
 });

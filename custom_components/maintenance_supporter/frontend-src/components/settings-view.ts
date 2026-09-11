@@ -982,7 +982,9 @@ export class MaintenanceSettingsView extends LitElement {
         <div class="setting-hint">${t("settings_notify_event_only_hint", L)}</div>
         <label class="setting-row setting-row-block">
           <span class="setting-label">${t("settings_notify_extra_data", L)}</span>
-          <textarea class="import-area notify-extra" .value=${live(n.extra_data || "")} maxlength="2000" spellcheck="false"
+          <!-- No live(): the view re-renders on every hass update and live()
+               would snap the DOM back to the stored value mid-typing (#176). -->
+          <textarea class="import-area notify-extra" .value=${n.extra_data || ""} maxlength="2000" spellcheck="false"
             placeholder=${'{"category": "maintenance", "critical": {{ priority == "high" }}, "navigate_to": "{{ url }}"}'}
             @change=${(e: Event) => this._updateSetting("notify_extra_data", (e.target as HTMLTextAreaElement).value)}
           ></textarea>
