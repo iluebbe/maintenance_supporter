@@ -1096,6 +1096,41 @@ await step("lovelace-card.png", async () => {
   log("SHOT lovelace-card.png (clipped)");
 });
 
+// 17b. The whole panel as a card (#174) — a panel view on the demo dashboard.
+await step("panel-card.png", async () => {
+  await p.evaluate(async () => {
+    const hass = document.querySelector("home-assistant").hass;
+    const send = (m) => hass.connection.sendMessagePromise(m);
+    const dashboards = await send({ type: "lovelace/dashboards/list" });
+    if (!dashboards.some((d) => d.url_path === "demo-cards")) {
+      await send({ type: "lovelace/dashboards/create", url_path: "demo-cards", title: "Demo",
+        require_admin: false, show_in_sidebar: true, mode: "storage" });
+    }
+    const cur = await send({ type: "lovelace/config", url_path: "demo-cards" }).catch(() => null);
+    const views = (cur && cur.views ? cur.views : []).filter((v) => v.path !== "maintenance");
+    views.push({ title: "Maintenance", path: "maintenance", type: "panel", cards: [
+      { type: "custom:maintenance-supporter-panel-card", tab: "today" },
+    ] });
+    await send({ type: "lovelace/config/save", url_path: "demo-cards", config: { ...(cur || {}), views } });
+  });
+  await p.goto(HA + "/demo-cards/maintenance", { waitUntil: "domcontentloaded" });
+  let ready = false;
+  for (let i = 0; i < 30 && !ready; i++) {
+    await p.waitForTimeout(1000);
+    ready = await p.evaluate(() => {
+      const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+        while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+          if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return o; };
+      const panel = deep((el) => el.tagName === "MAINTENANCE-SUPPORTER-PANEL" && el.embedded)[0];
+      return !!panel && Array.isArray(panel._objects) && panel._objects.length > 0;
+    }).catch(() => false);
+  }
+  if (!ready) throw new Error("panel card not rendered");
+  await p.waitForTimeout(1500);
+  await shot("panel-card.png");
+});
+
 // 18. HA-native calendar entity (month view)
 await step("calendar.png", async () => {
   await p.goto(HA + "/calendar", { waitUntil: "domcontentloaded" });

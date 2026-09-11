@@ -530,7 +530,24 @@ read-tier command, so household members without admin rights see them too.
 
 ![Lovelace Card](images/lovelace-card.png)
 
-**Typical battery lifetimes** (2.83+, D#162) — only batteries **without a percentage** use them: a Battery Notes note that has just a type and a last-replaced date, or a sensor that only reports *low*. Their due date is *last replaced + typical lifetime*; batteries that report a level get their forecast from the measured discharge instead. The table under *Settings → Typical battery lifetimes* lists your fleet's types first with the value in use and where it comes from: your own value (always wins), a value **learned from your own replacements** — first the device's own history (two intervals), then devices of the **same model** (manufacturer + model, three intervals pooled; never the type alone, a CR2032 in a door sensor says nothing about one in a thermostat) — the built-in table, or the 12-month default for an unknown type. The table speaks Battery Notes' type vocabulary (AA, CR2032, CR123A, LS14250, PP3 …) and folds aliases onto it (LR6 → AA, CR123 → CR123A). Every replacement the fleet sees — the roster's *Replaced* action, Battery Notes' own button or service, a corrected date — is logged, so the learning needs nothing from you. Battery Notes itself carries no lifetime data; *Manual*, *Irreplaceable* and *Solar* notes get no type forecast. The roster's ~date tooltip names the lifetime and its source.
+### The whole panel as a card (2.84+, #174)
+`custom:maintenance-supporter-panel-card` mounts the complete panel — Today,
+Dashboard, Calendar, Settings, object and task pages, search, bulk actions,
+every dialog — inside a card, so it can live as a **dashboard subview**
+(a panel view with this one card) without the sidebar entry. It is the
+sidebar panel's own element: the card loads the panel bundle from the URL
+Home Assistant registered for the sidebar, so nothing is duplicated and
+the two stay in step. Options: `tab` (opening tab: today / dashboard /
+calendar / settings; unset = the tab the panel remembers), `view` (opening
+saved view, by name or id) and `height` (unset = fill the screen below the
+card, the panel-view case; a CSS length such as `600px` for mixed views).
+Deep links keep working on the dashboard's own URL (`/lovelace/maintenance?tab=today`,
+`?entry_id=…&task_id=…`), the visual editor offers the three options, and
+narrow layouts follow the card's width rather than the window's. Hide the
+sidebar entry per user under *Profile → Sidebar* if the subview is all you need.
+
+![The panel as a card in a panel view](images/panel-card.png)
+
 
 ### Battery Fleet Card
 The `custom:maintenance-battery-fleet-card` (#135) puts the full fleet view on
@@ -540,6 +557,8 @@ track-self-charging toggle — the same section the fleet task's detail page
 shows, so nothing needs templating over sensor attributes.
 
 ![Battery Fleet Card](images/battery-fleet-card.png)
+
+**Typical battery lifetimes** (2.83+, D#162) — only batteries **without a percentage** use them: a Battery Notes note that has just a type and a last-replaced date, or a sensor that only reports *low*. Their due date is *last replaced + typical lifetime*; batteries that report a level get their forecast from the measured discharge instead. The table under *Settings → Typical battery lifetimes* lists your fleet's types first with the value in use and where it comes from: your own value (always wins), a value **learned from your own replacements** — first the device's own history (two intervals), then devices of the **same model** (manufacturer + model, three intervals pooled; never the type alone, a CR2032 in a door sensor says nothing about one in a thermostat) — the built-in table, or the 12-month default for an unknown type. The table speaks Battery Notes' type vocabulary (AA, CR2032, CR123A, LS14250, PP3 …) and folds aliases onto it (LR6 → AA, CR123 → CR123A). Every replacement the fleet sees — the roster's *Replaced* action, Battery Notes' own button or service, a corrected date — is logged, so the learning needs nothing from you. Battery Notes itself carries no lifetime data; *Manual*, *Irreplaceable* and *Solar* notes get no type forecast. The roster's ~date tooltip names the lifetime and its source.
 
 ```yaml
 type: custom:maintenance-battery-fleet-card

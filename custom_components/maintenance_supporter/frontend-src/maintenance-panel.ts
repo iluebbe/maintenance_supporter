@@ -179,6 +179,16 @@ export class MaintenanceSupporterPanel extends LitElement {
   @property({ type: Boolean, reflect: true }) public split = false;
   private _tightObserver: ResizeObserver | null = null;
   @property({ attribute: false }) public panel: Record<string, unknown> = {};
+  /** #174: mounted inside `maintenance-supporter-panel-card` rather than as
+   *  the sidebar panel — no hamburger (the dashboard has its own header), no
+   *  safe-area padding (the dashboard wrapper applies it), deep links read
+   *  from whatever path the dashboard has. Reflected for the CSS. */
+  @property({ type: Boolean, reflect: true }) public embedded = false;
+  /** #174: the card's opening tab / saved view — applied once on the initial
+   *  load when the URL carries no `tab` / `view` of its own, WITHOUT
+   *  persisting (the sidebar panel keeps its remembered tab). */
+  @property({ attribute: false }) public presets: { tab?: string; view?: string } = {};
+  private _presetsApplied = false;
 
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
@@ -471,6 +481,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._initialLoadDone = false;
     this._lastConnection = null;
     this._deepLinkHandled = false;
+    this._presetsApplied = false;
     this._statsService?.clearCache();
     this._statsService = null;
   }
@@ -751,9 +762,12 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  params from it. Navigations away from the panel are not ours. */
   private _onLocationChanged(): void {
     if (!this._initialLoadDone || !window.location.search) return;
-    const base = `/${typeof this.panel?.url_path === "string" ? this.panel.url_path : "maintenance-supporter"}`;
-    const path = window.location.pathname;
-    if (path !== base && !path.startsWith(`${base}/`)) return;
+    // Embedded in a card (#174): the dashboard's path is ours, whatever it is.
+    if (!this.embedded) {
+      const base = `/${typeof this.panel?.url_path === "string" ? this.panel.url_path : "maintenance-supporter"}`;
+      const path = window.location.pathname;
+      if (path !== base && !path.startsWith(`${base}/`)) return;
+    }
     this._deepLinkHandled = false;
     // HA's navigate() already pushed the entry for this URL (state null), so
     // the show*() helpers must take that entry over instead of stacking a
@@ -835,6 +849,25 @@ export class MaintenanceSupporterPanel extends LitElement {
     // ignored. Like a tap, the tab (also the implied one) and the sort are
     // remembered for the next plain visit. Consumed once and stripped like
     // every other param.
+    // #174: the card's presets open a tab / saved view once, without the
+    // persistence a tap or a `?tab=` link has — a dashboard subview that
+    // starts on Today must not rewrite the sidebar panel's remembered tab.
+    if (this.embedded && !this._presetsApplied) {
+      this._presetsApplied = true;
+      const pt = this.presets?.tab ?? "";
+      const pv = (this.presets?.view ?? "").trim();
+      if (!params.has("tab") && (OVERVIEW_TABS as readonly string[]).includes(pt) && (pt !== "settings" || this.hass?.user?.is_admin)) {
+        this._overviewTab = pt as OverviewTab;
+      }
+      if (!params.has("view") && pv) {
+        const wanted = pv.toLowerCase();
+        const match = this._savedViews.find((v) => v.id === pv) ?? this._savedViews.find((v) => v.name.trim().toLowerCase() === wanted);
+        if (match) {
+          this._overviewTab = "dashboard";
+          this._applyView(match.id);
+        }
+      }
+    }
     const tab = params.get("tab");
     const view = params.get("view");
     const sort = params.get("sort");
@@ -2636,7 +2669,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="header">
-        ${this.narrow ? html`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>` : nothing}
+        ${this.narrow && !this.embedded ? html`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>` : nothing}
         ${this._view !== "overview"
           ? html`<ha-icon-button
               .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}

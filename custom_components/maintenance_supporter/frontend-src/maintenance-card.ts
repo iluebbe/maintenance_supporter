@@ -748,6 +748,10 @@ if (!customElements.get("maintenance-supporter-card")) {
   customElements.define("maintenance-supporter-card", MaintenanceSupporterCard);
 }
 
+// #174: the whole panel as a card — a tiny wrapper that lazy-imports the
+// panel bundle HA registered for the sidebar (same module, defined once).
+import "./maintenance-panel-card";
+
 // Register as custom card so the Lovelace card picker lists it.
 registerCustomCard({
   type: "maintenance-supporter-card",

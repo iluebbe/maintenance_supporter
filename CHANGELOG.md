@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **The whole panel as a card** (#174): `custom:maintenance-supporter-panel-card`
+  mounts the complete panel — every tab, page and dialog — inside a card, for
+  a dashboard subview (a panel view with this one card) without the sidebar
+  entry. It loads the sidebar panel's own bundle, so nothing is duplicated.
+  Options `tab`, `view` (opening tab / saved view, without touching the
+  panel's remembered tab) and `height` (default: fill the screen below the
+  card); deep links work on the dashboard's URL; the visual editor covers
+  all three. Docs: Features → *The whole panel as a card*, Examples.
+
 ## [2.83.0] - 2026-09-11
 
 ### ✨ Added

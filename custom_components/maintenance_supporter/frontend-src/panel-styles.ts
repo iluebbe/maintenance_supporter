@@ -29,6 +29,9 @@ export const panelStyles = css`
     flex-direction: column;
   }
 
+  /* #174: inside a card the dashboard wrapper owns the insets. */
+  :host([embedded]) .panel { padding: 0; }
+
   .header {
     display: flex;
     align-items: center;

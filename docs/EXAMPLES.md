@@ -519,6 +519,27 @@ max_items: 10
 > not `_days_until_due`). Look the exact id up under *Developer Tools → States*
 > or on the object's device page — see [Entity naming](#entity-naming).
 
+### The whole panel as a card (2.84+, #174)
+
+A dashboard subview that *is* the panel — no sidebar entry needed. Use a
+**panel** view (one card, full width); the card fills the screen below it.
+
+```yaml
+views:
+  - title: Maintenance
+    path: maintenance
+    type: panel
+    subview: true            # optional: reachable by link, no tab in the top bar
+    cards:
+      - type: custom:maintenance-supporter-panel-card
+        tab: today           # optional: today | dashboard | calendar | settings
+        # view: Garden Chores  # optional: open a saved view (name or id)
+        # height: 700px      # optional: fixed height for mixed (non-panel) views
+```
+
+Deep links work on the dashboard's URL just like on the sidebar panel:
+`/lovelace/maintenance?tab=calendar`, `?status=overdue`, `?entry_id=…&task_id=…`.
+
 ### Battery Fleet Card
 
 ![Battery Fleet Card](images/battery-fleet-card.png)

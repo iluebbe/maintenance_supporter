@@ -65,7 +65,7 @@ export function obj(entryId: string, tasks: unknown[], name = "Pool Pump") {
 export async function mountPanel(
   objects: unknown[],
   extraHandlers: Record<string, WsHandler> = {},
-  opts: { user?: { id: string; is_admin: boolean } } = {},
+  opts: { user?: { id: string; is_admin: boolean }; embedded?: boolean; presets?: { tab?: string; view?: string } } = {},
 ) {
   const { hass, sent, subscriptions } = createMockHass({
     handlers: {
@@ -90,6 +90,8 @@ export async function mountPanel(
   const el = await fixture<HTMLElement & { updateComplete: Promise<unknown> }>(html`
     <maintenance-supporter-panel
       .hass=${hass}
+      .embedded=${opts.embedded ?? false}
+      .presets=${opts.presets ?? {}}
       style="display:block; height: 600px;"
     ></maintenance-supporter-panel>
   `);

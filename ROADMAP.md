@@ -621,16 +621,6 @@ home-assistant/android: collect `clipData` URIs in `parseResult`, fall back
 to `parseResult` otherwise (~10 lines). File an issue/PR there; once it
 ships, drop the Android fallback in `helpers/companion.ts`.
 
-### 💡 The whole panel as a Lovelace card (#174)
-
-Embed the complete panel UI in a card (a panel-view single card) so it
-can live as a dashboard subview without the sidebar entry. A thin
-wrapper `custom:maintenance-supporter-panel-card` could mount the
-`maintenance-supporter-panel` element with `hass`/`narrow`; the catches
-are the deep-link/`route` handling and the height/safe-area logic, which
-assume the panel context, plus loading the panel bundle as a Lovelace
-resource. Medium effort; wait for a second request.
-
 ### 💡 State-change trigger: several From/To states per side (#167 follow-up)
 
 The from-only recovery gap is fixed (2.75): a single-transition latch with
