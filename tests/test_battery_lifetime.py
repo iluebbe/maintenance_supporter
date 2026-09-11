@@ -212,3 +212,22 @@ def test_no_fleet_means_no_log_and_no_learning() -> None:
     hass = SimpleNamespace(config_entries=SimpleNamespace(async_entries=lambda domain: []))
     assert bl.observe_replacements(hass, [_bat("A", "AA", last=date(2024, 1, 1))]) == 0
     assert bl.learned_lifetimes(hass) == Learned.empty()
+
+
+def test_sanitize_caps_at_100_entries() -> None:
+    raw = {f"TYPE{i}": 12 for i in range(130)}
+    assert len(sanitize_lifetime_overrides(raw)) == 100
+
+
+def test_observe_skips_batteries_without_an_entity_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    store = _FakeStore()
+    monkeypatch.setattr(bl, "_fleet_store_and_task", lambda hass: (store, "fleet-task"))
+    ghost = SimpleNamespace(battery_type="AA", last_replaced=date(2025, 1, 1), model_key="acme|lock", entity_id="")
+    assert bl.observe_replacements(object(), [ghost]) == 0
+    assert store.saves == 0
+
+
+def test_intervals_ignore_unparseable_dates() -> None:
+    assert bl._intervals({"dates": ["garbage", "2025-01-01", "2025-07-01"]}) == pytest.approx([6.0], abs=0.2)
+    assert bl._intervals({"dates": ["nope"]}) == []
+

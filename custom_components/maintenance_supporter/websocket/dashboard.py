@@ -692,10 +692,6 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
 
     if CONF_NOTIFY_COMPLETED in filtered and filtered[CONF_NOTIFY_COMPLETED] not in NOTIFY_COMPLETED_MODES:
         filtered[CONF_NOTIFY_COMPLETED] = "off"
-    from ..const import NOTIFY_COMPLETED_MODES
-
-    if CONF_NOTIFY_COMPLETED in filtered and filtered[CONF_NOTIFY_COMPLETED] not in NOTIFY_COMPLETED_MODES:
-        filtered[CONF_NOTIFY_COMPLETED] = "off"
     if CONF_NOTIFICATION_TITLE_STYLE in filtered and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES:
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
 

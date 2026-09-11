@@ -44,6 +44,7 @@ from custom_components.maintenance_supporter.helpers.notify_hooks import KIND_CO
 
 from .conftest import (
     TASK_ID_1,
+    TASK_ID_2,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,
@@ -64,9 +65,9 @@ def _global(hass: HomeAssistant, **options: object) -> MockConfigEntry:
     return entry
 
 
-def _object(hass: HomeAssistant, *, uid: str, task: dict | None = None) -> MockConfigEntry:
+def _object(hass: HomeAssistant, *, uid: str, task: dict | None = None, tasks: dict | None = None) -> MockConfigEntry:
     task = task or build_task_data(name="Filter", last_performed=(dt_util.now().date() - timedelta(days=10)).isoformat())
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Dishwasher", data=build_object_entry_data(object_data=build_object_data(name="Dishwasher"), tasks={TASK_ID_1: task}), source="user", unique_id=f"maintenance_supporter_{uid}")
+    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Dishwasher", data=build_object_entry_data(object_data=build_object_data(name="Dishwasher"), tasks=tasks or {TASK_ID_1: task}), source="user", unique_id=f"maintenance_supporter_{uid}")
     entry.add_to_hass(hass)
     return entry
 
@@ -246,3 +247,97 @@ def test_notification_matrix_matches_the_docs_table() -> None:
         assert m.group(3) == spec.routing, kind
         documented_gates = {g.strip().strip("`") for g in m.group(5).split(",") if g.strip() and g.strip() != "—"}
         assert documented_gates == set(spec.gates), f"{kind}: docs {sorted(documented_gates)} vs matrix {sorted(spec.gates)}"
+
+
+# ─── the remaining branches ─────────────────────────────────────────────────
+
+
+async def test_scope_view_gates_completions(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.const import CONF_NOTIFY_SCOPE_VIEW_ID
+
+    _global(hass, **{CONF_NOTIFY_COMPLETED: "all", CONF_NOTIFY_SCOPE_VIEW_ID: "v1"})
+    obj = _object(hass, uid="c_scope")
+    hass.services.async_register("notify", "test", AsyncMock())
+    views = [{"id": "v1", "name": "Kitchen", "filters": {"object_ids": ["x"]}}]
+    with (
+        patch("custom_components.maintenance_supporter.helpers.saved_views.list_saved_views", return_value=views),
+        patch("custom_components.maintenance_supporter.helpers.saved_views.view_matches_task", return_value=False),
+    ):
+        assert await _send(hass, obj, source="panel", task_data={"name": "Filter"}) is False
+    with (
+        patch("custom_components.maintenance_supporter.helpers.saved_views.list_saved_views", return_value=views),
+        patch("custom_components.maintenance_supporter.helpers.saved_views.view_matches_task", return_value=True),
+    ):
+        assert await _send(hass, obj, source="panel", task_data={"name": "Filter"}) is True
+    # No task data → the scope cannot be evaluated and does not block.
+    assert await _send(hass, obj, source="panel") is True
+
+
+@pytest.mark.parametrize(("style", "title"), [("object_name", "Dishwasher"), ("task_name", "Filter")])
+async def test_title_style_applies_to_completions(hass: HomeAssistant, style: str, title: str) -> None:
+    from custom_components.maintenance_supporter.const import CONF_NOTIFICATION_TITLE_STYLE
+
+    _global(hass, **{CONF_NOTIFY_COMPLETED: "all", CONF_NOTIFICATION_TITLE_STYLE: style})
+    obj = _object(hass, uid=f"c_title_{style}")
+    calls = AsyncMock()
+    hass.services.async_register("notify", "test", calls)
+    assert await _send(hass, obj, source="panel") is True
+    await hass.async_block_till_done()
+    assert calls.call_args[0][0].data["title"] == title
+
+
+async def test_hook_without_a_target_fires_the_event_but_sends_nothing(hass: HomeAssistant) -> None:
+    _global(hass)
+    events = _capture(hass)
+    ctx = notify_hooks.notification_context(hass, "test", entry_id=None, task_id=None, task_name=None, object_name=None)
+    assert await notify_hooks.async_emit_and_dispatch(hass, "", {"title": "t", "message": "m"}, ctx) is False
+    await hass.async_block_till_done()
+    assert len(events) == 1 and events[0].data["target"] is None
+
+
+async def test_completion_survives_a_missing_or_failing_notifier(hass: HomeAssistant) -> None:
+    g = _global(hass, **{CONF_NOTIFY_COMPLETED: "all"})
+    # Two tasks: a second manual completion of the same task within 30 s is
+    # deduplicated as a double-tap.
+    obj = _object(hass, uid="c_robust", tasks={TASK_ID_1: build_task_data(name="Filter"), TASK_ID_2: build_task_data(task_id=TASK_ID_2, name="Salt")})
+    await setup_integration(hass, g, obj)
+    coordinator = hass.config_entries.async_get_entry(obj.entry_id).runtime_data.coordinator
+    nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
+    completed_events = _capture(hass, EVENT_TASK_COMPLETED)
+    with patch.object(nm, "async_task_completed", AsyncMock(side_effect=RuntimeError("notify down"))):
+        await coordinator.complete_maintenance(TASK_ID_1, notes="one", source="panel")
+        await hass.async_block_till_done()
+    assert len(completed_events) == 1, "a failing notifier never fails the completion"
+    await coordinator.complete_maintenance(TASK_ID_2, notes="two", source="qr")
+    await hass.async_block_till_done()
+    assert len(completed_events) == 2
+    # No (or a foreign) notification manager in hass.data: the hook is a no-op.
+    from types import SimpleNamespace
+
+    hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = object()
+    try:
+        await coordinator._async_notify_completed(TASK_ID_2, SimpleNamespace(name="Salt"), "qr", None, "2026-09-11T10:00:00+00:00")
+    finally:
+        hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = nm
+
+
+async def test_battery_lifetime_catalog_names_models_and_never_raises(hass: HomeAssistant) -> None:
+    from types import SimpleNamespace
+
+    from homeassistant.helpers import device_registry as dr
+
+    from custom_components.maintenance_supporter.websocket.dashboard import _battery_lifetime_catalog
+
+    g = _global(hass)
+    dr.async_get(hass).async_get_or_create(config_entry_id=g.entry_id, identifiers={(DOMAIN, "lock-1")}, manufacturer="Acme", model="Lock")
+    bat = SimpleNamespace(entity_id="sensor.lock_battery", battery_type="CR2032", model_key="acme|lock", last_replaced=None)
+    with (
+        patch("custom_components.maintenance_supporter.helpers.battery_fleet.read_batteries", return_value=[bat]),
+        patch("custom_components.maintenance_supporter.helpers.battery_fleet.discover_battery_types", return_value={"CR2032": 1}),
+        patch("custom_components.maintenance_supporter.helpers.battery_lifetime.lifetime_catalog", side_effect=lambda hass, types, *, model_names: [{"types": types, "names": model_names}]) as cat,
+    ):
+        rows = _battery_lifetime_catalog(hass)
+    assert rows == [{"types": ["CR2032"], "names": {"acme|lock": "Acme Lock"}}] and cat.called
+    with patch("custom_components.maintenance_supporter.helpers.battery_fleet.read_batteries", side_effect=RuntimeError("boom")):
+        assert _battery_lifetime_catalog(hass) == []
+
