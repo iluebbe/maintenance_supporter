@@ -3119,12 +3119,12 @@ ${p.capped?`<p class="cap-note">${C(t.capNote)}</p>`:""}
                       <span class="bf-type">${s.quantity}× ${s.battery_type}</span>
                       ${this._levelBar(s)}
                       ${s.level!=null?n`<span class="bf-level">${s.level}%</span>`:h}
-                      ${s.days_until!=null?n`<span class="bf-predicted ${s.predicted_source==="trend"?"bf-trend":""} ${s.forecast_overdue?"bf-overdue":""}"
-                            title=${this._predictedTitle(s,t)}
-                            >${s.forecast_overdue?n`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:h}~${this._predictedDate(s.days_until)}</span>`:h}
                       ${s.no_sensor||s.can_mark_replaced?n`<button class="bf-mark bf-replaced" title=${a("battery_fleet_mark_one",t)} .disabled=${this._marking} @click=${()=>this._mark([s.entity_id])}>
                             <ha-icon icon="mdi:battery-sync"></ha-icon>
                           </button>`:h}
+                      ${s.days_until!=null?n`<span class="bf-predicted ${s.predicted_source==="trend"?"bf-trend":""} ${s.forecast_overdue?"bf-overdue":""}"
+                            title=${this._predictedTitle(s,t)}
+                            >${s.forecast_overdue?n`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:h}~${this._predictedDate(s.days_until)}</span>`:h}
                     </div>
                   `)}
               </div>
@@ -3465,16 +3465,32 @@ ${p.capped?`<p class="cap-note">${C(t.capNote)}</p>`:""}
       .bf-row .bf-mark {
         grid-row: 2;
       }
-      /* Phone: a row with BOTH a percentage and the Replaced action parks the
-       * action on line 1 next to the status chip (the name yields the last
-       * column) so line 2 keeps type / % / date / eye without overflowing. */
-      .bf-row .bf-level + .bf-mark.bf-replaced {
+      /* Phone (D#162, maisun): the percentage belongs to the name line - it
+       * is what you scan for - and the Replaced action to line 2 with type
+       * and date. A row WITH a percentage therefore lifts it to line 1 (the
+       * name yields column 8; in the "Needed soon" list, which has no status
+       * chip, it takes the chip's place at the right edge) and the action
+       * takes the percentage's slot on line 2 - the same slot a sensorless
+       * row uses, so every row's action lines up. Before, the action shared
+       * the slot with the percentage and painted over it. */
+      .bf-row .bf-level {
         grid-row: 1;
         grid-column: 8;
         justify-self: end;
       }
-      .bf-row:has(.bf-level + .bf-mark.bf-replaced) .bf-dev {
+      .bf-soon-rows .bf-row .bf-level {
+        grid-column: 9 / 11;
+      }
+      .bf-row:has(.bf-level) .bf-dev {
         grid-column: 1 / 8;
+      }
+      .bf-soon-rows .bf-row:has(.bf-level) .bf-dev {
+        grid-column: 1 / 9;
+      }
+      .bf-row .bf-level + .bf-mark.bf-replaced {
+        grid-row: 2;
+        grid-column: 7;
+        justify-self: end;
       }
       /* The roster's "No sensor" chip would widen the shared bar track
        * for EVERY row (subgrid) - on phones the missing percentage and

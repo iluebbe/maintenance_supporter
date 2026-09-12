@@ -743,6 +743,7 @@ def test_a_battery_without_a_replacement_date_is_ok_not_soon():
 
 def test_rechargeable_type_detection():
     assert is_rechargeable_type("Rechargeable")
+    assert is_rechargeable_type("RECHARGABLE")  # D#162: the spelling Battery Notes users actually type
     assert is_rechargeable_type("Nuki Battery Pack")
     assert is_rechargeable_type("Li-ion")
     assert is_rechargeable_type("18650")

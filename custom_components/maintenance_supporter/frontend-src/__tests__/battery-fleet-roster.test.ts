@@ -14,6 +14,7 @@ import "../components/battery-fleet-section.js";
 import type { MaintenanceBatteryFleetSection } from "../components/battery-fleet-section";
 import { createMockHass } from "./_test-utils.js";
 import { setProfilePrefs } from "../styles";
+import { setViewport } from "@web/test-runner-commands";
 
 const LOW = {
   entity_id: "sensor.lock_battery_plus", device_name: "Front Lock",
@@ -128,6 +129,28 @@ describe("battery fleet roster", () => {
     expect(rows.length).to.equal(1);
     expect(rows[0].textContent).to.contain("Doorbell");
     expect(rows[0].querySelector(".bf-mark.bf-replaced"), "replaced action on the soon row").to.exist;
+  });
+
+  it("phone: the percentage sits on the name line and the Replaced action on line 2 - soon rows and roster alike (D#162, maisun's iPhone)", async () => {
+    await setViewport({ width: 400, height: 860 });
+    try {
+      const soon = { ...HEALTHY, entity_id: "sensor.doorbell_battery_plus", device_name: "Doorbell", days_until: 12, can_mark_replaced: true, level: 13 };
+      const { el } = await mount(overview({ total: 2, soon: [soon], needs_soon: { AA: 1 }, all: [{ ...soon, status: "soon" }, { ...HEALTHY, status: "ok" }] }));
+      for (const scope of [".bf-soon-rows", ".bf-roster"]) {
+        const row = [...el.shadowRoot!.querySelectorAll<HTMLElement>(`${scope} .bf-row`)].find((r) => /Doorbell/.test(r.textContent || ""))!;
+        const level = row.querySelector<HTMLElement>(".bf-level")!;
+        const btn = row.querySelector<HTMLElement>(".bf-mark.bf-replaced")!;
+        const date = row.querySelector<HTMLElement>(".bf-predicted")!;
+        expect(getComputedStyle(level).gridRowStart, `${scope}: percentage on the name line`).to.equal("1");
+        expect(getComputedStyle(btn).gridRowStart, `${scope}: action on line 2`).to.equal("2");
+        expect(getComputedStyle(btn).gridColumnStart, `${scope}: action in the percentage slot`).to.equal("7");
+        expect(getComputedStyle(date).gridRowStart, `${scope}: date on line 2`).to.equal("2");
+        const lr = level.getBoundingClientRect(), br = btn.getBoundingClientRect();
+        expect(lr.bottom <= br.top + 1 || lr.right <= br.left + 1 || br.right <= lr.left + 1, `${scope}: no overlap between percentage and action`).to.equal(true);
+      }
+    } finally {
+      await setViewport({ width: 800, height: 600 });
+    }
   });
 
   it("the ~date tooltip names the lifetime and its source; a row with a level parks Replaced in the action column", async () => {

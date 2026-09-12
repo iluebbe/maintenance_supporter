@@ -157,7 +157,7 @@ def _norm_type(raw: Any) -> str:
 # it. Low tracking and the discharge-trend forecast stay: "charge the lock in
 # ~20 days" is exactly what the roster is for.
 _RECHARGEABLE_TYPE_RE = re.compile(
-    r"rechargeable|akku|accu|li[- ]?ion|li[- ]?po|lifepo|ni[- ]?mh|nicd|18650|21700|"
+    r"recharge?able|akku|accu|li[- ]?ion|li[- ]?po|lifepo|ni[- ]?mh|nicd|18650|21700|"
     r"power ?pack|battery ?pack|built[- ]?in",
     re.IGNORECASE,
 )

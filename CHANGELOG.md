@@ -22,6 +22,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   card); deep links work on the dashboard's URL; the visual editor covers
   all three. Docs: Features → *The whole panel as a card*, Examples.
 
+### 🐛 Fixed
+
+- Battery fleet, phones (D#162, second iPhone screenshot): in the *Needed soon*
+  list the *Replaced* action painted over the percentage. The percentage now
+  sits on the name line and the action on the second line with type and date,
+  in the soon list and the roster alike; on desktop the action keeps its own
+  column. Battery Notes' `RECHARGABLE` spelling now counts as rechargeable
+  (charging icon, no type forecast, never on the shopping list).
+
 ## [2.83.0] - 2026-09-11
 
 ### ✨ Added
