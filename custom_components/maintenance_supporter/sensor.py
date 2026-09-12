@@ -861,7 +861,13 @@ class BatteryFleetLowSensor(SensorEntity):
             # A sensorless note (D#162) has no level to hover — it leaves
             # `low` only when its forecast re-anchors (or the option is
             # switched off), and that is the real all-clear.
-            if current.get("no_sensor") or (level is not None and float(level) >= sticky[eid] + self._HYSTERESIS_PERCENT):
+            # A row that never carries a level (a low-only Battery Notes
+            # binary, a native binary battery) has nothing to hover across the
+            # band: its binary saying "not low" IS the all-clear (bug audit
+            # 2026-09-12 - such rows stayed low forever). A percentage row
+            # that merely went unavailable keeps the memory.
+            structurally_levelless = level is None and current.get("available") is True and not current.get("no_sensor")
+            if current.get("no_sensor") or structurally_levelless or (level is not None and float(level) >= sticky[eid] + self._HYSTERESIS_PERCENT):
                 sticky.pop(eid, None)
         return len(low_ids | set(sticky))
 

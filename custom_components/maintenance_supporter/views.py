@@ -25,7 +25,7 @@ from aiohttp import hdrs, web
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.http import HomeAssistantView
 
-from .const import DOMAIN, GLOBAL_UNIQUE_ID, MAX_DOCS_PER_OBJECT
+from .const import DOMAIN, GLOBAL_UNIQUE_ID, MAX_DOCS_PER_OBJECT, MAX_NAME_LENGTH
 from .helpers import documents as docmod
 from .helpers.documents import KIND_FILE
 from .helpers.permissions import user_can_write
@@ -97,13 +97,21 @@ class DocumentUploadView(HomeAssistantView):
             return self.json_message("Object not found", HTTPStatus.NOT_FOUND)
 
         from .websocket import object_id_for_entry
+        from .websocket.documents import _MAX_TAG_LEN, _MAX_TAGS
 
         content = await self.hass.async_add_executor_job(file_field.file.read)
-        filename = file_field.filename or "document"
+        # Multipart fields bypass the voluptuous caps of the WS document
+        # paths, so cap them here to the SAME limits (title = MAX_NAME_LENGTH,
+        # tag = _MAX_TAG_LEN): the filename is echoed back in every
+        # Content-Disposition header and the title/tags land in the global
+        # store verbatim (bug audit 2026-09-12).
+        filename = (file_field.filename or "document")[:MAX_NAME_LENGTH]
         mime = file_field.content_type or "application/octet-stream"
 
         title = data.get("title")
-        tags = [t.strip() for t in data.getall("tags", []) if isinstance(t, str) and t.strip()][:20]
+        if isinstance(title, str):
+            title = title[:MAX_NAME_LENGTH]
+        tags = [t.strip()[:_MAX_TAG_LEN] for t in data.getall("tags", []) if isinstance(t, str) and t.strip()][:_MAX_TAGS]
 
         try:
             doc = await _get_store(self.hass).async_add_file(

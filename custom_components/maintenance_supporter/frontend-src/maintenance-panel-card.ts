@@ -246,9 +246,30 @@ export class MaintenanceSupporterPanelCard extends HTMLElement {
       this.style.height = `${PREVIEW_PX}px`;
       return;
     }
-    const top = Math.max(0, rect.top);
+    const top = Math.max(0, this._unscrolledTop(rect));
     const fill = Math.max(MIN_FILL_PX, Math.floor(window.innerHeight - top));
     this.style.height = `${fill}px`;
+  }
+
+  /** The card's top edge as it sits on the UNSCROLLED page: the viewport
+   *  rect plus the scroll offset of the window and of every scrollable
+   *  ancestor (light-DOM parents and shadow hosts alike — HA's view wrapper
+   *  is the scroller on some cores, the document on others). A resize while
+   *  the page is scrolled used to measure `rect.top` at its scrolled value,
+   *  so the fill grew by the scrolled distance on every such resize (bug
+   *  audit 2026-09-12). With nothing scrolled this equals `rect.top`. */
+  private _unscrolledTop(rect: DOMRect): number {
+    let top = rect.top + window.scrollY;
+    const doc = this.ownerDocument;
+    let node: Node | null = this.parentElement ?? ((this.getRootNode() as ShadowRoot).host ?? null);
+    for (let i = 0; node && i < 100; i++) {
+      const el = node as Element;
+      // The document's own scroll is window.scrollY (already counted): skip
+      // <html> / <body> so it is not added twice.
+      if (el !== doc.documentElement && el !== doc.body && typeof el.scrollTop === "number" && el.scrollTop > 0) top += el.scrollTop;
+      node = el.parentElement ?? ((el.getRootNode() as ShadowRoot).host ?? null);
+    }
+    return top;
   }
 }
 

@@ -81,7 +81,9 @@ NOTIFICATION_KINDS: dict[str, KindSpec] = {
     KIND_LEAD_TIME: KindSpec(KIND_LEAD_TIME, "reminder", "reminder_lead_days", frozenset({"enabled", "target", "task_mute", "snooze", "vacation", "quiet_hours", "daily_cap"}), "personal"),
     KIND_BUNDLE: KindSpec(KIND_BUNDLE, "summary", "notification_bundling_enabled + threshold", frozenset({"enabled", "target", "task_mute", "snooze", "vacation", "scope", "quiet_hours", "daily_cap"}), "household"),
     KIND_DIGEST: KindSpec(KIND_DIGEST, "summary", "weekly_digest_enabled", frozenset({"enabled", "target"}), "household"),
-    KIND_WARRANTY: KindSpec(KIND_WARRANTY, "alert", "warranty_reminder_enabled + days", frozenset({"enabled", "target", "quiet_hours", "daily_cap"}), "household"),
+    # Fires once from the 08:00 tick (no retry) - like the digest it must not
+    # be lost to quiet hours or the cap (the matrix claimed both; bug audit 2026-09-12).
+    KIND_WARRANTY: KindSpec(KIND_WARRANTY, "alert", "warranty_reminder_enabled + days", frozenset({"enabled", "target"}), "household"),
     KIND_BUDGET: KindSpec(KIND_BUDGET, "alert", "budget_alerts_enabled + threshold", frozenset({"enabled", "target", "quiet_hours", "daily_cap"}), "household"),
     KIND_COMPLETED: KindSpec(KIND_COMPLETED, "activity", "notify_completed (off | automatic | all)", frozenset({"enabled", "target", "kind_enabled", "task_mute", "scope", "quiet_hours", "daily_cap"}), "household"),
     KIND_TEST: KindSpec(KIND_TEST, "test", "—", frozenset({"target"}), "household"),

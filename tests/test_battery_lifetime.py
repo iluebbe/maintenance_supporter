@@ -154,12 +154,17 @@ def test_observe_and_learn_per_model_not_per_type(monkeypatch: pytest.MonkeyPatc
     assert store.saves == 1
     assert bl.observe_replacements(hass, bats) == 0, "unchanged dates are not re-logged"
     assert bl.learned_lifetimes(hass) == Learned.empty()
-    # Door sensors: A replaced twice, B once → 3 pooled intervals (18, 17, 19 months).
-    # The thermostat (same CELL, other model) is replaced after 6 months → must not pollute the door pool.
-    bats = [_bat("A", "CR2032", last=date(2025, 7, 1), model=DOOR), _bat("B", "cr2032", last=date(2025, 11, 1), model=DOOR), _bat("T", "CR2032", last=date(2024, 7, 1), model=THERMO)]
-    bl.observe_replacements(hass, bats)
-    bats = [_bat("A", "CR2032", last=date(2027, 2, 1), model=DOOR), _bat("B", "cr2032", last=date(2025, 11, 1), model=DOOR), _bat("T", "CR2032", last=date(2025, 1, 1), model=THERMO)]
-    bl.observe_replacements(hass, bats)
+    # The first-sight date is an anchor (Battery Notes' seed), so the interval
+    # that starts there never counts. Door sensors: A swapped three times
+    # (2 counted: 18, 17 months), B twice (1 counted: 19) → 3 pooled intervals.
+    # The thermostat (same CELL, other model) runs 6-month cycles → must not
+    # pollute the door pool.
+    for a, b_, t_ in (
+        (date(2024, 7, 1), date(2025, 11, 1), date(2024, 7, 1)),
+        (date(2026, 1, 1), date(2027, 6, 1), date(2025, 1, 1)),
+        (date(2027, 6, 1), date(2027, 6, 1), date(2025, 7, 1)),
+    ):
+        bl.observe_replacements(hass, [_bat("A", "CR2032", last=a, model=DOOR), _bat("B", "cr2032", last=b_, model=DOOR), _bat("T", "CR2032", last=t_, model=THERMO)])
     learned = bl.learned_lifetimes(hass)
     months, samples = learned.by_model[("CR2032", DOOR)]
     assert samples == 3 and 17 <= months <= 19
@@ -173,7 +178,7 @@ def test_observe_and_learn_per_model_not_per_type(monkeypatch: pytest.MonkeyPatc
     assert resolve_lifetime("CR2032", overrides={}, learned=learned, entity_id="sensor.T_battery_plus", model_key=THERMO).source == "learned_device"
     assert resolve_lifetime("CR2032", overrides={}, learned=learned, entity_id="sensor.T2_battery_plus", model_key=THERMO).source == "table"
     # A same-day re-seed or a typo-sized interval is ignored; the log is capped.
-    bl.observe_replacements(hass, [_bat("A", "CR2032", last=date(2027, 2, 3), model=DOOR)])
+    bl.observe_replacements(hass, [_bat("A", "CR2032", last=date(2027, 6, 3), model=DOOR)])
     assert bl.learned_lifetimes(hass).by_model[("CR2032", DOOR)][1] == 3
     entry = store.tasks["fleet-task"][bl.REPLACEMENT_LOG_KEY]["sensor.A_battery_plus"]
     assert entry["type"] == "CR2032" and entry["model"] == DOOR and len(entry["dates"]) <= bl._LOG_DATES_CAP
@@ -187,7 +192,36 @@ def test_unknown_model_never_pools(monkeypatch: pytest.MonkeyPatch) -> None:
         bl.observe_replacements(hass, [_bat("X", "AA", last=d), _bat("Y", "AA", last=d)])
     learned = bl.learned_lifetimes(hass)
     assert learned.by_model == {}, "no model key → no pool (the type alone is not a pool)"
-    assert learned.by_device["sensor.X_battery_plus"][1] == 3, "the device still learns from itself"
+    assert learned.by_device["sensor.X_battery_plus"][1] == 2, "the device still learns from itself (the first date is the anchor)"
+
+
+def test_seed_date_and_corrections_do_not_fake_a_cycle(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Bug audit 2026-09-12: Battery Notes seeds last_replaced with the note's
+    creation day. Ten sensors set up on day D and swapped over the next weeks
+    learned a one-month life. The earliest date is an anchor: an interval
+    starting there counts only once the user corrected the anchor to the real
+    install date (a date OLDER than everything logged replaces it)."""
+    store = _FakeStore()
+    monkeypatch.setattr(bl, "_fleet_store_and_task", lambda hass: (store, "fleet-task"))
+    hass = object()
+    LOCK = "acme|lock"
+    seed = date(2026, 1, 1)
+    # Y: seed, then a swap 20 days later → no interval (the seed is not a swap).
+    bl.observe_replacements(hass, [_bat("Y", "CR2032", last=seed, model=LOCK)])
+    bl.observe_replacements(hass, [_bat("Y", "CR2032", last=date(2026, 1, 21), model=LOCK)])
+    assert bl.learned_lifetimes(hass) == Learned.empty()
+    # X: seed, then a correction back to the real install date, then a real swap
+    # 18 months after that → one trustworthy interval.
+    bl.observe_replacements(hass, [_bat("X", "CR2032", last=seed, model=LOCK)])
+    bl.observe_replacements(hass, [_bat("X", "CR2032", last=date(2025, 6, 1), model=LOCK)])
+    entry = store.tasks["fleet-task"][bl.REPLACEMENT_LOG_KEY]["sensor.X_battery_plus"]
+    assert entry["dates"] == ["2025-06-01"] and entry["anchored"] is True, "the correction replaced the seed"
+    bl.observe_replacements(hass, [_bat("X", "CR2032", last=date(2026, 12, 1), model=LOCK)])
+    assert bl._intervals(store.tasks["fleet-task"][bl.REPLACEMENT_LOG_KEY]["sensor.X_battery_plus"]) == pytest.approx([18.0], abs=0.2)
+
+
+def test_sanitize_rejects_bools_and_fractions() -> None:
+    assert sanitize_lifetime_overrides({"AA": True, "AAA": 12.5, "CR2032": 12.0, "9V": "6"}) == {"CR2032": 12, "9V": 6}
 
 
 def test_catalog_lists_fleet_types_first_with_learned_models(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -228,6 +262,7 @@ def test_observe_skips_batteries_without_an_entity_id(monkeypatch: pytest.Monkey
 
 
 def test_intervals_ignore_unparseable_dates() -> None:
-    assert bl._intervals({"dates": ["garbage", "2025-01-01", "2025-07-01"]}) == pytest.approx([6.0], abs=0.2)
+    assert bl._intervals({"dates": ["garbage", "2025-01-01", "2025-07-01"], "anchored": True}) == pytest.approx([6.0], abs=0.2)
+    assert bl._intervals({"dates": ["2025-01-01", "2025-07-01"]}) == [], "the first date is the anchor unless corrected"
     assert bl._intervals({"dates": ["nope"]}) == []
 

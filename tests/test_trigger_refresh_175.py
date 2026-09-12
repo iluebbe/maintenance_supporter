@@ -163,6 +163,13 @@ async def test_a_real_edge_after_completion_survives_the_refresh(hass: HomeAssis
     assert coordinator.data["tasks"][TASK_ID_1]["_trigger_active"] is False
 
     # Still above the limit; a new reading is a real edge for the reset trigger.
+    # Still beyond the threshold right after Complete (the user tapped before
+    # refilling): not an edge - the cooldown stays (bug audit 2026-09-12).
+    hass.states.async_set("sensor.t175c", "36")
+    await hass.async_block_till_done()
+    assert TASK_ID_1 in coordinator._recently_completed, "still-exceeding is not a new edge"
+    hass.states.async_set("sensor.t175c", "20")
+    await hass.async_block_till_done()
     hass.states.async_set("sensor.t175c", "36")
     await hass.async_block_till_done()
     assert TASK_ID_1 not in coordinator._recently_completed, "a real edge lifts the cooldown"

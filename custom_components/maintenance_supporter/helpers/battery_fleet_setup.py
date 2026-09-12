@@ -357,9 +357,12 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
             # Renamed entity ids break the naming contract — the registry
             # still knows the note's button (D#162 rows depend on it).
             button = note_sibling_entity(hass, eid, domain="button", uid_suffix="_battery_replaced_button") or button
-        if hass.states.get(button) is not None:
-            await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
-            pressed += 1
+        if hass.states.get(button) is None:
+            # Nothing to press → nothing was replaced: no date is written, so
+            # consuming stock here would double-charge the next real press.
+            continue
+        await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
+        pressed += 1
         t = _norm_type(bat.battery_type)
         by_type[t] = by_type.get(t, 0) + bat.quantity
 
@@ -375,7 +378,7 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
                 await async_change_part_stock(hass, fleet, pid, delta=-qty)
                 consumed[pid] = qty
 
-    return {"marked": len(targets), "pressed": pressed, "consumed": consumed}
+    return {"marked": pressed, "pressed": pressed, "consumed": consumed}
 
 
 def _mutate_fleet_object(hass: HomeAssistant, mutate: Callable[[dict[str, Any]], None]) -> bool:

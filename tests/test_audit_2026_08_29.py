@@ -378,6 +378,11 @@ def test_fleet_low_count_has_hysteresis() -> None:
     assert sensor._low_count(ov(19, True)) == 1
     assert sensor._low_count(ov(21, False)) == 1  # still within the band
     assert sensor._low_count(ov(None, False)) == 1  # unavailable is no recovery
+    # A row that structurally has no level (a low-only binary) recovers the
+    # moment its binary says "not low" (bug audit 2026-09-12).
+    levelless = {"entity_id": "sensor.hall_battery_plus", "level": None, "low_threshold": 0.0, "available": True}
+    assert sensor._low_count(SimpleNamespace(low=[], all=[levelless])) == 0
+    sensor._low_count(ov(19, True))
     assert sensor._low_count(ov(26, False)) == 0  # clearly recovered
     assert sensor._low_count(ov(19, True)) == 1
     sensor._handle_event(SimpleNamespace(event_type="battery_notes_battery_replaced"))  # type: ignore[arg-type]

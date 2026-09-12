@@ -29,6 +29,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class BaseTrigger(ABC):
+    # Class-level default: subclasses built without __init__ in tests still
+    # carry the flag (see the instance comment in __init__).
+    _recovered_since_reset: bool = True
     """Base class for all maintenance triggers."""
 
     def __init__(
@@ -45,6 +48,12 @@ class BaseTrigger(ABC):
         self.attribute = trigger_config.get("attribute")
 
         self._triggered = False
+        # Bug audit 2026-09-12: after a completion resets the trigger, the
+        # sensor may still read beyond the threshold (the user tapped Complete
+        # before refilling). Such a re-activation is NOT a new edge and must
+        # not lift the coordinator's post-completion cooldown - only an
+        # activation after the value was seen on the other side is.
+        self._recovered_since_reset = True
         self._current_value: float | None = None
         self._unsub_listener: CALLBACK_TYPE | None = None
         self._unsub_retry: CALLBACK_TYPE | None = None
@@ -206,6 +215,8 @@ class BaseTrigger(ABC):
         was_triggered = self._triggered
         is_triggered = self.evaluate(value)
         self._triggered = is_triggered
+        if not is_triggered:
+            self._recovered_since_reset = True
 
         if is_triggered and not was_triggered:
             self._on_trigger_activated(value)
@@ -249,7 +260,7 @@ class BaseTrigger(ABC):
 
         # Add history entry for the trigger activation
         self.hass.async_create_task(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=value))
-        self._coordinator.note_trigger_edge(self._task_id)
+        self._coordinator.note_trigger_edge(self._task_id, recovered=self._recovered_since_reset)
         self._request_coordinator_refresh()
 
         # Fire event
@@ -323,3 +334,4 @@ class BaseTrigger(ABC):
     def reset(self) -> None:
         """Reset the trigger (called after maintenance completion)."""
         self._triggered = False
+        self._recovered_since_reset = False

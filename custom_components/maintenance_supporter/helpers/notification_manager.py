@@ -1056,6 +1056,15 @@ class NotificationManager:
         self._last_notified: dict[str, datetime] = {}
         self._snoozed_until: dict[str, datetime] = {}
         self._daily_count: int = 0
+        # Bug audit 2026-09-12: lead reminders run from the 08:00 tick AND a
+        # noon retry (for quiet windows ending after 08:00) - this is the
+        # per-day dedup the retry relies on: (entry, task, lead) -> ISO day.
+        self._lead_sent: dict[str, str] = {}
+        # Entries whose startup seed already ran this process. The manager
+        # outlives every object-entry reload (each task edit reloads its
+        # entry and hands the coordinator an empty _previous_statuses), and
+        # re-seeding on every reload marked never-sent notifications as sent.
+        self._seeded_entries: set[str] = set()
         self._daily_reset_date: date | None = None
         # Tracks the last-known state of the "configured notify service missing"
         # repair issue. None = not yet reconciled this process; the first
@@ -1067,6 +1076,20 @@ class NotificationManager:
     def _global_options(self) -> Mapping[str, Any]:
         """Get global options from the global config entry."""
         return get_global_options(self.hass)
+
+    def _status_due(self, key: str, interval_hours: int) -> bool:
+        """Whether a status notification for ``key`` is due now: never sent,
+        or the repeat interval has elapsed. A "notify once" status (interval
+        0) that was sent is never due again until the state is cleared."""
+        last = self._last_notified.get(key)
+        if last is None:
+            return True
+        if last == _SENT_ONCE:
+            return False
+        return not (interval_hours > 0 and (dt_util.now() - last).total_seconds() < interval_hours * 3600)
+
+    def _stamp_status_sent(self, key: str, interval_hours: int) -> None:
+        self._last_notified[key] = _SENT_ONCE if interval_hours == 0 else dt_util.now()
 
     def _rate_limited(self, key: str, min_seconds: float) -> bool:
         """True when ``key`` fired less than ``min_seconds`` ago.
@@ -1218,7 +1241,9 @@ class NotificationManager:
         on, that case.
         """
         service = self.notify_service
-        missing = bool(service) and self.enabled and not self._configured_service_exists(service)
+        # Event-only delivery never calls the service, so a stale name is
+        # not a fault to repair (bug audit 2026-09-12).
+        missing = bool(service) and self.enabled and not self.event_only and not self._configured_service_exists(service)
         # None (first call) never equals a bool, so the registry is reconciled
         # once at startup — clearing any issue persisted from a previous run.
         if missing == self._notify_issue_active:
@@ -1363,16 +1388,8 @@ class NotificationManager:
             return
 
         interval_hours = self._get_interval_hours(new_status)
-
-        if key in self._last_notified:
-            last = self._last_notified[key]
-            if last == _SENT_ONCE:
-                # interval=0: already sent once, never repeat
-                return
-            elapsed = (dt_util.now() - last).total_seconds()
-            if interval_hours > 0 and elapsed < interval_hours * 3600:
-                return
-            # interval=0 but hasn't been sent yet → allow
+        if not self._status_due(key, interval_hours):
+            return
 
         # Check daily limit
         if not self._check_daily_limit():
@@ -1404,11 +1421,7 @@ class NotificationManager:
         ):
             return
 
-        # Record send time (only on success)
-        if interval_hours == 0:
-            self._last_notified[key] = _SENT_ONCE
-        else:
-            self._last_notified[key] = dt_util.now()
+        self._stamp_status_sent(key, interval_hours)
         self._daily_count += 1
 
         _LOGGER.debug("Notification sent: %s - %s", title, message)
@@ -1627,6 +1640,21 @@ class NotificationManager:
         if self._rate_limited(bundle_key, 3600):
             return
 
+        # Bug audit 2026-09-12: a bundle used to repeat every hour for as long
+        # as N tasks were pending, ignoring the per-status repeat intervals
+        # and the "notify once" statuses. It now rides the same bookkeeping as
+        # the per-task path: only tasks whose own status reminder is due are
+        # announced, and every announced task is stamped, so nothing is
+        # re-announced when the bundle later dissolves.
+        due = [
+            t
+            for t in tasks
+            if not t.get("task_id") or self._status_due(f"{entry_id}_{t['task_id']}_{t['status']}", self._get_interval_hours(t["status"]))
+        ]
+        if not due:
+            return
+        tasks = due
+
         if not self._check_daily_limit():
             return
 
@@ -1671,6 +1699,9 @@ class NotificationManager:
         try:
             if await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context):
                 self._last_notified[bundle_key] = dt_util.now()
+                for t in tasks:
+                    if t.get("task_id"):
+                        self._stamp_status_sent(f"{entry_id}_{t['task_id']}_{t['status']}", self._get_interval_hours(t["status"]))
                 self._daily_count += 1
                 _LOGGER.debug("Bundled notification sent: %s - %s", title, message)
         except (HomeAssistantError, ValueError, TypeError):
@@ -1743,11 +1774,16 @@ class NotificationManager:
         matches one of the configured ``reminder_lead_days``. Reuses the
         due-soon strings (same message shape) and the per-user routing of the
         status-change path. Honours quiet hours, vacation mode, snooze, and
-        the daily limit; the once-per-day tick is the repeat gate, so no
-        ``_last_notified`` bookkeeping is needed.
+        the daily limit. Sent at most once per task, lead and day: the 08:00
+        tick and the noon retry both call this, and only a delivered reminder
+        is stamped, so a quiet-hours skip at 08:00 still goes out at noon.
         """
         self.async_verify_configured_service()
         if not self.enabled:
+            return
+        lead_key = f"{entry_id}_{task_id}_{days}"
+        today = dt_util.now().date().isoformat()
+        if self._lead_sent.get(lead_key) == today:
             return
         if self._is_quiet_hours():
             return
@@ -1794,6 +1830,9 @@ class NotificationManager:
             context=context,
         ):
             self._daily_count += 1
+            # Keep only today's stamps - yesterday's are dead weight.
+            self._lead_sent = {k: d for k, d in self._lead_sent.items() if d == today}
+            self._lead_sent[lead_key] = today
             _LOGGER.debug("Lead reminder sent: %s due in %s day(s)", task_name, days)
 
     async def async_budget_alert(
@@ -1842,6 +1881,19 @@ class NotificationManager:
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send budget alert")
 
+    def begin_startup_seed(self, entry_id: str) -> bool:
+        """True the FIRST time an entry's coordinator refreshes in this process
+        - only then may it seed ``_last_notified`` for the tasks that are
+        already notifiable. Every later coordinator instance (the entry is
+        reloaded on each task edit) inherits the manager's live state: stamps
+        of what was sent survive, and a notification that was still pending
+        (quiet hours, daily cap) is not silently marked as sent (bug audit
+        2026-09-12)."""
+        if entry_id in self._seeded_entries:
+            return False
+        self._seeded_entries.add(entry_id)
+        return True
+
     def seed_startup_state(self, entry_id: str, task_id: str, status: str) -> None:
         """Seed notification state for a task that is already notifiable at startup.
 
@@ -1863,27 +1915,35 @@ class NotificationManager:
             self._last_notified.pop(key, None)
             self._snoozed_until.pop(key, None)
 
-    async def async_dismiss_task_notification(self, task_id: str) -> None:
+    async def async_dismiss_task_notification(self, task_id: str, responsible_user_id: str | None = None) -> None:
         """Dismiss a task notification on Companion App devices.
 
         ``clear_notification`` is a legacy mobile_app service feature; the notify
         *entity* model (notify.send_message) has no equivalent, so an entity-only
-        target can't be dismissed and is simply skipped.
+        target can't be dismissed and is simply skipped. Reminders for a task
+        with a responsible person land on THAT person's devices (see
+        _resolve_and_send), so those are cleared too (bug audit 2026-09-12).
         """
-        service = self.notify_service
-        domain, _, name = service.partition(".")
-        if not (name and self.hass.services.has_service(domain, name)):
-            return
+        services = [self.notify_service]
+        if responsible_user_id:
+            try:
+                services.extend(await get_user_notify_services(self.hass, responsible_user_id))
+            except Exception:  # noqa: BLE001 - a lookup failure must not keep the action from finishing
+                _LOGGER.debug("User notify services unavailable for %s", responsible_user_id, exc_info=True)
         tag = f"maintenance_{task_id}"
-        try:
-            await self.hass.services.async_call(
-                domain,
-                name,
-                {"message": "clear_notification", "data": {"tag": tag}},
-                blocking=False,
-            )
-        except (HomeAssistantError, ValueError, TypeError):
-            _LOGGER.debug("Failed to dismiss notification for tag %s", tag)
+        for service in dict.fromkeys(s for s in services if s):
+            domain, _, name = service.partition(".")
+            if not (name and self.hass.services.has_service(domain, name)):
+                continue
+            try:
+                await self.hass.services.async_call(
+                    domain,
+                    name,
+                    {"message": "clear_notification", "data": {"tag": tag}},
+                    blocking=False,
+                )
+            except (HomeAssistantError, ValueError, TypeError):
+                _LOGGER.debug("Failed to dismiss notification for tag %s on %s", tag, service)
 
     async def async_unload(self) -> None:
         """Clean up the notification manager."""

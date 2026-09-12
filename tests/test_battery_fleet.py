@@ -230,7 +230,7 @@ def _set_note(hass, slug, **attrs):
         "battery_type": "CR2450",
         "battery_quantity": 1,
         "battery_low": True,
-        "battery_last_replaced": "2025-01-01T00:00:00+00:00",
+        "battery_last_replaced": "2025-01-01T12:00:00+00:00",
         "device_name": slug.replace("_", " ").title(),
     }
     base.update(attrs)
@@ -464,7 +464,7 @@ async def test_forecast_only_note_reaches_the_forecast(hass):
         _state="unknown",
         battery_low=False,
         battery_type="CR2032",
-        battery_last_replaced="2024-01-01T00:00:00+00:00",
+        battery_last_replaced="2024-01-01T12:00:00+00:00",
     )
     bats = read_batteries(hass)
     assert len(bats) == 1
@@ -1167,7 +1167,7 @@ async def test_sensorless_note_siblings_resolve_through_the_registry(hass):
     ):
         ent_reg.async_get_or_create(domain, "battery_notes", f"sub-uid{key}", suggested_object_id=oid, device_id=device.id)
     hass.states.async_set("sensor.kitchen_cell_type", "CR2032\u00d71", {"battery_type": "CR2032", "battery_quantity": 1})
-    hass.states.async_set("sensor.kitchen_cell_date", "2026-06-01T00:00:00+00:00", {"device_class": "timestamp"})
+    hass.states.async_set("sensor.kitchen_cell_date", "2026-06-01T12:00:00+00:00", {"device_class": "timestamp"})
     hass.states.async_set("button.kitchen_cell_swap", "unknown")
 
     bats = read_batteries(hass)

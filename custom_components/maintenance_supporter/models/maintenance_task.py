@@ -354,6 +354,21 @@ class MaintenanceTask:
 
     # --- Methods ---
 
+    def would_be_latest(self, ts: datetime) -> bool:
+        """Whether a completion stamped ``ts`` would be the task's LATEST one
+        (else it is a backfill). String comparison, deliberately - history
+        timestamps mix TZ-aware (live completions) and naive (hand-edited)
+        values, and the edit reconciliation already compares them as strings.
+        last_performed (date-only ISO) joins the anchors: an imported or
+        history-trimmed task has a cycle anchor but no lifecycle entries, and
+        a backfill must not drag that anchor backwards either. A full
+        timestamp on the same day sorts after the bare date, so a same-day
+        completion still counts as latest."""
+        anchors = [h.get("timestamp") or "" for h in self.history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
+        if self.last_performed:
+            anchors.append(self.last_performed)
+        return ts.isoformat() >= max(anchors, default="")
+
     def complete(
         self,
         notes: str | None = None,
@@ -399,10 +414,7 @@ class MaintenanceTask:
         # must not drag that anchor backwards either. A full timestamp on the
         # same day sorts after the bare date, so a same-day completion still
         # counts as latest.
-        anchors = [h.get("timestamp") or "" for h in self.history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
-        if self.last_performed:
-            anchors.append(self.last_performed)
-        is_latest = ts_iso >= max(anchors, default="")
+        is_latest = self.would_be_latest(ts)
 
         # Phases (#139): the step being completed is the one currently due.
         # Resolved BEFORE the cursor advances; a pure backfill gets no phase

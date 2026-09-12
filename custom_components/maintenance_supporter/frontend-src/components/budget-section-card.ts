@@ -8,7 +8,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, syncLocaleFromHass, DEFAULT_CURRENCY_SYMBOL, langOf, formatNumber, formatCost, syncCurrencyDecimals} from "../styles";
+import { t, syncLocaleFromHass, DEFAULT_CURRENCY_SYMBOL, langOf, formatCost, syncCurrencyDecimals} from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
@@ -161,7 +161,14 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                 <div class="track-label-row">
                   <label>${track.label}</label>
                   <span class="track-numbers ${warn}">
-                    ${formatNumber(track.spent, L, 0)} / ${formatCost(track.budget, sym, L)}
+                    ${
+                      // Spent and budget must round alike: the spent half was
+                      // pinned to 0 decimals while the budget followed the
+                      // "Decimal places for amounts" setting ("65 / 100.00 €";
+                      // bug audit 2026-09-12). formatCost without a symbol =
+                      // the setting-driven decimals, symbol once at the end.
+                      formatCost(track.spent, undefined, L)
+                    } / ${formatCost(track.budget, sym, L)}
                   </span>
                 </div>
                 <div class="bar"><div class="bar-fill ${warn}" style="width:${pct}%"></div></div>

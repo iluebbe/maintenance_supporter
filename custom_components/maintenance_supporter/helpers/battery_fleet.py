@@ -389,13 +389,27 @@ def _row(
     }
 
 
+def _quantity_of(attrs: Any) -> int:
+    """``battery_quantity`` as a positive int; anything odd ("2 pcs", "1.0",
+    None) is one cell - a template note with a bad value must not raise out
+    of read_batteries and blank the whole fleet."""
+    raw = attrs.get("battery_quantity") if hasattr(attrs, "get") else None
+    try:
+        qty = int(float(raw)) if raw not in (None, "") else 1
+    except (TypeError, ValueError):
+        return 1
+    return qty if qty >= 1 else 1
+
+
 def _parse_last_replaced(raw: Any) -> date | None:
     if not raw:
         return None
     try:
         parsed = dt_util.parse_datetime(str(raw))
         if parsed is not None:
-            return parsed.date()
+            # An aware stamp (Battery Notes writes UTC) is a LOCAL calendar
+            # date: 23:30 UTC on the 3rd is the 4th in Berlin.
+            return (dt_util.as_local(parsed) if parsed.tzinfo is not None else parsed).date()
         return date.fromisoformat(str(raw)[:10])
     except (ValueError, TypeError):
         return None
@@ -485,7 +499,9 @@ def device_model_key(hass: HomeAssistant, device_id: str | None) -> str:
     # HA 2026.9 may hand back a ChildDeviceEntry, which has no make/model.
     manufacturer = str(getattr(device, "manufacturer", None) or "").strip().lower()
     model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "").strip().lower()
-    if not model:
+    if not model or not manufacturer:
+        # A generic model without a maker ("Door Sensor") would pool
+        # unrelated devices from different integrations.
         return ""
     return f"{manufacturer}|{model}"
 
@@ -711,7 +727,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                     entity_id=state.entity_id,
                     device_name=attrs.get("device_name") or attrs.get("friendly_name") or state.entity_id,
                     battery_type=str(attrs.get("battery_type") or "Unknown"),
-                    quantity=int(attrs.get("battery_quantity") or 1),
+                    quantity=_quantity_of(attrs),
                     model_key=device_model_key(hass, dev_id),
                     low=low,
                     level=level,
@@ -838,6 +854,11 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     # reading (a plus of any kind, a native row) wins the device.
     due_without_sensor = fleet_due_without_sensor(hass)
     today = dt_util.now().date()
+    # Bug audit 2026-09-12: the "due" decision below must use the SAME lifetime
+    # the roster forecasts with (override > learned > table) - it used the bare
+    # table, so an override or a learned value moved the roster's ~date while
+    # the task kept firing (or never fired) on the table's.
+    lifetime_for = lifetime_resolver(hass)
     native_devices = {rec["device_id"] for rec in native.values() if rec["device_id"]}
     for state in hass.states.async_all("sensor"):
         if not _is_type_note(state):
@@ -891,7 +912,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             entity_id=eid,
             device_name=name,
             battery_type=battery_type,
-            quantity=int(attrs.get("battery_quantity") or 1),
+            quantity=_quantity_of(attrs),
             model_key=device_model_key(hass, dev_id),
             low=False,
             level=None,
@@ -903,8 +924,8 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
         )
         # Due = the forecast has PASSED (same arithmetic as build_overview's
         # forecast_overdue). Rechargeables never get a table forecast.
-        if due_without_sensor and not is_rechargeable_type(battery_type):
-            pred = _predicted_date(bat)
+        if due_without_sensor and not is_rechargeable_type(battery_type) and has_type_forecast(battery_type):
+            pred = _predicted_date(bat, lifetime_for(bat).months)
             bat.low = pred is not None and pred < today
         out.append(bat)
     for bat in out:
@@ -1235,7 +1256,9 @@ def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
         if is_rechargeable_type(bat.battery_type):
             continue
         t = _norm_type(bat.battery_type)
-        if t == "UNKNOWN":
+        if t == "UNKNOWN" or not has_type_forecast(bat.battery_type):
+            # "Irreplaceable" / "Manual" / "Solar" describe the device, not a
+            # cell anyone stocks - no part, no reorder threshold.
             continue
         totals[t] = totals.get(t, 0) + bat.quantity
     return OrderedDict(sorted(totals.items()))

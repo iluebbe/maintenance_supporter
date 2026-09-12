@@ -13,6 +13,7 @@ import "../components/history-photo";
 import { historyPhotoIds } from "../helpers/history-photos";
 import { renderRefChip } from "../helpers/reference";
 import { entryReadingValues } from "../helpers/reading-slots";
+import { matchesQuery } from "../helpers/search-match";
 
 export interface HistoryContext {
   lang: string;
@@ -74,11 +75,15 @@ export function renderHistoryList(task: MaintenanceTask, ctx: HistoryContext) {
     ? task.history.filter((h) => h.type === ctx.filter)
     : task.history;
 
-  // Apply search filter
+  // Apply search filter. Notes match through the same tolerant matcher the
+  // global search and the server use (fold, digraphs, AND over words in any
+  // order) — the palette pre-fills this box from a SERVER history hit, and a
+  // plain includes() landed on an empty tab for "spuelung" vs "Spülung
+  // durchgeführt" (bug audit 2026-09-12).
   if (ctx.search) {
     const search = ctx.search.toLowerCase();
     // #170: "8.3-2" (or just "-2") in the notes filter finds the entry by number.
-    filtered = filtered.filter((h) => h.notes?.toLowerCase().includes(search) || (entryRefOf(ctx, h) ?? "").toLowerCase().endsWith(search));
+    filtered = filtered.filter((h) => matchesQuery(h.notes, ctx.search) || (entryRefOf(ctx, h) ?? "").toLowerCase().endsWith(search));
   }
 
   if (filtered.length === 0) {

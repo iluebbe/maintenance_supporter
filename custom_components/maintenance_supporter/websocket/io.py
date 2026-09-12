@@ -29,6 +29,7 @@ from ..const import (
     DOMAIN,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
+    MAX_ENTITY_SLUG_LENGTH,
     MAX_ID_LENGTH,
     MAX_IMPORT_PAYLOAD_BYTES,
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
@@ -978,6 +979,26 @@ async def ws_import_json(
                 if not isinstance(st, str) or not re.fullmatch(r"^([01]\d|2[0-3]):[0-5]\d$", st):
                     task_data.pop("schedule_time", None)
 
+            # entity_slug: the WS create/update paths reject anything but
+            # [a-z0-9_]+ (it becomes part of the entity_id); import copied the
+            # value verbatim. Normalise to that alphabet (HA's slugify would
+            # turn all-junk into "unknown"), drop it when nothing valid
+            # remains, and say so — a changed slug changes the entity ids
+            # (bug audit 2026-09-12).
+            raw_slug = task_data.get("entity_slug")
+            if raw_slug is not None:
+                slug = (
+                    re.sub(r"[^a-z0-9_]+", "_", raw_slug.strip().lower()).strip("_")[:MAX_ENTITY_SLUG_LENGTH]
+                    if isinstance(raw_slug, str)
+                    else ""
+                )
+                if not slug:
+                    task_data.pop("entity_slug", None)
+                    task_warnings.append(f"{task_name}: entity_slug dropped — not [a-z0-9_]+")
+                elif slug != raw_slug:
+                    task_data["entity_slug"] = slug
+                    task_warnings.append(f"{task_name}: entity_slug normalised to {slug!r}")
+
             # Validate an imported trigger_config the same way the WS create/update
             # path does — strip unknown keys, normalize entity_ids, and drop it
             # entirely if invalid — so import isn't a hole around trigger validation.
@@ -1028,9 +1049,20 @@ async def ws_import_json(
             doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
             if doc_store is not None:
                 doc_id_map: dict[str, str] = {}
-                await doc_store.async_import_documents(
-                    obj_id, import_docs, task_id_map=task_id_map, part_id_map=part_id_map, id_map=doc_id_map
-                )
+                # Outside the per-object try below on purpose (the docs must
+                # exist before the entry is created) — so a crash here used to
+                # abort the WHOLE import without a reply. The store skips
+                # malformed records itself; this backstop turns anything it
+                # still raises into a per-object warning (bug audit 2026-09-12).
+                try:
+                    await doc_store.async_import_documents(
+                        obj_id, import_docs, task_id_map=task_id_map, part_id_map=part_id_map, id_map=doc_id_map
+                    )
+                except Exception:  # one object's documents must not sink the import
+                    _LOGGER.exception("JSON import of %s: documents skipped", obj_name)
+                    task_warnings.append("documents: skipped — malformed document records")
+                    await _drop_imported_documents(doc_store, obj_id)
+                    doc_id_map = {}
                 if doc_id_map:
                     _remap_document_refs(import_tasks, import_parts, doc_id_map)
 

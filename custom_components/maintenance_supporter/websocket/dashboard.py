@@ -674,9 +674,19 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     for key, expected_type in _ALLOWED_SETTING_KEYS.items():
         if key in settings_input:
             val = settings_input[key]
+            # bool is an int subclass in Python, so a bare isinstance() let
+            # `{"default_warning_days": true}` through as 1 — reject bools for
+            # every numeric spec (bug audit 2026-09-12).
+            if expected_type in (int, float) and isinstance(val, bool):
+                continue
             # Accept int for float fields
             if expected_type is float and isinstance(val, int):
                 val = float(val)
+            # The options flow's NumberSelector persists ints as floats (7.0);
+            # a settings export → import used to drop those keys silently.
+            # An INTEGRAL float is the same number — coerce it; 7.5 stays out.
+            if expected_type is int and isinstance(val, float) and math.isfinite(val) and val.is_integer():
+                val = int(val)
             if isinstance(val, expected_type):
                 filtered[key] = val
 

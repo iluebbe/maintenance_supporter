@@ -188,7 +188,17 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  load when the URL carries no `tab` / `view` of its own, WITHOUT
    *  persisting (the sidebar panel keeps its remembered tab). */
   @property({ attribute: false }) public presets: { tab?: string; view?: string } = {};
+  /** Once per element instance — deliberately NOT reset on disconnect: HA
+   *  re-attaches the card element on edit-mode toggles and view switches,
+   *  and a reset flipped a user who had moved off the preset tab back onto
+   *  it every time (bug audit 2026-09-12). */
   private _presetsApplied = false;
+  /** #174: the pathname the panel was mounted on. Embedded, deep links are
+   *  only ours while the page is still on that path — HA fires
+   *  `location-changed` before it swaps the DOM, so a card that is about to
+   *  be detached would otherwise consume another view's `?tab=` (bug audit
+   *  2026-09-12). */
+  private _mountPath: string | null = null;
 
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
@@ -399,6 +409,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this._mountPath = window.location.pathname;
     // Prefetch the lazy UI chunks AFTER the first paint settles (idle), not
     // here: an eager prefetch put 7 fetches + ~280 KB of parsing in direct
     // competition with the initial data load and measurably slowed first
@@ -481,7 +492,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._initialLoadDone = false;
     this._lastConnection = null;
     this._deepLinkHandled = false;
-    this._presetsApplied = false;
+    // `_presetsApplied` intentionally survives (see its declaration).
+    // Pending timers must not fire into a detached element (bug audit
+    // 2026-09-12): a debounced search would send a WS query for a closed
+    // palette, and a toast timer would leave `_toastMessage` in whatever
+    // state it was in when the element comes back.
+    if (this._searchTimer) { clearTimeout(this._searchTimer); this._searchTimer = null; }
+    if (this._toastTimer) { clearTimeout(this._toastTimer); this._toastTimer = null; }
+    this._toastMessage = ""; this._toastUndo = null; this._toastActionLabel = "";
     this._statsService?.clearCache();
     this._statsService = null;
   }
@@ -762,7 +780,11 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  params from it. Navigations away from the panel are not ours. */
   private _onLocationChanged(): void {
     if (!this._initialLoadDone || !window.location.search) return;
-    // Embedded in a card (#174): the dashboard's path is ours, whatever it is.
+    // Embedded in a card (#174): the dashboard's path is ours, whatever it
+    // is — but only the one we were mounted on. A navigation to ANOTHER
+    // view carrying `?tab=` fires while this element is still attached and
+    // must be left alone (bug audit 2026-09-12).
+    if (this.embedded && this._mountPath !== null && window.location.pathname !== this._mountPath) return;
     if (!this.embedded) {
       const base = `/${typeof this.panel?.url_path === "string" ? this.panel.url_path : "maintenance-supporter"}`;
       const path = window.location.pathname;
@@ -1420,6 +1442,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._selectedTaskId = taskId;
       this._activeTab = "overview";
       this._historyFilter = null;
+      this._historySearch = "";
       this._resetStickyPane();
       this._fetchFullHistory(entryId, taskId);
       const task = this._getTask(entryId, taskId);
@@ -1434,6 +1457,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedTaskId = taskId;
     this._activeTab = "overview";
     this._historyFilter = null;
+    // The notes filter belongs to ONE task: the global search pre-fills it
+    // for the history hit it opened (after this call), and it must not leak
+    // into every task opened afterwards (bug audit 2026-09-12).
+    this._historySearch = "";
     this._scrollContentToTop();
     // Payload diet: list responses carry only the most recent history
     // window — the detail's full timeline/charts load here, on demand.
@@ -1546,7 +1573,15 @@ export class MaintenanceSupporterPanel extends LitElement {
       }).then((res) => {
         if (seq !== this._searchSeq || !this._paletteOpen) return;
         this._searchRemote = { query: q, documents: res.documents || [], history: res.history || [] };
-      }).catch(() => { /* the local groups still answer; the server groups just stay empty */ });
+      }).catch(() => {
+        // The local groups still answer; the server groups just stay empty.
+        // Record the (empty) answer for this query — `waiting` is derived
+        // from `_searchRemote.query === q`, so a swallowed error left the
+        // "Searching…" footer / placeholder up forever (bug audit
+        // 2026-09-12).
+        if (seq !== this._searchSeq || !this._paletteOpen) return;
+        this._searchRemote = { query: q, documents: [], history: [] };
+      });
     }, SEARCH_DEBOUNCE_MS);
   }
 

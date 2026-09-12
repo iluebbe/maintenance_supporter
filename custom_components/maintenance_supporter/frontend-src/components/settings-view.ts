@@ -301,10 +301,15 @@ export class MaintenanceSettingsView extends LitElement {
             r.learned_models.map((m) => `${m.model} ${m.months} ${unit} (${m.samples})`).join(" · "),
           )}</div>`
         : nothing;
-    const commit = (type: string, raw: string) => {
-      const months = Number.parseInt(raw, 10);
-      if (!Number.isFinite(months) || months < 1 || months > 240) return;
-      this._updateSetting("battery_lifetime_months", { ...overrides, [type]: months });
+    // No live() on the month inputs (bug audit 2026-09-12, #176 class): the
+    // view re-renders on every hass assignment and live() reset a half-typed
+    // value to the stored months. An out-of-range or rejected entry snaps
+    // back by writing the input directly instead.
+    const commit = (type: string, input: HTMLInputElement, stored: number) => {
+      const months = Number.parseInt(input.value, 10);
+      if (!Number.isFinite(months) || months < 1 || months > 240) { input.value = String(stored); return; }
+      void this._updateSetting("battery_lifetime_months", { ...overrides, [type]: months })
+        .then((ok) => { if (!ok) input.value = String(stored); });
     };
     const reset = (type: string) => {
       const next = { ...overrides };
@@ -316,8 +321,8 @@ export class MaintenanceSettingsView extends LitElement {
     const row = (r: NonNullable<typeof rows>[number]) => html`
       <div class="bl-row ${r.source === "override" ? "bl-override" : ""}">
         <span class="bl-type">${r.type}${r.in_fleet ? html` <span class="bl-fleet">${t("settings_battery_lifetime_in_fleet", L)}</span>` : nothing}</span>
-        <input class="bl-months" type="number" min="1" max="240" .value=${live(String(r.months))}
-          @change=${(e: Event) => commit(r.type, (e.target as HTMLInputElement).value)} />
+        <input class="bl-months" type="number" min="1" max="240" .value=${String(r.months)}
+          @change=${(e: Event) => commit(r.type, e.target as HTMLInputElement, r.months)} />
         <span class="bl-unit">${t("settings_battery_lifetime_months", L)}</span>
         <span class="bl-source">${sourceLabel(r)}</span>
         ${r.source === "override"
@@ -428,7 +433,9 @@ export class MaintenanceSettingsView extends LitElement {
     }
   }
 
-  private async _updateSetting(key: string, value: unknown): Promise<void> {
+  /** Resolves true when the server accepted the value, false on a reject
+   *  (the caller decides how to snap its control back). */
+  private async _updateSetting(key: string, value: unknown): Promise<boolean> {
     try {
       const result = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/global/update",
@@ -441,13 +448,19 @@ export class MaintenanceSettingsView extends LitElement {
       invalidateSettingsCache();
       this._showToast(t("settings_saved", this._lang));
       this.dispatchEvent(new CustomEvent("settings-changed"));
+      return true;
     } catch {
       this._showToast(t("action_error", this._lang));
       // The control already shows the rejected value (the browser changed it
       // before we asked the server). `_settings` is unchanged, so a plain
       // re-render would not touch the DOM — the selects bind their value
-      // through `live()` precisely so this re-render snaps them back.
+      // through `live()` precisely so this re-render snaps them back. Typed
+      // inputs do NOT use live() (bug audit 2026-09-12: the view re-renders
+      // on every hass assignment, and live() reset a half-typed number to
+      // the stored value mid-typing — the #176 class); their callers snap
+      // `input.value` back themselves when this resolves false.
       this.requestUpdate();
+      return false;
     }
   }
 
@@ -478,12 +491,14 @@ export class MaintenanceSettingsView extends LitElement {
   /** Bounded integer settings: an out-of-range entry used to be dropped
    *  silently while the field kept showing it (bug review 2026-09-04). Now
    *  it is named in a toast and the field snaps back to the stored value;
-   *  a server reject snaps back through `live()` like the selects. */
+   *  a server reject snaps back the same way — by writing `input.value`
+   *  directly, since these inputs no longer bind through `live()` (bug
+   *  audit 2026-09-12). */
   private _onBoundedIntChange(e: Event, key: string, min: number, max: number, current: number): void {
     const input = e.target as HTMLInputElement;
     const v = parseInt(input.value, 10);
     if (Number.isInteger(v) && v >= min && v <= max) {
-      void this._updateSetting(key, v);
+      void this._updateSetting(key, v).then((ok) => { if (!ok) input.value = String(current); });
       return;
     }
     this._showToast(
@@ -796,20 +811,23 @@ export class MaintenanceSettingsView extends LitElement {
         <h3>${t("settings_general", L)}</h3>
         <label class="setting-row">
           <span class="setting-label">${t("settings_default_warning", L)}</span>
-          <input type="number" min="0" max="365" .value=${live(String(g.default_warning_days))}
+          <!-- No live() on the typed number inputs below (bug audit
+               2026-09-12, #176 class): a hass re-render must not reset a
+               half-typed value; rejects snap back via _onBoundedIntChange. -->
+          <input type="number" min="0" max="365" .value=${String(g.default_warning_days)}
             @change=${(e: Event) =>
               // 0 = no warning window (due soon only on the due date) — #145.
               this._onBoundedIntChange(e, "default_warning_days", 0, 365, g.default_warning_days)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_consumable_threshold", L)}</span>
-          <input type="number" min="1" max="90" .value=${live(String(g.default_consumable_threshold ?? 10))}
+          <input type="number" min="1" max="90" .value=${String(g.default_consumable_threshold ?? 10)}
             @change=${(e: Event) =>
               this._onBoundedIntChange(e, "default_consumable_threshold", 1, 90, g.default_consumable_threshold ?? 10)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_battery_low_percent", L)}</span>
-          <input type="number" min="1" max="90" .value=${live(String(g.battery_low_percent ?? 20))}
+          <input type="number" min="1" max="90" .value=${String(g.battery_low_percent ?? 20)}
             @change=${(e: Event) =>
               this._onBoundedIntChange(e, "battery_low_percent", 1, 90, g.battery_low_percent ?? 20)} />
         </label>

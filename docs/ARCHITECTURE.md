@@ -756,12 +756,12 @@ Every notification is one **kind**, and every kind belongs to a **category** tha
 | `lead_time` | reminder | personal | reminder_lead_days | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `quiet_hours`, `daily_cap` |
 | `bundle` | summary | household | notification_bundling_enabled + threshold | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `scope`, `quiet_hours`, `daily_cap` |
 | `digest` | summary | household | weekly_digest_enabled | `enabled`, `target` |
-| `warranty` | alert | household | warranty_reminder_enabled + days | `enabled`, `target`, `quiet_hours`, `daily_cap` |
+| `warranty` | alert | household | warranty_reminder_enabled + days | `enabled`, `target` |
 | `budget` | alert | household | budget_alerts_enabled + threshold | `enabled`, `target`, `quiet_hours`, `daily_cap` |
 | `completed` | activity | household | notify_completed (off / automatic / all) | `enabled`, `target`, `kind_enabled`, `task_mute`, `scope`, `quiet_hours`, `daily_cap` |
 | `test` | test | household | — | `target` |
 
-Gates: `enabled` = notifications on at all; `target` = a notify service or event-only mode; `kind_enabled` = the kind's own switch (per-status toggles, the completion mode); `task_mute` = the task's *No notifications*; `snooze` = the per-task snooze; `vacation` = the vacation mode's silence; `scope` = the saved-view scope; `quiet_hours`; `daily_cap` = max notifications per day; `repeat` = the per-status repeat interval. The digest deliberately ignores quiet hours and the cap (it is scheduled) and the test ignores everything but the target (it exists to verify the target).
+Gates: `enabled` = notifications on at all; `target` = a notify service or event-only mode; `kind_enabled` = the kind's own switch (per-status toggles, the completion mode); `task_mute` = the task's *No notifications*; `snooze` = the per-task snooze; `vacation` = the vacation mode's silence; `scope` = the saved-view scope; `quiet_hours`; `daily_cap` = max notifications per day; `repeat` = the per-status repeat interval. The digest and the warranty reminder deliberately ignore quiet hours and the cap (both are scheduled once at the 08:00 tick and would otherwise be lost), and the test ignores everything but the target (it exists to verify the target). Lead-time reminders are sent at most once per task, lead and day (the 08:00 tick and the noon retry share that stamp), and a bundle announces only the tasks whose own status reminder is due, stamping each of them like the per-task path.
 
 ---
 

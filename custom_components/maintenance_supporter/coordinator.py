@@ -119,6 +119,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Trigger completion cooldown tracking
         self._recently_completed: dict[str, float] = {}  # task_id -> monotonic timestamp
+        # Which of those cooldowns came from a COMPLETION (not a skip/reset):
+        # only those require the sensor to recover before a re-activation
+        # counts as a new edge (bug audit 2026-09-12).
+        self._completion_cooldown: set[str] = set()
         # Manual completions only — the double-tap dedup window (journey M1).
         self._recent_manual_completions: dict[str, float] = {}
         # Backdated completions (explicit completed_at) get their OWN dedup,
@@ -210,6 +214,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recently_completed = {
             tid: ts for tid, ts in self._recently_completed.items() if now_mono - ts < TRIGGER_COMPLETION_COOLDOWN_SECONDS
         }
+        self._completion_cooldown &= set(self._recently_completed)
         self._recent_manual_completions = {
             tid: ts for tid, ts in self._recent_manual_completions.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
         }
@@ -446,10 +451,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 MaintenanceStatus.OVERDUE,
                 MaintenanceStatus.TRIGGERED,
             }
+            # Seed the manager only on the entry's FIRST refresh in this
+            # process: a reload (every task edit) hands a fresh coordinator an
+            # empty _previous_statuses too, but the manager's stamps are live
+            # and a still-pending notification must not be marked as sent
+            # (bug audit 2026-09-12).
+            seeding = isinstance(nm, NotificationManager) and nm.begin_startup_seed(self.entry.entry_id)
             for task_id_n, task_result_n in result[CONF_TASKS].items():
                 status = task_result_n.get("_status", MaintenanceStatus.OK)
                 self._previous_statuses[task_id_n] = status
-                if isinstance(nm, NotificationManager) and status in notify_statuses:
+                if seeding and status in notify_statuses:
                     nm.seed_startup_state(self.entry.entry_id, task_id_n, status)
         else:
             await self._async_notify_status_changes(result[CONF_TASKS])
@@ -1188,11 +1199,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # must not run for it (bug audit 2026-08-29) - an explicit used_parts
         # selection is still honoured. Mirrors MaintenanceTask.complete's
         # is_latest split (ISO-date string compare).
-        _is_backfill = (
-            completed_at is not None
-            and bool(task.last_performed)
-            and effective_ts.date().isoformat() < str(task.last_performed)
-        )
+        # The very same split MaintenanceTask.complete makes (timestamp
+        # anchors, not the bare date): a same-day completion dated BEFORE the
+        # latest one recorded "used parts" in history while the stock stayed
+        # untouched (bug audit 2026-09-12).
+        _is_backfill = completed_at is not None and not task.would_be_latest(effective_ts)
         record_links = (
             used_parts
             if used_parts is not None
@@ -1278,6 +1289,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         try:
             await self._persist_and_signal_task_change(task_id, task)
+            self._completion_cooldown.add(task_id)
         except Exception:
             # The completion did not land on disk - release the double-tap
             # guard stamped above, or the user's retry within 30 s would be
@@ -1561,7 +1573,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception:  # noqa: BLE001 - a notification must never fail the completion
             _LOGGER.debug("Completion notification failed for %s", task_id, exc_info=True)
 
-    def note_trigger_edge(self, task_id: str) -> None:
+    def note_trigger_edge(self, task_id: str, *, recovered: bool = True) -> None:
         """A trigger just latched on a REAL state edge — lift the post-completion
         cooldown for that task.
 
@@ -1572,7 +1584,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         this, the refresh a flip now requests (#175) — and before that, any
         5-minute tick inside the window — wiped the fresh latch again.
         """
+        # A re-activation right after a COMPLETION while the sensor never left
+        # the triggering side (the user tapped Complete before refilling) is
+        # not an edge; after a skip/reset it is (bug audit 2026-09-12).
+        if not recovered and task_id in self._completion_cooldown:
+            return
         self._recently_completed.pop(task_id, None)
+        self._completion_cooldown.discard(task_id)
 
     async def async_refresh_now(self) -> None:
         """Recompute immediately — for changes a person just made.
@@ -1611,6 +1629,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._persist_dynamic_state(task_id, task)
         await self._store.async_save()  # Flush immediately for user actions
         self._recently_completed[task_id] = time.monotonic()
+        self._completion_cooldown.discard(task_id)  # complete_maintenance re-adds it
         async_dispatcher_send(
             self.hass,
             SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),

@@ -24,6 +24,50 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Bug audit 2026-09-12** (five read-only review passes over everything shipped since 2.75; ~40 fixes):
+  - *Notifications*: lead-time reminders went out twice on every lead day (the 08:00 tick and the noon retry had no shared
+    stamp) — now once per task, lead and day, and a quiet-hours skip at 08:00 still delivers at noon. Every config-entry
+    reload (each task edit) re-ran the startup seed and silently marked still-pending reminders as sent — the seed now
+    runs once per entry. A bundle repeated every hour for as long as N tasks were pending, ignoring the per-status
+    intervals and "notify once" — it now announces only the tasks whose own reminder is due and stamps them. The
+    notification matrix claimed quiet hours / daily cap for the warranty reminder that the code (rightly, it fires once at
+    08:00) never applied — matrix and docs corrected. Event-only mode no longer raises a "notify service missing" repair
+    for a stale service name it never calls. Tapping Complete/Skip on a reminder now also clears the notification on the
+    responsible person's devices, not only the household service.
+  - *Triggers*: a re-activation right after Complete while the sensor still reads beyond the threshold (you tapped before
+    refilling) counted as a new edge since 2.81 and lifted the 10-minute post-completion cooldown — it needs a recovery in
+    between now; a genuine new flip still lifts it.
+  - *Completion chokepoint*: a same-day completion dated before the latest one recorded "used parts" in history while the
+    stock stayed untouched — parts and history now share the model's latest-vs-backfill split.
+  - *Battery fleet*: the sensorless "due" decision used the built-in lifetime table even when an override or a learned
+    lifetime moved the roster's forecast (task fired on the wrong date, or never), and it forecast Irreplaceable / Manual /
+    Solar notes; low-only Battery Notes rows (a binary, no percentage) stayed "low" forever once low — the binary's
+    all-clear now releases them; learned lifetimes no longer count the interval from Battery Notes' seed date (a fleet set
+    up on day D and swapped over the following weeks learned a one-month life) — the earliest date is an anchor, and a
+    corrected date replaces it instead of counting as a swap; Irreplaceable / Manual / Solar notes no longer mint spare
+    parts with reorder thresholds; *Replaced* no longer consumes stock for a row whose button could not be pressed;
+    last-replaced is a local calendar date (a 23:30 UTC press was "yesterday"); a non-numeric `battery_quantity` no
+    longer blanks the whole fleet; a model without a manufacturer no longer pools unrelated devices; lifetime overrides
+    reject booleans, fractions and infinities.
+  - *Lifecycle / options flow*: the document text index's timer outlived the integration when the last entry to unload was
+    an object entry; the options flow stored floats for int settings (a settings export then dropped them on import) and
+    could not clear the extra-data template.
+  - *Panel*: typed number inputs under Settings (warning days, consumable threshold, battery-low percent, battery
+    lifetimes) snapped back to the stored value on every state update while you typed; a global-search history hit opened an
+    empty History tab when the note only matched fold-tolerantly ("spuelung" vs "Spülung"), and the filter leaked into
+    every task opened afterwards; the palette showed "Searching…" forever on a backend without the search command; the
+    panel card consumed deep-link parameters from any URL, re-applied its tab preset on every re-attach, measured its fill
+    height with the scroll offset on resize, and left two timers running after unmount; the budget card mixed pinned and
+    setting-driven decimals on one line.
+  - *Persistence / WebSocket*: `task/move` refuses the battery-fleet task and auto buy tasks (they follow their part),
+    refuses a source or target object that is not loaded (the config used to move while history, readings and trigger
+    state were silently lost), stamps the part links inside phases, keeps the vacation exemption, re-stamps the object
+    id, keeps every document link and re-homes the task's completion photos to the target object (deleting the old object
+    used to delete them); editing *last performed* on a task that was ever completed was masked by the stored value — it
+    lands in the Store now; the settings sanitiser rejects booleans for numeric settings and accepts integral floats for
+    int settings (an options-flow value no longer vanishes from a settings backup); JSON import normalises `entity_slug`
+    like the panel does and survives a malformed document record; document uploads cap filename, title and tags like the
+    WebSocket paths.
 - Battery fleet, phones (D#162, second iPhone screenshot): in the *Needed soon*
   list the *Replaced* action painted over the percentage. The percentage now
   sits on the name line and the action on the second line with type and date,

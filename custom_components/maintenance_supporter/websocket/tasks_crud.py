@@ -617,6 +617,22 @@ async def ws_update_task(
         if msg_key in msg:
             task[data_key] = msg[msg_key]
 
+    # last_performed is a DYNAMIC field: the Store is its system of record
+    # and merge_task_data overlays the Store's value whenever the key exists
+    # there (every task that was ever completed / reset / created with a
+    # date). Writing the edit into entry.data alone was masked for exactly
+    # those tasks — the dialog's "last performed" edit never took effect.
+    # Write the Store too; the static copy above stays as the legacy /
+    # no-Store fallback (bug audit 2026-09-12).
+    if "last_performed" in msg:
+        rd_lp = _get_runtime_data(hass, msg["entry_id"])
+        if rd_lp and rd_lp.store:
+            if msg["last_performed"]:
+                rd_lp.store.set_last_performed(task_id, msg["last_performed"])
+            else:
+                rd_lp.store.get_task_state(task_id).pop("last_performed", None)
+            await rd_lp.store.async_save()
+
     # #150: allow_skip is stored only when False (absence = allowed) — the
     # verbatim copy above would persist True/None literals.
     if "allow_skip" in msg:
@@ -980,10 +996,14 @@ async def ws_move_task(
     if (target.data.get(CONF_OBJECT) or {}).get("archived_at"):
         connection.send_error(msg["id"], "invalid_target", "The target object is archived")
         return
-    from .tasks_persist import async_move_task
+    from .tasks_persist import TaskMoveRefused, async_move_task
 
     try:
         await async_move_task(hass, entry, target, msg["task_id"])
+    except TaskMoveRefused as err:
+        # task_not_movable / object_not_loaded — raised before anything changed.
+        connection.send_error(msg["id"], err.code, str(err))
+        return
     except ValueError as err:
         connection.send_error(msg["id"], "limit_reached", str(err))
         return

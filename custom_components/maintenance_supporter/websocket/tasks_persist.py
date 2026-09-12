@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_WARNING_DAYS,
@@ -225,6 +226,27 @@ async def async_update_task_simple(
     await hass.config_entries.async_reload(entry_id)
 
 
+class TaskMoveRefused(ValueError):
+    """``task/move`` refused up front — carries the WS error code.
+
+    Raised BEFORE the delete leg so nothing has changed when the caller sees
+    it (bug audit 2026-09-12): a task that is not movable, or an entry whose
+    Store is not loaded (the move would silently drop history / readings /
+    trigger state).
+    """
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def _stamp_part_links(links: Any, entry_id: str) -> Any:
+    """Give every own-pool part link an explicit ``entry_id`` (foreign-pool form)."""
+    if not isinstance(links, list):
+        return links
+    return [{**link, "entry_id": link.get("entry_id") or entry_id} if isinstance(link, dict) else link for link in links]
+
+
 async def async_move_task(
     hass: HomeAssistant,
     source: ConfigEntry,
@@ -236,33 +258,61 @@ async def async_move_task(
     What travels: the task's config (schedule, trigger, checklist, parts links,
     slug, NFC tag …) and its Store state (history, last_performed, planned
     due, adaptive config, phase cursor, checklist progress, trigger runtime
-    incl. counter baselines). Group memberships follow the task. What does
-    not: the reference number (``ref_no`` and the history entries' numbers —
-    the target object numbers it afresh on its next refresh) and document
-    links (documents belong to the source object; ``async_delete_task``
-    unlinks them). Part links keep an explicit ``entry_id`` so a link to one
-    of the source object's parts still resolves as a foreign-pool link.
+    incl. counter baselines). Group memberships, the vacation exemption and
+    the document links follow the task; completion photos that belong to
+    nothing but this task are re-homed to the target object (they would
+    otherwise die with the source object — bug audit 2026-09-12). What does
+    not travel: the reference number (``ref_no`` and the history entries'
+    numbers — the target object numbers it afresh on its next refresh). Part
+    links — task-level AND per phase — keep an explicit ``entry_id`` so a
+    link to one of the source object's parts still resolves as a
+    foreign-pool link.
 
     Both entries are reloaded by the caller: the source drops the task's
     entities, the target creates them under its own object slug.
-    Raises ValueError when the target is full.
+    Raises :class:`TaskMoveRefused` (with a WS error code) for a task that
+    must stay with its object / an entry whose Store is not loaded, and a
+    plain ValueError when the target is full.
     """
     from copy import deepcopy
 
-    from ..const import MAX_TASKS_PER_OBJECT
+    from ..const import CONF_VACATION_EXEMPT_TASK_IDS, DOCUMENT_STORE_KEY, MAX_TASKS_PER_OBJECT
+    from ..helpers.completion_photos import history_photo_ids
+    from ..helpers.parts import PART_REF_FIELD
     from .tasks_crud import async_delete_task
 
     task_data = deepcopy(dict(source.data[CONF_TASKS][task_id]))
-    task_data.pop("ref_no", None)
-    links = task_data.get("consumes_parts")
-    if isinstance(links, list):
-        task_data["consumes_parts"] = [
-            {**link, "entry_id": link.get("entry_id") or source.entry_id} if isinstance(link, dict) else link for link in links
-        ]
+    # A buy task follows its spare part and the fleet task IS the battery
+    # fleet — neither can live on another object (bug audit 2026-09-12).
+    if task_data.get(PART_REF_FIELD):
+        raise TaskMoveRefused("task_not_movable", "A spare-part buy task stays with its part")
+    if task_data.get(BATTERY_FLEET_TASK_FLAG):
+        raise TaskMoveRefused("task_not_movable", "The battery fleet task cannot be moved")
 
+    # Both Stores must be loaded (entry disabled / setup-retry / mid-reload
+    # = no runtime_data): the config would move while history, readings and
+    # trigger state silently vanished (bug audit 2026-09-12).
     src_rd = _get_runtime_data(hass, source.entry_id)
     src_store = getattr(src_rd, "store", None) if src_rd else None
-    state = deepcopy(src_store.get_task_state(task_id)) if src_store is not None else {}
+    tgt_rd = _get_runtime_data(hass, target.entry_id)
+    tgt_store = getattr(tgt_rd, "store", None) if tgt_rd else None
+    if src_store is None or tgt_store is None:
+        raise TaskMoveRefused("object_not_loaded", "Both objects must be loaded to move a task")
+
+    task_data.pop("ref_no", None)
+    # The task now belongs to the target object — like the duplicate /
+    # replace paths re-stamp it (bug audit 2026-09-12).
+    task_data["object_id"] = (target.data.get(CONF_OBJECT) or {}).get("id", "")
+    task_data["consumes_parts"] = _stamp_part_links(task_data.get("consumes_parts"), source.entry_id)
+    if task_data["consumes_parts"] is None:
+        del task_data["consumes_parts"]
+    phases = task_data.get("phases")
+    if isinstance(phases, dict):
+        for pdef in phases.values():
+            if isinstance(pdef, dict) and isinstance(pdef.get("consumes_parts"), list):
+                pdef["consumes_parts"] = _stamp_part_links(pdef["consumes_parts"], source.entry_id)
+
+    state = deepcopy(src_store.get_task_state(task_id))
     state.pop("next_history_ref", None)
     for entry in state.get("history") or []:
         if isinstance(entry, dict):
@@ -279,6 +329,24 @@ async def async_move_task(
             if any(isinstance(r, dict) and r.get("task_id") == task_id for r in group.get("task_refs", [])):
                 member_groups.append(gid)
 
+    # Vacation exemption + document links: the delete leg strips both
+    # (task-id keyed, otherwise never pruned) — snapshot, restore after.
+    vacation_exempt = False
+    if global_entry is not None:
+        exempt = global_entry.options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+        vacation_exempt = isinstance(exempt, list) and task_id in exempt
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    doc_links = doc_store.task_links(task_id) if doc_store is not None else {}
+    photo_ids: set[str] = set()
+    for entry in state.get("history") or []:
+        if isinstance(entry, dict):
+            photo_ids.update(history_photo_ids(entry))
+    # Re-home only the photos that are linked to this task alone — a doc
+    # shared with the object's other tasks stays where it is (link kept).
+    rehome_ids = {
+        did for did in photo_ids if did in doc_links and (doc_store.get(did) or {}).get("task_ids") == [task_id]
+    }
+
     existing = target.data.get(CONF_TASKS, {})
     if len(existing) >= MAX_TASKS_PER_OBJECT:
         raise ValueError(f"The target object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks")
@@ -294,11 +362,18 @@ async def async_move_task(
     new_data[CONF_OBJECT] = obj
     hass.config_entries.async_update_entry(target, data=new_data)
 
-    tgt_rd = _get_runtime_data(hass, target.entry_id)
-    tgt_store = getattr(tgt_rd, "store", None) if tgt_rd else None
-    if tgt_store is not None:
-        tgt_store.put_task_state(task_id, state)
-        await tgt_store.async_save()
+    tgt_store.put_task_state(task_id, state)
+    await tgt_store.async_save()
+
+    if doc_store is not None and doc_links:
+        await doc_store.async_relink_task(task_id, doc_links, rehome_doc_ids=rehome_ids, object_id=task_data["object_id"])
+
+    if vacation_exempt and global_entry is not None:
+        options = dict(global_entry.options)
+        current = options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+        if task_id not in current:
+            options[CONF_VACATION_EXEMPT_TASK_IDS] = [*current, task_id]
+            hass.config_entries.async_update_entry(global_entry, options=options)
 
     if member_groups and global_entry is not None:
         options = dict(global_entry.options or global_entry.data)

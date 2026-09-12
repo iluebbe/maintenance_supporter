@@ -423,7 +423,16 @@ class GlobalOptionsFlow(OptionsFlow):
 
     def _save_and_return(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         """Merge user input into options and return to the menu."""
+        from .helpers.settings_registry import ALLOWED_SETTING_KEYS
+
         merged = self._current
+        # HA's NumberSelector hands back floats; the settings registry (WS
+        # writes, export/import) types these keys as int. Store what the
+        # registry expects so a settings backup round-trips (bug audit
+        # 2026-09-12).
+        for key, value in list(user_input.items()):
+            if ALLOWED_SETTING_KEYS.get(key) is int and isinstance(value, float) and value.is_integer():
+                user_input[key] = int(value)
         merged.update(user_input)
         self.hass.config_entries.async_update_entry(self.config_entry, options=merged)
         return self.async_show_menu(
@@ -809,9 +818,12 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_NOTIFY_EVENT_ONLY,
                         default=current.get(CONF_NOTIFY_EVENT_ONLY, False),
                     ): selector.BooleanSelector(),
+                    # default (not suggested_value): an emptied optional text
+                    # field is omitted from user_input and the old template
+                    # survived - a default round-trips "" (bug audit 2026-09-12).
                     vol.Optional(
                         CONF_NOTIFY_EXTRA_DATA,
-                        description={"suggested_value": current.get(CONF_NOTIFY_EXTRA_DATA, "")},
+                        default=current.get(CONF_NOTIFY_EXTRA_DATA, ""),
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
                     ),

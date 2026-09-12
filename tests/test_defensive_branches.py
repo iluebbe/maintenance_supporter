@@ -241,6 +241,7 @@ async def test_lead_reminder_sends_and_respects_guards(hass: HomeAssistant, glob
     assert not calls
 
     # A ghost responsible user falls back to the global service.
+    nm._lead_sent.clear()  # a new day (bug audit 2026-09-12: one send per task, lead and day)
     with patch.object(nm, "_is_quiet_hours", return_value=False):
         await nm.async_send_lead_reminder(
             entry_id=obj_entry.entry_id,

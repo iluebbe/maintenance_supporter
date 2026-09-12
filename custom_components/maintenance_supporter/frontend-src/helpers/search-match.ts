@@ -115,6 +115,23 @@ export function fieldScore(variants: string[], text: string): number {
 
 export interface WeightedField { text: string | null | undefined; weight: number }
 
+/** Does `text` match `query` under the same rules as the server's search
+ *  (fold-tolerant, every query word must hit, order free)? For a client-side
+ *  filter that has to agree with a server hit — the task history's notes
+ *  filter is pre-filled from a global-search history hit, and a plain
+ *  `includes()` there left the tab empty for "spuelung" vs "Spülung" or a
+ *  reordered query (bug audit 2026-09-12). A query without any word token
+ *  (punctuation only) falls back to a folded substring test. */
+export function matchesQuery(text: string | null | undefined, query: string): boolean {
+  if (!text) return false;
+  const tokens = queryTokens(query);
+  if (!tokens.length) {
+    const needle = fold(query.trim());
+    return needle.length > 0 && fold(text).includes(needle);
+  }
+  return scoreFields(tokens, [{ text, weight: 1 }]) > 0;
+}
+
 /** 0 = at least one token matched nothing; otherwise the weighted sum over tokens. */
 export function scoreFields(tokens: string[][], fields: WeightedField[]): number {
   if (!tokens.length) return 0;

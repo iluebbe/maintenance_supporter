@@ -938,7 +938,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
         # Action succeeded — dismiss notification and clear NM rate-limit state
         if nm is not None:
-            await nm.async_dismiss_task_notification(task_id)
+            cfg_entry = hass.config_entries.async_get_entry(entry_id)
+            task_cfg = ((cfg_entry.data.get(CONF_TASKS) or {}).get(task_id) or {}) if cfg_entry is not None else {}
+            await nm.async_dismiss_task_notification(task_id, responsible_user_id=task_cfg.get("responsible_user_id"))
             nm.clear_task_state(entry_id, task_id)
 
     unsub_notification = hass.bus.async_listen("mobile_app_notification_action", _handle_notification_action)
@@ -2010,6 +2012,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is not None:
             await nm.async_unload()
+        # The index's backfill timer / extraction tasks must not outlive the
+        # integration when the LAST entry to go is an object entry (the
+        # global entry may already be gone) - bug audit 2026-09-12.
+        text_index = hass.data.get(DOMAIN, {}).get(DOCUMENT_TEXT_INDEX_KEY)
+        if text_index is not None:
+            text_index.cancel()
         for unsub in hass.data.get(DOMAIN, {}).get(EVENT_UNSUBS_KEY, []):
             unsub()
         hass.data.pop(DOMAIN, None)

@@ -171,10 +171,15 @@ def sanitize_lifetime_overrides(raw: Any) -> dict[str, int]:
         ctype = canonical_type(key)
         if ctype in NO_FORECAST_TYPES:
             continue
+        if isinstance(value, bool):
+            continue
         try:
-            months = int(value)
+            as_float = float(value)
         except (TypeError, ValueError):
             continue
+        if not as_float.is_integer():
+            continue
+        months = int(as_float)
         if MIN_LIFETIME_MONTHS <= months <= MAX_LIFETIME_MONTHS:
             out[ctype] = months
         if len(out) >= 100:
@@ -245,12 +250,21 @@ def observe_replacements(hass: HomeAssistant, batteries: list[Any]) -> int:
             entry = {"type": ctype, "model": model, "dates": []}
         iso = last.isoformat()
         dates: list[str] = [d for d in entry["dates"] if isinstance(d, str)]
+        anchored = bool(entry.get("anchored"))
         if iso in dates and entry.get("type") == ctype and entry.get("model", "") == model:
             continue
         if iso not in dates:
-            dates.append(iso)
-            dates = sorted(set(dates))[-_LOG_DATES_CAP:]
-        log[key] = {"type": ctype, "model": model, "dates": dates}
+            if dates and iso < min(dates):
+                # Bug audit 2026-09-12: a date OLDER than everything logged is
+                # a correction of the anchor (the real install date entered
+                # after the fact), not another swap. It replaces the earliest
+                # date - and makes the first interval trustworthy.
+                dates = sorted({iso, *(d for d in dates if d != min(dates))})
+                anchored = True
+            else:
+                dates.append(iso)
+                dates = sorted(set(dates))[-_LOG_DATES_CAP:]
+        log[key] = {"type": ctype, "model": model, "dates": dates, "anchored": anchored}
         changed += 1
     if changed:
         state[REPLACEMENT_LOG_KEY] = log
@@ -267,8 +281,17 @@ def _intervals(entry: dict[str, Any]) -> list[float]:
         except ValueError:
             continue
     dates.sort()
+    pairs = list(pairwise(dates))
+    if pairs and not entry.get("anchored"):
+        # The earliest date is whatever was there when the fleet started
+        # watching - Battery Notes seeds it with the note's creation day, so
+        # ten sensors set up together and swapped over the following weeks
+        # would "learn" a one-month life. Only intervals between OBSERVED
+        # swaps count; a corrected anchor (see observe_replacements) is the
+        # user's real install date and counts too.
+        pairs = pairs[1:]
     out: list[float] = []
-    for a, b in pairwise(dates):
+    for a, b in pairs:
         days = (b - a).days
         if _INTERVAL_MIN_DAYS <= days <= _INTERVAL_MAX_DAYS:
             out.append(days / 30.44)

@@ -16,7 +16,9 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import math
 import os
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
@@ -47,6 +49,18 @@ MAX_DOC_BYTES = 25 * 1024 * 1024  # 25 MB
 
 KIND_FILE = "file"
 KIND_WEBLINK = "weblink"
+
+
+def _safe_size(raw: Any) -> int:
+    """Byte size from an exported record — a non-numeric / negative / bool
+    value degrades to 0 instead of raising (an unchecked ``int(...)`` here
+    aborted the whole JSON import on one bad record; bug audit 2026-09-12).
+    """
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        return 0
+    if isinstance(raw, float) and not math.isfinite(raw):
+        return 0
+    return max(0, int(raw))
 
 
 class DocumentStore:
@@ -312,58 +326,77 @@ class DocumentStore:
         for meta in docs:
             if not isinstance(meta, dict):
                 continue
-            tags = [x for x in (meta.get("tags") or []) if isinstance(x, str)]
-            title = meta.get("title")
-            if meta.get("kind") == KIND_WEBLINK:
-                url = meta.get("url")
-                # Only http(s) links — the add-link WS path enforces the same, so
-                # a crafted export can't smuggle a javascript:/data: URL that the
-                # frontend would later window.open (matches ws_documents_add_link).
-                if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
-                    continue
-                new_id = uuid4().hex
-                _remember(meta, new_id)
-                self.documents[new_id] = {
-                    "object_id": object_id,
-                    "kind": KIND_WEBLINK,
-                    "url": url,
-                    "title": title or url,
-                    "tags": tags,
-                    "task_ids": _remap(meta),
-                    "part_ids": _remap_parts(meta),
-                    "added_at": dt_util.utcnow().isoformat(),
-                }
-                created += 1
-            elif meta.get("kind") == KIND_FILE:
-                digest = meta.get("hash")
-                if not isinstance(digest, str) or len(digest) != 64 or not all(c in "0123456789abcdef" for c in digest):
-                    continue
-                size = int(meta.get("size") or 0)
-                mime = meta.get("mime") or "application/octet-stream"
-                blob = self.blobs.get(digest)
-                if blob is None:
-                    blob = {"size": size, "mime": mime, "refcount": 0}
-                    self.blobs[digest] = blob
-                blob["refcount"] += 1
-                new_id = uuid4().hex
-                _remember(meta, new_id)
-                self.documents[new_id] = {
-                    "object_id": object_id,
-                    "kind": KIND_FILE,
-                    "hash": digest,
-                    "title": title or meta.get("filename") or "document",
-                    "filename": meta.get("filename") or "document",
-                    "mime": mime,
-                    "size": size,
-                    "tags": tags,
-                    "task_ids": _remap(meta),
-                    "part_ids": _remap_parts(meta),
-                    "added_at": dt_util.utcnow().isoformat(),
-                }
-                created += 1
+            # One malformed record (tags not a list, size a string, …) must
+            # skip THAT record, not abort the caller's whole import — the
+            # JSON importer calls this outside its per-object try
+            # (bug audit 2026-09-12).
+            try:
+                created += self._import_one_document(meta, object_id, _remember, _remap, _remap_parts)
+            except (TypeError, ValueError, AttributeError):
+                _LOGGER.warning("Skipping malformed document record %r during import", meta.get("id"))
         if created:
             await self._async_save()
         return created
+
+    def _import_one_document(
+        self,
+        meta: dict[str, Any],
+        object_id: str,
+        remember: Callable[[dict[str, Any], str], None],
+        remap: Callable[[dict[str, Any]], list[str]],
+        remap_parts: Callable[[dict[str, Any]], list[str]],
+    ) -> int:
+        """Recreate ONE exported document record; returns 1 if created, else 0."""
+        tags = [x for x in (meta.get("tags") or []) if isinstance(x, str)]
+        title = meta.get("title")
+        if meta.get("kind") == KIND_WEBLINK:
+            url = meta.get("url")
+            # Only http(s) links — the add-link WS path enforces the same, so
+            # a crafted export can't smuggle a javascript:/data: URL that the
+            # frontend would later window.open (matches ws_documents_add_link).
+            if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
+                return 0
+            new_id = uuid4().hex
+            remember(meta, new_id)
+            self.documents[new_id] = {
+                "object_id": object_id,
+                "kind": KIND_WEBLINK,
+                "url": url,
+                "title": title or url,
+                "tags": tags,
+                "task_ids": remap(meta),
+                "part_ids": remap_parts(meta),
+                "added_at": dt_util.utcnow().isoformat(),
+            }
+            return 1
+        if meta.get("kind") == KIND_FILE:
+            digest = meta.get("hash")
+            if not isinstance(digest, str) or len(digest) != 64 or not all(c in "0123456789abcdef" for c in digest):
+                return 0
+            size = _safe_size(meta.get("size"))
+            mime = meta.get("mime") or "application/octet-stream"
+            blob = self.blobs.get(digest)
+            if blob is None:
+                blob = {"size": size, "mime": mime, "refcount": 0}
+                self.blobs[digest] = blob
+            blob["refcount"] += 1
+            new_id = uuid4().hex
+            remember(meta, new_id)
+            self.documents[new_id] = {
+                "object_id": object_id,
+                "kind": KIND_FILE,
+                "hash": digest,
+                "title": title or meta.get("filename") or "document",
+                "filename": meta.get("filename") or "document",
+                "mime": mime,
+                "size": size,
+                "tags": tags,
+                "task_ids": remap(meta),
+                "part_ids": remap_parts(meta),
+                "added_at": dt_util.utcnow().isoformat(),
+            }
+            return 1
+        return 0
 
     # ------------------------------------------------------------------
     # Update
@@ -460,6 +493,62 @@ class DocumentStore:
                 hit = True
             if hit:
                 touched += 1
+        if touched:
+            await self._async_save()
+        return touched
+
+    def task_links(self, task_id: str) -> dict[str, int | None]:
+        """``{doc_id: page hint or None}`` for every document linked to a task.
+
+        The snapshot ``task/move`` takes BEFORE its delete leg runs
+        :meth:`async_unlink_task`, so the links can be restored afterwards.
+        """
+        links: dict[str, int | None] = {}
+        for doc_id, doc in self.documents.items():
+            linked = doc.get("task_ids")
+            if isinstance(linked, list) and task_id in linked:
+                pages = doc.get("task_pages")
+                page = pages.get(task_id) if isinstance(pages, dict) else None
+                links[doc_id] = page if isinstance(page, int) and page >= 1 else None
+        return links
+
+    async def async_relink_task(
+        self,
+        task_id: str,
+        links: dict[str, int | None],
+        *,
+        rehome_doc_ids: set[str] | None = None,
+        object_id: str | None = None,
+    ) -> int:
+        """Restore task links dropped by :meth:`async_unlink_task`; optionally
+        re-home some of the docs to another object. Returns the docs touched.
+
+        ``task/move`` (bug audit 2026-09-12): the moved task's completion
+        photos are documents owned by the SOURCE object — when that object is
+        later deleted, ``async_remove_object`` takes the photos with it and
+        the history entries' ``photo_doc_ids`` dangle. Documents carry only
+        an ``object_id``, so re-homing is a plain re-stamp; the caller decides
+        which docs move (photos linked to nothing but this task) and which
+        merely keep their link (a manual shared with the object's other
+        tasks). Unknown doc ids are skipped.
+        """
+        touched = 0
+        rehome = rehome_doc_ids or set()
+        for doc_id, page in links.items():
+            doc = self.documents.get(doc_id)
+            if doc is None:
+                continue
+            linked = list(doc.get("task_ids") or [])
+            if task_id not in linked:
+                linked.append(task_id)
+            doc["task_ids"] = linked
+            if page is not None:
+                pages = dict(doc.get("task_pages") or {})
+                pages[task_id] = page
+                doc["task_pages"] = pages
+            if object_id and doc_id in rehome:
+                doc["object_id"] = object_id
+            touched += 1
         if touched:
             await self._async_save()
         return touched

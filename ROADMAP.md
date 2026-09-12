@@ -621,6 +621,21 @@ home-assistant/android: collect `clipData` URIs in `parseResult`, fall back
 to `parseResult` otherwise (~10 lines). File an issue/PR there; once it
 ships, drop the Android fallback in `helpers/companion.ts`.
 
+### 🟡 Deferred from the bug audit 2026-09-12
+
+- **PDF text extraction has no byte budget before the character cap**: `page.extract_text()` decompresses a page's
+  content stream in full before the result is truncated, so a crafted FlateDecode-heavy PDF (≤ 25 MB) from a
+  write-permitted user can exhaust the executor's memory (serialised by the work lock, so it also stalls the backfill).
+  A per-page raw-size cutoff or a page-level timeout in `helpers/document_text.py`.
+- **Learned battery lifetimes die with the fleet task**: the replacement log lives in the fleet task's Store state; when
+  the task is deleted and `_reconcile_fleet_task` mints a new one, the learning is orphaned. Key the log by fleet entry
+  (or migrate it on re-creation) and prune entries whose entity ids vanished.
+- **Typed date that fails to parse is silently dropped on Save**: `ms-date-field` keeps an invalid entry in typing mode
+  without emitting a value; the Save click blurs the field and the dialog saves the previous date. The field should
+  expose an invalid state the dialogs block on (or keep the red helper visible after re-open).
+- **Event-only mode fires one notification event per resolved device** of the responsible person (`target` differs);
+  arguably by design — an automation routes on `target` — but worth a switch or a note if someone trips over it.
+
 ### 💡 State-change trigger: several From/To states per side (#167 follow-up)
 
 The from-only recovery gap is fixed (2.75): a single-transition latch with
