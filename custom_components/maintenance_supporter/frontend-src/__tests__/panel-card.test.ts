@@ -93,6 +93,14 @@ describe("panel card (#174)", () => {
     expect(card.style.height).to.equal("80vh");
   });
 
+  it("caps the fill height inside the card editor's preview", async () => {
+    const { card } = await mountCard();
+    (card as unknown as { preview: boolean }).preview = true;
+    expect(card.style.height).to.equal("480px");
+    (card as unknown as { preview: boolean }).preview = false;
+    expect(card.style.height).to.not.equal("480px");
+  });
+
   it("maps the height option to a CSS length", () => {
     expect(configuredHeight(undefined)).to.equal(null);
     expect(configuredHeight("")).to.equal(null);
@@ -136,7 +144,7 @@ describe("panel card (#174)", () => {
     view.value = "v1";
     view.dispatchEvent(new Event("change"));
     expect(changes.at(-1)!.view).to.equal("v1");
-    const height = sr.querySelector("ha-textfield") as HTMLInputElement;
+    const height = sr.querySelector("input.height-input") as HTMLInputElement;
     height.value = "600px";
     height.dispatchEvent(new Event("change"));
     expect(changes.at(-1)!.height).to.equal("600px");

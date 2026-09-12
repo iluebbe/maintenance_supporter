@@ -31,6 +31,8 @@ const PANEL_URL_PATH = "maintenance-supporter";
 /** HA's own `narrow` breakpoint (home-assistant-main: max-width 870px). */
 const NARROW_MAX_PX = 870;
 const MIN_FILL_PX = 320;
+/** Height inside the card editor's preview pane (fill would swallow the dialog). */
+const PREVIEW_PX = 480;
 export const PANEL_CARD_TABS = ["today", "dashboard", "calendar", "settings"] as const;
 
 export interface PanelCardConfig {
@@ -85,7 +87,30 @@ export class MaintenanceSupporterPanelCard extends HTMLElement {
   private _loading: Promise<void> | null = null;
   private _observer: ResizeObserver | null = null;
   private _lastWidth = -1;
+  private _preview = false;
   private _onResize = () => this._layout(true);
+
+  /** HA's card editor sets `preview` on the element it previews; the fill
+   *  height would otherwise stretch the preview pane to the whole viewport. */
+  set preview(value: boolean) {
+    this._preview = !!value;
+    this._layout(true);
+  }
+
+  get preview(): boolean {
+    return this._preview;
+  }
+
+  private _inEditorPreview(): boolean {
+    if (this._preview) return true;
+    let node: Node | null = this;
+    for (let i = 0; node && i < 40; i++) {
+      const el = node as Element;
+      if (el.tagName === "HUI-CARD-PREVIEW" || el.tagName === "HUI-DIALOG-EDIT-CARD") return true;
+      node = el.parentElement ?? ((el.getRootNode() as ShadowRoot).host ?? null);
+    }
+    return false;
+  }
 
   constructor() {
     super();
@@ -217,6 +242,10 @@ export class MaintenanceSupporterPanelCard extends HTMLElement {
       return;
     }
     if (!this.isConnected) return;
+    if (this._inEditorPreview()) {
+      this.style.height = `${PREVIEW_PX}px`;
+      return;
+    }
     const top = Math.max(0, rect.top);
     const fill = Math.max(MIN_FILL_PX, Math.floor(window.innerHeight - top));
     this.style.height = `${fill}px`;
@@ -281,12 +310,10 @@ export class MaintenanceSupporterPanelCardEditor extends LitElement {
             </div>`
           : nothing}
         <div class="field">
-          <ha-textfield
-            .label=${t("panel_card_height", L)}
+          <div class="field-label">${t("panel_card_height", L)}</div>
+          <input class="height-input" type="text" placeholder="fill"
             .value=${this._config.height === undefined ? "" : String(this._config.height)}
-            placeholder="fill"
-            @change=${(e: Event) => this._set("height", (e.target as HTMLInputElement).value.trim())}
-          ></ha-textfield>
+            @change=${(e: Event) => this._set("height", (e.target as HTMLInputElement).value.trim())} />
           <div class="field-help">${t("panel_card_height_help", L)}</div>
         </div>
       </div>
@@ -295,7 +322,7 @@ export class MaintenanceSupporterPanelCardEditor extends LitElement {
 
   static styles = css`
     .editor { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
-    ha-textfield { display: block; }
+    input.height-input { padding: 8px; border-radius: 4px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); font-size: 14px; max-width: 320px; box-sizing: border-box; }
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field-label { font-size: 13px; color: var(--secondary-text-color); font-weight: 500; }
     .field-help { font-size: 12px; color: var(--secondary-text-color); }
