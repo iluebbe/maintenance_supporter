@@ -17,8 +17,9 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .const import CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN
+from .const import CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN, LIFECYCLE_HISTORY_TYPES
 from .helpers.parts import round_qty
+from .helpers.pause import write_anchor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -312,8 +313,20 @@ class MaintenanceStore:
         return self.get_task_state(task_id).get("last_performed")
 
     def set_last_performed(self, task_id: str, date_str: str) -> None:
-        """Set last_performed date string."""
+        """Set last_performed date string (modifiers untouched — the
+        coordinator's ``_persist_dynamic_state`` writes those itself)."""
         self._ensure_task(task_id)["last_performed"] = date_str
+
+    def set_anchor(self, task_id: str, date_str: str | None, *, clear_modifiers: bool = True) -> None:
+        """Move (or with ``None`` clear) a task's ``last_performed`` anchor.
+
+        Every anchor poke outside the coordinator goes through here: the
+        history edit/delete re-derivation, the dialog's "last performed"
+        field, unarchive/resume. With ``clear_modifiers`` (the default) the
+        cycle's per-occurrence modifiers (``due_override``,
+        ``last_planned_due``) go too — see :func:`helpers.pause.write_anchor`.
+        """
+        write_anchor(self._ensure_task(task_id), date_str, clear_modifiers=clear_modifiers)
 
     def set_phase_cursor(self, task_id: str, cursor: int) -> None:
         """Set the phase cursor (#139) — which cycle step is due next."""
@@ -459,6 +472,23 @@ class MaintenanceStore:
     # ------------------------------------------------------------------
     # Migration
     # ------------------------------------------------------------------
+
+
+def reanchor_from_history(store: MaintenanceStore, task_id: str, history: list[dict[str, Any]]) -> str | None:
+    """Re-derive a task's ``last_performed`` from its history and write it.
+
+    The single rule behind the history edit AND delete commands: the anchor
+    is the day of the LATEST lifecycle entry (completed / reset / skipped /
+    missed — ``LIFECYCLE_HISTORY_TYPES``); with none left the task reads as
+    never performed. The cycle modifiers (a postpone's ``due_override``,
+    ``last_planned_due``) are dropped only when the anchor actually MOVES —
+    editing a note on the last completion keeps a postponed occurrence,
+    deleting that completion abandons it. Returns the new anchor.
+    """
+    latest = max((h.get("timestamp") or "" for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES), default="")
+    anchor = latest[:10] if latest else None  # YYYY-MM-DD prefix
+    store.set_anchor(task_id, anchor, clear_modifiers=anchor != store.get_last_performed(task_id))
+    return anchor
 
 
 def extract_dynamic_from_task(

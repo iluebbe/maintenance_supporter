@@ -27,6 +27,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    COMPLETION_PROVENANCE_NOTES,
     CONF_OBJECT,
     CONF_TASK_ENABLED,
     CONF_TASKS,
@@ -171,7 +172,7 @@ class MaintenanceTodoList(TodoListEntity):
             return
         await coordinator.complete_maintenance(
             task_id,
-            notes="Completed from the To-do list",
+            notes=COMPLETION_PROVENANCE_NOTES["todo"],
             unattended=True,
             source="todo",
             # HA's entity-service call carries the user in the context.

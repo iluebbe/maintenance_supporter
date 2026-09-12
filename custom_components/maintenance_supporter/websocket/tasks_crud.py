@@ -61,6 +61,7 @@ from ..helpers.task_fields import (
     WARNING_DAYS_RANGE,
 )
 from . import (
+    ID_FIELD,
     _get_runtime_data,
     _load_object_entry,
     cleanup_group_refs,
@@ -623,14 +624,14 @@ async def ws_update_task(
     # date). Writing the edit into entry.data alone was masked for exactly
     # those tasks — the dialog's "last performed" edit never took effect.
     # Write the Store too; the static copy above stays as the legacy /
-    # no-Store fallback (bug audit 2026-09-12).
+    # no-Store fallback (bug audit 2026-09-12). A MOVED anchor starts a new
+    # cycle, so a postpone (due_override) of the old one goes with it; the
+    # dialog re-sends an unchanged date on every save, which must not.
     if "last_performed" in msg:
         rd_lp = _get_runtime_data(hass, msg["entry_id"])
         if rd_lp and rd_lp.store:
-            if msg["last_performed"]:
-                rd_lp.store.set_last_performed(task_id, msg["last_performed"])
-            else:
-                rd_lp.store.get_task_state(task_id).pop("last_performed", None)
+            new_anchor = msg["last_performed"] or None
+            rd_lp.store.set_anchor(task_id, new_anchor, clear_modifiers=new_anchor != rd_lp.store.get_last_performed(task_id))
             await rd_lp.store.async_save()
 
     # #150: allow_skip is stored only when False (absence = allowed) — the
@@ -964,9 +965,9 @@ async def ws_duplicate_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/move",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
-        vol.Required("target_entry_id"): str,
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
+        vol.Required("target_entry_id"): ID_FIELD,
     }
 )
 @require_write

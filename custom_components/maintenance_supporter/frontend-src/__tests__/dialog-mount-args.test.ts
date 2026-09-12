@@ -18,6 +18,7 @@
 
 import { expect, waitUntil } from "@open-wc/testing";
 import { openCompleteDialog, openCreateTaskDialog } from "../dialog-mount";
+import { DEFAULT_CURRENCY_SYMBOL } from "../styles";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 
 const TASK_TAG = "maintenance-task-dialog";
@@ -141,7 +142,7 @@ describe("dialog-mount argument forwarding", () => {
     expect(dlg.requireTagScan).to.equal(false);
     expect(dlg.restockDefault).to.equal(null);
     expect(dlg.restockUnitCost).to.equal(null);
-    expect(dlg.currencySymbol).to.equal("");
+    expect(dlg.currencySymbol, "reset to the default symbol").to.equal(DEFAULT_CURRENCY_SYMBOL);
     expect(dlg.consumesInfo).to.deep.equal([]);
     expect(dlg.checklistPrefill).to.deep.equal({});
     expect(dlg.viaTagScan).to.equal(false);

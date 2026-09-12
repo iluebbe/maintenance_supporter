@@ -34,6 +34,7 @@ from ..const import (
     MAX_IMPORT_PAYLOAD_BYTES,
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
 )
+from ..helpers.dates import normalize_hhmm
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
@@ -973,11 +974,16 @@ async def ws_import_json(
                 else:
                     task_data.pop("readings", None)
 
-            # schedule_time: strict HH:MM, otherwise drop
+            # schedule_time: canonical HH:MM. The options flow's TimeSelector
+            # stores "HH:MM:SS" and the export writes it verbatim — that used
+            # to be DROPPED here (strict HH:MM), so a backup lost the time.
             st = task_data.get("schedule_time")
             if st is not None:
-                if not isinstance(st, str) or not re.fullmatch(r"^([01]\d|2[0-3]):[0-5]\d$", st):
+                normalized = normalize_hhmm(st)
+                if normalized is None:
                     task_data.pop("schedule_time", None)
+                else:
+                    task_data["schedule_time"] = normalized
 
             # entity_slug: the WS create/update paths reject anything but
             # [a-z0-9_]+ (it becomes part of the entity_id); import copied the

@@ -24,12 +24,14 @@ from custom_components.maintenance_supporter.const import (
     TaskPriority,
     TriggerType,
 )
+from custom_components.maintenance_supporter.helpers.settings_registry import INT_RANGES
 
 _FRONTEND = Path(__file__).resolve().parents[1] / "custom_components" / "maintenance_supporter" / "frontend-src"
 _OBJECT_COLUMNS_TS = _FRONTEND / "helpers" / "object-columns.ts"
 _SETTINGS_VIEW_TS = _FRONTEND / "components" / "settings-view.ts"
 _TASK_DIALOG_TS = _FRONTEND / "components" / "task-dialog.ts"
 _STYLES_TS = _FRONTEND / "styles.ts"
+_SETTING_RANGES_TS = _FRONTEND / "helpers" / "setting-ranges.ts"
 _LOCALES_DIR = _FRONTEND / "locales"
 
 
@@ -429,3 +431,18 @@ def test_ts_environmental_picker_filter_matches_options_flow() -> None:
     ts_classes = _quoted_strings(_block(ts_src, "export const ENVIRONMENTAL_PICKER_DEVICE_CLASSES"))
     assert ts_domains == py_domains, "ENVIRONMENTAL_PICKER_DOMAINS drifted from the adaptive options step"
     assert ts_classes == py_classes, "ENVIRONMENTAL_PICKER_DEVICE_CLASSES drifted from the adaptive options step"
+
+
+def test_ts_setting_int_ranges_match_registry() -> None:
+    """helpers/setting-ranges.ts mirrors settings_registry.INT_RANGES key for
+    key and tuple for tuple — the settings view binds every number input's
+    min/max (and its client-side reject) to the TS copy, while the WS
+    sanitiser silently DROPS a value outside the Python range. The panel
+    had drifted to max=100 for max_notifications_per_day (backend 1000) and
+    min=1 for budget_alert_threshold (backend 10)."""
+    src = _SETTING_RANGES_TS.read_text(encoding="utf-8")
+    start = src.index("export const SETTING_INT_RANGES")
+    block = src[start : src.index("};", start)]
+    ts_ranges = {k: (int(lo), int(hi)) for k, lo, hi in re.findall(r"^\s*(\w+):\s*\[(\d+),\s*(\d+)\],?$", block, re.MULTILINE)}
+    assert ts_ranges, "no ranges parsed from setting-ranges.ts"
+    assert ts_ranges == INT_RANGES, "setting-ranges.ts SETTING_INT_RANGES drifted from settings_registry.INT_RANGES"

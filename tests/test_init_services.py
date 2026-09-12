@@ -186,8 +186,13 @@ async def test_notification_action_complete(
     hass.bus.async_fire("mobile_app_notification_action", {"action": action})
     await hass.async_block_till_done()
 
-    # unattended=True: a notification button cannot ask for required details.
-    runtime_data.coordinator.complete_maintenance.assert_called_once_with(task_id=TASK_ID_1, unattended=True, source="notification_action", completed_by=None)
+    # unattended=True: a notification button cannot ask for required details;
+    # the provenance note comes from the one table (COMPLETION_PROVENANCE_NOTES).
+    from custom_components.maintenance_supporter.const import COMPLETION_PROVENANCE_NOTES
+
+    runtime_data.coordinator.complete_maintenance.assert_called_once_with(
+        task_id=TASK_ID_1, notes=COMPLETION_PROVENANCE_NOTES["notification_action"], unattended=True, source="notification_action", completed_by=None
+    )
 
 
 async def test_notification_action_skip(

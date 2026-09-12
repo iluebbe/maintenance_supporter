@@ -9,6 +9,7 @@ were actual bugs.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -115,10 +116,47 @@ def test_custom_card_registration_single_source() -> None:
 
 
 def test_currency_fallback_single_source() -> None:
-    """The panel's currency symbol comes from ONE getter — two of the seven
-    call sites had drifted to an empty-string fallback."""
-    text = (FRONTEND / "maintenance-panel.ts").read_text(encoding="utf-8")
-    assert text.count("currency_symbol ||") == 1, "currency fallback duplicated — route through _currencySymbol"
+    """The currency-symbol fallback lives ONLY in styles.currencySymbolOf —
+    seven call sites had forked into "€" (panel) vs "" (cards, complete
+    dialog), so the cards rendered a bare "12" where the panel showed
+    "12 €" (DRY audit 2026-09-12)."""
+    offenders = [
+        p.name
+        for p in _frontend_sources()
+        if p.name != "styles.ts" and "__tests__" not in p.parts and "currency_symbol ||" in p.read_text(encoding="utf-8")
+    ]
+    assert not offenders, f"currency fallback forked in {offenders} — use currencySymbolOf()"
+
+
+def test_cost_figures_go_through_format_cost() -> None:
+    """Every money figure renders via formatCost (symbol + the global
+    currency_decimals) — three sites had bypassed it with formatNumber(cost,
+    L, 2) and one rendered `${cost} ${currency}` raw, so they ignored the
+    decimals setting and dropped/duplicated the symbol."""
+    bypass = re.compile(r"formatNumber\(\s*[^,()]*(?:cost|spent)")
+    offenders = [
+        f"{p.name}: {m.group(0)}"
+        for p in _frontend_sources()
+        if p.name != "styles.ts" and "__tests__" not in p.parts
+        for m in bypass.finditer(p.read_text(encoding="utf-8"))
+    ]
+    assert not offenders, f"cost formatted without formatCost: {offenders}"
+
+
+def test_no_translation_literal_fallbacks() -> None:
+    """`t(key) || "Literal"` is dead code — styles.t() never returns "" (it
+    falls back to English, then to the key) — and the ~90 literals had
+    drifted from en.json (16 differed, three were German). Strip the tail;
+    a missing key belongs in en.json, not inline."""
+    fallback = re.compile(r'(?<![\w.])t\([^()]*\)\s*\|\|\s*"')
+    offenders = {
+        p.name: n
+        for p in _frontend_sources()
+        if "__tests__" not in p.parts
+        for n in [len(fallback.findall(p.read_text(encoding="utf-8")))]
+        if n
+    }
+    assert not offenders, f'`t(...) || "literal"` fallbacks remain: {offenders} — drop the literal (add the key to en.json if missing)'
 
 
 def test_fresh_task_copy_strip_list_single_source() -> None:

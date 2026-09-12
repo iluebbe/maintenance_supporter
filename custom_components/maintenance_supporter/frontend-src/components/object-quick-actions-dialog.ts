@@ -107,8 +107,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     if (!this._entryId || !this._data) return;
     const archived = !!this._data.object.archived;
     if (!archived) {
-      const confirmText = t("confirm_archive_object", this._lang)
-        || "Archive this object and its tasks?";
+      const confirmText = t("confirm_archive_object", this._lang);
       if (!window.confirm(confirmText)) return;
     }
     this._busy = true;
@@ -165,11 +164,11 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
 
               <div class="tasks-section">
                 <div class="section-header">
-                  <strong>${t("tasks", L) || "Tasks"}</strong>
+                  <strong>${t("tasks", L)}</strong>
                   <span class="count">${tasks.length}</span>
                 </div>
                 ${tasks.length === 0
-                  ? html`<div class="empty">${t("no_tasks", L) || "No tasks yet."}</div>`
+                  ? html`<div class="empty">${t("no_tasks", L)}</div>`
                   : html`
                       <div class="task-list">
                         ${tasks.map((task) => html`
@@ -197,25 +196,25 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                     <div class="actions">
                       <button class="btn primary" @click=${this._onAddTask} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:plus"></ha-icon>
-                        ${t("add_task", L) || "Add task"}
+                        ${t("add_task", L)}
                       </button>
                       <button class="btn" @click=${this._onEditObject} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:pencil"></ha-icon>
-                        ${t("edit", L) || "Edit"}
+                        ${t("edit", L)}
                       </button>
                       <button class="btn" @click=${this._onArchiveObject} ?disabled=${this._busy}>
                         <ha-icon icon="${obj.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-                        ${obj.archived ? (t("unarchive_object", L) || "Unarchive object") : (t("archive_object", L) || "Archive object")}
+                        ${obj.archived ? t("unarchive_object", L) : t("archive_object", L)}
                       </button>
                       <button class="btn danger" @click=${this._onDelete} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:delete"></ha-icon>
-                        ${t("delete", L) || "Delete"}
+                        ${t("delete", L)}
                       </button>
                     </div>
                   `
                 : nothing}
             `
-          : html`<div class="loading">${t("loading", L) || "Loading…"}</div>`}
+          : html`<div class="loading">${t("loading", L)}</div>`}
       </div>
     `;
   }

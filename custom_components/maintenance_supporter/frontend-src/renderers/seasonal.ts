@@ -45,9 +45,9 @@ export function renderSeasonalCardCompact(task: MaintenanceTask, lang: string, f
         })}
       </div>
       <div class="seasonal-legend">
-        <span class="legend-item"><span class="dot low"></span> ${t("shorter", lang) || "Kürzer"}</span>
-        <span class="legend-item"><span class="dot normal"></span> ${t("normal", lang) || "Normal"}</span>
-        <span class="legend-item"><span class="dot high"></span> ${t("longer", lang) || "Länger"}</span>
+        <span class="legend-item"><span class="dot low"></span> ${t("shorter", lang)}</span>
+        <span class="legend-item"><span class="dot normal"></span> ${t("normal", lang)}</span>
+        <span class="legend-item"><span class="dot high"></span> ${t("longer", lang)}</span>
       </div>
     </div>
   `;

@@ -22,6 +22,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { registerCustomCard } from "./helpers/register-card";
+import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { langOf, t } from "./styles";
 import type { HomeAssistant, SavedView } from "./types";
 
@@ -33,12 +34,11 @@ const NARROW_MAX_PX = 870;
 const MIN_FILL_PX = 320;
 /** Height inside the card editor's preview pane (fill would swallow the dialog). */
 const PREVIEW_PX = 480;
-export const PANEL_CARD_TABS = ["today", "dashboard", "calendar", "settings"] as const;
 
 export interface PanelCardConfig {
   type: string;
   /** Opening tab; unset = the tab the panel remembers. */
-  tab?: (typeof PANEL_CARD_TABS)[number] | "";
+  tab?: OverviewTab | "";
   /** Opening saved view (id or name); implies the dashboard tab. */
   view?: string;
   /** Card height: unset / "fill" = fill the viewport below the card's top
@@ -171,7 +171,7 @@ export class MaintenanceSupporterPanelCard extends HTMLElement {
 
   private _presets(): { tab?: string; view?: string } {
     const presets: { tab?: string; view?: string } = {};
-    if ((PANEL_CARD_TABS as readonly string[]).includes(this._config.tab ?? "")) presets.tab = this._config.tab;
+    if ((OVERVIEW_TABS as readonly string[]).includes(this._config.tab ?? "")) presets.tab = this._config.tab;
     if (typeof this._config.view === "string" && this._config.view.trim()) presets.view = this._config.view.trim();
     return presets;
   }
@@ -318,7 +318,7 @@ export class MaintenanceSupporterPanelCardEditor extends LitElement {
           <div class="field-label">${t("panel_card_tab", L)}</div>
           <select class="tab-select" .value=${this._config.tab || ""} @change=${(e: Event) => this._set("tab", (e.target as HTMLSelectElement).value)}>
             <option value="" ?selected=${!this._config.tab}>${t("panel_card_tab_default", L)}</option>
-            ${PANEL_CARD_TABS.map((tab) => html`<option value=${tab} ?selected=${this._config.tab === tab}>${tabLabel(tab)}</option>`)}
+            ${OVERVIEW_TABS.map((tab) => html`<option value=${tab} ?selected=${this._config.tab === tab}>${tabLabel(tab)}</option>`)}
           </select>
         </div>
         ${this._views.length > 0

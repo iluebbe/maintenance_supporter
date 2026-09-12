@@ -8,6 +8,15 @@ import { BUNDLE_VERSION } from "./helpers/bundle-version";
 // derives the real symbol from const.BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY].
 export const DEFAULT_CURRENCY_SYMBOL = "€";
 
+/** The display symbol of a currency-bearing response block (`budget` in
+ *  settings / stats, a BudgetStatus) — the ONE fallback rule. Seven call
+ *  sites had forked into "€" (panel) vs "" (cards, complete dialog), so the
+ *  cards rendered a bare "12" where the panel showed "12 €" (DRY audit
+ *  2026-09-12). */
+export function currencySymbolOf(budget: { currency_symbol?: string | null } | null | undefined): string {
+  return budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
+}
+
 // Moved to the dependency-free status-constants.ts so the dashboard strategy
 // bundle can share them without pulling Lit in; re-exported here so every
 // existing `from "./styles"` import keeps working.

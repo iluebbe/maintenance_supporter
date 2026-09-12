@@ -13,6 +13,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    BUDGET_CURRENCIES,
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
@@ -32,6 +33,8 @@ from ..const import (
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_TASKS,
+    DEFAULT_BUDGET_CURRENCY,
+    DEFAULT_CURRENCY_DECIMALS,
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DOMAIN,
@@ -925,6 +928,42 @@ def _service_payload(title: str, message: str, *, tag: str, url: str = "/mainten
     }
 
 
+def build_action_buttons(
+    hass: HomeAssistant,
+    options: Mapping[str, Any],
+    lang: str,
+    *,
+    entry_id: str | None,
+    task_id: str | None,
+    skip_allowed: bool,
+) -> list[dict[str, str]]:
+    """The Companion-app action buttons a reminder carries, per the three
+    action toggles — translated labels, at most three (Android's cap).
+
+    The one builder behind the status reminder AND the Settings test send
+    (which hand-built the same list with hard-coded English labels and
+    ignored the per-task skip lock). ``entry_id``/``task_id`` ``None`` = the
+    test send: its ids are ``MS_TEST_<VERB>``, which the action listener
+    ignores — a tap on a test button must not complete anything. ``hass`` is
+    unused today (the caller resolves ``lang``); it keeps the signature in
+    step with ``notification_context`` for a future lookup.
+    """
+    del hass
+    is_test = entry_id is None or task_id is None
+
+    def _id(verb: str) -> str:
+        return f"MS_TEST_{verb}" if is_test else f"MS_{verb}_{entry_id}_{task_id}"
+
+    actions: list[dict[str, str]] = []
+    if options.get(CONF_ACTION_COMPLETE_ENABLED, False):
+        actions.append({"action": _id("COMPLETE"), "title": f"✅ {_notif_t('action_complete', lang)}"})
+    if options.get(CONF_ACTION_SKIP_ENABLED, False) and skip_allowed:
+        actions.append({"action": _id("SKIP"), "title": f"⏭️ {_notif_t('action_skip', lang)}"})
+    if options.get(CONF_ACTION_SNOOZE_ENABLED, False):
+        actions.append({"action": _id("SNOOZE"), "title": f"\U0001f4a4 {_notif_t('action_snooze', lang)}"})
+    return actions[:3]
+
+
 def _notif_t(key: str, lang: str, **kwargs: str) -> str:
     """Get notification translation string."""
     strings = _NOTIFICATION_STRINGS.get(lang, _NOTIFICATION_STRINGS["en"])
@@ -1498,7 +1537,10 @@ class NotificationManager:
             completed_by_name=actor_name,
             completed_at=completed_at,
         )
-        service_data: dict[str, Any] = {"title": title, "message": message}
+        # Same payload shape as every other kind: the per-task tag (the
+        # completion replaces the task's still-standing reminder on the phone)
+        # and the deep link the context already carries.
+        service_data = _service_payload(title, message, tag=f"maintenance_{task_id}", url=str(context["url"]))
         sent = await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
         if sent:
             self._daily_count += 1
@@ -1577,32 +1619,15 @@ class NotificationManager:
         Returns:
             True if the notification was sent successfully, False otherwise.
         """
-        options = self._global_options
-        lang = self._lang
-
         # Build action buttons for Companion App
-        actions: list[dict[str, str]] = []
-        if options.get(CONF_ACTION_COMPLETE_ENABLED, False):
-            actions.append(
-                {
-                    "action": f"MS_COMPLETE_{entry_id}_{task_id}",
-                    "title": f"\u2705 {_notif_t('action_complete', lang)}",
-                }
-            )
-        if options.get(CONF_ACTION_SKIP_ENABLED, False) and self._skip_allowed(entry_id, task_id):
-            actions.append(
-                {
-                    "action": f"MS_SKIP_{entry_id}_{task_id}",
-                    "title": f"\u23ed\ufe0f {_notif_t('action_skip', lang)}",
-                }
-            )
-        if options.get(CONF_ACTION_SNOOZE_ENABLED, False):
-            actions.append(
-                {
-                    "action": f"MS_SNOOZE_{entry_id}_{task_id}",
-                    "title": f"\U0001f4a4 {_notif_t('action_snooze', lang)}",
-                }
-            )
+        actions = build_action_buttons(
+            self.hass,
+            self._global_options,
+            self._lang,
+            entry_id=entry_id,
+            task_id=task_id,
+            skip_allowed=self._skip_allowed(entry_id, task_id),
+        )
 
         service_data = _service_payload(
             title,
@@ -1611,7 +1636,7 @@ class NotificationManager:
             url=f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}",
         )
         if actions:
-            service_data["data"]["actions"] = actions[:3]  # Android supports max 3
+            service_data["data"]["actions"] = actions
 
         if context is None:
             context = notification_context(self.hass, KIND_STATUS, entry_id=entry_id, task_id=task_id)
@@ -1840,8 +1865,8 @@ class NotificationManager:
         period: str,
         spent: float,
         budget: float,
-        currency_symbol: str = "€",
-        decimals: int = 2,
+        currency_symbol: str = BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY],
+        decimals: int = DEFAULT_CURRENCY_DECIMALS,
     ) -> None:
         """Send a budget threshold alert notification."""
         if not self.enabled or not self._has_target:

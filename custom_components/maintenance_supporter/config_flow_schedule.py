@@ -47,6 +47,7 @@ from .const import (
     ScheduleType,
 )
 from .helpers.global_options import get_default_warning_days
+from .helpers.pause import write_anchor
 from .helpers.schedule import KIND_WEEKDAYS
 from .helpers.task_fields import INTERVAL_DAYS_RANGE, TASK_PRIORITIES, WARNING_DAYS_RANGE
 
@@ -222,7 +223,7 @@ class ScheduleStepsMixin:
                 self._current_task[CONF_TASK_INTERVAL_ANCHOR] = user_input.get(CONF_TASK_INTERVAL_ANCHOR, "completion")
                 last_performed = user_input.get("last_performed")
                 if last_performed:
-                    self._current_task["last_performed"] = str(last_performed)
+                    write_anchor(self._current_task, str(last_performed))
 
                 return await _resolve(on_complete())
 
@@ -269,7 +270,7 @@ class ScheduleStepsMixin:
                     CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
                 if user_input.get("last_performed"):
-                    self._current_task["last_performed"] = str(user_input["last_performed"])
+                    write_anchor(self._current_task, str(user_input["last_performed"]))
                 return await _resolve(on_complete())
 
         schema = calendar_schema(kind).extend(
@@ -411,7 +412,7 @@ def build_new_task_record(
     if anchor != "completion":
         task_data["interval_anchor"] = anchor
     if include_last_performed and "last_performed" in current_task:
-        task_data["last_performed"] = current_task["last_performed"]
+        write_anchor(task_data, current_task["last_performed"])
     if "trigger_config" in current_task:
         task_data["trigger_config"] = current_task["trigger_config"]
     if CONF_TASK_NOTES in current_task:

@@ -56,6 +56,7 @@ from .const import (
 from .helpers.budget import compute_spend
 from .helpers.entry_tasks import write_task
 from .helpers.global_options import get_global_options, is_schedule_time_enabled
+from .helpers.pause import is_task_inert
 from .helpers.schedule import normalize_task_storage, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
@@ -867,7 +868,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
-        currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
+        currency_symbol = BUDGET_CURRENCIES.get(currency_code, BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY])
         decimals = int(global_options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS))
 
         # Use cached budget totals (recalculate if stale or missing)
@@ -1102,17 +1103,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # panel or a voice command record a completion on a task nobody can
         # see any more - rotation advanced, parts consumed. Same gate here.
         if not auto:
-            _td = merged[task_id]
-            if (
-                _td.get("archived_at") is not None
-                or _td.get("enabled") is False
-                or self.entry.data.get(CONF_OBJECT, {}).get("paused_at") is not None
-            ):
-                raise ServiceValidationError(
-                    translation_domain=DOMAIN,
-                    translation_key="task_inactive",
-                    translation_placeholders={"task_name": str(_td.get("name", task_id))},
-                )
+            self._require_active(task_id, merged[task_id], translation_key="task_inactive")
 
         # Completion window (earliest_completion_days) - at the choke point like
         # every other rule. The WS / to-do / voice surfaces pre-check it for a
@@ -1344,6 +1335,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         _LOGGER.debug("Maintenance completed: %s on %s", task.name, self.maintenance_object.name)
 
+        # #173 follow-up: which surface completed it (see COMPLETION_SOURCES);
+        # a trigger recovery names itself.
+        effective_source = source or ("auto_recovery" if auto else None)
+
         # Fire event after persistence — power users wire HA automations on
         # this; the integration's own action_listener also subscribes here
         # to dispatch the per-task on_complete_action service-call.
@@ -1357,8 +1352,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 duration=duration,
                 feedback=feedback,
                 completed_by=completed_by,
-                # #173 follow-up: which surface completed it (see COMPLETION_SOURCES).
-                source=source or ("auto_recovery" if auto else None),
+                source=effective_source,
                 # Recorded readings (#83 scalar / #161 phase 2 slots) so an
                 # automation can forward a meter value without reading history.
                 reading_value=reading_value,
@@ -1376,7 +1370,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # #173 follow-up: the opt-in completion notification (household news).
         # A backfill is bookkeeping, not news.
         if is_latest:
-            await self._async_notify_completed(task_id, task, source or ("auto_recovery" if auto else None), completed_by, effective_ts.isoformat())
+            await self._async_notify_completed(task_id, task, effective_source, completed_by, effective_ts.isoformat())
 
     async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None:
         """Record a completion because the task's trigger cleared itself (#53).
@@ -1392,13 +1386,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task_data = merged.get(task_id)
         if task_data is None:
             return
-        # Inert tasks never auto-complete.
-        if task_data.get("archived_at") is not None or task_data.get("enabled") is False:
-            return
-        # A paused object fires nothing — the periodic evaluator gates on this,
-        # but this event-driven recovery path must too (else a paused object
-        # whose sensor recovers records a real completion, defeating the pause).
-        if self.entry.data.get(CONF_OBJECT, {}).get("paused_at") is not None:
+        # Inert tasks never auto-complete. A paused object fires nothing — the
+        # periodic evaluator gates on this, but this event-driven recovery
+        # path must too (else a paused object whose sensor recovers records a
+        # real completion, defeating the pause). Silent, unlike the manual gates.
+        if self._is_inert(task_data):
             return
         # Race guard: if a completion was recorded moments ago (e.g. a manual
         # complete whose trigger reset crossed paths with a queued state
@@ -1443,14 +1435,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         date: date | None = None,
     ) -> None:
         """Reset the last performed date of a task."""
-        # A reset starts a new cycle — a following completion is a NEW
-        # real-world action, never a double-tap of the previous one.
-        self._recent_manual_completions.pop(task_id, None)
-        self._clear_notification_state(task_id)
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
+        # Same gate as complete/skip: a retired / disabled / paused task gets
+        # no new cycle from a stale notification button or an old NFC sticker.
+        self._require_active(task_id, merged[task_id], translation_key="task_inactive")
+
+        # A reset starts a new cycle — a following completion is a NEW
+        # real-world action, never a double-tap of the previous one.
+        self._recent_manual_completions.pop(task_id, None)
+        self._clear_notification_state(task_id)
 
         task = MaintenanceTask.from_dict(merged[task_id])
         task.reset(reset_date=date)
@@ -1476,10 +1472,30 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
+        self._require_active(task_id, merged[task_id], translation_key="task_inactive")
         task = MaintenanceTask.from_dict(merged[task_id])
         task.due_override = until.isoformat()
         await self._persist_and_signal_task_change(task_id, task)
         _LOGGER.debug("Occurrence postponed to %s: %s on %s", until, task.name, self.maintenance_object.name)
+
+    def _is_inert(self, task_data: dict[str, Any]) -> bool:
+        """Archived / disabled task, or a paused object (helpers.pause.is_task_inert)."""
+        return is_task_inert(task_data, self.entry.data.get(CONF_OBJECT, {}))
+
+    def _require_active(self, task_id: str, task_data: dict[str, Any], *, translation_key: str) -> None:
+        """Refuse a lifecycle action on an inert task with a translated error.
+
+        The one gate behind complete / skip / reset / postpone — a stale
+        notification button, an old NFC sticker or a voice command must not
+        touch a retired, disabled or paused task's cycle. ``translation_key``
+        picks the wording (``task_inactive`` / ``task_inactive_skip``).
+        """
+        if self._is_inert(task_data):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key=translation_key,
+                translation_placeholders={"task_name": str(task_data.get("name", task_id))},
+            )
 
     def _clear_notification_state(self, task_id: str) -> None:
         """Forget the per-status notification bookkeeping for a task.
@@ -1515,17 +1531,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Same gate as complete_maintenance: a retired / disabled / paused
         # task must not get a new cycle from a stale notification button or
         # an old NFC sticker (bug review 2026-09-04).
-        _td = merged[task_id]
-        if (
-            _td.get("archived_at") is not None
-            or _td.get("enabled") is False
-            or self.entry.data.get(CONF_OBJECT, {}).get("paused_at") is not None
-        ):
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="task_inactive_skip",
-                translation_placeholders={"task_name": str(_td.get("name", task_id))},
-            )
+        self._require_active(task_id, merged[task_id], translation_key="task_inactive_skip")
 
         # Only now that the skip is going to happen: like reset, skipping
         # restarts the cycle — clear the double-tap window so a follow-up

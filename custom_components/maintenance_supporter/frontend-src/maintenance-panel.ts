@@ -7,7 +7,8 @@ import { objectRef, parseRef, renderRefChip, taskRef } from "./helpers/reference
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatNumber, formatCost, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, syncCurrencyDecimals} from "./styles";
+import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
@@ -151,14 +152,14 @@ interface PartsOverviewRow {
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
 type ObjectSortMode = "alphabetical" | "due_soonest" | "task_count";
 type GroupByMode = "none" | "area" | "group" | "user" | "object";
-type OverviewTab = "today" | "dashboard" | "calendar" | "settings";
+// OverviewTab + OVERVIEW_TABS live in helpers/overview-tabs.ts — shared with the panel card's tab preset (#174).
 
 // Value lists for everything that arrives as a free string — localStorage,
 // a saved view, a deep-link query — and must be validated before it lands in
 // state (an unknown mode would be persisted and silently break sorting).
 const SORT_MODES: readonly SortMode[] = ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"];
 const GROUP_BY_MODES: readonly GroupByMode[] = ["none", "area", "group", "user", "object"];
-const OVERVIEW_TABS: readonly OverviewTab[] = ["today", "dashboard", "calendar", "settings"];
+// (OVERVIEW_TABS: imported from helpers/overview-tabs.ts.)
 /** The dashboard list's status filter options (the <select> in the toolbar). */
 const STATUS_FILTERS: readonly string[] = ["overdue", "due_soon", "triggered", "ok"];
 
@@ -232,7 +233,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _budget: BudgetStatus | null = null;
 
   private get _currencySymbol(): string {
-    return this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
+    return currencySymbolOf(this._budget);
   }
 
   @state() private _groups: Record<string, MaintenanceGroup> = {};
@@ -3578,7 +3579,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     <td>${row.object_name || "—"}</td>
                     <td>${row.stock !== null ? `${row.stock}${row.unit ? ` ${row.unit}` : ""}` : "—"}</td>
                     <td>${row.reorder_threshold ?? "—"}</td>
-                    <td>${row.cost != null ? `${row.cost} ${currency}`.trim() : "—"}</td>
+                    <td>${row.cost != null ? formatCost(row.cost, currency, L) : "—"}</td>
                     <td>${row.storage_location || "—"}</td>
                     <td>
                       ${row.consumers.length === 0
@@ -3622,7 +3623,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         esc(row.consumers.map((c) => `${c.object_name ?? ""}/${c.task_name ?? c.task_id}×${c.quantity}`).join(" | ")),
       ].join(","));
     }
-    const ts = new Date().toISOString().slice(0, 10);
+    const ts = isoDateLocal(new Date());
     downloadTextFile(lines.join("\n"), `maintenance_parts_${ts}.csv`, "text/csv;charset=utf-8");
   }
 
@@ -3632,7 +3633,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       const result = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/objects/csv",
       }) as { csv: string };
-      const ts = new Date().toISOString().slice(0, 10);
+      const ts = isoDateLocal(new Date());
       downloadTextFile(result.csv, `maintenance_objects_${ts}.csv`, "text/csv;charset=utf-8");
     } catch {
       this._showToast(t("action_error", this._lang));
@@ -3831,7 +3832,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         const pct = Math.min(100, Math.max(0, (spent / budget) * 100));
         const color = pct >= 100 ? "var(--error-color, #f44336)" : pct >= b.alert_threshold_pct ? "var(--warning-color, #ff9800)" : "var(--success-color, #4caf50)";
         return html`
-          <div class="stat-item budget-tile" title="${label}: ${formatNumber(spent, L, 2)} / ${formatCost(budget, cs, L)}">
+          <div class="stat-item budget-tile" title="${label}: ${formatCost(spent, cs, L)} / ${formatCost(budget, cs, L)}">
             <span class="stat-value budget-tile-value">${formatCost(spent, cs, L)}</span>
             <span class="budget-tile-max">/ ${formatCost(budget, cs, L)}</span>
             <div class="budget-tile-bar"><div style="width:${pct}%; background:${color}"></div></div>

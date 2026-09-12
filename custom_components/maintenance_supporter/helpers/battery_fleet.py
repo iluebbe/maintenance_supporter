@@ -49,6 +49,8 @@ from .battery_lifetime import (
     LifetimeInfo,
     canonical_type,
     has_type_forecast,
+    is_rechargeable_type,
+    is_shoppable_type,
     lifetime_resolver,
     observe_replacements,
     table_lifetime_months,
@@ -148,24 +150,6 @@ def _norm_type(raw: Any) -> str:
     """Canonicalize a battery-type label for grouping (upper, trimmed)."""
     s = str(raw or "").strip()
     return s.upper() if s else "UNKNOWN"
-
-
-# Battery Notes' library labels rechargeable packs with type strings like
-# "Rechargeable", "Nuki Battery Pack" or li-ion cell names. Such a battery is
-# CHARGED, never bought — so it must not enter the shopping groupings, and the
-# type-lifetime table (a primary-cell prior) has nothing honest to say about
-# it. Low tracking and the discharge-trend forecast stay: "charge the lock in
-# ~20 days" is exactly what the roster is for.
-_RECHARGEABLE_TYPE_RE = re.compile(
-    r"recharge?able|akku|accu|li[- ]?ion|li[- ]?po|lifepo|ni[- ]?mh|nicd|18650|21700|"
-    r"power ?pack|battery ?pack|built[- ]?in",
-    re.IGNORECASE,
-)
-
-
-def is_rechargeable_type(battery_type: Any) -> bool:
-    """Whether a battery-type label describes a rechargeable pack/cell."""
-    return bool(_RECHARGEABLE_TYPE_RE.search(str(battery_type or "")))
 
 
 def lifetime_months(battery_type: str) -> int:
@@ -284,6 +268,11 @@ def build_overview(
         t = _norm_type(bat.battery_type)
         types_seen[t] = None
         rechargeable = is_rechargeable_type(bat.battery_type)
+        # The shopping groupings list only types a part can stand behind —
+        # the same predicate discover_battery_types mints parts by (a low
+        # "UNKNOWN" / "Manual" battery used to land in needs_now with no
+        # part to buy).
+        shoppable = is_shoppable_type(bat.battery_type)
         # Blend (#114 follow-up): the DISCHARGE TREND wins where the recorder
         # data supports it (medium/high confidence, filtered upstream) — it is
         # device-specific and usage-aware; the type's typical lifetime is the
@@ -322,13 +311,13 @@ def build_overview(
             else:
                 low_row = _row(bat, t, None, rechargeable=rechargeable, lifetime=info)
             ov.low.append(low_row)
-            if not rechargeable:
+            if shoppable:
                 ov.needs_now[t] = ov.needs_now.get(t, 0) + bat.quantity
             ov.all.append({**low_row, "status": "low"})
             continue
         if days is not None and days <= horizon_days:
             ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info))
-            if not rechargeable:
+            if shoppable:
                 ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
             ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info), "status": "soon"})
             continue
@@ -924,7 +913,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
         )
         # Due = the forecast has PASSED (same arithmetic as build_overview's
         # forecast_overdue). Rechargeables never get a table forecast.
-        if due_without_sensor and not is_rechargeable_type(battery_type) and has_type_forecast(battery_type):
+        if due_without_sensor and is_shoppable_type(battery_type):
             pred = _predicted_date(bat, lifetime_for(bat).months)
             bat.low = pred is not None and pred < today
         out.append(bat)
@@ -1253,13 +1242,12 @@ def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
     """
     totals: OrderedDict[str, int] = OrderedDict()
     for bat in read_batteries(hass):
-        if is_rechargeable_type(bat.battery_type):
+        # "Irreplaceable" / "Manual" / "Solar" describe the device, not a
+        # cell anyone stocks - no part, no reorder threshold. Same predicate
+        # as the overview's shopping groupings (is_shoppable_type).
+        if not is_shoppable_type(bat.battery_type):
             continue
         t = _norm_type(bat.battery_type)
-        if t == "UNKNOWN" or not has_type_forecast(bat.battery_type):
-            # "Irreplaceable" / "Manual" / "Solar" describe the device, not a
-            # cell anyone stocks - no part, no reorder threshold.
-            continue
         totals[t] = totals.get(t, 0) + bat.quantity
     return OrderedDict(sorted(totals.items()))
 

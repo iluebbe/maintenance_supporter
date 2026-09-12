@@ -257,7 +257,7 @@ export function openHistoryEditDialog(draft: HistoryEntryDraft): boolean {
 export function openCompleteDialog(args: CompleteDialogArgs): boolean {
   const dlg = getOrCreate<MaintenanceCompleteDialog>(COMPLETE_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  fillAndOpenCompleteDialog(dlg, args, (getHass()?.language) || "en");
+  fillAndOpenCompleteDialog(dlg, args, langOf(getHass()));
   return true;
 }
 

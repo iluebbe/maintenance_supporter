@@ -35,6 +35,16 @@ def is_object_paused(obj: dict[str, Any]) -> bool:
     return obj.get("paused_at") is not None
 
 
+def is_task_inert(task_data: dict[str, Any], obj: dict[str, Any]) -> bool:
+    """True when nothing may happen to the task: it is archived, disabled or
+    its object is paused. The one predicate behind the coordinator's
+    complete / skip / reset / postpone gates and the silent auto-recovery
+    refusal — three hand-copied spellings before, and reset/postpone had
+    none (a stale notification button or an old NFC sticker could restart
+    a retired task's cycle)."""
+    return task_data.get("archived_at") is not None or task_data.get("enabled") is False or is_object_paused(obj)
+
+
 def pause_due_for_auto_resume(obj: dict[str, Any], today: date) -> bool:
     """True when a paused object's ``paused_until`` day has been reached."""
     until = obj.get("paused_until")
@@ -58,6 +68,25 @@ def clear_cycle_modifiers(task_state: dict[str, Any]) -> None:
     """
     task_state.pop("last_planned_due", None)
     task_state.pop("due_override", None)
+
+
+def write_anchor(task_state: dict[str, Any], date_str: str | None, *, clear_modifiers: bool = True) -> None:
+    """Write (or with ``None`` clear) a task dict's ``last_performed`` anchor.
+
+    The ONE place an anchor is poked into a task-state dict — the Store's
+    :meth:`MaintenanceStore.set_anchor`, the CSV importer and the config
+    flows all go through it. Moving the anchor abandons the cycle it
+    described, so the per-occurrence modifiers (``due_override`` from a
+    postpone, ``last_planned_due``) go with it unless the caller says
+    otherwise: a history edit that deleted the last completion used to leave
+    the postponed date in place, and ``next_due`` kept returning it.
+    """
+    if date_str is None:
+        task_state.pop("last_performed", None)
+    else:
+        task_state["last_performed"] = date_str
+    if clear_modifiers:
+        clear_cycle_modifiers(task_state)
 
 
 def reanchor_recurring_task(
@@ -91,8 +120,7 @@ def reanchor_recurring_task(
         if store is None:
             task_data["last_performed"] = today_iso
     if store is not None:
-        store.set_last_performed(task_id, today_iso)
-        clear_cycle_modifiers(store._ensure_task(task_id))
+        store.set_anchor(task_id, today_iso)
 
 
 def build_resumed_entry_data(

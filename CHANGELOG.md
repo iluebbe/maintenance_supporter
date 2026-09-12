@@ -39,6 +39,35 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **DRY review 2026-09-12 (round 3)** — drift found between copies of one rule, fixed at the source with tripwires:
+  - **Photo pickers inside the Android Companion app**: the history entry's edit dialog and the documents section still
+    used a multi-select input (the app returns an empty list for it, #161) — one shared `<ms-photo-picker>` (camera,
+    gallery, one-per-pick inside the app, in-app viewfinder) now serves the complete dialog, the edit dialog and the
+    documents section; the upload request lives in one helper.
+  - **Correcting a completion keeps a postpone**: editing or deleting a history entry, editing *Last performed* in the
+    task dialog, a CSV import and the setup flows wrote the last-performed anchor without clearing `due_override` — one
+    `set_anchor` rule now clears the one-shot postpone whenever the anchor moves (a note-only edit keeps it).
+  - **Reset / postpone on an archived task or a paused object** were not refused (complete and skip were) — one inert
+    gate for all four; a stale notification button or NFC tag no longer starts a new cycle on an archived task.
+  - **Completion notification without `tag`/`url`**: tapping it opened nothing and the dismiss never matched; the
+    Settings *Send test* built its own action buttons with English labels — both go through the shared payload and
+    button builder, and the test send fills a sample for **every** event field (`{{ task_ref }}` etc. render in the test).
+  - **Panel settings bounds ≠ backend**: *Max. notifications per day* stopped at 100 (backend 1000), *Budget alert
+    threshold* allowed 1 (backend 10) — out-of-range values were dropped silently while the toast said "saved". Every
+    numeric setting now takes its range from one mirrored table (tripwired) and rejects with the usual toast.
+  - **Due time with seconds lost on import**: a task time saved through the options flow (`09:00:00`) was dropped by a
+    backup restore; one `parse_hhmm` for sensor, calendar and model, import normalises instead of dropping (quiet hours
+    the same).
+  - **Amounts and currency symbol**: parts-by-object table, the card's quick-actions dialog and the budget tile tooltip
+    bypassed the decimals setting; cards showed "12" where the panel shows "12 €"; a recorded cost of 0 was hidden.
+  - **Battery fleet**: the "mark recharged" wording and the offline chip only appeared in the *Needs now* rows; the
+    fleet task ignored the household warning days; *Needed now/soon* could list a type with no part behind it.
+  - **Documents ZIP archive** now carries document ids and page links, so a ZIP restore re-points completion photos and
+    part manuals like a JSON restore; deleting a document also removes it from history entries and parts.
+  - **Completions by voice and from a notification** now record a provenance note like the other unattended surfaces;
+    `task/move` gained the id length caps every other command has; 96 unreachable `t(key) || "…"` fallbacks (16 of them
+    stale, three German) removed; export filenames use the local date; two custom elements guarded against double
+    registration; vacation preview buttons can no longer be double-tapped.
 - **"Take photo" inside the Android Companion app** (#161 follow-up): the app's file chooser ignores the camera
   hint and opened the gallery instead. The complete dialog and the documents section now bring their own viewfinder
   there (`getUserMedia`, back camera, Capture / Cancel) and hand the shot to the usual upload; when the camera cannot

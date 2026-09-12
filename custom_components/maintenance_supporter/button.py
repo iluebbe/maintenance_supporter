@@ -16,6 +16,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    COMPLETION_PROVENANCE_NOTES,
     CONF_OBJECT,
     CONF_TASK_ENABLED,
     CONF_TASKS,
@@ -118,7 +119,7 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
         if self._action == "complete":
             await self.coordinator.complete_maintenance(
                 self._task_id,
-                notes="Completed from dashboard button",
+                notes=COMPLETION_PROVENANCE_NOTES["button"],
                 unattended=True,
                 source="button",
                 completed_by=self._context.user_id if self._context else None,

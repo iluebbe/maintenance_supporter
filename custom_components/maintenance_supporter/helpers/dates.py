@@ -10,11 +10,37 @@ from __future__ import annotations
 
 import calendar
 from collections.abc import Iterator
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
+from typing import Any
 
+from ..const import TIME_HHMMSS_PATTERN
 from .workday import is_business_day
 
 INTERVAL_UNITS = ("days", "weeks", "months", "years")
+
+
+def parse_hhmm(value: Any) -> time | None:
+    """``"HH:MM"`` or ``"HH:MM:SS"`` (HA's TimeSelector) → ``time`` to the
+    minute; ``None`` when absent or malformed (hours 0–23, minutes 0–59).
+
+    The one parser behind the status sensor, the calendar entity and the
+    model's sub-day overdue refinement — three hand-copied ``split(":")``
+    blocks before — and behind :func:`normalize_hhmm`.
+    """
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not TIME_HHMMSS_PATTERN.match(text):
+        return None
+    hours, minutes = text.split(":")[:2]
+    return time(int(hours), int(minutes))
+
+
+def normalize_hhmm(value: Any) -> str | None:
+    """Canonical ``"HH:MM"`` for a stored time, dropping TimeSelector seconds;
+    ``None`` when the value does not parse (the caller drops the field)."""
+    parsed = parse_hhmm(value)
+    return f"{parsed.hour:02d}:{parsed.minute:02d}" if parsed is not None else None
 
 
 def parse_iso_date(value: str | None) -> date | None:

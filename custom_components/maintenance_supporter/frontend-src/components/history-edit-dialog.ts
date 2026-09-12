@@ -12,13 +12,11 @@ import { property, state } from "lit/decorators.js";
 import { t, langOf, formatNumber } from "../styles";
 import type { HomeAssistant, ReadingSlot, ReadingValue } from "../types";
 import { describeWsError } from "../ws-errors";
-import {
-  MAX_COMPLETION_PHOTOS,
-  discardUploadedPhotos,
-  uploadCompletionPhoto,
-} from "../helpers/photo-upload";
+import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import "./ms-date-field";
 import "./history-photo";
+import "./ms-photo-picker";
+import { photoPickerStyles } from "./ms-photo-picker";
 
 export interface HistoryEntryDraft {
   entry_id: string;
@@ -79,11 +77,14 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   @state() private _partQty: Record<string, number> = {};
   private _partQtyOriginal = "";
 
-  // #161: the edited photo list; the original as a JSON key for the
-  // "did it change" check, plus the docs THIS session uploaded so an
-  // abandoned edit can drop them again (a removed pre-existing photo is
-  // only detached — the file stays in the object's documents).
-  @state() private _photos: string[] = [];
+  // #161: the edited photo list (seeded with the entry's photos; the docs
+  // THIS session uploaded are dropped again by an abandoned edit, a removed
+  // pre-existing photo is only detached — the file stays in the object's
+  // documents); the original as a JSON key for the "did it change" check.
+  private readonly _photos = new PhotoUploadController(this, {
+    entryId: () => this._draft?.entry_id ?? "",
+    hass: () => this.hass,
+  });
   private _photosOriginal = "";
 
   // #161 phase 2: the reading rows (entry snapshot ∪ task slots) with the
@@ -91,8 +92,6 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   @state() private _readingRows: ReadingSlot[] = [];
   @state() private _readingText: Record<string, string> = {};
   private _readingsOriginal = "";
-  private _uploadedIds: string[] = [];
-  @state() private _photoUploading = false;
 
   /** Open the dialog with the given history-entry data. The caller must
    *  pass `original_timestamp` (the entry's current timestamp before edit)
@@ -105,10 +104,8 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     this._partOptions = null;
     this._partQty = {};
     this._partQtyOriginal = "";
-    this._photos = [...(draft.photo_doc_ids ?? [])];
-    this._photosOriginal = JSON.stringify(this._photos);
-    this._uploadedIds = [];
-    this._photoUploading = false;
+    this._photos.reset(draft.photo_doc_ids ?? []);
+    this._photosOriginal = JSON.stringify(this._photos.ids);
     this._seedReadings(draft);
     void this._loadPartOptions();
   }
@@ -145,41 +142,6 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       if (!isNaN(num)) out[row.id] = num;
     }
     return out;
-  }
-
-  private async _onPhotoInput(e: Event): Promise<void> {
-    const input = e.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    input.value = "";
-    const draft = this._draft;
-    if (files.length === 0 || !draft) return;
-    const room = MAX_COMPLETION_PHOTOS - this._photos.length;
-    const accepted = files.slice(0, Math.max(room, 0));
-    this._photoUploading = true;
-    this._error = "";
-    try {
-      for (const file of accepted) {
-        const id = await uploadCompletionPhoto(this.hass, draft.entry_id, file);
-        this._uploadedIds = [...this._uploadedIds, id];
-        this._photos = [...this._photos, id];
-      }
-      if (files.length > accepted.length) {
-        this._error = t("photos_limit", this._lang).replace("{max}", String(MAX_COMPLETION_PHOTOS));
-      }
-    } catch (err) {
-      const key = err instanceof Error && err.message === "doc_too_large" ? "doc_too_large" : "doc_upload_failed";
-      this._error = t(key, this._lang);
-    } finally {
-      this._photoUploading = false;
-    }
-  }
-
-  private _removePhoto(id: string): void {
-    this._photos = this._photos.filter((x) => x !== id);
-    if (this._uploadedIds.includes(id)) {
-      this._uploadedIds = this._uploadedIds.filter((x) => x !== id);
-      void discardUploadedPhotos(this.hass, [id]);
-    }
   }
 
   /** The object's own parts + pooled parts this task draws on — from the
@@ -248,12 +210,8 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     this._error = "";
     this._draft = null;
     this._originalSnapshot = null;
-    if (this._uploadedIds.length > 0) {
-      // Cancelled after uploading: nothing references those files.
-      const orphans = this._uploadedIds;
-      this._uploadedIds = [];
-      void discardUploadedPhotos(this.hass, orphans);
-    }
+    // Cancelled after uploading: nothing references those files.
+    this._photos.discardOrphans();
   }
 
   private _set<K extends keyof HistoryEntryDraft>(
@@ -298,6 +256,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     if (!this._draft || !this._originalSnapshot) return;
     this._saving = true;
     this._error = "";
+    this._photos.clearError();
     try {
       const patch: Record<string, unknown> = {
         type: "maintenance_supporter/task/history/update",
@@ -346,8 +305,8 @@ export class MaintenanceHistoryEditDialog extends LitElement {
         patch.reading_values = map;
       }
       // #161: the photo list, only when it differs from what we opened with.
-      if (JSON.stringify(this._photos) !== this._photosOriginal) {
-        patch.photo_doc_ids = [...this._photos];
+      if (JSON.stringify(this._photos.ids) !== this._photosOriginal) {
+        patch.photo_doc_ids = this._photos.ids;
       }
       // Nothing changed → close without WS call
       const changedKeys = Object.keys(patch).filter(
@@ -358,7 +317,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
         return;
       }
       await this.hass.connection.sendMessagePromise(patch);
-      this._uploadedIds = []; // saved — they belong to the entry now
+      this._photos.markAttached(); // saved — they belong to the entry now
       // Notify upstream so they can refresh
       this.dispatchEvent(
         new CustomEvent("history-entry-saved", {
@@ -383,10 +342,11 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     if (!this._open || !this._draft) return nothing;
     const L = this._lang;
     const d = this._draft;
+    const error = this._error || this._photos.errorText(L);
     return html`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
-        <h2>${t("history_edit_title", L) || "Edit history entry"}</h2>
+        <h2>${t("history_edit_title", L)}</h2>
         <div class="entry-type">
           <ha-icon icon="mdi:tag-outline"></ha-icon>
           <span>${t(d.type, L) || d.type}</span>
@@ -396,7 +356,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
           required
           .hass=${this.hass}
           .lang=${L}
-          .label=${t("history_edit_timestamp", L) || "Timestamp"}
+          .label=${t("history_edit_timestamp", L)}
           .value=${d.timestamp.slice(0, 19)}
           @value-changed=${(e: CustomEvent) => {
             // Always "YYYY-MM-DDTHH:MM:SS" from the field; the naive value
@@ -417,7 +377,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
         </label>
         <div class="row">
           <label>
-            <span>${t("cost", L) || "Cost"}</span>
+            <span>${t("cost", L)}</span>
             <input type="number" min="0" step="0.01"
               .value=${d.cost != null ? String(d.cost) : ""}
               @input=${(e: Event) => {
@@ -426,7 +386,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
               }} />
           </label>
           <label>
-            <span>${t("duration", L) || "Duration (min)"}</span>
+            <span>${t("duration", L)}</span>
             <input type="number" min="0"
               .value=${d.duration != null ? String(d.duration) : ""}
               @input=${(e: Event) => {
@@ -465,35 +425,32 @@ export class MaintenanceHistoryEditDialog extends LitElement {
         ` : nothing}
         <div class="photos-block">
           <span class="parts-title">${t("completion_photos", L)}</span>
-          ${this._photos.length > 0 ? html`
+          ${this._photos.photos.length > 0 ? html`
             <div class="photo-strip">
-              ${this._photos.map((id) => html`
+              ${this._photos.photos.map((p) => html`
                 <div class="photo-tile">
-                  <maintenance-history-photo .hass=${this.hass} .docId=${id}></maintenance-history-photo>
+                  <maintenance-history-photo .hass=${this.hass} .docId=${p.id}></maintenance-history-photo>
                   <button type="button" class="photo-remove" title=${t("remove", L)}
-                    @click=${() => this._removePhoto(id)}>✕</button>
+                    @click=${() => this._photos.remove(p.id)}>✕</button>
                 </div>`)}
             </div>` : nothing}
-          ${this._photos.length < MAX_COMPLETION_PHOTOS ? html`
-            <label class="photo-add">
-              <ha-icon icon="mdi:image-plus"></ha-icon>
-              <span>${this._photoUploading ? t("uploading", L) : t("add_photos", L)}</span>
-              <input type="file" accept="image/*" multiple
-                ?disabled=${this._photoUploading}
-                @change=${this._onPhotoInput} />
-            </label>` : html`<span class="photos-hint">${t("photos_limit", L).replace("{max}", String(MAX_COMPLETION_PHOTOS))}</span>`}
+          ${!this._photos.full
+            ? html`<ms-photo-picker .lang=${L} .busy=${this._photos.uploading} .remaining=${this._photos.remaining}
+                @files-picked=${(e: CustomEvent<{ files: File[] }>) => this._photos.addFiles(e.detail.files)}
+              ></ms-photo-picker>`
+            : html`<span class="photos-hint">${t("photos_limit", L).replace("{max}", String(this._photos.max))}</span>`}
           <span class="photos-hint">${t("history_edit_photos_hint", L)}</span>
         </div>
-        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+        ${error ? html`<div class="error">${error}</div>` : nothing}
         <div class="actions">
           <button class="delete-entry" @click=${this._delete} ?disabled=${this._saving} title=${t("history_delete_entry", L)}>
             <ha-icon icon="mdi:delete-outline"></ha-icon> ${t("history_delete_entry", L)}
           </button>
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
-            ${t("cancel", L) || "Cancel"}
+            ${t("cancel", L)}
           </button>
           <button class="save" @click=${this._save} ?disabled=${this._saving}>
-            ${this._saving ? (t("saving", L) || "Saving…") : (t("save", L) || "Save")}
+            ${this._saving ? t("saving", L) : t("save", L)}
           </button>
         </div>
       </div>
@@ -533,7 +490,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       </label>`;
   }
 
-  static styles = css`
+  static styles = [photoPickerStyles, css`
     :host { display: contents; }
     .backdrop {
       position: fixed; inset: 0;
@@ -637,17 +594,9 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       background: var(--error-color, #db4437); color: #fff;
       cursor: pointer; font-size: 11px; line-height: 1; padding: 0;
     }
-    .photo-add {
-      display: inline-flex; flex-direction: row; align-items: center; gap: 8px;
-      width: fit-content; padding: 6px 10px;
-      border: 1px dashed var(--divider-color, #444); border-radius: 8px;
-      cursor: pointer; font-size: 13px; color: var(--secondary-text-color);
-      --mdc-icon-size: 18px;
-    }
-    .photo-add:hover { border-color: var(--primary-color); }
-    .photo-add input[type="file"] { display: none; }
+    /* the camera / gallery pickers come from photoPickerStyles (ms-photo-picker) */
     .photos-hint { font-size: 12px; color: var(--secondary-text-color); }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-history-edit-dialog")) {

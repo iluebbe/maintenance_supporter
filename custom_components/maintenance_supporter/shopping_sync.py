@@ -51,7 +51,7 @@ from homeassistant.core import (
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
-from .const import CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .const import COMPLETION_PROVENANCE_NOTES, CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from .helpers.global_options import get_global_options
 from .helpers.parts import PART_REF_FIELD
 
@@ -309,7 +309,7 @@ class ShoppingListSync:
         try:
             await coordinator.complete_maintenance(
                 task_id=task_id,
-                notes="Completed from the shopping list",
+                notes=COMPLETION_PROVENANCE_NOTES["shopping_list"],
                 unattended=True,
                 source="shopping_list",
             )

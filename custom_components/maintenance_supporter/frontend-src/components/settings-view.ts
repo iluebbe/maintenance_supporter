@@ -13,6 +13,8 @@ import { AVATAR_PALETTE, personOf, renderPersonAvatar } from "../helpers/person"
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
 import { invalidateSettingsCache } from "../helpers/settings-cache";
+import { SETTING_INT_RANGES, settingIntRange } from "../helpers/setting-ranges";
+import { isoDateLocal } from "../helpers/calendar-bucket";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -153,6 +155,11 @@ const CURRENCIES = [
   "CZK", "PLN", "RUB", "SEK", "NOK", "DKK", "UAH",
 ];
 
+/** The currency_decimals <select> options — derived from the registry range
+ *  (0..3), not a literal list. */
+const CURRENCY_DECIMAL_OPTIONS: readonly number[] = (([lo, hi]) =>
+  Array.from({ length: hi - lo + 1 }, (_, i) => lo + i))(SETTING_INT_RANGES.currency_decimals);
+
 export class MaintenanceSettingsView extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public features!: AdvancedFeatures;
@@ -181,6 +188,9 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _vacAllTasks: Array<{ entry_id: string; object_name: string; task_id: string; task_name: string }> = [];
   @state() private _vacPreview: VacationPreviewRow[] = [];
   @state() private _vacPreviewLoading = false;
+  /** A preview row's Complete/Skip is in flight — the buttons disable so a
+   *  double-tap cannot send the completion twice (DRY audit 2026-09-12). */
+  @state() private _previewBusy = false;
   @state() private _vacSaving = false;
 
   // Print QR codes section state
@@ -509,6 +519,17 @@ export class MaintenanceSettingsView extends LitElement {
     input.value = String(current);
   }
 
+  /** A bounded-integer setting input. min/max come from the registry mirror
+   *  (helpers/setting-ranges.ts — the backend's exact bounds, which the WS
+   *  sanitiser enforces by silently DROPPING an out-of-range value), and an
+   *  out-of-range or cleared entry snaps back with a toast instead of
+   *  sending a default. */
+  private _intSetting(key: string, current: number) {
+    const [lo, hi] = settingIntRange(key);
+    return html`<input type="number" min=${lo} max=${hi} .value=${String(current)}
+      @change=${(e: Event) => this._onBoundedIntChange(e, key, lo, hi, current)} />`;
+  }
+
   private _downloadFile(content: string, filename: string, mime: string): void {
     // Companion-app safe download (target=_blank + DOM + deferred revoke).
     downloadTextFile(content, filename, mime);
@@ -816,22 +837,16 @@ export class MaintenanceSettingsView extends LitElement {
           <!-- No live() on the typed number inputs below (bug audit
                2026-09-12, #176 class): a hass re-render must not reset a
                half-typed value; rejects snap back via _onBoundedIntChange. -->
-          <input type="number" min="0" max="365" .value=${String(g.default_warning_days)}
-            @change=${(e: Event) =>
-              // 0 = no warning window (due soon only on the due date) — #145.
-              this._onBoundedIntChange(e, "default_warning_days", 0, 365, g.default_warning_days)} />
+          <!-- 0 = no warning window (due soon only on the due date) — #145. -->
+          ${this._intSetting("default_warning_days", g.default_warning_days)}
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_consumable_threshold", L)}</span>
-          <input type="number" min="1" max="90" .value=${String(g.default_consumable_threshold ?? 10)}
-            @change=${(e: Event) =>
-              this._onBoundedIntChange(e, "default_consumable_threshold", 1, 90, g.default_consumable_threshold ?? 10)} />
+          ${this._intSetting("default_consumable_threshold", g.default_consumable_threshold ?? 10)}
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_battery_low_percent", L)}</span>
-          <input type="number" min="1" max="90" .value=${String(g.battery_low_percent ?? 20)}
-            @change=${(e: Event) =>
-              this._onBoundedIntChange(e, "battery_low_percent", 1, 90, g.battery_low_percent ?? 20)} />
+          ${this._intSetting("battery_low_percent", g.battery_low_percent ?? 20)}
         </label>
         ${this._renderBatteryNotesHint(L)}
         ${this._renderBatteryLifetimes(L)}
@@ -860,7 +875,7 @@ export class MaintenanceSettingsView extends LitElement {
           <span class="setting-label">${t("settings_currency_decimals", L)}</span>
           <select class="currency-decimals" .value=${live(String(b.currency_decimals ?? 0))}
             @change=${(e: Event) => this._updateSetting("currency_decimals", Number((e.target as HTMLSelectElement).value))}>
-            ${[0, 1, 2, 3].map((d) => html`<option value=${String(d)} ?selected=${(b.currency_decimals ?? 0) === d}>${d}</option>`)}
+            ${CURRENCY_DECIMAL_OPTIONS.map((d) => html`<option value=${String(d)} ?selected=${(b.currency_decimals ?? 0) === d}>${d}</option>`)}
           </select>
         </label>
         <div class="setting-hint">${t("settings_currency_decimals_hint", L)}</div>
@@ -967,8 +982,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${n.due_soon_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_interval_hours", L)}</span>
-            <input type="number" min="0" max="720" .value=${String(n.due_soon_interval_hours)}
-              @change=${(e: Event) => this._updateSetting("notify_due_soon_interval_hours", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+            ${this._intSetting("notify_due_soon_interval_hours", n.due_soon_interval_hours)}
           </label>
         ` : nothing}
 
@@ -982,8 +996,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${n.overdue_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_interval_hours", L)}</span>
-            <input type="number" min="0" max="720" .value=${String(n.overdue_interval_hours)}
-              @change=${(e: Event) => this._updateSetting("notify_overdue_interval_hours", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+            ${this._intSetting("notify_overdue_interval_hours", n.overdue_interval_hours)}
           </label>
         ` : nothing}
 
@@ -997,8 +1010,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${n.triggered_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_interval_hours", L)}</span>
-            <input type="number" min="0" max="720" .value=${String(n.triggered_interval_hours)}
-              @change=${(e: Event) => this._updateSetting("notify_triggered_interval_hours", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+            ${this._intSetting("notify_triggered_interval_hours", n.triggered_interval_hours)}
           </label>
         ` : nothing}
 
@@ -1034,8 +1046,7 @@ export class MaintenanceSettingsView extends LitElement {
 
         <label class="setting-row">
           <span class="setting-label">${t("settings_max_per_day", L)}</span>
-          <input type="number" min="0" max="100" .value=${String(n.max_per_day)}
-            @change=${(e: Event) => this._updateSetting("max_notifications_per_day", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+          ${this._intSetting("max_notifications_per_day", n.max_per_day)}
         </label>
 
         <label class="setting-row">
@@ -1046,8 +1057,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${n.bundling_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_bundle_threshold", L)}</span>
-            <input type="number" min="2" max="20" .value=${String(n.bundle_threshold)}
-              @change=${(e: Event) => this._updateSetting("notification_bundle_threshold", parseInt((e.target as HTMLInputElement).value, 10) || 2)} />
+            ${this._intSetting("notification_bundle_threshold", n.bundle_threshold)}
           </label>
         ` : nothing}
         <label class="setting-row">
@@ -1127,8 +1137,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${a.snooze_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_snooze_hours", L)}</span>
-            <input type="number" min="1" max="168" .value=${String(a.snooze_duration_hours)}
-              @change=${(e: Event) => this._updateSetting("snooze_duration_hours", parseInt((e.target as HTMLInputElement).value, 10) || 4)} />
+            ${this._intSetting("snooze_duration_hours", a.snooze_duration_hours)}
           </label>
         ` : nothing}
         <label class="setting-row">
@@ -1145,8 +1154,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${a.warranty_reminder_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_warranty_reminder_days", L)}</span>
-            <input type="number" min="1" max="365" .value=${String(a.warranty_reminder_days)}
-              @change=${(e: Event) => this._updateSetting("warranty_reminder_days", parseInt((e.target as HTMLInputElement).value, 10) || 30)} />
+            ${this._intSetting("warranty_reminder_days", a.warranty_reminder_days)}
           </label>
         ` : nothing}
         <div class="setting-hint">${t("settings_warranty_reminder_hint", L)}</div>
@@ -1179,8 +1187,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${b.alerts_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_budget_threshold", L)}</span>
-            <input type="number" min="1" max="100" .value=${String(b.alert_threshold_pct)}
-              @change=${(e: Event) => this._updateSetting("budget_alert_threshold", parseInt((e.target as HTMLInputElement).value, 10) || 80)} />
+            ${this._intSetting("budget_alert_threshold", b.alert_threshold_pct)}
           </label>
         ` : nothing}
       </div>
@@ -1197,13 +1204,11 @@ export class MaintenanceSettingsView extends LitElement {
         <p class="section-desc">${t("settings_archive_desc", L)}</p>
         <label class="setting-row">
           <span class="setting-label">${t("settings_archive_oneoff_days", L)}</span>
-          <input type="number" min="0" max="3650" step="1" .value=${String(a.oneoff_days)}
-            @change=${(e: Event) => this._updateSetting("archive_oneoff_days", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+          ${this._intSetting("archive_oneoff_days", a.oneoff_days)}
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_delete_archived_oneoff_days", L)}</span>
-          <input type="number" min="0" max="3650" step="1" .value=${String(a.delete_archived_oneoff_days)}
-            @change=${(e: Event) => this._updateSetting("delete_archived_oneoff_days", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+          ${this._intSetting("delete_archived_oneoff_days", a.delete_archived_oneoff_days)}
         </label>
       </div>
     `;
@@ -1351,9 +1356,9 @@ export class MaintenanceSettingsView extends LitElement {
                 <div class="vac-preview-events">${eventLabel}</div>
               </div>
               <div class="vac-preview-actions">
-                <button @click=${() => this._previewActionComplete(row)}>${t("qr_action_complete", L)}</button>
+                <button .disabled=${this._previewBusy} @click=${() => this._previewActionComplete(row)}>${t("qr_action_complete", L)}</button>
                 ${row.kind === "time_based" && row.allow_skip !== false
-                  ? html`<button @click=${() => this._previewActionSkip(row)}>${t("qr_action_skip", L)}</button>`
+                  ? html`<button .disabled=${this._previewBusy} @click=${() => this._previewActionSkip(row)}>${t("qr_action_skip", L)}</button>`
                   : nothing}
                 <button class=${isExempt ? "vac-notify-on" : ""}
                   @click=${() => this._toggleVacationExempt(row.task_id, !isExempt)}>
@@ -1457,6 +1462,8 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private async _previewActionComplete(row: VacationPreviewRow): Promise<void> {
+    if (this._previewBusy) return;
+    this._previewBusy = true;
     try {
       await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/task/complete",
@@ -1467,10 +1474,14 @@ export class MaintenanceSettingsView extends LitElement {
       await this._loadVacationPreview();
     } catch {
       this._showToast(t("action_error", this._lang));
+    } finally {
+      this._previewBusy = false;
     }
   }
 
   private async _previewActionSkip(row: VacationPreviewRow): Promise<void> {
+    if (this._previewBusy) return;
+    this._previewBusy = true;
     try {
       await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/task/skip",
@@ -1482,6 +1493,8 @@ export class MaintenanceSettingsView extends LitElement {
       await this._loadVacationPreview();
     } catch {
       this._showToast(t("action_error", this._lang));
+    } finally {
+      this._previewBusy = false;
     }
   }
 
@@ -1852,7 +1865,7 @@ export class MaintenanceSettingsView extends LitElement {
         include_history: this._includeHistory,
         ...(ids ? { entry_ids: ids } : {}),
       }) as { data: string };
-      const ts = new Date().toISOString().slice(0, 10);
+      const ts = isoDateLocal(new Date());
       this._downloadFile(result.data, `maintenance_export_${ts}.json`, "application/json");
       this._showToast(t("settings_export_success", this._lang));
     } catch {
@@ -1868,7 +1881,7 @@ export class MaintenanceSettingsView extends LitElement {
       const result = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/settings/export",
       }) as { data: string };
-      const ts = new Date().toISOString().slice(0, 10);
+      const ts = isoDateLocal(new Date());
       this._downloadFile(result.data, `maintenance_settings_${ts}.json`, "application/json");
       this._showToast(t("settings_export_success", this._lang));
     } catch {
@@ -1885,7 +1898,7 @@ export class MaintenanceSettingsView extends LitElement {
         include_history: this._includeHistory,
         ...(ids ? { entry_ids: ids } : {}),
       }) as { data: string };
-      const ts = new Date().toISOString().slice(0, 10);
+      const ts = isoDateLocal(new Date());
       this._downloadFile(result.data, `maintenance_export_${ts}.yaml`, "application/yaml");
       this._showToast(t("settings_export_success", this._lang));
     } catch {
@@ -1900,7 +1913,7 @@ export class MaintenanceSettingsView extends LitElement {
         type: "maintenance_supporter/csv/export",
         ...(ids ? { entry_ids: ids } : {}),
       }) as { csv: string };
-      const ts = new Date().toISOString().slice(0, 10);
+      const ts = isoDateLocal(new Date());
       this._downloadFile(result.csv, `maintenance_export_${ts}.csv`, "text/csv");
       this._showToast(t("settings_export_success", this._lang));
     } catch {
@@ -2520,4 +2533,6 @@ export class MaintenanceSettingsView extends LitElement {
   `];
 }
 
-customElements.define("maintenance-settings-view", MaintenanceSettingsView);
+if (!customElements.get("maintenance-settings-view")) {
+  customElements.define("maintenance-settings-view", MaintenanceSettingsView);
+}

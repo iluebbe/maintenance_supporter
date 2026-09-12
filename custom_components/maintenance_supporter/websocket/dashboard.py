@@ -81,6 +81,7 @@ from ..const import (
     DEFAULT_CONSUMABLE_THRESHOLD,
     DEFAULT_CURRENCY_DECIMALS,
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
+    DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     DEFAULT_PANEL_ENABLED,
     DEFAULT_ROW_ACTION_STYLE,
@@ -105,6 +106,7 @@ from ..helpers.settings_registry import (
     STR_MAX_LENGTHS,
 )
 from . import (
+    ID_FIELD,
     _build_object_response,
     _get_global_entry,
     _get_object_entries,
@@ -248,7 +250,7 @@ def _build_full_settings(
             "quiet_hours_enabled": options.get(CONF_QUIET_HOURS_ENABLED, True),
             "quiet_hours_start": options.get(CONF_QUIET_HOURS_START, "22:00"),
             "quiet_hours_end": options.get(CONF_QUIET_HOURS_END, "08:00"),
-            "max_per_day": options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, 0),
+            "max_per_day": options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY),
             "bundling_enabled": options.get(CONF_NOTIFICATION_BUNDLING_ENABLED, False),
             "bundle_threshold": options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
             # v1.4.0 (#44): default keeps backwards-compatible per-status titles
@@ -279,12 +281,7 @@ def _build_full_settings(
             "yearly": options.get(CONF_BUDGET_YEARLY, 0.0),
             "alerts_enabled": options.get(CONF_BUDGET_ALERTS_ENABLED, False),
             "alert_threshold_pct": options.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
-            "currency": options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY),
-            "currency_decimals": int(options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
-            "currency_symbol": BUDGET_CURRENCIES.get(
-                options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY),
-                BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY],
-            ),
+            **_currency_block(options),
         },
         # Vacation mode (v1.2.0). Mirror the active flag so the panel can
         # decide whether to show the Vacation tab without a separate WS call.
@@ -641,8 +638,7 @@ async def ws_get_budget_status(
     # are the same number by construction.
     monthly_spent, yearly_spent = compute_spend(hass)
 
-    currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
-    currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
+    currency = _currency_block(global_options)
 
     connection.send_result(
         msg["id"],
@@ -652,8 +648,8 @@ async def ws_get_budget_status(
             "yearly_budget": yearly_budget,
             "yearly_spent": round(yearly_spent, 2),
             "alert_threshold_pct": threshold_pct,
-            "currency_symbol": currency_symbol,
-            "currency_decimals": int(global_options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
+            "currency_symbol": currency["currency_symbol"],
+            "currency_decimals": currency["currency_decimals"],
         },
     )
 
@@ -901,7 +897,7 @@ async def ws_update_global_settings(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/global/test_notification",
-        vol.Optional("user_id"): vol.Any(str, None),
+        vol.Optional("user_id"): vol.Any(ID_FIELD, None),
     }
 )
 @websocket_api.require_admin

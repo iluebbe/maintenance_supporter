@@ -4,7 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isSafeHttpUrl } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";
@@ -469,7 +469,7 @@ export class MaintenanceSupporterCard extends LitElement {
                   ({ entry_id, object_name, task }) => html`
                     <div class="task-item clickable"
                          @click=${() => this._openTaskDetail(entry_id, task.id)}
-                         title="${t("open_task", L) || "Open task"}">
+                         title="${t("open_task", L)}">
                       <div class="status-dot" style="background: ${STATUS_COLORS[task.status] || "#ccc"}"></div>
                       <div class="task-info">
                         <div class="task-name">
@@ -478,7 +478,7 @@ export class MaintenanceSupporterCard extends LitElement {
                             ? html`<ha-icon
                                 class="postponed-icon"
                                 icon="mdi:calendar-clock"
-                                title="${t("postponed", L) || "Postponed"}"
+                                title="${t("postponed", L)}"
                               ></ha-icon>`
                             : nothing}
                         </div>
@@ -542,7 +542,7 @@ export class MaintenanceSupporterCard extends LitElement {
                                     lang: L,
                                     checklist: task.checklist || [],
                                     adaptiveEnabled: !!task.adaptive_config?.enabled,
-                                    currencySymbol: this._stats?.budget?.currency_symbol || "",
+                                    currencySymbol: currencySymbolOf(this._stats?.budget),
                                   }),
                                   L,
                                 );
@@ -575,7 +575,7 @@ export class MaintenanceSupporterCard extends LitElement {
                                     lang: L,
                                     checklist: task.checklist || [],
                                     adaptiveEnabled: !!task.adaptive_config?.enabled,
-                                    currencySymbol: this._stats?.budget?.currency_symbol || "",
+                                    currencySymbol: currencySymbolOf(this._stats?.budget),
                                   }),
                                   L,
                                 );

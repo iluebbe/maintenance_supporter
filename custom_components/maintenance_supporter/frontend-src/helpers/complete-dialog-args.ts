@@ -19,6 +19,7 @@ import { readingHistory, type ReadingHistoryEntry } from "./reading-slots";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 import { describePartLink, partsForCompletion, type LinkedPart, type PartOwner } from "./shared-parts";
 import { effectivePhase, phaseLabel } from "./phases";
+import { currencySymbolOf } from "../styles";
 
 /** Wire-shaped (snake_case) argument bag — what `dialog-mount.openCompleteDialog`
  *  has always accepted, now complete. */
@@ -114,7 +115,7 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
     restock_default: isBuy ? (refPart?.restock_quantity ?? 1) : null,
     // #104 follow-up: restock qty × unit cost powers the cost suggestion.
     restock_unit_cost: isBuy ? (refPart?.cost ?? null) : null,
-    currency_symbol: o.currencySymbol ?? "",
+    currency_symbol: currencySymbolOf({ currency_symbol: o.currencySymbol }),
     // #111: name the owning object; never drop a line that fails to resolve.
     consumes_info: links.map((link) => describePartLink(link, o.entryId, o.objects, o.lang)),
     // #73: ticks recorded during the cycle prefill the dialog's checklist.
@@ -156,7 +157,7 @@ export function fillAndOpenCompleteDialog(
   dlg.requireTagScan = !!args.require_tag_scan;
   dlg.restockDefault = args.restock_default ?? null;
   dlg.restockUnitCost = args.restock_unit_cost ?? null;
-  dlg.currencySymbol = args.currency_symbol ?? "";
+  dlg.currencySymbol = currencySymbolOf(args);
   dlg.consumesInfo = args.consumes_info ?? [];
   dlg.checklistPrefill = args.checklist_prefill ?? {};
   dlg.viaTagScan = !!args.via_tag_scan;

@@ -20,8 +20,9 @@ from ..const import (
     MAX_CHECKLIST_ITEMS,
 )
 from .aggregate import merged_tasks
-from .dates import INTERVAL_UNITS
+from .dates import INTERVAL_UNITS, normalize_hhmm
 from .global_options import get_default_warning_days
+from .pause import write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
 from .schedule import read_legacy_fields
 
@@ -283,10 +284,11 @@ def import_objects_csv(
         if anchor in ("planned", "completion"):
             task_data["interval_anchor"] = anchor
 
-        # schedule_time round-trip with strict HH:MM validation; malformed
-        # values are dropped silently (consistent with other CSV import fields).
-        sched_time = (row.get("schedule_time") or "").strip()
-        if sched_time and re.fullmatch(r"^([01]\d|2[0-3]):[0-5]\d$", sched_time):
+        # schedule_time round-trip, canonical HH:MM ("HH:MM:SS" from the
+        # options flow folds); malformed values are dropped silently
+        # (consistent with other CSV import fields).
+        sched_time = normalize_hhmm(row.get("schedule_time"))
+        if sched_time:
             task_data["schedule_time"] = sched_time
 
         reading_unit = (row.get("reading_unit") or "").strip()
@@ -300,7 +302,7 @@ def import_objects_csv(
 
         last_performed = (row.get("last_performed") or "").strip()
         if last_performed:
-            task_data["last_performed"] = last_performed
+            write_anchor(task_data, last_performed)
 
         notes = (row.get("notes") or "").strip()
         if notes:

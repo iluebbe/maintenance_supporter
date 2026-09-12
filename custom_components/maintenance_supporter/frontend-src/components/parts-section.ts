@@ -509,4 +509,6 @@ export class MaintenancePartsSection extends LitElement {
   `;
 }
 
-customElements.define("maintenance-parts-section", MaintenancePartsSection);
+if (!customElements.get("maintenance-parts-section")) {
+  customElements.define("maintenance-parts-section", MaintenancePartsSection);
+}

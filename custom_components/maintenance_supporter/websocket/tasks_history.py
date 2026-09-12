@@ -23,6 +23,7 @@ from ..helpers.completion_photos import (
     normalize_photo_doc_ids,
 )
 from ..helpers.permissions import require_write
+from ..storage import reanchor_from_history
 from . import (
     _get_runtime_data,
     _load_object_entry,
@@ -250,22 +251,13 @@ async def ws_update_history_entry(
     history[target_index] = patched
     store.set_history(task_id, history)
 
-    # Recompute last_performed if the edited entry is the latest lifecycle
-    # entry. Lifecycle = anything that resets the maintenance cycle (shared
-    # set with the backdated-completion path, #133). Trigger /
-    # trigger_replaced entries don't affect last_performed.
-    lifecycle_entries = [h for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
-    if lifecycle_entries:
-        # "Latest" by timestamp — sort defensively (entries are usually
-        # already in append order, but a timestamp edit may have changed that).
-        latest = max(
-            lifecycle_entries,
-            key=lambda h: h.get("timestamp", ""),
-        )
-        latest_ts = latest.get("timestamp")
-        if latest_ts:
-            new_lp = latest_ts[:10]  # YYYY-MM-DD prefix
-            store.set_last_performed(task_id, new_lp)
+    # Re-derive last_performed from the (possibly re-dated) lifecycle
+    # entries — the same rule the delete command applies, so a timestamp edit
+    # that moves the anchor also drops a stale postpone. Only the patchable
+    # fields change here (never an entry's type), so a task whose only
+    # lifecycle entry is the seed keeps its anchor.
+    if any(h.get("type") in LIFECYCLE_HISTORY_TYPES for h in history):
+        reanchor_from_history(store, task_id, history)
 
     await store.async_save()
 
@@ -321,16 +313,10 @@ async def ws_delete_history_entry(
         connection.send_error(msg["id"], "not_found", f"No history entry with timestamp {msg['timestamp']!r}")
         return
     store.set_history(task_id, remaining)
-    lifecycle = [h for h in remaining if h.get("type") in LIFECYCLE_HISTORY_TYPES]
-    if lifecycle:
-        latest_ts = max((h.get("timestamp") or "" for h in lifecycle), default="")
-        if latest_ts:
-            store.set_last_performed(task_id, latest_ts[:10])
-    else:
-        # Nothing left to anchor the cycle on: the task reads as never
-        # performed until its next completion (the static config's own
-        # last_performed, if any, shows through the merge).
-        store._ensure_task(task_id).pop("last_performed", None)
+    # Nothing left to anchor the cycle on → the task reads as never performed
+    # until its next completion (the static config's own last_performed, if
+    # any, shows through the merge). A moved anchor drops a stale postpone.
+    reanchor_from_history(store, task_id, remaining)
     await store.async_save()
     if rd and rd.coordinator:
         rd.coordinator._recalculate_budget_cache()

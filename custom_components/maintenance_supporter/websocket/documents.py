@@ -201,12 +201,17 @@ async def ws_documents_delete(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Remove a document. Frees blob bytes only when the last reference goes."""
+    """Remove a document. Frees blob bytes only when the last reference goes.
+    History entries' completion photos and parts' ``doc_id`` that pointed at
+    it are cleared too (they used to dangle)."""
+    from ..helpers.documents import async_forget_doc_ids
+
     store = _get_store(hass)
     if store.get(msg["doc_id"]) is None:
         connection.send_error(msg["id"], "not_found", "Document not found")
         return
     freed = await store.async_remove(msg["doc_id"])
+    await async_forget_doc_ids(hass, {msg["doc_id"]})
     connection.send_result(msg["id"], {"success": True, "bytes_freed": freed})
 
 

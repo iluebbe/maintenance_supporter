@@ -24,6 +24,7 @@ from .const import (
     DOMAIN,
 )
 from .helpers.aggregate import get_object_entries, merged_tasks
+from .helpers.documents import doc_wire_dict
 from .helpers.schedule import Schedule, read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,39 +42,10 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
     ``id`` rides along for the same reason: history entries (completion
     photos) and spare parts (``doc_id``) point at documents by id, and the
     importer mints fresh ids — without the old one it could not remap them.
+    The record itself is ``helpers.documents.doc_wire_dict`` — shared with
+    the documents ZIP archive so the two exports cannot drift.
     """
-    out: list[dict[str, Any]] = []
-    for d in doc_store.for_object(object_id):
-        if d.get("kind") == "weblink":
-            out.append(
-                {
-                    "id": d.get("id"),
-                    "kind": "weblink",
-                    "url": d.get("url"),
-                    "title": d.get("title"),
-                    "tags": d.get("tags") or [],
-                    "description": d.get("description") or "",
-                    "task_ids": d.get("task_ids") or [],
-                    "part_ids": d.get("part_ids") or [],
-                }
-            )
-        else:
-            out.append(
-                {
-                    "id": d.get("id"),
-                    "kind": "file",
-                    "hash": d.get("hash"),
-                    "title": d.get("title"),
-                    "filename": d.get("filename"),
-                    "mime": d.get("mime"),
-                    "size": d.get("size"),
-                    "tags": d.get("tags") or [],
-                    "description": d.get("description") or "",
-                    "task_ids": d.get("task_ids") or [],
-                    "part_ids": d.get("part_ids") or [],
-                }
-            )
-    return out
+    return [doc_wire_dict(d, include_id=True) for d in doc_store.for_object(object_id)]
 
 
 def _build_export_object(

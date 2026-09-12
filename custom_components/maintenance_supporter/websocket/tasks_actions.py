@@ -391,10 +391,15 @@ async def ws_reset_task(
             connection.send_error(msg["id"], "invalid_date", "Invalid date format")
             return
 
-    await rd.coordinator.reset_maintenance(
-        task_id=msg["task_id"],
-        date=reset_date,
-    )
+    try:
+        await rd.coordinator.reset_maintenance(
+            task_id=msg["task_id"],
+            date=reset_date,
+        )
+    except ServiceValidationError as err:
+        # An archived / disabled / paused task keeps its own key (task_inactive).
+        connection.send_error(msg["id"], err.translation_key or "task_inactive", str(err))
+        return
     connection.send_result(msg["id"], {"success": True})
 
 
@@ -467,7 +472,11 @@ async def ws_postpone_task(
         connection.send_error(msg["id"], "invalid_date", "Invalid date format")
         return
 
-    await rd.coordinator.async_postpone_task(msg["task_id"], until)
+    try:
+        await rd.coordinator.async_postpone_task(msg["task_id"], until)
+    except ServiceValidationError as err:
+        connection.send_error(msg["id"], err.translation_key or "task_inactive", str(err))
+        return
     connection.send_result(msg["id"], {"success": True})
 
 

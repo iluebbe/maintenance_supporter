@@ -48,8 +48,9 @@ def test_setting_is_registered_as_a_small_int_with_a_whole_number_default() -> N
 
 def test_buy_task_notes_follow_the_decimals() -> None:
     part = {"name": "Seal", "cost": 12.4, "quantity": 2}
-    assert "≈ 12.40 ×" in buy_task_notes(part, None)
+    assert "≈ 12.40 ×" in buy_task_notes(part, None, decimals=2)
     assert "≈ 12 ×" in buy_task_notes(part, None, decimals=0)
+    assert "≈ 12 ×" in buy_task_notes(part, None), "the parameter's default IS the setting's default"
     assert "≈ 12.4 ×" in buy_task_notes(part, None, decimals=1)
 
 

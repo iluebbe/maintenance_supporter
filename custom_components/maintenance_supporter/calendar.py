@@ -20,7 +20,7 @@ from .const import (
     ScheduleType,
 )
 from .helpers.aggregate import merged_tasks
-from .helpers.dates import interval_span_days
+from .helpers.dates import interval_span_days, parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.i18n import normalize_language
 from .models.maintenance_task import MaintenanceTask
@@ -762,18 +762,12 @@ class MaintenanceCalendar(CalendarEntity):
         start: date | datetime = next_due
         end: date | datetime = next_due + timedelta(days=1)
         if task.schedule_time and self._is_schedule_time_feature_enabled():
-            try:
-                # Tolerate "HH:MM" and "HH:MM:SS" (HA TimeSelector's format).
-                parts = str(task.schedule_time).split(":")
-                start_dt = datetime.combine(
-                    next_due,
-                    time(int(parts[0]), int(parts[1])),
-                    tzinfo=dt_util.DEFAULT_TIME_ZONE,
-                )
+            # "HH:MM" and "HH:MM:SS" alike; malformed → stays all-day.
+            at = parse_hhmm(task.schedule_time)
+            if at is not None:
+                start_dt = datetime.combine(next_due, at, tzinfo=dt_util.DEFAULT_TIME_ZONE)
                 start = start_dt
                 end = start_dt + timedelta(minutes=30)
-            except (ValueError, TypeError, IndexError):
-                pass  # malformed schedule_time → fall back to all-day
 
         return CalendarEvent(
             summary=f"{prefix} {_task_label(task)} ({object_name})",

@@ -167,6 +167,51 @@ def notification_context(
     }
 
 
+def sample_notification_context(hass: HomeAssistant) -> dict[str, Any]:
+    """The Settings "Send test" context: every field of the real contract
+    filled with a plausible sample value, so an extra-data template or a
+    routing automation can be written against the test send and behave the
+    same on the first real reminder. Built THROUGH :func:`notification_context`
+    (the samples ride ``**extra``), so a field added to the contract without
+    a sample surfaces as ``None`` — the tripwire in
+    tests/test_notify_event_fields.py refuses that."""
+    from homeassistant.util import dt as dt_util
+
+    today = dt_util.now().date()
+    from datetime import timedelta
+
+    return notification_context(
+        hass,
+        KIND_TEST,
+        status="due_soon",
+        entry_id="sample_entry",
+        task_id="sample_task",
+        task_name="Sample task",
+        object_name="Sample object",
+        days_until_due=3,
+        next_due=(today + timedelta(days=3)).isoformat(),
+        responsible_user_id="sample_user",
+        tasks=[],
+        object_id="sample_object",
+        object_ref="8",
+        area_id="sample_area",
+        area_name="Sample area",
+        ha_device_id="sample_device",
+        task_ref="8.3",
+        task_type="inspection",
+        schedule_type="time_based",
+        priority="normal",
+        labels=["sample"],
+        notes="Sample note",
+        documentation_url="https://example.com/manual",
+        interval_days=90,
+        last_performed=(today - timedelta(days=87)).isoformat(),
+        sensor_entity_id="sensor.sample_object_sample_task",
+        trigger_entity_id="sensor.sample_trigger",
+        url="/maintenance-supporter",
+    )
+
+
 def _area_name(hass: HomeAssistant, area_id: str | None) -> str | None:
     if not area_id:
         return None

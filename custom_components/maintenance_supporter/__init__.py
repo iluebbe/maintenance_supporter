@@ -40,6 +40,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     BATTERY_FLEET_OBJECT_FLAG,
+    COMPLETION_PROVENANCE_NOTES,
     CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
@@ -902,6 +903,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 _LOGGER.info("Completing task %s via notification action", task_id)
                 await runtime_data.coordinator.complete_maintenance(
                     task_id=task_id,
+                    notes=COMPLETION_PROVENANCE_NOTES["notification_action"],
                     unattended=True,
                     source="notification_action",
                     # mobile_app fires the action with the registration's
@@ -978,7 +980,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                     await runtime_data.coordinator.complete_maintenance(
                         task_id=task_id,
                         completed_by=user_id,
-                        notes="Completed via NFC tag",
+                        notes=COMPLETION_PROVENANCE_NOTES["nfc"],
                         unattended=True,
                         source="nfc",
                         tag_verified=True,

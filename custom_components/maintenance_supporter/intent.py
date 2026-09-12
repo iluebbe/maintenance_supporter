@@ -37,7 +37,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 
-from .const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from .helpers.aggregate import object_name as aggregate_object_name
 
 INTENT_LIST_TASKS = "MaintenanceSupporterListTasks"
@@ -383,6 +383,7 @@ class CompleteTaskIntent(intent.IntentHandler):
                 # The speaking user when the pipeline knows one; "assist" was a
                 # sentinel that never matched a pool member (bug audit 2026-08-29).
                 completed_by=intent_obj.context.user_id if intent_obj.context else None,
+                notes=COMPLETION_PROVENANCE_NOTES["voice"],
                 unattended=True,
                 source="voice",
             )
@@ -810,7 +811,12 @@ class PostponeTaskIntent(intent.IntentHandler):
         if err is not None:
             return err
 
-        await coordinator.async_postpone_task(target["task_id"], until)
+        try:
+            await coordinator.async_postpone_task(target["task_id"], until)
+        except ServiceValidationError as err:
+            # An archived / disabled / paused task: say so instead of failing.
+            response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(err))
+            return response
         response.async_set_speech(
             _sp(
                 "postponed",

@@ -7,16 +7,11 @@ import { lastReadingBefore, type ReadingHistoryEntry } from "../helpers/reading-
 import { t, nativeFieldStyles, formatCost, formatNumber } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
-import { isAndroidCompanion } from "../helpers/companion";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
-import {
-  MAX_COMPLETION_PHOTOS,
-  discardUploadedPhotos,
-  uploadCompletionPhoto,
-} from "../helpers/photo-upload";
+import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import "./ms-date-field";
-import "./camera-capture";
-import { inAppCameraPreferred, type MsCameraCapture } from "./camera-capture";
+import "./ms-photo-picker";
+import { photoPickerStyles } from "./ms-photo-picker";
 
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -78,12 +73,12 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _error = "";
   @state() private _checklistState: Record<string, boolean> = {};
   @state() private _feedback: string = "needed";
-  /** #161: the photos attached so far, in pick order (preview = object URL). */
-  @state() private _photos: Array<{ id: string; preview: string }> = [];
-  /** Docs uploaded by THIS dialog session; dropped again on Cancel so an
-   *  abandoned completion leaves no orphan files behind. */
-  private _uploadedIds: string[] = [];
-  @state() private _photoUploading = false;
+  /** #161: the photos attached so far (uploads of this session are dropped
+   *  again on Cancel so an abandoned completion leaves no orphans). */
+  private readonly _photos = new PhotoUploadController(this, {
+    entryId: () => this.entryId,
+    hass: () => this.hass,
+  });
   @state() private _readingValue = "";
   /** #161 phase 2: typed text per slot id (parsed on save; "" = unread). */
   @state() private _readingValues: Record<string, string> = {};
@@ -116,10 +111,7 @@ export class MaintenanceCompleteDialog extends LitElement {
         .filter(([, done]) => done),
     );
     this._feedback = "needed";
-    this._photos.forEach((p) => URL.revokeObjectURL(p.preview));
-    this._photos = [];
-    this._uploadedIds = [];
-    this._photoUploading = false;
+    this._photos.reset();
     this._readingValue = "";
     this._readingValues = {};
     this._restockQty = this.restockDefault !== null ? String(this.restockDefault) : "";
@@ -142,78 +134,10 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._feedback = value;
   }
 
-  /** The Android Companion app answers a multi-select with an empty file
-   *  list (its chooser ignores the intent's ClipData — #161 follow-up), so
-   *  the gallery picker is single-select there and a hint says each pick
-   *  is added. Evaluated once per dialog; the host does not change. */
-  private readonly _singlePick = isAndroidCompanion();
-
-  /** #161 follow-up: the Android app's chooser ignores `capture=`, so
-   *  "Take photo" opens the in-app viewfinder there; when the camera cannot
-   *  be opened the native input takes over for the rest of the dialog. */
-  @state() private _inAppCamera = inAppCameraPreferred();
-
-  private _onCameraClick(e: Event): void {
-    if (!this._inAppCamera || this._photoUploading) return;
-    e.preventDefault();
-    void this.shadowRoot?.querySelector<MsCameraCapture>("ms-camera-capture")?.open();
-  }
-
-  private _onCameraUnavailable(): void {
-    this._inAppCamera = false;
-    this.shadowRoot?.querySelector<HTMLInputElement>(".photo-pick-camera input")?.click();
-  }
-
-  /** #161: both pickers (camera = one shot, gallery = multiple) land here.
-   *  Files upload one after another so a slow connection still shows
-   *  progress tile by tile; anything beyond the cap is dropped with a
-   *  note rather than silently. */
-  private async _onPhotoInput(e: Event): Promise<void> {
-    const input = e.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    input.value = ""; // allow re-picking the same file
-    await this._addPhotoFiles(files);
-  }
-
-  /** Upload picked or captured files one by one into the completion. */
-  private async _addPhotoFiles(files: File[]): Promise<void> {
-    if (files.length === 0) return;
-    const room = MAX_COMPLETION_PHOTOS - this._photos.length;
-    const accepted = files.slice(0, Math.max(room, 0));
-    this._photoUploading = true;
-    this._error = "";
-    try {
-      for (const file of accepted) {
-        const id = await uploadCompletionPhoto(this.hass, this.entryId, file);
-        this._uploadedIds = [...this._uploadedIds, id];
-        this._photos = [...this._photos, { id, preview: URL.createObjectURL(file) }];
-      }
-      if (files.length > accepted.length) {
-        this._error = t("photos_limit", this.lang).replace("{max}", String(MAX_COMPLETION_PHOTOS));
-      }
-    } catch (e) {
-      const key = e instanceof Error && e.message === "doc_too_large" ? "doc_too_large" : "doc_upload_failed";
-      this._error = t(key, this.lang);
-    } finally {
-      this._photoUploading = false;
-    }
-  }
-
-  /** ✕ on a tile: drop it from the completion AND delete the upload —
-   *  the file only ever existed for this dialog session. */
-  private _removePhoto(id: string): void {
-    const gone = this._photos.find((p) => p.id === id);
-    if (gone) URL.revokeObjectURL(gone.preview);
-    this._photos = this._photos.filter((p) => p.id !== id);
-    if (this._uploadedIds.includes(id)) {
-      this._uploadedIds = this._uploadedIds.filter((x) => x !== id);
-      void discardUploadedPhotos(this.hass, [id]);
-    }
-  }
-
   private async _complete(): Promise<void> {
     this._loading = true;
     this._error = "";
+    this._photos.clearError();
     try {
       const data: Record<string, unknown> = {
         type: "maintenance_supporter/task/complete",
@@ -235,8 +159,8 @@ export class MaintenanceCompleteDialog extends LitElement {
       if (this.adaptiveEnabled) {
         data.feedback = this._feedback;
       }
-      if (this._photos.length > 0) {
-        data.photo_doc_ids = this._photos.map((p) => p.id);
+      if (this._photos.photos.length > 0) {
+        data.photo_doc_ids = this._photos.ids;
       }
       // Scan fallback: the backend accepts via_tag_scan on task/complete so a
       // require_tag_scan task can still be finished from the dialog the scan
@@ -289,7 +213,7 @@ export class MaintenanceCompleteDialog extends LitElement {
           );
       }
       await this.hass.connection.sendMessagePromise(data);
-      this._uploadedIds = []; // attached now — Cancel cleanup must not touch them
+      this._photos.markAttached(); // attached now — Cancel cleanup must not touch them
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
     } catch (e) {
@@ -329,7 +253,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       notes: this._notes.trim() !== "",
       cost: this._cost.trim() !== "",
       duration: this._duration.trim() !== "",
-      photo: this._photos.length > 0,
+      photo: this._photos.photos.length > 0,
       // "Who did it" is filled in server-side from the authenticated
       // connection (websocket/tasks_actions.py), so the dialog satisfies it
       // as long as we ARE a logged-in user. Claiming it is always satisfied
@@ -388,11 +312,7 @@ export class MaintenanceCompleteDialog extends LitElement {
 
   private _close(): void {
     this._open = false;
-    if (this._uploadedIds.length > 0) {
-      const orphans = this._uploadedIds;
-      this._uploadedIds = [];
-      void discardUploadedPhotos(this.hass, orphans);
-    }
+    this._photos.discardOrphans();
   }
 
   /** Seed the backdate field with the current minute (local, seconds zeroed). */
@@ -405,13 +325,14 @@ export class MaintenanceCompleteDialog extends LitElement {
   render() {
     if (!this._open) return html``;
     const L = this.lang || this.hass?.language || "en";
+    const error = this._error || this._photos.errorText(L);
     return html`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${t("complete_title", L)}${this.taskName}</div>
         ${this.phaseLabel ? html`<div class="phase-line">${t("phase_current", L)}: ${this.phaseLabel}</div>` : nothing}
         ${this.requireTagScan && !this.viaTagScan ? html`<div class="scan-required-note">${t("require_tag_scan_hint", L)}</div>` : nothing}
         <div class="content">
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${error ? html`<div class="error">${error}</div>` : nothing}
           ${this.checklist.length > 0 ? html`
             <div class="checklist-section">
               <label class="checklist-label">${t("checklist", L)}</label>
@@ -532,38 +453,21 @@ export class MaintenanceCompleteDialog extends LitElement {
           </div>
           <div class="field">
             <span class="field-label">${t("completion_photos_optional", L)}${this._req("photo")}</span>
-            ${this._photos.length > 0
+            ${this._photos.photos.length > 0
               ? html`<div class="photo-strip">
-                  ${this._photos.map((p) => html`
+                  ${this._photos.photos.map((p) => html`
                     <div class="photo-preview">
                       <img src=${p.preview} alt="" />
-                      <button type="button" class="photo-remove" @click=${() => this._removePhoto(p.id)}
+                      <button type="button" class="photo-remove" @click=${() => this._photos.remove(p.id)}
                         title="${t("remove", L)}">✕</button>
                     </div>`)}
                 </div>`
               : nothing}
-            ${this._photos.length < MAX_COMPLETION_PHOTOS
-              ? html`<div class="photo-pickers">
-                  <label class="photo-pick photo-pick-camera" @click=${this._onCameraClick}>
-                    <ha-icon icon="mdi:camera"></ha-icon>
-                    <span>${this._photoUploading ? t("uploading", L) : t("doc_camera", L)}</span>
-                    <input type="file" accept="image/*" capture="environment"
-                      ?disabled=${this._photoUploading}
-                      @change=${this._onPhotoInput} />
-                  </label>
-                  <label class="photo-pick photo-pick-gallery">
-                    <ha-icon icon="mdi:image-multiple"></ha-icon>
-                    <span>${t(this._singlePick ? "choose_photo" : "choose_photos", L)}</span>
-                    <input type="file" accept="image/*" ?multiple=${!this._singlePick}
-                      ?disabled=${this._photoUploading}
-                      @change=${this._onPhotoInput} />
-                  </label>
-                </div>
-                ${this._singlePick ? html`<div class="photo-limit photo-android-hint">${t("photos_android_hint", L)}</div>` : nothing}
-                ${this._inAppCamera ? html`<ms-camera-capture .lang=${L}
-                  @photo-captured=${(e: CustomEvent<{ file: File }>) => this._addPhotoFiles([e.detail.file])}
-                  @capture-unavailable=${this._onCameraUnavailable}></ms-camera-capture>` : nothing}`
-              : html`<div class="photo-limit">${t("photos_limit", L).replace("{max}", String(MAX_COMPLETION_PHOTOS))}</div>`}
+            ${!this._photos.full
+              ? html`<ms-photo-picker .lang=${L} .busy=${this._photos.uploading} .remaining=${this._photos.remaining}
+                  @files-picked=${(e: CustomEvent<{ files: File[] }>) => this._photos.addFiles(e.detail.files)}
+                ></ms-photo-picker>`
+              : html`<div class="photo-limit">${t("photos_limit", L).replace("{max}", String(this._photos.max))}</div>`}
           </div>
           ${this.adaptiveEnabled ? html`
             <div class="feedback-section">
@@ -603,7 +507,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     `;
   }
 
-  static styles = [nativeFieldStyles, css`
+  static styles = [nativeFieldStyles, photoPickerStyles, css`
     .req-mark {
       color: var(--error-color, #f44336);
       margin-left: 2px;
@@ -689,19 +593,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-size: 12px;
       color: var(--warning-color, #ff9800);
     }
-    .photo-pick {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border: 1px dashed var(--divider-color);
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--secondary-text-color);
-      width: fit-content;
-    }
-    .photo-pick:hover { border-color: var(--primary-color); }
+    /* .photo-pick / .photo-pickers / .photo-android-hint come from photoPickerStyles */
     /* #163: the backdate moment starts EMPTY (= now); the button seeds the
        HA date+time picker with the current minute instead of the picker's
        own 00:00 default, so a backdated completion never lands at midnight
@@ -722,15 +614,9 @@ export class MaintenanceCompleteDialog extends LitElement {
       --mdc-icon-size: 18px;
     }
     .backdate-pick:hover { border-color: var(--primary-color); }
-    .photo-pick input[type="file"] { display: none; }
     /* #161: several photos per completion — tiles wrap into a strip,
        the two pickers (camera / gallery) sit underneath while there is
        room left under the cap. */
-    .photo-pickers {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
     .photo-strip {
       display: flex;
       flex-wrap: wrap;
@@ -741,7 +627,6 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-size: 12px;
       color: var(--secondary-text-color);
     }
-    .photo-android-hint { margin-top: 4px; }
     .photo-preview {
       position: relative;
       width: fit-content;

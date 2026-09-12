@@ -28,7 +28,15 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from ..const import DOMAIN, MAX_DOCS_PER_OBJECT, MAX_TEXT_LENGTH, SIGNAL_DOCUMENTS_UPDATED
+from ..const import (
+    CONF_PARTS,
+    CONF_TASKS,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    MAX_DOCS_PER_OBJECT,
+    MAX_TEXT_LENGTH,
+    SIGNAL_DOCUMENTS_UPDATED,
+)
 
 if TYPE_CHECKING:
     from .document_text import DocumentTextIndex
@@ -49,6 +57,120 @@ MAX_DOC_BYTES = 25 * 1024 * 1024  # 25 MB
 
 KIND_FILE = "file"
 KIND_WEBLINK = "weblink"
+
+
+def doc_wire_dict(doc: dict[str, Any], *, include_id: bool) -> dict[str, Any]:
+    """A document's portable metadata — the record the JSON export AND the
+    documents ZIP archive write, and ``async_import_documents`` reads back.
+
+    One builder so the two cannot drift: the archive used to omit ``id``
+    (so a ZIP restore never filled the import's id map and completion
+    photos / part ``doc_id`` links were only re-pointed on a JSON restore)
+    and ``task_pages``. ``include_id`` is False only for callers that
+    deliberately anonymise (none today — the parameter documents the choice).
+    """
+    out: dict[str, Any] = {}
+    if include_id:
+        out["id"] = doc.get("id")
+    if doc.get("kind") == KIND_WEBLINK:
+        out.update({"kind": KIND_WEBLINK, "url": doc.get("url")})
+    else:
+        out.update({"kind": KIND_FILE, "hash": doc.get("hash")})
+    out["title"] = doc.get("title")
+    if doc.get("kind") != KIND_WEBLINK:
+        out.update({"filename": doc.get("filename"), "mime": doc.get("mime"), "size": doc.get("size")})
+    out.update(
+        {
+            "tags": doc.get("tags") or [],
+            "description": doc.get("description") or "",
+            "task_ids": doc.get("task_ids") or [],
+            "part_ids": doc.get("part_ids") or [],
+        }
+    )
+    pages = doc.get("task_pages")
+    if isinstance(pages, dict) and pages:
+        out["task_pages"] = dict(pages)
+    return out
+
+
+async def async_rewrite_doc_refs(hass: HomeAssistant, rewrite: Callable[[str], str | None]) -> int:
+    """Apply ``rewrite`` to every document reference held OUTSIDE the
+    document store: completion photos on history entries (the per-object
+    Store) and the spare parts' ``doc_id`` (entry data). ``rewrite(old)``
+    returns the id to keep, or ``None`` to drop the reference. Returns the
+    number of references changed. The one walker behind
+    :func:`async_forget_doc_ids` (document delete) and the archive import's
+    re-pointing of restored documents.
+    """
+    from .completion_photos import history_photo_ids
+
+    changed_total = 0
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        rd = getattr(entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        if store is not None:
+            store_changed = False
+            for task_id in list(entry.data.get(CONF_TASKS) or {}):
+                history = store.get_history(task_id)
+                new_history: list[dict[str, Any]] = []
+                task_changed = False
+                for hist_entry in history:
+                    photos = history_photo_ids(hist_entry) if isinstance(hist_entry, dict) else []
+                    if not photos:
+                        new_history.append(hist_entry)
+                        continue
+                    kept: list[str] = []
+                    entry_changed = False
+                    for old in photos:
+                        new = rewrite(old)
+                        if new != old:
+                            entry_changed = True
+                            changed_total += 1
+                        if new is not None and new not in kept:
+                            kept.append(new)
+                    if not entry_changed and "photo_doc_id" not in hist_entry:
+                        new_history.append(hist_entry)
+                        continue
+                    patched = dict(hist_entry)
+                    patched.pop("photo_doc_id", None)
+                    if kept:
+                        patched["photo_doc_ids"] = kept
+                    else:
+                        patched.pop("photo_doc_ids", None)
+                    new_history.append(patched)
+                    task_changed = task_changed or entry_changed
+                if task_changed:
+                    store.set_history(task_id, new_history)
+                    store_changed = True
+            if store_changed:
+                await store.async_save()
+        parts = entry.data.get(CONF_PARTS) or {}
+        new_parts: dict[str, Any] = {}
+        parts_changed = False
+        for pid, part in parts.items():
+            old_doc = part.get("doc_id") if isinstance(part, dict) else None
+            if isinstance(old_doc, str) and old_doc:
+                new_doc = rewrite(old_doc)
+                if new_doc != old_doc:
+                    part = {**part, "doc_id": new_doc}
+                    parts_changed = True
+                    changed_total += 1
+            new_parts[pid] = part
+        if parts_changed:
+            hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_PARTS: new_parts})
+    return changed_total
+
+
+async def async_forget_doc_ids(hass: HomeAssistant, doc_ids: set[str]) -> int:
+    """Strip deleted document ids from every history entry's completion
+    photos and every part's ``doc_id`` — the reverse cascade a document
+    delete lacked (the ids dangled: a missing picture, a part link to
+    nothing). Returns the number of references dropped."""
+    if not doc_ids:
+        return 0
+    return await async_rewrite_doc_refs(hass, lambda old: None if old in doc_ids else old)
 
 
 def _safe_size(raw: Any) -> int:
@@ -332,6 +454,14 @@ class DocumentStore:
                 return []
             return [part_id_map[p] for p in (meta.get("part_ids") or []) if p in part_id_map]
 
+        def _remap_pages(meta: dict[str, Any]) -> dict[str, int]:
+            """``task_pages`` (page hints) follow the task-id remap; a page
+            for a task that did not survive the remap is dropped with it."""
+            pages = meta.get("task_pages")
+            if not task_id_map or not isinstance(pages, dict):
+                return {}
+            return {task_id_map[t]: int(p) for t, p in pages.items() if t in task_id_map and isinstance(p, int) and not isinstance(p, bool) and p >= 1}
+
         created = 0
         for meta in docs:
             if not isinstance(meta, dict):
@@ -341,7 +471,7 @@ class DocumentStore:
             # JSON importer calls this outside its per-object try
             # (bug audit 2026-09-12).
             try:
-                created += self._import_one_document(meta, object_id, _remember, _remap, _remap_parts)
+                created += self._import_one_document(meta, object_id, _remember, _remap, _remap_parts, _remap_pages)
             except (TypeError, ValueError, AttributeError):
                 _LOGGER.warning("Skipping malformed document record %r during import", meta.get("id"))
         if created:
@@ -355,10 +485,12 @@ class DocumentStore:
         remember: Callable[[dict[str, Any], str], None],
         remap: Callable[[dict[str, Any]], list[str]],
         remap_parts: Callable[[dict[str, Any]], list[str]],
+        remap_pages: Callable[[dict[str, Any]], dict[str, int]],
     ) -> int:
         """Recreate ONE exported document record; returns 1 if created, else 0."""
         tags = [x for x in (meta.get("tags") or []) if isinstance(x, str)]
         title = meta.get("title")
+        pages = remap_pages(meta)
         if meta.get("kind") == KIND_WEBLINK:
             url = meta.get("url")
             # Only http(s) links — the add-link WS path enforces the same, so
@@ -377,6 +509,7 @@ class DocumentStore:
                 "description": self.clean_description(meta.get("description")),
                 "task_ids": remap(meta),
                 "part_ids": remap_parts(meta),
+                **({"task_pages": pages} if pages else {}),
                 "added_at": dt_util.utcnow().isoformat(),
             }
             return 1
@@ -405,6 +538,7 @@ class DocumentStore:
                 "description": self.clean_description(meta.get("description")),
                 "task_ids": remap(meta),
                 "part_ids": remap_parts(meta),
+                **({"task_pages": pages} if pages else {}),
                 "added_at": dt_util.utcnow().isoformat(),
             }
             return 1

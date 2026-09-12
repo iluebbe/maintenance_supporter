@@ -39,6 +39,7 @@ from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
+from .helpers.dates import parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.schedule import read_legacy_fields
 from .helpers.status import compute_status_from_task_dict
@@ -532,12 +533,8 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
         at = time(0, 0)
         schedule_time = task.get("schedule_time")
         if schedule_time and self._schedule_time_enabled():
-            try:
-                # Tolerate "HH:MM" and "HH:MM:SS" (HA TimeSelector's format).
-                parts = str(schedule_time).split(":")
-                at = time(int(parts[0]), int(parts[1]))
-            except (ValueError, TypeError, IndexError):
-                at = time(0, 0)  # malformed -> midnight, like the calendar
+            # "HH:MM" and "HH:MM:SS" alike; malformed -> midnight, like the calendar.
+            at = parse_hhmm(schedule_time) or at
         return datetime.combine(due, at, tzinfo=dt_util.DEFAULT_TIME_ZONE)
 
     def _schedule_time_enabled(self) -> bool:

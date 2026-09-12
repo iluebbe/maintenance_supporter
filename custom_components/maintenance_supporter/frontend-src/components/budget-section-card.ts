@@ -8,7 +8,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, syncLocaleFromHass, DEFAULT_CURRENCY_SYMBOL, langOf, formatCost, syncCurrencyDecimals} from "../styles";
+import { t, syncLocaleFromHass, currencySymbolOf, langOf, formatCost, syncCurrencyDecimals} from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
@@ -108,20 +108,20 @@ export class MaintenanceBudgetSectionCard extends LitElement {
     const L = this._lang;
     const s = this._status;
     if (!s) {
-      return html`<ha-card><div class="loading">${t("loading", L) || "Loading…"}</div></ha-card>`;
+      return html`<ha-card><div class="loading">${t("loading", L)}</div></ha-card>`;
     }
-    const sym = s.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
+    const sym = currencySymbolOf(s);
     // The amber step is the CONFIGURED budget_alert_threshold, not a literal 80
     // — same rule the panel's budget bar uses (maintenance-panel._renderBudgetBar).
     const threshold = s.alert_threshold_pct ?? DEFAULT_ALERT_THRESHOLD_PCT;
     const tracks = [
       {
-        label: t("budget_monthly", L) || "Monthly",
+        label: t("budget_monthly", L),
         spent: s.monthly_spent || 0,
         budget: s.monthly_budget || 0,
       },
       {
-        label: t("budget_yearly", L) || "Yearly",
+        label: t("budget_yearly", L),
         spent: s.yearly_spent || 0,
         budget: s.yearly_budget || 0,
       },
@@ -133,7 +133,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
           <div class="header">
             <div class="title">
               <span class="emoji">💰</span>
-              <span>${this._config.title || t("settings_budget", L) || "Budget"}</span>
+              <span>${this._config.title || t("settings_budget", L)}</span>
             </div>
             <span class="currency">${sym}</span>
           </div>
@@ -180,7 +180,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
             ? html`
                 <div class="inputs-row">
                   <div class="input-field">
-                    <label>${t("budget_monthly_set", L) || "Set monthly"}</label>
+                    <label>${t("budget_monthly_set", L)}</label>
                     <div class="input-wrap">
                       <input type="number" min="0" step="1"
                         .value=${this._localMonthly}
@@ -193,7 +193,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                     </div>
                   </div>
                   <div class="input-field">
-                    <label>${t("budget_yearly_set", L) || "Set yearly"}</label>
+                    <label>${t("budget_yearly_set", L)}</label>
                     <div class="input-wrap">
                       <input type="number" min="0" step="1"
                         .value=${this._localYearly}
@@ -212,17 +212,17 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                     ?disabled=${this._busy || !this._dirty}>
                     <ha-icon icon="${this._dirty ? "mdi:content-save" : "mdi:check"}"></ha-icon>
                     ${this._dirty
-                      ? (t("save", L) || "Save")
-                      : (t("saved", L) || "Saved")}
+                      ? t("save", L)
+                      : t("saved", L)}
                   </button>
                   <button class="btn link" @click=${this._onDeepLink}>
-                    ${t("budget_advanced", L) || "Currency, alerts…"}
+                    ${t("budget_advanced", L)}
                   </button>
                 </div>
               `
             : html`
                 <button class="btn link" @click=${this._onDeepLink}>
-                  ${t("budget_open_panel", L) || "Open in panel"}
+                  ${t("budget_open_panel", L)}
                 </button>
               `}
         </div>

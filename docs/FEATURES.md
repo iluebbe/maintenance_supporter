@@ -182,8 +182,9 @@ hint at it; printables deliberately stay plain text.
 ### Task History
 Every completion with cost, duration, and notes — inline-editable, searchable,
 with completion photos when attached. Photos can be added to or removed
-from an entry afterwards through the entry's edit dialog (removing one
-keeps the file in the object's documents). The same dialog can **delete the
+from an entry afterwards through the entry's edit dialog — the same picker
+as the complete dialog (camera, gallery, one-per-pick inside the Android app)
+(removing one keeps the file in the object's documents). The same dialog can **delete the
 entry** (2.84+, #170) — a completion logged by mistake, a skip that means
 nothing on paper; the task's last-performed date falls back to the previous
 completion, photos stay with the object, consumed parts are not restocked.

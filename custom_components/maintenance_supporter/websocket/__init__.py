@@ -6,6 +6,7 @@ import logging
 import os
 from typing import Any
 
+import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -21,11 +22,17 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_ID_LENGTH,
     task_unique_id,
 )
 from ..helpers.aggregate import get_object_entries, get_runtime_data
 
 _LOGGER = logging.getLogger(__name__)
+
+#: The schema validator for every id-shaped command field (entry_id, task_id,
+#: doc_id, part_id, …): a capped string. ``task/move`` shipped with bare
+#: ``str`` for its three ids — tests/test_ws_schema_caps.py refuses that.
+ID_FIELD = vol.All(str, vol.Length(max=MAX_ID_LENGTH))
 
 
 # ---------------------------------------------------------------------------

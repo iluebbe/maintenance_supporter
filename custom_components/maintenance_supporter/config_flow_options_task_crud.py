@@ -49,7 +49,9 @@ from .const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
+from .helpers.dates import normalize_hhmm
 from .helpers.global_options import get_default_warning_days
+from .helpers.pause import write_anchor
 from .helpers.reading_slots import parse_reading_slots_text, reading_slots_text
 from .helpers.schedule import (
     read_legacy_fields,
@@ -205,15 +207,11 @@ class TaskCrudMixin:
                         updated_task.pop("schedule", None)
                 # schedule_time only present when global advanced flag is on; clear by submitting "".
                 if CONF_TASK_SCHEDULE_TIME in user_input:
-                    sched = (user_input.get(CONF_TASK_SCHEDULE_TIME) or "").strip()
-                    # HA's TimeSelector serialises "HH:MM:SS"; every consumer
-                    # parses "HH:MM", so normalise to the first two components
-                    # here (else the calendar/next-due land at midnight).
-                    parts = sched.split(":")
-                    if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
-                        sched = f"{int(parts[0]):02d}:{int(parts[1]):02d}"
-                    if sched:
-                        updated_task["schedule_time"] = sched
+                    # HA's TimeSelector serialises "HH:MM:SS"; stored form is
+                    # the canonical "HH:MM" (helpers.dates.normalize_hhmm).
+                    sched_time = normalize_hhmm(user_input.get(CONF_TASK_SCHEDULE_TIME))
+                    if sched_time:
+                        updated_task["schedule_time"] = sched_time
                     else:
                         updated_task.pop("schedule_time", None)
                 updated_task["warning_days"] = int(
@@ -228,7 +226,7 @@ class TaskCrudMixin:
                 if user_input.get(CONF_TASK_DOCUMENTATION_URL):
                     updated_task[CONF_TASK_DOCUMENTATION_URL] = user_input[CONF_TASK_DOCUMENTATION_URL]
                 if user_input.get(CONF_TASK_LAST_PERFORMED):
-                    updated_task[CONF_TASK_LAST_PERFORMED] = str(user_input[CONF_TASK_LAST_PERFORMED])
+                    write_anchor(updated_task, str(user_input[CONF_TASK_LAST_PERFORMED]))
                 pool = user_input.get(CONF_TASK_ASSIGNEE_POOL, [])
                 if pool:
                     updated_task["assignee_pool"] = pool
@@ -290,6 +288,21 @@ class TaskCrudMixin:
                 new_tasks[self._selected_task_id or ""] = updated_task
                 new_data[CONF_TASKS] = new_tasks
                 self._update_config_entry(new_data)
+
+                # last_performed is DYNAMIC state: the Store's value overlays
+                # the static copy in the merge, so the edit above was masked
+                # for every task that had ever been completed. Write the
+                # Store too — a MOVED anchor drops the old cycle's postpone,
+                # an unchanged one (the form re-submits it) keeps it.
+                if user_input.get(CONF_TASK_LAST_PERFORMED) and self._selected_task_id:
+                    lp_rd = getattr(self.config_entry, "runtime_data", None)
+                    lp_store = getattr(lp_rd, "store", None)
+                    if lp_store is not None:
+                        new_lp = str(user_input[CONF_TASK_LAST_PERFORMED])
+                        lp_store.set_anchor(
+                            self._selected_task_id, new_lp, clear_modifiers=new_lp != lp_store.get_last_performed(self._selected_task_id)
+                        )
+                        lp_store.async_delay_save()
 
                 return self._show_task_action_menu()
 

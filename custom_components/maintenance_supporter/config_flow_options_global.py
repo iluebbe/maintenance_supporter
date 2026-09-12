@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -16,7 +15,6 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import selector
-from homeassistant.util import dt as dt_util
 
 from .const import (
     BUDGET_CURRENCIES,
@@ -73,6 +71,7 @@ from .const import (
     NOTIFY_COMPLETED_MODES,
     TIME_HHMMSS_PATTERN,
 )
+from .helpers.dates import normalize_hhmm
 from .helpers.i18n import normalize_language
 from .helpers.notify_targets import build_notify_targets
 from .helpers.settings_registry import float_range, int_range
@@ -382,45 +381,25 @@ async def _send_test_to(
 ) -> str:
     """Send the test payload to every resolved service; "success" if any went."""
     try:
-        from .helpers.notify_hooks import KIND_TEST, async_emit_and_dispatch, notification_context
+        from .helpers.notification_manager import build_action_buttons
+        from .helpers.notify_hooks import async_emit_and_dispatch, sample_notification_context
 
         push_msg = _get_test_result_text(hass, "push_message")
         service_data: dict[str, Any] = {
             "title": "Maintenance Supporter",
             "message": push_msg,
         }
-        actions_enabled = options.get(CONF_ACTION_COMPLETE_ENABLED, False)
-        skip_enabled = options.get(CONF_ACTION_SKIP_ENABLED, False)
-        snooze_enabled = options.get(CONF_ACTION_SNOOZE_ENABLED, False)
-        if actions_enabled or skip_enabled or snooze_enabled:
-            test_actions: list[dict[str, str]] = []
-            if actions_enabled:
-                test_actions.append({"action": "MS_TEST_COMPLETE", "title": "\u2705 Complete"})
-            if skip_enabled:
-                test_actions.append({"action": "MS_TEST_SKIP", "title": "\u23ed\ufe0f Skip"})
-            if snooze_enabled:
-                test_actions.append({"action": "MS_TEST_SNOOZE", "title": "\U0001f4a4 Snooze"})
+        # The same buttons (translated, per the action toggles) a real
+        # reminder carries \u2014 test ids, which the action listener ignores.
+        test_actions = build_action_buttons(hass, options, normalize_language(hass), entry_id=None, task_id=None, skip_allowed=True)
+        if test_actions:
             service_data["data"] = {"actions": test_actions}
         # Dual-path: legacy notify service OR notify entity (send_message).
         # #165: the test walks the same hook as a real notification, so the
         # event and the extra-data template can be verified from Settings.
-        # Sample values for the task-bound fields (#178), so a template can be
-        # written and verified from Settings before a real reminder fires.
-        context = notification_context(
-            hass,
-            KIND_TEST,
-            status="due_soon",
-            task_name="Sample task",
-            object_name="Sample object",
-            days_until_due=3,
-            next_due=(dt_util.now().date() + timedelta(days=3)).isoformat(),
-            priority="normal",
-            labels=["sample"],
-            notes="Sample note",
-            area_name="Sample area",
-            task_type="inspection",
-            sensor_entity_id="sensor.sample_object_sample_task",
-        )
+        # Sample values for EVERY field of the contract (#178), so a template
+        # can be written and verified from Settings before a real reminder fires.
+        context = sample_notification_context(hass)
         sent_any = False
         for service in services:
             if await async_emit_and_dispatch(hass, service, service_data, context, blocking=True):
@@ -451,6 +430,17 @@ class GlobalOptionsFlow(OptionsFlow):
         for key, value in list(user_input.items()):
             if ALLOWED_SETTING_KEYS.get(key) is int and isinstance(value, float) and value.is_integer():
                 user_input[key] = int(value)
+        # The TimeSelector hands back "HH:MM:SS"; the registry caps the quiet
+        # hours at 5 chars, so an 8-char value was dropped on a settings
+        # export/import. Store the canonical "HH:MM" (an unparseable value
+        # keeps the previous setting — the form's default coerces it anyway).
+        for key in (CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END):
+            if key in user_input:
+                normalized = normalize_hhmm(user_input[key])
+                if normalized is None:
+                    user_input.pop(key)
+                else:
+                    user_input[key] = normalized
         merged.update(user_input)
         self.hass.config_entries.async_update_entry(self.config_entry, options=merged)
         return self.async_show_menu(
@@ -672,7 +662,12 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_CURRENCY_DECIMALS,
                         default=current.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS),
                     ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=0, max=3, step=1, mode=selector.NumberSelectorMode.BOX)
+                        selector.NumberSelectorConfig(
+                            min=int_range(CONF_CURRENCY_DECIMALS)[0],
+                            max=int_range(CONF_CURRENCY_DECIMALS)[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
                     ),
                     vol.Optional(
                         CONF_NOTIFICATIONS_ENABLED,
@@ -917,7 +912,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
         current = self._current
         currency_code = current.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY)
-        currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
+        currency_symbol = BUDGET_CURRENCIES.get(currency_code, BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY])
 
         return self.async_show_form(
             step_id="budget_settings",

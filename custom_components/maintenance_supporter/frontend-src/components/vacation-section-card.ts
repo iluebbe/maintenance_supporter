@@ -128,8 +128,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
 
   private async _endNow(): Promise<void> {
     if (!this._isAdmin) return;
-    if (!window.confirm(t("vacation_end_now_confirm", this._lang)
-        || "End vacation immediately?")) return;
+    if (!window.confirm(t("vacation_end_now_confirm", this._lang))) return;
     this._busy = true;
     try {
       const r = await this.hass.connection.sendMessagePromise<VacationState>({
@@ -155,16 +154,16 @@ export class MaintenanceVacationSectionCard extends LitElement {
     const L = this._lang;
     const s = this._state;
     if (!s) {
-      return html`<ha-card><div class="loading">${t("loading", L) || "Loading…"}</div></ha-card>`;
+      return html`<ha-card><div class="loading">${t("loading", L)}</div></ha-card>`;
     }
     const active = s.is_active === true;
     const enabled = s.enabled === true;
     const exemptCount = s.exempt_task_ids?.length ?? 0;
     const statusLabel = active
-      ? (t("vacation_status_active", L) || "Active now")
+      ? t("vacation_status_active", L)
       : enabled
-        ? (t("vacation_status_scheduled", L) || "Scheduled")
-        : (t("vacation_status_inactive", L) || "Inactive");
+        ? t("vacation_status_scheduled", L)
+        : t("vacation_status_inactive", L);
     const statusClass = active ? "active" : enabled ? "scheduled" : "inactive";
 
     return html`
@@ -173,7 +172,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
           <div class="header">
             <div class="title">
               <span class="emoji">🏖️</span>
-              <span>${this._config.title || (t("vacation_mode", L) || "Vacation mode")}</span>
+              <span>${this._config.title || t("vacation_mode", L)}</span>
             </div>
             <span class="status-pill ${statusClass}">${statusLabel}</span>
           </div>
@@ -183,7 +182,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
           ${this._isAdmin
             ? html`
                 <div class="row toggle-row">
-                  <label>${t("enable", L) || "Enable"}</label>
+                  <label>${t("enable", L)}</label>
                   <ha-switch
                     .checked=${enabled}
                     .disabled=${this._busy}
@@ -194,7 +193,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
 
                 <div class="dates-row">
                   <div class="date-field">
-                    <label>${t("vacation_start", L) || "Start"}</label>
+                    <label>${t("vacation_start", L)}</label>
                     <ms-date-field
                       kind="date"
                       clearable
@@ -209,7 +208,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
                     ></ms-date-field>
                   </div>
                   <div class="date-field">
-                    <label>${t("vacation_end", L) || "End"}</label>
+                    <label>${t("vacation_end", L)}</label>
                     <ms-date-field
                       kind="date"
                       clearable
@@ -224,7 +223,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
                     ></ms-date-field>
                   </div>
                   <div class="date-field buffer">
-                    <label>${t("vacation_buffer", L) || "Buffer days"}</label>
+                    <label>${t("vacation_buffer", L)}</label>
                     <input type="number" min="0" max="14"
                       .value=${String(this._localBuffer)}
                       ?disabled=${this._busy}
@@ -242,24 +241,24 @@ export class MaintenanceVacationSectionCard extends LitElement {
                     ?disabled=${this._busy || !this._dirty}>
                     <ha-icon icon="${this._dirty ? "mdi:content-save" : "mdi:check"}"></ha-icon>
                     ${this._dirty
-                      ? (t("save", L) || "Save")
-                      : (t("saved", L) || "Saved")}
+                      ? t("save", L)
+                      : t("saved", L)}
                   </button>
                   ${active
                     ? html`<button class="btn"
                         @click=${this._endNow}
                         ?disabled=${this._busy}>
-                        ${t("vacation_end_now", L) || "End now"}
+                        ${t("vacation_end_now", L)}
                       </button>`
                     : nothing}
                   ${exemptCount > 0
                     ? html`<button class="btn link"
                         @click=${this._onDeepLink}>
-                        ${exemptCount} ${t("vacation_exempt_count", L) || "exempt"}…
+                        ${exemptCount} ${t("vacation_exempt_count", L)}…
                       </button>`
                     : html`<button class="btn link"
                         @click=${this._onDeepLink}>
-                        ${t("vacation_advanced", L) || "Advanced…"}
+                        ${t("vacation_advanced", L)}
                       </button>`}
                 </div>
               `
@@ -269,7 +268,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
                     ? html`<div>${s.start} → ${s.end}</div>`
                     : nothing}
                   <button class="btn link" @click=${this._onDeepLink}>
-                    ${t("vacation_open_panel", L) || "Open in panel"}
+                    ${t("vacation_open_panel", L)}
                   </button>
                 </div>
               `}

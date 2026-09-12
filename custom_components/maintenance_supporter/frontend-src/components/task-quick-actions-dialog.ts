@@ -14,7 +14,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, formatNumber, langOf, syncCurrencyDecimals} from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, formatNumber, formatCost, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
 import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
@@ -105,7 +105,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       if (r?.features) {
         this._features = { ...this._features, ...r.features };
       }
-      this._currencySymbol = r?.budget?.currency_symbol || "";
+      this._currencySymbol = currencySymbolOf(r?.budget);
       syncCurrencyDecimals(r?.budget);
       this._featuresLoaded = true;
     } catch {
@@ -312,7 +312,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       interval: this._task.suggested_interval,
     });
     if (ok) {
-      this._toast = t("suggestion_applied", this._lang) || "Applied";
+      this._toast = t("suggestion_applied", this._lang);
       this._notifyChanged("apply_suggestion");
       // Refresh local task so the recommendation card hides
       await this._loadTask();
@@ -337,8 +337,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       this._toast = r.recommended_interval
         // The analyzer always works in DAYS (helpers/interval_analyzer.py), so
         // the unit is pinned here rather than taken from the task's own unit.
-        ? `${t("reanalyze_result", this._lang) || "Recomputed"}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} pts)`
-        : (t("reanalyze_insufficient_data", this._lang) || "Not enough data");
+        ? `${t("reanalyze_result", this._lang)}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} pts)`
+        : t("reanalyze_insufficient_data", this._lang);
       await this._loadTask();
       setTimeout(() => { this._toast = ""; }, 3500);
     } catch (e) {
@@ -427,7 +427,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
     if (!hasRecommendation && !hasPrediction && !hasWeibull && !hasSeasonal) {
       return html`<div class="adaptive-empty">
-        ${t("adaptive_no_data", L) || "Not enough completion history yet for adaptive analysis."}
+        ${t("adaptive_no_data", L)}
       </div>`;
     }
     return html`
@@ -496,24 +496,24 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       <div class="details">
         <div class="stats-grid">
           <div class="stat">
-            <span class="stat-label">${t("times_performed", L) || "Performed"}</span>
+            <span class="stat-label">${t("times_performed", L)}</span>
             <span class="stat-value">${completed.length}</span>
           </div>
           <div class="stat">
-            <span class="stat-label">${t("total_cost", L) || "Total cost"}</span>
-            <span class="stat-value">${formatNumber(totalCost, L, 2)}</span>
+            <span class="stat-label">${t("total_cost", L)}</span>
+            <span class="stat-value">${formatCost(totalCost, this._currencySymbol, L)}</span>
           </div>
           <div class="stat">
-            <span class="stat-label">${t("avg_duration", L) || "Avg duration"}</span>
+            <span class="stat-label">${t("avg_duration", L)}</span>
             <span class="stat-value">${avgDuration != null ? `${avgDuration}m` : "—"}</span>
           </div>
         </div>
         <div class="history-header">
-          <strong>${t("history", L) || "History"}</strong>
+          <strong>${t("history", L)}</strong>
           <span class="history-count">${history.length}</span>
         </div>
         ${history.length === 0
-          ? html`<div class="history-empty">${t("history_empty", L) || "No history yet."}</div>`
+          ? html`<div class="history-empty">${t("history_empty", L)}</div>`
           : html`
               <div class="history-list">
                 ${[...history].reverse().slice(0, 20).map((entry) => {
@@ -525,7 +525,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                         <span class="history-date">${formatDateTime(entry.timestamp, L)}</span>
                         ${editable
                           ? html`<button class="history-edit"
-                                   title="${t("history_edit_button", L) || "Edit"}"
+                                   title="${t("history_edit_button", L)}"
                                    @click=${() => this._onEditHistoryEntry(entry)}>
                               <ha-icon icon="mdi:pencil"></ha-icon>
                             </button>`
@@ -545,7 +545,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                       })()}
                       ${entry.cost != null || entry.duration != null
                         ? html`<div class="history-meta">
-                            ${entry.cost != null ? html`<span>💰 ${formatNumber(entry.cost, L, 2)}</span>` : nothing}
+                            ${entry.cost != null ? html`<span>💰 ${formatCost(entry.cost, this._currencySymbol, L)}</span>` : nothing}
                             ${entry.duration != null ? html`<span>⏱️ ${entry.duration}m</span>` : nothing}
                           </div>`
                         : nothing}
@@ -553,7 +553,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   `;
                 })}
                 ${history.length > 20
-                  ? html`<div class="history-more">… +${history.length - 20} ${t("older_entries", L) || "older"}</div>`
+                  ? html`<div class="history-more">… +${history.length - 20} ${t("older_entries", L)}</div>`
                   : nothing}
               </div>
             `}
@@ -588,13 +588,13 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                 </div>
                 <div class="quick-info">
                   ${task.next_due
-                    ? html`<span><strong>${t("next_due", L) || "Next due"}:</strong> ${formatDate(task.next_due, L)}</span>`
+                    ? html`<span><strong>${t("next_due", L)}:</strong> ${formatDate(task.next_due, L)}</span>`
                     : nothing}
                   ${task.last_performed
-                    ? html`<span><strong>${t("last_performed", L) || "Last"}:</strong> ${formatDate(task.last_performed, L)}</span>`
+                    ? html`<span><strong>${t("last_performed", L)}:</strong> ${formatDate(task.last_performed, L)}</span>`
                     : nothing}
                   ${(task.schedule?.kind && !["manual", "one_time"].includes(task.schedule.kind)) || task.interval_days != null
-                    ? html`<span><strong>${t("interval", L) || "Interval"}:</strong> ${formatRecurrence(task, L)}</span>`
+                    ? html`<span><strong>${t("interval", L)}:</strong> ${formatRecurrence(task, L)}</span>`
                     : nothing}
                   ${phaseLabel(task)
                     ? html`<span><strong>${t("phase_current", L)}:</strong> ${phaseLabel(task)}</span>`
@@ -609,15 +609,15 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
               ${this._showSkip
                 ? html`
                     <div class="inline-form">
-                      <label>${t("skip_reason", L) || "Skip reason (optional)"}</label>
+                      <label>${t("skip_reason", L)}</label>
                       <input type="text" .value=${this._skipReason}
                         @input=${(e: Event) => { this._skipReason = (e.target as HTMLInputElement).value; }} />
                       <div class="inline-actions">
                         <button class="btn cancel" @click=${() => { this._showSkip = false; }} ?disabled=${this._busy}>
-                          ${t("cancel", L) || "Cancel"}
+                          ${t("cancel", L)}
                         </button>
                         <button class="btn primary" @click=${this._onSkipConfirm} ?disabled=${this._busy}>
-                          ${t("skip", L) || "Skip"}
+                          ${t("skip", L)}
                         </button>
                       </div>
                     </div>
@@ -625,7 +625,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                 : this._showReset
                 ? html`
                     <div class="inline-form">
-                      <label>${t("reset_to_date", L) || "Reset last_performed to"}</label>
+                      <label>${t("reset_to_date", L)}</label>
                       <ms-date-field
                         kind="date"
                         .hass=${this.hass}
@@ -635,10 +635,10 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                       ></ms-date-field>
                       <div class="inline-actions">
                         <button class="btn cancel" @click=${() => { this._showReset = false; }} ?disabled=${this._busy}>
-                          ${t("cancel", L) || "Cancel"}
+                          ${t("cancel", L)}
                         </button>
                         <button class="btn primary" @click=${this._onResetConfirm} ?disabled=${this._busy}>
-                          ${t("reset", L) || "Reset"}
+                          ${t("reset", L)}
                         </button>
                       </div>
                     </div>
@@ -647,19 +647,19 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                     <div class="actions primary-row">
                       <ha-button appearance="accent" variant="success" @click=${this._onComplete} .disabled=${this._busy}>
                         <ha-icon slot="start" icon="mdi:check"></ha-icon>
-                        ${t("complete", L) || "Complete"}
+                        ${t("complete", L)}
                       </ha-button>
                       ${task.allow_skip !== false
                         ? html`
                             <ha-button appearance="outlined" variant="warning" @click=${() => { this._showSkip = true; }} .disabled=${this._busy}>
                               <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>
-                              ${t("skip", L) || "Skip"}
+                              ${t("skip", L)}
                             </ha-button>
                           `
                         : nothing}
                       <ha-button appearance="outlined" variant="neutral" @click=${() => { this._showReset = true; }} .disabled=${this._busy}>
                         <ha-icon slot="start" icon="mdi:restart"></ha-icon>
-                        ${t("reset", L) || "Reset"}
+                        ${t("reset", L)}
                       </ha-button>
                     </div>
                     ${isAdmin
@@ -667,21 +667,21 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                           <div class="actions secondary-row">
                             <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onEdit} .disabled=${this._busy}>
                               <ha-icon slot="start" icon="mdi:pencil"></ha-icon>
-                              ${t("edit", L) || "Edit"}
+                              ${t("edit", L)}
                             </ha-button>
                             <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onQr} .disabled=${this._busy}>
                               <ha-icon slot="start" icon="mdi:qrcode"></ha-icon>
-                              ${t("qr_code", L) || "QR"}
+                              ${t("qr_code", L)}
                             </ha-button>
                             <ha-button size="small" appearance="outlined" variant="neutral"
                               @click=${task.archived ? this._onUnarchive : this._onArchive}
                               .disabled=${this._busy}>
                               <ha-icon slot="start" icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-                              ${task.archived ? (t("unarchive", L) || "Unarchive") : (t("archive", L) || "Archive")}
+                              ${task.archived ? t("unarchive", L) : t("archive", L)}
                             </ha-button>
                             <ha-button size="small" appearance="outlined" variant="danger" class="danger" @click=${this._onDelete} .disabled=${this._busy}>
                               <ha-icon slot="start" icon="mdi:delete"></ha-icon>
-                              ${t("delete", L) || "Delete"}
+                              ${t("delete", L)}
                             </ha-button>
                           </div>
                         `
@@ -690,8 +690,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                       <button class="link" @click=${() => { this._showDetails = !this._showDetails; }}>
                         <ha-icon icon="${this._showDetails ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon>
                         ${this._showDetails
-                          ? (t("hide_details", L) || "Hide details")
-                          : (t("show_details", L) || "Show history + stats")}
+                          ? t("hide_details", L)
+                          : t("show_details", L)}
                       </button>
                       ${this._features.adaptive
                           || this._features.seasonal
@@ -699,8 +699,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                         ? html`<button class="link" @click=${() => { this._showAdaptive = !this._showAdaptive; }}>
                             <ha-icon icon="${this._showAdaptive ? 'mdi:chart-line' : 'mdi:chart-line-variant'}"></ha-icon>
                             ${this._showAdaptive
-                              ? (t("hide_stats", L) || "Hide stats")
-                              : (t("show_stats", L) || "Show stats + graphs")}
+                              ? t("hide_stats", L)
+                              : t("show_stats", L)}
                           </button>`
                         : nothing}
                     </div>
@@ -709,12 +709,12 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                     <div class="footer">
                       <button class="link" @click=${this._onOpenInPanel}>
                         <ha-icon icon="mdi:open-in-new"></ha-icon>
-                        ${t("open_in_panel", L) || "Open in Maintenance panel"}
+                        ${t("open_in_panel", L)}
                       </button>
                     </div>
                   `}
             `
-          : html`<div class="loading">${t("loading", L) || "Loading…"}</div>`}
+          : html`<div class="loading">${t("loading", L)}</div>`}
       </div>
     `;
   }

@@ -7,6 +7,7 @@
  */
 
 import { expect } from "@open-wc/testing";
+import { DEFAULT_CURRENCY_SYMBOL } from "../styles";
 import {
   buildCompleteDialogArgs,
   fillAndOpenCompleteDialog,
@@ -157,7 +158,7 @@ describe("fillAndOpenCompleteDialog", () => {
     expect(dlg.requireTagScan).to.equal(false);
     expect(dlg.restockDefault).to.equal(null);
     expect(dlg.restockUnitCost).to.equal(null);
-    expect(dlg.currencySymbol).to.equal("");
+    expect(dlg.currencySymbol, "reset to the default symbol").to.equal(DEFAULT_CURRENCY_SYMBOL);
     expect(dlg.consumesInfo).to.deep.equal([]);
     expect(dlg.checklistPrefill).to.deep.equal({});
     expect(dlg.viaTagScan).to.equal(false);

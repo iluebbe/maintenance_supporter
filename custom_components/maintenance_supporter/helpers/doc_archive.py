@@ -27,7 +27,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN, GLOBAL_UNIQUE_ID
-from .documents import KIND_FILE, KIND_WEBLINK
+from .documents import KIND_WEBLINK, async_rewrite_doc_refs, doc_wire_dict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -132,36 +132,12 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
             continue
         docs = []
         for d in store.for_object(object_id):
-            if d.get("kind") == KIND_WEBLINK:
-                docs.append(
-                    {
-                        "kind": KIND_WEBLINK,
-                        "url": d.get("url"),
-                        "title": d.get("title"),
-                        "tags": d.get("tags") or [],
-                        "description": d.get("description") or "",
-                        "task_ids": d.get("task_ids") or [],
-                        "part_ids": d.get("part_ids") or [],
-                    }
-                )
-            else:
-                h = d.get("hash")
-                docs.append(
-                    {
-                        "kind": KIND_FILE,
-                        "hash": h,
-                        "title": d.get("title"),
-                        "filename": d.get("filename"),
-                        "mime": d.get("mime"),
-                        "size": d.get("size"),
-                        "tags": d.get("tags") or [],
-                        "description": d.get("description") or "",
-                        "task_ids": d.get("task_ids") or [],
-                        "part_ids": d.get("part_ids") or [],
-                    }
-                )
-                if isinstance(h, str):
-                    blob_hashes.add(h)
+            # The same record the JSON export writes (id included, so a
+            # restore can re-point completion photos / part doc links).
+            docs.append(doc_wire_dict(d, include_id=True))
+            h = d.get("hash")
+            if d.get("kind") != KIND_WEBLINK and isinstance(h, str):
+                blob_hashes.add(h)
         if docs:
             manifest_objects.append({"object_id": object_id, "object_name": obj.get("name", ""), "documents": docs})
 
@@ -257,6 +233,10 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
     ids, by_name = _object_name_map(hass)
     docs_created = 0
     objects_matched = 0
+    # old → new document ids across every restored object, so history photos
+    # and part doc links that pointed at the archived ids follow (the JSON
+    # importer does the same for its own restore).
+    doc_id_map: dict[str, str] = {}
     for obj in manifest.get("objects", []):
         if not isinstance(obj, dict):
             continue
@@ -282,8 +262,10 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
             identity = {tid: tid for tid in valid_task_ids}
             part_identity = {pid: pid for pid in _object_part_ids(hass, target)}
             docs_created += await store.async_import_documents(
-                target, fresh, task_id_map=identity, part_id_map=part_identity
+                target, fresh, task_id_map=identity, part_id_map=part_identity, id_map=doc_id_map
             )
+    if doc_id_map:
+        await async_rewrite_doc_refs(hass, lambda old: doc_id_map.get(old, old))
 
     return {
         "blobs_written": written,

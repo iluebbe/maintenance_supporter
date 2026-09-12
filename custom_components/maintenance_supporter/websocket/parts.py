@@ -44,7 +44,7 @@ _PART_FIELDS_SCHEMA = {
     vol.Optional("reorder_threshold"): vol.Any(int, None),
     vol.Optional("restock_quantity"): vol.Any(int, float, None),
     vol.Optional("auto_buy_task"): bool,
-    vol.Optional("doc_id"): vol.Any(str, None),
+    vol.Optional("doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
     # Initial / edited stock travels WITH the definition for dialog simplicity,
     # but is stored in the per-entry Store (dynamic), not entry.data.
     vol.Optional("stock"): vol.Any(int, float, None),

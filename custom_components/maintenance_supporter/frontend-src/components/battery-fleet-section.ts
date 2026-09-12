@@ -51,6 +51,9 @@ interface BatteryRow {
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
 }
+/** What the shared row template takes: a low/soon row, or a roster row
+ *  (which adds the status). */
+type FleetRow = BatteryRow & { status?: RosterRow["status"] };
 /** 30 d downsampled level history per battery, for the roster sparklines.
  *  threshold = the same low threshold the trend forecast regresses toward,
  *  so the dotted projection ends exactly where the ~date comes from.
@@ -302,7 +305,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
    *  where the ~date comes from the discharge trend — a dotted projection
    *  from the last reading down to the threshold, so the date is visible
    *  instead of merely stated. */
-  private _sparkline(b: RosterRow) {
+  private _sparkline(b: FleetRow) {
     const h = this._history?.[b.entity_id];
     if (!h || h.points.length < 2) return nothing;
     const W = 110, H = 24, P = 2;
@@ -439,6 +442,106 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     ></span>`;
   }
 
+  /** The "record this replacement" chip: the level history shows an upward
+   *  jump nobody recorded in Battery Notes (roster only). */
+  private _jumpButton(b: BatteryRow, L: string) {
+    const jump = this._history?.[b.entity_id]?.jump;
+    if (!jump || this._recorded.includes(b.entity_id)) return nothing;
+    return html`<button
+      class="bf-mark bf-jump"
+      title=${t("battery_fleet_record_replacement", L).replace("{date}", this._fmtDate(jump.at * 1000))}
+      .disabled=${this._marking}
+      @click=${() => this._recordJump(b.entity_id, jump)}
+    >
+      <ha-icon icon="mdi:calendar-sync"></ha-icon>
+    </button>`;
+  }
+
+  /** ONE row template for the three lists (low / needed soon / roster).
+   *  They were hand-copied and had drifted: only the low list said
+   *  "recharged" on a rechargeable's mark action and only it showed the
+   *  offline hint (DRY audit 2026-09-12). `o` names the per-list extras.
+   *
+   *  DOM order is load-bearing for the grid CSS: `.bf-status + .bf-type +
+   *  .bf-offline` (the roster's chip sits AFTER the type, the low/soon
+   *  lists' BEFORE it), `.bf-level + .bf-mark.bf-replaced`, and the phone
+   *  layout's column assignments — keep it. */
+  private _renderRow(
+    b: FleetRow,
+    L: string,
+    o: {
+      /** Roster: status chip in column 2, the sensor chip after the type. */
+      status?: boolean;
+      /** Rechargeable badge (low list + roster). */
+      recharge?: boolean;
+      /** 30 d level sparkline (roster). */
+      sparkline?: boolean;
+      /** "always": every row gets the mark action (low list); "replaced":
+       *  only a sensorless row or a note with a replaced button. */
+      mark: "always" | "replaced";
+      jump?: boolean;
+      predicted?: boolean;
+      exclude?: boolean;
+    },
+  ) {
+    const chip =
+      b.available === false
+        ? html`<span class="bf-offline">${t("battery_fleet_offline", L)}</span>`
+        : b.no_sensor
+          ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
+          : nothing;
+    const type = html`<span class="bf-type">${b.quantity}× ${b.battery_type}</span>`;
+    const showMark = o.mark === "always" || b.no_sensor || b.can_mark_replaced;
+    return html`
+      <div class="bf-row">
+        <span class="bf-dev">${b.device_name}</span>
+        ${o.status
+          ? html`<span class="bf-status bf-${b.status}"
+                >${b.no_sensor && b.status === "low"
+                  ? t("battery_fleet_status_due", L)
+                  : t("battery_fleet_status_" + b.status, L)}</span
+              >${type}${chip}`
+          : html`${chip}${type}`}
+        ${o.recharge && b.rechargeable
+          ? html`<span class="bf-recharge" title=${t("battery_fleet_rechargeable", L)}
+              ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
+            ></span>`
+          : nothing}
+        ${o.sparkline ? this._sparkline(b) : nothing}
+        ${this._levelBar(b)}
+        ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
+        ${showMark
+          ? html`<button
+              class="bf-mark${o.mark === "replaced" ? " bf-replaced" : ""}"
+              title=${b.rechargeable ? t("battery_fleet_mark_recharged", L) : t("battery_fleet_mark_one", L)}
+              .disabled=${this._marking}
+              @click=${() => this._mark([b.entity_id])}
+            >
+              <ha-icon icon="mdi:battery-sync"></ha-icon>
+            </button>`
+          : nothing}
+        ${o.jump ? this._jumpButton(b, L) : nothing}
+        ${o.predicted && b.days_until != null
+          ? html`<span
+              class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
+              title=${this._predictedTitle(b, L)}
+              >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span
+            >`
+          : nothing}
+        ${o.exclude
+          ? html`<button
+              class="bf-mark bf-exclude"
+              title=${t("battery_fleet_exclude", L)}
+              .disabled=${this._marking}
+              @click=${() => this._setExcluded(b.entity_id, true)}
+            >
+              <ha-icon icon="mdi:eye-off-outline"></ha-icon>
+            </button>`
+          : nothing}
+      </div>
+    `;
+  }
+
   render() {
     const L = this._lang;
     if (this._loading && this._ov === null) return html`<div class="bf-card"><div class="bf-loading">…</div></div>`;
@@ -475,42 +578,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 <span class="bf-list">${this._shoppingLine(ov.needs_now)}</span>
               </div>
               <div class="bf-rows">
-                ${ov.low.map(
-                  (b) => html`
-                    <div class="bf-row">
-                      <span class="bf-dev">${b.device_name}</span>
-                      ${b.available === false
-                        ? html`<span class="bf-offline">${t("battery_fleet_offline", L)}</span>`
-                        : b.no_sensor
-                          ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
-                          : nothing}
-                      <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
-                      ${b.rechargeable
-                        ? html`<span class="bf-recharge" title=${t("battery_fleet_rechargeable", L)}
-                            ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
-                          ></span>`
-                        : nothing}
-                      ${this._levelBar(b)}
-                      ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
-                      <button
-                        class="bf-mark"
-                        title=${b.rechargeable ? t("battery_fleet_mark_recharged", L) : t("battery_fleet_mark_one", L)}
-                        .disabled=${this._marking}
-                        @click=${() => this._mark([b.entity_id])}
-                      >
-                        <ha-icon icon="mdi:battery-sync"></ha-icon>
-                      </button>
-                      <button
-                        class="bf-mark bf-exclude"
-                        title=${t("battery_fleet_exclude", L)}
-                        .disabled=${this._marking}
-                        @click=${() => this._setExcluded(b.entity_id, true)}
-                      >
-                        <ha-icon icon="mdi:eye-off-outline"></ha-icon>
-                      </button>
-                    </div>
-                  `,
-                )}
+                ${ov.low.map((b) => this._renderRow(b, L, { recharge: true, mark: "always", exclude: true }))}
               </div>
               <div class="bf-actions">
                 <ha-button .disabled=${this._marking} @click=${this._markAll}>
@@ -527,29 +595,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 <div class="bf-soon-hint">${t("battery_fleet_soon_hint", L)}</div>
               </div>
               <div class="bf-rows bf-soon-rows">
-                ${ov.soon.map(
-                  (b) => html`
-                    <div class="bf-row">
-                      <span class="bf-dev">${b.device_name}</span>
-                      ${b.no_sensor
-                        ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
-                        : nothing}
-                      <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
-                      ${this._levelBar(b)}
-                      ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
-                      ${b.no_sensor || b.can_mark_replaced
-                        ? html`<button class="bf-mark bf-replaced" title=${t("battery_fleet_mark_one", L)} .disabled=${this._marking} @click=${() => this._mark([b.entity_id])}>
-                            <ha-icon icon="mdi:battery-sync"></ha-icon>
-                          </button>`
-                        : nothing}
-                      ${b.days_until != null
-                        ? html`<span class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
-                            title=${this._predictedTitle(b, L)}
-                            >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span>`
-                        : nothing}
-                    </div>
-                  `,
-                )}
+                ${ov.soon.map((b) => this._renderRow(b, L, { mark: "replaced", predicted: true }))}
               </div>
             `
           : nothing}
@@ -572,66 +618,8 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   </button>
                 </div>
                 <div class="bf-rows">
-                  ${this._sortedRoster(ov.all).map(
-                    (b) => html`
-                      <div class="bf-row">
-                        <span class="bf-dev">${b.device_name}</span>
-                        <span class="bf-status bf-${b.status}"
-                          >${b.no_sensor && b.status === "low"
-                            ? t("battery_fleet_status_due", L)
-                            : t("battery_fleet_status_" + b.status, L)}</span
-                        >
-                        <span class="bf-type">${b.quantity}× ${b.battery_type}</span>
-                        ${b.no_sensor
-                          ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
-                          : nothing}
-                        ${b.rechargeable
-                          ? html`<span class="bf-recharge" title=${t("battery_fleet_rechargeable", L)}
-                              ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
-                            ></span>`
-                          : nothing}
-                        ${this._sparkline(b)}
-                        ${this._levelBar(b)}
-                        ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
-                        ${b.no_sensor || b.can_mark_replaced
-                          ? html`<button
-                              class="bf-mark bf-replaced"
-                              title=${t("battery_fleet_mark_one", L)}
-                              .disabled=${this._marking}
-                              @click=${() => this._mark([b.entity_id])}
-                            >
-                              <ha-icon icon="mdi:battery-sync"></ha-icon>
-                            </button>`
-                          : nothing}
-                        ${(() => {
-                          const jump = this._history?.[b.entity_id]?.jump;
-                          if (!jump || this._recorded.includes(b.entity_id)) return nothing;
-                          return html`<button
-                            class="bf-mark bf-jump"
-                            title=${t("battery_fleet_record_replacement", L).replace("{date}", this._fmtDate(jump.at * 1000))}
-                            .disabled=${this._marking}
-                            @click=${() => this._recordJump(b.entity_id, jump)}
-                          >
-                            <ha-icon icon="mdi:calendar-sync"></ha-icon>
-                          </button>`;
-                        })()}
-                        ${b.days_until != null
-                          ? html`<span
-                              class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
-                              title=${this._predictedTitle(b, L)}
-                              >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span
-                            >`
-                          : nothing}
-                        <button
-                          class="bf-mark bf-exclude"
-                          title=${t("battery_fleet_exclude", L)}
-                          .disabled=${this._marking}
-                          @click=${() => this._setExcluded(b.entity_id, true)}
-                        >
-                          <ha-icon icon="mdi:eye-off-outline"></ha-icon>
-                        </button>
-                      </div>
-                    `,
+                  ${this._sortedRoster(ov.all).map((b) =>
+                    this._renderRow(b, L, { status: true, recharge: true, sparkline: true, mark: "replaced", jump: true, predicted: true, exclude: true }),
                   )}
                 </div>
                 <div class="bf-roster-hint">${t("battery_fleet_all_hint", L)}</div>
@@ -813,9 +801,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-bar {
       grid-column: 6;
     }
-    /* D#162: the roster's "No sensor" chip takes the level bar's slot
-     * (such a row has no bar); column 2 stays the status chip's. */
-    .bf-status + .bf-type + .bf-nosensor {
+    /* D#162: the roster's "No sensor" / offline chip takes the level bar's
+     * slot (such a row has no bar); column 2 stays the status chip's. */
+    .bf-status + .bf-type + .bf-offline {
       grid-column: 6;
       justify-self: start;
       white-space: nowrap;
@@ -945,7 +933,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
        * for EVERY row (subgrid) - on phones the missing percentage and
        * the "Due" status already tell the story, so it yields like the
        * bar and the sparkline do. */
-      .bf-status + .bf-type + .bf-nosensor {
+      .bf-status + .bf-type + .bf-offline {
         display: none;
       }
     }

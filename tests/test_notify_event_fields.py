@@ -123,6 +123,23 @@ async def test_settings_test_send_fills_sample_values(hass: HomeAssistant, hass_
     assert d["task_name"] == "Sample task" and d["days_until_due"] == 3 and d["priority"] == "normal"
 
 
+async def test_sample_context_fills_every_field_of_the_real_contract(hass: HomeAssistant) -> None:
+    """The Settings test send is a template author's only preview: its
+    sample must carry the SAME keys a real task-bound context does, each
+    with a value (a field added to the contract without a sample would
+    render as empty in the preview and surprise on the first real reminder)."""
+    from custom_components.maintenance_supporter.helpers.notify_hooks import sample_notification_context
+
+    g = _global(hass)
+    obj = _object(hass)
+    await setup_integration(hass, g, obj)
+    real = notification_context(hass, KIND_STATUS, status="overdue", entry_id=obj.entry_id, task_id=TASK_ID_1, task_name="Filter", object_name="Dishwasher", days_until_due=-3, next_due="2026-09-09", responsible_user_id="u1")
+    sample = sample_notification_context(hass)
+    assert set(sample) == set(real), f"sample-only {sorted(set(sample) - set(real))} / missing samples {sorted(set(real) - set(sample))}"
+    assert all(v is not None for v in sample.values()), {k for k, v in sample.items() if v is None}
+    assert sample["kind"] == KIND_TEST and sample["labels"] == ["sample"] and sample["notes"] == "Sample note" and sample["area_name"] == "Sample area"
+
+
 # ─── the documented field table is the code ─────────────────────────────────
 
 _KIND_EXTRAS = {

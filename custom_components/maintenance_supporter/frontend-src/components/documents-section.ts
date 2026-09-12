@@ -19,8 +19,10 @@ import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-
 import { DOC_FILTER_MIN, DOC_SORT_MODES, asDocSortMode, filterDocuments, sortDocuments, type DocSortMode } from "../helpers/document-filter";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import type { HomeAssistant } from "../types";
-import "./camera-capture";
-import { inAppCameraPreferred, type MsCameraCapture } from "./camera-capture";
+import { isAndroidCompanion } from "../helpers/companion";
+import { uploadDocument } from "../helpers/photo-upload";
+import "./ms-photo-picker";
+import { photoPickerStyles } from "./ms-photo-picker";
 
 interface MaintenanceDocument {
   id: string;
@@ -143,27 +145,10 @@ export class MaintenanceDocumentsSection extends LitElement {
     input.value = ""; // let the same file be re-picked
   }
 
-  /** #161 follow-up: in-app viewfinder inside the Android app (its chooser
-   *  ignores `capture=`); the native input takes over when it cannot open. */
-  @state() private _inAppCamera = inAppCameraPreferred();
-
-  private _onCameraClick(e: Event): void {
-    if (!this._inAppCamera || this._busy) return;
-    e.preventDefault();
-    void this.shadowRoot?.querySelector<MsCameraCapture>("ms-camera-capture")?.open();
-  }
-
-  private _onCameraUnavailable(): void {
-    this._inAppCamera = false;
-    this.shadowRoot?.querySelector<HTMLInputElement>("label.camera-btn input")?.click();
-  }
-
-  private _onCameraInput(e: Event): void {
-    const input = e.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    if (files.length) void this._uploadFiles(files, "photo");
-    input.value = "";
-  }
+  /** The Android Companion app answers a multi-select with an EMPTY file
+   *  list (helpers/companion.ts) — "Upload file" is single-select there.
+   *  Evaluated once; the host app does not change. */
+  private readonly _singlePick = isAndroidCompanion();
 
   private _onDrop(e: DragEvent): void {
     e.preventDefault();
@@ -194,21 +179,18 @@ export class MaintenanceDocumentsSection extends LitElement {
     let deduped = 0;
     let dupInObject = 0;
     try {
+      // Bulk upload: one refused file (too large, rejected) is noted and
+      // the rest still go up — unlike the photo dialogs, which stop.
       for (const file of files) {
-        const form = new FormData();
-        form.append("entry_id", this.entryId);
-        form.append("tags", cat);
-        form.append("file", file, file.name);
-        const resp = await fetch("/api/maintenance_supporter/document/upload", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${this.hass.auth?.data?.access_token ?? ""}` },
-          body: form,
-        });
-        if (!resp.ok) {
-          this._error = resp.status === 413 ? t("doc_too_large", this._lang) : t("doc_upload_failed", this._lang);
+        let doc;
+        try {
+          doc = await uploadDocument(this.hass, this.entryId, file, [cat]);
+        } catch (e) {
+          const key = e instanceof Error ? e.message : "";
+          if (key !== "doc_too_large" && key !== "doc_upload_failed") throw e;
+          this._error = t(key, this._lang);
           continue;
         }
-        const doc = (await resp.json()) as { deduped?: boolean; duplicate_in_object?: string | null };
         if (doc.duplicate_in_object) dupInObject++;
         else if (doc.deduped) deduped++;
       }
@@ -374,23 +356,11 @@ export class MaintenanceDocumentsSection extends LitElement {
                 >
                   <ha-icon icon="mdi:upload"></ha-icon>
                   ${this._busy ? t("doc_uploading", L) : t("doc_upload", L)}
-                  <input type="file" multiple hidden ?disabled=${this._busy} @change=${this._onFileInput} />
+                  <input type="file" ?multiple=${!this._singlePick} hidden ?disabled=${this._busy} @change=${this._onFileInput} />
                 </label>
-                <label
-                  class="btn camera-btn ${this._busy ? "disabled" : ""}"
-                  role="button"
-                  @click=${this._onCameraClick}
-                  tabindex="0"
-                  aria-label=${t("doc_camera", L)}
-                  title=${t("doc_camera", L)}
-                  @keydown=${this._labelKeydown}
-                >
-                  <ha-icon icon="mdi:camera"></ha-icon>
-                  <input type="file" accept="image/*" capture="environment" hidden ?disabled=${this._busy} @change=${this._onCameraInput} />
-                </label>
-                ${this._inAppCamera ? html`<ms-camera-capture .lang=${L}
-                  @photo-captured=${(e: CustomEvent<{ file: File }>) => this._uploadFiles([e.detail.file], "photo")}
-                  @capture-unavailable=${this._onCameraUnavailable}></ms-camera-capture>` : nothing}
+                <ms-photo-picker compact .showGallery=${false} .lang=${L} .disabled=${this._busy}
+                  @files-picked=${(e: CustomEvent<{ files: File[] }>) => this._uploadFiles(e.detail.files, "photo")}
+                ></ms-photo-picker>
                 <button class="btn" ?disabled=${this._busy} @click=${() => (this._addingLink = !this._addingLink)}>
                   <ha-icon icon="mdi:link-variant"></ha-icon> ${t("doc_add_link", L)}
                 </button>
@@ -588,7 +558,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [photoPickerStyles, css`
     :host { display: block; margin: 8px 0 4px; }
     .doc-zone { position: relative; }
     .doc-zone.drag-over {
@@ -602,7 +572,15 @@ export class MaintenanceDocumentsSection extends LitElement {
       background: var(--card-background-color, rgba(255, 255, 255, 0.85));
     }
     .drop-overlay ha-icon { --mdc-icon-size: 24px; }
-    .camera-btn { padding: 6px 10px; }
+    /* The camera picker (ms-photo-picker, light DOM) wears the toolbar's
+       .btn look instead of the dialogs' dashed tile. */
+    .doc-actions .photo-pick {
+      padding: 6px 10px; gap: 6px; border-style: solid; border-radius: 6px;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color); border-color: var(--divider-color);
+    }
+    .doc-actions .photo-pick ha-icon { --mdc-icon-size: 18px; }
+    .doc-actions .photo-pick.disabled { opacity: 0.5; pointer-events: none; }
     .doc-header {
       display: flex; align-items: center; justify-content: space-between;
       gap: 12px; flex-wrap: wrap;
@@ -705,7 +683,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     .icon-btn.danger { color: var(--error-color, #f44336); }
     .icon-btn[disabled] { opacity: 0.4; pointer-events: none; }
     .icon-btn ha-icon { --mdc-icon-size: 20px; }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-documents-section")) {

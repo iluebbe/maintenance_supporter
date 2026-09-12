@@ -125,8 +125,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
 
   private async _deleteGroup(id: string, name: string): Promise<void> {
     if (!this._isAdmin) return;
-    const confirmText = (t("group_delete_confirm", this._lang)
-      || "Delete group \"{name}\"?").replace("{name}", name);
+    const confirmText = t("group_delete_confirm", this._lang).replace("{name}", name);
     if (!window.confirm(confirmText)) return;
     this._busy = true;
     try {
@@ -162,7 +161,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
   render() {
     const L = this._lang;
     if (!this._loaded) {
-      return html`<ha-card><div class="loading">${t("loading", L) || "Loading…"}</div></ha-card>`;
+      return html`<ha-card><div class="loading">${t("loading", L)}</div></ha-card>`;
     }
     const ids = Object.keys(this._groups);
 
@@ -172,7 +171,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
           <div class="header">
             <div class="title">
               <span class="emoji">🏷️</span>
-              <span>${this._config.title || (t("groups", L) || "Groups")}</span>
+              <span>${this._config.title || t("groups", L)}</span>
               <span class="count">${ids.length}</span>
             </div>
           </div>
@@ -180,7 +179,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
           ${ids.length === 0
-            ? html`<div class="empty">${t("groups_empty", L) || "No groups yet."}</div>`
+            ? html`<div class="empty">${t("groups_empty", L)}</div>`
             : html`
                 <div class="group-list">
                   ${ids.map((id) => {
@@ -201,11 +200,11 @@ export class MaintenanceGroupsSectionCard extends LitElement {
                               <button class="btn small primary"
                                 @click=${this._saveEdit}
                                 ?disabled=${this._busy || !this._editingName.trim()}>
-                                ${t("save", L) || "Save"}
+                                ${t("save", L)}
                               </button>
                               <button class="btn small"
                                 @click=${() => { this._editingId = null; }}>
-                                ${t("cancel", L) || "Cancel"}
+                                ${t("cancel", L)}
                               </button>
                             `
                           : html`
@@ -214,13 +213,13 @@ export class MaintenanceGroupsSectionCard extends LitElement {
                               ${this._isAdmin
                                 ? html`
                                     <button class="icon-btn"
-                                      title="${t("edit", L) || "Edit"}"
+                                      title="${t("edit", L)}"
                                       @click=${() => this._startEdit(id)}
                                       ?disabled=${this._busy}>
                                       <ha-icon icon="mdi:pencil"></ha-icon>
                                     </button>
                                     <button class="icon-btn danger"
-                                      title="${t("delete", L) || "Delete"}"
+                                      title="${t("delete", L)}"
                                       @click=${() => this._deleteGroup(id, g.name || "Unnamed")}
                                       ?disabled=${this._busy}>
                                       <ha-icon icon="mdi:delete"></ha-icon>
@@ -238,7 +237,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
             ? html`
                 <div class="add-row">
                   <input type="text"
-                    placeholder="${t("group_new_placeholder", L) || "Add group…"}"
+                    placeholder="${t("group_new_placeholder", L)}"
                     .value=${this._newName}
                     ?disabled=${this._busy}
                     @input=${(e: Event) => {
@@ -249,16 +248,16 @@ export class MaintenanceGroupsSectionCard extends LitElement {
                     @click=${this._addGroup}
                     ?disabled=${this._busy || !this._newName.trim()}>
                     <ha-icon icon="mdi:plus"></ha-icon>
-                    ${t("add", L) || "Add"}
+                    ${t("add", L)}
                   </button>
                 </div>
                 <button class="btn link" @click=${this._onDeepLink}>
-                  ${t("groups_manage_tasks", L) || "Manage task assignments…"}
+                  ${t("groups_manage_tasks", L)}
                 </button>
               `
             : html`
                 <button class="btn link" @click=${this._onDeepLink}>
-                  ${t("groups_open_panel", L) || "Open in panel"}
+                  ${t("groups_open_panel", L)}
                 </button>
               `}
         </div>

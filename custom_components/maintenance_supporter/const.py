@@ -311,6 +311,17 @@ COMPLETION_SOURCES = (
     "auto_recovery",
 )
 COMPLETION_SOURCES_AUTOMATIC = frozenset({"shopping_list", "service", "auto_recovery"})
+# The canned history note an UNATTENDED surface attaches (nobody was asked
+# for one) — provenance, never the note a task demands. One table, so the
+# wording lives once; tests/test_completion_sources.py keeps it complete.
+COMPLETION_PROVENANCE_NOTES: dict[str, str] = {
+    "button": "Completed from dashboard button",
+    "todo": "Completed from the To-do list",
+    "voice": "Completed by voice",
+    "notification_action": "Completed from the notification",
+    "nfc": "Completed via NFC tag",
+    "shopping_list": "Completed from the shopping list",
+}
 
 # --- Config Keys: Notification Actions ---
 CONF_ACTION_COMPLETE_ENABLED = "action_complete_enabled"

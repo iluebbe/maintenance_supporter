@@ -35,7 +35,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { historyPhotoIds } from "./helpers/history-photos";
 import { entryReadingValues } from "./helpers/reading-slots";
@@ -363,7 +363,7 @@ export class MaintenanceCalendarCard extends LitElement {
             ${t("cal_predicted", L)} · ${t(`cal_confidence_${ev.prediction_confidence}`, L)}
           </span>`
         : nothing;
-      const currencySymbol = this._stats?.budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
+      const currencySymbol = currencySymbolOf(this._stats?.budget);
       // Past mode: ev.history_type is the actual event ('completed', 'skipped',
       // 'reset', 'triggered', 'trigger_replaced'). Showing the derived status
       // ('OK' for a completion) was confusing — discussion #49 user-feedback:
@@ -424,7 +424,7 @@ export class MaintenanceCalendarCard extends LitElement {
               <div class="cal-controls">
                 ${showChips
                   ? html`
-                      <div class="cal-window-chips cal-past-chips" title="${t("cal_past_windows", L) || "Past windows"}">
+                      <div class="cal-window-chips cal-past-chips" title="${t("cal_past_windows", L)}">
                         ${[30, 90].map((p) => html`
                           <button class="cal-window-chip cal-past-chip ${this._pastDays === p ? "active" : ""}"
                             @click=${() => {
@@ -435,7 +435,7 @@ export class MaintenanceCalendarCard extends LitElement {
                         `)}
                       </div>
                       <span class="cal-chip-separator" aria-hidden="true">●</span>
-                      <div class="cal-window-chips" title="${t("cal_forward_windows", L) || "Forward windows"}">
+                      <div class="cal-window-chips" title="${t("cal_forward_windows", L)}">
                         ${[7, 14, 30, 365].map((w) => html`
                           <button class="cal-window-chip ${this._pastDays === 0 && this._windowDays === w ? "active" : ""}"
                             @click=${() => {

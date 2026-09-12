@@ -108,7 +108,7 @@ describe("history-edit dialog photos (#161)", () => {
   }
 
   function pickFiles(el: MaintenanceHistoryEditDialog, names: string[]) {
-    const input = el.shadowRoot!.querySelector<HTMLInputElement>('.photo-add input[type="file"]')!;
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>('.photo-pick-gallery input[type="file"]')!;
     const dt = new DataTransfer();
     for (const name of names) dt.items.add(new File(["png"], name, { type: "image/png" }));
     input.files = dt.files;

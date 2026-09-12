@@ -28,6 +28,8 @@ from typing import Any
 from urllib.parse import quote_plus
 from uuid import uuid4
 
+from ..const import DEFAULT_CURRENCY_DECIMALS
+
 # ── Limits (mirrored in the WS schemas + panel dialog) ──────────────────────
 MAX_PARTS_PER_OBJECT = 50
 MAX_PART_NAME = 100
@@ -350,7 +352,7 @@ def buy_task_name(part_name: str, lang: str) -> str:
     return tpl.replace("{name}", part_name)
 
 
-def buy_task_notes(part: Mapping[str, Any], stock: float | None, decimals: int = 2) -> str:
+def buy_task_notes(part: Mapping[str, Any], stock: float | None, decimals: int = DEFAULT_CURRENCY_DECIMALS) -> str:
     """Self-contained purchase notes: identifiers, qty, price, storage spot.
 
     Deliberately mostly language-neutral (labels are identifiers like MPN/GTIN;
@@ -388,7 +390,7 @@ def build_buy_task(
     lang: str,
     search_template: str | None,
     today: date,
-    decimals: int = 2,
+    decimals: int = DEFAULT_CURRENCY_DECIMALS,
 ) -> dict[str, Any]:
     """The one-off shopping reminder for a low part (due today, actionable now)."""
     return {
@@ -417,7 +419,7 @@ def reconcile_buy_tasks(
     lang: str,
     search_template: str | None,
     today: date,
-    decimals: int = 2,
+    decimals: int = DEFAULT_CURRENCY_DECIMALS,
     is_task_done: Any,
 ) -> tuple[dict[str, dict[str, Any]], list[str], list[str], bool]:
     """Compute the task map with auto "buy" reminders synced to low parts.

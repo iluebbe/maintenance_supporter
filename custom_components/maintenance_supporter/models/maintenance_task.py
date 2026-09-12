@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, time
+from datetime import date, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -18,7 +18,7 @@ from ..const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
-from ..helpers.dates import parse_iso_date
+from ..helpers.dates import parse_hhmm, parse_iso_date
 from ..helpers.schedule import Schedule, read_legacy_fields
 
 
@@ -222,12 +222,9 @@ class MaintenanceTask:
         """
         if not self.schedule_time:
             return False
-        try:
-            # Tolerate both "HH:MM" (panel/WS) and "HH:MM:SS" (HA TimeSelector
-            # in the config-flow) — take the first two components.
-            parts = str(self.schedule_time).split(":")
-            target = time(int(parts[0]), int(parts[1]))
-        except (ValueError, TypeError, IndexError):
+        # "HH:MM" (panel/WS) and "HH:MM:SS" (HA TimeSelector) alike.
+        target = parse_hhmm(self.schedule_time)
+        if target is None:
             return False
         return dt_util.now().time() >= target
 

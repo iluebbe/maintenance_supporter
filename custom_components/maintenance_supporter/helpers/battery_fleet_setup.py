@@ -34,6 +34,7 @@ from ..const import (
     DOMAIN,
 )
 from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, note_sibling_entity, read_batteries
+from .global_options import get_default_warning_days
 from .trigger_fallback import threshold_limits_overlap
 
 _LOGGER = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
         await store.async_save()
 
     # The single aggregate task, triggered by the global low-count sensor.
-    task = _fleet_task(obj.get("id", ""), lang)
+    task = _fleet_task(obj.get("id", ""), lang, warning_days=get_default_warning_days(hass))
     await async_persist_task(hass, entry, task)
 
     return {
@@ -164,8 +165,11 @@ def _fleet_trigger_config() -> dict[str, Any]:
     }
 
 
-def _fleet_task(obj_id: str, lang: str) -> dict[str, Any]:
-    """The single aggregate fleet task, with localized name + notes."""
+def _fleet_task(obj_id: str, lang: str, *, warning_days: int) -> dict[str, Any]:
+    """The single aggregate fleet task, with localized name + notes.
+
+    ``warning_days`` is the household default like every other task
+    creator writes (it was the one task record without it)."""
     from ..templates import localize_template_text
 
     return {
@@ -176,6 +180,7 @@ def _fleet_task(obj_id: str, lang: str) -> dict[str, Any]:
         "enabled": True,
         TASK_FLAG: True,
         "schedule": {"kind": "manual"},
+        "warning_days": warning_days,
         "trigger_config": _fleet_trigger_config(),
         "created_at": dt_util.now().date().isoformat(),
         "notes": localize_template_text(
@@ -522,7 +527,7 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: s
         return True
 
     obj = entry.data.get(CONF_OBJECT, {})
-    await async_persist_task(hass, entry, _fleet_task(obj.get("id", ""), lang))
+    await async_persist_task(hass, entry, _fleet_task(obj.get("id", ""), lang, warning_days=get_default_warning_days(hass)))
     return True
 
 

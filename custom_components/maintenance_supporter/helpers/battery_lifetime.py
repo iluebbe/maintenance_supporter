@@ -149,6 +149,34 @@ def has_type_forecast(raw: Any) -> bool:
     return canonical_type(raw) not in NO_FORECAST_TYPES
 
 
+# Battery Notes' library labels rechargeable packs with type strings like
+# "Rechargeable", "Nuki Battery Pack" or li-ion cell names. Such a battery is
+# CHARGED, never bought — so it must not enter the shopping groupings, and the
+# type-lifetime table (a primary-cell prior) has nothing honest to say about
+# it. Low tracking and the discharge-trend forecast stay: "charge the lock in
+# ~20 days" is exactly what the roster is for.
+_RECHARGEABLE_TYPE_RE = re.compile(
+    r"recharge?able|akku|accu|li[- ]?ion|li[- ]?po|lifepo|ni[- ]?mh|nicd|18650|21700|"
+    r"power ?pack|battery ?pack|built[- ]?in",
+    re.IGNORECASE,
+)
+
+
+def is_rechargeable_type(battery_type: Any) -> bool:
+    """Whether a battery-type label describes a rechargeable pack/cell."""
+    return bool(_RECHARGEABLE_TYPE_RE.search(str(battery_type or "")))
+
+
+def is_shoppable_type(raw: Any) -> bool:
+    """Whether a battery-type label names a cell anyone STOCKS: not a
+    rechargeable pack, and not "Unknown" / "Manual" / "Irreplaceable" /
+    "Solar" (device descriptions, not cells). The one predicate behind the
+    fleet's shopping groupings (``needs_now`` / ``needs_soon``) and the part
+    setup (``discover_battery_types``) — the two used to disagree, so the
+    shopping list could name a type no part stands behind."""
+    return not is_rechargeable_type(raw) and has_type_forecast(raw)
+
+
 def table_lifetime_months(raw: Any) -> int:
     """The built-in typical value (table, else the default)."""
     return TYPICAL_LIFETIME_MONTHS.get(canonical_type(raw), DEFAULT_LIFETIME_MONTHS)
