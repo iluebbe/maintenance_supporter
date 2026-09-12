@@ -6,6 +6,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Documents: description and order** (#164): every document takes a free-text description (edit, add-link and
+  upload; shown under the title; searched; exported and archived), and the object's document list can be ordered
+  newest / oldest / by title / by category — remembered per browser. *By title* is a natural order ("Construct 2"
+  before "Construct 10"), so numbering documents yields the sequence you typed.
+- **Notification event: labels, notes and the rest of the task** (#178): `maintenance_supporter_notification` and
+  the extra-data template now carry the task's `labels` and `notes`, the object's `area_id` / `area_name` and
+  linked device, the task type and schedule kind, `documentation_url`, `interval_days`, `last_performed`, the
+  task's status-sensor entity id and its trigger entity — for every task-bound kind, and per task inside a bundle.
+  The Settings *Send test* fills sample values, and the whole field list is one documented table (Architecture →
+  *Notification event fields*) with a tripwire test.
 - **Decimal places for amounts** (setting `currency_decimals`, default **0**):
   every displayed amount — KPI tiles, budget bars, costs in task lists,
   history, reports and the service booklet, budget alerts, buy-task notes —

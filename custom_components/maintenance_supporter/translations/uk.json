@@ -615,7 +615,7 @@
           "notification_title_style": "Що відображається як ЗАГОЛОВОК сповіщення. За замовчуванням — текст за статусом (наприклад, «Обслуговування прострочено!»). Ім'я об'єкта / завдання допомагає, коли телефон складає сповіщення в стек.",
           "notify_completed": "Повідомлення для всіх домашніх, коли завдання виконано, з причиною (панель, скан QR/NFC, список справ, голос, відновлення датчика…). «Лише автоматичні» повідомляє тільки про виконання, які ніхто не робив на місці: відновлення датчика, позначка у списку покупок, виклик служби автоматизацією.",
           "notify_event_only": "Кожне сповіщення запускає подію maintenance_supporter_notification. З цією опцією доставку повністю бере на себе ваша автоматизація — інтервали повторів, тихі години та денний ліміт і далі визначають, коли надійде подія.",
-          "notify_extra_data": "JSON або YAML з Jinja, додається до data кожного виклику notify (ваші ключі мають пріоритет). Змінні: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON або YAML з Jinja, додається до data кожного виклику notify (ваші ключі мають пріоритет). Змінні: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

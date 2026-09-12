@@ -525,8 +525,11 @@ values dropped. Keys relevant to setup:
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
 - `notify_event_only` (bool; 2.80, #165) — fire `maintenance_supporter_notification`
   and send nothing (an automation delivers); `notify_extra_data` (str ≤ 2000;
-  JSON/YAML with Jinja over kind/status/priority/object_name/task_name/
-  object_ref/task_ref/days_until_due/next_due/url/target/title/message) —
+  JSON/YAML with Jinja over every event field: kind/status/priority/labels/
+  notes/object_name/area_name/task_name/object_ref/task_ref/task_type/
+  days_until_due/next_due/last_performed/responsible_user_id/sensor_entity_id/
+  trigger_entity_id/url/target/title/message — table in docs/ARCHITECTURE.md
+  "Notification event fields", 2.84 #178) —
   merged into every notify call's `data`, the user's keys win. The event
   fires for EVERY send (status, lead_time, bundle, digest, warranty, budget,
   test) with the same fields plus `target`, `title`, `message`, `data`.
@@ -669,14 +672,14 @@ without a text layer (scans), `unsupported` photos and other binaries,
 `pending` files the delayed backfill has not reached yet.
 
 ### `documents/add_link` — `@require_write`
-`{entry_id (req), url (req, absolute http/https), title?, tags? (≤20 × ≤64)}` →
+`{entry_id (req), url (req, absolute http/https), title?, tags? (≤20 × ≤64), description? (≤2000, 2.84)}` →
 the created document. Costs 0 storage and is not carried in backups (it's a
 reference, not a file). A relative or non-http(s) URL → `invalid_url`. This is
 the right home for a manufacturer manual you found in Phase 3.
 
 ### `documents/update` — `@require_write`
-`{doc_id (req), title?, tags?, task_ids? (≤100), task_pages? {task_id: page},
-part_ids? (≤100)}` → the updated document. Only present keys change; a present
+`{doc_id (req), title?, tags?, description? (≤2000, 2.84 — '' clears), task_ids? (≤100),
+task_pages? {task_id: page}, part_ids? (≤100)}` → the updated document. Only present keys change; a present
 but empty `title` clears it. `task_pages` makes "open the manual at the right
 page" work per task (PDF `#page=N`). Unknown id → `not_found`.
 

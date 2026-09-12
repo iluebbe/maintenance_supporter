@@ -615,7 +615,7 @@
           "notification_title_style": "Hvad der vises som notifikationens TITEL. Standard bevarer teksten pr. status (f.eks. 'Vedligeholdelse overskredet!'). Objektnavn / Opgavenavn hjælper, når telefonnotifikationer stables.",
           "notify_completed": "En besked til husstanden, når en opgave er udført, med årsagen (panel, QR-/NFC-scanning, to-do-liste, stemme, sensorgendannelse …). \"Kun automatiske\" melder kun udførelser, som ingen lavede på stedet: sensorgendannelse, afkrydsning på indkøbslisten, et servicekald fra en automatisering.",
           "notify_event_only": "Hver notifikation udløser hændelsen maintenance_supporter_notification. Med dette slået til står din automatisering for hele leveringen — gentagelsesintervaller, stille timer og dagsgrænsen afgør stadig, hvornår hændelsen kommer.",
-          "notify_extra_data": "JSON eller YAML med Jinja, flettes ind i data i hvert notify-kald (dine nøgler vinder). Variabler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON eller YAML med Jinja, flettes ind i data i hvert notify-kald (dine nøgler vinder). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

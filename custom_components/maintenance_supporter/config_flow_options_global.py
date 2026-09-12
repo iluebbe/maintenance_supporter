@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import re
+from datetime import timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -15,6 +16,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import selector
+from homeassistant.util import dt as dt_util
 
 from .const import (
     BUDGET_CURRENCIES,
@@ -402,7 +404,23 @@ async def _send_test_to(
         # Dual-path: legacy notify service OR notify entity (send_message).
         # #165: the test walks the same hook as a real notification, so the
         # event and the extra-data template can be verified from Settings.
-        context = notification_context(hass, KIND_TEST)
+        # Sample values for the task-bound fields (#178), so a template can be
+        # written and verified from Settings before a real reminder fires.
+        context = notification_context(
+            hass,
+            KIND_TEST,
+            status="due_soon",
+            task_name="Sample task",
+            object_name="Sample object",
+            days_until_due=3,
+            next_due=(dt_util.now().date() + timedelta(days=3)).isoformat(),
+            priority="normal",
+            labels=["sample"],
+            notes="Sample note",
+            area_name="Sample area",
+            task_type="inspection",
+            sensor_entity_id="sensor.sample_object_sample_task",
+        )
         sent_any = False
         for service in services:
             if await async_emit_and_dispatch(hass, service, service_data, context, blocking=True):

@@ -615,7 +615,7 @@
           "notification_title_style": "Was als TITEL der Benachrichtigung erscheint. „Standard“ behält den Status-Text (z. B. „Wartung überfällig!“). Objekt- / Aufgabenname helfen, wenn das Smartphone Benachrichtigungen stapelt.",
           "notify_completed": "Haushalts-Info, wenn eine Aufgabe erledigt wurde, mit dem Grund (Panel, QR-/NFC-Scan, To-do-Liste, Sprache, Sensor-Erholung …). „Nur automatische“ meldet nur Erledigungen, die niemand vor Ort ausgelöst hat — Sensor-Erholung, Einkaufslisten-Abhaken, Service-Aufruf einer Automation.",
           "notify_event_only": "Jede Benachrichtigung löst das Event maintenance_supporter_notification aus. Mit dieser Option übernimmt deine Automation die komplette Zustellung — Wiederholungsintervalle, Ruhezeiten und das Tageslimit bestimmen weiterhin, wann das Event kommt.",
-          "notify_extra_data": "JSON oder YAML mit Jinja, wird in die data jedes notify-Aufrufs gemischt (deine Schlüssel gewinnen). Variablen: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON oder YAML mit Jinja, wird in die data jedes notify-Aufrufs gemischt (deine Schlüssel gewinnen). Variablen: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

@@ -615,7 +615,7 @@
           "notification_title_style": "Mikä näkyy ilmoituksen OTSIKKONA. Oletus säilyttää tilakohtaisen tekstin (esim. 'Huolto myöhässä!'). Kohteen nimi / Tehtävän nimi auttavat, kun puhelinilmoitukset pinoutuvat.",
           "notify_completed": "Tieto taloudelle, kun tehtävä on suoritettu, syyn kera (paneeli, QR-/NFC-skannaus, tehtävälista, puhe, anturin palautuminen …). ”Vain automaattiset” ilmoittaa vain suoritukset, joita kukaan ei tehnyt paikan päällä: anturin palautuminen, ostoslistan rastitus, automaation palvelukutsu.",
           "notify_event_only": "Jokainen ilmoitus laukaisee tapahtuman maintenance_supporter_notification. Tällä asetuksella automaatiosi hoitaa koko toimituksen — toistovälit, hiljaiset tunnit ja päiväraja määräävät yhä, milloin tapahtuma tulee.",
-          "notify_extra_data": "JSON tai YAML Jinjalla, yhdistetään jokaisen notify-kutsun data-kenttään (omat avaimesi voittavat). Muuttujat: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON tai YAML Jinjalla, yhdistetään jokaisen notify-kutsun data-kenttään (omat avaimesi voittavat). Muuttujat: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

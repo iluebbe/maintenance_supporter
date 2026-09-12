@@ -615,7 +615,7 @@
           "notification_title_style": "Ce qui apparaît comme TITRE de la notification. Par défaut, le texte par statut est conservé (p. ex. « Maintenance en retard ! »). Nom de l'objet / tâche aide quand le téléphone empile les notifications.",
           "notify_completed": "Une info pour le foyer quand une tâche est terminée, avec la raison (panneau, scan QR/NFC, liste de tâches, voix, retour du capteur…). « Automatiques seulement » n'annonce que les achèvements que personne n'a faits sur place : retour du capteur, case cochée dans la liste de courses, appel de service d'une automatisation.",
           "notify_event_only": "Chaque notification déclenche l'événement maintenance_supporter_notification. Avec cette option, votre automatisation assure toute la livraison — les intervalles de rappel, les heures calmes et la limite quotidienne décident toujours du moment de l'événement.",
-          "notify_extra_data": "JSON ou YAML avec Jinja, fusionné dans les data de chaque appel notify (vos clés l'emportent). Variables : kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON ou YAML avec Jinja, fusionné dans les data de chaque appel notify (vos clés l'emportent). Variables : kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

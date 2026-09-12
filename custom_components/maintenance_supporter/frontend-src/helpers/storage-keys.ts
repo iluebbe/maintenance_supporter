@@ -12,6 +12,8 @@ export const LS_KEYS = {
   printOptions: "msp-print-options",
   /** D#162: the battery roster starts open; a deliberate collapse is remembered. */
   batteryRosterOpen: "msp-bf-roster-open",
+  /** #164: how the object's document list is ordered (newest | oldest | title | category). */
+  docSort: "msp-doc-sort",
   overviewTab: "msp-overview-tab",
   collapsedSections: "msp-collapsed-sections",
   chartRange: "msp-chart-range",

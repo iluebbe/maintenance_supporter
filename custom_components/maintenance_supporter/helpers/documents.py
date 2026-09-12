@@ -28,7 +28,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from ..const import DOMAIN, MAX_DOCS_PER_OBJECT, SIGNAL_DOCUMENTS_UPDATED
+from ..const import DOMAIN, MAX_DOCS_PER_OBJECT, MAX_TEXT_LENGTH, SIGNAL_DOCUMENTS_UPDATED
 
 if TYPE_CHECKING:
     from .document_text import DocumentTextIndex
@@ -167,6 +167,12 @@ class DocumentStore:
         doc = self.documents.get(doc_id)
         return {"id": doc_id, **doc} if doc is not None else None
 
+    @staticmethod
+    def clean_description(raw: Any) -> str:
+        """A document's free-text description (#164): one string, trimmed,
+        capped like every other note; anything else is the empty string."""
+        return raw.strip()[:MAX_TEXT_LENGTH] if isinstance(raw, str) else ""
+
     def for_object(self, object_id: str) -> list[dict[str, Any]]:
         """All documents attached to an object, newest first."""
         docs = [{"id": did, **d} for did, d in self.documents.items() if d.get("object_id") == object_id]
@@ -186,6 +192,7 @@ class DocumentStore:
         mime: str,
         title: str | None = None,
         tags: list[str] | None = None,
+        description: str | None = None,
     ) -> dict[str, Any]:
         """Store an uploaded file (content-addressed + deduped) for an object.
 
@@ -227,6 +234,7 @@ class DocumentStore:
             "mime": mime,
             "size": len(content),
             "tags": list(tags or []),
+            "description": self.clean_description(description),
             "task_ids": [],
             "part_ids": [],
             "added_at": dt_util.utcnow().isoformat(),
@@ -268,6 +276,7 @@ class DocumentStore:
         url: str,
         title: str | None = None,
         tags: list[str] | None = None,
+        description: str | None = None,
     ) -> dict[str, Any]:
         """Attach an external web-link (0 storage, NOT in backups)."""
         doc_id = uuid4().hex
@@ -277,6 +286,7 @@ class DocumentStore:
             "url": url,
             "title": title or url,
             "tags": list(tags or []),
+            "description": self.clean_description(description),
             "task_ids": [],
             "part_ids": [],
             "added_at": dt_util.utcnow().isoformat(),
@@ -364,6 +374,7 @@ class DocumentStore:
                 "url": url,
                 "title": title or url,
                 "tags": tags,
+                "description": self.clean_description(meta.get("description")),
                 "task_ids": remap(meta),
                 "part_ids": remap_parts(meta),
                 "added_at": dt_util.utcnow().isoformat(),
@@ -391,6 +402,7 @@ class DocumentStore:
                 "mime": mime,
                 "size": size,
                 "tags": tags,
+                "description": self.clean_description(meta.get("description")),
                 "task_ids": remap(meta),
                 "part_ids": remap_parts(meta),
                 "added_at": dt_util.utcnow().isoformat(),
@@ -411,8 +423,9 @@ class DocumentStore:
         task_ids: list[str] | None = None,
         task_pages: dict[str, int] | None = None,
         part_ids: list[str] | None = None,
+        description: str | None = None,
     ) -> bool:
-        """Update editable metadata (title / tags / task+part links / per-task page).
+        """Update editable metadata (title / tags / description / task+part links / per-task page).
 
         ``task_pages`` is a ``{task_id: page}`` map merged into the doc: a page
         ``>= 1`` sets the jump-to page for that task's link, ``0`` clears it. Page
@@ -427,6 +440,8 @@ class DocumentStore:
             doc["title"] = title
         if tags is not None:
             doc["tags"] = list(tags)
+        if description is not None:
+            doc["description"] = self.clean_description(description)
         if task_ids is not None:
             doc["task_ids"] = list(task_ids)
         if part_ids is not None:

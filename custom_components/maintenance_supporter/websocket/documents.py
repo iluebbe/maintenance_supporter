@@ -25,6 +25,7 @@ from ..const import (
     DOMAIN,
     MAX_ID_LENGTH,
     MAX_NAME_LENGTH,
+    MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
 from ..helpers.permissions import require_write
@@ -111,6 +112,7 @@ async def ws_documents_storage(
         vol.Required("url"): vol.All(str, vol.Length(min=1, max=MAX_URL_LENGTH)),
         vol.Optional("title"): vol.Any(vol.All(str, vol.Length(max=MAX_NAME_LENGTH)), None),
         vol.Optional("tags"): _TAGS_SCHEMA,
+        vol.Optional("description"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     }
 )
 @require_write
@@ -139,6 +141,7 @@ async def ws_documents_add_link(
         url=url,
         title=title.strip() if isinstance(title, str) and title.strip() else None,
         tags=msg.get("tags"),
+        description=msg.get("description"),
     )
     connection.send_result(msg["id"], doc)
 
@@ -153,6 +156,8 @@ async def ws_documents_add_link(
         vol.Optional("task_pages"): _TASK_PAGES_SCHEMA,
         # Spare-part links (v2.26) — same shape/cap as task links.
         vol.Optional("part_ids"): _TASK_IDS_SCHEMA,
+        # #164: a free-text description ('' clears).
+        vol.Optional("description"): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
     }
 )
 @require_write
@@ -175,6 +180,7 @@ async def ws_documents_update(
         task_ids=msg.get("task_ids"),
         task_pages=msg.get("task_pages"),
         part_ids=msg.get("part_ids"),
+        description=msg.get("description"),
     )
     if not ok:
         connection.send_error(msg["id"], "not_found", "Document not found")
@@ -207,7 +213,7 @@ async def ws_documents_delete(
 _SEARCH_MAX_RESULTS = 50
 #: Field weights for the tolerant matcher — the title is what people remember,
 #: the file name and tags come next, a URL or MIME rarely.
-_DOC_FIELD_WEIGHTS = (("title", 3), ("filename", 2), ("url", 1), ("mime", 1))
+_DOC_FIELD_WEIGHTS = (("title", 3), ("filename", 2), ("description", 2), ("url", 1), ("mime", 1))
 
 
 def _object_map(hass: HomeAssistant) -> dict[str, tuple[str, str]]:
@@ -233,6 +239,7 @@ def _doc_hit(did: str, doc: dict[str, Any], obj_map: dict[str, tuple[str, str]])
         "url": doc.get("url"),
         "size": doc.get("size"),
         "tags": doc.get("tags") or [],
+        "description": doc.get("description") or "",
     }
 
 

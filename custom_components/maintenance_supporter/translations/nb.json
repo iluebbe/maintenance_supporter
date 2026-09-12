@@ -615,7 +615,7 @@
           "notification_title_style": "Det som vises som varselets TITTEL. Standard beholder teksten per status (f.eks. «Vedlikehold forfalt!»). Objektnavn / Oppgavenavn hjelper når telefonvarsler stables.",
           "notify_completed": "En beskjed til husstanden når en oppgave er fullført, med årsaken (panel, QR-/NFC-skanning, gjøremålsliste, stemme, sensorgjenoppretting …). «Bare automatiske» melder bare fullføringer ingen gjorde på stedet: sensorgjenoppretting, avkrysning i handlelisten, et tjenestekall fra en automasjon.",
           "notify_event_only": "Hvert varsel utløser hendelsen maintenance_supporter_notification. Med dette på står automasjonen din for hele leveringen — gjentakelsesintervaller, stille timer og dagsgrensen avgjør fortsatt når hendelsen kommer.",
-          "notify_extra_data": "JSON eller YAML med Jinja, flettes inn i data i hvert notify-kall (dine nøkler vinner). Variabler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON eller YAML med Jinja, flettes inn i data i hvert notify-kall (dine nøkler vinner). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

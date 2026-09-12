@@ -52,6 +52,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
                     "url": d.get("url"),
                     "title": d.get("title"),
                     "tags": d.get("tags") or [],
+                    "description": d.get("description") or "",
                     "task_ids": d.get("task_ids") or [],
                     "part_ids": d.get("part_ids") or [],
                 }
@@ -67,6 +68,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
                     "mime": d.get("mime"),
                     "size": d.get("size"),
                     "tags": d.get("tags") or [],
+                    "description": d.get("description") or "",
                     "task_ids": d.get("task_ids") or [],
                     "part_ids": d.get("part_ids") or [],
                 }

@@ -615,7 +615,7 @@
           "notification_title_style": "What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack.",
           "notify_completed": "Household news when a task is completed, with the reason (panel, QR / NFC scan, to-do list, voice, sensor recovery …). \"Automatic only\" announces just the completions nobody made on the spot — sensor recovery, shopping-list check-off, an automation's service call.",
           "notify_event_only": "Every notification fires the event maintenance_supporter_notification. With this on, your automation is the whole delivery — repeat intervals, quiet hours and the daily cap still decide when the event fires.",
-          "notify_extra_data": "JSON or YAML with Jinja, merged into every notify call's data (your keys win). Variables: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON or YAML with Jinja, merged into every notify call's data (your keys win). Variables: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "budget_settings": {

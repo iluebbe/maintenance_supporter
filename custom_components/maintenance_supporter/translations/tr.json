@@ -615,7 +615,7 @@
           "notification_title_style": "Bildirimin BAŞLIĞI olarak ne görüneceği. Varsayılan, duruma özgü metni korur (örn. 'Bakım gecikti!'). Nesne adı / Görev adı, telefon bildirimleri üst üste yığıldığında yardımcı olur.",
           "notify_completed": "Bir görev tamamlandığında ev halkına nedeniyle birlikte haber verir (panel, QR/NFC tarama, yapılacaklar listesi, ses, sensör toparlanması…). \"Yalnızca otomatik\" sadece kimsenin yerinde yapmadığı tamamlamaları bildirir: sensör toparlanması, alışveriş listesinde işaretleme, bir otomasyonun servis çağrısı.",
           "notify_event_only": "Her bildirim maintenance_supporter_notification olayını tetikler. Bu açıkken teslimatın tamamını otomasyonun üstlenir — tekrar aralıkları, sessiz saatler ve günlük sınır olayın ne zaman geleceğine karar vermeye devam eder.",
-          "notify_extra_data": "Jinja içeren JSON veya YAML, her notify çağrısının data alanına birleştirilir (senin anahtarların kazanır). Değişkenler: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "Jinja içeren JSON veya YAML, her notify çağrısının data alanına birleştirilir (senin anahtarların kazanır). Değişkenler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

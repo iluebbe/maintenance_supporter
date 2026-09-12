@@ -110,43 +110,115 @@ def notification_context(
     **extra: Any,
 ) -> dict[str, Any]:
     """The facts a notification is about — the event's data and the
-    template's variables. Object/task reference numbers and the task's
-    priority are looked up from the entry (cheap, and the send paths only
-    carry names)."""
-    object_ref: str | None = None
-    task_ref: str | None = None
-    priority: str | None = None
-    if entry_id:
-        entry = hass.config_entries.async_get_entry(entry_id)
-        if entry is not None and entry.unique_id != GLOBAL_UNIQUE_ID:
-            obj = entry.data.get(CONF_OBJECT) or {}
-            oref = obj.get("ref_no")
-            object_ref = str(oref) if isinstance(oref, int) and oref > 0 else None
-            if task_id:
-                td = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
-                task_ref = format_task_ref(oref if isinstance(oref, int) else None, td.get("ref_no"))
-                priority = td.get("priority") or "normal"
+    template's variables. Everything beyond the caller's names is looked up
+    from the entry (cheap): reference numbers, the task's priority, labels,
+    notes, type, links, last completion, the object's area and device, and
+    the entity ids of the task's status sensor and trigger (#178). The full
+    field table lives in docs/ARCHITECTURE.md → "Notification event fields"
+    and a tripwire keeps it in step."""
+    entry = hass.config_entries.async_get_entry(entry_id) if entry_id else None
+    if entry is not None and entry.unique_id == GLOBAL_UNIQUE_ID:
+        entry = None
+    obj = (entry.data.get(CONF_OBJECT) or {}) if entry is not None else {}
+    oref = obj.get("ref_no")
+    object_ref = str(oref) if isinstance(oref, int) and oref > 0 else None
+    area_id = str(obj.get("area_id")) if obj.get("area_id") else None
+    task = _task_block(hass, entry, obj, task_id) if entry is not None and task_id else {}
     url = "/maintenance-supporter"
     if entry_id and task_id:
         url = f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}"
     elif entry_id:
         url = f"/maintenance-supporter?entry_id={entry_id}"
+    # A bundle's tasks carry the same per-task facts as a single reminder
+    # (#178): labels, notes, priority, refs - the caller's own fields win.
+    task_items = [
+        {**(_task_block(hass, entry, obj, str(t.get("task_id"))) if entry is not None and t.get("task_id") else {}), **t}
+        for t in (tasks or [])
+    ]
     return {
         "kind": kind,
         "status": status,
         "entry_id": entry_id,
-        "task_id": task_id,
-        "task_name": task_name,
+        "object_id": obj.get("id") if entry is not None else None,
         "object_name": object_name,
         "object_ref": object_ref,
-        "task_ref": task_ref,
-        "priority": priority,
+        "area_id": area_id,
+        "area_name": _area_name(hass, area_id),
+        "ha_device_id": obj.get("ha_device_id") or None if entry is not None else None,
+        "task_id": task_id,
+        "task_name": task_name,
+        "task_ref": task.get("task_ref"),
+        "task_type": task.get("task_type"),
+        "schedule_type": task.get("schedule_type"),
+        "priority": task.get("priority"),
+        "labels": task.get("labels") or [],
+        "notes": task.get("notes"),
+        "documentation_url": task.get("documentation_url"),
+        "interval_days": task.get("interval_days"),
+        "last_performed": task.get("last_performed"),
         "days_until_due": days_until_due,
         "next_due": next_due,
         "responsible_user_id": responsible_user_id,
+        "sensor_entity_id": task.get("sensor_entity_id"),
+        "trigger_entity_id": task.get("trigger_entity_id"),
         "url": url,
-        "tasks": tasks or [],
+        "tasks": task_items,
         **extra,
+    }
+
+
+def _area_name(hass: HomeAssistant, area_id: str | None) -> str | None:
+    if not area_id:
+        return None
+    from homeassistant.helpers import area_registry as ar
+
+    area = ar.async_get(hass).async_get_area(area_id)
+    return area.name if area is not None else None
+
+
+def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id: str) -> dict[str, Any]:
+    """The task facts an automation routes or formats on (#178): the task's
+    config (labels, notes, type, priority, refs, links) plus the two runtime
+    facts worth having - the last completion (Store) and the entity ids of
+    its status sensor and trigger entity."""
+    from homeassistant.helpers import entity_registry as er
+
+    from ..const import DOMAIN, slugify_object_name, task_unique_id
+
+    td = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
+    if not td:
+        return {}
+    oref = obj.get("ref_no")
+    rd_ = getattr(entry, "runtime_data", None)
+    store = getattr(rd_, "store", None) if rd_ is not None else None
+    state = store.get_task_state(task_id) if store is not None else {}
+    last_performed = state.get("last_performed") or td.get("last_performed") or None
+    trigger = td.get("trigger_config") or {}
+    # The schedule lives in the discriminated `schedule` block since 2.4;
+    # the model derives kind and interval from either shape.
+    schedule_type: str | None = None
+    interval_days: int | None = None
+    try:
+        from ..models.maintenance_task import MaintenanceTask
+
+        model = MaintenanceTask.from_dict(td)
+        schedule_type = str(getattr(model.schedule_type, "value", model.schedule_type)) if model.schedule_type else None
+        interval_days = model.interval_days
+    except Exception:  # noqa: BLE001 - a malformed task must not break a notification
+        schedule_type = str(td.get("schedule_type") or "") or None
+        interval_days = td.get("interval_days")
+    return {
+        "task_ref": format_task_ref(oref if isinstance(oref, int) else None, td.get("ref_no")),
+        "task_type": td.get("type") or None,
+        "schedule_type": schedule_type,
+        "priority": td.get("priority") or "normal",
+        "labels": [str(x) for x in (td.get("labels") or []) if isinstance(x, str)],
+        "notes": (td.get("notes") or None),
+        "documentation_url": td.get("documentation_url") or None,
+        "interval_days": interval_days,
+        "last_performed": last_performed,
+        "sensor_entity_id": er.async_get(hass).async_get_entity_id("sensor", DOMAIN, task_unique_id(slugify_object_name(str(obj.get("name") or "unknown")), task_id)),
+        "trigger_entity_id": (trigger.get("entity_id") or None) if isinstance(trigger, dict) else None,
     }
 
 

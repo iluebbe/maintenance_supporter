@@ -112,6 +112,8 @@ class DocumentUploadView(HomeAssistantView):
         if isinstance(title, str):
             title = title[:MAX_NAME_LENGTH]
         tags = [t.strip()[:_MAX_TAG_LEN] for t in data.getall("tags", []) if isinstance(t, str) and t.strip()][:_MAX_TAGS]
+        description = data.get("description")
+        description = description if isinstance(description, str) else None
 
         try:
             doc = await _get_store(self.hass).async_add_file(
@@ -121,6 +123,7 @@ class DocumentUploadView(HomeAssistantView):
                 mime=mime,
                 title=title.strip() if isinstance(title, str) and title.strip() else None,
                 tags=tags,
+                description=description,
             )
         except ValueError as err:
             if str(err) == "too_many_documents":

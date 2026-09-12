@@ -763,6 +763,39 @@ Every notification is one **kind**, and every kind belongs to a **category** tha
 
 Gates: `enabled` = notifications on at all; `target` = a notify service or event-only mode; `kind_enabled` = the kind's own switch (per-status toggles, the completion mode); `task_mute` = the task's *No notifications*; `snooze` = the per-task snooze; `vacation` = the vacation mode's silence; `scope` = the saved-view scope; `quiet_hours`; `daily_cap` = max notifications per day; `repeat` = the per-status repeat interval. The digest and the warranty reminder deliberately ignore quiet hours and the cap (both are scheduled once at the 08:00 tick and would otherwise be lost), and the test ignores everything but the target (it exists to verify the target). Lead-time reminders are sent at most once per task, lead and day (the 08:00 tick and the noon retry share that stamp), and a bundle announces only the tasks whose own status reminder is due, stamping each of them like the per-task path.
 
+### Notification event fields
+
+Every `maintenance_supporter_notification` event — and the `notify_extra_data` template — carries the fields below (`helpers/notify_hooks.notification_context`; `tests/test_notify_event_fields.py` keeps this table in step with the code). Fields that describe a task or an object are `null` / `[]` for kinds that have none (digest, warranty, budget, test — the Settings *Send test* fills sample values so a template can be verified). A bundle's `tasks` list carries the same per-task fields for every task in it.
+
+| Field | Kinds | Meaning |
+|-------|-------|---------|
+| `kind` | all | status, lead_time, bundle, digest, warranty, budget, completed, test |
+| `category` | all | reminder, summary, alert, activity, test (see the matrix above) |
+| `status` | status, lead_time, test | due_soon, overdue, triggered (lead_time is always due_soon) |
+| `entry_id` | task/object kinds | the object's config-entry id (deep links, WS calls) |
+| `object_id` | task/object kinds | the object's own id |
+| `object_name`, `object_ref` | task/object kinds | name and reference number ("8") |
+| `area_id`, `area_name` | task/object kinds | the object's Home Assistant area (2.84, #178) |
+| `ha_device_id` | task/object kinds | the linked Home Assistant device, if any (2.84) |
+| `task_id`, `task_name`, `task_ref` | task kinds | id, name, reference ("8.3") |
+| `task_type`, `schedule_type` | task kinds | maintenance type (cleaning, inspection …) and schedule kind (2.84) |
+| `priority` | task kinds | low, normal, high, critical |
+| `labels` | task kinds | the task's labels (2.84, #178) |
+| `notes` | task kinds | the task's notes, or null (2.84, #178) |
+| `documentation_url`, `interval_days` | task kinds | the task's manual link and interval (2.84) |
+| `last_performed` | task kinds | ISO date of the last completion, or null (2.84) |
+| `days_until_due`, `next_due` | status, lead_time, test | due data |
+| `responsible_user_id` | status, lead_time | the responsible person's user id |
+| `sensor_entity_id` | task kinds | the task's status sensor (`sensor.<object>_<task>`), for automations that read more (2.84) |
+| `trigger_entity_id` | task kinds | the sensor a sensor-based task watches, or null (2.84) |
+| `url` | all | in-app deep link |
+| `tasks` | bundle | `[{task_id, task_name, status, task_ref, priority, labels, notes, …}]` |
+| `reason`, `completed_by`, `completed_by_name`, `completed_at` | completed | how, by whom, when |
+| `overdue`, `due_soon` | digest | counts |
+| `names`, `days` | warranty | objects whose warranty ends in `days` |
+| `period`, `spent`, `budget`, `percent` | budget | the exceeded budget |
+| `target`, `title`, `message`, `data` | all | the notify target (null in event-only mode without a service), the text, the payload's `data` |
+
 ---
 
 ## WebSocket API

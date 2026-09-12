@@ -615,7 +615,7 @@
           "notification_title_style": "Wat verschijnt als TITEL van de melding. Standaard behoudt de status-tekst (bijv. 'Onderhoud achterstallig!'). Objectnaam / taaknaam helpen wanneer de telefoon meldingen stapelt.",
           "notify_completed": "Huishoudnieuws wanneer een taak is voltooid, met de reden (paneel, QR-/NFC-scan, takenlijst, spraak, sensorherstel …). \"Alleen automatisch\" meldt alleen voltooiingen die niemand ter plekke deed — sensorherstel, afvinken op de boodschappenlijst, een service-aanroep van een automatisering.",
           "notify_event_only": "Elke notificatie vuurt het event maintenance_supporter_notification af. Met deze optie verzorgt jouw automatisering de volledige bezorging — herhaalintervallen, stille uren en de daglimiet bepalen nog steeds wanneer het event komt.",
-          "notify_extra_data": "JSON of YAML met Jinja, samengevoegd in de data van elke notify-aanroep (jouw sleutels winnen). Variabelen: kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message."
+          "notify_extra_data": "JSON of YAML met Jinja, samengevoegd in de data van elke notify-aanroep (jouw sleutels winnen). Variabelen: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
         }
       },
       "notification_actions": {

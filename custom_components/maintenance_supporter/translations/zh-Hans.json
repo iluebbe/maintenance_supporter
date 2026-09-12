@@ -615,7 +615,7 @@
           "notification_title_style": "通知的标题显示内容。默认保持状态文本（如：‘维护已超期！’）。当手机通知堆叠时，‘维护项名称 / 任务名称’ 更有帮助。",
           "notify_completed": "任务完成时通知家庭成员，并附上原因（面板、二维码/NFC 扫描、待办清单、语音、传感器恢复等）。“仅自动”只通报无人现场操作的完成：传感器恢复、购物清单勾选、自动化的服务调用。",
           "notify_event_only": "每条通知都会触发事件 maintenance_supporter_notification。开启后由你的自动化负责全部投递——重复间隔、静默时段和每日上限仍决定事件何时触发。",
-          "notify_extra_data": "含 Jinja 的 JSON 或 YAML，合并到每次 notify 调用的 data 中（你的键优先）。变量：kind, status, priority, object_name, task_name, object_ref, task_ref, days_until_due, next_due, url, target, title, message。"
+          "notify_extra_data": "含 Jinja 的 JSON 或 YAML，合并到每次 notify 调用的 data 中（你的键优先）。变量：kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message。"
         }
       },
       "notification_actions": {

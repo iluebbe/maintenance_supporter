@@ -16,7 +16,8 @@ import { downloadUrl } from "../helpers/download";
 import { downloadSignedDocument, openSignedDocument, signDocumentPath } from "../helpers/document-url";
 import { formatBytes } from "../helpers/format-bytes";
 import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
-import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter";
+import { DOC_FILTER_MIN, DOC_SORT_MODES, asDocSortMode, filterDocuments, sortDocuments, type DocSortMode } from "../helpers/document-filter";
+import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import type { HomeAssistant } from "../types";
 
 interface MaintenanceDocument {
@@ -28,6 +29,8 @@ interface MaintenanceDocument {
   mime?: string;
   size?: number;
   tags?: string[];
+  /** #164: a free-text note per document. */
+  description?: string;
   added_at?: string;
 }
 
@@ -52,6 +55,10 @@ export class MaintenanceDocumentsSection extends LitElement {
   @state() private _editingId = "";
   @state() private _editTitle = "";
   @state() private _editCategory = "manual";
+  @state() private _editDescription = "";
+  @state() private _linkDescription = "";
+  /** #164: list order, remembered per browser. */
+  @state() private _sort: DocSortMode = asDocSortMode(lsGet(LS_KEYS.docSort));
   @state() private _dragOver = false;
 
   private _loadedFor: string | null = null;
@@ -233,12 +240,18 @@ export class MaintenanceDocumentsSection extends LitElement {
     this._editingId = doc.id;
     this._editTitle = doc.title || "";
     this._editCategory = this._category_of(doc);
+    this._editDescription = doc.description || "";
     this._addingLink = false;
     this._error = "";
   }
 
   private _cancelEdit(): void {
     this._editingId = "";
+  }
+
+  private _setSort(raw: string): void {
+    this._sort = asDocSortMode(raw);
+    lsSet(LS_KEYS.docSort, this._sort);
   }
 
   private async _saveEdit(doc: MaintenanceDocument): Promise<void> {
@@ -255,6 +268,7 @@ export class MaintenanceDocumentsSection extends LitElement {
         doc_id: doc.id,
         title: this._editTitle.trim() || doc.filename || doc.url || "",
         tags,
+        description: this._editDescription.trim(),
       });
       this._editingId = "";
       await this._load();
@@ -294,9 +308,11 @@ export class MaintenanceDocumentsSection extends LitElement {
         entry_id: this.entryId,
         url,
         title: this._linkTitle.trim() || null,
+        description: this._linkDescription.trim() || null,
       });
       this._linkUrl = "";
       this._linkTitle = "";
+      this._linkDescription = "";
       this._addingLink = false;
       await this._load();
     } catch (e) {
@@ -382,6 +398,14 @@ export class MaintenanceDocumentsSection extends LitElement {
                 ?disabled=${this._busy}
                 @input=${(e: Event) => (this._linkTitle = (e.target as HTMLInputElement).value)}
               />
+              <input
+                type="text"
+                class="link-desc"
+                placeholder=${t("doc_description", L)}
+                .value=${this._linkDescription}
+                ?disabled=${this._busy}
+                @input=${(e: Event) => (this._linkDescription = (e.target as HTMLInputElement).value)}
+              />
               <button class="btn primary" ?disabled=${this._busy || !this._linkUrl.trim()} @click=${this._addLink}>
                 ${t("add", L)}
               </button>
@@ -392,6 +416,15 @@ export class MaintenanceDocumentsSection extends LitElement {
           `
         : nothing}
 
+      ${this._loaded && this._docs.length >= 2
+        ? html`<div class="doc-tools">
+            <ha-icon icon="mdi:sort"></ha-icon>
+            <select class="sort-select" aria-label=${t("doc_sort", L)} .value=${this._sort}
+              @change=${(e: Event) => this._setSort((e.target as HTMLSelectElement).value)}>
+              ${DOC_SORT_MODES.map((m) => html`<option value=${m} ?selected=${m === this._sort}>${t(`doc_sort_${m}`, L)}</option>`)}
+            </select>
+          </div>`
+        : nothing}
       ${this._loaded && this._docs.length >= DOC_FILTER_MIN
         ? html`<div class="doc-filter">
             <ha-icon icon="mdi:magnify"></ha-icon>
@@ -404,7 +437,8 @@ export class MaintenanceDocumentsSection extends LitElement {
         : this._docs.length === 0
           ? html`<div class="doc-empty">${t("documents_empty", L)}</div>`
           : (() => {
-              const shown = filterDocuments(this._docs, this._filter);
+              // A query ranks by match; otherwise the remembered order applies.
+              const shown = this._filter.trim() ? filterDocuments(this._docs, this._filter) : sortDocuments(this._docs, this._sort);
               return shown.length === 0
                 ? html`<div class="doc-empty">${t("doc_search_none", L)}</div>`
                 : html`<div class="doc-list">${shown.map((doc) => this._renderDoc(doc, L))}</div>`;
@@ -460,6 +494,7 @@ export class MaintenanceDocumentsSection extends LitElement {
         >
           <div class="doc-title">${docDisplayName(doc)}</div>
           <div class="doc-meta">${meta}</div>
+          ${doc.description ? html`<div class="doc-desc">${doc.description}</div>` : nothing}
         </div>
         <div class="doc-row-actions">
           ${isFile
@@ -514,6 +549,14 @@ export class MaintenanceDocumentsSection extends LitElement {
               )}
             </select>`
           : nothing}
+        <input
+          class="edit-desc"
+          type="text"
+          placeholder=${t("doc_description", L)}
+          .value=${this._editDescription}
+          ?disabled=${this._busy}
+          @input=${(e: Event) => (this._editDescription = (e.target as HTMLInputElement).value)}
+        />
         <button class="icon-btn" title=${t("save", L)} ?disabled=${this._busy || !this._editTitle.trim()} @click=${() => this._saveEdit(doc)}>
           <ha-icon icon="mdi:check"></ha-icon>
         </button>
@@ -620,6 +663,16 @@ export class MaintenanceDocumentsSection extends LitElement {
     .doc-info:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .doc-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .doc-meta { font-size: 12px; color: var(--secondary-text-color, #888); }
+    .doc-desc { font-size: 12.5px; color: var(--secondary-text-color, #888); margin-top: 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .doc-tools { display: flex; align-items: center; gap: 6px; margin: 6px 0 2px; color: var(--secondary-text-color, #888); }
+    .doc-tools ha-icon { --mdc-icon-size: 18px; }
+    .sort-select {
+      padding: 4px 6px; border-radius: 6px; font: inherit; font-size: 13px;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color); border: 1px solid var(--divider-color);
+    }
+    .doc-row.editing { flex-wrap: wrap; }
+    .edit-desc, .link-desc { flex: 1 1 100%; min-width: 0; }
     .doc-row-actions { display: flex; gap: 4px; flex: none; }
     .icon-btn {
       display: inline-flex; align-items: center; justify-content: center;

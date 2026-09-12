@@ -139,6 +139,7 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
                         "url": d.get("url"),
                         "title": d.get("title"),
                         "tags": d.get("tags") or [],
+                        "description": d.get("description") or "",
                         "task_ids": d.get("task_ids") or [],
                         "part_ids": d.get("part_ids") or [],
                     }
@@ -154,6 +155,7 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
                         "mime": d.get("mime"),
                         "size": d.get("size"),
                         "tags": d.get("tags") or [],
+                        "description": d.get("description") or "",
                         "task_ids": d.get("task_ids") or [],
                         "part_ids": d.get("part_ids") or [],
                     }
