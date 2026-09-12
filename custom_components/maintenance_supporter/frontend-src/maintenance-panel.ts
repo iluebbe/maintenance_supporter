@@ -250,6 +250,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _defaultWarningDays = 7;
   /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
   @state() private _rowActionStyle = "buttons_compact";
+  /** #170: reference numbers in front of names in the lists (global setting). */
+  @state() private _refsInLists = false;
   /** #145: one-time "rows look different now" notice for existing installs. */
   @state() private _rowActionNotice = false;
   @state() private _actionLoading = false;
@@ -739,7 +741,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         features: AdvancedFeatures;
         admin_panel_user_ids?: string[];
         operator_write_enabled?: boolean;
-        general?: { default_warning_days?: number; row_action_style?: string; row_action_notice_pending?: boolean };
+        general?: { default_warning_days?: number; row_action_style?: string; row_action_notice_pending?: boolean; ref_numbers_in_lists?: boolean };
         objects_table_columns?: string[];
       };
       this._features = sr.features;
@@ -752,6 +754,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       const ras = sr.general?.row_action_style;
       this._rowActionStyle = ras === "icons" || ras === "buttons" ? ras : "buttons_compact";
       this._rowActionNotice = sr.general?.row_action_notice_pending === true;
+      this._refsInLists = sr.general?.ref_numbers_in_lists === true;
       this._objectsTableColumns = sanitizeColumns(sr.objects_table_columns);
     }
 
@@ -1224,6 +1227,13 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   // --- Navigation ---
+
+  /** #170: the "#8.3" chip in front of a list row's name, when the setting is on. */
+  private _listRef(entryId: string, taskId: string) {
+    if (!this._refsInLists) return nothing;
+    const obj = this._getObject(entryId);
+    return renderRefChip(taskRef(obj?.object, obj?.tasks.find((tk) => tk.id === taskId)));
+  }
 
   /** Push a browser history entry so the back button navigates within the
    *  panel. An in-app deep link arrives on the entry HA's navigate() just
@@ -2913,7 +2923,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <div class="today-row" @click=${() => this._showTask(row.entry_id, row.task_id)}>
             <span class="today-dot ${row.trigger_active ? "triggered" : row.status}"></span>
             <div class="today-main">
-              <div class="today-task">${row.task_name}</div>
+              <div class="today-task">${this._listRef(row.entry_id, row.task_id)}${row.task_name}</div>
               <div class="today-object">
                 <span class="today-object-text">${row.object_name} · ${formatDueDays(row.days_until_due, L)}</span>
                 ${renderPersonChip(personOf(row), "today-person")}
@@ -3395,7 +3405,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="object-card${overdue ? ' object-card-overdue' : ''}" @click=${() => this._showObject(obj.entry_id)}>
           ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
           <div class="object-card-header">
-            <span class="object-card-name">${obj.object.name}</span>
+            <span class="object-card-name">${this._refsInLists ? renderRefChip(objectRef(obj.object)) : nothing}${obj.object.name}</span>
             ${obj.object.paused
               ? html`<span class="paused-badge" title="${t("object_paused_badge", L)}${obj.object.paused_until ? ` — ${obj.object.paused_until}` : ""}">
                   <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
@@ -3559,7 +3569,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 ${rows.map((row) => html`
                   <tr class="objects-table-row" @click=${() => this._showObject(row.entry_id)}>
                     <td>
-                      <span class="objects-table-name">${row.name}</span>
+                      <span class="objects-table-name">${this._refsInLists ? renderRefChip(objectRef(this._getObject(row.entry_id)?.object)) : nothing}${row.name}</span>
                       ${row.low
                         ? html`<ha-icon class="part-low-icon" icon="mdi:cart-arrow-down"
                             title="${t("part_reorder_threshold", L)}: ${row.reorder_threshold}"></ha-icon>`
@@ -3664,7 +3674,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     switch (key) {
       case "name":
         return html`<td class="oc-name">
-          <span class="objects-table-name">${o.name}</span>
+          <span class="objects-table-name">${this._refsInLists ? renderRefChip(objectRef(o)) : nothing}${o.name}</span>
           ${o.document_count
             ? html`<span class="doc-badge" title="${o.document_count} ${t("documents", L)}">
                 <ha-icon icon="mdi:paperclip"></ha-icon>${o.document_count}
@@ -3878,7 +3888,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </span>
         <span class="row-head">
           <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
-          <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>
+          <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${this._listRef(row.entry_id, row.task_id)}${row.task_name}</span>
         </span>
         <span class="task-sub${hasSub ? '' : ' task-sub-empty'}">
           ${row.group_names.length > 0 ? html`
@@ -4112,7 +4122,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     ? html`<span class="doc-badge" title="${task.document_count} ${t("documents", L)}"><ha-icon icon="mdi:paperclip"></ha-icon>${task.document_count}</span>`
                     : nothing}
                 </span>
-                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
+                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._refsInLists ? renderRefChip(taskRef(obj.object, task)) : nothing}${task.name}</span>
                 <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>

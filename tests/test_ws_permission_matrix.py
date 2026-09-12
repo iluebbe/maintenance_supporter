@@ -97,6 +97,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/task/duplicate": "write",
     "maintenance_supporter/task/move": "write",
     "maintenance_supporter/task/history/update": "write",
+    "maintenance_supporter/task/history/delete": "write",
     "maintenance_supporter/task/seasonal_overrides": "write",
     "maintenance_supporter/task/set_adaptive": "write",
     "maintenance_supporter/task/set_environmental_entity": "write",

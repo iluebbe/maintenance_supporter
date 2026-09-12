@@ -61,12 +61,21 @@ export interface ServiceRecordInclude {
   person: boolean;
   refs: boolean;
   qr: boolean;
+  /** #170: completions that carry nothing but a date — off hides them. */
+  bare: boolean;
 }
 
 export const DEFAULT_INCLUDE: ServiceRecordInclude = {
   readings: true, parts: true, photos: true, documents: true, checklist: true,
-  notes: true, costs: true, person: true, refs: true, qr: false,
+  notes: true, costs: true, person: true, refs: true, qr: false, bare: true,
 };
+
+/** Whether a completion has anything to print beyond its date and name. */
+export function hasDetails(e: ObjectHistoryEntry): boolean {
+  return Boolean(
+    (e.notes && e.notes.trim()) || e.cost != null || e.duration != null || e.readings.length || e.parts.length || e.photoIds.length || e.checklist,
+  );
+}
 
 export interface ServiceRecordOptions {
   layout: ServiceRecordLayout;
@@ -126,7 +135,9 @@ export function buildServiceRecordHtml(
   const inc = options.include;
   const data: ServiceRecordData = opts.data ?? { objectRef: null, tasks: [], photos: {}, fmtNumber: (n) => String(n) };
   // A service record documents work that was DONE — completed entries only.
-  const done = entries.filter((e) => e.type === "completed");
+  // A bare completion (date and name only) is a row of blanks on paper;
+  // the "completions without details" switch drops them (#170).
+  const done = entries.filter((e) => e.type === "completed" && (inc.bare !== false || hasDetails(e)));
   const { totalCost } = objectHistoryTotals(done);
 
   const entryRef = (e: ObjectHistoryEntry): string | null =>

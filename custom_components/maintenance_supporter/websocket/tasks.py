@@ -25,7 +25,7 @@ from .tasks_crud import (
     ws_move_task,
     ws_update_task,
 )
-from .tasks_history import ws_update_history_entry
+from .tasks_history import ws_delete_history_entry, ws_update_history_entry
 from .tasks_lifecycle import (
     _is_recurring_schedule,
     ws_archive_task,
@@ -65,6 +65,7 @@ __all__ = [
     "ws_checklist_progress",
     "ws_complete_task",
     "ws_create_task",
+    "ws_delete_history_entry",
     "ws_delete_task",
     "ws_duplicate_task",
     "ws_list_tasks",

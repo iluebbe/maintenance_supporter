@@ -290,6 +290,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
           ${box("costs", "print_inc_costs")}
           ${box("person", "print_inc_person")}
           ${box("refs", "print_inc_refs")}
+          ${box("bare", "print_inc_bare")}
           ${box("documents", "print_inc_documents", !byTask)}
           ${box("qr", "print_inc_qr", !byTask)}
         </div>

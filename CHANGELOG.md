@@ -6,6 +6,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Reference numbers in lists, delete a history entry, bare completions off the booklet** (#170, round 2):
+  *Settings → General → Reference numbers in lists* puts the `#8` / `#8.3` chips in front of every object and task
+  name (Today, task table, object cards, objects table); the history entry's edit dialog can **delete the entry**
+  (`task/history/delete`, last-performed re-anchored on what remains); the booklet's print options gained
+  *Completions without details* — switch it off and a completion that carries only a date prints nothing.
 - **Documents: description and order** (#164): every document takes a free-text description (edit, add-link and
   upload; shown under the title; searched; exported and archived), and the object's document list can be ordered
   newest / oldest / by title / by category — remembered per browser. *By title* is a natural order ("Construct 2"
@@ -34,6 +39,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **"Take photo" inside the Android Companion app** (#161 follow-up): the app's file chooser ignores the camera
+  hint and opened the gallery instead. The complete dialog and the documents section now bring their own viewfinder
+  there (`getUserMedia`, back camera, Capture / Cancel) and hand the shot to the usual upload; when the camera cannot
+  be opened (permission denied, or Home Assistant reached over plain `http://`) the native picker takes over.
 - **Bug audit 2026-09-12** (five read-only review passes over everything shipped since 2.75; ~40 fixes):
   - *Notifications*: lead-time reminders went out twice on every lead day (the 08:00 tick and the noon retry had no shared
     stamp) — now once per task, lead and day, and a quiet-hours skip at 08:00 still delivers at noon. Every config-entry

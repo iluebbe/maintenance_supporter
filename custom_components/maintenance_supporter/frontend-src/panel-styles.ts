@@ -3,6 +3,9 @@
 import { css } from "lit";
 
 export const panelStyles = css`
+  /* #170: reference chips in front of list names. */
+  .task-name .ref-chip, .today-task .ref-chip, .object-card-name .ref-chip, .objects-table-name .ref-chip { margin-right: 6px; }
+
   :host {
     display: block;
     height: 100%;

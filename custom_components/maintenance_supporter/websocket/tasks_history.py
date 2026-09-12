@@ -282,3 +282,58 @@ async def ws_update_history_entry(
             "new_timestamp": patched.get("timestamp"),
         },
     )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/history/delete",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("timestamp"): vol.All(str, vol.Length(max=64)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_delete_history_entry(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Remove one history entry (#170): a completion recorded by mistake, a
+    skip that means nothing on paper. The entry is identified by its
+    timestamp (unique within a task's history); the task's last-performed
+    anchor is re-derived from what remains, so removing the latest completion
+    moves the schedule back to the previous one. Photos stay in the object's
+    documents and consumed parts are not restocked — a bookkeeping
+    correction, not an undo."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is None:
+        connection.send_error(msg["id"], "not_loaded", "Object not loaded")
+        return
+    task_id = msg["task_id"]
+    history = list(store.get_history(task_id))
+    remaining = [h for h in history if h.get("timestamp") != msg["timestamp"]]
+    if len(remaining) == len(history):
+        connection.send_error(msg["id"], "not_found", f"No history entry with timestamp {msg['timestamp']!r}")
+        return
+    store.set_history(task_id, remaining)
+    lifecycle = [h for h in remaining if h.get("type") in LIFECYCLE_HISTORY_TYPES]
+    if lifecycle:
+        latest_ts = max((h.get("timestamp") or "" for h in lifecycle), default="")
+        if latest_ts:
+            store.set_last_performed(task_id, latest_ts[:10])
+    else:
+        # Nothing left to anchor the cycle on: the task reads as never
+        # performed until its next completion (the static config's own
+        # last_performed, if any, shows through the merge).
+        store._ensure_task(task_id).pop("last_performed", None)
+    await store.async_save()
+    if rd and rd.coordinator:
+        rd.coordinator._recalculate_budget_cache()
+        await rd.coordinator.async_refresh_now()
+    connection.send_result(msg["id"], {"success": True, "remaining": len(remaining)})
+

@@ -72,6 +72,8 @@ interface SettingsResponse {
     } | null;
     /** #145: how task rows show Complete / Skip. */
     row_action_style?: "buttons_compact" | "buttons" | "icons";
+    /** #170: reference numbers in front of names in every list. */
+    ref_numbers_in_lists?: boolean;
     row_action_notice_pending?: boolean;
   };
   notifications: {
@@ -842,6 +844,12 @@ export class MaintenanceSettingsView extends LitElement {
               <option value=${v} ?selected=${(g.row_action_style || "buttons_compact") === v}>${t(`row_actions_${v}`, L)}</option>`)}
           </select>
         </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_ref_numbers_in_lists", L)}</span>
+          <input type="checkbox" class="refs-in-lists" .checked=${g.ref_numbers_in_lists === true}
+            @change=${(e: Event) => this._updateSetting("ref_numbers_in_lists", (e.target as HTMLInputElement).checked)} />
+        </label>
+        <div class="setting-hint">${t("settings_ref_numbers_in_lists_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_currency", L)}</span>
           <select .value=${live(b.currency)} @change=${(e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value)}>

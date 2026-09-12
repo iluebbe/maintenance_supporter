@@ -66,6 +66,7 @@ from ..const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_REF_NUMBERS_IN_LISTS,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_NOTICE,
     CONF_ROW_ACTION_STYLE,
@@ -235,6 +236,7 @@ def _build_full_settings(
             # panel banner).
             "row_action_style": options.get(CONF_ROW_ACTION_STYLE, DEFAULT_ROW_ACTION_STYLE),
             "row_action_notice_pending": options.get(CONF_ROW_ACTION_NOTICE, False),
+            "ref_numbers_in_lists": bool(options.get(CONF_REF_NUMBERS_IN_LISTS, False)),
         },
         "notifications": {
             "due_soon_enabled": options.get(CONF_NOTIFY_DUE_SOON_ENABLED, True),

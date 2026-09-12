@@ -32,7 +32,7 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
 
 - `@require_write` (admin **or** allowlisted operator): all object/task
   create/update/delete/duplicate/archive/unarchive, `object/from_template`,
-  `task/assign_user`, `task/history/update`, `task/apply_suggestion`,
+  `task/assign_user`, `task/history/update`, `task/history/delete`, `task/apply_suggestion`,
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
   `views/{save,delete}`, `problem_sensors/adopt`,
@@ -128,6 +128,11 @@ is refused with `invalid_input`, `null` means "meter not read this time".
 (`reading_slots_required` — WS, service and history edit alike), and a
 slot patch on a scalar-era entry drops the scalar. Slot names are unique
 per task (case-insensitive; duplicates are dropped by the sanitizer).
+`task/history/delete` `{entry_id, task_id, timestamp}` (2.84, #170) removes one
+entry; last_performed is re-derived from the remaining lifecycle entries (none
+left → the task reads as never performed), photos stay in the documents, parts
+are not restocked.
+
 `task/history/update` patches `reading_value` (scalar, `null` clears) and
 `reading_values` (the same map — REPLACES the snapshot; ids may also be
 slots the task no longer has, taken from the entry's own snapshot). The

@@ -129,6 +129,9 @@ CONF_PANEL_TITLE = "panel_title"
 # installs so the panel can announce the new look with a "back to icons" button.
 CONF_ROW_ACTION_STYLE = "row_action_style"
 CONF_ROW_ACTION_NOTICE = "row_action_notice_pending"
+# #170 round 2: show the reference numbers (#8, #8.3) in front of object and
+# task names in every list, not only on the detail pages.
+CONF_REF_NUMBERS_IN_LISTS = "ref_numbers_in_lists"
 ROW_ACTION_STYLES: tuple[str, ...] = ("buttons_compact", "buttons", "icons")
 DEFAULT_ROW_ACTION_STYLE = "buttons_compact"
 # #146: household defaults for the "low" thresholds that discovery and the

@@ -71,6 +71,7 @@ from ..const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_REF_NUMBERS_IN_LISTS,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_NOTICE,
     CONF_ROW_ACTION_STYLE,
@@ -116,6 +117,7 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # #145: enum-validated by a bespoke rule (ROW_ACTION_STYLES); the notice
     # flag is only ever cleared by the panel banner.
     SettingSpec(CONF_ROW_ACTION_STYLE, str, max_len=32),
+    SettingSpec(CONF_REF_NUMBERS_IN_LISTS, bool),
     SettingSpec(CONF_ROW_ACTION_NOTICE, bool),
     SettingSpec(CONF_PANEL_ENABLED, bool),
     # panel_title is trimmed+capped to MAX_PANEL_TITLE_LENGTH by a bespoke rule,

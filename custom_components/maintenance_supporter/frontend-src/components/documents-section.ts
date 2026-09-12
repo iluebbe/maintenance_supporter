@@ -19,6 +19,8 @@ import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-
 import { DOC_FILTER_MIN, DOC_SORT_MODES, asDocSortMode, filterDocuments, sortDocuments, type DocSortMode } from "../helpers/document-filter";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import type { HomeAssistant } from "../types";
+import "./camera-capture";
+import { inAppCameraPreferred, type MsCameraCapture } from "./camera-capture";
 
 interface MaintenanceDocument {
   id: string;
@@ -139,6 +141,21 @@ export class MaintenanceDocumentsSection extends LitElement {
     const files = Array.from(input.files ?? []);
     if (files.length) void this._uploadFiles(files);
     input.value = ""; // let the same file be re-picked
+  }
+
+  /** #161 follow-up: in-app viewfinder inside the Android app (its chooser
+   *  ignores `capture=`); the native input takes over when it cannot open. */
+  @state() private _inAppCamera = inAppCameraPreferred();
+
+  private _onCameraClick(e: Event): void {
+    if (!this._inAppCamera || this._busy) return;
+    e.preventDefault();
+    void this.shadowRoot?.querySelector<MsCameraCapture>("ms-camera-capture")?.open();
+  }
+
+  private _onCameraUnavailable(): void {
+    this._inAppCamera = false;
+    this.shadowRoot?.querySelector<HTMLInputElement>("label.camera-btn input")?.click();
   }
 
   private _onCameraInput(e: Event): void {
@@ -362,6 +379,7 @@ export class MaintenanceDocumentsSection extends LitElement {
                 <label
                   class="btn camera-btn ${this._busy ? "disabled" : ""}"
                   role="button"
+                  @click=${this._onCameraClick}
                   tabindex="0"
                   aria-label=${t("doc_camera", L)}
                   title=${t("doc_camera", L)}
@@ -370,6 +388,9 @@ export class MaintenanceDocumentsSection extends LitElement {
                   <ha-icon icon="mdi:camera"></ha-icon>
                   <input type="file" accept="image/*" capture="environment" hidden ?disabled=${this._busy} @change=${this._onCameraInput} />
                 </label>
+                ${this._inAppCamera ? html`<ms-camera-capture .lang=${L}
+                  @photo-captured=${(e: CustomEvent<{ file: File }>) => this._uploadFiles([e.detail.file], "photo")}
+                  @capture-unavailable=${this._onCameraUnavailable}></ms-camera-capture>` : nothing}
                 <button class="btn" ?disabled=${this._busy} @click=${() => (this._addingLink = !this._addingLink)}>
                   <ha-icon icon="mdi:link-variant"></ha-icon> ${t("doc_add_link", L)}
                 </button>

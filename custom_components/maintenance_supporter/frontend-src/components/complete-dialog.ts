@@ -15,6 +15,8 @@ import {
   uploadCompletionPhoto,
 } from "../helpers/photo-upload";
 import "./ms-date-field";
+import "./camera-capture";
+import { inAppCameraPreferred, type MsCameraCapture } from "./camera-capture";
 
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -146,6 +148,22 @@ export class MaintenanceCompleteDialog extends LitElement {
    *  is added. Evaluated once per dialog; the host does not change. */
   private readonly _singlePick = isAndroidCompanion();
 
+  /** #161 follow-up: the Android app's chooser ignores `capture=`, so
+   *  "Take photo" opens the in-app viewfinder there; when the camera cannot
+   *  be opened the native input takes over for the rest of the dialog. */
+  @state() private _inAppCamera = inAppCameraPreferred();
+
+  private _onCameraClick(e: Event): void {
+    if (!this._inAppCamera || this._photoUploading) return;
+    e.preventDefault();
+    void this.shadowRoot?.querySelector<MsCameraCapture>("ms-camera-capture")?.open();
+  }
+
+  private _onCameraUnavailable(): void {
+    this._inAppCamera = false;
+    this.shadowRoot?.querySelector<HTMLInputElement>(".photo-pick-camera input")?.click();
+  }
+
   /** #161: both pickers (camera = one shot, gallery = multiple) land here.
    *  Files upload one after another so a slow connection still shows
    *  progress tile by tile; anything beyond the cap is dropped with a
@@ -154,6 +172,11 @@ export class MaintenanceCompleteDialog extends LitElement {
     const input = e.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     input.value = ""; // allow re-picking the same file
+    await this._addPhotoFiles(files);
+  }
+
+  /** Upload picked or captured files one by one into the completion. */
+  private async _addPhotoFiles(files: File[]): Promise<void> {
     if (files.length === 0) return;
     const room = MAX_COMPLETION_PHOTOS - this._photos.length;
     const accepted = files.slice(0, Math.max(room, 0));
@@ -521,7 +544,7 @@ export class MaintenanceCompleteDialog extends LitElement {
               : nothing}
             ${this._photos.length < MAX_COMPLETION_PHOTOS
               ? html`<div class="photo-pickers">
-                  <label class="photo-pick photo-pick-camera">
+                  <label class="photo-pick photo-pick-camera" @click=${this._onCameraClick}>
                     <ha-icon icon="mdi:camera"></ha-icon>
                     <span>${this._photoUploading ? t("uploading", L) : t("doc_camera", L)}</span>
                     <input type="file" accept="image/*" capture="environment"
@@ -536,7 +559,10 @@ export class MaintenanceCompleteDialog extends LitElement {
                       @change=${this._onPhotoInput} />
                   </label>
                 </div>
-                ${this._singlePick ? html`<div class="photo-limit photo-android-hint">${t("photos_android_hint", L)}</div>` : nothing}`
+                ${this._singlePick ? html`<div class="photo-limit photo-android-hint">${t("photos_android_hint", L)}</div>` : nothing}
+                ${this._inAppCamera ? html`<ms-camera-capture .lang=${L}
+                  @photo-captured=${(e: CustomEvent<{ file: File }>) => this._addPhotoFiles([e.detail.file])}
+                  @capture-unavailable=${this._onCameraUnavailable}></ms-camera-capture>` : nothing}`
               : html`<div class="photo-limit">${t("photos_limit", L).replace("{max}", String(MAX_COMPLETION_PHOTOS))}</div>`}
           </div>
           ${this.adaptiveEnabled ? html`

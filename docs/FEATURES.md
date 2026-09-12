@@ -143,7 +143,11 @@ backfilling work that was done earlier (empty = now; see
 [Events](#events) for how backdated entries behave), and completion
 photos — take one with the camera or pick several from the gallery, up
 to ten per completion; checklist steps tick off right in the
-dialog. When the task
+dialog. Inside the Android Companion app *Take photo* opens the panel's
+own viewfinder (2.84+, #161) because the app's file chooser ignores the
+camera hint; if the camera cannot be opened (no permission, or Home Assistant
+reached over plain `http://` — browsers allow camera access only on secure
+origins) the native picker takes over. When the task
 consumes spare parts that carry unit prices, their sum appears as a
 **one-click cost suggestion** under the cost field — following your live
 parts selection, and vanishing the moment you type a cost yourself. A task
@@ -179,7 +183,16 @@ hint at it; printables deliberately stay plain text.
 Every completion with cost, duration, and notes — inline-editable, searchable,
 with completion photos when attached. Photos can be added to or removed
 from an entry afterwards through the entry's edit dialog (removing one
-keeps the file in the object's documents).
+keeps the file in the object's documents). The same dialog can **delete the
+entry** (2.84+, #170) — a completion logged by mistake, a skip that means
+nothing on paper; the task's last-performed date falls back to the previous
+completion, photos stay with the object, consumed parts are not restocked.
+The booklet's print options gained a *Completions without details* switch
+(off = a completion that carries only a date prints nothing), and
+*Settings → General → Reference numbers in lists* puts the `#8` / `#8.3`
+chips in front of every object and task name in the lists — the Today list,
+the task table, the object cards and the objects table — for people who
+file by number.
 
 ![Task History](images/task-history.png)
 
@@ -814,7 +827,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 94 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 95 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -907,7 +920,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (94 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (95 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

@@ -263,6 +263,37 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     this._draft = { ...this._draft, [key]: value };
   }
 
+  /** #170: remove the entry altogether (after a confirm). The backend
+   *  re-anchors last_performed on what remains; photos stay in the object's
+   *  documents, consumed parts are not restocked. */
+  private async _delete(): Promise<void> {
+    if (!this._draft || !this._originalSnapshot) return;
+    const L = this._lang;
+    if (!window.confirm(t("history_delete_confirm", L))) return;
+    this._saving = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/history/delete",
+        entry_id: this._draft.entry_id,
+        task_id: this._draft.task_id,
+        timestamp: this._originalSnapshot.original_timestamp,
+      });
+      this.dispatchEvent(
+        new CustomEvent("history-entry-saved", {
+          detail: { entry_id: this._draft.entry_id, task_id: this._draft.task_id, deleted: true },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      this.close();
+    } catch (e) {
+      this._error = describeWsError(e, L);
+    } finally {
+      this._saving = false;
+    }
+  }
+
   private async _save(): Promise<void> {
     if (!this._draft || !this._originalSnapshot) return;
     this._saving = true;
@@ -455,6 +486,9 @@ export class MaintenanceHistoryEditDialog extends LitElement {
         </div>
         ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
         <div class="actions">
+          <button class="delete-entry" @click=${this._delete} ?disabled=${this._saving} title=${t("history_delete_entry", L)}>
+            <ha-icon icon="mdi:delete-outline"></ha-icon> ${t("history_delete_entry", L)}
+          </button>
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
             ${t("cancel", L) || "Cancel"}
           </button>
@@ -536,6 +570,8 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       width: 100%; box-sizing: border-box;
       font-family: inherit;
     }
+    .delete-entry { margin-right: auto; color: var(--error-color, #d32f2f); background: transparent; border: 1px solid var(--error-color, #d32f2f); border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .delete-entry ha-icon { --mdc-icon-size: 18px; }
     .actions {
       display: flex; gap: 8px; justify-content: flex-end;
       margin-top: 8px;
