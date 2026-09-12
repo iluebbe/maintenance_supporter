@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Slumrevarighet (timer)",
   "settings_budget": "Budsjett",
   "settings_currency": "Valuta",
+  "settings_currency_decimals": "Desimaler for beløp",
+  "settings_currency_decimals_hint": "Hvor mange desimaler hvert beløp viser: nøkkeltall, budsjetter, kostnader i lister og rapporter, budsjettvarsler. 0 = hele tall.",
   "settings_budget_monthly": "Månedsbudsjett",
   "settings_budget_yearly": "Årsbudsjett",
   "settings_budget_alerts": "Budsjettvarsler",

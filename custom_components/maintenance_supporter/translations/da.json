@@ -569,6 +569,7 @@
           "notifications_enabled": "Aktivér notifikationer",
           "notify_service": "Notifikationstjeneste",
           "panel_enabled": "Vis sidebjælkepanel",
+          "currency_decimals": "Decimaler for beløb",
           "panel_title": "Titel på sidebjælkepanel",
           "shopping_list_entity": "Indkøbsliste til synkronisering af købsopgaver"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Send notifikationer, når vedligeholdelsesopgaver forfalder eller er overskredet.",
           "notify_service": "Den notifikationstjeneste, der skal bruges (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidebjælken.",
+          "currency_decimals": "Hvor mange decimaler hvert beløb viser — nøgletal, budgetter, omkostninger i lister og rapporter, budgetadvarsler. 0 = hele tal.",
           "panel_title": "Brugerdefineret navn til sidebjælkeposten. Lad feltet stå tomt for at bruge \"Vedligeholdelse\". Nyttigt for at undgå sammenfald med Home Assistants indbyggede vedligeholdelses-dashboard.",
           "shopping_list_entity": "Automatiske købspåmindelser for dele med lav beholdning vises på denne opgaveliste; afkrydsning fuldfører påmindelsen og genopfylder delen. Lad feltet være tomt for at deaktivere."
         }

@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Torkun kesto (tuntia)",
   "settings_budget": "Budjetti",
   "settings_currency": "Valuutta",
+  "settings_currency_decimals": "Summien desimaalit",
+  "settings_currency_decimals_hint": "Montako desimaalia jokainen summa näyttää: tunnusluvut, budjetit, kustannukset listoissa ja raporteissa, budjettihälytykset. 0 = kokonaisluvut.",
   "settings_budget_monthly": "Kuukausibudjetti",
   "settings_budget_yearly": "Vuosibudjetti",
   "settings_budget_alerts": "Budjettihälytykset",

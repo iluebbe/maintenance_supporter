@@ -569,6 +569,7 @@
           "notifications_enabled": "启用通知",
           "notify_service": "通知服务",
           "panel_enabled": "显示侧边栏面板",
+          "currency_decimals": "金额小数位数",
           "panel_title": "侧边栏面板标题",
           "shopping_list_entity": "同步购买任务的购物清单"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "当维护任务到期或已超期时发送通知。",
           "notify_service": "要使用的通知服务（例如：notify.mobile_app_phone）。",
           "panel_enabled": "在侧边栏显示维护助手面板。",
+          "currency_decimals": "每个金额显示几位小数——KPI、预算、列表和报告中的费用、预算提醒。0 = 整数。",
           "panel_title": "侧边栏条目的自定义名称。留空使用 “Maintenance”。有助于避免与 Home Assistant 内置的维护面板冲突。",
           "shopping_list_entity": "库存不足部件的自动购买提醒会显示在此待办清单中；勾选一项即完成提醒并补充库存。留空则禁用。"
         }

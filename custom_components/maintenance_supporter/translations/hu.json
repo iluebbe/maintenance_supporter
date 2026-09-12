@@ -569,6 +569,7 @@
           "notifications_enabled": "Értesítések engedélyezése",
           "notify_service": "Értesítési szolgáltatás",
           "panel_enabled": "Oldalsáv-panel megjelenítése",
+          "currency_decimals": "Összegek tizedesjegyei",
           "panel_title": "Oldalsáv-panel címe",
           "shopping_list_entity": "Bevásárlólista a vásárlási feladatok szinkronizálásához"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Értesítések küldése, amikor karbantartási feladatok esedékessé válnak vagy lejárnak.",
           "notify_service": "A használandó értesítési szolgáltatás (pl. notify.mobile_app_phone).",
           "panel_enabled": "Maintenance Supporter panel megjelenítése az oldalsávban.",
+          "currency_decimals": "Hány tizedesjegyet mutasson minden összeg — KPI-k, költségvetések, költségek a listákban és jelentésekben, költségvetési riasztások. 0 = egész számok.",
           "panel_title": "Az oldalsáv-bejegyzés egyéni neve. Hagyja üresen a „Karbantartás” használatához. Hasznos, ha ütközne a Home Assistant beépített Karbantartás irányítópultjával.",
           "shopping_list_entity": "A fogyóban lévő alkatrészek automatikus vásárlási emlékeztetői ezen a teendőlistán jelennek meg; a kipipálás befejezi az emlékeztetőt és feltölti a készletet. Hagyja üresen a kikapcsoláshoz."
         }

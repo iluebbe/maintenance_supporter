@@ -35,6 +35,7 @@ from .const import (
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    CONF_CURRENCY_DECIMALS,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
@@ -60,6 +61,7 @@ from .const import (
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     DEFAULT_BUDGET_CURRENCY,
+    DEFAULT_CURRENCY_DECIMALS,
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_PANEL_ENABLED,
     DEFAULT_SNOOZE_DURATION_HOURS,
@@ -637,6 +639,13 @@ class GlobalOptionsFlow(OptionsFlow):
                             options=currency_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         )
+                    ),
+                    # Decimal places for every displayed amount (0 = whole numbers).
+                    vol.Optional(
+                        CONF_CURRENCY_DECIMALS,
+                        default=current.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=0, max=3, step=1, mode=selector.NumberSelectorMode.BOX)
                     ),
                     vol.Optional(
                         CONF_NOTIFICATIONS_ENABLED,

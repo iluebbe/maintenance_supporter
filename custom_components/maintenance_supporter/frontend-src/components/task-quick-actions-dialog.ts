@@ -14,7 +14,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, formatNumber, langOf } from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, formatNumber, langOf, syncCurrencyDecimals} from "../styles";
 import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
@@ -100,12 +100,13 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     try {
       const r = await this.hass.connection.sendMessagePromise<{
         features?: Partial<AdvancedFeatures>;
-        budget?: { currency_symbol?: string };
+        budget?: { currency_symbol?: string; currency_decimals?: number };
       }>({ type: "maintenance_supporter/settings" });
       if (r?.features) {
         this._features = { ...this._features, ...r.features };
       }
       this._currencySymbol = r?.budget?.currency_symbol || "";
+      syncCurrencyDecimals(r?.budget);
       this._featuresLoaded = true;
     } catch {
       // Settings endpoint unavailable — leave defaults (all false), the

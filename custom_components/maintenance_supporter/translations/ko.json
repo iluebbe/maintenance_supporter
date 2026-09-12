@@ -569,6 +569,7 @@
           "notifications_enabled": "알림 사용",
           "notify_service": "알림 서비스",
           "panel_enabled": "사이드바 패널 표시",
+          "currency_decimals": "금액 소수 자릿수",
           "panel_title": "사이드바 패널 제목",
           "shopping_list_entity": "구매 작업을 동기화할 쇼핑 목록"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "유지보수 작업의 기한이 되거나 기한을 초과하면 알림을 보냅니다.",
           "notify_service": "사용할 알림 서비스입니다(예: notify.mobile_app_phone).",
           "panel_enabled": "사이드바에 Maintenance Supporter 패널을 표시합니다.",
+          "currency_decimals": "모든 금액에 표시할 소수 자릿수 — KPI, 예산, 목록과 보고서의 비용, 예산 알림. 0 = 정수.",
           "panel_title": "사이드바 항목의 사용자 지정 이름입니다. 비워 두면 \"유지보수\"를 사용합니다. Home Assistant 기본 유지보수 대시보드와 이름이 겹치지 않게 할 때 유용합니다.",
           "shopping_list_entity": "부족한 부품의 자동 구매 알림이 이 할 일 목록에 표시됩니다. 항목을 체크하면 알림이 완료되고 부품이 재입고됩니다. 비워두면 비활성화됩니다."
         }

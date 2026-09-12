@@ -362,7 +362,7 @@ describe("complete-dialog cost suggestion from parts (#104 follow-up)", () => {
     });
     const c = chip(el)!;
     expect(c, "suggestion chip rendered").to.exist;
-    expect(c.textContent).to.include("17.00");
+    expect(c.textContent).to.include("17 €");
     expect(c.textContent).to.include("€");
     c.click();
     await el.updateComplete;
@@ -375,7 +375,7 @@ describe("complete-dialog cost suggestion from parts (#104 follow-up)", () => {
 
   it("buy task: restock qty x unit cost, follows the qty field", async () => {
     const el = await mountWithParts({ restockDefault: 2, restockUnitCost: 4.5 });
-    expect(chip(el)!.textContent).to.include("9.00");
+    expect(chip(el)!.textContent).to.include("9");
   });
 
   it("no chip when no involved part carries a price", async () => {

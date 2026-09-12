@@ -41,6 +41,7 @@ from ..const import (
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    CONF_CURRENCY_DECIMALS,
     CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
@@ -181,6 +182,7 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_BUDGET_ALERTS_ENABLED, bool),
     SettingSpec(CONF_BUDGET_ALERT_THRESHOLD, int, int_range=(10, 100)),
     SettingSpec(CONF_BUDGET_CURRENCY, str, max_len=5),
+    SettingSpec(CONF_CURRENCY_DECIMALS, int, int_range=(0, 3)),
 )
 
 _SPEC_BY_KEY: dict[str, SettingSpec] = {s.key: s for s in SETTING_SPECS}

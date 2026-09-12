@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Duración de posposición (horas)",
   "settings_budget": "Presupuesto",
   "settings_currency": "Moneda",
+  "settings_currency_decimals": "Decimales de los importes",
+  "settings_currency_decimals_hint": "Cuántos decimales muestra cada importe: KPI, presupuestos, costes en listas e informes, alertas de presupuesto. 0 = números enteros.",
   "settings_budget_monthly": "Presupuesto mensual",
   "settings_budget_yearly": "Presupuesto anual",
   "settings_budget_alerts": "Alertas de presupuesto",

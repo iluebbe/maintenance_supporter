@@ -533,6 +533,8 @@
   "settings_snooze_hours": "다시 알림 대기 시간 (시간)",
   "settings_budget": "예산",
   "settings_currency": "통화",
+  "settings_currency_decimals": "금액 소수 자릿수",
+  "settings_currency_decimals_hint": "모든 금액에 표시할 소수 자릿수: KPI, 예산, 목록과 보고서의 비용, 예산 알림. 0 = 정수.",
   "settings_budget_monthly": "월 예산",
   "settings_budget_yearly": "연 예산",
   "settings_budget_alerts": "예산 경고",

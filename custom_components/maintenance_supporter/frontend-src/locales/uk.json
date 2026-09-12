@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Тривалість відкладення (години)",
   "settings_budget": "Бюджет",
   "settings_currency": "Валюта",
+  "settings_currency_decimals": "Знаків після коми в сумах",
+  "settings_currency_decimals_hint": "Скільки знаків після коми показує кожна сума: KPI, бюджети, витрати у списках і звітах, сповіщення про бюджет. 0 = цілі числа.",
   "settings_budget_monthly": "Щомісячний бюджет",
   "settings_budget_yearly": "Щорічний бюджет",
   "settings_budget_alerts": "Сповіщення про бюджет",

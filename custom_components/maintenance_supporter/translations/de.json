@@ -569,6 +569,7 @@
           "notifications_enabled": "Benachrichtigungen aktivieren",
           "notify_service": "Benachrichtigungsdienst",
           "panel_enabled": "Sidebar-Panel anzeigen",
+          "currency_decimals": "Nachkommastellen für Beträge",
           "panel_title": "Titel des Seitenleisten-Panels",
           "shopping_list_entity": "Einkaufsliste für den Abgleich der Kauf-Aufgaben"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Benachrichtigungen senden, wenn Wartungsaufgaben bald fällig oder überfällig sind.",
           "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone).",
           "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen.",
+          "currency_decimals": "Wie viele Nachkommastellen jeder Betrag zeigt — KPIs, Budgets, Kosten in Listen und Berichten, Budget-Alarme. 0 = ganze Zahlen.",
           "panel_title": "Eigener Name für den Seitenleisten-Eintrag. Leer lassen für \"Maintenance\". Praktisch, um Verwechslungen mit dem integrierten Wartungs-Dashboard von Home Assistant zu vermeiden.",
           "shopping_list_entity": "Automatische „Kaufen“-Erinnerungen für knappe Teile erscheinen in dieser To-do-Liste; Abhaken schließt die Erinnerung ab und füllt den Bestand auf. Leer lassen zum Deaktivieren."
         }

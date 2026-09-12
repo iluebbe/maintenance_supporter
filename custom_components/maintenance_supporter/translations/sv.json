@@ -569,6 +569,7 @@
           "notifications_enabled": "Aktivera aviseringar",
           "notify_service": "Aviseringstjänst",
           "panel_enabled": "Visa sidopanel",
+          "currency_decimals": "Decimaler för belopp",
           "panel_title": "Titel för sidofältspanel",
           "shopping_list_entity": "Inköpslista att synka köpuppgifter till"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Skicka aviseringar när underhållsuppgifter förfaller eller är försenade.",
           "notify_service": "Aviseringstjänsten som ska användas (t.ex. notify.mobile_app_phone).",
           "panel_enabled": "Visa en Maintenance Supporter-panel i sidofältet.",
+          "currency_decimals": "Hur många decimaler varje belopp visar — nyckeltal, budgetar, kostnader i listor och rapporter, budgetvarningar. 0 = hela tal.",
           "panel_title": "Eget namn för sidofältsposten. Lämna tomt för att använda \"Maintenance\". Användbart för att undvika krock med Home Assistants inbyggda Maintenance-panel.",
           "shopping_list_entity": "Automatiska köppåminnelser för delar som håller på att ta slut visas i denna att-göra-lista; att bocka av en slutför påminnelsen och fyller på lagret. Lämna tomt för att inaktivera."
         }

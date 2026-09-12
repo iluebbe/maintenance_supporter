@@ -6,6 +6,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Decimal places for amounts** (setting `currency_decimals`, default **0**):
+  every displayed amount — KPI tiles, budget bars, costs in task lists,
+  history, reports and the service booklet, budget alerts, buy-task notes —
+  now shows whole numbers by default (`930 €` instead of `929.60 €`). Pick
+  1–3 decimals under Settings → General → *Decimal places for amounts* (or
+  the Configure dialog). The dashboard and calendar cards now also receive
+  the configured currency (`statistics.budget`); they used to fall back to €.
 - **The whole panel as a card** (#174): `custom:maintenance-supporter-panel-card`
   mounts the complete panel — every tab, page and dialog — inside a card, for
   a dashboard subview (a panel view with this one card) without the sidebar

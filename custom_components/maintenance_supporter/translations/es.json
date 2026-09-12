@@ -569,6 +569,7 @@
           "notifications_enabled": "Activar notificaciones",
           "notify_service": "Servicio de notificación",
           "panel_enabled": "Mostrar panel en la barra lateral",
+          "currency_decimals": "Decimales de los importes",
           "panel_title": "Título del panel lateral",
           "shopping_list_entity": "Lista de la compra para sincronizar las tareas de compra"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Enviar notificaciones cuando las tareas de mantenimiento están próximas a vencer o vencidas.",
           "notify_service": "El servicio de notificación a utilizar (ej.: notify.mobile_app_phone).",
           "panel_enabled": "Mostrar un panel de Maintenance Supporter en la barra lateral.",
+          "currency_decimals": "Cuántos decimales muestra cada importe — KPI, presupuestos, costes en listas e informes, alertas de presupuesto. 0 = números enteros.",
           "panel_title": "Nombre personalizado para la entrada de la barra lateral. Déjalo en blanco para usar \"Maintenance\". Útil para evitar conflictos con el panel de Mantenimiento integrado de Home Assistant.",
           "shopping_list_entity": "Los recordatorios automáticos de compra de piezas escasas aparecen en esta lista de tareas; marcar uno completa el recordatorio y repone la pieza. Dejar vacío para desactivar."
         }

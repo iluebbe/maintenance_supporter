@@ -7,7 +7,7 @@ import { objectRef, parseRef, renderRefChip, taskRef } from "./helpers/reference
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatNumber, formatCost } from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatNumber, formatCost, syncCurrencyDecimals} from "./styles";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
@@ -714,7 +714,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         });
     }
     if (statsResult) this._stats = statsResult as StatisticsResponse;
-    if (budgetResult) this._budget = budgetResult as BudgetStatus;
+    if (budgetResult) { this._budget = budgetResult as BudgetStatus; syncCurrencyDecimals(this._budget); }
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
     if (settingsResult) {
       const sr = settingsResult as {
@@ -1079,7 +1079,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ]);
         if (!this.isConnected) return;
         if (statsResult) this._stats = statsResult as StatisticsResponse;
-        if (budgetResult) this._budget = budgetResult as BudgetStatus;
+        if (budgetResult) { this._budget = budgetResult as BudgetStatus; syncCurrencyDecimals(this._budget); }
       } while (this._kpiRefreshPending);
     } finally {
       this._kpiRefreshInFlight = false;
@@ -3788,7 +3788,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         return html`
           <div class="stat-item budget-tile" title="${label}: ${formatNumber(spent, L, 2)} / ${formatCost(budget, cs, L)}">
             <span class="stat-value budget-tile-value">${formatCost(spent, cs, L)}</span>
-            <span class="budget-tile-max">/ ${formatCost(budget, cs, L, 0)}</span>
+            <span class="budget-tile-max">/ ${formatCost(budget, cs, L)}</span>
             <div class="budget-tile-bar"><div style="width:${pct}%; background:${color}"></div></div>
             <span class="stat-label">${label}</span>
           </div>

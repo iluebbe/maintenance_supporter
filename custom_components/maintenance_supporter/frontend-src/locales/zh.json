@@ -533,6 +533,8 @@
   "settings_snooze_hours": "稍后提醒间隔 (小时)",
   "settings_budget": "预算",
   "settings_currency": "货币单位",
+  "settings_currency_decimals": "金额小数位数",
+  "settings_currency_decimals_hint": "每个金额显示几位小数：KPI、预算、列表和报告中的费用、预算提醒。0 = 整数。",
   "settings_budget_monthly": "月度预算",
   "settings_budget_yearly": "年度预算",
   "settings_budget_alerts": "预算警报",

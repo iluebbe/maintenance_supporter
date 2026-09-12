@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Szundi időtartama (óra)",
   "settings_budget": "Költségkeret",
   "settings_currency": "Pénznem",
+  "settings_currency_decimals": "Összegek tizedesjegyei",
+  "settings_currency_decimals_hint": "Hány tizedesjegyet mutasson minden összeg: KPI-k, költségvetések, költségek a listákban és jelentésekben, költségvetési riasztások. 0 = egész számok.",
   "settings_budget_monthly": "Havi költségkeret",
   "settings_budget_yearly": "Éves költségkeret",
   "settings_budget_alerts": "Költségkeret-riasztások",

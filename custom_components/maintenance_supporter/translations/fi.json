@@ -569,6 +569,7 @@
           "notifications_enabled": "Ota ilmoitukset käyttöön",
           "notify_service": "Ilmoituspalvelu",
           "panel_enabled": "Näytä sivupalkin paneeli",
+          "currency_decimals": "Summien desimaalit",
           "panel_title": "Sivupalkin paneelin otsikko",
           "shopping_list_entity": "Ostoslista, johon ostotehtävät synkronoidaan"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Lähetä ilmoituksia, kun huoltotehtävät erääntyvät tai ovat myöhässä.",
           "notify_service": "Käytettävä ilmoituspalvelu (esim. notify.mobile_app_phone).",
           "panel_enabled": "Näytä Maintenance Supporter -paneeli sivupalkissa.",
+          "currency_decimals": "Montako desimaalia jokainen summa näyttää — tunnusluvut, budjetit, kustannukset listoissa ja raporteissa, budjettihälytykset. 0 = kokonaisluvut.",
           "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi.",
           "shopping_list_entity": "Automaattiset ostomuistutukset vähiin käyneistä osista ilmestyvät tähän tehtäväluetteloon; kuittaus suorittaa muistutuksen ja täydentää varaston. Jätä tyhjäksi poistaaksesi käytöstä."
         }

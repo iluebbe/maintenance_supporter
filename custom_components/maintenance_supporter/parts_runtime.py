@@ -16,11 +16,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_CURRENCY_DECIMALS,
     CONF_OBJECT,
     CONF_PART_SEARCH_URL_TEMPLATE,
     CONF_PARTS,
     CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
+    DEFAULT_CURRENCY_DECIMALS,
     DOMAIN,
     EVENT_PART_RESTOCKED,
     EVENT_PART_STOCK_LOW,
@@ -376,6 +378,7 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         lang=normalize_language(hass),
         search_template=get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE),
         today=dt_util.now().date(),
+        decimals=int(get_global_options(hass).get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
         is_task_done=lambda td: store.get_last_performed(td["id"]) is not None,
     )
     if not changed:

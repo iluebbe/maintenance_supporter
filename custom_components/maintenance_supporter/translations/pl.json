@@ -569,6 +569,7 @@
           "notifications_enabled": "Włącz powiadomienia",
           "notify_service": "Usługa powiadomień",
           "panel_enabled": "Pokaż panel boczny",
+          "currency_decimals": "Miejsca po przecinku w kwotach",
           "panel_title": "Tytuł panelu na pasku bocznym",
           "shopping_list_entity": "Lista zakupów do synchronizacji zadań zakupowych"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Wysyłaj powiadomienia, gdy zadania konserwacji stają się wymagane lub przeterminowane.",
           "notify_service": "Usługa powiadomień, której należy używać (np. notify.mobile_app_phone).",
           "panel_enabled": "Pokaż panel Maintenance Supporter w pasku bocznym.",
+          "currency_decimals": "Ile miejsc po przecinku pokazuje każda kwota — KPI, budżety, koszty na listach i w raportach, alerty budżetowe. 0 = liczby całkowite.",
           "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant.",
           "shopping_list_entity": "Automatyczne przypomnienia o zakupie brakujących części pojawiają się na tej liście zadań; odhaczenie kończy przypomnienie i uzupełnia zapas. Pozostaw puste, aby wyłączyć."
         }

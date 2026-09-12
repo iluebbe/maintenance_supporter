@@ -35,7 +35,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost } from "./styles";
+import { syncLocaleFromHass, sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { historyPhotoIds } from "./helpers/history-photos";
 import { entryReadingValues } from "./helpers/reading-slots";
@@ -173,6 +173,7 @@ export class MaintenanceCalendarCard extends LitElement {
       ]);
       this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
       this._stats = statsResult as StatisticsResponse;
+      syncCurrencyDecimals(this._stats.budget);
     } catch {
       // WS not available yet
     }
@@ -385,7 +386,7 @@ export class MaintenanceCalendarCard extends LitElement {
             ${recurEvery}
           </div>
           ${ev.avg_cost != null && ev.avg_cost > 0
-            ? html`<span class="cal-event-cost">${formatCost(ev.avg_cost, currencySymbol, L, 0)}</span>`
+            ? html`<span class="cal-event-cost">${formatCost(ev.avg_cost, currencySymbol, L)}</span>`
             : nothing}
         </div>
       `;

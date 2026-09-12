@@ -569,6 +569,7 @@
           "notifications_enabled": "通知を有効にする",
           "notify_service": "通知サービス",
           "panel_enabled": "サイドバーパネルを表示",
+          "currency_decimals": "金額の小数点以下の桁数",
           "panel_title": "サイドバーパネルのタイトル",
           "shopping_list_entity": "購入タスクを同期する買い物リスト"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "メンテナンスタスクが期限を迎えたとき、または期限切れになったときに通知を送信します。",
           "notify_service": "使用する通知サービスです (例: notify.mobile_app_phone)。",
           "panel_enabled": "サイドバーに Maintenance Supporter パネルを表示します。",
+          "currency_decimals": "各金額に表示する小数点以下の桁数 — KPI、予算、リストやレポートの費用、予算アラート。0 = 整数。",
           "panel_title": "サイドバー項目のカスタム名です。空欄にすると「メンテナンス」が使用されます。Home Assistant 標準のメンテナンスダッシュボードとの競合を避けるのに便利です。",
           "shopping_list_entity": "在庫が少ない部品の自動購入リマインダーがこのToDoリストに表示されます。チェックするとリマインダーが完了し、部品が補充されます。無効にするには空のままにします。"
         }

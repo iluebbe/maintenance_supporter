@@ -350,7 +350,7 @@ def buy_task_name(part_name: str, lang: str) -> str:
     return tpl.replace("{name}", part_name)
 
 
-def buy_task_notes(part: Mapping[str, Any], stock: float | None) -> str:
+def buy_task_notes(part: Mapping[str, Any], stock: float | None, decimals: int = 2) -> str:
     """Self-contained purchase notes: identifiers, qty, price, storage spot.
 
     Deliberately mostly language-neutral (labels are identifiers like MPN/GTIN;
@@ -372,7 +372,7 @@ def buy_task_notes(part: Mapping[str, Any], stock: float | None) -> str:
     if idents:
         lines.append(idents)
     if part.get("cost") is not None:
-        lines.append(f"≈ {part['cost']:.2f} × {qty}")
+        lines.append(f"≈ {part['cost']:.{decimals}f} × {qty}")
     if stock is not None:
         lines.append(f"◎ {stock}")
     if part.get("storage_location"):
@@ -388,6 +388,7 @@ def build_buy_task(
     lang: str,
     search_template: str | None,
     today: date,
+    decimals: int = 2,
 ) -> dict[str, Any]:
     """The one-off shopping reminder for a low part (due today, actionable now)."""
     return {
@@ -401,7 +402,7 @@ def build_buy_task(
         "created_at": today.isoformat(),
         "labels": [BUY_TASK_LABEL],
         "custom_icon": BUY_TASK_ICON,
-        "notes": buy_task_notes(part, stock),
+        "notes": buy_task_notes(part, stock, decimals),
         "documentation_url": resolve_shopping_url(part, search_template, lang),
         PART_REF_FIELD: {"part_id": str(part["id"])},
     }
@@ -416,6 +417,7 @@ def reconcile_buy_tasks(
     lang: str,
     search_template: str | None,
     today: date,
+    decimals: int = 2,
     is_task_done: Any,
 ) -> tuple[dict[str, dict[str, Any]], list[str], list[str], bool]:
     """Compute the task map with auto "buy" reminders synced to low parts.
@@ -477,6 +479,7 @@ def reconcile_buy_tasks(
             lang=lang,
             search_template=search_template,
             today=today,
+            decimals=decimals,
         )
         result[task["id"]] = task
         created.append(task["id"])

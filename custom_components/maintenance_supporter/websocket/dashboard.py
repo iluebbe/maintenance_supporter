@@ -36,6 +36,7 @@ from ..const import (
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    CONF_CURRENCY_DECIMALS,
     CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
@@ -77,6 +78,7 @@ from ..const import (
     DEFAULT_BATTERY_LOW_PERCENT,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_CONSUMABLE_THRESHOLD,
+    DEFAULT_CURRENCY_DECIMALS,
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     DEFAULT_PANEL_ENABLED,
@@ -93,6 +95,7 @@ from ..const import (
     TIME_HHMMSS_PATTERN,
 )
 from ..helpers.aggregate import compute_status_counts
+from ..helpers.global_options import get_global_options
 from ..helpers.notify_targets import build_notify_targets
 from ..helpers.settings_registry import (
     ALLOWED_SETTING_KEYS,
@@ -115,6 +118,16 @@ _LOGGER = logging.getLogger(__name__)
 # single settings registry (helpers/settings_registry) so they can't drift from
 # each other or from the options-flow selectors that share the same specs.
 _ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
+
+
+def _currency_block(options: Mapping[str, Any]) -> dict[str, Any]:
+    """How amounts are displayed: currency code, symbol and decimal places."""
+    code = str(options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
+    return {
+        "currency": code,
+        "currency_symbol": BUDGET_CURRENCIES.get(code, BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY]),
+        "currency_decimals": int(options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
+    }
 
 
 def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
@@ -265,6 +278,7 @@ def _build_full_settings(
             "alerts_enabled": options.get(CONF_BUDGET_ALERTS_ENABLED, False),
             "alert_threshold_pct": options.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
             "currency": options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY),
+            "currency_decimals": int(options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
             "currency_symbol": BUDGET_CURRENCIES.get(
                 options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY),
                 BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY],
@@ -360,6 +374,9 @@ async def ws_get_statistics(
             # of reading a non-existent entity and showing "unknown".
             "ok": counts["ok"],
             "total_cost": counts["total_cost"],
+            # Currency display for the cards, which have no budget_status call
+            # of their own: symbol + decimal places, one source for every amount.
+            "budget": _currency_block(get_global_options(hass)),
         },
     )
 
@@ -634,6 +651,7 @@ async def ws_get_budget_status(
             "yearly_spent": round(yearly_spent, 2),
             "alert_threshold_pct": threshold_pct,
             "currency_symbol": currency_symbol,
+            "currency_decimals": int(global_options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
         },
     )
 

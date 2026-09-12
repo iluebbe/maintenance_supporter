@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Snooze duration (hours)",
   "settings_budget": "Budget",
   "settings_currency": "Currency",
+  "settings_currency_decimals": "Decimal places for amounts",
+  "settings_currency_decimals_hint": "How many decimals every amount shows: KPIs, budgets, costs in lists and reports, budget alerts. 0 = whole numbers.",
   "settings_budget_monthly": "Monthly budget",
   "settings_budget_yearly": "Yearly budget",
   "settings_budget_alerts": "Budget alerts",

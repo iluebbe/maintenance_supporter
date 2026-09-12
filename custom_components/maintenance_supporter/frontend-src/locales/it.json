@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Durata posticipo (ore)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
+  "settings_currency_decimals": "Decimali degli importi",
+  "settings_currency_decimals_hint": "Quanti decimali mostra ogni importo: KPI, budget, costi in elenchi e report, avvisi di budget. 0 = numeri interi.",
   "settings_budget_monthly": "Budget mensile",
   "settings_budget_yearly": "Budget annuale",
   "settings_budget_alerts": "Avvisi budget",

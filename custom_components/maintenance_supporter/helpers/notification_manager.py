@@ -1802,6 +1802,7 @@ class NotificationManager:
         spent: float,
         budget: float,
         currency_symbol: str = "€",
+        decimals: int = 2,
     ) -> None:
         """Send a budget threshold alert notification."""
         if not self.enabled or not self._has_target:
@@ -1826,8 +1827,8 @@ class NotificationManager:
             key,
             lang,
             pct=str(pct),
-            spent=f"{spent:.2f}{currency_symbol}",
-            budget=f"{budget:.2f}{currency_symbol}",
+            spent=f"{spent:.{decimals}f}{currency_symbol}",
+            budget=f"{budget:.{decimals}f}{currency_symbol}",
         )
 
         service_data = _service_payload(title, message, tag=f"maintenance_budget_{period}")

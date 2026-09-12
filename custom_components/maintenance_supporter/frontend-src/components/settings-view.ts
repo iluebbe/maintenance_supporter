@@ -5,7 +5,7 @@ import { property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { live } from "lit/directives/live.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
-import { t, langOf, personStyles } from "../styles";
+import { t, langOf, personStyles, syncCurrencyDecimals} from "../styles";
 import { signApiPath } from "../helpers/document-url";
 import { downloadUrl } from "../helpers/download";
 import { UserService } from "../user-service";
@@ -111,6 +111,8 @@ interface SettingsResponse {
     alert_threshold_pct: number;
     currency: string;
     currency_symbol: string;
+    /** Decimal places for every displayed amount (0 = whole numbers). */
+    currency_decimals?: number;
   };
   // v2.10.0 archive automation (panel-managed). Optional for forward-compat
   // with a backend that predates the feature.
@@ -250,6 +252,7 @@ export class MaintenanceSettingsView extends LitElement {
         type: "maintenance_supporter/settings",
       });
       this._settings = result as SettingsResponse;
+      syncCurrencyDecimals(this._settings.budget);
       this._hydrateVacationFromSettings();
     } catch {
       /* ignore */
@@ -432,6 +435,7 @@ export class MaintenanceSettingsView extends LitElement {
         settings: { [key]: value },
       });
       this._settings = result as SettingsResponse;
+      syncCurrencyDecimals(this._settings.budget);
       // The card / Lovelace dialogs read their copy through a page-wide
       // cache — drop it so they follow the change without a reload.
       invalidateSettingsCache();
@@ -826,6 +830,14 @@ export class MaintenanceSettingsView extends LitElement {
             ${CURRENCIES.map((c) => html`<option value=${c} ?selected=${b.currency === c}>${c}</option>`)}
           </select>
         </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_currency_decimals", L)}</span>
+          <select class="currency-decimals" .value=${live(String(b.currency_decimals ?? 0))}
+            @change=${(e: Event) => this._updateSetting("currency_decimals", Number((e.target as HTMLSelectElement).value))}>
+            ${[0, 1, 2, 3].map((d) => html`<option value=${String(d)} ?selected=${(b.currency_decimals ?? 0) === d}>${d}</option>`)}
+          </select>
+        </label>
+        <div class="setting-hint">${t("settings_currency_decimals_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_panel_enabled", L)}</span>
           <input type="checkbox" .checked=${g.panel_enabled}

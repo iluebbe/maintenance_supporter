@@ -538,6 +538,10 @@ values dropped. Keys relevant to setup:
 - `quiet_hours_enabled`, `quiet_hours_start`/`end` ("HH:MM")
 - `budget_monthly`/`budget_yearly` (float), `budget_currency` (EUR,USD,GBP,…),
   `budget_alerts_enabled`, `budget_alert_threshold` (10..100)
+- `currency_decimals` (int 0..3; 2.84) — decimal places for every displayed
+  amount (default 0 = whole numbers); echoed as `budget.currency_decimals`, and
+  as `currency_decimals` in `budget_status` and in `statistics.budget`
+  (`{currency, currency_symbol, currency_decimals}`, new in 2.84)
 - `operator_write_enabled` (bool), `admin_panel_user_ids` (list[str]) — governance
 
 Propose settings changes separately and only after the user opts in; they need

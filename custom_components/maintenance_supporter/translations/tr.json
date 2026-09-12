@@ -569,6 +569,7 @@
           "notifications_enabled": "Bildirimleri etkinleştir",
           "notify_service": "Bildirim servisi",
           "panel_enabled": "Kenar çubuğu panelini göster",
+          "currency_decimals": "Tutarlarda ondalık basamak",
           "panel_title": "Kenar çubuğu paneli başlığı",
           "shopping_list_entity": "Satın alma görevlerinin eşitleneceği alışveriş listesi"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Bakım görevlerinin vadesi geldiğinde veya geciktiğinde bildirim gönder.",
           "notify_service": "Kullanılacak bildirim servisi (örn. notify.mobile_app_phone).",
           "panel_enabled": "Kenar çubuğunda bir Maintenance Supporter paneli göster.",
+          "currency_decimals": "Her tutarın kaç ondalık basamak göstereceği — KPI'lar, bütçeler, liste ve raporlardaki maliyetler, bütçe uyarıları. 0 = tam sayılar.",
           "panel_title": "Kenar çubuğu girdisi için özel ad. \"Bakım\" kullanmak için boş bırakın. Home Assistant'ın yerleşik Bakım panosuyla çakışmayı önlemek için kullanışlıdır.",
           "shopping_list_entity": "Azalan parçalar için otomatik satın alma hatırlatıcıları bu yapılacaklar listesinde görünür; birini işaretlemek hatırlatıcıyı tamamlar ve parçayı yeniden stoklar. Devre dışı bırakmak için boş bırakın."
         }

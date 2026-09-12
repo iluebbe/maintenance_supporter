@@ -31,6 +31,7 @@ _EXPECTED_INT_RANGES = {
     "notification_bundle_threshold": (2, 20),
     "snooze_duration_hours": (1, 168),
     "budget_alert_threshold": (10, 100),
+    "currency_decimals": (0, 3),
     "archive_oneoff_days": (0, 3650),
     "delete_archived_oneoff_days": (0, 3650),
     "warranty_reminder_days": (1, 365),
@@ -68,11 +69,11 @@ def test_allowed_keys_count_and_types() -> None:
     # 58 writable settings, each mapped to a concrete Python type
     # (#169 follow-up added the dict-typed member_display; #165 the two
     # notification-hook settings).
-    assert len(ALLOWED_SETTING_KEYS) == 58
+    assert len(ALLOWED_SETTING_KEYS) == 59
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 58
+    assert len(keys) == len(set(keys)) == 59
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

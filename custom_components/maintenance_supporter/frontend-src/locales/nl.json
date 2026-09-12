@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Snoozeduur (uren)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
+  "settings_currency_decimals": "Decimalen voor bedragen",
+  "settings_currency_decimals_hint": "Hoeveel decimalen elk bedrag toont: KPI's, budgetten, kosten in lijsten en rapporten, budgetmeldingen. 0 = hele getallen.",
   "settings_budget_monthly": "Maandbudget",
   "settings_budget_yearly": "Jaarbudget",
   "settings_budget_alerts": "Budgetwaarschuwingen",

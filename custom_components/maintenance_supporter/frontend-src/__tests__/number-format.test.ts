@@ -4,7 +4,7 @@
  *  "12.50 €" to a user whose entity cards all say "12,50 €". */
 
 import { expect } from "@open-wc/testing";
-import { formatNumber, formatCost, setProfilePrefs } from "../styles";
+import { formatNumber, formatCost, setProfilePrefs, setCurrencyDecimals, syncCurrencyDecimals, currencyDecimals } from "../styles";
 import { fmtNum, fmtVal, px } from "../renderers/chart-utils";
 import { formatBytes } from "../helpers/format-bytes";
 
@@ -53,11 +53,11 @@ describe("formatNumber with HA profile number_format (#163)", () => {
 
   it("formatCost appends the symbol only when there is one", () => {
     setProfilePrefs({ number_format: "language" });
-    expect(formatCost(194.5, "€", "en")).to.equal("194.50 €");
-    expect(formatCost(194.5, "€", "de")).to.equal("194,50 €");
+    expect(formatCost(194.5, "€", "en", 2)).to.equal("194.50 €");
+    expect(formatCost(194.5, "€", "de", 2)).to.equal("194,50 €");
     expect(formatCost(150, "CHF", "en", 0)).to.equal("150 CHF");
-    expect(formatCost(12.5, "", "en")).to.equal("12.50");
-    expect(formatCost(12.5, undefined, "en")).to.equal("12.50");
+    expect(formatCost(12.5, "", "en", 2)).to.equal("12.50");
+    expect(formatCost(12.5, undefined, "en", 2)).to.equal("12.50");
   });
 });
 
@@ -89,5 +89,29 @@ describe("chart + storage helpers route through formatNumber", () => {
     expect(formatBytes(3 * 1024 * 1024, "en")).to.equal("3,0 MB");
     expect(formatBytes(512, "en")).to.equal("512 B");
     expect(px(12.345)).to.equal("12.3");
+  });
+});
+
+describe("currency decimals (global setting, default 0)", () => {
+  afterEach(() => setCurrencyDecimals(0));
+
+  it("rounds every amount to whole numbers by default", () => {
+    setCurrencyDecimals(0);
+    expect(currencyDecimals()).to.equal(0);
+    expect(formatCost(929.6, "€", "en")).to.equal("930 €");
+    expect(formatCost(0, "Fr", "en")).to.equal("0 Fr");
+    expect(formatCost(194.5, "€", "de")).to.equal("195 €");
+  });
+
+  it("follows the setting synced from a currency block and ignores junk", () => {
+    syncCurrencyDecimals({ currency_decimals: 2 });
+    expect(formatCost(929.6, "€", "en")).to.equal("929.60 €");
+    syncCurrencyDecimals({ currency_decimals: 1 });
+    expect(formatCost(929.66, "€", "en")).to.equal("929.7 €");
+    syncCurrencyDecimals(null);
+    expect(currencyDecimals()).to.equal(1, "a missing block keeps the current value");
+    syncCurrencyDecimals({ currency_decimals: 9 });
+    expect(currencyDecimals()).to.equal(0, "out of range falls back to 0");
+    expect(formatCost(12.5, "€", "en", 2)).to.equal("12.50 €", "a pinned digits argument still wins");
   });
 });

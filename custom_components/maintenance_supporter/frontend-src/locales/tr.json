@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Erteleme süresi (saat)",
   "settings_budget": "Bütçe",
   "settings_currency": "Para birimi",
+  "settings_currency_decimals": "Tutarlarda ondalık basamak",
+  "settings_currency_decimals_hint": "Her tutarın kaç ondalık basamak göstereceği: KPI'lar, bütçeler, liste ve raporlardaki maliyetler, bütçe uyarıları. 0 = tam sayılar.",
   "settings_budget_monthly": "Aylık bütçe",
   "settings_budget_yearly": "Yıllık bütçe",
   "settings_budget_alerts": "Bütçe uyarıları",

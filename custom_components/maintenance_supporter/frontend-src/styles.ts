@@ -208,6 +208,25 @@ interface ProfilePrefs {
 }
 const _w = window as unknown as { __msDateTimePrefs?: ProfilePrefs };
 const DT_PREFS: ProfilePrefs = (_w.__msDateTimePrefs ??= {});
+/** Currency display prefs shared across bundles (a window singleton like the
+ *  date/time prefs): the global `currency_decimals` setting. Synced from every
+ *  response that carries a currency block (settings, budget_status,
+ *  statistics) so every amount — KPIs, budgets, costs, printables — rounds
+ *  the same way. Default 0 = whole numbers. */
+const MONEY_PREFS: { decimals?: number } = ((_w as unknown as { __msMoneyPrefs?: { decimals?: number } }).__msMoneyPrefs ??= {});
+
+export function setCurrencyDecimals(decimals: number | null | undefined): void {
+  MONEY_PREFS.decimals = typeof decimals === "number" && Number.isInteger(decimals) && decimals >= 0 && decimals <= 3 ? decimals : 0;
+}
+
+export function currencyDecimals(): number {
+  return MONEY_PREFS.decimals ?? 0;
+}
+
+/** Take the decimals from a currency-bearing response block, when present. */
+export function syncCurrencyDecimals(src: { currency_decimals?: number | null } | null | undefined): void {
+  if (src && src.currency_decimals !== undefined && src.currency_decimals !== null) setCurrencyDecimals(Number(src.currency_decimals));
+}
 
 /** Feed HA's per-user date/time/number formats into the formatters below.
  *  `country` is the SERVER's configured country (#140): with the profile
@@ -263,10 +282,12 @@ export function formatNumber(n: number, lang?: string, digits?: number | Intl.Nu
   }
 }
 
-/** Amount + currency symbol ("12.50 €"; the symbol is optional) — every cost
- *  figure in the UI and the printables goes through here. */
-export function formatCost(amount: number, symbol?: string, lang?: string, digits = 2): string {
-  const num = formatNumber(amount, lang, digits);
+/** Amount + currency symbol ("13 €" / "12.50 €"; the symbol is optional) —
+ *  every cost figure in the UI and the printables goes through here. The
+ *  fraction digits come from the global `currency_decimals` setting (default
+ *  0) unless a caller pins them. */
+export function formatCost(amount: number, symbol?: string, lang?: string, digits?: number): string {
+  const num = formatNumber(amount, lang, digits ?? currencyDecimals());
   return symbol ? `${num} ${symbol}` : num;
 }
 

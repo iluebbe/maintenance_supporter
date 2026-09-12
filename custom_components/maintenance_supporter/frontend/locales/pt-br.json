@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Duração da soneca (horas)",
   "settings_budget": "Orçamento",
   "settings_currency": "Moeda",
+  "settings_currency_decimals": "Casas decimais dos valores",
+  "settings_currency_decimals_hint": "Quantas casas decimais cada valor mostra: KPIs, orçamentos, custos em listas e relatórios, alertas de orçamento. 0 = números inteiros.",
   "settings_budget_monthly": "Orçamento mensal",
   "settings_budget_yearly": "Orçamento anual",
   "settings_budget_alerts": "Alertas de orçamento",

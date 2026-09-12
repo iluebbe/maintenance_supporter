@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Udsættelsesvarighed (timer)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
+  "settings_currency_decimals": "Decimaler for beløb",
+  "settings_currency_decimals_hint": "Hvor mange decimaler hvert beløb viser: nøgletal, budgetter, omkostninger i lister og rapporter, budgetadvarsler. 0 = hele tal.",
   "settings_budget_monthly": "Månedligt budget",
   "settings_budget_yearly": "Årligt budget",
   "settings_budget_alerts": "Budgetadvarsler",

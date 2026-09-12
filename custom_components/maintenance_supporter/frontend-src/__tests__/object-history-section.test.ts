@@ -51,7 +51,7 @@ describe("object-history-section", () => {
     const names = rows(el).map((r) => r.querySelector(".task-link")!.textContent!.trim());
     expect(names).to.deep.equal(["Tire rotation", "Oil change", "Tire rotation", "Oil change"]);
     // totals footer sums completed costs
-    expect(el.shadowRoot!.querySelector(".totals")!.textContent).to.contain("194.50");
+    expect(el.shadowRoot!.querySelector(".totals")!.textContent).to.contain("195");
   });
 
   it("filters by task and by date range", async () => {

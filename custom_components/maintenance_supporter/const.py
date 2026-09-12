@@ -551,6 +551,10 @@ CONF_BUDGET_YEARLY = "budget_yearly"
 CONF_BUDGET_ALERTS_ENABLED = "budget_alerts_enabled"
 CONF_BUDGET_ALERT_THRESHOLD = "budget_alert_threshold"
 CONF_BUDGET_CURRENCY = "budget_currency"
+# Decimal places for every displayed amount — KPIs, budgets, costs in lists and
+# reports, budget alerts, buy-task notes. 0 = whole numbers (the default).
+CONF_CURRENCY_DECIMALS = "currency_decimals"
+DEFAULT_CURRENCY_DECIMALS = 0
 
 BUDGET_CURRENCIES: dict[str, str] = {
     "EUR": "€",

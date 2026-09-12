@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Doba odložení (hodiny)",
   "settings_budget": "Rozpočet",
   "settings_currency": "Měna",
+  "settings_currency_decimals": "Desetinná místa částek",
+  "settings_currency_decimals_hint": "Kolik desetinných míst zobrazuje každá částka: KPI, rozpočty, náklady v seznamech a sestavách, rozpočtová upozornění. 0 = celá čísla.",
   "settings_budget_monthly": "Měsíční rozpočet",
   "settings_budget_yearly": "Roční rozpočet",
   "settings_budget_alerts": "Rozpočtová upozornění",

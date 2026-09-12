@@ -8,7 +8,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, syncLocaleFromHass, DEFAULT_CURRENCY_SYMBOL, langOf, formatNumber, formatCost } from "../styles";
+import { t, syncLocaleFromHass, DEFAULT_CURRENCY_SYMBOL, langOf, formatNumber, formatCost, syncCurrencyDecimals} from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
@@ -64,6 +64,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
         type: "maintenance_supporter/budget_status",
       });
       this._status = r;
+      syncCurrencyDecimals(r);
       this._localMonthly = r.monthly_budget ? String(r.monthly_budget) : "";
       this._localYearly = r.yearly_budget ? String(r.yearly_budget) : "";
       this._dirty = false;
@@ -148,7 +149,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                 <div class="track spent-only">
                   <div class="track-label-row">
                     <label>${track.label}</label>
-                    <span class="track-numbers ok">${formatCost(track.spent, sym, L, 0)}</span>
+                    <span class="track-numbers ok">${formatCost(track.spent, sym, L)}</span>
                   </div>
                 </div>
               `;
@@ -160,7 +161,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                 <div class="track-label-row">
                   <label>${track.label}</label>
                   <span class="track-numbers ${warn}">
-                    ${formatNumber(track.spent, L, 0)} / ${formatCost(track.budget, sym, L, 0)}
+                    ${formatNumber(track.spent, L, 0)} / ${formatCost(track.budget, sym, L)}
                   </span>
                 </div>
                 <div class="bar"><div class="bar-fill ${warn}" style="width:${pct}%"></div></div>

@@ -59,7 +59,7 @@ describe("parts-section", () => {
     await el.updateComplete;
     const chip = el.shadowRoot!.querySelector(".inventory-value")!;
     expect(chip, "value chip rendered").to.exist;
-    expect(chip.textContent).to.include("37.50");
+    expect(chip.textContent).to.include("38");
     expect(chip.textContent).to.include("€");
   });
 

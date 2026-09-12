@@ -369,7 +369,7 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("avg_cost", L)}</div>
-        <div class="kpi-value">${formatCost(avgCost, ctx.currencySymbol, L, 0)}</div>
+        <div class="kpi-value">${formatCost(avgCost, ctx.currencySymbol, L)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("avg_duration", L)}</div>
@@ -440,7 +440,7 @@ function renderRecentActivities(task: MaintenanceTask, ctx: TaskDetailContext) {
           <span class="activity-icon">${getIcon(entry.type)}</span>
           <span class="activity-date">${formatDateTime(entry.timestamp, L)}</span>
           <span class="activity-note">${entry.notes || "—"}</span>
-          ${entry.cost ? html`<span class="activity-badge">${formatCost(entry.cost, ctx.currencySymbol, L, 0)}</span>` : nothing}
+          ${entry.cost ? html`<span class="activity-badge">${formatCost(entry.cost, ctx.currencySymbol, L)}</span>` : nothing}
           ${entry.duration ? html`<span class="activity-badge">${entry.duration}min</span>` : nothing}
         </div>
       `)}

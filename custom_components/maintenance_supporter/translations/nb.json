@@ -569,6 +569,7 @@
           "notifications_enabled": "Aktiver varsler",
           "notify_service": "Varslingstjeneste",
           "panel_enabled": "Vis sidefeltpanel",
+          "currency_decimals": "Desimaler for beløp",
           "panel_title": "Tittel på sidefeltpanel",
           "shopping_list_entity": "Handleliste å synkronisere kjøpsoppgaver til"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Send varsler når vedlikeholdsoppgaver forfaller eller er forfalt.",
           "notify_service": "Varslingstjenesten som skal brukes (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidefeltet.",
+          "currency_decimals": "Hvor mange desimaler hvert beløp viser — nøkkeltall, budsjetter, kostnader i lister og rapporter, budsjettvarsler. 0 = hele tall.",
           "panel_title": "Egendefinert navn for sidefeltoppføringen. La feltet stå tomt for å bruke «Vedlikehold». Nyttig for å unngå konflikt med Home Assistants innebygde vedlikeholdsdashbord.",
           "shopping_list_entity": "Automatiske kjøpespåminnelser for deler med lav beholdning vises i denne gjøremålslisten; å krysse av en fullfører påminnelsen og fyller på beholdningen. La stå tomt for å deaktivere."
         }

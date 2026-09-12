@@ -789,7 +789,7 @@ async def test_budget_monthly_alert(hass: HomeAssistant) -> None:
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator._async_check_budget({})
-    mock_nm.async_budget_alert.assert_called_once_with("monthly", 90.0, 100.0, "€")
+    mock_nm.async_budget_alert.assert_called_once_with("monthly", 90.0, 100.0, "€", decimals=0)
 
 
 async def test_budget_yearly_alert(hass: HomeAssistant) -> None:
@@ -832,7 +832,7 @@ async def test_budget_yearly_alert(hass: HomeAssistant) -> None:
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator._async_check_budget({})
-    mock_nm.async_budget_alert.assert_called_once_with("yearly", 450.0, 500.0, "€")
+    mock_nm.async_budget_alert.assert_called_once_with("yearly", 450.0, 500.0, "€", decimals=0)
 
 
 # ─── _is_schedule_time_feature_enabled (no global entry) ──────────────────

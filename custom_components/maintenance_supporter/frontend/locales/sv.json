@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Snooza-tid (timmar)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
+  "settings_currency_decimals": "Decimaler för belopp",
+  "settings_currency_decimals_hint": "Hur många decimaler varje belopp visar: nyckeltal, budgetar, kostnader i listor och rapporter, budgetvarningar. 0 = hela tal.",
   "settings_budget_monthly": "Månatlig budget",
   "settings_budget_yearly": "Årlig budget",
   "settings_budget_alerts": "Budgetvarningar",

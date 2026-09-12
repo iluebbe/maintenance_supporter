@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Czas drzemki (godziny)",
   "settings_budget": "Budżet",
   "settings_currency": "Waluta",
+  "settings_currency_decimals": "Miejsca po przecinku w kwotach",
+  "settings_currency_decimals_hint": "Ile miejsc po przecinku pokazuje każda kwota: KPI, budżety, koszty na listach i w raportach, alerty budżetowe. 0 = liczby całkowite.",
   "settings_budget_monthly": "Budżet miesięczny",
   "settings_budget_yearly": "Budżet roczny",
   "settings_budget_alerts": "Alerty budżetowe",

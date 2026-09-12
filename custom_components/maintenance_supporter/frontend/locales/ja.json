@@ -533,6 +533,8 @@
   "settings_snooze_hours": "スヌーズ時間（時間）",
   "settings_budget": "予算",
   "settings_currency": "通貨",
+  "settings_currency_decimals": "金額の小数点以下の桁数",
+  "settings_currency_decimals_hint": "各金額に表示する小数点以下の桁数：KPI、予算、リストやレポートの費用、予算アラート。0 = 整数。",
   "settings_budget_monthly": "月間予算",
   "settings_budget_yearly": "年間予算",
   "settings_budget_alerts": "予算アラート",

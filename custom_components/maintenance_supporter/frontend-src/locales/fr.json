@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Durée de report (heures)",
   "settings_budget": "Budget",
   "settings_currency": "Devise",
+  "settings_currency_decimals": "Décimales des montants",
+  "settings_currency_decimals_hint": "Nombre de décimales affichées pour chaque montant : indicateurs, budgets, coûts dans les listes et rapports, alertes budget. 0 = nombres entiers.",
   "settings_budget_monthly": "Budget mensuel",
   "settings_budget_yearly": "Budget annuel",
   "settings_budget_alerts": "Alertes budgétaires",

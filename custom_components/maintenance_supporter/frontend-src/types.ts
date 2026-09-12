@@ -382,7 +382,7 @@ export interface StatisticsResponse {
   due_soon: number;
   triggered: number;
   total_cost: number;
-  budget?: { currency_symbol?: string } | null;
+  budget?: { currency?: string; currency_symbol?: string; currency_decimals?: number } | null;
 }
 
 /** A saved filter view: the panel task-list's filter/sort/group state, named
@@ -476,6 +476,8 @@ export interface BudgetStatus {
   yearly_spent: number;
   alert_threshold_pct: number;
   currency_symbol: string;
+  /** Decimal places for every displayed amount (0 = whole numbers). */
+  currency_decimals?: number;
 }
 
 export interface AdvancedFeatures {

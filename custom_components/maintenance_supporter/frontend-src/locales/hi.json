@@ -533,6 +533,8 @@
   "settings_snooze_hours": "स्नूज़ अवधि (घंटे)",
   "settings_budget": "बजट",
   "settings_currency": "मुद्रा",
+  "settings_currency_decimals": "राशियों के दशमलव स्थान",
+  "settings_currency_decimals_hint": "हर राशि कितने दशमलव दिखाए: KPI, बजट, सूचियों और रिपोर्टों में लागत, बजट अलर्ट। 0 = पूर्ण संख्याएँ।",
   "settings_budget_monthly": "मासिक बजट",
   "settings_budget_yearly": "वार्षिक बजट",
   "settings_budget_alerts": "बजट अलर्ट",

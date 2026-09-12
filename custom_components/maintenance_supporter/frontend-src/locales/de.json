@@ -533,6 +533,8 @@
   "settings_snooze_hours": "Schlummerdauer (Stunden)",
   "settings_budget": "Budget",
   "settings_currency": "Währung",
+  "settings_currency_decimals": "Nachkommastellen für Beträge",
+  "settings_currency_decimals_hint": "Wie viele Nachkommastellen jeder Betrag zeigt: KPIs, Budgets, Kosten in Listen und Berichten, Budget-Alarme. 0 = ganze Zahlen.",
   "settings_budget_monthly": "Monatsbudget",
   "settings_budget_yearly": "Jahresbudget",
   "settings_budget_alerts": "Budget-Warnungen",

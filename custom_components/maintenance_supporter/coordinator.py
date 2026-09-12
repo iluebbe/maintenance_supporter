@@ -28,9 +28,11 @@ from .const import (
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    CONF_CURRENCY_DECIMALS,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_BUDGET_CURRENCY,
+    DEFAULT_CURRENCY_DECIMALS,
     DEFAULT_INTERVAL_DAYS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
@@ -855,6 +857,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
+        decimals = int(global_options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS))
 
         # Use cached budget totals (recalculate if stale or missing)
         cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get(BUDGET_CACHE_KEY)
@@ -878,11 +881,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Check monthly
         if monthly_budget > 0 and monthly_spent >= monthly_budget * threshold_pct:
-            await nm.async_budget_alert("monthly", monthly_spent, monthly_budget, currency_symbol)
+            await nm.async_budget_alert("monthly", monthly_spent, monthly_budget, currency_symbol, decimals=decimals)
 
         # Check yearly
         if yearly_budget > 0 and yearly_spent >= yearly_budget * threshold_pct:
-            await nm.async_budget_alert("yearly", yearly_spent, yearly_budget, currency_symbol)
+            await nm.async_budget_alert("yearly", yearly_spent, yearly_budget, currency_symbol, decimals=decimals)
 
     # --- Helpers ---
 

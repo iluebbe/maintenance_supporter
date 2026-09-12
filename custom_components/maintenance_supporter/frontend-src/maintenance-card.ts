@@ -4,7 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf } from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isSafeHttpUrl } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";
@@ -173,6 +173,7 @@ export class MaintenanceSupporterCard extends LitElement {
       ]);
       this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
       this._stats = statsResult as StatisticsResponse;
+      syncCurrencyDecimals(this._stats.budget);
     } catch {
       // WS not available yet
     }

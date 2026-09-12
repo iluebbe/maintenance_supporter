@@ -760,6 +760,7 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "budget_alerts_enabled": True,
     "budget_alert_threshold": 75,
     "budget_currency": "USD",
+    "currency_decimals": 1,
     # (#67) list setting — must use valid column keys; the WS sanitiser drops
     # unknown keys, so a sentinel like ["abc"] would NOT round-trip.
     "objects_table_columns": ["name", "warranty_expiry", "actions"],
@@ -851,6 +852,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "budget_alerts_enabled": settings["budget"]["alerts_enabled"],
         "budget_alert_threshold": settings["budget"]["alert_threshold_pct"],
         "budget_currency": settings["budget"]["currency"],
+        "currency_decimals": settings["budget"]["currency_decimals"],
         "objects_table_columns": settings["objects_table_columns"],
         "member_display": settings["member_display"],
         "battery_lifetime_months": settings["general"]["battery_lifetime_months"],

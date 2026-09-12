@@ -531,6 +531,8 @@
   "settings_snooze_hours": "Длительность откладывания (часы)",
   "settings_budget": "Бюджет",
   "settings_currency": "Валюта",
+  "settings_currency_decimals": "Знаков после запятой в суммах",
+  "settings_currency_decimals_hint": "Сколько знаков после запятой показывает каждая сумма: KPI, бюджеты, расходы в списках и отчётах, оповещения о бюджете. 0 = целые числа.",
   "settings_budget_monthly": "Месячный бюджет",
   "settings_budget_yearly": "Годовой бюджет",
   "settings_budget_alerts": "Оповещения о бюджете",

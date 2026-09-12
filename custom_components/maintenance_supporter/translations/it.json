@@ -569,6 +569,7 @@
           "notifications_enabled": "Abilita notifiche",
           "notify_service": "Servizio di notifica",
           "panel_enabled": "Mostra pannello nella barra laterale",
+          "currency_decimals": "Decimali degli importi",
           "panel_title": "Titolo del pannello laterale",
           "shopping_list_entity": "Lista della spesa per sincronizzare le attività di acquisto"
         },
@@ -577,6 +578,7 @@
           "notifications_enabled": "Invia notifiche quando le attività di manutenzione sono in scadenza o in ritardo.",
           "notify_service": "Il servizio di notifica da utilizzare (es.: notify.mobile_app_phone).",
           "panel_enabled": "Mostra un pannello Maintenance Supporter nella barra laterale.",
+          "currency_decimals": "Quanti decimali mostra ogni importo — KPI, budget, costi in elenchi e report, avvisi di budget. 0 = numeri interi.",
           "panel_title": "Nome personalizzato per la voce nella barra laterale. Lascia vuoto per usare \"Maintenance\". Utile per evitare conflitti con la dashboard Manutenzione integrata di Home Assistant.",
           "shopping_list_entity": "I promemoria di acquisto automatici per i ricambi scarsi appaiono in questo elenco; spuntarne uno completa il promemoria e rifornisce il ricambio. Lasciare vuoto per disattivare."
         }
