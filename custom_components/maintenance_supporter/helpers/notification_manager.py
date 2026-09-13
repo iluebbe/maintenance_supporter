@@ -29,13 +29,16 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_TASK_PRIORITY,
     CONF_TASKS,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_CURRENCY_DECIMALS,
+    DEFAULT_TASK_PRIORITY,
     DOMAIN,
     NOTIFIABLE_STATUSES,
     NOTIFICATION_TITLE_STYLES,
     MaintenanceStatus,
+    TaskPriority,
 )
 from .global_options import get_global_options
 from .i18n import normalize_language
@@ -916,6 +919,14 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
 }
 
 
+PRIORITY_RANK: dict[str, int] = {TaskPriority.HIGH: 0, TaskPriority.NORMAL: 1, TaskPriority.LOW: 2}
+
+
+def task_key_of(entry_id: str, task_id: str) -> str:
+    """The per-task key of the daily-limit bookkeeping (status-agnostic)."""
+    return f"{entry_id}_{task_id}"
+
+
 def _service_payload(title: str, message: str, *, tag: str, url: str = "/maintenance-supporter") -> dict[str, Any]:
     """Notify payload with the deep link doubled into ``url`` (iOS) and
     ``clickAction`` (Android) — five hand-built copies each repeated the
@@ -1098,6 +1109,14 @@ class NotificationManager:
         self._last_notified: dict[str, datetime] = {}
         self._snoozed_until: dict[str, datetime] = {}
         self._daily_count: int = 0
+        # Daily-limit fairness (2026-09-13): which tasks got a message today,
+        # which were turned away today (limit / reserve / hold), and which
+        # were turned away YESTERDAY and never served — those go first today.
+        # Keyed by "<entry_id>_<task_id>"; a bundle marks every member.
+        self._served_today: set[str] = set()
+        self._deferred_today: set[str] = set()
+        self._starved: set[str] = set()
+        self._delivered_at: dict[str, datetime] = {}
         # Bug audit 2026-09-12: lead reminders run from the 08:00 tick AND a
         # noon retry (for quiet windows ending after 08:00) - this is the
         # per-day dedup the retry relies on: (entry, task, lead) -> ISO day.
@@ -1352,16 +1371,82 @@ class NotificationManager:
 
     def _check_daily_limit(self) -> bool:
         """Check if daily notification limit has been reached."""
-        today = dt_util.now().date()
-        if self._daily_reset_date != today:
-            self._daily_count = 0
-            self._daily_reset_date = today
-
+        self._roll_day()
         max_per_day = self._opt(CONF_MAX_NOTIFICATIONS_PER_DAY)
         if max_per_day > 0 and self._daily_count >= max_per_day:
             _LOGGER.debug("Daily notification limit reached (%s/%s)", self._daily_count, max_per_day)
             return False
         return True
+
+    def _roll_day(self) -> None:
+        """Reset the daily counter at the first check of a new day; whoever was
+        turned away yesterday and never served becomes today's ``_starved``."""
+        today = dt_util.now().date()
+        if self._daily_reset_date == today:
+            return
+        self._starved = {k for k in self._deferred_today if k not in self._served_today}
+        self._deferred_today.clear()
+        self._served_today.clear()
+        self._daily_count = 0
+        self._daily_reset_date = today
+
+    @staticmethod
+    def _priority_rank(task_data: Mapping[str, Any] | None) -> int:
+        """0 = high, 1 = normal, 2 = low (unknown reads as normal)."""
+        return PRIORITY_RANK.get(str((task_data or {}).get(CONF_TASK_PRIORITY) or DEFAULT_TASK_PRIORITY), 1)
+
+    def _admit(self, keys: list[str], rank: int) -> bool:
+        """The daily-limit decision for a task (or a bundle's member tasks).
+
+        Without a limit every send passes. With a limit the last slots are
+        not first-come-first-served any more:
+
+        * **Priority** — the last 10 % of the limit (rounded down) are kept
+          for high-priority tasks; low-priority tasks stop at 20 %. Below a
+          limit of 10 those reserves are 0 and priority only orders a refresh.
+        * **Starved first** — a task turned away yesterday and never served
+          is guaranteed today: while such tasks are still waiting and the
+          remaining budget would not cover them, other normal/low tasks wait.
+        * **First-timers before repeats** — a task that already got a message
+          today yields its repeat while a task that was turned away today is
+          still waiting.
+
+        A refused task is not stamped, so the next refresh offers it again —
+        that is how the held budget reaches the waiting tasks.
+        """
+        self._roll_day()
+        max_per_day = int(self._opt(CONF_MAX_NOTIFICATIONS_PER_DAY) or 0)
+        if max_per_day <= 0:
+            return True
+        remaining = max_per_day - self._daily_count
+        reason: str | None = None
+        if remaining <= 0:
+            reason = "daily limit reached"
+        elif rank == 2 and remaining <= max_per_day // 5:
+            reason = "last 20 % kept for normal/high priority"
+        elif rank == 1 and remaining <= max_per_day // 10:
+            reason = "last 10 % kept for high priority"
+        elif rank != 0:
+            waiting_starved = [k for k in self._starved if k not in self._served_today]
+            if waiting_starved and not any(k in self._starved for k in keys) and remaining <= len(waiting_starved):
+                reason = f"{len(waiting_starved)} task(s) starved yesterday go first"
+            elif all(k in self._served_today for k in keys) and any(k not in self._served_today for k in self._deferred_today):
+                reason = "repeat yields to tasks still waiting today"
+        if reason is not None:
+            self._deferred_today.update(keys)
+            _LOGGER.debug("Holding notification for %s (%s/%s sent): %s", keys, self._daily_count, max_per_day, reason)
+            return False
+        return True
+
+    def _mark_delivered(self, keys: list[str]) -> None:
+        """Bookkeeping after a successful send: counts, served set, starvation."""
+        self._daily_count += 1
+        now = dt_util.now()
+        for k in keys:
+            self._served_today.add(k)
+            self._deferred_today.discard(k)
+            self._starved.discard(k)
+            self._delivered_at[k] = now
 
     def _is_snoozed(self, key: str) -> bool:
         """Check if a notification key is snoozed."""
@@ -1442,8 +1527,10 @@ class NotificationManager:
         if not self._status_due(key, interval_hours):
             return
 
-        # Check daily limit
-        if not self._check_daily_limit():
+        # Daily limit with priority + fairness (a refusal is not stamped, so
+        # the next refresh offers the task again).
+        task_key = task_key_of(entry_id, task_id)
+        if not self._admit([task_key], self._priority_rank(task_data if task_data is not None else self._task_config(entry_id, task_id))):
             return
 
         # Build translated message
@@ -1473,7 +1560,7 @@ class NotificationManager:
             return
 
         self._stamp_status_sent(key, interval_hours)
-        self._daily_count += 1
+        self._mark_delivered([task_key])
 
         _LOGGER.debug("Notification sent: %s - %s", title, message)
 
@@ -1698,7 +1785,9 @@ class NotificationManager:
             return
         tasks = due
 
-        if not self._check_daily_limit():
+        member_keys = [task_key_of(entry_id, t["task_id"]) for t in tasks if t.get("task_id")]
+        best_rank = min((self._priority_rank(self._task_config(entry_id, t["task_id"])) for t in tasks if t.get("task_id")), default=1)
+        if not self._admit(member_keys, best_rank):
             return
 
         lang = self._lang
@@ -1745,7 +1834,7 @@ class NotificationManager:
                 for t in tasks:
                     if t.get("task_id"):
                         self._stamp_status_sent(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
-                self._daily_count += 1
+                self._mark_delivered(member_keys)
                 _LOGGER.debug("Bundled notification sent: %s - %s", title, message)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send bundled notification")
@@ -1842,7 +1931,8 @@ class NotificationManager:
             manager=self,
         ):
             return
-        if not self._check_daily_limit():
+        lead_task_key = task_key_of(entry_id, task_id)
+        if not self._admit([lead_task_key], self._priority_rank(self._task_config(entry_id, task_id))):
             return
 
         lang = self._lang
@@ -1876,7 +1966,7 @@ class NotificationManager:
             task_id=task_id,
             context=context,
         ):
-            self._daily_count += 1
+            self._mark_delivered([lead_task_key])
             # Keep only today's stamps - yesterday's are dead weight.
             self._lead_sent = {k: d for k, d in self._lead_sent.items() if d == today}
             self._lead_sent[lead_key] = today
@@ -1998,3 +2088,7 @@ class NotificationManager:
         self._snoozed_until.clear()
         self._daily_count = 0
         self._daily_reset_date = None
+        self._served_today.clear()
+        self._deferred_today.clear()
+        self._starved.clear()
+        self._delivered_at.clear()

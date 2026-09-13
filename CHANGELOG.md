@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔧 Changed
+
+- **Daily notification limit is fair and priority-aware**: the last 10 % of the limit are kept for high-priority tasks and
+  low-priority tasks stop at 20 % (below a limit of 10 priority only orders a refresh); a task that was turned away
+  yesterday and never served goes first today; a task that already got a message today yields its repeat while another
+  task is still waiting; within one object's refresh high-priority tasks are announced first. A held task is offered
+  again on the next refresh, so the held budget reaches the waiting tasks. Without a limit nothing changes.
+
 ## [2.84.0] - 2026-09-13
 
 ### ✨ Added

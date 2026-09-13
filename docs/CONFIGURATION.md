@@ -90,7 +90,7 @@ Visible only when `notifications_enabled` is `true`.
 | `quiet_hours_enabled` | bool | `true` | — | Suppress notifications during quiet hours |
 | `quiet_hours_start` | time | `22:00` | — | Start of quiet hours (HH:MM) |
 | `quiet_hours_end` | time | `08:00` | — | End of quiet hours (HH:MM) |
-| `max_notifications_per_day` | int | 0 | 0–1000 | Maximum notifications per day across all tasks. 0 = unlimited |
+| `max_notifications_per_day` | int | 0 | 0–1000 | Maximum notifications per day across all tasks. 0 = unlimited. With a limit the last slots are not first-come-first-served (2.85+): the last 10 % of the limit (rounded down) are kept for **high**-priority tasks and **low**-priority tasks stop at 20 %; a task that was turned away yesterday and never served goes first today; a task that already got a message today yields its repeat while another task is still waiting. A held task is offered again on the next refresh |
 | `notification_bundling_enabled` | bool | `false` | — | Bundle multiple due tasks into a single notification |
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
 | `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |

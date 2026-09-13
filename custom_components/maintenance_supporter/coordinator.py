@@ -791,6 +791,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 ],
             )
         else:
+            # High priority first — with a daily limit the order decides who
+            # gets the last slots (the manager's own reserves do the rest).
+            notifiable.sort(key=lambda item: nm._priority_rank({**(task_configs.get(item[0]) or {}), **item[1]}))
             for task_id, task_result, new_status, _old_status in notifiable:
                 await nm.async_task_status_changed(
                     entry_id=self.entry.entry_id,
