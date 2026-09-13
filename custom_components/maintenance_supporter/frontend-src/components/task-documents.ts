@@ -261,6 +261,7 @@ export class MaintenanceTaskDocuments extends LitElement {
           }}
         >
           <div class="tdoc-title">${docDisplayName(doc)}</div>
+          ${(doc as { description?: string }).description ? html`<div class="tdoc-desc">${(doc as { description?: string }).description}</div>` : nothing}
           <div class="tdoc-meta">
             ${meta}${page ? html` · <span class="tdoc-pagetag">${t("doc_page", L)} ${page}</span>` : nothing}
           </div>
@@ -328,6 +329,7 @@ export class MaintenanceTaskDocuments extends LitElement {
     .tdoc-info:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .tdoc-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tdoc-meta { font-size: 12px; color: var(--secondary-text-color, #888); }
+    .tdoc-desc { font-size: 12px; color: var(--secondary-text-color, #888); white-space: pre-line; }
     .tdoc-pagetag { color: var(--primary-color); font-weight: 500; }
     .tdoc-page {
       flex: none; width: 76px; padding: 5px 8px; border-radius: 6px; font: inherit; font-size: 13px;

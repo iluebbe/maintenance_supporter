@@ -1034,6 +1034,7 @@
   "print_inc_parts": "使用的零件",
   "print_inc_photos": "照片",
   "print_inc_documents": "关联文档",
+  "print_inc_doc_desc": "文档说明",
   "print_inc_checklist": "检查清单",
   "print_inc_notes": "备注",
   "print_inc_costs": "费用和用时",

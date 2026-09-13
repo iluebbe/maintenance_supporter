@@ -63,11 +63,13 @@ export interface ServiceRecordInclude {
   qr: boolean;
   /** #170: completions that carry nothing but a date — off hides them. */
   bare: boolean;
+  /** #164: the documents' descriptions under the task's linked documents. */
+  docDescriptions: boolean;
 }
 
 export const DEFAULT_INCLUDE: ServiceRecordInclude = {
   readings: true, parts: true, photos: true, documents: true, checklist: true,
-  notes: true, costs: true, person: true, refs: true, qr: false, bare: true,
+  notes: true, costs: true, person: true, refs: true, qr: false, bare: true, docDescriptions: true,
 };
 
 /** Whether a completion has anything to print beyond its date and name. */
@@ -90,8 +92,8 @@ export interface ServiceRecordTask {
   ref: string | null;
   /** Human schedule label ("every 30 days", "1st Saturday"). */
   schedule: string | null;
-  /** Linked documents (title + optional page hint). */
-  documents: Array<{ title: string; page: number | null }>;
+  /** Linked documents (title + optional page hint + description, #164). */
+  documents: Array<{ title: string; page: number | null; description?: string | null }>;
   /** QR code (SVG data URI) that opens the task; null when not requested. */
   qrDataUri: string | null;
 }
@@ -240,7 +242,7 @@ export function buildServiceRecordHtml(
         const name = tk?.name || mine[0].taskName;
         const ref = inc.refs ? tk?.ref ?? taskRefOf(mine[0]) : null;
         const docs = inc.documents && tk?.documents.length
-          ? `<div class="fact"><span class="k">${esc(labels.documents)}</span>${tk.documents.map((d) => `${esc(d.title)}${d.page ? ` (${esc(labels.page(d.page))})` : ""}`).join(", ")}</div>`
+          ? `<div class="fact"><span class="k">${esc(labels.documents)}</span>${tk.documents.map((d) => `${esc(d.title)}${d.page ? ` (${esc(labels.page(d.page))})` : ""}${inc.docDescriptions !== false && d.description ? ` — <span class="doc-desc">${esc(d.description)}</span>` : ""}`).join(", ")}</div>`
           : "";
         const qr = inc.qr && tk?.qrDataUri
           ? `<figure class="qr"><img src="${esc(tk.qrDataUri)}" alt="" /><figcaption>${esc(labels.scanHint)}</figcaption></figure>`

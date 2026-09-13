@@ -180,7 +180,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
       // under the entry, not as "linked documents" of the task.
       documents: docs
         .filter((d) => (d.task_ids || []).includes(task.id) && !(d.tags || []).includes("photo"))
-        .map((d) => ({ title: d.title || d.filename || "", page: d.task_pages?.[task.id] ?? null })),
+        .map((d) => ({ title: d.title || d.filename || "", page: d.task_pages?.[task.id] ?? null, description: (d as { description?: string }).description || null })),
       qrDataUri: qr.get(task.id) ?? null,
     }));
     const photos: Record<string, ServiceRecordPhoto> = {};
@@ -292,6 +292,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
           ${box("refs", "print_inc_refs")}
           ${box("bare", "print_inc_bare")}
           ${box("documents", "print_inc_documents", !byTask)}
+          ${box("docDescriptions", "print_inc_doc_desc", !byTask)}
           ${box("qr", "print_inc_qr", !byTask)}
         </div>
         <div class="po-actions">

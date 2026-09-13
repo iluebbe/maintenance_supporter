@@ -1034,6 +1034,7 @@
   "print_inc_parts": "사용 부품",
   "print_inc_photos": "사진",
   "print_inc_documents": "연결된 문서",
+  "print_inc_doc_desc": "문서 설명",
   "print_inc_checklist": "체크리스트",
   "print_inc_notes": "메모",
   "print_inc_costs": "비용 및 소요 시간",

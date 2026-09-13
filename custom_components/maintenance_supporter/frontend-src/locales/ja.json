@@ -1034,6 +1034,7 @@
   "print_inc_parts": "使用部品",
   "print_inc_photos": "写真",
   "print_inc_documents": "関連文書",
+  "print_inc_doc_desc": "ドキュメントの説明",
   "print_inc_checklist": "チェックリスト",
   "print_inc_notes": "メモ",
   "print_inc_costs": "費用と所要時間",

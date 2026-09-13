@@ -4,6 +4,12 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Document descriptions where the work happens** (#164 follow-up): a document's description shows under its title in
+  the task's document list, and the service booklet prints it next to the task's linked documents — behind a new
+  *Document descriptions* print switch (on by default).
+
 ### 🔧 Changed
 
 - **Daily notification limit is fair and priority-aware**: the last 10 % of the limit are kept for high-priority tasks and
@@ -11,6 +17,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   yesterday and never served goes first today; a task that already got a message today yields its repeat while another
   task is still waiting; within one object's refresh high-priority tasks are announced first. A held task is offered
   again on the next refresh, so the held budget reaches the waiting tasks. Without a limit nothing changes.
+
+### 🐛 Fixed
+
+- **In-app viewfinder opened at 0.5×** (#161 follow-up): phones with an ultra-wide module handed that camera out for
+  "environment". The viewfinder now picks the main back camera (first back-facing device) and asks for 1× zoom when the
+  track starts below it.
 
 ## [2.84.0] - 2026-09-13
 

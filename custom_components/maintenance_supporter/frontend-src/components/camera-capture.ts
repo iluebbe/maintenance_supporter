@@ -56,6 +56,7 @@ export class MsCameraCapture extends LitElement {
       this._unavailable(e instanceof Error ? e.name || e.message : String(e));
       return;
     }
+    await this._preferMainBackCamera(md);
     this._open = true;
     await this.updateComplete;
     const video = this._video;
@@ -66,6 +67,50 @@ export class MsCameraCapture extends LitElement {
       } catch {
         // autoplay refused — the muted, playsinline video still shows the
         // first frame on user gesture; Capture keeps working.
+      }
+    }
+  }
+
+  /** Phones with an ultra-wide module often hand that one out for
+   *  "environment" (the viewfinder opens at 0.5×, #161). Once permission is
+   *  granted the device labels are readable: pick the first back-facing
+   *  camera in enumeration order (Android names the main module
+   *  "camera2 0, facing back", the wide one a higher index) and, when the
+   *  track exposes a zoom range that starts below 1, set it to 1×. Every
+   *  step is best-effort — whatever stream we hold stays usable. */
+  private async _preferMainBackCamera(md: MediaDevices): Promise<void> {
+    if (typeof md.enumerateDevices !== "function") return;
+    let devices: MediaDeviceInfo[] = [];
+    try {
+      devices = await md.enumerateDevices();
+    } catch {
+      return;
+    }
+    const index = (d: MediaDeviceInfo): number => {
+      const m = /camera2?\s*(\d+)/i.exec(d.label);
+      return m ? Number(m[1]) : Number.MAX_SAFE_INTEGER;
+    };
+    const back = devices
+      .filter((d) => d.kind === "videoinput" && d.deviceId && /back|rear|environment|rück|hinten/i.test(d.label))
+      .sort((a, b) => index(a) - index(b));
+    const track = this._stream?.getVideoTracks()[0];
+    const current = track?.getSettings().deviceId;
+    if (back.length > 1 && back[0].deviceId !== current) {
+      try {
+        const stream = await md.getUserMedia({ video: { deviceId: { exact: back[0].deviceId } }, audio: false });
+        for (const t of this._stream?.getTracks() ?? []) t.stop();
+        this._stream = stream;
+      } catch {
+        // keep the stream we have
+      }
+    }
+    const chosen = this._stream?.getVideoTracks()[0];
+    const caps = chosen && typeof chosen.getCapabilities === "function" ? (chosen.getCapabilities() as { zoom?: { min?: number; max?: number } }) : undefined;
+    if (caps?.zoom && typeof caps.zoom.min === "number" && caps.zoom.min < 1 && (caps.zoom.max ?? 1) >= 1) {
+      try {
+        await chosen!.applyConstraints({ advanced: [{ zoom: 1 } as MediaTrackConstraintSet] });
+      } catch {
+        // zoom is advisory
       }
     }
   }
