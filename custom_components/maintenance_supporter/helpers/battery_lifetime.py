@@ -116,6 +116,8 @@ _ALIASES: dict[str, str] = {
 # Battery Notes types that describe "no forecast possible": no cell to time.
 NO_FORECAST_TYPES = frozenset({"", "UNKNOWN", "MANUAL", "IRREPLACEABLE", "SOLAR", "NONE", "N/A"})
 _STRIP_SUFFIX_RE = re.compile(r"(\s*[-–]?\s*\(?3V\)?|\s+LITHIUM|\s+ALKALINE|\s+\d+MAH|\s+\d+(\.\d+)?V)$", re.IGNORECASE)
+# The same chemistry/voltage words as a PREFIX ("Lithium 3-volt CR2", "Alkaline AA").
+_STRIP_PREFIX_RE = re.compile(r"^(LITHIUM|ALKALINE|\d+(\.\d+)?\s*-?\s*VOLTS?|\d+(\.\d+)?V)\s+", re.IGNORECASE)
 
 # Store key on the fleet task's dynamic state:
 # {entity_id: {"type": canonical, "model": "manufacturer|model", "dates": [iso …]}}
@@ -140,6 +142,7 @@ def canonical_type(raw: Any) -> str:
     while prev != s:
         prev = s
         s = _STRIP_SUFFIX_RE.sub("", s).strip()
+        s = _STRIP_PREFIX_RE.sub("", s).strip()
     compact = s.replace(" ", "")
     return _ALIASES.get(compact, _ALIASES.get(s, compact if compact in TYPICAL_LIFETIME_MONTHS else s))
 

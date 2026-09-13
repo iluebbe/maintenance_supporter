@@ -1058,10 +1058,10 @@ async def test_start_reconcile_adds_late_typed_parts_and_prunes_unknown(
     fleet = _fleet_entry(hass)
     assert fleet is not None
     parts = fleet.data[CONF_PARTS]
-    assert "batt_lithium 3-volt cr2" in parts, sorted(parts)
+    assert "batt_cr2" in parts, sorted(parts)  # "Lithium 3-volt CR2" folds onto CR2
     assert "batt_unknown" not in parts
     # Added part is tracked at 0 like every setup-created sibling.
-    assert fleet.runtime_data.store.get_part_stock("batt_lithium 3-volt cr2") == 0
+    assert fleet.runtime_data.store.get_part_stock("batt_cr2") == 0
     # #148 follow-up: the pruned part's stock entries are gone everywhere —
     # store AND entity registry (v2.70.0 left an unavailable orphan sensor
     # whose Delete button HA greys out).

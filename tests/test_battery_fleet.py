@@ -327,7 +327,7 @@ async def test_low_only_binary_note_supplies_the_type(hass):
     assert bat.last_replaced == date(2026, 5, 22)
     assert has_battery_notes(hass) is True
     # discover_battery_types canonicalizes labels (upper-case grouping).
-    assert dict(discover_battery_types(hass))["LITHIUM 3-VOLT CR2"] == 1
+    assert dict(discover_battery_types(hass))["CR2"] == 1  # chemistry prefix folds onto the type key
 
 
 async def test_low_only_binary_note_offers_replaced_when_the_button_exists(hass):

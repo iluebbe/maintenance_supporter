@@ -109,7 +109,7 @@ def _stock_uids(hass: HomeAssistant, entry_id: str) -> set[str]:
         ("batt_aa lithium", "batt_aa"),
         ("batt_cr123a lithium", "batt_cr123a"),
         ("batt_cr2032-3v", "batt_cr2032"),
-        ("batt_lithium 3-volt cr2", None),  # no alias, no suffix rule — stays
+        ("batt_lithium 3-volt cr2", "batt_cr2"),  # chemistry/voltage prefix folds too
         ("batt_unknown", None),  # the legacy prune owns this one
         ("batt_", None),
         ("filter_x", None),  # not a fleet type-part

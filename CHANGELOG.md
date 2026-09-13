@@ -41,7 +41,7 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 - **DRY review 2026-09-12 (round 3, backlog)** — the consolidations the review had listed as "no bug today", plus the
   two items deferred from the bug tranche:
-  - **Battery types are folded once**: `LR6` and `AA`, `PP3` and `9V`, "AA lithium" and `AA` now group under one type
+  - **Battery types are folded once**: `LR6` and `AA`, `PP3` and `9V`, "AA lithium" / "Lithium 3-volt CR2" and `AA` / `CR2` now group under one type
     everywhere (fleet rows, *Needed now/soon*, the fleet's spare parts) — before, the forecast folded aliases while the
     parts and shopping keys did not, so an alias minted its own part and a type override could land on the wrong row.
     Existing fleet parts are **migrated once at start-up**: an alias part is merged into (or renamed to) its canonical
