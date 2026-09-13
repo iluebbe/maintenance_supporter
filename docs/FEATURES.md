@@ -145,7 +145,7 @@ photos — take one with the camera or pick several from the gallery, up
 to ten per completion; checklist steps tick off right in the
 dialog. Inside the Android Companion app *Take photo* opens the panel's
 own viewfinder (2.84+, #161) because the app's file chooser ignores the
-camera hint — the main back camera at 1×, not the ultra-wide module (2.85+); if the camera cannot be opened (no permission, or Home Assistant
+camera hint — the main back camera at 1×, not the ultra-wide module (2.85+), and a **lens switch** in the viewfinder that cycles the phone's cameras and remembers your pick per browser (2.86+); if the camera cannot be opened (no permission, or Home Assistant
 reached over plain `http://` — browsers allow camera access only on secure
 origins) the native picker takes over. When the task
 consumes spare parts that carry unit prices, their sum appears as a

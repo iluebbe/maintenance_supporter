@@ -14,6 +14,8 @@ export const LS_KEYS = {
   batteryRosterOpen: "msp-bf-roster-open",
   /** #164: how the object's document list is ordered (newest | oldest | title | category). */
   docSort: "msp-doc-sort",
+  /** #161: the camera (deviceId) the in-app viewfinder should open with. */
+  cameraDevice: "msp-camera-device",
   overviewTab: "msp-overview-tab",
   collapsedSections: "msp-collapsed-sections",
   chartRange: "msp-chart-range",

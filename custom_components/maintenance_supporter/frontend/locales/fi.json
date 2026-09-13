@@ -761,6 +761,7 @@
   "doc_close": "Sulje",
   "doc_camera": "Ota kuva",
   "camera_capture_shoot": "Ota kuva",
+  "camera_switch_lens": "Vaihda kameraa",
   "doc_drop_hint": "Pudota tiedostot tähän",
   "doc_task_none": "Tähän tehtävään ei ole liitetty asiakirjoja.",
   "doc_link_existing": "Liitä asiakirja…",

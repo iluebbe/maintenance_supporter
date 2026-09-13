@@ -767,6 +767,7 @@
   "doc_close": "Close",
   "doc_camera": "Take photo",
   "camera_capture_shoot": "Capture",
+  "camera_switch_lens": "Switch camera",
   "doc_drop_hint": "Drop files here",
   "doc_task_none": "No documents linked to this task.",
   "doc_link_existing": "Link a document…",

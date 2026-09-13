@@ -767,6 +767,7 @@
   "doc_close": "닫기",
   "doc_camera": "사진 촬영",
   "camera_capture_shoot": "촬영",
+  "camera_switch_lens": "카메라 전환",
   "doc_drop_hint": "파일을 여기에 놓으세요",
   "doc_task_none": "이 작업에 연결된 문서가 없습니다.",
   "doc_link_existing": "문서 연결…",

@@ -761,6 +761,7 @@
   "doc_close": "Stäng",
   "doc_camera": "Ta foto",
   "camera_capture_shoot": "Ta bild",
+  "camera_switch_lens": "Byt kamera",
   "doc_drop_hint": "Släpp filer här",
   "doc_task_none": "Inga dokument kopplade till denna uppgift.",
   "doc_link_existing": "Koppla ett dokument…",

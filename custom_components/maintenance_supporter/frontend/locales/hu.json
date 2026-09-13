@@ -767,6 +767,7 @@
   "doc_close": "Bezárás",
   "doc_camera": "Fotó készítése",
   "camera_capture_shoot": "Felvétel",
+  "camera_switch_lens": "Kamera váltása",
   "doc_drop_hint": "Húzza ide a fájlokat",
   "doc_task_none": "Ehhez a feladathoz nincs dokumentum csatolva.",
   "doc_link_existing": "Dokumentum hozzárendelése…",

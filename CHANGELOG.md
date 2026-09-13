@@ -6,6 +6,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Viewfinder lens switch** (#161): the Android WebView often reports no camera labels, so the main-camera heuristic from
+  2.85 could not tell the modules apart and the viewfinder still opened at 0.5× on some phones. The viewfinder now has a
+  *Switch camera* button that cycles the phone's cameras (by id, no labels needed) and remembers your pick per browser; the
+  next open starts on that camera, and the first request already asks for 1× zoom.
 - **Reference search and archived things** (#170): typing `8` / `8.3` into the global search now also finds an archived object or task
   (marked *Archived*) — a booklet line stays findable after the thing was retired; the text search keeps hiding archived items. The
   reference-number docs now say that numbers follow the order of entry (a backfilled completion gets the next number, a deleted

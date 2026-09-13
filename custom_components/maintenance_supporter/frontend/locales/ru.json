@@ -761,6 +761,7 @@
   "doc_close": "Закрыть",
   "doc_camera": "Сделать фото",
   "camera_capture_shoot": "Снять",
+  "camera_switch_lens": "Сменить камеру",
   "doc_drop_hint": "Перетащите файлы сюда",
   "doc_task_none": "Нет документов, связанных с этой задачей.",
   "doc_link_existing": "Связать документ…",

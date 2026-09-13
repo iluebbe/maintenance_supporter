@@ -761,6 +761,7 @@
   "doc_close": "Lukk",
   "doc_camera": "Ta bilde",
   "camera_capture_shoot": "Ta bilde",
+  "camera_switch_lens": "Bytt kamera",
   "doc_drop_hint": "Slipp filer her",
   "doc_task_none": "Ingen dokumenter knyttet til denne oppgaven.",
   "doc_link_existing": "Knytt et dokument…",

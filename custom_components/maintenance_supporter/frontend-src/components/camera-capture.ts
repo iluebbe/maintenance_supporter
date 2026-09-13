@@ -23,6 +23,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t } from "../styles";
 import { isAndroidCompanion } from "../helpers/companion";
+import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 
 export function inAppCameraPreferred(): boolean {
   if (!isAndroidCompanion()) return false;
@@ -39,6 +40,9 @@ export class MsCameraCapture extends LitElement {
   @property({ type: String }) lang = "en";
   @state() private _open = false;
   @state() private _busy = false;
+  /** Every video input the browser lists (labels may be empty in the
+   *  Android WebView — the ids are what the lens switch cycles through). */
+  @state() private _devices: MediaDeviceInfo[] = [];
   private _stream: MediaStream | null = null;
 
   /** Open the viewfinder. Resolves once the stream is attached or the
@@ -50,13 +54,30 @@ export class MsCameraCapture extends LitElement {
       this._unavailable("no_media_devices");
       return;
     }
-    try {
-      this._stream = await md.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
-    } catch (e) {
-      this._unavailable(e instanceof Error ? e.name || e.message : String(e));
-      return;
+    // A camera the user picked with the lens switch wins over every
+    // heuristic (the WebView often reports no labels, so the heuristic
+    // cannot tell the main module from the ultra-wide one — #161).
+    const remembered = lsGet(LS_KEYS.cameraDevice);
+    let acquired = false;
+    if (remembered) {
+      try {
+        this._stream = await md.getUserMedia({ video: { deviceId: { exact: remembered } }, audio: false });
+        acquired = true;
+      } catch {
+        // the remembered camera is gone (another phone, a revoked id) — fall through
+      }
     }
-    await this._preferMainBackCamera(md);
+    if (!acquired) {
+      try {
+        this._stream = await md.getUserMedia({ video: { facingMode: { ideal: "environment" }, advanced: [{ zoom: 1 } as MediaTrackConstraintSet] }, audio: false });
+      } catch (e) {
+        this._unavailable(e instanceof Error ? e.name || e.message : String(e));
+        return;
+      }
+      await this._preferMainBackCamera(md);
+    }
+    await this._applyZoomOne();
+    await this._listDevices(md);
     this._open = true;
     await this.updateComplete;
     const video = this._video;
@@ -104,6 +125,11 @@ export class MsCameraCapture extends LitElement {
         // keep the stream we have
       }
     }
+  }
+
+  /** 1× when the track's zoom range starts below it (the logical
+   *  multi-camera on some phones opens at 0.5×). Advisory. */
+  private async _applyZoomOne(): Promise<void> {
     const chosen = this._stream?.getVideoTracks()[0];
     const caps = chosen && typeof chosen.getCapabilities === "function" ? (chosen.getCapabilities() as { zoom?: { min?: number; max?: number } }) : undefined;
     if (caps?.zoom && typeof caps.zoom.min === "number" && caps.zoom.min < 1 && (caps.zoom.max ?? 1) >= 1) {
@@ -112,6 +138,50 @@ export class MsCameraCapture extends LitElement {
       } catch {
         // zoom is advisory
       }
+    }
+  }
+
+  private async _listDevices(md: MediaDevices): Promise<void> {
+    if (typeof md.enumerateDevices !== "function") return;
+    try {
+      this._devices = (await md.enumerateDevices()).filter((d) => d.kind === "videoinput" && !!d.deviceId);
+    } catch {
+      this._devices = [];
+    }
+  }
+
+  private get _currentDeviceId(): string | undefined {
+    return this._stream?.getVideoTracks()[0]?.getSettings().deviceId;
+  }
+
+  /** The lens switch: next video input in the browser's list (labels not
+   *  needed), remembered per browser so the next open starts there. */
+  private async _switchCamera(): Promise<void> {
+    const md = typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
+    if (!md || this._devices.length < 2 || this._busy) return;
+    const ids = this._devices.map((d) => d.deviceId);
+    const at = ids.indexOf(this._currentDeviceId ?? "");
+    const next = ids[(at + 1) % ids.length];
+    this._busy = true;
+    try {
+      const stream = await md.getUserMedia({ video: { deviceId: { exact: next } }, audio: false });
+      for (const track of this._stream?.getTracks() ?? []) track.stop();
+      this._stream = stream;
+      await this._applyZoomOne();
+      lsSet(LS_KEYS.cameraDevice, next);
+      const video = this._video;
+      if (video) {
+        video.srcObject = stream;
+        try {
+          await video.play();
+        } catch {
+          // see open()
+        }
+      }
+    } catch {
+      // that camera refused — keep the current one
+    } finally {
+      this._busy = false;
     }
   }
 
@@ -178,6 +248,11 @@ export class MsCameraCapture extends LitElement {
         <video autoplay playsinline muted></video>
         <div class="bar">
           <button type="button" class="cancel" @click=${this.close}>${t("cancel", L)}</button>
+          ${this._devices.length > 1
+            ? html`<button type="button" class="switch" ?disabled=${this._busy} title=${t("camera_switch_lens", L)} aria-label=${t("camera_switch_lens", L)} @click=${this._switchCamera}>
+                <ha-icon icon="mdi:camera-flip-outline"></ha-icon>
+              </button>`
+            : nothing}
           <button type="button" class="shoot" ?disabled=${this._busy} @click=${this._shoot}>
             <ha-icon icon="mdi:camera"></ha-icon><span>${t("camera_capture_shoot", L)}</span>
           </button>
@@ -204,6 +279,8 @@ export class MsCameraCapture extends LitElement {
       display: inline-flex; align-items: center; gap: 8px;
     }
     .cancel { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); }
+    .switch { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); padding: 10px 12px; }
+    .switch ha-icon { --mdc-icon-size: 22px; }
     .shoot { background: var(--primary-color, #03a9f4); color: #fff; border: none; font-weight: 600; }
     .shoot[disabled] { opacity: 0.6; cursor: default; }
     .shoot ha-icon { --mdc-icon-size: 22px; }
