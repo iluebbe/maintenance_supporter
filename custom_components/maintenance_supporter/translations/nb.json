@@ -570,8 +570,11 @@
           "notify_service": "Varslingstjeneste",
           "panel_enabled": "Vis sidefeltpanel",
           "currency_decimals": "Desimaler for beløp",
+          "battery_low_percent": "Terskel „batteri lavt“ (%)",
+          "battery_recovered_percent": "Batteri regnes som byttet over (%)",
           "panel_title": "Tittel på sidefeltpanel",
-          "shopping_list_entity": "Handleliste å synkronisere kjøpsoppgaver til"
+          "shopping_list_entity": "Handleliste å synkronisere kjøpsoppgaver til",
+          "part_search_url_template": "Søkelenke for innkjøp"
         },
         "data_description": {
           "default_warning_days": "Antall dager før en vedlikeholdsoppgave forfaller for å vise et varsel.",
@@ -579,8 +582,11 @@
           "notify_service": "Varslingstjenesten som skal brukes (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidefeltet.",
           "currency_decimals": "Hvor mange desimaler hvert beløp viser — nøkkeltall, budsjetter, kostnader i lister og rapporter, budsjettvarsler. 0 = hele tall.",
+          "battery_low_percent": "Gulv for hele flåten: et batteri på eller under dette nivået telles som lavt, med mindre Battery Notes-terskelen er høyere.",
+          "battery_recovered_percent": "Et lavt batteri telles som lavt til nivået stiger over denne verdien eller et bytte registreres — slik kan et nivå som svinger rundt terskelen ikke fullføre flåteoppgaven igjen og igjen.",
           "panel_title": "Egendefinert navn for sidefeltoppføringen. La feltet stå tomt for å bruke «Vedlikehold». Nyttig for å unngå konflikt med Home Assistants innebygde vedlikeholdsdashbord.",
-          "shopping_list_entity": "Automatiske kjøpespåminnelser for deler med lav beholdning vises i denne gjøremålslisten; å krysse av en fullfører påminnelsen og fyller på beholdningen. La stå tomt for å deaktivere."
+          "shopping_list_entity": "Automatiske kjøpespåminnelser for deler med lav beholdning vises i denne gjøremålslisten; å krysse av en fullfører påminnelsen og fyller på beholdningen. La stå tomt for å deaktivere.",
+          "part_search_url_template": "URL med {q} i stedet for søkeordene, for deler uten produktlenke. La stå tomt for den automatiske butikken (etter land, ellers språk)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Ugyldig format for varslingstjeneste. Bruk «notify.service_name» (f.eks. notify.mobile_app_phone).",
       "notify_service_not_found": "Denne varslingstjenesten ble ikke funnet i Home Assistant. Kontroller tjenestenavnet.",
       "nfc_tag_duplicate": "Denne NFC-taggen er allerede koblet til en annen oppgave.",
-      "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…)."
+      "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…).",
+      "invalid_search_template": "Søkelenken må være en http(s)-URL som inneholder {q}."
     }
   },
   "entity": {

@@ -17,6 +17,8 @@ const TASK_LIST_KEYS = [
   "required_completion_fields",
   "checklist",
   "labels",
+  // D#183: external to-do lists the task is mirrored into (empty = off).
+  "mirror_todo_entities",
   "history",
   // #161 phase 2: reading slots (empty = single-value task).
   "readings",

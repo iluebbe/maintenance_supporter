@@ -410,15 +410,18 @@ export class MaintenanceBatteryFleetSection extends LitElement {
 
   /** One-click fix for a detected-but-unrecorded swap: record the DETECTED
    *  jump time in Battery Notes, so the forecast re-anchors on the real
-   *  replacement instead of the dead battery's date. */
+   *  replacement instead of the dead battery's date. Goes through the
+   *  backend (#181) so the swap also consumes the type-part cells from
+   *  stock, exactly like the Replaced action. */
   private async _recordJump(entityId: string, jump: { at: number; device_id: string }): Promise<void> {
     if (this._marking) return;
     this._marking = true;
     this._error = "";
     try {
-      await this.hass.callService("battery_notes", "set_battery_replaced", {
-        device_id: jump.device_id,
-        datetime_replaced: new Date(jump.at * 1000).toISOString(),
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/battery_fleet/record_replacement",
+        entity_id: entityId,
+        replaced_at: new Date(jump.at * 1000).toISOString(),
       });
       this._recorded = [...this._recorded, entityId];
       await this._load();

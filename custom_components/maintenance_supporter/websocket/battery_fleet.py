@@ -12,6 +12,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 
 from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
 from ..helpers.battery_fleet import (
@@ -26,6 +27,7 @@ from ..helpers.battery_fleet import (
 )
 from ..helpers.battery_fleet_setup import (
     async_mark_replaced,
+    async_record_replacement,
     async_setup_battery_fleet,
     find_fleet_entry,
     fleet_task_trigger_ok,
@@ -233,4 +235,36 @@ async def ws_battery_fleet_mark_replaced(
 ) -> None:
     """Mark batteries replaced (press their button + consume the type-parts)."""
     result = await async_mark_replaced(hass, msg.get("entity_ids"))
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/battery_fleet/record_replacement",
+        vol.Required("entity_id"): vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)),
+        # ISO datetime of the detected swap (the roster's calendar-sync chip).
+        vol.Required("replaced_at"): vol.All(str, vol.Length(max=40)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_battery_fleet_record_replacement(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Record a detected-but-unrecorded swap in Battery Notes AND consume the
+    type-part cells like the Replaced action (#181). Returns ``{recorded,
+    already_recorded, consumed: {part_id: qty}}``."""
+    try:
+        result = await async_record_replacement(hass, msg["entity_id"], msg["replaced_at"])
+    except HomeAssistantError as err:
+        code = str(err)
+        if code == "not_found":
+            connection.send_error(msg["id"], "not_found", "Battery not found in the fleet")
+        elif code == "invalid_device":
+            connection.send_error(msg["id"], "invalid_device", "Battery has no device to record on")
+        elif code == "invalid_date":
+            connection.send_error(msg["id"], "invalid_date", "replaced_at is not an ISO datetime")
+        else:
+            connection.send_error(msg["id"], "not_available", "Battery Notes is not available")
+        return
     connection.send_result(msg["id"], result)

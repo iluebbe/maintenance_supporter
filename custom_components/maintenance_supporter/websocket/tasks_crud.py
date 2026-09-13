@@ -32,12 +32,14 @@ from ..const import (
     MAX_LABEL_LENGTH,
     MAX_LABELS,
     MAX_META_LENGTH,
+    MAX_MIRROR_TODO_LISTS,
     MAX_NAME_LENGTH,
     MAX_NFC_TAG_LENGTH,
     MAX_READING_UNIT_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
+    MIRROR_TODO_ENTITY_PATTERN,
     NOTIFICATION_MANAGER_KEY,
     HistoryEntryType,
 )
@@ -71,6 +73,7 @@ from .tasks_persist import async_persist_task
 from .tasks_validation import (
     _check_nfc_tag_duplicate,
     _is_safe_url,
+    _mirror_todo_error,
     _validate_trigger_config,
 )
 
@@ -151,6 +154,8 @@ TASK_UPDATE_FIELD_MAP = {
     "priority": "priority",
     "checklist": "checklist",
     "labels": "labels",
+    # D#183: external to-do lists the task is mirrored into while due.
+    "mirror_todo_entities": "mirror_todo_entities",
     "schedule_time": "schedule_time",
     # v1.3.0
     "on_complete_action": "on_complete_action",
@@ -259,6 +264,10 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         ),
         vol.Optional("labels"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None
+        ),
+        # D#183: todo.* entity ids the due task is mirrored into ([] / None = off).
+        vol.Optional("mirror_todo_entities"): vol.Any(
+            vol.All([vol.All(str, vol.Match(MIRROR_TODO_ENTITY_PATTERN))], vol.Length(max=MAX_MIRROR_TODO_LISTS)), None
         ),
         # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
         vol.Optional("schedule_time"): vol.Any(
@@ -443,6 +452,18 @@ async def ws_create_task(
         from ..helpers.sanitize import sanitize_labels
 
         task_data["labels"] = sanitize_labels(msg["labels"])
+    # D#183: mirror targets — shape-sanitized, and our own to-do platform is
+    # refused (it cannot take rows, and mirroring into ourselves is circular).
+    if msg.get("mirror_todo_entities"):
+        from ..helpers.sanitize import sanitize_mirror_todo_entities
+
+        mirrors = sanitize_mirror_todo_entities(msg["mirror_todo_entities"])
+        mirror_err = _mirror_todo_error(hass, mirrors)
+        if mirror_err:
+            connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
+            return
+        if mirrors:
+            task_data["mirror_todo_entities"] = mirrors
     if msg.get("schedule_time"):
         task_data["schedule_time"] = msg["schedule_time"]
     # v1.3.0: optional completion-action + quick-defaults. Strict shape
@@ -545,6 +566,10 @@ _TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         vol.Optional("labels"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None
         ),
+        # D#183: see create schema.
+        vol.Optional("mirror_todo_entities"): vol.Any(
+            vol.All([vol.All(str, vol.Match(MIRROR_TODO_ENTITY_PATTERN))], vol.Length(max=MAX_MIRROR_TODO_LISTS)), None
+        ),
         vol.Optional("schedule_time"): vol.Any(
             vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
             None,
@@ -620,6 +645,17 @@ async def ws_update_task(
         connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
         return
 
+    # D#183: mirror targets — same sanitize + own-platform refusal as create;
+    # an empty list clears the field (the raw-field-map lesson).
+    if "mirror_todo_entities" in msg:
+        from ..helpers.sanitize import sanitize_mirror_todo_entities
+
+        msg["mirror_todo_entities"] = sanitize_mirror_todo_entities(msg["mirror_todo_entities"])
+        mirror_err = _mirror_todo_error(hass, msg["mirror_todo_entities"])
+        if mirror_err:
+            connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
+            return
+
     for msg_key, data_key in TASK_UPDATE_FIELD_MAP.items():
         if msg_key in msg:
             task[data_key] = msg[msg_key]
@@ -653,6 +689,9 @@ async def ws_update_task(
             task["notify_enabled"] = False
         else:
             task.pop("notify_enabled", None)
+    # D#183: an empty mirror list means "off" — drop the key, don't store [].
+    if "mirror_todo_entities" in msg and not msg["mirror_todo_entities"]:
+        task.pop("mirror_todo_entities", None)
 
     # The loop above copies values verbatim, which is wrong for part links:
     # `task/create` validates them and `task/update` did not, so an edit could
@@ -857,9 +896,12 @@ async def async_delete_task(
 
     hass.config_entries.async_update_entry(entry, data=new_data)
 
-    # Clean up Store
+    # Clean up Store (a mirrored task takes its to-do rows with it, D#183)
     store = get_store(hass, entry.entry_id)
     if store is not None:
+        mirror = hass.data.get(DOMAIN, {}).get("todo_mirror")
+        if mirror is not None and hasattr(mirror, "async_forget_task"):
+            await mirror.async_forget_task(store, task_id)
         store.remove_task(task_id)
         await store.async_save()
 

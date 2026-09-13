@@ -45,6 +45,8 @@ const EDITABLE: Record<string, string> = {
   priority: "priority",
   checklist: "checklist",
   labels: "labels",
+  // D#183: mirror targets — the entity multi-picker re-sends the list whole.
+  mirror_todo_entities: "mirror_todo_entities",
   responsible_user_id: "responsible_user_id",
   assignee_pool: "assignee_pool",
   rotation_strategy: "rotation_strategy",

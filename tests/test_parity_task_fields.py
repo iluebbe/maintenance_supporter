@@ -88,6 +88,11 @@ PANEL_ONLY = {
     # #173: per-task notification mute — a panel-dialog checkbox next to the
     # skip lock; same reasoning as allow_skip.
     "notify_enabled",
+    # D#183: external to-do lists the due task is mirrored into — an advanced
+    # integration field the legacy config-flow never grew (the consumes_parts
+    # class): the panel's entity multi-picker is the editor, enforcement
+    # (helpers/todo_mirror.py) is surface-independent.
+    "mirror_todo_entities",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by

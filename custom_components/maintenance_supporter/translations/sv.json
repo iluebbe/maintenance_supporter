@@ -570,8 +570,11 @@
           "notify_service": "Aviseringstjänst",
           "panel_enabled": "Visa sidopanel",
           "currency_decimals": "Decimaler för belopp",
+          "battery_low_percent": "Tröskel „batteri lågt“ (%)",
+          "battery_recovered_percent": "Batteri räknas som bytt över (%)",
           "panel_title": "Titel för sidofältspanel",
-          "shopping_list_entity": "Inköpslista att synka köpuppgifter till"
+          "shopping_list_entity": "Inköpslista att synka köpuppgifter till",
+          "part_search_url_template": "Söklänk för inköp"
         },
         "data_description": {
           "default_warning_days": "Antal dagar före underhållsuppgiftens förfall då en varning visas.",
@@ -579,8 +582,11 @@
           "notify_service": "Aviseringstjänsten som ska användas (t.ex. notify.mobile_app_phone).",
           "panel_enabled": "Visa en Maintenance Supporter-panel i sidofältet.",
           "currency_decimals": "Hur många decimaler varje belopp visar — nyckeltal, budgetar, kostnader i listor och rapporter, budgetvarningar. 0 = hela tal.",
+          "battery_low_percent": "Golv för hela flottan: ett batteri på eller under denna nivå räknas som lågt, om inte dess Battery Notes-tröskel är högre.",
+          "battery_recovered_percent": "Ett lågt batteri räknas som lågt tills nivån stiger över detta värde eller ett byte registreras — så kan en nivå som pendlar kring tröskeln inte slutföra flottuppgiften om och om igen.",
           "panel_title": "Eget namn för sidofältsposten. Lämna tomt för att använda \"Maintenance\". Användbart för att undvika krock med Home Assistants inbyggda Maintenance-panel.",
-          "shopping_list_entity": "Automatiska köppåminnelser för delar som håller på att ta slut visas i denna att-göra-lista; att bocka av en slutför påminnelsen och fyller på lagret. Lämna tomt för att inaktivera."
+          "shopping_list_entity": "Automatiska köppåminnelser för delar som håller på att ta slut visas i denna att-göra-lista; att bocka av en slutför påminnelsen och fyller på lagret. Lämna tomt för att inaktivera.",
+          "part_search_url_template": "URL med {q} i stället för söktermerna, för delar utan produktlänk. Lämna tomt för den automatiska butiken (efter land, annars språk)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Ogiltigt format för aviseringstjänst. Använd ”notify.service_name” (t.ex. notify.mobile_app_phone).",
       "notify_service_not_found": "Denna aviseringstjänst hittades inte i Home Assistant. Verifiera tjänstens namn.",
       "nfc_tag_duplicate": "Denna NFC-tagg är redan kopplad till en annan uppgift.",
-      "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…)."
+      "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…).",
+      "invalid_search_template": "Söklänken måste vara en http(s)-URL som innehåller {q}."
     }
   },
   "entity": {

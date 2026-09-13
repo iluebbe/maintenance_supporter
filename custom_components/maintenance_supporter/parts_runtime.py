@@ -377,6 +377,7 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         object_id=entry.data.get(CONF_OBJECT, {}).get("id", ""),
         lang=normalize_language(hass),
         search_template=get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE),
+        country=hass.config.country,
         today=dt_util.now().date(),
         decimals=int(get_global_options(hass).get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
         is_task_done=lambda td: store.get_last_performed(td["id"]) is not None,

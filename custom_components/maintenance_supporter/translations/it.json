@@ -570,8 +570,11 @@
           "notify_service": "Servizio di notifica",
           "panel_enabled": "Mostra pannello nella barra laterale",
           "currency_decimals": "Decimali degli importi",
+          "battery_low_percent": "Soglia „batteria scarica“ (%)",
+          "battery_recovered_percent": "Batteria considerata sostituita sopra (%)",
           "panel_title": "Titolo del pannello laterale",
-          "shopping_list_entity": "Lista della spesa per sincronizzare le attività di acquisto"
+          "shopping_list_entity": "Lista della spesa per sincronizzare le attività di acquisto",
+          "part_search_url_template": "Link di ricerca per l'acquisto"
         },
         "data_description": {
           "default_warning_days": "Numero di giorni prima della scadenza di un'attività di manutenzione per mostrare un avviso.",
@@ -579,8 +582,11 @@
           "notify_service": "Il servizio di notifica da utilizzare (es.: notify.mobile_app_phone).",
           "panel_enabled": "Mostra un pannello Maintenance Supporter nella barra laterale.",
           "currency_decimals": "Quanti decimali mostra ogni importo — KPI, budget, costi in elenchi e report, avvisi di budget. 0 = numeri interi.",
+          "battery_low_percent": "Soglia minima per tutta la flotta: una batteria a questo livello o sotto conta come scarica, a meno che la sua soglia Battery Notes sia più alta.",
+          "battery_recovered_percent": "Una batteria scarica resta conteggiata come scarica finché il livello non supera questo valore o non viene registrata una sostituzione — così un livello che oscilla attorno alla soglia non completa di continuo l'attività della flotta.",
           "panel_title": "Nome personalizzato per la voce nella barra laterale. Lascia vuoto per usare \"Maintenance\". Utile per evitare conflitti con la dashboard Manutenzione integrata di Home Assistant.",
-          "shopping_list_entity": "I promemoria di acquisto automatici per i ricambi scarsi appaiono in questo elenco; spuntarne uno completa il promemoria e rifornisce il ricambio. Lasciare vuoto per disattivare."
+          "shopping_list_entity": "I promemoria di acquisto automatici per i ricambi scarsi appaiono in questo elenco; spuntarne uno completa il promemoria e rifornisce il ricambio. Lasciare vuoto per disattivare.",
+          "part_search_url_template": "URL con {q} al posto dei termini di ricerca, usato per i ricambi senza link al prodotto. Lasciare vuoto per il negozio automatico (per paese, altrimenti per lingua)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Formato del servizio di notifica non valido. Usa 'notify.nome_servizio' (es.: notify.mobile_app_phone).",
       "notify_service_not_found": "Questo servizio di notifica non è stato trovato in Home Assistant. Verifica il nome del servizio.",
       "nfc_tag_duplicate": "Questo tag NFC è già collegato a un'altra attività.",
-      "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…)."
+      "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…).",
+      "invalid_search_template": "Il link di ricerca deve essere un URL http(s) contenente {q}."
     }
   },
   "entity": {

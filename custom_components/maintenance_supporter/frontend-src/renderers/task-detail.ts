@@ -138,6 +138,10 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         ${task.notify_enabled === false
           ? html`<span class="nfc-badge muted-badge" title="${t("no_notifications", L)}"><ha-icon icon="mdi:bell-off-outline"></ha-icon></span>`
           : nothing}
+        ${task.mirror_todo_entities?.length
+          ? html`<span class="nfc-badge mirror-badge" title="${t("task_mirror_todo", L)}: ${task.mirror_todo_entities
+              .map((eid) => String(ctx.hass?.states?.[eid]?.attributes?.friendly_name ?? eid)).join(", ")}"><ha-icon icon="mdi:clipboard-list-outline"></ha-icon></span>`
+          : nothing}
         ${task.nfc_tag_id
           ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
           : !isOperator ? html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"

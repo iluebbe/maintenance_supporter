@@ -570,8 +570,11 @@
           "notify_service": "Benachrichtigungsdienst",
           "panel_enabled": "Sidebar-Panel anzeigen",
           "currency_decimals": "Nachkommastellen für Beträge",
+          "battery_low_percent": "Schwelle „Batterie niedrig“ (%)",
+          "battery_recovered_percent": "Batterie gilt als ersetzt ab (%)",
           "panel_title": "Titel des Seitenleisten-Panels",
-          "shopping_list_entity": "Einkaufsliste für den Abgleich der Kauf-Aufgaben"
+          "shopping_list_entity": "Einkaufsliste für den Abgleich der Kauf-Aufgaben",
+          "part_search_url_template": "Link für die Einkaufssuche"
         },
         "data_description": {
           "default_warning_days": "Anzahl der Tage vor Fälligkeit einer Wartungsaufgabe für eine Warnung.",
@@ -579,8 +582,11 @@
           "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone).",
           "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen.",
           "currency_decimals": "Wie viele Nachkommastellen jeder Betrag zeigt — KPIs, Budgets, Kosten in Listen und Berichten, Budget-Alarme. 0 = ganze Zahlen.",
+          "battery_low_percent": "Flottenweite Untergrenze: Eine Batterie auf oder unter diesem Stand gilt als niedrig, sofern ihre Battery-Notes-Schwelle nicht höher liegt.",
+          "battery_recovered_percent": "Eine niedrige Batterie bleibt so lange als niedrig gezählt, bis ihr Stand über diesen Wert steigt oder ein Wechsel erfasst wird — ein Stand, der um die Schwelle pendelt, schließt die Flottenaufgabe so nicht immer wieder ab.",
           "panel_title": "Eigener Name für den Seitenleisten-Eintrag. Leer lassen für \"Maintenance\". Praktisch, um Verwechslungen mit dem integrierten Wartungs-Dashboard von Home Assistant zu vermeiden.",
-          "shopping_list_entity": "Automatische „Kaufen“-Erinnerungen für knappe Teile erscheinen in dieser To-do-Liste; Abhaken schließt die Erinnerung ab und füllt den Bestand auf. Leer lassen zum Deaktivieren."
+          "shopping_list_entity": "Automatische „Kaufen“-Erinnerungen für knappe Teile erscheinen in dieser To-do-Liste; Abhaken schließt die Erinnerung ab und füllt den Bestand auf. Leer lassen zum Deaktivieren.",
+          "part_search_url_template": "URL mit {q} anstelle der Suchbegriffe, für Teile ohne Produktlink. Leer lassen für den automatischen Shop (nach Land, sonst nach Sprache)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Ungültiges Format des Benachrichtigungsdienstes. Verwenden Sie 'notify.dienstname' (z.B. notify.mobile_app_phone).",
       "notify_service_not_found": "Dieser Benachrichtigungsdienst wurde in Home Assistant nicht gefunden. Bitte prüfen Sie den Dienstnamen.",
       "nfc_tag_duplicate": "Dieses NFC-Tag ist bereits mit einer anderen Aufgabe verknüpft.",
-      "invalid_shopping_list_entity": "Die Einkaufsliste muss eine To-do-Entität sein (todo.…)."
+      "invalid_shopping_list_entity": "Die Einkaufsliste muss eine To-do-Entität sein (todo.…).",
+      "invalid_search_template": "Der Suchlink muss eine http(s)-URL mit {q} sein."
     }
   },
   "entity": {

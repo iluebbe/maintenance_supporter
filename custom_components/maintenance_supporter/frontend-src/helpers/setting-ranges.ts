@@ -13,6 +13,7 @@ export const SETTING_INT_RANGES: Record<string, [number, number]> = {
   default_warning_days: [0, 365],
   default_consumable_threshold: [1, 90],
   battery_low_percent: [1, 90],
+  battery_recovered_percent: [20, 100],
   archive_oneoff_days: [0, 3650],
   delete_archived_oneoff_days: [0, 3650],
   notify_due_soon_interval_hours: [0, 720],

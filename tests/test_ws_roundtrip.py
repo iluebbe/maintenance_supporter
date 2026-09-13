@@ -702,6 +702,10 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # #146: household "low" floors.
     "default_consumable_threshold": 5,
     "battery_low_percent": 25,
+    # #180: recovery threshold (hysteresis) for the fleet's low count.
+    "battery_recovered_percent": 60,
+    # D#182: user-settable shopping search — must carry {q}; trimmed on save.
+    "part_search_url_template": "https://shop.example/search?q={q}",
     "notifications_enabled": True,
     # notify_service is normalised on save via validate_notify_service
     # (bare "persistent_notification" gets rewritten to "notify.…"); the
@@ -807,6 +811,8 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "default_warning_days": settings["general"]["default_warning_days"],
         "default_consumable_threshold": settings["general"]["default_consumable_threshold"],
         "battery_low_percent": settings["general"]["battery_low_percent"],
+        "battery_recovered_percent": settings["general"]["battery_recovered_percent"],
+        "part_search_url_template": settings["general"]["part_search_url_template"],
         "notifications_enabled": settings["general"]["notifications_enabled"],
         "notify_service": settings["general"]["notify_service"],
         "shopping_list_entity": settings["general"]["shopping_list_entity"],

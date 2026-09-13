@@ -570,8 +570,11 @@
           "notify_service": "Notification service",
           "panel_enabled": "Show sidebar panel",
           "currency_decimals": "Decimal places for amounts",
+          "battery_low_percent": "Battery low threshold (%)",
+          "battery_recovered_percent": "Battery counts as replaced above (%)",
           "panel_title": "Sidebar panel title",
-          "shopping_list_entity": "Shopping list to sync buy tasks into"
+          "shopping_list_entity": "Shopping list to sync buy tasks into",
+          "part_search_url_template": "Shopping search link"
         },
         "data_description": {
           "default_warning_days": "Number of days before a maintenance task is due to show a warning.",
@@ -579,8 +582,11 @@
           "notify_service": "The notification service to use (e.g., notify.mobile_app_phone).",
           "panel_enabled": "Show a Maintenance Supporter panel in the sidebar.",
           "currency_decimals": "How many decimals every amount shows — KPIs, budgets, costs in lists and reports, budget alerts. 0 = whole numbers.",
+          "battery_low_percent": "Fleet-wide floor: a battery at or below this level counts as low unless its Battery Notes threshold is higher.",
+          "battery_recovered_percent": "A low battery stays counted as low until its level rises above this value or a replacement is recorded — so a level hovering around the low threshold cannot complete the fleet task again and again.",
           "panel_title": "Custom name for the sidebar entry. Leave blank to use \"Maintenance\". Useful to avoid clashing with Home Assistant's built-in Maintenance dashboard.",
-          "shopping_list_entity": "Automatic “buy” reminders for low parts appear in this to-do list; checking one off completes the reminder and restocks the part. Leave empty to disable."
+          "shopping_list_entity": "Automatic “buy” reminders for low parts appear in this to-do list; checking one off completes the reminder and restocks the part. Leave empty to disable.",
+          "part_search_url_template": "URL with {q} in place of the search terms, used for parts without a product link. Leave empty for the automatic store (by country, then by language)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
       "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name.",
       "nfc_tag_duplicate": "This NFC tag is already linked to another task.",
-      "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…)."
+      "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…).",
+      "invalid_search_template": "The search link must be an http(s) URL containing {q}."
     }
   },
   "entity": {

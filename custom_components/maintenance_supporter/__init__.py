@@ -1426,6 +1426,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             await shopping_sync.async_setup()
             hass.data[DOMAIN][SHOPPING_SYNC_KEY] = shopping_sync
 
+        # D#183: per-task mirror into external to-do lists — same lifecycle
+        # as the shopping sync (global entry owns it).
+        from .helpers.todo_mirror import TODO_MIRROR_KEY, TodoMirror
+
+        if TODO_MIRROR_KEY not in hass.data[DOMAIN]:
+            todo_mirror = TodoMirror(hass)
+            await todo_mirror.async_setup()
+            hass.data[DOMAIN][TODO_MIRROR_KEY] = todo_mirror
+
         # One-time migration: auto-enable advanced feature flags for existing users
         options = dict(entry.options or entry.data)
         if CONF_ADVANCED_ADAPTIVE not in options:
@@ -2000,6 +2009,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         shopping_sync = hass.data.get(DOMAIN, {}).pop(SHOPPING_SYNC_KEY, None)
         if shopping_sync is not None:
             shopping_sync.async_teardown()
+        from .helpers.todo_mirror import TODO_MIRROR_KEY
+
+        todo_mirror = hass.data.get(DOMAIN, {}).pop(TODO_MIRROR_KEY, None)
+        if todo_mirror is not None:
+            todo_mirror.async_teardown()
         text_index = hass.data.get(DOMAIN, {}).get(DOCUMENT_TEXT_INDEX_KEY)
         if text_index is not None:
             text_index.cancel()

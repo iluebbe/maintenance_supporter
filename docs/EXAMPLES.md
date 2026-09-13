@@ -248,6 +248,7 @@ the list you want:
 | `/maintenance-supporter?status=overdue` | the Dashboard task list filtered to overdue (`overdue`, `due_soon`, `triggered`, `ok`) |
 | `/maintenance-supporter?sort=object` | the list sorted by object (`due_date`, `object`, `type`, `task_name`, `area`, `assigned_user`, `group`) |
 | `/maintenance-supporter?view=Garden%20chores` | one of your saved views, by name (case-insensitive) or id |
+| `/maintenance-supporter?entry_id=<id>&section=documents` | the object page with that section unfolded and scrolled into view (`tasks`, `documents`, `parts`, `history`; 2.87+) |
 
 `status=` and `view=` imply the Dashboard tab; an explicit `sort=` or
 `status=` wins over the saved view's own. The tab and the sort are

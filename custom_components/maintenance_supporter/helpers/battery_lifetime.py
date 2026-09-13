@@ -229,6 +229,11 @@ def lifetime_overrides(hass: HomeAssistant) -> dict[str, int]:
 
 
 def _fleet_store_and_task(hass: HomeAssistant) -> tuple[Any, str] | None:
+    """The fleet's Store + its task id — where every per-battery fleet state
+    lives (the replacement log here, the #180 low latch in battery_fleet).
+    None while no fleet (or no fleet task) exists. Exported below as
+    ``fleet_store_and_task``; the private name stays the in-module reference
+    (tests patch it)."""
     from .battery_fleet_setup import find_fleet_entry, find_fleet_task
 
     entry = find_fleet_entry(hass)
@@ -240,6 +245,11 @@ def _fleet_store_and_task(hass: HomeAssistant) -> tuple[Any, str] | None:
     if store is None or found is None:
         return None
     return store, found[0]
+
+
+def fleet_store_and_task(hass: HomeAssistant) -> tuple[Any, str] | None:
+    """Public door to :func:`_fleet_store_and_task` (battery_fleet's #180 latch)."""
+    return _fleet_store_and_task(hass)
 
 
 def replacement_log(hass: HomeAssistant) -> dict[str, dict[str, Any]]:

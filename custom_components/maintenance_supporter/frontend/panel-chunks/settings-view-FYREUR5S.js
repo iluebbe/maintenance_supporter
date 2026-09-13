@@ -1,11 +1,11 @@
 /*! maintenance_supporter frontend 2.86.0 */
-import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A6LVKMPW.js";import{a as D,g as k,k as W}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-TF6DLWEC.js";import{a as Y}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-XKVTMCJS.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-EPXIDVO3.js";import{a as M,b as U}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-D52RXZ4R.js";import{a as F,b as K,c as G,e as Q}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-ZLVS6B3E.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-FE4LECIX.js";import{N,a as d,b as C,c as r,e as $,f as c,g as I,h as B,l as S,m as p,q as s,s as O,v as j}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-WG3MZHOS.js";var y={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},A=g=>(..._)=>({_$litDirective$:g,values:_}),w=class{constructor(_){}get _$AU(){return this._$AM._$AU}_$AT(_,e,t){this._$Ct=_,this._$AM=e,this._$Ci=t}_$AS(_,e){return this.update(_,e)}update(_,e){return this.render(...e)}};var E=class extends w{constructor(_){if(super(_),this.it=c,_.type!==y.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(_){if(_===c||_==null)return this._t=void 0,this.it=_;if(_===$)return _;if(typeof _!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(_===this.it)return this._t;this.it=_;let e=[_];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};E.directiveName="unsafeHTML",E.resultType=1;var V=A(E);var{I:de}=I;var J=g=>g.strings===void 0;var ee={},X=(g,_=ee)=>g._$AH=_;var x=A(class extends w{constructor(g){if(super(g),g.type!==y.PROPERTY&&g.type!==y.ATTRIBUTE&&g.type!==y.BOOLEAN_ATTRIBUTE)throw Error("The `live` directive is not allowed on child or event bindings");if(!J(g))throw Error("`live` bindings can only contain a single expression")}render(g){return g}update(g,[_]){if(_===$||_===c)return _;let e=g.element,t=g.name;if(g.type===y.PROPERTY){if(_===e[t])return $}else if(g.type===y.BOOLEAN_ATTRIBUTE){if(!!_===e.hasAttribute(t))return $}else if(g.type===y.ATTRIBUTE&&e.getAttribute(t)===_+"")return $;return X(g),_}});var R={default_warning_days:[0,365],default_consumable_threshold:[1,90],battery_low_percent:[1,90],archive_oneoff_days:[0,3650],delete_archived_oneoff_days:[0,3650],notify_due_soon_interval_hours:[0,720],notify_overdue_interval_hours:[0,720],notify_triggered_interval_hours:[0,720],max_notifications_per_day:[0,1e3],notification_bundle_threshold:[2,20],snooze_duration_hours:[1,168],warranty_reminder_days:[1,365],budget_alert_threshold:[10,100],currency_decimals:[0,3]};function Z(g){let _=R[g];if(!_)throw new Error(`not an int-ranged setting: ${g}`);return _}var te=["EUR","USD","GBP","JPY","CHF","CAD","AUD","NZD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],se=(([g,_])=>Array.from({length:_-g+1},(e,t)=>g+t))(R.currency_decimals),l=class extends B{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._personTargets=[];this._testingUser="";this._users=[];this._savedViews=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._previewBusy=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._exportObjects=[];this._exportSelectedEntries=new Set;this._exportObjectsLoaded=!1;this._docArchiveLoading=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async e=>{e?this._testingUser=e:this._testingNotification=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification",...e?{user_id:e}:{}}),i=t.message||(t.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(i)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{e?this._testingUser="":this._testingNotification=!1}};this._allTemplates=[];this._templateCategories={};this._tplOpenGroups=new Set;this._templatesRequested=!1}get _lang(){return O(this.hass)}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new Q(this.hass),this._loadSettings(),this._loadUsers()):e.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService){try{this._users=await this._userService.getUsers()}catch{this._users=[]}this._loadNotifyTargets()}}async _loadNotifyTargets(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/notify/user_targets"});this._personTargets=e.targets||[]}catch{this._personTargets=[]}}async _loadSettings(){this._loading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=e,j(this._settings.budget),this._hydrateVacationFromSettings()}catch{}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._savedViews=e.views||[]}catch{}this._loading=!1}_hydrateVacationFromSettings(){let e=this._settings?.vacation;e&&(this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end)}_renderBatteryLifetimes(e){let t=this._settings?.general?.battery_lifetimes;if(!t||!t.length)return c;let i=this._settings?.general?.battery_lifetime_months??{},a=u=>s("lifetime_source_"+u.source,e),n=s("settings_battery_lifetime_months",e),o=u=>u.learned_models.length?r`<div class="bl-learned">${s("settings_battery_lifetime_learned_models",e).replace("{list}",u.learned_models.map(f=>`${f.model} ${f.months} ${n} (${f.samples})`).join(" \xB7 "))}</div>`:c,h=(u,f,z)=>{let q=Number.parseInt(f.value,10);if(!Number.isFinite(q)||q<1||q>240){f.value=String(z);return}this._updateSetting("battery_lifetime_months",{...i,[u]:q}).then(L=>{L||(f.value=String(z))})},b=u=>{let f={...i};delete f[u],this._updateSetting("battery_lifetime_months",f)},v=t.filter(u=>u.in_fleet),m=t.filter(u=>!u.in_fleet),T=u=>r`
+import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A6LVKMPW.js";import{a as D,g as k,k as W}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-TF6DLWEC.js";import{a as Y}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-V2IYDTGM.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-G7JZRW23.js";import{a as M,b as U}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-D52RXZ4R.js";import{a as F,b as K,c as G,e as Q}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-WGJ3YMD2.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-5JUIAUA7.js";import{N,a as d,b as C,c as r,e as $,f as c,g as I,h as B,l as S,m as p,q as s,s as O,v as j}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-43EKLZBD.js";var y={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},A=g=>(..._)=>({_$litDirective$:g,values:_}),w=class{constructor(_){}get _$AU(){return this._$AM._$AU}_$AT(_,e,t){this._$Ct=_,this._$AM=e,this._$Ci=t}_$AS(_,e){return this.update(_,e)}update(_,e){return this.render(...e)}};var E=class extends w{constructor(_){if(super(_),this.it=c,_.type!==y.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(_){if(_===c||_==null)return this._t=void 0,this.it=_;if(_===$)return _;if(typeof _!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(_===this.it)return this._t;this.it=_;let e=[_];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};E.directiveName="unsafeHTML",E.resultType=1;var V=A(E);var{I:de}=I;var J=g=>g.strings===void 0;var ee={},X=(g,_=ee)=>g._$AH=_;var x=A(class extends w{constructor(g){if(super(g),g.type!==y.PROPERTY&&g.type!==y.ATTRIBUTE&&g.type!==y.BOOLEAN_ATTRIBUTE)throw Error("The `live` directive is not allowed on child or event bindings");if(!J(g))throw Error("`live` bindings can only contain a single expression")}render(g){return g}update(g,[_]){if(_===$||_===c)return _;let e=g.element,t=g.name;if(g.type===y.PROPERTY){if(_===e[t])return $}else if(g.type===y.BOOLEAN_ATTRIBUTE){if(!!_===e.hasAttribute(t))return $}else if(g.type===y.ATTRIBUTE&&e.getAttribute(t)===_+"")return $;return X(g),_}});var R={default_warning_days:[0,365],default_consumable_threshold:[1,90],battery_low_percent:[1,90],battery_recovered_percent:[20,100],archive_oneoff_days:[0,3650],delete_archived_oneoff_days:[0,3650],notify_due_soon_interval_hours:[0,720],notify_overdue_interval_hours:[0,720],notify_triggered_interval_hours:[0,720],max_notifications_per_day:[0,1e3],notification_bundle_threshold:[2,20],snooze_duration_hours:[1,168],warranty_reminder_days:[1,365],budget_alert_threshold:[10,100],currency_decimals:[0,3]};function Z(g){let _=R[g];if(!_)throw new Error(`not an int-ranged setting: ${g}`);return _}var te=["EUR","USD","GBP","JPY","CHF","CAD","AUD","NZD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],se=(([g,_])=>Array.from({length:_-g+1},(e,t)=>g+t))(R.currency_decimals),l=class extends B{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._personTargets=[];this._testingUser="";this._users=[];this._savedViews=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._previewBusy=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._exportObjects=[];this._exportSelectedEntries=new Set;this._exportObjectsLoaded=!1;this._docArchiveLoading=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async e=>{e?this._testingUser=e:this._testingNotification=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification",...e?{user_id:e}:{}}),i=t.message||(t.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(i)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{e?this._testingUser="":this._testingNotification=!1}};this._allTemplates=[];this._templateCategories={};this._tplOpenGroups=new Set;this._templatesRequested=!1}get _lang(){return O(this.hass)}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new Q(this.hass),this._loadSettings(),this._loadUsers()):e.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService){try{this._users=await this._userService.getUsers()}catch{this._users=[]}this._loadNotifyTargets()}}async _loadNotifyTargets(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/notify/user_targets"});this._personTargets=e.targets||[]}catch{this._personTargets=[]}}async _loadSettings(){this._loading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=e,j(this._settings.budget),this._hydrateVacationFromSettings()}catch{}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._savedViews=e.views||[]}catch{}this._loading=!1}_hydrateVacationFromSettings(){let e=this._settings?.vacation;e&&(this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end)}_renderBatteryLifetimes(e){let t=this._settings?.general?.battery_lifetimes;if(!t||!t.length)return c;let i=this._settings?.general?.battery_lifetime_months??{},n=u=>s("lifetime_source_"+u.source,e),a=s("settings_battery_lifetime_months",e),o=u=>u.learned_models.length?r`<div class="bl-learned">${s("settings_battery_lifetime_learned_models",e).replace("{list}",u.learned_models.map(f=>`${f.model} ${f.months} ${a} (${f.samples})`).join(" \xB7 "))}</div>`:c,h=(u,f,z)=>{let q=Number.parseInt(f.value,10);if(!Number.isFinite(q)||q<1||q>240){f.value=String(z);return}this._updateSetting("battery_lifetime_months",{...i,[u]:q}).then(L=>{L||(f.value=String(z))})},b=u=>{let f={...i};delete f[u],this._updateSetting("battery_lifetime_months",f)},v=t.filter(u=>u.in_fleet),m=t.filter(u=>!u.in_fleet),T=u=>r`
       <div class="bl-row ${u.source==="override"?"bl-override":""}">
         <span class="bl-type">${u.type}${u.in_fleet?r` <span class="bl-fleet">${s("settings_battery_lifetime_in_fleet",e)}</span>`:c}</span>
         <input class="bl-months" type="number" min="1" max="240" .value=${String(u.months)}
           @change=${f=>h(u.type,f.target,u.months)} />
         <span class="bl-unit">${s("settings_battery_lifetime_months",e)}</span>
-        <span class="bl-source">${a(u)}</span>
+        <span class="bl-source">${n(u)}</span>
         ${u.source==="override"?r`<button type="button" class="bl-reset" @click=${()=>b(u.type)}>${s("settings_battery_lifetime_reset",e)}</button>`:c}
         ${o(u)}
       </div>`;return r`
@@ -15,9 +15,9 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
         ${v.map(T)}
         ${m.length?r`<details class="bl-more"><summary>${m.length} ×</summary>${m.map(T)}</details>`:c}
       </div>
-    `}_renderBatteryNotesHint(e){let t=this._settings?.general?.battery_notes;if(!t||!t.devices)return c;let i=this._settings?.general?.battery_low_percent??20,a=t.default>i,n=s("bn_summary",e).replace("{name}","Battery Notes").replace("{pct}",String(t.default)).replace("{n}",String(t.devices)),o=(a?s("bn_above_floor",e).replace("{name}","Battery Notes"):s("bn_floor_decides",e)).replace("{floor}",String(i)),h=n.search(/[:：]/),b=h<0?n:n.slice(0,h),v=h<0?"":n.slice(h);return r`
-      <div class="bn-note${a?" warn":""}">
-        <ha-icon icon="${a?"mdi:alert-outline":"mdi:battery-heart-variant"}"></ha-icon>
+    `}_renderBatteryNotesHint(e){let t=this._settings?.general?.battery_notes;if(!t||!t.devices)return c;let i=this._settings?.general?.battery_low_percent??20,n=t.default>i,a=s("bn_summary",e).replace("{name}","Battery Notes").replace("{pct}",String(t.default)).replace("{n}",String(t.devices)),o=(n?s("bn_above_floor",e).replace("{name}","Battery Notes"):s("bn_floor_decides",e)).replace("{floor}",String(i)),h=a.search(/[:：]/),b=h<0?a:a.slice(0,h),v=h<0?"":a.slice(h);return r`
+      <div class="bn-note${n?" warn":""}">
+        <ha-icon icon="${n?"mdi:alert-outline":"mdi:battery-heart-variant"}"></ha-icon>
         <span>
           <a class="bn-link" href="/config/integrations/integration/battery_notes">${b}</a>${v}
           ${t.overrides.length?r` · ${s("bn_overrides",e).replace("{n}",String(t.overrides.length+t.more))}
@@ -29,25 +29,25 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
       <div class="settings-section member-avatars" data-section="member_avatars">
         <h3>${s("member_avatars",e)}</h3>
         <p class="section-desc">${s("member_avatars_hint",e)}</p>
-        ${this._users.map(i=>{let a=K(i),n=t[i.id]||{};return r`
+        ${this._users.map(i=>{let n=K(i),a=t[i.id]||{};return r`
             <div class="member-avatar-row">
-              ${G(a)}
+              ${G(n)}
               <span class="member-avatar-name">${i.name}</span>
               <input class="member-initials" type="text" maxlength="3" autocomplete="off"
                 aria-label="${s("member_initials",e)}"
-                placeholder="${a.initials}"
-                .value=${n.initials??""}
+                placeholder="${n.initials}"
+                .value=${a.initials??""}
                 @change=${o=>this._setMemberAvatar(i.id,{initials:o.target.value})} />
               <span class="member-palette" role="radiogroup" aria-label="${s("member_color",e)}">
                 ${F.map(o=>r`
-                  <button type="button" class="member-swatch${a.color===o?" selected":""}"
+                  <button type="button" class="member-swatch${n.color===o?" selected":""}"
                     style="--person-color: ${o}" title=${o} aria-label=${o}
                     @click=${()=>this._setMemberAvatar(i.id,{color:o})}></button>`)}
               </span>
-              ${n.initials||n.color?r`<button class="ha-button secondary member-reset" @click=${()=>this._setMemberAvatar(i.id,null)}>${s("member_avatar_reset",e)}</button>`:c}
+              ${a.initials||a.color?r`<button class="ha-button secondary member-reset" @click=${()=>this._setMemberAvatar(i.id,null)}>${s("member_avatar_reset",e)}</button>`:c}
             </div>`})}
-      </div>`}async _setMemberAvatar(e,t){let i={...this._settings?.member_display||{}};if(t===null)delete i[e];else{let a={...i[e]||{},...t};"initials"in t&&!(t.initials||"").trim()&&delete a.initials,Object.keys(a).length?i[e]=a:delete i[e]}await this._updateSetting("member_display",i);try{this._users=await this._userService?.getUsers(!0)??this._users}catch{}}async _updateSetting(e,t){let i=await this._ws({type:"maintenance_supporter/global/update",settings:{[e]:t}});return i?(this._settings=i,j(this._settings.budget),W(),this._showToast(s("settings_saved",this._lang)),this.dispatchEvent(new CustomEvent("settings-changed")),!0):(this.requestUpdate(),!1)}_showToast(e){this._toast=e,setTimeout(()=>{this._toast=""},3e3)}_ws(e,t,i){return Y(this,e,{fallbackKey:t,busy:i,onError:a=>this._showToast(a)})}_onBoundedIntChange(e,t,i,a,n){let o=e.target,h=parseInt(o.value,10);if(Number.isInteger(h)&&h>=i&&h<=a){this._updateSetting(t,h).then(b=>{b||(o.value=String(n))});return}this._showToast(s("settings_value_out_of_range",this._lang).replace("{min}",String(i)).replace("{max}",String(a))),o.value=String(n)}_intSetting(e,t){let[i,a]=Z(e);return r`<input type="number" min=${i} max=${a} .value=${String(t)}
-      @change=${n=>this._onBoundedIntChange(n,e,i,a,t)} />`}_downloadFile(e,t,i){M(e,t,i)}render(){let e=this._lang;return this._loading||!this._settings?r`<div class="settings-loading">Loading…</div>`:r`
+      </div>`}async _setMemberAvatar(e,t){let i={...this._settings?.member_display||{}};if(t===null)delete i[e];else{let n={...i[e]||{},...t};"initials"in t&&!(t.initials||"").trim()&&delete n.initials,Object.keys(n).length?i[e]=n:delete i[e]}await this._updateSetting("member_display",i);try{this._users=await this._userService?.getUsers(!0)??this._users}catch{}}async _updateSetting(e,t){let i=await this._ws({type:"maintenance_supporter/global/update",settings:{[e]:t}});return i?(this._settings=i,j(this._settings.budget),W(),this._showToast(s("settings_saved",this._lang)),this.dispatchEvent(new CustomEvent("settings-changed")),!0):(this.requestUpdate(),!1)}_showToast(e){this._toast=e,setTimeout(()=>{this._toast=""},3e3)}_ws(e,t,i){return Y(this,e,{fallbackKey:t,busy:i,onError:n=>this._showToast(n)})}_onBoundedIntChange(e,t,i,n,a){let o=e.target,h=parseInt(o.value,10);if(Number.isInteger(h)&&h>=i&&h<=n){this._updateSetting(t,h).then(b=>{b||(o.value=String(a))});return}this._showToast(s("settings_value_out_of_range",this._lang).replace("{min}",String(i)).replace("{max}",String(n))),o.value=String(a)}_intSetting(e,t){let[i,n]=Z(e);return r`<input type="number" min=${i} max=${n} .value=${String(t)}
+      @change=${a=>this._onBoundedIntChange(a,e,i,n,t)} />`}_downloadFile(e,t,i){M(e,t,i)}render(){let e=this._lang;return this._loading||!this._settings?r`<div class="settings-loading">Loading…</div>`:r`
       ${this._renderFeatures(e)}
       ${this._renderPanelAccess(e)}
       ${this._renderMemberAvatars(e)}
@@ -61,9 +61,9 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
       ${this._renderImportExport(e)}
       ${this._renderTemplateToggles(e)}
       ${this._toast?r`<div class="settings-toast">${this._toast}</div>`:c}
-    `}scrollToSection(e){requestAnimationFrame(()=>{let t=this.shadowRoot;if(!t)return;let i=t.querySelector(`[data-section="${e}"]`)??t.querySelector(`[data-section-alt="${e}"]`);i&&i.scrollIntoView({behavior:"smooth",block:"start"})})}_renderPanelAccess(e){let t=new Set(this._settings.admin_panel_user_ids||[]),i=this._users.filter(o=>!o.is_admin),a=this._settings.operator_write_enabled??!1,n=(o,h)=>{let b=new Set(t);h?b.add(o):b.delete(o),this._updateSetting("admin_panel_user_ids",[...b])};return r`
+    `}scrollToSection(e){requestAnimationFrame(()=>{let t=this.shadowRoot;if(!t)return;let i=t.querySelector(`[data-section="${e}"]`)??t.querySelector(`[data-section-alt="${e}"]`);i&&i.scrollIntoView({behavior:"smooth",block:"start"})})}_renderPanelAccess(e){let t=new Set(this._settings.admin_panel_user_ids||[]),i=this._users.filter(o=>!o.is_admin),n=this._settings.operator_write_enabled??!1,a=(o,h)=>{let b=new Set(t);h?b.add(o):b.delete(o),this._updateSetting("admin_panel_user_ids",[...b])};return r`
       <div class="settings-section">
-        <h3>${s("settings_panel_access",e)} ${a&&t.size>0?r`<span class="section-badge">${t.size}</span>`:c}</h3>
+        <h3>${s("settings_panel_access",e)} ${n&&t.size>0?r`<span class="section-badge">${t.size}</span>`:c}</h3>
         <p class="section-desc">${s("settings_panel_access_desc",e)}</p>
         <label class="setting-row">
           <span>
@@ -71,10 +71,10 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
             <span class="setting-desc">${s("settings_operator_write_desc",e)}</span>
           </span>
           <input type="checkbox"
-            .checked=${a}
+            .checked=${n}
             @change=${o=>this._updateSetting("operator_write_enabled",o.target.checked)} />
         </label>
-        ${a?i.length===0?r`<div class="setting-row hint">${s("no_non_admin_users",e)}</div>`:i.map(o=>r`
+        ${n?i.length===0?r`<div class="setting-row hint">${s("no_non_admin_users",e)}</div>`:i.map(o=>r`
               <label class="setting-row">
                 <span>
                   <span class="setting-label">${o.name||o.id.slice(0,8)}</span>
@@ -82,7 +82,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
                 </span>
                 <input type="checkbox"
                   .checked=${t.has(o.id)}
-                  @change=${h=>n(o.id,h.target.checked)} />
+                  @change=${h=>a(o.id,h.target.checked)} />
               </label>
             `):c}
       </div>
@@ -90,33 +90,33 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
       <div class="settings-section" data-section="settings" data-section-alt="groups">
         <h3>${s("settings_features",e)}</h3>
         <p class="section-desc">${s("settings_features_desc",e)}</p>
-        ${i.map(a=>r`
+        ${i.map(n=>r`
           <label class="setting-row">
             <span>
-              <span class="setting-label">${a.label}</span>
-              <span class="setting-desc">${a.desc}</span>
+              <span class="setting-label">${n.label}</span>
+              <span class="setting-desc">${n.desc}</span>
             </span>
-            <input type="checkbox" .checked=${t[a.key]}
-              @change=${n=>this._updateSetting(a.settingKey,n.target.checked)} />
+            <input type="checkbox" .checked=${t[n.key]}
+              @change=${a=>this._updateSetting(n.settingKey,a.target.checked)} />
           </label>
         `)}
       </div>
-    `}async _loadTemplates(){if(!this._templatesRequested){this._templatesRequested=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates",language:this._lang});this._allTemplates=e.templates||[],this._templateCategories=e.categories||{}}catch{}}}_renderTemplateToggles(e){this._loadTemplates();let t=new Set(this._settings.disabled_template_ids||[]),i=new Map;for(let n of Object.keys(this._templateCategories))i.set(n,[]);for(let n of this._allTemplates)i.has(n.category)||i.set(n.category,[]),i.get(n.category).push(n);let a=n=>this._templateCategories[n]?.["name_"+e]||this._templateCategories[n]?.name_en||n;return r`
+    `}async _loadTemplates(){if(!this._templatesRequested){this._templatesRequested=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates",language:this._lang});this._allTemplates=e.templates||[],this._templateCategories=e.categories||{}}catch{}}}_renderTemplateToggles(e){this._loadTemplates();let t=new Set(this._settings.disabled_template_ids||[]),i=new Map;for(let a of Object.keys(this._templateCategories))i.set(a,[]);for(let a of this._allTemplates)i.has(a.category)||i.set(a.category,[]),i.get(a.category).push(a);let n=a=>this._templateCategories[a]?.["name_"+e]||this._templateCategories[a]?.name_en||a;return r`
       <div class="settings-section" data-section="templates">
         <h3>${s("settings_templates_label",e)}</h3>
         <p class="section-desc">${s("settings_templates_hint",e)}</p>
-        ${[...i.entries()].filter(([,n])=>n.length>0).map(([n,o])=>{let h=o.filter(v=>!t.has(v.id)).length,b=this._tplOpenGroups.has(n);return r`
+        ${[...i.entries()].filter(([,a])=>a.length>0).map(([a,o])=>{let h=o.filter(v=>!t.has(v.id)).length,b=this._tplOpenGroups.has(a);return r`
             <div class="tpl-group">
               <div
                 class="tpl-group-head"
                 role="button"
                 tabindex="0"
-                @click=${()=>this._toggleTplGroupOpen(n)}
-                @keydown=${v=>{(v.key==="Enter"||v.key===" ")&&(v.preventDefault(),this._toggleTplGroupOpen(n))}}
+                @click=${()=>this._toggleTplGroupOpen(a)}
+                @keydown=${v=>{(v.key==="Enter"||v.key===" ")&&(v.preventDefault(),this._toggleTplGroupOpen(a))}}
               >
                 <ha-icon class="tpl-chevron" icon=${b?"mdi:chevron-down":"mdi:chevron-right"}></ha-icon>
-                <ha-icon icon=${this._templateCategories[n]?.icon||"mdi:folder-outline"}></ha-icon>
-                <span class="tpl-group-name">${a(n)}</span>
+                <ha-icon icon=${this._templateCategories[a]?.icon||"mdi:folder-outline"}></ha-icon>
+                <span class="tpl-group-name">${n(a)}</span>
                 <span class="tpl-group-count">${h}/${o.length}</span>
                 <input
                   type="checkbox"
@@ -139,7 +139,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
             </div>
           `})}
       </div>
-    `}_toggleTemplate(e,t){let i=new Set(this._settings.disabled_template_ids||[]);t?i.delete(e):i.add(e),this._updateSetting("disabled_template_ids",[...i])}_toggleTplGroupOpen(e){let t=new Set(this._tplOpenGroups);t.has(e)?t.delete(e):t.add(e),this._tplOpenGroups=t}_toggleTemplateGroup(e,t){let i=new Set(this._settings.disabled_template_ids||[]);for(let a of e)t?i.delete(a):i.add(a);this._updateSetting("disabled_template_ids",[...i])}_renderObjectsColumns(e){let t=P(this._settings.objects_table_columns);return r`
+    `}_toggleTemplate(e,t){let i=new Set(this._settings.disabled_template_ids||[]);t?i.delete(e):i.add(e),this._updateSetting("disabled_template_ids",[...i])}_toggleTplGroupOpen(e){let t=new Set(this._tplOpenGroups);t.has(e)?t.delete(e):t.add(e),this._tplOpenGroups=t}_toggleTemplateGroup(e,t){let i=new Set(this._settings.disabled_template_ids||[]);for(let n of e)t?i.delete(n):i.add(n);this._updateSetting("disabled_template_ids",[...i])}_renderObjectsColumns(e){let t=P(this._settings.objects_table_columns);return r`
       <div class="settings-section" data-section="objects_table_columns">
         <h3>${s("objects_table_columns_label",e)}</h3>
         <p class="section-desc">${s("objects_table_columns_hint",e)}</p>
@@ -150,12 +150,12 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               type="checkbox"
               .checked=${t.includes(i.key)}
               ?disabled=${!!i.required}
-              @change=${a=>this._toggleColumn(i.key,a.target.checked)}
+              @change=${n=>this._toggleColumn(i.key,n.target.checked)}
             />
           </label>
         `)}
       </div>
-    `}_toggleColumn(e,t){let i=new Set(P(this._settings.objects_table_columns));t?i.add(e):i.delete(e);let a=H.filter(n=>n.required||i.has(n.key)).map(n=>n.key);this._updateSetting("objects_table_columns",a)}_renderGeneral(e){let t=this._settings.general,i=t.notify_targets??[],a=this._settings.budget;return r`
+    `}_toggleColumn(e,t){let i=new Set(P(this._settings.objects_table_columns));t?i.add(e):i.delete(e);let n=H.filter(a=>a.required||i.has(a.key)).map(a=>a.key);this._updateSetting("objects_table_columns",n)}_renderGeneral(e){let t=this._settings.general,i=t.notify_targets??[],n=this._settings.budget;return r`
       <div class="settings-section">
         <h3>${s("settings_general",e)}</h3>
         <label class="setting-row">
@@ -174,41 +174,55 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
           <span class="setting-label">${s("settings_battery_low_percent",e)}</span>
           ${this._intSetting("battery_low_percent",t.battery_low_percent??20)}
         </label>
+        <label class="setting-row">
+          <span class="setting-label">${s("settings_battery_recovered_percent",e)}</span>
+          ${this._intSetting("battery_recovered_percent",t.battery_recovered_percent??50)}
+        </label>
+        <div class="setting-hint">${s("settings_battery_recovered_percent_hint",e)}</div>
         ${this._renderBatteryNotesHint(e)}
         ${this._renderBatteryLifetimes(e)}
         <div class="setting-hint">${s("settings_thresholds_hint",e)}</div>
         <label class="setting-row">
+          <span class="setting-label">${s("settings_part_search_url",e)}</span>
+          <!-- D#182: no live() — same typed-input rule as the numbers above; the
+               placeholder shows the automatic template (country, then language). -->
+          <input type="url" class="part-search-url" .value=${t.part_search_url_template??""}
+            placeholder=${t.part_search_url_default??""}
+            @change=${a=>this._updateSetting("part_search_url_template",a.target.value.trim())} />
+        </label>
+        <div class="setting-hint">${s("settings_part_search_url_hint",e)}</div>
+        <label class="setting-row">
           <span class="setting-label">${s("settings_row_actions",e)}</span>
           <select .value=${x(t.row_action_style||"buttons_compact")}
-            @change=${n=>this._updateSetting("row_action_style",n.target.value)}>
-            ${["buttons_compact","buttons","icons"].map(n=>r`
-              <option value=${n} ?selected=${(t.row_action_style||"buttons_compact")===n}>${s(`row_actions_${n}`,e)}</option>`)}
+            @change=${a=>this._updateSetting("row_action_style",a.target.value)}>
+            ${["buttons_compact","buttons","icons"].map(a=>r`
+              <option value=${a} ?selected=${(t.row_action_style||"buttons_compact")===a}>${s(`row_actions_${a}`,e)}</option>`)}
           </select>
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_ref_numbers_in_lists",e)}</span>
           <input type="checkbox" class="refs-in-lists" .checked=${t.ref_numbers_in_lists===!0}
-            @change=${n=>this._updateSetting("ref_numbers_in_lists",n.target.checked)} />
+            @change=${a=>this._updateSetting("ref_numbers_in_lists",a.target.checked)} />
         </label>
         <div class="setting-hint">${s("settings_ref_numbers_in_lists_hint",e)}</div>
         <label class="setting-row">
           <span class="setting-label">${s("settings_currency",e)}</span>
-          <select .value=${x(a.currency)} @change=${n=>this._updateSetting("budget_currency",n.target.value)}>
-            ${te.map(n=>r`<option value=${n} ?selected=${a.currency===n}>${n}</option>`)}
+          <select .value=${x(n.currency)} @change=${a=>this._updateSetting("budget_currency",a.target.value)}>
+            ${te.map(a=>r`<option value=${a} ?selected=${n.currency===a}>${a}</option>`)}
           </select>
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_currency_decimals",e)}</span>
-          <select class="currency-decimals" .value=${x(String(a.currency_decimals??0))}
-            @change=${n=>this._updateSetting("currency_decimals",Number(n.target.value))}>
-            ${se.map(n=>r`<option value=${String(n)} ?selected=${(a.currency_decimals??0)===n}>${n}</option>`)}
+          <select class="currency-decimals" .value=${x(String(n.currency_decimals??0))}
+            @change=${a=>this._updateSetting("currency_decimals",Number(a.target.value))}>
+            ${se.map(a=>r`<option value=${String(a)} ?selected=${(n.currency_decimals??0)===a}>${a}</option>`)}
           </select>
         </label>
         <div class="setting-hint">${s("settings_currency_decimals_hint",e)}</div>
         <label class="setting-row">
           <span class="setting-label">${s("settings_panel_enabled",e)}</span>
           <input type="checkbox" .checked=${t.panel_enabled}
-            @change=${n=>this._updateSetting("panel_enabled",n.target.checked)} />
+            @change=${a=>this._updateSetting("panel_enabled",a.target.checked)} />
         </label>
         ${t.panel_enabled?r`
           <label class="setting-row">
@@ -216,27 +230,27 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
             <input type="text" .value=${t.panel_title??""}
               placeholder="Maintenance"
               maxlength="50"
-              @change=${n=>this._updateSetting("panel_title",n.target.value.trim())} />
+              @change=${a=>this._updateSetting("panel_title",a.target.value.trim())} />
           </label>
         `:""}
         <label class="setting-row">
           <span class="setting-label">${s("settings_install_assist_sentences",e)}</span>
           <input type="checkbox" .checked=${t.install_assist_sentences??!1}
-            @change=${n=>this._updateSetting("install_assist_sentences",n.target.checked)} />
+            @change=${a=>this._updateSetting("install_assist_sentences",a.target.checked)} />
         </label>
         <div class="setting-hint">${s("settings_install_assist_sentences_hint",e)}</div>
         <label class="setting-row">
           <span class="setting-label">${s("settings_notifications",e)}</span>
           <input type="checkbox" .checked=${t.notifications_enabled}
-            @change=${n=>this._updateSetting("notifications_enabled",n.target.checked)} />
+            @change=${a=>this._updateSetting("notifications_enabled",a.target.checked)} />
         </label>
         ${t.notifications_enabled?r`
           <label class="setting-row">
             <span class="setting-label">${s("settings_notify_service",e)}</span>
             <input type="text" list="ms-notify-services" .value=${t.notify_service}
-              @change=${n=>this._updateSetting("notify_service",n.target.value.trim())} />
+              @change=${a=>this._updateSetting("notify_service",a.target.value.trim())} />
             <datalist id="ms-notify-services">
-              ${i.map(n=>r`<option value=${n}></option>`)}
+              ${i.map(a=>r`<option value=${a}></option>`)}
             </datalist>
           </label>
           <div class="setting-row">
@@ -250,16 +264,16 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
           ${this._personTargets.length?r`
             <div class="notify-per-person">
               <span class="setting-label">${s("notify_per_person",e)}</span>
-              ${this._personTargets.map(n=>r`
+              ${this._personTargets.map(a=>r`
                 <div class="notify-person-row">
-                  <span class="notify-person-name">${n.name}</span>
-                  <span class="notify-person-target ${n.services.length?"":"muted"}">
-                    ${n.services.length?n.services.join(", "):s("notify_no_own_device",e)}
+                  <span class="notify-person-name">${a.name}</span>
+                  <span class="notify-person-target ${a.services.length?"":"muted"}">
+                    ${a.services.length?a.services.join(", "):s("notify_no_own_device",e)}
                   </span>
                   <button class="ha-button secondary"
-                    ?disabled=${!n.services.length||this._testingUser===n.user_id}
-                    @click=${()=>this._sendTestNotification(n.user_id)}>
-                    ${this._testingUser===n.user_id?s("testing",e):s("send_test",e)}
+                    ?disabled=${!a.services.length||this._testingUser===a.user_id}
+                    @click=${()=>this._sendTestNotification(a.user_id)}>
+                    ${this._testingUser===a.user_id?s("testing",e):s("send_test",e)}
                   </button>
                 </div>
               `)}
@@ -270,10 +284,10 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
         <label class="setting-row">
           <span class="setting-label" title=${s("settings_shopping_list_help",e)}>${s("settings_shopping_list",e)}</span>
           <select .value=${x(t.shopping_list_entity||"")}
-            @change=${n=>this._updateSetting("shopping_list_entity",n.target.value)}>
+            @change=${a=>this._updateSetting("shopping_list_entity",a.target.value)}>
             <option value="" ?selected=${!t.shopping_list_entity}>${s("shopping_list_none",e)}</option>
-            ${this._todoEntities(t.shopping_list_entity||"").map(n=>r`
-              <option value=${n} ?selected=${t.shopping_list_entity===n}>${n}</option>
+            ${this._todoEntities(t.shopping_list_entity||"").map(a=>r`
+              <option value=${a} ?selected=${t.shopping_list_entity===a}>${a}</option>
             `)}
           </select>
         </label>
@@ -287,7 +301,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
             <span class="setting-label">${s("settings_notify_due_soon",e)}</span>
           </span>
           <input type="checkbox" .checked=${t.due_soon_enabled}
-            @change=${a=>this._updateSetting("notify_due_soon_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("notify_due_soon_enabled",n.target.checked)} />
         </label>
         ${t.due_soon_enabled?r`
           <label class="setting-row sub-row">
@@ -301,7 +315,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
             <span class="setting-label">${s("settings_notify_overdue",e)}</span>
           </span>
           <input type="checkbox" .checked=${t.overdue_enabled}
-            @change=${a=>this._updateSetting("notify_overdue_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("notify_overdue_enabled",n.target.checked)} />
         </label>
         ${t.overdue_enabled?r`
           <label class="setting-row sub-row">
@@ -315,7 +329,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
             <span class="setting-label">${s("settings_notify_triggered",e)}</span>
           </span>
           <input type="checkbox" .checked=${t.triggered_enabled}
-            @change=${a=>this._updateSetting("notify_triggered_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("notify_triggered_enabled",n.target.checked)} />
         </label>
         ${t.triggered_enabled?r`
           <label class="setting-row sub-row">
@@ -327,7 +341,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
         <label class="setting-row">
           <span class="setting-label">${s("settings_quiet_hours",e)}</span>
           <input type="checkbox" .checked=${t.quiet_hours_enabled}
-            @change=${a=>this._updateSetting("quiet_hours_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("quiet_hours_enabled",n.target.checked)} />
         </label>
         ${t.quiet_hours_enabled?r`
           <div class="setting-row sub-row">
@@ -338,7 +352,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               .hass=${this.hass}
               .lang=${e}
               .value=${t.quiet_hours_start}
-              @value-changed=${a=>{let n=a.detail.value;n&&this._updateSetting("quiet_hours_start",n)}}
+              @value-changed=${n=>{let a=n.detail.value;a&&this._updateSetting("quiet_hours_start",a)}}
             ></ms-date-field>
           </div>
           <div class="setting-row sub-row">
@@ -349,7 +363,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               .hass=${this.hass}
               .lang=${e}
               .value=${t.quiet_hours_end}
-              @value-changed=${a=>{let n=a.detail.value;n&&this._updateSetting("quiet_hours_end",n)}}
+              @value-changed=${n=>{let a=n.detail.value;a&&this._updateSetting("quiet_hours_end",a)}}
             ></ms-date-field>
           </div>
         `:c}
@@ -362,7 +376,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
         <label class="setting-row">
           <span class="setting-label">${s("settings_bundling",e)}</span>
           <input type="checkbox" .checked=${t.bundling_enabled}
-            @change=${a=>this._updateSetting("notification_bundling_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("notification_bundling_enabled",n.target.checked)} />
         </label>
         ${t.bundling_enabled?r`
           <label class="setting-row sub-row">
@@ -374,24 +388,24 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
           <span class="setting-label">${s("settings_reminder_leads",e)}</span>
           <input type="text" placeholder="14, 3, 0"
             .value=${(t.reminder_lead_days||[]).join(", ")}
-            @change=${a=>{let n=a.target.value.split(",").map(o=>parseInt(o.trim(),10)).filter(o=>Number.isInteger(o)&&o>=0&&o<=365);this._updateSetting("reminder_lead_days",[...new Set(n)])}} />
+            @change=${n=>{let a=n.target.value.split(",").map(o=>parseInt(o.trim(),10)).filter(o=>Number.isInteger(o)&&o>=0&&o<=365);this._updateSetting("reminder_lead_days",[...new Set(a)])}} />
         </label>
         <div class="setting-hint">${s("settings_reminder_leads_hint",e)}</div>
         <label class="setting-row">
           <span class="setting-label">${s("settings_notify_scope",e)}</span>
           <select
             .value=${x(t.scope_view_id||"")}
-            @change=${a=>this._updateSetting("notify_scope_view_id",a.target.value)}
+            @change=${n=>this._updateSetting("notify_scope_view_id",n.target.value)}
           >
             <option value="" ?selected=${!t.scope_view_id}>${s("settings_notify_scope_all",e)}</option>
-            ${this._savedViews.map(a=>r`<option value=${a.id} ?selected=${t.scope_view_id===a.id}>${a.name}</option>`)}
+            ${this._savedViews.map(n=>r`<option value=${n.id} ?selected=${t.scope_view_id===n.id}>${n.name}</option>`)}
           </select>
         </label>
         <div class="setting-hint">${s("settings_notify_scope_hint",e)}</div>
         <label class="setting-row">
           <span class="setting-label">${s("settings_notify_completed",e)}</span>
           <select class="notify-completed" .value=${x(t.completed||"off")}
-            @change=${a=>this._updateSetting("notify_completed",a.target.value)}>
+            @change=${n=>this._updateSetting("notify_completed",n.target.value)}>
             <option value="off">${s("notify_completed_off",e)}</option>
             <option value="automatic">${s("notify_completed_automatic",e)}</option>
             <option value="all">${s("notify_completed_all",e)}</option>
@@ -405,7 +419,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
         <label class="setting-row">
           <span class="setting-label">${s("settings_notify_event_only",e)}</span>
           <input type="checkbox" .checked=${!!t.event_only}
-            @change=${a=>this._updateSetting("notify_event_only",a.target.checked)} />
+            @change=${n=>this._updateSetting("notify_event_only",n.target.checked)} />
         </label>
         <div class="setting-hint">${s("settings_notify_event_only_hint",e)}</div>
         <label class="setting-row setting-row-block">
@@ -414,7 +428,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
                would snap the DOM back to the stored value mid-typing (#176). -->
           <textarea class="import-area notify-extra" .value=${t.extra_data||""} maxlength="2000" spellcheck="false"
             placeholder=${'{"category": "maintenance", "critical": {{ priority == "high" }}, "navigate_to": "{{ url }}"}'}
-            @change=${a=>this._updateSetting("notify_extra_data",a.target.value)}
+            @change=${n=>this._updateSetting("notify_extra_data",n.target.value)}
           ></textarea>
         </label>
         <div class="setting-hint">${s("settings_notify_extra_data_hint",e)}</div>
@@ -424,17 +438,17 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
         <label class="setting-row">
           <span class="setting-label">${s("settings_action_complete",e)}</span>
           <input type="checkbox" .checked=${i.complete_enabled}
-            @change=${a=>this._updateSetting("action_complete_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("action_complete_enabled",n.target.checked)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_action_skip",e)}</span>
           <input type="checkbox" .checked=${i.skip_enabled}
-            @change=${a=>this._updateSetting("action_skip_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("action_skip_enabled",n.target.checked)} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_action_snooze",e)}</span>
           <input type="checkbox" .checked=${i.snooze_enabled}
-            @change=${a=>this._updateSetting("action_snooze_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("action_snooze_enabled",n.target.checked)} />
         </label>
         ${i.snooze_enabled?r`
           <label class="setting-row sub-row">
@@ -445,13 +459,13 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
         <label class="setting-row">
           <span class="setting-label">${s("settings_weekly_digest",e)}</span>
           <input type="checkbox" .checked=${i.weekly_digest_enabled}
-            @change=${a=>this._updateSetting("weekly_digest_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("weekly_digest_enabled",n.target.checked)} />
         </label>
         <div class="setting-hint">${s("settings_weekly_digest_hint",e)}</div>
         <label class="setting-row">
           <span class="setting-label">${s("settings_warranty_reminder",e)}</span>
           <input type="checkbox" .checked=${i.warranty_reminder_enabled}
-            @change=${a=>this._updateSetting("warranty_reminder_enabled",a.target.checked)} />
+            @change=${n=>this._updateSetting("warranty_reminder_enabled",n.target.checked)} />
         </label>
         ${i.warranty_reminder_enabled?r`
           <label class="setting-row sub-row">
@@ -510,7 +524,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
 
         <label class="vac-toggle">
           <input type="checkbox" .checked=${this._vacEnabled}
-            @change=${a=>this._toggleVacationEnabled(a.target.checked)} />
+            @change=${n=>this._toggleVacationEnabled(n.target.checked)} />
           ${s("vacation_enable",e)}
         </label>
 
@@ -523,7 +537,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               .hass=${this.hass}
               .lang=${e}
               .value=${this._vacStart}
-              @value-changed=${a=>this._setVacationDate("start",a.detail.value)}
+              @value-changed=${n=>this._setVacationDate("start",n.detail.value)}
             ></ms-date-field>
           </div>
           <div class="vac-field">
@@ -534,13 +548,13 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               .hass=${this.hass}
               .lang=${e}
               .value=${this._vacEnd}
-              @value-changed=${a=>this._setVacationDate("end",a.detail.value)}
+              @value-changed=${n=>this._setVacationDate("end",n.detail.value)}
             ></ms-date-field>
           </div>
           <label class="vac-field">
             <span class="filter-label">${s("vacation_buffer",e)}</span>
             <input type="number" min="0" max="14" .value=${String(this._vacBuffer)}
-              @change=${a=>this._setVacationBuffer(parseInt(a.target.value,10)||0)} />
+              @change=${n=>this._setVacationBuffer(parseInt(n.target.value,10)||0)} />
           </label>
         </div>
 
@@ -571,10 +585,10 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               ${s("vacation_end_now",e)}
             </button>`:c}
       </div>
-    `}_renderVacationTaskList(e){let t=new Map;for(let a of this._vacAllTasks){let n=t.get(a.object_name)||[];n.push(a),t.set(a.object_name,n)}return[...t.entries()].sort(([a],[n])=>a.localeCompare(n)).map(([a,n])=>r`
+    `}_renderVacationTaskList(e){let t=new Map;for(let n of this._vacAllTasks){let a=t.get(n.object_name)||[];a.push(n),t.set(n.object_name,a)}return[...t.entries()].sort(([n],[a])=>n.localeCompare(a)).map(([n,a])=>r`
       <div class="vac-task-group">
-        <div class="vac-task-group-name">${a||s("no_objects",e)}</div>
-        ${n.sort((o,h)=>o.task_name.localeCompare(h.task_name)).map(o=>r`
+        <div class="vac-task-group-name">${n||s("no_objects",e)}</div>
+        ${a.sort((o,h)=>o.task_name.localeCompare(h.task_name)).map(o=>r`
             <label class="vac-task-row">
               <input type="checkbox"
                 .checked=${this._vacExempt.has(o.task_id)}
@@ -585,8 +599,8 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
       </div>
     `)}_renderVacationPreview(e){return r`
       <div class="vac-preview-list">
-        ${this._vacPreview.map(t=>{let i=t.events.map(n=>{let o=`vacation_event_${n.status}`;return`${n.date} (${s(o,e)})`}).join(" \xB7 "),a=!t.will_suppress;return r`
-            <div class="vac-preview-row ${a?"exempt":""}">
+        ${this._vacPreview.map(t=>{let i=t.events.map(a=>{let o=`vacation_event_${a.status}`;return`${a.date} (${s(o,e)})`}).join(" \xB7 "),n=!t.will_suppress;return r`
+            <div class="vac-preview-row ${n?"exempt":""}">
               <div class="vac-preview-info">
                 <div class="vac-preview-name">
                   <strong>${t.object_name}</strong> · ${t.task_name}
@@ -597,15 +611,15 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               <div class="vac-preview-actions">
                 <button .disabled=${this._previewBusy} @click=${()=>this._previewActionComplete(t)}>${s("qr_action_complete",e)}</button>
                 ${t.kind==="time_based"&&t.allow_skip!==!1?r`<button .disabled=${this._previewBusy} @click=${()=>this._previewActionSkip(t)}>${s("qr_action_skip",e)}</button>`:c}
-                <button class=${a?"vac-notify-on":""}
-                  @click=${()=>this._toggleVacationExempt(t.task_id,!a)}>
-                  ${a?s("vacation_action_unsilence",e):s("vacation_action_notify",e)}
+                <button class=${n?"vac-notify-on":""}
+                  @click=${()=>this._toggleVacationExempt(t.task_id,!n)}>
+                  ${n?s("vacation_action_unsilence",e):s("vacation_action_notify",e)}
                 </button>
               </div>
             </div>
           `})}
       </div>
-    `}async _loadAllTasksForVacation(){let e=await this._ws({type:"maintenance_supporter/objects"});if(!e)return;let t=[];for(let i of e.objects||[])for(let a of i.tasks||[])t.push({entry_id:i.entry_id,object_name:i.object.name||"",task_id:a.id,task_name:a.name||""});this._vacAllTasks=t}async _saveVacation(e){if(!this._vacSaving){this._vacSaving=!0;try{let t=await this._ws({type:"maintenance_supporter/vacation/update",...e});if(!t)return;this._vacEnabled=t.enabled,this._vacStart=t.start||"",this._vacEnd=t.end||"",this._vacBuffer=t.buffer_days,this._vacExempt=new Set(t.exempt_task_ids||[]),this._vacIsActive=t.is_active,this._vacWindowEnd=t.window_end,this.dispatchEvent(new CustomEvent("settings-changed"))}finally{this._vacSaving=!1}}}_toggleVacationEnabled(e){this._saveVacation({enabled:e})}_setVacationDate(e,t){let i={};i[e]=t||null,this._saveVacation(i)}_setVacationBuffer(e){e<0||e>14||this._saveVacation({buffer_days:e})}_toggleVacationExempt(e,t){let i=new Set(this._vacExempt);t?i.add(e):i.delete(e),this._saveVacation({exempt_task_ids:[...i]})}async _loadVacationPreview(){let e=await this._ws({type:"maintenance_supporter/vacation/preview"},void 0,t=>{this._vacPreviewLoading=t});e&&(this._vacPreview=e.rows||[])}async _previewActionComplete(e){if(!this._previewBusy){this._previewBusy=!0;try{if(await this._ws({type:"maintenance_supporter/task/complete",entry_id:e.entry_id,task_id:e.task_id})===void 0)return;this._showToast(s("vacation_marked_complete",this._lang)),await this._loadVacationPreview()}finally{this._previewBusy=!1}}}async _previewActionSkip(e){if(!this._previewBusy){this._previewBusy=!0;try{if(await this._ws({type:"maintenance_supporter/task/skip",entry_id:e.entry_id,task_id:e.task_id,reason:"Skipped before vacation"})===void 0)return;this._showToast(s("vacation_marked_skip",this._lang)),await this._loadVacationPreview()}finally{this._previewBusy=!1}}}async _endVacationNow(){let e=await this._ws({type:"maintenance_supporter/vacation/end_now"});e&&(this._vacEnabled=e.enabled,this._vacEnd=e.end||"",this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end,this.dispatchEvent(new CustomEvent("settings-changed")),this._showToast(s("vacation_ended",this._lang)))}_renderPrintQr(e){let t=this._qrSelectedEntries.size||this._qrObjects.length,i=this._qrActions.size,a=t*i,n=a>200;return r`
+    `}async _loadAllTasksForVacation(){let e=await this._ws({type:"maintenance_supporter/objects"});if(!e)return;let t=[];for(let i of e.objects||[])for(let n of i.tasks||[])t.push({entry_id:i.entry_id,object_name:i.object.name||"",task_id:n.id,task_name:n.name||""});this._vacAllTasks=t}async _saveVacation(e){if(!this._vacSaving){this._vacSaving=!0;try{let t=await this._ws({type:"maintenance_supporter/vacation/update",...e});if(!t)return;this._vacEnabled=t.enabled,this._vacStart=t.start||"",this._vacEnd=t.end||"",this._vacBuffer=t.buffer_days,this._vacExempt=new Set(t.exempt_task_ids||[]),this._vacIsActive=t.is_active,this._vacWindowEnd=t.window_end,this.dispatchEvent(new CustomEvent("settings-changed"))}finally{this._vacSaving=!1}}}_toggleVacationEnabled(e){this._saveVacation({enabled:e})}_setVacationDate(e,t){let i={};i[e]=t||null,this._saveVacation(i)}_setVacationBuffer(e){e<0||e>14||this._saveVacation({buffer_days:e})}_toggleVacationExempt(e,t){let i=new Set(this._vacExempt);t?i.add(e):i.delete(e),this._saveVacation({exempt_task_ids:[...i]})}async _loadVacationPreview(){let e=await this._ws({type:"maintenance_supporter/vacation/preview"},void 0,t=>{this._vacPreviewLoading=t});e&&(this._vacPreview=e.rows||[])}async _previewActionComplete(e){if(!this._previewBusy){this._previewBusy=!0;try{if(await this._ws({type:"maintenance_supporter/task/complete",entry_id:e.entry_id,task_id:e.task_id})===void 0)return;this._showToast(s("vacation_marked_complete",this._lang)),await this._loadVacationPreview()}finally{this._previewBusy=!1}}}async _previewActionSkip(e){if(!this._previewBusy){this._previewBusy=!0;try{if(await this._ws({type:"maintenance_supporter/task/skip",entry_id:e.entry_id,task_id:e.task_id,reason:"Skipped before vacation"})===void 0)return;this._showToast(s("vacation_marked_skip",this._lang)),await this._loadVacationPreview()}finally{this._previewBusy=!1}}}async _endVacationNow(){let e=await this._ws({type:"maintenance_supporter/vacation/end_now"});e&&(this._vacEnabled=e.enabled,this._vacEnd=e.end||"",this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end,this.dispatchEvent(new CustomEvent("settings-changed")),this._showToast(s("vacation_ended",this._lang)))}_renderPrintQr(e){let t=this._qrSelectedEntries.size||this._qrObjects.length,i=this._qrActions.size,n=t*i,a=n>200;return r`
       <div class="settings-section qr-print-section">
         <h3>${s("qr_print_title",e)}</h3>
         <p class="section-desc">${s("qr_print_desc",e)}</p>
@@ -654,12 +668,12 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               </div>
 
               <div class="qr-filter-group qr-filter-actions">
-                <div class="qr-estimate ${n?"error":""}">
-                  ${s("qr_print_estimate",e)}: <strong>${a}</strong>
-                  ${n?r` — ${s("qr_print_over_limit",e)}`:c}
+                <div class="qr-estimate ${a?"error":""}">
+                  ${s("qr_print_estimate",e)}: <strong>${n}</strong>
+                  ${a?r` — ${s("qr_print_over_limit",e)}`:c}
                 </div>
                 <button
-                  ?disabled=${this._qrBatchLoading||n||i===0}
+                  ?disabled=${this._qrBatchLoading||a||i===0}
                   @click=${this._generateBatch}>
                   ${this._qrBatchLoading?s("qr_print_generating",e):s("qr_print_generate",e)}
                 </button>
@@ -686,7 +700,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
               `:c}
           `:r`<button @click=${this._loadQrObjects}>${s("qr_print_load",e)}</button>`}
       </div>
-    `}async _loadQrObjects(){let e=await this._loadObjectRows();e&&(this._qrObjects=e,this._qrObjectsLoaded=!0)}async _loadObjectRows(){let e=await this._ws({type:"maintenance_supporter/objects"});if(e)return(e.objects||[]).map(t=>({entry_id:t.entry_id,name:t.object.name,task_count:(t.tasks||[]).length})).sort((t,i)=>t.name.localeCompare(i.name))}_toggleQrObject(e,t){let i=new Set(this._qrSelectedEntries);if(i.size===0)for(let a of this._qrObjects)i.add(a.entry_id);t?i.add(e):i.delete(e),i.size===this._qrObjects.length&&i.clear(),this._qrSelectedEntries=i}_toggleQrAction(e,t){let i=new Set(this._qrActions);t?i.add(e):i.delete(e),this._qrActions=i}async _generateBatch(){this._qrBatchLoading=!0,this._qrBatchResults=[];try{let e={type:"maintenance_supporter/qr/batch_generate",actions:[...this._qrActions],url_mode:this._qrUrlMode};this._qrSelectedEntries.size>0&&(e.entry_ids=[...this._qrSelectedEntries]);let t=await this._ws(e);if(!t)return;this._qrBatchResults=t.qrs||[],this._qrBatchResults.length===0&&this._showToast(s("qr_print_empty",this._lang))}finally{this._qrBatchLoading=!1}}_printQrs(){if(this._qrBatchResults.length===0)return;let e=this._lang,t=this._qrBatchResults.map(o=>{let h=s("qr_action_"+o.action,e);return`
+    `}async _loadQrObjects(){let e=await this._loadObjectRows();e&&(this._qrObjects=e,this._qrObjectsLoaded=!0)}async _loadObjectRows(){let e=await this._ws({type:"maintenance_supporter/objects"});if(e)return(e.objects||[]).map(t=>({entry_id:t.entry_id,name:t.object.name,task_count:(t.tasks||[]).length})).sort((t,i)=>t.name.localeCompare(i.name))}_toggleQrObject(e,t){let i=new Set(this._qrSelectedEntries);if(i.size===0)for(let n of this._qrObjects)i.add(n.entry_id);t?i.add(e):i.delete(e),i.size===this._qrObjects.length&&i.clear(),this._qrSelectedEntries=i}_toggleQrAction(e,t){let i=new Set(this._qrActions);t?i.add(e):i.delete(e),this._qrActions=i}async _generateBatch(){this._qrBatchLoading=!0,this._qrBatchResults=[];try{let e={type:"maintenance_supporter/qr/batch_generate",actions:[...this._qrActions],url_mode:this._qrUrlMode};this._qrSelectedEntries.size>0&&(e.entry_ids=[...this._qrSelectedEntries]);let t=await this._ws(e);if(!t)return;this._qrBatchResults=t.qrs||[],this._qrBatchResults.length===0&&this._showToast(s("qr_print_empty",this._lang))}finally{this._qrBatchLoading=!1}}_printQrs(){if(this._qrBatchResults.length===0)return;let e=this._lang,t=this._qrBatchResults.map(o=>{let h=s("qr_action_"+o.action,e);return`
         <div class="cell">
           <div class="qr">${o.svg}</div>
           <div class="label">
@@ -694,7 +708,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
             <div class="task">${this._escapeHtml(o.task_name)}</div>
             <div class="action">${this._escapeHtml(h)}</div>
           </div>
-        </div>`}).join(""),i=s("qr_print_title",e),a=`<!DOCTYPE html>
+        </div>`}).join(""),i=s("qr_print_title",e),n=`<!DOCTYPE html>
 <html lang="${this._escapeHtml(e)}">
 <head>
   <meta charset="utf-8" />
@@ -729,7 +743,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
   <div class="grid">${t}</div>
   <script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 250); });<\/script>
 </body>
-</html>`,n=window.open("","_blank","width=900,height=1100");if(!n){window.print();return}n.document.open(),n.document.write(a),n.document.close()}_escapeHtml(e){return e.replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}_renderImportExport(e){return r`
+</html>`,a=window.open("","_blank","width=900,height=1100");if(!a){window.print();return}a.document.open(),a.document.write(n),a.document.close()}_escapeHtml(e){return e.replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}_renderImportExport(e){return r`
       <div class="settings-section">
         <h3>${s("settings_import_export",e)}</h3>
         <div class="settings-actions">
@@ -790,7 +804,7 @@ import{a as H,c as P}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-A
           </div>
         </div>
       </div>
-    `}get _selectedEntryIds(){return this._exportSelectedEntries.size?[...this._exportSelectedEntries]:void 0}async _loadExportObjects(){let e=await this._loadObjectRows();e&&(this._exportObjects=e,this._exportObjectsLoaded=!0)}_toggleExportObject(e,t){let i=new Set(this._exportSelectedEntries);if(i.size===0)for(let a of this._exportObjects)i.add(a.entry_id);t?i.add(e):i.delete(e),i.size===this._exportObjects.length&&i.clear(),this._exportSelectedEntries=i}async _exportJson(){let e=this._selectedEntryIds,t=await this._ws({type:"maintenance_supporter/export",format:"json",include_history:this._includeHistory,...e?{entry_ids:e}:{}});if(!t)return;let i=k(new Date);this._downloadFile(t.data,`maintenance_export_${i}.json`,"application/json"),this._showToast(s("settings_export_success",this._lang))}async _exportSettings(){let e=await this._ws({type:"maintenance_supporter/settings/export"});if(!e)return;let t=k(new Date);this._downloadFile(e.data,`maintenance_settings_${t}.json`,"application/json"),this._showToast(s("settings_export_success",this._lang))}async _exportYaml(){let e=this._selectedEntryIds,t=await this._ws({type:"maintenance_supporter/export",format:"yaml",include_history:this._includeHistory,...e?{entry_ids:e}:{}});if(!t)return;let i=k(new Date);this._downloadFile(t.data,`maintenance_export_${i}.yaml`,"application/yaml"),this._showToast(s("settings_export_success",this._lang))}async _exportCsv(){let e=this._selectedEntryIds,t=await this._ws({type:"maintenance_supporter/csv/export",...e?{entry_ids:e}:{}});if(!t)return;let i=k(new Date);this._downloadFile(t.csv,`maintenance_export_${i}.csv`,"text/csv"),this._showToast(s("settings_export_success",this._lang))}async _importCsvAction(){let e=this._importCsv.trim();if(!e)return;let t=e.startsWith("object_name"),i=await this._ws(t?{type:"maintenance_supporter/csv/import",csv_content:e}:{type:"maintenance_supporter/json/import",json_content:e},void 0,n=>{this._importLoading=n});if(!i)return;let a=i.created??0;this._showToast(s("settings_import_success",this._lang).replace("{count}",String(a))),this._importCsv="",this.dispatchEvent(new CustomEvent("settings-changed"))}async _exportDocsArchive(){this._docArchiveLoading=!0;try{let e=this._selectedEntryIds,t=e?`?entry_ids=${encodeURIComponent(e.join(","))}`:"",i=await D(this.hass,`/api/maintenance_supporter/documents/archive${t}`);U(i,"maintenance-documents.zip")}catch{this._showToast(s("action_error",this._lang))}this._docArchiveLoading=!1}_triggerDocsArchiveImport(){this.renderRoot.querySelector(".docs-archive-file")?.click()}async _importDocsArchive(e){let t=e.target,i=t.files?.[0];if(i){this._docArchiveLoading=!0;try{let a=new FormData;a.append("file",i,i.name);let n=await fetch("/api/maintenance_supporter/documents/archive",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:a});if(!n.ok)this._showToast(s("action_error",this._lang));else{let o=await n.json();this._showToast(s("settings_docs_import_success",this._lang).replace("{blobs}",String(o.blobs_written??0)).replace("{docs}",String(o.documents_created??0))),this.dispatchEvent(new CustomEvent("settings-changed"))}}catch{this._showToast(s("action_error",this._lang))}t.value="",this._docArchiveLoading=!1}}};l.styles=[N,C`
+    `}get _selectedEntryIds(){return this._exportSelectedEntries.size?[...this._exportSelectedEntries]:void 0}async _loadExportObjects(){let e=await this._loadObjectRows();e&&(this._exportObjects=e,this._exportObjectsLoaded=!0)}_toggleExportObject(e,t){let i=new Set(this._exportSelectedEntries);if(i.size===0)for(let n of this._exportObjects)i.add(n.entry_id);t?i.add(e):i.delete(e),i.size===this._exportObjects.length&&i.clear(),this._exportSelectedEntries=i}async _exportJson(){let e=this._selectedEntryIds,t=await this._ws({type:"maintenance_supporter/export",format:"json",include_history:this._includeHistory,...e?{entry_ids:e}:{}});if(!t)return;let i=k(new Date);this._downloadFile(t.data,`maintenance_export_${i}.json`,"application/json"),this._showToast(s("settings_export_success",this._lang))}async _exportSettings(){let e=await this._ws({type:"maintenance_supporter/settings/export"});if(!e)return;let t=k(new Date);this._downloadFile(e.data,`maintenance_settings_${t}.json`,"application/json"),this._showToast(s("settings_export_success",this._lang))}async _exportYaml(){let e=this._selectedEntryIds,t=await this._ws({type:"maintenance_supporter/export",format:"yaml",include_history:this._includeHistory,...e?{entry_ids:e}:{}});if(!t)return;let i=k(new Date);this._downloadFile(t.data,`maintenance_export_${i}.yaml`,"application/yaml"),this._showToast(s("settings_export_success",this._lang))}async _exportCsv(){let e=this._selectedEntryIds,t=await this._ws({type:"maintenance_supporter/csv/export",...e?{entry_ids:e}:{}});if(!t)return;let i=k(new Date);this._downloadFile(t.csv,`maintenance_export_${i}.csv`,"text/csv"),this._showToast(s("settings_export_success",this._lang))}async _importCsvAction(){let e=this._importCsv.trim();if(!e)return;let t=e.startsWith("object_name"),i=await this._ws(t?{type:"maintenance_supporter/csv/import",csv_content:e}:{type:"maintenance_supporter/json/import",json_content:e},void 0,a=>{this._importLoading=a});if(!i)return;let n=i.created??0;this._showToast(s("settings_import_success",this._lang).replace("{count}",String(n))),this._importCsv="",this.dispatchEvent(new CustomEvent("settings-changed"))}async _exportDocsArchive(){this._docArchiveLoading=!0;try{let e=this._selectedEntryIds,t=e?`?entry_ids=${encodeURIComponent(e.join(","))}`:"",i=await D(this.hass,`/api/maintenance_supporter/documents/archive${t}`);U(i,"maintenance-documents.zip")}catch{this._showToast(s("action_error",this._lang))}this._docArchiveLoading=!1}_triggerDocsArchiveImport(){this.renderRoot.querySelector(".docs-archive-file")?.click()}async _importDocsArchive(e){let t=e.target,i=t.files?.[0];if(i){this._docArchiveLoading=!0;try{let n=new FormData;n.append("file",i,i.name);let a=await fetch("/api/maintenance_supporter/documents/archive",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:n});if(!a.ok)this._showToast(s("action_error",this._lang));else{let o=await a.json();this._showToast(s("settings_docs_import_success",this._lang).replace("{blobs}",String(o.blobs_written??0)).replace("{docs}",String(o.documents_created??0))),this.dispatchEvent(new CustomEvent("settings-changed"))}}catch{this._showToast(s("action_error",this._lang))}t.value="",this._docArchiveLoading=!1}}};l.styles=[N,C`
     .bn-note {
       display: flex; align-items: flex-start; gap: 10px;
       margin: 6px 0 10px; padding: 10px 12px; border-radius: 8px;

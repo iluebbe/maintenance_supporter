@@ -103,7 +103,13 @@ history chart.
 
 ### Object Detail
 Warranty status chip, free-form notes, the documents section (uploaded PDF
-manual + web link), and the object's tasks with assignment badges.
+manual + web link), and the object's tasks with assignment badges. Tasks,
+Documents, Parts & consumables and History each fold behind a chevron
+(2.87+, #179): a collapsed section is not rendered at all — no thumbnails
+load, the page stays short — the choice is remembered per browser for every
+object, and a search hit into a section (a document, a part) or a
+`?entry_id=…&section=documents|parts|history|tasks` link opens that section
+for the visit and scrolls to it.
 
 ![Object Detail](images/object-detail.png)
 
@@ -493,7 +499,15 @@ reorder machinery applies — track how many AA/CR2032/… you keep, and the
 become parts: rechargeable packs and the *Unknown* bucket of typeless native
 batteries are excluded (an "UNKNOWN battery" spare with a reorder threshold
 and a shopping-search buy link for the literal word UNKNOWN helps no one —
-give the battery a Battery Notes note and it gets a proper part). The single task is
+give the battery a Battery Notes note and it gets a proper part). A battery that
+went low **stays low until it recovers** (2.87+, #180): its level must rise above
+*Settings → General → Battery counts as replaced above* (default 50 %) or a
+replacement date must be recorded — so a level that oscillates around the low
+floor no longer flips the fleet task and its auto-completion several times a
+day, and the roster's calendar chip ignores upward jumps that stay below the
+threshold. Recording a replacement through that chip now also consumes the
+battery type's spare cells like the *Replaced* action (once per day, #181).
+The single task is
 triggered by a global `sensor.maintenance_supporter_batteries_to_replace`
 (count of low batteries) via an ordinary threshold trigger — no special-casing,
 and it auto-completes when the count returns to zero.
@@ -686,6 +700,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Shared maintenance & rotation** (2.17+): assign a task to several household members and rotate responsibility on each completion (round-robin / least-completed / random). Since 2.42.1 a rotation task **always carries an effective assignee** (discussion #49): the first pool member is seeded whenever the task is created, edited or imported, a storage migration repaired existing tasks on upgrade, and editing the current assignee out of the pool hands the duty to the next member. Before that, a pool configured without an initial assignee left the task invisible to every user filter (panel, card, calendar card, saved views, per-user notifications) until its first completion
 - **Member avatars** (2.76+, #169): the responsible person appears as initials in a colour of their own — next to Today rows, in the dashboard sub-line, on the task page and in the Lovelace card. Initials and colour derive from the HA user by default; *Settings → Member avatars* lets an admin set initials (1–3 characters) and pick one of twelve palette colours per member, so two "M"s stay tellable apart on a phone where only the avatar fits
 - **Native To-do entity** (2.17+): a global `todo.maintenance` list mirrors every active task; checking an item off completes the task — works with the To-do card and Assist/voice
+- **Mirror a task into your own to-do lists** (2.87+, D#183): the task dialog's *Mirror into to-do lists* takes up to five `todo.*` lists (the children's list, the parents' list, Bring!, a Local To-do …). While the task is due — due soon, overdue or triggered — one item *Object: Task* sits on every chosen list; checking it off in **any** of them completes the task here (completion reason *from a mirrored to-do list*) and removes it from all of them. Completing, skipping, resetting, archiving or pausing in Maintenance Supporter removes the items too, and a row deleted by hand comes back while the task is still due — Maintenance Supporter stays the single source of truth. Its own `todo.maintenance` cannot be a target; a list that does not exist yet is picked up when it appears
 - **Snooze from the panel** (2.17+): the notification snooze is also available in the task ⋮ menu
 - **Virtualized task table** (2.17+): with hundreds of tasks, only the visible window is rendered — large installs stay snappy
 - **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations
@@ -828,7 +843,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 95 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 96 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -921,7 +936,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (95 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (96 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

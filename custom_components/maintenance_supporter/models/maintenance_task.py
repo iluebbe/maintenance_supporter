@@ -80,6 +80,10 @@ class MaintenanceTask:
     nfc_tag_id: str | None = None
     priority: str = "normal"
     labels: list[str] = field(default_factory=list)
+    # D#183: external ``todo.*`` lists the task is mirrored into while due
+    # (helpers/todo_mirror.py). Static config; the row bookkeeping lives in
+    # the Store under ``todo_mirror``.
+    mirror_todo_entities: list[str] = field(default_factory=list)
     # --- Meter readings (v2.20, #83) ---
     # Display unit for the recorded value of a `reading`-type task ("kWh",
     # "m³", …). The value itself lives per completion in the history entry
@@ -651,6 +655,8 @@ class MaintenanceTask:
             data["priority"] = self.priority
         if self.labels:
             data["labels"] = self.labels
+        if self.mirror_todo_entities:
+            data["mirror_todo_entities"] = self.mirror_todo_entities
         if self.earliest_completion_days is not None:
             data["earliest_completion_days"] = self.earliest_completion_days
         if self.ref_no is not None:
@@ -720,6 +726,7 @@ class MaintenanceTask:
             readings=data.get("readings") or [],
             priority=data.get("priority", "normal"),
             labels=data.get("labels", []),
+            mirror_todo_entities=list(data.get("mirror_todo_entities") or []),
             archived_at=data.get("archived_at"),
             archived_reason=data.get("archived_reason"),
             responsible_user_id=data.get("responsible_user_id"),

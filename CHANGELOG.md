@@ -2,6 +2,36 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Mirror a task into your own to-do lists** (D#183): the task dialog's *Mirror into to-do lists* takes up to five
+  `todo.*` lists. While the task is due, one item *Object: Task* sits on every list; checking it off in any of them
+  completes the task here (completion reason *from a mirrored to-do list*, event source `todo_mirror`) and removes it
+  from all of them; completing, skipping, resetting, archiving, pausing or deleting the task here removes the items
+  too. A row deleted by hand comes back while the task is still due — Maintenance Supporter stays the single source of
+  truth. Carried by the JSON backup.
+- **Collapsible sections on the object page** (#179): Tasks, Documents, Parts & consumables and History fold behind a
+  chevron. A collapsed section is not rendered at all (no thumbnails load, the page stays short), the choice is
+  remembered per browser for every object, and a search hit into a section (a document, a part) or a
+  `?entry_id=…&section=documents|parts|history|tasks` link opens that section for the visit and scrolls to it.
+- **Battery recovery threshold** (#180, setting `battery_recovered_percent`, default 50 %): a battery that went low stays
+  low — in *Needs now*, the low-count sensor and the fleet task — until its level rises above the threshold or a
+  replacement date is recorded. A level that oscillates around the low floor no longer flips the fleet task and its
+  auto-completion several times a day; the roster's calendar chip ignores upward jumps that stay below the threshold.
+- **Shopping search by country** (D#182): the spare-parts search link follows the HA country first (DE/AT/CH → amazon.de,
+  FR, IT, ES, NL/BE, PL, SE, TR, BR, GB/UK/IE, CA, AU, JP, IN, MX, US), then the UI language; and
+  `part_search_url_template` is user-settable now — Settings → General → *Shopping search URL* and the Configure dialog
+  (must contain `{q}`; blank = automatic). `battery_low_percent` joined the Configure dialog as well.
+
+### 🐛 Fixed
+
+- **Recording a battery replacement through the roster's calendar chip did not touch the inventory** (#181): the chip
+  now goes through `battery_fleet/record_replacement` (96 WS commands), which records the date in Battery Notes AND
+  consumes the battery type's spare cells like the *Replaced* action does — once per day, so a repeated tap cannot
+  restock twice.
+
 ## [2.86.0] - 2026-09-13
 
 ### ✨ Added

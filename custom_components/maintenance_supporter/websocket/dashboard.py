@@ -31,6 +31,7 @@ from ..const import (
     CONF_ARCHIVE_ONEOFF_DAYS,
     CONF_BATTERY_LIFETIME_MONTHS,
     CONF_BATTERY_LOW_PERCENT,
+    CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
@@ -63,6 +64,7 @@ from ..const import (
     CONF_OPERATOR_WRITE_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
+    CONF_PART_SEARCH_URL_TEMPLATE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -154,12 +156,22 @@ def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
         return []
 
 
+def _search_url_default(hass: HomeAssistant) -> str:
+    """The shopping-search template in effect when none is set (D#182:
+    country first, UI language second) — the Settings input's placeholder."""
+    from ..helpers.i18n import normalize_language
+    from ..helpers.parts import default_search_template
+
+    return default_search_template(normalize_language(hass), hass.config.country)
+
+
 def _build_full_settings(
     options: Mapping[str, Any],
     *,
     notify_targets: list[str] | None = None,
     battery_notes: dict[str, Any] | None = None,
     battery_lifetimes: list[dict[str, Any]] | None = None,
+    part_search_url_default: str = "",
 ) -> dict[str, Any]:
     """Build a full settings dict from global entry options.
 
@@ -167,6 +179,8 @@ def _build_full_settings(
     ``helpers/notify_targets.build_notify_targets``) surfaced under
     ``general.notify_targets`` so the panel picker uses the exact same set as
     the options flow instead of recomputing it client-side.
+    ``part_search_url_default`` is the computed built-in search template
+    (:func:`_search_url_default`), never stored.
     """
     # Every fallback below is the registry default (settings_registry) via
     # _opt — tests/test_settings_defaults.py pins the echo to that table.
@@ -207,6 +221,12 @@ def _build_full_settings(
             # #146: household "low" floors for discovery + the battery fleet.
             "default_consumable_threshold": _opt(options, CONF_DEFAULT_CONSUMABLE_THRESHOLD),
             "battery_low_percent": _opt(options, CONF_BATTERY_LOW_PERCENT),
+            # #180: a low battery counts as replaced only above this level.
+            "battery_recovered_percent": _opt(options, CONF_BATTERY_RECOVERED_PERCENT),
+            # D#182: shopping-search template ("" = automatic) + the automatic
+            # value in effect (computed: country, then UI language).
+            "part_search_url_template": _opt(options, CONF_PART_SEARCH_URL_TEMPLATE),
+            "part_search_url_default": part_search_url_default,
             # D#162 follow-up: the household's per-type lifetime overrides and,
             # computed by the caller, the effective lifetime catalog Settings
             # renders (type, months, source: override / learned / table / default).
@@ -311,7 +331,13 @@ async def ws_get_settings(
     if global_entry is None:
         connection.send_result(
             msg["id"],
-            _build_full_settings({}, notify_targets=build_notify_targets(hass), battery_notes=bn, battery_lifetimes=_battery_lifetime_catalog(hass)),
+            _build_full_settings(
+                {},
+                notify_targets=build_notify_targets(hass),
+                battery_notes=bn,
+                battery_lifetimes=_battery_lifetime_catalog(hass),
+                part_search_url_default=_search_url_default(hass),
+            ),
         )
         return
 
@@ -323,6 +349,7 @@ async def ws_get_settings(
             notify_targets=build_notify_targets(hass, current=options.get(CONF_NOTIFY_SERVICE, "")),
             battery_notes=bn,
             battery_lifetimes=_battery_lifetime_catalog(hass),
+            part_search_url_default=_search_url_default(hass),
         ),
     )
 
@@ -821,6 +848,17 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             return filtered, "invalid_shopping_list_entity"
         filtered[CONF_SHOPPING_LIST_ENTITY] = raw_ent
 
+    # D#182: the shopping-search template — "" clears (automatic by country /
+    # language); anything else must be an http(s) URL WITH the {q} placeholder,
+    # or the search would open the same page for every part.
+    if CONF_PART_SEARCH_URL_TEMPLATE in filtered:
+        from ..helpers.parts import valid_search_template
+
+        raw_tpl = (filtered[CONF_PART_SEARCH_URL_TEMPLATE] or "").strip()
+        if raw_tpl and not valid_search_template(raw_tpl):
+            return filtered, "invalid_search_template"
+        filtered[CONF_PART_SEARCH_URL_TEMPLATE] = raw_tpl
+
     # Validate notify_service if provided
     if CONF_NOTIFY_SERVICE in filtered:
         from ..config_flow_options_global import validate_notify_service
@@ -861,7 +899,7 @@ async def ws_update_global_settings(
 
     filtered, notify_error = sanitize_settings_input(settings_input)
     if notify_error:
-        connection.send_error(msg["id"], notify_error, f"Invalid notify service: {notify_error}")
+        connection.send_error(msg["id"], notify_error, f"Invalid setting value: {notify_error}")
         return
     if not filtered:
         connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")
@@ -880,6 +918,7 @@ async def ws_update_global_settings(
             merged,
             notify_targets=build_notify_targets(hass, current=merged.get(CONF_NOTIFY_SERVICE, "")),
             battery_lifetimes=_battery_lifetime_catalog(hass),
+            part_search_url_default=_search_url_default(hass),
         ),
     )
 

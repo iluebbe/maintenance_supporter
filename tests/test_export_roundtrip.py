@@ -77,6 +77,8 @@ FULL_TASK = {
     "ref_no": 7,
     "priority": "high",
     "labels": ["alpha", "beta"],
+    # D#183: mirror targets — config, so the JSON backup carries them.
+    "mirror_todo_entities": ["todo.family", "todo.kids"],
     "checklist": ["step1", "step2"],
     "schedule_time": "07:30",
     "entity_slug": "full_field_probe",
@@ -474,6 +476,7 @@ _CSV_TASK_EXCLUDED = {
     "allow_skip",  # skip lock (#150) - JSON backup carries it
     "notify_enabled",  # per-task mute (#173) - JSON backup carries it
     "entity_slug",  # instance-specific entity naming
+    "mirror_todo_entities",  # D#183 to-do entity ids (instance-specific; JSON backup carries them)
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
     # #139: nested defs + cycle + Store cursor — structured state that doesn't
     # fit a flat cell; the JSON backup round-trips all three.

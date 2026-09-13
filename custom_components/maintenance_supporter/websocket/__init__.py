@@ -266,6 +266,8 @@ def _build_task_summary(
         # dialog prefill what was already done.
         "checklist_progress": task_data.get("checklist_progress", {}),
         "labels": task_data.get("labels", []),
+        # D#183: external to-do lists the task is mirrored into while due.
+        "mirror_todo_entities": task_data.get("mirror_todo_entities", []),
         # Payload diet (perf, 2026-08): the LIST response carries only the
         # most recent entries — at 150+ tasks the full histories dominated
         # the `objects` payload (407 KB measured at just 8 entries/task) and
@@ -395,7 +397,7 @@ def _build_object_response(
                 **part,
                 "stock": stock,
                 "is_low": part_is_low(part, stock),
-                "shopping_url": resolve_shopping_url(part, search_template, lang),
+                "shopping_url": resolve_shopping_url(part, search_template, lang, hass.config.country),
             }
         )
 
@@ -692,6 +694,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_battery_fleet_history,
         ws_battery_fleet_mark_replaced,
         ws_battery_fleet_overview,
+        ws_battery_fleet_record_replacement,
         ws_battery_fleet_set_due_without_sensor,
         ws_battery_fleet_set_excluded,
         ws_battery_fleet_set_included,
@@ -856,6 +859,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_battery_fleet_status)
     websocket_api.async_register_command(hass, ws_battery_fleet_setup)
     websocket_api.async_register_command(hass, ws_battery_fleet_mark_replaced)
+    websocket_api.async_register_command(hass, ws_battery_fleet_record_replacement)
     websocket_api.async_register_command(hass, ws_battery_fleet_set_excluded)
     websocket_api.async_register_command(hass, ws_battery_fleet_set_included)
     websocket_api.async_register_command(hass, ws_battery_fleet_set_track_self_charging)

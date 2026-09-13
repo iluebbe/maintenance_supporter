@@ -570,8 +570,11 @@
           "notify_service": "Služba oznámení",
           "panel_enabled": "Zobrazit boční panel",
           "currency_decimals": "Desetinná místa částek",
+          "battery_low_percent": "Práh „baterie slabá“ (%)",
+          "battery_recovered_percent": "Baterie se považuje za vyměněnou nad (%)",
           "panel_title": "Název panelu v postranním panelu",
-          "shopping_list_entity": "Nákupní seznam pro synchronizaci nákupních úkolů"
+          "shopping_list_entity": "Nákupní seznam pro synchronizaci nákupních úkolů",
+          "part_search_url_template": "Odkaz pro vyhledávání nákupu"
         },
         "data_description": {
           "default_warning_days": "Počet dní před termínem úkolu údržby pro zobrazení upozornění.",
@@ -579,8 +582,11 @@
           "notify_service": "Služba oznámení, kterou použít (např. notify.mobile_app_phone).",
           "panel_enabled": "Zobrazit panel Maintenance Supporter v bočním panelu.",
           "currency_decimals": "Kolik desetinných míst zobrazuje každá částka — KPI, rozpočty, náklady v seznamech a sestavách, rozpočtová upozornění. 0 = celá čísla.",
+          "battery_low_percent": "Spodní hranice pro celou flotilu: baterie na této úrovni nebo pod ní se počítá jako slabá, pokud není její práh v Battery Notes vyšší.",
+          "battery_recovered_percent": "Slabá baterie se počítá jako slabá, dokud její stav nevystoupí nad tuto hodnotu nebo není zaznamenána výměna — stav kolísající kolem prahu tak nedokončuje úlohu flotily stále dokola.",
           "panel_title": "Vlastní název pro položku v postranním panelu. Ponechte prázdné pro \"Maintenance\". Užitečné pro odlišení od vestavěného přehledu Maintenance v Home Assistantu.",
-          "shopping_list_entity": "Automatická upozornění na nákup docházejících dílů se objeví v tomto seznamu úkolů; odškrtnutí dokončí upozornění a doplní zásobu. Ponechte prázdné pro vypnutí."
+          "shopping_list_entity": "Automatická upozornění na nákup docházejících dílů se objeví v tomto seznamu úkolů; odškrtnutí dokončí upozornění a doplní zásobu. Ponechte prázdné pro vypnutí.",
+          "part_search_url_template": "URL s {q} místo hledaných výrazů, pro díly bez odkazu na produkt. Ponechte prázdné pro automatický obchod (podle země, jinak podle jazyka)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Neplatný formát služby oznámení. Použijte „notify.service_name“ (např. notify.mobile_app_phone).",
       "notify_service_not_found": "Tato služba oznámení nebyla v Home Assistant nalezena. Ověřte název služby.",
       "nfc_tag_duplicate": "Tento NFC tag je již spojen s jiným úkolem.",
-      "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…)."
+      "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…).",
+      "invalid_search_template": "Odkaz pro vyhledávání musí být URL http(s) obsahující {q}."
     }
   },
   "entity": {

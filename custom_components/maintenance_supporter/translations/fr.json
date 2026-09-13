@@ -570,8 +570,11 @@
           "notify_service": "Service de notification",
           "panel_enabled": "Afficher le panneau dans la barre latérale",
           "currency_decimals": "Décimales des montants",
+          "battery_low_percent": "Seuil « pile faible » (%)",
+          "battery_recovered_percent": "Pile considérée remplacée au-dessus de (%)",
           "panel_title": "Titre du panneau latéral",
-          "shopping_list_entity": "Liste de courses pour synchroniser les tâches d’achat"
+          "shopping_list_entity": "Liste de courses pour synchroniser les tâches d’achat",
+          "part_search_url_template": "Lien de recherche d'achat"
         },
         "data_description": {
           "default_warning_days": "Nombre de jours avant l'échéance d'une tâche de maintenance pour afficher un avertissement.",
@@ -579,8 +582,11 @@
           "notify_service": "Le service de notification à utiliser (ex. : notify.mobile_app_phone).",
           "panel_enabled": "Afficher un panneau Maintenance Supporter dans la barre latérale.",
           "currency_decimals": "Nombre de décimales affichées pour chaque montant — indicateurs, budgets, coûts dans les listes et rapports, alertes budget. 0 = nombres entiers.",
+          "battery_low_percent": "Plancher pour tout le parc : une pile à ce niveau ou en dessous compte comme faible, sauf si son seuil Battery Notes est plus élevé.",
+          "battery_recovered_percent": "Une pile faible reste comptée comme faible tant que son niveau ne dépasse pas cette valeur ou qu'un remplacement n'est pas enregistré — un niveau qui oscille autour du seuil ne peut ainsi plus terminer la tâche du parc encore et encore.",
           "panel_title": "Nom personnalisé pour l'entrée de la barre latérale. Laissez vide pour utiliser « Maintenance ». Utile pour éviter la confusion avec le tableau de bord Maintenance intégré de Home Assistant.",
-          "shopping_list_entity": "Les rappels d’achat automatiques pour les pièces en rupture apparaissent dans cette liste de tâches ; cocher un élément termine le rappel et réapprovisionne la pièce. Laisser vide pour désactiver."
+          "shopping_list_entity": "Les rappels d’achat automatiques pour les pièces en rupture apparaissent dans cette liste de tâches ; cocher un élément termine le rappel et réapprovisionne la pièce. Laisser vide pour désactiver.",
+          "part_search_url_template": "URL avec {q} à la place des termes de recherche, utilisée pour les pièces sans lien produit. Laisser vide pour la boutique automatique (selon le pays, sinon la langue)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Format du service de notification invalide. Utilisez 'notify.nom_du_service' (ex. : notify.mobile_app_phone).",
       "notify_service_not_found": "Ce service de notification n'a pas été trouvé dans Home Assistant. Veuillez vérifier le nom du service.",
       "nfc_tag_duplicate": "Ce tag NFC est déjà lié à une autre tâche.",
-      "invalid_shopping_list_entity": "La liste de courses doit être une entité de tâches (todo.…)."
+      "invalid_shopping_list_entity": "La liste de courses doit être une entité de tâches (todo.…).",
+      "invalid_search_template": "Le lien de recherche doit être une URL http(s) contenant {q}."
     }
   },
   "entity": {

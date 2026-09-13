@@ -24,6 +24,7 @@ _EXPECTED_INT_RANGES = {
     "default_warning_days": (0, 365),  # 0 = no warning window (#145)
     "default_consumable_threshold": (1, 90),
     "battery_low_percent": (1, 90),
+    "battery_recovered_percent": (20, 100),  # #180 fleet hysteresis
     "max_notifications_per_day": (0, 1000),
     "notify_due_soon_interval_hours": (0, 720),
     "notify_overdue_interval_hours": (0, 720),
@@ -50,6 +51,7 @@ _EXPECTED_STR_MAX_LENGTHS = {
     "notify_extra_data": 2000,  # #165 extra-data template
     "notify_completed": 16,  # #173 follow-up: off | automatic | all
     "row_action_style": 32,
+    "part_search_url_template": 500,  # D#182 user-settable shopping search
 }
 
 
@@ -66,14 +68,15 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 58 writable settings, each mapped to a concrete Python type
+    # 62 writable settings, each mapped to a concrete Python type
     # (#169 follow-up added the dict-typed member_display; #165 the two
-    # notification-hook settings).
-    assert len(ALLOWED_SETTING_KEYS) == 60
+    # notification-hook settings; #180 battery_recovered_percent; D#182
+    # part_search_url_template).
+    assert len(ALLOWED_SETTING_KEYS) == 62
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 60
+    assert len(keys) == len(set(keys)) == 62
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

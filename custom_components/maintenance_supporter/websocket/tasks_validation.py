@@ -80,6 +80,32 @@ def _check_nfc_tag_duplicate(hass: HomeAssistant, nfc_tag_id: str, exclude_task_
 
 
 # ---------------------------------------------------------------------------
+# To-do mirror targets (D#183)
+# ---------------------------------------------------------------------------
+
+
+def _mirror_todo_error(hass: HomeAssistant, entity_ids: list[str]) -> str | None:
+    """Refuse Maintenance Supporter's OWN to-do lists as mirror targets.
+
+    They only support updating rows (no create/delete), so ``todo.add_item``
+    would fail on every refresh — and a task mirrored into the list that
+    already shows it is circular. Returns the error text, or None when every
+    id is acceptable (unknown / not-yet-loaded lists are fine: the mirror
+    self-heals when they appear).
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    from ..const import DOMAIN
+
+    registry = er.async_get(hass)
+    for eid in entity_ids:
+        reg_entry = registry.async_get(eid)
+        if reg_entry is not None and reg_entry.platform == DOMAIN:
+            return f"{eid} is a Maintenance Supporter list — a task cannot be mirrored into its own integration's list"
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Trigger config validation
 # ---------------------------------------------------------------------------
 

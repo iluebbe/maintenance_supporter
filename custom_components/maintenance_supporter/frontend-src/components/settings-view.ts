@@ -54,6 +54,11 @@ interface SettingsResponse {
     /** #146: household "low" floors (percent) for discovery + battery fleet. */
     default_consumable_threshold?: number;
     battery_low_percent?: number;
+    /** #180: a low battery counts as replaced only once its level is above this. */
+    battery_recovered_percent?: number;
+    /** D#182: shopping-search URL with {q} ("" = automatic) + the automatic value in effect. */
+    part_search_url_template?: string;
+    part_search_url_default?: string;
     /** D#162 follow-up: per-type lifetime overrides + the computed catalog. */
     battery_lifetime_months?: Record<string, number>;
     battery_lifetimes?: {
@@ -860,9 +865,23 @@ export class MaintenanceSettingsView extends LitElement {
           <span class="setting-label">${t("settings_battery_low_percent", L)}</span>
           ${this._intSetting("battery_low_percent", g.battery_low_percent ?? 20)}
         </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_battery_recovered_percent", L)}</span>
+          ${this._intSetting("battery_recovered_percent", g.battery_recovered_percent ?? 50)}
+        </label>
+        <div class="setting-hint">${t("settings_battery_recovered_percent_hint", L)}</div>
         ${this._renderBatteryNotesHint(L)}
         ${this._renderBatteryLifetimes(L)}
         <div class="setting-hint">${t("settings_thresholds_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_part_search_url", L)}</span>
+          <!-- D#182: no live() — same typed-input rule as the numbers above; the
+               placeholder shows the automatic template (country, then language). -->
+          <input type="url" class="part-search-url" .value=${g.part_search_url_template ?? ""}
+            placeholder=${g.part_search_url_default ?? ""}
+            @change=${(e: Event) => this._updateSetting("part_search_url_template", (e.target as HTMLInputElement).value.trim())} />
+        </label>
+        <div class="setting-hint">${t("settings_part_search_url_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_row_actions", L)}</span>
           <select .value=${live(g.row_action_style || "buttons_compact")}

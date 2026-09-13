@@ -481,7 +481,22 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._todo_entity is not None and self._todo_entity.hass is not None:
             self._todo_entity.refresh()
 
+        # D#183: mirror the due tasks into their external to-do lists (a
+        # no-op unless a task names one).
+        await self._async_sync_todo_mirror(result[CONF_TASKS])
+
         return result
+
+    async def _async_sync_todo_mirror(self, task_results: dict[str, Any]) -> None:
+        """Hand this refresh's results to the to-do mirror (helpers/todo_mirror)."""
+        from .helpers.todo_mirror import TODO_MIRROR_KEY
+
+        mirror = self.hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
+        if mirror is None:
+            return
+        await mirror.async_sync_entry(
+            self.entry.entry_id, task_results, store=self._store, object_name=self.maintenance_object.name
+        )
 
     async def _evaluate_trigger_fallback(self, task: MaintenanceTask, task_id: str) -> None:
         """Evaluate trigger state as fallback (main evaluation is event-driven).

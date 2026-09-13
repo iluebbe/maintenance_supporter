@@ -570,8 +570,11 @@
           "notify_service": "Ilmoituspalvelu",
           "panel_enabled": "Näytä sivupalkin paneeli",
           "currency_decimals": "Summien desimaalit",
+          "battery_low_percent": "Kynnys „paristo vähissä“ (%)",
+          "battery_recovered_percent": "Paristo lasketaan vaihdetuksi yli (%)",
           "panel_title": "Sivupalkin paneelin otsikko",
-          "shopping_list_entity": "Ostoslista, johon ostotehtävät synkronoidaan"
+          "shopping_list_entity": "Ostoslista, johon ostotehtävät synkronoidaan",
+          "part_search_url_template": "Ostohaun linkki"
         },
         "data_description": {
           "default_warning_days": "Montako päivää ennen huoltotehtävän eräpäivää varoitus näytetään.",
@@ -579,8 +582,11 @@
           "notify_service": "Käytettävä ilmoituspalvelu (esim. notify.mobile_app_phone).",
           "panel_enabled": "Näytä Maintenance Supporter -paneeli sivupalkissa.",
           "currency_decimals": "Montako desimaalia jokainen summa näyttää — tunnusluvut, budjetit, kustannukset listoissa ja raporteissa, budjettihälytykset. 0 = kokonaisluvut.",
+          "battery_low_percent": "Koko laivaston alaraja: tällä tasolla tai sen alla oleva paristo lasketaan vähissä olevaksi, ellei sen Battery Notes -kynnys ole korkeampi.",
+          "battery_recovered_percent": "Vähissä oleva paristo lasketaan vähissä olevaksi, kunnes sen taso nousee tämän arvon yli tai vaihto kirjataan — näin kynnyksen ympärillä heilahteleva taso ei suorita laivastotehtävää yhä uudelleen.",
           "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi.",
-          "shopping_list_entity": "Automaattiset ostomuistutukset vähiin käyneistä osista ilmestyvät tähän tehtäväluetteloon; kuittaus suorittaa muistutuksen ja täydentää varaston. Jätä tyhjäksi poistaaksesi käytöstä."
+          "shopping_list_entity": "Automaattiset ostomuistutukset vähiin käyneistä osista ilmestyvät tähän tehtäväluetteloon; kuittaus suorittaa muistutuksen ja täydentää varaston. Jätä tyhjäksi poistaaksesi käytöstä.",
+          "part_search_url_template": "URL, jossa {q} korvaa hakusanat, osille ilman tuotelinkkiä. Jätä tyhjäksi, niin kauppa valitaan automaattisesti (maan, muuten kielen mukaan)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Virheellinen ilmoituspalvelun muoto. Käytä muotoa 'notify.service_name' (esim. notify.mobile_app_phone).",
       "notify_service_not_found": "Tätä ilmoituspalvelua ei löytynyt Home Assistantista. Tarkista palvelun nimi.",
       "nfc_tag_duplicate": "Tämä NFC-tunniste on jo liitetty toiseen tehtävään.",
-      "invalid_shopping_list_entity": "Ostoslistan on oltava tehtäväentiteetti (todo.…)."
+      "invalid_shopping_list_entity": "Ostoslistan on oltava tehtäväentiteetti (todo.…).",
+      "invalid_search_template": "Hakulinkin on oltava http(s)-URL, joka sisältää {q}."
     }
   },
   "entity": {

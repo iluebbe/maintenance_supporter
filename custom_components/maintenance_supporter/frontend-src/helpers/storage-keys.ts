@@ -8,6 +8,9 @@
  */
 
 export const LS_KEYS = {
+  /** #179: object-page sections the user folded away (JSON list of section
+   *  ids: tasks | documents | parts | history) — one setting for every object. */
+  objectSections: "msp-object-sections",
   /** #170: service-booklet print options (layout + include switches). */
   printOptions: "msp-print-options",
   /** D#162: the battery roster starts open; a deliberate collapse is remembered. */

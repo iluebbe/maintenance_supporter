@@ -58,6 +58,10 @@
   ],
   "last_performed": "2026-06-01",
   "last_planned_due": null,
+  "mirror_todo_entities": [
+    "todo.family",
+    "todo.kids"
+  ],
   "name": "Contract Fixture Task",
   "next_due": null,
   "nfc_tag_id": "contract-nfc-1",

@@ -206,6 +206,15 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     if lb is not None:
         task_data["labels"] = sanitize_labels(lb)
 
+    # D#183: mirror targets — todo.* ids only, deduped, capped; an empty
+    # result drops the key (absence = mirroring off).
+    if task_data.get("mirror_todo_entities") is not None:
+        mirrors = sanitize_mirror_todo_entities(task_data["mirror_todo_entities"])
+        if mirrors:
+            task_data["mirror_todo_entities"] = mirrors
+        else:
+            task_data.pop("mirror_todo_entities", None)
+
     if task_data.get("assignee_pool") is not None:
         task_data["assignee_pool"] = sanitize_assignee_pool(task_data["assignee_pool"])
 
@@ -266,6 +275,28 @@ def sanitize_labels(value: object) -> list[str]:
             seen.add(v)
             out.append(v)
     return out[:MAX_LABELS]
+
+
+def sanitize_mirror_todo_entities(value: object) -> list[str]:
+    """Clean a mirror-target list (D#183): ``todo.*`` entity ids only,
+    trimmed, deduped, at most ``MAX_MIRROR_TODO_LISTS``."""
+    if not isinstance(value, list):
+        return []
+    import re
+
+    from ..const import MAX_MIRROR_TODO_LISTS, MIRROR_TODO_ENTITY_PATTERN
+
+    pattern = re.compile(MIRROR_TODO_ENTITY_PATTERN)
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            continue
+        v = item.strip()
+        if v and v not in seen and pattern.fullmatch(v):
+            seen.add(v)
+            out.append(v)
+    return out[:MAX_MIRROR_TODO_LISTS]
 
 
 def seed_rotation_assignee(task_data: dict[str, Any]) -> None:

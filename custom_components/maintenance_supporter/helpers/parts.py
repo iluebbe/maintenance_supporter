@@ -84,14 +84,42 @@ _BUY_NAME_TEMPLATES = {
     "tr": "{name} satın al",
 }
 
-# Default shopping-search templates by UI language (the "Amazon as fallback"
-# decision); overridable via the global ``part_search_url_template`` setting.
+# Default shopping-search templates (the "Amazon as fallback" decision);
+# overridable via the global ``part_search_url_template`` setting. D#182: the
+# HA COUNTRY decides first (an English UI in Germany shops at amazon.de); the
+# UI language is the fallback while the country is unset.
+_COUNTRY_SEARCH_TEMPLATES = {
+    "DE": "https://www.amazon.de/s?k={q}",
+    "AT": "https://www.amazon.de/s?k={q}",
+    "CH": "https://www.amazon.de/s?k={q}",
+    "FR": "https://www.amazon.fr/s?k={q}",
+    "IT": "https://www.amazon.it/s?k={q}",
+    "ES": "https://www.amazon.es/s?k={q}",
+    "NL": "https://www.amazon.nl/s?k={q}",
+    "BE": "https://www.amazon.nl/s?k={q}",
+    "PL": "https://www.amazon.pl/s?k={q}",
+    "SE": "https://www.amazon.se/s?k={q}",
+    "TR": "https://www.amazon.com.tr/s?k={q}",
+    "BR": "https://www.amazon.com.br/s?k={q}",
+    "GB": "https://www.amazon.co.uk/s?k={q}",
+    "UK": "https://www.amazon.co.uk/s?k={q}",
+    "IE": "https://www.amazon.co.uk/s?k={q}",
+    "CA": "https://www.amazon.ca/s?k={q}",
+    "AU": "https://www.amazon.com.au/s?k={q}",
+    "JP": "https://www.amazon.co.jp/s?k={q}",
+    "IN": "https://www.amazon.in/s?k={q}",
+    "MX": "https://www.amazon.com.mx/s?k={q}",
+    "US": "https://www.amazon.com/s?k={q}",
+}
 _DEFAULT_SEARCH_TEMPLATES = {
     "de": "https://www.amazon.de/s?k={q}",
     "fr": "https://www.amazon.fr/s?k={q}",
     "it": "https://www.amazon.it/s?k={q}",
     "es": "https://www.amazon.es/s?k={q}",
     "nl": "https://www.amazon.nl/s?k={q}",
+    "pl": "https://www.amazon.pl/s?k={q}",
+    "sv": "https://www.amazon.se/s?k={q}",
+    "ja": "https://www.amazon.co.jp/s?k={q}",
     "pt-br": "https://www.amazon.com.br/s?k={q}",
     "tr": "https://www.amazon.com.tr/s?k={q}",
 }
@@ -315,10 +343,23 @@ def stock_transition(part: Mapping[str, Any], old: float | None, new: float | No
 # ── Shopping-search URL ──────────────────────────────────────────────────────
 
 
-def default_search_template(lang: str) -> str:
+def default_search_template(lang: str, country: str | None = None) -> str:
+    """The built-in shopping-search template: the HA country's Amazon store
+    when the country is set and known (D#182), else the UI language's, else
+    amazon.com."""
     from .i18n import normalize_language_code
 
+    code = str(country or "").strip().upper()
+    if code in _COUNTRY_SEARCH_TEMPLATES:
+        return _COUNTRY_SEARCH_TEMPLATES[code]
     return _DEFAULT_SEARCH_TEMPLATES.get(normalize_language_code(lang), _FALLBACK_SEARCH_TEMPLATE)
+
+
+def valid_search_template(template: Any) -> bool:
+    """Whether a user-supplied search template is usable: an http(s) URL
+    carrying the ``{q}`` placeholder (the sanitiser's rule; "" = automatic)."""
+    s = str(template or "").strip()
+    return bool(s) and len(s) <= MAX_PART_URL and bool(re.match(r"^https?://", s)) and "{q}" in s
 
 
 def search_query(part: Mapping[str, Any]) -> str:
@@ -332,11 +373,12 @@ def search_query(part: Mapping[str, Any]) -> str:
     return str(part.get("name") or "")
 
 
-def resolve_shopping_url(part: Mapping[str, Any], template: str | None, lang: str) -> str:
-    """The link to buy this part: ``product_url`` wins; else the search template."""
+def resolve_shopping_url(part: Mapping[str, Any], template: str | None, lang: str, country: str | None = None) -> str:
+    """The link to buy this part: ``product_url`` wins; else the search
+    template — the explicit one, or the default by country then language."""
     if part.get("product_url"):
         return str(part["product_url"])
-    tpl = (template or "").strip() or default_search_template(lang)
+    tpl = (template or "").strip() or default_search_template(lang, country)
     if "{q}" not in tpl:
         tpl = tpl.rstrip("/") + "?q={q}"
     return tpl.replace("{q}", quote_plus(search_query(part)))
@@ -391,6 +433,7 @@ def build_buy_task(
     search_template: str | None,
     today: date,
     decimals: int = DEFAULT_CURRENCY_DECIMALS,
+    country: str | None = None,
 ) -> dict[str, Any]:
     """The one-off shopping reminder for a low part (due today, actionable now)."""
     return {
@@ -405,7 +448,7 @@ def build_buy_task(
         "labels": [BUY_TASK_LABEL],
         "custom_icon": BUY_TASK_ICON,
         "notes": buy_task_notes(part, stock, decimals),
-        "documentation_url": resolve_shopping_url(part, search_template, lang),
+        "documentation_url": resolve_shopping_url(part, search_template, lang, country),
         PART_REF_FIELD: {"part_id": str(part["id"])},
     }
 
@@ -421,6 +464,7 @@ def reconcile_buy_tasks(
     today: date,
     decimals: int = DEFAULT_CURRENCY_DECIMALS,
     is_task_done: Any,
+    country: str | None = None,
 ) -> tuple[dict[str, dict[str, Any]], list[str], list[str], bool]:
     """Compute the task map with auto "buy" reminders synced to low parts.
 
@@ -482,6 +526,7 @@ def reconcile_buy_tasks(
             search_template=search_template,
             today=today,
             decimals=decimals,
+            country=country,
         )
         result[task["id"]] = task
         created.append(task["id"])

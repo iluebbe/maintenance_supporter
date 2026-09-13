@@ -570,8 +570,11 @@
           "notify_service": "Bildirim servisi",
           "panel_enabled": "Kenar çubuğu panelini göster",
           "currency_decimals": "Tutarlarda ondalık basamak",
+          "battery_low_percent": "„Pil zayıf“ eşiği (%)",
+          "battery_recovered_percent": "Pil şu değerin üzerinde değiştirilmiş sayılır (%)",
           "panel_title": "Kenar çubuğu paneli başlığı",
-          "shopping_list_entity": "Satın alma görevlerinin eşitleneceği alışveriş listesi"
+          "shopping_list_entity": "Satın alma görevlerinin eşitleneceği alışveriş listesi",
+          "part_search_url_template": "Alışveriş arama bağlantısı"
         },
         "data_description": {
           "default_warning_days": "Bir bakım görevinin vadesinden kaç gün önce uyarı gösterileceği.",
@@ -579,8 +582,11 @@
           "notify_service": "Kullanılacak bildirim servisi (örn. notify.mobile_app_phone).",
           "panel_enabled": "Kenar çubuğunda bir Maintenance Supporter paneli göster.",
           "currency_decimals": "Her tutarın kaç ondalık basamak göstereceği — KPI'lar, bütçeler, liste ve raporlardaki maliyetler, bütçe uyarıları. 0 = tam sayılar.",
+          "battery_low_percent": "Filo genelinde alt sınır: bu seviyede veya altındaki bir pil, Battery Notes eşiği daha yüksek değilse zayıf sayılır.",
+          "battery_recovered_percent": "Zayıf bir pil, seviyesi bu değerin üzerine çıkana veya bir değişim kaydedilene kadar zayıf sayılmaya devam eder — böylece eşik çevresinde salınan bir seviye filo görevini tekrar tekrar tamamlayamaz.",
           "panel_title": "Kenar çubuğu girdisi için özel ad. \"Bakım\" kullanmak için boş bırakın. Home Assistant'ın yerleşik Bakım panosuyla çakışmayı önlemek için kullanışlıdır.",
-          "shopping_list_entity": "Azalan parçalar için otomatik satın alma hatırlatıcıları bu yapılacaklar listesinde görünür; birini işaretlemek hatırlatıcıyı tamamlar ve parçayı yeniden stoklar. Devre dışı bırakmak için boş bırakın."
+          "shopping_list_entity": "Azalan parçalar için otomatik satın alma hatırlatıcıları bu yapılacaklar listesinde görünür; birini işaretlemek hatırlatıcıyı tamamlar ve parçayı yeniden stoklar. Devre dışı bırakmak için boş bırakın.",
+          "part_search_url_template": "Arama terimleri yerine {q} içeren URL; ürün bağlantısı olmayan parçalar için kullanılır. Otomatik mağaza için boş bırakın (ülkeye, yoksa dile göre)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Geçersiz bildirim servisi biçimi. 'notify.servis_adi' kullanın (örn. notify.mobile_app_phone).",
       "notify_service_not_found": "Bu bildirim servisi Home Assistant'ta bulunamadı. Lütfen servis adını doğrulayın.",
       "nfc_tag_duplicate": "Bu NFC etiketi zaten başka bir göreve bağlı.",
-      "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…)."
+      "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…).",
+      "invalid_search_template": "Arama bağlantısı {q} içeren bir http(s) URL olmalıdır."
     }
   },
   "entity": {

@@ -307,6 +307,9 @@ COMPLETION_SOURCES = (
     "voice",
     "notification_action",
     "shopping_list",
+    # D#183: checked off in a mirrored external to-do list — a person did
+    # it, so it is NOT automatic (same class as "todo").
+    "todo_mirror",
     "service",
     "auto_recovery",
 )
@@ -321,7 +324,14 @@ COMPLETION_PROVENANCE_NOTES: dict[str, str] = {
     "notification_action": "Completed from the notification",
     "nfc": "Completed via NFC tag",
     "shopping_list": "Completed from the shopping list",
+    "todo_mirror": "Completed from a mirrored to-do list",
 }
+
+# D#183: per-task mirror into external ``todo.*`` lists (family members work
+# from their to-do app; checking the row off completes the task here). The
+# list of entity ids is capped and shape-validated at every write path.
+MAX_MIRROR_TODO_LISTS = 5
+MIRROR_TODO_ENTITY_PATTERN = r"^todo\.[a-z0-9_]+$"
 
 # --- Config Keys: Notification Actions ---
 CONF_ACTION_COMPLETE_ENABLED = "action_complete_enabled"
@@ -855,3 +865,13 @@ MAX_VACATION_EXEMPT_TASKS = 2000
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes
 MISSING_ENTITY_THRESHOLD_REFRESHES = 6  # ~30 min at 5-min intervals
+
+# --- Battery fleet hysteresis (#180) ---
+# A battery that went low stays counted low until its level rises ABOVE this
+# percent (or a replacement is recorded) — a level oscillating around the low
+# floor must not flip the fleet task's auto-complete on every dip.
+CONF_BATTERY_RECOVERED_PERCENT = "battery_recovered_percent"
+DEFAULT_BATTERY_RECOVERED_PERCENT = 50
+BATTERY_RECOVERED_PERCENT_RANGE: tuple[int, int] = (20, 100)
+# D#182: the shopping-search template is user-settable (max URL length).
+MAX_PART_SEARCH_URL_TEMPLATE_LENGTH = 500

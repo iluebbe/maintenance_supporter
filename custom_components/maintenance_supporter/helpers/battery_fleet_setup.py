@@ -34,7 +34,14 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from .battery_fleet import canonical_type, discover_battery_types, lifetime_months, note_sibling_entity, read_batteries
+from .battery_fleet import (
+    canonical_type,
+    discover_battery_types,
+    lifetime_months,
+    note_sibling_entity,
+    read_batteries,
+    release_low_latch,
+)
 from .global_options import get_default_warning_days
 from .trigger_fallback import threshold_limits_overlap
 
@@ -362,6 +369,7 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     targets = entity_ids if entity_ids is not None else [e for e, b in by_eid.items() if b.low]
 
     pressed = 0
+    pressed_ids: list[str] = []
     by_type: dict[str, int] = {}
     for eid in targets:
         bat = by_eid.get(eid)
@@ -378,22 +386,101 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
             continue
         await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
         pressed += 1
+        pressed_ids.append(eid)
         t = canonical_type(bat.battery_type)
         by_type[t] = by_type.get(t, 0) + bat.quantity
 
+    # #180: a marked battery leaves the low latch now — the count must not
+    # wait for Battery Notes to echo the new date (nor for the level).
+    release_low_latch(hass, pressed_ids)
+    consumed = await async_consume_type_parts(hass, by_type)
+    return {"marked": pressed, "pressed": pressed, "consumed": consumed}
+
+
+async def async_consume_type_parts(hass: HomeAssistant, by_type: dict[str, int]) -> dict[str, int]:
+    """Take ``{canonical type: cells}`` out of the fleet's type-part stock.
+    Returns ``{part_id: qty}`` for the parts that exist (an untyped or
+    unstocked type consumes nothing). The ONE consumption path behind the
+    Replaced action and the record-replacement command (#181)."""
     consumed: dict[str, int] = {}
     fleet = find_fleet_entry(hass)
-    if fleet is not None and by_type:
-        from ..parts_runtime import async_change_part_stock
+    if fleet is None or not by_type:
+        return consumed
+    from ..parts_runtime import async_change_part_stock
 
-        parts = fleet.data.get(CONF_PARTS) or {}
-        for btype, qty in by_type.items():
-            pid = f"batt_{btype.lower()}"
-            if pid in parts:
-                await async_change_part_stock(hass, fleet, pid, delta=-qty)
-                consumed[pid] = qty
+    parts = fleet.data.get(CONF_PARTS) or {}
+    for btype, qty in by_type.items():
+        pid = f"{FLEET_PART_PREFIX}{btype.lower()}"
+        if pid in parts:
+            await async_change_part_stock(hass, fleet, pid, delta=-qty)
+            consumed[pid] = qty
+    return consumed
 
-    return {"marked": pressed, "pressed": pressed, "consumed": consumed}
+
+# Store key on the fleet task's dynamic state: {entity_id: iso date} of the
+# replacements recorded through the record-replacement command — the
+# idempotency memory (Battery Notes echoes the date only after its service
+# ran; a repeat click for the same day must not consume twice).
+RECORDED_REPLACEMENTS_KEY = "battery_recorded_replacements"
+_RECORDED_CAP = 500
+
+
+async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced_at: str) -> dict[str, Any]:
+    """Record a replacement the level history revealed (#181, the roster's
+    calendar-sync chip): write the date through Battery Notes'
+    ``set_battery_replaced`` — the same call the panel used to make itself
+    — AND consume the battery type's cells from the type-part stock through
+    :func:`async_consume_type_parts`, exactly like the Replaced action.
+
+    Idempotent per calendar day: the same date for the same battery is
+    recorded again (harmless) but never consumed twice. Raises
+    :class:`HomeAssistantError` with a WS-ready code when the battery is
+    unknown, has no device, or Battery Notes is not available.
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    from .battery_lifetime import fleet_store_and_task
+
+    parsed = dt_util.parse_datetime(replaced_at)
+    if parsed is None:
+        raise HomeAssistantError("invalid_date")
+    bat = next((b for b in read_batteries(hass) if b.entity_id == entity_id), None)
+    if bat is None:
+        raise HomeAssistantError("not_found")
+    reg = er.async_get(hass).async_get(entity_id)
+    if reg is None or not reg.device_id:
+        raise HomeAssistantError("invalid_device")
+    if not hass.services.has_service("battery_notes", "set_battery_replaced"):
+        raise HomeAssistantError("not_available")
+
+    day = (dt_util.as_local(parsed) if parsed.tzinfo is not None else parsed).date().isoformat()
+    found = fleet_store_and_task(hass)
+    recorded: dict[str, Any] = {}
+    if found is not None:
+        raw = found[0].get_task_state(found[1]).get(RECORDED_REPLACEMENTS_KEY)
+        recorded = dict(raw) if isinstance(raw, dict) else {}
+    already = recorded.get(entity_id) == day or (bat.last_replaced is not None and bat.last_replaced.isoformat() == day)
+
+    await hass.services.async_call(
+        "battery_notes",
+        "set_battery_replaced",
+        {"device_id": reg.device_id, "datetime_replaced": parsed.isoformat()},
+        blocking=False,
+    )
+    release_low_latch(hass, [entity_id])
+
+    consumed: dict[str, int] = {}
+    if not already:
+        consumed = await async_consume_type_parts(hass, {canonical_type(bat.battery_type): bat.quantity})
+        if found is not None:
+            store, task_id = found
+            recorded[entity_id] = day
+            if len(recorded) > _RECORDED_CAP:
+                for old in list(recorded)[: len(recorded) - _RECORDED_CAP]:
+                    recorded.pop(old, None)
+            store.update_task_state(task_id, **{RECORDED_REPLACEMENTS_KEY: recorded})
+            store.async_delay_save()
+    return {"recorded": True, "already_recorded": already, "consumed": consumed}
 
 
 def _mutate_fleet_object(hass: HomeAssistant, mutate: Callable[[dict[str, Any]], None]) -> bool:

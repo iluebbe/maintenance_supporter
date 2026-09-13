@@ -570,8 +570,11 @@
           "notify_service": "通知サービス",
           "panel_enabled": "サイドバーパネルを表示",
           "currency_decimals": "金額の小数点以下の桁数",
+          "battery_low_percent": "電池「残量少」しきい値（%）",
+          "battery_recovered_percent": "この値を超えたら交換済みとみなす（%）",
           "panel_title": "サイドバーパネルのタイトル",
-          "shopping_list_entity": "購入タスクを同期する買い物リスト"
+          "shopping_list_entity": "購入タスクを同期する買い物リスト",
+          "part_search_url_template": "購入検索リンク"
         },
         "data_description": {
           "default_warning_days": "メンテナンスタスクの期限の何日前から警告を表示するかの日数です。",
@@ -579,8 +582,11 @@
           "notify_service": "使用する通知サービスです (例: notify.mobile_app_phone)。",
           "panel_enabled": "サイドバーに Maintenance Supporter パネルを表示します。",
           "currency_decimals": "各金額に表示する小数点以下の桁数 — KPI、予算、リストやレポートの費用、予算アラート。0 = 整数。",
+          "battery_low_percent": "全体の下限：この値以下の電池は「残量少」とみなされます（Battery Notes のしきい値がより高い場合を除く）。",
+          "battery_recovered_percent": "残量が少ない電池は、残量がこの値を超えるか交換が記録されるまで「残量少」として数えられます。しきい値付近で変動する残量が一括タスクを何度も完了させることを防ぎます。",
           "panel_title": "サイドバー項目のカスタム名です。空欄にすると「メンテナンス」が使用されます。Home Assistant 標準のメンテナンスダッシュボードとの競合を避けるのに便利です。",
-          "shopping_list_entity": "在庫が少ない部品の自動購入リマインダーがこのToDoリストに表示されます。チェックするとリマインダーが完了し、部品が補充されます。無効にするには空のままにします。"
+          "shopping_list_entity": "在庫が少ない部品の自動購入リマインダーがこのToDoリストに表示されます。チェックするとリマインダーが完了し、部品が補充されます。無効にするには空のままにします。",
+          "part_search_url_template": "検索語の代わりに {q} を含む URL。製品リンクのない部品に使われます。空欄なら自動選択（国、次に言語で判定）。"
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "通知サービスの形式が無効です。「notify.service_name」を使用してください (例: notify.mobile_app_phone)。",
       "notify_service_not_found": "この通知サービスは Home Assistant で見つかりませんでした。サービス名を確認してください。",
       "nfc_tag_duplicate": "この NFC タグは既に別のタスクに関連付けられています。",
-      "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。"
+      "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。",
+      "invalid_search_template": "検索リンクは {q} を含む http(s) URL である必要があります。"
     }
   },
   "entity": {

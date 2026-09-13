@@ -18,7 +18,8 @@ from typing import Any
 from custom_components.maintenance_supporter.const import COMPLETION_PROVENANCE_NOTES, COMPLETION_SOURCES
 
 _PACKAGE = Path(__file__).resolve().parent.parent / "custom_components" / "maintenance_supporter"
-_UNATTENDED = {"button", "todo", "voice", "notification_action", "nfc", "shopping_list"}
+# D#183: a row checked off in a mirrored external to-do list is unattended too.
+_UNATTENDED = {"button", "todo", "voice", "notification_action", "nfc", "shopping_list", "todo_mirror"}
 
 
 def _completion_calls() -> list[tuple[str, dict[str, ast.expr]]]:

@@ -800,6 +800,8 @@ async def ws_import_json(
                 # backup round-trips them (validated/clamped just below).
                 "priority",
                 "labels",
+                # D#183: mirror targets (shape-sanitized below).
+                "mirror_todo_entities",
                 "earliest_completion_days",
                 "ref_no",
                 "on_complete_action",
@@ -959,6 +961,17 @@ async def ws_import_json(
                     task_data["readings"] = slots
                 else:
                     task_data.pop("readings", None)
+
+            # D#183: mirror targets — todo.* ids only, deduped, capped; an
+            # empty result drops the key (same rules as the WS write paths).
+            if task_data.get("mirror_todo_entities") is not None:
+                from ..helpers.sanitize import sanitize_mirror_todo_entities
+
+                mirrors = sanitize_mirror_todo_entities(task_data["mirror_todo_entities"])
+                if mirrors:
+                    task_data["mirror_todo_entities"] = mirrors
+                else:
+                    task_data.pop("mirror_todo_entities", None)
 
             # schedule_time: canonical HH:MM. The options flow's TimeSelector
             # stores "HH:MM:SS" and the export writes it verbatim — that used

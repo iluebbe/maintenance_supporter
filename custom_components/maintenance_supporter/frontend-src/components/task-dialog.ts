@@ -208,6 +208,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _customIcon = "";
   @state() private _priority = "normal";
   @state() private _labels = "";
+  /** D#183: external todo.* lists the task is mirrored into while due. */
+  @state() private _mirrorTodoEntities: string[] = [];
   @state() private _enabled = true;
 
   // Trigger fields
@@ -415,6 +417,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._customIcon = task.custom_icon || "";
     this._priority = task.priority || "normal";
     this._labels = (task.labels || []).join(", ");
+    this._mirrorTodoEntities = [...(task.mirror_todo_entities || [])];
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
@@ -571,6 +574,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._customIcon = "";
     this._priority = "normal";
     this._labels = "";
+    this._mirrorTodoEntities = [];
     this._enabled = true;
     this._lastPerformed = "";
     this._nfcTagId = "";
@@ -1322,6 +1326,8 @@ export class MaintenanceTaskDialog extends LitElement {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
+      // D#183: always sent — [] clears the mirror targets.
+      data.mirror_todo_entities = this._mirrorTodoEntities.filter(Boolean);
       data.enabled = this._enabled;
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
@@ -2713,6 +2719,34 @@ export class MaintenanceTaskDialog extends LitElement {
               @input=${(e: Event) => (this._labels = (e.target as HTMLInputElement).value)}
             />
             <div class="field-help">${t("labels_help", L)}</div>
+          </div>
+          <div class="field mirror-todo-field">
+            ${this._entityPickerFallback ? html`
+              <ms-textfield
+                label="${t("task_mirror_todo", L)}"
+                placeholder="todo.family, todo.kids"
+                .value=${this._mirrorTodoEntities.join(", ")}
+                @input=${(e: Event) => {
+                  this._mirrorTodoEntities = (e.target as HTMLInputElement).value
+                    .split(",").map((s: string) => s.trim()).filter(Boolean);
+                }}
+              ></ms-textfield>
+            ` : html`
+              <ha-form
+                class="entity-picker-form"
+                .hass=${this.hass}
+                .schema=${[{
+                  name: "mirror_todo_entities",
+                  selector: { entity: { multiple: true, domain: ["todo"] } },
+                }]}
+                .data=${{ mirror_todo_entities: this._mirrorTodoEntities }}
+                .computeLabel=${() => t("task_mirror_todo", L)}
+                @value-changed=${(e: CustomEvent) => {
+                  const ids = ((e.detail.value as { mirror_todo_entities?: string[] }).mirror_todo_entities || []).filter(Boolean);
+                  this._mirrorTodoEntities = ids;
+                }}
+              ></ha-form>`}
+            <div class="field-help">${t("task_mirror_todo_hint", L)}</div>
           </div>
           <div class="select-row">
             <label>${t("schedule_type", L)}</label>

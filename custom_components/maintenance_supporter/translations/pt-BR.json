@@ -570,8 +570,11 @@
           "notify_service": "Serviço de notificação",
           "panel_enabled": "Mostrar painel na barra lateral",
           "currency_decimals": "Casas decimais dos valores",
+          "battery_low_percent": "Limite „pilha fraca“ (%)",
+          "battery_recovered_percent": "Pilha considerada trocada acima de (%)",
           "panel_title": "Título do painel na barra lateral",
-          "shopping_list_entity": "Lista de compras para sincronizar as tarefas de compra"
+          "shopping_list_entity": "Lista de compras para sincronizar as tarefas de compra",
+          "part_search_url_template": "Link de busca para compra"
         },
         "data_description": {
           "default_warning_days": "Número de dias antes do vencimento de uma tarefa de manutenção para mostrar um aviso.",
@@ -579,8 +582,11 @@
           "notify_service": "O serviço de notificação a usar (ex.: notify.mobile_app_phone).",
           "panel_enabled": "Mostra um painel do Maintenance Supporter na barra lateral.",
           "currency_decimals": "Quantas casas decimais cada valor mostra — KPIs, orçamentos, custos em listas e relatórios, alertas de orçamento. 0 = números inteiros.",
+          "battery_low_percent": "Limite mínimo de toda a frota: uma pilha neste nível ou abaixo conta como fraca, a menos que seu limite do Battery Notes seja maior.",
+          "battery_recovered_percent": "Uma pilha fraca continua contando como fraca até o nível subir acima deste valor ou uma troca ser registrada — assim um nível oscilando em torno do limite não conclui a tarefa da frota repetidamente.",
           "panel_title": "Nome personalizado para a entrada na barra lateral. Deixe em branco para usar \"Manutenção\". Útil para evitar conflito com o painel de Manutenção nativo do Home Assistant.",
-          "shopping_list_entity": "Os lembretes automáticos de compra de peças em falta aparecem nesta lista de tarefas; marcar um conclui o lembrete e repõe a peça. Deixe vazio para desativar."
+          "shopping_list_entity": "Os lembretes automáticos de compra de peças em falta aparecem nesta lista de tarefas; marcar um conclui o lembrete e repõe a peça. Deixe vazio para desativar.",
+          "part_search_url_template": "URL com {q} no lugar dos termos de busca, usada para peças sem link de produto. Deixe vazio para a loja automática (por país, senão por idioma)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Formato de serviço de notificação inválido. Use 'notify.nome_do_servico' (ex.: notify.mobile_app_phone).",
       "notify_service_not_found": "Este serviço de notificação não foi encontrado no Home Assistant. Verifique o nome do serviço.",
       "nfc_tag_duplicate": "Esta tag NFC já está vinculada a outra tarefa.",
-      "invalid_shopping_list_entity": "A lista de compras deve ser uma entidade de tarefas (todo.…)."
+      "invalid_shopping_list_entity": "A lista de compras deve ser uma entidade de tarefas (todo.…).",
+      "invalid_search_template": "O link de busca deve ser uma URL http(s) contendo {q}."
     }
   },
   "entity": {

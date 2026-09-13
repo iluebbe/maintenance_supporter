@@ -246,6 +246,8 @@ export interface MaintenanceTask {
    *  complete/skip. */
   checklist_progress?: Record<string, boolean>;
   labels?: string[];
+  /** D#183: external todo.* lists the task is mirrored into while it is due. */
+  mirror_todo_entities?: string[];
   assignee_pool?: string[];
   rotation_strategy?: string | null;
   /** Details this task demands on completion (v2.44): notes/cost/duration/photo/user. */

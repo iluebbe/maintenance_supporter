@@ -570,8 +570,11 @@
           "notify_service": "Notifikationstjeneste",
           "panel_enabled": "Vis sidebjælkepanel",
           "currency_decimals": "Decimaler for beløb",
+          "battery_low_percent": "Tærskel „batteri lavt“ (%)",
+          "battery_recovered_percent": "Batteri regnes som udskiftet over (%)",
           "panel_title": "Titel på sidebjælkepanel",
-          "shopping_list_entity": "Indkøbsliste til synkronisering af købsopgaver"
+          "shopping_list_entity": "Indkøbsliste til synkronisering af købsopgaver",
+          "part_search_url_template": "Søgelink til indkøb"
         },
         "data_description": {
           "default_warning_days": "Antal dage før en vedligeholdelsesopgave forfalder, hvor der vises en advarsel.",
@@ -579,8 +582,11 @@
           "notify_service": "Den notifikationstjeneste, der skal bruges (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidebjælken.",
           "currency_decimals": "Hvor mange decimaler hvert beløb viser — nøgletal, budgetter, omkostninger i lister og rapporter, budgetadvarsler. 0 = hele tal.",
+          "battery_low_percent": "Gulv for hele flåden: et batteri på eller under dette niveau tælles som lavt, medmindre dets Battery Notes-tærskel er højere.",
+          "battery_recovered_percent": "Et lavt batteri tælles som lavt, indtil niveauet stiger over denne værdi, eller et skift registreres — så kan et niveau, der svinger omkring tærsklen, ikke fuldføre flådeopgaven igen og igen.",
           "panel_title": "Brugerdefineret navn til sidebjælkeposten. Lad feltet stå tomt for at bruge \"Vedligeholdelse\". Nyttigt for at undgå sammenfald med Home Assistants indbyggede vedligeholdelses-dashboard.",
-          "shopping_list_entity": "Automatiske købspåmindelser for dele med lav beholdning vises på denne opgaveliste; afkrydsning fuldfører påmindelsen og genopfylder delen. Lad feltet være tomt for at deaktivere."
+          "shopping_list_entity": "Automatiske købspåmindelser for dele med lav beholdning vises på denne opgaveliste; afkrydsning fuldfører påmindelsen og genopfylder delen. Lad feltet være tomt for at deaktivere.",
+          "part_search_url_template": "URL med {q} i stedet for søgeordene, til dele uden produktlink. Lad stå tomt for den automatiske butik (efter land, ellers sprog)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Ugyldigt format for notifikationstjeneste. Brug 'notify.service_name' (f.eks. notify.mobile_app_phone).",
       "notify_service_not_found": "Denne notifikationstjeneste blev ikke fundet i Home Assistant. Bekræft venligst tjenestens navn.",
       "nfc_tag_duplicate": "Dette NFC-mærke er allerede knyttet til en anden opgave.",
-      "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…)."
+      "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…).",
+      "invalid_search_template": "Søgelinket skal være en http(s)-URL, der indeholder {q}."
     }
   },
   "entity": {

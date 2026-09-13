@@ -570,8 +570,11 @@
           "notify_service": "Usługa powiadomień",
           "panel_enabled": "Pokaż panel boczny",
           "currency_decimals": "Miejsca po przecinku w kwotach",
+          "battery_low_percent": "Próg „bateria słaba” (%)",
+          "battery_recovered_percent": "Bateria uznana za wymienioną powyżej (%)",
           "panel_title": "Tytuł panelu na pasku bocznym",
-          "shopping_list_entity": "Lista zakupów do synchronizacji zadań zakupowych"
+          "shopping_list_entity": "Lista zakupów do synchronizacji zadań zakupowych",
+          "part_search_url_template": "Link wyszukiwania zakupów"
         },
         "data_description": {
           "default_warning_days": "Liczba dni przed terminem zadania konserwacji, w której wyświetlane jest ostrzeżenie.",
@@ -579,8 +582,11 @@
           "notify_service": "Usługa powiadomień, której należy używać (np. notify.mobile_app_phone).",
           "panel_enabled": "Pokaż panel Maintenance Supporter w pasku bocznym.",
           "currency_decimals": "Ile miejsc po przecinku pokazuje każda kwota — KPI, budżety, koszty na listach i w raportach, alerty budżetowe. 0 = liczby całkowite.",
+          "battery_low_percent": "Dolny próg dla całej floty: bateria na tym poziomie lub poniżej liczy się jako słaba, chyba że jej próg w Battery Notes jest wyższy.",
+          "battery_recovered_percent": "Słaba bateria pozostaje liczona jako słaba, dopóki jej poziom nie wzrośnie powyżej tej wartości lub nie zostanie zapisana wymiana — poziom oscylujący wokół progu nie kończy więc zadania floty raz za razem.",
           "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant.",
-          "shopping_list_entity": "Automatyczne przypomnienia o zakupie brakujących części pojawiają się na tej liście zadań; odhaczenie kończy przypomnienie i uzupełnia zapas. Pozostaw puste, aby wyłączyć."
+          "shopping_list_entity": "Automatyczne przypomnienia o zakupie brakujących części pojawiają się na tej liście zadań; odhaczenie kończy przypomnienie i uzupełnia zapas. Pozostaw puste, aby wyłączyć.",
+          "part_search_url_template": "Adres URL z {q} w miejscu wyszukiwanych słów, dla części bez linku do produktu. Pozostaw puste dla automatycznego sklepu (według kraju, w przeciwnym razie języka)."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "Nieprawidłowy format usługi powiadomień. Użyj „notify.service_name” (np. notify.mobile_app_phone).",
       "notify_service_not_found": "Tej usługi powiadomień nie znaleziono w Home Assistant. Sprawdź nazwę usługi.",
       "nfc_tag_duplicate": "Ten tag NFC jest już powiązany z innym zadaniem.",
-      "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…)."
+      "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…).",
+      "invalid_search_template": "Link wyszukiwania musi być adresem URL http(s) zawierającym {q}."
     }
   },
   "entity": {

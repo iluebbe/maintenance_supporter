@@ -188,6 +188,11 @@ class Battery:
     # and one in a thermostat share nothing but the cell; devices of the same
     # model do. Empty when the device is unknown.
     model_key: str = ""
+    # #180: ``low`` is held by the recovery latch — the reading itself is no
+    # longer at/below the floor, but it has not risen above
+    # ``battery_recovered_percent`` (and no replacement was recorded) since
+    # it went low. A level hovering around the floor stays ONE low episode.
+    latched: bool = False
 
 
 @dataclass
@@ -372,6 +377,9 @@ def _row(
         "no_sensor": bat.no_sensor,
         "can_mark_replaced": bat.can_mark_replaced,
         "last_replaced": bat.last_replaced.isoformat() if bat.last_replaced else None,
+        # #180: low only because the recovery latch holds it (the reading is
+        # back above the floor but not yet above battery_recovered_percent).
+        "latched": bat.latched,
     }
 
 
@@ -470,6 +478,148 @@ def fleet_due_without_sensor(hass: HomeAssistant) -> bool:
     from ..const import BATTERY_FLEET_DUE_WITHOUT_SENSOR
 
     return _fleet_object(hass).get(BATTERY_FLEET_DUE_WITHOUT_SENSOR) is not False
+
+
+def get_battery_recovered_percent(hass: HomeAssistant) -> int:
+    """#180: the level a low battery must rise ABOVE to count as recovered
+    (replaced). Out-of-range / junk values fall back to the default."""
+    from ..const import BATTERY_RECOVERED_PERCENT_RANGE, CONF_BATTERY_RECOVERED_PERCENT, DEFAULT_BATTERY_RECOVERED_PERCENT
+    from .global_options import get_global_options
+
+    raw = get_global_options(hass).get(CONF_BATTERY_RECOVERED_PERCENT, DEFAULT_BATTERY_RECOVERED_PERCENT)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_BATTERY_RECOVERED_PERCENT
+    lo, hi = BATTERY_RECOVERED_PERCENT_RANGE
+    return value if lo <= value <= hi else DEFAULT_BATTERY_RECOVERED_PERCENT
+
+
+# ── #180: the low-recovery latch ─────────────────────────────────────────────
+#
+# A Hue dimmer's level oscillated around the low floor several times a day;
+# the low-count sensor flipped 0 ↔ 1 and the fleet task — auto-complete on
+# recovery — recorded a "completion" on every dip. Once a LEVEL-bearing
+# battery goes low it is latched: it stays counted low (needs_now, the
+# low-count sensor, the Needs-now list) until its level rises ABOVE
+# ``battery_recovered_percent``, or its Battery Notes ``battery_last_replaced``
+# date moves forward (a recorded replacement releases it at any level), or the
+# Replaced action / the record-replacement command releases it directly.
+#
+# Level-less rows (a low-only binary, a native binary battery) are NOT
+# latched: their binary saying "not low" is the all-clear, exactly as before.
+# Sensorless notes (D#162) leave ``low`` only when their forecast re-anchors.
+#
+# Persisted on the fleet task's Store state ({entity_id: {at, last_replaced}})
+# so a restart does not re-open the episode; without a fleet the latch lives
+# in memory (the low-count sensor exists before the fleet does).
+
+LOW_LATCH_KEY = "battery_low_latch"
+_LATCH_MEMORY_KEY = "battery_fleet_low_latch_memory"
+
+
+def _replaced_since(last_replaced: str | None, entry: dict[str, Any]) -> bool:
+    """Whether the battery's current last-replaced date is NEWER than the one
+    seen when it latched (a recorded replacement)."""
+    if last_replaced is None:
+        return False
+    seen = entry.get("last_replaced")
+    return not isinstance(seen, str) or last_replaced > seen
+
+
+def apply_low_latch(
+    batteries: list[Battery],
+    latch: dict[str, Any],
+    *,
+    recovered: float,
+    now_iso: str,
+    eligible: set[str] | None = None,
+) -> bool:
+    """Pure latch step: mutate ``bat.low``/``bat.latched`` and the ``latch``
+    map in place. Returns True when the map changed (the caller persists).
+
+    ``eligible`` = entity ids whose ``low`` is level-driven (default: every
+    battery with a level, never a sensorless note). Per eligible battery:
+
+    * reading low → latch it (or re-latch when a replacement was recorded
+      and the fresh reading is STILL low — a new episode);
+    * latched + unavailable → stays low (no reading is no proof of recovery);
+    * latched + reading not low → released when the level is above
+      ``recovered`` or a replacement was recorded, else held low.
+
+    Entries for batteries no longer in the fleet are dropped.
+    """
+    changed = False
+    if eligible is None:
+        eligible = {b.entity_id for b in batteries if b.level is not None and not b.no_sensor}
+    for bat in batteries:
+        if bat.entity_id not in eligible:
+            continue
+        last = bat.last_replaced.isoformat() if bat.last_replaced else None
+        raw_entry = latch.get(bat.entity_id)
+        entry = raw_entry if isinstance(raw_entry, dict) else None
+        if bat.low:
+            if entry is None or _replaced_since(last, entry):
+                latch[bat.entity_id] = {"at": now_iso, "last_replaced": last}
+                changed = True
+            continue
+        if entry is None:
+            continue
+        if bat.available and (_replaced_since(last, entry) or (bat.level is not None and bat.level > recovered)):
+            del latch[bat.entity_id]
+            changed = True
+            continue
+        bat.low = True
+        bat.latched = True
+    known = {b.entity_id for b in batteries}
+    for eid in [e for e in latch if e not in known]:
+        del latch[eid]
+        changed = True
+    return changed
+
+
+def _latch_backend(hass: HomeAssistant) -> tuple[dict[str, Any], Callable[[], None]]:
+    """The latch map + a save callback: the fleet task's Store state when a
+    fleet exists, else an in-memory map (nothing to persist to yet)."""
+    from ..const import DOMAIN
+    from .battery_lifetime import fleet_store_and_task
+
+    found = fleet_store_and_task(hass)
+    if found is not None:
+        store, task_id = found
+        raw = store.get_task_state(task_id).get(LOW_LATCH_KEY)
+        latch: dict[str, Any] = dict(raw) if isinstance(raw, dict) else {}
+
+        def _save() -> None:
+            store.update_task_state(task_id, **{LOW_LATCH_KEY: latch})
+            store.async_delay_save()
+
+        return latch, _save
+    memory: dict[str, Any] = hass.data.setdefault(DOMAIN, {}).setdefault(_LATCH_MEMORY_KEY, {})
+    return memory, lambda: None
+
+
+def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: set[str]) -> None:
+    latch, save = _latch_backend(hass)
+    if apply_low_latch(
+        batteries, latch, recovered=float(get_battery_recovered_percent(hass)), now_iso=dt_util.utcnow().isoformat(), eligible=eligible
+    ):
+        save()
+
+
+def release_low_latch(hass: HomeAssistant, entity_ids: list[str]) -> int:
+    """Drop the latch for batteries the user just marked replaced (the
+    Replaced action / a recorded replacement) — the count must not wait for
+    Battery Notes to echo the new date. Returns how many were released."""
+    latch, save = _latch_backend(hass)
+    released = 0
+    for eid in entity_ids:
+        if eid in latch:
+            del latch[eid]
+            released += 1
+    if released:
+        save()
+    return released
 
 
 def device_model_key(hass: HomeAssistant, device_id: str | None) -> str:
@@ -609,6 +759,9 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     out: list[Battery] = []
     covered_sources: set[str] = set()
     covered_devices: set[str] = set()
+    # #180: rows whose ``low`` is decided by a LEVEL — the recovery latch
+    # applies to these only (a binary's "off" is its own all-clear).
+    latch_eligible: set[str] = set()
 
     # ── Pass 1: Battery Notes battery_plus ──────────────────────────────────
     # Percentage SENSORS first, then LOW-ONLY BINARIES (#121): a source with
@@ -670,6 +823,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 # native pass. A HIGHER Battery Notes threshold (e.g. 30 %)
                 # still wins through battery_low.
                 low = bool(attrs.get("battery_low")) or (level is not None and level <= floor)
+                latch_eligible.add(state.entity_id)
             last_replaced = _parse_last_replaced(attrs.get("battery_last_replaced"))
             # B1 (roadmap 2026-07-22 audit): a forecast-only note — no level
             # sensor, so the state reads unknown forever — must SURVIVE when it
@@ -794,6 +948,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             low = low_available and str(low_state).lower() in ("on", "true", "1")
         else:
             low = level is not None and level <= floor
+            latch_eligible.add(rec["eid"])
         if available:
             # Remember the last real reading — the retention path below needs
             # it once the entity goes unavailable.
@@ -914,6 +1069,10 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             pred = _predicted_date(bat, lifetime_for(bat).months)
             bat.low = pred is not None and pred < today
         out.append(bat)
+    # #180: hold level-driven rows low until they clearly recover (or a
+    # replacement is recorded) — AFTER every pass, so the sensor, the panel
+    # overview and the Replaced action all see the same ``low``.
+    _apply_low_latch(hass, out, latch_eligible)
     for bat in out:
         if bat.source == "battery_notes":
             bat.can_mark_replaced = has_replaced_button(hass, bat.entity_id)
@@ -1140,6 +1299,7 @@ def _detect_unrecorded_jump(
     last_replaced: date | None,
     *,
     rechargeable: bool = False,
+    recovered: float | None = None,
 ) -> dict[str, Any] | None:
     """An upward level step that looks like a swap nobody recorded.
 
@@ -1148,6 +1308,10 @@ def _detect_unrecorded_jump(
     silently anchoring the type-lifetime forecast to the DEAD battery. The
     step is unmistakable in the recorder, so surface it and offer to record
     it. Rechargeables are exempt: their packs jump on every routine charge.
+
+    ``recovered`` (#181 noise, the #180 ``battery_recovered_percent``): a rise
+    that does not land ABOVE it is a bounce around the low floor, not a
+    swap — the chip kept offering "newer dates" for those.
     """
     from itertools import pairwise
 
@@ -1156,6 +1320,8 @@ def _detect_unrecorded_jump(
     for (_, v_prev), (ts, v) in pairwise(points):
         if v - v_prev < _JUMP_MIN_RISE:
             continue
+        if recovered is not None and v <= recovered:
+            continue  # did not cross the recovery threshold: a bounce, not a swap
         jump_date = dt_util.utc_from_timestamp(ts).date()
         if last_replaced is not None and abs((jump_date - last_replaced).days) <= _JUMP_RECORDED_SLACK_DAYS:
             continue  # already recorded
@@ -1191,6 +1357,7 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
     now = dt_util.utcnow()
     predictor = SensorPredictor(hass)
     out: dict[str, dict[str, Any]] = {}
+    recovered = float(get_battery_recovered_percent(hass))
 
     for bat in batteries:
         if bat.no_sensor or (bat.level is None and not bat.low):
@@ -1212,7 +1379,9 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
                 "points": [[round(ts), round(v, 1)] for ts, v in points],
                 "threshold": bat.low_threshold,
             }
-            jump = _detect_unrecorded_jump(points, bat.last_replaced, rechargeable=is_rechargeable_type(bat.battery_type))
+            jump = _detect_unrecorded_jump(
+                points, bat.last_replaced, rechargeable=is_rechargeable_type(bat.battery_type), recovered=recovered
+            )
             if jump is not None:
                 # The Battery Notes service that records a replacement takes
                 # the DEVICE — resolve it here so the panel's one-click fix
@@ -1251,10 +1420,12 @@ def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
 
 __all__ = [
     "DEFAULT_HORIZON_DAYS",
+    "LOW_LATCH_KEY",
     "NATIVE_LOW_PERCENT",
     "TYPICAL_LIFETIME_MONTHS",
     "Battery",
     "BatteryOverview",
+    "apply_low_latch",
     "async_compute_overview",
     "async_level_history",
     "async_trend_predictions",
@@ -1267,10 +1438,12 @@ __all__ = [
     "fleet_excluded_entities",
     "fleet_included_entities",
     "fleet_track_self_charging",
+    "get_battery_recovered_percent",
     "has_batteries",
     "has_battery_notes",
     "is_rechargeable_type",
     "lifetime_months",
     "note_sibling_entity",
     "read_batteries",
+    "release_low_latch",
 ]

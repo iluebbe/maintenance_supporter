@@ -18,7 +18,9 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 |-----------|------|---------|-------|-------------|
 | `default_warning_days` | int | 7 | 0–365 | Days before a task is due when its status changes to `due_soon` (`0` = only on the due date itself) |
 | `default_consumable_threshold` | int | 10 | 1–90 | Household floor (%) that *Suggested setups* pre-wires for percent-remaining consumables (ink, toner, brushes, filters …) whose catalog entry uses the default. Existing tasks keep their threshold (2.69+, #146) |
-| `battery_low_percent` | int | 20 | 1–90 | Fleet-wide "battery low" floor (%) for batteries without their own Battery Notes threshold; a higher Battery Notes threshold still wins (2.69+, #146) |
+| `battery_low_percent` | int | 20 | 1–90 | Fleet-wide "battery low" floor (%) for batteries without their own Battery Notes threshold; a higher Battery Notes threshold still wins (2.69+, #146). Also in the Configure dialog since 2.87 |
+| `battery_recovered_percent` (2.87+, #180) | int | 50 | 20–100 | **Recovery threshold**: a battery that went low stays low — in *Needs now*, the low-count sensor and the fleet task — until its level rises **above** this value or a replacement date is recorded (the roster's *Replaced* action, Battery Notes, the calendar chip). Stops a level that oscillates around the low floor from flipping the fleet task and its auto-completion several times a day. Settings → General, next to the low floor |
+| `part_search_url_template` (2.87+, D#182) | string | `""` | URL with `{q}`, ≤500 | Shopping-search link for parts without a product URL; blank = the Amazon store of the HA country → UI language → `amazon.com`. Settings → General → *Shopping search URL* |
 | `battery_lifetime_months` (2.83+, D#162) | dict | `{}` | type → 1–240 months, ≤100 entries | **Typical battery lifetimes** per type (`{"CR2032": 24}`), the forecast anchor for batteries without a percentage. Keys are canonical Battery Notes types (aliases folded: LR6 → AA). Precedence: this value → the device's own replacements (median, ≥2) → devices of the same model (median, ≥3) → built-in table → 12 months. Settings → *Typical battery lifetimes* |
 | `row_action_style` | str | `buttons_compact` | `buttons_compact` / `buttons` / `icons` | How task rows show *Complete* / *Skip* (2.69+): HA buttons that collapse to icon-only on phones, labelled buttons everywhere, or the classic icon pair. Existing installs see a one-time banner with a *Back to icons* button |
 | `ref_numbers_in_lists` (2.84+) | bool | `false` | — | Show the reference numbers (`#8`, `#8.3`, #170) in front of object and task names in every list (Today, task table, object cards, objects table). Settings → General → *Reference numbers in lists* |
@@ -34,14 +36,15 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `install_assist_sentences` (2.44+) | bool | `false` | — | Copy the shipped Assist sentence files into `config/custom_sentences/<lang>/` and reload the conversation agent, so the **classic** (non-LLM) Assist agent recognises the voice intents. Turning it off removes them again. A file you edited yourself is never overwritten or deleted — each installed file carries a checksum of its own content and one that no longer matches is left alone. LLM Assist pipelines do not need this: they pick the intents up as tools regardless |
 | `shopping_list_entity` (2.67+) | string (`todo.*` entity id) | `""` | any `todo.*` entity | Mirror the automatic *"Buy …"* reminders for low parts into this Home Assistant to-do list (the built-in Shopping list, a Local To-do, Bring!, …). Checking an item off there completes the reminder and restocks the part by its configured quantity; restocking in the panel removes the row. Only rows the sync created are ever touched. Blank = off. Set under **Settings tab → General** or *General settings* in the options flow |
 
-> **`part_search_url_template` (2.23+) is not user-settable.** The key exists and is
-> *read* when building the shopping-search link for spare parts without a
-> `product_url` (buy-task link + panel part rows) — a URL with a `{q}`
-> placeholder, query precedence GTIN → "vendor MPN" → part name. But there is no
-> way to write it: it has no field in the options flow or the panel Settings
-> view, and `global/update` ignores the key. The effective value is always the
-> built-in default — Amazon for the HA UI language (`amazon.de`, `.fr`, `.it`,
-> `.es`, `.nl`, `.com.br`, `.com.tr`; `amazon.com` for every other language).
+> **`part_search_url_template`** (2.23+, settable since 2.87, D#182) is the
+> shopping-search link for spare parts without a `product_url` (buy-task link +
+> panel part rows) — a URL with a `{q}` placeholder, query precedence GTIN →
+> "vendor MPN" → part name. Blank = automatic: the Amazon store of the HA
+> **country** (DE/AT/CH → `.de`, FR, IT, ES, NL/BE → `.nl`, PL, SE, TR, BR,
+> GB/UK/IE → `.co.uk`, CA, AU, JP, IN, MX, US), then the UI language, then
+> `amazon.com`. Settings → General → *Shopping search URL* (the placeholder
+> shows the resolved default) or the Configure dialog; a template without
+> `{q}` or without `http(s)://` is refused.
 
 ### Advanced Feature Visibility
 
@@ -227,6 +230,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `custom_icon` | string (mdi) | `""` | — | Custom `mdi:` icon for the task's entities, overriding the type-based default. Max 100 chars. Picked via the icon selector in the task dialog |
 | `nfc_tag_id` | string | `""` | — | NFC tag identifier linked to the task (scanning the tag opens / completes it). Max 256 chars; checked for uniqueness — re-using a tag already linked to another task is rejected on save |
 | `allow_skip` (#150, 2.71+) | bool | `true` | — | **Skip lock** when set to false: the Skip action disappears from the panel rows, card and quick actions, and the server refuses `task/skip` and the voice SkipTask intent (`skip_disabled`) — automations cannot skip either |
+| `mirror_todo_entities` (D#183, 2.87+) | list of `todo.*` ids | `[]` | ≤5, not `todo.maintenance` | **Mirror into to-do lists**: while the task is due, one item *Object: Task* appears on every listed to-do entity; checking it off in any of them completes the task (reason *from a mirrored to-do list*) and clears the rest. Panel task dialog only (entity picker); carried by the JSON backup, not by CSV |
 | `notify_enabled` (#173, 2.81+) | bool | `true` | — | **No notifications for this task** when set to false: no status notifications or repeats, no lead-time reminders, no seat in a bundle (nor a count toward its threshold). Dashboard, entities and the weekly digest still include the task. Stored only when false |
 | `require_tag_scan` (2.67+) | bool | `false` | — | **Proof of presence**: the task can only be completed by scanning its NFC tag or QR code on the thing itself. Panel, card, to-do list, voice and notification buttons are refused (`tag_scan_required`); automatic trigger-recovery completions stay exempt; the `complete` service accepts `via_tag_scan: true` for automations that react to a real scan |
 | `entity_slug` | string | `""` | — | Override for the slug used in this task's `entity_id`s. Must match `[a-z0-9_]+` (lowercase letters, digits, underscores), max 64 chars. When unset, the slug is derived from the object and task names |
@@ -286,8 +290,8 @@ hose; values are rounded to 2 decimals and whole numbers collapse back to
 integers, while zero or negative input falls back to `1`.
 
 **Shopping search:** parts without a `product_url` link to a search — built
-from the internal `part_search_url_template` (a URL with a `{q}` placeholder;
-Amazon for the HA UI language, and **not user-settable** — see the note under
+from `part_search_url_template` (a URL with a `{q}` placeholder; blank =
+the Amazon store of the HA country, then the UI language — see the note under
 *General Settings*) with query precedence **GTIN → "vendor MPN" → name**.
 
 **Entities:** one stock sensor per part on the object device

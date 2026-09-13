@@ -604,6 +604,32 @@ export const panelStyles = css`
   }
   .detail-header h2 { margin: 0; font-size: 22px; }
   h3 { margin: 16px 0 8px; font-size: 16px; font-weight: 500; }
+  /* #179: object-page sections fold away. A chevron gutter beside each
+     section; open sections keep their own heading line (the child
+     component's h3 — buttons and all), the chevron is aligned to it per
+     section because their top margins differ. Collapsed = heading row only. */
+  .obj-section { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: start; }
+  .obj-section-toggle {
+    grid-column: 1; width: 28px; height: 28px; padding: 0; margin: 12px 0 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; border-radius: 50%; background: none; font: inherit;
+    color: var(--secondary-text-color); cursor: pointer;
+  }
+  .obj-section-toggle:hover { background: var(--secondary-background-color); color: var(--primary-text-color); }
+  .obj-section-toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
+  .obj-section-toggle ha-icon { --mdc-icon-size: 22px; }
+  .obj-section-body, .obj-section-title { grid-column: 2; min-width: 0; }
+  .obj-section-title { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .obj-section-count {
+    font-size: 12px; font-weight: 400; color: var(--secondary-text-color);
+    background: var(--secondary-background-color); padding: 2px 8px; border-radius: 999px;
+  }
+  .obj-section.parts.open > .obj-section-toggle { margin-top: 17px; }
+  .obj-section.history.open > .obj-section-toggle { margin-top: 32px; }
+  @media (max-width: 768px) {
+    .obj-section { grid-template-columns: 24px minmax(0, 1fr); }
+    .obj-section-toggle { width: 24px; }
+  }
   .meta { color: var(--secondary-text-color); margin: 4px 0; }
   /* v1.4.10 (#46): per-object free-form notes block */
   .object-notes {

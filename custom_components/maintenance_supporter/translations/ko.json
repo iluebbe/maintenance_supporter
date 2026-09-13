@@ -570,8 +570,11 @@
           "notify_service": "알림 서비스",
           "panel_enabled": "사이드바 패널 표시",
           "currency_decimals": "금액 소수 자릿수",
+          "battery_low_percent": "배터리 „부족“ 임계값 (%)",
+          "battery_recovered_percent": "이 값 초과 시 배터리 교체됨으로 간주 (%)",
           "panel_title": "사이드바 패널 제목",
-          "shopping_list_entity": "구매 작업을 동기화할 쇼핑 목록"
+          "shopping_list_entity": "구매 작업을 동기화할 쇼핑 목록",
+          "part_search_url_template": "구매 검색 링크"
         },
         "data_description": {
           "default_warning_days": "유지보수 작업의 기한 전에 경고를 표시할 일수입니다.",
@@ -579,8 +582,11 @@
           "notify_service": "사용할 알림 서비스입니다(예: notify.mobile_app_phone).",
           "panel_enabled": "사이드바에 Maintenance Supporter 패널을 표시합니다.",
           "currency_decimals": "모든 금액에 표시할 소수 자릿수 — KPI, 예산, 목록과 보고서의 비용, 예산 알림. 0 = 정수.",
+          "battery_low_percent": "전체 배터리의 하한선: 이 수준 이하의 배터리는 부족으로 계산됩니다(Battery Notes 임계값이 더 높은 경우 제외).",
+          "battery_recovered_percent": "부족한 배터리는 잔량이 이 값을 초과하거나 교체가 기록될 때까지 부족으로 계속 집계됩니다. 임계값 근처에서 오르내리는 잔량이 배터리 일괄 작업을 반복 완료하지 못하게 합니다.",
           "panel_title": "사이드바 항목의 사용자 지정 이름입니다. 비워 두면 \"유지보수\"를 사용합니다. Home Assistant 기본 유지보수 대시보드와 이름이 겹치지 않게 할 때 유용합니다.",
-          "shopping_list_entity": "부족한 부품의 자동 구매 알림이 이 할 일 목록에 표시됩니다. 항목을 체크하면 알림이 완료되고 부품이 재입고됩니다. 비워두면 비활성화됩니다."
+          "shopping_list_entity": "부족한 부품의 자동 구매 알림이 이 할 일 목록에 표시됩니다. 항목을 체크하면 알림이 완료되고 부품이 재입고됩니다. 비워두면 비활성화됩니다.",
+          "part_search_url_template": "검색어 자리에 {q}가 들어가는 URL로, 제품 링크가 없는 부품에 사용됩니다. 비워 두면 자동 선택(국가, 그다음 언어 기준)됩니다."
         }
       },
       "notification_settings": {
@@ -1187,7 +1193,8 @@
       "invalid_notify_service": "알림 서비스 형식이 잘못되었습니다. 'notify.service_name' 형식을 사용하세요(예: notify.mobile_app_phone).",
       "notify_service_not_found": "이 알림 서비스를 Home Assistant에서 찾을 수 없습니다. 서비스 이름을 확인해 주세요.",
       "nfc_tag_duplicate": "이 NFC 태그는 이미 다른 작업에 연결되어 있습니다.",
-      "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다."
+      "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다.",
+      "invalid_search_template": "검색 링크는 {q}를 포함한 http(s) URL이어야 합니다."
     }
   },
   "entity": {

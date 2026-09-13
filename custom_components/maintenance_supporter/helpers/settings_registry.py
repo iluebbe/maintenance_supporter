@@ -29,6 +29,7 @@ from typing import Any
 import voluptuous as vol
 
 from ..const import (
+    BATTERY_RECOVERED_PERCENT_RANGE,
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
@@ -45,6 +46,7 @@ from ..const import (
     CONF_ARCHIVE_ONEOFF_DAYS,
     CONF_BATTERY_LIFETIME_MONTHS,
     CONF_BATTERY_LOW_PERCENT,
+    CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
@@ -77,6 +79,7 @@ from ..const import (
     CONF_OPERATOR_WRITE_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
+    CONF_PART_SEARCH_URL_TEMPLATE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -91,6 +94,7 @@ from ..const import (
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_ARCHIVE_ONEOFF_DAYS,
     DEFAULT_BATTERY_LOW_PERCENT,
+    DEFAULT_BATTERY_RECOVERED_PERCENT,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_CONSUMABLE_THRESHOLD,
     DEFAULT_CURRENCY_DECIMALS,
@@ -103,6 +107,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DEFAULT_WARRANTY_REMINDER_DAYS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
+    MAX_PART_SEARCH_URL_TEMPLATE_LENGTH,
 )
 
 
@@ -128,6 +133,11 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # #146: household "low" floors (percent) for discovery and the battery fleet.
     SettingSpec(CONF_DEFAULT_CONSUMABLE_THRESHOLD, int, DEFAULT_CONSUMABLE_THRESHOLD, int_range=(1, 90)),
     SettingSpec(CONF_BATTERY_LOW_PERCENT, int, DEFAULT_BATTERY_LOW_PERCENT, int_range=(1, 90)),
+    # #180: a low battery stays low until its level rises ABOVE this (hysteresis).
+    SettingSpec(CONF_BATTERY_RECOVERED_PERCENT, int, DEFAULT_BATTERY_RECOVERED_PERCENT, int_range=BATTERY_RECOVERED_PERCENT_RANGE),
+    # D#182: shopping-search URL with a {q} placeholder ("" = automatic by
+    # country/language); the {q} requirement is a bespoke rule in dashboard.py.
+    SettingSpec(CONF_PART_SEARCH_URL_TEMPLATE, str, "", max_len=MAX_PART_SEARCH_URL_TEMPLATE_LENGTH),
     # D#162 follow-up: {battery type: typical lifetime in months} — the forecast
     # anchor for batteries without a level sensor (sanitised in dashboard.py).
     SettingSpec(CONF_BATTERY_LIFETIME_MONTHS, dict, {}),

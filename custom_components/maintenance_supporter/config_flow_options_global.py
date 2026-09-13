@@ -30,6 +30,8 @@ from .const import (
     CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
+    CONF_BATTERY_LOW_PERCENT,
+    CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
@@ -55,6 +57,7 @@ from .const import (
     CONF_OPERATOR_WRITE_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
+    CONF_PART_SEARCH_URL_TEMPLATE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -620,6 +623,15 @@ class GlobalOptionsFlow(OptionsFlow):
             if isinstance(raw_title, str):
                 user_input[CONF_PANEL_TITLE] = raw_title.strip()[:MAX_PANEL_TITLE_LENGTH]
 
+            # D#182: shopping-search template — blank = automatic (country,
+            # then UI language); otherwise an http(s) URL with {q}.
+            from .helpers.parts import valid_search_template
+
+            raw_tpl = (user_input.get(CONF_PART_SEARCH_URL_TEMPLATE) or "").strip()
+            if raw_tpl and not valid_search_template(raw_tpl):
+                errors[CONF_PART_SEARCH_URL_TEMPLATE] = "invalid_search_template"
+            user_input[CONF_PART_SEARCH_URL_TEMPLATE] = raw_tpl
+
             if not errors:
                 return self._save_and_return(user_input)
 
@@ -667,6 +679,30 @@ class GlobalOptionsFlow(OptionsFlow):
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
+                    # #146 / #180: the battery fleet's low floor and the level a
+                    # low battery must rise above to count as replaced.
+                    vol.Optional(
+                        CONF_BATTERY_LOW_PERCENT,
+                        default=self._opt(CONF_BATTERY_LOW_PERCENT),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=int_range(CONF_BATTERY_LOW_PERCENT)[0],
+                            max=int_range(CONF_BATTERY_LOW_PERCENT)[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_BATTERY_RECOVERED_PERCENT,
+                        default=self._opt(CONF_BATTERY_RECOVERED_PERCENT),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=int_range(CONF_BATTERY_RECOVERED_PERCENT)[0],
+                            max=int_range(CONF_BATTERY_RECOVERED_PERCENT)[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
                     vol.Optional(
                         CONF_NOTIFICATIONS_ENABLED,
                         default=self._opt(CONF_NOTIFICATIONS_ENABLED),
@@ -698,6 +734,12 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_PANEL_TITLE,
                         description={"suggested_value": current.get(CONF_PANEL_TITLE, "")},
                     ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    # D#182: shopping-search template with {q}; blank = automatic
+                    # (Amazon store of the HA country, then of the UI language).
+                    vol.Optional(
+                        CONF_PART_SEARCH_URL_TEMPLATE,
+                        description={"suggested_value": current.get(CONF_PART_SEARCH_URL_TEMPLATE, "")},
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.URL)),
                 }
             ),
             errors=errors,

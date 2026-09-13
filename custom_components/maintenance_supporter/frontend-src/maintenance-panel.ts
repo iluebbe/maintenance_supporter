@@ -163,6 +163,10 @@ const GROUP_BY_MODES: readonly GroupByMode[] = ["none", "area", "group", "user",
 // (OVERVIEW_TABS: imported from helpers/overview-tabs.ts.)
 /** The dashboard list's status filter options (the <select> in the toolbar). */
 const STATUS_FILTERS: readonly string[] = ["overdue", "due_soon", "triggered", "ok"];
+/** #179: the object page's collapsible sections — the ids saved under
+ *  LS_KEYS.objectSections and accepted by the `?section=` deep link. */
+type ObjectSection = "tasks" | "documents" | "parts" | "history";
+const OBJECT_SECTIONS: readonly ObjectSection[] = ["tasks", "documents", "parts", "history"];
 
 // Chart dimension constants for mini sparklines (overview)
 
@@ -330,6 +334,18 @@ export class MaintenanceSupporterPanel extends LitElement {
     try { return new Set(JSON.parse(lsGet(LS_KEYS.collapsedSections) || "[]")); }
     catch { return new Set(); }
   })();
+  // #179: object-page sections the user folded away — one setting for every
+  // object. A collapsed section's component is not rendered at all (no
+  // thumbnails load, nothing to scroll past). `_objectSectionOverride` opens
+  // one section for the current visit only (a search hit, a `?section=`
+  // link) and leaves the saved set alone.
+  @state() private _objectSectionsCollapsed: Set<ObjectSection> = (() => {
+    try {
+      const raw: unknown = JSON.parse(lsGet(LS_KEYS.objectSections) || "[]");
+      return new Set((Array.isArray(raw) ? raw : []).filter((s): s is ObjectSection => (OBJECT_SECTIONS as readonly unknown[]).includes(s)));
+    } catch { return new Set<ObjectSection>(); }
+  })();
+  @state() private _objectSectionOverride: ObjectSection | null = null;
   // v2.15.0: command palette ("/" since 2.18.1 — Ctrl+K clashed with HA's own
   // global search); 2.78 (#171): the panel's global search — a magnifier in
   // the header opens it too, results are grouped (objects / tasks / parts
@@ -945,6 +961,12 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     const taskId = params.get("task_id");
     const action = params.get("action");
+    // #179: `?entry_id=…&section=tasks|documents|parts|history` opens the
+    // object with that section unfolded (this visit only — the saved
+    // collapsed set is not rewritten) and scrolled into view. Unknown
+    // values are ignored, like every other param.
+    const sectionParam = params.get("section");
+    const section = (OBJECT_SECTIONS as readonly string[]).includes(sectionParam ?? "") ? sectionParam as ObjectSection : null;
 
     // Always clean URL params — they are consumed once
     const cleanUrl = window.location.pathname + window.location.hash;
@@ -961,7 +983,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (taskId) {
       const task = obj.tasks.find((t) => t.id === taskId);
       if (!task) {
-        this._showObject(entryId);
+        this._showObject(entryId, section);
         return;
       }
       this._showTask(entryId, taskId);
@@ -977,7 +999,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         });
       }
     } else {
-      this._showObject(entryId);
+      this._showObject(entryId, section);
     }
   }
 
@@ -1263,6 +1285,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedEntryId = s.msp_entry || null;
     this._selectedTaskId = s.msp_task || null;
     this._moreMenuOpen = false;
+    this._objectSectionOverride = null;
     if (s.msp_view === "all_parts") void this._loadAllParts();
     if (s.msp_view === "task" && s.msp_entry && s.msp_task) {
       this._historyFilter = null;
@@ -1414,12 +1437,35 @@ export class MaintenanceSupporterPanel extends LitElement {
     });
   }
 
-  private _showObject(entryId: string): void {
+  /** #179: `section` opens one collapsed section for this visit (a search
+   *  hit, a `?section=` link) and scrolls to it; the saved set is untouched. */
+  private _showObject(entryId: string, section: ObjectSection | null = null): void {
     this._pushPanelState("object", entryId);
     this._view = "object";
     this._selectedEntryId = entryId;
     this._selectedTaskId = null;
-    this._scrollContentToTop();
+    this._objectSectionOverride = section;
+    if (section) this._scrollToObjectSection(section);
+    else this._scrollContentToTop();
+  }
+
+  private _scrollToObjectSection(section: ObjectSection): void {
+    void this.updateComplete.then(() => requestAnimationFrame(() => {
+      const target = this.shadowRoot?.querySelector(`.obj-section[data-section="${section}"]`);
+      if (target) target.scrollIntoView({ block: "start", behavior: "smooth" });
+      else this._scrollContentToTop();
+    }));
+  }
+
+  /** #179: fold / unfold an object-page section; the choice is saved for
+   *  every object. A manual toggle ends the visit-only override. */
+  private _toggleObjectSection(section: ObjectSection): void {
+    const next = new Set(this._objectSectionsCollapsed);
+    const open = this._objectSectionOverride === section || !next.has(section);
+    if (open) next.add(section); else next.delete(section);
+    if (this._objectSectionOverride === section) this._objectSectionOverride = null;
+    this._objectSectionsCollapsed = next;
+    lsSet(LS_KEYS.objectSections, JSON.stringify([...next]));
   }
 
   /** Master-detail split is active: wide panel, dashboard tab, no bulk. */
@@ -1733,6 +1779,13 @@ export class MaintenanceSupporterPanel extends LitElement {
           // honour #page=N; the Companion app's external viewer may not).
           void openSignedDocument(this.hass, r.docId, r.page ? `#page=${r.page}` : "").catch(() => { /* helper closed its tab */ });
         }
+        // #179: the file opens in its own tab; the panel lands on the object's
+        // documents — unfolded for this visit even when the user keeps that
+        // section collapsed — so the hit has its context when the tab returns.
+        this._showObject(r.entryId, "documents");
+        return;
+      case "part":
+        this._showObject(r.entryId, "parts");
         return;
       default:
         this._showObject(r.entryId);
@@ -4083,6 +4136,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             </div>`
           : nothing}
 
+        ${this._renderObjectSection("tasks", t("tasks", L), visibleTasks.length, () => html`
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
           <ha-button
             class="archived-toggle ${this._showArchived ? "active" : ""}"
@@ -4131,13 +4185,17 @@ export class MaintenanceSupporterPanel extends LitElement {
                 )}
               </div>
             `)}</div>`}
+        `)}
 
+        ${this._renderObjectSection("documents", t("documents", L), typeof o.document_count === "number" ? o.document_count : null, () => html`
         <maintenance-documents-section
           .hass=${this.hass}
           .entryId=${obj.entry_id}
           .canWrite=${!isOperator}
         ></maintenance-documents-section>
+        `)}
 
+        ${(obj.parts || []).length || !isOperator ? this._renderObjectSection("parts", t("parts_section", L), (obj.parts || []).length, () => html`
         <maintenance-parts-section
           .hass=${this.hass}
           .entryId=${obj.entry_id}
@@ -4146,7 +4204,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           .currencySymbol=${this._currencySymbol}
           @parts-changed=${() => this._loadData()}
         ></maintenance-parts-section>
+        `) : nothing}
 
+        ${obj.tasks.some((tk) => (tk.times_performed || 0) > 0 || (tk.history || []).length > 0) ? this._renderObjectSection("history", t("object_history_section", L), null, () => html`
         <maintenance-object-history-section
           .hass=${this.hass}
           .entryId=${obj.entry_id}
@@ -4156,6 +4216,37 @@ export class MaintenanceSupporterPanel extends LitElement {
           .userName=${(id: string) => this._userService?.getUserName(id) ?? null}
           @open-task=${(e: CustomEvent<{ taskId: string }>) => this._showTask(obj.entry_id, e.detail.taskId)}
         ></maintenance-object-history-section>
+        `) : nothing}
+      </div>
+    `;
+  }
+
+  /** #179: one foldable block of the object page. Open = the section renders
+   *  itself (its own heading, buttons, list) with the chevron in the gutter
+   *  beside its heading; collapsed = only a heading row (title, count,
+   *  chevron) — the section's component is not in the DOM at all, so no
+   *  thumbnails load and there is nothing to scroll past. A visit-only
+   *  override (search hit, `?section=` link) opens a collapsed section
+   *  without rewriting the saved set. Callers skip the block where the
+   *  section itself would render nothing (parts for an operator without
+   *  parts, history without a single entry) — a chevron beside nothing. */
+  private _renderObjectSection(section: ObjectSection, title: string, count: number | null, body: () => unknown) {
+    const L = this._lang;
+    const open = this._objectSectionOverride === section || !this._objectSectionsCollapsed.has(section);
+    const label = open ? t("section_collapse", L) : t("section_expand", L);
+    return html`
+      <div class="obj-section ${section} ${open ? "open" : "collapsed"}" data-section=${section}>
+        <button class="obj-section-toggle" type="button"
+          aria-expanded=${open ? "true" : "false"}
+          aria-label=${label} title=${label}
+          @click=${() => this._toggleObjectSection(section)}>
+          <ha-icon icon=${open ? "mdi:chevron-up" : "mdi:chevron-down"}></ha-icon>
+        </button>
+        ${open
+          ? html`<div class="obj-section-body">${body()}</div>`
+          : html`<h3 class="obj-section-title" @click=${() => this._toggleObjectSection(section)}>
+              ${title}${count !== null ? html`<span class="obj-section-count">${count}</span>` : nothing}
+            </h3>`}
       </div>
     `;
   }

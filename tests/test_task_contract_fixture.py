@@ -97,6 +97,8 @@ _MAXIMAL_TASK = {
     "priority": "high",
     "checklist": ["step one", "step two"],
     "labels": ["safety", "seasonal"],
+    # D#183: external to-do lists the due task is mirrored into.
+    "mirror_todo_entities": ["todo.family", "todo.kids"],
     "schedule_time": "08:30",
     "on_complete_action": {
         "service": "light.turn_off",

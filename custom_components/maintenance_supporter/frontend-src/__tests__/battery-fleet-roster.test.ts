@@ -66,6 +66,10 @@ async function mount(ov: unknown = overview(), history: Record<string, unknown> 
         calls.push(msg);
         return { marked: 1, pressed: 1, consumed: {} };
       },
+      "maintenance_supporter/battery_fleet/record_replacement": (msg: Record<string, unknown>) => {
+        calls.push(msg);
+        return { recorded: true, already_recorded: false, consumed: { batt_aa: 2 } };
+      },
     },
   });
   const el = await fixture<MaintenanceBatteryFleetSection>(
@@ -365,9 +369,9 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     expect(bar50.className, "50 % sits in the 35+20 approach band").to.contain("bf-bar-warn");
   });
 
-  it("offers a one-click record for a detected unrecorded swap", async () => {
+  it("offers a one-click record for a detected unrecorded swap (backend records + consumes, #181)", async () => {
     const now = Math.floor(Date.now() / 1000);
-    const { el, serviceCalls } = await mount(overview(), {
+    const { el, calls, serviceCalls } = await mount(overview(), {
       "sensor.vacuum_battery_plus": {
         points: [[now - 86400, 15], [now - 43200, 100]] as [number, number][],
         threshold: 20,
@@ -381,11 +385,13 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     btn!.click();
     await new Promise((r) => setTimeout(r, 0));
     await el.updateComplete;
-    expect(serviceCalls).to.have.lengthOf(1);
-    expect(serviceCalls[0].domain).to.equal("battery_notes");
-    expect(serviceCalls[0].service).to.equal("set_battery_replaced");
-    expect(serviceCalls[0].data!.device_id).to.equal("dev123");
-    expect(String(serviceCalls[0].data!.datetime_replaced)).to.contain("T");
+    // The panel no longer calls Battery Notes itself: the backend command
+    // records the date AND consumes the type-part cells (one code path).
+    expect(serviceCalls, "no direct service call from the panel").to.have.lengthOf(0);
+    const recorded = calls.filter((c) => c.type === "maintenance_supporter/battery_fleet/record_replacement");
+    expect(recorded).to.have.lengthOf(1);
+    expect(recorded[0].entity_id).to.equal("sensor.vacuum_battery_plus");
+    expect(String(recorded[0].replaced_at)).to.contain("T");
     expect(roster(el)!.querySelector("button.bf-jump"), "recorded → chip gone").to.equal(null);
   });
 
