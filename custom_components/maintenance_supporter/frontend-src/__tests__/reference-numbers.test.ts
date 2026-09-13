@@ -45,6 +45,7 @@ describe("reference chips and search (#170)", () => {
         { timestamp: "2026-04-01T10:00:00", type: "skipped", notes: "later" },
       ] }),
       task({ name: "Salz nachfüllen", ref_no: 1 }),
+      task({ name: "Alte Dichtung", ref_no: 2, archived: true }),
     ], "Spülmaschine");
     (dish.object as Record<string, unknown>).ref_no = 8;
     const pump = obj("e2", [task({ name: "Pumpe prüfen", ref_no: 1 })], "Pool Pump");
@@ -90,9 +91,22 @@ describe("reference chips and search (#170)", () => {
           : { documents: [], history: [] }),
     });
     await open(el, "8");
-    expect(labels(el)).to.deep.equal(["Spülmaschine", "Filter reinigen", "Salz nachfüllen"]);
-    expect(chips(el)).to.deep.equal(["#8", "#8.3", "#8.1"]);
+    expect(labels(el)).to.deep.equal(["Spülmaschine", "Filter reinigen", "Salz nachfüllen", "Alte Dichtung"]);
+    expect(chips(el)).to.deep.equal(["#8", "#8.3", "#8.1", "#8.2"]);
     expect(labels(el)).to.not.include("Pool Pump");
+    // A number on paper outlives the archive: the archived task answers to
+    // "8.2" and says so; the text search keeps hiding it.
+    const subs = (root: HTMLElement) => [...sr(root).querySelectorAll(".palette-results .palette-sub")].map((n) => n.textContent!.trim());
+    expect(subs(el).at(-1)).to.contain("Archived");
+    const input0 = sr(el).querySelector<HTMLInputElement>(".palette-input")!;
+    input0.value = "8.2";
+    input0.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    expect(labels(el)).to.deep.equal(["Alte Dichtung"]);
+    input0.value = "Dichtung";
+    input0.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    expect(labels(el)).to.not.include("Alte Dichtung");
 
     const input = sr(el).querySelector<HTMLInputElement>(".palette-input")!;
     input.value = "8.3";

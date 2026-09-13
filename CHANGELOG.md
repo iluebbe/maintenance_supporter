@@ -2,6 +2,15 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Reference search and archived things** (#170): typing `8` / `8.3` into the global search now also finds an archived object or task
+  (marked *Archived*) — a booklet line stays findable after the thing was retired; the text search keeps hiding archived items. The
+  reference-number docs now say that numbers follow the order of entry (a backfilled completion gets the next number, a deleted
+  entry leaves a gap) and that a moved task's completions are numbered afresh under the target object.
+
 ## [2.85.0] - 2026-09-13
 
 ### ✨ Added

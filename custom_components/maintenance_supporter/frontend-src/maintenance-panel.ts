@@ -1625,12 +1625,16 @@ export class MaintenanceSupporterPanel extends LitElement {
         const o = obj.object;
         if (o.ref_no !== ref.object) continue;
         const oref = objectRef(o)!;
+        // A number on paper outlives the archive: an archived object or task
+        // still answers to its reference (with an "Archived" note), while the
+        // text search below keeps hiding archived things.
+        const archivedNote = (flag: boolean | undefined, base: string) => (flag ? [base, t("archived", L)].filter(Boolean).join(" · ") : base);
         if (ref.task == null) {
-          objects.push({ kind: "object", entryId: obj.entry_id, label: o.name || "", sub: t("object", L), score: 1000, icon: "mdi:package-variant-closed", ref: oref });
+          objects.push({ kind: "object", entryId: obj.entry_id, label: o.name || "", sub: archivedNote(o.archived, t("object", L)), score: 1000, icon: "mdi:package-variant-closed", ref: oref });
         }
         for (const task of obj.tasks) {
-          if (task.archived || (ref.task != null && task.ref_no !== ref.task)) continue;
-          tasks.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: task.name || "", sub: o.name || "", score: ref.task == null ? 900 : 1000, icon: "mdi:clipboard-check-outline", ref: taskRef(o, task) });
+          if (ref.task != null && task.ref_no !== ref.task) continue;
+          tasks.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: task.name || "", sub: archivedNote(task.archived || o.archived, o.name || ""), score: ref.task == null ? 900 : 1000, icon: "mdi:clipboard-check-outline", ref: taskRef(o, task) });
         }
       }
       if (objects.length || tasks.length) {
