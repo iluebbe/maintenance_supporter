@@ -79,7 +79,7 @@ async def _overdue(hass: HomeAssistant, entry_id: str) -> None:
     await hass.async_block_till_done()
 
 
-async def test_snooze_survives_reload_but_not_a_full_restart(
+async def test_snooze_survives_reload_and_a_full_restart(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
     mock = AsyncMock()
@@ -111,10 +111,11 @@ async def test_snooze_survives_reload_but_not_a_full_restart(
     await _overdue(hass, obj.entry_id)
     assert not mock.called, "snooze should survive a plain entry reload"
 
-    # A FULL restart rebuilds the shared NotificationManager from scratch — the
-    # in-memory snooze is gone, so the task notifies again.
+    # A FULL restart rebuilds the shared NotificationManager — since 2026-09-13
+    # it loads its persisted bookkeeping (snoozes, stamps), so the snooze still
+    # holds and nothing is re-announced (the restart burst fix).
     await simulate_full_restart(hass, global_entry, obj)
     obj = hass.config_entries.async_get_entry(obj.entry_id)
     mock.reset_mock()
     await _overdue(hass, obj.entry_id)
-    assert mock.called, "a full restart must forget the in-memory snooze (session-only contract)"
+    assert not mock.called, "a full restart keeps the persisted snooze"

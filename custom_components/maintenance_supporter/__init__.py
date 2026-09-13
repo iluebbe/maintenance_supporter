@@ -459,6 +459,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     # Create the notification manager (shared across all entries)
     hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = NotificationManager(hass)
+    await hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY].async_load()
 
     # Create + load the global document store (per-object doc metadata + the
     # content-addressed blob registry; binaries live on disk under /config).

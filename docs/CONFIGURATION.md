@@ -87,7 +87,7 @@ Visible only when `notifications_enabled` is `true`.
 | `notify_overdue_interval_hours` | int | 12 | 0–720 | Minimum hours between repeated overdue notifications per task. 0 = notify once |
 | `notify_triggered_enabled` | bool | `true` | — | Send notifications when a sensor trigger activates |
 | `notify_triggered_interval_hours` | int | 0 | 0–720 | Minimum hours between repeated triggered notifications per task. 0 = notify once |
-| `quiet_hours_enabled` | bool | `true` | — | Suppress notifications during quiet hours |
+| `quiet_hours_enabled` | bool | `true` | — | Suppress notifications during quiet hours. Reminders that fall into the quiet hours are held and delivered as **one summary** at their end (2.86+) — not as a burst of single pushes |
 | `quiet_hours_start` | time | `22:00` | — | Start of quiet hours (HH:MM) |
 | `quiet_hours_end` | time | `08:00` | — | End of quiet hours (HH:MM) |
 | `max_notifications_per_day` | int | 0 | 0–1000 | Maximum notifications per day across all tasks. 0 = unlimited. With a limit the last slots are not first-come-first-served (2.85+): the last 10 % of the limit (rounded down) are kept for **high**-priority tasks and **low**-priority tasks stop at 20 %; a task that was turned away yesterday and never served goes first today; a task that already got a message today yields its repeat while another task is still waiting. A held task is offered again on the next refresh |

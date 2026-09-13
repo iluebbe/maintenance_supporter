@@ -53,6 +53,7 @@ KIND_WARRANTY = "warranty"  # warranty-expiry reminder
 KIND_BUDGET = "budget"  # budget alert
 KIND_TEST = "test"  # the Settings "Send test" button
 KIND_COMPLETED = "completed"  # #173 follow-up: a task was completed (activity, opt-in)
+KIND_QUIET_END = "quiet_end"  # what quiet hours held back, as one summary at their end
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,9 @@ NOTIFICATION_KINDS: dict[str, KindSpec] = {
     KIND_WARRANTY: KindSpec(KIND_WARRANTY, "alert", "warranty_reminder_enabled + days", frozenset({"enabled", "target"}), "household"),
     KIND_BUDGET: KindSpec(KIND_BUDGET, "alert", "budget_alerts_enabled + threshold", frozenset({"enabled", "target", "quiet_hours", "daily_cap"}), "household"),
     KIND_COMPLETED: KindSpec(KIND_COMPLETED, "activity", "notify_completed (off | automatic | all)", frozenset({"enabled", "target", "kind_enabled", "task_mute", "scope", "quiet_hours", "daily_cap"}), "household"),
+    # One message for everything the quiet hours held back — sent at the first
+    # send attempt after they end (instead of a burst of single pushes).
+    KIND_QUIET_END: KindSpec(KIND_QUIET_END, "summary", "quiet_hours_enabled", frozenset({"enabled", "target", "daily_cap"}), "household"),
     KIND_TEST: KindSpec(KIND_TEST, "test", "—", frozenset({"target"}), "household"),
 }
 

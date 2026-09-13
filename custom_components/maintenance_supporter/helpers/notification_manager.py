@@ -10,6 +10,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from ..const import (
@@ -48,6 +49,7 @@ from .notify_hooks import (
     KIND_BUNDLE,
     KIND_DIGEST,
     KIND_LEAD_TIME,
+    KIND_QUIET_END,
     KIND_STATUS,
     KIND_WARRANTY,
     async_emit_and_dispatch,
@@ -73,6 +75,14 @@ _NOTIFY_SERVICE_MISSING_ISSUE_ID = "notify_service_missing"
 # adds noise; the sentinel is a singleton, not a real timestamp.
 _SENT_ONCE = datetime.max  # noqa: DTZ901 - intentional naive sentinel, see comment above
 
+# The manager's bookkeeping survives a restart (2026-09-13): what was sent when
+# (incl. the "once" marks), snoozes, the daily counter, the lead dedup, the
+# fairness sets and the reminders quiet hours are holding. Without it every
+# restart re-announced everything once the trigger entities came back.
+STATE_STORE_KEY = f"{DOMAIN}.notification_state"
+STATE_STORE_VERSION = 1
+_STATE_SAVE_DELAY = 5
+
 # --- Notification message translations ---
 _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
     "de": {
@@ -88,6 +98,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Später",
         "bundled_title": "Wartung: {count} Aufgaben",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} Erinnerungen aus der Ruhezeit",
         "digest_title": "Wöchentliche Wartungsübersicht",
         "digest_message": "{overdue} überfällig, {due_soon} diese Woche fällig.",
         "warranty_title": "Garantie läuft bald ab",
@@ -126,6 +137,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Later",
         "bundled_title": "Onderhoud: {count} taken",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} herinneringen uit de stille uren",
         "digest_title": "Wekelijks onderhoudsoverzicht",
         "digest_message": "{overdue} achterstallig, {due_soon} deze week.",
         "warranty_title": "Warranty expiring soon",
@@ -164,6 +176,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Reporter",
         "bundled_title": "Maintenance : {count} tâches",
         "bundled_message": "{object} : {task_list}",
+        "quiet_end_title": "{count} rappels des heures calmes",
         "digest_title": "Récapitulatif hebdomadaire d'entretien",
         "digest_message": "{overdue} en retard, {due_soon} cette semaine.",
         "warranty_title": "Warranty expiring soon",
@@ -202,6 +215,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Posticipa",
         "bundled_title": "Manutenzione: {count} attività",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} promemoria dalle ore di silenzio",
         "digest_title": "Riepilogo settimanale manutenzione",
         "digest_message": "{overdue} scadute, {due_soon} questa settimana.",
         "warranty_title": "Warranty expiring soon",
@@ -240,6 +254,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Posponer",
         "bundled_title": "Mantenimiento: {count} tareas",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} recordatorios de las horas de silencio",
         "digest_title": "Resumen semanal de mantenimiento",
         "digest_message": "{overdue} vencidas, {due_soon} esta semana.",
         "warranty_title": "Warranty expiring soon",
@@ -278,6 +293,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Snooze",
         "bundled_title": "Maintenance: {count} tasks",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} reminders held during quiet hours",
         "digest_title": "Weekly maintenance digest",
         "digest_message": "{overdue} overdue, {due_soon} due this week.",
         "warranty_title": "Warranty expiring soon",
@@ -316,6 +332,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Senere",
         "bundled_title": "Vedligeholdelse: {count} opgaver",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} påmindelser fra de stille timer",
         "digest_title": "Ugentlig vedligeholdelsesoversigt",
         "digest_message": "{overdue} forfaldne, {due_soon} denne uge.",
         "warranty_title": "Warranty expiring soon",
@@ -354,6 +371,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Myöhemmin",
         "bundled_title": "Huolto: {count} tehtävää",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} muistutusta hiljaisilta tunneilta",
         "digest_title": "Viikoittainen huoltokooste",
         "digest_message": "{overdue} myöhässä, {due_soon} tällä viikolla.",
         "warranty_title": "Warranty expiring soon",
@@ -392,6 +410,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Senere",
         "bundled_title": "Vedlikehold: {count} oppgaver",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} påminnelser fra de stille timene",
         "digest_title": "Ukentlig vedlikeholdsoversikt",
         "digest_message": "{overdue} forfalt, {due_soon} denne uken.",
         "warranty_title": "Warranty expiring soon",
@@ -430,6 +449,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "後で",
         "bundled_title": "メンテナンス: {count} 件のタスク",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "静音時間中の{count}件のリマインダー",
         "digest_title": "週間メンテナンスまとめ",
         "digest_message": "期限切れ {overdue} 件、今週 {due_soon} 件。",
         "warranty_title": "Warranty expiring soon",
@@ -468,6 +488,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "बाद में",
         "bundled_title": "रखरखाव: {count} कार्य",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "शांत घंटों के {count} अनुस्मारक",
         "digest_title": "साप्ताहिक रखरखाव सारांश",
         "digest_message": "{overdue} अतिदेय, {due_soon} इस सप्ताह।",
         "warranty_title": "Warranty expiring soon",
@@ -506,6 +527,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "稍后提醒",
         "bundled_title": "维护：共有 {count} 项任务",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "静音时段积累的 {count} 条提醒",
         "digest_title": "每周维护摘要",
         "digest_message": "逾期 {overdue} 项，本周 {due_soon} 项。",
         "warranty_title": "Warranty expiring soon",
@@ -544,6 +566,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Отложить",
         "bundled_title": "Обслуживание: {count} задач",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} напоминаний за тихие часы",
         "digest_title": "Еженедельная сводка обслуживания",
         "digest_message": "{overdue} просрочено, {due_soon} на этой неделе.",
         "warranty_title": "Warranty expiring soon",
@@ -582,6 +605,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Відкласти",
         "bundled_title": "Обслуговування: {count} завдань",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} нагадувань за тихі години",
         "digest_title": "Щотижневий огляд обслуговування",
         "digest_message": "{overdue} прострочено, {due_soon} цього тижня.",
         "warranty_title": "Warranty expiring soon",
@@ -620,6 +644,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Adiar",
         "bundled_title": "Manutenção: {count} tarefas",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} lembretes das horas de silêncio",
         "digest_title": "Resumo semanal de manutenção",
         "digest_message": "{overdue} atrasadas, {due_soon} esta semana.",
         "warranty_title": "Warranty expiring soon",
@@ -660,6 +685,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Drzemka",
         "bundled_title": "Konserwacja: {count} zadań",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} przypomnień z godzin ciszy",
         "digest_title": "Cotygodniowe podsumowanie konserwacji",
         "digest_message": "{overdue} zaległych, {due_soon} w tym tygodniu.",
         "warranty_title": "Warranty expiring soon",
@@ -700,6 +726,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Odložit",
         "bundled_title": "Údržba: {count} úkolů",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} připomínek z tichých hodin",
         "digest_title": "Týdenní přehled údržby",
         "digest_message": "{overdue} po termínu, {due_soon} tento týden.",
         "warranty_title": "Warranty expiring soon",
@@ -739,6 +766,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Snooza",
         "bundled_title": "Underhåll: {count} uppgifter",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} påminnelser från de tysta timmarna",
         "digest_title": "Veckovis underhållssammanfattning",
         "digest_message": "{overdue} försenade, {due_soon} denna vecka.",
         "warranty_title": "Warranty expiring soon",
@@ -777,6 +805,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Adiar",
         "bundled_title": "Manutenção: {count} tarefas",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} lembretes das horas de silêncio",
         "digest_title": "Resumo semanal de manutenção",
         "digest_message": "{overdue} atrasadas, {due_soon} vencem nesta semana.",
         "warranty_title": "Garantia expirando em breve",
@@ -815,6 +844,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Halasztás",
         "bundled_title": "Karbantartás: {count} feladat",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "{count} emlékeztető a csendes órákból",
         "digest_title": "Heti karbantartási összefoglaló",
         "digest_message": "{overdue} lejárt, {due_soon} esedékes ezen a héten.",
         "warranty_title": "Hamarosan lejáró garancia",
@@ -853,6 +883,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "미루기",
         "bundled_title": "유지보수: 작업 {count}개",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "방해 금지 시간 동안 쌓인 알림 {count}건",
         "digest_title": "주간 유지보수 요약",
         "digest_message": "기한 초과 {overdue}건, 이번 주 예정 {due_soon}건.",
         "warranty_title": "보증 기간 만료 임박",
@@ -891,6 +922,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Ertele",
         "bundled_title": "Bakım: {count} görev",
         "bundled_message": "{object}: {task_list}",
+        "quiet_end_title": "Sessiz saatlerden {count} hatırlatma",
         "digest_title": "Haftalık bakım özeti",
         "digest_message": "{overdue} gecikmiş, {due_soon} bu hafta yapılacak.",
         "warranty_title": "Garanti yakında sona eriyor",
@@ -1117,6 +1149,12 @@ class NotificationManager:
         self._deferred_today: set[str] = set()
         self._starved: set[str] = set()
         self._delivered_at: dict[str, datetime] = {}
+        # Reminders that fell into quiet hours: key → the facts needed for the
+        # one summary that goes out when the quiet hours end.
+        self._quiet_held: dict[str, dict[str, Any]] = {}
+        # The quiet-hours skip is logged once per quiet period, not per refresh.
+        self._quiet_logged_for: str | None = None
+        self._store: Store[dict[str, Any]] = Store(hass, STATE_STORE_VERSION, STATE_STORE_KEY)
         # Bug audit 2026-09-12: lead reminders run from the 08:00 tick AND a
         # noon retry (for quiet windows ending after 08:00) - this is the
         # per-day dedup the retry relies on: (entry, task, lead) -> ISO day.
@@ -1151,6 +1189,7 @@ class NotificationManager:
 
     def _stamp_status_sent(self, key: str, interval_hours: int) -> None:
         self._last_notified[key] = _SENT_ONCE if interval_hours == 0 else dt_util.now()
+        self._dirty()
 
     def _rate_limited(self, key: str, min_seconds: float) -> bool:
         """True when ``key`` fired less than ``min_seconds`` ago.
@@ -1389,6 +1428,156 @@ class NotificationManager:
         self._served_today.clear()
         self._daily_count = 0
         self._daily_reset_date = today
+        self._dirty()
+
+    # ── persistence ──────────────────────────────────────────────────────
+
+    async def async_load(self) -> None:
+        """Restore the bookkeeping saved by the previous process."""
+        raw = await self._store.async_load()
+        if not isinstance(raw, dict):
+            return
+
+        def _dt(value: Any) -> datetime | None:
+            if value == "once":
+                return _SENT_ONCE
+            parsed = dt_util.parse_datetime(value) if isinstance(value, str) else None
+            return parsed
+
+        for key, value in (raw.get("last_notified") or {}).items():
+            parsed = _dt(value)
+            if parsed is not None:
+                self._last_notified[str(key)] = parsed
+        for key, value in (raw.get("snoozed_until") or {}).items():
+            parsed = _dt(value)
+            if parsed is not None and parsed is not _SENT_ONCE:
+                self._snoozed_until[str(key)] = parsed
+        for key, value in (raw.get("delivered_at") or {}).items():
+            parsed = _dt(value)
+            if parsed is not None and parsed is not _SENT_ONCE:
+                self._delivered_at[str(key)] = parsed
+        lead = raw.get("lead_sent")
+        if isinstance(lead, dict):
+            self._lead_sent = {str(k): str(v) for k, v in lead.items()}
+        try:
+            self._daily_count = max(0, int(raw.get("daily_count") or 0))
+        except (TypeError, ValueError):
+            self._daily_count = 0
+        reset = raw.get("daily_reset_date")
+        self._daily_reset_date = date.fromisoformat(reset) if isinstance(reset, str) else None
+        for name in ("served_today", "deferred_today", "starved"):
+            values = raw.get(name)
+            if isinstance(values, list):
+                setattr(self, f"_{name}", {str(v) for v in values})
+        held = raw.get("quiet_held")
+        if isinstance(held, dict):
+            self._quiet_held = {str(k): dict(v) for k, v in held.items() if isinstance(v, dict)}
+
+    def _snapshot(self) -> dict[str, Any]:
+        def _ser(value: datetime) -> str:
+            return "once" if value == _SENT_ONCE else value.isoformat()
+
+        return {
+            "last_notified": {k: _ser(v) for k, v in self._last_notified.items()},
+            "snoozed_until": {k: v.isoformat() for k, v in self._snoozed_until.items()},
+            "delivered_at": {k: v.isoformat() for k, v in self._delivered_at.items()},
+            "lead_sent": dict(self._lead_sent),
+            "daily_count": self._daily_count,
+            "daily_reset_date": self._daily_reset_date.isoformat() if self._daily_reset_date else None,
+            "served_today": sorted(self._served_today),
+            "deferred_today": sorted(self._deferred_today),
+            "starved": sorted(self._starved),
+            "quiet_held": dict(self._quiet_held),
+        }
+
+    def _dirty(self) -> None:
+        """Schedule a save of the bookkeeping (debounced; nothing is lost on a
+        clean shutdown because HA flushes delayed saves at stop)."""
+        self._store.async_delay_save(self._snapshot, _STATE_SAVE_DELAY)
+
+    # ── quiet hours: hold, summarise, log once ───────────────────────────
+
+    def _quiet_period_id(self) -> str:
+        """Identifies the current quiet period (the day it started + start
+        time) — the unit the skip is logged per."""
+        start = str(self._opt(CONF_QUIET_HOURS_START))
+        now = dt_util.now()
+        try:
+            start_t = time.fromisoformat(start)
+        except (TypeError, ValueError):
+            start_t = time(0, 0)
+        day = now.date() if now.time() >= start_t else (now - timedelta(days=1)).date()
+        return f"{day.isoformat()}T{start}"
+
+    def _note_quiet_skip(self, what: str) -> None:
+        """Log the quiet-hours skip ONCE per quiet period (it used to log on
+        every refresh — thousands of lines a night)."""
+        period = self._quiet_period_id()
+        if self._quiet_logged_for == period:
+            return
+        self._quiet_logged_for = period
+        _LOGGER.debug("Quiet hours (%s): holding %s — held reminders go out as one summary at the end", period, what)
+
+    def _hold_for_quiet_end(self, key: str, facts: dict[str, Any]) -> None:
+        self._quiet_held[key] = facts
+        self._note_quiet_skip("a reminder")
+        self._dirty()
+
+    async def async_flush_quiet_held(self) -> bool:
+        """Deliver what quiet hours held back as ONE household summary. Called
+        at the first send attempt after quiet hours; True when a summary went
+        out. Every member is stamped as sent, so the per-task reminders that
+        follow in the same refresh wave stay silent."""
+        if not self._quiet_held or self._is_quiet_hours():
+            return False
+        if not self.enabled or not self._has_target or not self._check_daily_limit():
+            return False
+        held = list(self._quiet_held.values())
+        lang = self._lang
+        status_key_map: dict[str, str] = {
+            MaintenanceStatus.OVERDUE: "bundled_overdue",
+            MaintenanceStatus.DUE_SOON: "bundled_due_soon",
+            MaintenanceStatus.TRIGGERED: "bundled_triggered",
+        }
+        parts: list[str] = []
+        for f in held:
+            line = _notif_t(status_key_map.get(str(f.get("status") or ""), "bundled_due_soon"), lang, task=str(f.get("task_name") or ""))
+            parts.append(f"{f.get('object_name') or ''}: {line}" if f.get("object_name") else line)
+        title = _notif_t("quiet_end_title", lang, count=str(len(held)))
+        message = "; ".join(parts)
+        service_data = _service_payload(title, message, tag="maintenance_quiet_end", url="/maintenance-supporter?tab=today")
+        context = notification_context(
+            self.hass,
+            KIND_QUIET_END,
+            tasks=[
+                {
+                    "entry_id": f.get("entry_id"),
+                    "task_id": f.get("task_id"),
+                    "task_name": f.get("task_name"),
+                    "object_name": f.get("object_name"),
+                    "status": f.get("status"),
+                    "days_until_due": f.get("days_until_due"),
+                    "next_due": f.get("next_due"),
+                }
+                for f in held
+            ],
+        )
+        try:
+            sent = await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
+        except (HomeAssistantError, ValueError, TypeError):
+            _LOGGER.exception("Failed to send the quiet-hours summary")
+            return False
+        if not sent:
+            return False
+        keys: list[str] = []
+        for key, f in self._quiet_held.items():
+            self._stamp_status_sent(key, self._get_interval_hours(str(f.get("status"))))
+            if f.get("entry_id") and f.get("task_id"):
+                keys.append(task_key_of(str(f["entry_id"]), str(f["task_id"])))
+        self._quiet_held.clear()
+        self._mark_delivered(keys)
+        _LOGGER.debug("Quiet-hours summary sent: %s", title)
+        return True
 
     @staticmethod
     def _priority_rank(task_data: Mapping[str, Any] | None) -> int:
@@ -1434,6 +1623,7 @@ class NotificationManager:
                 reason = "repeat yields to tasks still waiting today"
         if reason is not None:
             self._deferred_today.update(keys)
+            self._dirty()
             _LOGGER.debug("Holding notification for %s (%s/%s sent): %s", keys, self._daily_count, max_per_day, reason)
             return False
         return True
@@ -1447,6 +1637,7 @@ class NotificationManager:
             self._deferred_today.discard(k)
             self._starved.discard(k)
             self._delivered_at[k] = now
+        self._dirty()
 
     def _is_snoozed(self, key: str) -> bool:
         """Check if a notification key is snoozed."""
@@ -1471,6 +1662,7 @@ class NotificationManager:
         # Snooze for all status types
         for status in NOTIFIABLE_STATUSES:
             self._snoozed_until[notification_key(entry_id, task_id, status)] = until
+            self._dirty()
         _LOGGER.debug("Snoozed task %s for %s hours (until %s)", task_id, hours, until)
 
     async def async_task_status_changed(
@@ -1516,16 +1708,31 @@ class NotificationManager:
             _LOGGER.debug("Skipping %s notification for %s (%s)", new_status, task_id, gate.blocked_by)
             return
 
-        # Check quiet hours
-        if self._is_quiet_hours():
-            _LOGGER.debug("Skipping notification during quiet hours")
-            return
-
         # Rate limiting / interval
         key = notification_key(entry_id, task_id, new_status)
         interval_hours = self._get_interval_hours(new_status)
         if not self._status_due(key, interval_hours):
             return
+
+        # Quiet hours: hold the reminder — it goes out in the one summary at
+        # the end (not as a burst of single pushes on the first refresh after).
+        if self._is_quiet_hours():
+            self._hold_for_quiet_end(
+                key,
+                {
+                    "entry_id": entry_id,
+                    "task_id": task_id,
+                    "task_name": task_name,
+                    "object_name": object_name,
+                    "status": new_status,
+                    "days_until_due": days_until_due,
+                    "next_due": next_due,
+                    "responsible_user_id": responsible_user_id,
+                },
+            )
+            return
+        if await self.async_flush_quiet_held() and not self._status_due(key, interval_hours):
+            return  # this task was part of the summary
 
         # Daily limit with priority + fairness (a refusal is not stamped, so
         # the next refresh offers the task again).
@@ -1601,7 +1808,7 @@ class NotificationManager:
         ):
             return False
         if self._is_quiet_hours():
-            _LOGGER.debug("Completion notification suppressed (quiet hours): %s", task_name)
+            self._note_quiet_skip("a completion notification")
             return False
         if not self._check_daily_limit():
             return False
@@ -1754,7 +1961,14 @@ class NotificationManager:
             return
 
         if self._is_quiet_hours():
+            for t in tasks:
+                if not t.get("task_id"):
+                    continue
+                key = notification_key(entry_id, t["task_id"], t["status"])
+                if self._status_due(key, self._get_interval_hours(t["status"])):
+                    self._hold_for_quiet_end(key, {"entry_id": entry_id, "task_id": t["task_id"], "task_name": t.get("task_name"), "object_name": object_name, "status": t["status"], "days_until_due": t.get("days_until_due")})
             return
+        await self.async_flush_quiet_held()
 
         # Rate-limit bundled notifications (once per hour)
         bundle_key = f"{entry_id}_bundled"
@@ -1831,6 +2045,7 @@ class NotificationManager:
         try:
             if await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context):
                 self._last_notified[bundle_key] = dt_util.now()
+                self._dirty()
                 for t in tasks:
                     if t.get("task_id"):
                         self._stamp_status_sent(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
@@ -1918,7 +2133,9 @@ class NotificationManager:
         if self._lead_sent.get(lead_key) == today:
             return
         if self._is_quiet_hours():
+            self._note_quiet_skip("a lead-time reminder")
             return
+        await self.async_flush_quiet_held()
         # The per-task gates the lead-time kind declares (mute, vacation,
         # snooze — an active snooze on the due-soon key silences leads too).
         if not task_may_notify(
@@ -1970,6 +2187,7 @@ class NotificationManager:
             # Keep only today's stamps - yesterday's are dead weight.
             self._lead_sent = {k: d for k, d in self._lead_sent.items() if d == today}
             self._lead_sent[lead_key] = today
+            self._dirty()
             _LOGGER.debug("Lead reminder sent: %s due in %s day(s)", task_name, days)
 
     async def async_budget_alert(
@@ -1985,6 +2203,7 @@ class NotificationManager:
             return
 
         if self._is_quiet_hours():
+            self._note_quiet_skip("a budget alert")
             return
 
         # Rate-limit budget alerts (once per 24 hours per period)
@@ -2039,11 +2258,14 @@ class NotificationManager:
         interval starts *now* rather than firing immediately.
         """
         key = notification_key(entry_id, task_id, status)
+        if key in self._last_notified:
+            return  # persisted from the previous process — keep the real stamp
         interval_hours = self._get_interval_hours(status)
         if interval_hours == 0:
             self._last_notified[key] = _SENT_ONCE
         else:
             self._last_notified[key] = dt_util.now()
+        self._dirty()
 
     def clear_task_state(self, entry_id: str, task_id: str) -> None:
         """Clear notification state for a task (after completion/reset)."""
@@ -2051,6 +2273,8 @@ class NotificationManager:
             key = notification_key(entry_id, task_id, status)
             self._last_notified.pop(key, None)
             self._snoozed_until.pop(key, None)
+            self._quiet_held.pop(key, None)
+        self._dirty()
 
     async def async_dismiss_task_notification(self, task_id: str, responsible_user_id: str | None = None) -> None:
         """Dismiss a task notification on Companion App devices.
@@ -2083,7 +2307,9 @@ class NotificationManager:
                 _LOGGER.debug("Failed to dismiss notification for tag %s on %s", tag, service)
 
     async def async_unload(self) -> None:
-        """Clean up the notification manager."""
+        """Clean up the notification manager (the bookkeeping is saved first —
+        the next manager instance loads it)."""
+        await self._store.async_save(self._snapshot())
         self._last_notified.clear()
         self._snoozed_until.clear()
         self._daily_count = 0

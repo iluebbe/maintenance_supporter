@@ -1081,6 +1081,8 @@ def test_notif_t_fallback_to_english() -> None:
 def test_clear_task_state() -> None:
     """Test that clear_task_state removes notification tracking."""
     nm = NotificationManager.__new__(NotificationManager)
+    nm._quiet_held = {"e1_t1_overdue": {"entry_id": "e1", "task_id": "t1"}}
+    nm._store = MagicMock()  # the bookkeeping is persisted on every change
     nm._last_notified = {
         "e1_t1_due_soon": dt_util.now(),
         "e1_t1_overdue": dt_util.now(),

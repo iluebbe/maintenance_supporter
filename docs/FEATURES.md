@@ -746,7 +746,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **"Send test" button** in Settings to verify the notify service without having to wait for a real due event
 - Per-user notifications for tasks with a responsible user assigned
 - Rate limiting per status level (due soon, overdue, triggered)
-- Quiet hours support
+- Quiet hours support — what falls into the quiet hours is held and arrives as **one summary** at their end (2.86+); the manager's bookkeeping (what was sent when, snoozes, the daily counter) survives a restart, so a restart no longer re-announces everything once the sensors come back
 - **Multiple lead-time reminders** (2.17+): an opt-in list (e.g. 14 / 3 / 0 days before due) fires one extra reminder on each matching day
 - **Warranty-expiry reminders** (2.17+): opt-in one-time reminder N days before an object's warranty runs out
 - **Weekly digest** (2.15+): opt-in Monday-morning summary of what's overdue / due this week

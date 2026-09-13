@@ -758,6 +758,7 @@ Every notification is one **kind**, and every kind belongs to a **category** tha
 | `digest` | summary | household | weekly_digest_enabled | `enabled`, `target` |
 | `warranty` | alert | household | warranty_reminder_enabled + days | `enabled`, `target` |
 | `budget` | alert | household | budget_alerts_enabled + threshold | `enabled`, `target`, `quiet_hours`, `daily_cap` |
+| `quiet_end` | summary | household | quiet_hours_enabled | `enabled`, `target`, `daily_cap` |
 | `completed` | activity | household | notify_completed (off / automatic / all) | `enabled`, `target`, `kind_enabled`, `task_mute`, `scope`, `quiet_hours`, `daily_cap` |
 | `test` | test | household | — | `target` |
 
@@ -769,7 +770,7 @@ Every `maintenance_supporter_notification` event — and the `notify_extra_data`
 
 | Field | Kinds | Meaning |
 |-------|-------|---------|
-| `kind` | all | status, lead_time, bundle, digest, warranty, budget, completed, test |
+| `kind` | all | status, lead_time, bundle, digest, warranty, budget, completed, quiet_end, test |
 | `category` | all | reminder, summary, alert, activity, test (see the matrix above) |
 | `status` | status, lead_time, test | due_soon, overdue, triggered (lead_time is always due_soon) |
 | `entry_id` | task/object kinds | the object's config-entry id (deep links, WS calls) |

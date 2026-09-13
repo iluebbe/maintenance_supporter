@@ -4,8 +4,21 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **One summary at the end of the quiet hours**: reminders that fall into the quiet hours are held and delivered as
+  one household message when they end (event kind `quiet_end`), instead of a burst of single pushes on the first refresh
+  after 08:00. A task completed overnight drops out of the summary; a task that becomes due after the quiet hours still
+  gets its own reminder.
+
 ### 🐛 Fixed
 
+- **Restart burst**: the notification manager's bookkeeping — what was sent when (including the "once" mark of
+  interval 0), snoozes, the daily counter, the lead-time dedup and the fairness sets — is persisted now. On the first
+  refresh after a restart the trigger entities are often still unavailable, the tasks were seeded as OK and every trigger
+  that fired seconds later counted as new; with the persisted stamps nothing is re-announced, and the startup seed never
+  overwrites a real stamp.
+- **Log noise**: the quiet-hours skip is logged once per quiet period instead of on every refresh.
 - **Viewfinder lens switch** (#161): the Android WebView often reports no camera labels, so the main-camera heuristic from
   2.85 could not tell the modules apart and the viewfinder still opened at 0.5× on some phones. The viewfinder now has a
   *Switch camera* button that cycles the phone's cameras (by id, no labels needed) and remembers your pick per browser; the
