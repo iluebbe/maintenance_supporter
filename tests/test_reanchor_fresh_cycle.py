@@ -38,10 +38,9 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_object_entry,
     make_ws_connection as _conn,
     setup_integration,
 )
@@ -74,20 +73,7 @@ def _object(hass: HomeAssistant) -> MockConfigEntry:
     """One monthly recurring task on one object."""
     task = build_task_data(interval_days=None)
     task["schedule"] = {"kind": "interval", "every": 1, "unit": "months"}
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Widget",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Widget", object_id="objid_w"),
-            tasks={TASK_ID_1: task},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_widget",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Widget", uid="widget", object_id="objid_w")
 
 
 async def _read(hass: HomeAssistant, entry_id: str) -> dict[str, Any]:

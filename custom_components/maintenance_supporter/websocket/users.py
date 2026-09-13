@@ -9,19 +9,19 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import (
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
+from ..helpers.aggregate import get_coordinator_data, get_runtime_data, object_name
+from ..helpers.entry_tasks import write_task
 from ..helpers.permissions import require_write, user_may_write
 from . import (
     _build_task_summary,
     _get_merged_tasks,
     _get_object_entries,
-    _get_runtime_data,
-    _load_object_entry,
+    _load_object_task,
 )
 
 
@@ -79,14 +79,11 @@ async def ws_assign_user(
     msg: dict[str, Any],
 ) -> None:
     """Assign or unassign a user to a task."""
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
         return
-
+    entry, _rd, _task = ctx
     task_id = msg["task_id"]
-    if task_id not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
 
     user_id = msg.get("user_id")
 
@@ -101,11 +98,12 @@ async def ws_assign_user(
             connection.send_error(msg["id"], "invalid_user", "User not found")
             return
 
-    tasks_data = entry.data.get(CONF_TASKS, {})
-    if task_id not in tasks_data:
+    # Fresh read AFTER the await (see above) — the task may have vanished.
+    fresh = entry.data.get(CONF_TASKS, {}).get(task_id)
+    if fresh is None:
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
-    task = dict(tasks_data[task_id])
+    task = dict(fresh)
     if user_id is None:
         # Unassign user - remove field if it exists
         task.pop("responsible_user_id", None)
@@ -114,12 +112,10 @@ async def ws_assign_user(
 
     # Patch only this task's key onto a fresh read — never write back a map
     # snapshot from before an await.
-    from ..helpers.entry_tasks import write_task
-
     write_task(hass, entry, task_id, task)
 
     # Refresh coordinator
-    rd = _get_runtime_data(hass, entry.entry_id)
+    rd = get_runtime_data(hass, entry.entry_id)
     if rd and rd.coordinator:
         await rd.coordinator.async_refresh_now()
 
@@ -150,16 +146,14 @@ async def ws_tasks_by_user(
     result = []
 
     for entry in entries:
-        rd = _get_runtime_data(hass, entry.entry_id)
-        coord_data = rd.coordinator.data if rd and rd.coordinator else None
-        ct_tasks = (coord_data or {}).get(CONF_TASKS, {})
+        ct_tasks = (get_coordinator_data(hass, entry.entry_id) or {}).get(CONF_TASKS, {})
         tasks_data = _get_merged_tasks(entry)
-        obj_data = entry.data.get(CONF_OBJECT, {})
+        obj_name = object_name(entry)
 
         for tid, tdata in tasks_data.items():
             if tdata.get("responsible_user_id") == user_id:
                 task_summary = _build_task_summary(hass, tid, tdata, ct_tasks.get(tid))
-                task_summary["object_name"] = obj_data.get("name", "")
+                task_summary["object_name"] = obj_name
                 task_summary["entry_id"] = entry.entry_id
                 result.append(task_summary)
 

@@ -22,9 +22,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_EXTRA_DATA,
     CONF_QUIET_HOURS_ENABLED,
-    DOMAIN,
     EVENT_NOTIFICATION,
-    GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
 )
 from custom_components.maintenance_supporter.helpers import notify_hooks
@@ -36,16 +34,21 @@ from custom_components.maintenance_supporter.helpers.notify_hooks import (
     render_extra_data,
 )
 
-from .conftest import TASK_ID_1, build_global_entry_data, build_object_data, build_object_entry_data, build_task_data
+from .conftest import (
+    TASK_ID_1,
+    build_object_data,
+    build_task_data,
+    make_global_entry,
+    make_object_entry,
+)
 
 
 def _global(hass: HomeAssistant, **options: object) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    data[CONF_QUIET_HOURS_ENABLED] = False  # the default quiet hours would silence a night-time CI run
-    data.update(options)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test",
+        # the default quiet hours would silence a night-time CI run
+        extra_data={CONF_QUIET_HOURS_ENABLED: False, **options},
+    )
 
 
 def _object(hass: HomeAssistant) -> MockConfigEntry:
@@ -54,9 +57,7 @@ def _object(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(task_id=TASK_ID_1, name="Filter reinigen")
     task["ref_no"] = 3
     task["priority"] = "high"
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Spülmaschine", data=build_object_entry_data(object_data=obj, tasks={TASK_ID_1: task}), source="user", unique_id="ms_hooks_obj")
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Spülmaschine", unique_id="ms_hooks_obj", object_data=obj)
 
 
 def _capture(hass: HomeAssistant) -> list[Event]:

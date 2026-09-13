@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "„{task_name}” is gearchiveerd, uitgeschakeld of het object is gepauzeerd — kan niet worden voltooid"
     },
+    "task_inactive_postpone": {
+      "message": "„{task_name}” is gearchiveerd, uitgeschakeld of het object is gepauzeerd — kan niet worden uitgesteld"
+    },
+    "task_inactive_reset": {
+      "message": "„{task_name}” is gearchiveerd, uitgeschakeld of het object is gepauzeerd — kan niet worden gereset"
+    },
     "task_inactive_skip": {
       "message": "„{task_name}” is gearchiveerd, uitgeschakeld of het object is gepauzeerd — kan niet worden overgeslagen"
     },

@@ -33,30 +33,16 @@ from custom_components.maintenance_supporter.models.maintenance_task import (
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_object_entry,
     setup_integration,
 )
 from .journey import simulate_restart
 
 
 def _make_entry(hass: HomeAssistant, unique_id: str, tasks: dict[str, Any]) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Journey Object",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Journey Object"),
-            tasks=tasks,
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name="Journey Object", uid=unique_id)
 
 
 # ─── H1: weeks of downtime must not produce a notification storm ────────────

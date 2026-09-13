@@ -37,13 +37,11 @@ import {
 import { calendarStyles } from "./calendar-styles";
 import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
-import { historyPhotoIds } from "./helpers/history-photos";
-import { entryReadingValues } from "./helpers/reading-slots";
+import { loadHistoryEntryDraft } from "./helpers/history-draft";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
-  ReadingSlot,
   StatisticsResponse,
 } from "./types";
 
@@ -229,38 +227,9 @@ export class MaintenanceCalendarCard extends LitElement {
    *  (mirrors the strategy shim's ll-custom "edit-history" path). */
   private async _openHistoryEntry(ev: CalendarEvent): Promise<void> {
     try {
-      const resp = await this.hass.connection.sendMessagePromise<{
-        tasks?: Array<{
-          id: string;
-          type?: string;
-          reading_unit?: string | null;
-          readings?: ReadingSlot[] | null;
-          history?: Array<Record<string, unknown>>;
-        }>;
-      }>({ type: "maintenance_supporter/object", entry_id: ev.entry_id });
-      const histTask = resp.tasks?.find((tk) => tk.id === ev.task_id);
-      const entry = histTask?.history?.find((h) => h.timestamp === ev.history_timestamp);
-      if (!entry) return;
-      const opened = openHistoryEditDialog({
-        entry_id: ev.entry_id,
-        task_id: ev.task_id,
-        original_timestamp: ev.history_timestamp!,
-        type: (entry.type as string) || "completed",
-        timestamp: (entry.timestamp as string) || ev.history_timestamp!,
-        notes: (entry.notes as string | null) ?? null,
-        cost: (entry.cost as number | null) ?? null,
-        duration: (entry.duration as number | null) ?? null,
-        completed_by: (entry.completed_by as string | null) ?? null,
-        used_parts:
-          (entry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
-        photo_doc_ids: historyPhotoIds(entry),
-        reading_value: (entry.reading_value as number | null) ?? null,
-        reading_values: entryReadingValues(entry),
-        readings: histTask?.readings ?? [],
-        task_type: histTask?.type ?? null,
-        reading_unit: histTask?.reading_unit ?? null,
-      });
-      if (opened) return;
+      const draft = await loadHistoryEntryDraft(this.hass, ev.entry_id, ev.task_id, ev.history_timestamp!);
+      if (!draft) return;
+      if (openHistoryEditDialog(draft)) return;
     } catch {
       /* fall through to the ll-custom fallback below */
     }

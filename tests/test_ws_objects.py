@@ -40,10 +40,9 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_ws_connection,
     setup_integration,
 )
-
-
 
 
 @pytest.fixture
@@ -1436,18 +1435,6 @@ def test_build_object_response_exposes_notes(
 # ===========================================================================
 
 
-def _covws_conn() -> MagicMock:
-    """Create a mock WS connection (carried from test_cov_ws.py)."""
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    conn.subscriptions = {}
-    conn.send_message = MagicMock()
-    return conn
-
-
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
@@ -1470,7 +1457,7 @@ async def test_create_object_invalid_installation_date(
 ) -> None:
     """ws_create_object: bad installation_date format → invalid_date error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_create_object,
@@ -1495,7 +1482,7 @@ async def test_create_object_unsafe_documentation_url(
 ) -> None:
     """ws_create_object: javascript: URL in documentation_url → invalid_url error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_create_object,
@@ -1592,17 +1579,6 @@ def _c97_nid() -> int:
     return _c97_msg_id
 
 
-def _c97_conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.send_message = MagicMock()
-    conn.subscriptions = {}
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    return conn
-
-
 # ─── websocket/objects.py: ws_entity_attributes ──────────────────────
 
 
@@ -1616,7 +1592,7 @@ def test_ws_entity_attributes(hass: HomeAssistant) -> None:
             "friendly_name": "Test Sensor",
         },
     )
-    conn = _c97_conn()
+    conn = make_ws_connection()
     ws_entity_attributes(
         hass,
         conn,
@@ -1638,7 +1614,7 @@ async def test_create_object_failure(
 ) -> None:
     """Line 118: create_failed when flow doesn't produce create_entry."""
     await setup_integration(hass, global_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
 
     # Mock config flow to return abort instead of create_entry
     with patch.object(
@@ -1670,7 +1646,7 @@ async def test_update_object_installation_date(
 ) -> None:
     """Line 159: installation_date field update."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_update_object,

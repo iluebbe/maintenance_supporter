@@ -12,6 +12,7 @@ change one side, update the other or this fails.
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -446,3 +447,63 @@ def test_ts_setting_int_ranges_match_registry() -> None:
     ts_ranges = {k: (int(lo), int(hi)) for k, lo, hi in re.findall(r"^\s*(\w+):\s*\[(\d+),\s*(\d+)\],?$", block, re.MULTILINE)}
     assert ts_ranges, "no ranges parsed from setting-ranges.ts"
     assert ts_ranges == INT_RANGES, "setting-ranges.ts SETTING_INT_RANGES drifted from settings_registry.INT_RANGES"
+
+
+# ─── DRY round 2026-09: WS error codes, document categories, reference regex ──
+
+_WS_ERRORS_TS = _FRONTEND / "ws-errors.ts"
+_WEBSOCKET_DIR = _FRONTEND.parent / "websocket"
+# `connection.send_error(msg["id"], "<code>", …)` — single- or multi-line.
+_SEND_ERROR_RE = re.compile(r'send_error\(\s*msg\["id"\],\s*"([a-z_]+)"')
+
+
+def _backend_error_codes() -> set[str]:
+    codes: set[str] = set()
+    for path in _WEBSOCKET_DIR.glob("*.py"):
+        codes.update(_SEND_ERROR_RE.findall(path.read_text(encoding="utf-8")))
+    return codes
+
+
+def _ts_error_code_keys() -> dict[str, str]:
+    src = _WS_ERRORS_TS.read_text(encoding="utf-8")
+    start = src.index("export const WS_ERROR_CODE_KEYS")
+    block = src[start : src.index("};", start)]
+    return dict(re.findall(r'^\s*(\w+):\s*"([^"]+)",?$', block, re.MULTILINE))
+
+
+def test_ws_error_codes_all_have_a_frontend_headline() -> None:
+    """Every literal error code the WS handlers send has a row in
+    ws-errors.ts WS_ERROR_CODE_KEYS, and every row's locale key exists in
+    en.json — otherwise the user sees the raw code / the key with
+    underscores instead of a sentence."""
+    backend = _backend_error_codes()
+    assert len(backend) >= 30, f"send_error scan looks broken: {sorted(backend)}"
+    mapped = _ts_error_code_keys()
+    assert mapped, "could not parse WS_ERROR_CODE_KEYS"
+    missing = backend - set(mapped)
+    assert not missing, f"backend error codes without a WS_ERROR_CODE_KEYS row: {sorted(missing)}"
+    en_keys = set(json.loads((_LOCALES_DIR / "en.json").read_text(encoding="utf-8")))
+    unknown_keys = {code: key for code, key in mapped.items() if key not in en_keys}
+    assert not unknown_keys, f"WS_ERROR_CODE_KEYS points at locale keys missing from en.json: {unknown_keys}"
+
+
+def test_ts_document_categories_match_python() -> None:
+    from custom_components.maintenance_supporter.helpers.documents import DOC_CATEGORIES
+
+    src = (_FRONTEND / "helpers" / "document-categories.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const CATEGORIES = \[([^\]]+)\]", src)  # `] as const;` — not the `];` _block expects
+    assert m, "could not parse CATEGORIES in document-categories.ts"
+    ts = _quoted_strings(m.group(1))
+    assert ts == list(DOC_CATEGORIES), "document-categories.ts CATEGORIES drifted from documents.DOC_CATEGORIES"
+
+
+def test_ts_reference_regex_matches_python() -> None:
+    """helpers/reference.ts parseRef and helpers/reference_numbers.REF_PATTERN
+    accept the same "8.3-2" grammar (#170) — a booklet printed with one
+    parser must be searchable with the other."""
+    from custom_components.maintenance_supporter.helpers.reference_numbers import REF_PATTERN
+
+    src = (_FRONTEND / "helpers" / "reference.ts").read_text(encoding="utf-8")
+    m = re.search(r"export function parseRef[\s\S]*?const m = /(.+?)/\.exec\(", src)
+    assert m, "could not find the parseRef regex literal in reference.ts"
+    assert m.group(1) == REF_PATTERN.pattern, "reference.ts parseRef regex drifted from reference_numbers.REF_PATTERN"

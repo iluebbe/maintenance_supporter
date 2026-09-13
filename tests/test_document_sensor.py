@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import shutil
-from collections.abc import Iterator
-from pathlib import Path
 
 import pytest
 from homeassistant.components.sensor import SensorDeviceClass
@@ -22,13 +19,7 @@ from .conftest import build_global_entry_data, setup_integration
 _ENTITY = "sensor.maintenance_supporter_document_storage"
 
 
-@pytest.fixture(autouse=True)
-def _isolate_docs_dir(hass: HomeAssistant) -> Iterator[None]:
-    """Blobs live on the shared test config dir — give each test a clean one."""
-    docs = Path(hass.config.path("maintenance_supporter", "docs"))
-    shutil.rmtree(docs, ignore_errors=True)
-    yield
-    shutil.rmtree(docs, ignore_errors=True)
+pytestmark = pytest.mark.usefixtures("isolated_docs_dir")
 
 
 @pytest.fixture

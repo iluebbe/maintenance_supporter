@@ -32,8 +32,8 @@ from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_object_entry,
     setup_integration,
 )
 
@@ -61,20 +61,13 @@ def _make_entry(
 ) -> MockConfigEntry:
     obj = build_object_data(name=name)
     obj.update(extra_obj or {})
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=obj,
-            tasks={TASK_ID_1: build_task_data(task_id=TASK_ID_1, interval_days=30)},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
+    return make_object_entry(
+        hass,
+        tasks={TASK_ID_1: build_task_data(task_id=TASK_ID_1, interval_days=30)},
+        name=name,
+        uid=unique_id,
+        object_data=obj,
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _foreign_device(hass: HomeAssistant) -> dr.DeviceEntry:

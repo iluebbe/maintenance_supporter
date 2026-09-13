@@ -6,6 +6,11 @@
  * one copy buried inline). Import from here instead:
  *
  *   import { loadToken, wsClient, watchdog, hassTokensInit } from "./ws-client.mjs";
+ *
+ * Demo/throwaway instances (own credentials, no docker/.env token) use the
+ * auth helpers instead of loadToken:
+ *
+ *   import { haLogin, onboardOrLogin, ensureIntegration, exchange } from "./ws-client.mjs";
  */
 import fs from "fs";
 
@@ -134,23 +139,102 @@ export const DEEP_SRC = `const deep = (pred) => { const st = [document.documentE
     if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
     for (const k of (el.children || [])) st.push(k); } return o; };`;
 
-/** login_flow + auth/token against an HA instance (17 named copies existed).
+/** Parse a fetch Response as JSON, but say what came back when it is not
+ * JSON: a 401 body ("401: Unauthorized") used to surface as a SyntaxError
+ * four frames deep, which says nothing about the actual problem. */
+async function jsonOrThrow(r) {
+  const text = await r.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${r.status} ${r.url} -> ${text.slice(0, 120)}`);
+  }
+}
+
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
+/** OAuth authorization code → access token — the last step of BOTH the
+ * login flow and the onboarding user step (4 named copies existed).
+ * cid MUST be the client_id the code was minted for. */
+export async function exchange(rest, { code, cid }) {
+  const t = await fetch(rest + "/auth/token", {
+    method: "POST",
+    body: new URLSearchParams({ grant_type: "authorization_code", code, client_id: cid }),
+  }).then(jsonOrThrow);
+  // Failing here rather than handing `undefined` on means the next call reports
+  // a real 401 instead of "Bearer undefined" four frames deeper.
+  if (!t.access_token) throw new Error("token exchange failed: " + JSON.stringify(t).slice(0, 200));
+  return t.access_token;
+}
+
+/** login_flow + auth/token against an HA instance (17 named copies existed,
+ * 16 more `login()` copies folded in 2026-09-13).
  * cid MUST be the origin the BROWSER uses (client_id trap: the frontend
  * bounces to /auth/authorize when localStorage clientId disagrees). */
 export async function haLogin(rest, { user, pass, cid }) {
-  const j = (r) => r.json();
   const f = await fetch(rest + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
+    method: "POST", headers: JSON_HEADERS,
     body: JSON.stringify({ client_id: cid, handler: ["homeassistant", null], redirect_uri: cid }),
-  }).then(j);
+  }).then(jsonOrThrow);
   const s = await fetch(rest + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
+    method: "POST", headers: JSON_HEADERS,
     body: JSON.stringify({ client_id: cid, username: user, password: pass }),
-  }).then(j);
-  const t = await fetch(rest + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: cid }),
-  }).then(j);
-  if (!t.access_token) throw new Error("login failed: " + JSON.stringify(t));
-  return t.access_token;
+  }).then(jsonOrThrow);
+  if (!s.result) throw new Error("login failed: " + JSON.stringify(s).slice(0, 200));
+  return exchange(rest, { code: s.result, cid });
+}
+
+/** Token for a THROWAWAY instance: create the owner through the onboarding
+ * API and finish the wizard when the instance is fresh, plain login otherwise
+ * (shots-demo / beta-device-split-check / cache-repro / scenario-probe each
+ * carried a copy).
+ *
+ * Only the USER step decides whether we can log in: a finished instance that
+ * has been RESTARTED serves no onboarding API at all (404 → null), and a
+ * later wizard step can stay `done: false` for good — checking `every(done)`
+ * sent one copy down the create-user path on every run, which then handed
+ * `undefined` along as the token. */
+export async function onboardOrLogin(rest, { user, pass, cid, name = "Demo" }) {
+  const status = await fetch(rest + "/api/onboarding").then(jsonOrThrow).catch(() => null);
+  const haveUser =
+    status === null || (Array.isArray(status) && status.some((x) => x.step === "user" && x.done));
+  if (haveUser) return haLogin(rest, { user, pass, cid });
+  const u = await fetch(rest + "/api/onboarding/users", {
+    method: "POST", headers: JSON_HEADERS,
+    body: JSON.stringify({ client_id: cid, name, username: user, password: pass, language: "en" }),
+  }).then(jsonOrThrow);
+  if (!u.auth_code) throw new Error("onboarding returned no auth code: " + JSON.stringify(u).slice(0, 200));
+  const token = await exchange(rest, { code: u.auth_code, cid });
+  const auth = { Authorization: "Bearer " + token, ...JSON_HEADERS };
+  // The integration step wants the client it should mint a code for.
+  for (const [step, body] of [["core_config", {}], ["analytics", {}],
+    ["integration", { client_id: cid, redirect_uri: cid + "?auth_callback=1" }]]) {
+    const r = await fetch(rest + "/api/onboarding/" + step, { method: "POST", headers: auth, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(`onboarding/${step} -> ${r.status}`);
+  }
+  return token;
+}
+
+/** Set the integration up through its config flow unless an entry exists.
+ * Resolves true when an entry was created (after `settleMs` for the platforms
+ * to load), false when one was already there. */
+export async function ensureIntegration(rest, token, { settleMs = 5000 } = {}) {
+  const auth = { Authorization: "Bearer " + token, ...JSON_HEADERS };
+  const entries = await fetch(rest + "/api/config/config_entries/entry", { headers: auth })
+    .then(jsonOrThrow).catch(() => []);
+  if (Array.isArray(entries) && entries.some((e) => e.domain === "maintenance_supporter")) return false;
+  const start = await fetch(rest + "/api/config/config_entries/flow", {
+    method: "POST", headers: auth,
+    body: JSON.stringify({ handler: "maintenance_supporter", show_advanced_options: false }),
+  }).then(jsonOrThrow);
+  let res = start;
+  if (start.type === "form") {
+    res = await fetch(rest + "/api/config/config_entries/flow/" + start.flow_id, {
+      method: "POST", headers: auth,
+      body: JSON.stringify({ default_warning_days: 7, notifications_enabled: false, notify_service: "" }),
+    }).then(jsonOrThrow);
+  }
+  if (res.type !== "create_entry") throw new Error("integration flow failed: " + JSON.stringify(res).slice(0, 200));
+  await new Promise((r) => setTimeout(r, settleMs));
+  return true;
 }

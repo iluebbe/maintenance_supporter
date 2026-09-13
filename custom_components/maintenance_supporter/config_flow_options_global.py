@@ -61,11 +61,6 @@ from .const import (
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     DEFAULT_BUDGET_CURRENCY,
-    DEFAULT_CURRENCY_DECIMALS,
-    DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
-    DEFAULT_PANEL_ENABLED,
-    DEFAULT_SNOOZE_DURATION_HOURS,
-    DEFAULT_WARNING_DAYS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
     NOTIFY_COMPLETED_MODES,
@@ -74,7 +69,7 @@ from .const import (
 from .helpers.dates import normalize_hhmm
 from .helpers.i18n import normalize_language
 from .helpers.notify_targets import build_notify_targets
-from .helpers.settings_registry import float_range, int_range
+from .helpers.settings_registry import float_range, int_range, setting_default
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -418,6 +413,12 @@ class GlobalOptionsFlow(OptionsFlow):
         """Get current options."""
         return dict(self.config_entry.options or self.config_entry.data)
 
+    def _opt(self, key: str) -> Any:
+        """The stored value of a setting, or its registry default — every form
+        ``default=`` goes through here so the flow can't drift from the WS
+        ``settings`` echo (tests/test_settings_defaults.py)."""
+        return self._current.get(key, setting_default(key))
+
     def _save_and_return(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         """Merge user input into options and return to the menu."""
         from .helpers.settings_registry import ALLOWED_SETTING_KEYS
@@ -496,43 +497,41 @@ class GlobalOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self._save_and_return(user_input)
 
-        current = self._current
-
         return self.async_show_form(
             step_id="advanced_features",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
                         CONF_ADVANCED_ADAPTIVE,
-                        default=current.get(CONF_ADVANCED_ADAPTIVE, False),
+                        default=self._opt(CONF_ADVANCED_ADAPTIVE),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_PREDICTIONS,
-                        default=current.get(CONF_ADVANCED_PREDICTIONS, False),
+                        default=self._opt(CONF_ADVANCED_PREDICTIONS),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_SEASONAL,
-                        default=current.get(CONF_ADVANCED_SEASONAL, False),
+                        default=self._opt(CONF_ADVANCED_SEASONAL),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_ENVIRONMENTAL,
-                        default=current.get(CONF_ADVANCED_ENVIRONMENTAL, False),
+                        default=self._opt(CONF_ADVANCED_ENVIRONMENTAL),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_BUDGET,
-                        default=current.get(CONF_ADVANCED_BUDGET, False),
+                        default=self._opt(CONF_ADVANCED_BUDGET),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_GROUPS,
-                        default=current.get(CONF_ADVANCED_GROUPS, False),
+                        default=self._opt(CONF_ADVANCED_GROUPS),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_CHECKLISTS,
-                        default=current.get(CONF_ADVANCED_CHECKLISTS, False),
+                        default=self._opt(CONF_ADVANCED_CHECKLISTS),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_SCHEDULE_TIME,
-                        default=current.get(CONF_ADVANCED_SCHEDULE_TIME, False),
+                        default=self._opt(CONF_ADVANCED_SCHEDULE_TIME),
                     ): selector.BooleanSelector(),
                 }
             ),
@@ -563,18 +562,17 @@ class GlobalOptionsFlow(OptionsFlow):
             for u in non_admin
         ]
 
-        current = self._current
         return self.async_show_form(
             step_id="panel_access",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
                         CONF_OPERATOR_WRITE_ENABLED,
-                        default=current.get(CONF_OPERATOR_WRITE_ENABLED, False),
+                        default=self._opt(CONF_OPERATOR_WRITE_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADMIN_PANEL_USER_IDS,
-                        default=current.get(CONF_ADMIN_PANEL_USER_IDS, []),
+                        default=self._opt(CONF_ADMIN_PANEL_USER_IDS),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=options,
@@ -626,7 +624,7 @@ class GlobalOptionsFlow(OptionsFlow):
                 return self._save_and_return(user_input)
 
         current = self._current
-        currency_code = current.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY)
+        currency_code = self._opt(CONF_BUDGET_CURRENCY)
         currency_options = [
             selector.SelectOptionDict(value=code, label=f"{code} ({symbol})") for code, symbol in BUDGET_CURRENCIES.items()
         ]
@@ -644,7 +642,7 @@ class GlobalOptionsFlow(OptionsFlow):
                 {
                     vol.Optional(
                         CONF_DEFAULT_WARNING_DAYS,
-                        default=current.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
+                        default=self._opt(CONF_DEFAULT_WARNING_DAYS),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=_WARN_MIN, max=_WARN_MAX, step=1, mode=selector.NumberSelectorMode.BOX)
                     ),
@@ -660,7 +658,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     # Decimal places for every displayed amount (0 = whole numbers).
                     vol.Optional(
                         CONF_CURRENCY_DECIMALS,
-                        default=current.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS),
+                        default=self._opt(CONF_CURRENCY_DECIMALS),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=int_range(CONF_CURRENCY_DECIMALS)[0],
@@ -671,11 +669,11 @@ class GlobalOptionsFlow(OptionsFlow):
                     ),
                     vol.Optional(
                         CONF_NOTIFICATIONS_ENABLED,
-                        default=current.get(CONF_NOTIFICATIONS_ENABLED, False),
+                        default=self._opt(CONF_NOTIFICATIONS_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFY_SERVICE,
-                        default=current.get(CONF_NOTIFY_SERVICE, ""),
+                        default=self._opt(CONF_NOTIFY_SERVICE),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=notify_services,
@@ -691,7 +689,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.EntitySelector(selector.EntitySelectorConfig(domain="todo")),
                     vol.Optional(
                         CONF_PANEL_ENABLED,
-                        default=current.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED),
+                        default=self._opt(CONF_PANEL_ENABLED),
                     ): selector.BooleanSelector(),
                     # Blank clears the override → panel falls back to the default
                     # title ("Maintenance"). suggested_value pre-fills the current
@@ -725,11 +723,11 @@ class GlobalOptionsFlow(OptionsFlow):
                     # --- Due Soon ---
                     vol.Optional(
                         CONF_NOTIFY_DUE_SOON_ENABLED,
-                        default=current.get(CONF_NOTIFY_DUE_SOON_ENABLED, True),
+                        default=self._opt(CONF_NOTIFY_DUE_SOON_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFY_DUE_SOON_INTERVAL,
-                        default=current.get(CONF_NOTIFY_DUE_SOON_INTERVAL, 24),
+                        default=self._opt(CONF_NOTIFY_DUE_SOON_INTERVAL),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_NOTIFY_INTERVAL_MIN, max=_NOTIFY_INTERVAL_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -738,11 +736,11 @@ class GlobalOptionsFlow(OptionsFlow):
                     # --- Overdue ---
                     vol.Optional(
                         CONF_NOTIFY_OVERDUE_ENABLED,
-                        default=current.get(CONF_NOTIFY_OVERDUE_ENABLED, True),
+                        default=self._opt(CONF_NOTIFY_OVERDUE_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFY_OVERDUE_INTERVAL,
-                        default=current.get(CONF_NOTIFY_OVERDUE_INTERVAL, 12),
+                        default=self._opt(CONF_NOTIFY_OVERDUE_INTERVAL),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_NOTIFY_INTERVAL_MIN, max=_NOTIFY_INTERVAL_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -751,11 +749,11 @@ class GlobalOptionsFlow(OptionsFlow):
                     # --- Triggered ---
                     vol.Optional(
                         CONF_NOTIFY_TRIGGERED_ENABLED,
-                        default=current.get(CONF_NOTIFY_TRIGGERED_ENABLED, True),
+                        default=self._opt(CONF_NOTIFY_TRIGGERED_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFY_TRIGGERED_INTERVAL,
-                        default=current.get(CONF_NOTIFY_TRIGGERED_INTERVAL, 0),
+                        default=self._opt(CONF_NOTIFY_TRIGGERED_INTERVAL),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_NOTIFY_INTERVAL_MIN, max=_NOTIFY_INTERVAL_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -764,7 +762,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     # --- Quiet Hours ---
                     vol.Optional(
                         CONF_QUIET_HOURS_ENABLED,
-                        default=current.get(CONF_QUIET_HOURS_ENABLED, True),
+                        default=self._opt(CONF_QUIET_HOURS_ENABLED),
                     ): selector.BooleanSelector(),
                     # v1.4.6 (#44 follow-up): use `or` instead of dict-default so
                     # empty-string / null / non-HH:MM values in storage don't
@@ -775,16 +773,16 @@ class GlobalOptionsFlow(OptionsFlow):
                     # fallback whenever the persisted value isn't a usable time.
                     vol.Optional(
                         CONF_QUIET_HOURS_START,
-                        default=_safe_time(current.get(CONF_QUIET_HOURS_START), "22:00"),
+                        default=_safe_time(current.get(CONF_QUIET_HOURS_START), setting_default(CONF_QUIET_HOURS_START)),
                     ): selector.TimeSelector(),
                     vol.Optional(
                         CONF_QUIET_HOURS_END,
-                        default=_safe_time(current.get(CONF_QUIET_HOURS_END), "08:00"),
+                        default=_safe_time(current.get(CONF_QUIET_HOURS_END), setting_default(CONF_QUIET_HOURS_END)),
                     ): selector.TimeSelector(),
                     # --- Daily Limit ---
                     vol.Optional(
                         CONF_MAX_NOTIFICATIONS_PER_DAY,
-                        default=current.get(CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY),
+                        default=self._opt(CONF_MAX_NOTIFICATIONS_PER_DAY),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_MAX_PER_DAY_MIN, max=_MAX_PER_DAY_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -793,11 +791,11 @@ class GlobalOptionsFlow(OptionsFlow):
                     # --- Bundling ---
                     vol.Optional(
                         CONF_NOTIFICATION_BUNDLING_ENABLED,
-                        default=current.get(CONF_NOTIFICATION_BUNDLING_ENABLED, False),
+                        default=self._opt(CONF_NOTIFICATION_BUNDLING_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFICATION_BUNDLE_THRESHOLD,
-                        default=current.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
+                        default=self._opt(CONF_NOTIFICATION_BUNDLE_THRESHOLD),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_BUNDLE_MIN, max=_BUNDLE_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -806,7 +804,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     # v1.4.0 (#44): notification title style
                     vol.Optional(
                         CONF_NOTIFICATION_TITLE_STYLE,
-                        default=current.get(CONF_NOTIFICATION_TITLE_STYLE, "default"),
+                        default=self._opt(CONF_NOTIFICATION_TITLE_STYLE),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=["default", "object_name", "task_name"],
@@ -817,7 +815,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     # #173 follow-up: completion notifications (activity kind).
                     vol.Optional(
                         CONF_NOTIFY_COMPLETED,
-                        default=current.get(CONF_NOTIFY_COMPLETED, "off"),
+                        default=self._opt(CONF_NOTIFY_COMPLETED),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=list(NOTIFY_COMPLETED_MODES),
@@ -829,14 +827,14 @@ class GlobalOptionsFlow(OptionsFlow):
                     # two settings the panel's Settings tab offers.
                     vol.Optional(
                         CONF_NOTIFY_EVENT_ONLY,
-                        default=current.get(CONF_NOTIFY_EVENT_ONLY, False),
+                        default=self._opt(CONF_NOTIFY_EVENT_ONLY),
                     ): selector.BooleanSelector(),
                     # default (not suggested_value): an emptied optional text
                     # field is omitted from user_input and the old template
                     # survived - a default round-trips "" (bug audit 2026-09-12).
                     vol.Optional(
                         CONF_NOTIFY_EXTRA_DATA,
-                        default=current.get(CONF_NOTIFY_EXTRA_DATA, ""),
+                        default=self._opt(CONF_NOTIFY_EXTRA_DATA),
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
                     ),
@@ -851,27 +849,25 @@ class GlobalOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self._save_and_return(user_input)
 
-        current = self._current
-
         return self.async_show_form(
             step_id="notification_actions",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
                         CONF_ACTION_COMPLETE_ENABLED,
-                        default=current.get(CONF_ACTION_COMPLETE_ENABLED, False),
+                        default=self._opt(CONF_ACTION_COMPLETE_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ACTION_SKIP_ENABLED,
-                        default=current.get(CONF_ACTION_SKIP_ENABLED, False),
+                        default=self._opt(CONF_ACTION_SKIP_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ACTION_SNOOZE_ENABLED,
-                        default=current.get(CONF_ACTION_SNOOZE_ENABLED, False),
+                        default=self._opt(CONF_ACTION_SNOOZE_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_SNOOZE_DURATION_HOURS,
-                        default=current.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS),
+                        default=self._opt(CONF_SNOOZE_DURATION_HOURS),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_SNOOZE_MIN, max=_SNOOZE_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -910,8 +906,7 @@ class GlobalOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self._save_and_return(user_input)
 
-        current = self._current
-        currency_code = current.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY)
+        currency_code = self._opt(CONF_BUDGET_CURRENCY)
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY])
 
         return self.async_show_form(
@@ -920,7 +915,7 @@ class GlobalOptionsFlow(OptionsFlow):
                 {
                     vol.Optional(
                         CONF_BUDGET_MONTHLY,
-                        default=current.get(CONF_BUDGET_MONTHLY, 0.0),
+                        default=self._opt(CONF_BUDGET_MONTHLY),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_BUDGET_MONTHLY_MIN,
@@ -932,7 +927,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     ),
                     vol.Optional(
                         CONF_BUDGET_YEARLY,
-                        default=current.get(CONF_BUDGET_YEARLY, 0.0),
+                        default=self._opt(CONF_BUDGET_YEARLY),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_BUDGET_YEARLY_MIN,
@@ -944,11 +939,11 @@ class GlobalOptionsFlow(OptionsFlow):
                     ),
                     vol.Optional(
                         CONF_BUDGET_ALERTS_ENABLED,
-                        default=current.get(CONF_BUDGET_ALERTS_ENABLED, False),
+                        default=self._opt(CONF_BUDGET_ALERTS_ENABLED),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_BUDGET_ALERT_THRESHOLD,
-                        default=current.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
+                        default=self._opt(CONF_BUDGET_ALERT_THRESHOLD),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_ALERT_MIN,

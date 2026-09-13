@@ -23,22 +23,19 @@ from custom_components.maintenance_supporter.const import (
     CONF_QUIET_HOURS_ENABLED,
     DEFAULT_CURRENCY_DECIMALS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
 from custom_components.maintenance_supporter.helpers.parts import buy_task_notes
 from custom_components.maintenance_supporter.helpers.settings_registry import int_range
 
-from .conftest import build_global_entry_data, build_object_entry_data, setup_integration
+from .conftest import build_object_entry_data, make_global_entry, setup_integration
 
 
 def _global(hass: HomeAssistant, **options: object) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    data[CONF_QUIET_HOURS_ENABLED] = False
-    data.update(options)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test",
+        extra_data={CONF_QUIET_HOURS_ENABLED: False, **options},
+    )
 
 
 def test_setting_is_registered_as_a_small_int_with_a_whole_number_default() -> None:

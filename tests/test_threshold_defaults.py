@@ -10,8 +10,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.maintenance_supporter.const import (
     CONF_BATTERY_LOW_PERCENT,
     CONF_DEFAULT_CONSUMABLE_THRESHOLD,
-    DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.helpers.battery_fleet import (
     NATIVE_LOW_PERCENT,
@@ -25,15 +23,12 @@ from custom_components.maintenance_supporter.helpers.global_options import (
 )
 from custom_components.maintenance_supporter.helpers.integration_signatures import discover_integration_setups
 
-from .conftest import build_global_entry_data, setup_integration
+from .conftest import make_global_entry, setup_integration
 from .test_integration_setups import _seed_sensor
 
 
 def _global(options: dict | None = None) -> MockConfigEntry:
-    return MockConfigEntry(
-        version=1, minor_version=6, domain=DOMAIN, title="Maintenance Supporter",
-        data=build_global_entry_data(), options=options or {}, source="user", unique_id=GLOBAL_UNIQUE_ID,
-    )
+    return make_global_entry(None, minor_version=6, options=options)
 
 
 async def test_resolvers_default_and_validate(hass: HomeAssistant) -> None:

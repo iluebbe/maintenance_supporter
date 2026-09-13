@@ -16,6 +16,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_TEXT_LENGTH,
+    MAX_TIMESTAMP_LENGTH,
 )
 from ..helpers.completion_photos import (
     MAX_COMPLETION_PHOTOS,
@@ -25,8 +26,10 @@ from ..helpers.completion_photos import (
 from ..helpers.permissions import require_write
 from ..storage import reanchor_from_history
 from . import (
-    _get_runtime_data,
-    _load_object_entry,
+    READING_VALUES_FIELD,
+    USED_PARTS_FIELD,
+    _load_object_task,
+    async_commit_store,
 )
 
 # v2.2.0 — edit existing history entries (Discussion #49 follow-up).
@@ -53,9 +56,9 @@ from . import (
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         # ISO datetime string identifying the entry being edited.
-        vol.Required("original_timestamp"): vol.All(str, vol.Length(max=64)),
+        vol.Required("original_timestamp"): vol.All(str, vol.Length(max=MAX_TIMESTAMP_LENGTH)),
         # Patch fields — all optional; absent fields stay unchanged.
-        vol.Optional("timestamp"): vol.All(str, vol.Length(max=64)),
+        vol.Optional("timestamp"): vol.All(str, vol.Length(max=MAX_TIMESTAMP_LENGTH)),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
         vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
@@ -65,28 +68,12 @@ from . import (
         # The scalar patches like the other fields; the slot map REPLACES the
         # snapshot (None value = that meter unread), ids validated in the handler.
         vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
-        vol.Optional("reading_values"): vol.Any(
-            {str: vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None)},
-            None,
-        ),
+        vol.Optional("reading_values"): READING_VALUES_FIELD,
         # #130: edit the entry's part consumption. The stock is reconciled by
         # the per-part DELTA against the entry's previous used_parts; None (or
         # []) clears the consumption and returns the old quantities to stock.
-        vol.Optional("used_parts"): vol.Any(
-            vol.All(
-                [
-                    {
-                        vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                        vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0.01, max=999)),
-                        vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                    }
-                ],
-                # Same cap as the live completion path (tasks_actions.py) —
-                # the edit path must not accept what completion refuses.
-                vol.Length(max=10),
-            ),
-            None,
-        ),
+        # Same shape + cap as the live completion path (websocket.USED_PARTS_FIELD).
+        vol.Optional("used_parts"): USED_PARTS_FIELD,
         # #161: the entry's completion photos. Replaces the whole list; None
         # (or []) detaches every photo from the entry. The documents
         # themselves are never deleted here — they stay in the object's
@@ -105,15 +92,11 @@ async def ws_update_history_entry(
     msg: dict[str, Any],
 ) -> None:
     """Edit fields of an existing history entry."""
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg, merged=True, need_store=True)
+    if ctx is None:
         return
-
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
-    if store is None:
-        connection.send_error(msg["id"], "not_loaded", "Object not loaded")
-        return
+    entry, rd, slot_task = ctx
+    store = rd.store
 
     task_id = msg["task_id"]
     history = list(store.get_history(task_id))
@@ -164,9 +147,7 @@ async def ws_update_history_entry(
     # #161 phase 2: "never both" — the scalar cannot be set on an entry that
     # carries a slot snapshot, nor on a task that records slots.
     if msg.get("reading_value") is not None:
-        from . import _get_merged_tasks
-
-        if patched.get("reading_values") or (_get_merged_tasks(entry).get(task_id) or {}).get("readings"):
+        if patched.get("reading_values") or slot_task.get("readings"):
             connection.send_error(
                 msg["id"], "invalid_input", "This entry records named readings — patch reading_values instead"
             )
@@ -189,9 +170,7 @@ async def ws_update_history_entry(
     # stays editable); anything else is refused rather than guessed.
     if "reading_values" in msg:
         from ..helpers.reading_slots import history_reading_values, resolve_reading_values
-        from . import _get_merged_tasks
 
-        slot_task = _get_merged_tasks(entry).get(task_id) or {}
         try:
             new_values = resolve_reading_values(
                 slot_task.get("readings") or [],
@@ -215,7 +194,6 @@ async def ws_update_history_entry(
     # live completion path — a vanished part skips its stock math.
     if "used_parts" in msg:
         from ..parts_runtime import async_apply_history_parts_edit
-        from . import _get_merged_tasks
 
         old_used = patched.get("used_parts") or []
         # Deliberately NOT sanitize_consumes_parts here: an edited entry may
@@ -224,8 +202,7 @@ async def ws_update_history_entry(
         # rewrite history. Field validation (ids, quantity range, list cap)
         # is the schema's job above.
         new_used = msg["used_parts"] or []
-        task_data = _get_merged_tasks(entry).get(task_id) or {}
-        enriched = await async_apply_history_parts_edit(hass, entry, task_data, old_used, new_used)
+        enriched = await async_apply_history_parts_edit(hass, entry, slot_task, old_used, new_used)
         if enriched:
             patched["used_parts"] = enriched
         else:
@@ -243,7 +220,7 @@ async def ws_update_history_entry(
             patched["photo_doc_ids"] = new_photos
         else:
             patched.pop("photo_doc_ids", None)
-        if rd and rd.coordinator:
+        if rd.coordinator:
             for doc_id in new_photos:
                 if doc_id not in old_photos:
                     await rd.coordinator._link_completion_photo(doc_id, task_id)
@@ -259,12 +236,8 @@ async def ws_update_history_entry(
     if any(h.get("type") in LIFECYCLE_HISTORY_TYPES for h in history):
         reanchor_from_history(store, task_id, history)
 
-    await store.async_save()
-
-    # Refresh coordinator + budget cache so the UI reflects the change
-    if rd and rd.coordinator:
-        rd.coordinator._recalculate_budget_cache()
-        await rd.coordinator.async_refresh_now()
+    # Save + budget cache + immediate refresh so the UI reflects the change.
+    await async_commit_store(rd, budget=True)
 
     connection.send_result(
         msg["id"],
@@ -281,7 +254,7 @@ async def ws_update_history_entry(
         vol.Required("type"): "maintenance_supporter/task/history/delete",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("timestamp"): vol.All(str, vol.Length(max=64)),
+        vol.Required("timestamp"): vol.All(str, vol.Length(max=MAX_TIMESTAMP_LENGTH)),
     }
 )
 @require_write
@@ -298,14 +271,11 @@ async def ws_delete_history_entry(
     moves the schedule back to the previous one. Photos stay in the object's
     documents and consumed parts are not restocked — a bookkeeping
     correction, not an undo."""
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg, need_store=True)
+    if ctx is None:
         return
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
-    if store is None:
-        connection.send_error(msg["id"], "not_loaded", "Object not loaded")
-        return
+    _entry, rd, _task = ctx
+    store = rd.store
     task_id = msg["task_id"]
     history = list(store.get_history(task_id))
     remaining = [h for h in history if h.get("timestamp") != msg["timestamp"]]
@@ -317,9 +287,6 @@ async def ws_delete_history_entry(
     # until its next completion (the static config's own last_performed, if
     # any, shows through the merge). A moved anchor drops a stale postpone.
     reanchor_from_history(store, task_id, remaining)
-    await store.async_save()
-    if rd and rd.coordinator:
-        rd.coordinator._recalculate_budget_cache()
-        await rd.coordinator.async_refresh_now()
+    await async_commit_store(rd, budget=True)
     connection.send_result(msg["id"], {"success": True, "remaining": len(remaining)})
 

@@ -39,6 +39,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .history import completed_entries
 
 if TYPE_CHECKING:
     from ..storage import MaintenanceStore
@@ -108,13 +109,12 @@ def next_history_ref(store: MaintenanceStore, task_id: str, history: list[dict[s
     """Hand out the next completion number for a task and bump the
     high-water mark in the task's dynamic state (imports that carry higher
     numbers move the mark up)."""
-    state = store._ensure_task(task_id)  # the counter is task state, owned by the store
-    high = _as_ref(state.get("next_history_ref")) or 1
+    high = _as_ref(store.get_task_state(task_id).get("next_history_ref")) or 1  # the counter is task state, owned by the store
     for e in history:
         r = _as_ref(e.get("ref_no")) if isinstance(e, dict) else None
         if r is not None and r + 1 > high:
             high = r + 1
-    state["next_history_ref"] = high + 1
+    store.update_task_state(task_id, next_history_ref=high + 1)
     return high
 
 
@@ -125,7 +125,7 @@ def assign_history_refs(store: MaintenanceStore, tasks: dict[str, Any]) -> int:
     count = 0
     for task_id in tasks:
         history = store.get_history(task_id)
-        missing = [e for e in history if isinstance(e, dict) and e.get("type") == "completed" and _as_ref(e.get("ref_no")) is None]
+        missing = [e for e in completed_entries(history) if _as_ref(e.get("ref_no")) is None]
         if not missing:
             continue
         missing.sort(key=lambda e: str(e.get("timestamp") or ""))

@@ -29,7 +29,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.websocket.dashboard import (
     ws_notify_user_targets,
@@ -38,8 +37,8 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
 
 from .conftest import (
     assert_ws_success,
-    build_global_entry_data,
     call_ws_handler,
+    make_global_entry,
     make_ws_connection,
     setup_integration,
 )
@@ -222,20 +221,7 @@ async def test_selftest_and_real_reminders_share_one_resolver(hass: HomeAssistan
 
 
 async def _global_entry(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data={
-            **build_global_entry_data(),
-            CONF_NOTIFICATIONS_ENABLED: True,
-            CONF_NOTIFY_SERVICE: "notify.household",
-        },
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
+    entry = make_global_entry(hass, notifications_enabled=True, notify_service="notify.household")
     await setup_integration(hass, entry)
     return entry
 

@@ -19,10 +19,9 @@ from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
@@ -44,20 +43,9 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 def _object(hass: HomeAssistant, name: str, oid: str, uid: str) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name, object_id=oid),
-            tasks={TASK_ID_1: build_task_data(name=f"{name} task")},
-        ),
-        source="user",
-        unique_id=uid,
+    return make_object_entry(
+        hass, tasks={TASK_ID_1: build_task_data(name=f"{name} task")}, name=name, unique_id=uid, object_id=oid
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 async def test_selective_json_export_restricts_to_entry_ids(

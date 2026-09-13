@@ -1,0 +1,47 @@
+{
+  "_comment": "Shared examples for the tolerant matcher (#171): __tests__/search-match.test.ts AND tests/test_search_match.py run every case here, so the panel's local groups and the server's document/history groups agree on what matches. Scores are named (EXACT/PREFIX/SUBSTRING/FUZZY/NONE) — each side maps them to its constants.",
+  "fold_length_preserving": ["Kühlschrank", "Straße", "Ærø", "ÉCOLE", "naïve café", "Łódź"],
+  "fold": [["Kühlschrank", "kuhlschrank"], ["Straße", "strase"], ["ÉCOLE", "ecole"], ["Łódź", "lodz"]],
+  "words": [["Fehler-Code E-24, Zulauf!", ["fehler", "code", "e", "24", "zulauf"]]],
+  "compact": [["E-24 / WM14T5", "e24wm14t5"]],
+  "query_tokens": [
+    ["Spuel-Maschine", [["spuel", "spul"], ["maschine"]]],
+    ["Strasse", [["strasse", "strase"]]],
+    ["Bauer", [["bauer", "baur"]]],
+    ["  ", []]
+  ],
+  "within_one_edit": [
+    ["abc", "abc", true],
+    ["reinigen", "reinigne", true],
+    ["filter", "fiter", true],
+    ["filter", "fillter", true],
+    ["filter", "filtar", true],
+    ["filter", "flitre", false],
+    ["abc", "abcde", false]
+  ],
+  "word_score": [
+    [["filter"], "filter", "EXACT"],
+    [["filt"], "filter", "PREFIX"],
+    [["leitung"], "bedienungsanleitung", "SUBSTRING"],
+    [["reinigne"], "reinigen", "FUZZY"],
+    [["reinigugn"], "reinigungsmittel", "FUZZY"],
+    [["er"], "filter", "NONE"],
+    [["filt"], "fitler", "NONE"]
+  ],
+  "field_score": [
+    [["kuhl"], "Kühlschrank", "PREFIX"],
+    [["spul"], "Spülmaschine", "PREFIX"],
+    [["e24"], "Fehlercode E-24", "SUBSTRING"]
+  ],
+  "score_fields": {
+    "fields": [["Filter reinigen", 3], ["Spülmaschine", 2]],
+    "hits": ["spülm filt", "spuel filter"],
+    "misses": ["spülm garten"],
+    "order_independent": [["filt spülm", "spülm filt"]],
+    "name_outranks_notes": {
+      "query": "filter",
+      "in_name": [["Filter", 3], ["", 1]],
+      "in_notes": [["Pumpe", 3], ["Filter wechseln", 1]]
+    }
+  }
+}

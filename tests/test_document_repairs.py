@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import shutil
-from collections.abc import Iterator
-from pathlib import Path
 
 import pytest
 from homeassistant import data_entry_flow
@@ -25,12 +22,7 @@ from custom_components.maintenance_supporter.repairs import (
 _ISSUE_ID = "document_storage_issues"
 
 
-@pytest.fixture(autouse=True)
-def _isolate_docs_dir(hass: HomeAssistant) -> Iterator[None]:
-    docs = Path(hass.config.path("maintenance_supporter", "docs"))
-    shutil.rmtree(docs, ignore_errors=True)
-    yield
-    shutil.rmtree(docs, ignore_errors=True)
+pytestmark = pytest.mark.usefixtures("isolated_docs_dir")
 
 
 async def _store_in_hass(hass: HomeAssistant) -> DocumentStore:

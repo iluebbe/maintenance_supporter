@@ -34,7 +34,16 @@ from ..const import (
     SOUTHERN_SEASONS,
     MaintenanceFeedback,
 )
+from .history import completed_entries
 from .schedule import read_legacy_fields
+
+
+def hemisphere(hass: Any) -> str:
+    """``"south"`` / ``"north"`` from HA's configured latitude — the seasonal
+    anchor the adaptive analysis takes. ``None`` (an un-onboarded HA) reads
+    as north. Duck-typed on ``hass.config.latitude`` so the pure-function
+    tests need no HomeAssistant."""
+    return "south" if (hass.config.latitude or 0) < 0 else "north"
 
 # Feedback multipliers for EWA: adjusts effective interval based on need
 FEEDBACK_MULTIPLIERS: dict[str, float] = {
@@ -312,9 +321,7 @@ class IntervalAnalyzer:
             Sorted list of completion datetimes (TZ-aware).
         """
         completed_dates: list[datetime] = []
-        for entry in history:
-            if entry.get("type") != "completed":
-                continue
+        for entry in completed_entries(history):
             ts = entry.get("timestamp")
             if not ts:
                 continue

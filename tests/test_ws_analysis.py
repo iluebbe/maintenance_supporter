@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -27,10 +26,9 @@ from .conftest import (
     build_task_data,
     call_ws_handler,
     get_task_store_state,
+    make_ws_connection,
     setup_integration,
 )
-
-
 
 
 @pytest.fixture
@@ -622,17 +620,6 @@ def _c97_nid() -> int:
     return _c97_msg_id
 
 
-def _c97_conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.send_message = MagicMock()
-    conn.subscriptions = {}
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    return conn
-
-
 # ─── websocket/analysis.py: legacy fallback paths ─────────────────────
 
 
@@ -650,7 +637,7 @@ async def test_seasonal_overrides_legacy_store_none(
     original_store = rd.store
     rd.store = None
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_seasonal_overrides,
         hass,
@@ -682,7 +669,7 @@ async def test_environmental_entity_legacy_store_none(
     original_store = rd.store
     rd.store = None
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_set_environmental_entity,
         hass,
@@ -873,7 +860,7 @@ async def test_set_adaptive_legacy_path_without_store(
     original_store = rd.store
     rd.store = None
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_set_adaptive,
         hass,

@@ -21,40 +21,29 @@ from custom_components.maintenance_supporter.const import (
     CONF_PARTS,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     NOTIFICATION_MANAGER_KEY,
 )
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
 
 
 def _global(hass: HomeAssistant, **options) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter",
-        data=build_global_entry_data(), options=options, source="user", unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(hass, options=options)
 
 
 def _object(hass: HomeAssistant, task: dict, *, uid: str = "audit_obj", parts: dict | None = None) -> MockConfigEntry:
-    data = build_object_entry_data(tasks={TASK_ID_1: task})
-    if parts:
-        data[CONF_PARTS] = parts
-    entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Audit object",
-        data=data, source="user", unique_id=f"maintenance_supporter_{uid}",
+    return make_object_entry(
+        hass, tasks={TASK_ID_1: task}, name="Pool Pump", title="Audit object", uid=uid,
+        extra_data={CONF_PARTS: parts} if parts else None,
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _overdue_task(**over) -> dict:

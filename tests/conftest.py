@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from collections.abc import AsyncGenerator, Callable, Generator
 from datetime import timedelta
 from pathlib import Path
@@ -66,6 +67,22 @@ def _isolate_document_blobs(
         return orig_path(*parts)
 
     monkeypatch.setattr(hass.config, "path", _patched)
+
+
+@pytest.fixture
+def isolated_docs_dir(hass: HomeAssistant, _isolate_document_blobs: None) -> Generator[Path]:
+    """Clean per-test document-blob dir (``<config>/maintenance_supporter/docs``).
+
+    Opt in per module with ``pytestmark = pytest.mark.usefixtures("isolated_docs_dir")``.
+    Depends on ``_isolate_document_blobs`` so the per-test tmp redirect is already
+    active: the rmtree below only touches this test's own dir, never another xdist
+    worker's. Replaces the ``_isolate_docs_dir`` autouse fixture that seven document
+    test modules used to carry inline.
+    """
+    docs = Path(hass.config.path(DOMAIN, "docs"))
+    shutil.rmtree(docs, ignore_errors=True)
+    yield docs
+    shutil.rmtree(docs, ignore_errors=True)
 
 
 @pytest.fixture(autouse=True)
@@ -219,40 +236,75 @@ def build_object_entry_data(
 # to the entry version / unique-id convention now lives in one place.
 
 
-def make_global_entry(hass: HomeAssistant, **kw: Any) -> MockConfigEntry:
-    """Build + register the global config entry (data via build_global_entry_data)."""
+def make_global_entry(
+    hass: HomeAssistant | None,
+    *,
+    minor_version: int = 1,
+    options: dict[str, Any] | None = None,
+    extra_data: dict[str, Any] | None = None,
+    **kw: Any,
+) -> MockConfigEntry:
+    """Build + register the global config entry (data via build_global_entry_data).
+
+    ``**kw`` are build_global_entry_data() knobs (warning_days / notifications_enabled /
+    notify_service). ``extra_data`` is merged over that data (e.g. ``CONF_QUIET_HOURS_ENABLED``),
+    ``options`` seeds ``entry.options``, ``minor_version`` drives migration tests.
+    Pass ``hass=None`` to build the entry WITHOUT registering it.
+    """
+    data = build_global_entry_data(**kw)
+    if extra_data:
+        data.update(extra_data)
     entry = MockConfigEntry(
         version=1,
-        minor_version=1,
+        minor_version=minor_version,
         domain=DOMAIN,
         title="Maintenance Supporter",
-        data=build_global_entry_data(**kw),
+        data=data,
+        options=options,
         source="user",
         unique_id=GLOBAL_UNIQUE_ID,
     )
-    entry.add_to_hass(hass)
+    if hass is not None:
+        entry.add_to_hass(hass)
     return entry
 
 
 def make_object_entry(
-    hass: HomeAssistant,
+    hass: HomeAssistant | None,
     tasks: dict[str, dict[str, Any]] | None = None,
     name: str = "Test Object",
     uid: str = "test_obj_cov",
     object_data: dict[str, Any] | None = None,
+    *,
+    object_id: str | None = None,
+    title: str | None = None,
+    unique_id: str | None = None,
+    minor_version: int = 1,
+    extra_data: dict[str, Any] | None = None,
 ) -> MockConfigEntry:
-    """Build + register a maintenance-object config entry."""
-    od = object_data or build_object_data(name=name)
+    """Build + register a maintenance-object config entry.
+
+    ``name`` is both the object name and (unless ``title`` is given) the entry title;
+    ``object_id`` is forwarded to build_object_data() when no ``object_data`` is passed.
+    ``unique_id`` overrides the ``maintenance_supporter_{uid}`` convention verbatim.
+    ``extra_data`` is merged into the entry data (e.g. ``CONF_PARTS``). Pass
+    ``hass=None`` to build the entry WITHOUT registering it.
+    """
+    od = object_data or build_object_data(name=name, object_id=object_id)
+    data = build_object_entry_data(object_data=od, tasks=tasks or {})
+    if extra_data:
+        data.update(extra_data)
     entry = MockConfigEntry(
         version=1,
-        minor_version=1,
+        minor_version=minor_version,
         domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        title=name if title is None else title,
+        data=data,
         source="user",
-        unique_id=f"maintenance_supporter_{uid}",
+        unique_id=f"maintenance_supporter_{uid}" if unique_id is None else unique_id,
     )
-    entry.add_to_hass(hass)
+    if hass is not None:
+        entry.add_to_hass(hass)
     return entry
 
 
@@ -389,6 +441,12 @@ def make_ws_connection() -> MagicMock:
     # unserializable — the Store raises TypeError on save.
     conn.user = MagicMock(is_admin=True)
     conn.user.id = "mock-ws-user"
+    # Subscription handlers (dashboard/notification subscribe commands) register
+    # their unsubscribe callback in `subscriptions` and push events via
+    # `send_message`; the per-file `_covws_conn` / `_c97_conn` copies existed only
+    # to add these two attributes.
+    conn.subscriptions = {}
+    conn.send_message = MagicMock()
     return conn
 
 

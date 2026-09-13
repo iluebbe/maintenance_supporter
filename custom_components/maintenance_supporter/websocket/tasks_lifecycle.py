@@ -11,19 +11,18 @@ from homeassistant.util import dt as dt_util
 
 from ..const import (
     ARCHIVE_REASON_MANUAL,
-    CONF_OBJECT,
-    CONF_OBJECT_NAME,
     CONF_TASKS,
     MAX_ID_LENGTH,
 )
+from ..helpers.aggregate import get_coordinator_data, get_store, object_name
+from ..helpers.entry_tasks import write_task
 from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task
 from ..helpers.permissions import require_write
 from . import (
     _build_task_summary,
     _get_merged_tasks,
     _get_object_entries,
-    _get_runtime_data,
-    _load_object_entry,
+    _load_object_task,
 )
 
 
@@ -59,27 +58,20 @@ async def ws_archive_task(
     Reason MANUAL → it is never auto-deleted and is unarchived individually
     (an object-cascade unarchive leaves it alone). Works for any task type.
     """
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
         return
-
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
+    entry, _rd, task = ctx
     task_id = msg["task_id"]
-    if task_id not in tasks_data:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
 
-    td = dict(tasks_data[task_id])
+    td = dict(task)
     if td.get("archived_at") is not None:
         connection.send_error(msg["id"], "already_archived", "Task already archived")
         return
 
     td["archived_at"] = dt_util.now().isoformat()
     td["archived_reason"] = ARCHIVE_REASON_MANUAL
-    tasks_data[task_id] = td
-    new_data = dict(entry.data)
-    new_data[CONF_TASKS] = tasks_data
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    write_task(hass, entry, task_id, td)
 
     # Reload so a sensor task's triggers tear down (async_added_to_hass skips
     # trigger setup for archived tasks) and every per-task entity recomputes inert.
@@ -108,15 +100,11 @@ async def ws_unarchive_task(
     to today so ``next_due = today + interval`` rather than resurfacing as
     retroactively overdue. One-off / manual tasks keep their terminal state.
     """
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
         return
-
+    entry, _rd, td = ctx
     task_id = msg["task_id"]
-    td = dict(entry.data.get(CONF_TASKS, {}).get(task_id, {}))
-    if not td:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
     if td.get("archived_at") is None:
         connection.send_error(msg["id"], "not_archived", "Task is not archived")
         return
@@ -127,8 +115,7 @@ async def ws_unarchive_task(
     # below re-reads AFTER it, so a concurrent writer landing during the disk
     # write can't be reverted by a stale whole-map write (the migration-race
     # class, bug audit 2026-07-11).
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
+    store = get_store(hass, entry.entry_id)
     recurring = _is_recurring_schedule(td)
     legacy_anchor = False
     if recurring:
@@ -141,12 +128,12 @@ async def ws_unarchive_task(
         else:
             legacy_anchor = True
 
-    # Re-derive the task from a FRESH read and patch only its key.
-    fresh_tasks = entry.data.get(CONF_TASKS, {})
-    if task_id not in fresh_tasks:
+    # Re-derive the task from a FRESH read (post-await) and patch only its key.
+    fresh = entry.data.get(CONF_TASKS, {}).get(task_id)
+    if fresh is None:
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
-    td = dict(fresh_tasks[task_id])
+    td = dict(fresh)
     td.pop("archived_at", None)
     td.pop("archived_reason", None)
     if legacy_anchor:
@@ -155,8 +142,6 @@ async def ws_unarchive_task(
         # The Store already holds the fresh anchor; scrub the static shadow too
         # so an imported due_override can't out-rank it in merge_task_data.
         clear_cycle_modifiers(td)
-
-    from ..helpers.entry_tasks import write_task
 
     write_task(hass, entry, task_id, td)
 
@@ -191,15 +176,13 @@ def ws_list_tasks(
         if filter_entry_id and entry.entry_id != filter_entry_id:
             continue
         entry_tasks = _get_merged_tasks(entry)
-        obj_data = entry.data.get(CONF_OBJECT, {})
-        rd = _get_runtime_data(hass, entry.entry_id)
-        coordinator_data = rd.coordinator.data if rd and rd.coordinator else None
-        ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
+        obj_name = object_name(entry)
+        ct_tasks = (get_coordinator_data(hass, entry.entry_id) or {}).get(CONF_TASKS, {})
         for task_id, task_data in entry_tasks.items():
             summary = _build_task_summary(hass, task_id, task_data, ct_tasks.get(task_id))
             summary["task_id"] = task_id
             summary["entry_id"] = entry.entry_id
-            summary["object_name"] = obj_data.get(CONF_OBJECT_NAME, "")
+            summary["object_name"] = obj_name
             tasks.append(summary)
 
     connection.send_result(msg["id"], {"tasks": tasks})
@@ -226,13 +209,9 @@ def ws_task_history(
     caps at 500). The detail view's timeline, filters and charts fetch the
     complete record here, only when a task is actually opened.
     """
-    for entry in _get_object_entries(hass):
-        if entry.entry_id != msg["entry_id"]:
-            continue
-        task_data = _get_merged_tasks(entry).get(msg["task_id"])
-        if task_data is None:
-            break
-        history = task_data.get("history") or []
-        connection.send_result(msg["id"], {"history": history, "count": len(history)})
+    ctx = _load_object_task(hass, connection, msg, merged=True)
+    if ctx is None:
         return
-    connection.send_error(msg["id"], "not_found", "Task not found")
+    _entry, _rd, task_data = ctx
+    history = task_data.get("history") or []
+    connection.send_result(msg["id"], {"history": history, "count": len(history)})

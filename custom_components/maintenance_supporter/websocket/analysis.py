@@ -17,9 +17,11 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
+from ..helpers.aggregate import get_runtime_data
+from ..helpers.interval_analyzer import hemisphere
 from ..helpers.permissions import require_write
 from ..helpers.task_fields import INTERVAL_DAYS_RANGE
-from . import _get_merged_tasks, _get_runtime_data, _load_object_entry
+from . import _load_object_task, async_commit_store
 
 
 async def _persist_adaptive_config(
@@ -29,22 +31,22 @@ async def _persist_adaptive_config(
     adaptive_config: dict[str, Any],
 ) -> None:
     """Write a task's adaptive_config (store, or legacy entry data) and refresh."""
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
-    if store is not None:
-        store.set_adaptive_config(task_id, adaptive_config)
+    rd = get_runtime_data(hass, entry.entry_id)
+    if rd is not None and rd.store is not None:
+        rd.store.set_adaptive_config(task_id, adaptive_config)
         # Immediate save like every other user-initiated write: a debounced
         # 60 s timer would lose the change on a restart/reload in that window.
-        await store.async_save()
-    else:
-        # Legacy: write to ConfigEntry.data
-        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
-        task = dict(static_tasks[task_id])
-        task["adaptive_config"] = adaptive_config
-        static_tasks[task_id] = task
-        new_data = dict(entry.data)
-        new_data[CONF_TASKS] = static_tasks
-        hass.config_entries.async_update_entry(entry, data=new_data)
+        await async_commit_store(rd)
+        return
+
+    # Legacy: write to ConfigEntry.data
+    static_tasks = dict(entry.data.get(CONF_TASKS, {}))
+    task = dict(static_tasks[task_id])
+    task["adaptive_config"] = adaptive_config
+    static_tasks[task_id] = task
+    new_data = dict(entry.data)
+    new_data[CONF_TASKS] = static_tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
 
     if rd and rd.coordinator:
         await rd.coordinator.async_refresh_now()
@@ -66,23 +68,16 @@ async def ws_analyze_interval(
     """Return full interval analysis for a task (on-demand)."""
     from ..helpers.interval_analyzer import IntervalAnalyzer
 
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg, merged=True)
+    if ctx is None:
         return
-
-    tasks_data = _get_merged_tasks(entry)
-    task_id = msg["task_id"]
-    if task_id not in tasks_data:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
-
-    task_data = tasks_data[task_id]
+    _entry, _rd, task_data = ctx
     adaptive_config = dict(task_data.get("adaptive_config", {}))
 
     # Inject hemisphere and current month for seasonal awareness
     from homeassistant.util import dt as dt_util
 
-    adaptive_config["hemisphere"] = "south" if (hass.config.latitude or 0) < 0 else "north"
+    adaptive_config["hemisphere"] = hemisphere(hass)
     adaptive_config["_current_month"] = dt_util.now().month
 
     analyzer = IntervalAnalyzer()
@@ -129,16 +124,12 @@ async def ws_apply_suggestion(
     msg: dict[str, Any],
 ) -> None:
     """Apply a suggested interval to a task."""
-    rd = _get_runtime_data(hass, msg["entry_id"])
-    if rd is None or rd.coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+    # An unknown task_id is rejected up front instead of silently no-opping
+    # and returning success (the apply call is a no-op for a missing task).
+    ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
+    if ctx is None:
         return
-
-    # Reject an unknown task_id instead of silently no-opping and returning
-    # success (the apply call is a no-op for a missing task).
-    if msg["task_id"] not in rd.coordinator.entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    _entry, rd, _task = ctx
 
     await rd.coordinator.async_apply_suggested_interval(
         task_id=msg["task_id"],
@@ -170,15 +161,11 @@ async def ws_seasonal_overrides(
     Keys must be 1-12, values must be 0.1-5.0.
     Pass empty dict {} to clear all overrides.
     """
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg, merged=True)
+    if ctx is None:
         return
-
+    entry, _rd, task_data = ctx
     task_id = msg["task_id"]
-    tasks_data = _get_merged_tasks(entry)
-    if task_id not in tasks_data:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
 
     # Validate overrides
     overrides = msg["overrides"]
@@ -199,7 +186,7 @@ async def ws_seasonal_overrides(
         validated[month] = round(factor, 2)
 
     # Persist overrides in adaptive_config
-    adaptive_config = dict(tasks_data[task_id].get("adaptive_config", {}))
+    adaptive_config = dict(task_data.get("adaptive_config", {}))
     if validated:
         adaptive_config["seasonal_overrides"] = validated
     else:
@@ -232,17 +219,13 @@ async def ws_set_environmental_entity(
     correlated with maintenance intervals to produce an adjustment factor.
     Pass environmental_entity=null to clear the binding.
     """
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg, merged=True)
+    if ctx is None:
         return
-
+    entry, _rd, task_data = ctx
     task_id = msg["task_id"]
-    tasks_data = _get_merged_tasks(entry)
-    if task_id not in tasks_data:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
 
-    adaptive_config = dict(tasks_data[task_id].get("adaptive_config", {}))
+    adaptive_config = dict(task_data.get("adaptive_config", {}))
 
     env_entity = msg.get("environmental_entity")
     env_attribute = msg.get("environmental_attribute")
@@ -295,17 +278,13 @@ async def ws_set_adaptive(
     endpoint above; omitted optional fields keep their stored values."""
     from ..helpers.schedule import read_legacy_fields
 
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg, merged=True)
+    if ctx is None:
         return
-
+    entry, _rd, task_data = ctx
     task_id = msg["task_id"]
-    tasks_data = _get_merged_tasks(entry)
-    if task_id not in tasks_data:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
 
-    adaptive_config = dict(tasks_data[task_id].get("adaptive_config", {}))
+    adaptive_config = dict(task_data.get("adaptive_config", {}))
     adaptive_config["enabled"] = msg["enabled"]
     for src, dst in (
         ("ewa_alpha", "ewa_alpha"),
@@ -325,7 +304,7 @@ async def ws_set_adaptive(
 
     # Same base_interval seeding as the options flow's adaptive step.
     if "base_interval" not in adaptive_config:
-        base = read_legacy_fields(tasks_data[task_id])["interval_days"]
+        base = read_legacy_fields(task_data)["interval_days"]
         adaptive_config["base_interval"] = base if base is not None else 30
 
     await _persist_adaptive_config(hass, entry, task_id, adaptive_config)

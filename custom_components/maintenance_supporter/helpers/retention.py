@@ -32,6 +32,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import ARCHIVE_REASON_AUTO
+from .dates import local_date_from_iso
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,13 +41,14 @@ def _to_date(value: Any) -> date | None:
     """Coerce a stored date / ISO timestamp string to a ``date`` (or None).
 
     Accepts both ``"2026-06-24"`` (last_performed) and a full ISO timestamp
-    ``"2026-06-24T12:00:00+00:00"`` (archived_at) — the leading ``YYYY-MM-DD``
-    is all the day-granular policy needs.
+    ``"2026-06-24T12:00:00+00:00"`` (archived_at) — the stamp's LOCAL
+    calendar day is all the day-granular policy needs.
     """
-    if not isinstance(value, str) or len(value) < 10:
+    day = local_date_from_iso(value)
+    if day is None:
         return None
     try:
-        return date.fromisoformat(value[:10])
+        return date.fromisoformat(day)
     except ValueError:
         return None
 

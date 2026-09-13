@@ -404,6 +404,7 @@ def test_entity_rename_rewrite_store() -> None:
 
     mock_store = MagicMock()
     mock_store._data = {"tasks": {"task1": {"trigger_runtime": {"sensor.old": {"accumulated_seconds": 100}}}}}
+    mock_store.all_task_states.return_value = mock_store._data["tasks"]
     changed = rewrite_store(mock_store, "sensor.old", "sensor.new")
     assert changed is True
     runtime = mock_store._data["tasks"]["task1"]["trigger_runtime"]

@@ -32,6 +32,7 @@ from ..const import (
     PANEL_TITLE,
     THRESHOLD_PERCENT_RANGE,
 )
+from .settings_registry import setting_default
 
 
 def get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:
@@ -50,6 +51,13 @@ def get_global_options(hass: HomeAssistant) -> Mapping[str, Any]:
     """Return the options dict from the global config entry, or empty mapping."""
     entry = get_global_entry(hass)
     return (entry.options or entry.data) if entry is not None else {}
+
+
+def global_option(hass: HomeAssistant, key: str) -> Any:
+    """One global setting, falling back to the registry default when unset —
+    the runtime readers' accessor (coordinator, notification manager), so the
+    fallback is never hand-typed next to the key."""
+    return get_global_options(hass).get(key, setting_default(key))
 
 
 def is_schedule_time_enabled(hass: HomeAssistant) -> bool:

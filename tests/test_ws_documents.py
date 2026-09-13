@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import shutil
-from collections.abc import Iterator
 from http import HTTPStatus
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -50,18 +47,7 @@ _UPDATE = "maintenance_supporter/documents/update"
 _DELETE = "maintenance_supporter/documents/delete"
 
 
-@pytest.fixture(autouse=True)
-def _isolate_docs_dir(hass: HomeAssistant, _isolate_document_blobs: None) -> Iterator[None]:
-    """Blobs live on the shared test config dir — give each test a clean one.
-
-    Depends on _isolate_document_blobs (conftest) so the per-test tmp redirect is
-    already active: the rmtree below then only touches this test's own dir, never
-    another xdist worker's.
-    """
-    docs = Path(hass.config.path("maintenance_supporter", "docs"))
-    shutil.rmtree(docs, ignore_errors=True)
-    yield
-    shutil.rmtree(docs, ignore_errors=True)
+pytestmark = pytest.mark.usefixtures("isolated_docs_dir")
 
 
 @pytest.fixture
@@ -92,8 +78,6 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     )
     entry.add_to_hass(hass)
     return entry
-
-
 
 
 def _store(hass: HomeAssistant) -> DocumentStore:

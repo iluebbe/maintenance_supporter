@@ -146,12 +146,6 @@ def _native_snapshot_cache(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     return cache
 
 
-def _norm_type(raw: Any) -> str:
-    """Canonicalize a battery-type label for grouping (upper, trimmed)."""
-    s = str(raw or "").strip()
-    return s.upper() if s else "UNKNOWN"
-
-
 def lifetime_months(battery_type: str) -> int:
     """Typical service life for a battery type — the built-in table value
     (aliases such as LR6/PP3/CR123 folded onto the table key). The forecast
@@ -265,7 +259,10 @@ def build_overview(
     types_seen: OrderedDict[str, None] = OrderedDict()
 
     for bat in sorted(batteries, key=lambda b: b.device_name.lower()):
-        t = _norm_type(bat.battery_type)
+        # ONE normalisation for grouping, part ids and the lifetime table
+        # (DRY audit 2026-09): before, grouping only upper-cased, so an LR6
+        # note minted its own part/chip while the forecast read it as AA.
+        t = canonical_type(bat.battery_type)
         types_seen[t] = None
         rechargeable = is_rechargeable_type(bat.battery_type)
         # The shopping groupings list only types a part can stand behind —
@@ -1247,7 +1244,7 @@ def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
         # as the overview's shopping groupings (is_shoppable_type).
         if not is_shoppable_type(bat.battery_type):
             continue
-        t = _norm_type(bat.battery_type)
+        t = canonical_type(bat.battery_type)
         totals[t] = totals.get(t, 0) + bat.quantity
     return OrderedDict(sorted(totals.items()))
 

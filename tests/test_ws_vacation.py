@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -27,20 +26,9 @@ from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
     call_ws_handler,
+    make_ws_connection,
     setup_integration,
 )
-
-
-def _covws_conn() -> MagicMock:
-    """Create a mock WS connection."""
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    conn.subscriptions = {}
-    conn.send_message = MagicMock()
-    return conn
 
 
 @pytest.fixture
@@ -61,7 +49,7 @@ def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
 # Lines 83-84: ws_vacation_update — global_entry is None → not_found error
 async def test_vacation_update_no_global_entry(hass: HomeAssistant) -> None:
     """ws_vacation_update: no global config entry → not_found error."""
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_update,
@@ -85,7 +73,7 @@ async def test_vacation_update_enabled(
 ) -> None:
     """ws_vacation_update: setting enabled=True persists and is returned."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_update,
@@ -110,7 +98,7 @@ async def test_vacation_update_invalid_start(
 ) -> None:
     """ws_vacation_update: non-ISO start date → invalid_date error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_update,
@@ -134,7 +122,7 @@ async def test_vacation_update_clear_start(
 ) -> None:
     """ws_vacation_update: start=None clears the start date."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # First set a start
     await call_ws_handler(
@@ -173,7 +161,7 @@ async def test_vacation_update_invalid_end(
 ) -> None:
     """ws_vacation_update: non-ISO end date → invalid_date error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_update,
@@ -197,7 +185,7 @@ async def test_vacation_update_end_before_start(
 ) -> None:
     """ws_vacation_update: end date before start date → invalid_range error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # Set both in one call so both are present after the patch
     await call_ws_handler(
@@ -223,7 +211,7 @@ async def test_vacation_update_buffer_days(
 ) -> None:
     """ws_vacation_update: buffer_days is persisted in options."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_update,
@@ -248,7 +236,7 @@ async def test_vacation_update_exempt_task_ids(
 ) -> None:
     """ws_vacation_update: exempt_task_ids list is cleaned and persisted."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_update,
@@ -276,7 +264,7 @@ async def test_vacation_preview_no_dates(
 ) -> None:
     """ws_vacation_preview: with no start/end configured → rows=[], window_end=None."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_preview,
@@ -297,7 +285,7 @@ async def test_vacation_preview_no_dates(
 # Lines 230-231: ws_vacation_end_now — global_entry is None → not_found error
 async def test_vacation_end_now_no_global_entry(hass: HomeAssistant) -> None:
     """ws_vacation_end_now: no global entry → not_found error."""
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_vacation_end_now,
@@ -331,7 +319,7 @@ async def test_vacation_end_now_clamps_end_to_today(
     }
     hass.config_entries.async_update_entry(covws_global_entry, options=options)
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_vacation_end_now,
         hass,
@@ -361,7 +349,7 @@ async def test_ws_vacation_update_invalid_start_date(
 
     await setup_integration(hass, covws_global_entry)
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
     msg = {"id": 1, "start": "not-a-date"}
     await call_ws_handler(ws_vacation_update, hass, conn, msg)
 
@@ -383,7 +371,7 @@ async def test_ws_vacation_update_end_before_start(
     options = {"vacation_start": "2026-06-01", "vacation_end": "2026-06-10"}
     hass.config_entries.async_update_entry(covws_global_entry, options=options)
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
     msg = {
         "id": 1,
         "start": "2026-06-10",
@@ -408,7 +396,7 @@ async def test_ws_vacation_update_buffer_and_exempt(
 
     await setup_integration(hass, covws_global_entry)
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
     msg = {
         "id": 1,
         "buffer_days": 3,
@@ -449,7 +437,7 @@ async def test_ws_vacation_end_now_future_start(
         },
     )
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
     msg = {"id": 1}
     await call_ws_handler(ws_vacation_end_now, hass, conn, msg)
 
@@ -484,7 +472,7 @@ async def test_vacation_preview_rows_carry_the_tasks_allow_skip(
         },
     )
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
     await call_ws_handler(ws_vacation_preview, hass, conn, {"id": 1, "type": "maintenance_supporter/vacation/preview"})
 
     conn.send_result.assert_called_once()

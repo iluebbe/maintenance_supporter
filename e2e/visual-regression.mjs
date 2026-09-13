@@ -29,7 +29,7 @@ import { chromium } from "@playwright/test";
 import fs from "fs";
 import { PNG } from "pngjs";
 import pixelmatch from "pixelmatch";
-import { watchdog } from "./ws-client.mjs";
+import { watchdog, haLogin } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
@@ -58,23 +58,7 @@ const SURFACES = [
   { name: "split-dashboard", viewport: { width: 1920, height: 1080 }, budget: 0.03, prepare: showSplit },
 ];
 
-const j = (r) => r.json();
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: "demo", password: "demo-pass-1" }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("login failed");
-  return t.access_token;
-}
+const login = () => haLogin(REST, { user: "demo", pass: "demo-pass-1", cid: CID });
 
 const FINDER = `
   const deep = (pred) => { const st=[document.documentElement]; const o=[]; let n=0;

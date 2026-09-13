@@ -19,7 +19,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.helpers.reference_numbers import (
     REFERENCE_NUMBERS_KEY,
@@ -40,26 +39,19 @@ from custom_components.maintenance_supporter.websocket.tasks_crud import (
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry as _global,
+    make_object_entry,
     make_ws_connection as _conn,
     setup_integration,
 )
 
 
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=build_global_entry_data(), source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
-
-
 def _object(hass: HomeAssistant, name: str, uid: str, tasks: dict | None = None, created: datetime | None = None) -> MockConfigEntry:
-    obj = build_object_data(name=name, object_id="obj_" + uid)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title=name, data=build_object_entry_data(object_data=obj, tasks=tasks or {}), source="user", unique_id=uid)
-    entry.add_to_hass(hass)
+    entry = make_object_entry(hass, tasks=tasks, name=name, unique_id=uid, object_id="obj_" + uid)
     if created is not None:
         # MockConfigEntry stamps "now" — older objects must sort first.
         object.__setattr__(entry, "created_at", created)
@@ -229,4 +221,3 @@ async def test_pre_existing_completions_are_backfilled_oldest_first(hass: HomeAs
     assert numbered == {"oldest": 1, "middle": 2, "newest": 3, "skip": None}
     await obj.runtime_data.coordinator.complete_maintenance(TASK_ID_1, notes="after", unattended=True)
     assert next(e["ref_no"] for e in store.get_history(TASK_ID_1) if e.get("notes") == "after") == 4
-

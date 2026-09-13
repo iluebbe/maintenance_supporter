@@ -4,6 +4,7 @@
  *  Seeds a self-contained demo object (task + linked doc + part) on ha-shots. */
 import { chromium } from "@playwright/test";
 import fs from "fs";
+import { haLogin, wsClient } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131", HA = "http://ha-shots:8123", PW_WS = "ws://127.0.0.1:3000/";
 // browser-side origin, not the host REST one (see shots-demo.mjs)
@@ -14,21 +15,10 @@ const log = (...a) => console.log(...a);
 setTimeout(() => { console.error("WATCHDOG"); process.exit(3); }, 3 * 60e3);
 
 // --- login ---
-const f = await fetch(REST + "/auth/login_flow", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }) }).then(j);
-const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_id: CID, username: USER, password: PASS }) }).then(j);
-const tok = await fetch(REST + "/auth/token", { method: "POST", body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }) }).then(j);
-const token = tok.access_token;
+const token = await haLogin(REST, { user: USER, pass: PASS, cid: CID });
 const auth = { Authorization: "Bearer " + token };
 
-// --- WS helper ---
-async function ws() {
-  const sock = new WebSocket(REST.replace(/^http/, "ws") + "/api/websocket");
-  await new Promise((res, rej) => { sock.onopen = res; sock.onerror = () => rej(new Error("ws")); });
-  let id = 1; const pend = new Map();
-  await new Promise((res) => { sock.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.type === "auth_required") sock.send(JSON.stringify({ type: "auth", access_token: token })); else if (m.type === "auth_ok") res(); else if (m.type === "result") { const p = pend.get(m.id); if (p) { pend.delete(m.id); m.success ? p.res(m.result) : p.rej(new Error(JSON.stringify(m.error))); } } }; });
-  return { send: (msg) => new Promise((res, rej) => { const i = id++; pend.set(i, { res, rej }); sock.send(JSON.stringify({ ...msg, id: i })); }) };
-}
-const api = await ws();
+const api = await wsClient(REST, token);
 
 // --- seed a clean demo object if absent ---
 const NAME = "Espresso Machine";

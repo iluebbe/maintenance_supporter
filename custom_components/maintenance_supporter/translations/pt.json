@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "«{task_name}» está arquivada, desativada ou o seu objeto está em pausa — não pode ser concluída"
     },
+    "task_inactive_postpone": {
+      "message": "«{task_name}» está arquivada, desativada ou o seu objeto está em pausa — não pode ser adiada"
+    },
+    "task_inactive_reset": {
+      "message": "«{task_name}» está arquivada, desativada ou o seu objeto está em pausa — não pode ser reposta"
+    },
     "task_inactive_skip": {
       "message": "«{task_name}» está arquivada, desativada ou o seu objeto está em pausa — não pode ser ignorada"
     },

@@ -31,9 +31,8 @@ from custom_components.maintenance_supporter.const import (
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_object_entry,
     setup_integration,
 )
 
@@ -54,20 +53,12 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 def _make_entry(hass: HomeAssistant, unique_id: str, task: dict[str, Any] | None = None) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Guard Object",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Guard Object"),
-            tasks={TASK_ID_1: task or build_task_data(task_id=TASK_ID_1, interval_days=30)},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
+    return make_object_entry(
+        hass,
+        tasks={TASK_ID_1: task or build_task_data(task_id=TASK_ID_1, interval_days=30)},
+        name="Guard Object",
+        uid=unique_id,
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 async def test_digest_without_global_entry_is_a_noop(hass: HomeAssistant) -> None:

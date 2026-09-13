@@ -9,6 +9,7 @@
  * whether a nameless duplicate appeared. Used by migration-scenarios.sh to
  * compare update orders.
  */
+import { wsClient, onboardOrLogin, ensureIntegration } from "./ws-client.mjs";
 const MODE = process.argv[2];
 const PORT = process.argv[3];
 const LABEL = process.argv[4] || "";
@@ -18,93 +19,11 @@ const D = "maintenance_supporter";
 const USER = "demo", PASS = "demo-pass-1";
 const log = (...a) => console.log(...a);
 
-const j = async (r) => {
-  const t = await r.text();
-  try { return JSON.parse(t); } catch { throw new Error(`${r.status} ${r.url.replace(REST, "")} -> ${t.slice(0, 90)}`); }
-};
-
-async function token() {
-  const status = await fetch(REST + "/api/onboarding").then(j).catch(() => null);
-  const haveUser = status === null || (Array.isArray(status) && status.some((x) => x.step === "user" && x.done));
-  if (!haveUser) {
-    const u = await fetch(REST + "/api/onboarding/users", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: CID, name: "Demo", username: USER, password: PASS, language: "en" }),
-    }).then(j);
-    const t = await fetch(REST + "/auth/token", {
-      method: "POST",
-      body: new URLSearchParams({ grant_type: "authorization_code", code: u.auth_code, client_id: CID }),
-    }).then(j);
-    const auth = { Authorization: "Bearer " + t.access_token, "Content-Type": "application/json" };
-    for (const step of ["core_config", "analytics"]) {
-      await fetch(`${REST}/api/onboarding/${step}`, { method: "POST", headers: auth, body: "{}" }).catch(() => {});
-    }
-    await fetch(`${REST}/api/onboarding/integration`, {
-      method: "POST", headers: auth, body: JSON.stringify({ client_id: CID, redirect_uri: CID }),
-    }).catch(() => {});
-    return t.access_token;
-  }
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("token exchange failed: " + JSON.stringify(t).slice(0, 120));
-  return t.access_token;
-}
-
-// A minimal WS client — ws-client.mjs reads a token from docker/.env, and
-// these throwaway instances have their own credentials.
-async function ws(tok) {
-  const sock = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
-  let id = 1;
-  const pending = new Map();
-  await new Promise((res, rej) => {
-    sock.onerror = rej;
-    sock.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") sock.send(JSON.stringify({ type: "auth", access_token: tok }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("auth invalid"));
-      else if (m.type === "result") {
-        const p = pending.get(m.id);
-        if (p) { pending.delete(m.id); m.success ? p.res(m.result) : p.rej(new Error(JSON.stringify(m.error))); }
-      }
-    };
-  });
-  return {
-    send: (msg) => new Promise((res, rej) => { const i = id++; pending.set(i, { res, rej }); sock.send(JSON.stringify({ ...msg, id: i })); }),
-    close: () => sock.close(),
-  };
-}
-
-const tok = await token();
-const api = await ws(tok);
+const tok = await onboardOrLogin(REST, { user: USER, pass: PASS, cid: CID });
+const api = await wsClient(REST, tok);
 try {
   if (MODE === "seed") {
-    const auth = { Authorization: "Bearer " + tok, "Content-Type": "application/json" };
-    const entries = await fetch(REST + "/api/config/config_entries/entry", { headers: auth }).then(j).catch(() => []);
-    if (!entries.some((e) => e.domain === D)) {
-      const start = await fetch(REST + "/api/config/config_entries/flow", {
-        method: "POST", headers: auth, body: JSON.stringify({ handler: D, show_advanced_options: false }),
-      }).then(j);
-      let res = start;
-      if (start.type === "form") {
-        res = await fetch(REST + "/api/config/config_entries/flow/" + start.flow_id, {
-          method: "POST", headers: auth,
-          body: JSON.stringify({ default_warning_days: 7, notifications_enabled: false, notify_service: "" }),
-        }).then(j);
-      }
-      if (res.type !== "create_entry") throw new Error("flow failed: " + JSON.stringify(res).slice(0, 150));
-      await new Promise((r) => setTimeout(r, 6000));
-    }
+    await ensureIntegration(REST, tok, { settleMs: 6000 });
     const cfgEntries = await api.send({ type: "config_entries/get" });
     const demo = cfgEntries.find((e) => e.domain === "demo");
     const devs = await api.send({ type: "config/device_registry/list" });

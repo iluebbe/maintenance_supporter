@@ -16,6 +16,7 @@ from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, Maintenan
 
 if TYPE_CHECKING:
     from .. import MaintenanceSupporterData
+    from ..storage import MaintenanceStore
 
 # The status buckets we count. `ok` is included so the dashboard strategy
 # headline and a future summary sensor have a single source for it too.
@@ -25,6 +26,17 @@ _COUNTED_STATUSES = (
     MaintenanceStatus.TRIGGERED,
     MaintenanceStatus.OK,
 )
+
+
+def is_object_entry(entry: ConfigEntry | None) -> bool:
+    """True iff *entry* is one of OUR object entries (not None, not another
+    domain's, not the global settings entry).
+
+    The three-part guard was hand-typed at eight sites (WS resolver, the two
+    adopt handlers, the service-facing task helpers, the foreign-part
+    resolver, …) — one predicate so a future site can't forget a leg.
+    """
+    return entry is not None and entry.domain == DOMAIN and entry.unique_id != GLOBAL_UNIQUE_ID
 
 
 def object_name(entry: ConfigEntry) -> str:
@@ -77,6 +89,23 @@ def get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporter
     return getattr(entry, "runtime_data", None)
 
 
+def get_store(hass: HomeAssistant, entry_id: str) -> MaintenanceStore | None:
+    """The entry's dynamic-state Store, or None when the entry is unknown or
+    not loaded (disabled / setup-retry / mid-reload = no runtime_data).
+
+    ``store = getattr(rd, "store", None) if rd else None`` was copied at nine
+    WS sites — this is the one spelling."""
+    rd = get_runtime_data(hass, entry_id)
+    return getattr(rd, "store", None) if rd else None
+
+
+def get_coordinator_data(hass: HomeAssistant, entry_id: str) -> dict[str, Any] | None:
+    """The entry coordinator's live data, or None when it is not loaded."""
+    rd = get_runtime_data(hass, entry_id)
+    coordinator = getattr(rd, "coordinator", None) if rd else None
+    return coordinator.data if coordinator is not None else None
+
+
 def compute_status_counts(hass: HomeAssistant) -> dict[str, Any]:
     """Aggregate task status counts across every maintenance object.
 
@@ -96,8 +125,7 @@ def compute_status_counts(hass: HomeAssistant) -> dict[str, Any]:
         # count. Their cost still counts — budget is retained on archive.
         total_tasks += sum(1 for td in entry.data.get(CONF_TASKS, {}).values() if td.get("archived_at") is None)
 
-        rd = get_runtime_data(hass, entry.entry_id)
-        coord_data = rd.coordinator.data if rd and rd.coordinator else None
+        coord_data = get_coordinator_data(hass, entry.entry_id)
         for task in (coord_data or {}).get(CONF_TASKS, {}).values():
             status = str(task.get("_status", MaintenanceStatus.OK))
             if status in counts:

@@ -42,10 +42,9 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_ws_connection,
     setup_integration,
 )
-
-
 
 
 @pytest.fixture
@@ -1963,18 +1962,6 @@ async def test_generate_qr_rejects_global(
 # ===========================================================================
 
 
-def _covws_conn() -> MagicMock:
-    """Create a mock WS connection (carried from test_cov_ws.py)."""
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    conn.subscriptions = {}
-    conn.send_message = MagicMock()
-    return conn
-
-
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
@@ -2013,7 +2000,7 @@ async def test_csv_import_flow_exception(
 ) -> None:
     """ws_import_csv: exception in flow.async_init is caught, appended to errors."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # CSV format requires object_name + task_name columns
     csv_content = "object_name,task_name\nPump A,Filter Clean\n"
@@ -2048,7 +2035,7 @@ async def test_csv_import_flow_aborted(
 ) -> None:
     """ws_import_csv: a flow result that isn't create_entry appends to errors."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # CSV format requires object_name + task_name columns
     csv_content = "object_name,task_name\nPump Fail,Filter\n"
@@ -2082,7 +2069,7 @@ async def test_csv_import_errors_key_in_response(
 ) -> None:
     """ws_import_csv: 'errors' key appears in resp iff errors is non-empty."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # CSV format requires object_name + task_name columns
     csv_content = "object_name,task_name\nOK Pump,Filter\n"
@@ -2117,7 +2104,7 @@ async def test_json_import_invalid_yaml(
 ) -> None:
     """ws_import_json: content that fails both JSON and YAML parse → invalid_format."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # Deliberately broken YAML that yaml.safe_load raises on
     bad_content = "key: :\n  - broken: [unclosed"
@@ -2145,7 +2132,7 @@ async def test_json_import_too_large(
 ) -> None:
     """ws_import_json: content > 10MB → too_large error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     big_content = "x" * (10_485_760 + 1)
 
@@ -2171,7 +2158,7 @@ async def test_json_import_objects_not_list(
 ) -> None:
     """ws_import_json: 'objects' is a dict (not list) → invalid_format."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     content = json.dumps({"objects": {"bad": "shape"}})
 
@@ -2197,7 +2184,7 @@ async def test_json_import_too_many_objects(
 ) -> None:
     """ws_import_json: objects list > 1000 → too_many error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     objects = [{"object": {"name": f"obj{i}"}, "tasks": []} for i in range(1001)]
     content = json.dumps({"objects": objects})
@@ -2224,7 +2211,7 @@ async def test_json_import_sanitizes_invalid_interval_days(
 ) -> None:
     """ws_import_json: task with interval_days=0 has that field dropped (sanitized)."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     content = json.dumps(
         {
@@ -2265,7 +2252,7 @@ async def test_json_import_sanitizes_invalid_schedule_time(
 ) -> None:
     """ws_import_json: task with bad schedule_time (not HH:MM) has it dropped."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     content = json.dumps(
         {
@@ -2306,7 +2293,7 @@ async def test_json_import_sanitizes_warning_days(
 ) -> None:
     """ws_import_json: task with warning_days=999 is clamped to the default."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     content = json.dumps(
         {
@@ -2347,7 +2334,7 @@ async def test_json_import_sanitizes_non_list_checklist(
 ) -> None:
     """ws_import_json: checklist that is not a list is silently dropped."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     content = json.dumps(
         {
@@ -2388,7 +2375,7 @@ async def test_batch_qr_empty_result(
 ) -> None:
     """ws_batch_generate_qr: filtering yields 0 targets → empty result."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_batch_generate_qr,
@@ -2416,7 +2403,7 @@ async def test_batch_qr_skips_on_url_error(
 ) -> None:
     """ws_batch_generate_qr: ValueError from build_qr_url skips that row."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     with patch(
         "custom_components.maintenance_supporter.websocket.io.build_qr_url",
@@ -2573,17 +2560,6 @@ def _c97_nid() -> int:
     return _c97_msg_id
 
 
-def _c97_conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.send_message = MagicMock()
-    conn.subscriptions = {}
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    return conn
-
-
 # ─── websocket/io.py: CSV import edge cases ──────────────────────────
 
 
@@ -2593,7 +2569,7 @@ async def test_csv_import_too_large(
 ) -> None:
     """Lines 132-133: CSV content exceeds 1MB limit."""
     await setup_integration(hass, global_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     # Create content > 1MB
     large_content = "x" * (1_048_577)
     await call_ws_handler(
@@ -2616,7 +2592,7 @@ async def test_csv_import_too_many_objects(
 ) -> None:
     """Lines 137-138: CSV contains more than 1000 objects."""
     await setup_integration(hass, global_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     # Mock import_objects_csv to return > 1000 objects
     mock_objects = [{"object": {"name": f"Obj{i}"}, "tasks": {}} for i in range(1001)]
     with patch(
@@ -2647,7 +2623,7 @@ async def test_qr_generate_task_not_found(
 ) -> None:
     """Lines 211-213: QR generate with nonexistent task_id."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_generate_qr,

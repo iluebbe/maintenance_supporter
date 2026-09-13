@@ -15,37 +15,31 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import CONF_GROUPS, CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from custom_components.maintenance_supporter.const import CONF_GROUPS, CONF_OBJECT, CONF_TASKS
 from custom_components.maintenance_supporter.websocket.tasks import ws_move_task
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
     build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     get_task_store_state,
+    make_global_entry,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
 
 
 def _global(hass: HomeAssistant, **extra: object) -> MockConfigEntry:
-    data = build_global_entry_data()
-    data.update(extra)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(hass, extra_data=extra)
 
 
 def _object(hass: HomeAssistant, name: str, tasks: dict, *, uid: str, archived: bool = False) -> MockConfigEntry:
     obj = build_object_data(name=name)
     if archived:
         obj["archived_at"] = dt_util.now().isoformat()
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title=name, data=build_object_entry_data(object_data=obj, tasks=tasks), source="user", unique_id=f"maintenance_supporter_{uid}")
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name=name, uid=uid, object_data=obj)
 
 
 def _entry(hass: HomeAssistant, entry_id: str) -> MockConfigEntry:

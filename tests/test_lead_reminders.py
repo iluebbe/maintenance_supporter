@@ -21,15 +21,13 @@ from custom_components.maintenance_supporter import (
 )
 from custom_components.maintenance_supporter.const import (
     CONF_REMINDER_LEAD_DAYS,
-    GLOBAL_UNIQUE_ID,
 )
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_global_entry,
+    make_object_entry,
     setup_integration,
 )
 
@@ -41,42 +39,22 @@ def _iso_days_ago(n: int) -> str:
 
 
 def _global(hass: HomeAssistant, leads: list[int] | None) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    if leads is not None:
-        data[CONF_REMINDER_LEAD_DAYS] = leads
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=data,
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test",
+        extra_data={CONF_REMINDER_LEAD_DAYS: leads} if leads is not None else None,
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _object(hass: HomeAssistant, tasks: dict, *, uid: str) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Pool Pump",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Pool Pump"),
-            tasks=tasks,
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name="Pool Pump", uid=uid)
 
 
 def _mock_nm(hass: HomeAssistant) -> MagicMock:
     nm = MagicMock()
     nm.async_send_lead_reminder = AsyncMock()
+    # The per-task gate consults the manager's snooze state (a bare
+    # MagicMock answer would be truthy = "snoozed").
+    nm.is_snoozed.return_value = False
     hass.data.setdefault(DOMAIN, {})["_notification_manager"] = nm
     return nm
 

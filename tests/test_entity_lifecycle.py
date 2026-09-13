@@ -41,6 +41,7 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     get_task_store_state,
+    make_object_entry,
     setup_integration,
 )
 
@@ -269,20 +270,13 @@ def _make_object_entry(
     if nfc_tag_id is not None:
         task["nfc_tag_id"] = nfc_tag_id
 
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name, object_id=obj_id),
-            tasks={tid: task},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{name.lower().replace(' ', '_')}",
+    return make_object_entry(
+        hass,
+        tasks={tid: task},
+        name=name,
+        uid=name.lower().replace(" ", "_"),
+        object_data=build_object_data(name=name, object_id=obj_id),
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _get_coordinator(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
@@ -1219,8 +1213,6 @@ async def test_remove_config_entry_device_with_entities(
 
     result = await async_remove_config_entry_device(hass, object_config_entry, device)
     assert result is False
-
-
 
 
 def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):

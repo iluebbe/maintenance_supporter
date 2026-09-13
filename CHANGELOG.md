@@ -39,6 +39,33 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **DRY review 2026-09-12 (round 3, backlog)** — the consolidations the review had listed as "no bug today", plus the
+  two items deferred from the bug tranche:
+  - **Battery types are folded once**: `LR6` and `AA`, `PP3` and `9V`, "AA lithium" and `AA` now group under one type
+    everywhere (fleet rows, *Needed now/soon*, the fleet's spare parts) — before, the forecast folded aliases while the
+    parts and shopping keys did not, so an alias minted its own part and a type override could land on the wrong row.
+    Existing fleet parts are **migrated once at start-up**: an alias part is merged into (or renamed to) its canonical
+    twin — stock summed, task links, history consumption, buy tasks and the stock sensor re-pointed; nothing is lost.
+  - **Reset / postpone on an inactive task** now say so in their own words ("cannot be reset" / "cannot be postponed",
+    22 languages) instead of borrowing the completion message.
+  - **Timers share one keeper**: the trigger retry, the threshold/state-change hold timers, the runtime poll, the
+    shopping-list resync and the document text backfill run on one `ManagedTimer` (cancel-on-close latch, tracked
+    background tasks). A trigger whose entity stays unavailable now retries up to ten times instead of once.
+  - **WebSocket errors in your language**: every error code the backend can send has a translated headline (39 codes,
+    22 languages) — "Not found", "Too early", "Limit reached" … — with the server detail in parentheses only when it adds
+    something; validation errors on unlabeled fields humanise the field name instead of showing `interval_days`.
+  - **Settings view** routes every save through one `runWs` helper — a refused value shows the server's reason instead
+    of a generic "action failed"; the task dialog's environmental/adaptive sub-saves no longer fail silently.
+  - **History rows** (panel timeline, the card's quick-actions dialog, the task overview's recent activities) come from one
+    renderer — the quick-actions dialog gained the reference chips and phase/auto badges; durations are formatted once
+    (`formatDuration`, profile-aware); the history edit draft is built by one helper for all four surfaces.
+  - **Backend prologues**: 24 WebSocket handlers load their object/task through one helper (uniform codes; the history
+    delete now checks that the task exists), one ISO-date parser, one store/coordinator accessor, one commit-and-refresh
+    tail, one object-name fallback, shared reading/parts sub-schemas, timestamp and vacation caps as constants.
+  - **Types**: the frontend's status / history type / schedule / trigger unions are real TypeScript types now (a typo is a
+    compile error), pinned against the Python enums together with the document categories, the reference-number grammar
+    and a shared search-match fixture; 18 unused UI strings removed from all 22 locale files; e2e scripts share one
+    login/onboarding helper.
 - **DRY review 2026-09-12 (round 3)** — drift found between copies of one rule, fixed at the source with tripwires:
   - **Photo pickers inside the Android Companion app**: the history entry's edit dialog and the documents section still
     used a multi-select input (the app returns an empty list for it, #161) — one shared `<ms-photo-picker>` (camera,

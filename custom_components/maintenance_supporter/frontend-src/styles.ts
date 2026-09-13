@@ -388,6 +388,14 @@ export function formatInterval(
   return `${intervalDays} ${t("unit_" + (unit || "days"), lang)}`;
 }
 
+/** A duration in minutes, e.g. "45 min" — profile-aware number plus the
+ *  localised unit. Five surfaces carried their own `${x} min` / `${x}m`
+ *  (DRY round 2026-09; tripwired in profile-format-single-source.test.ts). */
+export function formatDuration(minutes: number | null | undefined, lang?: string): string {
+  if (minutes === null || minutes === undefined) return "—";
+  return `${formatNumber(minutes, lang, { maximumFractionDigits: 1 })} ${t("minutes_short", lang)}`;
+}
+
 /** Localized weekday name (0=Mon … 6=Sun) via Intl — 2024-01-01 is a Monday.
  *  Single source for the dialog selectors AND formatRecurrence (DRY).
  *
@@ -743,6 +751,14 @@ export const sharedStyles = css`
     contain-intrinsic-size: auto 48px;
   }
   .history-entry:last-child { border-bottom: none; }
+  /* Dense variant (quick-actions dialog, overview "recent activities"):
+     no status-icon column, tighter padding, smaller type. */
+  .history-entry.compact {
+    padding: 6px 0;
+    font-size: 13px;
+    contain-intrinsic-size: auto 40px;
+  }
+  .history-entry.compact .history-readings { font-size: 12px; }
 
   .history-icon {
     flex-shrink: 0;

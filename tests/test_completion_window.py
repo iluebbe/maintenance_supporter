@@ -15,8 +15,6 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    DOMAIN,
-    GLOBAL_UNIQUE_ID,
     HistoryEntryType,
 )
 from custom_components.maintenance_supporter.helpers.sanitize import cap_task_fields
@@ -30,11 +28,10 @@ from custom_components.maintenance_supporter.websocket.tasks_actions import (
 )
 
 from .conftest import (
+    make_global_entry as _global,
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -134,37 +131,8 @@ def test_sanitize_drops_non_int_window() -> None:
 # ─── WS guard + Missed classification ───────────────────────────────────────
 
 
-
-
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
 def _object(hass: HomeAssistant, task: dict, *, uid: str) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Pool Pump",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Pool Pump"),
-            tasks={TASK_ID_1: task},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Pool Pump", uid=uid)
 
 
 async def _history(hass: HomeAssistant, obj: MockConfigEntry) -> list[dict]:

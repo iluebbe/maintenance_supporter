@@ -51,6 +51,7 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_ws_connection,
     setup_integration,
 )
 
@@ -1398,18 +1399,6 @@ async def test_test_notification_service_call_fails(
 # ===========================================================================
 
 
-def _covws_conn() -> MagicMock:
-    """Create a mock WS connection (carried from test_cov_ws.py)."""
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    conn.subscriptions = {}
-    conn.send_message = MagicMock()
-    return conn
-
-
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
@@ -1449,7 +1438,7 @@ async def test_settings_vacation_summary_invalid_date(
     }
     hass.config_entries.async_update_entry(covws_global_entry, options=options)
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_get_settings,
         hass,
@@ -1476,7 +1465,7 @@ async def test_update_global_settings_invalid_title_style_dropped(
     from custom_components.maintenance_supporter.const import CONF_NOTIFICATION_TITLE_STYLE
 
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # Send an unknown style; must be dropped so no error is raised but setting
     # is not persisted
@@ -1513,7 +1502,7 @@ async def test_update_global_settings_admin_user_ids_sanitized(
     from custom_components.maintenance_supporter.const import CONF_ADMIN_PANEL_USER_IDS
 
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     raw_ids = [
         "  abc123  ",  # should be stripped
@@ -1564,17 +1553,6 @@ def _c97_nid() -> int:
     return _c97_msg_id
 
 
-def _c97_conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.send_message = MagicMock()
-    conn.subscriptions = {}
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    return conn
-
-
 # ─── websocket/dashboard.py: triggered status in statistics ───────────
 
 
@@ -1606,7 +1584,7 @@ async def test_statistics_triggered_count(
     hass.states.async_set("sensor.cov97_temp", "50")
     await setup_integration(hass, global_entry, obj_entry)
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_get_statistics,
         hass,
@@ -1631,7 +1609,7 @@ async def test_subscribe_new_entry_callback(
 ) -> None:
     """Lines 270-271: _on_new_entry callback fires on new object entry."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_subscribe,
@@ -1687,7 +1665,7 @@ async def test_subscribe_already_attached_entry(
 ) -> None:
     """Line 254: _attach_entry returns early if already attached."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
 
     # Subscribe — this attaches the entry
     await call_ws_handler(
@@ -1787,7 +1765,7 @@ async def test_budget_status_edge_history(
     new_data[CONF_TASKS] = tasks
     hass.config_entries.async_update_entry(entry, data=new_data)
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_get_budget_status,
         hass,
@@ -1824,7 +1802,7 @@ async def test_notification_invalid_service(
     )
     await setup_integration(hass, global_entry)
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_test_notification,
         hass,
@@ -1878,7 +1856,7 @@ async def test_notification_with_action_buttons(
             return
         await original_async_call(domain, service, service_data, **kw)
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     with patch(
         "homeassistant.core.ServiceRegistry.async_call",
         side_effect=mock_async_call,
@@ -1915,7 +1893,7 @@ async def test_update_settings_invalid_notify_service(
 ) -> None:
     """Line 414: notify_service validation in global update."""
     await setup_integration(hass, global_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_update_global_settings,
         hass,

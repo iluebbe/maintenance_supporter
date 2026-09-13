@@ -136,6 +136,14 @@ class _FakeStore:
     def _ensure_task(self, task_id: str) -> dict[str, Any]:
         return self.tasks.setdefault(task_id, {})
 
+    def update_task_state(self, task_id: str, **fields: Any) -> None:
+        state = self._ensure_task(task_id)
+        for key, value in fields.items():
+            if value is None:
+                state.pop(key, None)
+            else:
+                state[key] = value
+
     def get_task_state(self, task_id: str) -> dict[str, Any]:
         return self.tasks.get(task_id, {})
 

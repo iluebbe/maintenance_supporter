@@ -42,7 +42,7 @@ import { execFileSync, execSync } from "node:child_process";
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
-import { watchdog } from "./ws-client.mjs";
+import { watchdog, haLogin, wsClient } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
@@ -88,23 +88,7 @@ async function toGif(videoPath, name, trimSeconds) {
 }
 
 // ── demo login (same flow as shots-demo.mjs) ────────────────────────────────
-const j = (r) => r.json();
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: "demo", password: "demo-pass-1" }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("token exchange failed");
-  return t.access_token;
-}
+const login = () => haLogin(REST, { user: "demo", pass: "demo-pass-1", cid: CID });
 
 const panelOf = () => document
   .querySelector("home-assistant")?.shadowRoot
@@ -695,18 +679,17 @@ const flowShoppingListSync = async (p, mark) => {
 /** One node-side WS call against the demo instance (settings toggles, the
  *  "Send test" the flow below fires while the browser is on another page). */
 async function wsSend(token, msg) {
-  const ws = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
-  await new Promise((res) => { ws.onopen = res; });
-  const result = await new Promise((res) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
-      else if (m.type === "auth_ok") ws.send(JSON.stringify({ ...msg, id: 1 }));
-      else if (m.type === "result") res(m.result);
-    };
-  });
-  ws.close();
-  return result;
+  const api = await wsClient(REST, token);
+  try {
+    return await api.send(msg);
+  } catch (e) {
+    // The inline client resolved `undefined` on a failed result; keep the
+    // flows non-fatal but make the failure visible in the log.
+    log("  wsSend failed:", e.message);
+    return undefined;
+  } finally {
+    api.close();
+  }
 }
 
 /** #165: the notification event. Settings → "Your own notification rule"
@@ -824,25 +807,15 @@ const flowNotificationEvent = (token) => async (p, mark) => {
 
 // ── demo-cards dashboard: ensure BOTH cards (task card + calendar card) ─────
 async function ensureDemoCards(token) {
-  const ws = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
-  await new Promise((res) => { ws.onopen = res; });
-  let id = 1; const pend = new Map();
-  await new Promise((res) => {
-    ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "result") { const cb = pend.get(m.id); cb && cb(m); }
-    };
-  });
-  const send = (msg) => new Promise((res) => { const i = id++; pend.set(i, res); ws.send(JSON.stringify({ ...msg, id: i })); });
-  await send({ type: "lovelace/config/save", url_path: "demo-cards",
+  const api = await wsClient(REST, token);
+  // The inline client ignored the save result; a failure stays non-fatal.
+  await api.send({ type: "lovelace/config/save", url_path: "demo-cards",
     config: { views: [{ title: "Cards", path: "cards", cards: [
       { type: "custom:maintenance-supporter-card", show_header: true, show_actions: true,
         filter_status: ["overdue", "triggered", "due_soon"], max_items: 8 },
       { type: "custom:maintenance-supporter-calendar-card", window_days: 30 },
-    ] } ] } });
-  ws.close();
+    ] } ] } }).catch((e) => log("  ensureDemoCards failed:", e.message));
+  api.close();
 }
 
 // ── main ────────────────────────────────────────────────────────────────────

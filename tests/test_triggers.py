@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
-    GLOBAL_UNIQUE_ID,
     ScheduleType,
 )
 from .conftest import (
-    build_global_entry_data,
+    make_global_entry as _make_global,
+    make_object_entry as _make_object,
 )
 
 from datetime import timedelta
@@ -253,7 +252,7 @@ class TestThresholdTrigger:
         # Value still exceeds → NOT triggered yet (2min < 5min), timer started
         assert trigger.evaluate(60.0) is False
         assert trigger._threshold_exceeded is True
-        assert trigger._timer_cancel is not None
+        assert trigger._for_timer.pending
         # exceeded_since_dt consumed
         assert trigger._exceeded_since_dt is None
         # Cancel the recovered for-minutes timer so HA's strict test-mode
@@ -1035,11 +1034,11 @@ class TestRuntimeTrigger:
 
         await trigger.async_setup()
         assert trigger._unsub_listener is not None
-        assert trigger._unsub_periodic is not None
+        assert trigger._periodic_timer.pending
 
         await trigger.async_teardown()
         assert trigger._unsub_listener is None
-        assert trigger._unsub_periodic is None
+        assert not trigger._periodic_timer.pending
 
 
 # ─── 7.5 Trigger Factory ────────────────────────────────────────────────
@@ -3108,6 +3107,10 @@ class TestStateChangeLastStateFallback:
         trigger._unsub_listener = None
         trigger.attribute = None
         trigger.config = {"type": "state_change"}
+        from custom_components.maintenance_supporter.helpers.managed_timer import ManagedTimer
+
+        trigger._hold_timer = ManagedTimer(hass, "test:hold")
+        trigger._retry_timer = ManagedTimer(hass, "test:retry")
 
         # Simulate: off → unavailable (should not count, return early)
         event_unavail = MagicMock()
@@ -3126,41 +3129,6 @@ class TestStateChangeLastStateFallback:
         }
         trigger._handle_state_transition(event_on)
         assert trigger._change_count == 1
-
-
-def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(**kw),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
-def _make_object(
-    hass: HomeAssistant,
-    tasks: dict | None = None,
-    name: str = "Test Object",
-    uid: str = "test_obj_cov",
-    object_data: dict | None = None,
-) -> MockConfigEntry:
-    od = object_data or build_object_data(name=name)
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
 
 
 # ─── entity/triggers/counter.py lines 62-64 — baseline init on setup ─────────

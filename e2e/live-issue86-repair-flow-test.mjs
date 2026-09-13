@@ -9,7 +9,7 @@
  *      already-registered crash), summary sensors back, objects untouched, and
  *      the repair issue cleared.
  */
-import { wsClient, watchdog } from "./ws-client.mjs";
+import { wsClient, watchdog, haLogin } from "./ws-client.mjs";
 const REST = "http://localhost:8131";
 const CID = REST + "/";
 const USER = "demo", PASS = "demo-pass-1";
@@ -18,25 +18,7 @@ watchdog(90e3, "issue86 repair-flow test");
 const j = (r) => r.json();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function exchange(code) {
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("token exchange failed " + JSON.stringify(t));
-  return t.access_token;
-}
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  return exchange(s.result);
-}
+const login = () => haLogin(REST, { user: USER, pass: PASS, cid: CID });
 
 const token = await login();
 const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };

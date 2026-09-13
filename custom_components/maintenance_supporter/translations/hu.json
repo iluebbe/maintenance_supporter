@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "„{task_name}” archivált, letiltott vagy az objektuma szünetel — nem fejezhető be"
     },
+    "task_inactive_postpone": {
+      "message": "„{task_name}” archivált, letiltott vagy az objektuma szünetel — nem halasztható el"
+    },
+    "task_inactive_reset": {
+      "message": "„{task_name}” archivált, letiltott vagy az objektuma szünetel — nem állítható vissza"
+    },
     "task_inactive_skip": {
       "message": "„{task_name}” archivált, letiltott vagy az objektuma szünetel — nem hagyható ki"
     },

@@ -14,11 +14,8 @@
 from __future__ import annotations
 
 import json
-import shutil
-from collections.abc import Iterator
 from datetime import timedelta
 from http import HTTPStatus
-from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock
 
@@ -40,7 +37,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
     CONF_VACATION_EXEMPT_TASK_IDS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_NAME_LENGTH,
 )
 from custom_components.maintenance_supporter.helpers.documents import DocumentStore, _safe_size
@@ -53,12 +49,12 @@ from custom_components.maintenance_supporter.websocket.tasks import ws_create_ta
 from .conftest import (
     TASK_ID_1,
     TASK_ID_2,
-    build_global_entry_data,
     build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     get_task_store_state,
+    make_global_entry,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
@@ -66,45 +62,18 @@ from .conftest import (
 _VALID_HASH = "a" * 64
 
 
-@pytest.fixture(autouse=True)
-def _isolate_docs_dir(hass: HomeAssistant, _isolate_document_blobs: None) -> Iterator[None]:
-    """Per-test blob dir (same pattern as test_ws_documents.py)."""
-    docs = Path(hass.config.path("maintenance_supporter", "docs"))
-    shutil.rmtree(docs, ignore_errors=True)
-    yield
-    shutil.rmtree(docs, ignore_errors=True)
+pytestmark = pytest.mark.usefixtures("isolated_docs_dir")
 
 
 def _global(hass: HomeAssistant, *, options: dict[str, Any] | None = None) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        options=options or {},
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(hass, options=options)
 
 
 def _object(hass: HomeAssistant, name: str, tasks: dict[str, Any], *, uid: str) -> MockConfigEntry:
     obj = build_object_data(name=name, object_id=f"obj_{uid}")
     for task in tasks.values():
         task["object_id"] = obj["id"]
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=obj, tasks=tasks),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name=name, uid=uid, object_data=obj)
 
 
 def _entry(hass: HomeAssistant, entry_id: str) -> MockConfigEntry:

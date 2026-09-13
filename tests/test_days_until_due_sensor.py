@@ -21,9 +21,8 @@ from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_object_entry,
     setup_integration,
 )
 
@@ -44,20 +43,7 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 def _make_entry(hass: HomeAssistant, task_data: dict[str, Any], unique_id: str) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Test Object",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Test Object"),
-            tasks={TASK_ID_1: task_data},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task_data}, name="Test Object", uid=unique_id)
 
 
 def _countdown_registry_entry(hass: HomeAssistant, entry: MockConfigEntry) -> er.RegistryEntry:

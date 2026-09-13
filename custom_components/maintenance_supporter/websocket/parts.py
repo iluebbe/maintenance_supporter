@@ -9,7 +9,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, MAX_ID_LENGTH
-from ..helpers.aggregate import object_name
+from ..helpers.aggregate import get_store, object_name
 from ..helpers.parts import (
     MAX_PART_STOCK,
     MAX_PARTS_PER_OBJECT,
@@ -308,8 +308,7 @@ async def ws_parts_overview(
         parts = _parts_of(e)
         if not parts:
             continue
-        rd = _get_runtime_data(hass, e.entry_id)
-        store = getattr(rd, "store", None) if rd else None
+        store = get_store(hass, e.entry_id)
         for part_id, part in parts.items():
             stock = store.get_part_stock(part_id) if store is not None else None
             rows.append(

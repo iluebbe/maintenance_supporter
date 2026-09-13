@@ -34,6 +34,8 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     get_task_store_state,
+    make_global_entry as _make_global,
+    make_object_entry as _make_object,
     setup_integration,
 )
 
@@ -759,41 +761,6 @@ async def test_reset_maintenance(
     # Reset sets last_performed to today (dynamic state in Store)
     state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
     assert state.get("last_performed") == dt_util.now().date().isoformat()
-
-
-def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(**kw),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
-def _make_object(
-    hass: HomeAssistant,
-    tasks: dict | None = None,
-    name: str = "Test Object",
-    uid: str = "test_obj_cov",
-    object_data: dict | None = None,
-) -> MockConfigEntry:
-    od = object_data or build_object_data(name=name)
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
 
 
 # ─── __init__.py line 873, 887-889, 893-895 — budget alert paths ─────────────

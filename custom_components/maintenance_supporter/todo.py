@@ -33,6 +33,7 @@ from .const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    NOTIFIABLE_STATUSES,
     MaintenanceStatus,
 )
 
@@ -43,14 +44,9 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
 
-# Statuses that make a task "actionable" in the to-do list (needs_action).
-_ACTION_STATUSES = frozenset(
-    {
-        MaintenanceStatus.DUE_SOON,
-        MaintenanceStatus.OVERDUE,
-        MaintenanceStatus.TRIGGERED,
-    }
-)
+# Statuses that make a task "actionable" in the to-do list (needs_action) —
+# the same set a reminder can be about.
+_ACTION_STATUSES = NOTIFIABLE_STATUSES
 
 
 async def async_setup_entry(

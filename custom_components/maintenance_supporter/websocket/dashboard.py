@@ -75,19 +75,8 @@ from ..const import (
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
-    DEFAULT_ARCHIVE_ONEOFF_DAYS,
-    DEFAULT_BATTERY_LOW_PERCENT,
     DEFAULT_BUDGET_CURRENCY,
-    DEFAULT_CONSUMABLE_THRESHOLD,
-    DEFAULT_CURRENCY_DECIMALS,
-    DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
-    DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
-    DEFAULT_PANEL_ENABLED,
-    DEFAULT_ROW_ACTION_STYLE,
-    DEFAULT_SNOOZE_DURATION_HOURS,
-    DEFAULT_WARNING_DAYS,
-    DEFAULT_WARRANTY_REMINDER_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     KNOWN_OBJECT_TABLE_COLUMNS,
@@ -104,6 +93,7 @@ from ..helpers.settings_registry import (
     FLOAT_RANGES,
     INT_RANGES,
     STR_MAX_LENGTHS,
+    setting_default,
 )
 from . import (
     ID_FIELD,
@@ -123,13 +113,19 @@ _LOGGER = logging.getLogger(__name__)
 _ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
 
 
+def _opt(options: Mapping[str, Any], key: str) -> Any:
+    """A global option, or its registry default when unset — the one fallback
+    every echoed setting goes through (defaults live in settings_registry)."""
+    return options.get(key, setting_default(key))
+
+
 def _currency_block(options: Mapping[str, Any]) -> dict[str, Any]:
     """How amounts are displayed: currency code, symbol and decimal places."""
-    code = str(options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
+    code = str(_opt(options, CONF_BUDGET_CURRENCY))
     return {
         "currency": code,
         "currency_symbol": BUDGET_CURRENCIES.get(code, BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY]),
-        "currency_decimals": int(options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
+        "currency_decimals": int(_opt(options, CONF_CURRENCY_DECIMALS)),
     }
 
 
@@ -172,115 +168,114 @@ def _build_full_settings(
     ``general.notify_targets`` so the panel picker uses the exact same set as
     the options flow instead of recomputing it client-side.
     """
+    # Every fallback below is the registry default (settings_registry) via
+    # _opt — tests/test_settings_defaults.py pins the echo to that table.
     return {
         "features": {
-            "adaptive": options.get(CONF_ADVANCED_ADAPTIVE, False),
-            "predictions": options.get(CONF_ADVANCED_PREDICTIONS, False),
-            "seasonal": options.get(CONF_ADVANCED_SEASONAL, False),
-            "environmental": options.get(CONF_ADVANCED_ENVIRONMENTAL, False),
-            "budget": options.get(CONF_ADVANCED_BUDGET, False),
-            "groups": options.get(CONF_ADVANCED_GROUPS, False),
-            "checklists": options.get(CONF_ADVANCED_CHECKLISTS, False),
-            "schedule_time": options.get(CONF_ADVANCED_SCHEDULE_TIME, False),
-            "completion_actions": options.get(CONF_ADVANCED_COMPLETION_ACTIONS, False),
+            "adaptive": _opt(options, CONF_ADVANCED_ADAPTIVE),
+            "predictions": _opt(options, CONF_ADVANCED_PREDICTIONS),
+            "seasonal": _opt(options, CONF_ADVANCED_SEASONAL),
+            "environmental": _opt(options, CONF_ADVANCED_ENVIRONMENTAL),
+            "budget": _opt(options, CONF_ADVANCED_BUDGET),
+            "groups": _opt(options, CONF_ADVANCED_GROUPS),
+            "checklists": _opt(options, CONF_ADVANCED_CHECKLISTS),
+            "schedule_time": _opt(options, CONF_ADVANCED_SCHEDULE_TIME),
+            "completion_actions": _opt(options, CONF_ADVANCED_COMPLETION_ACTIONS),
         },
         # Top-level (not a feature toggle, not a bool): list of HA user IDs
         # whose UI gets the full admin panel even though they're not HA admins.
-        "admin_panel_user_ids": options.get(CONF_ADMIN_PANEL_USER_IDS, []),
+        "admin_panel_user_ids": _opt(options, CONF_ADMIN_PANEL_USER_IDS),
         # v2.8.4: master switch gating whether the allowlist actually grants
         # write. Default False → operator allowlist is read-only.
-        "operator_write_enabled": options.get(CONF_OPERATOR_WRITE_ENABLED, False),
+        "operator_write_enabled": _opt(options, CONF_OPERATOR_WRITE_ENABLED),
         # (#67): ordered objects-table columns for the panel All-Objects view.
-        "objects_table_columns": options.get(CONF_OBJECTS_TABLE_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS),
+        "objects_table_columns": _opt(options, CONF_OBJECTS_TABLE_COLUMNS),
         # #169 follow-up: per-member avatar overrides (initials / palette colour).
-        "member_display": options.get(CONF_MEMBER_DISPLAY, {}),
+        "member_display": _opt(options, CONF_MEMBER_DISPLAY),
         # v2.21: template-gallery curation (ids hidden from the pickers).
-        "disabled_template_ids": options.get(CONF_DISABLED_TEMPLATE_IDS, []),
+        "disabled_template_ids": _opt(options, CONF_DISABLED_TEMPLATE_IDS),
         # v2.10.0: archive automation thresholds (panel Settings → Archive).
         # oneoff_days: auto-archive a completed one-off after N days (0 = off).
         # delete_archived_oneoff_days: auto-delete an auto-archived one-off N
         # days after archiving (0 = never; manual archives are never deleted).
         "archive": {
-            "oneoff_days": options.get(CONF_ARCHIVE_ONEOFF_DAYS, DEFAULT_ARCHIVE_ONEOFF_DAYS),
-            "delete_archived_oneoff_days": options.get(
-                CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
-                DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
-            ),
+            "oneoff_days": _opt(options, CONF_ARCHIVE_ONEOFF_DAYS),
+            "delete_archived_oneoff_days": _opt(options, CONF_DELETE_ARCHIVED_ONEOFF_DAYS),
         },
         "general": {
-            "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
+            "default_warning_days": _opt(options, CONF_DEFAULT_WARNING_DAYS),
             # #146: household "low" floors for discovery + the battery fleet.
-            "default_consumable_threshold": options.get(CONF_DEFAULT_CONSUMABLE_THRESHOLD, DEFAULT_CONSUMABLE_THRESHOLD),
-            "battery_low_percent": options.get(CONF_BATTERY_LOW_PERCENT, DEFAULT_BATTERY_LOW_PERCENT),
+            "default_consumable_threshold": _opt(options, CONF_DEFAULT_CONSUMABLE_THRESHOLD),
+            "battery_low_percent": _opt(options, CONF_BATTERY_LOW_PERCENT),
             # D#162 follow-up: the household's per-type lifetime overrides and,
             # computed by the caller, the effective lifetime catalog Settings
             # renders (type, months, source: override / learned / table / default).
-            "battery_lifetime_months": dict(options.get(CONF_BATTERY_LIFETIME_MONTHS) or {}),
+            "battery_lifetime_months": dict(_opt(options, CONF_BATTERY_LIFETIME_MONTHS) or {}),
             "battery_lifetimes": list(battery_lifetimes or []),
             # Computed, never stored: what Battery Notes currently reports
             # (default + up to 5 named override devices) — the Settings hint.
             "battery_notes": battery_notes,
-            "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
-            "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
+            "notifications_enabled": _opt(options, CONF_NOTIFICATIONS_ENABLED),
+            "notify_service": _opt(options, CONF_NOTIFY_SERVICE),
             # v2.67: buy-task shopping sync target ("" = off).
-            "shopping_list_entity": options.get(CONF_SHOPPING_LIST_ENTITY, ""),
+            "shopping_list_entity": _opt(options, CONF_SHOPPING_LIST_ENTITY),
             # Shared pickable-target list so the panel picker can't drift from
             # the options-flow dropdown (both go through build_notify_targets).
             "notify_targets": notify_targets or [],
-            "panel_enabled": options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED),
-            "panel_title": options.get(CONF_PANEL_TITLE, ""),
+            "panel_enabled": _opt(options, CONF_PANEL_ENABLED),
+            "panel_title": _opt(options, CONF_PANEL_TITLE),
             # Opt-in copy of the shipped Assist sentences into
             # <config>/custom_sentences/ (the only place the classic
             # conversation agent reads them from).
-            "install_assist_sentences": options.get(CONF_INSTALL_ASSIST_SENTENCES, False),
+            "install_assist_sentences": _opt(options, CONF_INSTALL_ASSIST_SENTENCES),
             # #145: task-row action style + the one-time "new look" notice
             # (set by the 5→6 migration for existing installs, cleared by the
             # panel banner).
-            "row_action_style": options.get(CONF_ROW_ACTION_STYLE, DEFAULT_ROW_ACTION_STYLE),
-            "row_action_notice_pending": options.get(CONF_ROW_ACTION_NOTICE, False),
-            "ref_numbers_in_lists": bool(options.get(CONF_REF_NUMBERS_IN_LISTS, False)),
+            "row_action_style": _opt(options, CONF_ROW_ACTION_STYLE),
+            "row_action_notice_pending": _opt(options, CONF_ROW_ACTION_NOTICE),
+            "ref_numbers_in_lists": bool(_opt(options, CONF_REF_NUMBERS_IN_LISTS)),
         },
         "notifications": {
-            "due_soon_enabled": options.get(CONF_NOTIFY_DUE_SOON_ENABLED, True),
-            "due_soon_interval_hours": options.get(CONF_NOTIFY_DUE_SOON_INTERVAL, 24),
-            "overdue_enabled": options.get(CONF_NOTIFY_OVERDUE_ENABLED, True),
-            "overdue_interval_hours": options.get(CONF_NOTIFY_OVERDUE_INTERVAL, 12),
-            "triggered_enabled": options.get(CONF_NOTIFY_TRIGGERED_ENABLED, True),
-            "triggered_interval_hours": options.get(CONF_NOTIFY_TRIGGERED_INTERVAL, 0),
-            "quiet_hours_enabled": options.get(CONF_QUIET_HOURS_ENABLED, True),
-            "quiet_hours_start": options.get(CONF_QUIET_HOURS_START, "22:00"),
-            "quiet_hours_end": options.get(CONF_QUIET_HOURS_END, "08:00"),
-            "max_per_day": options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY),
-            "bundling_enabled": options.get(CONF_NOTIFICATION_BUNDLING_ENABLED, False),
-            "bundle_threshold": options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
+            "due_soon_enabled": _opt(options, CONF_NOTIFY_DUE_SOON_ENABLED),
+            "due_soon_interval_hours": _opt(options, CONF_NOTIFY_DUE_SOON_INTERVAL),
+            "overdue_enabled": _opt(options, CONF_NOTIFY_OVERDUE_ENABLED),
+            "overdue_interval_hours": _opt(options, CONF_NOTIFY_OVERDUE_INTERVAL),
+            "triggered_enabled": _opt(options, CONF_NOTIFY_TRIGGERED_ENABLED),
+            "triggered_interval_hours": _opt(options, CONF_NOTIFY_TRIGGERED_INTERVAL),
+            "quiet_hours_enabled": _opt(options, CONF_QUIET_HOURS_ENABLED),
+            "quiet_hours_start": _opt(options, CONF_QUIET_HOURS_START),
+            "quiet_hours_end": _opt(options, CONF_QUIET_HOURS_END),
+            "max_per_day": _opt(options, CONF_MAX_NOTIFICATIONS_PER_DAY),
+            "bundling_enabled": _opt(options, CONF_NOTIFICATION_BUNDLING_ENABLED),
+            "bundle_threshold": _opt(options, CONF_NOTIFICATION_BUNDLE_THRESHOLD),
             # v1.4.0 (#44): default keeps backwards-compatible per-status titles
-            "title_style": options.get(CONF_NOTIFICATION_TITLE_STYLE, "default"),
+            "title_style": _opt(options, CONF_NOTIFICATION_TITLE_STYLE),
             # #173 follow-up: completion notifications (off | automatic | all).
-            "completed": options.get(CONF_NOTIFY_COMPLETED, "off"),
+            "completed": _opt(options, CONF_NOTIFY_COMPLETED),
             # Multiple lead-time reminders (days before due); [] = off.
-            "reminder_lead_days": options.get(CONF_REMINDER_LEAD_DAYS, []),
+            "reminder_lead_days": _opt(options, CONF_REMINDER_LEAD_DAYS),
             # v2.26: notification routing — saved-view id scoping which
             # tasks may notify ("" = all tasks).
-            "scope_view_id": options.get(CONF_NOTIFY_SCOPE_VIEW_ID, ""),
+            "scope_view_id": _opt(options, CONF_NOTIFY_SCOPE_VIEW_ID),
             # #165: your own notification rule — event-only delivery and the
             # extra-data template merged into every notify payload.
-            "event_only": options.get(CONF_NOTIFY_EVENT_ONLY, False),
-            "extra_data": options.get(CONF_NOTIFY_EXTRA_DATA, ""),
+            "event_only": _opt(options, CONF_NOTIFY_EVENT_ONLY),
+            "extra_data": _opt(options, CONF_NOTIFY_EXTRA_DATA),
         },
         "actions": {
-            "complete_enabled": options.get(CONF_ACTION_COMPLETE_ENABLED, False),
-            "skip_enabled": options.get(CONF_ACTION_SKIP_ENABLED, False),
-            "snooze_enabled": options.get(CONF_ACTION_SNOOZE_ENABLED, False),
-            "snooze_duration_hours": options.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS),
-            "weekly_digest_enabled": options.get(CONF_WEEKLY_DIGEST_ENABLED, False),
-            "warranty_reminder_enabled": options.get(CONF_WARRANTY_REMINDER_ENABLED, False),
-            "warranty_reminder_days": options.get(CONF_WARRANTY_REMINDER_DAYS, DEFAULT_WARRANTY_REMINDER_DAYS),
+            "complete_enabled": _opt(options, CONF_ACTION_COMPLETE_ENABLED),
+            "skip_enabled": _opt(options, CONF_ACTION_SKIP_ENABLED),
+            "snooze_enabled": _opt(options, CONF_ACTION_SNOOZE_ENABLED),
+            "snooze_duration_hours": _opt(options, CONF_SNOOZE_DURATION_HOURS),
+            "weekly_digest_enabled": _opt(options, CONF_WEEKLY_DIGEST_ENABLED),
+            "warranty_reminder_enabled": _opt(options, CONF_WARRANTY_REMINDER_ENABLED),
+            "warranty_reminder_days": _opt(options, CONF_WARRANTY_REMINDER_DAYS),
         },
         "budget": {
-            "monthly": options.get(CONF_BUDGET_MONTHLY, 0.0),
-            "yearly": options.get(CONF_BUDGET_YEARLY, 0.0),
-            "alerts_enabled": options.get(CONF_BUDGET_ALERTS_ENABLED, False),
-            "alert_threshold_pct": options.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
+            "monthly": _opt(options, CONF_BUDGET_MONTHLY),
+            "yearly": _opt(options, CONF_BUDGET_YEARLY),
+            "alerts_enabled": _opt(options, CONF_BUDGET_ALERTS_ENABLED),
+            "alert_threshold_pct": _opt(options, CONF_BUDGET_ALERT_THRESHOLD),
             **_currency_block(options),
         },
         # Vacation mode (v1.2.0). Mirror the active flag so the panel can

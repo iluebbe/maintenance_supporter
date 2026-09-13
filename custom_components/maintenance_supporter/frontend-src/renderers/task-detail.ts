@@ -13,7 +13,7 @@ import { html, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPersonAvatar, type PersonDisplay } from "../helpers/person";
-import { t, formatDate, formatDateTime, formatRecurrence, formatNumber, formatCost } from "../styles";
+import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
@@ -23,7 +23,7 @@ import { renderRecommendationBars } from "./recommendation";
 import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./seasonal";
 import { renderCostDurationCard } from "./charts";
 import { renderDaysProgress } from "./progress";
-import { renderHistoryFilters, renderHistoryList, type HistoryContext } from "./history";
+import { renderHistoryEntry, renderHistoryFilters, renderHistoryList, type HistoryContext } from "./history";
 import { clampPhaseCursor, effectivePhase, hasPhases } from "../helpers/phases";
 import "../components/task-documents";
 
@@ -373,7 +373,7 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("avg_duration", L)}</div>
-        <div class="kpi-value">${task.average_duration ? formatNumber(task.average_duration, L, 0) : "—"} min</div>
+        <div class="kpi-value">${task.average_duration ? formatDuration(Math.round(task.average_duration), L) : "—"}</div>
       </div>
     </div>
   `;
@@ -422,28 +422,13 @@ function renderRecentActivities(task: MaintenanceTask, ctx: TaskDetailContext) {
     return nothing;
   }
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "completed": return "✓";
-      case "triggered": return "⊗";
-      case "skipped": return "↷";
-      case "reset": return "↺";
-      default: return "·";
-    }
-  };
-
+  // The shared history row (compact, no pencil — editing lives on the
+  // History tab); the panel's history context carries the deltas, phase
+  // names and the task ref for the "#8.3-2" chip.
   return html`
     <div class="recent-activities">
       <h3>${t("recent_activities", L)}</h3>
-      ${recent.map(entry => html`
-        <div class="activity-item">
-          <span class="activity-icon">${getIcon(entry.type)}</span>
-          <span class="activity-date">${formatDateTime(entry.timestamp, L)}</span>
-          <span class="activity-note">${entry.notes || "—"}</span>
-          ${entry.cost != null ? html`<span class="activity-badge">${formatCost(entry.cost, ctx.currencySymbol, L)}</span>` : nothing}
-          ${entry.duration ? html`<span class="activity-badge">${entry.duration}min</span>` : nothing}
-        </div>
-      `)}
+      ${recent.map((entry) => renderHistoryEntry(entry, ctx.history, { compact: true, showEdit: false }))}
       <div class="activity-show-all">
         <ha-button appearance="plain" @click=${() => ctx.setActiveTab("history")}>${t("show_all", L)} →</ha-button>
       </div>

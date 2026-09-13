@@ -27,7 +27,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_QUIET_HOURS_ENABLED,
     DOCUMENT_TEXT_INDEX_KEY,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     NOTIFICATION_MANAGER_KEY,
     MaintenanceStatus,
     ScheduleType,
@@ -36,22 +35,20 @@ from custom_components.maintenance_supporter.helpers.notification_manager import
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    make_global_entry,
     setup_integration,
 )
 from .test_audit_2026_08_29 import _completed, _object, _overdue_task
 
 
 def _global(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    data[CONF_QUIET_HOURS_ENABLED] = False
-    data.update(options)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test",
+        extra_data={CONF_QUIET_HOURS_ENABLED: False, **options},
+    )
 
 
 def _notify(hass: HomeAssistant, name: str = "test") -> AsyncMock:

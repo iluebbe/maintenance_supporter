@@ -15,6 +15,7 @@ import { downloadTextFile } from "../helpers/download";
 import { invalidateSettingsCache } from "../helpers/settings-cache";
 import { SETTING_INT_RANGES, settingIntRange } from "../helpers/setting-ranges";
 import { isoDateLocal } from "../helpers/calendar-bucket";
+import { runWs } from "../helpers/ws-run";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -448,12 +449,12 @@ export class MaintenanceSettingsView extends LitElement {
   /** Resolves true when the server accepted the value, false on a reject
    *  (the caller decides how to snap its control back). */
   private async _updateSetting(key: string, value: unknown): Promise<boolean> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/global/update",
-        settings: { [key]: value },
-      });
-      this._settings = result as SettingsResponse;
+    const result = await this._ws<SettingsResponse>({
+      type: "maintenance_supporter/global/update",
+      settings: { [key]: value },
+    });
+    if (result) {
+      this._settings = result;
       syncCurrencyDecimals(this._settings.budget);
       // The card / Lovelace dialogs read their copy through a page-wide
       // cache — drop it so they follow the change without a reload.
@@ -461,8 +462,7 @@ export class MaintenanceSettingsView extends LitElement {
       this._showToast(t("settings_saved", this._lang));
       this.dispatchEvent(new CustomEvent("settings-changed"));
       return true;
-    } catch {
-      this._showToast(t("action_error", this._lang));
+    } else {
       // The control already shows the rejected value (the browser changed it
       // before we asked the server). `_settings` is unchanged, so a plain
       // re-render would not touch the DOM — the selects bind their value
@@ -498,6 +498,18 @@ export class MaintenanceSettingsView extends LitElement {
   private _showToast(msg: string): void {
     this._toast = msg;
     setTimeout(() => { this._toast = ""; }, 3000);
+  }
+
+  /** One WS round-trip; a rejection becomes a toast carrying the server's
+   *  localized reason ("Limit reached", "Invalid date", …) and resolves
+   *  undefined. The silent best-effort loaders above deliberately do NOT
+   *  use this — they want a fallback value, not a toast. */
+  private _ws<T = unknown>(
+    payload: Record<string, unknown>,
+    fallbackKey?: string,
+    busy?: (busy: boolean) => void,
+  ): Promise<T | undefined> {
+    return runWs<T>(this, payload, { fallbackKey, busy, onError: (msg) => this._showToast(msg) });
   }
 
   /** Bounded integer settings: an out-of-range entry used to be dropped
@@ -1375,39 +1387,35 @@ export class MaintenanceSettingsView extends LitElement {
   // --- Vacation actions ---
 
   private async _loadAllTasksForVacation(): Promise<void> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/objects",
-      }) as { objects: Array<{
-        entry_id: string;
-        object: { name: string };
-        tasks: Array<{ id: string; name: string }>;
-      }> };
-      const flat: typeof this._vacAllTasks = [];
-      for (const obj of result.objects || []) {
-        for (const t of obj.tasks || []) {
-          flat.push({
-            entry_id: obj.entry_id,
-            object_name: obj.object.name || "",
-            task_id: t.id,
-            task_name: t.name || "",
-          });
-        }
+    const result = await this._ws<{ objects: Array<{
+      entry_id: string;
+      object: { name: string };
+      tasks: Array<{ id: string; name: string }>;
+    }> }>({ type: "maintenance_supporter/objects" });
+    if (!result) return;
+    const flat: typeof this._vacAllTasks = [];
+    for (const obj of result.objects || []) {
+      for (const t of obj.tasks || []) {
+        flat.push({
+          entry_id: obj.entry_id,
+          object_name: obj.object.name || "",
+          task_id: t.id,
+          task_name: t.name || "",
+        });
       }
-      this._vacAllTasks = flat;
-    } catch {
-      this._showToast(t("action_error", this._lang));
     }
+    this._vacAllTasks = flat;
   }
 
   private async _saveVacation(patch: Record<string, unknown>): Promise<void> {
     if (this._vacSaving) return;
     this._vacSaving = true;
     try {
-      const result = await this.hass.connection.sendMessagePromise({
+      const result = await this._ws<SettingsResponse["vacation"]>({
         type: "maintenance_supporter/vacation/update",
         ...patch,
-      }) as SettingsResponse["vacation"];
+      });
+      if (!result) return;
       // Server is the source of truth — re-hydrate from response.
       this._vacEnabled = result.enabled;
       this._vacStart = result.start || "";
@@ -1418,9 +1426,6 @@ export class MaintenanceSettingsView extends LitElement {
       this._vacWindowEnd = result.window_end;
       // Notify the panel (so the Vacation tab can appear/disappear)
       this.dispatchEvent(new CustomEvent("settings-changed"));
-    } catch (e: unknown) {
-      const msg = (e as { message?: string })?.message || t("action_error", this._lang);
-      this._showToast(msg);
     } finally {
       this._vacSaving = false;
     }
@@ -1448,32 +1453,26 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private async _loadVacationPreview(): Promise<void> {
-    this._vacPreviewLoading = true;
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/vacation/preview",
-      }) as { rows: VacationPreviewRow[] };
-      this._vacPreview = result.rows || [];
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    } finally {
-      this._vacPreviewLoading = false;
-    }
+    const result = await this._ws<{ rows: VacationPreviewRow[] }>(
+      { type: "maintenance_supporter/vacation/preview" },
+      undefined,
+      (busy) => { this._vacPreviewLoading = busy; },
+    );
+    if (result) this._vacPreview = result.rows || [];
   }
 
   private async _previewActionComplete(row: VacationPreviewRow): Promise<void> {
     if (this._previewBusy) return;
     this._previewBusy = true;
     try {
-      await this.hass.connection.sendMessagePromise({
+      const ok = await this._ws({
         type: "maintenance_supporter/task/complete",
         entry_id: row.entry_id,
         task_id: row.task_id,
       });
+      if (ok === undefined) return;
       this._showToast(t("vacation_marked_complete", this._lang));
       await this._loadVacationPreview();
-    } catch {
-      this._showToast(t("action_error", this._lang));
     } finally {
       this._previewBusy = false;
     }
@@ -1483,35 +1482,29 @@ export class MaintenanceSettingsView extends LitElement {
     if (this._previewBusy) return;
     this._previewBusy = true;
     try {
-      await this.hass.connection.sendMessagePromise({
+      const ok = await this._ws({
         type: "maintenance_supporter/task/skip",
         entry_id: row.entry_id,
         task_id: row.task_id,
         reason: "Skipped before vacation",
       });
+      if (ok === undefined) return;
       this._showToast(t("vacation_marked_skip", this._lang));
       await this._loadVacationPreview();
-    } catch {
-      this._showToast(t("action_error", this._lang));
     } finally {
       this._previewBusy = false;
     }
   }
 
   private async _endVacationNow(): Promise<void> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/vacation/end_now",
-      }) as SettingsResponse["vacation"];
-      this._vacEnabled = result.enabled;
-      this._vacEnd = result.end || "";
-      this._vacIsActive = result.is_active;
-      this._vacWindowEnd = result.window_end;
-      this.dispatchEvent(new CustomEvent("settings-changed"));
-      this._showToast(t("vacation_ended", this._lang));
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const result = await this._ws<SettingsResponse["vacation"]>({ type: "maintenance_supporter/vacation/end_now" });
+    if (!result) return;
+    this._vacEnabled = result.enabled;
+    this._vacEnd = result.end || "";
+    this._vacIsActive = result.is_active;
+    this._vacWindowEnd = result.window_end;
+    this.dispatchEvent(new CustomEvent("settings-changed"));
+    this._showToast(t("vacation_ended", this._lang));
   }
 
   // --- Section: Print QR codes (v1.1.0) ---
@@ -1613,19 +1606,24 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private async _loadQrObjects(): Promise<void> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/objects",
-      }) as { objects: Array<{ entry_id: string; object: { name: string }; tasks: unknown[] }> };
-      this._qrObjects = (result.objects || []).map((o) => ({
-        entry_id: o.entry_id,
-        name: o.object.name,
-        task_count: (o.tasks || []).length,
-      })).sort((a, b) => a.name.localeCompare(b.name));
-      this._qrObjectsLoaded = true;
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const rows = await this._loadObjectRows();
+    if (!rows) return;
+    this._qrObjects = rows;
+    this._qrObjectsLoaded = true;
+  }
+
+  /** {entry_id, name, task_count} of every object, name-sorted — the QR
+   *  batch and the export section both pick objects from this list. */
+  private async _loadObjectRows(): Promise<Array<{ entry_id: string; name: string; task_count: number }> | undefined> {
+    const result = await this._ws<{ objects: Array<{ entry_id: string; object: { name: string }; tasks: unknown[] }> }>({
+      type: "maintenance_supporter/objects",
+    });
+    if (!result) return undefined;
+    return (result.objects || []).map((o) => ({
+      entry_id: o.entry_id,
+      name: o.object.name,
+      task_count: (o.tasks || []).length,
+    })).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   private _toggleQrObject(entryId: string, on: boolean): void {
@@ -1658,20 +1656,18 @@ export class MaintenanceSettingsView extends LitElement {
       if (this._qrSelectedEntries.size > 0) {
         msg.entry_ids = [...this._qrSelectedEntries];
       }
-      const result = await this.hass.connection.sendMessagePromise<{
+      const result = await this._ws<{
         qrs: Array<{
           entry_id: string; task_id: string;
           object_name: string; task_name: string;
           action: string; svg: string;
         }>;
       }>(msg);
+      if (!result) return;
       this._qrBatchResults = result.qrs || [];
       if (this._qrBatchResults.length === 0) {
         this._showToast(t("qr_print_empty", this._lang));
       }
-    } catch (e: unknown) {
-      const msg = (e as { message?: string })?.message || t("action_error", this._lang);
-      this._showToast(msg);
     } finally {
       this._qrBatchLoading = false;
     }
@@ -1831,19 +1827,10 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private async _loadExportObjects(): Promise<void> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/objects",
-      }) as { objects: Array<{ entry_id: string; object: { name: string }; tasks: unknown[] }> };
-      this._exportObjects = (result.objects || []).map((o) => ({
-        entry_id: o.entry_id,
-        name: o.object.name,
-        task_count: (o.tasks || []).length,
-      })).sort((a, b) => a.name.localeCompare(b.name));
-      this._exportObjectsLoaded = true;
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const rows = await this._loadObjectRows();
+    if (!rows) return;
+    this._exportObjects = rows;
+    this._exportObjectsLoaded = true;
   }
 
   private _toggleExportObject(entryId: string, on: boolean): void {
@@ -1857,92 +1844,75 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private async _exportJson(): Promise<void> {
-    try {
-      const ids = this._selectedEntryIds;
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/export",
-        format: "json",
-        include_history: this._includeHistory,
-        ...(ids ? { entry_ids: ids } : {}),
-      }) as { data: string };
-      const ts = isoDateLocal(new Date());
-      this._downloadFile(result.data, `maintenance_export_${ts}.json`, "application/json");
-      this._showToast(t("settings_export_success", this._lang));
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const ids = this._selectedEntryIds;
+    const result = await this._ws<{ data: string }>({
+      type: "maintenance_supporter/export",
+      format: "json",
+      include_history: this._includeHistory,
+      ...(ids ? { entry_ids: ids } : {}),
+    });
+    if (!result) return;
+    const ts = isoDateLocal(new Date());
+    this._downloadFile(result.data, `maintenance_export_${ts}.json`, "application/json");
+    this._showToast(t("settings_export_success", this._lang));
   }
 
   /** The SECOND export: the global entry's settings (groups, saved views,
    *  vacation, notification/budget settings, feature toggles) — the objects
    *  export deliberately excludes them. Re-import via the regular import. */
   private async _exportSettings(): Promise<void> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/settings/export",
-      }) as { data: string };
-      const ts = isoDateLocal(new Date());
-      this._downloadFile(result.data, `maintenance_settings_${ts}.json`, "application/json");
-      this._showToast(t("settings_export_success", this._lang));
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const result = await this._ws<{ data: string }>({ type: "maintenance_supporter/settings/export" });
+    if (!result) return;
+    const ts = isoDateLocal(new Date());
+    this._downloadFile(result.data, `maintenance_settings_${ts}.json`, "application/json");
+    this._showToast(t("settings_export_success", this._lang));
   }
 
   private async _exportYaml(): Promise<void> {
-    try {
-      const ids = this._selectedEntryIds;
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/export",
-        format: "yaml",
-        include_history: this._includeHistory,
-        ...(ids ? { entry_ids: ids } : {}),
-      }) as { data: string };
-      const ts = isoDateLocal(new Date());
-      this._downloadFile(result.data, `maintenance_export_${ts}.yaml`, "application/yaml");
-      this._showToast(t("settings_export_success", this._lang));
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const ids = this._selectedEntryIds;
+    const result = await this._ws<{ data: string }>({
+      type: "maintenance_supporter/export",
+      format: "yaml",
+      include_history: this._includeHistory,
+      ...(ids ? { entry_ids: ids } : {}),
+    });
+    if (!result) return;
+    const ts = isoDateLocal(new Date());
+    this._downloadFile(result.data, `maintenance_export_${ts}.yaml`, "application/yaml");
+    this._showToast(t("settings_export_success", this._lang));
   }
 
   private async _exportCsv(): Promise<void> {
-    try {
-      const ids = this._selectedEntryIds;
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/csv/export",
-        ...(ids ? { entry_ids: ids } : {}),
-      }) as { csv: string };
-      const ts = isoDateLocal(new Date());
-      this._downloadFile(result.csv, `maintenance_export_${ts}.csv`, "text/csv");
-      this._showToast(t("settings_export_success", this._lang));
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const ids = this._selectedEntryIds;
+    const result = await this._ws<{ csv: string }>({
+      type: "maintenance_supporter/csv/export",
+      ...(ids ? { entry_ids: ids } : {}),
+    });
+    if (!result) return;
+    const ts = isoDateLocal(new Date());
+    this._downloadFile(result.csv, `maintenance_export_${ts}.csv`, "text/csv");
+    this._showToast(t("settings_export_success", this._lang));
   }
 
   private async _importCsvAction(): Promise<void> {
     const content = this._importCsv.trim();
     if (!content) return;
-    this._importLoading = true;
-    try {
-      // CSV exports start with the "object_name" header; anything else
-      // (JSON `{`/`[` or YAML `version:`) goes to the structured importer,
-      // which parses JSON and YAML alike.
-      const isCsv = content.startsWith("object_name");
-      const result = await this.hass.connection.sendMessagePromise(
-        isCsv
-          ? { type: "maintenance_supporter/csv/import", csv_content: content }
-          : { type: "maintenance_supporter/json/import", json_content: content }
-      ) as { created: number };
-      const count = result.created ?? 0;
-      this._showToast(t("settings_import_success", this._lang).replace("{count}", String(count)));
-      this._importCsv = "";
-      this.dispatchEvent(new CustomEvent("settings-changed"));
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
-    this._importLoading = false;
+    // CSV exports start with the "object_name" header; anything else
+    // (JSON `{`/`[` or YAML `version:`) goes to the structured importer,
+    // which parses JSON and YAML alike.
+    const isCsv = content.startsWith("object_name");
+    const result = await this._ws<{ created: number }>(
+      isCsv
+        ? { type: "maintenance_supporter/csv/import", csv_content: content }
+        : { type: "maintenance_supporter/json/import", json_content: content },
+      undefined,
+      (busy) => { this._importLoading = busy; },
+    );
+    if (!result) return;
+    const count = result.created ?? 0;
+    this._showToast(t("settings_import_success", this._lang).replace("{count}", String(count)));
+    this._importCsv = "";
+    this.dispatchEvent(new CustomEvent("settings-changed"));
   }
 
   // --- Documents archive (ZIP with file contents) ---

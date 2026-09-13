@@ -26,7 +26,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_QUIET_HOURS_ENABLED,
     DOMAIN,
     EVENT_NOTIFICATION,
-    GLOBAL_UNIQUE_ID,
     NOTIFICATION_MANAGER_KEY,
     ScheduleType,
 )
@@ -35,10 +34,10 @@ from custom_components.maintenance_supporter.helpers.notify_hooks import KIND_BU
 from .conftest import (
     TASK_ID_1,
     TASK_ID_2,
-    build_global_entry_data,
     build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_global_entry,
+    make_object_entry,
     setup_integration,
 )
 
@@ -46,11 +45,9 @@ _ROOT = Path(__file__).resolve().parent.parent
 
 
 def _global(hass: HomeAssistant) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    data[CONF_QUIET_HOURS_ENABLED] = False
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test", extra_data={CONF_QUIET_HOURS_ENABLED: False}
+    )
 
 
 def _object(hass: HomeAssistant, area_id: str | None = None) -> MockConfigEntry:
@@ -61,9 +58,7 @@ def _object(hass: HomeAssistant, area_id: str | None = None) -> MockConfigEntry:
     t1.update({"ref_no": 3, "priority": "high", "labels": ["kitchen", "water"], "notes": "Rinse under warm water", "documentation_url": "https://example.com/manual", "type": "cleaning"})
     t2 = build_task_data(task_id=TASK_ID_2, name="Salt", last_performed=(dt_util.now().date() - timedelta(days=5)).isoformat())
     t2.update({"ref_no": 4, "labels": ["kitchen"]})
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Dishwasher", data=build_object_entry_data(object_data=obj, tasks={TASK_ID_1: t1, TASK_ID_2: t2}), source="user", unique_id="maintenance_supporter_ev178")
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: t1, TASK_ID_2: t2}, name="Dishwasher", uid="ev178", object_data=obj)
 
 
 async def test_task_context_carries_the_whole_task(hass: HomeAssistant) -> None:

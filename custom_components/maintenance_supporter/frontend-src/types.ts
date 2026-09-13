@@ -1,5 +1,29 @@
 /** TypeScript interfaces for the Maintenance Supporter frontend. */
 
+// ── Closed vocabularies (mirror const.py's StrEnums; DRY round 2026-09 turned
+// the comment-only unions into real types). WS payloads arrive typed through
+// the sendMessagePromise<T> generic — no runtime cast, no per-comparison cast.
+
+/** const.MaintenanceStatus — `paused` is coordinator-injected for a paused object. */
+export type MaintenanceStatus = "ok" | "due_soon" | "overdue" | "triggered" | "archived" | "paused";
+/** const.HistoryEntryType */
+export type HistoryEntryType = "completed" | "skipped" | "missed" | "reset" | "triggered" | "trigger_removed" | "trigger_replaced";
+/** const.MaintenanceTypeEnum */
+export type MaintenanceType = "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "reading" | "custom";
+/** The nested calendar recurrence kinds (schedule-model v2). */
+export type CalendarKind = "weekdays" | "nth_weekday" | "day_of_month";
+/** const.ScheduleType plus the calendar kinds the dialog exposes as schedule types. */
+export type ScheduleType = "time_based" | "sensor_based" | "one_time" | "manual" | CalendarKind;
+/** TaskSchedule.kind — the flat kinds plus the calendar kinds. */
+export type ScheduleKind = "interval" | "one_time" | "manual" | CalendarKind;
+/** const.TriggerType */
+export type TriggerType = "threshold" | "counter" | "state_change" | "runtime" | "compound";
+export type IntervalUnit = "days" | "weeks" | "months" | "years";
+export type DocumentKind = "file" | "weblink";
+export type Confidence = "low" | "medium" | "high";
+export type DegradationTrend = "rising" | "falling" | "stable" | "insufficient_data";
+export type SeasonalReason = "learned" | "manual";
+
 export interface MaintenanceObject {
   id: string;
   name: string;
@@ -46,7 +70,7 @@ export interface MaintenanceObject {
 export interface ManualDocRef {
   id: string;
   title: string;
-  kind: string; // "file" | "weblink"
+  kind: DocumentKind;
   url?: string | null;
 }
 
@@ -55,7 +79,7 @@ export interface TriggerConfig {
   entity_ids?: string[];
   entity_logic?: "any" | "all";
   attribute?: string | null;
-  type?: string; // "threshold" | "counter" | "state_change" | "runtime"
+  type?: TriggerType;
   trigger_above?: number | null;
   trigger_below?: number | null;
   trigger_equals?: number | null;
@@ -109,7 +133,7 @@ export interface HistoryEntry {
   timestamp: string;
   /** #170: completion number within the task ("8.3-2"); skips carry none. */
   ref_no?: number | null;
-  type: string; // "completed" | "skipped" | "reset" | "triggered"
+  type: HistoryEntryType;
   notes?: string | null;
   cost?: number | null;
   duration?: number | null;
@@ -166,7 +190,7 @@ export interface IntervalAnalysis {
   reason?: string | null;
   seasonal_factor?: number | null;
   seasonal_factors?: number[] | null;
-  seasonal_reason?: string | null; // "learned" | "manual"
+  seasonal_reason?: SeasonalReason | null;
   confidence_interval_low?: number | null;
   confidence_interval_high?: number | null;
 }
@@ -175,7 +199,7 @@ export interface IntervalAnalysis {
  *  for the interval/one_time kinds; the calendar kinds (weekdays / nth_weekday /
  *  day_of_month) can only be expressed here. weekday: 0=Mon … 6=Sun. */
 export interface TaskSchedule {
-  kind: string; // interval | weekdays | nth_weekday | day_of_month | one_time | manual
+  kind: ScheduleKind;
   every?: number | null;
   unit?: string;
   anchor?: string;
@@ -200,15 +224,15 @@ export interface MaintenanceTask {
   name: string;
   /** #170: reference number within the object ("8.3" = object 8, task 3). */
   ref_no?: number | null;
-  type: string; // "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "reading" | "custom"
+  type: MaintenanceType;
   enabled: boolean;
   /** #150: false = the skip lock — Skip hidden everywhere, server refuses. */
   allow_skip?: boolean;
   /** #173: false = this task sends no reminders (dashboard/entities unaffected). */
   notify_enabled?: boolean;
-  schedule_type: string; // "time_based" | "sensor_based" | "one_time" | "manual" | calendar kind
+  schedule_type: ScheduleType;
   interval_days?: number | null;
-  interval_unit?: string; // "days" | "weeks" | "months" | "years"
+  interval_unit?: IntervalUnit;
   due_date?: string | null; // one-time task due date (ISO)
   interval_anchor?: "completion" | "planned";
   schedule?: TaskSchedule; // nested recurrence (calendar kinds read this)
@@ -250,7 +274,7 @@ export interface MaintenanceTask {
   /** Total entries that exist, including those beyond the list window. */
   history_count?: number;
   // Computed
-  status: string; // "ok" | "due_soon" | "overdue" | "triggered" | "archived"
+  status: MaintenanceStatus;
   /** True for a one-time task that has been completed (done; never re-arms). */
   is_done?: boolean;
   /** v2.10.0 archive: archived = archived_at != null; reason is manual|auto|object. */
@@ -272,21 +296,21 @@ export interface MaintenanceTask {
   // Adaptive scheduling
   adaptive_config?: AdaptiveConfig | null;
   suggested_interval?: number | null;
-  interval_confidence?: string | null;
+  interval_confidence?: Confidence | null;
   interval_analysis?: IntervalAnalysis | null;
   // Seasonal scheduling (top-level convenience)
   seasonal_factor?: number | null;
   seasonal_factors?: number[] | null;
   // Sensor-driven predictions (Phase 3)
   degradation_rate?: number | null;
-  degradation_trend?: string | null; // "rising" | "falling" | "stable" | "insufficient_data"
+  degradation_trend?: DegradationTrend | null;
   degradation_r_squared?: number | null;
   /** How many prior service cycles the degradation rate learned from
    *  (sawtooth sensors); 0 = current window only. */
   prediction_cycles?: number;
   days_until_threshold?: number | null;
   threshold_prediction_date?: string | null;
-  threshold_prediction_confidence?: string | null; // "low" | "medium" | "high"
+  threshold_prediction_confidence?: Confidence | null;
   environmental_factor?: number | null;
   environmental_entity?: string | null;
   environmental_correlation?: number | null;

@@ -247,7 +247,7 @@ class CompoundTrigger(BaseTrigger):
             current_value=None,
             trigger_entity_id=None,
         )
-        self.hass.async_create_task(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=None))
+        self._track(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=None))
         self._coordinator.note_trigger_edge(self._task_id, recovered=self._recovered_since_reset)
         self._request_coordinator_refresh()
         self.hass.bus.async_fire(

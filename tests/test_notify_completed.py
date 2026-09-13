@@ -46,9 +46,9 @@ from .conftest import (
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_global_entry,
+    make_object_entry,
     setup_integration,
 )
 
@@ -57,19 +57,15 @@ _COMPONENT = _ROOT / "custom_components" / "maintenance_supporter"
 
 
 def _global(hass: HomeAssistant, **options: object) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    data[CONF_QUIET_HOURS_ENABLED] = False
-    data.update(options)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test",
+        extra_data={CONF_QUIET_HOURS_ENABLED: False, **options},
+    )
 
 
 def _object(hass: HomeAssistant, *, uid: str, task: dict | None = None, tasks: dict | None = None) -> MockConfigEntry:
     task = task or build_task_data(name="Filter", last_performed=(dt_util.now().date() - timedelta(days=10)).isoformat())
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Dishwasher", data=build_object_entry_data(object_data=build_object_data(name="Dishwasher"), tasks=tasks or {TASK_ID_1: task}), source="user", unique_id=f"maintenance_supporter_{uid}")
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks or {TASK_ID_1: task}, name="Dishwasher", uid=uid)
 
 
 def _capture(hass: HomeAssistant, event_type: str = EVENT_NOTIFICATION) -> list[Event]:
@@ -340,4 +336,3 @@ async def test_battery_lifetime_catalog_names_models_and_never_raises(hass: Home
     assert rows == [{"types": ["CR2032"], "names": {"acme|lock": "Acme Lock"}}] and cat.called
     with patch("custom_components.maintenance_supporter.helpers.battery_fleet.read_batteries", side_effect=RuntimeError("boom")):
         assert _battery_lifetime_catalog(hass) == []
-

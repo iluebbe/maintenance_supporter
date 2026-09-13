@@ -25,33 +25,23 @@ from custom_components.maintenance_supporter import (
 )
 from custom_components.maintenance_supporter.const import (
     CONF_WEEKLY_DIGEST_ENABLED,
-    GLOBAL_UNIQUE_ID,
 )
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    make_global_entry,
     setup_integration,
 )
 
 
 def _global(hass: HomeAssistant, *, digest: bool) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    data[CONF_WEEKLY_DIGEST_ENABLED] = digest
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=data,
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test",
+        extra_data={CONF_WEEKLY_DIGEST_ENABLED: digest},
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _overdue_object(hass: HomeAssistant) -> MockConfigEntry:

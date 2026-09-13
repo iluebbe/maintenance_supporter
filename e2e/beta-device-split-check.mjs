@@ -17,7 +17,7 @@
  *
  * Usage: node e2e/beta-device-split-check.mjs
  */
-import { wsClient, watchdog } from "./ws-client.mjs";
+import { wsClient, watchdog, onboardOrLogin, ensureIntegration } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8132";
 const CID = REST + "/";
@@ -26,89 +26,9 @@ const USER = "demo", PASS = "demo-pass-1";
 const log = (...a) => console.log(...a);
 watchdog(240e3, "beta device split check");
 
-/** Parse JSON, but say what came back instead of dying inside JSON.parse.
- *  A 401 body ("401: Unauthorized") used to surface as a syntax error four
- *  frames deep, which says nothing about the actual problem. */
-async function j(r) {
-  const text = await r.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`${r.status} ${r.url.replace(REST, "")} -> ${text.slice(0, 120)}`);
-  }
-}
-
-async function tokenFor() {
-  const status = await fetch(REST + "/api/onboarding").then(j).catch(() => null);
-  // Only the USER step decides whether we can log in. The later steps are
-  // wizard bookkeeping and one of them stays `done: false` unless finished
-  // with the right body — treating that as "not onboarded" sent this script
-  // down the create-user path on every run, which then handed `undefined`
-  // along as the token.
-  const haveUser =
-    status === null || (Array.isArray(status) && status.some((x) => x.step === "user" && x.done));
-  if (!haveUser) {
-    const u = await fetch(REST + "/api/onboarding/users", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: CID, name: "Demo", username: USER, password: PASS, language: "en" }),
-    }).then(j);
-    if (!u.auth_code) throw new Error("onboarding returned no auth code: " + JSON.stringify(u).slice(0, 200));
-    const t = await fetch(REST + "/auth/token", {
-      method: "POST",
-      body: new URLSearchParams({ grant_type: "authorization_code", code: u.auth_code, client_id: CID }),
-    }).then(j);
-    const auth = { Authorization: "Bearer " + t.access_token, "Content-Type": "application/json" };
-    for (const step of ["core_config", "analytics"]) {
-      await fetch(`${REST}/api/onboarding/${step}`, { method: "POST", headers: auth, body: "{}" }).catch(() => {});
-    }
-    // The integration step wants the client it should mint a code for.
-    await fetch(`${REST}/api/onboarding/integration`, {
-      method: "POST", headers: auth,
-      body: JSON.stringify({ client_id: CID, redirect_uri: CID }),
-    }).catch(() => {});
-    return t.access_token;
-  }
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  if (!s.result) throw new Error("login step returned no auth code: " + JSON.stringify(s).slice(0, 200));
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  // Failing here rather than handing `undefined` on means the next call reports
-  // a real 401 instead of "Bearer undefined" four frames deeper.
-  if (!t.access_token) throw new Error("token exchange returned no token: " + JSON.stringify(t).slice(0, 200));
-  return t.access_token;
-}
-
-async function ensureIntegration(token) {
-  const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
-  const entries = await fetch(REST + "/api/config/config_entries/entry", { headers: auth }).then(j).catch(() => []);
-  if (Array.isArray(entries) && entries.some((e) => e.domain === D)) return;
-  const start = await fetch(REST + "/api/config/config_entries/flow", {
-    method: "POST", headers: auth,
-    body: JSON.stringify({ handler: D, show_advanced_options: false }),
-  }).then(j);
-  let res = start;
-  if (start.type === "form") {
-    res = await fetch(REST + "/api/config/config_entries/flow/" + start.flow_id, {
-      method: "POST", headers: auth,
-      body: JSON.stringify({ default_warning_days: 7, notifications_enabled: false, notify_service: "" }),
-    }).then(j);
-  }
-  if (res.type !== "create_entry") throw new Error("integration flow failed: " + JSON.stringify(res).slice(0, 200));
-  await new Promise((r) => setTimeout(r, 6000));
-}
-
-const token = await tokenFor();
+const token = await onboardOrLogin(REST, { user: USER, pass: PASS, cid: CID });
 log("authenticated, token length " + String(token && token.length));
-await ensureIntegration(token);
+await ensureIntegration(REST, token, { settleMs: 6000 });
 log("integration set up");
 
 const api = await wsClient(REST, token);

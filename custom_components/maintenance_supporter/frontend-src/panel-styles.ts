@@ -420,11 +420,12 @@ export const panelStyles = css`
      the object name keeps its room. */
   :host([narrow]) .today-object .today-person .person-name,
   :host([tight]) .today-object .today-person .person-name { display: none; }
-  .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
-  .today-row .today-complete { flex: none; --ha-button-font-size: 13px; white-space: nowrap; }
-  .today-row .today-complete ha-icon { --mdc-icon-size: 18px; }
-  :host([narrow]) .today-row .today-complete,
-  :host([tight]) .today-row .today-complete { min-width: 0; --ha-button-height: 36px; }
+  /* The row actions are the shared _renderRowActions markup (Complete only,
+     no Skip on Today); .row-actions carries the icon/button sizing. */
+  .today-row .row-actions { flex: none; }
+  .today-row .btn-complete { color: var(--success-color, #4caf50); }
+  :host([narrow]) .today-row .row-actions.as-buttons ha-button,
+  :host([tight]) .today-row .row-actions.as-buttons ha-button { min-width: 0; --ha-button-height: 36px; }
   .today-empty {
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     padding: 48px 16px; color: var(--secondary-text-color); text-align: center;

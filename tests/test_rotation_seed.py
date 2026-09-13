@@ -27,6 +27,7 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
@@ -48,20 +49,14 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 def _make_object_entry(hass: HomeAssistant, task: dict[str, Any] | None, minor_version: int = 1) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
+    return make_object_entry(
+        hass,
+        tasks={TASK_ID_1: task} if task else {},
+        name="Kitchen Bin",
+        uid="kitchen_bin",
+        object_id="objid_bin",
         minor_version=minor_version,
-        domain=DOMAIN,
-        title="Kitchen Bin",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Kitchen Bin", object_id="objid_bin"),
-            tasks={TASK_ID_1: task} if task else {},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_kitchen_bin",
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _task_data(hass: HomeAssistant, entry_id: str, task_id: str) -> dict[str, Any]:

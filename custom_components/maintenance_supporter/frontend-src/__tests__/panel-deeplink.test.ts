@@ -166,9 +166,11 @@ describe("panel deep links (QR scan routing)", () => {
     );
     await settleRaf(el);
     await settleRaf(el);
-    expect((el as unknown as { _toastMessage: string })._toastMessage).to.equal(
-      "Earliest completion is 2026-09-01",
-    );
+    // The known code gives the localized headline; the server's detail
+    // (which says more than the code) follows in parentheses.
+    const toast = (el as unknown as { _toastMessage: string })._toastMessage;
+    expect(toast).to.match(/^Too early — /);
+    expect(toast).to.include("(Earliest completion is 2026-09-01)");
     const dlg = completeDialog(el);
     expect(dlg?.shadowRoot?.querySelector("ha-dialog") ?? null, "no dialog").to.be.null;
   });

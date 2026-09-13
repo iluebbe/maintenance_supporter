@@ -10,7 +10,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost, formatNumber, formatRecurrence } from "../styles";
+import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost, formatDuration, formatNumber, formatRecurrence } from "../styles";
 import {
   filterObjectHistory,
   mergeObjectHistory,
@@ -247,7 +247,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
       printable,
       labels,
       (iso) => (iso ? formatDate(iso, L) : ""),
-      (minutes) => `${minutes} min`,
+      (minutes) => formatDuration(minutes, L),
       (amount) => formatCost(amount, this.currencySymbol, L),
       new Date().toISOString(),
       {
@@ -364,7 +364,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
                     <button class="task-link" @click=${() => this._openTask(e.taskId)}>${e.taskName}${e.phaseName ? ` · ${e.phaseName}` : ""}</button>
                     <span class="facts">
                       ${e.cost != null ? html`<span>${formatCost(e.cost, this.currencySymbol, L)}</span>` : nothing}
-                      ${e.duration != null ? html`<span>${e.duration} min</span>` : nothing}
+                      ${e.duration != null ? html`<span>${formatDuration(e.duration, L)}</span>` : nothing}
                     </span>
                     ${e.notes ? html`<span class="notes" title=${e.notes}>${e.notes}</span>` : nothing}
                   </div>

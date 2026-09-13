@@ -27,7 +27,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.maintenance_supporter.const import (
     DOMAIN,
     EVENT_TASK_COMPLETED,
-    GLOBAL_UNIQUE_ID,
     SERVICE_COMPLETE,
     HistoryEntryType,
 )
@@ -58,12 +57,11 @@ from custom_components.maintenance_supporter.websocket.tasks_history import (
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     get_task_store_state,
+    make_global_entry as _global,
+    make_object_entry,
     make_ws_connection as _conn,
     setup_integration,
 )
@@ -178,38 +176,11 @@ def test_model_round_trips_slots_and_writes_the_snapshot() -> None:
 # ─── WS ──────────────────────────────────────────────────────────────────
 
 
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
 def _object(hass: HomeAssistant, *, readings: list | None = None, history: list | None = None) -> MockConfigEntry:
     task = build_task_data(task_type="reading", last_performed="2024-06-01", history=history)
     if readings is not None:
         task["readings"] = readings
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Meter round",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Meter round"),
-            tasks={TASK_ID_1: task},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_reading_obj",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Meter round", uid="reading_obj")
 
 
 async def _task_response(hass: HomeAssistant, obj: MockConfigEntry, task_id: str = TASK_ID_1) -> dict:
@@ -366,7 +337,6 @@ async def test_history_edit_patches_scalar_and_replaces_the_slot_snapshot(hass: 
     conn = await edit(ts, reading_values=None)
     entry = next(h for h in _completed(hass, obj) if h["timestamp"] == ts)
     assert "reading_values" not in entry
-
 
 
 async def test_history_edit_patches_the_scalar_on_a_single_value_task(hass: HomeAssistant) -> None:

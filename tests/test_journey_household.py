@@ -32,11 +32,10 @@ from custom_components.maintenance_supporter.websocket.tasks_crud import (
 )
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -58,23 +57,8 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-
-
 def _make_entry(hass: HomeAssistant, unique_id: str, name: str, task: dict[str, Any]) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name),
-            tasks={TASK_ID_1: task},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name=name, uid=unique_id)
 
 
 # ─── M1: two phones, one lawn ────────────────────────────────────────────────

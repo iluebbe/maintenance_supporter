@@ -29,11 +29,10 @@ from custom_components.maintenance_supporter.helpers.workday import (
 )
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -55,23 +54,13 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-
-
 def _make_entry(hass: HomeAssistant, unique_id: str, task: dict[str, Any] | None = None) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Interaction Object",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Interaction Object"),
-            tasks={TASK_ID_1: task or build_task_data(task_id=TASK_ID_1, interval_days=30)},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
+    return make_object_entry(
+        hass,
+        tasks={TASK_ID_1: task or build_task_data(task_id=TASK_ID_1, interval_days=30)},
+        name="Interaction Object",
+        uid=unique_id,
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 # ─── L1: deleting a task cleans the vacation exempt list ────────────────────

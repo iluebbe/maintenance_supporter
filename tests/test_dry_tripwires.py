@@ -159,6 +159,31 @@ def test_no_translation_literal_fallbacks() -> None:
     assert not offenders, f'`t(...) || "literal"` fallbacks remain: {offenders} — drop the literal (add the key to en.json if missing)'
 
 
+def test_settings_view_ws_errors_go_through_run_ws() -> None:
+    """settings-view.ts routes every toast-bearing WS call through helpers/ws-run
+    (DRY round 2026-09): before, 16 hand-written try/catch blocks all showed
+    the generic `action_error` toast, hiding the server's reason ("Limit
+    reached", "Invalid date", …). A catch block that reaches for the generic
+    key again is the regression this pins."""
+    src = (FRONTEND / "components" / "settings-view.ts").read_text(encoding="utf-8")
+    assert 'from "../helpers/ws-run"' in src, "settings-view.ts no longer imports runWs"
+    # Per method: a raw sendMessagePromise next to the generic toast is the
+    # old pattern. (The REST/fetch document-archive methods legitimately keep
+    # action_error — they are not WS calls.)
+    methods = re.split(r"^\s{2}(?:private |public )?(?:async )?_?\w+\(", src, flags=re.MULTILINE)
+    offenders = [
+        body.split("\n", 1)[0][:60]
+        for body in methods
+        if "this.hass.connection.sendMessagePromise" in body and "action_error" in body
+    ]
+    assert not offenders, f"settings-view.ts methods pairing a raw WS call with the generic action_error toast: {offenders} — use this._ws()"
+    # The silent best-effort loaders (notify targets, settings, saved views,
+    # templates) and the test-notification button keep their raw call —
+    # anything beyond those five is a toast-bearing call that belongs in _ws().
+    raw_calls = src.count("this.hass.connection.sendMessagePromise")
+    assert raw_calls <= 5, f"{raw_calls} raw sendMessagePromise calls in settings-view.ts — route new ones through this._ws()"
+
+
 def test_fresh_task_copy_strip_list_single_source() -> None:
     """The fresh-copy strip list lives ONLY in sanitize.strip_task_runtime_state,
     and all three copy surfaces (task duplicate, object duplicate, object

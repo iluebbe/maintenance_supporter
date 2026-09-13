@@ -8,6 +8,7 @@
  */
 import { chromium } from "@playwright/test";
 import fs from "fs";
+import { haLogin } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
@@ -26,23 +27,7 @@ const log = (...a) => { const line = a.map((x) => typeof x === "string" ? x : JS
 process.on("unhandledRejection", (e) => { log("UNHANDLED", String(e && e.stack || e)); process.exit(2); });
 const watchdog = setTimeout(() => { log("WATCHDOG: aborting"); process.exit(3); }, 7 * 60e3);
 
-const j = (r) => r.json();
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("login failed");
-  return t.access_token;
-}
+const login = () => haLogin(REST, { user: USER, pass: PASS, cid: CID });
 
 const token = await login();
 log("LOGIN OK");

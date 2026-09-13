@@ -17,6 +17,7 @@
  * Usage: node e2e/report-darkmode-check.mjs
  */
 import { chromium } from "@playwright/test";
+import { haLogin } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
@@ -25,25 +26,9 @@ const CID = HA + "/";
 const USER = "demo", PASS = "demo-pass-1";
 const OUT = new URL("./live-shots/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 
-const j = (r) => r.json();
 const log = (...a) => console.log(...a);
 
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("login failed: " + JSON.stringify(t));
-  return t.access_token;
-}
+const login = () => haLogin(REST, { user: USER, pass: PASS, cid: CID });
 
 const DEEP = `(pred) => { const st=[document.documentElement]; const o=[]; let n=0;
   while (st.length && n < 60000) { const el = st.pop(); n++; if (!el) continue;

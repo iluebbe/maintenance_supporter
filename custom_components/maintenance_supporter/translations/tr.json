@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "“{task_name}” arşivlenmiş, devre dışı veya nesnesi duraklatılmış — tamamlanamaz"
     },
+    "task_inactive_postpone": {
+      "message": "“{task_name}” arşivlenmiş, devre dışı veya nesnesi duraklatılmış — ertelenemez"
+    },
+    "task_inactive_reset": {
+      "message": "“{task_name}” arşivlenmiş, devre dışı veya nesnesi duraklatılmış — sıfırlanamaz"
+    },
     "task_inactive_skip": {
       "message": "“{task_name}” arşivlenmiş, devre dışı veya nesnesi duraklatılmış — atlanamaz"
     },

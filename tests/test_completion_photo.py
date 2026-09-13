@@ -24,7 +24,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
 from custom_components.maintenance_supporter.const import (
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     HistoryEntryType,
 )
 from custom_components.maintenance_supporter.helpers.completion_photos import (
@@ -48,12 +47,11 @@ from custom_components.maintenance_supporter.websocket.tasks_history import (
 )
 
 from .conftest import (
+    make_global_entry as _global,
+    make_object_entry,
     make_ws_connection as _conn,
     OBJECT_ID_1,
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -115,35 +113,13 @@ def test_complete_without_photo_omits_key() -> None:
 # ─── WS + coordinator ───────────────────────────────────────────────────────
 
 
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
 def _object(hass: HomeAssistant, history: list[dict] | None = None) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Pool Pump",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Pool Pump"),
-            tasks={TASK_ID_1: build_task_data(last_performed="2024-06-01", history=history)},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_photo_obj",
+    return make_object_entry(
+        hass,
+        tasks={TASK_ID_1: build_task_data(last_performed="2024-06-01", history=history)},
+        name="Pool Pump",
+        uid="photo_obj",
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 async def _history(hass: HomeAssistant, obj: MockConfigEntry) -> list[dict]:

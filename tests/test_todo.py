@@ -20,45 +20,17 @@ from custom_components.maintenance_supporter.todo import MaintenanceTodoList
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_global_entry as _global,
+    make_object_entry,
     setup_integration,
 )
 
 TASK_ID_2 = "b" * 32
 
 
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
 def _object(hass: HomeAssistant, tasks: dict, *, uid: str = "todo_obj") -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Pool Pump",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Pool Pump"),
-            tasks=tasks,
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name="Pool Pump", uid=uid)
 
 
 def _todo(hass: HomeAssistant) -> MaintenanceTodoList:

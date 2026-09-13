@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "”{task_name}” on arkistoitu, poistettu käytöstä tai sen kohde on keskeytetty — ei voi suorittaa"
     },
+    "task_inactive_postpone": {
+      "message": "”{task_name}” on arkistoitu, poistettu käytöstä tai sen kohde on keskeytetty — ei voi lykätä"
+    },
+    "task_inactive_reset": {
+      "message": "”{task_name}” on arkistoitu, poistettu käytöstä tai sen kohde on keskeytetty — ei voi nollata"
+    },
     "task_inactive_skip": {
       "message": "”{task_name}” on arkistoitu, poistettu käytöstä tai sen kohde on keskeytetty — ei voi ohittaa"
     },

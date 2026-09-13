@@ -5,9 +5,18 @@ spellings do not matter, word order does not matter, a prefix or a single
 typo still finds the thing, and every word of the query has to hit
 SOMEWHERE (so "spülm filt" finds the dishwasher's filter task but a stray
 extra word does not widen the result).
+
+The examples live in ONE shared fixture
+(frontend-src/__tests__/fixtures/search-match-examples.json) that the
+TypeScript twin (__tests__/search-match.test.ts) runs as well — the panel's
+local groups and the server's document/history groups must agree on what
+"matches", so a case added there runs on both sides.
 """
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
 
 from custom_components.maintenance_supporter.helpers.search_match import (
     SCORE_EXACT,
@@ -25,70 +34,76 @@ from custom_components.maintenance_supporter.helpers.search_match import (
     words,
 )
 
+_FIXTURE = (
+    Path(__file__).resolve().parents[1]
+    / "custom_components"
+    / "maintenance_supporter"
+    / "frontend-src"
+    / "__tests__"
+    / "fixtures"
+    / "search-match-examples.json"
+)
+_EX = json.loads(_FIXTURE.read_text(encoding="utf-8"))
+_SCORES = {"EXACT": SCORE_EXACT, "PREFIX": SCORE_PREFIX, "SUBSTRING": SCORE_SUBSTRING, "FUZZY": SCORE_FUZZY, "NONE": 0}
+
+
+def _fields(rows: list[list]) -> list[tuple[str, int]]:
+    return [(text, weight) for text, weight in rows]
+
 
 def test_fold_is_length_preserving_and_strips_diacritics() -> None:
-    for original in ("Kühlschrank", "Straße", "Ærø", "ÉCOLE", "naïve café", "Łódź"):
-        assert len(fold(original)) == len(original)
-    assert fold("Kühlschrank") == "kuhlschrank"
-    assert fold("Straße") == "strase"
-    assert fold("ÉCOLE") == "ecole"
-    assert fold("Łódź") == "lodz"
+    for original in _EX["fold_length_preserving"]:
+        assert len(fold(original)) == len(original), original
+    for original, expected in _EX["fold"]:
+        assert fold(original) == expected
 
 
 def test_words_and_compact() -> None:
-    assert words("Fehler-Code E-24, Zulauf!") == ["fehler", "code", "e", "24", "zulauf"]
-    assert compact("E-24 / WM14T5") == "e24wm14t5"
+    for text, expected in _EX["words"]:
+        assert words(text) == expected
+    for text, expected in _EX["compact"]:
+        assert compact(text) == expected
 
 
 def test_query_tokens_add_digraph_variants_without_losing_the_original() -> None:
-    assert query_tokens("Spuel-Maschine") == [("spuel", "spul"), ("maschine",)]
-    assert query_tokens("Strasse") == [("strasse", "strase")]
-    assert query_tokens("Bauer") == [("bauer", "baur")]
-    assert query_tokens("  ") == []
+    for text, expected in _EX["query_tokens"]:
+        assert query_tokens(text) == [tuple(variants) for variants in expected], text
 
 
 def test_within_one_edit() -> None:
-    assert within_one_edit("abc", "abc")
-    assert within_one_edit("reinigen", "reinigne")  # transposition
-    assert within_one_edit("filter", "fiter")  # deletion
-    assert within_one_edit("filter", "fillter")  # insertion
-    assert within_one_edit("filter", "filtar")  # substitution
-    assert not within_one_edit("filter", "flitre")
-    assert not within_one_edit("abc", "abcde")
+    for a, b, expected in _EX["within_one_edit"]:
+        assert within_one_edit(a, b) is expected, (a, b)
 
 
 def test_word_score_ladder() -> None:
-    assert word_score(("filter",), "filter") == SCORE_EXACT
-    assert word_score(("", "filter"), "filter") == SCORE_EXACT  # empty variants are skipped
-    assert word_score(("filt",), "filter") == SCORE_PREFIX
-    assert word_score(("leitung",), "bedienungsanleitung") == SCORE_SUBSTRING
-    assert word_score(("reinigne",), "reinigen") == SCORE_FUZZY
-    # A typo inside a longer word the token is a prefix of (gn ↔ ng).
-    assert word_score(("reinigugn",), "reinigungsmittel") == SCORE_FUZZY
-    # Short tokens: no substring, no typo tolerance.
-    assert word_score(("er",), "filter") == 0
-    assert word_score(("filt",), "fitler") == 0
+    for variants, word, score in _EX["word_score"]:
+        assert word_score(tuple(variants), word) == _SCORES[score], (variants, word)
+    # Python-only detail: empty variants are skipped.
+    assert word_score(("", "filter"), "filter") == SCORE_EXACT
 
 
 def test_field_score_folds_diacritics_and_separators() -> None:
-    assert field_score(("kuhl",), "Kühlschrank") == SCORE_PREFIX
-    assert field_score(("spul",), "Spülmaschine") == SCORE_PREFIX
-    assert field_score(("e24",), "Fehlercode E-24") == SCORE_SUBSTRING
+    for variants, text, score in _EX["field_score"]:
+        assert field_score(tuple(variants), text) == _SCORES[score], (variants, text)
 
 
 def test_score_fields_requires_every_token_and_ignores_order() -> None:
-    fields = [("Filter reinigen", 3), ("Spülmaschine", 2)]
-    assert score_fields(query_tokens("spülm filt"), fields) > 0
-    assert score_fields(query_tokens("filt spülm"), fields) == score_fields(query_tokens("spülm filt"), fields)
-    assert score_fields(query_tokens("spuel filter"), fields) > 0  # digraph spelling
-    assert score_fields(query_tokens("spülm garten"), fields) == 0  # one token misses → no hit
+    sf = _EX["score_fields"]
+    fields = _fields(sf["fields"])
+    for query in sf["hits"]:
+        assert score_fields(query_tokens(query), fields) > 0, query
+    for query in sf["misses"]:
+        assert score_fields(query_tokens(query), fields) == 0, query
+    for a, b in sf["order_independent"]:
+        assert score_fields(query_tokens(a), fields) == score_fields(query_tokens(b), fields)
     assert score_fields(query_tokens("filter"), []) == 0
     assert score_fields([], fields) == 0
 
 
 def test_score_fields_ranks_names_above_notes() -> None:
-    in_name = score_fields(query_tokens("filter"), [("Filter", 3), ("", 1)])
-    in_notes = score_fields(query_tokens("filter"), [("Pumpe", 3), ("Filter wechseln", 1)])
+    n = _EX["score_fields"]["name_outranks_notes"]
+    in_name = score_fields(query_tokens(n["query"]), _fields(n["in_name"]))
+    in_notes = score_fields(query_tokens(n["query"]), _fields(n["in_notes"]))
     assert in_name > in_notes > 0
 
 

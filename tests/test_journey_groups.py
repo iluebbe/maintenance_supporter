@@ -27,10 +27,9 @@ from custom_components.maintenance_supporter.websocket.objects import ws_delete_
 from custom_components.maintenance_supporter.websocket.tasks import ws_delete_task
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -58,23 +57,14 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-
-
 def _object(hass: HomeAssistant, unique: str, name: str, task_id: str) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name, object_id=f"objid_{unique}"),
-            tasks={task_id: build_task_data(task_id=task_id, name=f"{name} task", interval_days=30)},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique}",
+    return make_object_entry(
+        hass,
+        tasks={task_id: build_task_data(task_id=task_id, name=f"{name} task", interval_days=30)},
+        name=name,
+        uid=unique,
+        object_id=f"objid_{unique}",
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 async def _group_refs(hass: HomeAssistant, group_id: str) -> list[tuple[str, str]]:

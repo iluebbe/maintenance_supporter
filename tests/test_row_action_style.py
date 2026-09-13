@@ -33,16 +33,14 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry,
     make_ws_connection,
     setup_integration,
 )
 
 
 def _global(minor: int) -> MockConfigEntry:
-    return MockConfigEntry(
-        version=1, minor_version=minor, domain=DOMAIN, title="Maintenance Supporter",
-        data=build_global_entry_data(), source="user", unique_id=GLOBAL_UNIQUE_ID,
-    )
+    return make_global_entry(None, minor_version=minor)
 
 
 async def test_existing_install_gets_the_notice_on_migration(hass: HomeAssistant) -> None:

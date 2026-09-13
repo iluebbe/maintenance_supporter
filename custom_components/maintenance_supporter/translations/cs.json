@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "„{task_name}“ je archivován, zakázán nebo jeho objekt je pozastaven — nelze dokončit"
     },
+    "task_inactive_postpone": {
+      "message": "„{task_name}“ je archivován, zakázán nebo jeho objekt je pozastaven — nelze odložit"
+    },
+    "task_inactive_reset": {
+      "message": "„{task_name}“ je archivován, zakázán nebo jeho objekt je pozastaven — nelze resetovat"
+    },
     "task_inactive_skip": {
       "message": "„{task_name}“ je archivován, zakázán nebo jeho objekt je pozastaven — nelze přeskočit"
     },

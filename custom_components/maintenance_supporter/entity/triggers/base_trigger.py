@@ -5,13 +5,13 @@ from __future__ import annotations
 import logging
 import math
 from abc import ABC, abstractmethod
+from collections.abc import Coroutine
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     EventStateChangedData,
-    async_call_later,
     async_track_state_change_event,
 )
 
@@ -24,8 +24,15 @@ from ...const import (
     EVENT_TRIGGER_DEACTIVATED,
     UNAVAILABLE_STATES,
 )
+from ...helpers.managed_timer import ManagedTimer
 
 _LOGGER = logging.getLogger(__name__)
+
+# The initial-evaluation retry: an entity that is unknown/unavailable at
+# setup is re-checked this often, this many times, before the state-change
+# listener alone is trusted to catch its recovery (issue #1 family).
+RETRY_DELAY_SECONDS = 30.0
+RETRY_MAX_ATTEMPTS = 10
 
 
 class BaseTrigger(ABC):
@@ -56,7 +63,10 @@ class BaseTrigger(ABC):
         self._recovered_since_reset = True
         self._current_value: float | None = None
         self._unsub_listener: CALLBACK_TYPE | None = None
-        self._unsub_retry: CALLBACK_TYPE | None = None
+        # One timer per purpose (a retry and a subclass's for/hold window can
+        # be pending at the same time); the tasks a trigger spawns (history
+        # entry, refresh, persist) are tracked here and cancelled at teardown.
+        self._retry_timer = ManagedTimer(hass, f"{type(self).__name__}:{self.entity_id}:retry")
         self._logged_unavailable = False  # Log-once pattern for unavailable
 
     @property
@@ -117,42 +127,47 @@ class BaseTrigger(ABC):
         )
 
     def _schedule_retry(self) -> None:
-        """Schedule a retry of the initial evaluation after 30 seconds."""
-        self._cancel_retry()
+        """Schedule a retry of the initial evaluation (30 s, capped).
 
-        @callback
-        def _retry_initial_evaluation(_now: datetime) -> None:
-            """Re-check entity state after a delay."""
-            self._unsub_retry = None
-            state = self.hass.states.get(self.entity_id)
-            if state is None or state.state in UNAVAILABLE_STATES:
-                _LOGGER.debug(
-                    "Trigger entity %s still %s after retry",
-                    self.entity_id,
-                    state.state if state else "missing",
-                )
-                return
-            value = self._get_numeric_value(state)
-            if value is not None:
-                self._current_value = value
-                self._evaluate_and_update(value)
-                _LOGGER.info(
-                    "Trigger entity %s recovered after retry (value=%s)",
-                    self.entity_id,
-                    value,
-                )
+        Before the ManagedTimer this was a single hard-coded shot: an entity
+        still unavailable 30 s after setup was never re-checked by the timer
+        again (the state-change listener catches a LATER recovery, but not
+        one that happened while we were not looking). Now it re-arms until
+        the entity reports or the budget is spent.
+        """
+        self._retry_timer.retry(self._retry_initial_evaluation, delay=RETRY_DELAY_SECONDS, max_attempts=RETRY_MAX_ATTEMPTS)
 
-        self._unsub_retry = async_call_later(self.hass, 30, _retry_initial_evaluation)
+    @callback
+    def _retry_initial_evaluation(self, _now: datetime) -> None:
+        """Re-check entity state after a delay."""
+        state = self.hass.states.get(self.entity_id)
+        if state is None or state.state in UNAVAILABLE_STATES:
+            _LOGGER.debug(
+                "Trigger entity %s still %s after retry",
+                self.entity_id,
+                state.state if state else "missing",
+            )
+            self._schedule_retry()
+            return
+        self._retry_timer.reset_retries()
+        value = self._get_numeric_value(state)
+        if value is not None:
+            self._current_value = value
+            self._evaluate_and_update(value)
+            _LOGGER.info(
+                "Trigger entity %s recovered after retry (value=%s)",
+                self.entity_id,
+                value,
+            )
 
-    def _cancel_retry(self) -> None:
-        """Cancel pending retry timer."""
-        if self._unsub_retry is not None:
-            self._unsub_retry()
-            self._unsub_retry = None
+    def _track(self, coro: Coroutine[Any, Any, Any], *, cancel_on_close: bool = True) -> None:
+        """Spawn a fire-and-forget task the trigger owns (cancelled at
+        teardown unless it must land regardless — see the auto-complete)."""
+        self._retry_timer.track_task(coro, cancel_on_close=cancel_on_close)
 
     async def async_teardown(self) -> None:
-        """Remove the trigger listener."""
-        self._cancel_retry()
+        """Remove the trigger listener, the retry timer and owned tasks."""
+        self._retry_timer.close()
         if self._unsub_listener is not None:
             self._unsub_listener()
             self._unsub_listener = None
@@ -240,7 +255,7 @@ class BaseTrigger(ABC):
         full update interval — 30 s once, 4 min the next time. Debounced on
         purpose (HA's ten-second window): a noisy sensor must not recompute the
         object on every state change; user actions use async_refresh_now."""
-        self.hass.async_create_task(self._coordinator.async_request_refresh())
+        self._track(self._coordinator.async_request_refresh())
 
     def _on_trigger_activated(self, value: float) -> None:
         """Handle trigger activation."""
@@ -259,7 +274,7 @@ class BaseTrigger(ABC):
         )
 
         # Add history entry for the trigger activation
-        self.hass.async_create_task(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=value))
+        self._track(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=value))
         self._coordinator.note_trigger_edge(self._task_id, recovered=self._recovered_since_reset)
         self._request_coordinator_refresh()
 
@@ -312,7 +327,9 @@ class BaseTrigger(ABC):
         # resets the trigger via reset(), which never lands here, so the
         # manual flow cannot double-record.
         if self.config.get("auto_complete_on_recovery"):
-            self.hass.async_create_task(self._coordinator.async_auto_complete_on_recovery(self._task_id, value))
+            # cancel_on_close=False: a completion in flight must land even
+            # when the recovery coincides with a reload of the entry.
+            self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, value), cancel_on_close=False)
 
     def _get_numeric_value(self, state: State) -> float | None:
         """Extract numeric value from state or attribute."""

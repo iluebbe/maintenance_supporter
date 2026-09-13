@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "”{task_name}” är arkiverad, inaktiverad eller dess objekt är pausat — kan inte slutföras"
     },
+    "task_inactive_postpone": {
+      "message": "”{task_name}” är arkiverad, inaktiverad eller dess objekt är pausat — kan inte skjutas upp"
+    },
+    "task_inactive_reset": {
+      "message": "”{task_name}” är arkiverad, inaktiverad eller dess objekt är pausat — kan inte återställas"
+    },
     "task_inactive_skip": {
       "message": "”{task_name}” är arkiverad, inaktiverad eller dess objekt är pausat — kan inte hoppas över"
     },

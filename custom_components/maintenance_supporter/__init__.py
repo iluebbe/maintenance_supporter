@@ -100,10 +100,12 @@ from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
-from .helpers.dates import INTERVAL_UNITS
+from .helpers.dates import INTERVAL_UNITS, local_date_from_iso
 from .helpers.documents import DocumentStore
 from .helpers.global_options import get_global_entry
+from .helpers.notification_gates import task_may_notify
 from .helpers.notification_manager import NotificationManager
+from .helpers.notify_hooks import KIND_LEAD_TIME
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import (
     INTERVAL_DAYS_RANGE,
@@ -346,7 +348,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
     per cycle overall (the day-match only occurs on one day per lead).
     Complements — does not replace — the warning_days status-change path.
     """
-    from .const import CONF_REMINDER_LEAD_DAYS
+    from .const import CONF_REMINDER_LEAD_DAYS, MaintenanceStatus
     from .models.maintenance_task import MaintenanceTask
 
     global_entry = get_global_entry(hass)
@@ -384,8 +386,10 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
                 continue
             if task_data.get("archived_at") is not None:
                 continue
-            if task_data.get("notify_enabled") is False:
-                continue  # #173: muted task — no lead reminders either
+            # The per-task gates the lead-time kind declares (#173 mute,
+            # vacation, snooze) — before the model is even built.
+            if not task_may_notify(hass, entry.entry_id, task_id, MaintenanceStatus.DUE_SOON, task_data, kind=KIND_LEAD_TIME, manager=nm):
+                continue
             task = MaintenanceTask.from_dict(task_data)
             days = task.days_until_due
             # days == 0 is a valid lead ("on the due date"); negatives are the
@@ -1309,8 +1313,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                             ts for h in history if isinstance(h, dict) and isinstance((ts := h.get("timestamp")), str) and ts
                         ]
                         if timestamps:
-                            # ISO timestamps sort lexicographically; take YYYY-MM-DD
-                            anchor = min(timestamps)[:10]
+                            # ISO timestamps sort lexicographically; the earliest one's local day
+                            anchor = local_date_from_iso(min(timestamps)) or today_iso
                     new_td = dict(td)
                     new_td["created_at"] = anchor
                     new_tasks[task_id] = new_td
@@ -1637,7 +1641,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
                         result["pruned"],
                         result["orphans_removed"],
                     )
-                if result.get("trigger_healed") or result["added"]:
+                if result.get("trigger_healed") or result["added"] or result.get("migrated"):
                     # #156: the recovery flag only reaches the LIVE trigger
                     # after a reload — and so does the stock SENSOR of a part
                     # added here: the sensor platform was set up before this

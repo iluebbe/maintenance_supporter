@@ -31,8 +31,7 @@
  */
 
 import { STATUS_ICONS } from "./status-constants";
-import { historyPhotoIds } from "./helpers/history-photos";
-import { entryReadingValues } from "./helpers/reading-slots";
+import { loadHistoryEntryDraft } from "./helpers/history-draft";
 
 interface MaintenanceObjectResp {
   entry_id: string;
@@ -1143,41 +1142,9 @@ function registerLlCustomHandler(): void {
         const hass = haRoot?.hass;
         if (!hass) return;
         try {
-          const r = await hass.connection.sendMessagePromise<{
-            tasks?: Array<{
-              id?: string;
-              type?: string;
-              reading_unit?: string | null;
-              readings?: Array<{ id: string; name: string; unit?: string | null }> | null;
-              history?: Array<Record<string, unknown>>;
-            }>;
-          }>({
-            type: "maintenance_supporter/object",
-            entry_id: detail.entry_id,
-          });
-          const task = r.tasks?.find((t) => t.id === detail.task_id);
-          const histEntry = task?.history?.find(
-            (h) => h.timestamp === detail.original_timestamp,
-          );
-          if (!histEntry) return;
-          dm.openHistoryEditDialog({
-            entry_id: detail.entry_id as string,
-            task_id: detail.task_id as string,
-            original_timestamp: detail.original_timestamp as string,
-            type: (histEntry.type as string) || "completed",
-            timestamp: (histEntry.timestamp as string) || (detail.original_timestamp as string),
-            notes: (histEntry.notes as string) ?? null,
-            cost: (histEntry.cost as number | undefined) ?? null,
-            duration: (histEntry.duration as number | undefined) ?? null,
-            completed_by: (histEntry.completed_by as string) ?? null,
-            used_parts: (histEntry.used_parts as Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null) ?? null,
-            photo_doc_ids: historyPhotoIds(histEntry),
-            reading_value: (histEntry.reading_value as number | null) ?? null,
-            reading_values: entryReadingValues(histEntry),
-            readings: task?.readings ?? [],
-            task_type: task?.type ?? null,
-            reading_unit: task?.reading_unit ?? null,
-          });
+          const draft = await loadHistoryEntryDraft(hass, detail.entry_id, detail.task_id, detail.original_timestamp);
+          if (!draft) return;
+          dm.openHistoryEditDialog(draft);
         } catch {
           deepLink("/maintenance-supporter");
         }

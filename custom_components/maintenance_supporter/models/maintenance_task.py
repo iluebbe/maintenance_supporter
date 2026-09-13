@@ -18,8 +18,11 @@ from ..const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
-from ..helpers.dates import parse_hhmm, parse_iso_date
+from ..helpers.dates import parse_iso_date
+from ..helpers.history import completed_entries
+from ..helpers.phases import current_phase
 from ..helpers.schedule import Schedule, read_legacy_fields
+from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
 
 
 @dataclass
@@ -155,14 +158,10 @@ class MaintenanceTask:
 
     @property
     def current_phase_name(self) -> str | None:
-        """Name of the cycle phase currently due (#139), or None."""
-        if not (self.phases and self.phase_sequence):
-            return None
-        from ..helpers.phases import clamp_phase_cursor
-
-        phase_id = self.phase_sequence[clamp_phase_cursor(self.phase_cursor, len(self.phase_sequence))]
-        definition = self.phases.get(phase_id)
-        return definition.get("name") if isinstance(definition, dict) else None
+        """Name of the cycle phase currently due (#139), or None — the model's
+        view of ``helpers.phases.current_phase`` (the cursor clamp lives there)."""
+        phase = current_phase({"phases": self.phases, "phase_sequence": self.phase_sequence, "phase_cursor": self.phase_cursor})
+        return phase.get("name") if phase is not None else None
 
     def _planned_grid_due(self) -> date | None:
         """``next_due`` WITHOUT the postpone override — the drift-free grid.
@@ -220,13 +219,14 @@ class MaintenanceTask:
         passed (in HA's configured TZ). Returns False when no `schedule_time` is set
         — that preserves the historical "due at midnight" semantic.
         """
-        if not self.schedule_time:
-            return False
-        # "HH:MM" (panel/WS) and "HH:MM:SS" (HA TimeSelector) alike.
-        target = parse_hhmm(self.schedule_time)
-        if target is None:
-            return False
-        return dt_util.now().time() >= target
+        return is_past_schedule_time(self.schedule_time)
+
+    @property
+    def effective_warning_days(self) -> int:
+        """The warning window capped at one interval in real days (#58) —
+        what the status ladder compares ``days_until_due`` against; published
+        to the coordinator payload for the dict twin (helpers.status)."""
+        return effective_warning_days(self.warning_days, self._schedule().span_days())
 
     @property
     def archived(self) -> bool:
@@ -235,50 +235,21 @@ class MaintenanceTask:
 
     @property
     def status(self) -> MaintenanceStatus:
-        """Determine the current status of this task."""
-        # Archived takes precedence over everything — a retired task is inert.
-        # Mirror this in helpers/status.compute_status_from_task_dict (the dict
-        # twin used where only coordinator data is available).
-        if self.archived_at is not None:
-            return MaintenanceStatus.ARCHIVED
+        """Determine the current status of this task.
 
-        days = self.days_until_due
-
-        # Trigger ∧/∨ safety interval: with the "all" combinator BOTH legs must
-        # be met — the trigger must have fired AND the due date been reached
-        # (the interval is a minimum age, not a deadline). Default "any" keeps
-        # the historical whichever-first behaviour. Mirror any change in
-        # helpers/status.compute_status_from_task_dict (the dict twin).
-        all_mode = (self.trigger_config or {}).get("trigger_combinator") == "all"
-        time_met = days is None or days <= 0
-
-        # Trigger takes precedence
-        if self._trigger_active and (not all_mode or time_met):
-            return MaintenanceStatus.TRIGGERED
-
-        if days is None:
-            # Manual task or no schedule: always OK unless triggered
-            return MaintenanceStatus.OK
-
-        if all_mode and not self._trigger_active:
-            # The elapsed interval alone never actions an "all" task.
-            return MaintenanceStatus.OK
-
-        if days < 0:
-            return MaintenanceStatus.OVERDUE
-        # Sub-day refinement: same-day past schedule_time also counts as overdue.
-        # Without this, a task with schedule_time="09:00" would only flip at midnight.
-        if days == 0 and self._is_past_schedule_time():
-            return MaintenanceStatus.OVERDUE
-        # Don't let the warning window exceed one interval, measured in real
-        # days via the Schedule (a 6-*month* task must not collapse a 14-day
-        # warning to min(14, 6) — issue #58). Single source: the Schedule, not
-        # raw interval fields.
-        span = self._schedule().span_days()
-        effective_warning = min(self.warning_days, span) if span else self.warning_days
-        if days <= effective_warning:
-            return MaintenanceStatus.DUE_SOON
-        return MaintenanceStatus.OK
+        The ladder itself is ``helpers.status.compute_status`` — shared with
+        the dict twin the entities use after a live trigger update — so the
+        two cannot drift; this property only supplies the model's inputs.
+        """
+        return compute_status(
+            archived=self.archived_at is not None,
+            enabled=self.enabled,
+            days_until_due=self.days_until_due,
+            trigger_active=self._trigger_active,
+            all_mode=(self.trigger_config or {}).get("trigger_combinator") == "all",
+            warning_days=self.effective_warning_days,
+            past_schedule_time=self._is_past_schedule_time(),
+        )
 
     @property
     def can_complete_now(self) -> bool:
@@ -314,7 +285,7 @@ class MaintenanceTask:
     @property
     def times_performed(self) -> int:
         """Count the number of completed maintenance entries in history."""
-        return sum(1 for entry in self.history if entry.get("type") == HistoryEntryType.COMPLETED)
+        return len(completed_entries(self.history))
 
     @property
     def total_cost(self) -> float:

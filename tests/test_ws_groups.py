@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -26,10 +25,9 @@ from .conftest import (
     TASK_ID_2,
     build_global_entry_data,
     call_ws_handler,
+    make_ws_connection,
     setup_integration,
 )
-
-
 
 
 @pytest.fixture
@@ -620,18 +618,6 @@ async def test_cleanup_group_refs_across_multiple_groups(
 # ===========================================================================
 
 
-def _covws_conn() -> MagicMock:
-    """Create a mock WS connection (carried from test_cov_ws.py)."""
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    conn.subscriptions = {}
-    conn.send_message = MagicMock()
-    return conn
-
-
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
@@ -661,7 +647,7 @@ async def test_update_group_task_refs_replaces_refs(
     )
 
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # Create a group first
     await call_ws_handler(

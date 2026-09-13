@@ -11,11 +11,8 @@ from __future__ import annotations
 
 import io
 import json
-import shutil
 import zipfile
-from collections.abc import Iterator
 from http import HTTPStatus
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -37,21 +34,14 @@ from custom_components.maintenance_supporter.views import (
 from .conftest import (
     OBJECT_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
+    make_object_entry,
     setup_integration,
 )
 
 _PDF = b"%PDF-1.4 documents-archive-unique-content"
 
 
-@pytest.fixture(autouse=True)
-def _isolate_docs_dir(hass: HomeAssistant, _isolate_document_blobs: None) -> Iterator[None]:
-    """Give each test a clean per-test blob dir (mirrors test_ws_documents)."""
-    docs = Path(hass.config.path("maintenance_supporter", "docs"))
-    shutil.rmtree(docs, ignore_errors=True)
-    yield
-    shutil.rmtree(docs, ignore_errors=True)
+pytestmark = pytest.mark.usefixtures("isolated_docs_dir")
 
 
 @pytest.fixture
@@ -70,17 +60,7 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 def _object_entry(hass: HomeAssistant, *, name: str, object_id: str, unique_id: str) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=build_object_data(name=name, object_id=object_id)),
-        source="user",
-        unique_id=unique_id,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, name=name, object_id=object_id, unique_id=unique_id)
 
 
 def _store(hass: HomeAssistant) -> DocumentStore:

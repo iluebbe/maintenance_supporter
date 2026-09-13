@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import date
 from typing import Any
 
 import voluptuous as vol
@@ -21,11 +22,10 @@ from ..const import (
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_ID_LENGTH,
     task_unique_id,
 )
-from ..helpers.aggregate import get_object_entries, get_runtime_data
+from ..helpers.aggregate import get_object_entries, get_runtime_data, get_store, is_object_entry, object_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +33,41 @@ _LOGGER = logging.getLogger(__name__)
 #: doc_id, part_id, …): a capped string. ``task/move`` shipped with bare
 #: ``str`` for its three ids — tests/test_ws_schema_caps.py refuses that.
 ID_FIELD = vol.All(str, vol.Length(max=MAX_ID_LENGTH))
+
+#: ``{slot_id: value | None}`` for a task with reading slots (#161 phase 2) —
+#: the live completion records it, the history edit replaces the snapshot.
+#: Wide numeric bounds: meters count high, temperatures go negative. Slot ids
+#: are checked against the task in the handler (unknown -> invalid_input).
+READING_VALUES_FIELD = vol.Any(
+    {str: vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None)},
+    None,
+)
+
+#: The parts used on one completion (#99 / #130): ``[{part_id, quantity?,
+#: entry_id?}]``. ``entry_id`` — the pool may live on another object (#111);
+#: the schema has to allow it or voluptuous rejects the message before the
+#: handler (which validates the reference) ever runs. ``quantity`` defaults
+#: to 1 on BOTH paths: the completion path always stored 1 for a bare link,
+#: and the history edit's stock delta already read a missing quantity as 1
+#: (parts_runtime.async_apply_history_parts_edit). One shape, one cap — the
+#: edit path must not accept what completion refuses.
+USED_PARTS_FIELD = vol.Any(
+    vol.All(
+        [
+            vol.Schema(
+                {
+                    vol.Required("part_id"): ID_FIELD,
+                    vol.Optional("entry_id"): ID_FIELD,
+                    vol.Optional("quantity", default=1): vol.All(
+                        vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=999)
+                    ),
+                }
+            )
+        ],
+        vol.Length(max=10),
+    ),
+    None,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -349,8 +384,7 @@ def _build_object_response(
     from ..helpers.i18n import normalize_language
     from ..helpers.parts import part_is_low, resolve_shopping_url
 
-    rd_parts = getattr(entry, "runtime_data", None)
-    part_store = getattr(rd_parts, "store", None) if rd_parts else None
+    part_store = get_store(hass, entry.entry_id)
     search_template = get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE)
     lang = normalize_language(hass)
     parts_payload = []
@@ -369,7 +403,7 @@ def _build_object_response(
         "entry_id": entry.entry_id,
         "object": {
             "id": obj_data.get("id", ""),
-            "name": obj_data.get("name", ""),
+            "name": object_name(entry),
             "area_id": obj_data.get("area_id"),
             "manufacturer": obj_data.get("manufacturer"),
             "model": obj_data.get("model"),
@@ -484,10 +518,96 @@ def _load_object_entry(
     additions can't forget any of the three checks.
     """
     entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+    if not is_object_entry(entry):
         connection.send_error(msg["id"], "not_found", not_found_message)
         return None
     return entry
+
+
+def _load_object_task(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+    *,
+    merged: bool = False,
+    need_store: bool = False,
+    need_coordinator: bool = False,
+) -> tuple[ConfigEntry, Any, dict[str, Any]] | None:
+    """Resolve ``msg["entry_id"]`` + ``msg["task_id"]`` to ``(entry, runtime_data,
+    task_data)``, or send the standard error and return None.
+
+    THE prologue of every per-task command — it was copied inline 17 times
+    (and the copies had drifted: snooze omitted the coordinator check, the
+    history delete never checked the task existed, apply_suggestion reported
+    a missing OBJECT as "Coordinator not found").
+
+    * entry missing / foreign / global -> ``not_found`` (via _load_object_entry)
+    * ``need_coordinator`` and none -> ``not_found`` (the code the action
+      handlers always sent for it)
+    * ``need_store`` and none -> ``not_loaded``
+    * task missing -> ``not_found``
+
+    ``merged=True`` looks the task up in the Store-merged view (dynamic fields
+    overlaid); the default is the raw ``entry.data`` config dict. The runtime
+    data is None only when neither ``need_*`` flag is set and the entry is not
+    loaded — callers that set a flag may use ``rd.coordinator`` / ``rd.store``
+    without re-checking.
+    """
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return None
+    rd = get_runtime_data(hass, entry.entry_id)
+    if need_coordinator and (rd is None or rd.coordinator is None):
+        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+        return None
+    if need_store and (rd is None or rd.store is None):
+        connection.send_error(msg["id"], "not_loaded", "Object not loaded")
+        return None
+    tasks = _get_merged_tasks(entry) if merged else entry.data.get(CONF_TASKS, {})
+    task_data = tasks.get(msg["task_id"])
+    if task_data is None:
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return None
+    return entry, rd, task_data
+
+
+def _parse_iso_date(
+    connection: websocket_api.ActiveConnection,
+    msg_id: Any,
+    value: Any,
+    *,
+    field: str,
+    code: str = "invalid_date",
+) -> date | None:
+    """``YYYY-MM-DD`` -> ``date``, or send ``code`` and return None.
+
+    Ten handlers wrapped ``date.fromisoformat`` in their own try/except with
+    ten spellings of the same message; the error CODE is the caller's (the
+    task create/update pair answers ``invalid_format``, the rest
+    ``invalid_date`` — the frontend keys on it).
+    """
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        connection.send_error(msg_id, code, f"{field} must be a valid date (YYYY-MM-DD)")
+        return None
+
+
+async def async_commit_store(rd: Any, *, budget: bool = False) -> None:
+    """Flush a user-initiated Store write and make it visible NOW.
+
+    Save (never the debounced delay-save — a restart in that window would
+    lose the change), optionally rebuild the coordinator's budget cache (a
+    history edit moves costs), then ``async_refresh_now`` — a user action
+    must never wait for the 10 s refresh debounce.
+    """
+    await rd.store.async_save()
+    coordinator = getattr(rd, "coordinator", None)
+    if coordinator is None:
+        return
+    if budget:
+        coordinator._recalculate_budget_cache()
+    await coordinator.async_refresh_now()
 
 
 def object_id_for_entry(entry: ConfigEntry) -> str:
@@ -784,11 +904,11 @@ def foreign_part_resolver(hass):
     Returns None for an entry that does not exist or is not a maintenance
     object, so a link to it is dropped rather than trusted.
     """
-    from ..const import CONF_PARTS, DOMAIN, GLOBAL_UNIQUE_ID
+    from ..const import CONF_PARTS
 
     def _resolve(entry_id: str):
         entry = hass.config_entries.async_get_entry(entry_id)
-        if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+        if not is_object_entry(entry):
             return None
         return set(entry.data.get(CONF_PARTS) or {})
 

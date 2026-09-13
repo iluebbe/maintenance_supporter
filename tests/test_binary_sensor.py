@@ -26,9 +26,12 @@ from .conftest import (
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
-    build_object_data,
     build_object_entry_data,
     build_task_data,
+    make_global_entry as _global_entry,
+    make_global_entry as _make_global,
+    make_object_entry,
+    make_object_entry as _make_object,
     setup_integration,
 )
 
@@ -54,50 +57,13 @@ def _make_entry(
     name: str = "Test Object",
     unique_id: str = "bs_test",
 ) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name),
-            tasks=tasks,
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
-def _global_entry(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name=name, uid=unique_id)
 
 
 def _object_entry(hass: HomeAssistant, tasks: dict | None = None) -> MockConfigEntry:
     if tasks is None:
         tasks = {TASK_ID_1: build_task_data()}
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Pool Pump",
-        data=build_object_entry_data(tasks=tasks),
-        source="user",
-        unique_id="test_object_unique",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name="Pool Pump", unique_id="test_object_unique")
 
 
 def _get_binary_sensors(
@@ -489,41 +455,6 @@ class TestBinarySensorResetClearsValue:
         assert task["_trigger_active"] is False
         assert task["_trigger_current_value"] is None
         assert task["_status"] == MaintenanceStatus.OK
-
-
-def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(**kw),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
-def _make_object(
-    hass: HomeAssistant,
-    tasks: dict | None = None,
-    name: str = "Test Object",
-    uid: str = "test_obj_cov",
-    object_data: dict | None = None,
-) -> MockConfigEntry:
-    od = object_data or build_object_data(name=name)
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):

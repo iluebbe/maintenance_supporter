@@ -24,7 +24,6 @@ from ..const import (
     CONF_OBJECT_WARRANTY_EXPIRY,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_DATE_LENGTH,
     MAX_ENTITY_ID_LENGTH,
     MAX_ID_LENGTH,
@@ -33,14 +32,15 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
+from ..helpers.aggregate import get_coordinator_data, get_store, is_object_entry
 from ..helpers.pause import reanchor_recurring_task
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
 from . import (
     _build_object_response,
     _get_object_entries,
-    _get_runtime_data,
     _load_object_entry,
+    _parse_iso_date,
     cleanup_group_refs,
 )
 from .tasks import (  # v1.4.0 (#43): reuse the existing URL safety check
@@ -68,6 +68,15 @@ _OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
     vol.Optional("ha_device_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
     vol.Optional("parent_entry_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
 }
+
+
+def _validate_object_dates(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
+    """False (after sending ``invalid_date``) when a present installation_date
+    / warranty_expiry (#67) is not ``YYYY-MM-DD`` — shared by create and update."""
+    for field in ("installation_date", "warranty_expiry"):
+        if msg.get(field) and _parse_iso_date(connection, msg["id"], msg[field], field=field) is None:
+            return False
+    return True
 
 
 def _validate_device_link(
@@ -108,7 +117,7 @@ def _validate_device_link(
 
     if parent_id := msg.get("parent_entry_id"):
         parent = hass.config_entries.async_get_entry(parent_id)
-        if parent is None or parent.domain != DOMAIN or parent.unique_id == GLOBAL_UNIQUE_ID:
+        if not is_object_entry(parent):
             connection.send_error(msg["id"], "invalid_parent", f"No maintenance object {parent_id!r}")
             return False
         if self_entry_id is not None:
@@ -149,8 +158,7 @@ async def ws_get_objects(
     entries = _get_object_entries(hass)
     result = []
     for entry in entries:
-        rd = _get_runtime_data(hass, entry.entry_id)
-        coord_data = rd.coordinator.data if rd and rd.coordinator else None
+        coord_data = get_coordinator_data(hass, entry.entry_id)
         result.append(_build_object_response(hass, entry, coord_data, compact=compact))
 
     connection.send_result(msg["id"], {"objects": result})
@@ -173,8 +181,7 @@ async def ws_get_object(
     if entry is None:
         return
 
-    rd = _get_runtime_data(hass, entry.entry_id)
-    coord_data = rd.coordinator.data if rd and rd.coordinator else None
+    coord_data = get_coordinator_data(hass, entry.entry_id)
     connection.send_result(msg["id"], _build_object_response(hass, entry, coord_data))
 
 
@@ -249,27 +256,11 @@ async def ws_create_object(
     model = (msg.get("model") or "").strip() or None
     serial_number = (msg.get("serial_number") or "").strip() or None
 
-    # Validate installation_date format if provided
+    # Validate installation_date / warranty_expiry (#67) format if provided
+    if not _validate_object_dates(connection, msg):
+        return
     installation_date = msg.get("installation_date")
-    if installation_date:
-        from datetime import date as date_cls
-
-        try:
-            date_cls.fromisoformat(installation_date)
-        except ValueError:
-            connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
-            return
-
-    # (#67): validate warranty_expiry format if provided
     warranty_expiry = msg.get("warranty_expiry")
-    if warranty_expiry:
-        from datetime import date as date_cls
-
-        try:
-            date_cls.fromisoformat(warranty_expiry)
-        except ValueError:
-            connection.send_error(msg["id"], "invalid_date", "Invalid warranty_expiry format (expected YYYY-MM-DD)")
-            return
 
     # v1.4.0 (#43): documentation_url
     documentation_url = (msg.get("documentation_url") or "").strip() or None
@@ -346,25 +337,9 @@ async def ws_update_object(
     if msg.get("serial_number"):
         msg["serial_number"] = msg["serial_number"].strip() or None
 
-    # Validate installation_date format if provided
-    if msg.get("installation_date"):
-        from datetime import date as date_cls
-
-        try:
-            date_cls.fromisoformat(msg["installation_date"])
-        except ValueError:
-            connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
-            return
-
-    # (#67): validate warranty_expiry format if provided
-    if msg.get("warranty_expiry"):
-        from datetime import date as date_cls
-
-        try:
-            date_cls.fromisoformat(msg["warranty_expiry"])
-        except ValueError:
-            connection.send_error(msg["id"], "invalid_date", "Invalid warranty_expiry format (expected YYYY-MM-DD)")
-            return
+    # Validate installation_date / warranty_expiry (#67) format if provided
+    if not _validate_object_dates(connection, msg):
+        return
 
     # v1.4.0 (#43): documentation_url
     if "documentation_url" in msg:
@@ -693,13 +668,11 @@ async def ws_unarchive_object(
         return
     obj.pop("archived_at", None)
 
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
+    store = get_store(hass, entry.entry_id)
     today_iso = dt_util.now().date().isoformat()
 
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
     new_tasks: dict[str, Any] = {}
-    for tid, td in tasks_data.items():
+    for tid, td in entry.data.get(CONF_TASKS, {}).items():
         td = dict(td)
         if td.get("archived_reason") == ARCHIVE_REASON_OBJECT:
             td.pop("archived_at", None)
@@ -744,8 +717,6 @@ async def ws_pause_object(
     on that day via the coordinator; without it the pause holds until an
     explicit ``object/resume``.
     """
-    from datetime import date as date_cls
-
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
@@ -760,10 +731,8 @@ async def ws_pause_object(
 
     until = msg.get("until")
     if until:
-        try:
-            until_date = date_cls.fromisoformat(until)
-        except ValueError:
-            connection.send_error(msg["id"], "invalid_date", "Invalid until format (expected YYYY-MM-DD)")
+        until_date = _parse_iso_date(connection, msg["id"], until, field="until")
+        if until_date is None:
             return
         if until_date <= dt_util.now().date():
             connection.send_error(msg["id"], "invalid_date", "until must be a future date")
@@ -815,8 +784,7 @@ async def ws_resume_object(
         connection.send_error(msg["id"], "not_paused", "Object is not paused")
         return
 
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
+    store = get_store(hass, entry.entry_id)
     new_data = build_resumed_entry_data(dict(entry.data), store, dt_util.now().date().isoformat())
     hass.config_entries.async_update_entry(entry, data=new_data)
     if store is not None:
@@ -949,11 +917,9 @@ async def ws_replace_object(
     # Copy the tracked stock counts (dynamic store state) onto the carried
     # parts, then let the successor's reconcile recreate any needed reminder.
     if part_id_map:
-        src_rd = getattr(entry, "runtime_data", None)
-        src_store = getattr(src_rd, "store", None) if src_rd else None
+        src_store = get_store(hass, entry.entry_id)
         new_entry = hass.config_entries.async_get_entry(new_entry_id)
-        new_rd = getattr(new_entry, "runtime_data", None) if new_entry else None
-        new_store = getattr(new_rd, "store", None) if new_rd else None
+        new_store = get_store(hass, new_entry_id)
         if src_store is not None and new_store is not None:
             for old_pid, new_pid in part_id_map.items():
                 stock = src_store.get_part_stock(old_pid)

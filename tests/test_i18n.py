@@ -310,7 +310,6 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "report_notes": frozenset({"fr"}),
     "quick_complete_defaults_notes": frozenset({"fr"}),
     "object": frozenset({"nl"}),
-    "on_complete_action_service": frozenset({"de", "fr", "nl"}),
     "service": frozenset({"de", "fr", "nl", "sv", "da", "nb"}),
     "part_stock": frozenset({"fr"}),
     "qr_mode_companion": "*",  # "Companion App" — HA product name
@@ -439,10 +438,36 @@ def test_backend_locale_value_completeness(path: Path) -> None:
 # Static t("...") literals in the panel/card sources. Dynamic keys
 # (t(`prefix_${x}`), t(variable)) are invisible here and intentionally skipped.
 _T_CALL_RE = re.compile(r"""\bt\(\s*(?:"([^"]+)"|'([^']+)')\s*[,)]""")
+# Prefix keys: t(`doc_cat_${c}`) and t("qr_action_" + a) — the key is
+# composed at runtime; what the source pins is the prefix.
+_T_PREFIX_TEMPLATE_RE = re.compile(r"""\bt\(\s*`([a-z0-9_]+)\$\{""")
+_T_PREFIX_CONCAT_RE = re.compile(r"""\bt\(\s*"([a-z0-9_]+)"\s*\+""")
+# Any quoted snake_case literal — the widest net for "this key is referenced
+# somewhere" (t(type, L) over a `_FILTER_TYPES` list, STATUS_COLORS keys, …).
+_QUOTED_LITERAL_RE = re.compile(r"""["'`]([a-z0-9_]+)["'`]""")
+# Prefixes composed OUTSIDE the t() call (`const key = "x_" + y; t(key)`).
+_LOOSE_PREFIX_RE = re.compile(r""""([a-z0-9_]+_)"\s*\+\s*[A-Za-z]|`([a-z0-9_]+_)\$\{""")
+# Keys no source literal names but that ARE consumed at runtime — add a row
+# here with the reason when a key is built in a way the scans above cannot
+# see (none as of the 2026-09 locale hygiene round).
+_DYNAMIC_KEY_ALLOWLIST: frozenset[str] = frozenset()
+
+
+def _frontend_sources() -> dict[str, str]:
+    src = _COMPONENT / "frontend-src"
+    out: dict[str, str] = {}
+    for ts in src.rglob("*.ts"):
+        rel = ts.relative_to(src).as_posix()
+        if rel.startswith(("node_modules/", "__tests__/", "locales/", "dist-ds/")):
+            continue
+        out[rel] = ts.read_text(encoding="utf-8", errors="replace")
+    return out
 
 
 def test_frontend_t_usage_coverage() -> None:
-    """Every static ``t("key")`` in the frontend sources exists in en.json.
+    """Every static ``t("key")`` in the frontend sources exists in en.json,
+    and every prefix key (``t(`doc_cat_${c}`)``, ``t("qr_action_" + a)``) has
+    at least one en.json key starting with the prefix.
 
     ``t()`` falls back to the RAW KEY string when a key is missing from every
     locale — key parity can't catch that (all files are equally missing it),
@@ -450,17 +475,48 @@ def test_frontend_t_usage_coverage() -> None:
     the UI. This scans the sources and fails on the first unknown key.
     """
     en_keys = set(_load(_FRONTEND_LOCALES / "en.json"))
-    src = _COMPONENT / "frontend-src"
     missing: dict[str, str] = {}
-    for ts in src.rglob("*.ts"):
-        rel = ts.relative_to(src).as_posix()
-        if rel.startswith(("node_modules/", "__tests__/", "locales/")):
-            continue
-        for match in _T_CALL_RE.finditer(ts.read_text(encoding="utf-8", errors="replace")):
+    dead_prefixes: dict[str, str] = {}
+    for rel, text in _frontend_sources().items():
+        for match in _T_CALL_RE.finditer(text):
             key = match.group(1) or match.group(2)
             if key not in en_keys:
                 missing.setdefault(key, rel)
+        for regex in (_T_PREFIX_TEMPLATE_RE, _T_PREFIX_CONCAT_RE):
+            for match in regex.finditer(text):
+                prefix = match.group(1)
+                if not any(k.startswith(prefix) for k in en_keys):
+                    dead_prefixes.setdefault(prefix, rel)
     assert not missing, {"t()_keys_missing_from_en.json": missing}
+    assert not dead_prefixes, {"t()_prefixes_without_any_en.json_key": dead_prefixes}
+
+
+def test_frontend_locale_keys_are_all_used() -> None:
+    """The reverse of the coverage test: every en.json key is referenced by
+    some frontend source — as a quoted literal (static ``t("key")``, a list
+    the code iterates with ``t(type, L)``, an object key), through a prefix
+    key, or via the explicit dynamic-key allowlist. 18 orphaned keys had
+    accumulated by 2026-09 (removed features: cal_window_*, analysis_*,
+    no_advanced_features*, …) and were being translated 22× for nothing.
+
+    Note the scan runs over EVERY frontend-src TypeScript module — the
+    panel, both cards and the dashboard strategy are separate bundles but
+    share the locale files, so a key used by any of them counts.
+    """
+    en_keys = set(_load(_FRONTEND_LOCALES / "en.json"))
+    all_text = "\n".join(_frontend_sources().values())
+    literals = set(_QUOTED_LITERAL_RE.findall(all_text))
+    prefixes = set(_T_PREFIX_TEMPLATE_RE.findall(all_text)) | set(_T_PREFIX_CONCAT_RE.findall(all_text))
+    prefixes |= {a or b for a, b in _LOOSE_PREFIX_RE.findall(all_text)}
+    unused = sorted(
+        key
+        for key in en_keys
+        if key not in literals and key not in _DYNAMIC_KEY_ALLOWLIST and not any(key.startswith(p) for p in prefixes)
+    )
+    assert not unused, {
+        "en.json_keys_no_frontend_source_references": unused,
+        "hint": "remove them from all 22 locale files, or add to _DYNAMIC_KEY_ALLOWLIST with the reason",
+    }
 
 
 def test_buy_name_templates_cover_every_ui_language() -> None:

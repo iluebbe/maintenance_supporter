@@ -24,6 +24,7 @@ import { chromium } from "@playwright/test";
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import { wsClient, onboardOrLogin, ensureIntegration } from "./ws-client.mjs";
 
 const PORT = 8135;
 const REST = `http://127.0.0.1:${PORT}`;
@@ -40,90 +41,10 @@ const log = (...a) => console.log(...a.map((x) => (typeof x === "string" ? x : J
 process.on("unhandledRejection", (e) => { log("UNHANDLED", String((e && e.stack) || e)); process.exit(2); });
 const wd = setTimeout(() => { log("WATCHDOG: run exceeded 12 min"); process.exit(3); }, 12 * 60e3);
 
-const j = async (r) => {
-  const t = await r.text();
-  try { return JSON.parse(t); } catch { throw new Error(`${r.status} ${r.url.replace(REST, "")} -> ${t.slice(0, 90)}`); }
-};
-
-async function token() {
-  const status = await fetch(REST + "/api/onboarding").then(j).catch(() => null);
-  const haveUser = status === null || (Array.isArray(status) && status.some((x) => x.step === "user" && x.done));
-  if (!haveUser) {
-    const u = await fetch(REST + "/api/onboarding/users", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: CID, name: "Demo", username: USER, password: PASS, language: "en" }),
-    }).then(j);
-    const t = await fetch(REST + "/auth/token", {
-      method: "POST",
-      body: new URLSearchParams({ grant_type: "authorization_code", code: u.auth_code, client_id: CID }),
-    }).then(j);
-    const auth = { Authorization: "Bearer " + t.access_token, "Content-Type": "application/json" };
-    for (const step of ["core_config", "analytics"]) {
-      await fetch(`${REST}/api/onboarding/${step}`, { method: "POST", headers: auth, body: "{}" }).catch(() => {});
-    }
-    await fetch(`${REST}/api/onboarding/integration`, {
-      method: "POST", headers: auth, body: JSON.stringify({ client_id: CID, redirect_uri: CID }),
-    }).catch(() => {});
-    return t.access_token;
-  }
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("token exchange failed: " + JSON.stringify(t).slice(0, 120));
-  return t.access_token;
-}
-
-async function ws(tok) {
-  const sock = new WebSocket(REST.replace("http", "ws") + "/api/websocket");
-  let id = 1;
-  const pending = new Map();
-  await new Promise((res, rej) => {
-    sock.onerror = rej;
-    sock.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
-      if (m.type === "auth_required") sock.send(JSON.stringify({ type: "auth", access_token: tok }));
-      else if (m.type === "auth_ok") res();
-      else if (m.type === "auth_invalid") rej(new Error("auth invalid"));
-      else if (m.type === "result") {
-        const p = pending.get(m.id);
-        if (p) { pending.delete(m.id); m.success ? p.res(m.result) : p.rej(new Error(JSON.stringify(m.error))); }
-      }
-    };
-  });
-  return {
-    send: (msg) => new Promise((res, rej) => { const i = id++; pending.set(i, { res, rej }); sock.send(JSON.stringify({ ...msg, id: i })); }),
-    close: () => sock.close(),
-  };
-}
-
 // ── seed: entry + object + a storage dashboard using the strategy ──────────
-const tok = await token();
-const api = await ws(tok);
-const auth = { Authorization: "Bearer " + tok, "Content-Type": "application/json" };
-const entries = await fetch(REST + "/api/config/config_entries/entry", { headers: auth }).then(j).catch(() => []);
-if (!entries.some((e) => e.domain === D)) {
-  const start = await fetch(REST + "/api/config/config_entries/flow", {
-    method: "POST", headers: auth, body: JSON.stringify({ handler: D, show_advanced_options: false }),
-  }).then(j);
-  let res = start;
-  if (start.type === "form") {
-    res = await fetch(REST + "/api/config/config_entries/flow/" + start.flow_id, {
-      method: "POST", headers: auth,
-      body: JSON.stringify({ default_warning_days: 7, notifications_enabled: false, notify_service: "" }),
-    }).then(j);
-  }
-  if (res.type !== "create_entry") throw new Error("flow failed: " + JSON.stringify(res).slice(0, 150));
-  await new Promise((r) => setTimeout(r, 6000));
-}
+const tok = await onboardOrLogin(REST, { user: USER, pass: PASS, cid: CID });
+const api = await wsClient(REST, tok);
+await ensureIntegration(REST, tok, { settleMs: 6000 });
 const objs = (await api.send({ type: `${D}/objects` })).objects;
 if (!objs.some((o) => o.object.name === "Repro Boiler")) {
   const res = await api.send({ type: `${D}/object/create`, name: "Repro Boiler" });

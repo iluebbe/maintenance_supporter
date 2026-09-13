@@ -21,9 +21,8 @@ from custom_components.maintenance_supporter.const import (
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_object_entry,
     setup_integration,
 )
 
@@ -49,20 +48,7 @@ def _make_entry(
     name: str = "Test Object",
     unique_id: str = "deep_sensor",
 ) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name),
-            tasks={TASK_ID_1: task_data},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task_data}, name=name, uid=unique_id)
 
 
 def _get_sensor_state(hass: HomeAssistant, entry: MockConfigEntry) -> Any:

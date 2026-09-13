@@ -27,7 +27,6 @@ import asyncio
 import bisect
 import logging
 import os
-from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -35,6 +34,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
 
 from ..const import DOMAIN
+from .managed_timer import ManagedTimer
 from .search_match import query_tokens, snippet, word_score, words
 
 if TYPE_CHECKING:
@@ -144,8 +144,9 @@ class DocumentTextIndex:
         self._load_lock = asyncio.Lock()
         self._work_lock = asyncio.Lock()
         self._pending: set[str] = set()
-        self._tasks: set[asyncio.Task[Any]] = set()
-        self._backfill_unsub: Callable[[], None] | None = None
+        # The backfill timer AND every extraction task; closed by cancel(),
+        # after which a queued schedule_backfill can no longer re-arm it.
+        self._timer = ManagedTimer(hass, f"{DOMAIN}_doc_text")
 
     # ------------------------------------------------------------------
     # Meta store
@@ -276,9 +277,8 @@ class DocumentTextIndex:
             finally:
                 self._pending.discard(digest)
 
-        task = self.hass.async_create_background_task(_run(), f"{DOMAIN}_doc_text_{digest[:12]}")
-        self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
+        if self._timer.track_task(_run(), name=f"{DOMAIN}_doc_text_{digest[:12]}", background=True) is None:
+            self._pending.discard(digest)  # closed — nothing will run
 
     async def async_forget(self, digest: str) -> None:
         """The last reference to a blob went — drop its words and meta."""
@@ -317,28 +317,25 @@ class DocumentTextIndex:
 
     @callback
     def schedule_backfill(self, delay: float = BACKFILL_DELAY) -> None:
-        """Run the backfill ``delay`` seconds from now (called at HA start)."""
-        from homeassistant.helpers.event import async_call_later
+        """Run the backfill ``delay`` seconds from now (called at HA start).
+        Re-arming replaces the pending timer; a no-op after :meth:`cancel`."""
+        self._timer.schedule(delay, self._run_backfill)
 
-        if self._backfill_unsub is not None:
-            self._backfill_unsub()
-
-        async def _go(_now: Any) -> None:
-            self._backfill_unsub = None
+    @callback
+    def _run_backfill(self, _now: Any) -> None:
+        async def _go() -> None:
             try:
                 await self.async_backfill()
             except Exception:
                 _LOGGER.exception("Document search backfill failed")
 
-        self._backfill_unsub = async_call_later(self.hass, delay, _go)
+        self._timer.track_task(_go(), name=f"{DOMAIN}_doc_text_backfill")
 
     @callback
     def cancel(self) -> None:
-        if self._backfill_unsub is not None:
-            self._backfill_unsub()
-            self._backfill_unsub = None
-        for task in list(self._tasks):
-            task.cancel()
+        """Teardown: drop the backfill timer, cancel running extractions and
+        refuse anything scheduled afterwards."""
+        self._timer.close()
 
     # ------------------------------------------------------------------
     # Status

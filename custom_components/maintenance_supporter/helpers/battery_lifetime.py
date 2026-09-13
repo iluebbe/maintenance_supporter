@@ -259,8 +259,7 @@ def observe_replacements(hass: HomeAssistant, batteries: list[Any]) -> int:
     if found is None:
         return 0
     store, task_id = found
-    state = store._ensure_task(task_id)  # the log is fleet-task state, owned by the store
-    log = state.get(REPLACEMENT_LOG_KEY)
+    log = store.get_task_state(task_id).get(REPLACEMENT_LOG_KEY)  # the log is fleet-task state, owned by the store
     if not isinstance(log, dict):
         log = {}
     changed = 0
@@ -295,7 +294,7 @@ def observe_replacements(hass: HomeAssistant, batteries: list[Any]) -> int:
         log[key] = {"type": ctype, "model": model, "dates": dates, "anchored": anchored}
         changed += 1
     if changed:
-        state[REPLACEMENT_LOG_KEY] = log
+        store.update_task_state(task_id, **{REPLACEMENT_LOG_KEY: log})
         store.async_delay_save()
     return changed
 

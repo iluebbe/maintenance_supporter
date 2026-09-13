@@ -16,7 +16,7 @@
  */
 import { chromium } from "@playwright/test";
 import fs from "fs";
-import { wsClient, watchdog } from "./ws-client.mjs";
+import { wsClient, watchdog, onboardOrLogin, ensureIntegration } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131";           // host-side REST
 const HA = "http://ha-shots:8123";              // browser-side (docker net)
@@ -39,65 +39,6 @@ const wd = watchdog(20 * 60e3, "shots-demo run");
 const j = (r) => r.json();
 const iso = (offsetDays) => { const d = new Date(Date.now() + offsetDays * 864e5); return d.toISOString().slice(0, 10); };
 const ts = (offsetDays) => new Date(Date.now() + offsetDays * 864e5).toISOString();
-
-async function exchange(code) {
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("token exchange failed " + JSON.stringify(t));
-  return t.access_token;
-}
-
-async function onboardOrLogin() {
-  const status = await fetch(REST + "/api/onboarding").then(j).catch(() => null);
-  // A finished instance that has been RESTARTED serves no onboarding API at
-  // all (404 → null) — that's "done", go log in. A genuinely fresh instance
-  // always answers this GET with the steps array.
-  const done = status === null || (Array.isArray(status) && status.every((x) => x.done));
-  if (done) {
-    const f = await fetch(REST + "/auth/login_flow", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-    }).then(j);
-    const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-    }).then(j);
-    return exchange(s.result);
-  }
-  const u = await fetch(REST + "/api/onboarding/users", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, name: "Demo", username: USER, password: PASS, language: "en" }),
-  }).then(j);
-  const token = await exchange(u.auth_code);
-  const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
-  for (const [step, body] of [["core_config", {}], ["analytics", {}],
-    ["integration", { client_id: CID, redirect_uri: CID + "?auth_callback=1" }]]) {
-    const r = await fetch(REST + "/api/onboarding/" + step, { method: "POST", headers: auth, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error(`onboarding/${step} -> ${r.status}`);
-  }
-  return token;
-}
-
-async function ensureIntegration(token) {
-  const auth = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
-  const entries = await fetch(REST + "/api/config/config_entries/entry", { headers: auth }).then(j).catch(() => []);
-  if (Array.isArray(entries) && entries.some((e) => e.domain === "maintenance_supporter")) return;
-  const start = await fetch(REST + "/api/config/config_entries/flow", {
-    method: "POST", headers: auth,
-    body: JSON.stringify({ handler: "maintenance_supporter", show_advanced_options: false }),
-  }).then(j);
-  let res = start;
-  if (start.type === "form") {
-    res = await fetch(REST + "/api/config/config_entries/flow/" + start.flow_id, {
-      method: "POST", headers: auth,
-      body: JSON.stringify({ default_warning_days: 7, notifications_enabled: false, notify_service: "" }),
-    }).then(j);
-  }
-  if (res.type !== "create_entry") throw new Error("integration flow failed " + JSON.stringify(res));
-  await new Promise((r) => setTimeout(r, 5000));
-}
 
 // A tiny but structurally complete one-page PDF ("Owner's Manual") so the
 // documents section has a real file entry with a plausible size.
@@ -270,8 +211,8 @@ const PATCHES = [
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 log("ONBOARD");
-const token = await onboardOrLogin();
-await ensureIntegration(token);
+const token = await onboardOrLogin(REST, { user: USER, pass: PASS, cid: CID });
+await ensureIntegration(REST, token);
 log("INTEGRATION READY");
 
 // Seed via node-side WS (browser-free). The seed used to run as one giant

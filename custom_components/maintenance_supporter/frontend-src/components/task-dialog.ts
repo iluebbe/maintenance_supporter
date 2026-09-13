@@ -14,6 +14,8 @@ import {
 } from "../helpers/trigger-domains";
 
 import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
+import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
 import "./ms-date-field";
@@ -36,7 +38,7 @@ const ADAPTIVE_DEFAULTS = { alpha: "0.3", min: "7", max: "365" } as const;
  *  String-typed like the top-level fields (form inputs); coerced on save. */
 interface CompoundConditionDraft {
   entityIds: string; // comma-separated raw input
-  type: string; // threshold | counter | state_change | runtime
+  type: TriggerType;
   attribute: string; // "" = use the entity state
   above: string;
   below: string;
@@ -161,6 +163,9 @@ export class MaintenanceTaskDialog extends LitElement {
   private _pickerProbeStrikes = 0;
   @state() private _loading = false;
   @state() private _error = "";
+  /** The task saved but a Store-managed sub-save (environmental entity,
+   *  adaptive tuning) was rejected — shown without closing the dialog. */
+  @state() private _warning = "";
   @state() private _entryId = "";
   @state() private _taskId: string | null = null; // null = create
   // When openCreate is called without an entry_id and a list of objects is supplied,
@@ -210,7 +215,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerEntityIds: string[] = [];
   @state() private _triggerEntityLogic: "any" | "all" = "any";
   @state() private _triggerAttribute = "";
-  @state() private _triggerType = "threshold";
+  @state() private _triggerType: TriggerType = "threshold";
   @state() private _triggerAbove = "";
   @state() private _triggerBelow = "";
   @state() private _triggerEquals = "";
@@ -344,6 +349,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._entryId = entryId;
     this._taskId = null;
     this._error = "";
+    this._warning = "";
     // If no entryId is preset but caller passed objects, expose them as a dropdown.
     // Sort alphabetically by name so the user doesn't have to scan for a target
     // object in creation order (#40). First object after sort becomes the
@@ -365,6 +371,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._entryId = entryId;
     this._taskId = task.id;
     this._error = "";
+    this._warning = "";
     // The object picker belongs to CREATE only. openCreate("", objects) left
     // the choices behind, so Create → Cancel → Edit showed the dropdown in
     // edit mode — and picking another object re-pointed _entryId while
@@ -1501,23 +1508,28 @@ export class MaintenanceTaskDialog extends LitElement {
       const envChanged =
         this._environmentalEntity !== this._environmentalInitial
         || this._environmentalAttribute !== this._environmentalAttributeInitial;
+      // A rejected sub-save is non-fatal (the task itself is saved) but not
+      // silent any more: it becomes a warning line and the dialog stays
+      // open so the user sees it (DRY round 2026-09 — both catches swallowed).
+      this._warning = "";
+      const subSaveFailed = (detail: string) => {
+        this._warning = t("subsave_warning", this._lang).replace("{detail}", detail);
+      };
       if (
         savedTaskId
         && this._scheduleType === "sensor_based"
         && envChanged
       ) {
-        try {
-          await this.hass.connection.sendMessagePromise({
-            type: "maintenance_supporter/task/set_environmental_entity",
-            entry_id: this._entryId,
-            task_id: savedTaskId,
-            environmental_entity: this._environmentalEntity || null,
-            environmental_attribute: this._environmentalAttribute || null,
-          });
+        const ok = await runWs(this, {
+          type: "maintenance_supporter/task/set_environmental_entity",
+          entry_id: this._entryId,
+          task_id: savedTaskId,
+          environmental_entity: this._environmentalEntity || null,
+          environmental_attribute: this._environmentalAttribute || null,
+        }, { onError: subSaveFailed });
+        if (ok !== undefined) {
           this._environmentalInitial = this._environmentalEntity;
           this._environmentalAttributeInitial = this._environmentalAttribute;
-        } catch {
-          /* non-fatal — task itself saved */
         }
       }
 
@@ -1527,25 +1539,27 @@ export class MaintenanceTaskDialog extends LitElement {
         const alpha = parseFloat(this._adaptiveAlpha);
         const minIv = parseInt(this._adaptiveMin, 10);
         const maxIv = parseInt(this._adaptiveMax, 10);
-        try {
-          await this.hass.connection.sendMessagePromise({
-            type: "maintenance_supporter/task/set_adaptive",
-            entry_id: this._entryId,
-            task_id: savedTaskId,
-            enabled: this._adaptiveEnabled,
-            ...(alpha >= 0.1 && alpha <= 0.9 ? { ewa_alpha: alpha } : {}),
-            ...(!isNaN(minIv) && minIv >= 1 ? { min_interval_days: minIv } : {}),
-            ...(!isNaN(maxIv) && maxIv >= 1 ? { max_interval_days: maxIv } : {}),
-            seasonal_enabled: this._adaptiveSeasonal,
-            sensor_prediction_enabled: this._adaptivePrediction,
-          });
-          this._adaptiveInitial = this._adaptiveSnapshot();
-        } catch {
-          /* non-fatal — task itself saved */
-        }
+        const ok = await runWs(this, {
+          type: "maintenance_supporter/task/set_adaptive",
+          entry_id: this._entryId,
+          task_id: savedTaskId,
+          enabled: this._adaptiveEnabled,
+          ...(alpha >= 0.1 && alpha <= 0.9 ? { ewa_alpha: alpha } : {}),
+          ...(!isNaN(minIv) && minIv >= 1 ? { min_interval_days: minIv } : {}),
+          ...(!isNaN(maxIv) && maxIv >= 1 ? { max_interval_days: maxIv } : {}),
+          seasonal_enabled: this._adaptiveSeasonal,
+          sensor_prediction_enabled: this._adaptivePrediction,
+        }, { onError: subSaveFailed });
+        if (ok !== undefined) this._adaptiveInitial = this._adaptiveSnapshot();
       }
 
-      this._open = false;
+      if (this._warning) {
+        // Keep the dialog open on the (now existing) task so a retry is an
+        // update, never a second create; the panel still refreshes.
+        if (savedTaskId) this._taskId = savedTaskId;
+      } else {
+        this._open = false;
+      }
       this.dispatchEvent(new CustomEvent("task-saved"));
     } catch (e) {
       this._error = describeWsError(e, this._lang, t("save_error", this._lang));
@@ -1556,6 +1570,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private _close(): void {
     this._open = false;
+    this._warning = "";
     if (this._pickerProbeTimer !== undefined) {
       clearTimeout(this._pickerProbeTimer);
       this._pickerProbeTimer = undefined;
@@ -1574,7 +1589,7 @@ export class MaintenanceTaskDialog extends LitElement {
         <label>${t("trigger_type", L)}</label>
         <select
           .value=${this._triggerType}
-          @change=${(e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value)}
+          @change=${(e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value as TriggerType)}
         >
           ${TRIGGER_TYPE_KEYS_WITH_COMPOUND.map(
             (key) => html`<option value=${key} ?selected=${key === this._triggerType}>${t(key, L)}</option>`
@@ -1750,7 +1765,7 @@ export class MaintenanceTaskDialog extends LitElement {
           <label>${t("trigger_type", L)}</label>
           <select
             .value=${c.type}
-            @change=${(e: Event) => this._patchCondition(i, { type: (e.target as HTMLSelectElement).value })}
+            @change=${(e: Event) => this._patchCondition(i, { type: (e.target as HTMLSelectElement).value as TriggerType })}
           >
             ${TRIGGER_TYPE_KEYS.map(
               (key) => html`<option value=${key} ?selected=${key === c.type}>${t(key, L)}</option>`
@@ -2602,6 +2617,7 @@ export class MaintenanceTaskDialog extends LitElement {
         <div class="dialog-title">${title}</div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._warning ? html`<div class="error warning">${this._warning}</div>` : nothing}
           ${this._taskId === null && this._objectChoices.length > 0 ? html`
             <div class="select-row">
               <label>${t("object", L)}</label>
@@ -3373,6 +3389,7 @@ export class MaintenanceTaskDialog extends LitElement {
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color, #03a9f4);
     }
+    .error.warning { color: var(--warning-color, #ff9800); }
     .error {
       color: var(--error-color, #f44336);
       font-size: 13px;

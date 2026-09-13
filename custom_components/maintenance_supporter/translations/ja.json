@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "「{task_name}」はアーカイブ済み、無効、または対象が一時停止中のため完了できません"
     },
+    "task_inactive_postpone": {
+      "message": "「{task_name}」はアーカイブ済み、無効、または対象が一時停止中のため延期できません"
+    },
+    "task_inactive_reset": {
+      "message": "「{task_name}」はアーカイブ済み、無効、または対象が一時停止中のためリセットできません"
+    },
     "task_inactive_skip": {
       "message": "「{task_name}」はアーカイブ済み、無効、または対象が一時停止中のためスキップできません"
     },

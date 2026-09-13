@@ -32,24 +32,26 @@ from custom_components.maintenance_supporter.const import (
     CONF_QUIET_HOURS_ENABLED,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_CURRENCY_DECIMALS,
-    DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.helpers import parts as parts_mod
 from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager, build_action_buttons
 
-from .conftest import TASK_ID_1, build_global_entry_data, build_task_data, make_object_entry, setup_integration
+from .conftest import (
+    TASK_ID_1,
+    build_task_data,
+    make_global_entry,
+    make_object_entry,
+    setup_integration,
+)
 
 _PACKAGE = Path(__file__).resolve().parent.parent / "custom_components" / "maintenance_supporter"
 
 
 def _global(hass: HomeAssistant, **options: Any) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
-    data[CONF_QUIET_HOURS_ENABLED] = False
-    data.update(options)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service="notify.test",
+        extra_data={CONF_QUIET_HOURS_ENABLED: False, **options},
+    )
 
 
 async def test_completed_payload_carries_tag_and_deep_link(hass: HomeAssistant) -> None:

@@ -25,6 +25,7 @@ from typing import Any
 from uuid import uuid4
 
 from ..const import MAX_READING_UNIT_LENGTH
+from .history import completed_entries
 
 # Enough for a nine-meter round twice over; small enough to keep the
 # completion dialog and the sensor attribute readable.
@@ -218,9 +219,7 @@ def last_reading_attributes(history: Iterable[Mapping[str, Any]] | None) -> dict
     so templates and automations can use the values without parsing history.
     """
     newest: Mapping[str, Any] | None = None
-    for entry in history or []:
-        if not isinstance(entry, Mapping) or entry.get("type") != "completed":
-            continue
+    for entry in completed_entries(history):
         if entry.get("reading_value") is None and not entry.get("reading_values"):
             continue
         if newest is None or str(entry.get("timestamp", "")) >= str(newest.get("timestamp", "")):

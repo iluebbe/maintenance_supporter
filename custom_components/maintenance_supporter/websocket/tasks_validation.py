@@ -12,12 +12,11 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 
 from ..const import (
-    CONF_OBJECT,
-    CONF_OBJECT_NAME,
     CONF_TASKS,
     UNAVAILABLE_STATES,
     TriggerType,
 )
+from ..helpers.aggregate import object_name
 from ..helpers.trigger_fallback import threshold_limits_overlap
 from . import (
     _get_object_entries,
@@ -71,7 +70,7 @@ def _check_nfc_tag_duplicate(hass: HomeAssistant, nfc_tag_id: str, exclude_task_
     """
     for entry in _get_object_entries(hass):
         tasks = entry.data.get(CONF_TASKS, {})
-        obj_name = entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")
+        obj_name = object_name(entry)
         for tid, tdata in tasks.items():
             if tid == exclude_task_id:
                 continue

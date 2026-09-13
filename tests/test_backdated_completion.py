@@ -25,9 +25,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.maintenance_supporter.const import (
-    DOMAIN,
     EVENT_TASK_COMPLETED,
-    GLOBAL_UNIQUE_ID,
     HistoryEntryType,
 )
 from custom_components.maintenance_supporter.models.maintenance_task import (
@@ -39,11 +37,10 @@ from custom_components.maintenance_supporter.websocket.tasks_actions import (
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry as _global,
+    make_object_entry,
     make_ws_connection as _conn,
     setup_integration,
 )
@@ -126,37 +123,10 @@ def test_same_day_backdate_counts_as_latest() -> None:
 # ─── Coordinator + WS: event payload, validation, dedup ─────────────────────
 
 
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
 def _object(hass: HomeAssistant, extra_task_fields: dict | None = None, **task_kwargs) -> MockConfigEntry:
     task_data = build_task_data(**task_kwargs)
     task_data.update(extra_task_fields or {})
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Boiler",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Boiler"),
-            tasks={TASK_ID_1: task_data},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_backdate_obj",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task_data}, name="Boiler", uid="backdate_obj")
 
 
 async def _ws_complete(hass: HomeAssistant, obj: MockConfigEntry, **fields):

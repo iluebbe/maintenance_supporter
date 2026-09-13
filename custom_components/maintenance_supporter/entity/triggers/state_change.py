@@ -6,15 +6,15 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.event import (
     EventStateChangedData,
-    async_call_later,
     async_track_state_change_event,
 )
 from homeassistant.util import dt as dt_util
 
 from ...const import UNAVAILABLE_STATES
+from ...helpers.managed_timer import ManagedTimer
 
 if TYPE_CHECKING:
     from ...sensor import MaintenanceSensor
@@ -44,7 +44,6 @@ class StateChangeTrigger(BaseTrigger):
     _pending_state: str | None = None
     _pending_since: str | None = None
     _interrupted_pending: str | None = None
-    _timer_cancel: CALLBACK_TYPE | None = None
 
     def __init__(
         self,
@@ -77,7 +76,7 @@ class StateChangeTrigger(BaseTrigger):
         # sensors glitching for seconds at night) and the cycle counter
         # (a flicker is not a wash cycle).
         self._for_minutes: int = int(trigger_config.get("trigger_for_minutes", 0) or 0)
-        self._timer_cancel: CALLBACK_TYPE | None = None
+        self._hold_timer = ManagedTimer(hass, f"StateChangeTrigger:{self.entity_id}:hold")
         # A window cut short by an unavailability blip — the only case that
         # may re-open on recovery (see _handle_state_transition).
         self._interrupted_pending: str | None = None
@@ -225,52 +224,44 @@ class StateChangeTrigger(BaseTrigger):
 
     def _start_pending(self, new_val: str) -> None:
         """(Re)open the hold window for *new_val* — commits when the timer fires."""
-        self._cancel_timer()
+        self._hold_timer.cancel()
         self._pending_state = new_val
         self._pending_since = dt_util.utcnow().isoformat()
         self._persist_runtime_soon()
         self._start_hold_timer()
 
     def _start_hold_timer(self, remaining_seconds: float | None = None) -> None:
-        self._cancel_timer()
         duration = remaining_seconds if remaining_seconds is not None else self._for_minutes * 60
+        self._hold_timer.schedule(duration, self._hold_timer_fired)
 
-        @callback
-        def _timer_fired(_now: datetime) -> None:
-            pending = self._pending_state
-            self._pending_state = None
-            self._pending_since = None
-            self._timer_cancel = None
-            if pending is None:
-                return
-            # Safety net: only commit while the state still holds.
-            live = self.hass.states.get(self.entity_id)
-            if live is None or _norm_state(live.state) != _norm_state(pending):
-                self._persist_runtime_soon()
-                return
-            _LOGGER.debug(
-                "State hold timer fired: %s held %r for %d min",
-                self.entity_id,
-                pending,
-                self._for_minutes,
-            )
-            self._commit_transition(pending, None)
-
-        self._timer_cancel = async_call_later(self.hass, duration, _timer_fired)
+    @callback
+    def _hold_timer_fired(self, _now: datetime) -> None:
+        pending = self._pending_state
+        self._pending_state = None
+        self._pending_since = None
+        if pending is None:
+            return
+        # Safety net: only commit while the state still holds.
+        live = self.hass.states.get(self.entity_id)
+        if live is None or _norm_state(live.state) != _norm_state(pending):
+            self._persist_runtime_soon()
+            return
+        _LOGGER.debug(
+            "State hold timer fired: %s held %r for %d min",
+            self.entity_id,
+            pending,
+            self._for_minutes,
+        )
+        self._commit_transition(pending, None)
 
     def _clear_pending(self) -> None:
         """Abandon the hold window (state moved on before it elapsed)."""
-        if self._pending_state is None and self._timer_cancel is None:
+        if self._pending_state is None and not self._hold_timer.pending:
             return
-        self._cancel_timer()
+        self._hold_timer.cancel()
         self._pending_state = None
         self._pending_since = None
         self._persist_runtime_soon()
-
-    def _cancel_timer(self) -> None:
-        if self._timer_cancel is not None:
-            self._timer_cancel()
-            self._timer_cancel = None
 
     def _commit_transition(self, new_val: str, old_val: str | None) -> None:
         """Count one matching transition (immediately, or after its hold)."""
@@ -442,7 +433,7 @@ class StateChangeTrigger(BaseTrigger):
 
     def _persist_runtime_soon(self) -> None:
         if self.hass.is_running:
-            self.hass.async_create_task(self._persist_runtime())
+            self._track(self._persist_runtime())
 
     async def _persist_runtime(self) -> None:
         """Persist the full runtime dict (count + hold window) to the Store.
@@ -462,13 +453,13 @@ class StateChangeTrigger(BaseTrigger):
 
     async def async_teardown(self) -> None:
         """Clean up the hold timer on teardown."""
-        self._cancel_timer()
+        self._hold_timer.close()
         await super().async_teardown()
 
     def reset(self) -> None:
         """Reset trigger, counter and any running hold window."""
         super().reset()
-        self._cancel_timer()
+        self._hold_timer.cancel()
         self._pending_state = None
         self._pending_since = None
         self._interrupted_pending = None

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -47,12 +47,11 @@ from .conftest import (
     build_task_data,
     call_ws_handler,
     get_task_store_state,
+    make_ws_connection,
     setup_integration,
 )
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
-
-
 
 
 @pytest.fixture
@@ -1531,18 +1530,6 @@ def test_validate_threshold_missing_above_below(hass: HomeAssistant) -> None:
 # ===========================================================================
 
 
-def _covws_conn() -> MagicMock:
-    """Create a mock WS connection (carried from test_cov_ws.py)."""
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    conn.subscriptions = {}
-    conn.send_message = MagicMock()
-    return conn
-
-
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
@@ -1582,7 +1569,7 @@ async def test_create_task_interval_unit_weeks(
 ) -> None:
     """ws_create_task: interval_unit='weeks' branch is hit and persisted via schedule."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_create_task,
@@ -1659,7 +1646,7 @@ async def test_create_task_interval_anchor_planned(
 ) -> None:
     """ws_create_task: interval_anchor='planned' branch is executed; task is created."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_create_task,
@@ -1693,7 +1680,7 @@ async def test_create_task_with_due_date(
 ) -> None:
     """ws_create_task: due_date is persisted for one_time tasks."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_create_task,
@@ -1727,7 +1714,7 @@ async def test_create_task_invalid_last_performed(
 ) -> None:
     """ws_create_task: non-ISO last_performed → invalid_format error."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_create_task,
@@ -1754,7 +1741,7 @@ async def test_update_task_empty_name(
 ) -> None:
     """ws_update_task: setting name to blank string → invalid_input error."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_update_task,
@@ -1781,7 +1768,7 @@ async def test_update_task_invalid_last_performed(
 ) -> None:
     """ws_update_task: non-ISO last_performed → invalid_format error."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_update_task,
@@ -1822,7 +1809,7 @@ async def test_list_tasks_filtered_by_entry(
     entry2.add_to_hass(hass)
     await setup_integration(hass, covws_global_entry, covws_object_entry, entry2)
 
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # ws_list_tasks is @callback (synchronous) — unwrap and call directly
     unwrapped = ws_list_tasks
@@ -1852,7 +1839,7 @@ async def test_quick_complete_no_coordinator(
 ) -> None:
     """ws_quick_complete_task: missing runtime_data → not_found error."""
     await setup_integration(hass, covws_global_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_quick_complete_task,
@@ -1878,7 +1865,7 @@ async def test_quick_complete_entry_not_found(
 ) -> None:
     """ws_quick_complete_task: entry doesn't exist → not_found error."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     # Provide valid entry_id (so coordinator lookup works) but wrong entry for task
     await call_ws_handler(
@@ -1905,7 +1892,7 @@ async def test_quick_complete_no_defaults(
 ) -> None:
     """ws_quick_complete_task: task without quick_complete_defaults → no_defaults error."""
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
     await call_ws_handler(
         ws_quick_complete_task,
@@ -1932,31 +1919,24 @@ async def test_update_history_entry_no_store(
     """ws_update_history_entry: no Store (entry not loaded) → not_loaded error."""
     # Setup integration but manually strip runtime_data.store to simulate missing store
     await setup_integration(hass, covws_global_entry, covws_object_entry)
-    conn = _covws_conn()
+    conn = make_ws_connection()
 
-    # Patch _get_runtime_data to return an object without a store
-    fake_rd = MagicMock()
-    fake_rd.store = None
-    fake_rd.coordinator = None
+    # Strip the Store from the live runtime data (the shared prologue
+    # _load_object_task reads entry.runtime_data via helpers.aggregate).
+    covws_object_entry.runtime_data.store = None
 
-    with patch(
-        # ws_update_history_entry lives in the tasks_history submodule now; patch
-        # the helper where it's looked up (the split moved the lookup location).
-        "custom_components.maintenance_supporter.websocket.tasks_history._get_runtime_data",
-        return_value=fake_rd,
-    ):
-        await call_ws_handler(
-            ws_update_history_entry,
-            hass,
-            conn,
-            {
-                "id": 1,
-                "type": "maintenance_supporter/task/history/update",
-                "entry_id": covws_object_entry.entry_id,
-                "task_id": TASK_ID_1,
-                "original_timestamp": "2024-06-01T00:00:00",
-            },
-        )
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": covws_object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": "2024-06-01T00:00:00",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_loaded"
@@ -2057,17 +2037,6 @@ def _c97_nid() -> int:
     global _c97_msg_id
     _c97_msg_id += 1
     return _c97_msg_id
-
-
-def _c97_conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.send_message = MagicMock()
-    conn.subscriptions = {}
-    conn.user = MagicMock(is_admin=True)
-    conn.user.id = "mock-ws-user"
-    return conn
 
 
 # ─── websocket/tasks.py: _is_safe_url ─────────────────────────────────
@@ -2246,7 +2215,7 @@ async def test_create_task_global_entry_rejected(
 ) -> None:
     """Line 275: creating task on global entry returns not_found."""
     await setup_integration(hass, global_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_create_task,
         hass,
@@ -2269,7 +2238,7 @@ async def test_create_task_unsafe_url(
 ) -> None:
     """Lines 301-302: unsafe documentation_url rejected."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_create_task,
         hass,
@@ -2304,7 +2273,7 @@ async def test_create_task_nfc_duplicate_warning(
     )
     obj_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, obj_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
 
     # Create second task with same NFC tag + checklist
     await call_ws_handler(
@@ -2341,7 +2310,7 @@ async def test_create_task_legacy_store_path(
     original_store = rd.store
     rd.store = None
 
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_create_task,
         hass,
@@ -2372,7 +2341,7 @@ async def test_update_task_invalid_entity_slug(
 ) -> None:
     """Lines 431-438: invalid entity_slug rejected."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_update_task,
         hass,
@@ -2408,7 +2377,7 @@ async def test_update_task_nfc_duplicate_warning(
     )
     obj_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, obj_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
 
     # Update task2 to have same NFC tag as task1
     await call_ws_handler(
@@ -2435,7 +2404,7 @@ async def test_update_task_unsafe_url(
 ) -> None:
     """Lines 448-449: unsafe documentation_url on update."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_update_task,
         hass,
@@ -2462,7 +2431,7 @@ async def test_list_tasks_filtered_by_entry_id(
 ) -> None:
     """Line 590: entry_id filter skips non-matching entries."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     ws_list_tasks(
         hass,
         conn,
@@ -2488,7 +2457,7 @@ async def test_complete_task_not_found_c97(
 ) -> None:
     """Lines 641-642: task not found in ws_complete_task."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_complete_task,
         hass,
@@ -2510,7 +2479,7 @@ async def test_skip_task_not_found_c97(
 ) -> None:
     """Lines 677-678: task not found in ws_skip_task."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_skip_task,
         hass,
@@ -2532,7 +2501,7 @@ async def test_reset_task_not_found_c97(
 ) -> None:
     """Lines 711-712: task not found in ws_reset_task."""
     await setup_integration(hass, global_entry, object_entry)
-    conn = _c97_conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_reset_task,
         hass,

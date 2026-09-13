@@ -24,7 +24,6 @@ from ..const import (
     CONF_OBJECT,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
-    CONF_OBJECT_NAME,
     CONF_TASKS,
     DOMAIN,
     MAX_CHECKLIST_ITEM_LENGTH,
@@ -33,8 +32,10 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_IMPORT_PAYLOAD_BYTES,
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
+    MAX_VACATION_EXEMPT_TASKS,
 )
-from ..helpers.dates import normalize_hhmm
+from ..helpers.aggregate import get_store, object_name
+from ..helpers.dates import normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
@@ -44,7 +45,7 @@ from ..helpers.qr_generator import (
     generate_qr_svg_data_uri,
 )
 from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
-from . import _get_object_entries, _load_object_entry
+from . import _get_object_entries, _load_object_entry, _load_object_task
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ def _iso_marker(value: Any) -> str | None:
     object as paused forever (and a malformed ``paused_until`` means auto-resume
     never fires). Validate on import so only a real timestamp restores the state.
     """
-    from datetime import date, datetime
+    from datetime import datetime
 
     if not isinstance(value, str) or not value.strip():
         return None
@@ -71,11 +72,7 @@ def _iso_marker(value: Any) -> str | None:
         datetime.fromisoformat(s.replace("Z", "+00:00"))
         return s
     except ValueError:
-        try:
-            date.fromisoformat(s)
-            return s
-        except ValueError:
-            return None
+        return s if parse_iso_date(s) is not None else None
 
 
 def _sanitize_history(history: Any) -> list[dict[str, Any]]:
@@ -513,8 +510,6 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
     instance — they are kept verbatim (same-instance restores keep them
     valid; elsewhere they degrade gracefully like every stale reference).
     """
-    from datetime import date as date_cls
-
     from ..const import (
         CONF_GROUPS,
         CONF_NOTIFY_SERVICE,
@@ -575,17 +570,13 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
         filtered[CONF_VACATION_ENABLED] = raw[CONF_VACATION_ENABLED]
     for key in (CONF_VACATION_START, CONF_VACATION_END):
         val = raw.get(key)
-        if isinstance(val, str):
-            try:
-                date_cls.fromisoformat(val)
-            except ValueError:
-                continue
+        if isinstance(val, str) and parse_iso_date(val) is not None:
             filtered[key] = val
     if isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), int) and not isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), bool):
         filtered[CONF_VACATION_BUFFER_DAYS] = raw[CONF_VACATION_BUFFER_DAYS]
     exempt = raw.get(CONF_VACATION_EXEMPT_TASK_IDS)
     if isinstance(exempt, list):
-        cleaned = [t.strip() for t in exempt if isinstance(t, str) and t.strip()][:2000]
+        cleaned = [t.strip() for t in exempt if isinstance(t, str) and t.strip()][:MAX_VACATION_EXEMPT_TASKS]
         filtered[CONF_VACATION_EXEMPT_TASK_IDS] = cleaned
 
     if not filtered:
@@ -936,13 +927,8 @@ async def ws_import_json(
             if iv is not None and (not isinstance(iv, int) or iv < 1):
                 task_data.pop("interval_days", None)
             lp = task_data.get("last_performed")
-            if lp is not None:
-                try:
-                    from datetime import date
-
-                    date.fromisoformat(lp)
-                except (ValueError, TypeError):
-                    task_data.pop("last_performed", None)
+            if lp is not None and parse_iso_date(lp) is None:
+                task_data.pop("last_performed", None)
             wd = task_data.get("warning_days")
             if not isinstance(wd, int) or wd < 0 or wd > 365:
                 task_data["warning_days"] = get_default_warning_days(hass)
@@ -1102,8 +1088,7 @@ async def ws_import_json(
             # Restore tracked part stocks into the new entry's Store.
             if part_stocks:
                 new_entry = hass.config_entries.async_get_entry(result["result"].entry_id)
-                rd_new = getattr(new_entry, "runtime_data", None) if new_entry else None
-                store_new = getattr(rd_new, "store", None) if rd_new else None
+                store_new = get_store(hass, result["result"].entry_id)
                 if store_new is not None:
                     for pid, stock_val in part_stocks.items():
                         store_new.set_part_stock(pid, stock_val)
@@ -1149,20 +1134,21 @@ async def ws_generate_qr(
     msg: dict[str, Any],
 ) -> None:
     """Generate a QR code for a maintenance object or task."""
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
-        return
-
-    obj_data = entry.data.get(CONF_OBJECT, {})
     task_id = msg.get("task_id")
     task_name = None
 
     if task_id:
-        tasks_data = entry.data.get(CONF_TASKS, {})
-        if task_id not in tasks_data:
-            connection.send_error(msg["id"], "not_found", "Task not found")
+        ctx = _load_object_task(hass, connection, msg)
+        if ctx is None:
             return
-        task_name = tasks_data[task_id].get("name", "")
+        entry, _rd, task = ctx
+        task_name = task.get("name", "")
+    else:
+        entry = _load_object_entry(hass, connection, msg)
+        if entry is None:
+            return
+
+    obj_data = entry.data.get(CONF_OBJECT, {})
 
     action = msg.get("action", "view")
     url_mode = msg.get("url_mode", "server")
@@ -1191,7 +1177,7 @@ async def ws_generate_qr(
             "svg_data_uri": svg_data_uri,
             "url": url,
             "label": {
-                "object_name": obj_data.get(CONF_OBJECT_NAME, ""),
+                "object_name": object_name(entry),
                 "manufacturer": obj_data.get(CONF_OBJECT_MANUFACTURER, ""),
                 "model": obj_data.get(CONF_OBJECT_MODEL, ""),
                 "task_name": task_name,
@@ -1264,7 +1250,7 @@ async def ws_batch_generate_qr(
     task_filter = set(msg["task_ids"]) if msg.get("task_ids") else None
     targets: list[tuple[str, str, str, str]] = []
     for entry in entries:
-        obj_name = entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")
+        obj_name = object_name(entry)
         tasks_data = entry.data.get(CONF_TASKS, {})
         for task_id, task_data in tasks_data.items():
             if task_filter is not None and task_id not in task_filter:

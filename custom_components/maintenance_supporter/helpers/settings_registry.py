@@ -1,11 +1,18 @@
-"""Single source of truth for global-setting validation.
+"""Single source of truth for global-setting validation AND defaults.
 
 Each writable global setting is declared ONCE here as a ``SettingSpec`` (key +
-type + optional numeric range / string cap). The WS write handler
+type + default + optional numeric range / string cap). The WS write handler
 (``websocket/dashboard.py``) derives its allow-list and range/cap tables from
 this registry, and the options flow (``config_flow_options_global.py``) pulls
 its NumberSelector min/max from the same specs — so the ranges can't drift
 between the two surfaces (they previously lived as three hand-kept copies).
+
+The ``default`` is what an unset option means everywhere: the WS ``settings``
+echo, the options-flow form defaults and the runtime readers (notification
+manager, coordinator) all go through :func:`setting_default`, so "24 h" for
+the due-soon repeat or "off" for completion notifications is written once
+(DRY review 2026-09-12 — the values used to live as four hand-kept copies).
+``tests/test_settings_defaults.py`` pins the three surfaces to this table.
 
 Bespoke normalisation that isn't a plain range/cap (panel-title trim,
 title-style enum, quiet-hours regex, list sanitisers, notify-service
@@ -15,7 +22,9 @@ type + range + length checks.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
+from typing import Any
 
 import voluptuous as vol
 
@@ -80,16 +89,30 @@ from ..const import (
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
+    DEFAULT_ARCHIVE_ONEOFF_DAYS,
+    DEFAULT_BATTERY_LOW_PERCENT,
+    DEFAULT_BUDGET_CURRENCY,
+    DEFAULT_CONSUMABLE_THRESHOLD,
+    DEFAULT_CURRENCY_DECIMALS,
+    DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
+    DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
+    DEFAULT_OBJECTS_TABLE_COLUMNS,
+    DEFAULT_PANEL_ENABLED,
+    DEFAULT_ROW_ACTION_STYLE,
+    DEFAULT_SNOOZE_DURATION_HOURS,
+    DEFAULT_WARNING_DAYS,
+    DEFAULT_WARRANTY_REMINDER_DAYS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
 )
 
 
 @dataclass(frozen=True)
 class SettingSpec:
-    """Validation spec for one writable global setting."""
+    """Validation spec + default for one writable global setting."""
 
     key: str
     py_type: type  # int | float | bool | str | list — used for isinstance()
+    default: Any = None  # what an unset option means (never None — see the tripwire)
     int_range: tuple[int, int] | None = None
     float_range: tuple[float, float] | None = None
     max_len: int | None = None  # string length cap
@@ -101,93 +124,107 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # General
     # 0 = no warning window: new tasks turn due_soon on the due date itself
     # (the per-task range already allowed 0 — #145).
-    SettingSpec(CONF_DEFAULT_WARNING_DAYS, int, int_range=(0, 365)),
+    SettingSpec(CONF_DEFAULT_WARNING_DAYS, int, DEFAULT_WARNING_DAYS, int_range=(0, 365)),
     # #146: household "low" floors (percent) for discovery and the battery fleet.
-    SettingSpec(CONF_DEFAULT_CONSUMABLE_THRESHOLD, int, int_range=(1, 90)),
-    SettingSpec(CONF_BATTERY_LOW_PERCENT, int, int_range=(1, 90)),
+    SettingSpec(CONF_DEFAULT_CONSUMABLE_THRESHOLD, int, DEFAULT_CONSUMABLE_THRESHOLD, int_range=(1, 90)),
+    SettingSpec(CONF_BATTERY_LOW_PERCENT, int, DEFAULT_BATTERY_LOW_PERCENT, int_range=(1, 90)),
     # D#162 follow-up: {battery type: typical lifetime in months} — the forecast
     # anchor for batteries without a level sensor (sanitised in dashboard.py).
-    SettingSpec(CONF_BATTERY_LIFETIME_MONTHS, dict),
-    SettingSpec(CONF_NOTIFICATIONS_ENABLED, bool),
-    SettingSpec(CONF_NOTIFY_SERVICE, str, max_len=200),
+    SettingSpec(CONF_BATTERY_LIFETIME_MONTHS, dict, {}),
+    SettingSpec(CONF_NOTIFICATIONS_ENABLED, bool, False),
+    SettingSpec(CONF_NOTIFY_SERVICE, str, "", max_len=200),
     # todo.* entity the buy-task shopping sync mirrors into ("" = off);
     # format-validated by a bespoke sanitiser rule (todo. prefix), max_len is
     # HA's entity-id cap.
-    SettingSpec(CONF_SHOPPING_LIST_ENTITY, str, max_len=255),
+    SettingSpec(CONF_SHOPPING_LIST_ENTITY, str, "", max_len=255),
     # #145: enum-validated by a bespoke rule (ROW_ACTION_STYLES); the notice
     # flag is only ever cleared by the panel banner.
-    SettingSpec(CONF_ROW_ACTION_STYLE, str, max_len=32),
-    SettingSpec(CONF_REF_NUMBERS_IN_LISTS, bool),
-    SettingSpec(CONF_ROW_ACTION_NOTICE, bool),
-    SettingSpec(CONF_PANEL_ENABLED, bool),
+    SettingSpec(CONF_ROW_ACTION_STYLE, str, DEFAULT_ROW_ACTION_STYLE, max_len=32),
+    SettingSpec(CONF_REF_NUMBERS_IN_LISTS, bool, False),
+    SettingSpec(CONF_ROW_ACTION_NOTICE, bool, False),
+    SettingSpec(CONF_PANEL_ENABLED, bool, DEFAULT_PANEL_ENABLED),
     # panel_title is trimmed+capped to MAX_PANEL_TITLE_LENGTH by a bespoke rule,
     # not a plain drop-if-too-long — so no max_len here.
-    SettingSpec(CONF_PANEL_TITLE, str),
+    SettingSpec(CONF_PANEL_TITLE, str, ""),
     # Advanced-feature toggles
-    SettingSpec(CONF_ADVANCED_ADAPTIVE, bool),
-    SettingSpec(CONF_ADVANCED_PREDICTIONS, bool),
-    SettingSpec(CONF_ADVANCED_SEASONAL, bool),
-    SettingSpec(CONF_ADVANCED_ENVIRONMENTAL, bool),
-    SettingSpec(CONF_ADVANCED_BUDGET, bool),
-    SettingSpec(CONF_ADVANCED_GROUPS, bool),
-    SettingSpec(CONF_ADVANCED_CHECKLISTS, bool),
-    SettingSpec(CONF_ADVANCED_SCHEDULE_TIME, bool),
-    SettingSpec(CONF_ADVANCED_COMPLETION_ACTIONS, bool),
+    SettingSpec(CONF_ADVANCED_ADAPTIVE, bool, False),
+    SettingSpec(CONF_ADVANCED_PREDICTIONS, bool, False),
+    SettingSpec(CONF_ADVANCED_SEASONAL, bool, False),
+    SettingSpec(CONF_ADVANCED_ENVIRONMENTAL, bool, False),
+    SettingSpec(CONF_ADVANCED_BUDGET, bool, False),
+    SettingSpec(CONF_ADVANCED_GROUPS, bool, False),
+    SettingSpec(CONF_ADVANCED_CHECKLISTS, bool, False),
+    SettingSpec(CONF_ADVANCED_SCHEDULE_TIME, bool, False),
+    SettingSpec(CONF_ADVANCED_COMPLETION_ACTIONS, bool, False),
     # Governance (list elements sanitised by a bespoke rule in the handler)
-    SettingSpec(CONF_ADMIN_PANEL_USER_IDS, list),
-    SettingSpec(CONF_OPERATOR_WRITE_ENABLED, bool),
-    SettingSpec(CONF_OBJECTS_TABLE_COLUMNS, list),
+    SettingSpec(CONF_ADMIN_PANEL_USER_IDS, list, []),
+    SettingSpec(CONF_OPERATOR_WRITE_ENABLED, bool, False),
+    SettingSpec(CONF_OBJECTS_TABLE_COLUMNS, list, DEFAULT_OBJECTS_TABLE_COLUMNS),
     # #169 follow-up: member avatars (bespoke palette/initials sanitiser)
-    SettingSpec(CONF_MEMBER_DISPLAY, dict),
+    SettingSpec(CONF_MEMBER_DISPLAY, dict, {}),
     # v2.21: hidden template ids (bespoke known-id sanitiser in the handler)
-    SettingSpec(CONF_DISABLED_TEMPLATE_IDS, list),
+    SettingSpec(CONF_DISABLED_TEMPLATE_IDS, list, []),
     # Archive automation
-    SettingSpec(CONF_ARCHIVE_ONEOFF_DAYS, int, int_range=(0, 3650)),
-    SettingSpec(CONF_DELETE_ARCHIVED_ONEOFF_DAYS, int, int_range=(0, 3650)),
-    # Notification per-status
-    SettingSpec(CONF_NOTIFY_DUE_SOON_ENABLED, bool),
-    SettingSpec(CONF_NOTIFY_DUE_SOON_INTERVAL, int, int_range=(0, 720)),
-    SettingSpec(CONF_NOTIFY_OVERDUE_ENABLED, bool),
-    SettingSpec(CONF_NOTIFY_OVERDUE_INTERVAL, int, int_range=(0, 720)),
-    SettingSpec(CONF_NOTIFY_TRIGGERED_ENABLED, bool),
-    SettingSpec(CONF_NOTIFY_TRIGGERED_INTERVAL, int, int_range=(0, 720)),
+    SettingSpec(CONF_ARCHIVE_ONEOFF_DAYS, int, DEFAULT_ARCHIVE_ONEOFF_DAYS, int_range=(0, 3650)),
+    SettingSpec(CONF_DELETE_ARCHIVED_ONEOFF_DAYS, int, DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS, int_range=(0, 3650)),
+    # Notification per-status (interval 0 = notify once per status)
+    SettingSpec(CONF_NOTIFY_DUE_SOON_ENABLED, bool, True),
+    SettingSpec(CONF_NOTIFY_DUE_SOON_INTERVAL, int, 24, int_range=(0, 720)),
+    SettingSpec(CONF_NOTIFY_OVERDUE_ENABLED, bool, True),
+    SettingSpec(CONF_NOTIFY_OVERDUE_INTERVAL, int, 12, int_range=(0, 720)),
+    SettingSpec(CONF_NOTIFY_TRIGGERED_ENABLED, bool, True),
+    SettingSpec(CONF_NOTIFY_TRIGGERED_INTERVAL, int, 0, int_range=(0, 720)),
     # Quiet hours (HH:MM[:SS] validated by a bespoke regex in the handler)
-    SettingSpec(CONF_QUIET_HOURS_ENABLED, bool),
-    SettingSpec(CONF_QUIET_HOURS_START, str, max_len=5),
-    SettingSpec(CONF_QUIET_HOURS_END, str, max_len=5),
+    SettingSpec(CONF_QUIET_HOURS_ENABLED, bool, True),
+    SettingSpec(CONF_QUIET_HOURS_START, str, "22:00", max_len=5),
+    SettingSpec(CONF_QUIET_HOURS_END, str, "08:00", max_len=5),
     # Limits + bundling
-    SettingSpec(CONF_MAX_NOTIFICATIONS_PER_DAY, int, int_range=(0, 1000)),
-    SettingSpec(CONF_NOTIFICATION_BUNDLING_ENABLED, bool),
-    SettingSpec(CONF_NOTIFICATION_BUNDLE_THRESHOLD, int, int_range=(2, 20)),
-    # title_style is enum-validated by a bespoke rule in the handler.
-    SettingSpec(CONF_NOTIFICATION_TITLE_STYLE, str),
+    SettingSpec(CONF_MAX_NOTIFICATIONS_PER_DAY, int, DEFAULT_MAX_NOTIFICATIONS_PER_DAY, int_range=(0, 1000)),
+    SettingSpec(CONF_NOTIFICATION_BUNDLING_ENABLED, bool, False),
+    SettingSpec(CONF_NOTIFICATION_BUNDLE_THRESHOLD, int, 2, int_range=(2, 20)),
+    # title_style is enum-validated by a bespoke rule in the handler
+    # (v1.4.0 / #44: "default" keeps the per-status titles).
+    SettingSpec(CONF_NOTIFICATION_TITLE_STYLE, str, "default"),
     # #173 follow-up: completion notifications off / automatic / all (enum-checked in dashboard.py).
-    SettingSpec(CONF_NOTIFY_COMPLETED, str, max_len=16),
-    SettingSpec(CONF_NOTIFY_SCOPE_VIEW_ID, str, max_len=64),
+    SettingSpec(CONF_NOTIFY_COMPLETED, str, "off", max_len=16),
+    SettingSpec(CONF_NOTIFY_SCOPE_VIEW_ID, str, "", max_len=64),
     # #165: your own notification rule
-    SettingSpec(CONF_NOTIFY_EVENT_ONLY, bool),
-    SettingSpec(CONF_NOTIFY_EXTRA_DATA, str, max_len=MAX_NOTIFY_EXTRA_DATA_LENGTH),
+    SettingSpec(CONF_NOTIFY_EVENT_ONLY, bool, False),
+    SettingSpec(CONF_NOTIFY_EXTRA_DATA, str, "", max_len=MAX_NOTIFY_EXTRA_DATA_LENGTH),
     # Actions
-    SettingSpec(CONF_ACTION_COMPLETE_ENABLED, bool),
-    SettingSpec(CONF_ACTION_SKIP_ENABLED, bool),
-    SettingSpec(CONF_ACTION_SNOOZE_ENABLED, bool),
-    SettingSpec(CONF_SNOOZE_DURATION_HOURS, int, int_range=(1, 168)),
-    SettingSpec(CONF_WEEKLY_DIGEST_ENABLED, bool),
-    SettingSpec(CONF_INSTALL_ASSIST_SENTENCES, bool),
-    SettingSpec(CONF_WARRANTY_REMINDER_ENABLED, bool),
-    SettingSpec(CONF_WARRANTY_REMINDER_DAYS, int, int_range=(1, 365)),
+    SettingSpec(CONF_ACTION_COMPLETE_ENABLED, bool, False),
+    SettingSpec(CONF_ACTION_SKIP_ENABLED, bool, False),
+    SettingSpec(CONF_ACTION_SNOOZE_ENABLED, bool, False),
+    SettingSpec(CONF_SNOOZE_DURATION_HOURS, int, DEFAULT_SNOOZE_DURATION_HOURS, int_range=(1, 168)),
+    SettingSpec(CONF_WEEKLY_DIGEST_ENABLED, bool, False),
+    SettingSpec(CONF_INSTALL_ASSIST_SENTENCES, bool, False),
+    SettingSpec(CONF_WARRANTY_REMINDER_ENABLED, bool, False),
+    SettingSpec(CONF_WARRANTY_REMINDER_DAYS, int, DEFAULT_WARRANTY_REMINDER_DAYS, int_range=(1, 365)),
     # List of days-before-due (bespoke int-list sanitiser in the WS handler).
-    SettingSpec(CONF_REMINDER_LEAD_DAYS, list),
+    SettingSpec(CONF_REMINDER_LEAD_DAYS, list, []),
     # Budget
-    SettingSpec(CONF_BUDGET_MONTHLY, float, float_range=(0.0, 10_000_000.0)),
-    SettingSpec(CONF_BUDGET_YEARLY, float, float_range=(0.0, 100_000_000.0)),
-    SettingSpec(CONF_BUDGET_ALERTS_ENABLED, bool),
-    SettingSpec(CONF_BUDGET_ALERT_THRESHOLD, int, int_range=(10, 100)),
-    SettingSpec(CONF_BUDGET_CURRENCY, str, max_len=5),
-    SettingSpec(CONF_CURRENCY_DECIMALS, int, int_range=(0, 3)),
+    SettingSpec(CONF_BUDGET_MONTHLY, float, 0.0, float_range=(0.0, 10_000_000.0)),
+    SettingSpec(CONF_BUDGET_YEARLY, float, 0.0, float_range=(0.0, 100_000_000.0)),
+    SettingSpec(CONF_BUDGET_ALERTS_ENABLED, bool, False),
+    SettingSpec(CONF_BUDGET_ALERT_THRESHOLD, int, 80, int_range=(10, 100)),
+    SettingSpec(CONF_BUDGET_CURRENCY, str, DEFAULT_BUDGET_CURRENCY, max_len=5),
+    SettingSpec(CONF_CURRENCY_DECIMALS, int, DEFAULT_CURRENCY_DECIMALS, int_range=(0, 3)),
 )
 
 _SPEC_BY_KEY: dict[str, SettingSpec] = {s.key: s for s in SETTING_SPECS}
+
+
+def setting_default(key: str) -> Any:
+    """The default for a registered global setting — what an unset option
+    means on every surface. Lists/dicts come back as copies so no caller can
+    mutate the table. ``KeyError`` for an unregistered key (a typo fails loudly)."""
+    default = _SPEC_BY_KEY[key].default
+    return deepcopy(default) if isinstance(default, (list, dict)) else default
+
+
+def settings_defaults() -> dict[str, Any]:
+    """``{key: default}`` for every registered setting (fresh copies)."""
+    return {s.key: setting_default(s.key) for s in SETTING_SPECS}
 
 
 # ─── Derived views (single source → the tables the handler used to hand-keep) ─

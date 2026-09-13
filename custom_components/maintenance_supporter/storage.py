@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 from .const import CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN, LIFECYCLE_HISTORY_TYPES
+from .helpers.dates import local_date_from_iso
 from .helpers.parts import round_qty
 from .helpers.pause import write_anchor
 
@@ -233,6 +234,24 @@ class MaintenanceStore:
         history, last_performed, adaptive config and trigger runtime from one
         object's Store to another's."""
         self._data.setdefault("tasks", {})[task_id] = dict(state)
+
+    def update_task_state(self, task_id: str, **fields: Any) -> None:
+        """Write plain scalar fields of a task's dynamic state; a ``None``
+        value removes the key. The public door for the few callers that used
+        to reach into ``_ensure_task`` (the coordinator's cycle modifiers, the
+        reference-number counter)."""
+        state = self._ensure_task(task_id)
+        for key, value in fields.items():
+            if value is None:
+                state.pop(key, None)
+            else:
+                state[key] = value
+
+    def all_task_states(self) -> dict[str, dict[str, Any]]:
+        """Every task's dynamic state, keyed by task id — the LIVE dicts, for
+        in-place rewrites that then save (entity renames)."""
+        tasks: dict[str, dict[str, Any]] = self._data.setdefault("tasks", {})
+        return tasks
 
     # --- in-cycle checklist progress (#73) -----------------------------------
 
@@ -486,7 +505,7 @@ def reanchor_from_history(store: MaintenanceStore, task_id: str, history: list[d
     deleting that completion abandons it. Returns the new anchor.
     """
     latest = max((h.get("timestamp") or "" for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES), default="")
-    anchor = latest[:10] if latest else None  # YYYY-MM-DD prefix
+    anchor = local_date_from_iso(latest) if latest else None  # the stamp's local calendar day
     store.set_anchor(task_id, anchor, clear_modifiers=anchor != store.get_last_performed(task_id))
     return anchor
 

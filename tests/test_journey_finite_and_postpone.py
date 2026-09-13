@@ -23,11 +23,10 @@ from custom_components.maintenance_supporter.websocket.objects import ws_get_obj
 from custom_components.maintenance_supporter.websocket.tasks import ws_complete_task, ws_postpone_task
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -50,25 +49,10 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-
-
 def _object(hass: HomeAssistant, schedule: dict[str, Any]) -> MockConfigEntry:
     task = build_task_data(interval_days=None)
     task["schedule"] = schedule
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Widget",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Widget", object_id="objid_w"),
-            tasks={TASK_ID_1: task},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_widget",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Widget", uid="widget", object_id="objid_w")
 
 
 async def _read(hass: HomeAssistant, entry_id: str) -> dict[str, Any]:

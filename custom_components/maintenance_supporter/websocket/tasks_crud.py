@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 from copy import deepcopy
-from datetime import date
 from typing import Any
 from uuid import uuid4
 
@@ -42,14 +41,15 @@ from ..const import (
     NOTIFICATION_MANAGER_KEY,
     HistoryEntryType,
 )
+from ..helpers.aggregate import get_store
 from ..helpers.dates import INTERVAL_UNITS
+from ..helpers.entry_tasks import write_task
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import strip_task_runtime_state
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     KIND_INTERVAL,
     Schedule,
-    normalize_task_storage,
 )
 from ..helpers.task_fields import (
     EARLIEST_COMPLETION_RANGE,
@@ -62,8 +62,9 @@ from ..helpers.task_fields import (
 )
 from . import (
     ID_FIELD,
-    _get_runtime_data,
     _load_object_entry,
+    _load_object_task,
+    _parse_iso_date,
     cleanup_group_refs,
 )
 from .tasks_persist import async_persist_task
@@ -72,6 +73,41 @@ from .tasks_validation import (
     _is_safe_url,
     _validate_trigger_config,
 )
+
+_ENTITY_SLUG_RE = re.compile(r"[a-z0-9_]+")
+
+
+def _validate_entity_slug(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
+    """False (after sending ``invalid_entity_slug``) when ``msg["entity_slug"]``
+    is present, not None and malformed — shared by create and update."""
+    slug = msg.get("entity_slug")
+    if slug is None or _ENTITY_SLUG_RE.fullmatch(slug):
+        return True
+    connection.send_error(
+        msg["id"],
+        "invalid_entity_slug",
+        "entity_slug must match [a-z0-9_]+ (lowercase, digits, underscores only)",
+    )
+    return False
+
+
+def _normalize_nfc_tag(
+    hass: HomeAssistant,
+    msg: dict[str, Any],
+    warnings: list[str],
+    *,
+    exclude_task_id: str | None = None,
+) -> str | None:
+    """Normalise ``msg["nfc_tag_id"]`` in place (""/whitespace -> None) and
+    append the duplicate-tag warning when another task already carries it.
+    Returns the normalised value — shared by create and update."""
+    nfc_val = (msg.get("nfc_tag_id") or "").strip() or None
+    msg["nfc_tag_id"] = nfc_val
+    if nfc_val:
+        nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val, exclude_task_id=exclude_task_id)
+        if nfc_warn:
+            warnings.append(nfc_warn)
+    return nfc_val
 
 # ws_update_task: wire key -> storage key. Almost all are identity; the one
 # rename is deliberate and load-bearing: the WS message envelope reserves
@@ -305,17 +341,14 @@ async def ws_create_task(
         if msg.get("interval_anchor", "completion") != "completion":
             task_data["interval_anchor"] = msg["interval_anchor"]
     if msg.get("last_performed") is not None:
-        try:
-            date.fromisoformat(msg["last_performed"])
-        except (ValueError, TypeError):
-            connection.send_error(msg["id"], "invalid_format", "last_performed must be a valid date (YYYY-MM-DD)")
+        lp_date = _parse_iso_date(connection, msg["id"], msg["last_performed"], field="last_performed", code="invalid_format")
+        if lp_date is None:
             return
         initial_last_performed = msg["last_performed"]
         # Add initial history entry so times_performed reflects the value.
         # Use HA-TZ-aware midnight to keep interval_analyzer consistent.
         from datetime import datetime, time
 
-        lp_date = date.fromisoformat(msg["last_performed"])
         lp_dt = datetime.combine(lp_date, time.min, tzinfo=dt_util.DEFAULT_TIME_ZONE)
         initial_history.append(
             {
@@ -363,27 +396,16 @@ async def ws_create_task(
     from ..helpers.sanitize import seed_rotation_assignee
 
     seed_rotation_assignee(task_data)
+    if not _validate_entity_slug(connection, msg):
+        return
     if msg.get("entity_slug") is not None:
-        slug = msg["entity_slug"]
-        if not re.fullmatch(r"[a-z0-9_]+", slug):
-            connection.send_error(
-                msg["id"],
-                "invalid_entity_slug",
-                "entity_slug must match [a-z0-9_]+ (lowercase, digits, underscores only)",
-            )
-            return
-        task_data["entity_slug"] = slug
+        task_data["entity_slug"] = msg["entity_slug"]
     if msg.get("custom_icon") is not None:
         task_data["custom_icon"] = msg["custom_icon"]
     if msg.get("priority") is not None:
         task_data["priority"] = msg["priority"]
     if msg.get("nfc_tag_id") is not None:
-        nfc_val = (msg["nfc_tag_id"] or "").strip() or None  # normalise ""/ whitespace → None
-        task_data["nfc_tag_id"] = nfc_val
-        if nfc_val:
-            nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
-            if nfc_warn:
-                tc_warnings.append(nfc_warn)
+        task_data["nfc_tag_id"] = _normalize_nfc_tag(hass, msg, tc_warnings)
     if msg.get("require_tag_scan") is not None:
         task_data["require_tag_scan"] = bool(msg["require_tag_scan"])
     # #150: stored only when False — absence means skipping is allowed.
@@ -542,17 +564,12 @@ async def ws_update_task(
     msg: dict[str, Any],
 ) -> None:
     """Update an existing task."""
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
         return
-
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
+    entry, _rd, stored_task = ctx
     task_id = msg["task_id"]
-    if task_id not in tasks_data:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
-
-    task = dict(tasks_data[task_id])
+    task = dict(stored_task)
 
     # Strip and validate name if provided
     if "name" in msg:
@@ -583,31 +600,20 @@ async def ws_update_task(
             return
 
     # Validate entity_slug if provided
-    if "entity_slug" in msg and msg["entity_slug"] is not None:
-        slug = msg["entity_slug"]
-        if not re.fullmatch(r"[a-z0-9_]+", slug):
-            connection.send_error(
-                msg["id"],
-                "invalid_entity_slug",
-                "entity_slug must match [a-z0-9_]+ (lowercase, digits, underscores only)",
-            )
-            return
+    if not _validate_entity_slug(connection, msg):
+        return
 
     # Normalise empty NFC tag to None and check uniqueness
     if "nfc_tag_id" in msg:
-        msg["nfc_tag_id"] = (msg["nfc_tag_id"] or "").strip() or None
-        if msg["nfc_tag_id"]:
-            nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"], exclude_task_id=task_id)
-            if nfc_warn:
-                tc_warnings.append(nfc_warn)
+        _normalize_nfc_tag(hass, msg, tc_warnings, exclude_task_id=task_id)
 
     # Validate last_performed date format if provided
-    if "last_performed" in msg and msg["last_performed"] is not None:
-        try:
-            date.fromisoformat(msg["last_performed"])
-        except (ValueError, TypeError):
-            connection.send_error(msg["id"], "invalid_format", "last_performed must be a valid date (YYYY-MM-DD)")
-            return
+    if (
+        msg.get("last_performed") is not None
+        and _parse_iso_date(connection, msg["id"], msg["last_performed"], field="last_performed", code="invalid_format")
+        is None
+    ):
+        return
 
     # Validate documentation_url if provided
     if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):
@@ -628,11 +634,11 @@ async def ws_update_task(
     # cycle, so a postpone (due_override) of the old one goes with it; the
     # dialog re-sends an unchanged date on every save, which must not.
     if "last_performed" in msg:
-        rd_lp = _get_runtime_data(hass, msg["entry_id"])
-        if rd_lp and rd_lp.store:
+        store_lp = get_store(hass, entry.entry_id)
+        if store_lp is not None:
             new_anchor = msg["last_performed"] or None
-            rd_lp.store.set_anchor(task_id, new_anchor, clear_modifiers=new_anchor != rd_lp.store.get_last_performed(task_id))
-            await rd_lp.store.async_save()
+            store_lp.set_anchor(task_id, new_anchor, clear_modifiers=new_anchor != store_lp.get_last_performed(task_id))
+            await store_lp.async_save()
 
     # #150: allow_skip is stored only when False (absence = allowed) — the
     # verbatim copy above would persist True/None literals.
@@ -683,15 +689,15 @@ async def ws_update_task(
         _apply_phase_fields(hass, entry, task, msg.get("phases", task.get("phases")), msg.get("phase_sequence", task.get("phase_sequence")))
         from ..helpers.phases import clamp_phase_cursor
 
-        rd_phase = _get_runtime_data(hass, msg["entry_id"])
-        if rd_phase and rd_phase.store:
+        store_phase = get_store(hass, entry.entry_id)
+        if store_phase is not None:
             seq = task.get("phase_sequence") or []
             if seq:
-                cur = rd_phase.store.get_task_state(task_id).get("phase_cursor", 0)
-                rd_phase.store.set_phase_cursor(task_id, clamp_phase_cursor(cur, len(seq)))
+                cur = store_phase.get_task_state(task_id).get("phase_cursor", 0)
+                store_phase.set_phase_cursor(task_id, clamp_phase_cursor(cur, len(seq)))
             else:
-                rd_phase.store.get_task_state(task_id).pop("phase_cursor", None)
-            rd_phase.store.async_delay_save()
+                store_phase.get_task_state(task_id).pop("phase_cursor", None)
+            store_phase.async_delay_save()
 
     # Recurrence resolution: an explicit nested `schedule` wins (calendar kinds
     # and kind-switches). Otherwise rebuild from the flat view ONLY when a real
@@ -759,7 +765,7 @@ async def ws_update_task(
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:
-        old_tc = tasks_data.get(task_id, {}).get("trigger_config") or {}
+        old_tc = stored_task.get("trigger_config") or {}
         new_tc = msg["trigger_config"] or {}
         # An edited baseline counts as fundamental: the Store baseline wins
         # over the config on restore (#102 restart fix), so without clearing
@@ -770,15 +776,14 @@ async def ws_update_task(
             or old_tc.get("entity_ids") != new_tc.get("entity_ids")
             or old_tc.get("trigger_baseline_value") != new_tc.get("trigger_baseline_value")
         ):
-            rd = _get_runtime_data(hass, msg["entry_id"])
-            if rd and rd.store:
-                rd.store.clear_trigger_runtime(task_id)
-                rd.store.async_delay_save()
+            store_tc = get_store(hass, entry.entry_id)
+            if store_tc is not None:
+                store_tc.clear_trigger_runtime(task_id)
+                store_tc.async_delay_save()
 
-    tasks_data[task_id] = normalize_task_storage(task)
-    new_data = dict(entry.data)
-    new_data[CONF_TASKS] = tasks_data
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    # Patch only this task's key onto a fresh read (normalized) — never write
+    # back a whole-map snapshot taken before the store awaits above.
+    write_task(hass, entry, task_id, task)
 
     # Reload entry to pick up changed task config (triggers, schedule, etc.)
     await hass.config_entries.async_reload(entry.entry_id)
@@ -804,13 +809,12 @@ async def ws_delete_task(
     msg: dict[str, Any],
 ) -> None:
     """Delete a task from a maintenance object."""
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
         return
+    entry, _rd, _task = ctx
 
-    if not await async_delete_task(hass, entry, msg["task_id"]):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    await async_delete_task(hass, entry, msg["task_id"])
 
     # Reload to re-create remaining entities
     await hass.config_entries.async_reload(entry.entry_id)
@@ -854,8 +858,7 @@ async def async_delete_task(
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Clean up Store
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
+    store = get_store(hass, entry.entry_id)
     if store is not None:
         store.remove_task(task_id)
         await store.async_save()
@@ -940,14 +943,10 @@ async def ws_duplicate_task(
     unique per task (entity_slug, nfc_tag_id) are dropped so the copy gets its
     own auto-generated slug and no colliding tag.
     """
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
         return
-
-    source = entry.data.get(CONF_TASKS, {}).get(msg["task_id"])
-    if source is None:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    entry, _rd, source = ctx
 
     new_task = deepcopy(dict(source))
     new_task["id"] = uuid4().hex
@@ -980,12 +979,10 @@ async def ws_move_task(
     """Move a task to another object — config, history, readings and trigger
     state travel with it; the task gets a new reference number and its
     entities are recreated under the target object (forum #23)."""
-    entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
         return
-    if msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
+    entry, _rd, _task = ctx
     target = _load_object_entry(
         hass, connection, {**msg, "entry_id": msg["target_entry_id"]}, not_found_message="Target object not found"
     )

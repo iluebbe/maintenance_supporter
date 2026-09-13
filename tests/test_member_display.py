@@ -13,12 +13,9 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_MEMBER_DISPLAY,
-    DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.helpers.member_display import (
     AVATAR_PALETTE,
@@ -34,8 +31,8 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
 from custom_components.maintenance_supporter.websocket.users import ws_list_users
 
 from .conftest import (
-    build_global_entry_data,
     call_ws_handler,
+    make_global_entry as _global,
     make_ws_connection as _conn,
     setup_integration,
 )
@@ -81,20 +78,6 @@ def test_member_display_merges_override_over_default() -> None:
     assert member_display(options, "u1", "Max Muster") == {"initials": "MX", "color": default_color("u1")}
     assert member_display(options, "u2", "Eva Klein") == {"initials": "EK", "color": default_color("u2")}
     assert member_display(None, "u2", "Eva Klein")["initials"] == "EK"
-
-
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _user(user_id: str, name: str, *, is_admin: bool = False) -> MagicMock:

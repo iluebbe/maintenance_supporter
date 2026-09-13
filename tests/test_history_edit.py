@@ -901,9 +901,12 @@ def test_patchable_fields_known_to_both_frontends() -> None:
     patchable = set(re.findall(r'vol\.Optional\("([a-z_]+)"\)', block))
     assert patchable >= {"timestamp", "notes", "cost", "duration", "completed_by", "used_parts", "photo_doc_ids"}
 
+    # DRY round 3: every surface (panel, calendar card, strategy, quick
+    # actions) builds its draft through helpers/history-draft.ts — that helper
+    # and the dialog are the two places that must know every patchable field.
     for ts_file in (
         component / "frontend-src" / "components" / "history-edit-dialog.ts",
-        component / "frontend-src" / "maintenance-calendar-card.ts",
+        component / "frontend-src" / "helpers" / "history-draft.ts",
     ):
         src = ts_file.read_text(encoding="utf-8")
         unknown = {f for f in patchable if not re.search(rf"\b{re.escape(f)}\b", src)}

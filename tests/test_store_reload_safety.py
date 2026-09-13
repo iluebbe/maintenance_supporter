@@ -28,9 +28,8 @@ from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_object_entry,
     setup_integration,
 )
 
@@ -51,20 +50,7 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 def _object(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Debounce Rig",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Debounce Rig"),
-            tasks={TASK_ID_1: build_task_data()},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_debounce_rig",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: build_task_data()}, name="Debounce Rig", uid="debounce_rig")
 
 
 async def test_debounced_save_cannot_clobber_post_reload_writes(

@@ -32,7 +32,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
     DOMAIN,
     EVENT_NOTIFICATION,
-    GLOBAL_UNIQUE_ID,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
     NOTIFICATION_MANAGER_KEY,
     MaintenanceStatus,
@@ -43,22 +42,21 @@ from .conftest import (
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
 
 
 def _global(hass: HomeAssistant, *, notify_service: str = "notify.test", **options: object) -> MockConfigEntry:
-    data = build_global_entry_data(notifications_enabled=True, notify_service=notify_service)
-    data[CONF_QUIET_HOURS_ENABLED] = False  # the default quiet hours would silence a night-time run
-    data.update(options)
-    entry = MockConfigEntry(version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter", data=data, source="user", unique_id=GLOBAL_UNIQUE_ID)
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(
+        hass, notifications_enabled=True, notify_service=notify_service,
+        # the default quiet hours would silence a night-time run
+        extra_data={CONF_QUIET_HOURS_ENABLED: False, **options},
+    )
 
 
 def _days_ago(n: int) -> str:
@@ -66,17 +64,7 @@ def _days_ago(n: int) -> str:
 
 
 def _object(hass: HomeAssistant, tasks: dict, *, uid: str) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Pool Pump",
-        data=build_object_entry_data(object_data=build_object_data(name="Pool Pump"), tasks=tasks),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name="Pool Pump", uid=uid)
 
 
 def _capture(hass: HomeAssistant) -> list[Event]:
@@ -171,6 +159,7 @@ async def test_muted_task_gets_no_lead_reminder(hass: HomeAssistant) -> None:
     await setup_integration(hass, g, obj)
     nm = MagicMock()
     nm.async_send_lead_reminder = AsyncMock()
+    nm.is_snoozed.return_value = False  # the gate asks the manager; a bare mock answer reads as snoozed
     hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = nm
 
     await async_maybe_send_lead_reminders(hass)

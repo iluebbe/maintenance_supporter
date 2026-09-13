@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "« {task_name} » est archivée, désactivée ou son objet est en pause — elle ne peut pas être terminée"
     },
+    "task_inactive_postpone": {
+      "message": "« {task_name} » est archivée, désactivée ou son objet est en pause — elle ne peut pas être reportée"
+    },
+    "task_inactive_reset": {
+      "message": "« {task_name} » est archivée, désactivée ou son objet est en pause — elle ne peut pas être réinitialisée"
+    },
     "task_inactive_skip": {
       "message": "« {task_name} » est archivée, désactivée ou son objet est en pause — elle ne peut pas être ignorée"
     },

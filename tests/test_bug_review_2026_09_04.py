@@ -27,10 +27,8 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SERVICE,
-    CONF_OBJECT,
     CONF_QUIET_HOURS_ENABLED,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
 )
 from custom_components.maintenance_supporter.helpers.notification_manager import async_dispatch_notify
@@ -38,34 +36,25 @@ from custom_components.maintenance_supporter.websocket.tasks_actions import ws_s
 
 from .conftest import (
     TASK_ID_1,
-    build_global_entry_data,
-    build_object_entry_data,
+    build_object_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
 
 
 def _global(hass: HomeAssistant, **options) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter",
-        data=build_global_entry_data(), options=options, source="user", unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(hass, options=options)
 
 
 def _object(hass: HomeAssistant, task: dict, *, uid: str = "review_obj", **obj_over) -> MockConfigEntry:
-    data = build_object_entry_data(tasks={TASK_ID_1: task})
-    if obj_over:
-        data[CONF_OBJECT] = {**data[CONF_OBJECT], **obj_over}
-    entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Review object",
-        data=data, source="user", unique_id=f"maintenance_supporter_{uid}",
+    return make_object_entry(
+        hass, tasks={TASK_ID_1: task}, title="Review object", uid=uid,
+        object_data={**build_object_data(), **obj_over},
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _overdue_task(**over) -> dict:

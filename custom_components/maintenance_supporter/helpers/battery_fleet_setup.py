@@ -32,8 +32,9 @@ from ..const import (
     CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
     DOMAIN,
+    GLOBAL_UNIQUE_ID,
 )
-from .battery_fleet import _norm_type, discover_battery_types, lifetime_months, note_sibling_entity, read_batteries
+from .battery_fleet import canonical_type, discover_battery_types, lifetime_months, note_sibling_entity, read_batteries
 from .global_options import get_default_warning_days
 from .trigger_fallback import threshold_limits_overlap
 
@@ -81,6 +82,9 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
 
     existing = find_fleet_entry(hass)
     if existing is not None:
+        # Fold alias-typed parts (batt_lr6 → batt_aa) BEFORE the reconcile
+        # would mint the canonical twin next to them.
+        migrated = await migrate_fleet_part_ids(hass, existing)
         # An explicit setup asks for the full type-part set again — forget
         # the parts deleted since (the start-up reconcile honours them).
         if existing.data.get(CONF_OBJECT, {}).get(BATTERY_FLEET_REMOVED_PARTS):
@@ -99,11 +103,17 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
                     store.set_part_stock(pid, 0)
                 await store.async_save()
         repaired = await _reconcile_fleet_task(hass, existing, lang)
+        if migrated and not repaired:
+            # The live stock sensors still carry the old part ids — reload
+            # once so they come back under the canonical ones (the task
+            # repair above reloads on its own).
+            await hass.config_entries.async_reload(existing.entry_id)
         return {
             "entry_id": existing.entry_id,
             "created": False,
             "types": list(types),
             "parts_added": len(added_pids),
+            "parts_migrated": migrated,
             "task_repaired": repaired,
         }
 
@@ -368,7 +378,7 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
             continue
         await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
         pressed += 1
-        t = _norm_type(bat.battery_type)
+        t = canonical_type(bat.battery_type)
         by_type[t] = by_type.get(t, 0) + bat.quantity
 
     consumed: dict[str, int] = {}
@@ -604,6 +614,10 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     trigger_healed = _heal_fleet_trigger_recovery_flag(hass, entry)
     _warn_fleet_trigger_overlap(entry)
 
+    # Alias-typed parts first (batt_lr6 → batt_aa): the reconcile below mints
+    # parts by CANONICAL type and would otherwise add the twin next to them.
+    migrated = await migrate_fleet_part_ids(hass, entry)
+
     types = discover_battery_types(hass)
     added = _reconcile_type_parts(hass, entry, types, lang)
 
@@ -652,7 +666,268 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
         for pid in added:
             store.set_part_stock(pid, 0)
         await store.async_save()
-    return {"added": added, "pruned": pruned, "orphans_removed": orphans_removed, "trigger_healed": trigger_healed}
+    return {
+        "added": added,
+        "pruned": pruned,
+        "orphans_removed": orphans_removed,
+        "trigger_healed": trigger_healed,
+        "migrated": migrated,
+    }
+
+
+# ── canonical part ids (DRY audit 2026-09) ─────────────────────────────────
+#
+# Part ids are ``batt_<type>`` and the type used to be the label merely
+# upper-cased, while the lifetime table, the overrides and the learning
+# already folded aliases (LR6 → AA, PP3 → 9V, "AA Lithium" → AA). A note typed
+# "LR6" therefore minted its own part and shopping chip although the forecast
+# treated it as AA — and an AA override silently applied to the LR6 row.
+# Everything groups by ``canonical_type`` now; the ids already persisted are
+# folded once, here, with every reference following.
+
+FLEET_PART_PREFIX = "batt_"
+
+
+def canonical_part_id(part_id: str) -> str | None:
+    """``batt_<label>`` → ``batt_<canonical label>``; None when the id is not
+    a fleet type-part id or already canonical."""
+    if not part_id.startswith(FLEET_PART_PREFIX):
+        return None
+    label = part_id[len(FLEET_PART_PREFIX) :]
+    if not label:
+        return None
+    new_id = f"{FLEET_PART_PREFIX}{canonical_type(label).lower()}"
+    return None if new_id == part_id else new_id
+
+
+_MERGE_TAKE_IF_EMPTY = ("mpn", "gtin", "vendor", "storage_location", "product_url", "cost", "doc_id")
+
+
+def _merge_parts(keep: dict[str, Any], gone: dict[str, Any]) -> dict[str, Any]:
+    """Fold ``gone`` into ``keep`` (the canonical part wins on conflicts):
+    the LOWER reorder threshold, the union of product/vendor/document
+    fields, auto-buy if either had it, notes concatenated when they differ."""
+    out = dict(keep)
+    for key in _MERGE_TAKE_IF_EMPTY:
+        if not out.get(key) and gone.get(key):
+            out[key] = gone[key]
+    for key in ("reorder_threshold", "restock_quantity"):
+        a, b = out.get(key), gone.get(key)
+        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+            out[key] = min(a, b)
+        elif a is None and b is not None:
+            out[key] = b
+    out["auto_buy_task"] = bool(out.get("auto_buy_task")) or bool(gone.get("auto_buy_task"))
+    gone_notes = str(gone.get("notes") or "")
+    keep_notes = str(out.get("notes") or "")
+    if gone_notes and gone_notes != keep_notes and _extract_placeholder(gone_notes, "Typical service life ~{months} months.", "months") is None:
+        # The user's own note on the folded part — keep it (the seeded
+        # "typical service life" line is dropped, the canonical part has one).
+        out["notes"] = f"{keep_notes}\n{gone_notes}".strip() if keep_notes else gone_notes
+    return out
+
+
+def _qty_sum(a: Any, b: Any) -> int | float:
+    """Sum two link quantities (default 1 each); stays an int when both are."""
+
+    def _num(x: Any) -> int | float:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            return 1
+        return x
+
+    total = _num(a) + _num(b)
+    return int(total) if float(total).is_integer() else total
+
+
+def _repoint_links(links: Any, moves: dict[str, str], *, owner_id: str, foreign: bool) -> tuple[list[Any], bool]:
+    """Re-point ``{part_id, quantity, entry_id?}`` links (task consumption
+    AND history ``used_parts``) at the canonical ids, merging two links that
+    now name the same part. ``foreign`` = the links live on ANOTHER object,
+    so only pooled links carrying our ``entry_id`` are ours to touch."""
+    if not isinstance(links, list):
+        return links, False
+    out: list[Any] = []
+    by_key: dict[tuple[str | None, str], dict[str, Any]] = {}
+    changed = False
+    for link in links:
+        if not isinstance(link, dict):
+            out.append(link)
+            continue
+        pid = str(link.get("part_id") or "")
+        owner = str(link.get("entry_id") or "").strip() or None
+        ours = owner == owner_id if foreign else owner in (None, owner_id)
+        if pid in moves and ours:
+            link = {**link, "part_id": moves[pid]}
+            pid = moves[pid]
+            changed = True
+        key = (owner, pid)
+        twin = by_key.get(key)
+        if twin is not None and pid:
+            # Two links to what is now ONE part: fold the quantities.
+            twin["quantity"] = _qty_sum(twin.get("quantity"), link.get("quantity"))
+            changed = True
+            continue
+        link = dict(link)
+        by_key[key] = link
+        out.append(link)
+    return out, changed
+
+
+def _repoint_store_history(store: Any, task_ids: list[str], moves: dict[str, str], *, owner_id: str, foreign: bool) -> int:
+    """``used_parts`` on history entries in ONE Store. Returns entries touched."""
+    touched = 0
+    for tid in task_ids:
+        history = store.get_history(tid)
+        new_history: list[dict[str, Any]] = []
+        changed = False
+        for entry in history:
+            used = entry.get("used_parts") if isinstance(entry, dict) else None
+            if used is None:
+                new_history.append(entry)
+                continue
+            new_used, c = _repoint_links(used, moves, owner_id=owner_id, foreign=foreign)
+            if c:
+                entry = {**entry, "used_parts": new_used}
+                changed = True
+                touched += 1
+            new_history.append(entry)
+        if changed:
+            store.set_history(tid, new_history)
+    return touched
+
+
+def _repoint_tasks(tasks: dict[str, Any], moves: dict[str, str], *, owner_id: str, foreign: bool) -> tuple[dict[str, Any], bool]:
+    """Consumption links (and, on the fleet itself, the auto-buy ``part_ref``)."""
+    from .parts import PART_REF_FIELD
+
+    out: dict[str, Any] = {}
+    changed = False
+    for tid, task in tasks.items():
+        links, c = _repoint_links(task.get(CONF_TASK_CONSUMES_PARTS), moves, owner_id=owner_id, foreign=foreign)
+        if c:
+            task = {**task, CONF_TASK_CONSUMES_PARTS: links}
+            changed = True
+        ref = task.get(PART_REF_FIELD) if not foreign else None
+        if isinstance(ref, dict) and str(ref.get("part_id") or "") in moves:
+            task = {**task, PART_REF_FIELD: {**ref, "part_id": moves[str(ref["part_id"])]}}
+            changed = True
+        out[tid] = task
+    return out, changed
+
+
+async def migrate_fleet_part_ids(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, str]:
+    """Fold every ``batt_<alias>`` part onto ``batt_<canonical>`` — once.
+
+    Idempotent (a canonical id maps to itself and is skipped). For each
+    part whose id is not canonical:
+
+    * the canonical part already exists → MERGE: stock summed, the lower
+      reorder threshold, product/vendor/document fields unioned, auto-buy
+      OR-ed, the user's own notes appended; the alias part is deleted.
+    * otherwise → RENAME in place (the untouched seeded name "LR6 battery"
+      becomes "AA battery").
+
+    In both cases every reference follows: consumption links on the fleet's
+    own tasks and on other objects' tasks that pool from the fleet, the
+    ``part_ref`` of an auto-buy task, ``used_parts`` on history entries in
+    every Store, the deleted-parts tombstones, the stock, and the stock
+    sensor's registry entry (renamed so a customised entity id survives;
+    removed when the canonical sensor exists). Returns ``{old: new}``.
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    from ..const import STORES_CACHE_KEY
+
+    parts = dict(entry.data.get(CONF_PARTS) or {})
+    moves: dict[str, str] = {}
+    for pid in parts:
+        new_id = canonical_part_id(str(pid))
+        if new_id is not None:
+            moves[str(pid)] = new_id
+
+    obj = dict(entry.data.get(CONF_OBJECT) or {})
+    tombstones = [str(t) for t in (obj.get(BATTERY_FLEET_REMOVED_PARTS) or [])]
+    live_after = (set(parts) - set(moves)) | set(moves.values())
+    new_tombstones = sorted({canonical_part_id(t) or t for t in tombstones} - live_after)
+    tombstones_changed = new_tombstones != sorted(set(tombstones))
+    if not moves and not tombstones_changed:
+        return {}
+
+    rd = getattr(entry, "runtime_data", None)
+    store = getattr(rd, "store", None) if rd else None
+    if store is None:
+        store = hass.data.get(STORES_CACHE_KEY, {}).get(entry.entry_id)
+
+    # 1. The part definitions + stock.
+    for old, new in moves.items():
+        gone = dict(parts.pop(old))
+        if new in parts:
+            parts[new] = _merge_parts(parts[new], gone)
+            _LOGGER.info("Battery fleet: merged part %s into %s (alias type)", old, new)
+        else:
+            gone["id"] = new
+            name = str(gone.get("name") or "")
+            label = _extract_placeholder(name, "{type} battery", "type")
+            if label is not None and label.lower() == old[len(FLEET_PART_PREFIX) :]:
+                gone["name"] = name.replace(label, canonical_type(label), 1)
+            parts[new] = gone
+            _LOGGER.info("Battery fleet: renamed part %s to %s (canonical type)", old, new)
+        if store is not None:
+            old_stock, new_stock = store.get_part_stock(old), store.get_part_stock(new)
+            if old_stock is not None or new_stock is not None:
+                store.set_part_stock(new, (old_stock or 0) + (new_stock or 0))
+            store.remove_part(old)
+
+    # 2. The fleet's own tasks (links + auto-buy refs) and its history.
+    tasks, _ = _repoint_tasks(dict(entry.data.get(CONF_TASKS) or {}), moves, owner_id=entry.entry_id, foreign=False)
+    new_data = dict(entry.data)
+    new_data[CONF_PARTS] = parts
+    new_data[CONF_TASKS] = tasks
+    if tombstones_changed:
+        obj = dict(obj)
+        if new_tombstones:
+            obj[BATTERY_FLEET_REMOVED_PARTS] = new_tombstones
+        else:
+            obj.pop(BATTERY_FLEET_REMOVED_PARTS, None)
+        new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    if store is not None and moves:
+        _repoint_store_history(store, list(tasks), moves, owner_id=entry.entry_id, foreign=False)
+        await store.async_save()
+
+    if not moves:
+        return {}
+
+    # 3. Other objects pooling from the fleet (links carry our entry_id).
+    stores = hass.data.get(STORES_CACHE_KEY, {})
+    for other in hass.config_entries.async_entries(DOMAIN):
+        if other.entry_id == entry.entry_id or other.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        other_tasks = dict(other.data.get(CONF_TASKS) or {})
+        if not other_tasks:
+            continue
+        repointed, changed = _repoint_tasks(other_tasks, moves, owner_id=entry.entry_id, foreign=True)
+        if changed:
+            hass.config_entries.async_update_entry(other, data={**other.data, CONF_TASKS: repointed})
+        other_store = getattr(getattr(other, "runtime_data", None), "store", None) or stores.get(other.entry_id)
+        if other_store is not None and _repoint_store_history(other_store, list(other_tasks), moves, owner_id=entry.entry_id, foreign=True):
+            await other_store.async_save()
+
+    # 4. The stock sensors' registry entries (unique_id ends with _part_<id>).
+    ent_reg = er.async_get(hass)
+    for reg_entry in list(er.async_entries_for_config_entry(ent_reg, entry.entry_id)):
+        uid = reg_entry.unique_id or ""
+        for old, new in moves.items():
+            suffix = f"_part_{old}"
+            if not uid.endswith(suffix):
+                continue
+            new_uid = uid[: -len(old)] + new
+            if ent_reg.async_get_entity_id(reg_entry.domain, reg_entry.platform, new_uid) is None:
+                ent_reg.async_update_entity(reg_entry.entity_id, new_unique_id=new_uid)
+            else:
+                ent_reg.async_remove(reg_entry.entity_id)
+            break
+    return moves
 
 
 

@@ -14,14 +14,15 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval, formatRecurrence, formatNumber, formatCost, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatInterval, formatRecurrence, formatCost, formatDuration, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
 import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
-import { historyPhotoIds } from "../helpers/history-photos";
-import { entryReadingValues, readingSlotDelta } from "../helpers/reading-slots";
-import "./history-photo";
+import { buildHistoryEntryDraft } from "../helpers/history-draft";
+import { readingSlotDelta } from "../helpers/reading-slots";
+import { taskRef } from "../helpers/reference";
+import { renderHistoryEntry } from "../renderers/history";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -40,7 +41,7 @@ import type {
 
 interface MaintenanceObjectFull {
   entry_id: string;
-  object: { id: string; name: string };
+  object: { id: string; name: string; ref_no?: number | null };
   tasks: MaintenanceTask[];
 }
 
@@ -52,6 +53,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   @state() private _taskId: string | null = null;
   @state() private _task: MaintenanceTask | null = null;
   @state() private _objectName = "";
+  /** #170: "8.3" once the backend numbered the task — the history rows' "#8.3-n" chips. */
+  @state() private _taskRef: string | null = null;
   @state() private _busy = false;
   @state() private _error = "";
   @state() private _showSkip = false;
@@ -130,6 +133,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       this._objectName = r.object?.name || "";
       const found = (r.tasks || []).find((t) => t.id === this._taskId);
       this._task = found ?? null;
+      this._taskRef = taskRef(r.object, found);
     } catch (e) {
       this._error = describeWsError(e, this._lang);
     }
@@ -350,26 +354,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   private _onEditHistoryEntry(entry: HistoryEntry): void {
     if (!this._entryId || !this._taskId) return;
-    import("../dialog-mount").then(({ openHistoryEditDialog }) => {
-      openHistoryEditDialog({
-        entry_id: this._entryId!,
-        task_id: this._taskId!,
-        original_timestamp: entry.timestamp,
-        type: entry.type,
-        timestamp: entry.timestamp,
-        notes: entry.notes ?? null,
-        cost: entry.cost ?? null,
-        duration: entry.duration ?? null,
-        completed_by: entry.completed_by ?? null,
-        used_parts: entry.used_parts ?? null,
-        photo_doc_ids: historyPhotoIds(entry),
-        reading_value: entry.reading_value ?? null,
-        reading_values: entryReadingValues(entry),
-        readings: this._task?.readings ?? [],
-        task_type: this._task?.type ?? null,
-        reading_unit: this._task?.reading_unit ?? null,
-      });
-    });
+    const draft = buildHistoryEntryDraft(this._entryId, this._taskId, entry, this._task);
+    import("../dialog-mount").then(({ openHistoryEditDialog }) => openHistoryEditDialog(draft));
   }
 
   /** Inline recommendation card (Current vs Suggested with apply/reanalyze).
@@ -449,30 +435,6 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     `;
   }
 
-  /** #161: the entry's readings — per-slot lines with the delta against the
-   *  previous entry carrying the slot, or the single value of a scalar task.
-   *  Parity with the panel timeline for the Lovelace / strategy path. */
-  private _renderHistoryReadings(entry: HistoryEntry, history: HistoryEntry[], L: string) {
-    const values = entryReadingValues(entry);
-    const fmt = (n: number) => formatNumber(n, L, { maximumFractionDigits: 3 });
-    if (values.length > 0) {
-      return html`<div class="history-readings">
-        ${values.map((v) => {
-          const d = readingSlotDelta(history, entry, v.id);
-          return html`<span class="history-reading"><span class="history-reading-name">${v.name}</span>
-            <span class="history-reading-value">${fmt(v.value)}${v.unit ? ` ${v.unit}` : ""}${d == null ? "" : ` (${d >= 0 ? "+" : ""}${fmt(d)})`}</span></span>`;
-        })}
-      </div>`;
-    }
-    if (entry.reading_value != null) {
-      const unit = this._task?.reading_unit ? ` ${this._task.reading_unit}` : "";
-      return html`<div class="history-readings"><span class="history-reading">
-        <span class="history-reading-name">${t("reading_label", L)}</span>
-        <span class="history-reading-value">${fmt(entry.reading_value)}${unit}</span></span></div>`;
-    }
-    return nothing;
-  }
-
   /** Read-only details panel: stats + history. Shown when the user clicks
    *  "Show details" in the dialog. Edit-buttons on history entries open the
    *  existing history-edit dialog (which lives in the same dialog-mount). */
@@ -505,7 +467,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           </div>
           <div class="stat">
             <span class="stat-label">${t("avg_duration", L)}</span>
-            <span class="stat-value">${avgDuration != null ? `${avgDuration}m` : "—"}</span>
+            <span class="stat-value">${formatDuration(avgDuration, L)}</span>
           </div>
         </div>
         <div class="history-header">
@@ -516,42 +478,15 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           ? html`<div class="history-empty">${t("history_empty", L)}</div>`
           : html`
               <div class="history-list">
-                ${[...history].reverse().slice(0, 20).map((entry) => {
-                  const editable = ["completed", "reset", "skipped"].includes(entry.type);
-                  return html`
-                    <div class="history-entry">
-                      <div class="history-line">
-                        <span class="history-type type-${entry.type}">${t(entry.type, L)}</span>
-                        <span class="history-date">${formatDateTime(entry.timestamp, L)}</span>
-                        ${editable
-                          ? html`<button class="history-edit"
-                                   title="${t("history_edit_button", L)}"
-                                   @click=${() => this._onEditHistoryEntry(entry)}>
-                              <ha-icon icon="mdi:pencil"></ha-icon>
-                            </button>`
-                          : nothing}
-                      </div>
-                      ${entry.notes
-                        ? html`<div class="history-notes">${entry.notes}</div>`
-                        : nothing}
-                      ${this._renderHistoryReadings(entry, history, L)}
-                      ${(() => {
-                        const photos = historyPhotoIds(entry);
-                        return photos.length
-                          ? html`<div class="history-photos">
-                              ${photos.map((docId) => html`<maintenance-history-photo .hass=${this.hass} .docId=${docId}></maintenance-history-photo>`)}
-                            </div>`
-                          : nothing;
-                      })()}
-                      ${entry.cost != null || entry.duration != null
-                        ? html`<div class="history-meta">
-                            ${entry.cost != null ? html`<span>💰 ${formatCost(entry.cost, this._currencySymbol, L)}</span>` : nothing}
-                            ${entry.duration != null ? html`<span>⏱️ ${entry.duration}m</span>` : nothing}
-                          </div>`
-                        : nothing}
-                    </div>
-                  `;
-                })}
+                ${[...history].reverse().slice(0, 20).map((entry) => renderHistoryEntry(entry, {
+                  lang: L,
+                  hass: this.hass,
+                  currencySymbol: this._currencySymbol,
+                  openEdit: (e) => this._onEditHistoryEntry(e),
+                  readingUnit: task.reading_unit,
+                  readingSlotDelta: (e, slotId) => readingSlotDelta(history, e, slotId),
+                  taskRef: this._taskRef,
+                }, { compact: true }))}
                 ${history.length > 20
                   ? html`<div class="history-more">… +${history.length - 20} ${t("older_entries", L)}</div>`
                   : nothing}
@@ -844,41 +779,16 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       background: var(--secondary-background-color); padding: 2px 8px; border-radius: 999px;
     }
     .history-empty { color: var(--secondary-text-color); font-style: italic; font-size: 13px; }
-    .history-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow: auto; }
-    .history-entry {
-      padding: 6px 8px; border-radius: 6px;
+    /* The rows themselves are the shared renderer's (.history-entry.compact
+       + the history-* classes from sharedStyles); only the list chrome is
+       local. */
+    .history-list { display: flex; flex-direction: column; max-height: 280px; overflow: auto; }
+    .history-list .history-entry {
+      padding: 6px 8px; border-radius: 6px; border-bottom: none; margin-bottom: 6px;
       background: var(--secondary-background-color, rgba(255,255,255,0.03));
-      font-size: 13px;
     }
-    .history-line {
-      display: flex; align-items: center; gap: 8px;
-      justify-content: space-between;
-    }
-    .history-type {
-      font-weight: 600; font-size: 11px;
-      padding: 2px 6px; border-radius: 4px;
-      text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .type-completed { background: rgba(46,125,50,0.2); color: #66bb6a; }
-    .type-skipped { background: rgba(158,158,158,0.2); color: var(--secondary-text-color); }
-    .type-reset { background: rgba(33,150,243,0.2); color: #64b5f6; }
-    .type-triggered { background: rgba(255,87,34,0.2); color: #ff8a65; }
-    .history-date { font-size: 11px; color: var(--secondary-text-color); flex: 1; text-align: right; }
-    .history-edit {
-      background: transparent; border: none; cursor: pointer;
-      padding: 4px; border-radius: 4px;
-      color: var(--secondary-text-color);
-    }
-    .history-edit:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); color: var(--primary-color); }
-    .history-edit ha-icon { --mdc-icon-size: 14px; }
-    .history-notes { margin-top: 4px; color: var(--primary-text-color); }
-    .history-meta { display: flex; gap: 12px; margin-top: 4px; color: var(--secondary-text-color); font-size: 11px; }
-    /* #161: readings + photos on the entry (panel-timeline parity) */
-    .history-readings { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-top: 4px; font-size: 12px; }
-    .history-reading { display: inline-flex; gap: 6px; }
-    .history-reading-name { color: var(--secondary-text-color); }
-    .history-reading-value { font-variant-numeric: tabular-nums; }
-    .history-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .history-list .history-date { font-size: 11px; }
+    .history-list .history-details { font-size: 11px; }
     .history-more { padding: 8px; text-align: center; font-size: 12px; color: var(--secondary-text-color); font-style: italic; }
 
     /* Adaptive section — wraps the panel renderers (which assume sharedStyles

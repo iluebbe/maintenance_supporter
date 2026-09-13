@@ -26,7 +26,7 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
 )
 
-from .conftest import build_global_entry_data, setup_integration
+from .conftest import build_global_entry_data, make_global_entry as _make_global, setup_integration
 
 
 @pytest.fixture
@@ -792,20 +792,6 @@ async def test_global_options_panel_access_operator_write_persists(
     )
     assert result["type"] == FlowResultType.MENU
     assert global_entry.options[CONF_OPERATOR_WRITE_ENABLED] is True
-
-
-def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(**kw),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
 
 
 # ─── helpers/global_options.py lines 32, 45-46, 48 ──────────────────────────

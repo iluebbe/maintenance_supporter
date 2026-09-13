@@ -28,10 +28,9 @@ from .conftest import (
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     get_task_store_state,
+    make_object_entry,
     setup_integration,
 )
 
@@ -57,20 +56,7 @@ def _make_object_entry(
     name: str = "Test Object",
     unique_id: str = "test_coord",
 ) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name),
-            tasks=tasks,
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name=name, uid=unique_id)
 
 
 # ─── _async_update_data Tests ─────────────────────────────────────────────

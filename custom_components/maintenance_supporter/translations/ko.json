@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "“{task_name}”은(는) 보관됨, 비활성화됨 또는 객체가 일시중지 상태이므로 완료할 수 없습니다"
     },
+    "task_inactive_postpone": {
+      "message": "“{task_name}”은(는) 보관됨, 비활성화됨 또는 객체가 일시중지 상태이므로 연기할 수 없습니다"
+    },
+    "task_inactive_reset": {
+      "message": "“{task_name}”은(는) 보관됨, 비활성화됨 또는 객체가 일시중지 상태이므로 재설정할 수 없습니다"
+    },
     "task_inactive_skip": {
       "message": "“{task_name}”은(는) 보관됨, 비활성화됨 또는 객체가 일시중지 상태이므로 건너뛸 수 없습니다"
     },

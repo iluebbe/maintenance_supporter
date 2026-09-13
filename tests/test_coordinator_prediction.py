@@ -35,10 +35,11 @@ from custom_components.maintenance_supporter.helpers.notification_manager import
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
     build_object_entry_data,
     build_task_data,
     get_task_store_state,
+    make_global_entry as _global_entry,
+    make_object_entry,
     setup_integration,
 )
 
@@ -64,50 +65,13 @@ def _make_entry(
     name: str = "Test Object",
     unique_id: str = "coord_pred",
 ) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name),
-            tasks=tasks,
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
-def _global_entry(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name=name, uid=unique_id)
 
 
 def _object_entry(hass: HomeAssistant, tasks: dict | None = None) -> MockConfigEntry:
     if tasks is None:
         tasks = {TASK_ID_1: build_task_data()}
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Pool Pump",
-        data=build_object_entry_data(tasks=tasks),
-        source="user",
-        unique_id="test_object_unique",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks=tasks, name="Pool Pump", unique_id="test_object_unique")
 
 
 # ─── Sensor Prediction Integration in _async_update_data ─────────────

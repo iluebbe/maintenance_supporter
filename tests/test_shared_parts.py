@@ -25,7 +25,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     STORES_CACHE_KEY,
 )
 from custom_components.maintenance_supporter.helpers.parts import sanitize_consumes_parts
@@ -36,11 +35,11 @@ from custom_components.maintenance_supporter.helpers.shared_parts import (
 from custom_components.maintenance_supporter.websocket.tasks_actions import ws_complete_task
 
 from .conftest import (
-    build_global_entry_data,
     build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
@@ -75,34 +74,19 @@ def _object(
     task["name"] = f"Service {name}"
     if consumes is not None:
         task[CONF_TASK_CONSUMES_PARTS] = consumes
-    data = build_object_entry_data(object_data=obj, tasks={TASK_ID: task})
-    if parts:
-        data[CONF_PARTS] = parts
-    entry = MockConfigEntry(
-        version=1,
+    return make_object_entry(
+        hass,
+        tasks={TASK_ID: task},
+        name=name,
+        uid=slug,
+        object_data=obj,
         minor_version=4,
-        domain=DOMAIN,
-        title=name,
-        data=data,
-        source="user",
-        unique_id=f"maintenance_supporter_{slug}",
+        extra_data={CONF_PARTS: parts} if parts else None,
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 async def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=4,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(hass, minor_version=4)
 
 
 def _stock(hass: HomeAssistant, entry: MockConfigEntry, part_id: str = BAGS) -> float | None:

@@ -15,15 +15,13 @@ from ..const import (
     CONF_TASKS,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_TASKS_PER_OBJECT,
 )
+from ..helpers.aggregate import get_store, is_object_entry
+from ..helpers.entry_tasks import insert_new_task
 from ..helpers.sanitize import cap_task_fields
 from ..helpers.schedule import (
     normalize_task_storage,
-)
-from . import (
-    _get_runtime_data,
 )
 
 # ---------------------------------------------------------------------------
@@ -46,44 +44,13 @@ async def async_persist_task(
     Store dynamic state, and reloads the entry so the task's entities
     (sensor / binary_sensor / buttons) are created.
     """
-    # Store recurrence in the canonical nested `schedule` shape (schedule-model v2).
-    task_data = normalize_task_storage(task_data)
-    task_id = task_data["id"]
-    # Per-object task cap — this is the single create chokepoint for BOTH the
-    # task/create WS command and the add_task service, so one guard covers both.
-    # The ValueError surfaces as a WS error / a service ValidationError at the
-    # callers (a runaway automation can't inflate ConfigEntry.data without bound).
-    existing_tasks = entry.data.get(CONF_TASKS, {})
-    if task_id not in existing_tasks and len(existing_tasks) >= MAX_TASKS_PER_OBJECT:
-        raise ValueError(f"This object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks")
-    new_data = dict(entry.data)
-    new_tasks = dict(new_data.get(CONF_TASKS, {}))
-    new_tasks[task_id] = task_data
-    new_data[CONF_TASKS] = new_tasks
-
-    obj = dict(new_data.get(CONF_OBJECT, {}))
-    task_ids = list(obj.get("task_ids", []))
-    task_ids.append(task_id)
-    obj["task_ids"] = task_ids
-    new_data[CONF_OBJECT] = obj
-
-    hass.config_entries.async_update_entry(entry, data=new_data)
-
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
+    # The insert itself (normalise, per-object cap → ValueError, task_ids,
+    # ConfigEntry.data, Store init) is the sync core shared with the options
+    # flow; this path saves right away and reloads so the task's entities
+    # (sensor / binary_sensor / buttons) are created.
+    store = insert_new_task(hass, entry, task_data, last_performed=last_performed, history=history)
     if store is not None:
-        store.init_task(task_id, last_performed=last_performed)
-        if history:
-            store.set_history(task_id, history)
         await store.async_save()
-    else:
-        # Legacy: dynamic fields live in ConfigEntry.data
-        task_data["last_performed"] = last_performed
-        task_data["history"] = history or []
-        new_tasks[task_id] = task_data
-        new_data[CONF_TASKS] = new_tasks
-        hass.config_entries.async_update_entry(entry, data=new_data)
-
     await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -118,7 +85,7 @@ async def async_create_task_simple(
     reachable directly from Python, so the caps can't live only in the schema.
     """
     entry = hass.config_entries.async_get_entry(entry_id)
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+    if not is_object_entry(entry):
         raise ValueError(f"No maintenance object found for entry_id {entry_id!r}")
     name = (name or "").strip()
     if not name:
@@ -190,7 +157,7 @@ async def async_update_task_simple(
     Raises ValueError for an unknown entry/task or an empty name.
     """
     entry = hass.config_entries.async_get_entry(entry_id)
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+    if not is_object_entry(entry):
         raise ValueError(f"No maintenance object found for entry_id {entry_id!r}")
 
     new_data = dict(entry.data)
@@ -276,7 +243,7 @@ async def async_move_task(
     """
     from copy import deepcopy
 
-    from ..const import CONF_VACATION_EXEMPT_TASK_IDS, DOCUMENT_STORE_KEY, MAX_TASKS_PER_OBJECT
+    from ..const import CONF_VACATION_EXEMPT_TASK_IDS, DOCUMENT_STORE_KEY
     from ..helpers.completion_photos import history_photo_ids
     from ..helpers.parts import PART_REF_FIELD
     from .tasks_crud import async_delete_task
@@ -292,10 +259,8 @@ async def async_move_task(
     # Both Stores must be loaded (entry disabled / setup-retry / mid-reload
     # = no runtime_data): the config would move while history, readings and
     # trigger state silently vanished (bug audit 2026-09-12).
-    src_rd = _get_runtime_data(hass, source.entry_id)
-    src_store = getattr(src_rd, "store", None) if src_rd else None
-    tgt_rd = _get_runtime_data(hass, target.entry_id)
-    tgt_store = getattr(tgt_rd, "store", None) if tgt_rd else None
+    src_store = get_store(hass, source.entry_id)
+    tgt_store = get_store(hass, target.entry_id)
     if src_store is None or tgt_store is None:
         raise TaskMoveRefused("object_not_loaded", "Both objects must be loaded to move a task")
 

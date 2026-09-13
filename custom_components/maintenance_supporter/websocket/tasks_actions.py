@@ -12,7 +12,6 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 
 from ..const import (
-    CONF_TASKS,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_COST,
@@ -20,40 +19,21 @@ from ..const import (
     MAX_DURATION_MINUTES,
     MAX_ID_LENGTH,
     MAX_TEXT_LENGTH,
+    MAX_TIMESTAMP_LENGTH,
 )
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
 from ..models.maintenance_task import MaintenanceTask
 from . import (
-    _get_runtime_data,
+    READING_VALUES_FIELD,
+    USED_PARTS_FIELD,
+    _load_object_task,
+    _parse_iso_date,
+    async_commit_store,
 )
 
 # ---------------------------------------------------------------------------
 # Task Actions (Complete / Skip / Reset)
 # ---------------------------------------------------------------------------
-
-
-def _load_task_context(
-    hass: HomeAssistant,
-    connection: websocket_api.ActiveConnection,
-    msg: dict[str, Any],
-    *,
-    need_coordinator: bool = True,
-) -> tuple[Any, Any] | None:
-    """Resolve ``(runtime_data, entry)`` for a task action, or send the standard
-    not-found error and return None.
-
-    Consolidates the identical prologue the task-action handlers copied inline
-    (the copies had already drifted — e.g. snooze omitted the coordinator check).
-    """
-    rd = _get_runtime_data(hass, msg["entry_id"])
-    if need_coordinator and (rd is None or rd.coordinator is None):
-        connection.send_error(msg["id"], "not_found", "Coordinator not found")
-        return None
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return None
-    return rd, entry
 
 
 def _completion_blocked(rd: Any, task_id: str) -> bool:
@@ -70,6 +50,17 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
     if not td:
         return False
     return not MaintenanceTask.from_dict(td).can_complete_now
+
+
+def _refuse_too_early(connection: websocket_api.ActiveConnection, msg: dict[str, Any], rd: Any) -> bool:
+    """Send ``too_early`` and return True when the completion window forbids
+    completing the task now — the ONE pre-check shared by the complete and
+    quick-complete commands (the coordinator choke point raises the same key
+    for callers that skip it, e.g. the HA service)."""
+    if not _completion_blocked(rd, msg["task_id"]):
+        return False
+    connection.send_error(msg["id"], "too_early", "Task can only be completed closer to its due date")
+    return True
 
 
 @websocket_api.websocket_command(
@@ -94,7 +85,7 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # #133: when the maintenance was actually performed (ISO datetime,
         # naive = local). Backfills a past completion; must not be in the
         # future — the coordinator validates and splits latest-vs-backfill.
-        vol.Optional("completed_at"): vol.Any(vol.All(str, vol.Length(max=64)), None),
+        vol.Optional("completed_at"): vol.Any(vol.All(str, vol.Length(max=MAX_TIMESTAMP_LENGTH)), None),
         # QR deep-link fallback: the panel asserts the scan on a tag-gated task
         # whose quick-complete needs the full dialog (bug audit 2026-08-29).
         vol.Optional("via_tag_scan"): bool,
@@ -110,39 +101,15 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # Wide numeric bounds — meters count high, temperatures go negative.
         vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
         # #161 phase 2: {slot_id: value} for a task with reading slots; None
-        # skips a meter this time. Ids are checked against the task's slots
-        # in the handler (unknown -> invalid_input).
-        vol.Optional("reading_values"): vol.Any(
-            {str: vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None)},
-            None,
-        ),
+        # skips a meter this time (shared shape with the history edit).
+        vol.Optional("reading_values"): READING_VALUES_FIELD,
         # Spare parts: on an auto-created "buy" task, how many units were
         # actually bought (dialog override of the part's restock_quantity).
         vol.Optional("restock_quantity"): vol.Any(vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=9999)), None),
         # #99: the parts actually used on THIS completion. An explicit list
         # (even an empty one) REPLACES the task's automatic consumes_parts
         # deduction; omitting the key keeps the automatic behaviour.
-        vol.Optional("used_parts"): vol.Any(
-            vol.All(
-                [
-                    vol.Schema(
-                        {
-                            vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                            # #111: the pool may live on another object. The
-                            # schema has to allow it or voluptuous rejects the
-                            # completion before the handler (which already
-                            # validates the reference) ever runs.
-                            vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                            vol.Optional("quantity", default=1): vol.All(
-                                vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=999)
-                            ),
-                        }
-                    )
-                ],
-                vol.Length(max=10),
-            ),
-            None,
-        ),
+        vol.Optional("used_parts"): USED_PARTS_FIELD,
     }
 )
 @websocket_api.async_response
@@ -152,10 +119,10 @@ async def ws_complete_task(
     msg: dict[str, Any],
 ) -> None:
     """Mark a task as completed."""
-    ctx = _load_task_context(hass, connection, msg)
+    ctx = _load_object_task(hass, connection, msg, merged=True, need_coordinator=True)
     if ctx is None:
         return
-    rd, _entry = ctx
+    _entry, rd, slot_task = ctx
 
     # #133: an optional backdated completion moment. Parsed here (the schema
     # can only cheaply cap the length); range/future validation lives in the
@@ -176,12 +143,7 @@ async def ws_complete_task(
     # history correction, not early work, so it bypasses the gate. A
     # today-dated completed_at still honours it.
     is_past_dated = completed_at is not None and completed_at.date() < dt_util.now().date()
-    if not is_past_dated and _completion_blocked(rd, msg["task_id"]):
-        connection.send_error(
-            msg["id"],
-            "too_early",
-            "Task can only be completed closer to its due date",
-        )
+    if not is_past_dated and _refuse_too_early(connection, msg, rd):
         return
 
     # #99: validate the per-completion selection against the object's parts
@@ -203,9 +165,7 @@ async def ws_complete_task(
     reading_values = None
     if msg.get("reading_values"):
         from ..helpers.reading_slots import resolve_reading_values
-        from . import _get_merged_tasks
 
-        slot_task = _get_merged_tasks(_entry).get(msg["task_id"]) or {}
         try:
             reading_values = (
                 resolve_reading_values(
@@ -270,26 +230,12 @@ async def ws_quick_complete_task(
     msg: dict[str, Any],
 ) -> None:
     """Complete a task using its pre-configured `quick_complete_defaults`."""
-    rd = _get_runtime_data(hass, msg["entry_id"])
-    if rd is None or rd.coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+    ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
+    if ctx is None:
         return
+    _entry, rd, task = ctx
 
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None:
-        connection.send_error(msg["id"], "not_found", "Object not found")
-        return
-    task = entry.data.get(CONF_TASKS, {}).get(msg["task_id"])
-    if not task:
-        connection.send_error(msg["id"], "not_found", "Task not found")
-        return
-
-    if _completion_blocked(rd, msg["task_id"]):
-        connection.send_error(
-            msg["id"],
-            "too_early",
-            "Task can only be completed closer to its due date",
-        )
+    if _refuse_too_early(connection, msg, rd):
         return
 
     defaults = task.get("quick_complete_defaults") or {}
@@ -342,10 +288,10 @@ async def ws_skip_task(
     msg: dict[str, Any],
 ) -> None:
     """Skip the current maintenance cycle."""
-    ctx = _load_task_context(hass, connection, msg)
+    ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
-    rd, _entry = ctx
+    _entry, rd, _task = ctx
 
     try:
         await rd.coordinator.skip_maintenance(
@@ -376,19 +322,15 @@ async def ws_reset_task(
     msg: dict[str, Any],
 ) -> None:
     """Reset the last performed date."""
-    from datetime import date as date_cls
-
-    ctx = _load_task_context(hass, connection, msg)
+    ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
-    rd, _entry = ctx
+    _entry, rd, _task = ctx
 
     reset_date = None
     if msg.get("date"):
-        try:
-            reset_date = date_cls.fromisoformat(msg["date"])
-        except ValueError:
-            connection.send_error(msg["id"], "invalid_date", "Invalid date format")
+        reset_date = _parse_iso_date(connection, msg["id"], msg["date"], field="date")
+        if reset_date is None:
             return
 
     try:
@@ -424,11 +366,10 @@ async def ws_set_task_phase(
     rotate the cursor themselves and there is deliberately no phase picker
     in the complete dialog.
     """
-    ctx = _load_task_context(hass, connection, msg)
+    ctx = _load_object_task(hass, connection, msg, need_store=True, need_coordinator=True)
     if ctx is None:
         return
-    rd, entry = ctx
-    task = (entry.data.get(CONF_TASKS) or {}).get(msg["task_id"]) or {}
+    _entry, rd, task = ctx
     sequence = task.get("phase_sequence") or []
     if not (task.get("phases") and sequence):
         connection.send_error(msg["id"], "no_phases", "Task has no phase cycle")
@@ -439,8 +380,7 @@ async def ws_set_task_phase(
         )
         return
     rd.store.set_phase_cursor(msg["task_id"], msg["cursor"])
-    await rd.store.async_save()  # user action - never rely on the 60 s debounce
-    await rd.coordinator.async_refresh_now()
+    await async_commit_store(rd)
     connection.send_result(msg["id"], {"success": True})
 
 
@@ -459,17 +399,13 @@ async def ws_postpone_task(
     msg: dict[str, Any],
 ) -> None:
     """Postpone the current occurrence to a chosen date (per-occurrence defer)."""
-    from datetime import date as date_cls
-
-    ctx = _load_task_context(hass, connection, msg)
+    ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
-    rd, _entry = ctx
+    _entry, rd, _task = ctx
 
-    try:
-        until = date_cls.fromisoformat(msg["until"])
-    except ValueError:
-        connection.send_error(msg["id"], "invalid_date", "Invalid date format")
+    until = _parse_iso_date(connection, msg["id"], msg["until"], field="until")
+    if until is None:
         return
 
     try:
@@ -501,7 +437,7 @@ async def ws_snooze_task(
     """
     from .. import DOMAIN, NOTIFICATION_MANAGER_KEY
 
-    if _load_task_context(hass, connection, msg, need_coordinator=False) is None:
+    if _load_object_task(hass, connection, msg) is None:
         return
 
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
@@ -542,11 +478,11 @@ async def ws_checklist_progress(
     a step IS doing the work — the same household member who may complete the
     task must be able to record partial progress.
     """
-    ctx = _load_task_context(hass, connection, msg)
+    ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
-    rd, entry = ctx
-    task_items = set(entry.data[CONF_TASKS][msg["task_id"]].get("checklist") or [])
+    _entry, rd, task = ctx
+    task_items = set(task.get("checklist") or [])
     state = {item: bool(done) for item, done in msg["checklist_state"].items() if item in task_items}
     # Progress lives ONLY in the Store (no legacy fallback) — degrade to a
     # clean error instead of an AttributeError when it failed to load.
@@ -554,7 +490,5 @@ async def ws_checklist_progress(
         connection.send_error(msg["id"], "storage_unavailable", "Task storage not loaded")
         return
     rd.store.set_checklist_progress(msg["task_id"], state)
-    await rd.store.async_save()
-    # A user action must be visible immediately — never the 10 s debounce.
-    await rd.coordinator.async_refresh_now()
+    await async_commit_store(rd)
     connection.send_result(msg["id"], {"success": True, "checklist_state": state})

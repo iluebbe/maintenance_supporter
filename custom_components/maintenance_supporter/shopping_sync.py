@@ -44,15 +44,15 @@ from homeassistant.core import (
     CoreState,
     Event,
     EventStateChangedData,
-    HassJob,
     HomeAssistant,
     callback,
 )
-from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from .helpers.global_options import get_global_options
+from .helpers.managed_timer import ManagedTimer
 from .helpers.parts import PART_REF_FIELD
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,7 +83,10 @@ class ShoppingListSync:
         self._listening_to: str | None = None
         self._unsub_state: CALLBACK_TYPE | None = None
         self._unsub_started: CALLBACK_TYPE | None = None
-        self._debounce: CALLBACK_TYPE | None = None
+        # The debounce AND the resync tasks it spawns; closed at teardown, so
+        # a schedule_resync queued behind the unload can no longer re-arm a
+        # dead sync (DRY audit 2026-09).
+        self._debounce = ManagedTimer(hass, f"{DOMAIN}_shopping_sync")
 
     async def async_setup(self) -> None:
         loaded = await self._store.async_load()
@@ -104,10 +107,11 @@ class ShoppingListSync:
 
     @callback
     def async_teardown(self) -> None:
-        for unsub in (self._unsub_state, self._unsub_started, self._debounce):
+        self._debounce.close()
+        for unsub in (self._unsub_state, self._unsub_started):
             if unsub is not None:
                 unsub()
-        self._unsub_state = self._unsub_started = self._debounce = None
+        self._unsub_state = self._unsub_started = None
         self._listening_to = None
 
     async def async_handle_rename(self, old_eid: str, new_eid: str) -> None:
@@ -129,22 +133,13 @@ class ShoppingListSync:
 
     @callback
     def schedule_resync(self) -> None:
-        """Debounced resync — every trigger converges on one pass."""
-        if self._debounce is not None:
-            self._debounce()
+        """Debounced resync — every trigger converges on one pass. A no-op
+        once torn down (the timer is closed)."""
+        self._debounce.schedule(_DEBOUNCE_SECONDS, self._fire_resync)
 
-        @callback
-        def _fire(_now: Any) -> None:
-            self._debounce = None
-            self._hass.async_create_task(
-                self.async_resync(), name=f"{DOMAIN}_shopping_sync"
-            )
-
-        # cancel_on_shutdown: a pending debounce must never outlive HA (or a
-        # test teardown) — the resync it carries is worthless after shutdown.
-        self._debounce = async_call_later(
-            self._hass, _DEBOUNCE_SECONDS, HassJob(_fire, cancel_on_shutdown=True)
-        )
+    @callback
+    def _fire_resync(self, _now: Any) -> None:
+        self._debounce.track_task(self.async_resync(), name=f"{DOMAIN}_shopping_sync")
 
     def configured_entity(self) -> str:
         return str(get_global_options(self._hass).get(CONF_SHOPPING_LIST_ENTITY) or "")

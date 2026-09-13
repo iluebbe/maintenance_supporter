@@ -1,7 +1,8 @@
 /**
- * The tolerant matcher (#171) — twin of tests/test_search_match.py; the
- * same examples must pass on both sides so the panel's local groups and the
- * server's document/history groups agree on what "matches".
+ * The tolerant matcher (#171) — twin of tests/test_search_match.py. Both
+ * sides run the SAME examples (fixtures/search-match-examples.json) so the
+ * panel's local groups and the server's document/history groups agree on
+ * what "matches"; a case added to the fixture runs on both sides.
  */
 
 import { expect } from "@open-wc/testing";
@@ -10,64 +11,85 @@ import {
   compact, fieldScore, fold, queryTokens, scoreFields, withinOneEdit, wordScore, words,
 } from "../helpers/search-match.js";
 import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter.js";
+// A static import, not fetch(): web-test-runner's esbuild plugin serves
+// .json files as JS modules (`var _comment = …`), which fetch() would see.
+import examples from "./fixtures/search-match-examples.json";
 
-describe("search-match (#171)", () => {
+interface Examples {
+  fold_length_preserving: string[];
+  fold: Array<[string, string]>;
+  words: Array<[string, string[]]>;
+  compact: Array<[string, string]>;
+  query_tokens: Array<[string, string[][]]>;
+  within_one_edit: Array<[string, string, boolean]>;
+  word_score: Array<[string[], string, string]>;
+  field_score: Array<[string[], string, string]>;
+  score_fields: {
+    fields: Array<[string, number]>;
+    hits: string[];
+    misses: string[];
+    order_independent: Array<[string, string]>;
+    name_outranks_notes: { query: string; in_name: Array<[string, number]>; in_notes: Array<[string, number]> };
+  };
+}
+
+const SCORES: Record<string, number> = { EXACT: SCORE_EXACT, PREFIX: SCORE_PREFIX, SUBSTRING: SCORE_SUBSTRING, FUZZY: SCORE_FUZZY, NONE: 0 };
+const toFields = (rows: Array<[string, number]>) => rows.map(([text, weight]) => ({ text, weight }));
+
+const ex = examples as unknown as Examples;
+
+describe("search-match (#171) — shared examples", () => {
+  it("the shared fixture loaded (guards the Python twin's assumption that both read one file)", () => {
+    expect(ex.word_score.length).to.be.greaterThan(3);
+    expect(ex.score_fields.hits.length).to.be.greaterThan(0);
+  });
+
   it("fold is length-preserving and strips diacritics", () => {
-    for (const s of ["Kühlschrank", "Straße", "Ærø", "ÉCOLE", "naïve café", "Łódź"]) expect(fold(s).length).to.equal(s.length);
-    expect(fold("Kühlschrank")).to.equal("kuhlschrank");
-    expect(fold("Straße")).to.equal("strase");
-    expect(fold("Łódź")).to.equal("lodz");
+    for (const s of ex.fold_length_preserving) expect(fold(s).length, s).to.equal(s.length);
+    for (const [input, expected] of ex.fold) expect(fold(input)).to.equal(expected);
   });
 
   it("words / compact", () => {
-    expect(words("Fehler-Code E-24, Zulauf!")).to.deep.equal(["fehler", "code", "e", "24", "zulauf"]);
-    expect(compact("E-24 / WM14T5")).to.equal("e24wm14t5");
+    for (const [input, expected] of ex.words) expect(words(input)).to.deep.equal(expected);
+    for (const [input, expected] of ex.compact) expect(compact(input)).to.equal(expected);
   });
 
   it("query tokens carry digraph variants and keep the original", () => {
-    expect(queryTokens("Spuel-Maschine")).to.deep.equal([["spuel", "spul"], ["maschine"]]);
-    expect(queryTokens("Bauer")).to.deep.equal([["bauer", "baur"]]);
-    expect(queryTokens("  ")).to.deep.equal([]);
+    for (const [input, expected] of ex.query_tokens) expect(queryTokens(input), input).to.deep.equal(expected);
   });
 
   it("withinOneEdit", () => {
-    expect(withinOneEdit("reinigen", "reinigne")).to.equal(true);
-    expect(withinOneEdit("filter", "fiter")).to.equal(true);
-    expect(withinOneEdit("filter", "fillter")).to.equal(true);
-    expect(withinOneEdit("filter", "filtar")).to.equal(true);
-    expect(withinOneEdit("filter", "flitre")).to.equal(false);
-    expect(withinOneEdit("abc", "abcde")).to.equal(false);
+    for (const [a, b, expected] of ex.within_one_edit) expect(withinOneEdit(a, b), `${a} ~ ${b}`).to.equal(expected);
   });
 
   it("word score ladder", () => {
-    expect(wordScore(["filter"], "filter")).to.equal(SCORE_EXACT);
-    expect(wordScore(["filt"], "filter")).to.equal(SCORE_PREFIX);
-    expect(wordScore(["leitung"], "bedienungsanleitung")).to.equal(SCORE_SUBSTRING);
-    expect(wordScore(["reinigne"], "reinigen")).to.equal(SCORE_FUZZY);
-    expect(wordScore(["reinigugn"], "reinigungsmittel")).to.equal(SCORE_FUZZY);
-    expect(wordScore(["er"], "filter")).to.equal(0);
-    expect(wordScore(["filt"], "fitler")).to.equal(0);
+    for (const [variants, word, score] of ex.word_score) {
+      expect(wordScore(variants, word), `${variants.join("/")} in ${word}`).to.equal(SCORES[score]);
+    }
   });
 
   it("field score folds diacritics and separators", () => {
-    expect(fieldScore(["kuhl"], "Kühlschrank")).to.equal(SCORE_PREFIX);
-    expect(fieldScore(["spul"], "Spülmaschine")).to.equal(SCORE_PREFIX);
-    expect(fieldScore(["e24"], "Fehlercode E-24")).to.equal(SCORE_SUBSTRING);
+    for (const [variants, text, score] of ex.field_score) {
+      expect(fieldScore(variants, text), `${variants.join("/")} in ${text}`).to.equal(SCORES[score]);
+    }
   });
 
   it("every token must hit, order does not matter, names outrank notes", () => {
-    const fields = [{ text: "Filter reinigen", weight: 3 }, { text: "Spülmaschine", weight: 2 }];
-    expect(scoreFields(queryTokens("spülm filt"), fields)).to.be.greaterThan(0);
-    expect(scoreFields(queryTokens("filt spülm"), fields)).to.equal(scoreFields(queryTokens("spülm filt"), fields));
-    expect(scoreFields(queryTokens("spuel filter"), fields)).to.be.greaterThan(0);
-    expect(scoreFields(queryTokens("spülm garten"), fields)).to.equal(0);
+    const sf = ex.score_fields;
+    const fields = toFields(sf.fields);
+    for (const q of sf.hits) expect(scoreFields(queryTokens(q), fields), q).to.be.greaterThan(0);
+    for (const q of sf.misses) expect(scoreFields(queryTokens(q), fields), q).to.equal(0);
+    for (const [a, b] of sf.order_independent) expect(scoreFields(queryTokens(a), fields)).to.equal(scoreFields(queryTokens(b), fields));
     expect(scoreFields([], fields)).to.equal(0);
-    const inName = scoreFields(queryTokens("filter"), [{ text: "Filter", weight: 3 }, { text: "", weight: 1 }]);
-    const inNotes = scoreFields(queryTokens("filter"), [{ text: "Pumpe", weight: 3 }, { text: "Filter wechseln", weight: 1 }]);
+    const n = sf.name_outranks_notes;
+    const inName = scoreFields(queryTokens(n.query), toFields(n.in_name));
+    const inNotes = scoreFields(queryTokens(n.query), toFields(n.in_notes));
     expect(inName).to.be.greaterThan(inNotes);
     expect(inNotes).to.be.greaterThan(0);
   });
+});
 
+describe("search-match (#171) — panel-only", () => {
   it("filterDocuments: empty query = unchanged list, otherwise ranked matches", () => {
     const docs = [
       { id: "a", title: "Garantie", filename: "g.pdf", tags: ["warranty"] },

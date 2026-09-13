@@ -66,7 +66,7 @@ class TestTriggerRetryOnUnknown:
         await trigger.async_setup()
 
         # Retry should be scheduled
-        assert trigger._unsub_retry is not None
+        assert trigger._retry_timer.pending
         # Listener should still be registered
         assert trigger._unsub_listener is not None
         # No evaluation should have happened
@@ -87,7 +87,7 @@ class TestTriggerRetryOnUnknown:
         trigger = ThresholdTrigger(hass, entity, config)
         await trigger.async_setup()
 
-        assert trigger._unsub_retry is not None
+        assert trigger._retry_timer.pending
         await trigger.async_teardown()
 
     async def test_teardown_cancels_retry(self, hass: HomeAssistant) -> None:
@@ -103,9 +103,9 @@ class TestTriggerRetryOnUnknown:
         trigger = ThresholdTrigger(hass, entity, config)
         await trigger.async_setup()
 
-        assert trigger._unsub_retry is not None
+        assert trigger._retry_timer.pending
         await trigger.async_teardown()
-        assert trigger._unsub_retry is None
+        assert not trigger._retry_timer.pending
 
     async def test_valid_state_no_retry(self, hass: HomeAssistant) -> None:
         """When sensor has valid numeric state, no retry should be scheduled."""
@@ -120,7 +120,7 @@ class TestTriggerRetryOnUnknown:
         trigger = ThresholdTrigger(hass, entity, config)
         await trigger.async_setup()
 
-        assert trigger._unsub_retry is None
+        assert not trigger._retry_timer.pending
         assert trigger._current_value == 42.0
 
         await trigger.async_teardown()

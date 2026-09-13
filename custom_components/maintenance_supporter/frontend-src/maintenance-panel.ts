@@ -3,7 +3,7 @@
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { isSafeHttpUrl } from "./helpers/url";
 import { queryTokens, scoreFields } from "./helpers/search-match";
-import { objectRef, parseRef, renderRefChip, taskRef } from "./helpers/reference";
+import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
@@ -120,8 +120,9 @@ import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache } from "./helpers/settings-cache";
-import { historyPhotoIds } from "./helpers/history-photos";
-import { entryReadingValues, readingSlotDelta } from "./helpers/reading-slots";
+import { buildHistoryEntryDraft } from "./helpers/history-draft";
+import { readingSlotDelta } from "./helpers/reading-slots";
+import { runWs } from "./helpers/ws-run";
 
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
 
@@ -1234,6 +1235,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!this._refsInLists) return nothing;
     const obj = this._getObject(entryId);
     return renderRefChip(taskRef(obj?.object, obj?.tasks.find((tk) => tk.id === taskId)));
+  }
+
+  /** The "#8" chip in front of an object's name in cards / tables, when the setting is on. */
+  private _objRef(obj: HasRef | null | undefined) {
+    return this._refsInLists ? renderRefChip(objectRef(obj)) : nothing;
   }
 
   /** Push a browser history entry so the back button navigates within the
@@ -2930,19 +2936,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 ${renderPersonChip(personOf(row), "today-person")}
               </div>
             </div>
-            ${this._actionStyle() === "icons"
-              ? html`
-                <mwc-icon-button class="btn-complete" title="${t("complete", L)}"
-                  @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
-                  <ha-icon icon="mdi:check"></ha-icon>
-                </mwc-icon-button>`
-              : html`
-                <ha-button size="small" appearance="accent" variant="success" class="today-complete" title="${t("complete", L)}"
-                  @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
-                  ${this._actionStyle() === "buttons_compact" && (this.narrow || this.tight)
-                    ? html`<ha-icon icon="mdi:check"></ha-icon>`
-                    : html`<ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}`}
-                </ha-button>`}
+            ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false)}
           </div>
         `)}
       </div>
@@ -3406,7 +3400,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="object-card${overdue ? ' object-card-overdue' : ''}" @click=${() => this._showObject(obj.entry_id)}>
           ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
           <div class="object-card-header">
-            <span class="object-card-name">${this._refsInLists ? renderRefChip(objectRef(obj.object)) : nothing}${obj.object.name}</span>
+            <span class="object-card-name">${this._objRef(obj.object)}${obj.object.name}</span>
             ${obj.object.paused
               ? html`<span class="paused-badge" title="${t("object_paused_badge", L)}${obj.object.paused_until ? ` — ${obj.object.paused_until}` : ""}">
                   <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
@@ -3570,7 +3564,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 ${rows.map((row) => html`
                   <tr class="objects-table-row" @click=${() => this._showObject(row.entry_id)}>
                     <td>
-                      <span class="objects-table-name">${this._refsInLists ? renderRefChip(objectRef(this._getObject(row.entry_id)?.object)) : nothing}${row.name}</span>
+                      <span class="objects-table-name">${this._objRef(this._getObject(row.entry_id)?.object)}${row.name}</span>
                       ${row.low
                         ? html`<ha-icon class="part-low-icon" icon="mdi:cart-arrow-down"
                             title="${t("part_reorder_threshold", L)}: ${row.reorder_threshold}"></ha-icon>`
@@ -3629,15 +3623,10 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // (#67 / Phase 3) Download all objects as a one-row-per-object CSV.
   private async _exportObjectsCsv(): Promise<void> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/objects/csv",
-      }) as { csv: string };
-      const ts = isoDateLocal(new Date());
-      downloadTextFile(result.csv, `maintenance_objects_${ts}.csv`, "text/csv;charset=utf-8");
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
+    const result = await runWs<{ csv: string }>(this, { type: "maintenance_supporter/objects/csv" }, { onError: (m) => this._showToast(m) });
+    if (!result) return;
+    const ts = isoDateLocal(new Date());
+    downloadTextFile(result.csv, `maintenance_objects_${ts}.csv`, "text/csv;charset=utf-8");
   }
 
   // (#67) Tabular All-Objects view honouring the configured columns. Desktop
@@ -3675,7 +3664,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     switch (key) {
       case "name":
         return html`<td class="oc-name">
-          <span class="objects-table-name">${this._refsInLists ? renderRefChip(objectRef(o)) : nothing}${o.name}</span>
+          <span class="objects-table-name">${this._objRef(o)}${o.name}</span>
           ${o.document_count
             ? html`<span class="doc-badge" title="${o.document_count} ${t("documents", L)}">
                 <ha-icon icon="mdi:paperclip"></ha-icon>${o.document_count}
@@ -3937,20 +3926,17 @@ export class MaintenanceSupporterPanel extends LitElement {
   private async _dismissRowActionNotice(backToIcons: boolean): Promise<void> {
     const settings: Record<string, unknown> = { row_action_notice_pending: false };
     if (backToIcons) settings.row_action_style = "icons";
-    try {
-      await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/global/update", settings });
-      this._rowActionNotice = false;
-      if (backToIcons) this._rowActionStyle = "icons";
-      invalidateSettingsCache();
-    } catch (err) {
-      console.warn("[maintenance-supporter] row-action notice update failed", err);
-    }
+    const ok = await runWs(this, { type: "maintenance_supporter/global/update", settings }, { onError: (m) => this._showToast(m) });
+    if (ok === undefined) return;
+    this._rowActionNotice = false;
+    if (backToIcons) this._rowActionStyle = "icons";
+    invalidateSettingsCache();
   }
 
   /** #145: row actions as HA buttons — labelled (accent/success + outlined
    *  warning, the task-detail pairing) or, for "buttons_compact" on narrow screens,
    *  icon-only — or the classic icon pair when the household chose "icons". */
-  private _renderRowActions(L: string, onComplete: () => void, onSkip: () => void, allowSkip = true): TemplateResult {
+  private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true): TemplateResult {
     const style = this._actionStyle();
     if (style === "buttons" || style === "buttons_compact") {
       const iconOnly = style === "buttons_compact" && (this.narrow || this.tight);
@@ -3965,7 +3951,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               <ha-icon icon="mdi:check"></ha-icon>
             </ha-button>
             ${allowSkip ? html`
-              <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" aria-label="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+              <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" aria-label="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
                 <ha-icon icon="mdi:skip-next"></ha-icon>
               </ha-button>` : nothing}
           </span>`;
@@ -3976,7 +3962,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
           </ha-button>
           ${allowSkip ? html`
-            <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+            <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
               <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${t("skip", L)}
             </ha-button>` : nothing}
         </span>`;
@@ -3987,7 +3973,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <ha-icon icon="mdi:check"></ha-icon>
         </mwc-icon-button>
         ${allowSkip ? html`
-          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip(); }}>
+          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
           </mwc-icon-button>` : nothing}
       </span>`;
@@ -4123,7 +4109,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     ? html`<span class="doc-badge" title="${task.document_count} ${t("documents", L)}"><ha-icon icon="mdi:paperclip"></ha-icon>${task.document_count}</span>`
                     : nothing}
                 </span>
-                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._refsInLists ? renderRefChip(taskRef(obj.object, task)) : nothing}${task.name}</span>
+                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${task.name}</span>
                 <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
@@ -4513,24 +4499,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _openHistoryEdit(entry: HistoryEntry): void {
     if (!this._selectedEntryId || !this._selectedTaskId) return;
     const editTask = this._getTask(this._selectedEntryId, this._selectedTaskId);
-    const draft: HistoryEntryDraft = {
-      entry_id: this._selectedEntryId,
-      task_id: this._selectedTaskId,
-      original_timestamp: entry.timestamp,
-      type: entry.type,
-      timestamp: entry.timestamp,
-      notes: entry.notes ?? null,
-      cost: entry.cost ?? null,
-      duration: entry.duration ?? null,
-      completed_by: entry.completed_by ?? null,
-      used_parts: entry.used_parts ?? null,
-      photo_doc_ids: historyPhotoIds(entry),
-      reading_value: entry.reading_value ?? null,
-      reading_values: entryReadingValues(entry),
-      readings: editTask?.readings ?? [],
-      task_type: editTask?.type ?? null,
-      reading_unit: editTask?.reading_unit ?? null,
-    };
+    const draft: HistoryEntryDraft = buildHistoryEntryDraft(this._selectedEntryId, this._selectedTaskId, entry, editTask);
     this.shadowRoot
       ?.querySelector<MaintenanceHistoryEditDialog>("maintenance-history-edit-dialog")
       ?.openEdit(draft);

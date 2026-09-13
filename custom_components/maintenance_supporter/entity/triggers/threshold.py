@@ -6,13 +6,13 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.helpers.event import async_call_later
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from ...sensor import MaintenanceSensor
 
+from ...helpers.managed_timer import ManagedTimer
 from ...helpers.trigger_fallback import threshold_exceeds
 from .base_trigger import BaseTrigger
 
@@ -45,7 +45,7 @@ class ThresholdTrigger(BaseTrigger):
         self._for_minutes: int = trigger_config.get("trigger_for_minutes", 0)
 
         self._threshold_exceeded = False
-        self._timer_cancel: CALLBACK_TYPE | None = None
+        self._for_timer = ManagedTimer(hass, f"ThresholdTrigger:{self.entity_id}:for")
 
         # Restore persisted exceeded-since timestamp (survives HA restarts)
         from ...helpers.dates import parse_persisted_utc
@@ -99,7 +99,7 @@ class ThresholdTrigger(BaseTrigger):
                     self._exceeded_since = dt_util.utcnow().isoformat()
                     self._exceeded_since_dt = None
                     if self.hass.is_running:
-                        self.hass.async_create_task(self._persist_exceeded_since())
+                        self._track(self._persist_exceeded_since())
                     self._start_for_timer()
                     return False
                 # Timer running or already triggered
@@ -111,9 +111,9 @@ class ThresholdTrigger(BaseTrigger):
             self._exceeded_since = None
             self._exceeded_since_dt = None
             if self.hass.is_running:
-                self.hass.async_create_task(self._persist_exceeded_since())
+                self._track(self._persist_exceeded_since())
         self._threshold_exceeded = False
-        self._cancel_timer()
+        self._for_timer.cancel()
         return False
 
     def _start_for_timer(self, remaining_seconds: float | None = None) -> None:
@@ -124,45 +124,37 @@ class ThresholdTrigger(BaseTrigger):
         The exceeded-since timestamp is persisted so the timer survives HA
         restarts.
         """
-        self._cancel_timer()
         duration = remaining_seconds if remaining_seconds is not None else self._for_minutes * 60
+        self._for_timer.schedule(duration, self._for_timer_fired)
 
-        @callback
-        def _timer_fired(_now: datetime) -> None:
-            """Handle timer completion."""
-            # Safety net (mirrors the state_change hold timer): only commit
-            # while the premise still HOLDS. _threshold_exceeded is cleared
-            # only by a numeric in-range reading, so a sensor that went
-            # unavailable right after crossing kept it True and the timer
-            # activated on a value nobody had observed for the whole window
-            # (bug audit 2026-08-22). Discard the window entirely — a bare
-            # return would leave the latch set and evaluate() would swallow
-            # every future exceeding reading; the next one re-arms fresh.
-            state = self.hass.states.get(self.entity_id)
-            live = self._get_numeric_value(state) if state is not None else None
-            if live is None or not self._value_exceeds_threshold(live):
-                self._threshold_exceeded = False
-                self._exceeded_since = None
-                self._exceeded_since_dt = None
-                if self.hass.is_running:
-                    self.hass.async_create_task(self._persist_exceeded_since())
-                return
-            if self._threshold_exceeded:
-                _LOGGER.debug(
-                    "Threshold for-timer fired: %s (%d min)",
-                    self.entity_id,
-                    self._for_minutes,
-                )
-                self._triggered = True
-                self._on_trigger_activated(self._current_value or 0.0)
-
-        self._timer_cancel = async_call_later(self.hass, duration, _timer_fired)
-
-    def _cancel_timer(self) -> None:
-        """Cancel the for-duration timer."""
-        if self._timer_cancel is not None:
-            self._timer_cancel()
-            self._timer_cancel = None
+    @callback
+    def _for_timer_fired(self, _now: datetime) -> None:
+        """Handle for-timer completion."""
+        # Safety net (mirrors the state_change hold timer): only commit
+        # while the premise still HOLDS. _threshold_exceeded is cleared
+        # only by a numeric in-range reading, so a sensor that went
+        # unavailable right after crossing kept it True and the timer
+        # activated on a value nobody had observed for the whole window
+        # (bug audit 2026-08-22). Discard the window entirely — a bare
+        # return would leave the latch set and evaluate() would swallow
+        # every future exceeding reading; the next one re-arms fresh.
+        state = self.hass.states.get(self.entity_id)
+        live = self._get_numeric_value(state) if state is not None else None
+        if live is None or not self._value_exceeds_threshold(live):
+            self._threshold_exceeded = False
+            self._exceeded_since = None
+            self._exceeded_since_dt = None
+            if self.hass.is_running:
+                self._track(self._persist_exceeded_since())
+            return
+        if self._threshold_exceeded:
+            _LOGGER.debug(
+                "Threshold for-timer fired: %s (%d min)",
+                self.entity_id,
+                self._for_minutes,
+            )
+            self._triggered = True
+            self._on_trigger_activated(self._current_value or 0.0)
 
     async def _persist_exceeded_since(self) -> None:
         """Persist exceeded-since timestamp for survival across restarts."""
@@ -174,7 +166,7 @@ class ThresholdTrigger(BaseTrigger):
 
     async def async_teardown(self) -> None:
         """Clean up timer on teardown."""
-        self._cancel_timer()
+        self._for_timer.close()
         await super().async_teardown()
 
     def reset(self) -> None:
@@ -184,5 +176,5 @@ class ThresholdTrigger(BaseTrigger):
         self._exceeded_since = None
         self._exceeded_since_dt = None
         if self.hass.is_running:
-            self.hass.async_create_task(self._persist_exceeded_since())
-        self._cancel_timer()
+            self._track(self._persist_exceeded_since())
+        self._for_timer.cancel()

@@ -32,9 +32,8 @@ from custom_components.maintenance_supporter.repairs import async_create_fix_flo
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
+    make_object_entry,
     setup_integration,
 )
 from .journey import simulate_restart
@@ -60,20 +59,7 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 def _object(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(interval_days=30, last_performed="2026-03-01")
     task["on_complete_action"] = {"service": "light.turn_on", "target": {"entity_id": _GHOST}}
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Greenhouse",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Greenhouse", object_id="objid_gh"),
-            tasks={TASK_ID_1: task},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_greenhouse",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Greenhouse", uid="greenhouse", object_id="objid_gh")
 
 
 def _coordinator(entry: MockConfigEntry) -> Any:

@@ -682,6 +682,14 @@ class MaintenanceStatus(StrEnum):
     PAUSED = "paused"
 
 
+# The statuses a reminder can be about — the same set the coordinator, the
+# notification manager, the to-do list and the aggregate counters used to
+# spell out by hand (DRY review 2026-09-12).
+NOTIFIABLE_STATUSES: frozenset[str] = frozenset(
+    {MaintenanceStatus.DUE_SOON, MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED}
+)
+
+
 class MaintenanceTypeEnum(StrEnum):
     """Type/category of maintenance."""
 
@@ -815,6 +823,7 @@ MAX_LABEL_LENGTH = 40  # single label/tag
 MAX_GROUP_TASK_REFS = 200
 MAX_ID_LENGTH = 64  # entry_id, task_id, group_id (uuid hex = 32)
 MAX_DATE_LENGTH = 20  # ISO 8601 date strings (e.g. 2026-04-21)
+MAX_TIMESTAMP_LENGTH = 64  # ISO 8601 timestamps with offset (history entries)
 MAX_ENTITY_ID_LENGTH = 255  # HA entity_id max
 
 # "No usable reading" state pair — 13 call sites hand-typed the tuple before
@@ -838,6 +847,10 @@ MAX_SCHEDULE_TIME_LENGTH = 5  # "HH:MM"
 # already had MAX_PARTS_PER_OBJECT (50); tasks and documents were unbounded.
 MAX_TASKS_PER_OBJECT = 200  # mirrors MAX_GROUP_TASK_REFS; ~10x any real device
 MAX_DOCS_PER_OBJECT = 100  # manuals + invoices + photos — 100 is very generous
+# Vacation exempt list: task ids that keep their schedule during a vacation.
+# One cap for the WS schema, the sanitiser and the settings import (DRY
+# review 2026-09-13) — 2000 covers ten fully-loaded objects.
+MAX_VACATION_EXEMPT_TASKS = 2000
 
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes

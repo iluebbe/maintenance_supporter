@@ -7,7 +7,7 @@
  * asserts the live hint appears with the sensor's current reading and the
  * computed due point, and screenshots the dialog. */
 import { chromium } from "@playwright/test";
-import { watchdog, wsClient, hassTokensInit } from "./ws-client.mjs";
+import { watchdog, wsClient, hassTokensInit, haLogin } from "./ws-client.mjs";
 
 const REST = "http://localhost:8131";
 const HA = "http://ha-shots:8123";
@@ -17,25 +17,9 @@ const USER = "demo", PASS = "demo-pass-1";
 const OUT = process.argv[2] || ".";
 const log = (...a) => console.log(...a);
 watchdog(5 * 60e3, "trigger-hint UI test");
-const j = (r) => r.json();
 const fail = (m) => { console.error("FAIL:", m); process.exit(1); };
 
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("token exchange failed");
-  return t.access_token;
-}
+const login = () => haLogin(REST, { user: USER, pass: PASS, cid: CID });
 
 const token = await login();
 const api = await wsClient(REST, token);

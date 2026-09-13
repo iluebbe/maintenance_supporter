@@ -28,6 +28,9 @@ CONFIG_FLOW_SOURCES = [
     *sorted(ROOT.glob("config_flow_options_task*.py")),
     ROOT / "config_flow.py",
     ROOT / "config_flow_trigger.py",
+    # DRY review 2026-09-12: the flow persists a new task through the shared
+    # sync core (the legacy last_performed/history write lives there now).
+    ROOT / "helpers" / "entry_tasks.py",
 ]
 
 # Keys that appear in the dialog payload but are WS transport, not task fields.

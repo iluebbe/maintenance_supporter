@@ -5,7 +5,7 @@
  * on green/orange/grey) can be eyeballed against white text before it. Output
  * to the scratchpad, not docs/. */
 import { chromium } from "@playwright/test";
-import { watchdog, wsClient, hassTokensInit } from "./ws-client.mjs";
+import { watchdog, wsClient, hassTokensInit, haLogin } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
@@ -15,27 +15,8 @@ const USER = "demo", PASS = "demo-pass-1";
 const OUT = process.argv[2] || ".";
 const log = (...a) => console.log(...a);
 watchdog(4 * 60e3, "theme-qa shots");
-const j = (r) => r.json();
 
-async function exchange(code) {
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("token exchange failed " + JSON.stringify(t));
-  return t.access_token;
-}
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: USER, password: PASS }),
-  }).then(j);
-  return exchange(s.result);
-}
+const login = () => haLogin(REST, { user: USER, pass: PASS, cid: CID });
 
 const token = await login();
 log("logged in");

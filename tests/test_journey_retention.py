@@ -34,11 +34,10 @@ from custom_components.maintenance_supporter.helpers.retention import (
 from custom_components.maintenance_supporter.websocket.tasks import ws_complete_task
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     call_ws_handler,
     setup_integration,
 )
@@ -68,8 +67,6 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-
-
 def _one_time_task() -> dict[str, Any]:
     return {
         "id": TASK_ID_1,
@@ -85,20 +82,9 @@ def _one_time_task() -> dict[str, Any]:
 
 
 def _object(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Radiators",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Radiators", object_id="objid_bleed"),
-            tasks={TASK_ID_1: _one_time_task()},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_radiators",
+    return make_object_entry(
+        hass, tasks={TASK_ID_1: _one_time_task()}, name="Radiators", uid="radiators", object_id="objid_bleed"
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _task_data(entry: MockConfigEntry) -> dict[str, Any] | None:

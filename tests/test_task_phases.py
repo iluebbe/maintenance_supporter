@@ -19,7 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from custom_components.maintenance_supporter.const import CONF_TASKS
 from custom_components.maintenance_supporter.helpers.completion_requirements import (
     required_completion_fields,
 )
@@ -40,11 +40,10 @@ from .conftest import (
     TASK_ID_1,
     assert_ws_error,
     assert_ws_success,
-    build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
+    make_global_entry as _global,
+    make_object_entry,
     make_ws_connection,
     setup_integration,
 )
@@ -200,28 +199,11 @@ def test_sanitize_defs_and_sequence() -> None:
 # ─── WS: set_phase + sequence-edit clamp ─────────────────────────────────
 
 
-def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter",
-        data=build_global_entry_data(), source="user", unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
 def _object(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2026-08-01", interval_days=30)
     task["phases"] = {k: dict(v) for k, v in PHASES.items()}
     task["phase_sequence"] = list(SEQUENCE)
-    entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Mower",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Mower"), tasks={TASK_ID_1: task},
-        ),
-        source="user", unique_id="maintenance_supporter_phases_obj",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Mower", uid="phases_obj")
 
 
 async def test_ws_set_phase_validates_and_persists(hass: HomeAssistant) -> None:

@@ -19,6 +19,7 @@ from .const import (
     CONF_OBJECT,
     CONF_TASKS,
 )
+from .helpers.history import completed_entries
 from .helpers.schedule import (
     normalize_task_storage,
 )
@@ -53,14 +54,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
     def _save_new_task(self) -> ConfigFlowResult:
         """Save the current task and return to init."""
         from .config_flow_schedule import build_new_task_record
-        from .const import MAX_TASKS_PER_OBJECT
-
-        # Same bound the WS create chokepoint enforces (drift audit 2026-08:
-        # this options-flow copy had no cap, so the flow could inflate
-        # ConfigEntry.data past the limit the API refuses).
-        if len(self.config_entry.data.get(CONF_TASKS, {})) >= MAX_TASKS_PER_OBJECT:
-            self._current_task = {}
-            return self._show_init_menu()
+        from .helpers.entry_tasks import insert_new_task
 
         task_id = uuid4().hex
         task_data = build_new_task_record(
@@ -69,33 +63,17 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             object_id=self.config_entry.data.get(CONF_OBJECT, {}).get("id", ""),
             hass=self.hass,
         )
-        new_data = dict(self.config_entry.data)
-        new_tasks = dict(new_data.get(CONF_TASKS, {}))
-        new_tasks[task_id] = task_data
-        new_data[CONF_TASKS] = new_tasks
-
-        obj = dict(new_data.get(CONF_OBJECT, {}))
-        task_ids = list(obj.get("task_ids", []))
-        task_ids.append(task_id)
-        obj["task_ids"] = task_ids
-        new_data[CONF_OBJECT] = obj
-
-        self._update_config_entry(new_data)
-
-        # Initialize dynamic state in Store
-        rd = getattr(self.config_entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
-        last_performed = self._current_task.get("last_performed")
+        # The one create rule shared with task/create and add_task (cap,
+        # task_ids, Store init). The flow keeps its own save/reload timing:
+        # delay-save now, reload on the done step. At the cap the flow simply
+        # returns to the menu — the cap is enforced upstream by the same rule.
+        try:
+            store = insert_new_task(self.hass, self.config_entry, task_data, last_performed=self._current_task.get("last_performed"))
+        except ValueError:
+            self._current_task = {}
+            return self._show_init_menu()
         if store is not None:
-            store.init_task(task_id, last_performed=last_performed)
             store.async_delay_save()
-        elif last_performed:
-            # Legacy: put last_performed in ConfigEntry.data
-            task_data["last_performed"] = last_performed
-            task_data["history"] = []
-            new_tasks[task_id] = task_data
-            new_data[CONF_TASKS] = new_tasks
-            self._update_config_entry(new_data)
 
         self._current_task = {}
 
@@ -189,7 +167,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             sched = Schedule.parse(merged)
             lp_raw = merged.get("last_performed")
             lp = date_cls.fromisoformat(lp_raw[:10]) if isinstance(lp_raw, str) and lp_raw else None
-            times = sum(1 for e in merged.get("history") or [] if e.get("type") == "completed")
+            times = len(completed_entries(merged.get("history")))
             dates, _ended = preview_occurrences(
                 sched, last_performed=lp, times_performed=times, today=dt_util.now().date()
             )

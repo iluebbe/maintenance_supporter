@@ -26,34 +26,18 @@ from custom_components.maintenance_supporter.websocket.tasks_history import (
 )
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
 )
 
 
-
-
 def _make_entry(hass: HomeAssistant, unique_id: str, task: dict[str, Any]) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Biography Object",
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Biography Object"),
-            tasks={task["id"]: task},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={task["id"]: task}, name="Biography Object", uid=unique_id)
 
 
 # ─── B5: one task's full reminder biography on a moving clock ────────────────

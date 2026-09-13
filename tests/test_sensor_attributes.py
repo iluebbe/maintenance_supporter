@@ -26,6 +26,9 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    make_global_entry as _make_global,
+    make_object_entry,
+    make_object_entry as _make_object,
     setup_integration,
 )
 
@@ -51,20 +54,7 @@ def _make_entry(
     name: str = "Test Object",
     unique_id: str = "sensor_attrs",
 ) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name),
-            tasks={TASK_ID_1: task_data},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: task_data}, name=name, uid=unique_id)
 
 
 def _get_sensor_state(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
@@ -655,41 +645,6 @@ async def test_sensor_weibull_random_failures(
     state = hass.states.get(sensor_entities[0].entity_id)
     assert state is not None
     assert state.attributes.get("weibull_beta_interpretation") == "random_failures"
-
-
-def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(**kw),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
-def _make_object(
-    hass: HomeAssistant,
-    tasks: dict | None = None,
-    name: str = "Test Object",
-    uid: str = "test_obj_cov",
-    object_data: dict | None = None,
-) -> MockConfigEntry:
-    od = object_data or build_object_data(name=name)
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
-        source="user",
-        unique_id=f"maintenance_supporter_{uid}",
-    )
-    entry.add_to_hass(hass)
-    return entry
 
 
 def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):

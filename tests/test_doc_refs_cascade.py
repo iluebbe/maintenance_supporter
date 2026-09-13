@@ -12,9 +12,7 @@ from __future__ import annotations
 
 import io
 import json
-import shutil
 import zipfile
-from collections.abc import Iterator
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -30,12 +28,7 @@ from custom_components.maintenance_supporter.websocket.documents import ws_docum
 from .conftest import OBJECT_ID_1, TASK_ID_1, build_object_data, build_object_entry_data, build_task_data, call_ws_handler, make_global_entry, make_ws_connection, setup_integration
 
 
-@pytest.fixture(autouse=True)
-def _isolate_docs_dir(hass: HomeAssistant, _isolate_document_blobs: None) -> Iterator[None]:
-    docs = hass.config.path(DOMAIN, "docs")
-    shutil.rmtree(docs, ignore_errors=True)
-    yield
-    shutil.rmtree(docs, ignore_errors=True)
+pytestmark = pytest.mark.usefixtures("isolated_docs_dir")
 
 
 def _store(hass: HomeAssistant) -> DocumentStore:

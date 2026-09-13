@@ -13,6 +13,8 @@ from collections.abc import Iterator
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
+from homeassistant.util import dt as dt_util
+
 from ..const import TIME_HHMMSS_PATTERN
 from .workday import is_business_day
 
@@ -34,6 +36,22 @@ def parse_hhmm(value: Any) -> time | None:
         return None
     hours, minutes = text.split(":")[:2]
     return time(int(hours), int(minutes))
+
+
+def local_date_from_iso(value: Any) -> str | None:
+    """The calendar date (``YYYY-MM-DD``) of an ISO timestamp *in HA's local
+    zone*. ``value[:10]`` is right for stamps written locally but off by one
+    around midnight for imported ``+00:00`` stamps; this is the one place
+    that does it properly. ``None`` when the value is not a timestamp."""
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return value[:10] if len(value) >= 10 and value[4] == "-" else None
+    if parsed.tzinfo is None:
+        return parsed.date().isoformat()
+    return dt_util.as_local(parsed).date().isoformat()
 
 
 def normalize_hhmm(value: Any) -> str | None:

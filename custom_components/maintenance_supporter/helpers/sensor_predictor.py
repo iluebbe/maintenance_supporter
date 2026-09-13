@@ -34,6 +34,7 @@ from ..const import (
     DEGRADATION_CYCLE_SETTLE_POINTS,
     DEGRADATION_MIN_CYCLE_HOURS,
 )
+from .history import completed_entries
 from .schedule import read_legacy_fields
 
 if TYPE_CHECKING:
@@ -632,7 +633,7 @@ class SensorPredictor:
 
         # Extract completion intervals with env values at completion time
         history = task_data.get("history") or []
-        completed = [h for h in history if h.get("type") == "completed" and h.get("timestamp")]
+        completed = [h for h in completed_entries(history) if h.get("timestamp")]
         completed.sort(key=lambda h: h["timestamp"])
 
         if len(completed) < 2:

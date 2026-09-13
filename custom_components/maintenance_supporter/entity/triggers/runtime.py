@@ -17,14 +17,14 @@ import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callback
+from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
-    async_track_time_interval,
 )
 
 from ...const import UNAVAILABLE_STATES
+from ...helpers.managed_timer import ManagedTimer
 
 if TYPE_CHECKING:
     from ...sensor import MaintenanceSensor
@@ -88,7 +88,7 @@ class RuntimeTrigger(BaseTrigger):
         else:
             self._on_states = _DEFAULT_ON_STATES
 
-        self._unsub_periodic: CALLBACK_TYPE | None = None
+        self._periodic_timer = ManagedTimer(hass, f"RuntimeTrigger:{self.entity_id}:persist")
 
     async def async_setup(self) -> None:
         """Set up runtime trigger with state restoration."""
@@ -160,17 +160,11 @@ class RuntimeTrigger(BaseTrigger):
 
     def _start_periodic_timer(self) -> None:
         """Start the periodic persistence timer."""
-        self._unsub_periodic = async_track_time_interval(
-            self.hass,
-            self._periodic_callback,
-            _PERSIST_INTERVAL,
-        )
+        self._periodic_timer.schedule_interval(_PERSIST_INTERVAL, self._periodic_callback)
 
     async def async_teardown(self) -> None:
         """Remove listeners and periodic timer."""
-        if self._unsub_periodic is not None:
-            self._unsub_periodic()
-            self._unsub_periodic = None
+        self._periodic_timer.close()
         await super().async_teardown()
 
     @callback
@@ -199,7 +193,7 @@ class RuntimeTrigger(BaseTrigger):
                 self._on_since_dt = now
                 self._on_since = now.isoformat()
                 self._session_booked = 0.0
-                self.hass.async_create_task(self._persist_runtime())
+                self._persist_runtime_soon()
             elif not self._is_on(new_val) and self._on_since_dt is not None:
                 # Restored anchor but the device APPEARS off (deferred setup
                 # kept the anchor, then the first real state is OFF). Without
@@ -211,7 +205,7 @@ class RuntimeTrigger(BaseTrigger):
                 self._on_since_dt = None
                 self._on_since = None
                 self._session_booked = 0.0
-                self.hass.async_create_task(self._persist_runtime())
+                self._persist_runtime_soon()
             self._update_evaluation()
             return
 
@@ -224,7 +218,7 @@ class RuntimeTrigger(BaseTrigger):
                 self._on_since_dt = None
                 self._on_since = None
                 self._session_booked = 0.0
-                self.hass.async_create_task(self._persist_runtime())
+                self._persist_runtime_soon()
             if not self._logged_unavailable:
                 _LOGGER.warning(
                     "Runtime trigger entity %s became %s (runtime paused)",
@@ -252,7 +246,7 @@ class RuntimeTrigger(BaseTrigger):
             self._on_since_dt = None
             self._on_since = None
             self._session_booked = 0.0
-            self.hass.async_create_task(self._persist_runtime())
+            self._persist_runtime_soon()
             _LOGGER.debug(
                 "Runtime trigger: %s turned OFF (accumulated=%.2fh)",
                 self.entity_id,
@@ -264,7 +258,7 @@ class RuntimeTrigger(BaseTrigger):
             self._on_since_dt = now
             self._on_since = now.isoformat()
             self._session_booked = 0.0
-            self.hass.async_create_task(self._persist_runtime())
+            self._persist_runtime_soon()
             _LOGGER.debug(
                 "Runtime trigger: %s turned ON (tracking started)",
                 self.entity_id,
@@ -278,7 +272,7 @@ class RuntimeTrigger(BaseTrigger):
             self._on_since_dt = None
             self._on_since = None
             self._session_booked = 0.0
-            self.hass.async_create_task(self._persist_runtime())
+            self._persist_runtime_soon()
 
         self._update_evaluation()
 
@@ -343,7 +337,7 @@ class RuntimeTrigger(BaseTrigger):
         self._accumulate_elapsed(now)
         self._on_since_dt = now
         self._on_since = now.isoformat()
-        self.hass.async_create_task(self._persist_runtime())
+        self._persist_runtime_soon()
 
         # Re-evaluate (runtime may have crossed threshold)
         self._update_evaluation()
@@ -353,6 +347,11 @@ class RuntimeTrigger(BaseTrigger):
             self.entity_id,
             self._accumulated_seconds / 3600.0,
         )
+
+    def _persist_runtime_soon(self) -> None:
+        """Fire-and-forget persist, owned by the trigger (cancelled at teardown;
+        the Store write itself happens synchronously at task start)."""
+        self._track(self._persist_runtime())
 
     async def _persist_runtime(self) -> None:
         """Persist accumulated runtime and on_since to the Store."""
@@ -382,7 +381,7 @@ class RuntimeTrigger(BaseTrigger):
             now = dt_util.utcnow()
             self._on_since_dt = now
             self._on_since = now.isoformat()
-        self.hass.async_create_task(self._persist_runtime())
+        self._persist_runtime_soon()
         _LOGGER.debug(
             "Runtime trigger reset: %s (accumulated hours cleared)",
             self.entity_id,

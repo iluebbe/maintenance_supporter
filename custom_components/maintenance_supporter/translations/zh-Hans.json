@@ -2047,6 +2047,12 @@
     "task_inactive": {
       "message": "“{task_name}”已归档、已禁用或其对象已暂停 — 无法完成"
     },
+    "task_inactive_postpone": {
+      "message": "“{task_name}”已归档、已禁用或其对象已暂停 — 无法推迟"
+    },
+    "task_inactive_reset": {
+      "message": "“{task_name}”已归档、已禁用或其对象已暂停 — 无法重置"
+    },
     "task_inactive_skip": {
       "message": "“{task_name}”已归档、已禁用或其对象已暂停 — 无法跳过"
     },

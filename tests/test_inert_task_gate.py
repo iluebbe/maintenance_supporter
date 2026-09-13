@@ -2,11 +2,11 @@
 
 Pins: ``helpers.pause.is_task_inert`` is the single predicate (archived,
 disabled, or the object paused); ``reset_maintenance`` and
-``async_postpone_task`` refuse an inert task with the existing
-``task_inactive`` key exactly like complete/skip (they had NO gate — a stale
-notification button or an old NFC sticker could restart a retired task's
-cycle); the WS reset/postpone commands surface that key; an active task
-still resets and postpones.
+``async_postpone_task`` refuse an inert task with their own keys
+(``task_inactive_reset`` / ``task_inactive_postpone``) exactly like
+complete/skip (they had NO gate — a stale notification button or an old NFC
+sticker could restart a retired task's cycle); the WS reset/postpone commands
+surface those keys; an active task still resets and postpones.
 """
 
 from __future__ import annotations
@@ -50,20 +50,23 @@ async def test_reset_and_postpone_refuse_an_inert_task(hass: HomeAssistant, task
     before = dict(obj.runtime_data.store.get_task_state(TASK_ID_1))
     with pytest.raises(ServiceValidationError) as exc:
         await coordinator.reset_maintenance(TASK_ID_1)
-    assert exc.value.translation_key == "task_inactive"
+    assert exc.value.translation_key == "task_inactive_reset"
     with pytest.raises(ServiceValidationError) as exc:
         await coordinator.async_postpone_task(TASK_ID_1, date.today() + timedelta(days=30))
-    assert exc.value.translation_key == "task_inactive"
+    assert exc.value.translation_key == "task_inactive_postpone"
     assert obj.runtime_data.store.get_task_state(TASK_ID_1) == before, "a refused action must not touch the cycle"
 
 
 async def test_ws_reset_and_postpone_report_the_inactive_key(hass: HomeAssistant) -> None:
     obj = await _setup(hass, {"enabled": False})
-    for handler, extra in ((ws_reset_task, {}), (ws_postpone_task, {"until": (date.today() + timedelta(days=30)).isoformat()})):
+    for handler, extra, key in (
+        (ws_reset_task, {}, "task_inactive_reset"),
+        (ws_postpone_task, {"until": (date.today() + timedelta(days=30)).isoformat()}, "task_inactive_postpone"),
+    ):
         conn = make_ws_connection()
         await call_ws_handler(handler, hass, conn, {"id": 1, "type": "x", "entry_id": obj.entry_id, "task_id": TASK_ID_1, **extra})
         conn.send_result.assert_not_called()
-        assert conn.send_error.call_args[0][1] == "task_inactive"
+        assert conn.send_error.call_args[0][1] == key
 
 
 async def test_active_task_still_resets_and_postpones(hass: HomeAssistant) -> None:

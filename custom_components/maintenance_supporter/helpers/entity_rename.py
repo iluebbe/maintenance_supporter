@@ -119,8 +119,7 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
     """
     changed = False
     compound_key = re.compile(r"_compound_(\d+)_" + re.escape(old_id))
-    tasks_state: dict[str, Any] = store._data.get("tasks", {})
-    for state in tasks_state.values():
+    for state in store.all_task_states().values():
         ac = state.get("adaptive_config")
         if isinstance(ac, dict) and ac.get("environmental_entity") == old_id:
             state["adaptive_config"] = {**ac, "environmental_entity": new_id}

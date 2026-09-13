@@ -46,6 +46,7 @@ from custom_components.maintenance_supporter.websocket.objects import (
 )
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
@@ -55,8 +56,6 @@ from .conftest import (
     call_ws_handler,
     setup_integration,
 )
-
-
 
 
 @pytest.fixture
@@ -95,20 +94,7 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 def _object_entry(hass: HomeAssistant, name: str, unique: str, **fields) -> MockConfigEntry:
     obj_data = build_object_data(name=name)
     obj_data.update(fields)
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=obj_data,
-            tasks={TASK_ID_1: build_task_data()},
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID_1: build_task_data()}, name=name, uid=unique, object_data=obj_data)
 
 
 # ─── Dataclass round-trip ───────────────────────────────────────────────────

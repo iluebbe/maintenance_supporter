@@ -6,7 +6,7 @@
  *  page), writes docs/images/battery-fleet-card.png, deletes the dashboard.
  */
 import { chromium } from "@playwright/test";
-import { watchdog, wsClient } from "./ws-client.mjs";
+import { watchdog, wsClient, haLogin } from "./ws-client.mjs";
 
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
@@ -16,23 +16,7 @@ const OUT = new URL("../docs/images/", import.meta.url).pathname.replace(/^\/([A
 const log = (...a) => console.log(...a);
 watchdog(6 * 60e3, "battery fleet card shot");
 
-const j = (r) => r.json();
-async function login() {
-  const f = await fetch(REST + "/auth/login_flow", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, handler: ["homeassistant", null], redirect_uri: CID }),
-  }).then(j);
-  const s = await fetch(REST + "/auth/login_flow/" + f.flow_id, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CID, username: "demo", password: "demo-pass-1" }),
-  }).then(j);
-  const t = await fetch(REST + "/auth/token", {
-    method: "POST",
-    body: new URLSearchParams({ grant_type: "authorization_code", code: s.result, client_id: CID }),
-  }).then(j);
-  if (!t.access_token) throw new Error("login failed");
-  return t.access_token;
-}
+const login = () => haLogin(REST, { user: "demo", pass: "demo-pass-1", cid: CID });
 
 const token = await login();
 const api = await wsClient(REST, token);

@@ -30,11 +30,10 @@ from custom_components.maintenance_supporter.websocket.objects import (
 )
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -57,35 +56,25 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-
-
 def _make_entry(
     hass: HomeAssistant,
     unique_id: str,
     name: str = "Pool Pump",
     task: dict[str, Any] | None = None,
 ) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name),
-            tasks={
-                TASK_ID_1: task
-                or build_task_data(
-                    task_id=TASK_ID_1,
-                    interval_days=30,
-                    last_performed=(dt_util.now().date() - timedelta(days=40)).isoformat(),
-                )
-            },
-        ),
-        source="user",
-        unique_id=f"maintenance_supporter_{unique_id}",
+    return make_object_entry(
+        hass,
+        tasks={
+            TASK_ID_1: task
+            or build_task_data(
+                task_id=TASK_ID_1,
+                interval_days=30,
+                last_performed=(dt_util.now().date() - timedelta(days=40)).isoformat(),
+            )
+        },
+        name=name,
+        uid=unique_id,
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 async def _rows(hass: HomeAssistant, entry_id: str) -> list[dict[str, Any]]:

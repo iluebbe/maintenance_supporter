@@ -258,13 +258,13 @@ async def test_setup_before_started_waits_for_ha(hass: HomeAssistant) -> None:
     hass.set_state(CoreState.starting)
     sync = ShoppingListSync(hass)
     await sync.async_setup()
-    assert sync._debounce is None  # nothing scheduled yet
+    assert not sync._debounce.pending  # nothing scheduled yet
     hass.set_state(CoreState.running)
     hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
     await hass.async_block_till_done()
-    assert sync._debounce is not None  # boot resync armed
+    assert sync._debounce.pending  # boot resync armed
     sync.async_teardown()
-    assert sync._debounce is None
+    assert not sync._debounce.pending
 
 
 async def test_rename_follows_the_configured_list(hass: HomeAssistant) -> None:
@@ -275,7 +275,7 @@ async def test_rename_follows_the_configured_list(hass: HomeAssistant) -> None:
     await sync.async_handle_rename(LIST_ENTITY, "todo.pantry")
     assert sync._data["entity_id"] == "todo.pantry"
     assert sync._listening_to == "todo.pantry"
-    assert sync._debounce is not None
+    assert sync._debounce.pending
 
 
 async def test_debounced_trigger_fires_the_resync(hass: HomeAssistant) -> None:
@@ -463,7 +463,7 @@ async def test_setting_the_option_in_the_panel_starts_the_mirror(hass: HomeAssis
     # state a long-running instance is in when the user saves the setting.
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=3))
     await hass.async_block_till_done()
-    assert sync._debounce is None
+    assert not sync._debounce.pending
     assert todo.summaries() == []
 
     conn = make_ws_connection()

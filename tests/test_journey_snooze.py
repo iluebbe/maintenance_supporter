@@ -31,11 +31,10 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.websocket.tasks import ws_snooze_task
 
 from .conftest import (
+    make_object_entry,
     make_ws_connection as _conn,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     call_ws_handler,
     setup_integration,
@@ -61,26 +60,17 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-
-
 def _object(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Boiler",
-        # Task is OK (recently done, long interval) so the coordinator doesn't
-        # seed _last_notified for the overdue status at setup — otherwise the
-        # manual overdue calls below would hit the repeat gate, not the snooze.
-        data=build_object_entry_data(
-            object_data=build_object_data(name="Boiler", object_id="objid_boiler"),
-            tasks={TASK_ID_1: build_task_data(interval_days=3650, last_performed="2026-07-01")},
-        ),
-        source="user",
-        unique_id="maintenance_supporter_boiler",
+    # Task is OK (recently done, long interval) so the coordinator doesn't
+    # seed _last_notified for the overdue status at setup — otherwise the
+    # manual overdue calls below would hit the repeat gate, not the snooze.
+    return make_object_entry(
+        hass,
+        tasks={TASK_ID_1: build_task_data(interval_days=3650, last_performed="2026-07-01")},
+        name="Boiler",
+        uid="boiler",
+        object_id="objid_boiler",
     )
-    entry.add_to_hass(hass)
-    return entry
 
 
 async def _overdue(hass: HomeAssistant, entry_id: str) -> None:

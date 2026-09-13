@@ -30,6 +30,9 @@
  *   D. No toFixed / toPrecision outside styles.ts and chart-utils px(): a
  *      cost rendered as `x.toFixed(2)` is "12.50" under a decimal_comma
  *      profile (the number_format half of #163).
+ *   E. No ad-hoc `${minutes} min` / `${minutes}m` durations — formatDuration
+ *      (styles.ts) formats the number per profile and localises the unit;
+ *      five surfaces had spelled it out by hand (DRY round 2026-09).
  */
 
 import { expect } from "@open-wc/testing";
@@ -54,6 +57,11 @@ const ROOT_SURFACE = /\bsetConfig\s*\(|@customElement\(\s*["']maintenance-suppor
  *  sanctioned wrapper; human-facing figures use formatNumber. */
 const FIXED_DIGITS = /\.(toFixed|toPrecision)\s*\(/;
 const GEOMETRY_HELPER = "renderers/chart-utils.ts";
+/** `${x} min`, `${x}min`, `${x}m` followed by a delimiter — a hand-rolled
+ *  duration. The SVG chart axis label ("12m" inside a <text>) is the one
+ *  geometry-adjacent site kept as is. */
+const ADHOC_DURATION = /\$\{[^}]+\}\s?(min(utes)?|m)(?=["'`<\s)])/;
+const ADHOC_DURATION_ALLOW = new Set(["renderers/charts.ts"]);
 /** The per-updated() helper, or the raw primitive for hosts without a Lit update cycle. */
 const SYNC_CALL = /\b(syncLocaleFromHass|setProfilePrefs)\s*\(/;
 /** Roots whose sync lives in a module they render / load instead of in the root itself. */
@@ -206,6 +214,25 @@ describe("date/time formatting has a single source (#163 tripwire)", () => {
   it("D'. chart-utils px() is the sanctioned toFixed (guards against the rule going stale)", () => {
     expect(manifest[GEOMETRY_HELPER]).to.match(/export function px\(/);
     expect(manifest[GEOMETRY_HELPER]).to.match(/\.toFixed\s*\(/);
+  });
+
+  it("E. no ad-hoc `${x} min` durations — formatDuration is the one source", () => {
+    const hits: string[] = [];
+    for (const [path, src] of Object.entries(manifest)) {
+      if (path === AUTHORITY || ADHOC_DURATION_ALLOW.has(path)) continue;
+      for (const [n, line] of codeLines(src)) {
+        if (ADHOC_DURATION.test(line)) hits.push(`${path}:${n}: ${line.trim()}`);
+      }
+    }
+    expect(hits, "hand-rolled duration text ignores the profile number format and the UI language — use formatDuration(minutes, lang)").to.deep.equal([]);
+  });
+
+  it("E'. styles.ts formatDuration exists and the rule still catches the old spelling (guards against going stale)", () => {
+    expect(manifest[AUTHORITY]).to.match(/export function formatDuration\(/);
+    expect(ADHOC_DURATION.test("html`<span>${entry.duration} min</span>`")).to.be.true;
+    expect(ADHOC_DURATION.test("`${avgDuration}m` : \"—\"")).to.be.true;
+    expect(ADHOC_DURATION.test("${formatDuration(entry.duration, L)}")).to.be.false;
+    expect(ADHOC_DURATION.test("${count} months")).to.be.false;
   });
 
   it("C'. the closure walk sees through the panel (guards against the rule going stale)", () => {

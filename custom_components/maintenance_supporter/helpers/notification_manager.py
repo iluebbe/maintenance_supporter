@@ -20,13 +20,10 @@ from ..const import (
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
-    CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
-    CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SERVICE,
-    CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
@@ -35,13 +32,14 @@ from ..const import (
     CONF_TASKS,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_CURRENCY_DECIMALS,
-    DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
-    DEFAULT_SNOOZE_DURATION_HOURS,
     DOMAIN,
+    NOTIFIABLE_STATUSES,
+    NOTIFICATION_TITLE_STYLES,
     MaintenanceStatus,
 )
 from .global_options import get_global_options
 from .i18n import normalize_language
+from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
 from .notify_hooks import (
     KIND_BUDGET,
     KIND_BUNDLE,
@@ -52,6 +50,7 @@ from .notify_hooks import (
     async_emit_and_dispatch,
     notification_context,
 )
+from .settings_registry import setting_default
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -955,11 +954,11 @@ def build_action_buttons(
         return f"MS_TEST_{verb}" if is_test else f"MS_{verb}_{entry_id}_{task_id}"
 
     actions: list[dict[str, str]] = []
-    if options.get(CONF_ACTION_COMPLETE_ENABLED, False):
+    if options.get(CONF_ACTION_COMPLETE_ENABLED, setting_default(CONF_ACTION_COMPLETE_ENABLED)):
         actions.append({"action": _id("COMPLETE"), "title": f"✅ {_notif_t('action_complete', lang)}"})
-    if options.get(CONF_ACTION_SKIP_ENABLED, False) and skip_allowed:
+    if options.get(CONF_ACTION_SKIP_ENABLED, setting_default(CONF_ACTION_SKIP_ENABLED)) and skip_allowed:
         actions.append({"action": _id("SKIP"), "title": f"⏭️ {_notif_t('action_skip', lang)}"})
-    if options.get(CONF_ACTION_SNOOZE_ENABLED, False):
+    if options.get(CONF_ACTION_SNOOZE_ENABLED, setting_default(CONF_ACTION_SNOOZE_ENABLED)):
         actions.append({"action": _id("SNOOZE"), "title": f"\U0001f4a4 {_notif_t('action_snooze', lang)}"})
     return actions[:3]
 
@@ -1073,17 +1072,21 @@ async def async_dispatch_notify(
 
 
 # Per-status config mapping
-_STATUS_ENABLED_KEYS: dict[str, str] = {
-    MaintenanceStatus.DUE_SOON: CONF_NOTIFY_DUE_SOON_ENABLED,
-    MaintenanceStatus.OVERDUE: CONF_NOTIFY_OVERDUE_ENABLED,
-    MaintenanceStatus.TRIGGERED: CONF_NOTIFY_TRIGGERED_ENABLED,
+# The per-status repeat interval (hours; 0 = notify once) — defaults live in
+# the settings registry. The enabled toggles are STATUS_ENABLED_KEYS
+# (notification_gates), shared with the per-task gate.
+_STATUS_INTERVAL_KEYS: dict[str, str] = {
+    MaintenanceStatus.DUE_SOON: CONF_NOTIFY_DUE_SOON_INTERVAL,
+    MaintenanceStatus.OVERDUE: CONF_NOTIFY_OVERDUE_INTERVAL,
+    MaintenanceStatus.TRIGGERED: CONF_NOTIFY_TRIGGERED_INTERVAL,
 }
 
-_STATUS_INTERVAL_KEYS: dict[str, tuple[str, int]] = {
-    MaintenanceStatus.DUE_SOON: (CONF_NOTIFY_DUE_SOON_INTERVAL, 24),
-    MaintenanceStatus.OVERDUE: (CONF_NOTIFY_OVERDUE_INTERVAL, 12),
-    MaintenanceStatus.TRIGGERED: (CONF_NOTIFY_TRIGGERED_INTERVAL, 0),
-}
+
+def notification_key(entry_id: str, task_id: str, status: str) -> str:
+    """The manager's bookkeeping key for one task's status reminder — the
+    ``_last_notified`` stamp and the snooze both live under it (was spelled
+    out as an f-string at eight call sites)."""
+    return f"{entry_id}_{task_id}_{status}"
 
 
 class NotificationManager:
@@ -1205,21 +1208,31 @@ class NotificationManager:
         """#150: a skip-locked task gets no "Skip" action button — the tap
         could only fail in the action handler (bug review 2026-09-04).
         Unknown entries/tasks keep the button (nothing to check against)."""
+        return self._task_config(entry_id, task_id).get("allow_skip") is not False
+
+    def _task_config(self, entry_id: str, task_id: str) -> Mapping[str, Any]:
+        """The task's static config dict (``entry.data``) — carries the flags
+        the computed coordinator payload drops (``notify_enabled``,
+        ``allow_skip``). Empty for an unknown entry/task."""
         entry = self.hass.config_entries.async_get_entry(entry_id)
         if entry is None:
-            return True
-        task = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
-        return task.get("allow_skip") is not False
+            return {}
+        task: Mapping[str, Any] = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
+        return task
+
+    def _opt(self, key: str) -> Any:
+        """A global setting, or its registry default when unset."""
+        return self._global_options.get(key, setting_default(key))
 
     @property
     def enabled(self) -> bool:
         """Check if notifications are globally enabled."""
-        return bool(self._global_options.get(CONF_NOTIFICATIONS_ENABLED, False))
+        return bool(self._opt(CONF_NOTIFICATIONS_ENABLED))
 
     @property
     def notify_service(self) -> str:
         """Get the configured notify service."""
-        return str(self._global_options.get(CONF_NOTIFY_SERVICE, ""))
+        return str(self._opt(CONF_NOTIFY_SERVICE))
 
     @property
     def _has_target(self) -> bool:
@@ -1230,7 +1243,7 @@ class NotificationManager:
     @property
     def event_only(self) -> bool:
         """#165/#173: the user routes every notification through the event."""
-        return bool(self._global_options.get(CONF_NOTIFY_EVENT_ONLY, False))
+        return bool(self._opt(CONF_NOTIFY_EVENT_ONLY))
 
     @property
     def title_style(self) -> str:
@@ -1241,12 +1254,13 @@ class NotificationManager:
         against a partially-initialised manager (some unit tests construct
         NotificationManager via __new__ without setting `hass`).
         """
+        fallback = str(setting_default(CONF_NOTIFICATION_TITLE_STYLE))
         try:
-            raw = str(self._global_options.get(CONF_NOTIFICATION_TITLE_STYLE, "default"))
+            raw = str(self._opt(CONF_NOTIFICATION_TITLE_STYLE))
         except AttributeError:
-            return "default"
-        if raw not in ("default", "object_name", "task_name"):
-            return "default"
+            return fallback
+        if raw not in NOTIFICATION_TITLE_STYLES:
+            return fallback
         return raw
 
     def _configured_service_exists(self, service: str) -> bool:
@@ -1307,29 +1321,21 @@ class NotificationManager:
 
     def _is_status_enabled(self, status: str) -> bool:
         """Check if notifications for this specific status are enabled."""
-        key = _STATUS_ENABLED_KEYS.get(status)
-        if key is None:
-            return False
-        return bool(self._global_options.get(key, True))
+        return status_reminder_enabled(self._global_options, status)
 
     def _get_interval_hours(self, status: str) -> int:
         """Get repeat interval for a status. 0 = single notification."""
-        entry = _STATUS_INTERVAL_KEYS.get(status)
-        if entry is None:
-            return 24
-        key, default = entry
-        return int(self._global_options.get(key, default))
+        key = _STATUS_INTERVAL_KEYS.get(status, CONF_NOTIFY_DUE_SOON_INTERVAL)
+        return int(self._opt(key))
 
     def _is_quiet_hours(self) -> bool:
         """Check if current time is in quiet hours."""
-        options = self._global_options
-
         # Quiet hours default: enabled (matches config flow)
-        if not options.get(CONF_QUIET_HOURS_ENABLED, True):
+        if not self._opt(CONF_QUIET_HOURS_ENABLED):
             return False
 
-        start_str = options.get(CONF_QUIET_HOURS_START, "22:00")
-        end_str = options.get(CONF_QUIET_HOURS_END, "08:00")
+        start_str = self._opt(CONF_QUIET_HOURS_START)
+        end_str = self._opt(CONF_QUIET_HOURS_END)
 
         try:
             start = time.fromisoformat(start_str)
@@ -1351,7 +1357,7 @@ class NotificationManager:
             self._daily_count = 0
             self._daily_reset_date = today
 
-        max_per_day = self._global_options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY)
+        max_per_day = self._opt(CONF_MAX_NOTIFICATIONS_PER_DAY)
         if max_per_day > 0 and self._daily_count >= max_per_day:
             _LOGGER.debug("Daily notification limit reached (%s/%s)", self._daily_count, max_per_day)
             return False
@@ -1368,14 +1374,18 @@ class NotificationManager:
             return False
         return True
 
+    def is_snoozed(self, entry_id: str, task_id: str, status: str) -> bool:
+        """Is the task's ``status`` reminder under an active snooze? (The
+        per-task gate's view of the snooze state — notification_gates.)"""
+        return self._is_snoozed(notification_key(entry_id, task_id, status))
+
     def snooze_task(self, entry_id: str, task_id: str) -> None:
         """Snooze all notifications for a task."""
-        hours = self._global_options.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS)
+        hours = self._opt(CONF_SNOOZE_DURATION_HOURS)
         until = dt_util.now() + timedelta(hours=hours)
         # Snooze for all status types
-        for status in (MaintenanceStatus.DUE_SOON, MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED):
-            key = f"{entry_id}_{task_id}_{status}"
-            self._snoozed_until[key] = until
+        for status in NOTIFIABLE_STATUSES:
+            self._snoozed_until[notification_key(entry_id, task_id, status)] = until
         _LOGGER.debug("Snoozed task %s for %s hours (until %s)", task_id, hours, until)
 
     async def async_task_status_changed(
@@ -1388,8 +1398,13 @@ class NotificationManager:
         days_until_due: int | None = None,
         next_due: str | None = None,
         responsible_user_id: str | None = None,
+        task_data: Mapping[str, Any] | None = None,
     ) -> None:
-        """Handle status change / repeat check and send notification if appropriate."""
+        """Handle status change / repeat check and send notification if appropriate.
+
+        ``task_data`` is the task's config dict for the per-task gates (mute,
+        saved-view scope); looked up from the entry when not given.
+        """
         # Keep the "configured notify service missing" repair issue in sync with
         # reality on every attempt (cheap; transition-gated internally).
         self.async_verify_configured_service()
@@ -1398,11 +1413,22 @@ class NotificationManager:
             return
 
         # Only notify for certain statuses
-        if new_status not in _STATUS_ENABLED_KEYS:
+        if new_status not in STATUS_ENABLED_KEYS:
             return
 
-        # Check if this status is enabled
-        if not self._is_status_enabled(new_status):
+        # The per-task gates the status kind declares (status toggle, mute,
+        # scope, vacation, snooze) - one place, notification_gates.
+        gate = task_may_notify(
+            self.hass,
+            entry_id,
+            task_id,
+            new_status,
+            task_data if task_data is not None else self._task_config(entry_id, task_id),
+            kind=KIND_STATUS,
+            manager=self,
+        )
+        if not gate:
+            _LOGGER.debug("Skipping %s notification for %s (%s)", new_status, task_id, gate.blocked_by)
             return
 
         # Check quiet hours
@@ -1410,22 +1436,8 @@ class NotificationManager:
             _LOGGER.debug("Skipping notification during quiet hours")
             return
 
-        # Vacation mode (v1.2.0): suppress unless task is on the exempt list.
-        # Sensor-triggered notifications use the same path so they're covered.
-        from .vacation import get_vacation_state
-
-        if get_vacation_state(self.hass).is_silent_for(task_id):
-            _LOGGER.debug("Skipping notification — vacation mode active for %s", task_id)
-            return
-
         # Rate limiting / interval
-        key = f"{entry_id}_{task_id}_{new_status}"
-
-        # Check snooze
-        if self._is_snoozed(key):
-            _LOGGER.debug("Notification snoozed for %s", key)
-            return
-
+        key = notification_key(entry_id, task_id, new_status)
         interval_hours = self._get_interval_hours(new_status)
         if not self._status_due(key, interval_hours):
             return
@@ -1486,24 +1498,21 @@ class NotificationManager:
         household service only: a completion is shared news, and the person
         who just pressed Complete needs no push about it.
         """
-        from ..const import COMPLETION_SOURCES_AUTOMATIC, CONF_NOTIFY_COMPLETED, CONF_NOTIFY_SCOPE_VIEW_ID
+        from ..const import COMPLETION_SOURCES_AUTOMATIC, CONF_NOTIFY_COMPLETED
         from .notify_hooks import KIND_COMPLETED, async_emit_and_dispatch, notification_context
 
-        mode = str(self._global_options.get(CONF_NOTIFY_COMPLETED, "off"))
+        mode = str(self._opt(CONF_NOTIFY_COMPLETED))
         if mode == "off" or not self.enabled or not self._has_target:
             return False
         src = source or "unknown"
         if mode == "automatic" and src not in COMPLETION_SOURCES_AUTOMATIC:
             return False
-        if task_data is not None and task_data.get("notify_enabled") is False:
+        # The per-task gates the completed kind declares (mute, scope) — only
+        # with a task dict to judge (a caller without one gets no mute/scope).
+        if task_data is not None and not task_may_notify(
+            self.hass, entry_id, task_id, MaintenanceStatus.DUE_SOON, task_data, kind=KIND_COMPLETED, manager=self
+        ):
             return False
-        scope_view_id = self._global_options.get(CONF_NOTIFY_SCOPE_VIEW_ID) or ""
-        if scope_view_id and task_data is not None:
-            from .saved_views import list_saved_views, view_matches_task
-
-            scope = next((v for v in list_saved_views(self.hass) if v["id"] == scope_view_id), None)
-            if scope is not None and not view_matches_task(scope["filters"], task_data):
-                return False
         if self._is_quiet_hours():
             _LOGGER.debug("Completion notification suppressed (quiet hours): %s", task_name)
             return False
@@ -1665,6 +1674,9 @@ class NotificationManager:
         if self._rate_limited(bundle_key, 3600):
             return
 
+        # The per-task gates the bundle kind declares (mute, scope, vacation,
+        # snooze) are enforced HERE, per member, so a bundle honours them even
+        # without the coordinator's pre-filter (DRY review 2026-09-12).
         # Bug audit 2026-09-12: a bundle used to repeat every hour for as long
         # as N tasks were pending, ignoring the per-status repeat intervals
         # and the "notify once" statuses. It now rides the same bookkeeping as
@@ -1674,7 +1686,13 @@ class NotificationManager:
         due = [
             t
             for t in tasks
-            if not t.get("task_id") or self._status_due(f"{entry_id}_{t['task_id']}_{t['status']}", self._get_interval_hours(t["status"]))
+            if not t.get("task_id")
+            or (
+                task_may_notify(
+                    self.hass, entry_id, t["task_id"], t["status"], self._task_config(entry_id, t["task_id"]), kind=KIND_BUNDLE, manager=self
+                )
+                and self._status_due(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
+            )
         ]
         if not due:
             return
@@ -1726,7 +1744,7 @@ class NotificationManager:
                 self._last_notified[bundle_key] = dt_util.now()
                 for t in tasks:
                     if t.get("task_id"):
-                        self._stamp_status_sent(f"{entry_id}_{t['task_id']}_{t['status']}", self._get_interval_hours(t["status"]))
+                        self._stamp_status_sent(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
                 self._daily_count += 1
                 _LOGGER.debug("Bundled notification sent: %s - %s", title, message)
         except (HomeAssistantError, ValueError, TypeError):
@@ -1812,13 +1830,17 @@ class NotificationManager:
             return
         if self._is_quiet_hours():
             return
-        from .vacation import get_vacation_state
-
-        if get_vacation_state(self.hass).is_silent_for(task_id):
-            return
-        # An active snooze silences lead reminders too (same key family the
-        # snooze action writes).
-        if self._is_snoozed(f"{entry_id}_{task_id}_{MaintenanceStatus.DUE_SOON}"):
+        # The per-task gates the lead-time kind declares (mute, vacation,
+        # snooze — an active snooze on the due-soon key silences leads too).
+        if not task_may_notify(
+            self.hass,
+            entry_id,
+            task_id,
+            MaintenanceStatus.DUE_SOON,
+            self._task_config(entry_id, task_id),
+            kind=KIND_LEAD_TIME,
+            manager=self,
+        ):
             return
         if not self._check_daily_limit():
             return
@@ -1926,7 +1948,7 @@ class NotificationManager:
         notifications.  Sets the ``_last_notified`` timestamp so the repeat
         interval starts *now* rather than firing immediately.
         """
-        key = f"{entry_id}_{task_id}_{status}"
+        key = notification_key(entry_id, task_id, status)
         interval_hours = self._get_interval_hours(status)
         if interval_hours == 0:
             self._last_notified[key] = _SENT_ONCE
@@ -1935,8 +1957,8 @@ class NotificationManager:
 
     def clear_task_state(self, entry_id: str, task_id: str) -> None:
         """Clear notification state for a task (after completion/reset)."""
-        for status in (MaintenanceStatus.DUE_SOON, MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED):
-            key = f"{entry_id}_{task_id}_{status}"
+        for status in NOTIFIABLE_STATUSES:
+            key = notification_key(entry_id, task_id, status)
             self._last_notified.pop(key, None)
             self._snoozed_until.pop(key, None)
 

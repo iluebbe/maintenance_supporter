@@ -32,7 +32,6 @@ from .const import (
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_BUDGET_CURRENCY,
-    DEFAULT_CURRENCY_DECIMALS,
     DEFAULT_INTERVAL_DAYS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
@@ -41,6 +40,7 @@ from .const import (
     EVENT_TASK_SKIPPED,
     MANUAL_COMPLETION_DEDUP_SECONDS,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
+    NOTIFIABLE_STATUSES,
     NOTIFICATION_MANAGER_KEY,
     SIGNAL_TASK_RESET,
     STARTUP_GRACE_PERIOD_SECONDS,
@@ -55,7 +55,11 @@ from .const import (
 )
 from .helpers.budget import compute_spend
 from .helpers.entry_tasks import write_task
-from .helpers.global_options import get_global_options, is_schedule_time_enabled
+from .helpers.global_options import global_option, is_schedule_time_enabled
+from .helpers.history import completed_entries
+from .helpers.interval_analyzer import hemisphere
+from .helpers.notification_gates import task_may_notify
+from .helpers.notify_hooks import KIND_STATUS
 from .helpers.pause import is_task_inert
 from .helpers.schedule import normalize_task_storage, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
@@ -287,6 +291,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             task_result = task.to_dict()
             task_result["_status"] = status
             task_result["_days_until_due"] = task.days_until_due
+            # The span-capped warning window (#58) for the dict status twin
+            # the entities recompute from after a live trigger update.
+            task_result["_warning_days_effective"] = task.effective_warning_days
             task_result["_next_due"] = task.next_due.isoformat() if task.next_due else None
             task_result["_is_done"] = task.is_done
             task_result["_trigger_active"] = task._trigger_active
@@ -338,7 +345,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     # Inject hemisphere and current month for seasonal awareness.
                     # latitude is None on an un-onboarded HA → default to north.
                     analysis_config = dict(task.adaptive_config)
-                    analysis_config["hemisphere"] = "south" if (self.hass.config.latitude or 0) < 0 else "north"
+                    analysis_config["hemisphere"] = hemisphere(self.hass)
                     analysis_config["_current_month"] = dt_util.now().month
                     analysis = analyzer.analyze(task_result, analysis_config)
                     task_result["_suggested_interval"] = analysis.recommended_interval
@@ -447,11 +454,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             from .helpers.notification_manager import NotificationManager
 
             nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-            notify_statuses = {
-                MaintenanceStatus.DUE_SOON,
-                MaintenanceStatus.OVERDUE,
-                MaintenanceStatus.TRIGGERED,
-            }
+            notify_statuses = NOTIFIABLE_STATUSES
             # Seed the manager only on the entry's FIRST refresh in this
             # process: a reload (every task edit) hands a fresh coordinator an
             # empty _previous_statuses too, but the manager's stamps are live
@@ -728,58 +731,35 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         obj_name = self.maintenance_object.name
-        notify_statuses = {
-            MaintenanceStatus.DUE_SOON,
-            MaintenanceStatus.OVERDUE,
-            MaintenanceStatus.TRIGGERED,
-        }
 
-        # Collect all tasks with notifiable statuses.
-        # The NM's own rate-limiting decides whether to actually send.
+        # Collect the tasks with a notifiable status that pass the per-task
+        # gates of the status kind (status toggle, #173 mute, saved-view
+        # scope, vacation, snooze — helpers.notification_gates). Filtering
+        # HERE, before the bundle-threshold check, matters: a gated task must
+        # neither count toward the threshold nor ride inside the bundle (N-1
+        # silenced tasks must not force one). The manager re-checks on send
+        # and owns the rate limiting. The mute flag lives in the task's
+        # config (entry.data), which the computed task_result (model dict)
+        # drops — so the gate sees config + payload merged.
+        task_configs = self.entry.data.get(CONF_TASKS) or {}
         notifiable: list[tuple[str, dict[str, Any], str, str | None]] = []
         for task_id, task_result in task_results.items():
             new_status = task_result.get("_status")
-            old_status = self._previous_statuses.get(task_id)
-            if new_status in notify_statuses:
-                notifiable.append((task_id, task_result, new_status, old_status))
-
-        # Vacation mode silences some tasks. Filter them out HERE — before the
-        # bundle-threshold check below — so a silenced/exempt task neither
-        # triggers a bundle nor rides inside one. async_send_bundled has no
-        # per-task vacation gate (async_task_status_changed does), and the bundle
-        # COUNT must also exclude them so N-1 silenced tasks don't force a bundle.
-        from .helpers.vacation import get_vacation_state
-
-        _vac = get_vacation_state(self.hass)
-        notifiable = [row for row in notifiable if not _vac.is_silent_for(row[0])]
-        # A status the user switched off, or a task they snoozed, must neither
-        # count toward the bundle threshold nor ride inside the bundle - the
-        # per-task path checks both, the bundle path did not (bug audit
-        # 2026-08-29).
-        notifiable = [
-            row
-            for row in notifiable
-            if nm._is_status_enabled(row[2]) and not nm._is_snoozed(f"{self.entry.entry_id}_{row[0]}_{row[2]}")
-        ]
-        # #173: a task muted in its own settings sends nothing — neither on
-        # its own nor inside a bundle. The flag lives in the task's config
-        # (entry.data), which the computed task_result (model dict) drops.
-        task_configs = self.entry.data.get(CONF_TASKS) or {}
-        notifiable = [row for row in notifiable if (task_configs.get(row[0]) or {}).get("notify_enabled") is not False]
-
-        # v2.26 notification routing: a saved-view scope ("only notify about
-        # view X") drops tasks the view's label/user filters don't match —
-        # BEFORE the bundle threshold, like the vacation filter above. A stale
-        # view id (view deleted) means no scope, never "silence everything".
-        from .const import CONF_NOTIFY_SCOPE_VIEW_ID
-
-        scope_view_id = get_global_options(self.hass).get(CONF_NOTIFY_SCOPE_VIEW_ID) or ""
-        if scope_view_id:
-            from .helpers.saved_views import list_saved_views, view_matches_task
-
-            scope = next((v for v in list_saved_views(self.hass) if v["id"] == scope_view_id), None)
-            if scope is not None:
-                notifiable = [row for row in notifiable if view_matches_task(scope["filters"], row[1])]
+            if new_status not in NOTIFIABLE_STATUSES:
+                continue
+            gate = task_may_notify(
+                self.hass,
+                self.entry.entry_id,
+                task_id,
+                new_status,
+                {**(task_configs.get(task_id) or {}), **task_result},
+                kind=KIND_STATUS,
+                manager=nm,
+            )
+            if not gate:
+                _LOGGER.debug("Task %s not notifiable (%s)", task_id, gate.blocked_by)
+                continue
+            notifiable.append((task_id, task_result, new_status, self._previous_statuses.get(task_id)))
 
         if not notifiable:
             # No notifications needed — still update the cache
@@ -793,9 +773,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             CONF_NOTIFICATION_BUNDLING_ENABLED,
         )
 
-        global_options = get_global_options(self.hass)
-        bundling_enabled = global_options.get(CONF_NOTIFICATION_BUNDLING_ENABLED, False)
-        bundle_threshold = int(global_options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2))
+        bundling_enabled = global_option(self.hass, CONF_NOTIFICATION_BUNDLING_ENABLED)
+        bundle_threshold = int(global_option(self.hass, CONF_NOTIFICATION_BUNDLE_THRESHOLD))
 
         if bundling_enabled and len(notifiable) >= bundle_threshold:
             await nm.async_send_bundled(
@@ -856,20 +835,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not isinstance(nm, NotificationManager) or not nm.enabled:
             return
 
-        global_options = get_global_options(self.hass)
-        if not global_options.get(CONF_BUDGET_ALERTS_ENABLED, False):
+        if not global_option(self.hass, CONF_BUDGET_ALERTS_ENABLED):
             return
 
-        threshold_pct = int(global_options.get(CONF_BUDGET_ALERT_THRESHOLD, 80)) / 100.0
-        monthly_budget = float(global_options.get(CONF_BUDGET_MONTHLY, 0))
-        yearly_budget = float(global_options.get(CONF_BUDGET_YEARLY, 0))
+        threshold_pct = int(global_option(self.hass, CONF_BUDGET_ALERT_THRESHOLD)) / 100.0
+        monthly_budget = float(global_option(self.hass, CONF_BUDGET_MONTHLY))
+        yearly_budget = float(global_option(self.hass, CONF_BUDGET_YEARLY))
 
         if monthly_budget <= 0 and yearly_budget <= 0:
             return
 
-        currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
+        currency_code = str(global_option(self.hass, CONF_BUDGET_CURRENCY))
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY])
-        decimals = int(global_options.get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS))
+        decimals = int(global_option(self.hass, CONF_CURRENCY_DECIMALS))
 
         # Use cached budget totals (recalculate if stale or missing)
         cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get(BUDGET_CACHE_KEY)
@@ -911,18 +889,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         lp = td.get("last_performed")
         if lp is not None:
             self._store.set_last_performed(task_id, lp)
-        lpd = td.get("last_planned_due")
-        state = self._store._ensure_task(task_id)
-        if lpd is not None:
-            state["last_planned_due"] = lpd
-        elif "last_planned_due" in state:
-            del state["last_planned_due"]
-        # Per-occurrence postpone (set by async_postpone_task, cleared on complete).
-        do = td.get("due_override")
-        if do is not None:
-            state["due_override"] = do
-        elif "due_override" in state:
-            del state["due_override"]
+        # The cycle modifiers: the drift-free planned anchor and the
+        # per-occurrence postpone (set by async_postpone_task, cleared on
+        # complete) — None removes the key.
+        self._store.update_task_state(task_id, last_planned_due=td.get("last_planned_due"), due_override=td.get("due_override"))
         # Phase cursor (#139): to_dict emits it only for phase-carrying tasks.
         pc = td.get("phase_cursor")
         if pc is not None:
@@ -1269,7 +1239,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Inject hemisphere + month/date of the EFFECTIVE completion
                 # moment for seasonal awareness (a completion logged today but
                 # performed in March belongs to March).
-                task.adaptive_config["hemisphere"] = "south" if (self.hass.config.latitude or 0) < 0 else "north"
+                task.adaptive_config["hemisphere"] = hemisphere(self.hass)
                 task.adaptive_config["_current_month"] = effective_ts.month
                 task.adaptive_config["_current_date"] = effective_ts.date().isoformat()
                 try:
@@ -1395,10 +1365,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Race guard: if a completion was recorded moments ago (e.g. a manual
         # complete whose trigger reset crossed paths with a queued state
         # change), don't record a second one.
-        history = task_data.get("history") or []
-        for entry in reversed(history):
-            if entry.get("type") != "completed":
-                continue
+        for entry in reversed(completed_entries(task_data.get("history"))):
             # parse_persisted_utc, NOT dt_util.parse_datetime: history can
             # hold NAIVE timestamps (the history-edit dialog sends
             # datetime-local without an offset), and `aware - naive` raised
@@ -1441,7 +1408,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         # Same gate as complete/skip: a retired / disabled / paused task gets
         # no new cycle from a stale notification button or an old NFC sticker.
-        self._require_active(task_id, merged[task_id], translation_key="task_inactive")
+        self._require_active(task_id, merged[task_id], translation_key="task_inactive_reset")
 
         # A reset starts a new cycle — a following completion is a NEW
         # real-world action, never a double-tap of the previous one.
@@ -1472,7 +1439,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
-        self._require_active(task_id, merged[task_id], translation_key="task_inactive")
+        self._require_active(task_id, merged[task_id], translation_key="task_inactive_postpone")
         task = MaintenanceTask.from_dict(merged[task_id])
         task.due_override = until.isoformat()
         await self._persist_and_signal_task_change(task_id, task)
@@ -1488,7 +1455,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         The one gate behind complete / skip / reset / postpone — a stale
         notification button, an old NFC sticker or a voice command must not
         touch a retired, disabled or paused task's cycle. ``translation_key``
-        picks the wording (``task_inactive`` / ``task_inactive_skip``).
+        picks the wording (``task_inactive`` / ``task_inactive_skip`` /
+        ``task_inactive_reset`` / ``task_inactive_postpone``).
         """
         if self._is_inert(task_data):
             raise ServiceValidationError(

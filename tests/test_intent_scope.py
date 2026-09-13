@@ -24,7 +24,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import intent
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_ID
+from custom_components.maintenance_supporter.const import DOMAIN
 from custom_components.maintenance_supporter.intent import (
     INTENT_COMPLETE_TASK,
     INTENT_LIST_TASKS,
@@ -32,10 +32,11 @@ from custom_components.maintenance_supporter.intent import (
 )
 
 from .conftest import (
-    build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    make_global_entry,
+    make_object_entry,
     setup_integration,
 )
 
@@ -49,17 +50,7 @@ async def _intents_registered(hass: HomeAssistant):
 
 
 async def _global(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title="Maintenance Supporter",
-        data=build_global_entry_data(),
-        source="user",
-        unique_id=GLOBAL_UNIQUE_ID,
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_global_entry(hass)
 
 
 def _object(
@@ -78,17 +69,7 @@ def _object(
     task["name"] = task_name
     if responsible_user_id:
         task["responsible_user_id"] = responsible_user_id
-    entry = MockConfigEntry(
-        version=1,
-        minor_version=1,
-        domain=DOMAIN,
-        title=name,
-        data=build_object_entry_data(object_data=obj, tasks={TASK_ID: task}),
-        source="user",
-        unique_id=f"maintenance_supporter_{slug}",
-    )
-    entry.add_to_hass(hass)
-    return entry
+    return make_object_entry(hass, tasks={TASK_ID: task}, name=name, uid=slug, object_data=obj)
 
 
 async def _ask(

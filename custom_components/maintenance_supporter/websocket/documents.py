@@ -28,6 +28,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
+from ..helpers.aggregate import object_name
 from ..helpers.permissions import require_write
 from ..helpers.search_match import query_tokens, score_fields, snippet
 from . import _get_object_entries, _load_object_entry, object_id_for_entry
@@ -228,7 +229,7 @@ def _object_map(hass: HomeAssistant) -> dict[str, tuple[str, str]]:
         obj = entry.data.get(CONF_OBJECT, {})
         oid = obj.get("id")
         if isinstance(oid, str) and oid:
-            obj_map[oid] = (entry.entry_id, obj.get("name", ""))
+            obj_map[oid] = (entry.entry_id, object_name(entry))
     return obj_map
 
 
