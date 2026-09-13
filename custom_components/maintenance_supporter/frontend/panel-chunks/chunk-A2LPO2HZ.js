@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.87.0 */
+import{a as i}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6FKJJO4T.js";import{q as s,s as o}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-BFRW5MGC.js";async function f(e,a,n={}){n.busy?.(!0);try{return await e.hass.connection.sendMessagePromise(a)}catch(t){let r=o(e.hass);n.onError?.(i(t,r,n.fallbackKey?s(n.fallbackKey,r):void 0));return}finally{n.busy?.(!1)}}export{f as a};
