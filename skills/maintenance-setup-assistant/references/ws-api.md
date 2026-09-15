@@ -36,8 +36,8 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
   `views/{save,delete}`, `problem_sensors/adopt`,
-  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging,set_due_without_sensor}`.
-- `@require_admin` (admin only): `global/update`, `global/test_notification`,
+  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging,set_due_without_sensor,record_replacement}`.
+- `@require_admin` (admin only): `reference_numbers/compact` (2.88), `global/update`, `global/test_notification`,
   `notify/user_targets`,
   bulk import **and export** (`export`, `csv/export`, `json/import`,
   `csv/import`), vacation writes (`vacation/update`, `vacation/end_now`).
@@ -519,7 +519,12 @@ values dropped. Keys relevant to setup:
 - `default_consumable_threshold` (1..90, default 10; 2.69) — the floor Suggested
   setups pre-wires for percent-remaining consumables; `battery_low_percent`
   (1..90, default 20; 2.69) — fleet-wide "battery low" floor for batteries
-  without a Battery Notes threshold (#146)
+  without a Battery Notes threshold (#146); `battery_recovered_percent`
+  (20..100, default 50; 2.87, #180) — a low battery stays low until its level
+  rises above this or a replacement date is recorded; `battery_auto_record_recovery`
+  (bool, default false; 2.88, #181) — when a low battery rises above the
+  recovery threshold, record the replacement in Battery Notes and consume the
+  type part automatically (no note / rechargeable / level-less rows never)
 - `row_action_style` (`buttons_compact` | `buttons` | `icons`; 2.69) — how task
   rows show Complete/Skip (HA buttons, icon-only on phones; labelled everywhere;
   classic icons). `row_action_notice_pending` (bool) is the one-time "new look"
@@ -584,6 +589,18 @@ service"), for grouped panel lists and grouped notifications.
   view|complete|skip|quick_complete), url_mode?, base_url?}` →
   `{qrs:[{entry_id,task_id,object_name,task_name,action,svg}], total}`. Omitted
   filters mean "all" at that level. Capped at 200 QRs per call (`too_many`).
+
+## Reference numbers
+
+Objects, tasks and completions carry stable reference numbers (`ref_no`: `8`,
+`8.3`, `8.3-2`; 2.79+) that are never reused after a delete. `search` answers to
+them (archived items included, 2.86+).
+
+### `reference_numbers/compact` — `@require_admin` (#170, 2.88+)
+`{}` → `{objects, tasks, completions}` (counts renumbered). Renumbers every
+object, task and completion sequentially in creation order, closes the gaps
+left by deletions and resets the counters. Explicit and destructive for
+anything printed — the panel asks for a confirm; the assistant must too.
 
 ## Backup / migration — export & import
 
@@ -863,6 +880,16 @@ such notes only forecast (soon, never low). Batteries WITH a sensor are
 unaffected either way. The current state is returned as
 `due_without_sensor` in `battery_fleet/overview`. Fleet not set up →
 `not_configured`.
+
+### `battery_fleet/record_replacement` — `@require_write` (#181, 2.87+)
+`{entity_id (req), replaced_at (req, ISO datetime)}` → `{recorded, already_recorded,
+consumed: {part_id: qty}}`. Records a detected-but-unrecorded swap (the roster's
+calendar chip) as the Battery Notes replacement date AND consumes the type
+part by the note's `battery_quantity`, once per day per battery — the same
+effect as `mark_replaced`. Native (non-Battery-Notes) rows and rechargeables
+are skipped (`recorded: false`). The fleet task itself carries no part links;
+a `consumes_parts` link left on it is ignored on fleet completions (2.88).
+Errors: `not_found`, `not_configured`.
 
 ## Saved filter views — shared named panel-list filter combinations
 
