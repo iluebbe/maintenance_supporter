@@ -43,6 +43,10 @@ export class MsCameraCapture extends LitElement {
   /** Every video input the browser lists (labels may be empty in the
    *  Android WebView — the ids are what the lens switch cycles through). */
   @state() private _devices: MediaDeviceInfo[] = [];
+  /** Position in `_devices` of the camera we are showing. Kept by us: the
+   *  Android WebView often reports no `deviceId` in the track settings, so
+   *  it cannot be derived from the stream (#161 — "switching does nothing"). */
+  @state() private _deviceIndex = -1;
   private _stream: MediaStream | null = null;
 
   /** Open the viewfinder. Resolves once the stream is attached or the
@@ -69,7 +73,10 @@ export class MsCameraCapture extends LitElement {
     }
     if (!acquired) {
       try {
-        this._stream = await md.getUserMedia({ video: { facingMode: { ideal: "environment" }, advanced: [{ zoom: 1 } as MediaTrackConstraintSet] }, audio: false });
+        this._stream = await md.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, zoom: 1, advanced: [{ zoom: 1 } as MediaTrackConstraintSet] } as MediaTrackConstraints,
+          audio: false,
+        });
       } catch (e) {
         this._unavailable(e instanceof Error ? e.name || e.message : String(e));
         return;
@@ -78,6 +85,7 @@ export class MsCameraCapture extends LitElement {
     }
     await this._applyZoomOne();
     await this._listDevices(md);
+    this._deviceIndex = this._indexOfCurrent(remembered && acquired ? remembered : null);
     this._open = true;
     await this.updateComplete;
     const video = this._video;
@@ -128,17 +136,36 @@ export class MsCameraCapture extends LitElement {
   }
 
   /** 1× when the track's zoom range starts below it (the logical
-   *  multi-camera on some phones opens at 0.5×). Advisory. */
+   *  multi-camera on some phones opens at 0.5×). Advisory; tried as a
+   *  required constraint first and as an advanced one second — engines
+   *  differ in which spelling they honour. */
   private async _applyZoomOne(): Promise<void> {
     const chosen = this._stream?.getVideoTracks()[0];
     const caps = chosen && typeof chosen.getCapabilities === "function" ? (chosen.getCapabilities() as { zoom?: { min?: number; max?: number } }) : undefined;
-    if (caps?.zoom && typeof caps.zoom.min === "number" && caps.zoom.min < 1 && (caps.zoom.max ?? 1) >= 1) {
+    if (!caps?.zoom || typeof caps.zoom.min !== "number" || caps.zoom.min >= 1 || (caps.zoom.max ?? 1) < 1) return;
+    for (const constraints of [{ zoom: 1 } as MediaTrackConstraints, { advanced: [{ zoom: 1 } as MediaTrackConstraintSet] } as MediaTrackConstraints]) {
       try {
-        await chosen!.applyConstraints({ advanced: [{ zoom: 1 } as MediaTrackConstraintSet] });
+        await chosen!.applyConstraints(constraints);
+        return;
       } catch {
-        // zoom is advisory
+        // try the other spelling
       }
     }
+  }
+
+  /** Where the current camera sits in `_devices`: by the remembered id, else
+   *  by the track's reported deviceId, else unknown (-1 → the first switch
+   *  goes to the first listed camera). */
+  private _indexOfCurrent(preferredId: string | null): number {
+    const ids = this._devices.map((d) => d.deviceId);
+    const reported = this._currentDeviceId;
+    for (const id of [preferredId, reported]) {
+      if (id) {
+        const at = ids.indexOf(id);
+        if (at >= 0) return at;
+      }
+    }
+    return -1;
   }
 
   private async _listDevices(md: MediaDevices): Promise<void> {
@@ -155,31 +182,42 @@ export class MsCameraCapture extends LitElement {
   }
 
   /** The lens switch: next video input in the browser's list (labels not
-   *  needed), remembered per browser so the next open starts there. */
+   *  needed), by OUR index — the WebView may report no deviceId on the
+   *  track, which used to make the cycle restart at the current camera.
+   *  A camera that refuses is skipped; the position (2/3) is shown on the
+   *  button so a tap visibly did something; the pick is remembered per
+   *  browser so the next open starts there. */
   private async _switchCamera(): Promise<void> {
     const md = typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
     if (!md || this._devices.length < 2 || this._busy) return;
     const ids = this._devices.map((d) => d.deviceId);
-    const at = ids.indexOf(this._currentDeviceId ?? "");
-    const next = ids[(at + 1) % ids.length];
     this._busy = true;
     try {
-      const stream = await md.getUserMedia({ video: { deviceId: { exact: next } }, audio: false });
-      for (const track of this._stream?.getTracks() ?? []) track.stop();
-      this._stream = stream;
-      await this._applyZoomOne();
-      lsSet(LS_KEYS.cameraDevice, next);
-      const video = this._video;
-      if (video) {
-        video.srcObject = stream;
+      for (let step = 1; step < ids.length; step++) {
+        const at = (this._deviceIndex + step) % ids.length;
+        const next = ids[at];
+        if (next === this._currentDeviceId && this._deviceIndex < 0) continue; // unknown position, but this one is provably the current camera
         try {
-          await video.play();
+          const stream = await md.getUserMedia({ video: { deviceId: { exact: next } }, audio: false });
+          for (const track of this._stream?.getTracks() ?? []) track.stop();
+          this._stream = stream;
+          this._deviceIndex = at;
+          await this._applyZoomOne();
+          lsSet(LS_KEYS.cameraDevice, next);
+          const video = this._video;
+          if (video) {
+            video.srcObject = stream;
+            try {
+              await video.play();
+            } catch {
+              // see open()
+            }
+          }
+          return;
         } catch {
-          // see open()
+          // that camera refused — try the next one
         }
       }
-    } catch {
-      // that camera refused — keep the current one
     } finally {
       this._busy = false;
     }
@@ -251,6 +289,7 @@ export class MsCameraCapture extends LitElement {
           ${this._devices.length > 1
             ? html`<button type="button" class="switch" ?disabled=${this._busy} title=${t("camera_switch_lens", L)} aria-label=${t("camera_switch_lens", L)} @click=${this._switchCamera}>
                 <ha-icon icon="mdi:camera-flip-outline"></ha-icon>
+                <span class="switch-pos">${this._deviceIndex >= 0 ? `${this._deviceIndex + 1}/${this._devices.length}` : `?/${this._devices.length}`}</span>
               </button>`
             : nothing}
           <button type="button" class="shoot" ?disabled=${this._busy} @click=${this._shoot}>
@@ -281,6 +320,7 @@ export class MsCameraCapture extends LitElement {
     .cancel { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); }
     .switch { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); padding: 10px 12px; }
     .switch ha-icon { --mdc-icon-size: 22px; }
+    .switch-pos { font-size: 12px; opacity: 0.85; }
     .shoot { background: var(--primary-color, #03a9f4); color: #fff; border: none; font-weight: 600; }
     .shoot[disabled] { opacity: 0.6; cursor: default; }
     .shoot ha-icon { --mdc-icon-size: 22px; }

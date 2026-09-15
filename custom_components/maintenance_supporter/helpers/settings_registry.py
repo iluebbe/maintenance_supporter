@@ -44,6 +44,7 @@ from ..const import (
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
+    CONF_BATTERY_AUTO_RECORD_RECOVERY,
     CONF_BATTERY_LIFETIME_MONTHS,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BATTERY_RECOVERED_PERCENT,
@@ -135,6 +136,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_BATTERY_LOW_PERCENT, int, DEFAULT_BATTERY_LOW_PERCENT, int_range=(1, 90)),
     # #180: a low battery stays low until its level rises ABOVE this (hysteresis).
     SettingSpec(CONF_BATTERY_RECOVERED_PERCENT, int, DEFAULT_BATTERY_RECOVERED_PERCENT, int_range=BATTERY_RECOVERED_PERCENT_RANGE),
+    # #181 follow-up: a level-driven recovery records the replacement itself
+    # (Battery Notes date + stock) — advanced, off by default.
+    SettingSpec(CONF_BATTERY_AUTO_RECORD_RECOVERY, bool, False),
     # D#182: shopping-search URL with a {q} placeholder ("" = automatic by
     # country/language); the {q} requirement is a bespoke rule in dashboard.py.
     SettingSpec(CONF_PART_SEARCH_URL_TEMPLATE, str, "", max_len=MAX_PART_SEARCH_URL_TEMPLATE_LENGTH),

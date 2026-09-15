@@ -16,6 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    BATTERY_FLEET_TASK_FLAG,
     CONF_CURRENCY_DECIMALS,
     CONF_OBJECT,
     CONF_PART_SEARCH_URL_TEMPLATE,
@@ -189,7 +190,16 @@ async def async_handle_completion_parts(
     # currently due may override which parts a completion consumes.
     from .helpers.phases import effective_field
 
-    links = used_parts if used_parts is not None else (effective_field(task_data, CONF_TASK_CONSUMES_PARTS) or [])
+    # #181: the battery fleet task consumes per DEVICE (Battery Notes quantity,
+    # in ``async_mark_replaced`` / ``async_record_replacement``); a task-level
+    # link on it would be charged again on every fleet completion, so the
+    # automatic links are ignored there. An explicit selection still applies.
+    if used_parts is not None:
+        links = used_parts
+    elif task_data.get(BATTERY_FLEET_TASK_FLAG):
+        links = []
+    else:
+        links = effective_field(task_data, CONF_TASK_CONSUMES_PARTS) or []
     # #111: a link may name another object's pool. Every touched entry has its
     # own parts dict and its own Store, so collect them per entry and save each.
     touched: dict[str, tuple[ConfigEntry, Any]] = {}

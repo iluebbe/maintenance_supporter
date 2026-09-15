@@ -576,3 +576,30 @@ def test_decimal_quantities_98() -> None:
     # Low check compares floats: 0.5 in stock vs threshold 1 -> low.
     assert part_is_low({"reorder_threshold": 1}, 0.5) is True
     assert part_is_low({"reorder_threshold": 0.25}, 0.5) is False
+
+
+async def test_fleet_task_ignores_task_level_links(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """#181: the battery fleet task consumes per device (Battery Notes quantity);
+    a task-level consumes_parts link on it must NOT be charged again on every
+    fleet completion. An explicit per-completion selection still applies."""
+    from custom_components.maintenance_supporter.const import BATTERY_FLEET_TASK_FLAG
+    from custom_components.maintenance_supporter.parts_runtime import async_handle_completion_parts
+
+    entry = _object_with_part(hass, auto_buy=False)
+    await setup_integration(hass, global_entry, entry)
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+    store = entry.runtime_data.store
+    store.set_part_stock("p1", 5)
+
+    fleet_task = {"consumes_parts": [{"part_id": "p1", "quantity": 1}], BATTERY_FLEET_TASK_FLAG: True}
+    await async_handle_completion_parts(hass, entry, fleet_task)
+    assert store.get_part_stock("p1") == 5, "fleet completion charged the task-level link"
+
+    # The same link on an ordinary task still consumes.
+    await async_handle_completion_parts(hass, entry, {"consumes_parts": [{"part_id": "p1", "quantity": 1}]})
+    assert store.get_part_stock("p1") == 4
+
+    # An explicit selection on the fleet task is honoured (user said so).
+    await async_handle_completion_parts(hass, entry, fleet_task, used_parts=[{"part_id": "p1", "quantity": 2}])
+    assert store.get_part_stock("p1") == 2
+    await hass.async_block_till_done()

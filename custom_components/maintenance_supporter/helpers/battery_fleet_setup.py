@@ -364,6 +364,11 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     The fleet task auto-completes on its own once the devices report fresh
     (low count → 0), so this does NOT complete the task directly (which would
     race that recovery).
+
+    The cells consumed per battery are the note's own ``battery_quantity``
+    (Battery Notes, per device) — never a task's ``consumes_parts`` link
+    quantity. Setup gives the fleet task no such links (#181 follow-up); a
+    link added by hand is consumed by the task's own completions on top.
     """
     by_eid = {b.entity_id: b for b in read_batteries(hass)}
     targets = entity_ids if entity_ids is not None else [e for e, b in by_eid.items() if b.low]
@@ -436,6 +441,11 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
     recorded again (harmless) but never consumed twice. Raises
     :class:`HomeAssistantError` with a WS-ready code when the battery is
     unknown, has no device, or Battery Notes is not available.
+
+    The quantity consumed is the note's ``battery_quantity`` (Battery Notes,
+    per device), not a task link's. Also the path behind the automatic
+    record on a level-driven recovery (#181 follow-up, setting
+    ``battery_auto_record_recovery``, see battery_fleet._schedule_auto_record).
     """
     from homeassistant.helpers import entity_registry as er
 

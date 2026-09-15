@@ -572,6 +572,7 @@
           "currency_decimals": "Summien desimaalit",
           "battery_low_percent": "Kynnys „paristo vähissä“ (%)",
           "battery_recovered_percent": "Paristo lasketaan vaihdetuksi yli (%)",
+          "battery_auto_record_recovery": "Kirjaa vaihto automaattisesti, kun vähissä ollut paristo palautuu",
           "panel_title": "Sivupalkin paneelin otsikko",
           "shopping_list_entity": "Ostoslista, johon ostotehtävät synkronoidaan",
           "part_search_url_template": "Ostohaun linkki"
@@ -584,6 +585,7 @@
           "currency_decimals": "Montako desimaalia jokainen summa näyttää — tunnusluvut, budjetit, kustannukset listoissa ja raporteissa, budjettihälytykset. 0 = kokonaisluvut.",
           "battery_low_percent": "Koko laivaston alaraja: tällä tasolla tai sen alla oleva paristo lasketaan vähissä olevaksi, ellei sen Battery Notes -kynnys ole korkeampi.",
           "battery_recovered_percent": "Vähissä oleva paristo lasketaan vähissä olevaksi, kunnes sen taso nousee tämän arvon yli tai vaihto kirjataan — näin kynnyksen ympärillä heilahteleva taso ei suorita laivastotehtävää yhä uudelleen.",
+          "battery_auto_record_recovery": "Kun vähissä ollut paristo nousee palautumiskynnyksen yli, vaihtopäivä kirjataan Battery Notesiin ja varaparistot vähennetään varastosta — ilman napautusta",
           "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi.",
           "shopping_list_entity": "Automaattiset ostomuistutukset vähiin käyneistä osista ilmestyvät tähän tehtäväluetteloon; kuittaus suorittaa muistutuksen ja täydentää varaston. Jätä tyhjäksi poistaaksesi käytöstä.",
           "part_search_url_template": "URL, jossa {q} korvaa hakusanat, osille ilman tuotelinkkiä. Jätä tyhjäksi, niin kauppa valitaan automaattisesti (maan, muuten kielen mukaan)."

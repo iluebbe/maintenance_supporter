@@ -572,6 +572,7 @@
           "currency_decimals": "Miejsca po przecinku w kwotach",
           "battery_low_percent": "Próg „bateria słaba” (%)",
           "battery_recovered_percent": "Bateria uznana za wymienioną powyżej (%)",
+          "battery_auto_record_recovery": "Automatycznie zapisuj wymianę, gdy słaba bateria się regeneruje",
           "panel_title": "Tytuł panelu na pasku bocznym",
           "shopping_list_entity": "Lista zakupów do synchronizacji zadań zakupowych",
           "part_search_url_template": "Link wyszukiwania zakupów"
@@ -584,6 +585,7 @@
           "currency_decimals": "Ile miejsc po przecinku pokazuje każda kwota — KPI, budżety, koszty na listach i w raportach, alerty budżetowe. 0 = liczby całkowite.",
           "battery_low_percent": "Dolny próg dla całej floty: bateria na tym poziomie lub poniżej liczy się jako słaba, chyba że jej próg w Battery Notes jest wyższy.",
           "battery_recovered_percent": "Słaba bateria pozostaje liczona jako słaba, dopóki jej poziom nie wzrośnie powyżej tej wartości lub nie zostanie zapisana wymiana — poziom oscylujący wokół progu nie kończy więc zadania floty raz za razem.",
+          "battery_auto_record_recovery": "Gdy poziom baterii, która była słaba, wzrośnie powyżej progu regeneracji, data wymiany zostaje zapisana w Battery Notes, a zapasowe ogniwa są odejmowane ze stanu — bez żadnego kliknięcia",
           "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant.",
           "shopping_list_entity": "Automatyczne przypomnienia o zakupie brakujących części pojawiają się na tej liście zadań; odhaczenie kończy przypomnienie i uzupełnia zapas. Pozostaw puste, aby wyłączyć.",
           "part_search_url_template": "Adres URL z {q} w miejscu wyszukiwanych słów, dla części bez linku do produktu. Pozostaw puste dla automatycznego sklepu (według kraju, w przeciwnym razie języka)."

@@ -507,6 +507,14 @@ floor no longer flips the fleet task and its auto-completion several times a
 day, and the roster's calendar chip ignores upward jumps that stay below the
 threshold. Recording a replacement through that chip now also consumes the
 battery type's spare cells like the *Replaced* action (once per day, #181).
+Every one of those paths takes the quantity from the device's Battery Notes
+note (`battery_quantity`), so there is nothing to link on the fleet task itself
+— its task dialog hides the parts picker, and a link left there from earlier
+versions is ignored on fleet completions (2.88+). Turn on *Settings → General →
+Record a replacement automatically when a low battery recovers* (2.88+, #181,
+off by default) and the recovery itself records the swap: the moment a battery
+that was low climbs above the threshold, its Battery Notes date is set and the
+spare cells leave stock, no tap needed.
 The single task is
 triggered by a global `sensor.maintenance_supporter_batteries_to_replace`
 (count of low batteries) via an ordinary threshold trigger — no special-casing,
@@ -790,7 +798,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **A traceable booklet, your choice of detail** (2.79+, #170) — the print button opens a small options panel: **layout** *Chronological* (one stream across all tasks) or *By task* (a header per task with its schedule, the documents linked to it — with page hints — and an optional **QR code** that opens the task in the panel, then its completions indented), and one switch per block that lands on paper: **readings** with their deltas (`Cold water 1209.7 m³ (+13.7)`), **parts used** (`Filter cartridge × 1`), **photos** as thumbnails with file names (up to six per completion, sixty per booklet), the **checklist** tally (`6/6`), notes, cost and duration, who did it, and the **reference numbers**. Choices are remembered per browser
 
 ![Service booklet by task: schedule, linked documents, QR code, completions with readings, parts and photos](images/service-record.png)
-- **Reference numbers** (2.79+, #170) — every object, task and completion carries a short, stable number: object `#8`, its task `#8.3`, that task's second completion `#8.3-2`. Numbers are handed out once in creation order and **never reused or shifted** (delete task 8.2 and the next one is still 8.4), so a printed booklet, a photo caption or a note can name a job unambiguously. Numbers follow the order of entry, not the calendar: a completion backfilled for an earlier date gets the next number, and a deleted history entry leaves its number as a gap. Archived objects and tasks still answer to their number in the search (marked *Archived*, 2.86+), so a booklet line stays findable after the thing was retired. They show as muted chips on the object page, the task page, the history entries and the objects table (optional column), print on the booklet and the work sheet, and the global search jumps to them: type `8` for the object and its tasks, `8.3` for the task, `8.3-2` for the completion. A JSON backup carries them; a copied object or task starts with a fresh number
+- **Reference numbers** (2.79+, #170) — every object, task and completion carries a short, stable number: object `#8`, its task `#8.3`, that task's second completion `#8.3-2`. Numbers are handed out once in creation order and **never reused or shifted** (delete task 8.2 and the next one is still 8.4), so a printed booklet, a photo caption or a note can name a job unambiguously. Numbers follow the order of entry, not the calendar: a completion backfilled for an earlier date gets the next number, and a deleted history entry leaves its number as a gap. Archived objects and tasks still answer to their number in the search (marked *Archived*, 2.86+), so a booklet line stays findable after the thing was retired. Deleted numbers stay retired — but when you *want* a tidy sequence again (test objects gone, gaps everywhere), *Settings → General → Compact reference numbers* (2.88+, admin) renumbers every object, task and completion in creation order, 1, 2, 3 …, behind a confirm that reminds you printed booklets keep the old numbers. They show as muted chips on the object page, the task page, the history entries and the objects table (optional column), print on the booklet and the work sheet, and the global search jumps to them: type `8` for the object and its tasks, `8.3` for the task, `8.3-2` for the completion. A JSON backup carries them; a copied object or task starts with a fresh number
 - Honest about limits: history keeps up to **500 entries per task**; when any task hits that cap, both the section and the printed record say so, so "complete" is never silently overstated
 
 ### Data Management
@@ -843,7 +851,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 96 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
+- 97 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -936,7 +944,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (96 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (97 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

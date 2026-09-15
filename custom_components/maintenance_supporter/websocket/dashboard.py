@@ -29,6 +29,7 @@ from ..const import (
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
+    CONF_BATTERY_AUTO_RECORD_RECOVERY,
     CONF_BATTERY_LIFETIME_MONTHS,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BATTERY_RECOVERED_PERCENT,
@@ -223,6 +224,9 @@ def _build_full_settings(
             "battery_low_percent": _opt(options, CONF_BATTERY_LOW_PERCENT),
             # #180: a low battery counts as replaced only above this level.
             "battery_recovered_percent": _opt(options, CONF_BATTERY_RECOVERED_PERCENT),
+            # #181 follow-up: a level-driven recovery records the replacement
+            # (Battery Notes date + stock) by itself — advanced, off by default.
+            "battery_auto_record_recovery": _opt(options, CONF_BATTERY_AUTO_RECORD_RECOVERY),
             # D#182: shopping-search template ("" = automatic) + the automatic
             # value in effect (computed: country, then UI language).
             "part_search_url_template": _opt(options, CONF_PART_SEARCH_URL_TEMPLATE),

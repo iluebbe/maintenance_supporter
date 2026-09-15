@@ -769,6 +769,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_adopt_problem_sensors,
         ws_discover_problem_sensors,
     )
+    from .reference_numbers import ws_compact_reference_numbers
     from .saved_views import (
         ws_delete_saved_view,
         ws_list_saved_views,
@@ -900,6 +901,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_documents_delete)
     websocket_api.async_register_command(hass, ws_documents_search)
     websocket_api.async_register_command(hass, ws_search)
+    websocket_api.async_register_command(hass, ws_compact_reference_numbers)
 
 
 def foreign_part_resolver(hass):

@@ -873,5 +873,9 @@ MISSING_ENTITY_THRESHOLD_REFRESHES = 6  # ~30 min at 5-min intervals
 CONF_BATTERY_RECOVERED_PERCENT = "battery_recovered_percent"
 DEFAULT_BATTERY_RECOVERED_PERCENT = 50
 BATTERY_RECOVERED_PERCENT_RANGE: tuple[int, int] = (20, 100)
+# #181 follow-up (advanced, default off): when the latch releases a battery
+# BECAUSE ITS LEVEL rose above the recovery threshold, record the replacement
+# in Battery Notes and consume the type's spare cells — no tap needed.
+CONF_BATTERY_AUTO_RECORD_RECOVERY = "battery_auto_record_recovery"
 # D#182: the shopping-search template is user-settable (max URL length).
 MAX_PART_SEARCH_URL_TEMPLATE_LENGTH = 500

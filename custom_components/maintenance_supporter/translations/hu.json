@@ -572,6 +572,7 @@
           "currency_decimals": "Összegek tizedesjegyei",
           "battery_low_percent": "„Alacsony akkumulátor” küszöb (%)",
           "battery_recovered_percent": "Az elem cseréltnek számít e fölött (%)",
+          "battery_auto_record_recovery": "Csere automatikus rögzítése, amikor egy lemerült elem helyreáll",
           "panel_title": "Oldalsáv-panel címe",
           "shopping_list_entity": "Bevásárlólista a vásárlási feladatok szinkronizálásához",
           "part_search_url_template": "Vásárlási keresőhivatkozás"
@@ -584,6 +585,7 @@
           "currency_decimals": "Hány tizedesjegyet mutasson minden összeg — KPI-k, költségvetések, költségek a listákban és jelentésekben, költségvetési riasztások. 0 = egész számok.",
           "battery_low_percent": "Flottaszintű alsó határ: az ezen a szinten vagy alatta lévő elem lemerültnek számít, hacsak a Battery Notes küszöbe nem magasabb.",
           "battery_recovered_percent": "A lemerült elem addig számít lemerültnek, amíg a töltöttsége e fölé az érték fölé nem emelkedik, vagy egy cserét nem rögzítenek — így a küszöb körül ingadozó töltöttség nem zárja le újra és újra a flottafeladatot.",
+          "battery_auto_record_recovery": "Ha egy korábban lemerült elem töltöttsége a helyreállási küszöb fölé emelkedik, a csere dátuma bekerül a Battery Notesba, és a tartalék cellák levonódnak a készletből — érintés nélkül",
           "panel_title": "Az oldalsáv-bejegyzés egyéni neve. Hagyja üresen a „Karbantartás” használatához. Hasznos, ha ütközne a Home Assistant beépített Karbantartás irányítópultjával.",
           "shopping_list_entity": "A fogyóban lévő alkatrészek automatikus vásárlási emlékeztetői ezen a teendőlistán jelennek meg; a kipipálás befejezi az emlékeztetőt és feltölti a készletet. Hagyja üresen a kikapcsoláshoz.",
           "part_search_url_template": "URL {q}-val a keresőkifejezések helyén, a terméklink nélküli alkatrészekhez. Hagyja üresen az automatikus bolthoz (ország, különben nyelv szerint)."

@@ -450,6 +450,15 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     """
     hass.data.setdefault(DOMAIN, {})
 
+    # The Lovelace card / calendar card / strategy modules FIRST (#184): HA
+    # builds the list of extra module scripts into index.html at the moment a
+    # page is served, and the frontend does not load modules registered later
+    # into an already open page. Every await below (stores, indexes) used to
+    # sit in front of this line — on a slow hub a dashboard opened during
+    # start-up came without our modules ("Custom element doesn't exist") until
+    # a manual refresh. Register before anything that can take time.
+    await async_register_card(hass)
+
     # "Business day" scheduling (the day-of-month `business` flag) follows the
     # user's Workday integration when one is configured — public holidays and
     # custom working weekdays instead of the plain Mon-Fri rule (#83 follow-up).
@@ -860,9 +869,6 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     # Register WebSocket commands
     async_register_commands(hass)
-
-    # Register Lovelace card (always available)
-    await async_register_card(hass)
 
     # Register listener for mobile app notification action buttons
     async def _handle_notification_action(event: Event) -> None:

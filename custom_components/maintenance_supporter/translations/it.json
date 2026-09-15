@@ -572,6 +572,7 @@
           "currency_decimals": "Decimali degli importi",
           "battery_low_percent": "Soglia „batteria scarica“ (%)",
           "battery_recovered_percent": "Batteria considerata sostituita sopra (%)",
+          "battery_auto_record_recovery": "Registra automaticamente una sostituzione quando una batteria scarica si riprende",
           "panel_title": "Titolo del pannello laterale",
           "shopping_list_entity": "Lista della spesa per sincronizzare le attività di acquisto",
           "part_search_url_template": "Link di ricerca per l'acquisto"
@@ -584,6 +585,7 @@
           "currency_decimals": "Quanti decimali mostra ogni importo — KPI, budget, costi in elenchi e report, avvisi di budget. 0 = numeri interi.",
           "battery_low_percent": "Soglia minima per tutta la flotta: una batteria a questo livello o sotto conta come scarica, a meno che la sua soglia Battery Notes sia più alta.",
           "battery_recovered_percent": "Una batteria scarica resta conteggiata come scarica finché il livello non supera questo valore o non viene registrata una sostituzione — così un livello che oscilla attorno alla soglia non completa di continuo l'attività della flotta.",
+          "battery_auto_record_recovery": "Quando una batteria che era scarica supera la soglia di ripristino, la data di sostituzione viene registrata in Battery Notes e le celle di ricambio vengono scalate dalla scorta — senza alcun tocco",
           "panel_title": "Nome personalizzato per la voce nella barra laterale. Lascia vuoto per usare \"Maintenance\". Utile per evitare conflitti con la dashboard Manutenzione integrata di Home Assistant.",
           "shopping_list_entity": "I promemoria di acquisto automatici per i ricambi scarsi appaiono in questo elenco; spuntarne uno completa il promemoria e rifornisce il ricambio. Lasciare vuoto per disattivare.",
           "part_search_url_template": "URL con {q} al posto dei termini di ricerca, usato per i ricambi senza link al prodotto. Lasciare vuoto per il negozio automatico (per paese, altrimenti per lingua)."

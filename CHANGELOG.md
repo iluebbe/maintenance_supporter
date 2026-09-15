@@ -2,6 +2,35 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Compact reference numbers** (#170 follow-up): *Settings → General → Compact reference numbers* (admin, behind a
+  confirm) renumbers every object, task and completion sequentially in creation order and closes the gaps left by
+  deletions (`reference_numbers/compact`, 97 WS commands). The rule stays: numbers are never reused silently — this is
+  an explicit action, and the confirm says that printed booklets keep the old numbers.
+- **Record a replacement automatically when a low battery recovers** (#181 follow-up): a new global setting
+  `battery_auto_record_recovery` (off by default; *Settings → General*, under the recovery threshold). When a battery
+  that was low rises above `battery_recovered_percent`, its Battery Notes replacement date is written and the type's
+  spare cells are taken from stock — exactly what the roster's *Replaced* action does, without the tap. Notes without
+  Battery Notes, rechargeables and level-less rows are never auto-recorded.
+
+### 🐛 Fixed
+
+- **Battery fleet completions charged a task-level part link twice** (#181): the fleet task takes its quantities from
+  each device's Battery Notes note, so a spare part linked on the fleet task itself was consumed again on every fleet
+  completion. Such links are ignored on the fleet task now (an explicit per-completion selection still applies), and
+  the fleet task's dialog hides the parts picker and says where the quantities come from.
+- **Lovelace cards broken after a restart until a refresh** (#184): the card, calendar-card and strategy modules are
+  registered first thing in the integration's start-up now, before the stores and the search index are loaded. Home
+  Assistant builds the extra-module list into a page when it is served and does not add later registrations to an open
+  page — every second the registration sat behind a store load widened the "Custom element doesn't exist" window on a
+  hub that opened a dashboard while still starting.
+- **Viewfinder lens switch did nothing on some phones** (#161): the switch keeps its own position in the camera list
+  (the Android WebView reports no device id on the stream), skips a camera that refuses, shows the position on the
+  button (`2/3`), and asks for 1× zoom in both constraint spellings.
+
 ## [2.87.0] - 2026-09-13
 
 ### ✨ Added

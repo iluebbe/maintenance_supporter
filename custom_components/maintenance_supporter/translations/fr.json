@@ -572,6 +572,7 @@
           "currency_decimals": "Décimales des montants",
           "battery_low_percent": "Seuil « pile faible » (%)",
           "battery_recovered_percent": "Pile considérée remplacée au-dessus de (%)",
+          "battery_auto_record_recovery": "Enregistrer automatiquement un remplacement quand une pile faible se rétablit",
           "panel_title": "Titre du panneau latéral",
           "shopping_list_entity": "Liste de courses pour synchroniser les tâches d’achat",
           "part_search_url_template": "Lien de recherche d'achat"
@@ -584,6 +585,7 @@
           "currency_decimals": "Nombre de décimales affichées pour chaque montant — indicateurs, budgets, coûts dans les listes et rapports, alertes budget. 0 = nombres entiers.",
           "battery_low_percent": "Plancher pour tout le parc : une pile à ce niveau ou en dessous compte comme faible, sauf si son seuil Battery Notes est plus élevé.",
           "battery_recovered_percent": "Une pile faible reste comptée comme faible tant que son niveau ne dépasse pas cette valeur ou qu'un remplacement n'est pas enregistré — un niveau qui oscille autour du seuil ne peut ainsi plus terminer la tâche du parc encore et encore.",
+          "battery_auto_record_recovery": "Quand une pile qui était faible repasse au-dessus du seuil de rétablissement, la date de remplacement est enregistrée dans Battery Notes et les piles de rechange sont retirées du stock — sans aucune action",
           "panel_title": "Nom personnalisé pour l'entrée de la barre latérale. Laissez vide pour utiliser « Maintenance ». Utile pour éviter la confusion avec le tableau de bord Maintenance intégré de Home Assistant.",
           "shopping_list_entity": "Les rappels d’achat automatiques pour les pièces en rupture apparaissent dans cette liste de tâches ; cocher un élément termine le rappel et réapprovisionne la pièce. Laisser vide pour désactiver.",
           "part_search_url_template": "URL avec {q} à la place des termes de recherche, utilisée pour les pièces sans lien produit. Laisser vide pour la boutique automatique (selon le pays, sinon la langue)."

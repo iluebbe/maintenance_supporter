@@ -572,6 +572,7 @@
           "currency_decimals": "Desimaler for beløp",
           "battery_low_percent": "Terskel „batteri lavt“ (%)",
           "battery_recovered_percent": "Batteri regnes som byttet over (%)",
+          "battery_auto_record_recovery": "Registrer et bytte automatisk når et lavt batteri kommer seg",
           "panel_title": "Tittel på sidefeltpanel",
           "shopping_list_entity": "Handleliste å synkronisere kjøpsoppgaver til",
           "part_search_url_template": "Søkelenke for innkjøp"
@@ -584,6 +585,7 @@
           "currency_decimals": "Hvor mange desimaler hvert beløp viser — nøkkeltall, budsjetter, kostnader i lister og rapporter, budsjettvarsler. 0 = hele tall.",
           "battery_low_percent": "Gulv for hele flåten: et batteri på eller under dette nivået telles som lavt, med mindre Battery Notes-terskelen er høyere.",
           "battery_recovered_percent": "Et lavt batteri telles som lavt til nivået stiger over denne verdien eller et bytte registreres — slik kan et nivå som svinger rundt terskelen ikke fullføre flåteoppgaven igjen og igjen.",
+          "battery_auto_record_recovery": "Når et batteri som var lavt stiger over gjenopprettingsterskelen, registreres byttedatoen i Battery Notes og reservecellene trekkes fra lageret — uten et trykk",
           "panel_title": "Egendefinert navn for sidefeltoppføringen. La feltet stå tomt for å bruke «Vedlikehold». Nyttig for å unngå konflikt med Home Assistants innebygde vedlikeholdsdashbord.",
           "shopping_list_entity": "Automatiske kjøpespåminnelser for deler med lav beholdning vises i denne gjøremålslisten; å krysse av en fullfører påminnelsen og fyller på beholdningen. La stå tomt for å deaktivere.",
           "part_search_url_template": "URL med {q} i stedet for søkeordene, for deler uten produktlenke. La stå tomt for den automatiske butikken (etter land, ellers språk)."

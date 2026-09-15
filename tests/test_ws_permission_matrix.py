@@ -54,6 +54,8 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/notify/user_targets": "admin",
     "maintenance_supporter/global/update": "admin",
     "maintenance_supporter/json/import": "admin",
+    # #170 follow-up: renumbers printed references — admin, never delegated.
+    "maintenance_supporter/reference_numbers/compact": "admin",
     "maintenance_supporter/settings/export": "admin",
     "maintenance_supporter/vacation/end_now": "admin",
     "maintenance_supporter/vacation/update": "admin",

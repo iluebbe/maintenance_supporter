@@ -572,6 +572,7 @@
           "currency_decimals": "Desetinná místa částek",
           "battery_low_percent": "Práh „baterie slabá“ (%)",
           "battery_recovered_percent": "Baterie se považuje za vyměněnou nad (%)",
+          "battery_auto_record_recovery": "Automaticky zaznamenat výměnu, když se slabá baterie zotaví",
           "panel_title": "Název panelu v postranním panelu",
           "shopping_list_entity": "Nákupní seznam pro synchronizaci nákupních úkolů",
           "part_search_url_template": "Odkaz pro vyhledávání nákupu"
@@ -584,6 +585,7 @@
           "currency_decimals": "Kolik desetinných míst zobrazuje každá částka — KPI, rozpočty, náklady v seznamech a sestavách, rozpočtová upozornění. 0 = celá čísla.",
           "battery_low_percent": "Spodní hranice pro celou flotilu: baterie na této úrovni nebo pod ní se počítá jako slabá, pokud není její práh v Battery Notes vyšší.",
           "battery_recovered_percent": "Slabá baterie se počítá jako slabá, dokud její stav nevystoupí nad tuto hodnotu nebo není zaznamenána výměna — stav kolísající kolem prahu tak nedokončuje úlohu flotily stále dokola.",
+          "battery_auto_record_recovery": "Když stav dříve slabé baterie vystoupí nad práh zotavení, datum výměny se zaznamená v Battery Notes a náhradní články se odečtou ze zásoby — bez klepnutí",
           "panel_title": "Vlastní název pro položku v postranním panelu. Ponechte prázdné pro \"Maintenance\". Užitečné pro odlišení od vestavěného přehledu Maintenance v Home Assistantu.",
           "shopping_list_entity": "Automatická upozornění na nákup docházejících dílů se objeví v tomto seznamu úkolů; odškrtnutí dokončí upozornění a doplní zásobu. Ponechte prázdné pro vypnutí.",
           "part_search_url_template": "URL s {q} místo hledaných výrazů, pro díly bez odkazu na produkt. Ponechte prázdné pro automatický obchod (podle země, jinak podle jazyka)."

@@ -168,6 +168,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _warning = "";
   @state() private _entryId = "";
   @state() private _taskId: string | null = null; // null = create
+  /** #181: the battery fleet task takes its quantities from Battery Notes per
+   *  device — the parts picker is hidden for it (links there would be ignored). */
+  @state() private _isFleetTask = false;
   // When openCreate is called without an entry_id and a list of objects is supplied,
   // the dialog renders an Object selector dropdown so the user can pick the parent.
   @state() private _objectChoices: Array<{ entry_id: string; name: string }> = [];
@@ -350,6 +353,7 @@ export class MaintenanceTaskDialog extends LitElement {
   public async openCreate(entryId: string, objects?: Array<{ entry_id: string; object: { name: string } }>): Promise<void> {
     this._entryId = entryId;
     this._taskId = null;
+    this._isFleetTask = false;
     this._error = "";
     this._warning = "";
     // If no entryId is preset but caller passed objects, expose them as a dropdown.
@@ -379,6 +383,7 @@ export class MaintenanceTaskDialog extends LitElement {
     // edit mode — and picking another object re-pointed _entryId while
     // _taskId kept the old task (audit 2026-08-29).
     this._objectChoices = [];
+    this._isFleetTask = task.battery_fleet_task === true;
     this._name = task.name;
     this._type = task.type;
     this._scheduleType = task.schedule_type;
@@ -2675,7 +2680,9 @@ export class MaintenanceTaskDialog extends LitElement {
           ${this._partsLoadFailed
             ? html`<div class="field-help parts-load-failed">${t("parts_load_failed", L)}</div>`
             : nothing}
-          ${this.parts.length || this._foreignOwners.length
+          ${this._isFleetTask
+            ? html`<div class="field-help parts-fleet-hint">${t("task_parts_fleet_hint", L)}</div>`
+            : this.parts.length || this._foreignOwners.length
             ? html`
                 <div class="field">
                   <label>${t("consumes_parts_label", L)}</label>

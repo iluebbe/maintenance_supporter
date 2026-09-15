@@ -68,15 +68,15 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 62 writable settings, each mapped to a concrete Python type
+    # 63 writable settings, each mapped to a concrete Python type
     # (#169 follow-up added the dict-typed member_display; #165 the two
     # notification-hook settings; #180 battery_recovered_percent; D#182
-    # part_search_url_template).
-    assert len(ALLOWED_SETTING_KEYS) == 62
+    # part_search_url_template; #181 follow-up battery_auto_record_recovery).
+    assert len(ALLOWED_SETTING_KEYS) == 63
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 62
+    assert len(keys) == len(set(keys)) == 63
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

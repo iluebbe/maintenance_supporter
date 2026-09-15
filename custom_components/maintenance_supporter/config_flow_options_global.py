@@ -30,6 +30,7 @@ from .const import (
     CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
+    CONF_BATTERY_AUTO_RECORD_RECOVERY,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
@@ -703,6 +704,12 @@ class GlobalOptionsFlow(OptionsFlow):
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
+                    # #181 follow-up (advanced): a level-driven recovery records
+                    # the replacement in Battery Notes and consumes the cells.
+                    vol.Optional(
+                        CONF_BATTERY_AUTO_RECORD_RECOVERY,
+                        default=self._opt(CONF_BATTERY_AUTO_RECORD_RECOVERY),
+                    ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFICATIONS_ENABLED,
                         default=self._opt(CONF_NOTIFICATIONS_ENABLED),

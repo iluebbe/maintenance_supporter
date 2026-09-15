@@ -56,6 +56,7 @@ interface SettingsResponse {
     battery_low_percent?: number;
     /** #180: a low battery counts as replaced only once its level is above this. */
     battery_recovered_percent?: number;
+    battery_auto_record_recovery?: boolean;
     /** D#182: shopping-search URL with {q} ("" = automatic) + the automatic value in effect. */
     part_search_url_template?: string;
     part_search_url_default?: string;
@@ -517,6 +518,28 @@ export class MaintenanceSettingsView extends LitElement {
     return runWs<T>(this, payload, { fallbackKey, busy, onError: (msg) => this._showToast(msg) });
   }
 
+  @state() private _compacting = false;
+
+  /** #170: renumber every object, task and completion sequentially — an
+   *  explicit, admin-only action behind a confirm (printed booklets keep the
+   *  old numbers, so this is never done silently). */
+  private async _compactReferenceNumbers(): Promise<void> {
+    const L = this._lang;
+    if (this._compacting || !window.confirm(t("settings_compact_refs_confirm", L))) return;
+    const res = await this._ws<{ objects: number; tasks: number; completions: number }>(
+      { type: "maintenance_supporter/reference_numbers/compact" },
+      "action_error",
+      (b) => { this._compacting = b; },
+    );
+    if (!res) return;
+    this._showToast(
+      t("settings_compact_refs_done", L)
+        .replace("{objects}", String(res.objects))
+        .replace("{tasks}", String(res.tasks))
+        .replace("{completions}", String(res.completions)),
+    );
+  }
+
   /** Bounded integer settings: an out-of-range entry used to be dropped
    *  silently while the field kept showing it (bug review 2026-09-04). Now
    *  it is named in a toast and the field snaps back to the stored value;
@@ -870,6 +893,13 @@ export class MaintenanceSettingsView extends LitElement {
           ${this._intSetting("battery_recovered_percent", g.battery_recovered_percent ?? 50)}
         </label>
         <div class="setting-hint">${t("settings_battery_recovered_percent_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_battery_auto_record", L)}</span>
+          <input type="checkbox" class="auto-record-recovery"
+            .checked=${g.battery_auto_record_recovery === true}
+            @change=${(e: Event) => this._updateSetting("battery_auto_record_recovery", (e.target as HTMLInputElement).checked)} />
+        </label>
+        <div class="setting-hint">${t("settings_battery_auto_record_hint", L)}</div>
         ${this._renderBatteryNotesHint(L)}
         ${this._renderBatteryLifetimes(L)}
         <div class="setting-hint">${t("settings_thresholds_hint", L)}</div>
@@ -896,6 +926,15 @@ export class MaintenanceSettingsView extends LitElement {
             @change=${(e: Event) => this._updateSetting("ref_numbers_in_lists", (e.target as HTMLInputElement).checked)} />
         </label>
         <div class="setting-hint">${t("settings_ref_numbers_in_lists_hint", L)}</div>
+        ${this.hass?.user?.is_admin
+          ? html`<div class="setting-row">
+              <span class="setting-label">${t("settings_compact_refs", L)}</span>
+              <button class="btn compact-refs" ?disabled=${this._compacting} @click=${this._compactReferenceNumbers}>
+                <ha-icon icon="mdi:sort-numeric-ascending"></ha-icon> ${t("settings_compact_refs", L)}
+              </button>
+            </div>
+            <div class="setting-hint">${t("settings_compact_refs_hint", L)}</div>`
+          : nothing}
         <label class="setting-row">
           <span class="setting-label">${t("settings_currency", L)}</span>
           <select .value=${live(b.currency)} @change=${(e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value)}>

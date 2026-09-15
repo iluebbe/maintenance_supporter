@@ -572,6 +572,7 @@
           "currency_decimals": "金額の小数点以下の桁数",
           "battery_low_percent": "電池「残量少」しきい値（%）",
           "battery_recovered_percent": "この値を超えたら交換済みとみなす（%）",
+          "battery_auto_record_recovery": "残量が少ない電池が回復したら交換を自動で記録",
           "panel_title": "サイドバーパネルのタイトル",
           "shopping_list_entity": "購入タスクを同期する買い物リスト",
           "part_search_url_template": "購入検索リンク"
@@ -584,6 +585,7 @@
           "currency_decimals": "各金額に表示する小数点以下の桁数 — KPI、予算、リストやレポートの費用、予算アラート。0 = 整数。",
           "battery_low_percent": "全体の下限：この値以下の電池は「残量少」とみなされます（Battery Notes のしきい値がより高い場合を除く）。",
           "battery_recovered_percent": "残量が少ない電池は、残量がこの値を超えるか交換が記録されるまで「残量少」として数えられます。しきい値付近で変動する残量が一括タスクを何度も完了させることを防ぎます。",
+          "battery_auto_record_recovery": "残量が少なかった電池が回復しきい値を超えると、交換日が Battery Notes に記録され、予備の電池が在庫から差し引かれます — タップは不要です",
           "panel_title": "サイドバー項目のカスタム名です。空欄にすると「メンテナンス」が使用されます。Home Assistant 標準のメンテナンスダッシュボードとの競合を避けるのに便利です。",
           "shopping_list_entity": "在庫が少ない部品の自動購入リマインダーがこのToDoリストに表示されます。チェックするとリマインダーが完了し、部品が補充されます。無効にするには空のままにします。",
           "part_search_url_template": "検索語の代わりに {q} を含む URL。製品リンクのない部品に使われます。空欄なら自動選択（国、次に言語で判定）。"

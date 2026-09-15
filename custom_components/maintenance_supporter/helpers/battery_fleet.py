@@ -495,6 +495,18 @@ def get_battery_recovered_percent(hass: HomeAssistant) -> int:
     return value if lo <= value <= hi else DEFAULT_BATTERY_RECOVERED_PERCENT
 
 
+def get_battery_auto_record_recovery(hass: HomeAssistant) -> bool:
+    """#181 follow-up: whether a battery the latch releases BY ITS LEVEL gets
+    its replacement recorded automatically (the Battery Notes date + the
+    type's cells from stock, see :func:`_schedule_auto_record`). Advanced
+    option, off by default."""
+    from ..const import CONF_BATTERY_AUTO_RECORD_RECOVERY
+    from .global_options import get_global_options
+    from .settings_registry import setting_default
+
+    return bool(get_global_options(hass).get(CONF_BATTERY_AUTO_RECORD_RECOVERY, setting_default(CONF_BATTERY_AUTO_RECORD_RECOVERY)))
+
+
 # ── #180: the low-recovery latch ─────────────────────────────────────────────
 #
 # A Hue dimmer's level oscillated around the low floor several times a day;
@@ -534,6 +546,7 @@ def apply_low_latch(
     recovered: float,
     now_iso: str,
     eligible: set[str] | None = None,
+    released_by_level: list[str] | None = None,
 ) -> bool:
     """Pure latch step: mutate ``bat.low``/``bat.latched`` and the ``latch``
     map in place. Returns True when the map changed (the caller persists).
@@ -546,6 +559,10 @@ def apply_low_latch(
     * latched + unavailable → stays low (no reading is no proof of recovery);
     * latched + reading not low → released when the level is above
       ``recovered`` or a replacement was recorded, else held low.
+
+    ``released_by_level`` (#181 follow-up) collects the ids released by their
+    LEVEL alone — no newer replacement date on the note — which is the
+    auto-record hook's input: a recorded date already counts as recorded.
 
     Entries for batteries no longer in the fleet are dropped.
     """
@@ -566,6 +583,8 @@ def apply_low_latch(
         if entry is None:
             continue
         if bat.available and (_replaced_since(last, entry) or (bat.level is not None and bat.level > recovered)):
+            if released_by_level is not None and not _replaced_since(last, entry):
+                released_by_level.append(bat.entity_id)
             del latch[bat.entity_id]
             changed = True
             continue
@@ -601,10 +620,96 @@ def _latch_backend(hass: HomeAssistant) -> tuple[dict[str, Any], Callable[[], No
 
 def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: set[str]) -> None:
     latch, save = _latch_backend(hass)
+    released: list[str] = []
     if apply_low_latch(
-        batteries, latch, recovered=float(get_battery_recovered_percent(hass)), now_iso=dt_util.utcnow().isoformat(), eligible=eligible
+        batteries,
+        latch,
+        recovered=float(get_battery_recovered_percent(hass)),
+        now_iso=dt_util.utcnow().isoformat(),
+        eligible=eligible,
+        released_by_level=released,
     ):
+        # Persist BEFORE scheduling: the record path re-reads the fleet and
+        # must see the entry gone (or it would release — and schedule — again).
         save()
+    if released and get_battery_auto_record_recovery(hass):
+        _schedule_auto_record(hass, [b for b in batteries if b.entity_id in released])
+
+
+# ── #181 follow-up: auto-record a level-driven recovery ────────────────────
+#
+# With ``battery_auto_record_recovery`` on, a battery the latch releases
+# BECAUSE ITS LEVEL rose above the recovery threshold — a fresh cell reporting,
+# not a recorded date, which already counts as recorded — is recorded through
+# the same path as the roster's calendar chip: ``async_record_replacement``
+# writes the date to Battery Notes and consumes the type's cells (the note's
+# own quantity) ONCE per day. Per battery, so a partial swap is recorded the
+# moment that battery reports fresh; nothing waits for the fleet task.
+#
+# Scheduled as a task because ``read_batteries`` is sync (it runs inside the
+# low-count sensor's update) and the record path re-reads the fleet itself.
+# Re-entrancy: the latch entry is already gone when the task runs, so the
+# nested read cannot release the same battery again; the in-flight set covers
+# the window until then, and the record path's once-per-day memory makes a
+# bounce that re-latches and recovers on the same day consume nothing twice.
+
+_AUTO_RECORD_INFLIGHT_KEY = "battery_fleet_auto_record_inflight"
+
+
+def _auto_record_inflight(hass: HomeAssistant) -> set[str]:
+    from ..const import DOMAIN
+
+    inflight: set[str] = hass.data.setdefault(DOMAIN, {}).setdefault(_AUTO_RECORD_INFLIGHT_KEY, set())
+    return inflight
+
+
+def _schedule_auto_record(hass: HomeAssistant, batteries: list[Battery]) -> int:
+    """Schedule the auto-record for batteries just released by their level.
+    Returns how many were scheduled: a native row has no Battery Notes note
+    to record on, and a rechargeable's recovery is a charge, not a swap."""
+    import threading
+
+    inflight = _auto_record_inflight(hass)
+    scheduled = 0
+    for bat in batteries:
+        if bat.source != "battery_notes":
+            _LOGGER.debug("Battery %s recovered but has no Battery Notes note - nothing to record on", bat.entity_id)
+            continue
+        if is_rechargeable_type(bat.battery_type):
+            _LOGGER.debug("Battery %s recovered by charging - no replacement to record", bat.entity_id)
+            continue
+        if bat.entity_id in inflight:
+            continue
+        inflight.add(bat.entity_id)
+        coro = _async_auto_record(hass, bat.entity_id)
+        if hass.loop_thread_id != threading.get_ident():
+            hass.create_task(coro, "maintenance_supporter_battery_auto_record")
+        else:
+            hass.async_create_task(coro, "maintenance_supporter_battery_auto_record", eager_start=False)
+        scheduled += 1
+    return scheduled
+
+
+async def _async_auto_record(hass: HomeAssistant, entity_id: str) -> None:
+    from homeassistant.exceptions import HomeAssistantError
+
+    from .battery_fleet_setup import async_record_replacement
+
+    try:
+        result = await async_record_replacement(hass, entity_id, dt_util.utcnow().isoformat())
+        _LOGGER.info(
+            "Battery %s recovered above the threshold: replacement recorded automatically (consumed %s)",
+            entity_id,
+            result.get("consumed") or {},
+        )
+    except HomeAssistantError as err:
+        # not_available (Battery Notes gone), invalid_device (state-only
+        # note), not_found (excluded meanwhile) - nothing to record on.
+        _LOGGER.debug("Automatic replacement record for %s skipped: %s", entity_id, err)
+    except Exception:  # noqa: BLE001 - a hook must never take the fleet down
+        _LOGGER.warning("Automatic replacement record for %s failed", entity_id, exc_info=True)
+    finally:
+        _auto_record_inflight(hass).discard(entity_id)
 
 
 def release_low_latch(hass: HomeAssistant, entity_ids: list[str]) -> int:
@@ -1438,6 +1543,7 @@ __all__ = [
     "fleet_excluded_entities",
     "fleet_included_entities",
     "fleet_track_self_charging",
+    "get_battery_auto_record_recovery",
     "get_battery_recovered_percent",
     "has_batteries",
     "has_battery_notes",

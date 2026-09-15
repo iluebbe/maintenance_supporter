@@ -76,7 +76,7 @@ describe("camera-capture prefers the main back camera (#161)", () => {
     const el = await fixture<MsCameraCapture>(html`<ms-camera-capture></ms-camera-capture>`);
     await el.open();
     expect(calls.length).to.equal(1);
-    expect(applied).to.deep.equal([{ advanced: [{ zoom: 1 }] }]);
+    expect(applied[0], "1x asked for (required spelling first)").to.deep.equal({ zoom: 1 });
     el.close();
   });
 

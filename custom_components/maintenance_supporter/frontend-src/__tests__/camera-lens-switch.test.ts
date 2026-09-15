@@ -109,4 +109,57 @@ describe("camera lens switch (#161)", () => {
     expect(el.shadowRoot!.querySelector("button.switch")).to.equal(null);
     el.close();
   });
+
+  it("cycles by its own index when the track reports no deviceId (Android WebView), and shows the position", async () => {
+    const calls: MediaStreamConstraints[] = [];
+    const streams: Record<string, MediaStream> = { a: stream(""), b: stream(""), c: stream("") };
+    let served = "a";
+    md.getUserMedia = async (c?: MediaStreamConstraints) => {
+      calls.push(c!);
+      const v = c!.video as MediaTrackConstraints;
+      served = ((v.deviceId as { exact?: string } | undefined)?.exact) ?? "a";
+      return streams[served];
+    };
+    md.enumerateDevices = async () => unlabeled(["a", "b", "c"]);
+    const el = await fixture<MsCameraCapture>(html`<ms-camera-capture .lang=${"en"}></ms-camera-capture>`);
+    await el.open();
+    await el.updateComplete;
+    const pos = () => el.shadowRoot!.querySelector(".switch-pos")!.textContent!.trim();
+    expect(pos(), "position unknown before the first switch").to.equal("?/3");
+    const btn = el.shadowRoot!.querySelector<HTMLButtonElement>("button.switch")!;
+    btn.click();
+    await new Promise((r) => setTimeout(r, 20));
+    await el.updateComplete;
+    expect(served).to.equal("a");
+    expect(pos()).to.equal("1/3");
+    btn.click();
+    await new Promise((r) => setTimeout(r, 20));
+    await el.updateComplete;
+    expect(served, "advances although the track never reports an id").to.equal("b");
+    expect(pos()).to.equal("2/3");
+    expect(localStorage.getItem(LS_KEYS.cameraDevice)).to.equal("b");
+    el.close();
+  });
+
+  it("skips a camera that refuses", async () => {
+    const good = stream("");
+    md.getUserMedia = async (c?: MediaStreamConstraints) => {
+      const id = ((c!.video as MediaTrackConstraints).deviceId as { exact?: string } | undefined)?.exact;
+      if (id === "broken") throw new DOMException("no", "NotReadableError");
+      return good;
+    };
+    md.enumerateDevices = async () => unlabeled(["first", "broken", "third"]);
+    const el = await fixture<MsCameraCapture>(html`<ms-camera-capture></ms-camera-capture>`);
+    await el.open();
+    await el.updateComplete;
+    const btn = el.shadowRoot!.querySelector<HTMLButtonElement>("button.switch")!;
+    btn.click(); // → first (index 0)
+    await new Promise((r) => setTimeout(r, 20));
+    btn.click(); // broken refuses → third
+    await new Promise((r) => setTimeout(r, 30));
+    await el.updateComplete;
+    expect(localStorage.getItem(LS_KEYS.cameraDevice)).to.equal("third");
+    expect(el.shadowRoot!.querySelector(".switch-pos")!.textContent!.trim()).to.equal("3/3");
+    el.close();
+  });
 });

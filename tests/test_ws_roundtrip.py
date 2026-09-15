@@ -704,6 +704,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "battery_low_percent": 25,
     # #180: recovery threshold (hysteresis) for the fleet's low count.
     "battery_recovered_percent": 60,
+    # #181 follow-up: auto-record a replacement on a level-driven recovery.
+    "battery_auto_record_recovery": True,
     # D#182: user-settable shopping search — must carry {q}; trimmed on save.
     "part_search_url_template": "https://shop.example/search?q={q}",
     "notifications_enabled": True,
@@ -812,6 +814,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "default_consumable_threshold": settings["general"]["default_consumable_threshold"],
         "battery_low_percent": settings["general"]["battery_low_percent"],
         "battery_recovered_percent": settings["general"]["battery_recovered_percent"],
+        "battery_auto_record_recovery": settings["general"]["battery_auto_record_recovery"],
         "part_search_url_template": settings["general"]["part_search_url_template"],
         "notifications_enabled": settings["general"]["notifications_enabled"],
         "notify_service": settings["general"]["notify_service"],

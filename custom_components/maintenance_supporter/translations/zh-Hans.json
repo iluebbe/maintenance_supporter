@@ -572,6 +572,7 @@
           "currency_decimals": "金额小数位数",
           "battery_low_percent": "电池“电量低”阈值（%）",
           "battery_recovered_percent": "电量高于此值视为已更换（%）",
+          "battery_auto_record_recovery": "低电量电池恢复时自动记录更换",
           "panel_title": "侧边栏面板标题",
           "shopping_list_entity": "同步购买任务的购物清单",
           "part_search_url_template": "购物搜索链接"
@@ -584,6 +585,7 @@
           "currency_decimals": "每个金额显示几位小数——KPI、预算、列表和报告中的费用、预算提醒。0 = 整数。",
           "battery_low_percent": "全部电池的底线：电量等于或低于此值的电池计为低电量，除非其 Battery Notes 阈值更高。",
           "battery_recovered_percent": "电量低的电池会一直计为低电量，直到电量高于此值或记录了更换——这样在阈值附近波动的电量不会反复完成电池组任务。",
+          "battery_auto_record_recovery": "当曾经电量低的电池升至恢复阈值以上时，更换日期会记录到 Battery Notes 中，备用电池会从库存中扣除——无需点击",
           "panel_title": "侧边栏条目的自定义名称。留空使用 “Maintenance”。有助于避免与 Home Assistant 内置的维护面板冲突。",
           "shopping_list_entity": "库存不足部件的自动购买提醒会显示在此待办清单中；勾选一项即完成提醒并补充库存。留空则禁用。",
           "part_search_url_template": "以 {q} 代替搜索词的网址，用于没有产品链接的配件。留空则自动选择商店（先按国家，再按语言）。"

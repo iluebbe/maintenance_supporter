@@ -572,6 +572,7 @@
           "currency_decimals": "Decimalen voor bedragen",
           "battery_low_percent": "Drempel „batterij laag“ (%)",
           "battery_recovered_percent": "Batterij geldt als vervangen boven (%)",
+          "battery_auto_record_recovery": "Vervanging automatisch vastleggen wanneer een lege batterij herstelt",
           "panel_title": "Titel van zijbalkpaneel",
           "shopping_list_entity": "Boodschappenlijst om kooptaken mee te synchroniseren",
           "part_search_url_template": "Zoeklink voor aankopen"
@@ -584,6 +585,7 @@
           "currency_decimals": "Hoeveel decimalen elk bedrag toont — KPI's, budgetten, kosten in lijsten en rapporten, budgetmeldingen. 0 = hele getallen.",
           "battery_low_percent": "Vlootbrede ondergrens: een batterij op of onder dit niveau geldt als laag, tenzij de Battery Notes-drempel hoger is.",
           "battery_recovered_percent": "Een lege batterij blijft als laag geteld tot het niveau boven deze waarde stijgt of een vervanging wordt vastgelegd — zo kan een niveau dat rond de drempel schommelt de vloottaak niet steeds opnieuw afronden.",
+          "battery_auto_record_recovery": "Wanneer een batterij die laag was boven de hersteldrempel stijgt, wordt de vervangdatum in Battery Notes vastgelegd en worden de reservecellen van de voorraad afgeboekt — zonder tik",
           "panel_title": "Eigen naam voor het zijbalk-item. Laat leeg voor \"Maintenance\". Handig om verwarring met het ingebouwde Maintenance-dashboard van Home Assistant te voorkomen.",
           "shopping_list_entity": "Automatische koopherinneringen voor schaarse onderdelen verschijnen in deze takenlijst; afvinken voltooit de herinnering en vult de voorraad aan. Leeg laten om uit te schakelen.",
           "part_search_url_template": "URL met {q} op de plaats van de zoektermen, voor onderdelen zonder productlink. Leeg laten voor de automatische winkel (per land, anders per taal)."

@@ -572,6 +572,7 @@
           "currency_decimals": "Tutarlarda ondalık basamak",
           "battery_low_percent": "„Pil zayıf“ eşiği (%)",
           "battery_recovered_percent": "Pil şu değerin üzerinde değiştirilmiş sayılır (%)",
+          "battery_auto_record_recovery": "Zayıf bir pil toparlandığında değişimi otomatik kaydet",
           "panel_title": "Kenar çubuğu paneli başlığı",
           "shopping_list_entity": "Satın alma görevlerinin eşitleneceği alışveriş listesi",
           "part_search_url_template": "Alışveriş arama bağlantısı"
@@ -584,6 +585,7 @@
           "currency_decimals": "Her tutarın kaç ondalık basamak göstereceği — KPI'lar, bütçeler, liste ve raporlardaki maliyetler, bütçe uyarıları. 0 = tam sayılar.",
           "battery_low_percent": "Filo genelinde alt sınır: bu seviyede veya altındaki bir pil, Battery Notes eşiği daha yüksek değilse zayıf sayılır.",
           "battery_recovered_percent": "Zayıf bir pil, seviyesi bu değerin üzerine çıkana veya bir değişim kaydedilene kadar zayıf sayılmaya devam eder — böylece eşik çevresinde salınan bir seviye filo görevini tekrar tekrar tamamlayamaz.",
+          "battery_auto_record_recovery": "Zayıf olan bir pilin seviyesi toparlanma eşiğinin üzerine çıktığında değişim tarihi Battery Notes'a kaydedilir ve yedek piller stoktan düşülür — dokunmaya gerek yok",
           "panel_title": "Kenar çubuğu girdisi için özel ad. \"Bakım\" kullanmak için boş bırakın. Home Assistant'ın yerleşik Bakım panosuyla çakışmayı önlemek için kullanışlıdır.",
           "shopping_list_entity": "Azalan parçalar için otomatik satın alma hatırlatıcıları bu yapılacaklar listesinde görünür; birini işaretlemek hatırlatıcıyı tamamlar ve parçayı yeniden stoklar. Devre dışı bırakmak için boş bırakın.",
           "part_search_url_template": "Arama terimleri yerine {q} içeren URL; ürün bağlantısı olmayan parçalar için kullanılır. Otomatik mağaza için boş bırakın (ülkeye, yoksa dile göre)."

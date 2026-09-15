@@ -572,6 +572,7 @@
           "currency_decimals": "Decimales de los importes",
           "battery_low_percent": "Umbral „pila baja“ (%)",
           "battery_recovered_percent": "Pila considerada sustituida por encima de (%)",
+          "battery_auto_record_recovery": "Registrar una sustitución automáticamente cuando una pila baja se recupera",
           "panel_title": "Título del panel lateral",
           "shopping_list_entity": "Lista de la compra para sincronizar las tareas de compra",
           "part_search_url_template": "Enlace de búsqueda de compra"
@@ -584,6 +585,7 @@
           "currency_decimals": "Cuántos decimales muestra cada importe — KPI, presupuestos, costes en listas e informes, alertas de presupuesto. 0 = números enteros.",
           "battery_low_percent": "Umbral mínimo de toda la flota: una pila en este nivel o por debajo cuenta como baja, salvo que su umbral de Battery Notes sea más alto.",
           "battery_recovered_percent": "Una pila baja sigue contando como baja hasta que su nivel supere este valor o se registre una sustitución — así un nivel que oscila alrededor del umbral no completa la tarea de la flota una y otra vez.",
+          "battery_auto_record_recovery": "Cuando una pila que estaba baja supera el umbral de recuperación, la fecha de sustitución se registra en Battery Notes y las pilas de repuesto se descuentan del stock — sin ningún toque",
           "panel_title": "Nombre personalizado para la entrada de la barra lateral. Déjalo en blanco para usar \"Maintenance\". Útil para evitar conflictos con el panel de Mantenimiento integrado de Home Assistant.",
           "shopping_list_entity": "Los recordatorios automáticos de compra de piezas escasas aparecen en esta lista de tareas; marcar uno completa el recordatorio y repone la pieza. Dejar vacío para desactivar.",
           "part_search_url_template": "URL con {q} en lugar de los términos de búsqueda, para piezas sin enlace de producto. Dejar vacío para la tienda automática (por país, si no por idioma)."
