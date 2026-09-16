@@ -784,6 +784,7 @@
   "doc_camera": "사진 촬영",
   "camera_capture_shoot": "촬영",
   "camera_switch_lens": "카메라 전환",
+  "camera_switch_failed": "다른 카메라가 응답하지 않았습니다. 이 휴대폰은 하나만 제공합니다. 다른 렌즈는 파일 선택기를 사용하세요.",
   "doc_drop_hint": "파일을 여기에 놓으세요",
   "doc_task_none": "이 작업에 연결된 문서가 없습니다.",
   "doc_link_existing": "문서 연결…",

@@ -394,7 +394,10 @@ settings; batteries with a sensor are unaffected). Battery
 Notes is **not required**, though: any device that exposes a native
 `device_class: battery` sensor or low-battery binary is picked up too, in a
 **degraded mode** (type shown as *Unknown*, quantity 1, no last-replaced
-forecast) — including %-sensors that ship **without** a `device_class`
+forecast) — unless the device carries a Battery Notes *Battery type*
+sensor: then the native row takes type, quantity and the replacement date
+from it (2.89+, #186 — the shape of a note whose *battery plus* entities are
+disabled or hidden) — including %-sensors that ship **without** a `device_class`
 (some Zigbee2MQTT/ESPHome devices), found via a strict battery-name
 heuristic that keeps charging electronics and home-storage SoC sensors
 out. One low floor applies fleet-wide: any battery at **≤ 20 %** counts

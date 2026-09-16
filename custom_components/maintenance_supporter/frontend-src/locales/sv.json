@@ -778,6 +778,7 @@
   "doc_camera": "Ta foto",
   "camera_capture_shoot": "Ta bild",
   "camera_switch_lens": "Byt kamera",
+  "camera_switch_failed": "Ingen annan kamera svarade – den här telefonen lämnar bara ut en. Använd filväljaren för det andra objektivet.",
   "doc_drop_hint": "Släpp filer här",
   "doc_task_none": "Inga dokument kopplade till denna uppgift.",
   "doc_link_existing": "Koppla ett dokument…",

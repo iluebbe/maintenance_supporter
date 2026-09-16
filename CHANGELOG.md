@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Battery roster showed *UNKNOWN* for devices that have a Battery Notes type** (#186): when a note's *battery plus*
+  sensor and low binary are disabled or hidden, the roster fell back to the device's native level sensor and lost the
+  type. The native row now takes type, quantity and the replacement date from the device's Battery Notes *Battery type*
+  sensor (registry device first, naming contract second), the type note no longer doubles as a second sensorless row,
+  and the roster's *Replaced* action reaches the note's button for such rows.
+- **Viewfinder lens switch when the WebView refuses every camera id** (#161 follow-up): the switch now falls back to
+  asking by facing mode (front ↔ back), and when that fails too it says so on screen instead of a tap that does
+  nothing.
+
 ## [2.88.0] - 2026-09-15
 
 ### ✨ Added

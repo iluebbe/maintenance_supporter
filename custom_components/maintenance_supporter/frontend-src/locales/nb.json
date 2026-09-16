@@ -778,6 +778,7 @@
   "doc_camera": "Ta bilde",
   "camera_capture_shoot": "Ta bilde",
   "camera_switch_lens": "Bytt kamera",
+  "camera_switch_failed": "Ingen andre kameraer svarte – denne telefonen gir bare fra seg ett. Bruk filvelgeren for det andre objektivet.",
   "doc_drop_hint": "Slipp filer her",
   "doc_task_none": "Ingen dokumenter knyttet til denne oppgaven.",
   "doc_link_existing": "Knytt et dokument…",

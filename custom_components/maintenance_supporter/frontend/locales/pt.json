@@ -778,6 +778,7 @@
   "doc_camera": "Tirar foto",
   "camera_capture_shoot": "Capturar",
   "camera_switch_lens": "Mudar de câmara",
+  "camera_switch_failed": "Nenhuma outra câmara respondeu — este telemóvel só disponibiliza uma. Use o seletor de ficheiros para a outra objetiva.",
   "doc_drop_hint": "Solte os ficheiros aqui",
   "doc_task_none": "Nenhum documento associado a esta tarefa.",
   "doc_link_existing": "Associar um documento…",

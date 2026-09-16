@@ -804,7 +804,10 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     * **Native** ``device_class: battery`` entities (a %-sensor and/or a
       battery-low binary) — plus %-sensors matching the strict battery-name
       heuristic for devices that ship no device class — grouped per device,
-      give a degraded view (type "Unknown", quantity 1, no forecast). A
+      give a degraded view (type "Unknown", quantity 1, no forecast) —
+      unless the device still carries a Battery Notes ``…_battery_type``
+      sensor (plus entities disabled or hidden, #186): then type, quantity
+      and the replacement date come from that note. A
       device already covered by a Battery Notes note is skipped (dedup by
       the note's source entity + its device) so it isn't counted twice;
       self-charging devices (vacuums, mowers, phones — see
@@ -1041,6 +1044,24 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             if rec["name"] is None and friendly:
                 rec["name"] = friendly
 
+    # #186: a device whose Battery Notes plus entities are gone (disabled,
+    # hidden, or a note that never got a percentage source) still carries the
+    # diagnostic ``…_battery_type`` sensor — the native row takes type,
+    # quantity and the replacement date from it instead of degrading to
+    # "Unknown" (a whole fleet read UNKNOWN although every device page showed
+    # its type). Registry device first, Battery Notes' naming contract second.
+    type_note_by_device: dict[str, Any] = {}
+    type_note_by_base: dict[str, Any] = {}
+    for st in hass.states.async_all("sensor"):
+        if not _is_type_note(st):
+            continue
+        t_reg = ent_reg.async_get(st.entity_id)
+        if t_reg and t_reg.device_id:
+            type_note_by_device.setdefault(t_reg.device_id, st)
+        t_obj = st.entity_id.split(".", 1)[1]
+        if t_obj.endswith("_battery_type"):
+            type_note_by_base.setdefault(t_obj[: -len("_battery_type")], st)
+
     snapshot_cache = _native_snapshot_cache(hass)
     now = dt_util.utcnow()
     for rec in native.values():
@@ -1072,16 +1093,29 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
         name = rec["name"]
         if not name and rec["device_id"] and (dev := dev_reg.async_get(rec["device_id"])):
             name = dev.name_by_user or dev.name
+        note = type_note_by_device.get(rec["device_id"]) if rec["device_id"] else None
+        if note is None:
+            note = type_note_by_base.get(rec["eid"].split(".", 1)[1])
+        note_type = str(note.attributes.get("battery_type") or "").strip() if note is not None else ""
+        note_last: date | None = None
+        if note is not None and note_type:
+            n_obj = note.entity_id.split(".", 1)[1]
+            last_eid = note_sibling_entity(hass, note.entity_id, domain="sensor", uid_suffix="_battery_last_replaced") or (
+                f"sensor.{n_obj[: -len('_battery_type')]}_battery_last_replaced" if n_obj.endswith("_battery_type") else None
+            )
+            last_state = hass.states.get(last_eid) if last_eid else None
+            if last_state and last_state.state not in _NO_READING:
+                note_last = _parse_last_replaced(last_state.state)
         out.append(
             Battery(
                 entity_id=rec["eid"],
                 device_name=name or rec["eid"],
-                battery_type="Rechargeable" if rec.get("self_charging") else "Unknown",
-                quantity=1,
+                battery_type="Rechargeable" if rec.get("self_charging") else (note_type or "Unknown"),
+                quantity=_quantity_of(note.attributes) if note is not None and note_type else 1,
                 model_key=device_model_key(hass, rec.get("device_id")),
                 low=low,
                 level=level,
-                last_replaced=None,
+                last_replaced=note_last,
                 available=available,
                 source="native",
                 # The household floor decided ``low`` above — the sparkline
@@ -1106,6 +1140,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     # the task kept firing (or never fired) on the table's.
     lifetime_for = lifetime_resolver(hass)
     native_devices = {rec["device_id"] for rec in native.values() if rec["device_id"]}
+    native_eids = {rec["eid"] for rec in native.values()}
     for state in hass.states.async_all("sensor"):
         if not _is_type_note(state):
             continue
@@ -1121,6 +1156,9 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
         object_id = eid.split(".", 1)[1]
         base = object_id[: -len("_battery_type")] if object_id.endswith("_battery_type") else None
         if base and (f"sensor.{base}_battery_plus" in note_sensor_ids or f"binary_sensor.{base}_battery_plus_low" in note_binary_ids):
+            continue
+        # #186: the native row on the same base already carries this note's type.
+        if base and (f"sensor.{base}" in native_eids or f"binary_sensor.{base}" in native_eids):
             continue
         if eid in excluded:
             continue

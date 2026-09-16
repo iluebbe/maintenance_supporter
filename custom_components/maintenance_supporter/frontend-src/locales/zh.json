@@ -778,6 +778,7 @@
   "doc_camera": "拍照",
   "camera_capture_shoot": "拍摄",
   "camera_switch_lens": "切换摄像头",
+  "camera_switch_failed": "没有其他摄像头响应——这部手机只开放一个。另一个镜头请使用文件选择器。",
   "doc_drop_hint": "将文件拖放到此处",
   "doc_task_none": "没有与此任务关联的文档。",
   "doc_link_existing": "关联文档…",

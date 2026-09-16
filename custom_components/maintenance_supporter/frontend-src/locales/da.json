@@ -778,6 +778,7 @@
   "doc_camera": "Tag billede",
   "camera_capture_shoot": "Tag billede",
   "camera_switch_lens": "Skift kamera",
+  "camera_switch_failed": "Intet andet kamera svarede — denne telefon frigiver kun ét. Brug filvælgeren til det andet objektiv.",
   "doc_drop_hint": "Slip filer her",
   "doc_task_none": "Ingen dokumenter knyttet til denne opgave.",
   "doc_link_existing": "Knyt et dokument…",

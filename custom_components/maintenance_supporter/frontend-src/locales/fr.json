@@ -778,6 +778,7 @@
   "doc_camera": "Prendre une photo",
   "camera_capture_shoot": "Prendre la photo",
   "camera_switch_lens": "Changer de caméra",
+  "camera_switch_failed": "Aucune autre caméra n'a répondu — ce téléphone n'en expose qu'une. Utilisez le sélecteur de fichiers pour l'autre objectif.",
   "doc_drop_hint": "Déposez les fichiers ici",
   "doc_task_none": "Aucun document lié à cette tâche.",
   "doc_link_existing": "Lier un document…",

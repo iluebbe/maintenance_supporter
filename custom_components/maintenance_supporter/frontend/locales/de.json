@@ -778,6 +778,7 @@
   "doc_camera": "Foto aufnehmen",
   "camera_capture_shoot": "Aufnehmen",
   "camera_switch_lens": "Kamera wechseln",
+  "camera_switch_failed": "Keine andere Kamera hat geantwortet – dieses Telefon gibt nur eine frei. Für das andere Objektiv die Dateiauswahl nutzen.",
   "doc_drop_hint": "Dateien hier ablegen",
   "doc_task_none": "Keine Dokumente mit dieser Aufgabe verknüpft.",
   "doc_link_existing": "Dokument verknüpfen…",

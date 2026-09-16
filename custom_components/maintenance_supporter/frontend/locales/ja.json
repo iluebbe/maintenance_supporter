@@ -778,6 +778,7 @@
   "doc_camera": "写真を撮る",
   "camera_capture_shoot": "撮影",
   "camera_switch_lens": "カメラを切り替え",
+  "camera_switch_failed": "他のカメラが応答しませんでした。この端末は1台しか公開していません。別のレンズにはファイル選択を使ってください。",
   "doc_drop_hint": "ここにファイルをドロップ",
   "doc_task_none": "このタスクに紐付いたドキュメントはありません。",
   "doc_link_existing": "ドキュメントを紐付け…",

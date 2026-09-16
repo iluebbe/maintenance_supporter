@@ -778,6 +778,7 @@
   "doc_camera": "Foto maken",
   "camera_capture_shoot": "Vastleggen",
   "camera_switch_lens": "Camera wisselen",
+  "camera_switch_failed": "Geen andere camera reageerde — deze telefoon geeft er maar één vrij. Gebruik de bestandskiezer voor de andere lens.",
   "doc_drop_hint": "Sleep bestanden hierheen",
   "doc_task_none": "Geen documenten aan deze taak gekoppeld.",
   "doc_link_existing": "Document koppelen…",

@@ -784,6 +784,7 @@
   "doc_camera": "Tirar foto",
   "camera_capture_shoot": "Capturar",
   "camera_switch_lens": "Trocar de câmera",
+  "camera_switch_failed": "Nenhuma outra câmera respondeu — este celular libera só uma. Use o seletor de arquivos para a outra lente.",
   "doc_drop_hint": "Solte os arquivos aqui",
   "doc_task_none": "Nenhum documento vinculado a esta tarefa.",
   "doc_link_existing": "Vincular um documento…",

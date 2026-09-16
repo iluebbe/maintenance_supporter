@@ -784,6 +784,7 @@
   "doc_camera": "Fotoğraf çek",
   "camera_capture_shoot": "Çek",
   "camera_switch_lens": "Kamerayı değiştir",
+  "camera_switch_failed": "Başka bir kamera yanıt vermedi — bu telefon yalnızca birini açıyor. Diğer lens için dosya seçiciyi kullanın.",
   "doc_drop_hint": "Dosyaları buraya bırakın",
   "doc_task_none": "Bu göreve bağlı belge yok.",
   "doc_link_existing": "Belge bağla…",

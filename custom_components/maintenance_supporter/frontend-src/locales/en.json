@@ -784,6 +784,7 @@
   "doc_camera": "Take photo",
   "camera_capture_shoot": "Capture",
   "camera_switch_lens": "Switch camera",
+  "camera_switch_failed": "No other camera answered — this phone hands out only one. Use the file picker for the other lens.",
   "doc_drop_hint": "Drop files here",
   "doc_task_none": "No documents linked to this task.",
   "doc_link_existing": "Link a document…",

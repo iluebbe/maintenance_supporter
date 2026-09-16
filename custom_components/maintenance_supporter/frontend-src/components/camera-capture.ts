@@ -47,6 +47,11 @@ export class MsCameraCapture extends LitElement {
    *  Android WebView often reports no `deviceId` in the track settings, so
    *  it cannot be derived from the stream (#161 — "switching does nothing"). */
   @state() private _deviceIndex = -1;
+  /** #161 follow-up: every listed id refused AND the facing fallback failed —
+   *  say so instead of a tap that silently does nothing. */
+  @state() private _switchFailed = false;
+  /** Which way we believe the current camera faces (for the id-less fallback). */
+  private _facing: "user" | "environment" = "environment";
   private _stream: MediaStream | null = null;
 
   /** Open the viewfinder. Resolves once the stream is attached or the
@@ -86,6 +91,8 @@ export class MsCameraCapture extends LitElement {
     await this._applyZoomOne();
     await this._listDevices(md);
     this._deviceIndex = this._indexOfCurrent(remembered && acquired ? remembered : null);
+    this._switchFailed = false;
+    this._facing = (this._stream?.getVideoTracks()[0]?.getSettings().facingMode as "user" | "environment" | undefined) ?? "environment";
     this._open = true;
     await this.updateComplete;
     const video = this._video;
@@ -202,6 +209,7 @@ export class MsCameraCapture extends LitElement {
           for (const track of this._stream?.getTracks() ?? []) track.stop();
           this._stream = stream;
           this._deviceIndex = at;
+          this._switchFailed = false;
           await this._applyZoomOne();
           lsSet(LS_KEYS.cameraDevice, next);
           const video = this._video;
@@ -218,6 +226,35 @@ export class MsCameraCapture extends LitElement {
           // that camera refused — try the next one
         }
       }
+      // #161 follow-up: the WebView listed the cameras but honours none of
+      // the ids (reported live: "the button is there, a tap does nothing").
+      // Ask by facing instead — the id-less request phones still answer —
+      // and when that fails too, say so on screen.
+      const other: "user" | "environment" = this._facing === "user" ? "environment" : "user";
+      for (const facingMode of [{ exact: other }, { ideal: other }]) {
+        try {
+          const stream = await md.getUserMedia({ video: { facingMode }, audio: false });
+          for (const track of this._stream?.getTracks() ?? []) track.stop();
+          this._stream = stream;
+          this._facing = other;
+          this._deviceIndex = this._indexOfCurrent(null);
+          this._switchFailed = false;
+          await this._applyZoomOne();
+          const video = this._video;
+          if (video) {
+            video.srcObject = stream;
+            try {
+              await video.play();
+            } catch {
+              // see open()
+            }
+          }
+          return;
+        } catch {
+          // try the softer spelling, then give up visibly
+        }
+      }
+      this._switchFailed = true;
     } finally {
       this._busy = false;
     }
@@ -284,6 +321,7 @@ export class MsCameraCapture extends LitElement {
     return html`
       <div class="overlay" role="dialog" aria-modal="true" aria-label=${t("doc_camera", L)}>
         <video autoplay playsinline muted></video>
+        ${this._switchFailed ? html`<div class="switch-note" role="status">${t("camera_switch_failed", L)}</div>` : nothing}
         <div class="bar">
           <button type="button" class="cancel" @click=${this.close}>${t("cancel", L)}</button>
           ${this._devices.length > 1
@@ -321,6 +359,7 @@ export class MsCameraCapture extends LitElement {
     .switch { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); padding: 10px 12px; }
     .switch ha-icon { --mdc-icon-size: 22px; }
     .switch-pos { font-size: 12px; opacity: 0.85; }
+    .switch-note { position: absolute; left: 12px; right: 12px; bottom: 84px; text-align: center; color: #fff; font-size: 13px; text-shadow: 0 1px 2px #000; }
     .shoot { background: var(--primary-color, #03a9f4); color: #fff; border: none; font-weight: 600; }
     .shoot[disabled] { opacity: 0.6; cursor: default; }
     .shoot ha-icon { --mdc-icon-size: 22px; }

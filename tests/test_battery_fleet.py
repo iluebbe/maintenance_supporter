@@ -1206,3 +1206,53 @@ async def test_level_history_skips_sensorless_notes(hass):
     ):
         out = await bf.async_level_history(hass, bats)
     assert set(out) == {"sensor.Dying_battery_plus"}
+
+
+async def test_native_row_takes_type_from_sibling_type_note(hass):
+    """#186: Battery Notes' plus entities are gone (disabled / hidden), only the
+    diagnostic type sensor remains — the native row must carry the note's
+    type, quantity and replacement date instead of "Unknown", and the type
+    note must not become a second (sensorless) row."""
+    hass.states.async_set("sensor.blind_1_battery", "97", {"device_class": "battery", "friendly_name": "Blind 1 Battery level"})
+    hass.states.async_set(
+        "sensor.blind_1_battery_battery_type", "CR2", {"battery_type": "CR2", "battery_quantity": 2, "friendly_name": "Blind 1 Battery type"}
+    )
+    hass.states.async_set("sensor.blind_1_battery_battery_last_replaced", "2026-03-01T10:00:00+00:00", {})
+    bats = read_batteries(hass)
+    assert [b.entity_id for b in bats] == ["sensor.blind_1_battery"]
+    row = bats[0]
+    assert row.source == "native" and row.level == 97.0
+    assert row.battery_type == "CR2" and row.quantity == 2
+    assert row.last_replaced == date(2026, 3, 1)
+    assert dict(discover_battery_types(hass))["CR2"] == 2  # cells, not devices
+
+
+async def test_native_row_finds_type_note_through_the_registry_device(hass):
+    """#186, registry shape: the native level sensor and the Battery Notes type
+    sensor share a device but not a name — the device link resolves it."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(domain="test", data={})
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(config_entry_id=entry.entry_id, identifiers={("test", "sink")}, name="Sink")
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create("sensor", "zha", "sink_lvl", suggested_object_id="basement_sink_battery_level", device_id=device.id)
+    ent_reg.async_get_or_create("sensor", "battery_notes", "sink_type", suggested_object_id="sink_battery_type", device_id=device.id)
+    hass.states.async_set("sensor.basement_sink_battery_level", "43", {"device_class": "battery"})
+    hass.states.async_set("sensor.sink_battery_type", "AAA", {"battery_type": "AAA", "battery_quantity": 3})
+    bats = read_batteries(hass)
+    assert [b.entity_id for b in bats] == ["sensor.basement_sink_battery_level"]
+    assert bats[0].battery_type == "AAA" and bats[0].quantity == 3 and bats[0].level == 43.0
+
+
+def test_replaced_button_for_native_row():
+    """#186: the Replaced action on a type-note-backed native row presses the
+    note's button, named off the native id."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import replaced_button_for
+
+    assert replaced_button_for("sensor.blind_1_battery") == "button.blind_1_battery_battery_replaced"
+    assert replaced_button_for("sensor.x_battery_plus") == "button.x_battery_replaced"
+    assert replaced_button_for("binary_sensor.x_battery_plus_low") == "button.x_battery_replaced"
+    assert replaced_button_for("sensor.x_battery_type") == "button.x_battery_replaced"

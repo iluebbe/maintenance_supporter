@@ -778,6 +778,7 @@
   "doc_camera": "Scatta foto",
   "camera_capture_shoot": "Scatta",
   "camera_switch_lens": "Cambia fotocamera",
+  "camera_switch_failed": "Nessun'altra fotocamera ha risposto: questo telefono ne espone una sola. Per l'altro obiettivo usa la selezione file.",
   "doc_drop_hint": "Trascina qui i file",
   "doc_task_none": "Nessun documento collegato a questa attività.",
   "doc_link_existing": "Collega un documento…",
