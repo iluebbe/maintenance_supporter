@@ -40,6 +40,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
 )
 from .global_options import get_global_options
+from .notify_icons import notify_icon_for
 from .reference_numbers import format_task_ref
 
 _LOGGER = logging.getLogger(__name__)
@@ -216,6 +217,18 @@ def sample_notification_context(hass: HomeAssistant) -> dict[str, Any]:
     )
 
 
+def _task_config(hass: HomeAssistant, entry_id: Any, task_id: Any) -> dict[str, Any]:
+    """The persisted task dict a notification is about, or ``{}`` for a
+    task-less kind / an unknown entry (the Settings test send)."""
+    if not entry_id or not task_id:
+        return {}
+    entry = hass.config_entries.async_get_entry(str(entry_id))
+    if entry is None or entry.unique_id == GLOBAL_UNIQUE_ID:
+        return {}
+    task = (entry.data.get(CONF_TASKS) or {}).get(str(task_id))
+    return dict(task) if isinstance(task, dict) else {}
+
+
 def _area_name(hass: HomeAssistant, area_id: str | None) -> str | None:
     if not area_id:
         return None
@@ -318,6 +331,15 @@ async def async_emit_and_dispatch(
     options = get_global_options(hass)
     payload = dict(service_data)
     data = dict(payload.get("data") or {})
+    # #185: every notification carries an icon (Companion app on Android
+    # renders data.notification_icon; iOS ignores it) — the task's override,
+    # else its type's default, else the kind's. Set BEFORE the extra-data
+    # merge so a user's template key wins, and never over a caller's own.
+    if "notification_icon" not in data:
+        data["notification_icon"] = notify_icon_for(
+            _task_config(hass, context.get("entry_id"), context.get("task_id")),
+            str(context.get("kind") or "") or None,
+        )
     template_text = options.get(CONF_NOTIFY_EXTRA_DATA)
     if isinstance(template_text, str) and template_text.strip():
         variables = {**context, "target": target or None, "title": payload.get("title"), "message": payload.get("message")}

@@ -72,6 +72,7 @@ FULL_TASK = {
     "require_tag_scan": True,
     "allow_skip": False,
     "notify_enabled": False,
+    "notify_icon": "mdi:air-filter",
     "required_completion_fields": ["cost"],
     "earliest_completion_days": 3,
     "ref_no": 7,
@@ -475,6 +476,7 @@ _CSV_TASK_EXCLUDED = {
     "require_tag_scan",  # completion gate (JSON backup carries it)
     "allow_skip",  # skip lock (#150) - JSON backup carries it
     "notify_enabled",  # per-task mute (#173) - JSON backup carries it
+    "notify_icon",  # per-task notification icon (#185) - JSON backup carries it
     "entity_slug",  # instance-specific entity naming
     "mirror_todo_entities",  # D#183 to-do entity ids (instance-specific; JSON backup carries them)
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)

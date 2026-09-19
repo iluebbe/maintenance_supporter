@@ -35,6 +35,7 @@ from .const import (
     CONF_TASK_NAME,
     CONF_TASK_NFC_TAG,
     CONF_TASK_NOTES,
+    CONF_TASK_NOTIFY_ICON,
     CONF_TASK_PRIORITY,
     CONF_TASK_READING_UNIT,
     CONF_TASK_ROTATION_STRATEGY,
@@ -164,6 +165,15 @@ class TaskCrudMixin:
                 if dup_warn:
                     errors[CONF_TASK_NFC_TAG] = "nfc_tag_duplicate"
 
+            # #185: per-task notification icon — "" clears the override, a
+            # malformed value is refused (same rule as the WS write paths).
+            notify_icon_val = (user_input.get(CONF_TASK_NOTIFY_ICON) or "").strip()
+            if notify_icon_val:
+                from .helpers.notify_icons import is_valid_icon
+
+                if not is_valid_icon(notify_icon_val):
+                    errors[CONF_TASK_NOTIFY_ICON] = "invalid_notify_icon"
+
             if not errors:
                 new_data = dict(self.config_entry.data)
                 new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -260,6 +270,10 @@ class TaskCrudMixin:
                     updated_task[CONF_TASK_ICON] = icon_val
                 else:
                     updated_task.pop(CONF_TASK_ICON, None)
+                if notify_icon_val:
+                    updated_task[CONF_TASK_NOTIFY_ICON] = notify_icon_val
+                else:
+                    updated_task.pop(CONF_TASK_NOTIFY_ICON, None)
                 if nfc_val:
                     updated_task[CONF_TASK_NFC_TAG] = nfc_val
                 else:
@@ -328,6 +342,12 @@ class TaskCrudMixin:
             vol.Optional(CONF_TASK_ICON, default=task.get(CONF_TASK_ICON))
             if task.get(CONF_TASK_ICON)
             else vol.Optional(CONF_TASK_ICON)
+        )
+        # #185: push-notification icon override (empty = the type's default).
+        notify_icon_key = (
+            vol.Optional(CONF_TASK_NOTIFY_ICON, default=task.get(CONF_TASK_NOTIFY_ICON))
+            if task.get(CONF_TASK_NOTIFY_ICON)
+            else vol.Optional(CONF_TASK_NOTIFY_ICON)
         )
         nfc_tag_key = (
             vol.Optional(CONF_TASK_NFC_TAG, default=task.get(CONF_TASK_NFC_TAG))
@@ -500,6 +520,7 @@ class TaskCrudMixin:
                         else dict[Any, Any]()
                     ),
                     icon_key: selector.IconSelector(),
+                    notify_icon_key: selector.IconSelector(),
                     vol.Optional(CONF_TASK_PRIORITY, default=task.get(CONF_TASK_PRIORITY, "normal")): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=list(TASK_PRIORITIES),

@@ -245,6 +245,7 @@ template's tasks** in one call. `object/duplicate` `{entry_id}` → `{entry_id}`
   "require_tag_scan": false,           // 2.67 proof of presence: only an NFC/QR scan may complete
   "allow_skip": true,                  // #150: false = skip lock (server refuses task/skip + voice SkipTask)
   "notify_enabled": true,              // #173: false = no reminders for this task (status, repeats, lead-time, bundles); stored only when false
+  "notify_icon": "mdi:air-filter",     // #185: push-notification icon override (mdi:…, ≤64); null/"" = the maintenance type's default; malformed = invalid_icon
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
   "phases": {                          // #139 cycle phases (≤10 defs) | null clears
     "flip":    { "name": "Flip blades" },            // per-phase overrides (optional):
@@ -440,6 +441,15 @@ calendar kinds (only expressible via the nested `schedule` object):
 - `{"kind":"weekdays","weekdays":[0..6]}`  (0=Mon … 6=Sun)
 - `{"kind":"nth_weekday","nth":1..5 or -1,"weekday":0..6,"months":[1..12]?}`  (-1 = last)
 - `{"kind":"day_of_month","day":1..31,"months":[1..12]?}`
+- `{"kind":"calendar","entity_id":"calendar.xyz"}` (2.89, #187) — once per event
+  of a HA calendar entity: occurrences = the events' start dates (local day),
+  next due = the first event strictly after the last completion (before any
+  completion: the first on/after creation). No upcoming event → no due date.
+  The natural fit for waste-collection calendars ("put the bins out"). Reads
+  echo `schedule_entity_name` (the calendar's friendly name) for this kind.
+
+Every calendar kind also takes `"offset": ±N` days (clamped ±15), and every
+recurring kind `season_months` / `ends` (see CONFIGURATION.md).
 
 For most setup work, `interval_days` + `interval_unit` is all you need.
 

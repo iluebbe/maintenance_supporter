@@ -468,6 +468,10 @@ CONF_TASK_ENDS_UNTIL = "ends_until"
 CONF_TASK_NOTES = "notes"
 CONF_TASK_DOCUMENTATION_URL = "documentation_url"
 CONF_TASK_ICON = "custom_icon"
+# #185: per-task override of the push-notification icon (``mdi:…``); absent =
+# the maintenance type's default (helpers/notify_icons.py).
+CONF_TASK_NOTIFY_ICON = "notify_icon"
+MAX_NOTIFY_ICON_LENGTH = 64
 CONF_TASK_NFC_TAG = "nfc_tag_id"
 # v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...).
 CONF_TASK_READING_UNIT = "reading_unit"

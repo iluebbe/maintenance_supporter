@@ -129,7 +129,7 @@ def _build_task_summary(
     from homeassistant.helpers import entity_registry as er
 
     from ..entity.triggers import normalize_entity_ids
-    from ..helpers.schedule import Schedule, read_legacy_fields
+    from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields
 
     ct = coordinator_task or {}
 
@@ -139,6 +139,12 @@ def _build_task_summary(
     # express the calendar kinds (weekdays / nth_weekday / day_of_month).
     sched = read_legacy_fields(task_data)
     schedule_obj = Schedule.parse(task_data).to_dict()
+    # #187: a calendar-entity schedule carries the calendar's friendly name so
+    # lists can read "Calendar: Bio waste" without a per-row state lookup.
+    schedule_entity_name: str | None = None
+    if schedule_obj.get("kind") == KIND_CALENDAR and isinstance(schedule_obj.get("entity_id"), str):
+        cal_state = hass.states.get(schedule_obj["entity_id"])
+        schedule_entity_name = cal_state.attributes.get("friendly_name", schedule_obj["entity_id"]) if cal_state else None
 
     # Enrich trigger config with entity friendly name and state info
     trigger_config = task_data.get("trigger_config")
@@ -189,6 +195,7 @@ def _build_task_summary(
         # Nested recurrence object — the frontend reads this for the calendar
         # kinds; the flat fields above remain for interval/one_time back-compat.
         "schedule": schedule_obj,
+        **({"schedule_entity_name": schedule_entity_name} if schedule_entity_name is not None else {}),
         "last_planned_due": task_data.get("last_planned_due"),
         "schedule_time": task_data.get("schedule_time"),
         "warning_days": task_data.get("warning_days", DEFAULT_WARNING_DAYS),
@@ -204,6 +211,8 @@ def _build_task_summary(
         "allow_skip": task_data.get("allow_skip") is not False,
         # #173: False = this task sends no reminders.
         "notify_enabled": task_data.get("notify_enabled") is not False,
+        # #185: per-task push-notification icon override (None = type default).
+        "notify_icon": task_data.get("notify_icon"),
         # v2.20 (#83): unit for `reading`-type tasks; values live in history.
         "reading_unit": task_data.get("reading_unit"),
         # #161 phase 2: reading slots [{id, name, unit}] ([] = single value).

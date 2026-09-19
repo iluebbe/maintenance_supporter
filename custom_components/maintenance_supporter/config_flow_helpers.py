@@ -19,6 +19,7 @@ from .const import (
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.entity_analyzer import EntityAnalyzer
 from .helpers.schedule import (
+    KIND_CALENDAR,
     KIND_DAY_OF_MONTH,
     KIND_NTH_WEEKDAY,
     KIND_WEEKDAYS,
@@ -28,10 +29,11 @@ from .helpers.threshold_calculator import ThresholdCalculator, ThresholdSuggesti
 
 _LOGGER = logging.getLogger(__name__)
 
-# Calendar recurrence kinds offered in the config + options flows (Phase 4).
-# Hardcoded English labels for the weekday/occurrence sub-options keep the
-# config-flow i18n surface small; the kind names are translated via strings.json.
-CALENDAR_KIND_VALUES = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
+# Calendar recurrence kinds offered in the config + options flows (Phase 4;
+# the calendar-entity kind since #187). Hardcoded English labels for the
+# weekday/occurrence sub-options keep the config-flow i18n surface small; the
+# kind names are translated via strings.json.
+CALENDAR_KIND_VALUES = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH, KIND_CALENDAR)
 # #168: every kind that produces a due DATE takes a time of day — the
 # interval, the three calendar kinds and a one-off. Sensor-based and
 # manual tasks have no due date to refine. Mirrors SCHEDULE_TIME_KINDS in
@@ -92,6 +94,12 @@ def calendar_schema(kind: str, current: dict[str, Any] | None = None) -> vol.Sch
         # "business" rolls a weekend date back to Friday.
         fields[vol.Optional("last_day", default=cur.get("last_day", False))] = selector.BooleanSelector()
         fields[vol.Optional("business", default=cur.get("business", False))] = selector.BooleanSelector()
+    elif kind == KIND_CALENDAR:
+        # #187: the HA calendar whose events are the occurrences. No default
+        # when the task has none yet — an empty string would fail the entity
+        # selector's own validation on submit.
+        entity_key = vol.Required("entity_id", default=cur["entity_id"]) if cur.get("entity_id") else vol.Required("entity_id")
+        fields[entity_key] = selector.EntitySelector(selector.EntitySelectorConfig(domain="calendar"))
     # (#83) ±N-day shift of the computed occurrence, on every calendar kind
     # ("two days before the last working day" = last_day + business + offset -2).
     fields[vol.Optional("offset", default=cur.get("offset", 0))] = selector.NumberSelector(
@@ -127,6 +135,11 @@ def schedule_from_calendar_input(kind: str, user_input: dict[str, Any]) -> dict[
         if user_input.get("business"):
             schedule["business"] = True
         return _with_offset(schedule)
+    if kind == KIND_CALENDAR:
+        entity_id = user_input.get("entity_id")
+        if not isinstance(entity_id, str) or not entity_id.startswith("calendar."):
+            return None
+        return _with_offset({"kind": KIND_CALENDAR, "entity_id": entity_id})
     return None
 
 
@@ -142,6 +155,7 @@ def calendar_current(task: dict[str, Any]) -> dict[str, Any]:
         "last_day": s.day == -1,
         "business": s.business,
         "offset": s.offset_days,
+        "entity_id": s.entity_id,
     }
 
 

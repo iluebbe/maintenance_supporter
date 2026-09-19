@@ -102,6 +102,8 @@ def _build_export_object(
             "allow_skip": tdata.get("allow_skip"),
             # #173: per-task notification mute.
             "notify_enabled": tdata.get("notify_enabled"),
+            # #185: per-task notification icon override.
+            "notify_icon": tdata.get("notify_icon"),
             "responsible_user_id": tdata.get("responsible_user_id"),
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),

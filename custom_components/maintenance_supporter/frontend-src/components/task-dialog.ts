@@ -18,12 +18,16 @@ import { runWs } from "../helpers/ws-run";
 import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
+import { defaultNotifyIcon } from "../helpers/notify-icons";
 import "./ms-date-field";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "reading", "custom"];
 const PRIORITY_KEYS = ["low", "normal", "high"];
-const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "sensor_based", "one_time", "manual"];
-const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month"];
+const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "calendar", "sensor_based", "one_time", "manual"];
+// The nested calendar kinds — the three date patterns plus, since #187, a HA
+// calendar entity (one occurrence per event). Mirrors _CALENDAR_KINDS in
+// helpers/schedule.py (tripwire: tests/test_cross_layer_vocab.py).
+const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month", "calendar"];
 // #168: kinds that produce a due DATE and therefore take a time of day
 // (mirrors SCHEDULE_TIME_KINDS in config_flow_helpers.py).
 const SCHEDULE_TIME_KINDS = ["time_based", "one_time", ...CALENDAR_KINDS];
@@ -194,6 +198,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _domLastDay = false;
   @state() private _domBusiness = false;
   @state() private _calOffset = "0";
+  // #187: the HA calendar entity whose events are the occurrences ("calendar" kind).
+  @state() private _calendarEntity = "";
   // Recurrence extras (apply to interval + calendar kinds): a seasonal active
   // window and a finite-series end condition.
   @state() private _seasonMonths: number[] = [];
@@ -209,6 +215,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _notes = "";
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
+  /** #185: mdi icon for this task's push notifications ("" = type default). */
+  @state() private _notifyIcon = "";
   @state() private _priority = "normal";
   @state() private _labels = "";
   /** D#183: external todo.* lists the task is mirrored into while due. */
@@ -402,6 +410,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._domDay = sched?.kind === "day_of_month" && (sched.day ?? 1) >= 1 ? String(sched.day ?? 1) : "1";
     this._domLastDay = sched?.kind === "day_of_month" && sched.day === -1;
     this._domBusiness = sched?.kind === "day_of_month" && sched.business === true;
+    this._calendarEntity = sched?.kind === "calendar" ? (sched.entity_id || "") : "";
     this._calOffset = sched?.offset ? String(sched.offset) : "0";
     // Recurrence extras — read from the nested schedule wherever it lives.
     this._seasonMonths = Array.isArray(sched?.season_months) ? [...sched!.season_months] : [];
@@ -420,6 +429,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
     this._customIcon = task.custom_icon || "";
+    this._notifyIcon = task.notify_icon || "";
     this._priority = task.priority || "normal";
     this._labels = (task.labels || []).join(", ");
     this._mirrorTodoEntities = [...(task.mirror_todo_entities || [])];
@@ -577,6 +587,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._notes = "";
     this._documentationUrl = "";
     this._customIcon = "";
+    this._notifyIcon = "";
     this._priority = "normal";
     this._labels = "";
     this._mirrorTodoEntities = [];
@@ -1266,6 +1277,11 @@ export class MaintenanceTaskDialog extends LitElement {
       this._error = t("trigger_hint_overlap", this._lang);
       return;
     }
+    if (this._scheduleType === "calendar" && !this._calendarEntity.trim().startsWith("calendar.")) {
+      // #187: the backend would store entity_id null (a task without dates).
+      this._error = t("calendar_entity_required", this._lang);
+      return;
+    }
     this._loading = true;
     this._error = "";
     try {
@@ -1326,6 +1342,8 @@ export class MaintenanceTaskDialog extends LitElement {
       data.notes = this._notes || null;
       data.documentation_url = this._documentationUrl || null;
       data.custom_icon = this._customIcon || null;
+      // #185: null clears the override (the update path pops the key).
+      data.notify_icon = this._notifyIcon.trim() || null;
       data.priority = this._priority;
       data.labels = this._labels
         .split(",")
@@ -2071,6 +2089,7 @@ export class MaintenanceTaskDialog extends LitElement {
     if (this._scheduleType === "one_time") {
       return this._dueDate ? { kind: "one_time", due_date: this._dueDate } : null;
     }
+    if (this._scheduleType === "calendar" && !this._calendarEntity.trim()) return null;
     if (CALENDAR_KINDS.includes(this._scheduleType)) {
       return { ...this._buildSchedule(), ...this._recurrenceExtras() };
     }
@@ -2088,7 +2107,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private static readonly _PREVIEW_RELEVANT = new Set([
     "_open", "_scheduleType", "_intervalDays", "_intervalUnit", "_intervalAnchor",
     "_dueDate", "_weekdays", "_nth", "_nthWeekday", "_domDay", "_domLastDay",
-    "_domBusiness", "_calOffset", "_seasonMonths", "_endsMode", "_endsCount",
+    "_domBusiness", "_calOffset", "_calendarEntity", "_seasonMonths", "_endsMode", "_endsCount",
     "_endsUntil", "_lastPerformed",
   ]);
 
@@ -2231,6 +2250,10 @@ export class MaintenanceTaskDialog extends LitElement {
         weekday: parseInt(this._nthWeekday, 10),
       });
     }
+    if (this._scheduleType === "calendar") {
+      // #187: once per event of the picked HA calendar entity.
+      return withOffset({ kind: "calendar", entity_id: this._calendarEntity.trim() });
+    }
     // (#83) "last day" wins over the day number; business rolls weekends back.
     const schedule: Record<string, unknown> = {
       kind: "day_of_month",
@@ -2343,6 +2366,33 @@ export class MaintenanceTaskDialog extends LitElement {
             ${days.map((name, i) => html`<option value=${String(i)} ?selected=${String(i) === this._nthWeekday}>${name}</option>`)}
           </select>
         </div>
+        ${this._renderCalOffsetField()}`;
+    }
+    if (this._scheduleType === "calendar") {
+      // #187: pick the HA calendar. Same <ha-form> entity-selector idiom as the
+      // trigger pickers (never <ha-entity-picker> directly — see the
+      // dialog-no-lazy-load-elements tripwire), with the text fallback the
+      // picker probe flips to in a broken context.
+      return html`
+        ${this._entityPickerFallback ? html`
+          <ms-textfield
+            label="${t("calendar_entity_label", L)}"
+            helper="${t("calendar_entity_hint", L)}"
+            .value=${this._calendarEntity}
+            @input=${(e: Event) => (this._calendarEntity = (e.target as HTMLInputElement).value.trim())}
+          ></ms-textfield>
+        ` : html`
+          <ha-form
+            class="entity-picker-form calendar-entity-form"
+            .hass=${this.hass}
+            .schema=${[{ name: "calendar_entity", selector: { entity: { domain: "calendar" } } }]}
+            .data=${{ calendar_entity: this._calendarEntity }}
+            .computeLabel=${() => t("calendar_entity_label", L)}
+            .computeHelper=${() => t("calendar_entity_hint", L)}
+            @value-changed=${(e: CustomEvent) => {
+              this._calendarEntity = ((e.detail.value as { calendar_entity?: string }).calendar_entity || "").trim();
+            }}
+          ></ha-form>`}
         ${this._renderCalOffsetField()}`;
     }
     if (this._scheduleType === "day_of_month") {
@@ -2962,6 +3012,18 @@ export class MaintenanceTaskDialog extends LitElement {
             @value-changed=${(e: CustomEvent) =>
               (this._customIcon = (e.detail.value as string) || "")}
           ></ha-icon-picker>
+          <ha-icon-picker
+            class="notify-icon-picker"
+            .hass=${this.hass}
+            label="${t("notify_icon", L)}"
+            .value=${this._notifyIcon}
+            @value-changed=${(e: CustomEvent) =>
+              (this._notifyIcon = (e.detail.value as string) || "")}
+          ></ha-icon-picker>
+          <div class="field-help notify-icon-help">
+            <ha-icon icon=${this._notifyIcon.trim() || defaultNotifyIcon(this._type)}></ha-icon>
+            ${t("notify_icon_hint", L).replace("{default}", defaultNotifyIcon(this._type))}
+          </div>
           ${this._availableTags.length > 0
             ? html`
               <div class="select-row">

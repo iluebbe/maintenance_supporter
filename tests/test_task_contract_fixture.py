@@ -78,6 +78,8 @@ _MAXIMAL_TASK = {
     "required_completion_fields": ["notes", "cost"],
     "entity_slug": "contract_fixture_task",
     "custom_icon": "mdi:test-tube",
+    # #185: per-task notification icon override.
+    "notify_icon": "mdi:air-filter",
     "nfc_tag_id": "contract-nfc-1",
     "require_tag_scan": True,
     "reading_unit": "kWh",

@@ -792,6 +792,7 @@ _ATTR_EXEMPT = {
     "require_tag_scan": "completion gating config, not routable state",
     "allow_skip": "skip gating config, not routable state — enforcement lives in the coordinator (#150)",
     "notify_enabled": "notification gating config, not routable state — enforcement lives in the coordinator (#173)",
+    "notify_icon": "push-notification icon override (#185) — rides the notify payload, not routable state; served via WS",
     "reading_unit": "display unit for the reading dialog; rides the WS payload",
     "readings": "slot definitions (#161 phase 2) — the VALUES surface as last_readings; defs ride the WS payload",
     "consumes_parts": "structured part links; the parts surfaces own this",

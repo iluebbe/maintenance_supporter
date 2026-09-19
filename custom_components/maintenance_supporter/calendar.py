@@ -498,6 +498,11 @@ def _recurrence_text(task: MaintenanceTask, lang: str) -> str:
     """
     raw = task.schedule_raw if isinstance(task.schedule_raw, dict) else None
     kind = raw.get("kind") if raw else None
+    if raw is not None and kind == "calendar":
+        # #187: driven by another calendar entity — name it (no hass here for
+        # the friendly name; the entity_id is what the user configured).
+        eid = raw.get("entity_id")
+        return eid if isinstance(eid, str) else ""
     if raw is not None and kind in ("weekdays", "nth_weekday", "day_of_month"):
         loc = lang or "en"
         try:

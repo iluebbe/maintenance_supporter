@@ -307,6 +307,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   // complete/archive). Keys are `${entry_id}:${task_id}`.
   @state() private _bulkMode = false;
   @state() private _bulkSelected = new Set<string>();
+  /** #188: multi-select in the All-objects view (delete / archive many at once). */
+  @state() private _objBulkMode = false;
+  @state() private _objBulkSelected = new Set<string>();
   // Virtualized dashboard task table (large installs): only rows in the
   // scroll window are in the DOM; spacers keep the scrollbar honest. The
   // window is recomputed from `.content` scroll/resize (rAF-throttled).
@@ -1308,6 +1311,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _showAllObjects(): void {
     this._pushPanelState("all_objects");
     this._view = "all_objects";
+    this._objBulkMode = false;
+    this._objBulkSelected = new Set();
     this._selectedEntryId = null;
     this._selectedTaskId = null;
     this._scrollContentToTop();
@@ -2043,6 +2048,97 @@ export class MaintenanceSupporterPanel extends LitElement {
     await this._loadData();
     if (undo && ok > 0) this._showUndoToast(doneMsg(ok), undo);
     else this._showToast(doneMsg(ok));
+  }
+
+  // ── #188: bulk select in the All-objects view ──────────────────────────
+  private _toggleObjBulkMode(): void {
+    this._objBulkMode = !this._objBulkMode;
+    if (!this._objBulkMode) this._objBulkSelected = new Set();
+  }
+
+  private _toggleObjBulk(entryId: string): void {
+    const next = new Set(this._objBulkSelected);
+    if (next.has(entryId)) next.delete(entryId);
+    else next.add(entryId);
+    this._objBulkSelected = next;
+  }
+
+  private _objBulkSelectAll(objs: MaintenanceObjectResponse[]): void {
+    const ids = objs.map((o) => o.entry_id);
+    const all = ids.length > 0 && ids.every((id) => this._objBulkSelected.has(id));
+    this._objBulkSelected = all ? new Set() : new Set(ids);
+  }
+
+  /** One WS call per selected object, sequentially (config entries are
+   *  removed one at a time on the backend); the successful count is reported. */
+  private async _runObjBulk(type: string, doneMsg: (n: number) => string, undo?: (ids: string[]) => Promise<void>): Promise<void> {
+    const ids = [...this._objBulkSelected];
+    if (ids.length === 0) return;
+    this._actionLoading = true;
+    const done: string[] = [];
+    for (const id of ids) {
+      try {
+        await this.hass.connection.sendMessagePromise({ type, entry_id: id });
+        done.push(id);
+      } catch { /* keep going; report the successful count */ }
+    }
+    this._actionLoading = false;
+    this._objBulkSelected = new Set();
+    this._objBulkMode = false;
+    await this._loadData();
+    if (undo && done.length > 0) this._showUndoToast(doneMsg(done.length), () => { void undo(done); });
+    else this._showToast(doneMsg(done.length));
+  }
+
+  private async _objBulkDelete(): Promise<void> {
+    const n = this._objBulkSelected.size;
+    if (n === 0) return;
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const ok = await dlg?.confirm({
+      title: t("delete", this._lang),
+      message: t("bulk_delete_objects_confirm", this._lang).replace("{n}", String(n)),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!ok) return;
+    await this._runObjBulk("maintenance_supporter/object/delete", (k) => t("bulk_objects_deleted", this._lang).replace("{n}", String(k)));
+  }
+
+  private _objBulkArchive(): void {
+    void this._runObjBulk(
+      "maintenance_supporter/object/archive",
+      (k) => t("bulk_objects_archived", this._lang).replace("{n}", String(k)),
+      async (ids) => {
+        for (const id of ids) {
+          try {
+            await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/object/unarchive", entry_id: id });
+          } catch { /* best effort */ }
+        }
+        await this._loadData();
+      },
+    );
+  }
+
+  private _renderObjBulkBar(objs: MaintenanceObjectResponse[], L: string) {
+    const n = this._objBulkSelected.size;
+    const allSelected = objs.length > 0 && objs.every((o) => this._objBulkSelected.has(o.entry_id));
+    return html`
+      <div class="bulk-bar obj-bulk-bar">
+        <label class="bulk-selectall">
+          <input type="checkbox" .checked=${allSelected} @change=${() => this._objBulkSelectAll(objs)} />
+          ${t("bulk_select_all", L)}
+        </label>
+        <span class="bulk-count">${t("bulk_n_selected", L).replace("{n}", String(n))}</span>
+        <span class="bulk-actions">
+          <ha-button appearance="plain" class="obj-bulk-archive" .disabled=${n === 0 || this._actionLoading} @click=${() => this._objBulkArchive()}>
+            <ha-icon icon="mdi:archive-outline"></ha-icon> ${t("archive", L)}
+          </ha-button>
+          <ha-button appearance="filled" variant="danger" class="obj-bulk-delete" .disabled=${n === 0 || this._actionLoading} @click=${() => this._objBulkDelete()}>
+            <ha-icon icon="mdi:delete-outline"></ha-icon> ${t("delete", L)}
+          </ha-button>
+        </span>
+      </div>
+    `;
   }
 
   private _bulkComplete(rows: TaskRow[]): void {
@@ -3454,7 +3550,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     const renderObject = (obj: MaintenanceObjectResponse) => {
       const overdue = obj.tasks.some(t => t.status === "overdue" || t.status === "triggered");
       return html`
-        <div class="object-card${overdue ? ' object-card-overdue' : ''}" @click=${() => this._showObject(obj.entry_id)}>
+        <div class="object-card${overdue ? ' object-card-overdue' : ''}${this._objBulkMode ? ' selectable' : ''}${this._objBulkMode && this._objBulkSelected.has(obj.entry_id) ? ' bulk-selected' : ''}"
+          @click=${() => (this._objBulkMode ? this._toggleObjBulk(obj.entry_id) : this._showObject(obj.entry_id))}>
+          ${this._objBulkMode
+            ? html`<label class="obj-bulk-check bulk-check" @click=${(e: Event) => e.stopPropagation()}>
+                <input type="checkbox" .checked=${this._objBulkSelected.has(obj.entry_id)} @change=${() => this._toggleObjBulk(obj.entry_id)} />
+              </label>`
+            : nothing}
           ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
           <div class="object-card-header">
             <span class="object-card-name">${this._objRef(obj.object)}${obj.object.name}</span>
@@ -3544,6 +3646,12 @@ export class MaintenanceSupporterPanel extends LitElement {
         <ha-button appearance="plain" @click=${() => this._exportObjectsCsv()}>
           <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${t("settings_export_csv", L)}
         </ha-button>
+        ${!isOperator ? html`
+          <ha-button appearance="plain" class="bulk-toggle obj-bulk-toggle ${this._objBulkMode ? "active" : ""}" @click=${() => this._toggleObjBulkMode()}>
+            <ha-icon icon="mdi:checkbox-multiple-marked-outline"></ha-icon>
+            ${this._objBulkMode ? t("cancel", L) : t("bulk_select", L)}
+          </ha-button>
+        ` : nothing}
         ${archivedObjCount > 0 ? html`
           <ha-button
             class="archived-toggle ${this._showArchived ? "active" : ""}"
@@ -3554,6 +3662,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           </ha-button>
         ` : nothing}
       </div>
+      ${this._objBulkMode ? this._renderObjBulkBar(sorted, L) : nothing}
       ${tableMode
         ? this._renderObjectsTable(sorted)
         : this._groupByMode === "area"
@@ -3696,6 +3805,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         <table class="objects-table">
           <thead>
             <tr>
+              ${this._objBulkMode ? html`<th class="oc-bulk"></th>` : nothing}
               ${cols.map((key) => {
                 const def = OBJECT_COLUMNS.find((c) => c.key === key);
                 // The actions column header stays blank (icon-only cells).
@@ -3706,7 +3816,12 @@ export class MaintenanceSupporterPanel extends LitElement {
           </thead>
           <tbody>
             ${objs.map((obj) => html`
-              <tr class="objects-table-row" @click=${() => this._showObject(obj.entry_id)}>
+              <tr class="objects-table-row${this._objBulkMode && this._objBulkSelected.has(obj.entry_id) ? ' bulk-selected' : ''}"
+                @click=${() => (this._objBulkMode ? this._toggleObjBulk(obj.entry_id) : this._showObject(obj.entry_id))}>
+                ${this._objBulkMode
+                  ? html`<td class="oc-bulk"><input type="checkbox" .checked=${this._objBulkSelected.has(obj.entry_id)}
+                      @click=${(e: Event) => e.stopPropagation()} @change=${() => this._toggleObjBulk(obj.entry_id)} /></td>`
+                  : nothing}
                 ${cols.map((key) => this._renderObjectCell(key, obj, L))}
               </tr>
             `)}

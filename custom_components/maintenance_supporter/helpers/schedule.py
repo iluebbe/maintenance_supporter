@@ -13,13 +13,22 @@ branch here, not another field threaded through every consumer.
 
 Dates in/out are ``datetime.date`` objects; string parsing stays at the model
 boundary so this module is pure and trivially unit-testable.
+
+The ``calendar`` kind (#187 / D#157) is the one kind whose occurrences are not
+computable from the schedule itself: they are the start dates of a Home
+Assistant calendar entity's events (waste collection, a club's fixture list).
+Fetching those is async and lives in the coordinator; this module only reads
+them through a pluggable provider (:func:`set_calendar_occurrence_provider`),
+so the engine stays pure and sync.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+import statistics
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
+from itertools import pairwise
 from typing import Any
 
 from .dates import (
@@ -40,10 +49,48 @@ KIND_MANUAL = "manual"
 KIND_WEEKDAYS = "weekdays"  # e.g. every Mon & Thu
 KIND_NTH_WEEKDAY = "nth_weekday"  # e.g. 1st Saturday of the month
 KIND_DAY_OF_MONTH = "day_of_month"  # e.g. the 15th
+KIND_CALENDAR = "calendar"  # once per event of a HA calendar entity (#187)
 
 # The calendar kinds are fixed schedules (occurrences are absolute dates), so the
 # completion/planned anchor distinction doesn't apply to them.
-_CALENDAR_KINDS = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
+_CALENDAR_KINDS = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH, KIND_CALENDAR)
+
+# Longest accepted calendar entity_id (HA's own entity-id ceiling).
+_MAX_ENTITY_ID_LENGTH = 255
+# Nominal cycle length of a calendar-entity task when its events don't reveal
+# one (a single known event, or none): weekly, the most common pickup rhythm.
+_CALENDAR_DEFAULT_SPAN_DAYS = 7
+
+# --- calendar-entity occurrences (provider hook) ----------------------------
+#
+# The engine is pure and sync; the coordinator fetches a calendar entity's
+# events asynchronously (``calendar.get_events``) and installs a provider that
+# answers "which dates does calendar.xyz have events on?" from its cache.
+# Without a provider (unit tests, options-flow previews before the shared
+# runtime is up) every calendar-entity schedule simply has no occurrences.
+CalendarOccurrenceProvider = Callable[[str], Sequence[date]]
+_calendar_provider: CalendarOccurrenceProvider | None = None
+
+
+def set_calendar_occurrence_provider(provider: CalendarOccurrenceProvider | None) -> None:
+    """Install (or, with ``None``, remove) the calendar-entity occurrence source."""
+    global _calendar_provider  # process-wide hook by design
+    _calendar_provider = provider
+
+
+def calendar_occurrences(entity_id: str) -> tuple[date, ...]:
+    """The known event start dates of ``entity_id``, sorted and deduplicated.
+
+    Empty when no provider is installed, the entity is unknown to it, or it
+    has no events in the fetched window.
+    """
+    if _calendar_provider is None or not entity_id:
+        return ()
+    try:
+        raw = _calendar_provider(entity_id)
+    except Exception:  # noqa: BLE001 — a broken provider must never take next_due down
+        return ()
+    return tuple(sorted({d for d in raw if isinstance(d, date)}))
 
 # Planned-anchor month/year stepping is bounded to avoid an unbounded loop on
 # absurd data (a task untouched for >2000 cycles falls back to the last step).
@@ -125,6 +172,16 @@ def _sanitize_day(raw: object) -> int | None:
     return None
 
 
+def _sanitize_calendar_entity(raw: object) -> str | None:
+    """A ``calendar.*`` entity_id (trimmed, ≤255 chars), or None."""
+    if not isinstance(raw, str):
+        return None
+    val = raw.strip()
+    if not val.startswith("calendar.") or len(val) <= len("calendar.") or len(val) > _MAX_ENTITY_ID_LENGTH:
+        return None
+    return val
+
+
 def _sanitize_months(raw: object) -> tuple[int, ...]:
     """A deduped, sorted tuple of valid month numbers (1..12); [] on garbage."""
     if not isinstance(raw, (list, tuple)):
@@ -162,6 +219,9 @@ class Schedule:
     # (#83) end-of-month scheduling extras — calendar kinds only:
     business: bool = False  # day_of_month: roll a weekend date back to Friday
     offset_days: int = 0  # shift the computed occurrence by ±N days
+    # calendar kind (#187): the HA calendar entity whose event start dates are
+    # the occurrences (read through the provider hook, see module docstring).
+    entity_id: str | None = None
     # Seasonal active window: months (1..12) the task may be due in. A computed
     # due date outside the window rolls forward to the 1st of the next active
     # month, so the task pauses through the off-season and resumes in season.
@@ -279,7 +339,11 @@ class Schedule:
                 return date(year, month, 1)
             occ = self._calendar_occurrence(date(year, month, 1), inclusive=True)
             if occ is None:
-                return date(year, month, 1)
+                # A calendar entity has simply run out of known events — no
+                # date, not a made-up one; the pattern kinds fall back to the
+                # month's first day (their pattern is defined but undefined
+                # in this month's data).
+                return None if self.kind == KIND_CALENDAR else date(year, month, 1)
             if occ.month in self.season_months:
                 return occ
             # Pattern (e.g. a 5th Friday) or its offset fell outside the
@@ -389,6 +453,16 @@ class Schedule:
             if self.day is None:
                 return None
             return next_day_of_month(ref, self.day, months, inclusive=inclusive)
+        if self.kind == KIND_CALENDAR:
+            # The first known event start date on/after (or strictly after)
+            # ref — "once per event": a completion on the pickup day moves the
+            # task to the NEXT pickup, never back onto the one just handled.
+            if self.entity_id is None:
+                return None
+            for occ in calendar_occurrences(self.entity_id):
+                if (occ >= ref) if inclusive else (occ > ref):
+                    return occ
+            return None
         return None
 
     def span_days(self) -> int:
@@ -396,7 +470,8 @@ class Schedule:
 
         For progress bars and the due-soon warning cap — unit-aware, so a
         6-month task is ~183 days, not 6. The calendar kinds use a nominal cycle
-        (weekly → 7, monthly patterns → 30).
+        (weekly → 7, monthly patterns → 30); a calendar entity's cycle is the
+        median gap between its known events (7 when fewer than two are known).
         """
         if self.kind == KIND_INTERVAL:
             return interval_span_days(self.every, self.unit)
@@ -404,6 +479,10 @@ class Schedule:
             return 7
         if self.kind in (KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH):
             return 30
+        if self.kind == KIND_CALENDAR:
+            occ = calendar_occurrences(self.entity_id or "")
+            gaps = [(b - a).days for a, b in pairwise(occ) if (b - a).days > 0]
+            return int(statistics.median(gaps)) if gaps else _CALENDAR_DEFAULT_SPAN_DAYS
         return 0
 
     # --- serialization (Phase 3: nested `schedule` storage) ----------------
@@ -433,6 +512,8 @@ class Schedule:
                 d["months"] = list(self.months)
             if self.business:
                 d["business"] = True
+        elif self.kind == KIND_CALENDAR:
+            d["entity_id"] = self.entity_id
         if self.kind in _CALENDAR_KINDS and self.offset_days:
             d["offset"] = self.offset_days
         # Seasonal window applies to any recurring kind (not one_time/manual).
@@ -498,6 +579,15 @@ class Schedule:
                 ends_count=ends_count,
                 ends_until=ends_until,
             )
+        if kind == KIND_CALENDAR:
+            return cls(
+                kind=KIND_CALENDAR,
+                entity_id=_sanitize_calendar_entity(d.get("entity_id")),
+                offset_days=_sanitize_offset(d.get("offset")),
+                season_months=season,
+                ends_count=ends_count,
+                ends_until=ends_until,
+            )
         return cls(kind=KIND_MANUAL)
 
     @classmethod
@@ -551,7 +641,9 @@ def preview_occurrences(
             times_performed=times,
         )
         if nxt is None:
-            series_ended = True
+            # A calendar entity that merely ran out of KNOWN events has not
+            # ended its series — only a finite one has.
+            series_ended = schedule.kind != KIND_CALENDAR or schedule.is_finite()
             break
         if occurrences and nxt <= occurrences[-1]:  # pragma: no cover
             break  # safety net: the engine must advance — never loop
@@ -568,12 +660,7 @@ def is_recurring(task: Mapping[str, Any]) -> bool:
     when its object is unarchived (D2) or resumed from a seasonal pause (N3).
     Single source for both — the websocket layer delegates here.
     """
-    return Schedule.parse(task).kind in (
-        KIND_INTERVAL,
-        KIND_WEEKDAYS,
-        KIND_NTH_WEEKDAY,
-        KIND_DAY_OF_MONTH,
-    )
+    return Schedule.parse(task).kind in (KIND_INTERVAL, *_CALENDAR_KINDS)
 
 
 # --- flat <-> nested adapters (Phase 3) ------------------------------------

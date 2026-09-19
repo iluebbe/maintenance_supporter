@@ -4,6 +4,29 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Select mode in *All objects*** (#188): pick many objects (cards or table, *Select all*) and delete them with
+  all their tasks behind one confirm, or archive them in one go (undoable). *Duplicate* already existed in the
+  object menu — the copy carries every task and is named "… (copy)".
+- **Calendar entity as schedule type** (#187, discussion #157): a task can follow any `calendar.*` entity — pick it as
+  the schedule kind and the task comes due once per event, on the event's start date, always the next event after
+  the last completion, so a waste-collection calendar drives "put the bins out" without re-firing while the pickup
+  is still listed. ±day offset, seasonal window, series end and the live next-dates preview work as on the other
+  calendar kinds; events are read through `calendar.get_events` (60 days back, 400 ahead), refreshed every
+  15 minutes and right after a user action, and a temporarily unavailable calendar keeps its last known dates.
+  Available in the task dialog and both config flows; the API stores `{"kind": "calendar", "entity_id": …}` and
+  echoes `schedule_entity_name`.
+- **Notification icons** (#185): every push notification now carries `data.notification_icon` — a default per
+  maintenance type (cleaning `mdi:broom`, inspection `mdi:magnify`, replacement `mdi:swap-horizontal`, calibration
+  `mdi:tune`, service `mdi:wrench`, reading `mdi:counter`, custom `mdi:wrench-clock`), the battery fleet's
+  `mdi:battery-alert-variant-outline`, and per-kind icons for summaries, warranty, budget, the quiet-hours catch-up,
+  completions and the test send. The Companion app on Android renders it; iOS ignores it. New per-task field
+  `notify_icon` (task dialog, options flow → Edit task, WS `task/create`/`task/update`, JSON export/import)
+  overrides the default for that task (`mdi:` names only, error `invalid_icon`); a `notification_icon` key in your
+  *Extra notification data* template still wins, and the `maintenance_supporter_notification` event carries the
+  same `data.notification_icon`.
+
 ### 🐛 Fixed
 
 - **Battery roster showed *UNKNOWN* for devices that have a Battery Notes type** (#186): when a note's *battery plus*

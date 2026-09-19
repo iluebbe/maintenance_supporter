@@ -39,6 +39,7 @@ const EDITABLE: Record<string, string> = {
   allow_skip: "allow_skip",
   // #173: per-task notification mute — same checkbox idiom.
   notify_enabled: "notify_enabled",
+  notify_icon: "notify_icon",
   reading_unit: "reading_unit",
   readings: "readings", // #161 phase 2: slot list, re-sent whole on every save
   consumes_parts: "consumes_parts",

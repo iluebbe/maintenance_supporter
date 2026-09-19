@@ -67,6 +67,7 @@
   "nfc_tag_id": "contract-nfc-1",
   "notes": "Contract notes",
   "notify_enabled": true,
+  "notify_icon": "mdi:air-filter",
   "on_complete_action": {
     "data": {
       "transition": 2

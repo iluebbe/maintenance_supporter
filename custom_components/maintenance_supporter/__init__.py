@@ -494,6 +494,14 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     await reference_numbers.async_load()
     hass.data[DOMAIN][REFERENCE_NUMBERS_KEY] = reference_numbers
 
+    # Calendar-entity schedules (#187): the pure schedule engine reads a
+    # calendar's event dates through this provider; the coordinators keep
+    # the shared cache behind it warm. Removed again on the last unload.
+    from .helpers.calendar_source import calendar_occurrence_provider
+    from .helpers.schedule import set_calendar_occurrence_provider
+
+    set_calendar_occurrence_provider(calendar_occurrence_provider(hass))
+
 
     # Authenticated upload + serve endpoints for document blobs (the blobs live
     # under /config, so they must never be exposed via an unauthenticated path).
@@ -2047,6 +2055,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
             text_index.cancel()
         for unsub in hass.data.get(DOMAIN, {}).get(EVENT_UNSUBS_KEY, []):
             unsub()
+        from .helpers.schedule import set_calendar_occurrence_provider
+
+        set_calendar_occurrence_provider(None)
         hass.data.pop(DOMAIN, None)
 
     return unload_ok

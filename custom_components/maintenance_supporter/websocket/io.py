@@ -790,6 +790,8 @@ async def ws_import_json(
                 "require_tag_scan",
                 "allow_skip",
                 "notify_enabled",
+                # #185: notification icon override (shape-checked below).
+                "notify_icon",
                 "responsible_user_id",
                 "entity_slug",
                 "trigger_config",
@@ -972,6 +974,17 @@ async def ws_import_json(
                     task_data["mirror_todo_entities"] = mirrors
                 else:
                     task_data.pop("mirror_todo_entities", None)
+
+            # #185: notify_icon — same shape rule as the WS write paths; a
+            # malformed or empty value drops the override (type default).
+            if "notify_icon" in task_data:
+                from ..helpers.notify_icons import normalize_icon
+
+                icon = normalize_icon(task_data["notify_icon"])
+                if icon:
+                    task_data["notify_icon"] = icon
+                else:
+                    task_data.pop("notify_icon", None)
 
             # schedule_time: canonical HH:MM. The options flow's TimeSelector
             # stores "HH:MM:SS" and the export writes it verbatim — that used

@@ -35,6 +35,7 @@ from ..const import (
     MAX_MIRROR_TODO_LISTS,
     MAX_NAME_LENGTH,
     MAX_NFC_TAG_LENGTH,
+    MAX_NOTIFY_ICON_LENGTH,
     MAX_READING_UNIT_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
@@ -46,6 +47,7 @@ from ..const import (
 from ..helpers.aggregate import get_store
 from ..helpers.dates import INTERVAL_UNITS
 from ..helpers.entry_tasks import write_task
+from ..helpers.notify_icons import is_valid_icon
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import strip_task_runtime_state
 from ..helpers.schedule import (
@@ -90,6 +92,27 @@ def _validate_entity_slug(connection: websocket_api.ActiveConnection, msg: dict[
         msg["id"],
         "invalid_entity_slug",
         "entity_slug must match [a-z0-9_]+ (lowercase, digits, underscores only)",
+    )
+    return False
+
+
+def _validate_notify_icon(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
+    """False (after sending ``invalid_icon``) when ``msg["notify_icon"]`` is a
+    non-empty string that is not a well-formed ``mdi:`` name (#185). Strips
+    the value in place; ``None`` / ``""`` mean "no override" and pass.
+    Shared by create and update — the update path's raw field-map copy
+    would otherwise persist whatever the client sent."""
+    raw = msg.get("notify_icon")
+    if raw is None:
+        return True
+    icon = raw.strip() if isinstance(raw, str) else raw
+    msg["notify_icon"] = icon or None
+    if not icon or is_valid_icon(icon):
+        return True
+    connection.send_error(
+        msg["id"],
+        "invalid_icon",
+        "notify_icon must be an mdi: icon name (e.g. mdi:air-filter)",
     )
     return False
 
@@ -146,6 +169,8 @@ TASK_UPDATE_FIELD_MAP = {
     "require_tag_scan": "require_tag_scan",
     "allow_skip": "allow_skip",
     "notify_enabled": "notify_enabled",
+    # #185: per-task push-notification icon override.
+    "notify_icon": "notify_icon",
     "reading_unit": "reading_unit",
     "readings": "readings",
     "consumes_parts": "consumes_parts",
@@ -247,6 +272,9 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         # task (status changes, repeats, lead-time, bundles); the dashboard
         # and entities still show it.
         vol.Optional("notify_enabled"): vol.Any(bool, None),
+        # #185: per-task push-notification icon ("mdi:…"); null/"" = the
+        # maintenance type's default. Shape-checked by _validate_notify_icon.
+        vol.Optional("notify_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_NOTIFY_ICON_LENGTH)), None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
@@ -423,6 +451,12 @@ async def ws_create_task(
     # #173: same shape — stored only when False (absence = notifications on).
     if msg.get("notify_enabled") is False:
         task_data["notify_enabled"] = False
+    # #185: per-task notification icon — stored only when set (absence = the
+    # maintenance type's default); a malformed value refuses the create.
+    if not _validate_notify_icon(connection, msg):
+        return
+    if msg.get("notify_icon"):
+        task_data["notify_icon"] = msg["notify_icon"]
     # v2.20 (#83): unit for `reading`-type tasks.
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
@@ -548,6 +582,9 @@ _TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
         # task (status changes, repeats, lead-time, bundles); the dashboard
         # and entities still show it.
         vol.Optional("notify_enabled"): vol.Any(bool, None),
+        # #185: per-task push-notification icon ("mdi:…"); null/"" = the
+        # maintenance type's default. Shape-checked by _validate_notify_icon.
+        vol.Optional("notify_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_NOTIFY_ICON_LENGTH)), None),
         # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
         vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
         # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
@@ -628,6 +665,11 @@ async def ws_update_task(
     if not _validate_entity_slug(connection, msg):
         return
 
+    # #185: validate notify_icon BEFORE the raw field-map copy below (it
+    # would persist a malformed value verbatim — the create path refuses it).
+    if not _validate_notify_icon(connection, msg):
+        return
+
     # Normalise empty NFC tag to None and check uniqueness
     if "nfc_tag_id" in msg:
         _normalize_nfc_tag(hass, msg, tc_warnings, exclude_task_id=task_id)
@@ -689,6 +731,10 @@ async def ws_update_task(
             task["notify_enabled"] = False
         else:
             task.pop("notify_enabled", None)
+    # #185: notify_icon is stored only when set — null/"" clears the override
+    # (the verbatim copy above would persist a None literal).
+    if "notify_icon" in msg and not msg["notify_icon"]:
+        task.pop("notify_icon", None)
     # D#183: an empty mirror list means "off" — drop the key, don't store [].
     if "mirror_todo_entities" in msg and not msg["mirror_todo_entities"]:
         task.pop("mirror_todo_entities", None)

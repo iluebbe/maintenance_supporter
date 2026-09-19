@@ -31,14 +31,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
 )
 from .dates import add_interval, parse_iso_date
-from .schedule import (
-    KIND_DAY_OF_MONTH,
-    KIND_NTH_WEEKDAY,
-    KIND_WEEKDAYS,
-    Schedule,
-)
-
-_CALENDAR_KINDS = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
+from .schedule import _CALENDAR_KINDS, Schedule
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -279,8 +272,9 @@ def compute_preview(
             kind = "sensor_based"
             confidence = "unpredictable"
         elif schedule_type in _CALENDAR_KINDS:
-            # Calendar kinds (weekdays / nth_weekday / day_of_month): project the
-            # next occurrence via the Schedule (the flat fields can't express it).
+            # Calendar kinds (weekdays / nth_weekday / day_of_month / calendar
+            # entity): project the next occurrence via the Schedule (the flat
+            # fields can't express it).
             raw = t.get("schedule")
             sched = Schedule.from_dict(raw) if isinstance(raw, dict) else None
             nd = (

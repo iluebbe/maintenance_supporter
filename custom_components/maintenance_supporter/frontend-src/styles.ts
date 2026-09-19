@@ -435,12 +435,14 @@ interface RecurrenceLike {
   schedule?: {
     kind?: string; every?: number | null; unit?: string;
     weekdays?: number[]; nth?: number; weekday?: number; day?: number;
-    business?: boolean; offset?: number;
+    business?: boolean; offset?: number; entity_id?: string | null;
   } | null;
   interval_days?: number | null;
   interval_unit?: string | null;
   due_date?: string | null;
   schedule_type?: string;
+  /** (#187) calendar kind: friendly name of the driving calendar entity. */
+  schedule_entity_name?: string | null;
 }
 
 /** A task's recurrence as a localized human label, for ANY schedule kind.
@@ -474,6 +476,10 @@ export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
         : `${t("day_word", lang)} ${s.day}`;
       return base + off;
     }
+    case "calendar":
+      // (#187) "Calendar: Bio waste" — the summary carries the friendly name;
+      // fall back to the entity_id when the calendar is not loaded.
+      return `${t("calendar_entity_label", lang)}: ${task.schedule_entity_name || s.entity_id || "—"}${off}`;
     case "one_time":
       return task.due_date ? formatDate(task.due_date, lang) : t("one_time", lang);
     case "manual":
@@ -653,6 +659,16 @@ export const sharedStyles = css`
 
   /* Overdue indicator dot on object cards (#35) */
   .object-card { position: relative; }
+  /* #188: bulk select in the All-objects view */
+  .object-card.bulk-selected, .objects-table-row.bulk-selected {
+    outline: 2px solid var(--primary-color); outline-offset: -2px;
+    background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  }
+  .object-card.selectable { padding-left: 44px; }
+  .obj-bulk-check { position: absolute; top: 12px; left: 12px; z-index: 1; }
+  .obj-bulk-check input, .oc-bulk input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary-color); }
+  .oc-bulk { width: 28px; }
+  .obj-bulk-bar { margin: 0 0 12px; }
   .object-card-overdue { border-left: 3px solid var(--error-color); }
   .overdue-dot {
     position: absolute;

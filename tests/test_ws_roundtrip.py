@@ -1980,3 +1980,68 @@ def callback_unwrap_safe(fn: Any) -> Any:
     (the bus accepts plain callables).
     """
     return fn
+
+
+# ─── #185: per-task notification icon ────────────────────────────────────
+
+
+async def test_notify_icon_roundtrip_and_validation(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """A valid ``notify_icon`` persists on create and update, is echoed by the
+    summary, ``null``/"" clear it, and a malformed value is refused with
+    ``invalid_icon`` on BOTH write paths (the update path's raw field-map
+    copy must not smuggle it through)."""
+    from custom_components.maintenance_supporter.websocket import _build_task_summary
+
+    await setup_integration(hass, global_entry, object_entry)
+
+    # create: invalid -> refused, nothing persisted
+    conn = _conn()
+    await call_ws_handler(
+        ws_create_task, hass, conn,
+        {"id": 1, "type": "x", "entry_id": object_entry.entry_id, "name": "Bad icon", "schedule_type": "time_based", "interval_days": 30, "notify_icon": "broom"},
+    )
+    assert conn.send_error.call_args[0][1] == "invalid_icon"
+    assert not hass.config_entries.async_get_entry(object_entry.entry_id).data.get(CONF_TASKS)
+
+    # create: valid (whitespace stripped) -> persisted + echoed
+    task_id, created = await _create_task_via_ws(
+        hass, object_entry.entry_id,
+        {"name": "Filter", "schedule_type": "time_based", "interval_days": 30, "notify_icon": " mdi:air-filter "},
+    )
+    assert created["notify_icon"] == "mdi:air-filter"
+    assert _build_task_summary(hass, task_id, created, None)["notify_icon"] == "mdi:air-filter"
+
+    # create: empty -> not stored (absence = the type default)
+    _, plain = await _create_task_via_ws(
+        hass, object_entry.entry_id,
+        {"name": "Plain", "schedule_type": "time_based", "interval_days": 30, "notify_icon": ""},
+    )
+    assert "notify_icon" not in plain
+    assert _build_task_summary(hass, "plain", plain, None)["notify_icon"] is None
+
+    # update: invalid -> refused, the stored override survives
+    conn = _conn()
+    await call_ws_handler(
+        ws_update_task, hass, conn,
+        {"id": 2, "type": "x", "entry_id": object_entry.entry_id, "task_id": task_id, "notify_icon": "mdi:Air Filter"},
+    )
+    assert conn.send_error.call_args[0][1] == "invalid_icon"
+    assert _persisted_task(hass, object_entry.entry_id, task_id)["notify_icon"] == "mdi:air-filter"
+
+    # update: valid -> replaced; unrelated edit -> preserved
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"notify_icon": "mdi:robot-vacuum"})
+    assert task["notify_icon"] == "mdi:robot-vacuum"
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"name": "Renamed"})
+    assert task["notify_icon"] == "mdi:robot-vacuum"
+
+    # update: null / "" -> cleared (no None literal left behind)
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"notify_icon": None})
+    assert "notify_icon" not in task
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"notify_icon": "mdi:broom"})
+    assert task["notify_icon"] == "mdi:broom"
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"notify_icon": "  "})
+    assert "notify_icon" not in task

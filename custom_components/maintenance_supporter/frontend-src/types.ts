@@ -10,8 +10,9 @@ export type MaintenanceStatus = "ok" | "due_soon" | "overdue" | "triggered" | "a
 export type HistoryEntryType = "completed" | "skipped" | "missed" | "reset" | "triggered" | "trigger_removed" | "trigger_replaced";
 /** const.MaintenanceTypeEnum */
 export type MaintenanceType = "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "reading" | "custom";
-/** The nested calendar recurrence kinds (schedule-model v2). */
-export type CalendarKind = "weekdays" | "nth_weekday" | "day_of_month";
+/** The nested calendar recurrence kinds (schedule-model v2); `calendar` (#187)
+ *  = one occurrence per event of a HA calendar entity. */
+export type CalendarKind = "weekdays" | "nth_weekday" | "day_of_month" | "calendar";
 /** const.ScheduleType plus the calendar kinds the dialog exposes as schedule types. */
 export type ScheduleType = "time_based" | "sensor_based" | "one_time" | "manual" | CalendarKind;
 /** TaskSchedule.kind — the flat kinds plus the calendar kinds. */
@@ -211,6 +212,8 @@ export interface TaskSchedule {
   months?: number[];
   /** (#83) day_of_month only: roll a weekend date back to Friday. */
   business?: boolean;
+  /** (#187) calendar kind only: the `calendar.*` entity whose events are the occurrences. */
+  entity_id?: string | null;
   /** (#83) shift the computed occurrence by ±N days (clamped ±15). */
   offset?: number;
   /** Seasonal active window — months (1..12) the task may be due in. */
@@ -230,12 +233,16 @@ export interface MaintenanceTask {
   allow_skip?: boolean;
   /** #173: false = this task sends no reminders (dashboard/entities unaffected). */
   notify_enabled?: boolean;
+  /** #185: mdi icon for this task's push notifications; null/absent = the type's default. */
+  notify_icon?: string | null;
   schedule_type: ScheduleType;
   interval_days?: number | null;
   interval_unit?: IntervalUnit;
   due_date?: string | null; // one-time task due date (ISO)
   interval_anchor?: "completion" | "planned";
   schedule?: TaskSchedule; // nested recurrence (calendar kinds read this)
+  /** (#187) calendar kind: the picked calendar's friendly name (summary-only). */
+  schedule_entity_name?: string | null;
   schedule_time?: string | null;  // "HH:MM" or null/undefined = midnight
   warning_days: number;
   last_performed?: string | null;
@@ -576,6 +583,8 @@ export interface TaskRow {
   allow_skip: boolean;
   /** #173: false = no reminders for this task. */
   notify_enabled: boolean;
+  /** #185: per-task notification icon override; null/absent = the type's default. */
+  notify_icon?: string | null;
   nfc_tag_id: string | null;
   priority: string;
   labels: string[];

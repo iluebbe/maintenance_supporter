@@ -124,6 +124,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Trigger completion cooldown tracking
         self._recently_completed: dict[str, float] = {}  # task_id -> monotonic timestamp
+        # #187: set by async_refresh_now so the next refresh refetches this
+        # object's calendar entities regardless of the cache age.
+        self._calendar_refresh_forced = False
         # Which of those cooldowns came from a COMPLETION (not a skip/reset):
         # only those require the sensor to recover before a re-activation
         # counts as a new edge (bug audit 2026-09-12).
@@ -174,6 +177,31 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             obj_data.get("name"),
         )
 
+    async def _async_prefetch_calendar_occurrences(self) -> None:
+        """#187: warm the shared calendar-entity event cache BEFORE statuses.
+
+        A ``calendar``-kind task's next due is the first event after its last
+        completion, and the schedule engine reads those dates synchronously
+        through the provider installed at shared setup. Every object's tasks
+        are collected (the cache is process-wide), stale entries refetched;
+        this object's own calendars are refetched unconditionally after a
+        user action (``async_refresh_now``), so a completion on pickup day
+        shows the next pickup right away.
+        """
+        from .helpers.calendar_source import (
+            all_calendar_entity_ids,
+            async_refresh_calendar_occurrences,
+            calendar_entity_ids,
+        )
+
+        forced = self._calendar_refresh_forced
+        self._calendar_refresh_forced = False
+        entity_ids = all_calendar_entity_ids(self.hass)
+        if not entity_ids:
+            return
+        own = calendar_entity_ids(self.entry.data.get(CONF_TASKS, {})) if forced else frozenset()
+        await async_refresh_calendar_occurrences(self.hass, entity_ids, force=own)
+
     def _assign_task_refs(self) -> None:
         """#170: number tasks that have none yet (every creation path ends in
         a refresh, so this is the one place), and completions recorded before
@@ -205,6 +233,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # paused_until, then continue this refresh un-paused.
         await self._async_maybe_auto_resume()
         self._assign_task_refs()
+        await self._async_prefetch_calendar_occurrences()
 
         obj = self.maintenance_object
         tasks = self.tasks
@@ -1603,6 +1632,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         The recompute covers one object's tasks, so doing it per user action is
         cheap; the debounced path stays exactly as it was for triggers.
         """
+        self._calendar_refresh_forced = True
         await self.async_refresh()
 
     async def _persist_and_signal_task_change(

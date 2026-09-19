@@ -650,13 +650,18 @@ multi-select state field in the task dialog (ideally offering the entity's
 About a session; do it when a second request for multi-state patterns
 shows up.
 
-### 💡 Calendar-event triggers with per-event memory (discussion #157)
+### ✅ Calendar entity as schedule — once per event (discussion #157, issue #187) — shipped 2.89
 Waste-collection-style sensors keep a task's trigger condition true for the
 whole event window, so a completed task re-fires while the pickup is still
-listed. Today's answer is `earliest_completion_days` (a minimum age between
-completions) or a state-change trigger; the real fix is an event-based
-trigger that fires once per calendar occurrence and remembers the handled
-event (id/date) in the trigger's Store state.
+listed. Shipped as a SCHEDULE kind rather than a trigger: `{"kind":
+"calendar", "entity_id": "calendar.xyz"}` makes the calendar's event start
+dates the task's occurrences, and the next due is always the first event
+after the last completion — the completion date IS the per-event memory, no
+extra Store state needed. Offset, season window and series end apply like on
+the other calendar kinds; the coordinator keeps a shared 15-minute cache of
+`calendar.get_events` (60 days back, 400 ahead) that the pure schedule engine
+reads through a provider hook. Not covered (and not requested): reacting to
+an event's *end* or to its summary text — those remain trigger territory.
 
 ### ✅ Runtime trigger: per-session cap against stuck sensors (#149) — implemented 2026-08-31, ships with the next release
 A BLE device that drops its connection mid-run (an Oral-B toothbrush stuck

@@ -32,6 +32,7 @@ from ..const import (
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
     MAX_NFC_TAG_LENGTH,
+    MAX_NOTIFY_ICON_LENGTH,
     MAX_READING_UNIT_LENGTH,
     MAX_SCHEDULE_TIME_LENGTH,
     MAX_TEXT_LENGTH,
@@ -52,6 +53,8 @@ _TASK_STR_LIMITS: dict[str, int] = {
     "notes": MAX_TEXT_LENGTH,
     "documentation_url": MAX_URL_LENGTH,
     "custom_icon": MAX_ICON_LENGTH,
+    # #185: per-task notification icon override ("mdi:…").
+    "notify_icon": MAX_NOTIFY_ICON_LENGTH,
     "nfc_tag_id": MAX_NFC_TAG_LENGTH,
     "responsible_user_id": MAX_META_LENGTH,
     "entity_slug": MAX_ENTITY_SLUG_LENGTH,

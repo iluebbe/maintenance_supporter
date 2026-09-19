@@ -35,6 +35,7 @@ export const WS_ERROR_CODE_KEYS: Record<string, string> = {
   invalid_input: "ws_err_invalid_input",
   invalid_mirror_todo: "ws_err_invalid_mirror_todo",
   invalid_parent: "ws_err_invalid_parent",
+  invalid_icon: "ws_err_invalid_icon",
   invalid_range: "ws_err_invalid_range",
   invalid_search_template: "ws_err_invalid_search_template",
   invalid_target: "ws_err_invalid_target",

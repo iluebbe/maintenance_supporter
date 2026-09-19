@@ -207,3 +207,68 @@ async def test_settings_roundtrip_and_sanitising(hass: HomeAssistant) -> None:
         assert len(filtered[CONF_NOTIFY_EXTRA_DATA]) <= 2000
     filtered, _ = sanitize_settings_input({CONF_NOTIFY_EVENT_ONLY: "yes"})
     assert CONF_NOTIFY_EVENT_ONLY not in filtered, "a non-bool is dropped"
+
+
+# ─── #185: notification icons ride every send ──────────────────────────────
+
+
+def _object_with_icon(hass: HomeAssistant, notify_icon: str | None = None) -> MockConfigEntry:
+    task = build_task_data(task_id=TASK_ID_1, name="Filter")  # type: cleaning
+    if notify_icon is not None:
+        task["notify_icon"] = notify_icon
+    return make_object_entry(hass, tasks={TASK_ID_1: task}, name="Dishwasher", unique_id="ms_hooks_icon")
+
+
+async def _status_send(hass: HomeAssistant, obj: MockConfigEntry) -> tuple[AsyncMock, list[Event]]:
+    events = _capture(hass)
+    calls = AsyncMock()
+    hass.services.async_register("notify", "test", calls)
+    mgr = NotificationManager(hass)
+    await mgr.async_task_status_changed(entry_id=obj.entry_id, task_id=TASK_ID_1, task_name="Filter", object_name="Dishwasher", new_status=MaintenanceStatus.OVERDUE, days_until_due=-3)
+    await hass.async_block_till_done()
+    return calls, events
+
+
+async def test_default_icon_follows_the_maintenance_type(hass: HomeAssistant) -> None:
+    _global(hass)
+    obj = _object_with_icon(hass)
+    calls, events = await _status_send(hass, obj)
+    sent = calls.call_args[0][0].data
+    assert sent["data"]["notification_icon"] == "mdi:broom", "cleaning task -> the type default"
+    assert events[0].data["data"]["notification_icon"] == "mdi:broom", "the event payload carries it too"
+
+
+async def test_per_task_override_wins_over_the_type_default(hass: HomeAssistant) -> None:
+    _global(hass)
+    obj = _object_with_icon(hass, "mdi:robot-vacuum")
+    calls, events = await _status_send(hass, obj)
+    assert calls.call_args[0][0].data["data"]["notification_icon"] == "mdi:robot-vacuum"
+    assert events[0].data["data"]["notification_icon"] == "mdi:robot-vacuum"
+
+
+async def test_extra_data_template_icon_wins_over_ours(hass: HomeAssistant) -> None:
+    _global(hass, **{CONF_NOTIFY_EXTRA_DATA: '{"notification_icon": "mdi:alert", "category": "x"}'})
+    obj = _object_with_icon(hass, "mdi:robot-vacuum")
+    calls, events = await _status_send(hass, obj)
+    sent = calls.call_args[0][0].data
+    assert sent["data"]["notification_icon"] == "mdi:alert", "an explicit notification_icon in extra data is never overwritten"
+    assert sent["data"]["category"] == "x" and sent["data"]["tag"] == f"maintenance_{TASK_ID_1}", "the rest is untouched"
+    assert events[0].data["data"]["notification_icon"] == "mdi:alert"
+
+
+async def test_task_less_kinds_use_the_kind_default(hass: HomeAssistant) -> None:
+    _global(hass)
+    _object_with_icon(hass, "mdi:robot-vacuum")
+    events = _capture(hass)
+    calls = AsyncMock()
+    hass.services.async_register("notify", "test", calls)
+    mgr = NotificationManager(hass)
+    await mgr.async_send_weekly_digest(2, 3)
+    await hass.async_block_till_done()
+    assert calls.call_args[0][0].data["data"]["notification_icon"] == "mdi:clipboard-list-outline"
+    assert events[-1].data["kind"] == "digest" and events[-1].data["data"]["notification_icon"] == "mdi:clipboard-list-outline"
+    # The Settings test send resolves through the same hook (its sample
+    # entry does not exist -> the `test` kind's bell).
+    sample = notify_hooks.sample_notification_context(hass)
+    assert await notify_hooks.async_emit_and_dispatch(hass, "notify.test", {"title": "t", "message": "m"}, sample, blocking=True)
+    assert calls.call_args[0][0].data["data"]["notification_icon"] == "mdi:bell-ring-outline"

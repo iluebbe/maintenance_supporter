@@ -611,7 +611,7 @@ async def ws_schedule_preview(
 
     from homeassistant.util import dt as dt_util
 
-    from ..helpers.schedule import Schedule, preview_occurrences
+    from ..helpers.schedule import KIND_CALENDAR, Schedule, preview_occurrences
 
     lp: date_cls | None = None
     raw_lp = msg.get("last_performed")
@@ -625,6 +625,12 @@ async def ws_schedule_preview(
     today = dt_util.now().date()
     try:
         sched = Schedule.from_dict(msg["schedule"])
+        if sched.kind == KIND_CALENDAR and sched.entity_id:
+            # #187: a calendar picked in the dialog is not in the coordinator
+            # cache yet — fetch its events now so the preview shows real dates.
+            from ..helpers.calendar_source import async_refresh_calendar_occurrences
+
+            await async_refresh_calendar_occurrences(hass, {sched.entity_id})
         dates, series_ended = preview_occurrences(
             sched,
             last_performed=lp,
