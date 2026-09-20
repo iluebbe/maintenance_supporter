@@ -22,6 +22,12 @@ Combine a time-based schedule (7-day interval for manual pressure checks) with a
 
 Use a **state change trigger** monitoring a binary sensor that tracks wash cycles (on → off transitions). Set the target to 50 changes. Each completion resets the counter. A parallel time-based interval of 180 days ensures descaling happens even if the machine is used less frequently than expected.
 
+### Waste Collection — Once per Calendar Event (2.89+)
+
+Point a task at the calendar your waste-collection integration (or an ICS subscription) exposes: schedule type **Calendar entity**, pick `calendar.waste_collection`, optionally an offset of −1 day for "the evening before". The task comes due on each pickup date and, once completed, moves to the **next** pickup — it never re-fires for the collection you just handled, which is exactly what a state trigger on the calendar's sensor could not do. The same pattern fits street-sweeping calendars, chimney-sweep appointments, or a shared family calendar with "change the pool filter" entries.
+
+![Task dialog: a calendar entity as the schedule](images/task-dialog-calendar.png)
+
 ### Spare parts (2.23+) — the filter is already on the shelf
 
 Give the coffee machine a *Descaling tablets* part (stock 6, reorder at 1,

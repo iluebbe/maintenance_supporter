@@ -386,6 +386,61 @@ const seed = preSeeded ? null : await (async () => {
 })();
 log("SEED OK", JSON.stringify(seed));
 
+// (2.89) Idempotent extras — a calendar-driven task (#187, a Local Calendar
+// "Waste collection" with fortnightly pickups) and a notification-icon
+// override (#185). Guarded like the 2.67 block, so re-runs converge.
+{
+  const hdr = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
+  try {
+    const states = await fetch(REST + "/api/states", { headers: hdr }).then(j);
+    let calId = (states.find((s) => s.entity_id === "calendar.waste_collection") || {}).entity_id;
+    let needEvents = !calId;
+    if (!calId) {
+      const flow = await fetch(REST + "/api/config/config_entries/flow", { method: "POST", headers: hdr,
+        body: JSON.stringify({ handler: "local_calendar", show_advanced_options: false }) }).then(j);
+      const done = await fetch(REST + "/api/config/config_entries/flow/" + flow.flow_id, { method: "POST", headers: hdr,
+        body: JSON.stringify({ calendar_name: "Waste collection" }) }).then(j);
+      log("v2.89 seed: local_calendar flow ->", done.type);
+      await new Promise((r) => setTimeout(r, 3000));
+      calId = "calendar.waste_collection";
+    } else {
+      const ev = await api.send({ type: "call_service", domain: "calendar", service: "get_events", target: { entity_id: calId }, return_response: true,
+        service_data: { start_date_time: new Date().toISOString().slice(0, 10) + " 00:00:00", end_date_time: new Date(Date.now() + 200 * 864e5).toISOString().slice(0, 10) + " 00:00:00" } }).catch(() => null);
+      const n = ev && ev.response && ev.response[calId] ? ev.response[calId].events.length : 0;
+      needEvents = n < 3;
+    }
+    if (needEvents) {
+      const day = 864e5, start = Date.now() + 3 * day;
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(start + i * 14 * day), e = new Date(d.getTime() + day);
+        await api.send({ type: "call_service", domain: "calendar", service: "create_event", target: { entity_id: calId },
+          service_data: { summary: i % 2 ? "Paper & recycling" : "Residual waste", start_date: d.toISOString().slice(0, 10), end_date: e.toISOString().slice(0, 10) } });
+      }
+    }
+    const objsNow = await api.send({ type: "maintenance_supporter/objects" });
+    let house = (objsNow.objects || []).find((x) => x.object.name === "Household");
+    if (!house) {
+      const c = await api.send({ type: "maintenance_supporter/object/create", name: "Household" });
+      house = { entry_id: c.entry_id, tasks: [] };
+    }
+    if (!house.tasks.some((t) => t.name === "Put the bins out")) {
+      await api.send({ type: "maintenance_supporter/task/create", entry_id: house.entry_id, name: "Put the bins out",
+        task_type: "custom", schedule_type: "calendar", schedule: { kind: "calendar", entity_id: calId, offset: -1 } });
+      log("v2.89 seed: calendar task on Household");
+    }
+  } catch (e) { log("v2.89 calendar seed skipped:", String(e && e.message || e)); }
+  try {
+    const objs3 = await api.send({ type: "maintenance_supporter/objects" });
+    const sd = (objs3.objects || []).find((x) => x.object.name === "Smoke Detectors");
+    const tb = sd && sd.tasks.find((x) => x.name === "Test Buttons");
+    if (sd && tb && !tb.notify_icon) {
+      await api.send({ type: "maintenance_supporter/task/update", entry_id: sd.entry_id, task_id: tb.id,
+        name: tb.name, task_type: tb.type, notify_icon: "mdi:fire-alert" });
+      log("v2.89 seed: notify_icon on Test Buttons");
+    }
+  } catch (e) { log("v2.89 icon seed skipped:", String(e && e.message || e)); }
+}
+
 // (2.67) Idempotent extras — they run on a pre-seeded instance too, each
 // guarded by a state check, so a re-run converges instead of duplicating.
 // Kept OUTSIDE the preSeeded gate on purpose: the three v2.67 features need
@@ -924,6 +979,53 @@ await step("all-parts.png", async () => {
   }, { finder: deepFindPanel });
   await p.waitForTimeout(2000);
   await shot("all-parts.png");
+});
+
+// 8c. (2.89, #188) Select mode in All objects — two objects ticked, the bar offers Delete / Archive
+await step("objects-bulk-select.png", async () => {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    panel._view = "all_objects";
+    panel._objectViewMode = "cards";
+    panel._objBulkMode = true;
+    panel._objBulkSelected = new Set(panel._objects.filter((o) => /Pool Pump|Washing Machine/.test(o.object.name)).map((o) => o.entry_id));
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await shot("objects-bulk-select.png");
+  await p.evaluate(({ finder }) => { eval(finder); window.__panel._objBulkMode = false; window.__panel._objBulkSelected = new Set(); }, { finder: deepFindPanel });
+});
+
+// 8d. (2.89, #187) Task dialog — a calendar entity as the schedule, next dates from its events
+await step("task-dialog-calendar.png", async () => {
+  await openPanel("dashboard");
+  await openTaskDialog("Household", "Put the bins out");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
+    // Frame the schedule-type select at the top: type, calendar picker, hint,
+    // offset and the next-dates preview then share one screen.
+    const label = [...dlg.shadowRoot.querySelectorAll("label")].find((l) => /^schedule type/i.test((l.textContent || "").trim()));
+    const el = label || dlg.shadowRoot.querySelector("ha-form");
+    if (el) el.scrollIntoView({ block: "start" });
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await shot("task-dialog-calendar.png");
+  await closeDialogs();
+});
+
+// 8e. (2.89, #185) Task dialog — notification icon override with preview + type default
+await step("task-dialog-notify-icon.png", async () => {
+  await openTaskDialog("Smoke Detectors", "Test Buttons");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
+    const el = dlg.shadowRoot.querySelector(".notify-icon-picker");
+    if (el) el.scrollIntoView({ block: "center" });
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await shot("task-dialog-notify-icon.png");
+  await closeDialogs();
 });
 
 // 9. Settings tab (features, notifications, budget)

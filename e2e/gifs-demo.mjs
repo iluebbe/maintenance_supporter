@@ -18,6 +18,8 @@
  *   tag-scan-required.gif      a tag-gated task: the dialog warns, the server refuses
  *   shopping-list-sync.gif     buy reminder in the household to-do list → check-off restocks
  *   notification-event.gif     your own notification rule: the event and its payload in Developer tools
+ *   calendar-schedule.gif      a task that follows the waste-collection calendar (#187)
+ *   objects-bulk-select.gif    Select mode in All objects: tick two, Delete, confirm (#188)
  *
  * Still open: suggested-setups needs a signature-matching integration on the
  * demo instance (the shots seed is template-sensor-only, so discovery finds
@@ -322,7 +324,12 @@ async function onRow(p, nameRe, action = "show") {
     if (!row) return "no row " + nameRe;
     row.scrollIntoView({ block: "center" });
     if (action === "show") return "showed";
-    const btn = row.querySelector(action === "complete" ? ".btn-complete" : ".btn-skip");
+    // Row actions are HA buttons since 2.69 (icon style keeps .btn-*); the
+    // DRY round 3 (2.84) dropped the class on the button variants → match
+    // by variant as well.
+    const btn = row.querySelector(action === "complete"
+      ? ".btn-complete, .row-actions ha-button[variant='success']"
+      : ".btn-skip, .row-actions ha-button[variant='warning']");
     if (!btn) return "no " + action + " button";
     btn.click();
     return action + "d";
@@ -823,6 +830,78 @@ mkdirSync(GIF_DIR, { recursive: true });
 mkdirSync(VIDEO_DIR, { recursive: true });
 const token = await login();
 await ensureDemoCards(token);
+/** #187: a task that follows the waste-collection calendar — open it, show
+ *  the calendar picker and the next pickup dates, drop the -1 day offset and
+ *  watch the dates move onto the pickup days. */
+const flowCalendarSchedule = async (p, mark) => {
+  await openPanel(p);
+  await p.waitForTimeout(4000);           // theme settle — see flowSensorTrigger
+  mark();
+  await openTaskEditor(p, "Household", "bins");
+  await p.waitForTimeout(2500);
+  await revealInTaskDialog(p, ".schedule-preview");
+  await p.waitForTimeout(2400);
+  const changed = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
+    const root = dlg?.shadowRoot;
+    const host = [...(root?.querySelectorAll("ms-textfield") || [])]
+      .find((el) => /offset/i.test(el.getAttribute("label") || ""));
+    const el = host ? host.shadowRoot?.querySelector("input")
+      : [...(root?.querySelectorAll("input[type=number]") || [])].find((i) => /offset/i.test((i.closest("label, .field")?.textContent) || ""));
+    if (!el) return "no offset field";
+    (host || el).scrollIntoView({ block: "center" });
+    el.focus();
+    el.value = "0";
+    el.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    return "offset -> 0";
+  }, panelOf.toString());
+  log("  " + changed);
+  await p.waitForTimeout(900);
+  await revealInTaskDialog(p, ".schedule-preview");
+  await p.waitForTimeout(3200);
+};
+
+/** #188: Select mode in All objects — two retired devices ticked, Delete,
+ *  the confirm names the count, both are gone. The two objects are created
+ *  right before the take (and deleted by it), so the seed stays clean. */
+const flowObjectsBulkSelect = (token) => async (p, mark) => {
+  for (const nm of ["Old Printer", "Old Router"]) {
+    const have = await wsSend(token, { type: "maintenance_supporter/objects" });
+    if (!(have.objects || []).some((o) => o.object.name === nm)) await wsSend(token, { type: "maintenance_supporter/object/create", name: nm });
+  }
+  await openPanel(p);
+  await p.waitForTimeout(3500);
+  await p.evaluate((fnStr) => { eval(`(${fnStr})`)()._showAllObjects(); }, panelOf.toString());
+  await p.waitForTimeout(1800);
+  mark();
+  await clickInPanel(p, "select", ".filter-bar");
+  await p.waitForTimeout(1000);
+  for (const nm of ["Old Printer", "Old Router"]) {
+    await p.evaluate(({ fnStr, nm }) => {
+      const panel = eval(`(${fnStr})`)();
+      const card = [...panel.shadowRoot.querySelectorAll(".object-card")].find((c) => (c.textContent || "").includes(nm));
+      if (card) { card.scrollIntoView({ block: "center" }); card.click(); }
+    }, { fnStr: panelOf.toString(), nm });
+    await p.waitForTimeout(1000);
+  }
+  await p.evaluate((fnStr) => { eval(`(${fnStr})`)().shadowRoot.querySelector(".obj-bulk-bar")?.scrollIntoView({ block: "start" }); }, panelOf.toString());
+  await p.waitForTimeout(900);
+  await clickInPanel(p, "delete", ".obj-bulk-bar");
+  await p.waitForTimeout(1800);
+  const confirmed = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-confirm-dialog");
+    const btn = [...(dlg?.shadowRoot?.querySelectorAll("ha-button, mwc-button, button") || [])].find((b) => /delete/i.test(b.textContent || ""));
+    if (!btn) return "no confirm button";
+    btn.click();
+    return "confirmed";
+  }, panelOf.toString());
+  log("  " + confirmed);
+  await p.waitForTimeout(3500);
+};
+
 const FLOWS = {
   "create-from-template": flowTemplate,
   "complete-task": flowComplete,
@@ -843,6 +922,8 @@ const FLOWS = {
   "tag-scan-required": flowTagScanRequired,
   "shopping-list-sync": flowShoppingListSync,
   "notification-event": flowNotificationEvent(token),
+  "calendar-schedule": flowCalendarSchedule,
+  "objects-bulk-select": flowObjectsBulkSelect(token),
 };
 const only = process.argv[2];
 for (const [name, flow] of Object.entries(FLOWS)) {

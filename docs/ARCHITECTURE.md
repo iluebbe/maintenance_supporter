@@ -167,6 +167,7 @@ A task's recurrence is one value object — `helpers/schedule.py::Schedule`, a f
 | `weekdays` | `weekdays[]` (0=Mon … 6=Sun) | the next selected weekday |
 | `nth_weekday` | `nth` (1–5, or -1 = last), `weekday`, optional `months[]` | e.g. "1st Saturday"; `helpers/dates.py::next_nth_weekday` |
 | `day_of_month` | `day` (1–31, clamped), optional `months[]` | e.g. "the 15th"; `next_day_of_month` |
+| `calendar` | `entity_id` (a `calendar.*`), optional `offset`, `months[]`, `ends` | the first event start date strictly after the reference; occurrences come from a **provider hook** (`set_calendar_occurrence_provider`) fed by `helpers/calendar_source.py` (2.89, #187) |
 | `one_time` | `due_date` | the date, until completed → done (`is_done`, no re-arm) |
 | `manual` | — | none (`next_due` is `None` → always OK) |
 
@@ -332,9 +333,11 @@ custom_components/maintenance_supporter/
 ├── helpers/                    (12,954 lines)
 │   ├── notification_manager.py  (1,400 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (178 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
+│   ├── notify_icons.py             (96 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
 │   ├── qrcodegen.py               (700 lines)  Vendored QR library (Nayuki, MIT) — excluded from coverage
 │   ├── interval_analyzer.py       (687 lines)  EWA + Weibull + seasonal analysis (pure Python)
 │   ├── schedule.py                (643 lines)  Schedule value object (discriminated-union recurrence) + adapters
+│   ├── calendar_source.py         (177 lines)  Calendar-entity occurrences (#187): `calendar.get_events` prefetch, 15-min cache in hass.data, provider for the pure engine
 │   ├── sensor_predictor.py        (637 lines)  Degradation + environmental correlation
 │   ├── documents.py               (641 lines)  Content-addressed manual/PDF storage + web links
 │   ├── document_text.py           (446 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
@@ -763,6 +766,8 @@ Every notification is one **kind**, and every kind belongs to a **category** tha
 | `quiet_end` | summary | household | quiet_hours_enabled | `enabled`, `target`, `daily_cap` |
 | `completed` | activity | household | notify_completed (off / automatic / all) | `enabled`, `target`, `kind_enabled`, `task_mute`, `scope`, `quiet_hours`, `daily_cap` |
 | `test` | test | household | — | `target` |
+
+**Icons (#185).** The send hook stamps `data.notification_icon` on every outgoing payload unless the caller or the user's extra-data template already set it: task `notify_icon` override → `completed` kind → battery-fleet flag → maintenance-type default → kind default → `mdi:wrench-clock` (`helpers/notify_icons.py::notify_icon_for`; the panel keeps a tripwired copy of the type map in `frontend-src/helpers/notify-icons.ts`).
 
 Gates: `enabled` = notifications on at all; `target` = a notify service or event-only mode; `kind_enabled` = the kind's own switch (per-status toggles, the completion mode); `task_mute` = the task's *No notifications*; `snooze` = the per-task snooze; `vacation` = the vacation mode's silence; `scope` = the saved-view scope; `quiet_hours`; `daily_cap` = max notifications per day; `repeat` = the per-status repeat interval. The digest and the warranty reminder deliberately ignore quiet hours and the cap (both are scheduled once at the 08:00 tick and would otherwise be lost), and the test ignores everything but the target (it exists to verify the target). Lead-time reminders are sent at most once per task, lead and day (the 08:00 tick and the noon retry share that stamp), and a bundle announces only the tasks whose own status reminder is due, stamping each of them like the per-task path.
 
