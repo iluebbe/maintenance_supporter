@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Say which problem sensors belong together** (#188): the *Adopt problem sensors* dialog has an *Object* field per
+  selected sensor, pre-filled with the suggestion. Give several sensors the same name and they become one object
+  (four sensors of one boiler → one "Boiler"), type an existing object's name and they join it; the backend groups a
+  batch by object name, not only by HA device.
+- **Move several tasks at once** (#188): the task selection bar's ⋯ menu offers *Move to another object…* — one
+  target prompt, then every selected task moves with its history, readings and trigger state; tasks already in the
+  target are skipped.
+
 ## [2.89.0] - 2026-09-20
 
 ### ✨ Added

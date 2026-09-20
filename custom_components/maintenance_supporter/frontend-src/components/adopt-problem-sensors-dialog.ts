@@ -48,6 +48,11 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
   @state() private _error = "";
   @state() private _sensors: ProblemSensor[] = [];
   @state() private _selected: Set<string> = new Set();
+  /** #188: the object each selected sensor goes to — typed per row; the same
+   *  name on several rows makes them ONE object, an existing object's name
+   *  adds them to it. */
+  @state() private _objectNames: Record<string, string> = {};
+  @state() private _objects: Array<{ entry_id: string; name: string }> = [];
   @state() private _users: HAUser[] = [];
   @state() private _responsible = "";
   // #136: minutes the problem must persist before the created task triggers
@@ -74,18 +79,28 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     this._error = "";
     this._sensors = [];
     this._selected = new Set();
+    this._objectNames = {};
     this._responsible = "";
     this._forMinutes = "0";
     try {
       if (!this._userService) this._userService = new UserService(this.hass);
       else this._userService.updateHass(this.hass);
-      const [resp, users] = await Promise.all([
+      const [resp, users, objs] = await Promise.all([
         this.hass.connection.sendMessagePromise<DiscoverResponse>({
           type: "maintenance_supporter/problem_sensors/discover",
         }),
         // Best-effort: adoption works fine without the user list.
         this._userService.getUsers().catch(() => [] as HAUser[]),
+        // Best-effort too: the existing objects feed the name suggestions.
+        this.hass.connection
+          .sendMessagePromise<{ objects: Array<{ entry_id: string; object: { name: string; archived_at?: string | null } }> }>({
+            type: "maintenance_supporter/objects",
+          })
+          .catch(() => ({ objects: [] })),
       ]);
+      this._objects = (objs.objects || [])
+        .filter((o) => !o.object.archived_at)
+        .map((o) => ({ entry_id: o.entry_id, name: o.object.name }));
       this._sensors = resp.sensors || [];
       this._selected = new Set(this._sensors.map((s) => s.entity_id));
       this._users = users;
@@ -94,6 +109,21 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     } finally {
       this._loading = false;
     }
+  }
+
+  /** The object name a row will be adopted into (typed, else the suggestion). */
+  private _effectiveName(s: ProblemSensor): string {
+    const typed = (this._objectNames[s.entity_id] ?? "").trim();
+    return typed || s.suggested_object_name;
+  }
+
+  /** An existing object the row lands in: the suggestion's entry when the
+   *  name is untouched, else an existing object with exactly that name. */
+  private _existingEntryFor(s: ProblemSensor): string | null {
+    const name = this._effectiveName(s);
+    if (name === s.suggested_object_name && s.suggested_entry_id) return s.suggested_entry_id;
+    const hit = this._objects.find((o) => o.name.trim().toLowerCase() === name.toLowerCase());
+    return hit ? hit.entry_id : null;
   }
 
   private _close(): void {
@@ -125,8 +155,8 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
         .map((s) => ({
           entity_id: s.entity_id,
           name: s.name,
-          entry_id: s.suggested_entry_id ?? undefined,
-          object_name: s.suggested_object_name,
+          entry_id: this._existingEntryFor(s) ?? undefined,
+          object_name: this._effectiveName(s),
           device_id: s.device_id ?? undefined,
           part_id: s.suggested_part_id ?? undefined,
           responsible_user_id: this._responsible || undefined,
@@ -177,6 +207,10 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                     />
                     <span>${t("selected", L)}: ${this._selected.size} / ${this._sensors.length}</span>
                   </label>
+                  <div class="row-sub adopt-object-hint">${t("adopt_object_hint", L)}</div>
+                  <datalist id="adopt-object-names">
+                    ${this._objects.map((o) => html`<option value=${o.name}></option>`)}
+                  </datalist>
                   <div class="list">
                     ${this._sensors.map((s) => {
                       const checked = this._selected.has(s.entity_id);
@@ -201,8 +235,22 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                               </span>
                             </div>
                             ${sub ? html`<div class="row-sub">${sub}</div>` : nothing}
+                            ${checked
+                              ? html`<div class="row-object" @click=${(e: Event) => e.stopPropagation()}>
+                                  <input
+                                    class="adopt-object"
+                                    list="adopt-object-names"
+                                    aria-label=${t("object", L)}
+                                    placeholder=${s.suggested_object_name}
+                                    .value=${this._objectNames[s.entity_id] ?? s.suggested_object_name}
+                                    @input=${(e: Event) => {
+                                      this._objectNames = { ...this._objectNames, [s.entity_id]: (e.target as HTMLInputElement).value };
+                                    }}
+                                  />
+                                </div>`
+                              : nothing}
                             <div class="row-target">
-                              → ${s.suggested_object_name}${s.suggested_entry_id
+                              → ${this._effectiveName(s)}${this._existingEntryFor(s)
                                 ? nothing
                                 : html` <span class="new-tag">${t("adopt_problem_new_object", L)}</span>`}
                             </div>
@@ -365,6 +413,13 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       color: var(--secondary-text-color);
       font-size: 12px;
     }
+    .row-object { margin-top: 6px; }
+    .row-object input {
+      width: 100%; box-sizing: border-box; padding: 6px 8px; font: inherit;
+      border: 1px solid var(--divider-color); border-radius: 6px;
+      background: var(--card-background-color); color: var(--primary-text-color);
+    }
+    .adopt-object-hint { margin: 0 0 8px; }
     .row-target {
       color: var(--secondary-text-color);
       font-size: 12px;

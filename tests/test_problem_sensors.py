@@ -789,3 +789,43 @@ async def test_auto_complete_history_flag_and_rotation_freeze(
     assert len(completions) == 2
     assert completions[-1].get("auto") is None
     assert task_after2["responsible_user_id"] == "user-b"
+
+
+async def test_adopt_same_object_name_groups_sensors_from_different_devices(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """#188: four sensors on four HA devices but ONE physical thing — the dialog
+    gives them the same object name, and the batch creates a single object."""
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
+
+    await setup_integration(hass, global_entry)
+    _problem_sensor(hass, "binary_sensor.boiler_pressure", "Boiler pressure low", "on")
+    _problem_sensor(hass, "binary_sensor.boiler_flame", "Boiler flame fault", "off")
+    _problem_sensor(hass, "binary_sensor.garage_door_jam", "Garage door jammed", "off")
+
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_adopt_problem_sensors,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/problem_sensors/adopt",
+            "selections": [
+                {"entity_id": "binary_sensor.boiler_pressure", "name": "Pressure low", "object_name": "Boiler", "device_id": "dev_a"},
+                {"entity_id": "binary_sensor.boiler_flame", "name": "Flame fault", "object_name": " boiler ", "device_id": "dev_b"},
+                {"entity_id": "binary_sensor.garage_door_jam", "name": "Door jammed", "object_name": "Garage door", "device_id": "dev_c"},
+            ],
+        },
+    )
+    res = conn.send_result.call_args[0][1]
+    assert res["objects_created"] == 2, "same name (case/space-insensitive) → one object; a different name → its own"
+    assert res["tasks_created"] == 3
+    by_entry: dict[str, list[str]] = {}
+    for row in res["created"]:
+        by_entry.setdefault(row["entry_id"], []).append(row["name"])
+    assert sorted(len(v) for v in by_entry.values()) == [1, 2]
+    boiler_entry = next(e for e, names in by_entry.items() if len(names) == 2)
+    entry = hass.config_entries.async_get_entry(boiler_entry)
+    assert entry is not None and entry.data["object"]["name"] == "Boiler"
+

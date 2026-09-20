@@ -310,6 +310,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** #188: multi-select in the All-objects view (delete / archive many at once). */
   @state() private _objBulkMode = false;
   @state() private _objBulkSelected = new Set<string>();
+  /** #188: the task selection bar's overflow menu (Move to another object…). */
+  @state() private _bulkMenuOpen = false;
   // Virtualized dashboard task table (large installs): only rows in the
   // scroll window are in the DOM; spacers keep the scrollbar honest. The
   // window is recomputed from `.content` scroll/resize (rAF-throttled).
@@ -2008,6 +2010,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _toggleBulkMode(): void {
     this._bulkMode = !this._bulkMode;
+    this._bulkMenuOpen = false;
     if (!this._bulkMode) this._bulkSelected = new Set();
   }
 
@@ -2048,6 +2051,31 @@ export class MaintenanceSupporterPanel extends LitElement {
     await this._loadData();
     if (undo && ok > 0) this._showUndoToast(doneMsg(ok), undo);
     else this._showToast(doneMsg(ok));
+  }
+
+  /** #188: move every selected task to one object (the single-task move's
+   *  prompt, then task/move per row; rows already there are skipped). */
+  private async _bulkMove(rows: TaskRow[]): Promise<void> {
+    const targets = this._objects
+      .filter((o) => !o.object.archived_at)
+      .sort((a, b) => (a.object.name || "").localeCompare(b.object.name || ""));
+    if (!targets.length || this._bulkSelected.size === 0) return;
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const result = await dlg?.prompt({
+      title: t("move_task_title", this._lang),
+      message: t("bulk_move_message", this._lang),
+      confirmText: t("move_task_title", this._lang),
+      inputLabel: t("move_task_target", this._lang),
+      inputValue: targets[0].entry_id,
+      options: targets.map((o) => ({ value: o.entry_id, label: o.object.name || o.entry_id })),
+    });
+    if (!result?.confirmed || !result.value) return;
+    const target = result.value;
+    await this._runBulk(
+      rows.filter((r) => r.entry_id !== target),
+      (row) => ({ type: "maintenance_supporter/task/move", entry_id: row.entry_id, task_id: row.task_id, target_entry_id: target }),
+      (n) => t("bulk_moved", this._lang).replace("{n}", String(n)),
+    );
   }
 
   // ── #188: bulk select in the All-objects view ──────────────────────────
@@ -3407,6 +3435,17 @@ export class MaintenanceSupporterPanel extends LitElement {
             @click=${() => this._bulkArchive(rows)}>
             <ha-icon icon="mdi:archive-outline"></ha-icon> ${t("archive", L)}
           </ha-button>
+          <span class="bulk-more-wrapper">
+            <ha-button appearance="plain" class="bulk-more" title=${t("more_actions", L)} aria-label=${t("more_actions", L)} .disabled=${n === 0 || this._actionLoading}
+              @click=${(e: Event) => { e.stopPropagation(); this._bulkMenuOpen = !this._bulkMenuOpen; }}>
+              <ha-icon icon="mdi:dots-vertical"></ha-icon>
+            </ha-button>
+            ${this._bulkMenuOpen ? html`
+              <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
+                <div class="popup-menu-item bulk-move" @click=${() => { this._bulkMenuOpen = false; void this._bulkMove(rows); }}>${t("move_task", L)}</div>
+              </div>
+            ` : nothing}
+          </span>
         </span>
       </div>
     `;

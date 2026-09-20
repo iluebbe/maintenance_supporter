@@ -774,7 +774,8 @@ carry it so adoption can pre-link it.
 
 ### `problem_sensors/adopt` — @require_write
 `{selections:[{entity_id,name,entry_id?,object_name?,device_id?,part_id?,for_minutes?}]}` →
-`{tasks_created,objects_created,total,errors?}`. Each selection becomes a task
+(2.90: selections in one batch that share an `object_name` — case-insensitive — share ONE new
+object even across HA devices; pass `entry_id` to join an existing object) `{tasks_created,objects_created,total,errors?}`. Each selection becomes a task
 that triggers while the sensor is on and auto-completes on recovery
 (`state_change` → `on` + `auto_complete_on_recovery`). `for_minutes` (#136,
 0–1440) writes `trigger_for_minutes` on the created trigger: the problem must

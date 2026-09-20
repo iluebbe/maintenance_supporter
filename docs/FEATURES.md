@@ -333,6 +333,11 @@ lists, per integration, the problem sensors known to be adoptable — from
 Synology disk health over hOn dishwasher salt/rinse-aid to the vehicle
 warning-lamp families.
 
+Since 2.90 (#188) the dialog has an **Object** field per selected sensor,
+pre-filled with the suggestion: give several sensors the same name and they
+become one object (four sensors of one boiler → one "Boiler", whatever HA
+devices they sit on), type an existing object's name and they join it.
+
 ### Suggested Setups (2.28+, Beta)
 > **Beta**: integration discovery is new and the signature catalog grows
 > release by release. Every entry is verified against the integration's source
@@ -813,6 +818,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Honest about limits: history keeps up to **500 entries per task**; when any task hits that cap, both the section and the printed record say so, so "complete" is never silently overstated
 
 ### Data Management
+- **Move several tasks at once** (2.90+, #188) — in the task list's selection mode the bar's ⋯ menu offers *Move to another object…*: one target prompt, then every selected task moves with its history, readings and trigger state (tasks already in the target are skipped)
 - **Select mode in *All objects*** (2.89+, #188) — a *Select* button on the objects view (cards and table alike) turns every object into a checkbox; *Select all*, then *Delete* removes the chosen objects with all their tasks behind one confirm that states the count, or *Archive* parks them in one go (undoable from the toast). Operators without write access do not see it. *Duplicate* in the object menu clones an object with every task as a fresh, un-started copy named "… (copy)"
 
 ![Select mode in All objects](images/gifs/objects-bulk-select.gif)

@@ -360,6 +360,7 @@ export const panelStyles = css`
   .bulk-selectall { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; }
   .bulk-count { color: var(--secondary-text-color); font-size: 13px; }
   .bulk-actions { margin-left: auto; display: inline-flex; gap: 8px; }
+  .bulk-more-wrapper { position: relative; display: inline-flex; }
   .bulk-toggle.active { --mdc-theme-primary: var(--primary-color); }
 
   /* Collapsible analysis sections on the task-detail overview tab. The header

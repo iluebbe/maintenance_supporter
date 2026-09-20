@@ -76,6 +76,10 @@ async def ws_adopt_problem_sensors(
     Each selection attaches to its ``entry_id`` (an existing object) or, when
     omitted, to a freshly created object named ``object_name`` and bound to the
     sensor's ``device_id`` — so a second adoption on the same device reuses it.
+    Selections in the same batch that carry the same ``object_name`` share ONE
+    new object even when they belong to different devices (#188: "these four
+    sensors are one thing"); the dialog resolves an existing object's name to
+    its ``entry_id`` before sending, so the name match stays within the batch.
     """
     from ..export import object_entries
     from ..websocket.objects import async_create_object
@@ -89,6 +93,9 @@ async def ws_adopt_problem_sensors(
     # Reuse an object created earlier in THIS batch for the same device, so two
     # sensors on one device don't spawn two objects.
     device_to_entry: dict[str, str] = {}
+    # #188: ...and for the same object NAME (case-insensitive) — the way the
+    # dialog lets the user say which sensors belong together.
+    name_to_entry: dict[str, str] = {}
     errors: list[dict[str, str]] = []
 
     for sel in selections:
@@ -96,9 +103,12 @@ async def ws_adopt_problem_sensors(
         entry_id = sel.get("entry_id")
         device_id = sel.get("device_id")
         created_entry_id: str | None = None  # object created in THIS iteration
+        group_name = str(sel.get("object_name") or "").strip().casefold()
         try:
             if not entry_id and device_id and device_id in device_to_entry:
                 entry_id = device_to_entry[device_id]
+            if not entry_id and group_name and group_name in name_to_entry:
+                entry_id = name_to_entry[group_name]
             if not entry_id:
                 entry_id = await async_create_object(
                     hass,
@@ -109,6 +119,8 @@ async def ws_adopt_problem_sensors(
                 objects_created += 1
                 if device_id:
                     device_to_entry[device_id] = entry_id
+                if group_name:
+                    name_to_entry[group_name] = entry_id
 
             entry = hass.config_entries.async_get_entry(entry_id)
             # Same guard as websocket._load_object_entry: the global settings
@@ -174,6 +186,8 @@ async def ws_adopt_problem_sensors(
                 objects_created -= 1
                 if device_id:
                     device_to_entry.pop(device_id, None)
+                if group_name:
+                    name_to_entry.pop(group_name, None)
                 if hass.config_entries.async_get_entry(created_entry_id) is not None:
                     await hass.config_entries.async_remove(created_entry_id)
 
