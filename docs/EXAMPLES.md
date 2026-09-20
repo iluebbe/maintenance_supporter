@@ -24,7 +24,7 @@ Use a **state change trigger** monitoring a binary sensor that tracks wash cycle
 
 ### Waste Collection — Once per Calendar Event (2.89+)
 
-Point a task at the calendar your waste-collection integration (or an ICS subscription) exposes: schedule type **Calendar entity**, pick `calendar.waste_collection`, optionally an offset of −1 day for "the evening before". The task comes due on each pickup date and, once completed, moves to the **next** pickup — it never re-fires for the collection you just handled, which is exactly what a state trigger on the calendar's sensor could not do. The same pattern fits street-sweeping calendars, chimney-sweep appointments, or a shared family calendar with "change the pool filter" entries.
+Point a task at the calendar your waste-collection integration (or an ICS subscription) exposes — or, for a handful of dates you know in advance, create a *Local Calendar* (Settings → Integrations → Add → Local Calendar) and type them in: schedule type **Calendar entity**, pick `calendar.waste_collection`, optionally an offset of −1 day for "the evening before". The task comes due on each pickup date and, once completed, moves to the **next** pickup — it never re-fires for the collection you just handled, which is exactly what a state trigger on the calendar's sensor could not do. The same pattern fits street-sweeping calendars, chimney-sweep appointments, or a shared family calendar with "change the pool filter" entries.
 
 ![Task dialog: a calendar entity as the schedule](images/task-dialog-calendar.png)
 
