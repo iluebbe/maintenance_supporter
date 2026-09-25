@@ -145,10 +145,20 @@ def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
         from ..helpers.battery_lifetime import lifetime_catalog
 
         names: dict[str, str] = {}
-        dev_reg = dr.async_get(hass)
+        # HA 2026.9 deprecates mapping-style access on DeviceRegistry.devices
+        # (.values() raises a deprecation error there — caught below, which
+        # silently emptied this whole catalog) and iterates ENTRIES; 2026.8 and
+        # older iterate ids and need .values(). Probe the collection itself,
+        # same as repairs.py.
+        registry_devices = dr.async_get(hass).devices
+        all_devices: list[Any] = list(
+            cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
+        )
         for bat in read_batteries(hass):
             if bat.model_key and bat.model_key not in names:
-                for device in dev_reg.devices.values():
+                for device in all_devices:
+                    if getattr(device, "parent_device_id", None) is not None:
+                        continue  # 2026.9 sub-device: never the appliance, and its make/model reads are deprecated
                     manufacturer = str(getattr(device, "manufacturer", None) or "")
                     model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "")
                     key = f"{manufacturer.strip().lower()}|{model.strip().lower()}"
