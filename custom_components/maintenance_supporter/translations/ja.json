@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "「{task_name}」は期限に近づいてからのみ完了できます"
+    },
+    "person_not_found": {
+      "message": "{entity_id} は既知の人物エンティティではありません。"
+    },
+    "person_without_user": {
+      "message": "人物 {name} は Home Assistant のユーザーアカウントに紐づいていません。"
+    },
+    "bulk_partial": {
+      "message": "{action}：{total} 件中 {done} 件のタスクが成功しました。拒否：{errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} は単一の entity_id でのみ使用できます。"
+    },
+    "unsafe_url": {
+      "message": "http と https の URL のみ使用できます。"
+    },
+    "responsible_user_conflict": {
+      "message": "responsible_user と clear_responsible_user のどちらか一方だけを指定してください。"
+    },
+    "object_not_found": {
+      "message": "entry_id {entry_id} のメンテナンスオブジェクトが見つかりません。"
+    },
+    "task_not_found_in_object": {
+      "message": "{object_name} にタスク {task_id} は存在しません。"
+    },
+    "invalid_input": {
+      "message": "アクションを実行できませんでした：{error}"
+    },
+    "task_no_longer_exists": {
+      "message": "このメンテナンスタスクはもう存在しません。"
+    },
+    "skip_disabled": {
+      "message": "「{task_name}」はスキップが無効になっています。"
     }
   },
   "triggers": {

@@ -20,6 +20,7 @@ from .const import (
     CONF_OBJECT,
     CONF_TASK_ENABLED,
     CONF_TASKS,
+    DOMAIN,
     GLOBAL_UNIQUE_ID,
     slugify_object_name,
     task_unique_id,
@@ -115,7 +116,7 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Run the action via the shared coordinator method (single source)."""
         if not self._task_data:
-            raise HomeAssistantError(f"Task {self._task_id} no longer exists")
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="task_no_longer_exists")
         if self._action == "complete":
             await self.coordinator.complete_maintenance(
                 self._task_id,

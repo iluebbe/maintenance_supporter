@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "“{task_name}”은(는) 마감일에 가까워져야 완료할 수 있습니다"
+    },
+    "person_not_found": {
+      "message": "{entity_id}은(는) 알려진 사람 엔티티가 아닙니다."
+    },
+    "person_without_user": {
+      "message": "사람 {name}은(는) Home Assistant 사용자 계정에 연결되어 있지 않습니다."
+    },
+    "bulk_partial": {
+      "message": "{action}: 작업 {total}개 중 {done}개 성공. 거부됨: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field}은(는) 단일 entity_id에서만 사용할 수 있습니다."
+    },
+    "unsafe_url": {
+      "message": "http 및 https URL만 허용됩니다."
+    },
+    "responsible_user_conflict": {
+      "message": "responsible_user 또는 clear_responsible_user 중 하나만 지정하세요."
+    },
+    "object_not_found": {
+      "message": "entry_id {entry_id}에 대한 유지보수 개체를 찾을 수 없습니다."
+    },
+    "task_not_found_in_object": {
+      "message": "{object_name}에 작업 {task_id}이(가) 없습니다."
+    },
+    "invalid_input": {
+      "message": "작업을 수행할 수 없습니다: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "이 유지보수 작업은 더 이상 존재하지 않습니다."
+    },
+    "skip_disabled": {
+      "message": "“{task_name}”은(는) 건너뛰기가 비활성화되어 있습니다."
     }
   },
   "triggers": {

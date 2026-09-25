@@ -120,7 +120,8 @@ async def ws_adopt_integration_setups(
             # entry is NOT a valid adoption target — async_persist_task writes
             # CONF_TASKS + CONF_OBJECT["task_ids"] into whatever entry it is
             # handed, so a client-supplied global entry_id would corrupt it.
-            if not is_object_entry(entry):
+            # (is_object_entry() rejects None too; the explicit test narrows the type.)
+            if entry is None or not is_object_entry(entry):
                 errors.append({"device_id": device_id, "reason": "target object not found"})
                 continue
 

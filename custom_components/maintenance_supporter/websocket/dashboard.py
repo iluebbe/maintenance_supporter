@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import math
 from collections.abc import Callable, Mapping
-from typing import Any
+from typing import Any, cast
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
@@ -113,7 +113,10 @@ _LOGGER = logging.getLogger(__name__)
 # Keys accepted by global/update + their range/cap tables are derived from the
 # single settings registry (helpers/settings_registry) so they can't drift from
 # each other or from the options-flow selectors that share the same specs.
-_ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
+# Every value is a SettingSpec.py_type — a plain class, the isinstance()
+# target below; the registry's ``type | vol.Any`` value annotation is wider
+# than what it actually holds.
+_ALLOWED_SETTING_KEYS = cast(dict[str, type], ALLOWED_SETTING_KEYS)
 
 
 def _opt(options: Mapping[str, Any], key: str) -> Any:

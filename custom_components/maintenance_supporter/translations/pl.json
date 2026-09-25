@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "„{task_name}” można ukończyć dopiero bliżej terminu"
+    },
+    "person_not_found": {
+      "message": "{entity_id} nie jest znaną encją osoby."
+    },
+    "person_without_user": {
+      "message": "Osoba {name} nie jest powiązana z żadnym kontem użytkownika Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: powiodło się {done} z {total} zadań. Odrzucone: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} można użyć tylko z pojedynczym entity_id."
+    },
+    "unsafe_url": {
+      "message": "Dozwolone są tylko adresy URL http i https."
+    },
+    "responsible_user_conflict": {
+      "message": "Podaj responsible_user albo clear_responsible_user, nie oba naraz."
+    },
+    "object_not_found": {
+      "message": "Nie znaleziono obiektu konserwacji dla entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "Zadanie {task_id} nie istnieje w {object_name}."
+    },
+    "invalid_input": {
+      "message": "Nie udało się wykonać akcji: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "To zadanie konserwacji już nie istnieje."
+    },
+    "skip_disabled": {
+      "message": "Pomijanie jest wyłączone dla „{task_name}”."
     }
   },
   "triggers": {

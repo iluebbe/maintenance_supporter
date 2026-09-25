@@ -18,7 +18,7 @@
   "integration_type": "hub",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/iluebbe/maintenance_supporter/issues",
-  "quality_scale": "silver",
+  "quality_scale": "platinum",
   "requirements": [
     "pypdf>=4.3.0"
   ],

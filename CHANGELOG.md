@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Changed
+
+- **Error messages of the actions are translated** (quality scale *exception-translations*): the errors the
+  `maintenance_supporter.*` actions and the task buttons raise — unknown person, person without a user account,
+  a field that only works for one task, a partly refused bulk action, an unknown object or task, a disallowed URL,
+  the skip lock, invalid input — now come in all 22 languages instead of English only. A tripwire test keeps every
+  new error translatable.
+- **The *Document storage* sensor is a diagnostic entity** now — it describes the integration itself, not your
+  maintenance. It moves to the *Diagnostic* section of the Maintenance Supporter device and no longer appears on
+  automatically generated dashboards; cards that use it keep working.
+- **Quality scale: self-assessed Platinum.** The per-rule assessment (`quality_scale.yaml`) was brought up to date —
+  it still claimed no runtime dependencies, 18 languages and 2,400 tests — and the last open Gold rule is done.
+  The WebSocket package now passes `mypy --strict` like the rest of the component (it was excluded before).
+
 ## [2.91.0] - 2026-09-25
 
 ### ✨ Added

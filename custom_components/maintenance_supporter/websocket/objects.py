@@ -207,7 +207,7 @@ async def async_create_object(
     own validation/error reporting (the WS layer keeps its specific error
     codes). Raises ValueError if the config flow does not create an entry.
     """
-    data = {
+    data: dict[str, Any] = {
         CONF_OBJECT: {
             "id": uuid4().hex,
             CONF_OBJECT_NAME: name.strip(),

@@ -1540,7 +1540,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # every surface funnels through (WS, voice, vacation preview).
         if merged[task_id].get("allow_skip") is False:
             raise ServiceValidationError(
-                f"Skipping is disabled for task {merged[task_id].get('name', task_id)!r}"
+                translation_domain=DOMAIN,
+                translation_key="skip_disabled",
+                translation_placeholders={"task_name": str(merged[task_id].get("name", task_id))},
             )
 
         # Same gate as complete_maintenance: a retired / disabled / paused

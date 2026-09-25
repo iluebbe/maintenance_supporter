@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "“{task_name}” को नियत तिथि के करीब ही पूरा किया जा सकता है"
+    },
+    "person_not_found": {
+      "message": "{entity_id} कोई ज्ञात व्यक्ति एंटिटी नहीं है।"
+    },
+    "person_without_user": {
+      "message": "व्यक्ति {name} किसी Home Assistant उपयोगकर्ता खाते से जुड़ा नहीं है।"
+    },
+    "bulk_partial": {
+      "message": "{action}: {total} में से {done} कार्य सफल। अस्वीकृत: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} का उपयोग केवल एक entity_id के साथ किया जा सकता है।"
+    },
+    "unsafe_url": {
+      "message": "केवल http और https URL की अनुमति है।"
+    },
+    "responsible_user_conflict": {
+      "message": "responsible_user या clear_responsible_user में से कोई एक दें, दोनों नहीं।"
+    },
+    "object_not_found": {
+      "message": "entry_id {entry_id} के लिए कोई रखरखाव ऑब्जेक्ट नहीं मिला।"
+    },
+    "task_not_found_in_object": {
+      "message": "{object_name} में कार्य {task_id} मौजूद नहीं है।"
+    },
+    "invalid_input": {
+      "message": "कार्रवाई पूरी नहीं की जा सकी: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "यह रखरखाव कार्य अब मौजूद नहीं है।"
+    },
+    "skip_disabled": {
+      "message": "“{task_name}” के लिए छोड़ना बंद है।"
     }
   },
   "triggers": {

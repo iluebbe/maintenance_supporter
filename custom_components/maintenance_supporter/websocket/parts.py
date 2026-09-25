@@ -7,6 +7,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.typing import VolDictType
 
 from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, MAX_ID_LENGTH
 from ..helpers.aggregate import get_store, object_name
@@ -31,7 +32,7 @@ def _persist_parts(hass: HomeAssistant, entry: Any, parts: dict[str, dict[str, A
     hass.config_entries.async_update_entry(entry, data=new_data)
 
 
-_PART_FIELDS_SCHEMA = {
+_PART_FIELDS_SCHEMA: VolDictType = {
     vol.Required("name"): str,
     vol.Optional("mpn"): vol.Any(str, None),
     vol.Optional("gtin"): vol.Any(str, None),
@@ -145,7 +146,8 @@ async def ws_update_part(
     connection.send_result(msg["id"], {"success": True})
 
 
-_PART_FIELD_KEYS = {k.schema for k in _PART_FIELDS_SCHEMA if str(k.schema) != "stock"}
+# str() of a voluptuous marker is its key name (Marker.__str__ -> str(schema)).
+_PART_FIELD_KEYS = {str(k) for k in _PART_FIELDS_SCHEMA if str(k) != "stock"}
 
 
 @websocket_api.websocket_command(

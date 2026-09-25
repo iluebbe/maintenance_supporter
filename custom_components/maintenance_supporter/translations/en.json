@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "“{task_name}” can only be completed closer to its due date"
+    },
+    "person_not_found": {
+      "message": "{entity_id} is not a known person entity."
+    },
+    "person_without_user": {
+      "message": "Person {name} is not linked to a Home Assistant user account."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} of {total} tasks succeeded. Refused: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} can only be used with a single entity_id."
+    },
+    "unsafe_url": {
+      "message": "Only http and https URLs are allowed."
+    },
+    "responsible_user_conflict": {
+      "message": "Provide either responsible_user or clear_responsible_user, not both."
+    },
+    "object_not_found": {
+      "message": "No maintenance object found for entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "Task {task_id} does not exist in {object_name}."
+    },
+    "invalid_input": {
+      "message": "The action could not be carried out: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "This maintenance task no longer exists."
+    },
+    "skip_disabled": {
+      "message": "Skipping is disabled for “{task_name}”."
     }
   },
   "triggers": {

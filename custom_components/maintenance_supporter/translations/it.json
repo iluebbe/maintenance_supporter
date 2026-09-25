@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "«{task_name}» può essere completata solo più vicino alla scadenza"
+    },
+    "person_not_found": {
+      "message": "{entity_id} non è un'entità persona conosciuta."
+    },
+    "person_without_user": {
+      "message": "La persona {name} non è collegata a un account utente di Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} attività su {total} riuscite. Rifiutate: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} può essere usato solo con un singolo entity_id."
+    },
+    "unsafe_url": {
+      "message": "Sono consentiti solo URL http e https."
+    },
+    "responsible_user_conflict": {
+      "message": "Specifica responsible_user oppure clear_responsible_user, non entrambi."
+    },
+    "object_not_found": {
+      "message": "Nessun oggetto di manutenzione trovato per entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "L'attività {task_id} non esiste in {object_name}."
+    },
+    "invalid_input": {
+      "message": "Non è stato possibile eseguire l'azione: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Questa attività di manutenzione non esiste più."
+    },
+    "skip_disabled": {
+      "message": "Il salto è disattivato per «{task_name}»."
     }
   },
   "triggers": {

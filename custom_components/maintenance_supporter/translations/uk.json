@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "«{task_name}» можна завершити лише ближче до терміну"
+    },
+    "person_not_found": {
+      "message": "{entity_id} не є відомою сутністю особи."
+    },
+    "person_without_user": {
+      "message": "Особа {name} не пов'язана з обліковим записом користувача Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: успішно {done} з {total} завдань. Відхилено: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} можна використовувати лише з одним entity_id."
+    },
+    "unsafe_url": {
+      "message": "Дозволено лише URL-адреси http і https."
+    },
+    "responsible_user_conflict": {
+      "message": "Вкажіть або responsible_user, або clear_responsible_user, але не обидва."
+    },
+    "object_not_found": {
+      "message": "Об'єкт обслуговування для entry_id {entry_id} не знайдено."
+    },
+    "task_not_found_in_object": {
+      "message": "Завдання {task_id} немає в {object_name}."
+    },
+    "invalid_input": {
+      "message": "Не вдалося виконати дію: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Цього завдання обслуговування більше не існує."
+    },
+    "skip_disabled": {
+      "message": "Пропуск вимкнено для «{task_name}»."
     }
   },
   "triggers": {

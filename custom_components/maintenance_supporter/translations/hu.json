@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "„{task_name}” csak a határidőhöz közelebb fejezhető be"
+    },
+    "person_not_found": {
+      "message": "A(z) {entity_id} nem ismert személy entitás."
+    },
+    "person_without_user": {
+      "message": "{name} személy nincs Home Assistant-felhasználói fiókhoz kapcsolva."
+    },
+    "bulk_partial": {
+      "message": "{action}: {total} feladatból {done} sikerült. Elutasítva: {errors}"
+    },
+    "single_entity_only": {
+      "message": "A(z) {field} csak egyetlen entity_id-vel használható."
+    },
+    "unsafe_url": {
+      "message": "Csak http és https URL-ek engedélyezettek."
+    },
+    "responsible_user_conflict": {
+      "message": "Vagy a responsible_user, vagy a clear_responsible_user értéket adja meg, ne mindkettőt."
+    },
+    "object_not_found": {
+      "message": "Nem található karbantartási objektum a(z) {entry_id} entry_id-hez."
+    },
+    "task_not_found_in_object": {
+      "message": "A(z) {task_id} feladat nem létezik ebben: {object_name}."
+    },
+    "invalid_input": {
+      "message": "A művelet nem hajtható végre: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Ez a karbantartási feladat már nem létezik."
+    },
+    "skip_disabled": {
+      "message": "A kihagyás le van tiltva ennél: „{task_name}”."
     }
   },
   "triggers": {

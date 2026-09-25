@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "«{task_name}» можно завершить только ближе к сроку"
+    },
+    "person_not_found": {
+      "message": "{entity_id} не является известной сущностью человека."
+    },
+    "person_without_user": {
+      "message": "Человек {name} не привязан к учётной записи пользователя Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: успешно {done} из {total} задач. Отклонено: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} можно использовать только с одним entity_id."
+    },
+    "unsafe_url": {
+      "message": "Разрешены только URL-адреса http и https."
+    },
+    "responsible_user_conflict": {
+      "message": "Укажите либо responsible_user, либо clear_responsible_user, но не оба."
+    },
+    "object_not_found": {
+      "message": "Объект обслуживания для entry_id {entry_id} не найден."
+    },
+    "task_not_found_in_object": {
+      "message": "Задачи {task_id} нет в {object_name}."
+    },
+    "invalid_input": {
+      "message": "Не удалось выполнить действие: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Эта задача обслуживания больше не существует."
+    },
+    "skip_disabled": {
+      "message": "Пропуск отключён для «{task_name}»."
     }
   },
   "triggers": {

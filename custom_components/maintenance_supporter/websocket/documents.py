@@ -401,9 +401,10 @@ async def ws_search(
     history: list[dict[str, Any]] = []
     for entry in _get_object_entries(hass):
         oname = object_name(entry)
-        obj_ref = (entry.data.get(CONF_OBJECT) or {}).get("ref_no")
+        # Not ``obj_ref``: that name is the parsed int of the reference branch above.
+        object_ref = (entry.data.get(CONF_OBJECT) or {}).get("ref_no")
         for tid, td in merged_tasks(entry).items():
-            td = {**td, "_object_ref": obj_ref}
+            td = {**td, "_object_ref": object_ref}
             for h in td.get("history") or []:
                 notes = h.get("notes") if isinstance(h, dict) else None
                 if not isinstance(notes, str) or not notes.strip():

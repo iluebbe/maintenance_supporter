@@ -85,13 +85,15 @@ async def async_create_task_simple(
     reachable directly from Python, so the caps can't live only in the schema.
     """
     entry = hass.config_entries.async_get_entry(entry_id)
-    if not is_object_entry(entry):
+    # is_object_entry() rejects None as well; the explicit test narrows the type.
+    if entry is None or not is_object_entry(entry):
         raise ValueError(f"No maintenance object found for entry_id {entry_id!r}")
     name = (name or "").strip()
     if not name:
         raise ValueError("Name must not be empty")
+    task_id = uuid4().hex
     task_data: dict[str, Any] = {
-        "id": uuid4().hex,
+        "id": task_id,
         "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
         "name": name,
         "type": task_type,
@@ -117,7 +119,7 @@ async def async_create_task_simple(
     # interval_days/warning_days is what the schedule model sees.
     cap_task_fields(task_data)
     await async_persist_task(hass, entry, task_data)
-    return task_data["id"]
+    return task_id
 
 
 _UPDATABLE_FLAT_FIELDS = (
@@ -157,7 +159,8 @@ async def async_update_task_simple(
     Raises ValueError for an unknown entry/task or an empty name.
     """
     entry = hass.config_entries.async_get_entry(entry_id)
-    if not is_object_entry(entry):
+    # is_object_entry() rejects None as well; the explicit test narrows the type.
+    if entry is None or not is_object_entry(entry):
         raise ValueError(f"No maintenance object found for entry_id {entry_id!r}")
 
     new_data = dict(entry.data)

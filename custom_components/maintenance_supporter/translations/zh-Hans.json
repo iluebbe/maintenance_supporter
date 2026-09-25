@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "“{task_name}”只能在接近到期日时完成"
+    },
+    "person_not_found": {
+      "message": "{entity_id} 不是已知的人员实体。"
+    },
+    "person_without_user": {
+      "message": "人员 {name} 未关联任何 Home Assistant 用户账户。"
+    },
+    "bulk_partial": {
+      "message": "{action}：{total} 个任务中成功 {done} 个。被拒绝：{errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} 只能与单个 entity_id 一起使用。"
+    },
+    "unsafe_url": {
+      "message": "只允许 http 和 https 网址。"
+    },
+    "responsible_user_conflict": {
+      "message": "请提供 responsible_user 或 clear_responsible_user 之一，不能同时提供。"
+    },
+    "object_not_found": {
+      "message": "找不到 entry_id {entry_id} 对应的维护对象。"
+    },
+    "task_not_found_in_object": {
+      "message": "{object_name} 中不存在任务 {task_id}。"
+    },
+    "invalid_input": {
+      "message": "无法执行该操作：{error}"
+    },
+    "task_no_longer_exists": {
+      "message": "此维护任务已不存在。"
+    },
+    "skip_disabled": {
+      "message": "“{task_name}”已禁止跳过。"
     }
   },
   "triggers": {

@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfInformation, UnitOfTime
+from homeassistant.const import EntityCategory, UnitOfInformation, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -921,6 +921,9 @@ class DocumentStorageSensor(SensorEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "document_storage"
+    # Quality scale entity-category: storage footprint is system information
+    # about the integration itself, not maintenance data.
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = SensorDeviceClass.DATA_SIZE
     _attr_native_unit_of_measurement = UnitOfInformation.BYTES
     _attr_state_class = SensorStateClass.MEASUREMENT

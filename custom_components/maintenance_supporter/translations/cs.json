@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "„{task_name}“ lze dokončit až blíže k termínu"
+    },
+    "person_not_found": {
+      "message": "{entity_id} není známá entita osoby."
+    },
+    "person_without_user": {
+      "message": "Osoba {name} není propojena s žádným uživatelským účtem Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: úspěšně {done} z {total} úkolů. Odmítnuto: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} lze použít jen s jedním entity_id."
+    },
+    "unsafe_url": {
+      "message": "Povoleny jsou pouze adresy URL http a https."
+    },
+    "responsible_user_conflict": {
+      "message": "Zadejte buď responsible_user, nebo clear_responsible_user, ne obojí."
+    },
+    "object_not_found": {
+      "message": "Pro entry_id {entry_id} nebyl nalezen žádný objekt údržby."
+    },
+    "task_not_found_in_object": {
+      "message": "Úkol {task_id} v {object_name} neexistuje."
+    },
+    "invalid_input": {
+      "message": "Akci se nepodařilo provést: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Tento úkol údržby již neexistuje."
+    },
+    "skip_disabled": {
+      "message": "Přeskočení je pro „{task_name}“ vypnuto."
     }
   },
   "triggers": {

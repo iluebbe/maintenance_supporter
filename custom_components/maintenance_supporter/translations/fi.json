@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "”{task_name}” voidaan suorittaa vasta lähempänä eräpäivää"
+    },
+    "person_not_found": {
+      "message": "{entity_id} ei ole tunnettu henkilöentiteetti."
+    },
+    "person_without_user": {
+      "message": "Henkilöä {name} ei ole yhdistetty Home Assistant -käyttäjätiliin."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done}/{total} tehtävää onnistui. Hylätty: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} voidaan käyttää vain yhden entity_id:n kanssa."
+    },
+    "unsafe_url": {
+      "message": "Vain http- ja https-osoitteet ovat sallittuja."
+    },
+    "responsible_user_conflict": {
+      "message": "Anna joko responsible_user tai clear_responsible_user, ei molempia."
+    },
+    "object_not_found": {
+      "message": "entry_id:lle {entry_id} ei löytynyt huoltokohdetta."
+    },
+    "task_not_found_in_object": {
+      "message": "Tehtävää {task_id} ei ole kohteessa {object_name}."
+    },
+    "invalid_input": {
+      "message": "Toimintoa ei voitu suorittaa: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Tätä huoltotehtävää ei ole enää olemassa."
+    },
+    "skip_disabled": {
+      "message": "Ohittaminen on poistettu käytöstä tehtävältä ”{task_name}”."
     }
   },
   "triggers": {

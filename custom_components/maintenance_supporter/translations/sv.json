@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "”{task_name}” kan bara slutföras närmare förfallodatumet"
+    },
+    "person_not_found": {
+      "message": "{entity_id} är ingen känd personentitet."
+    },
+    "person_without_user": {
+      "message": "Personen {name} är inte kopplad till något användarkonto i Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} av {total} uppgifter lyckades. Nekade: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} kan bara användas med ett enda entity_id."
+    },
+    "unsafe_url": {
+      "message": "Endast http- och https-adresser är tillåtna."
+    },
+    "responsible_user_conflict": {
+      "message": "Ange antingen responsible_user eller clear_responsible_user, inte båda."
+    },
+    "object_not_found": {
+      "message": "Inget underhållsobjekt hittades för entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "Uppgiften {task_id} finns inte i {object_name}."
+    },
+    "invalid_input": {
+      "message": "Åtgärden kunde inte utföras: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Den här underhållsuppgiften finns inte längre."
+    },
+    "skip_disabled": {
+      "message": "Att hoppa över är avstängt för ”{task_name}”."
     }
   },
   "triggers": {

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import UnitOfInformation
+from homeassistant.const import EntityCategory, UnitOfInformation
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -50,6 +50,8 @@ async def test_sensor_metadata_and_value(hass: HomeAssistant) -> None:
     assert sensor.unique_id == "maintenance_supporter_global_document_storage"
     assert sensor.device_class == SensorDeviceClass.DATA_SIZE
     assert sensor.native_unit_of_measurement == UnitOfInformation.BYTES
+    # Quality scale entity-category: integration self-information → diagnostic.
+    assert sensor.entity_category == EntityCategory.DIAGNOSTIC
     assert sensor.native_value == 13  # 10 + 3 (the shared 10-byte blob counts once)
 
     attrs = sensor.extra_state_attributes

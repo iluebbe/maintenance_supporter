@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "„{task_name}“ kann erst näher am Fälligkeitsdatum erledigt werden"
+    },
+    "person_not_found": {
+      "message": "{entity_id} ist keine bekannte Personen-Entität."
+    },
+    "person_without_user": {
+      "message": "Die Person {name} ist mit keinem Home-Assistant-Benutzerkonto verknüpft."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} von {total} Aufgaben erfolgreich. Abgelehnt: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} kann nur mit einer einzelnen entity_id verwendet werden."
+    },
+    "unsafe_url": {
+      "message": "Nur http- und https-URLs sind erlaubt."
+    },
+    "responsible_user_conflict": {
+      "message": "Gib entweder responsible_user oder clear_responsible_user an, nicht beides."
+    },
+    "object_not_found": {
+      "message": "Kein Wartungsobjekt für entry_id {entry_id} gefunden."
+    },
+    "task_not_found_in_object": {
+      "message": "Die Aufgabe {task_id} gibt es in {object_name} nicht."
+    },
+    "invalid_input": {
+      "message": "Die Aktion konnte nicht ausgeführt werden: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Diese Wartungsaufgabe existiert nicht mehr."
+    },
+    "skip_disabled": {
+      "message": "Überspringen ist für „{task_name}“ deaktiviert."
     }
   },
   "triggers": {

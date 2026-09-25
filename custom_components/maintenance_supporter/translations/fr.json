@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "« {task_name} » ne peut être terminée que plus près de son échéance"
+    },
+    "person_not_found": {
+      "message": "{entity_id} n'est pas une entité personne connue."
+    },
+    "person_without_user": {
+      "message": "La personne {name} n'est liée à aucun compte utilisateur Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action} : {done} tâches sur {total} réussies. Refusées : {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} ne peut être utilisé qu'avec un seul entity_id."
+    },
+    "unsafe_url": {
+      "message": "Seules les URL http et https sont autorisées."
+    },
+    "responsible_user_conflict": {
+      "message": "Indiquez soit responsible_user, soit clear_responsible_user, mais pas les deux."
+    },
+    "object_not_found": {
+      "message": "Aucun objet de maintenance trouvé pour l'entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "La tâche {task_id} n'existe pas dans {object_name}."
+    },
+    "invalid_input": {
+      "message": "L'action n'a pas pu être exécutée : {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Cette tâche de maintenance n'existe plus."
+    },
+    "skip_disabled": {
+      "message": "Le saut est désactivé pour « {task_name} »."
     }
   },
   "triggers": {

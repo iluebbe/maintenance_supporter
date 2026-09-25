@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "“{task_name}” yalnızca son tarihine yakın tamamlanabilir"
+    },
+    "person_not_found": {
+      "message": "{entity_id} bilinen bir kişi varlığı değil."
+    },
+    "person_without_user": {
+      "message": "{name} kişisi bir Home Assistant kullanıcı hesabına bağlı değil."
+    },
+    "bulk_partial": {
+      "message": "{action}: {total} görevden {done} tanesi başarılı. Reddedilen: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} yalnızca tek bir entity_id ile kullanılabilir."
+    },
+    "unsafe_url": {
+      "message": "Yalnızca http ve https URL'lerine izin verilir."
+    },
+    "responsible_user_conflict": {
+      "message": "responsible_user veya clear_responsible_user'dan yalnızca birini belirtin, ikisini birden değil."
+    },
+    "object_not_found": {
+      "message": "{entry_id} entry_id'si için bakım nesnesi bulunamadı."
+    },
+    "task_not_found_in_object": {
+      "message": "{task_id} görevi {object_name} içinde yok."
+    },
+    "invalid_input": {
+      "message": "İşlem gerçekleştirilemedi: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Bu bakım görevi artık mevcut değil."
+    },
+    "skip_disabled": {
+      "message": "“{task_name}” için atlama devre dışı."
     }
   },
   "triggers": {

@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "”{task_name}” kan først fuldføres tættere på forfaldsdatoen"
+    },
+    "person_not_found": {
+      "message": "{entity_id} er ikke en kendt personentitet."
+    },
+    "person_without_user": {
+      "message": "Personen {name} er ikke knyttet til en Home Assistant-brugerkonto."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} af {total} opgaver lykkedes. Afvist: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} kan kun bruges med ét entity_id."
+    },
+    "unsafe_url": {
+      "message": "Kun http- og https-adresser er tilladt."
+    },
+    "responsible_user_conflict": {
+      "message": "Angiv enten responsible_user eller clear_responsible_user, ikke begge."
+    },
+    "object_not_found": {
+      "message": "Intet vedligeholdelsesobjekt fundet for entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "Opgaven {task_id} findes ikke i {object_name}."
+    },
+    "invalid_input": {
+      "message": "Handlingen kunne ikke udføres: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Denne vedligeholdelsesopgave findes ikke længere."
+    },
+    "skip_disabled": {
+      "message": "Spring over er slået fra for ”{task_name}”."
     }
   },
   "triggers": {

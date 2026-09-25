@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Callable
 from datetime import date
-from typing import Any
+from typing import Any, Final
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
@@ -32,13 +33,17 @@ _LOGGER = logging.getLogger(__name__)
 #: The schema validator for every id-shaped command field (entry_id, task_id,
 #: doc_id, part_id, …): a capped string. ``task/move`` shipped with bare
 #: ``str`` for its three ids — tests/test_ws_schema_caps.py refuses that.
-ID_FIELD = vol.All(str, vol.Length(max=MAX_ID_LENGTH))
+#:
+#: The three shared fields carry explicit annotations: the handler submodules
+#: import them from this package while it imports the submodules back (an
+#: import cycle), and mypy cannot infer a type across that cycle.
+ID_FIELD: Final[vol.All] = vol.All(str, vol.Length(max=MAX_ID_LENGTH))
 
 #: ``{slot_id: value | None}`` for a task with reading slots (#161 phase 2) —
 #: the live completion records it, the history edit replaces the snapshot.
 #: Wide numeric bounds: meters count high, temperatures go negative. Slot ids
 #: are checked against the task in the handler (unknown -> invalid_input).
-READING_VALUES_FIELD = vol.Any(
+READING_VALUES_FIELD: Final[vol.Any] = vol.Any(
     {str: vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None)},
     None,
 )
@@ -51,7 +56,7 @@ READING_VALUES_FIELD = vol.Any(
 #: and the history edit's stock delta already read a missing quantity as 1
 #: (parts_runtime.async_apply_history_parts_edit). One shape, one cap — the
 #: edit path must not accept what completion refuses.
-USED_PARTS_FIELD = vol.Any(
+USED_PARTS_FIELD: Final[vol.Any] = vol.Any(
     vol.All(
         [
             vol.Schema(
@@ -913,7 +918,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_compact_reference_numbers)
 
 
-def foreign_part_resolver(hass):
+def foreign_part_resolver(hass: HomeAssistant) -> Callable[[str], set[str] | None]:
     """Callback for ``sanitize_consumes_parts``: which parts an entry owns.
 
     Returns None for an entry that does not exist or is not a maintenance
@@ -921,9 +926,10 @@ def foreign_part_resolver(hass):
     """
     from ..const import CONF_PARTS
 
-    def _resolve(entry_id: str):
+    def _resolve(entry_id: str) -> set[str] | None:
         entry = hass.config_entries.async_get_entry(entry_id)
-        if not is_object_entry(entry):
+        # is_object_entry() rejects None too; the explicit test narrows the type.
+        if entry is None or not is_object_entry(entry):
             return None
         return set(entry.data.get(CONF_PARTS) or {})
 

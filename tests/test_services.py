@@ -450,7 +450,7 @@ async def test_complete_service_multi_partial_refusal(
     tasks["multi_t2"] = {**tasks["multi_t2"], "require_tag_scan": True}
     hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
 
-    with pytest.raises(ServiceValidationError, match="1 of 2 succeeded"):
+    with pytest.raises(ServiceValidationError, match="1 of 2 tasks succeeded"):
         await hass.services.async_call(
             DOMAIN,
             SERVICE_COMPLETE,
@@ -478,7 +478,7 @@ async def test_skip_service_multi_respects_skip_lock(
     tasks["multi_t2"] = {**tasks["multi_t2"], "allow_skip": False}
     hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
 
-    with pytest.raises(ServiceValidationError, match="1 of 2 succeeded"):
+    with pytest.raises(ServiceValidationError, match="1 of 2 tasks succeeded"):
         await hass.services.async_call(
             DOMAIN,
             SERVICE_SKIP,
@@ -536,7 +536,7 @@ async def test_complete_service_multi_survives_a_foreign_entity(
         "sensor", "other_domain", "foreign_unique", config_entry=foreign
     ).entity_id
 
-    with pytest.raises(ServiceValidationError, match="1 of 2 succeeded"):
+    with pytest.raises(ServiceValidationError, match="1 of 2 tasks succeeded"):
         await hass.services.async_call(
             DOMAIN,
             SERVICE_COMPLETE,

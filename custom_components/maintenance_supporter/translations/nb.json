@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "«{task_name}» kan bare fullføres nærmere forfallsdatoen"
+    },
+    "person_not_found": {
+      "message": "{entity_id} er ikke en kjent personentitet."
+    },
+    "person_without_user": {
+      "message": "Personen {name} er ikke koblet til en Home Assistant-brukerkonto."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} av {total} oppgaver lyktes. Avvist: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} kan bare brukes med én entity_id."
+    },
+    "unsafe_url": {
+      "message": "Bare http- og https-adresser er tillatt."
+    },
+    "responsible_user_conflict": {
+      "message": "Oppgi enten responsible_user eller clear_responsible_user, ikke begge."
+    },
+    "object_not_found": {
+      "message": "Fant ikke noe vedlikeholdsobjekt for entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "Oppgaven {task_id} finnes ikke i {object_name}."
+    },
+    "invalid_input": {
+      "message": "Handlingen kunne ikke utføres: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Denne vedlikeholdsoppgaven finnes ikke lenger."
+    },
+    "skip_disabled": {
+      "message": "Hopp over er slått av for «{task_name}»."
     }
   },
   "triggers": {

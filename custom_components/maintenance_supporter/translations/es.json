@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "«{task_name}» solo puede completarse más cerca de su fecha de vencimiento"
+    },
+    "person_not_found": {
+      "message": "{entity_id} no es una entidad de persona conocida."
+    },
+    "person_without_user": {
+      "message": "La persona {name} no está vinculada a ninguna cuenta de usuario de Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} de {total} tareas completadas. Rechazadas: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} solo puede usarse con un único entity_id."
+    },
+    "unsafe_url": {
+      "message": "Solo se permiten URL http y https."
+    },
+    "responsible_user_conflict": {
+      "message": "Indica responsible_user o clear_responsible_user, no ambos."
+    },
+    "object_not_found": {
+      "message": "No se encontró ningún objeto de mantenimiento para el entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "La tarea {task_id} no existe en {object_name}."
+    },
+    "invalid_input": {
+      "message": "No se pudo ejecutar la acción: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Esta tarea de mantenimiento ya no existe."
+    },
+    "skip_disabled": {
+      "message": "Omitir está desactivado para «{task_name}»."
     }
   },
   "triggers": {

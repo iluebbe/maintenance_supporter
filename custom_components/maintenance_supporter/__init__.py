@@ -519,12 +519,16 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         state = hass.states.get(person_entity_id)
         if state is None or not person_entity_id.startswith("person."):
             raise ServiceValidationError(
-                f"{person_entity_id!r} is not a known person entity"
+                translation_domain=DOMAIN,
+                translation_key="person_not_found",
+                translation_placeholders={"entity_id": person_entity_id},
             )
         user_id = state.attributes.get("user_id")
         if not user_id:
             raise ServiceValidationError(
-                f"Person {state.name!r} is not linked to a Home Assistant user account"
+                translation_domain=DOMAIN,
+                translation_key="person_without_user",
+                translation_placeholders={"name": state.name},
             )
         return str(user_id)
 
@@ -573,7 +577,14 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 errors.append(f"{eid}: {err}")
         if errors:
             raise ServiceValidationError(
-                f"{label}: {done} of {len(ids)} succeeded; " + " | ".join(errors)
+                translation_domain=DOMAIN,
+                translation_key="bulk_partial",
+                translation_placeholders={
+                    "action": label,
+                    "done": str(done),
+                    "total": str(len(ids)),
+                    "errors": " | ".join(errors),
+                },
             )
 
     async def _handle_complete(call: ServiceCall) -> None:
@@ -586,12 +597,18 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             for field in ("reading_value", "reading_values", "cost", "duration"):
                 if call.data.get(field) is not None:
                     raise ServiceValidationError(
-                        f"'{field}' can only be used with a single entity_id"
+                        translation_domain=DOMAIN,
+                        translation_key="single_entity_only",
+                        translation_placeholders={"field": field},
                     )
             # An explicit ``via_tag_scan: false`` claims nothing — only a
             # TRUE flag is the one-tag-one-task proof that must not fan out.
             if call.data.get("via_tag_scan"):
-                raise ServiceValidationError("'via_tag_scan' can only be used with a single entity_id")
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="single_entity_only",
+                    translation_placeholders={"field": "via_tag_scan"},
+                )
         # #128: explicit person beats the call context; the context covers the
         # common case for free (a dashboard tap propagates the tapping user).
         if call.data.get("completed_by"):
@@ -615,7 +632,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                         or None
                     )
                 except ValueError as err:
-                    raise ServiceValidationError(str(err)) from err
+                    raise ServiceValidationError(
+                        translation_domain=DOMAIN,
+                        translation_key="invalid_input",
+                        translation_placeholders={"error": str(err)},
+                    ) from err
             await coordinator.complete_maintenance(
                 task_id=task_id,
                 source="service",
@@ -682,7 +703,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
         url = call.data.get("documentation_url")
         if url and not _is_safe_url(url):
-            raise ServiceValidationError("Only http/https URLs are allowed")
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="unsafe_url")
         try:
             entry_id = await async_create_object(
                 hass,
@@ -697,7 +718,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 notes=call.data.get("notes"),
             )
         except ValueError as err:
-            raise ServiceValidationError(str(err)) from err
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="invalid_input",
+                translation_placeholders={"error": str(err)},
+            ) from err
         return {"entry_id": entry_id} if call.return_response else None
 
     async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
@@ -720,7 +745,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 schedule=call.data.get("schedule"),
             )
         except ValueError as err:
-            raise ServiceValidationError(str(err)) from err
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="invalid_input",
+                translation_placeholders={"error": str(err)},
+            ) from err
         return {"task_id": task_id} if call.return_response else None
 
     hass.services.async_register(DOMAIN, SERVICE_COMPLETE, _handle_complete, schema=SERVICE_COMPLETE_SCHEMA)
@@ -763,9 +792,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         # #128: assignment via automations. Person entity -> HA user id; the
         # clear flag maps to "" (async_update_task_simple pops the key).
         if call.data.get("responsible_user") and call.data.get("clear_responsible_user"):
-            raise ServiceValidationError(
-                "Provide either responsible_user or clear_responsible_user, not both"
-            )
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="responsible_user_conflict")
         if call.data.get("responsible_user"):
             updates["responsible_user_id"] = _resolve_person_user_id(call.data["responsible_user"])
         elif call.data.get("clear_responsible_user"):
@@ -778,7 +805,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 updates=updates,
             )
         except ValueError as err:
-            raise ServiceValidationError(str(err)) from err
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="invalid_input",
+                translation_placeholders={"error": str(err)},
+            ) from err
 
     async def _handle_delete_task(call: ServiceCall) -> None:
         """Handle delete_task — remove a task and its side-state."""
@@ -787,9 +818,17 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         entry_id = call.data["entry_id"]
         entry = hass.config_entries.async_get_entry(entry_id)
         if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-            raise ServiceValidationError(f"No maintenance object found for entry_id {entry_id!r}")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="object_not_found",
+                translation_placeholders={"entry_id": entry_id},
+            )
         if not await async_delete_task(hass, entry, call.data["task_id"]):
-            raise ServiceValidationError(f"No task {call.data['task_id']!r} in {entry.title!r}")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="task_not_found_in_object",
+                translation_placeholders={"task_id": call.data["task_id"], "object_name": entry.title},
+            )
         await hass.config_entries.async_reload(entry_id)
 
     async def _handle_list_tasks(call: ServiceCall) -> dict[str, Any]:

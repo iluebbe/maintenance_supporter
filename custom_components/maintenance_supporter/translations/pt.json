@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "«{task_name}» só pode ser concluída mais perto da data de vencimento"
+    },
+    "person_not_found": {
+      "message": "{entity_id} não é uma entidade de pessoa conhecida."
+    },
+    "person_without_user": {
+      "message": "A pessoa {name} não está ligada a nenhuma conta de utilizador do Home Assistant."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} de {total} tarefas concluídas. Recusadas: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} só pode ser usado com um único entity_id."
+    },
+    "unsafe_url": {
+      "message": "Só são permitidos URL http e https."
+    },
+    "responsible_user_conflict": {
+      "message": "Indique responsible_user ou clear_responsible_user, não ambos."
+    },
+    "object_not_found": {
+      "message": "Nenhum objeto de manutenção encontrado para o entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "A tarefa {task_id} não existe em {object_name}."
+    },
+    "invalid_input": {
+      "message": "Não foi possível executar a ação: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Esta tarefa de manutenção já não existe."
+    },
+    "skip_disabled": {
+      "message": "Saltar está desativado para «{task_name}»."
     }
   },
   "triggers": {

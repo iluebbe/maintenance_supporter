@@ -898,31 +898,24 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Quality Scale Compliance
 
-| Rule | Tier | Status |
-|------|------|--------|
-| config-flow | Bronze | Yes |
-| entity-unique-id | Bronze | Yes |
-| has-entity-name | Bronze | Yes |
-| runtime-data | Bronze | Yes |
-| docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
-| config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (98%, 3,674 tests) |
-| strict-typing (mypy --strict) | Silver | Yes |
-| parallel-updates | Silver | Yes (`PARALLEL_UPDATES = 0` in all five platforms) |
-| docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
-| entity-device-class | Gold | Yes (SensorDeviceClass.ENUM) |
-| icon-translations | Gold | Yes (icons.json) |
-| stale-devices | Gold | Yes (async_remove_config_entry_device) |
-| exception-translations | Gold | Yes (strings.json exceptions) |
-| entity-category | Gold | Yes (calendar = DIAGNOSTIC) |
-| diagnostics | Gold | Yes (with PII redaction) |
-| repair-issues | Gold | Yes (missing trigger entities) |
-| docs-supported-functions | Gold | Yes (README → Supported Functions) |
-| docs-data-update | Gold | Yes (README → Data Updates) |
-| docs-use-cases | Gold | Yes (README → Use Cases) |
-| docs-examples | Gold | Yes (README → Examples) |
-| docs-known-limitations | Gold | Yes (README → Known Limitations) |
-| docs-troubleshooting | Gold | Yes (README → Troubleshooting) |
+The per-rule self-assessment against Home Assistant's
+[integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)
+lives in [`quality_scale.yaml`](../custom_components/maintenance_supporter/quality_scale.yaml) —
+one entry per rule, with the reason for every exemption. It follows the rule
+list in core's `script/hassfest/quality_scale.py` (52 rules). All Bronze,
+Silver, Gold and Platinum rules are done or exempt, which makes the
+self-assessed tier **Platinum** (as a HACS custom integration the tier is
+informational — hassfest does not validate the file).
+
+The rules that are easiest to regress are tripwired:
+
+| Rule | Guard |
+|------|-------|
+| exception-translations | `tests/test_exception_translations.py` — every user-facing raise carries a translation key that exists in `strings.json` with matching placeholders, and no exception string goes unused |
+| entity-translations | `tests/test_i18n.py` — 22 translation files in key, placeholder and value parity with `strings.json` |
+| test-coverage | CI `--cov-fail-under=98` |
+| strict-typing | CI `mypy --strict` over the whole component |
+| docs-supported-devices | `docs/INTEGRATIONS.md` is generated from the signature catalog and byte-compared in CI |
 
 ---
 

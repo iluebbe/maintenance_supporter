@@ -3,12 +3,15 @@
 #
 # As a HACS custom integration this file is informational — hassfest does not
 # validate it — but the assessment is kept honest and current so the gaps are
-# explicit. The integration is a local, deviceless service integration
-# (no network I/O, no external dependencies), so the connectivity-related
-# rules are exempt.
+# explicit. Checked against the 52 rules in home-assistant/core
+# script/hassfest/quality_scale.py (dev, 2026-09-25). The integration is a
+# local, deviceless service integration (no network I/O), so the
+# connectivity-related rules are exempt.
 rules:
   # Bronze
-  action-setup: done
+  action-setup:
+    status: done
+    comment: Service actions are registered in async_setup (re-run only when the last entry was removed and re-added).
   appropriate-polling:
     status: done
     comment: >
@@ -16,13 +19,15 @@ rules:
       event-driven via state_changed listeners (no polling).
   brands:
     status: done
-    comment: Registered in home-assistant/brands as part of the HACS default-store listing.
+    comment: Registered in home-assistant/brands (custom_integrations/maintenance_supporter) as part of the HACS default-store listing.
   common-modules: done
   config-flow: done
   config-flow-test-coverage: done
   dependency-transparency:
     status: done
-    comment: No runtime requirements at all (manifest requirements is empty).
+    comment: >
+      One runtime requirement, pypdf (open source on GitHub, released to PyPI
+      by its own CI), used for the full-text index of uploaded manuals.
   docs-actions:
     status: done
     comment: services.yaml descriptors + docs/CONFIGURATION.md and docs/EXAMPLES.md.
@@ -67,13 +72,15 @@ rules:
     comment: >
       Missing/unavailable trigger entities are logged with a grace period and
       surfaced as repair issues.
-  parallel-updates: done
+  parallel-updates:
+    status: done
+    comment: PARALLEL_UPDATES = 0 in all five platforms (sensor, binary_sensor, button, calendar, todo).
   reauthentication-flow:
     status: exempt
     comment: No authentication of any kind.
   test-coverage:
     status: done
-    comment: CI enforces >= 98% coverage over 2400+ backend tests.
+    comment: CI enforces >= 98% coverage (--cov-fail-under=98) over 4,200+ backend tests, plus ~900 frontend tests.
 
   # Gold
   devices:
@@ -94,10 +101,12 @@ rules:
   docs-examples: done
   docs-known-limitations: done
   docs-supported-devices:
-    status: exempt
+    status: done
     comment: >
-      Deviceless — objects model arbitrary real-world equipment; 13 object
-      templates are documented instead.
+      Objects model arbitrary real-world equipment (47 object templates); the
+      devices whose sensors drive tasks automatically are listed in
+      docs/INTEGRATIONS.md, generated from the suggested-setups catalog
+      (197 integrations) so it cannot drift.
   docs-supported-functions: done
   docs-troubleshooting: done
   docs-use-cases: done
@@ -109,22 +118,26 @@ rules:
   entity-category:
     status: done
     comment: >
-      Task sensors/buttons are primary by design; the global document-storage
-      sensor is the only meta entity and is kept primary for dashboard use.
+      The document-storage sensor (integration self-information) is
+      diagnostic. Task sensors, buttons, the per-task next-due / days-until
+      sensors and the summary sensors are the maintenance data itself and
+      stay primary on purpose — they feed dashboards, gauges and voice.
   entity-device-class:
     status: done
     comment: ENUM task sensors, TIMESTAMP next-due, DATA_SIZE storage, problem binary sensors.
   entity-disabled-by-default:
     status: done
-    comment: The per-task next-due timestamp sensor is registry-disabled by default.
+    comment: The per-task next-due timestamp and days-until-due sensors are registry-disabled by default.
   entity-translations:
     status: done
-    comment: translation_key everywhere; 18 languages with enforced key parity.
+    comment: translation_key everywhere; 22 languages with enforced key, placeholder and value parity.
   exception-translations:
-    status: todo
+    status: done
     comment: >
-      Core lookup failures use translation keys (e.g. no_task_for_entity), but
-      most ServiceValidationError raises are still English-only.
+      Every user-facing raise carries translation_domain/translation_key with
+      the message in strings.json and all 21 translations; the only untranslated
+      raises are internal codes the WebSocket layer maps to its own error codes.
+      Tripwired by tests/test_exception_translations.py.
   icon-translations: done
   reconfiguration-flow:
     status: exempt
@@ -144,10 +157,17 @@ rules:
   # Platinum
   async-dependency:
     status: exempt
-    comment: No dependencies.
+    comment: >
+      The only dependency, pypdf, is a local PDF parser — it talks to no device
+      or service. Its CPU-bound extraction runs in the executor, so it never
+      blocks the event loop.
   inject-websession:
     status: exempt
     comment: No HTTP client is used.
   strict-typing:
     status: done
-    comment: mypy --strict over the whole component is a blocking CI gate.
+    comment: >
+      mypy --strict over the whole component is a blocking CI gate — the
+      websocket package included (its blanket ignore_errors exemption was
+      removed; only homeassistant.components.websocket_api gets
+      implicit_reexport, because HA re-exports its decorators without __all__).

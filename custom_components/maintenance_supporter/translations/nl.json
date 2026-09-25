@@ -2075,6 +2075,39 @@
     },
     "too_early": {
       "message": "„{task_name}” kan pas dichter bij de vervaldatum worden voltooid"
+    },
+    "person_not_found": {
+      "message": "{entity_id} is geen bekende persoonsentiteit."
+    },
+    "person_without_user": {
+      "message": "Persoon {name} is niet gekoppeld aan een Home Assistant-gebruikersaccount."
+    },
+    "bulk_partial": {
+      "message": "{action}: {done} van {total} taken gelukt. Geweigerd: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} kan alleen met één entity_id worden gebruikt."
+    },
+    "unsafe_url": {
+      "message": "Alleen http- en https-URL's zijn toegestaan."
+    },
+    "responsible_user_conflict": {
+      "message": "Geef responsible_user of clear_responsible_user op, niet allebei."
+    },
+    "object_not_found": {
+      "message": "Geen onderhoudsobject gevonden voor entry_id {entry_id}."
+    },
+    "task_not_found_in_object": {
+      "message": "Taak {task_id} bestaat niet in {object_name}."
+    },
+    "invalid_input": {
+      "message": "De actie kon niet worden uitgevoerd: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Deze onderhoudstaak bestaat niet meer."
+    },
+    "skip_disabled": {
+      "message": "Overslaan is uitgeschakeld voor „{task_name}”."
     }
   },
   "triggers": {

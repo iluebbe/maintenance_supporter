@@ -521,10 +521,11 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
         CONF_VACATION_START,
         MAX_GROUP_TASK_REFS,
         MAX_NAME_LENGTH,
+        MAX_SAVED_VIEWS,
     )
     from ..export import _NON_PORTABLE_SETTINGS
     from ..helpers.global_options import get_global_entry
-    from ..helpers.saved_views import MAX_SAVED_VIEWS, sanitize_view
+    from ..helpers.saved_views import sanitize_view
     from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
     from .dashboard import sanitize_settings_input
 
@@ -1170,9 +1171,10 @@ async def ws_generate_qr(
         entry, _rd, task = ctx
         task_name = task.get("name", "")
     else:
-        entry = _load_object_entry(hass, connection, msg)
-        if entry is None:
+        obj_entry = _load_object_entry(hass, connection, msg)
+        if obj_entry is None:
             return
+        entry = obj_entry
 
     obj_data = entry.data.get(CONF_OBJECT, {})
 

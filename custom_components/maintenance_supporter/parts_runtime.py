@@ -124,7 +124,7 @@ async def async_change_part_stock(
     part_id: str,
     *,
     delta: float | None = None,
-    absolute: int | None = None,
+    absolute: float | None = None,
 ) -> float | None:
     """Change one part's stock (clamped at 0), fire the edge event, save.
 

@@ -435,7 +435,7 @@ async def ws_snooze_task(
     due-soon/overdue/triggered reminders for ``snooze_duration_hours`` — it does
     not change the task's schedule or state.
     """
-    from .. import DOMAIN, NOTIFICATION_MANAGER_KEY
+    from ..const import DOMAIN, NOTIFICATION_MANAGER_KEY
 
     if _load_object_task(hass, connection, msg) is None:
         return
