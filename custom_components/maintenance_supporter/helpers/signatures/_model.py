@@ -31,7 +31,13 @@ Direction semantics:
   Connect salt/rinse-aid/descale/clean events. Trigger: a state_change latch on
   ``present`` (not a numeric threshold); the task auto-completes when the event
   clears. The appliance emitting the clearing event is required for auto-resolve
-  — otherwise the task waits for a manual completion.
+  — otherwise the task waits for a manual completion. Two variants:
+  ``ok_state`` flips the latch for LEVEL enums whose alert is "anything but
+  OK" (homeconnect_ws salt: ``empty``/``nearly_empty``/``full`` → alert while
+  not ``full``); several ``keys`` in one signature make ONE latch watching
+  every matched entity with ``entity_logic: any`` (Home Connect's
+  ``salt_nearly_empty`` + ``salt_lack`` + ``program_blocked_salt_lack``) —
+  see ``build_setup_trigger`` for when that is (and is not) appropriate.
 * ``usage_delta``    — a LIFETIME counter with no reset anywhere (printer
   usage hours, burner hours, car odometer). Trigger: a counter trigger in
   delta mode — fires every N canonical units (hours for operating-time
@@ -98,6 +104,14 @@ class ConsumableSignature:
     # then mean "the device's single entity of this domain".
     entity_domain: str = "sensor"
     on_states: tuple[str, ...] = ()
+    # event_present only: the entity's single HEALTHY state. Set, the latch is
+    # built from-only (``trigger_from_state`` without a To-state, #167): it
+    # fires on any transition AWAY from this state and recovers when the
+    # entity returns to it — for level enums that name several alert states
+    # but only one OK state (homeconnect_ws salt: empty / nearly_empty /
+    # full). Takes precedence over on_states; unavailable/unknown never count
+    # as leaving it (the state-change trigger skips them).
+    ok_state: str = ""
     # runtime signatures may track an ATTRIBUTE instead of the state — a
     # climate entity's hvac_action says whether it actually conditions.
     attribute: str = ""
@@ -130,6 +144,15 @@ class IntegrationSignature:
     # date, not a pinned commit) — the audit trail for "verified against what".
     verified: str = ""
     tasks: tuple[ConsumableSignature, ...] = field(default_factory=tuple)
+    # Opt-in: this integration gives its entities their own translation_keys,
+    # so an entity whose translation_key is set and DIFFERS from a catalog key
+    # is a different entity, whatever its id ends with — the id-suffix /
+    # infix / object-id fallbacks then only apply to entities WITHOUT one.
+    # (A bike's 'odometer' key must not claim '…_next_service_odometer'.)
+    # Deliberately not the default: some integrations set a noisy
+    # translation_key and are matched by suffix on purpose — xiaomi_miot's
+    # 'filter-filter_life_level' for our 'filter_life_level'.
+    translation_keys_authoritative: bool = False
 
 
 def task_name_variants(task_name: str) -> set[str]:
@@ -184,7 +207,7 @@ def entity_label(hass: HomeAssistant, entry: er.RegistryEntry, device_name: str)
     return label.strip()[:60]
 
 
-def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:
+def _entity_matches(entry: er.RegistryEntry, key: str, *, tk_authoritative: bool = False) -> bool:
     """translation_key match, with an entity_id-suffix fallback for custom
     integrations that don't set translation_key on their descriptions.
 
@@ -192,9 +215,16 @@ def _entity_matches(entry: er.RegistryEntry, key: str) -> bool:
     a ``_p_{siid}_{piid}`` tail (``..._filter_life_level_p_4_1``) and sets no
     translation_key — matched via the distinctive ``_<key>_p_`` infix. Matching
     is already scoped to the signature's integration (entry.platform), so this
-    cannot bleed across integrations."""
+    cannot bleed across integrations.
+
+    ``tk_authoritative`` (IntegrationSignature.translation_keys_authoritative):
+    an entity carrying a DIFFERENT translation_key is never matched by the
+    fallbacks — they stay available for the integration's entities without
+    one."""
     if entry.translation_key == key:
         return True
+    if tk_authoritative and entry.translation_key:
+        return False
     if entry.entity_id.endswith(f"_{key}"):
         return True
     if f"_{key}_p_" in entry.entity_id:
@@ -288,22 +318,44 @@ def build_setup_trigger(sig: ConsumableSignature, hass: HomeAssistant, entity_id
     counters, resetting the counter drops it back below the threshold), which
     resolves the task just like a cleared problem sensor.
 
-    ``event_present`` signatures build a single-entity state-change LATCH on the
-    ``present`` state (Home Connect salt/rinse-aid/descale/clean events): the
-    task activates while the event is present and auto-completes when the
-    appliance clears it (to ``off``/``confirmed``).
+    ``event_present`` signatures build a state-change LATCH on the ``present``
+    state (Home Connect salt/rinse-aid/descale/clean events): the task
+    activates while the event is present and auto-completes when the
+    appliance clears it (to ``off``/``confirmed``). With ``ok_state`` the
+    latch is from-only instead: alert == anything but the OK state.
+
+    Several matched entities (a signature with several keys) share ONE latch:
+    ``create_triggers`` builds one state-change trigger per entry of
+    ``entity_ids`` and the task sensor aggregates them with ``entity_logic:
+    any`` — so the newer Home Connect ``salt_lack`` event and the older
+    ``salt_nearly_empty`` both fire "Refill Salt", whichever the appliance
+    emits. Chosen over a compound OR trigger (its aggregate deactivation never
+    auto-completes) and over "watch only the preferred key" (drops the other
+    signal). Caveat of the engine's per-entity recovery: the FIRST entity
+    leaving its alert state auto-completes the task and resets every latch,
+    so a sibling still in alert stays silent until its next transition. Put
+    keys into one signature only when they describe the SAME condition that
+    one action clears together (refilling salt clears nearly-empty, lack and
+    program-blocked alike); independently serviced parts (two i-Dos tanks)
+    use ``per_entity`` instead.
     """
     if sig.direction == "event_present":
-        return {
+        latch: dict[str, Any] = {
             "type": "state_change",
-            "entity_id": entity_ids[0],  # state latch watches a single entity
+            "entity_id": entity_ids[0],  # legacy mirror; entity_ids is authoritative
             "entity_ids": list(entity_ids),
-            # Home Connect events use "present"; other integrations latch on
-            # their own alert state (Dolphin filter bag: "full").
-            "trigger_to_state": sig.on_states[0] if sig.on_states else "present",
             "trigger_target_changes": 1,
             "auto_complete_on_recovery": True,
         }
+        if len(entity_ids) > 1:
+            latch["entity_logic"] = "any"  # the default, spelled out for readers
+        if sig.ok_state:
+            latch["trigger_from_state"] = sig.ok_state
+        else:
+            # Home Connect events use "present"; other integrations latch on
+            # their own alert state (Dolphin filter bag: "full").
+            latch["trigger_to_state"] = sig.on_states[0] if sig.on_states else "present"
+        return latch
     if sig.direction == "cycle_count":
         # Engine-counted mechanical cycles: every transition into on_states[0]
         # increments; the task fires at N and completing it resets the count.

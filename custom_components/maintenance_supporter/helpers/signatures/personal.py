@@ -30,4 +30,29 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "oralb_live": IntegrationSignature(
+        name="Oral-B (live BLE)",
+        verified="2026-09-25 @ thomasgregg/oralb-ha main",
+        source=(
+            "thomasgregg/oralb-ha custom_components/oralb_live/sensor.py: key/tk "
+            "'refill_days' ('Brush head remaining', UnitOfTime.DAYS, DURATION, "
+            "entity_registry_enabled_default=False — discovered once the user "
+            "enables it); protocol.parse_refill_remainder decodes the handle's own "
+            "brush-head countdown (ff2d). The sibling 'refill_brushing_time' "
+            "(hours) is the same countdown in another unit — one signal per duty."
+        ),
+        tasks=(ConsumableSignature(("refill_days",), "Replace Brush Head", "duration_left", below_hours=48),),
+    ),
+    "philips_shaver": IntegrationSignature(
+        name="Philips shaver",
+        verified="2026-09-25 @ mtheli/philips_shaver main",
+        source=(
+            "mtheli/philips_shaver custom_components/philips_shaver/sensor.py "
+            "PhilipsHeadRemainingSensor: _attr_translation_key 'head_remaining', "
+            "PERCENTAGE (coordinator: CHAR_HEAD_REMAINING byte — the shaver's own "
+            "head-life counter). 'cleaning_cycles_remaining' is skipped: an "
+            "integration-side evaporation estimate, not a device value."
+        ),
+        tasks=(ConsumableSignature(("head_remaining",), "Replace Shaver Head", "percent_left"),),
+    ),
 }

@@ -211,4 +211,110 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    # ─── Round 14 (2026-09-25): boiler pressure, softener salt, ─────────
+    # ─── generator engine hours ──────────────────────────────────────────
+    "de_dietrich": IntegrationSignature(
+        name="De Dietrich (Diematic)",
+        verified="2026-09-25 @ home-assistant/core dev",
+        source=(
+            "core de_dietrich (new on dev = 2026.10, Diematic Modbus): tk "
+            "'water_pressure', UnitOfPressure.BAR, MEASUREMENT (boiler loop)."
+        ),
+        tasks=(ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
+    ),
+    "remeha_home": IntegrationSignature(
+        name="Remeha Home",
+        verified="2026-09-25 @ msvisser/remeha_home main",
+        source=(
+            "HACS remeha_home const.py APPLIANCE_SENSOR_TYPES: key "
+            "'waterPressure', name 'Water Pressure' (BAR, MEASUREMENT; "
+            "has_entity_name without translation_key → suffix "
+            "_water_pressure)."
+        ),
+        tasks=(ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
+    ),
+    "syr_connect": IntegrationSignature(
+        name="SYR Connect (softeners)",
+        verified="2026-09-25 @ alexhass/syr_connect main",
+        source=(
+            "HACS syr_connect sensor.py sets _attr_translation_key = "
+            "sensor_key.lower() → tk 'getss1' ('Salt container stock 1'; "
+            "const.py: getSS1 = salt supply of container 1 in "
+            "UnitOfTime.WEEKS, MEASUREMENT, no device class). Weeks are not a "
+            "unit the duration conversion knows, so the duty is a "
+            "value_below in the entity's own unit: below 2 weeks (= 336 h). "
+            "getSS2/getSS3 (extra containers, disabled by default, absent on "
+            "most devices) are left out."
+        ),
+        tasks=(ConsumableSignature(("getss1",), "Refill Softener Salt", "value_below", delta_units=2),),
+    ),
+    "salt_sentry": IntegrationSignature(
+        name="Salt Sentry",
+        verified="2026-09-25 @ Lemcke-solutions/Salt-sentry-ha-integration main",
+        source=(
+            "HACS salt_sentry sensor.py SaltPercentageSensor: tk "
+            "'salt_level', '%' = (empty − distance) / (empty − full) × 100 — "
+            "the salt REMAINING in the brine tank (ultrasonic level sensor)."
+        ),
+        tasks=(ConsumableSignature(("salt_level",), "Refill Softener Salt", "percent_left"),),
+    ),
+    "unique_waterontharder": IntegrationSignature(
+        name="Unique Waterontharder",
+        verified="2026-09-25 @ mirkin-pixel/ha-unique-waterontharders main",
+        source=(
+            "HACS unique_waterontharder sensor.py: tk 'salt_level', "
+            "PERCENTAGE, MEASUREMENT — the cloud API's 'zout_niveau' (salt "
+            "level)."
+        ),
+        tasks=(ConsumableSignature(("salt_level",), "Refill Softener Salt", "percent_left"),),
+    ),
+    "bwt_aqa_perla_ble": IntegrationSignature(
+        name="BWT AQA Perla (BLE)",
+        verified="2026-09-25 @ Micka41/bwt-aqa-perla-ble main",
+        source=(
+            "HACS bwt_aqa_perla_ble sensor.py: tk 'salt_pct', PERCENTAGE, "
+            "MEASUREMENT — coordinator.py decodes it as remaining salt × 100 "
+            "// tank capacity ('qte_sel_restant'). A 'salt_alarm' problem "
+            "binary also exists (adoption path)."
+        ),
+        tasks=(ConsumableSignature(("salt_pct",), "Refill Softener Salt", "percent_left"),),
+    ),
+    "generac": IntegrationSignature(
+        name="Generac (Mobile Link)",
+        verified="2026-09-25 @ binarydev/ha-generac main",
+        source=(
+            "HACS generac sensor.py RunTimeSensor: name sensor_name(self, "
+            "'run_time') = 'generac_<device_id>_run_time' → suffix _run_time, "
+            "DURATION, 'h'; value = apparatus property type 71, which the "
+            "Mobile Link API labels 'Engine Hours' (payload quoted in issue "
+            "#202) — the LIFETIME engine-hours counter → usage_delta every "
+            "200 h (Generac air-cooled home-standby schedule: oil and filter "
+            "every 200 h or 2 years). The pjordanandrsn fork shares the "
+            "domain and the same property-71 sensor."
+        ),
+        tasks=(ConsumableSignature(("run_time",), "Oil Service", "usage_delta", delta_units=200),),
+    ),
+    "energytrak": IntegrationSignature(
+        name="EnergyTrak (generators)",
+        verified="2026-09-25 @ brentb2529/ha-energytrak main",
+        source=(
+            "HACS energytrak sensor.py: tk 'engine_hours' (DURATION, HOURS, "
+            "TOTAL_INCREASING; normalize.py: 'a monotonic counter that is "
+            "always > 0 on an installed unit') — LIFETIME → usage_delta every "
+            "200 h (standby-generator oil cadence, as for Generac)."
+        ),
+        tasks=(ConsumableSignature(("engine_hours",), "Oil Service", "usage_delta", delta_units=200),),
+    ),
+    "himoinsa_c4lan": IntegrationSignature(
+        name="Himoinsa C4LAN generators",
+        verified="2026-09-25 @ spiri439/himoinsa-c4lan main",
+        source=(
+            "HACS himoinsa_c4lan sensor.py: key 'engine_hours', name 'Engine "
+            "hours' (Modbus input register 42 = total engine hours per "
+            "const.py; HOURS, DURATION, TOTAL_INCREASING; has_entity_name "
+            "without translation_key → suffix _engine_hours) — LIFETIME → "
+            "usage_delta every 250 h (typical diesel-genset oil interval)."
+        ),
+        tasks=(ConsumableSignature(("engine_hours",), "Oil Service", "usage_delta", delta_units=250),),
+    ),
 }

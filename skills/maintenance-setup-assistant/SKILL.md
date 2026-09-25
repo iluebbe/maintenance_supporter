@@ -87,7 +87,7 @@ they do it better because their wiring is verified against each integration's
 source:
 
 1. `maintenance_supporter/integration_setups/discover` → `{setups:[…]}`. A
-   catalog of **123 integrations / 229 signatures** matched against the entity
+   catalog of **197 integrations / 388 signatures** matched against the entity
    registry: each hit is a device with concrete duties, the exact `entity_ids`,
    a `direction` and a default `threshold` — i.e. **triggers already chosen**.
    Adopt with `integration_setups/adopt` (it re-runs discovery server-side and

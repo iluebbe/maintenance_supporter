@@ -237,4 +237,83 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    # --- Round 14 (2026-09-25) --------------------------------------------
+    "wyzeapi": IntegrationSignature(
+        name="Wyze Lock",
+        verified="2026-09-25 @ SecKatie/ha-wyzeapi master",
+        source=(
+            "HACS wyzeapi lock.py (WyzeLock for DeviceTypes.LOCK, WyzeLockBolt "
+            "for YD_BT1 — one lock entity per lock device). Engine-counted "
+            "locking cycles; entity_domain-gated so the hub's cameras/plugs "
+            "are untouched."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "ttlock": IntegrationSignature(
+        name="TTLock",
+        verified="2026-09-25 @ jbergler/hass-ttlock develop",
+        source=(
+            "HACS ttlock lock.py (one Lock entity per lock coordinator, "
+            "is_locked from the lock state) — engine-counted locking cycles."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "kwikset": IntegrationSignature(
+        name="Kwikset Smart Locks",
+        verified="2026-09-25 @ explosivo22/kwikset-ha main",
+        source=(
+            "HACS kwikset (not in the default store) lock.py: 'Each physical "
+            "lock device exposes a single LockEntity' (KwiksetLock) — "
+            "engine-counted locking cycles."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
+            ),
+        ),
+    ),
+    "nuki_web": IntegrationSignature(
+        name="Nuki Web",
+        verified="2026-09-25 @ ArnyminerZ/ha-nuki-web master",
+        source=(
+            "HACS nuki_web lock.py: one NukiLockEntity per smartlock_id — Nuki "
+            "OPENERS (type 2) are lock entities too and report 'locked' "
+            "whenever the opener is merely online, so they are excluded via "
+            "the device model entity.py derives from the type ('Opener')."
+        ),
+        tasks=(
+            ConsumableSignature(
+                (),
+                "Lubricate Cylinder",
+                "cycle_count",
+                delta_units=2000,
+                entity_domain="lock",
+                on_states=("locked",),
+                models_exclude=("Opener",),
+            ),
+        ),
+    ),
 }

@@ -1,4 +1,4 @@
-"""Robot lawn mowers.
+"""Robot lawn mowers, irrigation and pool/spa water care.
 
 Data module of the suggested-setups signature catalog — see
 ``helpers/signatures/_model.py`` for the direction semantics and the
@@ -195,5 +195,122 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-20 @ home-assistant/core dev",
         source=("core ondilo_ico: tk 'salt' (mg/L ≡ ppm numerically) — pool salt concentration."),
         tasks=(ConsumableSignature(("salt",), "Refill Pool Salt", "value_below", delta_units=2700),),
+    ),
+    # --- Round 14 (2026-09-25) --------------------------------------------
+    "mammotion": IntegrationSignature(
+        name="Mammotion (Luba)",
+        verified="2026-09-25 @ mikey0000/Mammotion-HA main",
+        source=(
+            "HACS mammotion (not in the default store) sensor.py "
+            "LUBA_SENSOR_ONLY_TYPES (MammotionSensorEntity sets translation_key "
+            "= key): 'blade_used_time' (maintenance.blade_used_time, SECONDS, "
+            "suggested h — counts since the blade reset; lawn_mower.py service "
+            "reset_blade_time) and 'maintenance_work_time' ('Total work "
+            "time', SECONDS, lifetime). Yuka models carry no blade sensors."
+        ),
+        tasks=(
+            ConsumableSignature(("blade_used_time",), "Replace Blades", "usage_above"),
+            ConsumableSignature(("maintenance_work_time",), "Clean Undercarriage", "usage_delta", delta_units=25),
+        ),
+    ),
+    "dreame_mower": IntegrationSignature(
+        name="Dreame Mower",
+        verified="2026-09-25 @ bhuebschen/dreame-mower main",
+        source=(
+            "HACS dreame_mower sensor.py DreameMowerProperty.BLADES_LEFT → "
+            "key/translation_key 'blades_left' (dreame/const.py; siid 9 piid "
+            "2, UNIT_PERCENT — device.blades_life 'blade remaining life in "
+            "percent'; only created when the mower reports it, exists_fn)."
+        ),
+        tasks=(ConsumableSignature(("blades_left",), "Replace Blades", "percent_left"),),
+    ),
+    # Two HACS forks share the domain and the keys (SmartServicePL and
+    # ADNPolymerase) — mirrors landroid_cloud.
+    "worx_vision_cloud": IntegrationSignature(
+        name="Worx Landroid Vision",
+        verified=("2026-09-25 @ SmartServicePL/worx_vision_cloud_plus_github main + ADNPolymerase/ha-landroid-vision main"),
+        source=(
+            "HACS worx_vision_cloud sensor.py (both forks): tk "
+            "'blade_runtime_current' (blades.current_on or blade_work_time "
+            "minus the reset marker — since the last blade reset, MINUTES) "
+            "and 'mower_runtime_total' (worktime_total, MINUTES, "
+            "TOTAL_INCREASING lifetime)."
+        ),
+        tasks=(
+            ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
+            ConsumableSignature(("mower_runtime_total",), "Clean Undercarriage", "usage_delta", delta_units=25),
+        ),
+    ),
+    "intellicenter": IntegrationSignature(
+        name="Pentair IntelliCenter",
+        verified="2026-09-25 @ joyfulhouse/intellicenter main",
+        source=(
+            "HACS intellicenter sensor.py: chlorinator (CHLORINATOR_SUBTYPE) "
+            "PoolSensor on SALT_ATTR, name '+ (Salt)' → '<IntelliChlor> "
+            "(Salt)', CONCENTRATION_PPM (no translation_key → suffix _salt). "
+            "Same IntelliChlor band as ScreenLogic."
+        ),
+        tasks=(ConsumableSignature(("salt",), "Refill Pool Salt", "value_below", delta_units=2700),),
+    ),
+    "hotspring": IntegrationSignature(
+        name="Hot Spring spas",
+        verified="2026-09-25 @ home-assistant/core dev",
+        source=(
+            "core hotspring sensor.py (new in 2026.9): tk "
+            "'water_care_120_day_timer' ('Salt cartridge age' — per the "
+            "integration docs 'number of days the FreshWater Salt System "
+            "cartridge has been in use', i.e. counts UP; DURATION DAYS; only "
+            "created while a cartridge is installed; python-hotspring passes "
+            "the spa's raw 120DayTimer). Hot Spring rates the cartridge for "
+            "up to four months → 120 days = 2,880 h."
+        ),
+        tasks=(ConsumableSignature(("water_care_120_day_timer",), "Replace Salt Cartridge", "usage_above", above_hours=2880),),
+    ),
+    "neopool": IntegrationSignature(
+        name="Sugar Valley NeoPool",
+        verified="2026-09-25 @ home-assistant/core dev",
+        source=(
+            "core neopool binary_sensor.py (platform on dev, i.e. 2026.10): tk "
+            "'uv_lamp' (RUNNING; neopool_modbus decodes the UV relay bit, "
+            "created only for a valid MBF_PAR_UV_RELAY_GPIO). No lamp-hours "
+            "counter — the ENGINE accumulates lamp-on time. Sugar Valley "
+            "UVScenic manual (routine maintenance): UV lamps last '1 year or "
+            "8,000 hours'. NOTE: 'measure_cl' is chlorine ppm despite its "
+            "'Salt level' label and is never mapped to salt; "
+            "cell_runtime_part has no documented cleaning interval (cells "
+            "self-clean by polarity reversal) and is not used."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("uv_lamp",),
+                "Replace UV Lamp",
+                "runtime_hours",
+                delta_units=8000,
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+        ),
+    ),
+    "bestway": IntegrationSignature(
+        name="Bestway (Lay-Z-Spa / Flowclear)",
+        verified="2026-09-25 @ cdpuk/ha-bestway main",
+        source=(
+            "HACS bestway binary_sensor.py PoolFilterChangeRequiredSensor "
+            "(key 'pool_filter_change_required', name 'Pool Filter Change "
+            "Required', no device class → not adoptable as a problem sensor; "
+            "status.filter_change_required from the pump's 'filter' "
+            "attribute). No has_entity_name → entity_id "
+            "'binary_sensor.pool_filter_change_required' (exact object-id "
+            "match). State latch on 'on'; clears after the change."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("pool_filter_change_required",),
+                "Replace Filter",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+        ),
     ),
 }

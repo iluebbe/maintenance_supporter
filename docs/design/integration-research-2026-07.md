@@ -1133,3 +1133,251 @@ Catalog: 123 integrations / 235 signatures.
 Lesson: "every wear duty is covered" was checked against the four keys we
 already had, not against the integration's full `*_LEFT` enum — a re-audit
 must diff the ENUM, not our list.
+
+## Round 14 (2026-09-25): core 2026.8 → dev and HACS since July
+
+Sources: HA core diff 2026.7.0 → 2026.8.0 → 2026.9.0 → dev (2026-09-25) over components and entity translation keys, plus analytics `custom_integrations.json` and the hacs/default additions since 2026-07-15; every key below was read in the integration's source. Two catalog bugs surfaced: `gree` counted runtime on `hvac_action`, which the integration never sets, and the `tuya` entry claimed no consumable sensors although the core vacuum category has had life sensors since at least 2026.7.0.
+
+### Vacuums, printers, pets, personal care
+
+Core (read at `origin/dev` 2026-09-25 plus tags 2026.7.0/2026.8.0/2026.9.0):
+
+- **tuya** (FIX): `sensor.py` category SD has had four life sensors since 2026.7.0 — tk `duster_cloth_life`
+  (DP `duster_cloth`), `side_brush_life` (DP `edge_brush`), `filter_life` (`DPCode.FILTER_LIFE` = DP `filter`,
+  const.py "Filter life (percentage)"), `rolling_brush_life` (DP `roll_brush`). The description sets no unit; the
+  entity takes the device's DP unit. Tuya's sd standard status set defines all four as "life", Integer 0-100 %,
+  with `reset_*` DPs → added as percent_left (*Replace Mop Pads / Side Brush / Filter / Main Brush*, household
+  floor). Devices whose DP reports `min`/`h` do not match (unit gate): real firmware mislabels them (localtuya #811:
+  Neatsvor X600 reports `min` on a 0-200 range), so no duration signature. The runtime pair (*Filter Cleaning* 15 h,
+  *Clean Main Brush* 30 h) stays — washing is a different duty from end-of-life replacement. Skipped: KJ purifier
+  `filter_utilization` (Tuya calls DP `filter` "Filter cartridge utilization", unit `％`; used vs remaining not
+  established) and CWYSJ fountain `filter_duration` (DP `filter_life`, "hours", direction not established).
+- **ecovacs**: translation_key = `f"lifespan_{component.name.lower()}"` over const.py `SUPPORTED_LIFESPANS`
+  (PERCENTAGE = `LifeSpanEvent.percent`, remaining), legacy `f"lifespan_{component}"`. Added (percent_left):
+  `lifespan_main_brush` (legacy, joins *Replace Main Brush*), `lifespan_hand_filter` (handheld unit; joins *Replace
+  Filter*, now per_entity), `lifespan_station_filter` → *Replace Secondary Filter*, `lifespan_cleaning_solution` →
+  *Refill Detergent*, `lifespan_sewage_box` (dirty-water box) → *Empty Dirty Water Tank*, `lifespan_water_sink`
+  (the station's cleaning sink) → *Clean Mop Tray*, `lifespan_air_freshener` → *Replace Air Freshener*,
+  `lifespan_uv_sanitizer` → *Replace UV Lamp*; GOAT mowers `lifespan_lens_brush` → *Replace Lens Brush*,
+  `lifespan_trimmer_brush` → *Replace Trimmer Brush*, `lifespan_weed_rope` (edge-trimmer line) → *Replace Trimmer
+  Line*; `total_stats_time_mower` (mower override of `total_stats_time`, s → h, TOTAL_INCREASING) → *Clean
+  Undercarriage* usage_delta 25 h. Skipped: `lifespan_unit_care` (which parts it covers is not established from
+  source). Note: `lifespan_station_filter` has no name in strings.json upstream (unnamed entity).
+- **roborock**: added `strainer_time_left` → *Replace Dock Strainer* and `cleaning_brush_time_left` → *Replace
+  Maintenance Brush* (dock, HOURS; python-roborock computes 150 / 300 minus the work count, HA docs "replace your
+  dock's strainer/maintenance brush") as duration_left 24 h; Q7 `mop_life_time_left` (min, 10800 − used) →
+  *Replace Mop Pads*; Dyad `brush_remaining` ("Roller left", s) joins *Replace Main Brush*; Zeo `times_after_clean`
+  (unitless) → *Clean Tub* usage_above 30 washes. Skipped: Q10 `main_brush_life`/`side_brush_life`/`filter_life`/
+  `sensor_life` — HA names them "time used", python-roborock's `Q10Consumable` "remaining life"; contradictory.
+- **brother**: added `black/cyan/magenta/yellow_ink_remaining` (%) → *Replace Ink or Toner* per_entity,
+  `ink_capture_box_remaining_life` (dev only, waste-ink box) → *Replace Maintenance Box*, `laser_remaining_life` →
+  *Replace Laser Unit*, `pf_kit_1_remaining_life` + `pf_kit_mp_remaining_life` → *Replace Paper Feed Kit*
+  per_entity; all percent_left.
+
+HACS (tarballs of the default branch, 2026-09-25):
+
+- **robovac_mqtt** (jeppesens/eufy-clean, main): has_entity_name names "Filter / Rolling Brush / Side Brush /
+  Sensor / Cleaning Tray / Mopping Cloth Remaining" → suffixes `_filter_remaining` …; unit h = max life − usage →
+  duration_left (*Replace Filter / Main Brush / Side Brush / Mop Pads* 24 h; *Clean Sensors*, *Clean Mop Tray* 6 h
+  because their intervals are 30-60 h).
+- **robovac** (damacus/robovac, main): vacuum entity on every model → *Filter Cleaning* 15 h / *Clean Main Brush*
+  30 h runtime; proto models (DPS 168) add `RobovacConsumableSensor` "Side Brush / Rolling Brush / Filter / Scraper
+  / Sensor / Mop" (hours USED since the last reset) → usage_above with Eufy's lifetimes from eufy-clean
+  `ACCESSORY_MAX_LIFE` (filter 360, rolling brush 360, side brush 180, mop 180, sensor 60 → *Clean Sensors*,
+  scraper 30 → *Clean Mop Tray*). "Dust Bag" skipped (no lifetime reference).
+- **tineco** (wheeller123/Tineco-Integration, main): tk `brush_roller` ENUM normal/tangled/stuck/needs_cleaning →
+  *Clean Main Brush* event_present latch on `needs_cleaning`. `waste_water_tank_status` (clean/full) not added —
+  emptying after every use is not a maintenance duty.
+- **xiaomi_vacuum** (roquerodrigo/ha-xiaomi-vacuum, main): tk `filter_life`, `main_brush_life`, `side_brush_life`,
+  `mop_life`, % remaining (MIoT life level) → percent_left.
+- **ilife** (maximedeprince/ha-ilife, main): tk `main_brush`, `side_brush`, `filter` (% from PartsStatus; reset
+  sets 100) → percent_left, gated on the cloud backend's sibling tk `history` because the Tuya backend names raw DP
+  codes (a bare `filter` DP would suffix-match).
+- **hpprinter** (elad-bar/ha-hpprinter, master): data_points.json `consumable_percentage_level_remaining` (%,
+  printheads excluded), translation_key = property key, one device per cartridge → *Replace Ink or Toner*.
+- **epson_workforce** (lymanepp/ha-epson-workforce, master): no tk, names "Ink level Black … Light Magenta" →
+  suffixes `_ink_level_<colour>` → *Replace Ink or Toner* per_entity. Skipped: `clean` ("Cleaning level",
+  maintenance box) — the parser reads a bar height; used vs left not established.
+- **ha_creality_ws** (3dg1luk43/ha_creality_ws, main): tk `print_status` (no unit, state `printing`) → *Lubricate
+  Rails and Rods* runtime 200 h (no lifetime counter; K1/K2/Hi are FDM).
+- **elegoo_printer** (danielcherubini/elegoo-homeassistant, main): tk `print_status` ENUM shared by resin and FDM →
+  runtime 200 h gated on the FDM-only sibling "Nozzle Temperature" (suffix `_nozzle_temperature`). "Total Print
+  Time" is per job — not used.
+- **anycubic_cloud** (Nino6689/hass-anycubic, main): tk `print_time_total_hrs` (h, TOTAL_INCREASING lifetime) →
+  *Lubricate Rails and Rods* usage_delta 200 h, gated on the FDM-only tk `curr_nozzle_temp` (resin printers share
+  the counter).
+- **petlibro** (jjjonesjr33/petlibro, dev): tk `remaining_desiccant` → *Replace Desiccant*, `remaining_filter_days`
+  → *Replace Water Filter*, `remaining_cleaning_days` → *Clean Appliance*, Luma litter box
+  `remaining_replacement_days` → *Replace Filter* — all days, duration_left 48 h, reset buttons upstream. Skipped:
+  `remaining_mat_days` (minor accessory). Upstream falls back to 0 when the cloud omits a field.
+- **philips_shaver** (mtheli/philips_shaver, main): tk `head_remaining` (%) → *Replace Shaver Head*. Skipped:
+  `cleaning_cycles_remaining` (integration-side evaporation estimate).
+- **oralb_live** (thomasgregg/oralb-ha, main): tk `refill_days` (d, disabled by default) → *Replace Brush Head*
+  duration_left 48 h; the hours twin `refill_brushing_time` is the same countdown (one signal per duty).
+- Skipped by assignment: `roomba_plus` (integration-estimated values), mowers (garden module).
+
+### Kitchen, NAS and the event-latch engine
+
+**Engine (agent B).** `event_present` gained two shapes. (1) `ok_state` — a from-only latch (`trigger_from_state`, no To-state, #167 predicate) for level enums whose alert is "anything but OK"; unavailable/unknown never fire or recover it (the state-change trigger skips them and uses the last real state as the effective From-state). (2) Several keys in one event signature — the state-change trigger already builds one trigger per `entity_ids` entry and the task sensor aggregates with `entity_logic: any`, so one latch watches all of them (chosen over a compound OR, whose aggregate deactivation never auto-completes, and over "watch only the preferred key"). Caveat documented in `_model.py`: the first recovering entity auto-completes and resets every latch, so only keys that ONE action clears together share a signature; independently serviced parts use `per_entity`. Plus `IntegrationSignature.translation_keys_authoritative` (opt-in): the id-suffix / infix / object-id fallbacks skip entities whose own translation_key differs from the key (bike `odometer` vs `…_next_service_odometer`). Not the default because xiaomi_miot sets a noisy translation_key (`filter-filter_life_level`) and is matched by suffix on purpose.
+
+- **home_connect** (core, 2026.9 events) — extended: "Refill Salt" = `salt_nearly_empty` + `salt_lack` + `program_blocked_salt_lack` (one any-latch on `present`); "Refill Rinse Aid" + `rinse_aid_lack`; "Clean Appliance" + `device_cleaning_overdue`, `machine_care_reminder`, `machine_care_and_filter_cleaning_reminder`, `machine_care_and_low_maintenance_filter_cleaning_reminder` (dishwasher Machine Care = cleaning program without dishes; same name as the coffee duty → one signature); "Filter Cleaning" = `smart_filter_cleaning_reminder` + `machine_care_and_filter_cleaning_reminder` (the combined event backs both duties; the low-maintenance one says filter cleaning is optional → machine care only); "Descale Appliance" + `device_descaling_overdue`/`_blockage` and the Calc'N'Clean trio `device_should_be_calc_n_cleaned`/`device_calc_n_clean_overdue`/`_blockage`; "Refill Detergent" = `poor_i_dos_1_fill_level`/`poor_i_dos_2_fill_level` (per_entity — two tanks); "Empty Dustbin" = `empty_dust_box_and_clean_filter` (Roxxter). All ENUM confirmed/off/present, `HomeConnectEventSensor` disabled by default; semantics per api-docs.home-connect.com/events. Skipped: the "in N cups" pre-warnings and `grease_filter_max_saturation_nearly_reached` (pre-warnings, not the duty).
+- **homeconnect_ws** (chris-mc1/homeconnect_local_hass, HACS) — added: tk `sensor_salt` / `sensor_rinse_aid` (ENUM empty/nearly_empty/full; HCEventSensor returns 'full' unless the Lack/NearlyEmpty event is Present/Confirmed) → ok-state latch on `full`, "Refill Salt"/"Refill Rinse Aid"; `sensor_grease_filter_saturation` % → alert_above 90 "Clean Grease Filter"; `sensor_carbon_filter_saturation` % → alert_above 90 "Replace Filter"; coffee `sensor_countdown_descaling`/`_cleaning`/`_water_filter` (beverages left, unitless, disabled by default) → value_below 10 "Descale Appliance"/"Clean Appliance"/"Replace Water Filter". Skipped: `sensor_countdown_calc_n_clean` (relation to the descale countdown undocumented), `sensor_machinecare_remaining_runs`, i-Dos fill-level ENUM (values not in source); the reminder binaries are `problem` class → problem-sensor rows.
+- **midea** (core, new 2026.8) — added: tk `salt_available` (key `left_salt`, %) → "Refill Softener Salt" percent_left; tk `filter_life_level` (shared by ED `life1-3` and FC `filter1_life`/`filter2_life`, %) routed by device model (`device_catalog.MIDEA_DEVICE_NAMES`): "Replace Water Filter" `models=("Water Drinking Appliance",)`, "Replace Filter" `models=("Air Purifier", "Toilet")` together with tk `filter_life` (C2, midea-local `100 - body[19]` = remaining). `filter_available_days` describes the same ED filters → not a second duty. Binaries salt/rinse_aid/filter_cleaning_reminder/full_dust/tank_full are `problem` → rows.
+- **midea_ac_lan** — fixed: the 0xFC air purifier reuses tk `filter1_life`/`filter2_life` and was offered "Replace Water Filter"; that duty now `models_exclude=("Air Purifier",)`, and "Replace Filter" (tk `filter_life`, `filter1_life`, `filter2_life`) is gated `models=("Toilet", "Air Purifier")` (model string = `"<type name> <model>"`).
+- **electrolux** (TTLucian/ha-electrolux, HACS, OCP API; distinct from electrolux_status) — added: tk `filterlife`, `filterlife_1`, `filterlife_2` (catalog_ap.py, %) → "Replace Filter" percent_left, per_entity (UltimateHome 500 has two filter slots). Skipped: AC/fridge/hood filter lifetimes/timers in s/min (maintainer's own "unit is an educated guess"), `filterState` ENUMs (rendered state strings unverified).
+- **ge_home** (simbaja/ha_gehome, custom repository) — added by entity-id suffix (no tk; name = `"{serial} {ERD title} {Property}"`): `_water_filter_status_percent_remaining` (fridge, uom %) and `_wh_filter_life_remaining_life_remaining` (whole-home filter, ErdCodeClass.PERCENTAGE) → "Replace Water Filter" percent_left. Skipped: `_wh_softener_low_salt` — gehomesdk `ErdWaterSoftenerSaltLevel.boolify()` returns `self == OK`, so the "low salt" binary is ON while salt is fine (upstream inversion; a latch would fire backwards); `WH_SOFTENER_SALT_LIFE_REMAINING` has no unit. AC/dehumidifier/ice-maker filter binaries are `problem` → rows.
+- **candy** (bigmoby/home-assistant-candy, HACS) — added: tk `wash_total_cycles` (TOTAL_INCREASING, sum of the wide Temp* counters) → usage_delta 30 "Clean Tub"; opt-in maintenance countdowns tk `wash_maint_limescale` / `wash_maint_filter` (cycles remaining, 0 when due) → value_below 1 "Descaling" / "Filter Cleaning". Skipped: `wash_maint_full_checkup` (the Simply-Fi "Full Check-up" action is undocumented).
+- **unraid** (ruaan-deysel/ha-unraid) — added: tk `array_usage` % → alert_above 85 "Storage Cleanup".
+- **unraid_api** (chris-mc1/unraid_api) — added: key/tk `array_usage` % → alert_above 85.
+- **unraid_management_agent** (ruaan-deysel/ha-unraid-management-agent) — added: tk `array_usage` % → alert_above 85.
+- **unifi_unas_rest** (LayerTM/unifi-unas-ha) — added: tk `storage_usage` (whole NAS, %) → alert_above 85; per-pool `pool_usage` left out (would duplicate on single-pool NASes).
+- **unifi_unas** (cardouken/homeassistant-unifi-unas, MQTT) — added by suffix (no tk; `f"Storage Pool {pool_num} {name}"`, pools from 1): `storage_pool_1_usage` … `storage_pool_4_usage` → alert_above 85 (one any-high duty on the NAS device).
+- **mos** (anym001/ha-mos) — added: tk `pool_usage` % (one sub-device per pool) → alert_above 85.
+- **Problem-sensor rows only:** midea (core) salt/rinse aid/filter-cleaning/dust-full/tank-full; midea_dishwasher salt + rinse_aid; connectlife dishwasher salt/rinse-aid/clean-filters, oven descaling, hood grease/recirculation filter alarms; addhon washer drum/filter/dry clean, hood filter cleaning, AC filter change; homeconnect_ws dishwasher/washer/dryer reminders; ge_home AC/dehumidifier/ice-maker filter — all verified `device_class: problem` in source.
+- **Candidates noted, not added:** connectlife hood `GreaseFilterUsedHours` / `RecirculationFilter*UsedHours` (duration, reset semantics not verified); addhon purifier `filter_life`/`filter_cleaning` % and washer `descaling_cycles` (outside this agent's brief).
+
+### Air treatment and heating
+
+### Part C — air treatment & heating (verified 2026-09-25)
+
+**Fix**
+- **gree** (core): the `hvac_action`-attribute runtime was dead — `gree/climate.py` never sets `hvac_action` (0 hits at 2026.7.0 and dev). Now runtime on the climate STATE with on_states auto/cool/dry/fan_only/heat (`HVAC_MODES` + `_attr_hvac_modes`), 100 h unchanged.
+- **daikin** (core), checked alongside: `hvac_action` IS set, but only for cool/heat/off (`HA_STATE_TO_CURRENT_HVAC`; idle when the compressor frequency is 0) — in fan_only/dry/heat_cool it is None, so the catalog's `fan`/`drying` on_states are unreachable and auto-mode time never counts. Partial, not dead; left unchanged (the existing test pins the attribute shape) — candidate for the same state-based fix.
+
+**Added — air.py**
+- **meross_lan** (krahabb): suffix `_filter` (MLFilterMaintenanceSensor, entitykey `filter`, %, payload `life`) → percent_left *Replace Filter*. Remaining established by the emulator (starts 100, counts down) + a real MAP100 push in issue #388 (`life: 100` on a fresh filter).
+- **tuya_local** (make-all): tk `filter_life`, unit `%` in 57 device configs → percent_left *Replace Filter*. Duration variants (d/h/min/s) skipped: fresco_hydrateultra_petfountain v1 counts minutes without the `invert` mapping its v2 has.
+- **govee** (lasswellt): tk `sensor_filter_life` (%, remaining, `filterLifeTime`) → percent_left *Replace Filter*. LaggAt/hacs-govee (same domain) ships lights only.
+- **duux** (SSmale): tk `filter_life` (%, "HEPA Filter remaining lifespan") → percent_left *Replace Filter*.
+- **komfovent** (lnagel): tk `filter_clogging` (%, register 917, climbs to 100) → alert_above 90 *Replace Ventilation Filter*.
+- **pluggit** / **dantherm** (Tvalley71): tk `filter_remain` (days remaining, register 554) → duration_left 168 h *Replace Ventilation Filter*.
+- **ha_carrier** (dahlb): suffix `_filter_remaining` (% = 100 − filter_used) → percent_left *Replace Filter*.
+- **localthings** (mbillow, Samsung local): filterUsage is % USED everywhere. `air_filter_usage` (AC/dehumidifier) → alert_above 90 *Filter Cleaning*, gated on the AC-only sibling `air_filter_usage_hours`; `hepa_filter_usage` + `filter_progress` (purifier) → alert_above 90 *Replace Filter*; `hood_filter_usage` → alert_above 90 *Clean Grease Filter*.
+- **flexit** (core, Modbus, sensor platform on dev): tk `air_filter_operating_time` (h, TOTAL_INCREASING, `filter_running_hours`) → usage_above 4380 h *Replace Ventilation Filter* (mirrors flexit_bacnet).
+
+**Added — heating.py**
+- **de_dietrich** (core, dev): tk `water_pressure` (bar) → value_below 1 *Refill Heating Water*.
+- **remeha_home** (msvisser): suffix `_water_pressure` (bar) → value_below 1 *Refill Heating Water*.
+- **syr_connect** (alexhass): tk `getss1` (salt supply, WEEKS) → value_below 2 (in weeks) *Refill Softener Salt* — value_below instead of duration_left because the duration conversion has no weeks factor.
+- **salt_sentry** (Lemcke-solutions): tk `salt_level` (%, from the tank distance) → percent_left *Refill Softener Salt*.
+- **unique_waterontharder** (mirkin-pixel): tk `salt_level` (%, API `zout_niveau`) → percent_left *Refill Softener Salt*.
+- **bwt_aqa_perla_ble** (Micka41): tk `salt_pct` (% = remaining salt / capacity) → percent_left *Refill Softener Salt*.
+- **generac** (binarydev): suffix `_run_time` = apparatus property 71, labelled "Engine Hours" by the Mobile Link API (issue #202) → usage_delta 200 h *Oil Service* (Generac air-cooled: 200 h / 2 years).
+- **energytrak** (brentb2529): tk `engine_hours` (h, monotonic) → usage_delta 200 h *Oil Service*.
+- **himoinsa_c4lan** (spiri439; domain is `himoinsa_c4lan`): suffix `_engine_hours` (register 42, total hours) → usage_delta 250 h *Oil Service*.
+
+**Adoption-table rows (problem class verified)**: actron_air `clean_filter`, intelliclima `filter_cleaning`, duco `diagnostic_filter` (dev), flexit `filter_alarm` (dev), aprilaire_rs485 `alarm_filter`/`alarm_water_panel`/`alarm_dehumidifier`/`alarm_system`, daikin_madoka `clean_filter`, bwt_aqa_perla_ble `salt_alarm`, energytrak `fault`/`malfunction`.
+
+**Skipped / parked**
+- **guntamatic** (core 2026.9): `operating_time` (h, TOTAL, disabled by default) — no manufacturer burner-hour interval found; the boiler's own service schedule is a day countdown that the integration exposes only as a DATE sensor (`service_days`, tk `service_date`) → waits for a date direction.
+- **localthings** water filter `filter_usage`: one key on fridge, dishwasher, water purifier AND the AMF microfiber lint unit (washer registry) — different duties, no gate. Fridge `air_filter_usage`/`deodor_filter_usage` (deodorizing filters, wash-vs-replace unclear, deodor reads −1). AC `filter_time` (legacy option-token boards, 500 h alarm) — could co-exist with `air_filter_usage` on ARTIK051 boards → two Filter Cleaning proposals. `air_filter_pm1_usage` — PM1.0 filter wash-vs-replace not established.
+- **ha_carrier** `_humidifier_remaining` / `_uv_lamp_remaining` (% remaining) — valid signals but need new task names (humidifier pad, UV lamp); next round.
+- **energytrak** `maintenance_required` binary (local bridge) has no device class → neither adoptable nor signed.
+- **syr_connect** `getsrv` ("Next annual maintenance") and **bwt_aqa_perla_ble** `salt_autonomy_date` are dates; bwt `salt_autonomy_days` has no unit (the % sensor covers the duty).
+
+### Cars, e-bikes, wallboxes, locks, mowers, pool/spa
+
+### Group D — cars & e-bikes, wallboxes, locks, mowers, pool/spa
+
+#### Fixed
+- **mg_saic**: repository moved ad-ha/mg-saic-ha → townsmcp/mg-saic-ha (hacs/default #9319, code identical);
+  `SAICMGMileageSensor` 'Mileage' (field `mileage`, km, total_increasing, suffix `_mileage`) unchanged — source,
+  `verified` and the drift probe now point at townsmcp main.
+
+#### Added — wallboxes (Inspect Cable and Plug, usage_delta 5,000 kWh, unit-converted)
+- **tesla_wall_connector** (core): tk `energy_kwh` (key `energy_kWh`, 'Lifetime energy', native Wh, suggested kWh,
+  TOTAL_INCREASING) — the translation_key exists since 2026.8; `session_energy_wh` ignored.
+- **nexblue** (core 2026.9): tk `lifetime_energy` (kWh, TOTAL_INCREASING); `energy` (TOTAL) is the session value.
+- **silla_prism** (core 2026.9): tk `total_energy` (pysillaprism `wh_total` topic, "lifetime energy delivered, in
+  watt-hours"); `session_energy` (`wh`) ignored.
+- **besen** (core; sensor platform only on dev → 2026.10): tk `total_energy` (kWh, TOTAL_INCREASING; library README:
+  cumulative consumption); `session_energy` resets per session.
+- **peblar** (core): tk `energy_total` ('Lifetime energy', Wh→kWh, diagnostic).
+- **zaptec** (custom-components/zaptec): tk `signed_meter_value` ('Energy meter', max OCMF meter reading, kWh,
+  TOTAL_INCREASING) — the charger's metering register.
+- **goecharger_mqtt** (syssi): key/tk `eto` ('Total energy', Wh, TOTAL_INCREASING; entity.py tk = key.lower(), entity
+  id `<topic>_eto`); disabled `etop` ignored.
+
+#### Added — cars (odometer usage_delta Annual Service 15,000 km + Tire Rotation 10,000 km unless the car has its own
+countdowns; countdowns = duration_left 336 h / value_below 1,000 km, myskoda precedent)
+- **stellantis_vehicles** (andreadegiovine, develop): tk = key — `mileage` → Tire Rotation; `days_before_maintenance`
+  (d) + `mileage_before_maintenance` (km) → Annual Service (two directions).
+- **porscheconnect** (CJNE): tk `mileage` → Tire Rotation; `main_service_time`/`main_service_range` ('Next service
+  in') → Annual Service; `oil_service_time`/`oil_service_range` ('Next oil change in') → Oil Service. Intermediate
+  service pair left out (no matching duty).
+- **uconnect** (hass-uconnect): name-based suffixes `_odometer` → Tire Rotation; `_days_till_service_needed` (d) +
+  `_distance_to_service` → Annual Service; `_oil_life` (key `oil_level`, %, py_uconnect `oilLevel`) → Oil Service
+  percent_left (household floor).
+- **polestar** (kildahldev fork, domain `polestar` ≠ `polestar_api`): `_odometer` → Tire Rotation; `_days_to_service`
+  (unit 'd') + `_distance_to_service` → Annual Service.
+- **cardata** (kvanbiesen, not in default): 'Vehicle mileage' (descriptor vehicle.vehicle.travelledDistance, forced
+  TOTAL_INCREASING, stream unit normalised km/mi) → suffix `_vehicle_mileage`.
+- **bavariandata** (JustChr): tk `vehicle_vehicle_travelleddistance` (catalogue descriptor, km). Cars streaming
+  `vehicle.vehicle.mileage` get an uncatalogued, unit-less name sensor → not matched.
+- **nissan_connect** (dan-r): tk `odometer` (km, suggested mi for imperial accounts).
+- **smartcar** (wbyoung): suffix `_odometer` (km with imperial conversion).
+- **lucidmotors** (borski): key `odometer_km`, tk `mileage` (km).
+- **abrp** (MichelFR): tk `odometer` (km, TOTAL_INCREASING).
+
+#### Added — e-bikes
+- **specialized_turbo** (core 2026.9): tk `odometer` (km) → Lubricate Chain 250 km + Bike Service 2,000 km.
+- **cowboy** (elsbrock): tk `total_distance` (km) → Bike Service 2,000 km only (carbon belt drive, no chain).
+- **ha_bosch_ebike** (Xunil99, separate domain from bosch_ebike): tk `service_due_in_days` (d, duration_left 336 h)
+  + `service_due_in_km` (km remaining to the dealer-set/overridden service odometer, value_below 100 km) → Bike
+  Service; both created for every bike (BES2 too).
+
+#### Added — locks (Lubricate Cylinder, cycle_count 2,000 × `locked`)
+- **wyzeapi** (SecKatie; WyzeLock + WyzeLockBolt), **ttlock** (jbergler), **kwikset** (explosivo22, not in default),
+  **nuki_web** (ArnyminerZ) — Nuki openers (type 2) are lock entities that read `locked` whenever online → excluded
+  via `models_exclude=("Opener",)` (entity.py maps type 2 to model "Opener").
+
+#### Added — mowers
+- **mammotion** (mikey0000, not in default): tk `blade_used_time` (s→h, since the blade reset; service
+  `reset_blade_time`) → Replace Blades usage_above 100 h; tk `maintenance_work_time` (lifetime s) → Clean
+  Undercarriage usage_delta 25 h. Luba only — Yuka models ship no blade sensors.
+- **dreame_mower** (bhuebschen, unmaintained since 06/2025): tk `blades_left` (%, siid 9 piid 2, created only when
+  reported) → Replace Blades percent_left.
+- **worx_vision_cloud** (SmartServicePL + ADNPolymerase forks, same domain + keys): tk `blade_runtime_current` (min,
+  since reset) → Replace Blades usage_above 100 h; tk `mower_runtime_total` (min, lifetime) → Clean Undercarriage
+  usage_delta 25 h. Mirrors landroid_cloud.
+
+#### Added — pool / spa
+- **intellicenter** (joyfulhouse): IntelliChlor `SALT_ATTR` sensor '<name> (Salt)' (ppm, no tk → suffix `_salt`) →
+  Refill Pool Salt value_below 2,700 ppm (ScreenLogic band).
+- **hotspring** (core 2026.9): tk `water_care_120_day_timer` ('Salt cartridge age'; integration docs: "number of days
+  the FreshWater Salt System cartridge has been in use" → counts UP; only while a cartridge is installed) → NEW duty
+  **Replace Salt Cartridge**, usage_above 2,880 h (120 days; Hot Spring: cartridge lasts up to four months).
+- **neopool** (core; binary_sensor platform only on dev → 2026.10): tk `uv_lamp` (RUNNING, UV relay bit, created only
+  for a valid UV relay GPIO) → NEW duty **Replace UV Lamp**, runtime_hours 8,000 h (Sugar Valley UVScenic manual:
+  lamps last "1 year or 8,000 hours").
+- **bestway** (cdpuk): binary `pool_filter_change_required` (no device class → not problem-adoptable; exact object id
+  `binary_sensor.pool_filter_change_required`) → Replace Filter, event_present latch on `on`. A second pump gets a
+  `_2` suffix and is not matched.
+
+#### Skipped
+- **wallbox_gateway** (botts7): `lifetime_energy` is read from the r_dca Power-Boost/MID meter payload (next to
+  house power/current, only with that accessory) — whether it counts charger-delivered or house grid energy is not
+  established from source.
+- **ocpp** (lifetime vs session differs per charger), **emporia_ev**, **eveus**, **hypervolt** (no lifetime counter).
+- **smartcar** 'Engine Oil Life': `lifeRemaining` passed through without the ×100 the sibling percent sensors apply —
+  scale unverified; odometer only.
+- **ha_bosch_ebike** `odometer` (Lubricate Chain): the entity-id suffix fallback would also claim
+  `next_service_odometer` (a target odometer) and `last_ride_start_odometer` on the same device, and the counter
+  watches the first sorted id → wrong source. Needs the engine to skip the suffix fallback for entities whose own
+  translation_key differs.
+- **iseo_argo_ble** (core 2026.9): X1R momentary latch release — `locked` is either assumed (no door status: set
+  after every HA-initiated release only, card/keypad openings unseen) or mirrors `door_closed`; no bolt-throw cycle
+  to count, no cylinder duty.
+- **neopool** `cell_runtime_part` (resettable, disabled by default): no documented cleaning interval (cells self-clean
+  by polarity reversal); the only figure found is electrode LIFE (> 8,000 h) — a replacement candidate, not signed.
+  `measure_cl` is chlorine ppm despite its "Salt level" label — never a salt source.
+- **dreame_mower** `blades_time_left` (h): not used — the % sensor covers the duty; the integration's reset writes the
+  vacuum main-brush defaults (100 %/300 h), so the hour scale is suspect.
+- **hotspring** `problem` binary: `_is_problem` returns False (OK) or None — never True, so it can never fire as an
+  adopted problem sensor; no problem-table row.
+- **victron_gx** ev_odometer (duplicate risk), **niu** (no e-scooter template), **toyota_na**, **ha_kia_hyundai**
+  (unclear service semantics) — per the brief.
+
+Problem-sensor rows (not catalog): Subaru `health_istrouble` + `mil_*` (core 2026.9), NeoPool `hidro_low`/`ion_low`/
+`ion_program_time_exceeded`/`chlorine_flow_sensor_problem` (2026.10), Sofar `fault_*` (2026.10), Bestway spa/pool-filter
+errors.

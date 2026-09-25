@@ -8,7 +8,12 @@
    "main_brush_time_left",
    "side_brush_time_left",
    "filter_time_left",
-   "sensor_time_left"
+   "sensor_time_left",
+   "strainer_time_left",
+   "cleaning_brush_time_left",
+   "mop_life_time_left",
+   "brush_remaining",
+   "times_after_clean"
   ]
  },
  "xiaomi_miio": {
@@ -63,15 +68,31 @@
    "filter1_life",
    "filter2_life",
    "filter3_life",
-   "filter_life"
+   "filter_life",
+   "\"name\": \"Water Drinking Appliance\"",
+   "\"name\": \"Air Purifier\"",
+   "\"name\": \"Toilet\""
   ]
  },
  "ecovacs": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/const.py"
   ],
   "strings": [
-   "lifespan_"
+   "lifespan_",
+   "LifeSpan.CLEANING_SOLUTION",
+   "LifeSpan.SEWAGE_BOX",
+   "LifeSpan.WATER_SINK",
+   "LifeSpan.HAND_FILTER",
+   "LifeSpan.STATION_FILTER",
+   "LifeSpan.AIR_FRESHENER",
+   "LifeSpan.UV_SANITIZER",
+   "LifeSpan.LENS_BRUSH",
+   "LifeSpan.TRIMMER_BRUSH",
+   "LifeSpan.WEED_ROPE",
+   "\"main_brush\"",
+   "total_stats_time_mower"
   ]
  },
  "husqvarna_automower": {
@@ -150,10 +171,27 @@
   ],
   "strings": [
    "salt_nearly_empty",
+   "\"salt_lack\"",
+   "program_blocked_salt_lack",
    "rinse_aid_nearly_empty",
+   "\"rinse_aid_lack\"",
    "device_should_be_descaled",
+   "device_descaling_overdue",
+   "device_descaling_blockage",
+   "device_should_be_calc_n_cleaned",
+   "device_calc_n_clean_overdue",
+   "device_calc_n_clean_blockage",
    "device_should_be_cleaned",
-   "grease_filter_max_saturation_reached"
+   "device_cleaning_overdue",
+   "\"machine_care_reminder\"",
+   "\"machine_care_and_filter_cleaning_reminder\"",
+   "machine_care_and_low_maintenance_filter_cleaning_reminder",
+   "smart_filter_cleaning_reminder",
+   "grease_filter_max_saturation_reached",
+   "poor_i_dos_1_fill_level",
+   "poor_i_dos_2_fill_level",
+   "empty_dust_box_and_clean_filter",
+   "EVENT_OPTIONS = [\"confirmed\", \"off\", \"present\"]"
   ]
  },
  "miele": {
@@ -186,7 +224,12 @@
    "black_toner_remaining",
    "drum_remaining_life",
    "belt_unit_remaining_life",
-   "fuser_remaining_life"
+   "fuser_remaining_life",
+   "black_ink_remaining",
+   "ink_capture_box_remaining_life",
+   "laser_remaining_life",
+   "pf_kit_1_remaining_life",
+   "pf_kit_mp_remaining_life"
   ]
  },
  "bambu_lab": {
@@ -550,10 +593,16 @@
  },
  "tuya": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/vacuum.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/vacuum.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/sensor.py"
   ],
   "strings": [
-   "Vacuum"
+   "Vacuum",
+   "duster_cloth_life",
+   "side_brush_life",
+   "rolling_brush_life",
+   "DPCode.FILTER_LIFE",
+   "translation_key=\"filter_life\""
   ]
  },
  "switchbot_cloud": {
@@ -620,7 +669,10 @@
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/gree/climate.py"
   ],
   "strings": [
-   "Climate"
+   "_attr_hvac_modes = [*HVAC_MODES_INVERSE, HVACMode.OFF]",
+   "HVACMode.FAN_ONLY",
+   "HVACMode.DRY",
+   "HVACMode.AUTO"
   ]
  },
  "opentherm_gw": {
@@ -792,11 +844,12 @@
  },
  "mg_saic": {
   "urls": [
-   "https://raw.githubusercontent.com/ad-ha/mg-saic-ha/main/custom_components/mg_saic/sensor.py"
+   "https://raw.githubusercontent.com/townsmcp/mg-saic-ha/main/custom_components/mg_saic/sensor.py"
   ],
   "strings": [
-   "Mileage",
-   "mileage"
+   "SAICMGMileageSensor",
+   "\"Mileage\"",
+   "\"mileage\""
   ]
  },
  "wolflink": {
@@ -1105,6 +1158,725 @@
    "blade_time_left",
    "blade_health",
    "sunseeker_blade_time_left"
+  ]
+ },
+ "robovac_mqtt": {
+  "urls": [
+   "https://raw.githubusercontent.com/jeppesens/eufy-clean/main/custom_components/robovac_mqtt/sensor.py"
+  ],
+  "strings": [
+   "Filter Remaining",
+   "Rolling Brush Remaining",
+   "Side Brush Remaining",
+   "Sensor Remaining",
+   "Cleaning Tray Remaining",
+   "Mopping Cloth Remaining"
+  ]
+ },
+ "robovac": {
+  "urls": [
+   "https://raw.githubusercontent.com/damacus/robovac/main/custom_components/robovac/sensor.py",
+   "https://raw.githubusercontent.com/damacus/robovac/main/custom_components/robovac/vacuum.py"
+  ],
+  "strings": [
+   "RobovacConsumableSensor",
+   "\"Side Brush\"",
+   "\"Rolling Brush\"",
+   "\"Filter\"",
+   "\"Scraper\"",
+   "\"Sensor\"",
+   "\"Mop\"",
+   "VacuumActivity.CLEANING"
+  ]
+ },
+ "tineco": {
+  "urls": [
+   "https://raw.githubusercontent.com/wheeller123/Tineco-Integration/main/custom_components/tineco/sensor.py"
+  ],
+  "strings": [
+   "\"brush_roller\"",
+   "needs_cleaning"
+  ]
+ },
+ "xiaomi_vacuum": {
+  "urls": [
+   "https://raw.githubusercontent.com/roquerodrigo/ha-xiaomi-vacuum/main/custom_components/xiaomi_vacuum/sensor/filter_life.py",
+   "https://raw.githubusercontent.com/roquerodrigo/ha-xiaomi-vacuum/main/custom_components/xiaomi_vacuum/sensor/main_brush_life.py",
+   "https://raw.githubusercontent.com/roquerodrigo/ha-xiaomi-vacuum/main/custom_components/xiaomi_vacuum/sensor/side_brush_life.py",
+   "https://raw.githubusercontent.com/roquerodrigo/ha-xiaomi-vacuum/main/custom_components/xiaomi_vacuum/sensor/mop_life.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"filter_life\"",
+   "_attr_translation_key = \"main_brush_life\"",
+   "_attr_translation_key = \"side_brush_life\"",
+   "_attr_translation_key = \"mop_life\""
+  ]
+ },
+ "ilife": {
+  "urls": [
+   "https://raw.githubusercontent.com/maximedeprince/ha-ilife/main/custom_components/ilife/sensor.py"
+  ],
+  "strings": [
+   "(\"main_brush\"",
+   "(\"side_brush\"",
+   "(\"filter\"",
+   "_attr_translation_key = \"history\""
+  ]
+ },
+ "hpprinter": {
+  "urls": [
+   "https://raw.githubusercontent.com/elad-bar/ha-hpprinter/master/custom_components/hpprinter/parameters/data_points.json"
+  ],
+  "strings": [
+   "consumable_percentage_level_remaining",
+   "ConsumablePercentageLevelRemaining"
+  ]
+ },
+ "epson_workforce": {
+  "urls": [
+   "https://raw.githubusercontent.com/lymanepp/ha-epson-workforce/master/custom_components/epson_workforce/sensor.py"
+  ],
+  "strings": [
+   "Ink level Black",
+   "Ink level Photoblack",
+   "Ink level Gray",
+   "Ink level Cyan",
+   "Ink level Magenta",
+   "Ink level Yellow",
+   "Ink level Light Cyan",
+   "Ink level Light Magenta"
+  ]
+ },
+ "ha_creality_ws": {
+  "urls": [
+   "https://raw.githubusercontent.com/3dg1luk43/ha_creality_ws/main/custom_components/ha_creality_ws/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"print_status\"",
+   "return \"printing\""
+  ]
+ },
+ "elegoo_printer": {
+  "urls": [
+   "https://raw.githubusercontent.com/danielcherubini/elegoo-homeassistant/main/custom_components/elegoo_printer/definitions.py"
+  ],
+  "strings": [
+   "translation_key=\"print_status\"",
+   "name=\"Nozzle Temperature\"",
+   "PRINTER_STATUS_RESIN"
+  ]
+ },
+ "anycubic_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/Nino6689/hass-anycubic/main/custom_components/anycubic_cloud/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"print_time_total_hrs\"",
+   "translation_key=\"curr_nozzle_temp\""
+  ]
+ },
+ "petlibro": {
+  "urls": [
+   "https://raw.githubusercontent.com/jjjonesjr33/petlibro/dev/custom_components/petlibro/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"remaining_desiccant\"",
+   "translation_key=\"remaining_filter_days\"",
+   "translation_key=\"remaining_cleaning_days\"",
+   "translation_key=\"remaining_replacement_days\""
+  ]
+ },
+ "oralb_live": {
+  "urls": [
+   "https://raw.githubusercontent.com/thomasgregg/oralb-ha/main/custom_components/oralb_live/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"refill_days\"",
+   "UnitOfTime.DAYS"
+  ]
+ },
+ "philips_shaver": {
+  "urls": [
+   "https://raw.githubusercontent.com/mtheli/philips_shaver/main/custom_components/philips_shaver/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"head_remaining\"",
+   "PERCENTAGE"
+  ]
+ },
+ "homeconnect_ws": {
+  "urls": [
+   "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/entity_descriptions/dishcare.py",
+   "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/entity_descriptions/cooking.py",
+   "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/entity_descriptions/consumer_products.py",
+   "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/sensor.py"
+  ],
+  "strings": [
+   "key=\"sensor_salt\"",
+   "key=\"sensor_rinse_aid\"",
+   "options=[\"empty\", \"nearly_empty\", \"full\"]",
+   "sensor_grease_filter_saturation",
+   "sensor_carbon_filter_saturation",
+   "sensor_countdown_descaling",
+   "sensor_countdown_cleaning",
+   "sensor_countdown_water_filter",
+   "return self.entity_description.options[-1]"
+  ]
+ },
+ "midea": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/midea/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/midea/device_catalog.py"
+  ],
+  "strings": [
+   "translation_key=\"salt_available\"",
+   "translation_key=\"filter_life_level\"",
+   "translation_key=\"filter_life\"",
+   "key=\"life1\"",
+   "key=\"filter1_life\"",
+   "\"Water Drinking Appliance\"",
+   "\"Air Purifier\"",
+   "\"Toilet\""
+  ]
+ },
+ "electrolux": {
+  "urls": [
+   "https://raw.githubusercontent.com/TTLucian/ha-electrolux/main/custom_components/electrolux/catalogs/catalog_ap.py"
+  ],
+  "strings": [
+   "\"FilterLife\": ElectroluxDevice(",
+   "\"FilterLife_1\": ElectroluxDevice(",
+   "\"FilterLife_2\": ElectroluxDevice("
+  ]
+ },
+ "ge_home": {
+  "urls": [
+   "https://raw.githubusercontent.com/simbaja/ha_gehome/master/custom_components/ge_home/devices/fridge.py",
+   "https://raw.githubusercontent.com/simbaja/ha_gehome/master/custom_components/ge_home/devices/water_filter.py"
+  ],
+  "strings": [
+   "ErdCode.WATER_FILTER_STATUS",
+   "\"percent_remaining\"",
+   "ErdCode.WH_FILTER_LIFE_REMAINING, \"life_remaining\""
+  ]
+ },
+ "candy": {
+  "urls": [
+   "https://raw.githubusercontent.com/bigmoby/home-assistant-candy/main/custom_components/candy/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"wash_total_cycles\"",
+   "_attr_translation_key = \"wash_maint_limescale\"",
+   "_attr_translation_key = \"wash_maint_filter\""
+  ]
+ },
+ "unraid": {
+  "urls": [
+   "https://raw.githubusercontent.com/ruaan-deysel/ha-unraid/main/custom_components/unraid/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"array_usage\""
+  ]
+ },
+ "unraid_api": {
+  "urls": [
+   "https://raw.githubusercontent.com/chris-mc1/unraid_api/main/custom_components/unraid_api/sensor.py"
+  ],
+  "strings": [
+   "key=\"array_usage\""
+  ]
+ },
+ "unraid_management_agent": {
+  "urls": [
+   "https://raw.githubusercontent.com/ruaan-deysel/ha-unraid-management-agent/main/custom_components/unraid_management_agent/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"array_usage\""
+  ]
+ },
+ "unifi_unas_rest": {
+  "urls": [
+   "https://raw.githubusercontent.com/LayerTM/unifi-unas-ha/main/custom_components/unifi_unas_rest/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"storage_usage\""
+  ]
+ },
+ "unifi_unas": {
+  "urls": [
+   "https://raw.githubusercontent.com/cardouken/homeassistant-unifi-unas/main/custom_components/unifi_unas/sensor.py"
+  ],
+  "strings": [
+   "STORAGE_POOL_SENSORS",
+   "f\"Storage Pool {pool_num} {name}\"",
+   "\"Usage\""
+  ]
+ },
+ "mos": {
+  "urls": [
+   "https://raw.githubusercontent.com/anym001/ha-mos/main/custom_components/mos/sensor/pools.py"
+  ],
+  "strings": [
+   "translation_key=\"pool_usage\""
+  ]
+ },
+ "meross_lan": {
+  "urls": [
+   "https://raw.githubusercontent.com/krahabb/meross_lan/master/custom_components/meross_lan/sensor.py",
+   "https://raw.githubusercontent.com/krahabb/meross_lan/master/emulator/mixins/fan.py"
+  ],
+  "strings": [
+   "class MLFilterMaintenanceSensor",
+   "key_value = mc.KEY_LIFE",
+   "mc.KEY_FILTER",
+   "life - lifedec"
+  ]
+ },
+ "tuya_local": {
+  "urls": [
+   "https://raw.githubusercontent.com/make-all/tuya-local/main/custom_components/tuya_local/entity.py",
+   "https://raw.githubusercontent.com/make-all/tuya-local/main/custom_components/tuya_local/devices/duux_bright_purifier.yaml"
+  ],
+  "strings": [
+   "config.translation_key or config.translation_only_key",
+   "translation_key: filter_life"
+  ]
+ },
+ "govee": {
+  "urls": [
+   "https://raw.githubusercontent.com/lasswellt/govee-homeassistant/main/custom_components/govee/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"sensor_filter_life\"",
+   "class GoveeFilterLifeSensor"
+  ]
+ },
+ "duux": {
+  "urls": [
+   "https://raw.githubusercontent.com/SSmale/Duux-Home-Assistant/master/custom_components/duux/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_life\"",
+   "class DuuxFilterLifeSensor"
+  ]
+ },
+ "komfovent": {
+  "urls": [
+   "https://raw.githubusercontent.com/lnagel/hass-komfovent/main/custom_components/komfovent/sensor.py"
+  ],
+  "strings": [
+   "key=\"filter_clogging\"",
+   "registers.REG_FILTER_CLOGGING",
+   "self._attr_translation_key = entity_description.key"
+  ]
+ },
+ "pluggit": {
+  "urls": [
+   "https://raw.githubusercontent.com/Tvalley71/pluggit/main/custom_components/pluggit/device_map.py"
+  ],
+  "strings": [
+   "ATTR_FILTER_REMAIN: Final = \"filter_remain\"",
+   "key=ATTR_FILTER_REMAIN"
+  ]
+ },
+ "dantherm": {
+  "urls": [
+   "https://raw.githubusercontent.com/Tvalley71/dantherm/main/custom_components/dantherm/device_map.py"
+  ],
+  "strings": [
+   "ATTR_FILTER_REMAIN: Final = \"filter_remain\"",
+   "key=ATTR_FILTER_REMAIN"
+  ]
+ },
+ "ha_carrier": {
+  "urls": [
+   "https://raw.githubusercontent.com/dahlb/ha_carrier/main/custom_components/ha_carrier/sensor.py"
+  ],
+  "strings": [
+   "entity_name=\"Filter Remaining\"",
+   "100 - self.carrier_system.status.filter_used"
+  ]
+ },
+ "localthings": {
+  "urls": [
+   "https://raw.githubusercontent.com/mbillow/localthings/main/custom_components/localthings/registry/capabilities/airconditioner.py",
+   "https://raw.githubusercontent.com/mbillow/localthings/main/custom_components/localthings/registry/capabilities/air_purifier.py",
+   "https://raw.githubusercontent.com/mbillow/localthings/main/custom_components/localthings/registry/capabilities/range_hood.py"
+  ],
+  "strings": [
+   "key=\"air_filter_usage\"",
+   "key=\"air_filter_usage_hours\"",
+   "key=\"hepa_filter_usage\"",
+   "key=\"filter_progress\"",
+   "key=\"hood_filter_usage\""
+  ]
+ },
+ "flexit": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/flexit/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"air_filter_operating_time\"",
+   "filter_running_hours"
+  ]
+ },
+ "de_dietrich": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/de_dietrich/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"water_pressure\"",
+   "UnitOfPressure.BAR"
+  ]
+ },
+ "remeha_home": {
+  "urls": [
+   "https://raw.githubusercontent.com/msvisser/remeha_home/main/custom_components/remeha_home/const.py"
+  ],
+  "strings": [
+   "key=\"waterPressure\"",
+   "name=\"Water Pressure\""
+  ]
+ },
+ "syr_connect": {
+  "urls": [
+   "https://raw.githubusercontent.com/alexhass/syr_connect/main/custom_components/syr_connect/sensor.py",
+   "https://raw.githubusercontent.com/alexhass/syr_connect/main/custom_components/syr_connect/const.py"
+  ],
+  "strings": [
+   "self._attr_translation_key = sensor_key.lower()",
+   "\"getSS1\": UnitOfTime.WEEKS"
+  ]
+ },
+ "salt_sentry": {
+  "urls": [
+   "https://raw.githubusercontent.com/Lemcke-solutions/Salt-sentry-ha-integration/main/custom_components/salt_sentry/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"salt_level\"",
+   "class SaltPercentageSensor"
+  ]
+ },
+ "unique_waterontharder": {
+  "urls": [
+   "https://raw.githubusercontent.com/mirkin-pixel/ha-unique-waterontharders/main/custom_components/unique_waterontharder/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"salt_level\"",
+   "zout_niveau"
+  ]
+ },
+ "bwt_aqa_perla_ble": {
+  "urls": [
+   "https://raw.githubusercontent.com/Micka41/bwt-aqa-perla-ble/main/custom_components/bwt_aqa_perla_ble/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"salt_pct\"",
+   "native_unit_of_measurement=PERCENTAGE"
+  ]
+ },
+ "generac": {
+  "urls": [
+   "https://raw.githubusercontent.com/binarydev/ha-generac/main/custom_components/generac/sensor.py"
+  ],
+  "strings": [
+   "sensor_name(self, \"run_time\")",
+   "get_prop_value(self.aparatus_detail.properties, 71, 0)"
+  ]
+ },
+ "energytrak": {
+  "urls": [
+   "https://raw.githubusercontent.com/brentb2529/ha-energytrak/main/custom_components/energytrak/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"engine_hours\"",
+   "SensorStateClass.TOTAL_INCREASING"
+  ]
+ },
+ "himoinsa_c4lan": {
+  "urls": [
+   "https://raw.githubusercontent.com/spiri439/himoinsa-c4lan/main/custom_components/himoinsa_c4lan/sensor.py"
+  ],
+  "strings": [
+   "key=\"engine_hours\", name=\"Engine hours\"",
+   "SensorStateClass.TOTAL_INCREASING"
+  ]
+ },
+ "stellantis_vehicles": {
+  "urls": [
+   "https://raw.githubusercontent.com/andreadegiovine/homeassistant-stellantis-vehicles/develop/custom_components/stellantis_vehicles/const.py",
+   "https://raw.githubusercontent.com/andreadegiovine/homeassistant-stellantis-vehicles/develop/custom_components/stellantis_vehicles/sensor.py"
+  ],
+  "strings": [
+   "\"mileage\" : {",
+   "\"mileage_before_maintenance\"",
+   "\"days_before_maintenance\"",
+   "translation_key = key"
+  ]
+ },
+ "cardata": {
+  "urls": [
+   "https://raw.githubusercontent.com/kvanbiesen/bmw-cardata-ha/main/custom_components/cardata/descriptor_titles.py"
+  ],
+  "strings": [
+   "\"vehicle.vehicle.travelledDistance\": \"Vehicle mileage\""
+  ]
+ },
+ "bavariandata": {
+  "urls": [
+   "https://raw.githubusercontent.com/JustChr/BavarianData/main/custom_components/bavariandata/descriptor_metadata.py",
+   "https://raw.githubusercontent.com/JustChr/BavarianData/main/custom_components/bavariandata/translations/en.json"
+  ],
+  "strings": [
+   "'vehicle.vehicle.travelledDistance'",
+   "\"vehicle_vehicle_travelleddistance\""
+  ]
+ },
+ "uconnect": {
+  "urls": [
+   "https://raw.githubusercontent.com/hass-uconnect/hass-uconnect/main/custom_components/uconnect/sensor.py"
+  ],
+  "strings": [
+   "key=\"odometer\"",
+   "name=\"Distance to Service\"",
+   "name=\"Days till service needed\"",
+   "name=\"Oil Life\""
+  ]
+ },
+ "porscheconnect": {
+  "urls": [
+   "https://raw.githubusercontent.com/CJNE/ha-porscheconnect/main/custom_components/porscheconnect/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"mileage\"",
+   "translation_key=\"main_service_range\"",
+   "translation_key=\"main_service_time\"",
+   "translation_key=\"oil_service_range\"",
+   "translation_key=\"oil_service_time\""
+  ]
+ },
+ "nissan_connect": {
+  "urls": [
+   "https://raw.githubusercontent.com/dan-r/HomeAssistant-NissanConnect/main/custom_components/nissan_connect/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"odometer\""
+  ]
+ },
+ "smartcar": {
+  "urls": [
+   "https://raw.githubusercontent.com/wbyoung/smartcar/main/custom_components/smartcar/sensor.py"
+  ],
+  "strings": [
+   "name=\"Odometer\"",
+   "odometer-traveleddistance"
+  ]
+ },
+ "lucidmotors": {
+  "urls": [
+   "https://raw.githubusercontent.com/borski/ha-lucidmotors/main/custom_components/lucidmotors/sensor.py"
+  ],
+  "strings": [
+   "key=\"odometer_km\"",
+   "translation_key=\"mileage\""
+  ]
+ },
+ "abrp": {
+  "urls": [
+   "https://raw.githubusercontent.com/MichelFR/ha-abrp/main/custom_components/abrp/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"odometer\""
+  ]
+ },
+ "polestar": {
+  "urls": [
+   "https://raw.githubusercontent.com/kildahldev/unofficial-polestar-api/main/custom_components/polestar/sensor.py"
+  ],
+  "strings": [
+   "name=\"Odometer\"",
+   "name=\"Distance to service\"",
+   "name=\"Days to service\""
+  ]
+ },
+ "specialized_turbo": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/specialized_turbo/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"odometer\""
+  ]
+ },
+ "cowboy": {
+  "urls": [
+   "https://raw.githubusercontent.com/elsbrock/cowboy-ha/main/custom_components/cowboy/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"total_distance\""
+  ]
+ },
+ "ha_bosch_ebike": {
+  "urls": [
+   "https://raw.githubusercontent.com/Xunil99/ha-bosch-ebike/main/custom_components/ha_bosch_ebike/sensor.py"
+  ],
+  "strings": [
+   "\"service_due_in_days\"",
+   "\"service_due_in_km\"",
+   "\"odometer\""
+  ]
+ },
+ "tesla_wall_connector": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tesla_wall_connector/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"energy_kwh\""
+  ]
+ },
+ "nexblue": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/nexblue/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"lifetime_energy\""
+  ]
+ },
+ "silla_prism": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/silla_prism/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"total_energy\""
+  ]
+ },
+ "besen": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/besen/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"total_energy\""
+  ]
+ },
+ "peblar": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/peblar/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"energy_total\""
+  ]
+ },
+ "zaptec": {
+  "urls": [
+   "https://raw.githubusercontent.com/custom-components/zaptec/master/custom_components/zaptec/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"signed_meter_value\""
+  ]
+ },
+ "goecharger_mqtt": {
+  "urls": [
+   "https://raw.githubusercontent.com/syssi/homeassistant-goecharger-mqtt/main/custom_components/goecharger_mqtt/definitions/sensor.py"
+  ],
+  "strings": [
+   "key=\"eto\""
+  ]
+ },
+ "wyzeapi": {
+  "urls": [
+   "https://raw.githubusercontent.com/SecKatie/ha-wyzeapi/master/custom_components/wyzeapi/lock.py"
+  ],
+  "strings": [
+   "class WyzeLock(",
+   "class WyzeLockBolt("
+  ]
+ },
+ "ttlock": {
+  "urls": [
+   "https://raw.githubusercontent.com/jbergler/hass-ttlock/develop/custom_components/ttlock/lock.py"
+  ],
+  "strings": [
+   "class Lock(BaseLockEntity, LockEntity)"
+  ]
+ },
+ "kwikset": {
+  "urls": [
+   "https://raw.githubusercontent.com/explosivo22/kwikset-ha/main/custom_components/kwikset/lock.py"
+  ],
+  "strings": [
+   "class KwiksetLock("
+  ]
+ },
+ "nuki_web": {
+  "urls": [
+   "https://raw.githubusercontent.com/ArnyminerZ/ha-nuki-web/master/custom_components/nuki_web/lock.py",
+   "https://raw.githubusercontent.com/ArnyminerZ/ha-nuki-web/master/custom_components/nuki_web/entity.py"
+  ],
+  "strings": [
+   "class NukiLockEntity(",
+   "2: \"Opener\""
+  ]
+ },
+ "mammotion": {
+  "urls": [
+   "https://raw.githubusercontent.com/mikey0000/Mammotion-HA/main/custom_components/mammotion/sensor.py"
+  ],
+  "strings": [
+   "key=\"blade_used_time\"",
+   "key=\"maintenance_work_time\""
+  ]
+ },
+ "dreame_mower": {
+  "urls": [
+   "https://raw.githubusercontent.com/bhuebschen/dreame-mower/main/custom_components/dreame_mower/dreame/const.py",
+   "https://raw.githubusercontent.com/bhuebschen/dreame-mower/main/custom_components/dreame_mower/sensor.py"
+  ],
+  "strings": [
+   "[\"blades_left\", \"Main Brush Left\"]",
+   "property_key=DreameMowerProperty.BLADES_LEFT"
+  ]
+ },
+ "worx_vision_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/SmartServicePL/worx_vision_cloud_plus_github/main/custom_components/worx_vision_cloud/sensor.py",
+   "https://raw.githubusercontent.com/ADNPolymerase/ha-landroid-vision/main/custom_components/worx_vision_cloud/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"blade_runtime_current\"",
+   "translation_key=\"mower_runtime_total\""
+  ]
+ },
+ "intellicenter": {
+  "urls": [
+   "https://raw.githubusercontent.com/joyfulhouse/intellicenter/main/custom_components/intellicenter/sensor.py"
+  ],
+  "strings": [
+   "name=\"+ (Salt)\"",
+   "attribute_key=SALT_ATTR"
+  ]
+ },
+ "hotspring": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/hotspring/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"water_care_120_day_timer\""
+  ]
+ },
+ "neopool": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/neopool/binary_sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"uv_lamp\""
+  ]
+ },
+ "bestway": {
+  "urls": [
+   "https://raw.githubusercontent.com/cdpuk/ha-bestway/main/custom_components/bestway/binary_sensor.py"
+  ],
+  "strings": [
+   "key=\"pool_filter_change_required\"",
+   "class PoolFilterChangeRequiredSensor("
   ]
  }
 }

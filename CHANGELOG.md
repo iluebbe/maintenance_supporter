@@ -2,6 +2,61 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Home Connect: the new 2026.9 dishwasher events are wired in.** "Refill Salt" now also fires on *Salt lack* and *Program blocked – salt lack*, "Refill Rinse Aid" on *Rinse aid lack*; the *Machine care* reminders become "Clean Appliance", the *Smart filter cleaning* reminder becomes "Filter Cleaning". Older gaps closed too: coffee-machine Calc'N'Clean and descaling/cleaning-overdue events, washer i-Dos fill level (one "Refill Detergent" per tank) and the Roxxter's "empty dust box" event. Several events of one condition share one trigger, so whichever the appliance reports fires the task.
+- **Robot vacuums and docks: more consumables in *Suggested setups*:** Ecovacs (detergent, dirty-water box, cleaning
+  sink, station filter, handheld filter, air freshener, UV lamp, the legacy main-brush sensor; GOAT mowers: lens
+  brush, edge-trimmer brush and line, undercarriage washing every 25 mowing hours), Roborock (dock strainer and
+  maintenance brush, Q7 mop, Dyad roller brush, Zeo washer drum cleaning after 30 washes), and the new Eufy Clean,
+  Eufy RoboVac, Tineco (brush-roller alert), Xiaomi Vacuum (cloud) and ILIFE integrations.
+- **Printers:** Brother inkjets propose one *Replace Ink or Toner* task per cartridge, plus the ink capture box
+  (*Replace Maintenance Box*), laser unit and paper-feed kits; HP (ha-hpprinter) and Epson WorkForce ink levels;
+  Creality (WebSocket) and Elegoo FDM printers get rail lubrication every 200 print hours of engine-counted print
+  time, Anycubic Cloud from the printer's lifetime print hours (resin printers are left out).
+- **Pets and personal care:** PETLIBRO feeders and fountains (desiccant, fountain filter, cleaning, litter-box
+  filter countdowns, due 2 days ahead), Philips shavers (*Replace Shaver Head* from the head-life percentage) and
+  the live Oral-B integration (brush-head countdown in days).
+- **New kitchen integrations in suggested setups:** Home Connect Local (salt and rinse-aid level, hood grease/carbon filter saturation, coffee-machine descale/clean/water-filter countdowns), the core Midea integration (water and air-purifier filters, toilet filter, softener salt), Electrolux (OCP API, one task per purifier filter), GE Home (fridge and whole-home water filters) and Candy washing machines (tub clean every 30 cycles plus Candy's own descale and filter countdowns).
+- **Storage cleanup for more NAS systems:** Unraid (all three integrations), UniFi UNAS (both integrations) and MOS propose "Storage Cleanup" above 85 % usage, like Synology and QNAP.
+- **More purifier and ventilation filters are suggested automatically:** Meross MAP100, Tuya Local (57 devices with
+  a `filter_life` percentage), Govee H7124/H7126, Duux Bright 2 and Carrier Infinity filter percentages; Komfovent
+  filter clogging (at 90 %), Pluggit and Dantherm filter days, the new core Flexit Modbus filter timer; and Samsung
+  appliances via Local Things (AC dust-filter cleaning, purifier HEPA replacement, hood grease-filter cleaning).
+- **Boilers, softeners and generators:** heating-water refill below 1 bar for De Dietrich (core) and Remeha Home;
+  softener salt refills for SYR Connect (below 2 weeks of supply), Salt Sentry, Unique Waterontharder and BWT AQA
+  Perla BLE; an engine-hours *Oil Service* for Generac (every 200 h), EnergyTrak (200 h) and Himoinsa C4LAN (250 h).
+- **More cars and e-bikes in *Suggested setups*:** Stellantis (Peugeot/Citroën/Opel/Fiat…), Porsche Connect, Uconnect
+  and the unofficial Polestar integration propose Annual/Oil Service from the car's own service countdowns (days and
+  distance, plus oil life % for Uconnect) and tire rotation by odometer; BMW CarData (bmw-cardata-ha, BavarianData),
+  Nissan Connect, Smartcar, Lucid and ABRP get the odometer service/tire duties. Specialized Turbo (chain + service),
+  Cowboy (belt drive: service only) and the Xunil99 Bosch eBike integration (dealer-set service countdown, chain care by odometer) join the
+  e-bikes. The MG/SAIC entry follows the repository's move to townsmcp/mg-saic-ha.
+- **Seven more wallboxes** propose *Inspect Cable and Plug* every 5,000 kWh from their lifetime energy counter: Tesla
+  Wall Connector, Peblar, NexBlue, Silla Prism, Besen, Zaptec and go-eCharger (MQTT).
+- **Locks and garden:** Wyze, TTLock, Kwikset and Nuki Web locks get engine-counted *Lubricate Cylinder* (Nuki openers
+  excluded); Mammotion Luba, Worx Landroid Vision and Dreame mowers get blade and undercarriage duties from their own
+  counters.
+- **Pool and spa:** IntelliCenter salt (*Refill Pool Salt* below 2,700 ppm), Hot Spring salt-cartridge age (*Replace Salt
+  Cartridge* after 120 days), NeoPool UV lamp (*Replace UV Lamp* after 8,000 lamp-on hours, counted by the engine) and
+  the Bestway Flowclear pump's filter-change flag (*Replace Filter*, clears itself after the change).
+
+### 🐛 Fixed
+
+- **Tuya robot vacuums now propose their real consumables:** the catalog claimed Home Assistant's Tuya
+  integration has no consumable sensors, but its robot-vacuum category reports rolling-brush, side-brush, filter and
+  mop-cloth life in percent. *Suggested setups* now proposes *Replace Main Brush / Side Brush / Filter / Mop Pads*
+  from them (next to the existing cleaning-time duties); vacuums whose firmware reports these values in minutes
+  are left out, because their units are unreliable.
+- **AC filter cleaning for Gree and Daikin now counts the time the unit runs:** the suggested *Filter Cleaning*
+  duty watched the climate entity's `hvac_action` attribute. Home Assistant's Gree integration never sets it, so the
+  runtime stayed at zero; Daikin sets it only while cooling or heating, so hours in fan-only, dry and auto were lost.
+  Both now count every running HVAC mode. Tasks adopted earlier are repaired automatically at start-up, as long as
+  their trigger is still the one the catalog wrote — a trigger you changed yourself is left alone.
+- a Midea (LAN) air purifier was offered "Replace Water Filter" for its filters — it now gets "Replace Filter".
+
 ## [2.90.0] - 2026-09-20
 
 ### ✨ Added

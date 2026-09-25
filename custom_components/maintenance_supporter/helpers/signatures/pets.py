@@ -39,6 +39,29 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("total_cycles",), "Wash Litter Box", "usage_delta", delta_units=150),
         ),
     ),
+    "petlibro": IntegrationSignature(
+        name="PETLIBRO",
+        verified="2026-09-25 @ jjjonesjr33/petlibro dev",
+        source=(
+            "jjjonesjr33/petlibro custom_components/petlibro/sensor.py: tk "
+            "'remaining_desiccant' (feeders, native 'd', DURATION — "
+            "remainingDesiccantDays), tk 'remaining_filter_days' (Dockstream "
+            "fountains, 'd' — realInfo.remainingReplacementDays), tk "
+            "'remaining_cleaning_days' (fountains + Polar wet-food feeder + Luma "
+            "litter box, 'd' — remainingCleaningDays), tk "
+            "'remaining_replacement_days' (Luma litter box 'Filter Replacement "
+            "Days', same API field as the fountain filter); button.py "
+            "desiccant_reset / filter_reset / cleaning_reset restart the countdowns. "
+            "Luma's remaining_mat_days skipped (minor accessory, no catalog duty)."
+        ),
+        tasks=(
+            # 48 canonical hours = warn at 2 days left, like PetKit's desiccant.
+            ConsumableSignature(("remaining_desiccant",), "Replace Desiccant", "duration_left", below_hours=48),
+            ConsumableSignature(("remaining_filter_days",), "Replace Water Filter", "duration_left", below_hours=48),
+            ConsumableSignature(("remaining_cleaning_days",), "Clean Appliance", "duration_left", below_hours=48),
+            ConsumableSignature(("remaining_replacement_days",), "Replace Filter", "duration_left", below_hours=48),
+        ),
+    ),
     "eheimdigital": IntegrationSignature(
         name="EHEIM Digital (aquarium)",
         verified="2026-07-20 @ home-assistant/core dev",

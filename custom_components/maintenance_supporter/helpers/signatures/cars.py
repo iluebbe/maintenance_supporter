@@ -127,9 +127,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "mg_saic": IntegrationSignature(
         name="MG/SAIC iSMART",
-        verified="2026-07-19 @ ad-ha/mg-saic-ha main sensor.py (HACS default)",
+        verified="2026-09-25 @ townsmcp/mg-saic-ha main sensor.py (HACS default)",
         source=(
-            "HACS mg_saic: 'Mileage' sensor (suffix _mileage; the sibling "
+            "HACS mg_saic (repo moved ad-ha/mg-saic-ha → townsmcp/mg-saic-ha, "
+            "hacs/default #9319; code identical): SAICMGMileageSensor "
+            "'Mileage' (field 'mileage', KILOMETERS, total_increasing; name "
+            "'{brand} {model} Mileage' → suffix _mileage; the sibling "
             "'Mileage Since Last Charge' does not end in _mileage — no clash)."
         ),
         tasks=(
@@ -250,6 +253,208 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             ConsumableSignature(("total_distance",), "Lubricate Chain", "usage_delta", delta_units=250),
             ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),
+        ),
+    ),
+    # --- Round 14 (2026-09-25) --------------------------------------------
+    "stellantis_vehicles": IntegrationSignature(
+        name="Stellantis (Peugeot/Citroën/DS/Opel/Fiat…)",
+        verified="2026-09-25 @ andreadegiovine/homeassistant-stellantis-vehicles develop",
+        source=(
+            "HACS stellantis_vehicles const.py SENSORS_DEFAULT (sensor.py sets "
+            "translation_key = key): 'mileage' (odometer.mileage, KILOMETERS, "
+            "TOTAL_INCREASING), 'mileage_before_maintenance' (maintenance."
+            "mileageBeforeMaintenance, KILOMETERS remaining) and "
+            "'days_before_maintenance' (maintenance.daysBeforeMaintenance, "
+            "DURATION DAYS remaining) — the car's own service countdowns, so "
+            "no editorial 15000 km interval (myskoda precedent)."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ConsumableSignature(("days_before_maintenance",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(("mileage_before_maintenance",), "Annual Service", "value_below", delta_units=1000),
+        ),
+    ),
+    "cardata": IntegrationSignature(
+        name="BMW CarData (bmw-cardata-ha)",
+        verified="2026-09-25 @ kvanbiesen/bmw-cardata-ha main",
+        source=(
+            "HACS cardata (not in the default store): descriptor "
+            "'vehicle.vehicle.travelledDistance' titled 'Vehicle mileage' "
+            "(descriptor_titles.py; entity.py names '{vehicle} {title}', no "
+            "translation_key → suffix _vehicle_mileage); sensor.py forces "
+            "TOTAL_INCREASING for DESC_TRAVELLED_DISTANCE; the unit is the "
+            "stream's own (units.py normalises to km/mi) — the unit-aware "
+            "threshold converts."
+        ),
+        tasks=(
+            ConsumableSignature(("vehicle_mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("vehicle_mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "bavariandata": IntegrationSignature(
+        name="BavarianData (BMW CarData)",
+        verified="2026-09-25 @ JustChr/BavarianData main",
+        source=(
+            "HACS bavariandata: catalogue descriptor 'vehicle.vehicle."
+            "travelledDistance' (descriptor_metadata.py: distance, "
+            "total_increasing, km) → keys.translation_key() = "
+            "'vehicle_vehicle_travelleddistance' (entity.py). Cars streaming "
+            "'vehicle.vehicle.mileage' instead get an uncatalogued name-only "
+            "sensor without a fixed unit — deliberately not matched."
+        ),
+        tasks=(
+            ConsumableSignature(("vehicle_vehicle_travelleddistance",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("vehicle_vehicle_travelleddistance",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "uconnect": IntegrationSignature(
+        name="Uconnect (Jeep/Fiat/Chrysler/Dodge/Ram/Alfa Romeo)",
+        verified="2026-09-25 @ hass-uconnect/hass-uconnect main",
+        source=(
+            "HACS uconnect sensor.py (no translation_key; name '{make} "
+            "{nickname|model} <name>' → entity_id suffix): 'Odometer' (key "
+            "odometer, TOTAL_INCREASING, API unit km/mi), 'Distance to "
+            "Service' (distanceToService, remaining), 'Days till service "
+            "needed' (daysToService, DAYS remaining) and 'Oil Life' (key "
+            "oil_level = py_uconnect oilLevel, PERCENTAGE remaining). The "
+            "service countdowns replace the generic odometer service duty."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ConsumableSignature(("days_till_service_needed",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(("distance_to_service",), "Annual Service", "value_below", delta_units=1000),
+            ConsumableSignature(("oil_life",), "Oil Service", "percent_left"),
+        ),
+    ),
+    "porscheconnect": IntegrationSignature(
+        name="Porsche Connect",
+        verified="2026-09-25 @ CJNE/ha-porscheconnect main",
+        source=(
+            "HACS porscheconnect sensor.py: tk 'mileage' (MILEAGE.kilometers, "
+            "TOTAL_INCREASING), 'main_service_range'/'main_service_time' "
+            "('Next service in', km resp. DAYS remaining) and "
+            "'oil_service_range'/'oil_service_time' ('Next oil change in'). "
+            "The car's own countdowns replace the generic odometer service "
+            "duty; the intermediate-service pair is left out (no duty name)."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ConsumableSignature(("main_service_time",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(("main_service_range",), "Annual Service", "value_below", delta_units=1000),
+            ConsumableSignature(("oil_service_time",), "Oil Service", "duration_left", below_hours=336),
+            ConsumableSignature(("oil_service_range",), "Oil Service", "value_below", delta_units=1000),
+        ),
+    ),
+    "nissan_connect": IntegrationSignature(
+        name="Nissan Connect",
+        verified="2026-09-25 @ dan-r/HomeAssistant-NissanConnect main",
+        source=(
+            "HACS nissan_connect sensor.py OdometerSensor (_attr_translation_key "
+            "'odometer', DISTANCE, TOTAL_INCREASING, native KILOMETERS with "
+            "suggested MILES for imperial accounts)."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "smartcar": IntegrationSignature(
+        name="Smartcar",
+        verified="2026-09-25 @ wbyoung/smartcar main",
+        source=(
+            "HACS smartcar sensor.py: 'Odometer' (key odometer, "
+            "odometer-traveleddistance, DISTANCE, TOTAL_INCREASING, native km "
+            "with imperial conversion; has_entity_name, no translation_key → "
+            "suffix _odometer). 'Engine Oil Life' deliberately NOT matched: "
+            "the API's lifeRemaining is passed through without the ×100 the "
+            "sibling percent sensors apply — its scale is unverified."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "lucidmotors": IntegrationSignature(
+        name="Lucid Motors",
+        verified="2026-09-25 @ borski/ha-lucidmotors main",
+        source=(
+            "HACS lucidmotors sensor.py: key 'odometer_km' (state.chassis) with "
+            "translation_key 'mileage', DISTANCE, KILOMETERS — the lifetime "
+            "odometer (declared MEASUREMENT, but only ever grows)."
+        ),
+        tasks=(
+            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "abrp": IntegrationSignature(
+        name="ABRP (A Better Routeplanner)",
+        verified="2026-09-25 @ MichelFR/ha-abrp main",
+        source=("HACS abrp sensor.py: tk 'odometer' (telemetry odometer_km, KILOMETERS, DISTANCE, TOTAL_INCREASING)."),
+        tasks=(
+            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    # Separate domain from pypolestar's polestar_api above.
+    "polestar": IntegrationSignature(
+        name="Unofficial Polestar",
+        verified="2026-09-25 @ kildahldev/unofficial-polestar-api main",
+        source=(
+            "HACS polestar (kildahldev; domain 'polestar', not polestar_api) "
+            "sensor.py, name-based ids (no translation_key): 'Odometer' "
+            "(odometer_km, KILOMETERS, TOTAL_INCREASING), 'Distance to "
+            "service' (health.distance_to_service_km, remaining) and 'Days to "
+            "service' (health.days_to_service, unit 'd'). Countdowns replace "
+            "the generic odometer service duty."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ConsumableSignature(("days_to_service",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(("distance_to_service",), "Annual Service", "value_below", delta_units=1000),
+        ),
+    ),
+    "specialized_turbo": IntegrationSignature(
+        name="Specialized Turbo eBike",
+        verified="2026-09-25 @ home-assistant/core dev",
+        source=(
+            "core specialized_turbo sensor.py (new in 2026.9): tk 'odometer' "
+            "(motor.odometer_km, KILOMETERS, DISTANCE, TOTAL_INCREASING). Same "
+            "drivetrain duties as Bosch eBike."
+        ),
+        tasks=(
+            ConsumableSignature(("odometer",), "Lubricate Chain", "usage_delta", delta_units=250),
+            ConsumableSignature(("odometer",), "Bike Service", "usage_delta", delta_units=2000),
+        ),
+    ),
+    "cowboy": IntegrationSignature(
+        name="Cowboy eBike",
+        verified="2026-09-25 @ elsbrock/cowboy-ha main",
+        source=(
+            "HACS cowboy sensor.py: tk 'total_distance' (KILOMETERS, DISTANCE, "
+            "TOTAL_INCREASING). Cowboy bikes run a carbon belt drive — no "
+            "chain to lubricate, so only the drivetrain service interval."
+        ),
+        tasks=(ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),),
+    ),
+    "ha_bosch_ebike": IntegrationSignature(
+        name="Bosch eBike (Smart System & eBike System 2)",
+        verified="2026-09-25 @ Xunil99/ha-bosch-ebike main",
+        source=(
+            "HACS ha_bosch_ebike (separate domain from bosch_ebike) sensor.py "
+            "BoschServiceDueSensor: tk 'service_due_in_km' (km remaining to "
+            "the dealer-set/overridden service odometer) and "
+            "'service_due_in_days' (unit 'd', days remaining) — created for "
+            "every bike, BES2 included. tk 'odometer' (km, driveUnit.odometer "
+            "/ 1000) drives the chain duty; translation_keys_authoritative keeps "
+            "the suffix fallback from also claiming next_service_odometer and "
+            "last_ride_start_odometer (their own translation_keys)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("service_due_in_days",), "Bike Service", "duration_left", below_hours=336),
+            ConsumableSignature(("service_due_in_km",), "Bike Service", "value_below", delta_units=100),
+            ConsumableSignature(("odometer",), "Lubricate Chain", "usage_delta", delta_units=250),
         ),
     ),
 }

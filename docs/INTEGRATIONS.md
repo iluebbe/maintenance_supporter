@@ -41,6 +41,7 @@ odometer/countdown duties above:
 | **Audi Connect** (HACS) | oil-level warning (`problem`), parking-light/braking status (`safety`) | Oil top-up, light check |
 | **Tesla Fleet / Teslemetry / Tessie** (core) | per-tire TPMS soft warnings | Tire checks |
 | **RDW** (core, NL) | `pending_recall` — the official Dutch vehicle-recall register | Book the recall fix |
+| **Subaru** (core, 2026.9+) | `health_istrouble` (overall vehicle health) + one warning-lamp binary per reported system (`mil_*`: engine-oil level `mil_eol`, oil pressure `mil_opl`, check engine `mil_cel`, washer fluid `mil_wash`, tire pressure `mil_tpms`, ABS/EBD/airbag/brake lamps …) | Oil top-up, washer fluid, tire check, workshop visit per lamp |
 
 **Appliances & home:**
 
@@ -87,6 +88,23 @@ odometer/countdown duties above:
 | **Bosch Smart Home** (HACS bosch_shc) | shutter `calibration required`, outdoor-siren faults (AC/DC error, battery defect, battery-temp abnormal, power outage), siren + motion-detector `tamper` | Recalibrate shutter / siren service / tamper checks |
 | **ZHA / Z-Wave JS / deCONZ / MQTT** | device-dependent `tamper` + smoke-detector fault binaries | Detector service / tamper checks |
 | **KNX** | any binary object the user maps with device class `problem`/`safety`/`tamper` (KNX entities are fully user-configured — set the class on your fault/maintenance group addresses and they become adoptable) | Whatever the object signals |
+| **Midea** (core) | dishwasher **salt** + **rinse aid** (E1 / sink dishwasher), AC dust-full, dehumidifier / fresh-air filter-cleaning reminder, dehumidifier tank full (alongside the catalog's filter-life and softener-salt duties) | Refill salt / rinse aid, clean filter, empty tank |
+| **Midea Dishwasher** (HACS midea_dishwasher) | **salt**, **rinse aid** | Refill salt / rinse aid |
+| **ConnectLife** (HACS connectlife) | dishwasher salt- and rinse-aid-refill alarms, clean-the-filters alarm; oven descaling-needed alarm; hood grease- and recirculation-filter alarms | Refill salt / rinse aid, clean filters, descale oven, clean/replace hood filters |
+| **Haier hOn — addhOn** (HACS addhon) | washer drum-clean / filter-clean / dry-clean needed, hood filter-cleaning alarm, AC filter change | Clean drum or filter, change AC filter |
+| **Home Connect Local** (HACS homeconnect_ws) | dishwasher machine-care, machine-care + filter-cleaning, smart filter-cleaning and water-heater-calcified reminders; washer drum-clean reminder and i-Dos 1/2 fill level poor; dryer lint filter full and maintenance reminder (alongside the catalog's salt/rinse-aid latches) | Machine care, filter cleaning, refill i-Dos, clean lint filter |
+| **GE Home** (HACS ge_home, custom repository) | built-in AC filter status, dehumidifier clean-filter, Opal ice-maker filter status | Clean / replace the filter |
+| **Actron Air** (core, 2026.9) | `clean_filter` | AC filter cleaning |
+| **IntelliClima** (core, 2026.9) | `filter_cleaning` (ECOCOMFORT ventilation units) | Filter cleaning |
+| **Duco** (core, dev) | `diagnostic_filter` (alongside the catalog's filter countdown) | Filter change |
+| **Flexit Modbus** (core, dev) | `filter_alarm` (alongside the catalog's filter-timer duty) | Filter change |
+| **Aprilaire RS-485** (HACS aprilaire_rs485) | `alarm_filter`, `alarm_water_panel`, `alarm_dehumidifier`, `alarm_system` | Filter change / humidifier water-panel change / service check |
+| **Daikin Madoka** (HACS daikin_madoka) | `clean_filter` indicator | AC filter cleaning |
+| **BWT AQA Perla BLE** (HACS) | `salt_alarm` (alongside the catalog's salt %) | Refill softener salt |
+| **EnergyTrak** (HACS) | generator `fault`, `malfunction` (alongside the catalog's engine-hours oil service) | Generator fault triage |
+| **NeoPool / Sugar Valley** (core, 2026.10+) | hydrolysis production problem (`hidro_low`), ionizer production problem (`ion_low`), ionizer program time exceeded, chlorine flow sensor (`chlorine_flow_sensor_problem`) | Salt/cell check, ionizer electrode check, flow-sensor cleaning |
+| **Sofar inverters** (core, 2026.10+) | one `problem` binary per fault category (`fault_fan`, `fault_insulation`, `fault_grid`, `fault_pv`, `fault_battery`, `fault_internal` …; arc-fault and fuse categories disabled by default) | Inverter service / fault triage |
+| **Bestway Lay-Z-Spa / Flowclear** (HACS) | `Spa Errors` resp. `Pool Filter Errors` (problem class; the pump's filter-change binary is a catalog duty instead) | Spa / pump fault triage |
 
 (QNAP, despite the family resemblance to Synology, ships no binary
 sensors at all — its disk data is plain sensors, covered by the
@@ -123,6 +141,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Replace Side Brush | below 24 h remaining |  |
 |  |  | Replace Filter | below 24 h remaining |  |
 |  |  | Clean Sensors | below 24 h remaining |  |
+|  |  | Replace Mop Pads | below 24 h remaining |  |
+|  |  | Replace Dock Strainer | below 24 h remaining |  |
+|  |  | Replace Maintenance Brush | below 24 h remaining |  |
+|  |  | Clean Tub | at 30 h counted by the device |  |
 | Xiaomi Miio | `xiaomi_miio` | Replace Main Brush | below 24 h remaining |  |
 |  |  | Replace Side Brush | below 24 h remaining |  |
 |  |  | Replace Filter | below 24 h remaining |  |
@@ -137,10 +159,20 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Replace Silver-ion Module | below the household consumable floor (default 10 %) |  |
 | Ecovacs | `ecovacs` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) | one task per entity |
+|  |  | Replace Secondary Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Dust Bag | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Mop Pads | below the household consumable floor (default 10 %) |  |
+|  |  | Refill Detergent | below the household consumable floor (default 10 %) |  |
+|  |  | Empty Dirty Water Tank | below the household consumable floor (default 10 %) |  |
+|  |  | Clean Mop Tray | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Air Freshener | below the household consumable floor (default 10 %) |  |
+|  |  | Replace UV Lamp | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Blades | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Lens Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Trimmer Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Trimmer Line | below the household consumable floor (default 10 %) |  |
+|  |  | Clean Undercarriage | every 25 units (counter delta) |  |
 | WeBack Vacuum | `weback_vacuum` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | iRobot Roomba | `roomba` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
@@ -150,7 +182,11 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | ROMY Vacuum | `romy` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
-| Tuya vacuum | `tuya` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
+| Tuya vacuum | `tuya` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) |  |
+|  |  | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | SwitchBot vacuum | `switchbot_cloud` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
@@ -163,8 +199,30 @@ due/auto-complete and un-adopt/re-adopt behave.
 | TP-Link Tapo vacuum | `tplink` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | Maytronics Dolphin | `mydolphin_plus` | Filter Cleaning | while the appliance reports 'full' |  |
+| Eufy Clean | `robovac_mqtt` | Replace Filter | below 24 h remaining |  |
+|  |  | Replace Main Brush | below 24 h remaining |  |
+|  |  | Replace Side Brush | below 24 h remaining |  |
+|  |  | Replace Mop Pads | below 24 h remaining |  |
+|  |  | Clean Sensors | below 6 h remaining |  |
+|  |  | Clean Mop Tray | below 6 h remaining |  |
+| Eufy RoboVac | `robovac` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
+|  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
+|  |  | Replace Filter | at 360 h counted by the device |  |
+|  |  | Replace Main Brush | at 360 h counted by the device |  |
+|  |  | Replace Side Brush | at 180 h counted by the device |  |
+|  |  | Replace Mop Pads | at 180 h counted by the device |  |
+|  |  | Clean Sensors | at 60 h counted by the device |  |
+|  |  | Clean Mop Tray | at 30 h counted by the device |  |
+| Tineco | `tineco` | Clean Main Brush | while the appliance reports 'needs_cleaning' |  |
+| Xiaomi Vacuum (cloud) | `xiaomi_vacuum` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) |  |
+| ILIFE | `ilife` | Replace Main Brush | below the household consumable floor (default 10 %) | device-type gated |
+|  |  | Replace Side Brush | below the household consumable floor (default 10 %) | device-type gated |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) | device-type gated |
 
-## Robot lawn mowers
+## Robot lawn mowers, irrigation and pool/spa water care
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
@@ -184,6 +242,15 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Rain Bird irrigation | `rainbird` | Clean Sprinkler Heads | every 30 h counted by the engine | switch entity; active: on |
 | Pentair ScreenLogic | `screenlogic` | Refill Pool Salt | below 2700 |  |
 | Ondilo ICO | `ondilo_ico` | Refill Pool Salt | below 2700 |  |
+| Mammotion (Luba) | `mammotion` | Replace Blades | at 100 h counted by the device |  |
+|  |  | Clean Undercarriage | every 25 units (counter delta) |  |
+| Dreame Mower | `dreame_mower` | Replace Blades | below the household consumable floor (default 10 %) |  |
+| Worx Landroid Vision | `worx_vision_cloud` | Replace Blades | at 100 h counted by the device |  |
+|  |  | Clean Undercarriage | every 25 units (counter delta) |  |
+| Pentair IntelliCenter | `intellicenter` | Refill Pool Salt | below 2700 |  |
+| Hot Spring spas | `hotspring` | Replace Salt Cartridge | at 2880 h counted by the device |  |
+| Sugar Valley NeoPool | `neopool` | Replace UV Lamp | every 8000 h counted by the engine | binary_sensor entity; active: on |
+| Bestway (Lay-Z-Spa / Flowclear) | `bestway` | Replace Filter | while the appliance reports 'on' | binary_sensor entity |
 
 ## Cars and EVs — odometer-driven service duties
 
@@ -235,6 +302,39 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Bike Service | every 2000 units (counter delta) |  |
 | Stromer eBike | `stromer` | Lubricate Chain | every 250 units (counter delta) |  |
 |  |  | Bike Service | every 2000 units (counter delta) |  |
+| Stellantis (Peugeot/Citroën/DS/Opel/Fiat…) | `stellantis_vehicles` | Tire Rotation | every 10000 units (counter delta) |  |
+|  |  | Annual Service | below 14 days remaining |  |
+|  |  | Annual Service | below 1000 |  |
+| BMW CarData (bmw-cardata-ha) | `cardata` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| BavarianData (BMW CarData) | `bavariandata` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Uconnect (Jeep/Fiat/Chrysler/Dodge/Ram/Alfa Romeo) | `uconnect` | Tire Rotation | every 10000 units (counter delta) |  |
+|  |  | Annual Service | below 14 days remaining |  |
+|  |  | Annual Service | below 1000 |  |
+|  |  | Oil Service | below the household consumable floor (default 10 %) |  |
+| Porsche Connect | `porscheconnect` | Tire Rotation | every 10000 units (counter delta) |  |
+|  |  | Annual Service | below 14 days remaining |  |
+|  |  | Annual Service | below 1000 |  |
+|  |  | Oil Service | below 14 days remaining |  |
+|  |  | Oil Service | below 1000 |  |
+| Nissan Connect | `nissan_connect` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Smartcar | `smartcar` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Lucid Motors | `lucidmotors` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| ABRP (A Better Routeplanner) | `abrp` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| Unofficial Polestar | `polestar` | Tire Rotation | every 10000 units (counter delta) |  |
+|  |  | Annual Service | below 14 days remaining |  |
+|  |  | Annual Service | below 1000 |  |
+| Specialized Turbo eBike | `specialized_turbo` | Lubricate Chain | every 250 units (counter delta) |  |
+|  |  | Bike Service | every 2000 units (counter delta) |  |
+| Cowboy eBike | `cowboy` | Bike Service | every 2000 units (counter delta) |  |
+| Bosch eBike (Smart System & eBike System 2) | `ha_bosch_ebike` | Bike Service | below 14 days remaining |  |
+|  |  | Bike Service | below 100 |  |
+|  |  | Lubricate Chain | every 250 units (counter delta) |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
 
@@ -244,6 +344,13 @@ due/auto-complete and un-adopt/re-adopt behave.
 | KEBA Wallbox | `keba` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 | go-e Charger | `goecharger_api2` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 | OpenEVSE | `openevse` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| Tesla Wall Connector | `tesla_wall_connector` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| NexBlue | `nexblue` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| Silla Prism | `silla_prism` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| Besen EV charger | `besen` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| Peblar | `peblar` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| Zaptec EV charger | `zaptec` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| go-eCharger (MQTT) | `goecharger_mqtt` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 
 ## Boilers, heating & water treatment
 
@@ -269,6 +376,15 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Fumis (pellet stoves) | `fumis` | Annual Service | below 24 h remaining |  |
 | Rehlko / Kohler generators | `rehlko` | Oil Service | at 100 h counted by the device |  |
 | AquaCell softener | `aquacell` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
+| De Dietrich (Diematic) | `de_dietrich` | Refill Heating Water | below 1 |  |
+| Remeha Home | `remeha_home` | Refill Heating Water | below 1 |  |
+| SYR Connect (softeners) | `syr_connect` | Refill Softener Salt | below 2 |  |
+| Salt Sentry | `salt_sentry` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
+| Unique Waterontharder | `unique_waterontharder` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
+| BWT AQA Perla (BLE) | `bwt_aqa_perla_ble` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
+| Generac (Mobile Link) | `generac` | Oil Service | every 200 units (counter delta) |  |
+| EnergyTrak (generators) | `energytrak` | Oil Service | every 200 units (counter delta) |  |
+| Himoinsa C4LAN generators | `himoinsa_c4lan` | Oil Service | every 250 units (counter delta) |  |
 
 ## Air treatment — purifiers, ACs and HRV/ventilation filters
 
@@ -277,8 +393,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Dyson | `hass_dyson` | Replace Filter | below the household consumable floor (default 10 %) |  |
 | Dreo | `dreo` | Replace Filter | below the household consumable floor (default 10 %) |  |
 | VeSync (Levoit) | `vesync` | Replace Filter | below the household consumable floor (default 10 %) |  |
-| Daikin AC | `daikin` | Filter Cleaning | every 100 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
-| Gree AC | `gree` | Filter Cleaning | every 100 h counted by the engine | climate entity; attribute `hvac_action`; active: cooling/heating/fan/drying |
+| Daikin AC | `daikin` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: cool/dry/fan_only/heat/heat_cool |
+| Gree AC | `gree` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat |
 | Zehnder ComfoAirQ | `comfoconnect` | Replace Ventilation Filter | below 7 days remaining |  |
 | Renson Endura Delta | `renson` | Replace Ventilation Filter | below 7 days remaining |  |
 | Philips AirPurifier (CoAP) | `philips_airpurifier_coap` | Filter Cleaning | below the household consumable floor (default 10 %) |  |
@@ -300,6 +416,18 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Dyson (local) | `dyson_local` | Replace Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Filter | below 3 days remaining |  |
 | Venstar thermostat | `venstar` | Replace Filter | at 300 h counted by the device |  |
+| Meross LAN (MAP100 purifier) | `meross_lan` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Tuya Local | `tuya_local` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Govee (purifiers) | `govee` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Duux | `duux` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Komfovent ventilation | `komfovent` | Replace Ventilation Filter | above 90 |  |
+| Pluggit ventilation | `pluggit` | Replace Ventilation Filter | below 7 days remaining |  |
+| Dantherm ventilation | `dantherm` | Replace Ventilation Filter | below 7 days remaining |  |
+| Carrier Infinity | `ha_carrier` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Samsung (Local Things) | `localthings` | Filter Cleaning | above 90 | device-type gated |
+|  |  | Replace Filter | above 90 |  |
+|  |  | Clean Grease Filter | above 90 |  |
+| Flexit (Modbus) | `flexit` | Replace Ventilation Filter | at 4380 h counted by the device |  |
 
 ## Kitchen & household appliances incl. espresso machines
 
@@ -317,14 +445,27 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Refill Rinse Aid | while the appliance reports 'present' |  |
 |  |  | Descale Appliance | while the appliance reports 'present' |  |
 |  |  | Clean Appliance | while the appliance reports 'present' |  |
+|  |  | Filter Cleaning | while the appliance reports 'present' |  |
 |  |  | Clean Grease Filter | while the appliance reports 'present' |  |
+|  |  | Refill Detergent | while the appliance reports 'present' | one task per entity |
+|  |  | Empty Dustbin | while the appliance reports 'present' |  |
+| Home Connect Local | `homeconnect_ws` | Refill Salt | while the appliance reports 'present' |  |
+|  |  | Refill Rinse Aid | while the appliance reports 'present' |  |
+|  |  | Clean Grease Filter | above 90 |  |
+|  |  | Replace Filter | above 90 |  |
+|  |  | Descale Appliance | below 10 |  |
+|  |  | Clean Appliance | below 10 |  |
+|  |  | Replace Water Filter | below 10 |  |
 | Miele | `miele` | Refill Salt | below the household consumable floor (default 10 %) |  |
 |  |  | Refill Rinse Aid | below the household consumable floor (default 10 %) |  |
 |  |  | Refill Detergent | below the household consumable floor (default 10 %) |  |
 |  |  | Clean Tub | every 60 h counted by the engine | active: in_use; device-type gated |
 | Electrolux / AEG | `electrolux_status` | Replace Filter | below the household consumable floor (default 10 %) |  |
-| Midea (LAN) | `midea_ac_lan` | Replace Water Filter | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Midea (LAN) | `midea_ac_lan` | Replace Water Filter | below the household consumable floor (default 10 %) | except Air Purifier |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) | models: Toilet/Air Purifier |
+| Midea (core) | `midea` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Water Filter | below the household consumable floor (default 10 %) | models: Water Drinking Appliance |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) | models: Air Purifier/Toilet |
 | La Marzocco | `lamarzocco` | Backflush Espresso Group | every 100 units (counter delta) |  |
 |  |  | Replace Water Filter | every 1000 units (counter delta) |  |
 | Haier hOn (Haier/Candy/Hoover) | `hon` | Replace Filter | below the household consumable floor (default 10 %) |  |
@@ -336,6 +477,11 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Tub | every 100 units (counter delta) |  |
 | Traeger grill | `traeger` | Clean Grease Trap | every 5 units (counter delta) |  |
 |  |  | Clean Appliance | every 20 units (counter delta) |  |
+| Electrolux (OCP API) | `electrolux` | Replace Filter | below the household consumable floor (default 10 %) | one task per entity |
+| GE Home (SmartHQ) | `ge_home` | Replace Water Filter | below the household consumable floor (default 10 %) |  |
+| Candy Simply-Fi | `candy` | Clean Tub | every 30 units (counter delta) |  |
+|  |  | Descaling | below 1 |  |
+|  |  | Filter Cleaning | below 1 |  |
 
 ## 2D and 3D printers incl. Klipper via Moonraker
 
@@ -349,11 +495,20 @@ due/auto-complete and un-adopt/re-adopt behave.
 | OctoPrint | `octoprint` | Lubricate Rails and Rods | every 200 h counted by the engine | binary_sensor entity; active: on |
 | PrusaLink | `prusalink` | Lubricate Rails and Rods | every 200 h counted by the engine | active: printing |
 | Moonraker (Klipper) | `moonraker` | Replace Nozzle | every 1000 units (counter delta) |  |
+| Creality (WebSocket) | `ha_creality_ws` | Lubricate Rails and Rods | every 200 h counted by the engine | active: printing |
+| Elegoo printer | `elegoo_printer` | Lubricate Rails and Rods | every 200 h counted by the engine | active: printing; device-type gated |
+| Anycubic Cloud | `anycubic_cloud` | Lubricate Rails and Rods | every 200 units (counter delta) | device-type gated |
 | IPP printer | `ipp` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
-| Brother printer | `brother` | Replace Toner | below the household consumable floor (default 10 %) | one task per entity |
+| Brother printer | `brother` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
+|  |  | Replace Maintenance Box | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Laser Unit | below the household consumable floor (default 10 %) |  |
+|  |  | Replace Paper Feed Kit | below the household consumable floor (default 10 %) | one task per entity |
+|  |  | Replace Toner | below the household consumable floor (default 10 %) | one task per entity |
 |  |  | Replace Drum Unit | below the household consumable floor (default 10 %) | one task per entity |
 |  |  | Replace Belt Unit | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Fuser | below the household consumable floor (default 10 %) |  |
+| HP printer | `hpprinter` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
+| Epson WorkForce | `epson_workforce` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
 
 ## Smart locks — cycle-count lubrication duties
 
@@ -371,6 +526,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Yale/August BLE lock | `yalexs_ble` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | dormakaba dKey lock | `dormakaba_dkey` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | Homematic KeyMatic | `homematic` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Wyze Lock | `wyzeapi` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| TTLock | `ttlock` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Kwikset Smart Locks | `kwikset` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| Nuki Web | `nuki_web` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked; except Opener |
 
 ## Protocol/hub transports whose duties are entity-domain-gated
 
@@ -393,6 +552,12 @@ due/auto-complete and un-adopt/re-adopt behave.
 |---|---|---|---|---|
 | Synology NAS | `synology_dsm` | Storage Cleanup | above 85 |  |
 | QNAP NAS | `qnap` | Storage Cleanup | above 85 |  |
+| Unraid | `unraid` | Storage Cleanup | above 85 |  |
+| Unraid API | `unraid_api` | Storage Cleanup | above 85 |  |
+| Unraid Management Agent | `unraid_management_agent` | Storage Cleanup | above 85 |  |
+| UniFi UNAS (REST) | `unifi_unas_rest` | Storage Cleanup | above 85 |  |
+| UniFi UNAS (MQTT) | `unifi_unas` | Storage Cleanup | above 85 |  |
+| MOS NAS | `mos` | Storage Cleanup | above 85 |  |
 
 ## Pet tech — feeders, fountains, litter boxes
 
@@ -403,6 +568,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Litter-Robot | `litterrobot` | Empty Waste Drawer | above 90 |  |
 |  |  | Refill Litter | below the household consumable floor (default 10 %) |  |
 |  |  | Wash Litter Box | every 150 units (counter delta) |  |
+| PETLIBRO | `petlibro` | Replace Desiccant | below 2 days remaining |  |
+|  |  | Replace Water Filter | below 2 days remaining |  |
+|  |  | Clean Appliance | below 2 days remaining |  |
+|  |  | Replace Filter | below 2 days remaining |  |
 | EHEIM Digital (aquarium) | `eheimdigital` | Filter Cleaning | below 24 h remaining |  |
 
 ## Personal-care devices
@@ -410,6 +579,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
 | Oral-B toothbrush | `oralb` | Replace Brush Head | every 6 h counted by the engine | active: running |
+| Oral-B (live BLE) | `oralb_live` | Replace Brush Head | below 2 days remaining |  |
+| Philips shaver | `philips_shaver` | Replace Shaver Head | below the household consumable floor (default 10 %) |  |
 
 ## Xiaomi ecosystem integrations (MIoT / Xiaomi Home) — multi-category
 
@@ -422,6 +593,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**123 integrations / 235 verified signatures.**
+**197 integrations / 388 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

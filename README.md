@@ -42,7 +42,7 @@ due, and completing it takes one tap — optionally with notes, cost, duration,
 and a photo of the work.
 
 **"My vacuum already knows when its filter is worn."**
-**Suggested setups** (Beta) discovers devices of 123 supported integrations —
+**Suggested setups** (Beta) discovers devices of 197 supported integrations —
 vacuums, robotic mowers, printers, kitchen appliances, heating, 3D printers,
 cars — and sets them up in one click with **sensor triggers pre-wired**:
 percent remaining, countdowns, wear counters, usage intervals (service every
@@ -116,7 +116,7 @@ for you — always previewing before it writes.
 
 | Area | What you get | Details |
 |---|---|---|
-| **Suggested setups** | 123 integrations / 235 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more | [Supported integrations](docs/INTEGRATIONS.md) |
+| **Suggested setups** | 197 integrations / 388 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more | [Supported integrations](docs/INTEGRATIONS.md) |
 | **Battery fleet** | One task for all 30–70+ batteries — grouped shopping list, discharge-trend forecast with per-battery sparklines, mark-all-replaced, spare-part stock; rechargeables are tracked for charging, never shopped. Best with [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes); native `device_class: battery` devices work too (degraded) | [Features → Battery Fleet](docs/FEATURES.md#battery-fleet-battery-notes-or-native) |
 | **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), the events of a Home Assistant calendar entity (once per event — waste collection), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision; live "next three dates" preview while editing | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery; adopt HA `device_class: problem` sensors as tasks | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |

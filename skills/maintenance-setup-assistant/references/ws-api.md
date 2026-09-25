@@ -722,7 +722,7 @@ the **last** reference to a blob goes.
 ## Suggested setups — the shipped signature catalog
 
 **Use this before hand-rolling discovery.** The integration ships a catalog of
-**123 integrations / 229 verified signatures** (`helpers/signatures/`, every
+**197 integrations / 388 verified signatures** (`helpers/signatures/`, every
 entry read against the integration's own source) that maps consumable and wear
 entities onto maintenance duties. Discovery runs **server-side**: it walks the
 entity registry, applies the model/sibling/unit gates, hides duties already

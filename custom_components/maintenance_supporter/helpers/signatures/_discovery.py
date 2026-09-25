@@ -58,7 +58,7 @@ def _catalog_name_variants() -> set[str]:
     return variants
 
 
-def _matches_catalog_key(entry: er.RegistryEntry, key: str, catalog_keys: set[str]) -> bool:
+def _matches_catalog_key(entry: er.RegistryEntry, key: str, catalog_keys: set[str], *, tk_authoritative: bool = False) -> bool:
     """``_entity_matches`` where a LONGER key of the same catalog that ends
     in ``key`` owns the entity.
 
@@ -67,13 +67,17 @@ def _matches_catalog_key(entry: er.RegistryEntry, key: str, catalog_keys: set[st
     its own "Replace Secondary Filter" duty — the secondary filter's wear
     then fired the main-filter task (bug review 2026-09-04). An exact
     translation_key match is the integration's own word and needs no guard.
+    That guard only knows catalog keys; an integration flagged
+    ``translation_keys_authoritative`` also keeps the fallbacks off entities
+    whose own (uncataloged) translation_key differs.
     """
     if entry.translation_key == key:
         return True
-    if not _entity_matches(entry, key):
+    if not _entity_matches(entry, key, tk_authoritative=tk_authoritative):
         return False
     return not any(
-        other != key and other.endswith(f"_{key}") and _entity_matches(entry, other) for other in catalog_keys
+        other != key and other.endswith(f"_{key}") and _entity_matches(entry, other, tk_authoritative=tk_authoritative)
+        for other in catalog_keys
     )
 
 
@@ -127,6 +131,7 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             else ""
         ).lower()
         catalog_keys = {key for s in catalog.tasks for key in s.keys}
+        tk_auth = catalog.translation_keys_authoritative
         for sig in catalog.tasks:
             # Device-type gates: registry model substring and/or a
             # type-identifying sibling entity (watched siblings still count —
@@ -136,7 +141,7 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             if sig.models_exclude and any(m.lower() in model for m in sig.models_exclude):
                 continue
             if sig.require_sibling_keys and not any(
-                any(_entity_matches(e, key) for key in sig.require_sibling_keys) for e in entries
+                any(_entity_matches(e, key, tk_authoritative=tk_auth) for key in sig.require_sibling_keys) for e in entries
             ):
                 continue
             variants = task_name_variants(sig.task_name)
@@ -147,7 +152,9 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                     continue
                 # Empty keys (non-sensor domains only, tripwire-enforced) match
                 # the device's single entity of that domain — THE lawn_mower.
-                if sig.keys and not any(_matches_catalog_key(entry, key, catalog_keys) for key in sig.keys):
+                if sig.keys and not any(
+                    _matches_catalog_key(entry, key, catalog_keys, tk_authoritative=tk_auth) for key in sig.keys
+                ):
                     continue
                 group = matched.setdefault(device_id, {}).setdefault(
                     (integration, sig.task_name, sig.direction),

@@ -1610,9 +1610,10 @@ async def test_category_sweep_litterrobot_ble_mower_evse(
 async def test_ac_filter_via_hvac_action_attribute(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
-    """AC-only integrations (daikin/gree) propose filter cleaning by
-    CONDITIONING time: the runtime trigger tracks the hvac_action ATTRIBUTE —
-    the climate state only reports the standby mode."""
+    """AC-only integrations (daikin/gree) propose filter cleaning by the time
+    the unit runs: the runtime trigger counts on the climate STATE (every HVAC
+    mode but off). The earlier hvac_action-attribute variant was dead for
+    gree and blind to fan/dry/auto on daikin (catalog sweep 2026-09-25)."""
     from custom_components.maintenance_supporter.websocket.integration_setups import (
         ws_adopt_integration_setups,
     )
@@ -1646,8 +1647,8 @@ async def test_ac_filter_via_hvac_action_attribute(
     )
     (t,) = obj.data[CONF_TASKS].values()
     tc = t["trigger_config"]
-    assert tc["type"] == "runtime" and tc["attribute"] == "hvac_action"
-    assert set(tc["trigger_on_states"]) == {"cooling", "heating", "fan", "drying"}
+    assert tc["type"] == "runtime" and "attribute" not in tc
+    assert set(tc["trigger_on_states"]) == {"cool", "dry", "fan_only", "heat", "heat_cool"}
 
 
 async def test_state_derived_wave_roomba_mqtt_prusalink(

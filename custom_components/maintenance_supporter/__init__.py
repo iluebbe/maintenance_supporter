@@ -1524,6 +1524,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # A cached store's memory is authoritative — re-loading from disk here
         # would drop any change still sitting in its debounce window.
 
+        # Catalog triggers written by a signature that could never fire
+        # (gree/daikin hvac_action runtime, 2026-09-25) are repaired once.
+        from .helpers.catalog_heal import heal_catalog_triggers
+
+        if (healed_data := heal_catalog_triggers(hass, entry.data)) is not None:
+            _LOGGER.info("Repaired catalog trigger(s) of %s (AC filter runtime now counts on the HVAC mode)", entry.title)
+            hass.config_entries.async_update_entry(entry, data=healed_data)
+
         # Reconcile the entry.data <-> Store split (journey I1): drop store
         # state orphaned by a crash between the two writes of a deletion.
         # Same reconciliation for spare-part stock state (journey S6): a crash
