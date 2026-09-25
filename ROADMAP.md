@@ -430,6 +430,13 @@ writes.
    list with each park-reason re-checked against current sources, (b)
    top analytics risers not yet catalogued, (c) spot-check of previous
    "no signature" verdicts.
+   ✅ **First re-visit done 2026-09-25 (round 14, v2.91.0)** — core
+   2026.7.0 → dev key diff plus analytics risers and the hacs/default
+   additions since July: catalog 123 → 197 integrations / 235 → 388
+   signatures, and two dead entries found (Gree runtime on an attribute the
+   integration never sets, Tuya vacuums whose life sensors were missed —
+   the Dreame lesson again: diff the integration's full key set, not our
+   list). Next re-visit ≈ December 2026.
 
 4. ~~**Catalog governance: full re-audit + drift watchdog**~~ ✅ **Shipped
    2026-07-18** — (a) all 22 entries re-audited against the evaluation

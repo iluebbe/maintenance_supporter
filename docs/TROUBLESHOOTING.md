@@ -58,6 +58,19 @@ object keeps a device of its own. Completing the fix clears the notice; a
 integration, restored backup). A *self-link* never resolves on its own — the
 Fix button is the way out.
 
+### Suggested Setup: AC Filter Cleaning Never Came Due (Gree / Daikin)
+
+Before 2.91 the suggested *Filter Cleaning* duty for Gree and Daikin air
+conditioners counted runtime on the climate entity's `hvac_action`
+attribute. Gree never reports it, so the task never became due; Daikin
+reports it only while cooling or heating, so fan-only, dry and auto hours
+were missing. Since 2.91 the duty counts every running HVAC mode, and a task
+adopted earlier is repaired automatically at the next start (the log says
+*Repaired catalog trigger(s) of …*). If you had changed that task's trigger
+states yourself, it is left alone — edit the runtime trigger to track the
+entity's state with the running modes (`cool`, `heat`, `dry`, `fan_only`,
+`auto`/`heat_cool`) instead of the `hvac_action` attribute.
+
 ### Battery Fleet: No Sparkline or Trend Date on Some Rows
 
 The discharge sparklines and trend-based ~dates (2.51+) are computed from

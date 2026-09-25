@@ -44,7 +44,8 @@ and a photo of the work.
 **"My vacuum already knows when its filter is worn."**
 **Suggested setups** (Beta) discovers devices of 197 supported integrations —
 vacuums, robotic mowers, printers, kitchen appliances, heating, 3D printers,
-cars — and sets them up in one click with **sensor triggers pre-wired**:
+cars, e-bikes, wallboxes, locks, pool and spa, NAS — and sets them up in one
+click with **sensor triggers pre-wired**:
 percent remaining, countdowns, wear counters, usage intervals (service every
 15,000 km / blades every 100 mowing-hours), appliance events (dishwasher
 "salt nearly empty"), and even engine-counted runtime for devices that expose

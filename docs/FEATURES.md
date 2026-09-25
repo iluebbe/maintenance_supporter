@@ -357,8 +357,14 @@ it cannot drift). The object is bound to the
 device and every task arrives with its trigger **pre-wired** — a **threshold**
 (below 24 h left / below 10 % remaining — the household's *Consumable low threshold* setting, 2.69+ / above a usage-hours count, unit-aware)
 for numeric consumables, a **state latch** on the event for Home Connect's
-`present`/`off` maintenance events, or a **usage-interval counter** for
+`present`/`off` maintenance events — or, for level sensors that report
+`full` / `nearly_empty` / `empty`, on *anything but full* (2.91+, Home
+Connect Local salt and rinse aid) — or a **usage-interval counter** for
 lifetime hour meters (every N hours of use, re-baselined on completion).
+When an appliance reports one condition through several events (Home
+Connect's *salt nearly empty*, *salt lack* and *program blocked — salt
+lack*), one task watches them all and whichever fires first makes it due
+(2.91+).
 Replacing the consumable, resetting the wear counter, or the appliance clearing
 its event resolves the task automatically. Every signature in
 the catalog is **verified against the integration's source code** (a tripwire
@@ -375,6 +381,14 @@ ink/toner/drum duties (IPP, Brother) split into *Replace Toner — Cyan*,
 *— Magenta*, … named after the cartridge entity, each watching only its own
 sensor, so completing one colour never touches the others; a mono printer
 keeps the single task.
+
+Catalog fixes also reach tasks you adopted **before** the fix when the old
+signature could never have fired: 2.91 found that the *Filter Cleaning* duty
+for Gree and Daikin air conditioners counted runtime on an attribute Gree
+never reports and Daikin only reports while cooling or heating. The duty now
+counts every running HVAC mode, and tasks adopted earlier are repaired once
+at start-up — only while their trigger is still exactly what the catalog
+wrote, so a trigger you changed yourself is left alone.
 
 ### Battery Fleet (Battery Notes or native)
 If you have many battery devices, 30–70+ of them would mean 30–70 maintenance
