@@ -87,6 +87,7 @@ export class MsCameraCapture extends LitElement {
         return;
       }
       await this._preferMainBackCamera(md);
+      if (!this._stream) return; // not even the first camera came back — capture-unavailable fired
     }
     await this._applyZoomOne();
     await this._listDevices(md);
@@ -132,13 +133,57 @@ export class MsCameraCapture extends LitElement {
     const track = this._stream?.getVideoTracks()[0];
     const current = track?.getSettings().deviceId;
     if (back.length > 1 && back[0].deviceId !== current) {
+      // Whatever happens, a camera is running afterwards: the main module,
+      // or the one we had, reopened.
+      const restore: MediaTrackConstraints[] = current ? [{ deviceId: { exact: current } }] : [];
+      restore.push({ facingMode: { ideal: "environment" } });
+      const got = await this._swapCamera(md, [{ deviceId: { exact: back[0].deviceId } }], restore);
+      if (got === null) this._unavailable("camera_lost");
+    }
+  }
+
+  /** Replace the running camera with the first candidate that answers.
+   *
+   *  Many Android phones open ONE camera at a time: asking for another while
+   *  the current stream still runs fails, or quietly hands back the camera
+   *  that is already open — the lens switch "flickers but stays at 0.5×" and
+   *  the counter never moves (#161). So the current stream is released
+   *  FIRST, the candidates are tried with the camera free, and when none
+   *  answers the previous camera is reopened from `restore`.
+   *
+   *  Returns the index of the candidate now running, -1 when the previous
+   *  camera was reopened instead, or null when even that failed (no stream
+   *  is left; the caller decides how to give up). */
+  private async _swapCamera(md: MediaDevices, candidates: MediaTrackConstraints[], restore: MediaTrackConstraints[]): Promise<number | null> {
+    this._stopTracks();
+    for (const [i, video] of candidates.entries()) {
       try {
-        const stream = await md.getUserMedia({ video: { deviceId: { exact: back[0].deviceId } }, audio: false });
-        for (const t of this._stream?.getTracks() ?? []) t.stop();
-        this._stream = stream;
+        this._stream = await md.getUserMedia({ video, audio: false });
+        return i;
       } catch {
-        // keep the stream we have
+        // that camera refused — try the next one
       }
+    }
+    for (const video of restore) {
+      try {
+        this._stream = await md.getUserMedia({ video, audio: false });
+        return -1;
+      } catch {
+        // try the looser spelling
+      }
+    }
+    return null;
+  }
+
+  /** Show the stream we now hold in the viewfinder. */
+  private async _attach(): Promise<void> {
+    const video = this._video;
+    if (!video || !this._stream) return;
+    video.srcObject = this._stream;
+    try {
+      await video.play();
+    } catch {
+      // see open()
     }
   }
 
@@ -193,71 +238,62 @@ export class MsCameraCapture extends LitElement {
    *  track, which used to make the cycle restart at the current camera.
    *  A camera that refuses is skipped; the position (2/3) is shown on the
    *  button so a tap visibly did something; the pick is remembered per
-   *  browser so the next open starts there. */
+   *  browser so the next open starts there. When the WebView honours none
+   *  of the ids, the opposite facing mode is asked for (#161 follow-up), and
+   *  when nothing answers the previous camera comes back with a note. */
   private async _switchCamera(): Promise<void> {
     const md = typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
     if (!md || this._devices.length < 2 || this._busy) return;
     const ids = this._devices.map((d) => d.deviceId);
+    const previousId = this._currentDeviceId || (this._deviceIndex >= 0 ? ids[this._deviceIndex] : undefined);
+    const other: "user" | "environment" = this._facing === "user" ? "environment" : "user";
+    const order: number[] = [];
+    for (let step = 1; step < ids.length; step++) {
+      const at = (this._deviceIndex + step) % ids.length;
+      if (ids[at] === previousId && this._deviceIndex < 0) continue; // unknown position, but this one is provably the current camera
+      order.push(at);
+    }
+    const candidates: MediaTrackConstraints[] = [
+      ...order.map((at) => ({ deviceId: { exact: ids[at] } })),
+      { facingMode: { exact: other } },
+      { facingMode: { ideal: other } },
+    ];
+    const restore: MediaTrackConstraints[] = previousId ? [{ deviceId: { exact: previousId } }] : [];
+    restore.push({ facingMode: { ideal: this._facing } });
     this._busy = true;
     try {
-      for (let step = 1; step < ids.length; step++) {
-        const at = (this._deviceIndex + step) % ids.length;
-        const next = ids[at];
-        if (next === this._currentDeviceId && this._deviceIndex < 0) continue; // unknown position, but this one is provably the current camera
-        try {
-          const stream = await md.getUserMedia({ video: { deviceId: { exact: next } }, audio: false });
-          for (const track of this._stream?.getTracks() ?? []) track.stop();
-          this._stream = stream;
-          this._deviceIndex = at;
-          this._switchFailed = false;
-          await this._applyZoomOne();
-          lsSet(LS_KEYS.cameraDevice, next);
-          const video = this._video;
-          if (video) {
-            video.srcObject = stream;
-            try {
-              await video.play();
-            } catch {
-              // see open()
-            }
-          }
-          return;
-        } catch {
-          // that camera refused — try the next one
-        }
+      const got = await this._swapCamera(md, candidates, restore);
+      if (got === null) {
+        this._unavailable("camera_lost");
+        return;
       }
-      // #161 follow-up: the WebView listed the cameras but honours none of
-      // the ids (reported live: "the button is there, a tap does nothing").
-      // Ask by facing instead — the id-less request phones still answer —
-      // and when that fails too, say so on screen.
-      const other: "user" | "environment" = this._facing === "user" ? "environment" : "user";
-      for (const facingMode of [{ exact: other }, { ideal: other }]) {
-        try {
-          const stream = await md.getUserMedia({ video: { facingMode }, audio: false });
-          for (const track of this._stream?.getTracks() ?? []) track.stop();
-          this._stream = stream;
-          this._facing = other;
-          this._deviceIndex = this._indexOfCurrent(null);
-          this._switchFailed = false;
-          await this._applyZoomOne();
-          const video = this._video;
-          if (video) {
-            video.srcObject = stream;
-            try {
-              await video.play();
-            } catch {
-              // see open()
-            }
-          }
-          return;
-        } catch {
-          // try the softer spelling, then give up visibly
-        }
+      if (got >= 0 && got < order.length) {
+        this._deviceIndex = order[got];
+        this._switchFailed = false;
+        lsSet(LS_KEYS.cameraDevice, ids[order[got]]);
+      } else if (got >= order.length && !this._isCamera(previousId, this._facing)) {
+        // Asked by facing: the id-less request phones still answer.
+        this._facing = other;
+        this._deviceIndex = this._indexOfCurrent(null);
+        this._switchFailed = false;
+      } else {
+        // Nothing else answered (or "ideal" handed the same camera back):
+        // the previous camera runs again — say so instead of a silent tap.
+        this._switchFailed = true;
       }
-      this._switchFailed = true;
+      await this._applyZoomOne();
+      await this._attach();
     } finally {
       this._busy = false;
     }
+  }
+
+  /** Whether the stream we hold is provably the camera described — by id
+   *  when both sides report one, else by reported facing mode. */
+  private _isCamera(deviceId: string | undefined, facing: "user" | "environment"): boolean {
+    const settings = this._stream?.getVideoTracks()[0]?.getSettings();
+    if (deviceId && settings?.deviceId) return settings.deviceId === deviceId;
+    return !!settings?.facingMode && settings.facingMode === facing;
   }
 
   close(): void {
@@ -276,10 +312,16 @@ export class MsCameraCapture extends LitElement {
   }
 
   private _stopStream(): void {
-    for (const track of this._stream?.getTracks() ?? []) track.stop();
-    this._stream = null;
+    this._stopTracks();
     const v = this._video;
     if (v) v.srcObject = null;
+  }
+
+  /** Release the camera (the viewfinder keeps its last frame until the next
+   *  stream is attached). */
+  private _stopTracks(): void {
+    for (const track of this._stream?.getTracks() ?? []) track.stop();
+    this._stream = null;
   }
 
   private _unavailable(reason: string): void {
