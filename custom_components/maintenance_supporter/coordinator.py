@@ -54,6 +54,7 @@ from .const import (
     task_unique_id,
 )
 from .helpers.budget import compute_spend
+from .helpers.calendar_source import next_event_titles
 from .helpers.entry_tasks import write_task
 from .helpers.global_options import global_option, is_schedule_time_enabled
 from .helpers.history import completed_entries
@@ -71,12 +72,15 @@ _LOGGER = logging.getLogger(__name__)
 
 def _notify_task_label(task: dict[str, Any]) -> str:
     """Task name for notifications — phased tasks (#139) name the due step,
-    so "Mower blades · Replace blades" tells the user what the work IS."""
+    so "Mower blades · Replace blades" tells the user what the work IS; a
+    calendar-driven task names the next events (#189: "Put the bins out ·
+    Residual waste, Paper")."""
+    from .helpers.calendar_source import with_event_titles
     from .helpers.phases import current_phase
 
     name = task.get("name", "")
     phase = current_phase(task)
-    return f"{name} · {phase['name']}" if phase else name
+    return with_event_titles(f"{name} · {phase['name']}" if phase else name, task.get("_next_event_titles"))
 
 
 def _inert_task_result(task: MaintenanceTask, status: str, **extra: Any) -> dict[str, Any]:
@@ -338,6 +342,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # the entities recompute from after a live trigger update.
             task_result["_warning_days_effective"] = task.effective_warning_days
             task_result["_next_due"] = task.next_due.isoformat() if task.next_due else None
+            # #189: which calendar events that date stands for.
+            task_result["_next_event_titles"] = next_event_titles(self.hass, task._schedule(), task.next_due)
             task_result["_is_done"] = task.is_done
             task_result["_trigger_active"] = task._trigger_active
             task_result["_trigger_current_value"] = task._trigger_current_value

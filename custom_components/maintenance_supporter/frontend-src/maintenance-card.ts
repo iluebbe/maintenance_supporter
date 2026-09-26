@@ -20,6 +20,7 @@ import type {
 import { UserService } from "./user-service";
 import { personOf, renderPersonAvatar, type PersonDisplay } from "./helpers/person";
 import { phaseLabel } from "./helpers/phases";
+import { renderEventTitles } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
@@ -473,7 +474,7 @@ export class MaintenanceSupporterCard extends LitElement {
                       <div class="status-dot" style="background: ${STATUS_COLORS[task.status] || "#ccc"}"></div>
                       <div class="task-info">
                         <div class="task-name">
-                          ${task.name}
+                          ${task.name}${renderEventTitles(task.next_event_titles)}
                           ${(task as any).due_override
                             ? html`<ha-icon
                                 class="postponed-icon"

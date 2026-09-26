@@ -292,6 +292,8 @@ export interface MaintenanceTask {
   archived_reason?: string | null;
   days_until_due?: number | null;
   next_due?: string | null;
+  /** #189: titles of the calendar events behind next_due (calendar kind). */
+  next_event_titles?: string[];
   /** Per-occurrence postpone: the ISO date the current cycle was deferred to. */
   due_override?: string | null;
   trigger_active: boolean;
@@ -591,6 +593,8 @@ export interface TaskRow {
   area_id: string | null;
   responsible_user_id: string | null;
   group_names: string[];
+  /** #189: titles of the calendar events behind next_due (calendar kind). */
+  next_event_titles: string[];
 }
 
 // HomeAssistant type (minimal for our needs)

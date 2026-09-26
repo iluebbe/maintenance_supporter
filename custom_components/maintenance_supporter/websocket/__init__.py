@@ -308,6 +308,8 @@ def _build_task_summary(
         "is_done": ct.get("_is_done", False),
         "days_until_due": ct.get("_days_until_due"),
         "next_due": ct.get("_next_due"),
+        # #189: titles of the calendar events behind next_due (calendar kind).
+        "next_event_titles": list(ct.get("_next_event_titles") or []),
         "trigger_active": ct.get("_trigger_active", False),
         "trigger_current_value": ct.get("_trigger_current_value"),
         "trigger_entity_state": ct.get("_trigger_entity_state", "available"),

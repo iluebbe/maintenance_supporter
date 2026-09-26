@@ -22,6 +22,7 @@ import { renderNotesMarkdown } from "./helpers/notes-markdown";
 import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
 import { describePartLink } from "./helpers/shared-parts";
 import { effectivePhase } from "./helpers/phases";
+import { renderEventTitles } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
@@ -1185,6 +1186,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           status: task.status,
           days_until_due: task.days_until_due ?? null,
           next_due: task.next_due ?? null,
+          next_event_titles: task.next_event_titles ?? [],
           trigger_active: task.trigger_active,
           trigger_current_value: task.trigger_current_value ?? null,
           trigger_current_delta: task.trigger_current_delta ?? null,
@@ -3111,7 +3113,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <div class="today-row" @click=${() => this._showTask(row.entry_id, row.task_id)}>
             <span class="today-dot ${row.trigger_active ? "triggered" : row.status}"></span>
             <div class="today-main">
-              <div class="today-task">${this._listRef(row.entry_id, row.task_id)}${row.task_name}</div>
+              <div class="today-task">${this._listRef(row.entry_id, row.task_id)}${row.task_name}${renderEventTitles(row.next_event_titles)}</div>
               <div class="today-object">
                 <span class="today-object-text">${row.object_name} · ${formatDueDays(row.days_until_due, L)}</span>
                 ${renderPersonChip(personOf(row), "today-person")}
@@ -4089,7 +4091,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </span>
         <span class="row-head">
           <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
-          <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${this._listRef(row.entry_id, row.task_id)}${row.task_name}</span>
+          <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${this._listRef(row.entry_id, row.task_id)}${row.task_name}${renderEventTitles(row.next_event_titles)}</span>
         </span>
         <span class="task-sub${hasSub ? '' : ' task-sub-empty'}">
           ${row.group_names.length > 0 ? html`
@@ -4321,7 +4323,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     ? html`<span class="doc-badge" title="${task.document_count} ${t("documents", L)}"><ha-icon icon="mdi:paperclip"></ha-icon>${task.document_count}</span>`
                     : nothing}
                 </span>
-                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${task.name}</span>
+                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${task.name}${renderEventTitles(task.next_event_titles)}</span>
                 <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>

@@ -447,6 +447,10 @@ calendar kinds (only expressible via the nested `schedule` object):
   completion: the first on/after creation). No upcoming event → no due date.
   The natural fit for waste-collection calendars ("put the bins out"). Reads
   echo `schedule_entity_name` (the calendar's friendly name) for this kind.
+  Every task read also carries `next_event_titles` (2.92, #189): the titles
+  of the calendar events behind `next_due` (`["Residual waste", "Paper"]`;
+  `[]` for other kinds or a postponed date). The task name itself never
+  changes.
 
 Every calendar kind also takes `"offset": ±N` days (clamped ±15), and every
 recurring kind `season_months` / `ends` (see CONFIGURATION.md).

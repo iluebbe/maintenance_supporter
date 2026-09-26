@@ -570,10 +570,16 @@ async def async_setup_entry(
 
 
 
-def _task_label(task: MaintenanceTask) -> str:
-    """Task name, with the due cycle phase appended for phased tasks (#139)."""
+def _task_label(task: MaintenanceTask, hass: HomeAssistant | None = None) -> str:
+    """Task name, with the due cycle phase appended for phased tasks (#139)
+    and, for a calendar-driven task, the next events' titles (#189)."""
     phase = task.current_phase_name
-    return f"{task.name} · {phase}" if phase else task.name
+    label = f"{task.name} · {phase}" if phase else task.name
+    if hass is None:
+        return label
+    from .helpers.calendar_source import next_event_titles, with_event_titles
+
+    return with_event_titles(label, next_event_titles(hass, task._schedule(), task.next_due))
 
 class MaintenanceCalendar(CalendarEntity):
     """Calendar entity aggregating all maintenance tasks."""
@@ -775,7 +781,7 @@ class MaintenanceCalendar(CalendarEntity):
                 end = start_dt + timedelta(minutes=30)
 
         return CalendarEvent(
-            summary=f"{prefix} {_task_label(task)} ({object_name})",
+            summary=f"{prefix} {_task_label(task, self.hass)} ({object_name})",
             start=start,
             end=end,
             description=(

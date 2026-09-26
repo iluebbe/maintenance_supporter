@@ -43,6 +43,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 
 from ..const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, UNAVAILABLE_STATES, MaintenanceStatus
+from .calendar_source import with_event_titles
 from .managed_timer import ManagedTimer
 
 if TYPE_CHECKING:
@@ -68,8 +69,9 @@ def mirror_lists(task: dict[str, Any]) -> list[str]:
 
 
 def mirror_summary(object_name: str, task: dict[str, Any]) -> str:
-    """The row text — same shape as our own to-do platform and the shopping sync."""
-    return f"{object_name}: {task.get('name', task.get('id', ''))}"
+    """The row text — same shape as our own to-do platform (the next calendar
+    events included, #189) and the shopping sync."""
+    return with_event_titles(f"{object_name}: {task.get('name', task.get('id', ''))}", task.get("_next_event_titles"))
 
 
 @callback

@@ -547,6 +547,8 @@ export const refStyles = css`
     font-variant-numeric: tabular-nums; letter-spacing: .02em; vertical-align: middle; white-space: nowrap;
     user-select: all;
   }
+  /* #189: "· Residual waste, Paper" after a calendar-driven task's name. */
+  .event-titles { color: var(--secondary-text-color); font-weight: 400; }
 `;
 
 export const sharedStyles = css`

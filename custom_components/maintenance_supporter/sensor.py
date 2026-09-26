@@ -255,6 +255,12 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
 
         attrs.update(last_reading_attributes(task.get("history")))
 
+        # #189: the calendar events behind the next due date ("Residual
+        # waste", "Paper") — stable until the next occurrence, only present
+        # for a calendar-driven task that has them.
+        if titles := task.get("_next_event_titles"):
+            attrs["next_event_titles"] = list(titles)
+
         # Task phases (#139): which cycle step is due — stable (changes once
         # per completion), so it belongs on the entity for automations
         # ("announce 'replace blades' only when THAT phase comes up").

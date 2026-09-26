@@ -36,6 +36,7 @@ from .const import (
     NOTIFIABLE_STATUSES,
     MaintenanceStatus,
 )
+from .helpers.calendar_source import with_event_titles
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -137,7 +138,8 @@ class MaintenanceTodoList(TodoListEntity):
                 items.append(
                     TodoItem(
                         uid=f"{entry.entry_id}:{task_id}",
-                        summary=f"{obj_name}: {task_cfg.get('name', '')}",
+                        # #189: a calendar-driven task names the next events.
+                        summary=with_event_titles(f"{obj_name}: {task_cfg.get('name', '')}", task_live.get("_next_event_titles")),
                         status=(TodoItemStatus.NEEDS_ACTION if status in _ACTION_STATUSES else TodoItemStatus.COMPLETED),
                         due=due,
                     )

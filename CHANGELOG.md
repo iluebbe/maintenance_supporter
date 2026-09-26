@@ -4,6 +4,15 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Calendar-driven tasks name the next events** (#189): a task scheduled by a calendar entity shows which events its
+  next date stands for — one Waste Collection Schedule calendar names every pickup after the bin, so the task reads
+  *Put the bins out · Residual waste, Paper* (several events on one day are joined). The titles appear after the task
+  name on the dashboard, the Today tab, the object and task pages and the Lovelace card, and in notifications, the
+  *Maintenance* to-do list, mirrored to-do rows and the integration's calendar. The task's own name never changes, and
+  the task sensor carries the titles as the `next_event_titles` attribute (the WebSocket task read too).
+
 ### ✨ Changed
 
 - **Error messages of the actions are translated** (quality scale *exception-translations*): the errors the
@@ -17,6 +26,25 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Quality scale: self-assessed Platinum.** The per-rule assessment (`quality_scale.yaml`) was brought up to date —
   it still claimed no runtime dependencies, 18 languages and 2,400 tests — and the last open Gold rule is done.
   The WebSocket package now passes `mypy --strict` like the rest of the component (it was excluded before).
+
+### 🐛 Fixed
+
+- **Switching the camera in the Android app** (#161): on phones that open only one camera at a time, the lens switch
+  flickered but stayed on the same camera (often the 0.5× ultra-wide one) and its counter never moved — every request
+  for the next camera was made while the current one was still running, and the switch to the main camera on opening
+  failed the same way. The running camera is now released first; when no other camera answers, the previous one is
+  reopened with a note, and if even that fails the viewfinder closes and the regular photo picker takes over.
+- **Suggested setups on sensors shown in weeks** (and milliseconds): Home Assistant lets a duration sensor be displayed
+  in `w`, `ms` or `μs`, but the threshold conversion only knew `s`/`min`/`h`/`d` and used the raw hour value — a
+  "48 hours left" floor became 48 *weeks*, so the task was due right away. Every duration unit HA offers is converted
+  now, and a test fails when HA adds another one.
+- **Home Assistant 2026.9: no more deprecation warning from the battery lifetime table.** Opening the settings read
+  the device registry the pre-2026.9 way; HA logged a warning for it and would have stopped answering in 2027.9. It is
+  read version-neutrally now.
+- **Failures that were swallowed silently are logged**: the battery lifetime table, a broken calendar source (once per
+  calendar) and the adaptive-interval and sensor-prediction analyses (a warning the first time per task, debug after
+  that) — an HA API change there went unnoticed before. Recorder statistics are read through Home Assistant's public
+  helper instead of an internal re-export.
 
 ## [2.91.0] - 2026-09-25
 
