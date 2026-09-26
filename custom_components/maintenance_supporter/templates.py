@@ -343,6 +343,8 @@ _CAR_TEST_NOTES: dict[str, str] = {
     "NL": "Netherlands: APK for petrol and electric cars after 4 years, then every 2 years and from 8 years every year; diesel cars after 3 years, then every year.",
     "PL": "Poland: przegląd techniczny after 3 years, after 5 years, then every year.",
     "SE": "Sweden: besiktning after 3 years, after 5 years, then every 14 months.",
+    "AU": "Australia: only NSW has a regular check — a yearly safety inspection (pink slip) for most light vehicles older than 5 years; the other states and territories inspect on sale, transfer or re-registration.",
+    "NZ": "New Zealand: Warrant of Fitness 3 years after first registration, then every year (cars from before 2000: every 6 months) — planned from 1 November 2026: after 4 years, then every 2 years until the car is 14, then every year.",
 }
 _MOTORCYCLE_TEST_NOTES: dict[str, str] = {
     "AT": _CAR_TEST_NOTES["AT"],
@@ -355,6 +357,8 @@ _MOTORCYCLE_TEST_NOTES: dict[str, str] = {
     "NL": "Netherlands: motorcycles have no APK.",
     "PL": _CAR_TEST_NOTES["PL"],
     "SE": "Sweden: besiktning within 4 years, then every 2 years.",
+    "AU": _CAR_TEST_NOTES["AU"],
+    "NZ": "New Zealand: Warrant of Fitness every year (motorcycles from before 2000: every 6 months until 31 October 2026).",
 }
 _TEST_NOTE = "The first test and the cycle depend on the country and the vehicle's age — the due date is on the registration papers or the inspection sticker."
 
@@ -381,7 +385,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 60,
                 _TEST_NOTE,
                 country_notes=_CAR_TEST_NOTES,
-                country_intervals={"AT": 365, "ES": 365, "GB": 365, "NL": 365, "PL": 365, "SE": 426},
+                country_intervals={"AT": 365, "AU": 365, "ES": 365, "GB": 365, "NL": 365, "NZ": 365, "PL": 365, "SE": 426},
             ),
         ],
     ),
@@ -442,7 +446,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 60,
                 _TEST_NOTE,
                 country_notes=_MOTORCYCLE_TEST_NOTES,
-                country_intervals={"AT": 365, "FR": 1095, "GB": 365, "PL": 365},
+                country_intervals={"AT": 365, "AU": 365, "FR": 1095, "GB": 365, "NZ": 365, "PL": 365},
             ),
         ],
     ),
@@ -500,8 +504,12 @@ TEMPLATES: list[ObjectTemplate] = [
                 "time_based",
                 365,
                 14,
-                country_notes={"FR": "France: installers recommend operating the safety group (groupe de sécurité) once a month so scale cannot block it."},
-                country_intervals={"FR": 30},
+                country_notes={
+                    "FR": "France: installers recommend operating the safety group (groupe de sécurité) once a month so scale cannot block it.",
+                    "AU": "Australia and New Zealand: manufacturers call for easing the relief-valve lever every 6 months and replacing the valve at least every 5 years.",
+                    "NZ": "Australia and New Zealand: manufacturers call for easing the relief-valve lever every 6 months and replacing the valve at least every 5 years.",
+                },
+                country_intervals={"FR": 30, "AU": 182, "NZ": 182},
             ),
         ],
     ),
@@ -521,7 +529,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         traits=frozenset({"freeze"}),
         tasks=[
-            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer.", "IT": "Italy: flue-gas check every 4 years for gas boilers up to 100 kW, every 2 years for oil, wood or pellet boilers.", "DE": "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid; every heating appliance is also inspected twice in seven years (Feuerstättenschau).", "AT": "Austria: the inspection intervals for heating systems are set by each state (Bundesland).", "CH": "Switzerland: the canton or municipality schedules the emissions check (e.g. Zurich: oil every 2 years, gas every 4 years).", "BE": "Belgium (Flanders): boilers from 20 kW — oil and solid fuel every year, gas every 2 years; Wallonia and Brussels have their own rules.", "ES": "Spain: boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.", "CZ": "Czechia: solid-fuel boilers of 10–300 kW need an inspection by a certified technician every 3 years.", "PL": "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).", "RU": "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year."}),
+            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer.", "IT": "Italy: flue-gas check every 4 years for gas boilers up to 100 kW, every 2 years for oil, wood or pellet boilers.", "DE": "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid; every heating appliance is also inspected twice in seven years (Feuerstättenschau).", "AT": "Austria: the inspection intervals for heating systems are set by each state (Bundesland).", "CH": "Switzerland: the canton or municipality schedules the emissions check (e.g. Zurich: oil every 2 years, gas every 4 years).", "BE": "Belgium (Flanders): boilers from 20 kW — oil and solid fuel every year, gas every 2 years; Wallonia and Brussels have their own rules.", "ES": "Spain: boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.", "CZ": "Czechia: solid-fuel boilers of 10–300 kW need an inspection by a certified technician every 3 years.", "PL": "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).", "RU": "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year.", "AU": "Australia: Energy Safe Victoria recommends servicing gas heaters at least every 2 years, including a carbon-monoxide test."}),
             TaskTemplate("Bleed Radiators", "service", "time_based", 365, 14, schedule={"kind": "day_of_month", "day": 1, "months": [10]}),
             TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
         ],
@@ -580,6 +588,7 @@ TEMPLATES: list[ObjectTemplate] = [
                     "CZ": "Czechia: solid fuels up to 50 kW — clean the flue 3 times a year (twice with seasonal use) and have it inspected once a year.",
                     "IT": "Italy: have the flue and a pellet or wood stove cleaned by a qualified technician every year (UNI 10683).",
                     "US": "US: NFPA 211 calls for a chimney inspection at least once a year.",
+                    "AU": "Australia: fire services advise cleaning the flue once a year (e.g. ACT Fire & Rescue).",
                 },
             ),
             TaskTemplate("Inspect Door Gasket", "inspection", "time_based", 365, 21),
@@ -776,6 +785,14 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Remove the cover, top up the water, restart the filter and shock-treat the water.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [4]},
                 winter_only=True,
+            ),
+            TaskTemplate(
+                "Clean Salt Cell",
+                "cleaning",
+                "time_based",
+                91,
+                14,
+                "Salt chlorinators only: inspect the cell every 3 months and descale it when white deposits show — scale cuts the chlorine output.",
             ),
         ],
     ),
@@ -1473,7 +1490,11 @@ TEMPLATES: list[ObjectTemplate] = [
                 182,
                 21,
                 "Germany: technical plants twice a year (three times for classes +P/+H), nature-based plants once a year.",
-                country_notes={"FR": "France: the SPANC inspects non-collective sanitation at least every 10 years (often every 4–8)."},
+                country_notes={
+                    "FR": "France: the SPANC inspects non-collective sanitation at least every 10 years (often every 4–8).",
+                    "AU": "Australia: aerated wastewater treatment systems are serviced as the council approval requires — every 3 months in NSW, usually every 3 months in Queensland too; the servicer reports to the owner and the council.",
+                },
+                country_intervals={"AU": 91},
             ),
         ],
     ),
@@ -1736,8 +1757,10 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Split AC / Air-to-Air Heat Pump",
         category="home",
         traits=frozenset({"hot_summer", "hot_humid"}),
-        # Air-to-air heat pumps heat most Nordic homes (SSB: >60 % in Norway).
-        countries=frozenset({"NO", "SE", "FI"}),
+        # Air-to-air heat pumps heat most Nordic homes (SSB: >60 % in Norway);
+        # reverse-cycle split systems are the Australian standard and New
+        # Zealand's most common heating ("heat pump").
+        countries=frozenset({"NO", "SE", "FI", "AU", "NZ"}),
         tasks=[
             TaskTemplate(
                 "Clean Indoor Unit Filters",
@@ -2208,8 +2231,9 @@ TEMPLATES: list[ObjectTemplate] = [
                 country_notes={
                     "CA": "US and Canada: test GFCIs and AFCIs every month, as their labels say.",
                     "US": "US and Canada: test GFCIs and AFCIs every month, as their labels say.",
+                    "AU": "Australia: Queensland, Victoria and Western Australia recommend testing safety switches every 3 months, NSW at least every 6 months.",
                 },
-                country_intervals={"CA": 30, "US": 30},
+                country_intervals={"CA": 30, "US": 30, "AU": 91},
             ),
             TaskTemplate(
                 "Check Sockets, Plugs and Extension Leads",

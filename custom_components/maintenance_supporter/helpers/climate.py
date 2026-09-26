@@ -80,7 +80,13 @@ _CYCLONE_BOXES: tuple[tuple[float, float, float, float], ...] = (
     (8.0, 42.0, 105.0, 150.0),  # Philippines, Taiwan, south/east China, Korea, Japan
     (5.0, 26.0, 65.0, 95.0),  # Arabian Sea, Bay of Bengal
     (-26.0, -10.0, 30.0, 60.0),  # Mozambique, Madagascar, Mascarenes
-    (-30.0, -10.0, 110.0, 160.0),  # northern and eastern Australia
+    # Australia: the cyclone coasts only, not the desert between them.
+    (-26.0, -19.0, 112.0, 119.5),  # Carnarvon to Port Hedland
+    (-19.0, -10.0, 119.5, 129.0),  # Kimberley
+    (-18.0, -10.0, 129.0, 142.0),  # Top End, Gulf of Carpentaria
+    (-20.0, -10.0, 142.0, 155.0),  # Cape York to Townsville
+    (-24.0, -20.0, 146.5, 155.0),  # Mackay, Whitsundays
+    (-29.0, -24.0, 150.5, 155.0),  # Bundaberg to the NSW Northern Rivers
     (-25.0, -10.0, 160.0, 180.0),  # south-west Pacific islands
 )
 

@@ -371,8 +371,8 @@ custom_components/maintenance_supporter/
 │   ├── i18n.py                     (35 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (26 lines)  Compatibility shim → signatures/
 │   ├── catalog_heal.py             (79 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
-│   ├── climate.py                 (215 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
-│   ├── home_profile.py            (287 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, radon countries, equipment from integrations (UPS: NUT/apcupsd)
+│   ├── climate.py                 (221 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
+│   ├── home_profile.py            (297 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, radon countries, Australia-wide bushfire/termites, equipment from integrations (UPS: NUT/apcupsd)
 │   ├── reading_slots.py           (229 lines)  #161 phase 2: reading slots — sanitize [{id,name,unit}], textarea form, resolve {id: value} / {name: value} into the entry snapshot, sensor attrs
 │   ├── global_options.py (80), pause.py (79), status.py (50), completion_photos.py (47: photo_doc_ids ∪ legacy scalar, cap 10), task_fields.py (44), notify_targets.py (39)
 │   └── signatures/              (4,508 lines)  Suggested-setups catalog: 197 integrations / 388 signatures
@@ -389,9 +389,9 @@ custom_components/maintenance_supporter/
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                 (2,594 lines)  94 object templates in 10 categories (vehicle, home, building, household,
+├── templates.py                 (2,618 lines)  94 object templates in 10 categories (vehicle, home, building, household,
 │                                               appliance, garden, pool, tech, pets, health)
-├── templates_i18n.py            (14,201 lines)  Translations for the template catalog (largest module)
+├── templates_i18n.py            (14,431 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (672 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
 ├── diagnostics.py                 (230 lines)  Integration diagnostics with PII redaction

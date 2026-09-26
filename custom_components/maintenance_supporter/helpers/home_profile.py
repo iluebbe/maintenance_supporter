@@ -19,7 +19,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 
 from ..const import CONF_HOME_TYPE, DOMAIN, HOME_TYPES
-from .climate import ClimateInfo, describe, load_grids
+from .climate import TRAIT_TERMITES, TRAIT_WILDFIRE, ClimateInfo, describe, load_grids
 
 DWELLING_HOUSE = "house"
 DWELLING_APARTMENT = "apartment"
@@ -41,6 +41,16 @@ EARTHQUAKE_COUNTRIES = frozenset(
     }
 )  # fmt: skip
 _US_EARTHQUAKE_BOXES = ((32.0, 49.5, -125.0, -114.0), (51.0, 72.0, -180.0, -130.0))
+
+# Australia is bushfire country in every state — the climate classes alone
+# would only flag the south-west — and termites are a building-code risk on
+# the whole mainland (NCC Part 3.4; not in Tasmania).
+_TASMANIA_BOXES = ((-44.0, -39.2, 143.5, 149.0),)
+
+
+def _in_boxes(location: tuple[float, float] | None, boxes: Iterable[tuple[float, float, float, float]]) -> bool:
+    """Whether ``location`` (lat, lon) lies in one of the boxes (lat_min, lat_max, lon_min, lon_max)."""
+    return location is not None and any(a <= location[0] <= b and c <= location[1] <= d for a, b, c, d in boxes)
 
 _GRIDS_KEY = "_climate_grids"
 
@@ -228,12 +238,12 @@ class HomeProfile:
         traits = set(self.climate.traits) if self.climate else set()
         if self.country in RADON_COUNTRIES:
             traits.add(TRAIT_RADON)
-        if self.country in EARTHQUAKE_COUNTRIES or (
-            self.country == "US"
-            and self.location is not None
-            and any(a <= self.location[0] <= b and c <= self.location[1] <= d for a, b, c, d in _US_EARTHQUAKE_BOXES)
-        ):
+        if self.country in EARTHQUAKE_COUNTRIES or (self.country == "US" and _in_boxes(self.location, _US_EARTHQUAKE_BOXES)):
             traits.add(TRAIT_EARTHQUAKE)
+        if self.country == "AU":
+            traits.add(TRAIT_WILDFIRE)
+            if not _in_boxes(self.location, _TASMANIA_BOXES):
+                traits.add(TRAIT_TERMITES)
         return frozenset(traits)
 
     @property

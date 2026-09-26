@@ -74,6 +74,13 @@ def test_known_places_are_classified(place: str, lat: float, lon: float, koppen:
         (51.51, -0.13, "damp", True),  # London
         (41.90, 12.50, "mediterranean", True),  # Rome
         (40.42, -3.70, "mediterranean", False),  # Madrid is steppe (BSk)
+        # Australia's cyclone coasts, not the desert between them.
+        (-12.46, 130.84, "cyclone", True),  # Darwin
+        (-17.96, 122.24, "cyclone", True),  # Broome
+        (-21.14, 149.18, "cyclone", True),  # Mackay
+        (-27.47, 153.03, "cyclone", True),  # Brisbane
+        (-23.70, 133.88, "cyclone", False),  # Alice Springs
+        (-31.95, 115.86, "cyclone", False),  # Perth
     ],
 )
 def test_regional_climate_traits(lat: float, lon: float, trait: str, present: bool) -> None:
@@ -93,6 +100,22 @@ def test_regional_climate_traits(lat: float, lon: float, trait: str, present: bo
 def test_earthquake_regions(country: str, location: tuple[float, float], expected: bool) -> None:
     profile = HomeProfile(DWELLING_HOUSE, DWELLING_HOUSE, (), "auto", country, None, location)
     assert ("earthquake" in profile.traits) is expected
+
+
+@pytest.mark.parametrize(
+    ("place", "location", "termites"),
+    [
+        ("Melbourne", (-37.81, 144.96), True),
+        ("Canberra", (-35.28, 149.13), True),
+        ("Hobart", (-42.88, 147.33), False),
+    ],
+)
+def test_australia_is_bushfire_country_with_termites_but_in_tasmania(place: str, location: tuple[float, float], termites: bool) -> None:
+    """Melbourne's Cfb climate alone says neither bushfire nor termites."""
+    profile = HomeProfile(DWELLING_HOUSE, DWELLING_HOUSE, (), "auto", "AU", describe(*location, GRIDS), location)
+    assert "wildfire" in profile.traits, place
+    assert ("termites" in profile.traits) is termites, place
+    assert "wildfire" not in HomeProfile(DWELLING_HOUSE, DWELLING_HOUSE, (), "auto", "GB", describe(51.51, -0.13, GRIDS), (51.51, -0.13)).traits
 
 
 def test_country_notes_are_added_for_that_country_only() -> None:
@@ -292,6 +315,14 @@ def test_country_interval_and_winter_only_tasks() -> None:
     uk = build_template_task(test, "en", country="GB")
     assert uk["interval_days"] == 365 and "MOT" in uk["notes"]
     assert build_template_task(test, "en", country="DE")["interval_days"] == 730
+    nz = build_template_task(test, "en", country="NZ")
+    assert nz["interval_days"] == 365 and "Warrant of Fitness" in nz["notes"]
+    electrical = get_template_by_id("home_electrical")
+    assert electrical
+    rcd = next(tt for tt in electrical.tasks if tt.name == "Test RCD / GFCI")
+    assert build_template_task(rcd, "en", country="AU")["interval_days"] == 91
+    assert build_template_task(rcd, "en", country="US")["interval_days"] == 30
+    assert build_template_task(rcd, "en", country="DE")["interval_days"] == 182
     winter = {tt.name for tt in template_tasks(pool)}
     tropics = {tt.name for tt in template_tasks(pool, has_winter=False)}
     assert {"Close Pool for Winter", "Open Pool for the Season"} <= winter

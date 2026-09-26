@@ -44,7 +44,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   Italian flue-gas check, the Polish and Swedish chimney rules, the German smoke-alarm check (DIN 14676), the German
   chimney-sweep notice, the heating checks in Belgium, Spain, Czechia, Poland and Russia, the Finnish, Danish, Czech,
   Italian and US chimney rules, national smoke-alarm and pool-barrier rules, gas-hose and gas-installation rules, and
-  the periodic vehicle test in ten European countries. Where the country's rhythm differs, the task gets it as well —
+  the periodic vehicle test in ten European countries; for Australia and New Zealand the pool-barrier, safety-switch
+  (every 3 months), relief-valve, gas-heater, wastewater-plant and flue rules, the NSW pink slip and the NZ Warrant of
+  Fitness (including the change on 1 November 2026). Where the country's rhythm differs, the task gets it as well —
   the MOT is yearly in the UK, the GFCI test monthly in North America. The
   template gallery notes that these are guidance, not legal advice — rules vary by region and change; local
   regulations and the manufacturer's instructions take precedence.
@@ -58,7 +60,11 @@ All notable changes to Maintenance Supporter are documented in this file.
   interval and winter-only ones (closing the pool, winterizing the irrigation, pressure washer, robot mower, pond or
   caravan) are left out. Existing objects are not changed.
 - **The split air conditioner is now *Split AC / Air-to-Air Heat Pump*:** its filter task runs all year (the unit
-  heats too) and it is recommended in Norway, Sweden and Finland, where air-to-air heat pumps heat most homes.
+  heats too) and it is recommended in Norway, Sweden, Finland, Australia (reverse-cycle) and New Zealand (heat pumps
+  in two thirds of homes).
+- **Australia:** bushfire preparation is suggested in every state (not only in the south-west's climate classes) and
+  termite protection on the whole mainland; the cyclone region now follows the northern and Queensland coasts instead
+  of a band across the continent, so Alice Springs no longer gets storm shutters. Pools get a salt-cell cleaning task.
 - **New gallery category *Building & Safety*:** smoke and fire safety, backflow and drainage, radon, frost, storm,
   wildfire and earthquake preparation, roofs, windows and doors moved out of *Home & HVAC*, which keeps heating,
   cooling, water and energy — each group now stays scannable.
