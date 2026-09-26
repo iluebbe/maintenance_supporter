@@ -1,10 +1,23 @@
-"""Predefined maintenance templates for the Maintenance Supporter integration."""
+"""Predefined maintenance templates for the Maintenance Supporter integration.
+
+Seasons are written for the NORTHERN hemisphere; :func:`build_template_task`
+turns them round south of the equator and drops seasonal windows where there
+is no cold season (see ``helpers/climate.py``). The applicability fields of
+:class:`ObjectTemplate` only feed the gallery's recommendations — every
+template stays available everywhere.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any, Protocol
 
 from .const import DEFAULT_WARNING_DAYS
+
+HOUSE = "house"
+APARTMENT = "apartment"
+ANY_DWELLING: frozenset[str] = frozenset({HOUSE, APARTMENT})
+HOUSE_ONLY: frozenset[str] = frozenset({HOUSE})
 
 
 @dataclass
@@ -17,6 +30,14 @@ class TaskTemplate:
     interval_days: int | None = None
     warning_days: int = DEFAULT_WARNING_DAYS
     notes: str | None = None
+    # Northern-hemisphere months the interval runs in (e.g. mowing Apr–Oct);
+    # dropped where there is no winter, mirrored south of the equator.
+    season_months: tuple[int, ...] = ()
+    # A fixed calendar instead of the interval — a nested ``schedule`` dict
+    # (day_of_month / nth_weekday) whose ``months`` are northern-hemisphere
+    # months, e.g. winterize the irrigation every 15 October. The interval
+    # above stays the cycle length shown in the gallery.
+    schedule: dict[str, Any] | None = None
 
 
 @dataclass
@@ -27,6 +48,19 @@ class ObjectTemplate:
     name: str
     category: str
     tasks: list[TaskTemplate] = field(default_factory=list)
+    # Recommendation metadata (helpers/home_profile.py). ``dwellings``: where
+    # the object usually exists; ``starter``: part of the basic set for these
+    # dwellings; ``traits``: recommended when the climate/region has any of
+    # them; ``countries``: recommended in these ISO countries (only for things
+    # nearly every home there has); ``requires``: home features that must have
+    # been detected (garage, basement, garden) — they are a reason themselves;
+    # ``only_countries``: never recommended outside these countries.
+    dwellings: frozenset[str] = ANY_DWELLING
+    starter: frozenset[str] = frozenset()
+    traits: frozenset[str] = frozenset()
+    countries: frozenset[str] = frozenset()
+    requires: frozenset[str] = frozenset()
+    only_countries: frozenset[str] = frozenset()
 
 
 TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
@@ -341,6 +375,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_hvac",
         name="HVAC System",
         category="home",
+        countries=frozenset({"US", "CA"}),
         tasks=[
             TaskTemplate("Filter Replacement", "replacement", "time_based", 90, 14),
             TaskTemplate("Annual Service", "service", "time_based", 365, 30),
@@ -351,6 +386,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_water_heater",
         name="Water Heater",
         category="home",
+        countries=frozenset({"US", "CA", "AU", "NZ"}),
         tasks=[
             TaskTemplate("Anode Rod Inspection", "inspection", "time_based", 365, 30),
             TaskTemplate("Flush Tank", "cleaning", "time_based", 365, 30),
@@ -371,9 +407,10 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_heating",
         name="Heating System",
         category="home",
+        traits=frozenset({"freeze"}),
         tasks=[
-            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30),
-            TaskTemplate("Bleed Radiators", "service", "time_based", 365, 14),
+            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}),
+            TaskTemplate("Bleed Radiators", "service", "time_based", 365, 14, schedule={"kind": "day_of_month", "day": 1, "months": [10]}),
             TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
         ],
     ),
@@ -410,6 +447,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_fireplace",
         name="Fireplace & Wood Stove",
         category="home",
+        dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
                 "Chimney Sweep Appointment",
@@ -426,7 +464,8 @@ TEMPLATES: list[ObjectTemplate] = [
                 "time_based",
                 7,
                 1,
-                "During the heating season — add a seasonal window (task dialog, e.g. Oct–Apr) or pause the object over summer.",
+                "During the heating season — preset to October–April (mirrored in the southern hemisphere); adjust it in the task dialog.",
+                season_months=(10, 11, 12, 1, 2, 3, 4),
             ),
             TaskTemplate(
                 "Clean Stove Glass",
@@ -435,6 +474,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 30,
                 7,
                 "During the heating season — soot builds up faster when burning at low temperatures or with damp wood.",
+                season_months=(10, 11, 12, 1, 2, 3, 4),
             ),
         ],
     ),
@@ -467,6 +507,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_bathroom_fan",
         name="Bathroom Exhaust Fan",
         category="home",
+        starter=frozenset({APARTMENT}),
         tasks=[
             TaskTemplate("Clean Fan and Grille", "cleaning", "time_based", 180, 14),
         ],
@@ -475,6 +516,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_smoke_detectors",
         name="Smoke & CO Detectors",
         category="home",
+        starter=ANY_DWELLING,
         tasks=[
             TaskTemplate("Test Detectors", "inspection", "time_based", 30, 7),
             TaskTemplate("Replace Detector Batteries", "replacement", "time_based", 365, 30),
@@ -515,6 +557,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="household_kitchen",
         name="Kitchen",
         category="household",
+        starter=ANY_DWELLING,
         tasks=[
             TaskTemplate("Clean Refrigerator", "cleaning", "time_based", 90, 14),
             TaskTemplate("Defrost Freezer", "cleaning", "time_based", 180, 21),
@@ -536,38 +579,42 @@ TEMPLATES: list[ObjectTemplate] = [
         id="pool_pump",
         name="Pool Pump",
         category="pool",
+        dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 14, 3),
-            TaskTemplate("Basket Cleaning", "cleaning", "time_based", 7, 2),
+            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 14, 3, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate("Basket Cleaning", "cleaning", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
             TaskTemplate("Seal Inspection", "inspection", "time_based", 180, 14),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
         ],
     ),
     ObjectTemplate(
         id="pool_water",
         name="Pool Water Treatment",
         category="pool",
+        dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Water Test", "inspection", "time_based", 7, 2),
-            TaskTemplate("Shock Treatment", "cleaning", "time_based", 14, 3),
-            TaskTemplate("Filter Backwash", "cleaning", "time_based", 7, 2),
+            TaskTemplate("Water Test", "inspection", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate("Shock Treatment", "cleaning", "time_based", 14, 3, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate("Filter Backwash", "cleaning", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
         ],
     ),
     ObjectTemplate(
         id="garden_lawn_mower",
         name="Lawn Mower",
         category="garden",
+        dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Blade Sharpening", "service", "time_based", 90, 14),
-            TaskTemplate("Oil Change", "service", "time_based", 365, 30),
-            TaskTemplate("Air Filter", "replacement", "time_based", 365, 30),
-            TaskTemplate("Spark Plug", "replacement", "time_based", 365, 30),
+            TaskTemplate("Blade Sharpening", "service", "time_based", 90, 14, season_months=(3, 4, 5, 6, 7, 8, 9, 10)),
+            TaskTemplate("Oil Change", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}),
+            TaskTemplate("Air Filter", "replacement", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}),
+            TaskTemplate("Spark Plug", "replacement", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}),
         ],
     ),
     ObjectTemplate(
         id="garden_irrigation",
         name="Lawn Irrigation System",
         category="garden",
+        dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
                 "Winterize System",
@@ -576,8 +623,9 @@ TEMPLATES: list[ObjectTemplate] = [
                 365,
                 21,
                 "Blow out and drain before the first frost. Tip: a sensor-based threshold trigger (below 3 °C on an outdoor temperature entity) makes this reminder frost-aware.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [10]},
             ),
-            TaskTemplate("Spring Startup and Leak Check", "inspection", "time_based", 365, 21),
+            TaskTemplate("Spring Startup and Leak Check", "inspection", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
             TaskTemplate("Sprinkler Head Inspection", "inspection", "time_based", 180, 14),
         ],
     ),
@@ -593,6 +641,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 365,
                 21,
                 "Move to a frost-free spot before the first frost — trapped water cracks the pump. Tip: a sensor-based threshold trigger (below 3 °C) makes this reminder frost-aware.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [11]},
             ),
             TaskTemplate("Nozzle and Filter Cleaning", "cleaning", "time_based", 180, 14),
             TaskTemplate("Pump Oil Check", "inspection", "time_based", 365, 30),
@@ -602,6 +651,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="garden_robot_mower",
         name="Robot Lawn Mower",
         category="garden",
+        dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
                 "Replace Blades",
@@ -610,8 +660,9 @@ TEMPLATES: list[ObjectTemplate] = [
                 60,
                 7,
                 "Dull pivoting blades tear the grass instead of cutting it — supported integrations expose blade-usage sensors that can trigger this instead of the calendar.",
+                season_months=(4, 5, 6, 7, 8, 9, 10),
             ),
-            TaskTemplate("Clean Undercarriage", "cleaning", "time_based", 30, 7),
+            TaskTemplate("Clean Undercarriage", "cleaning", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10)),
             TaskTemplate("Clean Charging Contacts", "cleaning", "time_based", 90, 14),
             TaskTemplate(
                 "Winter Storage",
@@ -620,6 +671,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 365,
                 21,
                 "Store indoors over winter with the battery at partial charge — frost and a fully drained battery both age the cells.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [11]},
             ),
         ],
     ),
@@ -627,6 +679,8 @@ TEMPLATES: list[ObjectTemplate] = [
         id="garden_lawn",
         name="Lawn Care",
         category="garden",
+        dwellings=HOUSE_ONLY,
+        requires=frozenset({"garden"}),
         tasks=[
             TaskTemplate(
                 "Mowing",
@@ -634,7 +688,8 @@ TEMPLATES: list[ObjectTemplate] = [
                 "time_based",
                 10,
                 2,
-                "During the growing season — add a seasonal window (task dialog, e.g. Apr–Oct) or pause the object over winter.",
+                "During the growing season — preset to April–October (mirrored in the southern hemisphere, all year where there is no winter); adjust it in the task dialog.",
+                season_months=(4, 5, 6, 7, 8, 9, 10),
             ),
             TaskTemplate(
                 "Watering",
@@ -643,18 +698,20 @@ TEMPLATES: list[ObjectTemplate] = [
                 7,
                 1,
                 "In dry periods — a soil-moisture or rain sensor makes a good sensor trigger instead of the fixed interval.",
+                season_months=(5, 6, 7, 8, 9),
             ),
-            TaskTemplate("Fertilising", "service", "time_based", 120, 14),
-            TaskTemplate("Scarifying", "service", "time_based", 365, 30),
-            TaskTemplate("Aerating", "service", "time_based", 365, 30),
-            TaskTemplate("Overseeding", "service", "time_based", 365, 30),
-            TaskTemplate("Weeding", "service", "time_based", 90, 14),
+            TaskTemplate("Fertilising", "service", "time_based", 120, 14, season_months=(3, 4, 5, 6, 7, 8, 9, 10)),
+            TaskTemplate("Scarifying", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
+            TaskTemplate("Aerating", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [9]}),
+            TaskTemplate("Overseeding", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [9]}),
+            TaskTemplate("Weeding", "service", "time_based", 90, 14, season_months=(4, 5, 6, 7, 8, 9)),
         ],
     ),
     ObjectTemplate(
         id="garden_hedge",
         name="Hedge Care",
         category="garden",
+        dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
                 "Trimming",
@@ -663,9 +720,10 @@ TEMPLATES: list[ObjectTemplate] = [
                 180,
                 21,
                 "1–3 times per year depending on the species — mind local rules protecting nesting birds in spring.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [6, 9]},
             ),
-            TaskTemplate("Watering", "service", "time_based", 7, 1),
-            TaskTemplate("Fertilising", "service", "time_based", 365, 30),
+            TaskTemplate("Watering", "service", "time_based", 7, 1, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate("Fertilising", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
             TaskTemplate("Mulching", "service", "time_based", 365, 30),
         ],
     ),
@@ -673,9 +731,11 @@ TEMPLATES: list[ObjectTemplate] = [
         id="garden_house_exterior",
         name="House Exterior",
         category="garden",
+        dwellings=HOUSE_ONLY,
+        starter=frozenset({HOUSE}),
         tasks=[
-            TaskTemplate("Clean Gutters", "cleaning", "time_based", 180, 21),
-            TaskTemplate("Roof Inspection", "inspection", "time_based", 365, 30),
+            TaskTemplate("Clean Gutters", "cleaning", "time_based", 180, 21, schedule={"kind": "day_of_month", "day": 1, "months": [4, 11]}),
+            TaskTemplate("Roof Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
             TaskTemplate("Clean Windows", "cleaning", "time_based", 90, 14),
         ],
     ),
@@ -684,6 +744,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="appliance_washing_machine",
         name="Washing Machine",
         category="appliance",
+        starter=ANY_DWELLING,
         tasks=[
             TaskTemplate("Drum Cleaning", "cleaning", "time_based", 30, 7),
             TaskTemplate("Filter Cleaning", "cleaning", "time_based", 30, 7),
@@ -695,6 +756,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="appliance_dishwasher",
         name="Dishwasher",
         category="appliance",
+        starter=ANY_DWELLING,
         tasks=[
             TaskTemplate("Filter Cleaning", "cleaning", "time_based", 30, 7),
             TaskTemplate("Spray Arm Cleaning", "cleaning", "time_based", 90, 14),
@@ -705,6 +767,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="appliance_dryer",
         name="Dryer",
         category="appliance",
+        countries=frozenset({"US", "CA"}),
         tasks=[
             TaskTemplate("Lint Filter Cleaning", "cleaning", "time_based", 1, 0),
             TaskTemplate("Condenser Cleaning", "cleaning", "time_based", 30, 7),
@@ -876,9 +939,10 @@ TEMPLATES: list[ObjectTemplate] = [
         id="garden_pond",
         name="Garden Pond",
         category="garden",
+        dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Clean Pond Filter", "cleaning", "time_based", 30, 7),
-            TaskTemplate("Water Test", "inspection", "time_based", 30, 7),
+            TaskTemplate("Clean Pond Filter", "cleaning", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10)),
+            TaskTemplate("Water Test", "inspection", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10)),
             TaskTemplate(
                 "Install Leaf Net",
                 "service",
@@ -886,8 +950,9 @@ TEMPLATES: list[ObjectTemplate] = [
                 365,
                 21,
                 "Before autumn leaf fall — decomposing leaves feed algae and sludge.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [10]},
             ),
-            TaskTemplate("Winterize System", "service", "time_based", 365, 21),
+            TaskTemplate("Winterize System", "service", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 1, "months": [11]}),
         ],
     ),
     ObjectTemplate(
@@ -1036,6 +1101,590 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Clean Glass & Decor", "cleaning", "time_based", 30, 7),
         ],
     ),
+    # --- v2.93 home profile wave 1 (DACH + North America) ---
+    # Months are northern-hemisphere; build_template_task mirrors them south
+    # of the equator and drops seasonal windows where there is no winter.
+    ObjectTemplate(
+        id="home_heat_pump",
+        name="Heat Pump",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate(
+                "Clear Outdoor Unit",
+                "inspection",
+                "time_based",
+                14,
+                3,
+                "Leaves, snow and plants must not block the outdoor unit — the air has to flow freely.",
+                season_months=(10, 11, 12, 1, 2, 3),
+            ),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}),
+            TaskTemplate(
+                "Refrigerant Leak Check",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "EU F-gas rules: units above a certain refrigerant charge need a leak check by certified staff every 12 or 24 months — see the unit's documentation.",
+            ),
+            TaskTemplate("Check Heating Water Pressure", "inspection", "time_based", 90, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_solar_pv",
+        name="Solar PV System",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate("Check Yield and Inverter Errors", "inspection", "time_based", 30, 7),
+            TaskTemplate("Visual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
+            TaskTemplate(
+                "Clean Panels",
+                "cleaning",
+                "time_based",
+                365,
+                30,
+                "Only when the yield drops — rain usually does the job; dusty or desert sites need it 2–4 times a year.",
+            ),
+            TaskTemplate(
+                "Electrical Safety Inspection",
+                "inspection",
+                "time_based",
+                1461,
+                60,
+                "An electrician's inspection every 4 years is common practice (DIN VDE 0105-100 in Germany) and often asked for by insurers.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_garage_door",
+        name="Garage Door",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        requires=frozenset({"garage"}),
+        tasks=[
+            TaskTemplate(
+                "Test Auto-Reverse and Photo Eye",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                "Close the door on a piece of wood: it must reverse on contact. The door industry (DASMA) recommends testing monthly.",
+            ),
+            TaskTemplate(
+                "Lubricate Hinges, Rollers and Springs",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Silicone spray or white lithium grease; leave a belt drive dry.",
+            ),
+            TaskTemplate("Professional Service", "service", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_standby_generator",
+        name="Standby Generator",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"cyclone"}),
+        tasks=[
+            TaskTemplate(
+                "Check Weekly Exercise Run",
+                "inspection",
+                "time_based",
+                7,
+                1,
+                "Most standby units run a short self-test every week — check that it actually ran.",
+            ),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate("Check Starter Battery", "inspection", "time_based", 180, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="pool_hot_tub",
+        name="Hot Tub",
+        category="pool",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate("Water Test", "inspection", "time_based", 7, 2),
+            TaskTemplate("Rinse Filter", "cleaning", "time_based", 7, 2),
+            TaskTemplate("Deep Clean Filter", "cleaning", "time_based", 30, 7),
+            TaskTemplate("Drain and Refill", "service", "time_based", 90, 14, "Every 3–4 months, sooner with heavy use."),
+            TaskTemplate("Clean Cover", "cleaning", "time_based", 30, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_backflow_lifting",
+        name="Backflow Valve & Lifting Station",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        requires=frozenset({"basement"}),
+        only_countries=frozenset({"DE", "AT", "CH"}),
+        tasks=[
+            TaskTemplate(
+                "Check Backflow Valve",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                "DIN 1986-3: look at the valve once a month and operate the emergency closure.",
+            ),
+            TaskTemplate(
+                "Backflow Valve Service",
+                "service",
+                "time_based",
+                182,
+                21,
+                "DIN 1986-3: service by a qualified person twice a year.",
+            ),
+            TaskTemplate(
+                "Lifting Station Service",
+                "service",
+                "time_based",
+                365,
+                30,
+                "DIN EN 12056-4: by a qualified person every 12 months in a single-family home, every 6 months in a multi-family building.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_septic_tank",
+        name="Septic System",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate(
+                "Septic Inspection",
+                "inspection",
+                "time_based",
+                1095,
+                60,
+                "Every 1–3 years; systems with pumps or float switches every year (US EPA).",
+            ),
+            TaskTemplate("Pump Out Tank", "service", "time_based", 1095, 60, "Typically every 3–5 years, depending on tank size and household."),
+            TaskTemplate("Check Drain Field", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_treatment_plant",
+        name="Small Sewage Treatment Plant",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate(
+                "Operator Check",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                "The visual checks the plant's approval asks of the owner — note them in the operator log.",
+            ),
+            TaskTemplate(
+                "Maintenance by a Specialist Company",
+                "service",
+                "time_based",
+                182,
+                21,
+                "Germany: technical plants twice a year (three times for classes +P/+H), nature-based plants once a year.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_radon",
+        name="Radon Protection",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"radon"}),
+        tasks=[
+            TaskTemplate(
+                "Radon Test",
+                "reading",
+                "time_based",
+                730,
+                30,
+                "The US EPA recommends retesting every two years and after renovations; with a mitigation system, test every year.",
+            ),
+            TaskTemplate("Check Mitigation Fan and Manometer", "inspection", "time_based", 90, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_sump_pump",
+        name="Sump Pump",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        requires=frozenset({"basement"}),
+        only_countries=frozenset({"US", "CA"}),
+        tasks=[
+            TaskTemplate(
+                "Test Sump Pump",
+                "inspection",
+                "time_based",
+                90,
+                7,
+                "Pour water into the pit until the float lifts — the pump must start and drain it.",
+            ),
+            TaskTemplate("Clean Pit and Inlet Screen", "cleaning", "time_based", 365, 30),
+            TaskTemplate("Test Backup Battery", "inspection", "time_based", 180, 14),
+            TaskTemplate(
+                "Check Discharge Line Before Winter",
+                "inspection",
+                "time_based",
+                365,
+                21,
+                schedule={"kind": "day_of_month", "day": 1, "months": [11]},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_frost_protection",
+        name="Frost Protection",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"freeze"}),
+        tasks=[
+            TaskTemplate(
+                "Shut Off and Drain Outdoor Faucets",
+                "service",
+                "time_based",
+                365,
+                21,
+                schedule={"kind": "day_of_month", "day": 15, "months": [10]},
+            ),
+            TaskTemplate(
+                "Reopen Outdoor Faucets",
+                "service",
+                "time_based",
+                365,
+                14,
+                "After the last frost — check for split pipes when the water is back on.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+            ),
+            TaskTemplate(
+                "Check Pipe Insulation and Heat Tape",
+                "inspection",
+                "time_based",
+                365,
+                21,
+                schedule={"kind": "day_of_month", "day": 1, "months": [11]},
+            ),
+            TaskTemplate("Empty Rain Barrels", "service", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 1, "months": [11]}),
+        ],
+    ),
+    ObjectTemplate(
+        id="garden_snow_blower",
+        name="Snow Blower",
+        category="garden",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"snow"}),
+        only_countries=frozenset({"US", "CA", "SE", "NO", "FI", "RU"}),
+        tasks=[
+            TaskTemplate(
+                "Pre-Season Service",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Change the oil and check spark plug, shear pins and belts before the first snow.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [10]},
+            ),
+            TaskTemplate(
+                "Summer Storage",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Run the tank dry or add fuel stabilizer before storing.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_windows_doors",
+        name="Windows & Doors",
+        category="home",
+        starter=ANY_DWELLING,
+        tasks=[
+            TaskTemplate("Lubricate Hinges and Fittings", "service", "time_based", 365, 30),
+            TaskTemplate(
+                "Check Seals and Weatherstripping",
+                "inspection",
+                "time_based",
+                365,
+                21,
+                schedule={"kind": "day_of_month", "day": 1, "months": [10]},
+            ),
+            TaskTemplate(
+                "Clean Window Tracks and Drain Holes",
+                "cleaning",
+                "time_based",
+                365,
+                30,
+                schedule={"kind": "day_of_month", "day": 1, "months": [4]},
+            ),
+            TaskTemplate("Check Roller Shutters", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_drains",
+        name="Drains & Fixtures",
+        category="household",
+        starter=ANY_DWELLING,
+        tasks=[
+            TaskTemplate("Clean Sink and Shower Drains", "cleaning", "time_based", 60, 7),
+            TaskTemplate("Descale Showerheads and Aerators", "cleaning", "time_based", 90, 14),
+            TaskTemplate("Check Under-Sink Pipes for Leaks", "inspection", "time_based", 180, 14),
+            TaskTemplate(
+                "Check Washing Machine Hoses",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Replace them after about 5 years, or at the first bulge or crack.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="garden_wood_deck",
+        name="Wooden Deck & Facade",
+        category="garden",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate("Clean Deck", "cleaning", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
+            TaskTemplate("Oil or Stain Deck", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [5]}),
+            TaskTemplate(
+                "Check Siding and Sealant Joints",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                schedule={"kind": "day_of_month", "day": 1, "months": [4]},
+            ),
+            TaskTemplate(
+                "Repaint Wooden Facade",
+                "service",
+                "time_based",
+                3285,
+                90,
+                "Opaque paint typically lasts 8–12 years (Nordic guidance); stains need it sooner.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_emergency_kit",
+        name="Emergency Supplies",
+        category="household",
+        traits=frozenset({"cyclone", "wildfire"}),
+        tasks=[
+            TaskTemplate("Rotate Drinking Water", "replacement", "time_based", 182, 14),
+            TaskTemplate("Check Food Supplies and Expiry Dates", "inspection", "time_based", 182, 14),
+            TaskTemplate("Check Flashlights, Radio and Batteries", "inspection", "time_based", 182, 14),
+            TaskTemplate("Review Emergency Plan and Contacts", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_storm_prep",
+        name="Storm & Hurricane Preparation",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"cyclone"}),
+        tasks=[
+            TaskTemplate(
+                "Test Storm Shutters",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Before the storm season starts — 1 June for the Atlantic, November in the southern hemisphere.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [5]},
+            ),
+            TaskTemplate(
+                "Trim Trees and Secure Outdoor Items",
+                "service",
+                "time_based",
+                365,
+                30,
+                schedule={"kind": "day_of_month", "day": 15, "months": [5]},
+            ),
+            TaskTemplate(
+                "Check Roof and Gutters for Storm Season",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                schedule={"kind": "day_of_month", "day": 1, "months": [5]},
+            ),
+            TaskTemplate(
+                "Test Generator Under Load",
+                "inspection",
+                "time_based",
+                365,
+                21,
+                schedule={"kind": "day_of_month", "day": 15, "months": [5]},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_termite",
+        name="Termite & Pest Protection",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"termites"}),
+        tasks=[
+            TaskTemplate(
+                "Professional Termite Inspection",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Once a year by a licensed pest professional — before the spring swarming season.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [3]},
+            ),
+            TaskTemplate("Check Foundation for Mud Tubes", "inspection", "time_based", 90, 7),
+            TaskTemplate("Pest Perimeter Treatment", "service", "time_based", 90, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_split_ac",
+        name="Air Conditioner (Split)",
+        category="home",
+        traits=frozenset({"hot_summer", "hot_humid"}),
+        tasks=[
+            TaskTemplate("Clean Indoor Unit Filters", "cleaning", "time_based", 30, 7, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate(
+                "Flush Condensate Drain",
+                "cleaning",
+                "time_based",
+                90,
+                14,
+                "Hot and humid climates: monthly, with a cup of white vinegar, so algae cannot clog the line.",
+            ),
+            TaskTemplate("Clean Outdoor Unit Coil", "cleaning", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [5]}),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_evaporative_cooler",
+        name="Evaporative Cooler",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"hot_dry"}),
+        tasks=[
+            TaskTemplate(
+                "Spring Startup",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Clean the reservoir, test the pump and float valve, check the belt and open the winter damper.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+            ),
+            TaskTemplate(
+                "Replace Cooler Pads",
+                "replacement",
+                "time_based",
+                365,
+                21,
+                "Aspen pads every season; rigid media pads last 3–5 years.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+            ),
+            TaskTemplate("Mid-Season Check", "inspection", "time_based", 30, 7, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate(
+                "Fall Shutdown and Drain",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Drain and dry the pan, disconnect the water line and close the damper — prevents scale and frost damage.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [10]},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_dehumidifier",
+        name="Dehumidifier",
+        category="household",
+        traits=frozenset({"hot_humid"}),
+        tasks=[
+            TaskTemplate("Empty and Clean Water Tank", "cleaning", "time_based", 14, 3),
+            TaskTemplate("Clean Air Filter", "cleaning", "time_based", 30, 7),
+            TaskTemplate("Check Drain Hose", "inspection", "time_based", 90, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_humidifier",
+        name="Humidifier",
+        category="household",
+        tasks=[
+            TaskTemplate("Clean Tank", "cleaning", "time_based", 7, 1, season_months=(11, 12, 1, 2, 3)),
+            TaskTemplate("Replace Wick Filter", "replacement", "time_based", 60, 7, season_months=(11, 12, 1, 2, 3)),
+            TaskTemplate("Descaling", "cleaning", "time_based", 30, 7, season_months=(11, 12, 1, 2, 3)),
+        ],
+    ),
+    ObjectTemplate(
+        id="vehicle_seasonal_tires",
+        name="Seasonal Tires",
+        category="vehicle",
+        traits=frozenset({"snow"}),
+        countries=frozenset({"DE", "AT", "CH", "CZ", "SK", "SE", "NO", "FI"}),
+        tasks=[
+            TaskTemplate(
+                "Fit Winter Tires",
+                "service",
+                "time_based",
+                365,
+                21,
+                "German rule of thumb: from October to Easter — winter tires are required on wintry roads.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [10]},
+            ),
+            TaskTemplate("Fit Summer Tires", "service", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
+            TaskTemplate("Check Tread Depth and Tire Age", "inspection", "time_based", 182, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_heating_oil_tank",
+        name="Heating Oil Tank",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate("Check Tank and Collecting Tray", "inspection", "time_based", 90, 7),
+            TaskTemplate("Check Leak Detector and Level Gauge", "inspection", "time_based", 365, 30),
+            TaskTemplate(
+                "Expert Inspection",
+                "inspection",
+                "time_based",
+                1826,
+                60,
+                "Germany (AwSV): every 5 years for underground tanks and above-ground tanks over 10,000 l — in water protection and flood areas from 1,000 l. A typical cellar tank below that is exempt.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_water_meters",
+        name="Water & Heat Meters",
+        category="home",
+        tasks=[
+            TaskTemplate("Record Meter Readings", "reading", "time_based", 365, 14),
+            TaskTemplate(
+                "Replace Meters When Calibration Expires",
+                "replacement",
+                "time_based",
+                2191,
+                90,
+                "Calibration validity: 6 years in Germany for water and heat meters; in Russia 6 years cold, 4 years hot — check the date on the meter.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_balcony",
+        name="Balcony & Terrace",
+        category="home",
+        tasks=[
+            TaskTemplate("Clear Balcony Drain", "cleaning", "time_based", 182, 14, schedule={"kind": "day_of_month", "day": 1, "months": [4, 11]}),
+            TaskTemplate("Check Railings and Sealing", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
+        ],
+    ),
 ]
 
 
@@ -1050,6 +1699,92 @@ def get_template_by_id(template_id: str) -> ObjectTemplate | None:
         if t.id == template_id:
             return t
     return None
+
+
+def build_template_task(tt: TaskTemplate, lang: str, *, hemisphere: str = "north", has_winter: bool = True) -> dict[str, Any]:
+    """The task a template task creates (without ids) — shared by the config
+    flow and the panel gallery.
+
+    Name and notes are localized. The recurrence is a nested ``schedule``
+    when the template carries a fixed calendar or a seasonal window (months
+    mirrored south of the equator; the window is dropped where there is no
+    cold season, so a Miami lawn is mowed all year), else the flat interval.
+    """
+    from .helpers.climate import flip_months
+
+    task: dict[str, Any] = {
+        "name": localize_template_text(tt.name, lang) or tt.name,
+        "type": tt.type,
+        "enabled": True,
+        "warning_days": tt.warning_days,
+    }
+    if tt.notes:
+        task["notes"] = localize_template_text(tt.notes, lang)
+    if tt.schedule is not None:
+        schedule = dict(tt.schedule)
+        if schedule.get("months"):
+            schedule["months"] = list(flip_months(schedule["months"], hemisphere))
+        task["schedule"] = schedule
+    elif tt.season_months and has_winter and tt.interval_days:
+        task["schedule"] = {
+            "kind": "interval",
+            "every": tt.interval_days,
+            "season_months": list(flip_months(tt.season_months, hemisphere)),
+        }
+    else:
+        task["schedule_type"] = tt.schedule_type
+        if tt.interval_days is not None:
+            task["interval_days"] = tt.interval_days
+    return task
+
+
+class HomeLike(Protocol):
+    """What the recommendation needs from ``helpers.home_profile.HomeProfile``
+    (read-only — the profile is a frozen dataclass)."""
+
+    @property
+    def dwelling(self) -> str: ...
+
+    @property
+    def country(self) -> str | None: ...
+
+    @property
+    def traits(self) -> frozenset[str]: ...
+
+    @property
+    def features(self) -> frozenset[str]: ...
+
+
+def recommend_template(template: ObjectTemplate, profile: HomeLike | None) -> dict[str, Any]:
+    """Whether the gallery recommends ``template`` for this home, and why.
+
+    ``reasons`` are codes the panel translates: ``starter`` (part of the basic
+    set for the home's dwelling type), a climate/region trait (``freeze``,
+    ``termites``, ``radon`` …), ``country``, or ``feature_<x>`` (equipment
+    seen in the home: a garage, a basement, a garden). Equipment templates
+    wait for their feature — a garage door is suggested where a garage was
+    found, not to every house in a country. A template the dwelling does not
+    usually have (a pool in an apartment) is never recommended and is flagged
+    ``dwelling_mismatch`` — it stays available, just further down.
+    """
+    none = {"recommended": False, "reasons": [], "dwelling_mismatch": False}
+    if profile is None:
+        return none
+    known = profile.dwelling in (HOUSE, APARTMENT)
+    if known and profile.dwelling not in template.dwellings:
+        return {**none, "dwelling_mismatch": True}
+    if template.only_countries and profile.country not in template.only_countries:
+        return none
+    if not template.requires <= profile.features:
+        return none
+    reasons: list[str] = []
+    if known and profile.dwelling in template.starter:
+        reasons.append("starter")
+    reasons.extend(f"feature_{f}" for f in sorted(template.requires))
+    reasons.extend(sorted(template.traits & profile.traits))
+    if profile.country and profile.country in template.countries:
+        reasons.append("country")
+    return {"recommended": bool(reasons), "reasons": reasons, "dwelling_mismatch": False}
 
 
 # Re-export: template/task names + notes are localized through one flat table

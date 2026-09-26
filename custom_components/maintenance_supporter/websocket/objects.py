@@ -513,8 +513,9 @@ async def ws_create_from_template(
     """
     from uuid import uuid4
 
+    from ..helpers.home_profile import async_climate
     from ..helpers.i18n import normalize_language, normalize_language_code
-    from ..templates import get_template_by_id, localize_template_text
+    from ..templates import build_template_task, get_template_by_id, localize_template_text
 
     template = get_template_by_id(msg["template_id"])
     if template is None:
@@ -545,23 +546,18 @@ async def ws_create_from_template(
         CONF_OBJECT_NAME: name[:MAX_NAME_LENGTH],
         "task_ids": [],
     }
+    # Seasons follow the home's hemisphere and climate (helpers/climate.py).
+    climate = await async_climate(hass)
+    hemisphere = climate.hemisphere if climate else "north"
+    has_winter = climate.has_winter if climate else True
     new_tasks: dict[str, Any] = {}
     for tt in template.tasks:
         task_id = uuid4().hex
-        task: dict[str, Any] = {
+        new_tasks[task_id] = {
             "id": task_id,
             "object_id": object_id,
-            "name": localize_template_text(tt.name, lang),
-            "type": tt.type,
-            "enabled": True,
-            "schedule_type": tt.schedule_type,
-            "warning_days": tt.warning_days,
+            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter),
         }
-        if tt.interval_days is not None:
-            task["interval_days"] = tt.interval_days
-        if tt.notes:
-            task["notes"] = localize_template_text(tt.notes, lang)
-        new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
 
     result = await hass.config_entries.flow.async_init(

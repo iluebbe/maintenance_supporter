@@ -103,7 +103,7 @@ rules:
   docs-supported-devices:
     status: done
     comment: >
-      Objects model arbitrary real-world equipment (47 object templates); the
+      Objects model arbitrary real-world equipment (73 object templates); the
       devices whose sensors drive tasks automatically are listed in
       docs/INTEGRATIONS.md, generated from the suggested-setups catalog
       (197 integrations) so it cannot drift.

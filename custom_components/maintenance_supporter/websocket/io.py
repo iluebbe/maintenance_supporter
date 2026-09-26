@@ -252,27 +252,34 @@ async def ws_get_templates(
 
     Every template is returned with a ``disabled`` flag (v2.21 gallery
     curation): the pickers hide disabled ones client-side, while the Settings
-    section needs the full list to render the toggles.
+    section needs the full list to render the toggles. v2.93 adds the home
+    ``profile`` (dwelling, climate, country — all derived locally) and per
+    template whether the gallery recommends it and why.
     """
+    from ..helpers.home_profile import async_home_profile
     from ..helpers.i18n import normalize_language, normalize_language_code
     from ..templates import (
         TEMPLATE_CATEGORIES,
         TEMPLATES,
         get_disabled_template_ids,
         localize_template_text,
+        recommend_template,
     )
 
     disabled = get_disabled_template_ids(hass)
+    profile = await async_home_profile(hass)
     lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
 
     result = {
         "categories": {cat_id: {k: v for k, v in cat.items()} for cat_id, cat in TEMPLATE_CATEGORIES.items()},
+        "profile": profile.as_dict(),
         "templates": [
             {
                 "id": t.id,
                 "name": localize_template_text(t.name, lang),
                 "category": t.category,
                 "disabled": t.id in disabled,
+                **recommend_template(t, profile),
                 "tasks": [
                     {
                         "name": localize_template_text(tt.name, lang),

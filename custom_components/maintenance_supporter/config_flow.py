@@ -277,27 +277,27 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 from .helpers.sanitize import cap_object_fields, cap_task_fields
 
                 today_iso = dt_util.now().date().isoformat()
-                from .templates import localize_template_text
+                from .helpers.home_profile import async_climate
+                from .templates import build_template_task
 
                 create_lang = normalize_language(self.hass)
+                # Seasons follow the home's hemisphere and climate.
+                climate = await async_climate(self.hass)
                 self._tasks = {}
                 for tt in template.tasks:
                     task_id = uuid4().hex
                     task_data = {
                         "id": task_id,
                         "object_id": self._object_data["id"],
-                        "name": localize_template_text(tt.name, create_lang),
-                        "type": tt.type,
-                        "enabled": True,
-                        "schedule_type": tt.schedule_type,
-                        "warning_days": tt.warning_days,
+                        **build_template_task(
+                            tt,
+                            create_lang,
+                            hemisphere=climate.hemisphere if climate else "north",
+                            has_winter=climate.has_winter if climate else True,
+                        ),
                         "history": [],
                         "created_at": today_iso,
                     }
-                    if tt.interval_days is not None:
-                        task_data["interval_days"] = tt.interval_days
-                    if tt.notes:
-                        task_data["notes"] = localize_template_text(tt.notes, create_lang)
                     cap_task_fields(task_data)
                     self._tasks[task_id] = task_data
                 cap_object_fields(self._object_data)

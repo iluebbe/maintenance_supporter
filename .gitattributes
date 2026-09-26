@@ -3,3 +3,7 @@
 # (git diff, unaffected by this attribute). Marking it generated keeps it out
 # of GitHub's language statistics and collapses it in pull-request diffs.
 custom_components/maintenance_supporter/frontend/** linguist-generated=true
+
+# Offline climate grids (zlib-compressed rasters, helpers/climate.py): never
+# touch line endings — core.autocrlf would corrupt them.
+*.bin binary

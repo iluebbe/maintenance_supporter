@@ -188,6 +188,11 @@ CONF_MEMBER_DISPLAY = "member_display"
 # templates stay functional (direct WS calls still work); they are only
 # removed from the pickers so a growing catalog never clutters the UI.
 CONF_DISABLED_TEMPLATE_IDS = "disabled_template_ids"
+# v2.93: the home profile's dwelling type — "auto" (guessed from the floor and
+# area registries), "house" or "apartment". Drives the template gallery's
+# recommendations only; see helpers/home_profile.py.
+CONF_HOME_TYPE = "home_type"
+HOME_TYPES = ("auto", "house", "apartment")
 
 # v2.24: saved filter views — named, shared combinations of the panel list's
 # filters (status / user / archived) + sort + group-by that any user can apply

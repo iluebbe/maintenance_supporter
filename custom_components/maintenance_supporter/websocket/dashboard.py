@@ -43,6 +43,7 @@ from ..const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_HOME_TYPE,
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_MEMBER_DISPLAY,
@@ -225,6 +226,8 @@ def _build_full_settings(
         "member_display": _opt(options, CONF_MEMBER_DISPLAY),
         # v2.21: template-gallery curation (ids hidden from the pickers).
         "disabled_template_ids": _opt(options, CONF_DISABLED_TEMPLATE_IDS),
+        # v2.93: home profile dwelling type (auto / house / apartment).
+        "home_type": _opt(options, CONF_HOME_TYPE),
         # v2.10.0: archive automation thresholds (panel Settings → Archive).
         # oneoff_days: auto-archive a completed one-off after N days (0 = off).
         # delete_archived_oneoff_days: auto-delete an auto-archived one-off N
@@ -772,8 +775,10 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # v1.4.0 (#44): enum-validate notification_title_style. Anything outside
     # the known set is dropped silently so a bogus value can't get into the
     # ConfigEntry options.
-    from ..const import NOTIFICATION_TITLE_STYLES, NOTIFY_COMPLETED_MODES
+    from ..const import HOME_TYPES, NOTIFICATION_TITLE_STYLES, NOTIFY_COMPLETED_MODES
 
+    if CONF_HOME_TYPE in filtered and filtered[CONF_HOME_TYPE] not in HOME_TYPES:
+        del filtered[CONF_HOME_TYPE]
     if CONF_NOTIFY_COMPLETED in filtered and filtered[CONF_NOTIFY_COMPLETED] not in NOTIFY_COMPLETED_MODES:
         filtered[CONF_NOTIFY_COMPLETED] = "off"
     if CONF_NOTIFICATION_TITLE_STYLE in filtered and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES:

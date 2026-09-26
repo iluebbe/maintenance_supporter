@@ -16,6 +16,7 @@ import { invalidateSettingsCache } from "../helpers/settings-cache";
 import { SETTING_INT_RANGES, settingIntRange } from "../helpers/setting-ranges";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { runWs } from "../helpers/ws-run";
+import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "../helpers/home-profile";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -37,6 +38,8 @@ interface SettingsResponse {
   objects_table_columns?: string[];
   /** v2.21: template-gallery curation — hidden template ids. */
   disabled_template_ids?: string[];
+  /** v2.93: home profile dwelling type — auto | house | apartment. */
+  home_type?: string;
   general: {
     default_warning_days: number;
     notifications_enabled: boolean;
@@ -595,6 +598,7 @@ export class MaintenanceSettingsView extends LitElement {
       ${this._renderVacation(L)}
       ${this._renderPrintQr(L)}
       ${this._renderImportExport(L)}
+      ${this._renderHomeProfile(L)}
       ${this._renderTemplateToggles(L)}
       ${this._toast ? html`<div class="settings-toast">${this._toast}</div>` : nothing}
     `;
@@ -705,6 +709,8 @@ export class MaintenanceSettingsView extends LitElement {
 
   @state() private _allTemplates: Array<{ id: string; name: string; category: string; disabled?: boolean }> = [];
   @state() private _templateCategories: Record<string, Record<string, string>> = {};
+  /** v2.93: served with the templates read (see helpers/home-profile.ts). */
+  @state() private _homeProfile: HomeProfile | null = null;
   @state() private _tplOpenGroups: Set<string> = new Set();
 
   // One-shot request guard: keyed on a plain flag, NOT on the result being
@@ -719,13 +725,71 @@ export class MaintenanceSettingsView extends LitElement {
       const res = await this.hass.connection.sendMessagePromise<{
         templates: Array<{ id: string; name: string; category: string; disabled?: boolean }>;
         categories: Record<string, Record<string, string>>;
+        profile?: HomeProfile;
       }>({
         type: "maintenance_supporter/templates",
         language: this._lang,
       });
       this._allTemplates = res.templates || [];
       this._templateCategories = res.categories || {};
+      this._homeProfile = res.profile ?? null;
     } catch { /* section renders empty; retried on next open */ }
+  }
+
+  // --- Section: Home profile (v2.93) ---
+
+  private _renderHomeProfile(L: string) {
+    this._loadTemplates();
+    const p = this._homeProfile;
+    const setting = this._settings!.home_type || "auto";
+    const c = p?.climate;
+    const climate = c && c.koppen
+      ? t("home_climate_value", L)
+          .replace("{koppen}", c.koppen)
+          .replace("{cold}", String(c.coldest_c ?? "–"))
+          .replace("{warm}", String(c.warmest_c ?? "–"))
+      : t("home_climate_unknown", L);
+    const country = countryName(p?.country, L);
+    return html`
+      <div class="settings-section" data-section="home_profile">
+        <h3>${t("home_profile_title", L)}</h3>
+        <p class="section-desc">${t("home_profile_hint", L)}</p>
+        <label class="setting-row">
+          <span class="setting-label">${t("home_type_label", L)}</span>
+          <select class="home-type" .value=${live(setting)}
+            @change=${(e: Event) => void this._setHomeType((e.target as HTMLSelectElement).value)}>
+            <option value="auto" ?selected=${setting === "auto"}>
+              ${t("home_type_auto", L).replace("{detected}", dwellingLabel(p?.dwelling_detected ?? "unknown", L))}
+            </option>
+            <option value="house" ?selected=${setting === "house"}>${t("home_dwelling_house", L)}</option>
+            <option value="apartment" ?selected=${setting === "apartment"}>${t("home_dwelling_apartment", L)}</option>
+          </select>
+        </label>
+        ${p && p.dwelling_reasons.length
+          ? html`<div class="setting-hint home-detected">
+              ${t("home_detected_from", L).replace("{reasons}", detectionReasons(p.dwelling_reasons, L))}
+            </div>`
+          : nothing}
+        <div class="setting-row home-climate">
+          <span class="setting-label">${t("home_climate_label", L)}</span>
+          <span class="home-climate-value">${country ? `${country} · ` : ""}${climate}</span>
+        </div>
+        ${p?.hemisphere === "south" ? html`<div class="setting-hint">${t("home_hemisphere_south", L)}</div>` : nothing}
+        ${p && p.traits.length
+          ? html`<div class="home-traits">
+              ${p.traits.map((tr) => html`<span class="home-trait">${t(`home_trait_${tr}`, L)}</span>`)}
+            </div>`
+          : nothing}
+      </div>
+    `;
+  }
+
+  private async _setHomeType(value: string): Promise<void> {
+    if (await this._updateSetting("home_type", value)) {
+      // The dwelling drives the recommendations — refetch the profile.
+      this._templatesRequested = false;
+      await this._loadTemplates();
+    }
   }
 
   private _renderTemplateToggles(L: string) {
@@ -2060,6 +2124,12 @@ export class MaintenanceSettingsView extends LitElement {
     .settings-section h3 {
       margin: 0 0 4px 0;
       font-size: 16px;
+    }
+    .home-climate-value { font-size: 14px; color: var(--secondary-text-color); text-align: right; }
+    .home-traits { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .home-trait {
+      font-size: 12px; padding: 3px 8px; border-radius: 12px;
+      background: var(--secondary-background-color); color: var(--primary-text-color);
     }
     .section-desc {
       font-size: 13px;

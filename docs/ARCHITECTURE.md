@@ -127,7 +127,7 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 - Entity selector pre-populates existing entity_ids when editing a trigger
 - All 8 compound trigger steps have proper translations in both config and options flows
 - Go-back navigation on all forms for non-linear editing
-- 47 object templates in 9 categories (vehicle, home, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`
+- 73 object templates in 9 categories (vehicle, home, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`. Seasons are written for the northern hemisphere and resolved at creation by `build_template_task` (mirrored south of the equator, dropped where there is no winter); `recommend_template` matches each template's `dwellings` / `starter` / `traits` / `countries` against the home profile (`helpers/home_profile.py`, climate from `helpers/climate.py` + `data/climate/`)
 
 ### Pure Python Helpers
 `interval_analyzer` has zero HA dependencies, enabling isolated unit testing and reuse outside HA. `sensor_predictor` and `entity_analyzer` depend on the HA recorder and state machine for data access, but their core algorithms (linear regression, Pearson correlation, Weibull analysis) are pure Python.
@@ -371,6 +371,8 @@ custom_components/maintenance_supporter/
 │   ├── i18n.py                     (35 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (26 lines)  Compatibility shim → signatures/
 │   ├── catalog_heal.py             (79 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
+│   ├── climate.py                 (202 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
+│   ├── home_profile.py            (232 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, radon countries
 │   ├── reading_slots.py           (229 lines)  #161 phase 2: reading slots — sanitize [{id,name,unit}], textarea form, resolve {id: value} / {name: value} into the entry snapshot, sensor attrs
 │   ├── global_options.py (80), pause.py (79), status.py (50), completion_photos.py (47: photo_doc_ids ∪ legacy scalar, cap 10), task_fields.py (44), notify_targets.py (39)
 │   └── signatures/              (4,508 lines)  Suggested-setups catalog: 197 integrations / 388 signatures
@@ -387,9 +389,9 @@ custom_components/maintenance_supporter/
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                 (1,078 lines)  47 object templates in 9 categories (vehicle, home, household,
+├── templates.py                 (1,794 lines)  73 object templates in 9 categories (vehicle, home, household,
 │                                               appliance, garden, pool, tech, pets, health)
-├── templates_i18n.py            (6,358 lines)  Translations for the template catalog (largest module)
+├── templates_i18n.py            (9,831 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (672 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
 ├── diagnostics.py                 (230 lines)  Integration diagnostics with PII redaction
@@ -862,9 +864,9 @@ The backend exposes 97 WS commands; most are consumed by the Lit panel. A couple
 | Task `checklist` field | Wired | `advanced_checklists_visible` | Textarea editor in the task dialog (one step per line, trimmed, max 100 items, max 500 chars per item). Previously Config-Flow-only; panel ↔ config flow now at parity. |
 | Task `schedule_time` field | Wired | `advanced_schedule_time_visible` | `<ha-textfield type="time">` in the task dialog (only for `time_based` tasks). Coordinator strips the field when the flag is off so tasks revert to midnight semantics; calendar events become 30-min timed blocks when the flag is on. Config-Flow edit_task exposes the same field when the flag is on. |
 | `task/list` | **Obsolete** | — | Superseded by `objects`, which already returns each object's tasks nested. Left in place for legacy tests / external consumers; nothing in the panel or the config flow calls it. |
-| `templates` | **Obsolete** (for the panel) | — | The config flow imports `templates.py` directly when offering preset templates; the panel never browses templates at runtime. Endpoint remains as a public read-only catalogue for external tools. |
+| `templates` | Wired | — | The panel's template gallery and Settings → Template gallery / Home profile read it; since 2.93 it also carries the home `profile` and per template `recommended`, `reasons` and `dwelling_mismatch`. The config flow imports `templates.py` directly. |
 
-None of these are **missing/broken** — every frontend call has a matching backend handler, and every advanced-feature flag now has a working UI binding. Before deleting `task/list` or `templates`, check whether any automation/script relies on them.
+None of these are **missing/broken** — every frontend call has a matching backend handler, and every advanced-feature flag now has a working UI binding. Before deleting `task/list`, check whether any automation/script relies on it.
 
 Two remaining Config-Flow-only surfaces are design choices, not drift: **adaptive tuning knobs** (`adaptive_enabled`, `ewa_alpha`, `min/max_interval_days`, `seasonal_enabled`, `sensor_prediction_enabled`) and **compound-trigger editing** are exposed only via per-task Options → Adaptive Scheduling / Edit Trigger steps. The panel reads them but does not edit them.
 

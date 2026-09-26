@@ -47,6 +47,13 @@ jobs:
           # when absent: a missing file falls back to English per key.
           unzip -l maintenance_supporter.zip | grep -q "assist_sentences/responses/en.json$" \
             || { echo "Assist response texts missing from the release ZIP"; exit 1; }
+
+          # The offline climate grids (home profile, 2.93): without them the
+          # recommendations silently lose every climate hint.
+          for grid in data/climate/koppen_0p5.bin data/climate/temp_1p0.bin; do
+            unzip -l maintenance_supporter.zip | grep -q "${grid}$" \
+              || { echo "Climate grid missing from the release ZIP: $grid"; exit 1; }
+          done
       - name: Upload release asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -498,6 +498,15 @@ export const panelStyles = css`
   .template-card[disabled] { opacity: .5; pointer-events: none; }
   .template-card-name { font-weight: 600; font-size: 14px; }
   .template-card-count { font-size: 12px; color: var(--secondary-text-color); }
+  /* v2.93: recommendations from the home profile. */
+  .template-cat.recommended .template-cat-head { color: var(--primary-color); }
+  .template-cat-hint { font-size: 12px; color: var(--secondary-text-color); margin: -4px 0 8px; }
+  .template-card-reasons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+  .template-card-reason {
+    font-size: 11px; padding: 1px 6px; border-radius: 10px;
+    background: color-mix(in srgb, var(--primary-color) 12%, transparent); color: var(--primary-text-color);
+  }
+  .template-card.not-typical { opacity: .6; }
   .empty-onboard-hint { color: var(--secondary-text-color); font-size: 13px; margin: 4px 0 12px; }
   .empty-onboard-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 

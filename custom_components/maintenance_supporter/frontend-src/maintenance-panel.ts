@@ -23,6 +23,7 @@ import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } f
 import { describePartLink } from "./helpers/shared-parts";
 import { effectivePhase } from "./helpers/phases";
 import { renderEventTitles } from "./helpers/event-titles";
+import { recommendationReason, type HomeProfile, type TemplateRecommendation } from "./helpers/home-profile";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
@@ -364,7 +365,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _searchSeq = 0;
   // v2.15.0: template gallery (surfaces the config-flow object templates).
   @state() private _templateGalleryOpen = false;
-  @state() private _templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean }> = [];
+  @state() private _templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean } & TemplateRecommendation> = [];
+  @state() private _homeProfile: HomeProfile | null = null;
   @state() private _templateCategories: Record<string, { icon?: string; [k: string]: unknown }> = {};
   @state() private _templateBusy = false;
   // v1.5.0: Calendar tab state
@@ -1922,15 +1924,18 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _openTemplateGallery(): Promise<void> {
     this._templateGalleryOpen = true;
-    if (this._templates.length > 0) return;
+    // Refetched on every open (the last list shows meanwhile): the home
+    // profile behind the recommendations can change in Settings.
     try {
       const res = await this.hass.connection.sendMessagePromise<{
         categories: Record<string, { icon?: string }>;
-        templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean }>;
+        templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean } & TemplateRecommendation>;
+        profile?: HomeProfile;
       }>({ type: "maintenance_supporter/templates", language: this._lang });
       this._templateCategories = res.categories || {};
       // v2.21: admin-hidden templates stay out of the gallery.
       this._templates = (res.templates || []).filter((tpl) => !tpl.disabled);
+      this._homeProfile = res.profile ?? null;
     } catch {
       this._showToast(t("action_error", this._lang));
     }
@@ -1961,15 +1966,37 @@ export class MaintenanceSupporterPanel extends LitElement {
     return cat[`name_${this._lang}`] || cat["name_en"] || catId;
   }
 
+  private _renderTemplateCard(tpl: (typeof this._templates)[number], withReasons = false) {
+    const L = this._lang;
+    const country = this._homeProfile?.country ?? null;
+    return html`
+      <button class="template-card ${tpl.dwelling_mismatch ? "not-typical" : ""}" .disabled=${this._templateBusy}
+        title=${tpl.dwelling_mismatch ? t("templates_not_typical", L) : ""}
+        @click=${() => this._createFromTemplate(tpl.id)}>
+        <span class="template-card-name">${tpl.name}</span>
+        <span class="template-card-count">${t("templates_task_count", L).replace("{n}", String(tpl.tasks.length))}</span>
+        ${withReasons && tpl.reasons?.length
+          ? html`<span class="template-card-reasons">
+              ${tpl.reasons.map((r) => html`<span class="template-card-reason">${recommendationReason(r, L, country)}</span>`)}
+            </span>`
+          : nothing}
+      </button>
+    `;
+  }
+
   private _renderTemplateGallery() {
     if (!this._templateGalleryOpen) return nothing;
     const L = this._lang;
     // Group templates by category, preserving category declaration order.
+    // v2.93: templates untypical for the home's dwelling move to the end of
+    // their category (still available — never hidden).
     const byCat = new Map<string, typeof this._templates>();
     for (const tpl of this._templates) {
       if (!byCat.has(tpl.category)) byCat.set(tpl.category, []);
       byCat.get(tpl.category)!.push(tpl);
     }
+    for (const tpls of byCat.values()) tpls.sort((a, b) => Number(!!a.dwelling_mismatch) - Number(!!b.dwelling_mismatch));
+    const recommended = this._templates.filter((tpl) => tpl.recommended);
     return html`
       <div class="palette-backdrop" @click=${() => { this._templateGalleryOpen = false; }}>
         <div class="template-gallery" @click=${(e: Event) => e.stopPropagation()}>
@@ -1979,6 +2006,17 @@ export class MaintenanceSupporterPanel extends LitElement {
               @click=${() => { this._templateGalleryOpen = false; }}></ha-icon-button>
           </div>
           <div class="template-gallery-body">
+            ${recommended.length > 0
+              ? html`
+                  <div class="template-cat recommended">
+                    <div class="template-cat-head">
+                      <ha-icon icon="mdi:home-heart"></ha-icon>
+                      ${t("templates_recommended_title", L)}
+                    </div>
+                    <div class="template-cat-hint">${t("templates_recommended_hint", L)}</div>
+                    <div class="template-grid">${recommended.map((tpl) => this._renderTemplateCard(tpl, true))}</div>
+                  </div>`
+              : nothing}
             ${this._templates.length === 0
               ? html`<div class="palette-empty">${t("loading", L)}…</div>`
               : [...byCat.entries()].map(([catId, tpls]) => html`
@@ -1987,15 +2025,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                       <ha-icon icon="${(this._templateCategories[catId]?.icon as string) || "mdi:folder-outline"}"></ha-icon>
                       ${this._categoryName(catId)}
                     </div>
-                    <div class="template-grid">
-                      ${tpls.map((tpl) => html`
-                        <button class="template-card" .disabled=${this._templateBusy}
-                          @click=${() => this._createFromTemplate(tpl.id)}>
-                          <span class="template-card-name">${tpl.name}</span>
-                          <span class="template-card-count">${t("templates_task_count", L).replace("{n}", String(tpl.tasks.length))}</span>
-                        </button>
-                      `)}
-                    </div>
+                    <div class="template-grid">${tpls.map((tpl) => this._renderTemplateCard(tpl))}</div>
                   </div>
                 `)}
           </div>

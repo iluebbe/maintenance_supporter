@@ -58,6 +58,7 @@ from ..const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_HOME_TYPE,
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_MEMBER_DISPLAY,
@@ -178,6 +179,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_MEMBER_DISPLAY, dict, {}),
     # v2.21: hidden template ids (bespoke known-id sanitiser in the handler)
     SettingSpec(CONF_DISABLED_TEMPLATE_IDS, list, []),
+    # v2.93: home profile dwelling type (enum-checked in dashboard.py).
+    SettingSpec(CONF_HOME_TYPE, str, "auto", max_len=16),
     # Archive automation
     SettingSpec(CONF_ARCHIVE_ONEOFF_DAYS, int, DEFAULT_ARCHIVE_ONEOFF_DAYS, int_range=(0, 3650)),
     SettingSpec(CONF_DELETE_ARCHIVED_ONEOFF_DAYS, int, DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS, int_range=(0, 3650)),

@@ -199,19 +199,41 @@ borrower and repoints the other links. Parts ride the `objects` payload
 `{language?}` (BCP-47-ish, ≤10 chars; defaults to the server language) →
 ```json
 { "categories": {"<cat_id>": {…}},
-  "templates": [ { "id": "coffee_machine", "name": "Espresso Machine",
-                   "category": "kitchen", "disabled": false,
-                   "tasks": [ {"name":"Descale","type":"cleaning",
+  "profile": { "dwelling": "house", "dwelling_detected": "house",
+               "dwelling_reasons": ["floors", "area_garden"], "dwelling_source": "auto",
+               "country": "DE", "hemisphere": "north",
+               "climate": {"koppen": "Cfb", "coldest_c": 0, "warmest_c": 19,
+                           "hemisphere": "north", "has_winter": true,
+                           "traits": ["freeze", "snow"]},
+               "traits": ["freeze", "radon", "snow"], "features": ["garden"] },
+  "templates": [ { "id": "appliance_espresso", "name": "Espresso Machine",
+                   "category": "appliance", "disabled": false,
+                   "recommended": false, "reasons": [], "dwelling_mismatch": false,
+                   "tasks": [ {"name":"Descaling","type":"cleaning",
                                "schedule_type":"time_based",
                                "interval_days":90,"warning_days":7} ] } ] }
 ```
-**Call this before hand-building anything.** The integration ships **45**
-curated object templates (kitchen, heating, garden, vehicle, health, …), each
-with its tasks, types and interval defaults already chosen and localized. It is
-the only way to enumerate the `template_id` values `object/from_template`
-consumes. `disabled: true` = the admin hid it from the pickers in Settings —
-don't propose those. Everything a template creates stays fully editable
-afterwards, so "template + edits" beats a hand-built object nearly every time.
+**Call this before hand-building anything.** The integration ships **73**
+curated object templates (heating, heat pump, frost protection, garden,
+vehicle, health, …), each with its tasks, types and interval defaults already
+chosen and localized. It is the only way to enumerate the `template_id` values
+`object/from_template` consumes. `disabled: true` = the admin hid it from the
+pickers in Settings — don't propose those. Everything a template creates stays
+fully editable afterwards, so "template + edits" beats a hand-built object
+nearly every time.
+
+**Home profile (2.93):** `profile` is derived locally — `dwelling` (house /
+apartment / unknown, the `home_type` setting wins over the guess from floors,
+area names and a few devices), `country`, and the climate of the home location
+with `traits` (`freeze`, `snow`, `hot_summer`, `hot_humid`, `hot_dry`,
+`termites`, `wildfire`, `cyclone`, `tropical`, `radon`). Per template,
+`recommended` + `reasons` (`starter` = basics for the dwelling,
+`feature_garage` / `feature_basement` / `feature_garden` = equipment the
+detection saw in the home, a trait code, or `country`) say what to suggest
+first; `dwelling_mismatch` marks templates
+the dwelling rarely has (a pool in an apartment) — suggest those only on
+request. Seasonal template tasks are created with a seasonal window or a fixed
+date, mirrored south of the equator (`profile.hemisphere`).
 
 ### `object/from_template` — `@require_write`
 `{template_id (req), name?}` → `{entry_id}`. Creates the object **and all of the
