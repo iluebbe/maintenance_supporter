@@ -2008,6 +2008,10 @@ export class MaintenanceSupporterPanel extends LitElement {
               @click=${() => { this._templateGalleryOpen = false; }}></ha-icon-button>
           </div>
           <div class="template-gallery-body">
+            <div class="template-legal">
+              <ha-icon icon="mdi:scale-balance"></ha-icon>
+              <span>${t("templates_legal_hint", L)}</span>
+            </div>
             ${recommended.length > 0
               ? html`
                   <div class="template-cat recommended">

@@ -887,6 +887,7 @@
   "home_reason_feature": "Hittat i ditt hem: {feature}",
   "templates_recommended_title": "Rekommenderat för ditt hem",
   "templates_recommended_hint": "Baserat på din bostadsprofil — ändra den i Inställningar.",
+  "templates_legal_hint": "Anvisningar om lagkrav och intervall är vägledning, inte juridisk rådgivning. Reglerna skiljer sig mellan regioner och ändras över tid — lokala föreskrifter och tillverkarens anvisningar gäller i första hand.",
   "templates_not_typical": "Ovanligt för din bostadstyp",
   "worksheet": "Arbetsblad",
   "worksheet_scan_view": "Skanna för att öppna uppgiften",

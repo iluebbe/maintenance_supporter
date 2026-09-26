@@ -887,6 +887,7 @@
   "home_reason_feature": "Fundet i dit hjem: {feature}",
   "templates_recommended_title": "Anbefalet til dit hjem",
   "templates_recommended_hint": "Baseret på din boligprofil — kan ændres under Indstillinger.",
+  "templates_legal_hint": "Bemærkninger om lovkrav og intervaller er vejledende og ikke juridisk rådgivning. Reglerne varierer fra region til region og ændrer sig — lokale forskrifter og producentens anvisninger har forrang.",
   "templates_not_typical": "Usædvanligt for din boligtype",
   "worksheet": "Arbejdsark",
   "worksheet_scan_view": "Scan for at åbne opgaven",

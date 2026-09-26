@@ -104,6 +104,10 @@ needed.
    sidebar and pick **Add ▾ → From template** — choose *Car*, *HVAC*,
    *Washing machine*, *Pool*, … and get an object with typical tasks
    pre-configured. Or **Add ▾ → New object** and build your own.
+   Where a template mentions legal duties or intervals, that is guidance
+   researched in September 2026, not legal advice — rules vary by region
+   and change; local regulations and the manufacturer's instructions take
+   precedence.
 4. **Done.** Tasks show up on the panel dashboard, in the calendar, in the
    To-do list, and as sensors you can automate on. When something is due,
    you'll hear about it.

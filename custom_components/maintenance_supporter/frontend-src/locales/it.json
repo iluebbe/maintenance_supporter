@@ -887,6 +887,7 @@
   "home_reason_feature": "Presente nella tua casa: {feature}",
   "templates_recommended_title": "Consigliati per la tua casa",
   "templates_recommended_hint": "In base al profilo dell'abitazione — modificabile nelle Impostazioni.",
+  "templates_legal_hint": "Le note su obblighi di legge e scadenze sono indicative e non costituiscono consulenza legale. Le regole variano da regione a regione e cambiano nel tempo: prevalgono le norme locali e le istruzioni del produttore.",
   "templates_not_typical": "Poco comune per il tuo tipo di abitazione",
   "worksheet": "Scheda di lavoro",
   "worksheet_scan_view": "Scansiona per aprire l'attività",

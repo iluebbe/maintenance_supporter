@@ -234,7 +234,10 @@ detection saw in the home, a trait code, or `country`) say what to suggest
 first; `dwelling_mismatch` marks templates
 the dwelling rarely has (a pool in an apartment) — suggest those only on
 request. Seasonal template tasks are created with a seasonal window or a fixed
-date, mirrored south of the equator (`profile.hemisphere`).
+date, mirrored south of the equator (`profile.hemisphere`). Task notes may
+name legal duties (DIN norms, French boiler rules …) — present them as
+guidance researched in September 2026, never as legal advice: rules vary by
+region and change, and local regulations take precedence.
 
 ### `object/from_template` — `@require_write`
 `{template_id (req), name?}` → `{entry_id}`. Creates the object **and all of the

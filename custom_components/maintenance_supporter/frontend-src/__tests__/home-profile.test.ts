@@ -119,6 +119,16 @@ describe("panel gallery: recommendations", () => {
     expect(water).to.equal("1 task");
   });
 
+  it("always shows the legal-guidance line, recommendations or not", async () => {
+    const plain = { ...TEMPLATES, templates: TEMPLATES.templates.map((tpl) => ({ ...tpl, recommended: false })) };
+    const { el } = await mountPanel([obj("e1", [task()])], { "maintenance_supporter/templates": () => plain });
+    await (el as any)._openTemplateGallery();
+    await el.updateComplete;
+    const line = sr(el).querySelector(".template-legal")!;
+    expect(line, "legal hint rendered").to.exist;
+    expect(line.textContent).to.contain("not legal advice");
+  });
+
   it("shows no recommended section without recommendations", async () => {
     const plain = { ...TEMPLATES, templates: TEMPLATES.templates.map((tpl) => ({ ...tpl, recommended: false })) };
     const { el } = await mountPanel([obj("e1", [task()])], { "maintenance_supporter/templates": () => plain });

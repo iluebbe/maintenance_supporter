@@ -893,6 +893,7 @@
   "home_reason_feature": "Encontrado na sua casa: {feature}",
   "templates_recommended_title": "Recomendado para sua casa",
   "templates_recommended_hint": "Com base no perfil da residência — ajuste em Configurações.",
+  "templates_legal_hint": "As notas sobre obrigações legais e prazos são apenas orientação, não aconselhamento jurídico. As regras variam conforme a região e mudam com o tempo — prevalecem a regulamentação local e as instruções do fabricante.",
   "templates_not_typical": "Pouco comum no seu tipo de moradia",
   "worksheet": "Folha de trabalho",
   "worksheet_scan_view": "Escaneie para abrir a tarefa",

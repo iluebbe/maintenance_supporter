@@ -887,6 +887,7 @@
   "home_reason_feature": "Encontrado en tu hogar: {feature}",
   "templates_recommended_title": "Recomendado para tu hogar",
   "templates_recommended_hint": "Según tu perfil de vivienda; ajústalo en Ajustes.",
+  "templates_legal_hint": "Las notas sobre obligaciones legales y plazos son orientativas, no asesoramiento jurídico. Las normas varían según la región y cambian con el tiempo; prevalecen la normativa local y las instrucciones del fabricante.",
   "templates_not_typical": "Poco habitual en tu tipo de vivienda",
   "worksheet": "Hoja de trabajo",
   "worksheet_scan_view": "Escanea para abrir la tarea",

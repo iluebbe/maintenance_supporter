@@ -887,6 +887,7 @@
   "home_reason_feature": "Funnet i hjemmet ditt: {feature}",
   "templates_recommended_title": "Anbefalt for hjemmet ditt",
   "templates_recommended_hint": "Basert på boligprofilen din — kan endres under Innstillinger.",
+  "templates_legal_hint": "Merknader om lovpålagte plikter og frister er veiledende og ikke juridisk rådgivning. Reglene varierer fra region til region og endres over tid — lokale forskrifter og produsentens anvisninger går foran.",
   "templates_not_typical": "Uvanlig for din boligtype",
   "worksheet": "Arbeidsark",
   "worksheet_scan_view": "Skann for å åpne oppgaven",

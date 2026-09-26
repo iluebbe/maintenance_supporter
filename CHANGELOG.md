@@ -32,7 +32,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   German oil-tank and meter-calibration rules, the EU F-gas leak checks) named in the notes.
 - **Country-specific notes:** where a duty depends on the country, the task note names it for your country only —
   the French boiler, heat-pump and chimney-sweeping duties and the SPANC inspection, the UK Gas Safe engineer, the
-  Italian flue-gas check, the Polish and Swedish chimney rules, the German smoke-alarm check (DIN 14676).
+  Italian flue-gas check, the Polish and Swedish chimney rules, the German smoke-alarm check (DIN 14676). The
+  template gallery notes that these are guidance, not legal advice — rules vary by region and change; local
+  regulations and the manufacturer's instructions take precedence.
 
 ### ✨ Changed
 

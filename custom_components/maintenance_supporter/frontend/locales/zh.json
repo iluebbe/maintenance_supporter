@@ -887,6 +887,7 @@
   "home_reason_feature": "在您的住宅中发现：{feature}",
   "templates_recommended_title": "为您的住宅推荐",
   "templates_recommended_hint": "基于您的住宅概况——可在设置中调整。",
+  "templates_legal_hint": "有关法定义务和期限的说明仅供参考，不构成法律建议。各地规定不同且会变化——请以当地法规和制造商说明为准。",
   "templates_not_typical": "对您的住宅类型不常见",
   "worksheet": "工作单",
   "worksheet_scan_view": "扫码打开任务",

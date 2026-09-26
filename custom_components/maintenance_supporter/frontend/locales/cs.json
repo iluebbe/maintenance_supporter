@@ -887,6 +887,7 @@
   "home_reason_feature": "Nalezeno ve vašem domově: {feature}",
   "templates_recommended_title": "Doporučeno pro váš domov",
   "templates_recommended_hint": "Podle profilu bydlení — upravíte v Nastavení.",
+  "templates_legal_hint": "Poznámky k zákonným povinnostem a lhůtám slouží pro orientaci a nejsou právním poradenstvím. Pravidla se liší podle regionu a mění se — rozhodující jsou místní předpisy a pokyny výrobce.",
   "templates_not_typical": "Pro váš typ bydlení netypické",
   "worksheet": "Pracovní list",
   "worksheet_scan_view": "Naskenujte pro otevření úkolu",

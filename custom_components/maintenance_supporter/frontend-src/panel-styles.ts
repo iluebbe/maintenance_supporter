@@ -507,6 +507,11 @@ export const panelStyles = css`
     background: color-mix(in srgb, var(--primary-color) 12%, transparent); color: var(--primary-text-color);
   }
   .template-card.not-typical { opacity: .6; }
+  .template-legal {
+    display: flex; gap: 6px; align-items: flex-start; margin-top: 8px;
+    font-size: 12px; color: var(--secondary-text-color);
+  }
+  .template-legal ha-icon { --mdc-icon-size: 16px; flex: none; margin-top: 1px; }
   .empty-onboard-hint { color: var(--secondary-text-color); font-size: 13px; margin: 4px 0 12px; }
   .empty-onboard-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 

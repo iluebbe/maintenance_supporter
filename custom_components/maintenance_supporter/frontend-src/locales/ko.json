@@ -893,6 +893,7 @@
   "home_reason_feature": "집에서 발견됨: {feature}",
   "templates_recommended_title": "우리 집 추천",
   "templates_recommended_hint": "주거 프로필 기준 — 설정에서 조정하세요.",
+  "templates_legal_hint": "법적 의무와 주기에 관한 안내는 참고용이며 법률 자문이 아닙니다. 규정은 지역마다 다르고 바뀔 수 있으니 현지 규정과 제조사 지침을 우선하세요.",
   "templates_not_typical": "이 주거 유형에는 일반적이지 않음",
   "worksheet": "작업 시트",
   "worksheet_scan_view": "스캔하여 작업 열기",

@@ -893,6 +893,7 @@
   "home_reason_feature": "Az otthonában található: {feature}",
   "templates_recommended_title": "Ajánlott az otthonához",
   "templates_recommended_hint": "Az otthon profilja alapján — a Beállításokban módosíthatja.",
+  "templates_legal_hint": "A jogi kötelezettségekre és határidőkre vonatkozó megjegyzések tájékoztató jellegűek, nem minősülnek jogi tanácsnak. A szabályok régiónként eltérnek és változnak — a helyi előírások és a gyártó utasításai az irányadók.",
   "templates_not_typical": "Az Ön lakóhelytípusánál nem jellemző",
   "worksheet": "Munkalap",
   "worksheet_scan_view": "Olvassa be a feladat megnyitásához",

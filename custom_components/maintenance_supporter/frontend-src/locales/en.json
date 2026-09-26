@@ -893,6 +893,7 @@
   "home_reason_feature": "Found in your home: {feature}",
   "templates_recommended_title": "Recommended for your home",
   "templates_recommended_hint": "Based on your home profile — adjust it in Settings.",
+  "templates_legal_hint": "Notes on legal duties and intervals are guidance, not legal advice. Rules vary by region and change over time — local regulations and the manufacturer's instructions take precedence.",
   "templates_not_typical": "Not typical for your home type",
   "worksheet": "Work sheet",
   "worksheet_scan_view": "Scan to open the task",
