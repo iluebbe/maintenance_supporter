@@ -80,7 +80,7 @@ rules:
     comment: No authentication of any kind.
   test-coverage:
     status: done
-    comment: CI enforces >= 98% coverage (--cov-fail-under=98) over 4,200+ backend tests, plus ~900 frontend tests.
+    comment: CI enforces >= 98% coverage (--cov-fail-under=98) over 4,300+ backend tests, plus ~900 frontend tests.
 
   # Gold
   devices:
