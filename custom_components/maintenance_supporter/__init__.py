@@ -1571,6 +1571,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             _LOGGER.info("Repaired catalog trigger(s) of %s (AC filter runtime now counts on the HVAC mode)", entry.title)
             hass.config_entries.async_update_entry(entry, data=healed_data)
 
+        # Every write path validates spare parts, but ~27 readers assume a dict
+        # with an "id" — a hand-edited / damaged record crashed the sensor
+        # platform and the buy-task sync at setup (found 2026-09-26). Drop
+        # non-dict records and fill a missing id from the key, once.
+        stored_parts = entry.data.get("parts")
+        raw_parts: dict[str, Any] = stored_parts if isinstance(stored_parts, dict) else {}
+        damaged = [pid for pid, p in raw_parts.items() if not isinstance(p, dict) or p.get("id") != pid]
+        if damaged:
+            fixed_parts = {pid: {**p, "id": pid} for pid, p in raw_parts.items() if isinstance(p, dict)}
+            _LOGGER.warning("Repaired damaged spare-part record(s) %s of %s", damaged, entry.title)
+            hass.config_entries.async_update_entry(entry, data={**entry.data, "parts": fixed_parts})
+
         # Reconcile the entry.data <-> Store split (journey I1): drop store
         # state orphaned by a crash between the two writes of a deletion.
         # Same reconciliation for spare-part stock state (journey S6): a crash
@@ -2234,15 +2246,18 @@ def _get_task_id_for_entity(hass: HomeAssistant, entity_id: str) -> str | None:
     if config_entry is None:
         return None
 
-    # Look up which task matches this unique_id
-    # Sensor unique_id: maintenance_supporter_{slug}_{task_id}
-    # Binary sensor: maintenance_supporter_{slug}_{task_id}_overdue
+    # Look up which task matches this unique_id (const.task_unique_id):
+    # maintenance_supporter_{slug}_{task_id}[_{suffix}] — the task sensor has
+    # no suffix; the overdue binary sensor, the next-due / days-until-due
+    # sensors and the complete/skip/reset buttons each add one. Only
+    # "_overdue" used to be recognised, so picking a task's next-due sensor
+    # as the service target failed with no_task_for_entity.
     from .const import CONF_TASKS
 
     tasks: dict[str, Any] = config_entry.data.get(CONF_TASKS, {})
-    clean_id = unique_id.removesuffix("_overdue")
     for task_id in tasks:
-        if clean_id.endswith(f"_{task_id}"):
+        marker = f"_{task_id}"
+        if unique_id.endswith(marker) or f"{marker}_" in unique_id:
             return str(task_id)
 
     return None

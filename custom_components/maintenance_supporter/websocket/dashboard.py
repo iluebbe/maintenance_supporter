@@ -707,6 +707,16 @@ async def ws_get_budget_status(
 # ---------------------------------------------------------------------------
 
 
+def settings_error_field(error: str) -> str:
+    """The setting a ``sanitize_settings_input`` error code refers to — the
+    notify-service codes come from ``validate_notify_service``, the others are
+    the sanitizer's own early returns."""
+    return {
+        "invalid_shopping_list_entity": CONF_SHOPPING_LIST_ENTITY,
+        "invalid_search_template": CONF_PART_SEARCH_URL_TEMPLATE,
+    }.get(error, CONF_NOTIFY_SERVICE)
+
+
 def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
     """Filter + validate a flat settings dict against the registry.
 

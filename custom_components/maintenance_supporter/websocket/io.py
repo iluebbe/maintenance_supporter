@@ -512,7 +512,6 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
     """
     from ..const import (
         CONF_GROUPS,
-        CONF_NOTIFY_SERVICE,
         CONF_SAVED_FILTER_VIEWS,
         CONF_VACATION_BUFFER_DAYS,
         CONF_VACATION_ENABLED,
@@ -527,16 +526,29 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
     from ..helpers.global_options import get_global_entry
     from ..helpers.saved_views import sanitize_view
     from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
-    from .dashboard import sanitize_settings_input
+    from .dashboard import sanitize_settings_input, settings_error_field
 
     entry = get_global_entry(hass)
     if entry is None or not isinstance(raw, dict):
         return []
 
     scalars = {k: v for k, v in raw.items() if k in ALLOWED_SETTING_KEYS and k not in _NON_PORTABLE_SETTINGS}
-    filtered, notify_error = sanitize_settings_input(scalars)
-    if notify_error:
-        filtered.pop(CONF_NOTIFY_SERVICE, None)
+    # The sanitizer stops at the FIRST invalid field and hands back what it
+    # had so far. The import used to drop only notify_service after any error
+    # — an invalid search template (javascript: included) or shopping list was
+    # saved as-is and the later checks never ran (found 2026-09-26). Drop the
+    # field each error names and validate the rest again.
+    filtered: dict[str, Any] = {}
+    for _ in range(len(scalars) + 1):
+        filtered, error = sanitize_settings_input(scalars)
+        if error is None:
+            break
+        bad = settings_error_field(error)
+        _LOGGER.warning("Settings import: %s dropped (%s)", bad, error)
+        if bad not in scalars:
+            filtered = {}
+            break
+        scalars = {k: v for k, v in scalars.items() if k != bad}
 
     groups_in = raw.get(CONF_GROUPS)
     if isinstance(groups_in, dict):
