@@ -105,8 +105,8 @@ jobs:
         # carries `Requires-Dist: homeassistant==<version>`).
         ha: ["latest", "stable"]
     env:
-      # pytest-homeassistant-custom-component 0.13.357 == homeassistant 2026.8.3
-      HA_STABLE_PHT: "0.13.357"
+      # pytest-homeassistant-custom-component 0.13.366 == homeassistant 2026.9.3
+      HA_STABLE_PHT: "0.13.366"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
