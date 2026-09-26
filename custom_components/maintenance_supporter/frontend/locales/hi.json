@@ -864,6 +864,7 @@
   "home_reason_gate": "गेट",
   "home_reason_balcony": "बालकनी",
   "home_reason_small_home": "एक मंज़िल पर कम कमरे",
+  "home_reason_ups": "यूपीएस (अबाधित बिजली आपूर्ति)",
   "home_climate_label": "जलवायु",
   "home_climate_value": "कोपेन {koppen} · सबसे ठंडा महीना {cold} °C · सबसे गर्म महीना {warm} °C",
   "home_climate_unknown": "Home Assistant में घर का स्थान सेट नहीं है",

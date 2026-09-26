@@ -515,7 +515,7 @@ async def ws_create_from_template(
 
     from ..helpers.home_profile import async_climate
     from ..helpers.i18n import normalize_language, normalize_language_code
-    from ..templates import build_template_task, get_template_by_id, localize_template_text
+    from ..templates import build_template_task, get_template_by_id, localize_template_text, template_tasks
 
     template = get_template_by_id(msg["template_id"])
     if template is None:
@@ -552,7 +552,7 @@ async def ws_create_from_template(
     has_winter = climate.has_winter if climate else True
     country = str(hass.config.country).upper() if hass.config.country else None
     new_tasks: dict[str, Any] = {}
-    for tt in template.tasks:
+    for tt in template_tasks(template, has_winter=has_winter):
         task_id = uuid4().hex
         new_tasks[task_id] = {
             "id": task_id,

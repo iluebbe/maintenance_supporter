@@ -864,6 +864,7 @@
   "home_reason_gate": "un cancello",
   "home_reason_balcony": "un balcone",
   "home_reason_small_home": "poche stanze su un solo piano",
+  "home_reason_ups": "un gruppo di continuità",
   "home_climate_label": "Clima",
   "home_climate_value": "Köppen {koppen} · mese più freddo {cold} °C · mese più caldo {warm} °C",
   "home_climate_unknown": "Nessuna posizione di casa impostata in Home Assistant",

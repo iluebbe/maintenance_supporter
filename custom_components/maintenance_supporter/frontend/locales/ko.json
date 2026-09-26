@@ -870,6 +870,7 @@
   "home_reason_gate": "대문",
   "home_reason_balcony": "발코니",
   "home_reason_small_home": "한 층에 방이 적음",
+  "home_reason_ups": "무정전 전원 장치(UPS)",
   "home_climate_label": "기후",
   "home_climate_value": "쾨펜 {koppen} · 가장 추운 달 {cold} °C · 가장 더운 달 {warm} °C",
   "home_climate_unknown": "Home Assistant에 집 위치가 설정되지 않았습니다",

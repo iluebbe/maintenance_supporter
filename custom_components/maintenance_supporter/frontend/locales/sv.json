@@ -864,6 +864,7 @@
   "home_reason_gate": "en grind",
   "home_reason_balcony": "en balkong",
   "home_reason_small_home": "få rum på ett plan",
+  "home_reason_ups": "en UPS-enhet",
   "home_climate_label": "Klimat",
   "home_climate_value": "Köppen {koppen} · kallaste månaden {cold} °C · varmaste månaden {warm} °C",
   "home_climate_unknown": "Ingen hemplats angiven i Home Assistant",

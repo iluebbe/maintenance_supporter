@@ -864,6 +864,7 @@
   "home_reason_gate": "門扉",
   "home_reason_balcony": "バルコニー",
   "home_reason_small_home": "1フロアで部屋が少ない",
+  "home_reason_ups": "無停電電源装置（UPS）",
   "home_climate_label": "気候",
   "home_climate_value": "ケッペン {koppen} · 最寒月 {cold} °C · 最暖月 {warm} °C",
   "home_climate_unknown": "Home Assistant に自宅の位置が設定されていません",

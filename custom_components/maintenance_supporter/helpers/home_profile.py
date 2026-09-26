@@ -51,6 +51,12 @@ _FEATURE_REASONS: dict[str, frozenset[str]] = {
     "garden": frozenset({"area_garden", "entity_lawn_mower"}),
 }
 
+# Integrations that prove a piece of equipment (template ``requires``). They
+# say nothing about house or apartment, so they stay out of the dwelling score.
+_EQUIPMENT_INTEGRATIONS: dict[str, tuple[str, ...]] = {
+    "ups": ("nut", "apcupsd"),
+}
+
 # Area-name keywords, all 22 UI languages merged (a household may name rooms
 # in any language). Matched as substrings of the accent-folded, lower-cased
 # area / floor name. Ambiguous words are left out on purpose: "loft" (also a
@@ -167,6 +173,15 @@ def _entity_hints(hass: HomeAssistant) -> set[str]:
     return hints
 
 
+def detect_equipment(hass: HomeAssistant) -> frozenset[str]:
+    """Equipment an integration is set up for (a UPS behind NUT or apcupsd)."""
+    return frozenset(
+        kind
+        for kind, domains in _EQUIPMENT_INTEGRATIONS.items()
+        if any(hass.config_entries.async_entries(domain) for domain in domains)
+    )
+
+
 def detect_dwelling(hass: HomeAssistant) -> DwellingGuess:
     from homeassistant.helpers import area_registry as ar
     from homeassistant.helpers import floor_registry as fr
@@ -206,6 +221,7 @@ class HomeProfile:
     country: str | None
     climate: ClimateInfo | None
     location: tuple[float, float] | None = None
+    equipment: frozenset[str] = frozenset()
 
     @property
     def traits(self) -> frozenset[str]:
@@ -222,9 +238,11 @@ class HomeProfile:
 
     @property
     def features(self) -> frozenset[str]:
-        """Equipment the detection saw (garage, basement, garden) — kept even
-        when the dwelling type is overridden, the rooms are still there."""
-        return frozenset(f for f, codes in _FEATURE_REASONS.items() if codes & set(self.dwelling_reasons))
+        """Equipment the detection saw (garage, basement, garden, a UPS) —
+        kept even when the dwelling type is overridden, the rooms are still
+        there."""
+        seen = {f for f, codes in _FEATURE_REASONS.items() if codes & set(self.dwelling_reasons)}
+        return frozenset(seen | self.equipment)
 
     @property
     def hemisphere(self) -> str:
@@ -265,4 +283,5 @@ async def async_home_profile(hass: HomeAssistant) -> HomeProfile:
         location=(float(hass.config.latitude), float(hass.config.longitude))
         if hass.config.latitude is not None and hass.config.longitude is not None
         else None,
+        equipment=detect_equipment(hass),
     )

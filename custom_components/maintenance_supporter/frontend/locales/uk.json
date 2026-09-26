@@ -864,6 +864,7 @@
   "home_reason_gate": "ворота",
   "home_reason_balcony": "балкон",
   "home_reason_small_home": "мало кімнат на одному поверсі",
+  "home_reason_ups": "ДБЖ",
   "home_climate_label": "Клімат",
   "home_climate_value": "Кеппен {koppen} · найхолодніший місяць {cold} °C · найтепліший місяць {warm} °C",
   "home_climate_unknown": "У Home Assistant не задано розташування дому",

@@ -870,6 +870,7 @@
   "home_reason_gate": "um portão",
   "home_reason_balcony": "uma sacada",
   "home_reason_small_home": "poucos cômodos em um só andar",
+  "home_reason_ups": "um nobreak",
   "home_climate_label": "Clima",
   "home_climate_value": "Köppen {koppen} · mês mais frio {cold} °C · mês mais quente {warm} °C",
   "home_climate_unknown": "Nenhuma localização de casa definida no Home Assistant",

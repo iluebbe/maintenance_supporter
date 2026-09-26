@@ -870,6 +870,7 @@
   "home_reason_gate": "kapu",
   "home_reason_balcony": "erkély",
   "home_reason_small_home": "kevés helyiség egy szinten",
+  "home_reason_ups": "szünetmentes táp",
   "home_climate_label": "Éghajlat",
   "home_climate_value": "Köppen {koppen} · leghidegebb hónap {cold} °C · legmelegebb hónap {warm} °C",
   "home_climate_unknown": "Nincs otthoni hely beállítva a Home Assistantban",

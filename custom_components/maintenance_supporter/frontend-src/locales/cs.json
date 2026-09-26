@@ -864,6 +864,7 @@
   "home_reason_gate": "brána",
   "home_reason_balcony": "balkon",
   "home_reason_small_home": "málo místností v jednom podlaží",
+  "home_reason_ups": "záložní zdroj",
   "home_climate_label": "Klima",
   "home_climate_value": "Köppen {koppen} · nejchladnější měsíc {cold} °C · nejteplejší měsíc {warm} °C",
   "home_climate_unknown": "V Home Assistant není nastavena poloha domova",

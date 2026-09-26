@@ -864,6 +864,7 @@
   "home_reason_gate": "un portail",
   "home_reason_balcony": "un balcon",
   "home_reason_small_home": "peu de pièces sur un seul étage",
+  "home_reason_ups": "un onduleur",
   "home_climate_label": "Climat",
   "home_climate_value": "Köppen {koppen} · mois le plus froid {cold} °C · mois le plus chaud {warm} °C",
   "home_climate_unknown": "Aucun emplacement du domicile défini dans Home Assistant",

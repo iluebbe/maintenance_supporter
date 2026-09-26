@@ -278,13 +278,13 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
 
                 today_iso = dt_util.now().date().isoformat()
                 from .helpers.home_profile import async_climate
-                from .templates import build_template_task
+                from .templates import build_template_task, template_tasks
 
                 create_lang = normalize_language(self.hass)
                 # Seasons follow the home's hemisphere and climate.
                 climate = await async_climate(self.hass)
                 self._tasks = {}
-                for tt in template.tasks:
+                for tt in template_tasks(template, has_winter=climate.has_winter if climate else True):
                     task_id = uuid4().hex
                     task_data = {
                         "id": task_id,

@@ -864,6 +864,7 @@
   "home_reason_gate": "una verja",
   "home_reason_balcony": "un balcón",
   "home_reason_small_home": "pocas habitaciones en una sola planta",
+  "home_reason_ups": "un SAI",
   "home_climate_label": "Clima",
   "home_climate_value": "Köppen {koppen} · mes más frío {cold} °C · mes más cálido {warm} °C",
   "home_climate_unknown": "No hay ubicación de casa configurada en Home Assistant",

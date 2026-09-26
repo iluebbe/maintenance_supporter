@@ -213,7 +213,7 @@ borrower and repoints the other links. Parts ride the `objects` payload
                                "schedule_type":"time_based",
                                "interval_days":90,"warning_days":7} ] } ] }
 ```
-**Call this before hand-building anything.** The integration ships **87**
+**Call this before hand-building anything.** The integration ships **94**
 curated object templates (heating, heat pump, frost protection, garden,
 vehicle, health, …), each with its tasks, types and interval defaults already
 chosen and localized. It is the only way to enumerate the `template_id` values
@@ -230,11 +230,14 @@ with `traits` (`freeze`, `snow`, `severe_winter`, `hot_summer`, `hot_humid`,
 `tropical`, `radon`, `earthquake`). Per template,
 `recommended` + `reasons` (`starter` = basics for the dwelling,
 `feature_garage` / `feature_basement` / `feature_garden` = equipment the
-detection saw in the home, a trait code, or `country`) say what to suggest
-first; `dwelling_mismatch` marks templates
+detection saw in the home, `feature_ups` = a UPS behind NUT or apcupsd, a
+trait code, or `country`) say what to suggest first; `dwelling_mismatch` marks templates
 the dwelling rarely has (a pool in an apartment) — suggest those only on
 request. Seasonal template tasks are created with a seasonal window or a fixed
-date, mirrored south of the equator (`profile.hemisphere`). Task notes may
+date, mirrored south of the equator (`profile.hemisphere`). `tasks` lists
+what creating the template in THIS home makes: winter-only tasks (closing a
+pool, winterizing) are left out where there is no winter, and
+`interval_days` is the country's cycle (the UK MOT is yearly). Task notes may
 name legal duties (DIN norms, French boiler rules …) — present them as
 guidance researched in September 2026, never as legal advice: rules vary by
 region and change, and local regulations take precedence.

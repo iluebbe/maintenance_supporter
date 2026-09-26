@@ -44,6 +44,7 @@ describe("home profile helpers", () => {
     expect(recommendationReason("country", "en", "DE")).to.equal("Common in Germany");
     expect(recommendationReason("feature_garage", "en", null)).to.equal("Found in your home: a garage");
     expect(recommendationReason("feature_basement", "en", null)).to.equal("Found in your home: a basement");
+    expect(recommendationReason("feature_ups", "en", null)).to.equal("Found in your home: a UPS");
     expect(countryName("DE", "de")).to.equal("Deutschland");
     expect(countryName(null, "en")).to.equal("");
   });

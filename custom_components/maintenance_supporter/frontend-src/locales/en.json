@@ -870,6 +870,7 @@
   "home_reason_gate": "a gate",
   "home_reason_balcony": "a balcony",
   "home_reason_small_home": "few rooms on one floor",
+  "home_reason_ups": "a UPS",
   "home_climate_label": "Climate",
   "home_climate_value": "Köppen {koppen} · coldest month {cold} °C · warmest month {warm} °C",
   "home_climate_unknown": "No home location set in Home Assistant",

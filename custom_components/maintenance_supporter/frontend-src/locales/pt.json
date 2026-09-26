@@ -864,6 +864,7 @@
   "home_reason_gate": "um portão",
   "home_reason_balcony": "uma varanda",
   "home_reason_small_home": "poucas divisões num só piso",
+  "home_reason_ups": "uma UPS",
   "home_climate_label": "Clima",
   "home_climate_value": "Köppen {koppen} · mês mais frio {cold} °C · mês mais quente {warm} °C",
   "home_climate_unknown": "Nenhuma localização de casa definida no Home Assistant",

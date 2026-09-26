@@ -870,6 +870,7 @@
   "home_reason_gate": "bahçe kapısı",
   "home_reason_balcony": "balkon",
   "home_reason_small_home": "tek katta az oda",
+  "home_reason_ups": "kesintisiz güç kaynağı",
   "home_climate_label": "İklim",
   "home_climate_value": "Köppen {koppen} · en soğuk ay {cold} °C · en sıcak ay {warm} °C",
   "home_climate_unknown": "Home Assistant'ta ev konumu ayarlanmamış",

@@ -41,6 +41,12 @@ class TaskTemplate:
     # Extra note for homes in one country (ISO code → English note), appended
     # to ``notes`` at creation — the French boiler duty only for France.
     country_notes: dict[str, str] | None = None
+    # A different cycle in one country (ISO code → days) — the MOT is yearly
+    # in the UK where most of Europe tests every two years.
+    country_intervals: dict[str, int] | None = None
+    # Only where there is a cold season: winterizing a pool or an irrigation
+    # system is left out in Miami or Brisbane.
+    winter_only: bool = False
 
 
 @dataclass
@@ -323,6 +329,35 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
     },
 }
 
+# Periodic roadworthiness tests (checked 2026-09): the note names the local
+# test and its rhythm; ``country_intervals`` pick the cycle most vehicles of
+# that kind are on — for cars (older fleet) the yearly one where it applies.
+_CAR_TEST_NOTES: dict[str, str] = {
+    "AT": "Austria: §57a inspection (Pickerl) 3 years after first registration, 2 years later, then every year — planned from 19 May 2027: after 4, 2, 2 and 2 years, then every year.",
+    "CH": "Switzerland: vehicle inspection (MFK) after 5 years, 3 years later, then every 2 years.",
+    "DE": "Germany: HU (TÜV, DEKRA …) 3 years after first registration, then every 2 years.",
+    "ES": "Spain: ITV from 4 years every 2 years, from 10 years every year.",
+    "FR": "France: contrôle technique 4 years after first registration, then every 2 years.",
+    "GB": "UK: MOT 3 years after first registration (Northern Ireland: 4), then every year.",
+    "IT": "Italy: revisione 4 years after first registration, then every 2 years.",
+    "NL": "Netherlands: APK for petrol and electric cars after 4 years, then every 2 years and from 8 years every year; diesel cars after 3 years, then every year.",
+    "PL": "Poland: przegląd techniczny after 3 years, after 5 years, then every year.",
+    "SE": "Sweden: besiktning after 3 years, after 5 years, then every 14 months.",
+}
+_MOTORCYCLE_TEST_NOTES: dict[str, str] = {
+    "AT": _CAR_TEST_NOTES["AT"],
+    "CH": _CAR_TEST_NOTES["CH"],
+    "DE": "Germany: HU every 2 years, the first one 2 years after first registration.",
+    "ES": "Spain: ITV from 4 years every 2 years (mopeds from 3 years).",
+    "FR": "France: contrôle technique for motorcycles and scooters since 15 April 2024 — in the 6 months before the 5th anniversary, then every 3 years; older bikes follow a transition calendar.",
+    "GB": _CAR_TEST_NOTES["GB"],
+    "IT": _CAR_TEST_NOTES["IT"],
+    "NL": "Netherlands: motorcycles have no APK.",
+    "PL": _CAR_TEST_NOTES["PL"],
+    "SE": "Sweden: besiktning within 4 years, then every 2 years.",
+}
+_TEST_NOTE = "The first test and the cycle depend on the country and the vehicle's age — the due date is on the registration papers or the inspection sticker."
+
 
 TEMPLATES: list[ObjectTemplate] = [
     # --- Vehicle ---
@@ -335,7 +370,19 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Tire Rotation", "service", "time_based", 180, 14),
             TaskTemplate("Brake Inspection", "inspection", "time_based", 365, 30),
             TaskTemplate("Air Filter", "replacement", "time_based", 730, 60),
+            TaskTemplate("Cabin Air Filter", "replacement", "time_based", 365, 30),
+            TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
             TaskTemplate("Wiper Blades", "replacement", "time_based", 365, 30),
+            TaskTemplate(
+                "Roadworthiness Test",
+                "inspection",
+                "time_based",
+                730,
+                60,
+                _TEST_NOTE,
+                country_notes=_CAR_TEST_NOTES,
+                country_intervals={"AT": 365, "ES": 365, "GB": 365, "NL": 365, "PL": 365, "SE": 426},
+            ),
         ],
     ),
     ObjectTemplate(
@@ -355,6 +402,16 @@ TEMPLATES: list[ObjectTemplate] = [
             ),
             TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
             TaskTemplate("12V Battery Check", "inspection", "time_based", 365, 30),
+            TaskTemplate(
+                "Roadworthiness Test",
+                "inspection",
+                "time_based",
+                730,
+                60,
+                _TEST_NOTE,
+                country_notes=_CAR_TEST_NOTES,
+                country_intervals={"GB": 365},
+            ),
         ],
     ),
     ObjectTemplate(
@@ -377,6 +434,16 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Chain Maintenance", "service", "time_based", 30, 7),
             TaskTemplate("Tire Inspection", "inspection", "time_based", 90, 14),
             TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
+            TaskTemplate(
+                "Roadworthiness Test",
+                "inspection",
+                "time_based",
+                730,
+                60,
+                _TEST_NOTE,
+                country_notes=_MOTORCYCLE_TEST_NOTES,
+                country_intervals={"AT": 365, "FR": 1095, "GB": 365, "PL": 365},
+            ),
         ],
     ),
     ObjectTemplate(
@@ -407,6 +474,15 @@ TEMPLATES: list[ObjectTemplate] = [
         tasks=[
             TaskTemplate("Filter Replacement", "replacement", "time_based", 90, 14),
             TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate(
+                "Flush Condensate Drain",
+                "cleaning",
+                "time_based",
+                90,
+                14,
+                "Hot and humid climates: monthly, with a cup of white vinegar, so algae cannot clog the line.",
+            ),
+            TaskTemplate("Clean Outdoor Unit Coil", "cleaning", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
             TaskTemplate("Duct Cleaning", "cleaning", "time_based", 1095, 60),
         ],
     ),
@@ -414,11 +490,19 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_water_heater",
         name="Water Heater",
         category="home",
-        countries=frozenset({"US", "CA", "AU", "NZ", "IN", "ZA"}),
+        countries=frozenset({"US", "CA", "AU", "NZ", "IN", "ZA", "FR", "CH"}),
         tasks=[
             TaskTemplate("Anode Rod Inspection", "inspection", "time_based", 365, 30),
             TaskTemplate("Flush Tank", "cleaning", "time_based", 365, 30),
-            TaskTemplate("Pressure Relief Valve Test", "inspection", "time_based", 365, 14),
+            TaskTemplate(
+                "Pressure Relief Valve Test",
+                "inspection",
+                "time_based",
+                365,
+                14,
+                country_notes={"FR": "France: installers recommend operating the safety group (groupe de sécurité) once a month so scale cannot block it."},
+                country_intervals={"FR": 30},
+            ),
         ],
     ),
     ObjectTemplate(
@@ -437,7 +521,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         traits=frozenset({"freeze"}),
         tasks=[
-            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer.", "IT": "Italy: flue-gas check every 4 years for gas boilers up to 100 kW, every 2 years for oil, wood or pellet boilers."}),
+            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer.", "IT": "Italy: flue-gas check every 4 years for gas boilers up to 100 kW, every 2 years for oil, wood or pellet boilers.", "DE": "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid; every heating appliance is also inspected twice in seven years (Feuerstättenschau).", "AT": "Austria: the inspection intervals for heating systems are set by each state (Bundesland).", "CH": "Switzerland: the canton or municipality schedules the emissions check (e.g. Zurich: oil every 2 years, gas every 4 years).", "BE": "Belgium (Flanders): boilers from 20 kW — oil and solid fuel every year, gas every 2 years; Wallonia and Brussels have their own rules.", "ES": "Spain: boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.", "CZ": "Czechia: solid-fuel boilers of 10–300 kW need an inspection by a certified technician every 3 years.", "PL": "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).", "RU": "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year."}),
             TaskTemplate("Bleed Radiators", "service", "time_based", 365, 14, schedule={"kind": "day_of_month", "day": 1, "months": [10]}),
             TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
         ],
@@ -450,6 +534,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_ventilation",
         name="Ventilation System",
         category="home",
+        countries=frozenset({"JP", "KR"}),
         tasks=[
             TaskTemplate(
                 "Replace Ventilation Filters",
@@ -483,8 +568,19 @@ TEMPLATES: list[ObjectTemplate] = [
                 "time_based",
                 365,
                 30,
-                "Legally regulated in many countries — e.g. 1–3 sweeps per year in Germany depending on usage (KÜO), and at least an annual inspection under NFPA 211 in the US.",
-                country_notes={"FR": "France: sweeping twice a year for oil, wood or coal, once for gas (règlement sanitaire départemental); keep the certificate.", "PL": "Poland: a chimney sweep's inspection at least once a year.", "SE": "Sweden: the municipality's sweep does fire-safety inspections every 3–6 years depending on the fireplace."},
+                "Legally regulated in many countries — follow your chimney sweep's schedule or the local rules.",
+                country_notes={
+                    "FR": "France: sweeping twice a year for oil, wood or coal, once for gas (règlement sanitaire départemental); keep the certificate.",
+                    "PL": "Poland: a chimney sweep's inspection at least once a year.",
+                    "SE": "Sweden: the municipality's sweep does fire-safety inspections every 3–6 years depending on the fireplace.",
+                    "DE": "Germany: the sweeping dates are set in your Feuerstättenbescheid (usually 1–3 times a year depending on use); the chimney sweep also inspects every fireplace twice in seven years (Feuerstättenschau).",
+                    "AT": "Austria: the sweeping intervals are set by state law.",
+                    "FI": "Finland: sweeping every year, for holiday homes every 3 years (Rescue Act).",
+                    "DK": "Denmark: the chimney sweep comes at least once a year.",
+                    "CZ": "Czechia: solid fuels up to 50 kW — clean the flue 3 times a year (twice with seasonal use) and have it inspected once a year.",
+                    "IT": "Italy: have the flue and a pellet or wood stove cleaned by a qualified technician every year (UNI 10683).",
+                    "US": "US: NFPA 211 calls for a chimney inspection at least once a year.",
+                },
             ),
             TaskTemplate("Inspect Door Gasket", "inspection", "time_based", 365, 21),
             TaskTemplate(
@@ -548,7 +644,21 @@ TEMPLATES: list[ObjectTemplate] = [
         category="building",
         starter=ANY_DWELLING,
         tasks=[
-            TaskTemplate("Test Detectors", "inspection", "time_based", 30, 7, country_notes={"DE": "Germany: the state building codes call for a yearly check following DIN 14676."}),
+            TaskTemplate(
+                "Test Detectors",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                country_notes={
+                    "DE": "Germany: the state building codes call for a yearly check following DIN 14676.",
+                    "FR": "France: every home needs at least one smoke alarm (DAAF) since March 2015; the occupant keeps it working.",
+                    "NL": "Netherlands: a smoke alarm on every floor with a living space or escape route is mandatory since 1 July 2022.",
+                    "BE": "Belgium (Flanders): a smoke alarm on every floor is mandatory since 1 January 2020; Wallonia and Brussels have their own rules.",
+                    "JP": "Japan: residential fire alarms are mandatory in all homes; the fire agency recommends replacing them after 10 years.",
+                    "AU": "Australia: the rules differ by state — e.g. in Queensland every home needs interconnected photoelectric alarms in each bedroom, hallway and storey from 1 January 2027.",
+                },
+            ),
             TaskTemplate("Replace Detector Batteries", "replacement", "time_based", 365, 30),
             TaskTemplate(
                 "Replace Detectors",
@@ -557,6 +667,14 @@ TEMPLATES: list[ObjectTemplate] = [
                 3650,
                 90,
                 "Smoke detectors expire — most sensors are rated for 10 years from the date printed on the unit.",
+            ),
+            TaskTemplate(
+                "Replace CO Alarms",
+                "replacement",
+                "time_based",
+                2555,
+                90,
+                "CO sensors age faster than smoke sensors — depending on the model after 5–10 years; the end-of-life date is printed on the unit.",
             ),
         ],
     ),
@@ -626,6 +744,39 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Water Test", "inspection", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
             TaskTemplate("Shock Treatment", "cleaning", "time_based", 14, 3, season_months=(5, 6, 7, 8, 9)),
             TaskTemplate("Filter Backwash", "cleaning", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate(
+                "Check Pool Safety Barrier or Alarm",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                "Gates must close and latch by themselves, nothing to climb on near the fence; test the alarm.",
+                country_notes={
+                    "FR": "France: private in-ground pools must have one of four standardised safety devices — barrier, cover, shelter or alarm (Code de la construction, L134-10).",
+                    "AU": "Australia: barrier rules differ by state — e.g. Victoria requires a compliance certificate every 4 years and Western Australia inspects at least every 4 years; NSW and Queensland need a certificate on sale or lease.",
+                    "NZ": "New Zealand: residential pool barriers must be inspected at least every 3 years.",
+                },
+            ),
+            TaskTemplate(
+                "Close Pool for Winter",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Balance the water, lower it below the skimmer, drain the pump and filter, then cover the pool.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [10]},
+                winter_only=True,
+            ),
+            TaskTemplate(
+                "Open Pool for the Season",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Remove the cover, top up the water, restart the filter and shock-treat the water.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+                winter_only=True,
+            ),
         ],
     ),
     ObjectTemplate(
@@ -654,8 +805,9 @@ TEMPLATES: list[ObjectTemplate] = [
                 21,
                 "Blow out and drain before the first frost. Tip: a sensor-based threshold trigger (below 3 °C on an outdoor temperature entity) makes this reminder frost-aware.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [10]},
+                winter_only=True,
             ),
-            TaskTemplate("Spring Startup and Leak Check", "inspection", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
+            TaskTemplate("Spring Startup and Leak Check", "inspection", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 15, "months": [4]}, winter_only=True),
             TaskTemplate("Sprinkler Head Inspection", "inspection", "time_based", 180, 14),
         ],
     ),
@@ -672,6 +824,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 21,
                 "Move to a frost-free spot before the first frost — trapped water cracks the pump. Tip: a sensor-based threshold trigger (below 3 °C) makes this reminder frost-aware.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [11]},
+                winter_only=True,
             ),
             TaskTemplate("Nozzle and Filter Cleaning", "cleaning", "time_based", 180, 14),
             TaskTemplate("Pump Oil Check", "inspection", "time_based", 365, 30),
@@ -702,6 +855,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 21,
                 "Store indoors over winter with the battery at partial charge — frost and a fully drained battery both age the cells.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [11]},
+                winter_only=True,
             ),
         ],
     ),
@@ -982,7 +1136,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Before autumn leaf fall — decomposing leaves feed algae and sludge.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [10]},
             ),
-            TaskTemplate("Winterize System", "service", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 1, "months": [11]}),
+            TaskTemplate("Winterize System", "service", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 1, "months": [11]}, winter_only=True),
         ],
     ),
     ObjectTemplate(
@@ -1579,11 +1733,20 @@ TEMPLATES: list[ObjectTemplate] = [
     ),
     ObjectTemplate(
         id="home_split_ac",
-        name="Air Conditioner (Split)",
+        name="Split AC / Air-to-Air Heat Pump",
         category="home",
         traits=frozenset({"hot_summer", "hot_humid"}),
+        # Air-to-air heat pumps heat most Nordic homes (SSB: >60 % in Norway).
+        countries=frozenset({"NO", "SE", "FI"}),
         tasks=[
-            TaskTemplate("Clean Indoor Unit Filters", "cleaning", "time_based", 30, 7, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate(
+                "Clean Indoor Unit Filters",
+                "cleaning",
+                "time_based",
+                30,
+                7,
+                "All year when the unit also heats — and keep the outdoor unit free of snow and ice in winter.",
+            ),
             TaskTemplate(
                 "Flush Condensate Drain",
                 "cleaning",
@@ -1889,7 +2052,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="garden",
         dwellings=HOUSE_ONLY,
         requires=frozenset({"garden"}),
-        only_countries=frozenset({"AU", "NZ"}),
+        only_countries=frozenset({"AU", "NZ", "BE"}),
         tasks=[
             TaskTemplate("Clean Leaf Screens and First-Flush Diverter", "cleaning", "time_based", 90, 7),
             TaskTemplate(
@@ -1907,7 +2070,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_water_storage_tank",
         name="Water Storage Tank",
         category="home",
-        countries=frozenset({"BR", "MX", "IN"}),
+        countries=frozenset({"BR", "MX", "IN", "PK", "NG", "EG", "JO", "LB", "SA", "AE"}),
         tasks=[
             TaskTemplate(
                 "Clean and Disinfect Tank",
@@ -2027,6 +2190,260 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Inspect Wellhead and Cap", "inspection", "time_based", 365, 30),
         ],
     ),
+    # --- 2026-09 gap audit: electrical safety, domestic water, air purifier,
+    # UPS, caravan, balcony solar, gas cooker (sources in the notes) ---
+    ObjectTemplate(
+        id="home_electrical",
+        name="Electrical Safety",
+        category="building",
+        starter=ANY_DWELLING,
+        tasks=[
+            TaskTemplate(
+                "Test RCD / GFCI",
+                "inspection",
+                "time_based",
+                182,
+                14,
+                "Press the test button — the device must trip at once. Manufacturers call for this every 6 months.",
+                country_notes={
+                    "CA": "US and Canada: test GFCIs and AFCIs every month, as their labels say.",
+                    "US": "US and Canada: test GFCIs and AFCIs every month, as their labels say.",
+                },
+                country_intervals={"CA": 30, "US": 30},
+            ),
+            TaskTemplate(
+                "Check Sockets, Plugs and Extension Leads",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Look for scorch marks, loose or warm sockets, damaged cables and power strips plugged into each other.",
+            ),
+            TaskTemplate(
+                "Electrical Installation Inspection",
+                "inspection",
+                "time_based",
+                3650,
+                90,
+                "Recommended about every 10 years for an owner-occupied home — sooner for an old installation or after water damage.",
+                country_notes={
+                    "DE": "Germany: the electrical trade recommends an E-Check of the fixed installation every 4 years (voluntary for private homes).",
+                    "GB": "UK: Electrical Safety First recommends an EICR at least every 10 years for an owner-occupied home; private landlords need one every 5 years.",
+                },
+                country_intervals={"DE": 1461},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_water_installation",
+        name="Domestic Water Installation",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        # A filter after the water meter is standard in DACH houses (DIN 1988-200).
+        countries=frozenset({"DE", "AT", "CH"}),
+        tasks=[
+            TaskTemplate(
+                "Backwash House Water Filter",
+                "cleaning",
+                "time_based",
+                60,
+                7,
+                "DIN EN 806-5: at least every 6 months — manufacturers recommend about every 2 months. A filter without backwash: replace the cartridge every 6 months.",
+            ),
+            TaskTemplate(
+                "Pressure Reducer Maintenance",
+                "service",
+                "time_based",
+                365,
+                30,
+                "DIN EN 806-5: inspect and service it once a year — check the outlet pressure on the gauge and clean the strainer.",
+            ),
+            TaskTemplate(
+                "Operate Shut-Off Valves",
+                "service",
+                "time_based",
+                182,
+                14,
+                "Close and reopen the main valve and the floor valves once or twice a year so they cannot seize.",
+            ),
+            TaskTemplate(
+                "Test Leak Protection",
+                "inspection",
+                "time_based",
+                182,
+                14,
+                "Wet each water sensor and check that the shut-off valve closes and the alert arrives.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_air_purifier",
+        name="Air Purifier",
+        category="household",
+        traits=frozenset({"wildfire"}),
+        countries=frozenset({"CN", "KR"}),
+        tasks=[
+            TaskTemplate("Clean Pre-Filter", "cleaning", "time_based", 30, 7, "Vacuum or rinse it every 2–4 weeks."),
+            TaskTemplate(
+                "Replace Main Filter",
+                "replacement",
+                "time_based",
+                180,
+                14,
+                "HEPA and carbon filters last 6–12 months — less with smoke, heavy pollution or pets. Many purifiers report the filter life to Home Assistant.",
+            ),
+            TaskTemplate("Wipe Housing and Air-Quality Sensor", "cleaning", "time_based", 90, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="tech_ups",
+        name="Uninterruptible Power Supply (UPS)",
+        category="tech",
+        requires=frozenset({"ups"}),
+        tasks=[
+            TaskTemplate(
+                "Run Self-Test and Check Runtime",
+                "inspection",
+                "time_based",
+                90,
+                14,
+                "Compare the estimated runtime with the connected load — a shrinking runtime announces a tired battery.",
+            ),
+            TaskTemplate(
+                "Replace UPS Battery",
+                "replacement",
+                "time_based",
+                1461,
+                60,
+                "Lead-acid UPS batteries last 3–5 years — less in a warm room.",
+            ),
+            TaskTemplate("Clean Vents", "cleaning", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="vehicle_caravan",
+        name="Caravan & Motorhome",
+        category="vehicle",
+        tasks=[
+            TaskTemplate(
+                "LPG System Test",
+                "inspection",
+                "time_based",
+                730,
+                60,
+                "Have hoses, regulator and appliances checked by an expert; replace hoses and the regulator by the date printed on them.",
+                country_notes={"DE": "Germany: the gas test (DVGW G 607) is mandatory every 2 years since 19 June 2025 — separately from the HU."},
+            ),
+            TaskTemplate(
+                "Damp and Habitation Check",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Moisture readings along roof seams, windows and floor — most manufacturers require a yearly check to keep the water-ingress warranty.",
+            ),
+            TaskTemplate("Check Roof Seals and Windows", "inspection", "time_based", 182, 14),
+            TaskTemplate(
+                "Winterize Water System",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Drain the tanks, the boiler and all pipes and leave the taps open — frost cracks pumps and fittings.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [10]},
+                winter_only=True,
+            ),
+            TaskTemplate(
+                "Sanitize Fresh Water System",
+                "cleaning",
+                "time_based",
+                365,
+                21,
+                "Before the season: disinfect the tank and pipes, then flush them with fresh water.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+            ),
+            TaskTemplate(
+                "Check Tire Age",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Caravan tires age before they wear out — replace them after about 6 years whatever the tread.",
+                country_notes={"DE": "Germany: the 100 km/h approval for trailers requires tires younger than 6 years."},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_balcony_solar",
+        name="Balcony Solar",
+        category="home",
+        tasks=[
+            TaskTemplate("Check Yield and Inverter Errors", "inspection", "time_based", 30, 7),
+            TaskTemplate(
+                "Check Mounting, Cable and Plug",
+                "inspection",
+                "time_based",
+                182,
+                14,
+                "And after every storm — a loose panel on a balcony railing endangers the people below.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [3, 10]},
+            ),
+            TaskTemplate("Clean Panels", "cleaning", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_gas_cooker",
+        name="Gas Cooker & LPG Cylinder",
+        category="household",
+        countries=frozenset({"IN", "BR", "MX"}),
+        tasks=[
+            TaskTemplate(
+                "Check Gas Hose for Leaks",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                "Brush soapy water over the hose and its connections with the valve open — bubbles mean a leak. Never test with a flame.",
+            ),
+            TaskTemplate(
+                "Replace Gas Hose",
+                "replacement",
+                "time_based",
+                1826,
+                60,
+                "By the date printed on the hose — at once if it is cracked or brittle.",
+                country_notes={
+                    "BR": "Brazil: hose and regulator are valid for 5 years (INMETRO) — the date follows \"VAL.\" on the part.",
+                    "CN": "China: plain rubber hoses last only about 18 months — metal hoses are recommended.",
+                    "FR": "France: plain rubber tubes last 5 years, reinforced hoses with screw ends 10 years; stainless-steel hoses have no expiry date.",
+                    "IN": "India: the Suraksha hose lasts 5 years; replace a plain rubber tube with one.",
+                },
+                country_intervals={"CN": 548},
+            ),
+            TaskTemplate(
+                "Replace Gas Regulator",
+                "replacement",
+                "time_based",
+                3652,
+                60,
+                "By the date printed on the regulator.",
+                country_notes={"BR": "Brazil: hose and regulator are valid for 5 years (INMETRO) — the date follows \"VAL.\" on the part."},
+                country_intervals={"BR": 1826},
+            ),
+            TaskTemplate(
+                "Gas Installation Inspection",
+                "inspection",
+                "time_based",
+                1826,
+                60,
+                "Have a qualified fitter check the whole installation.",
+                country_notes={
+                    "ES": "Spain: bottled-gas installations need a revisión by an authorised installer every 5 years (Basque Country: 4).",
+                    "IN": "India: your LPG distributor's mandatory inspection is due every 5 years.",
+                },
+            ),
+        ],
+    ),
 ]
 
 
@@ -2043,6 +2460,17 @@ def get_template_by_id(template_id: str) -> ObjectTemplate | None:
     return None
 
 
+def template_tasks(template: ObjectTemplate, *, has_winter: bool = True) -> list[TaskTemplate]:
+    """The tasks ``template`` creates in this climate — winter-only ones are
+    left out where there is no cold season."""
+    return [tt for tt in template.tasks if has_winter or not tt.winter_only]
+
+
+def task_interval(tt: TaskTemplate, country: str | None) -> int | None:
+    """The cycle in days for the home's country (the MOT is yearly in the UK)."""
+    return (tt.country_intervals or {}).get(country or "", tt.interval_days)
+
+
 def build_template_task(
     tt: TaskTemplate,
     lang: str,
@@ -2055,10 +2483,11 @@ def build_template_task(
     flow and the panel gallery.
 
     Name and notes are localized; a note for the home's ``country`` is
-    appended (legal duties differ per country). The recurrence is a nested ``schedule``
-    when the template carries a fixed calendar or a seasonal window (months
-    mirrored south of the equator; the window is dropped where there is no
-    cold season, so a Miami lawn is mowed all year), else the flat interval.
+    appended and its interval used (legal duties differ per country). The
+    recurrence is a nested ``schedule`` when the template carries a fixed
+    calendar or a seasonal window (months mirrored south of the equator; the
+    window is dropped where there is no cold season, so a Miami lawn is
+    mowed all year), else the flat interval.
     """
     from .helpers.climate import flip_months
 
@@ -2071,21 +2500,22 @@ def build_template_task(
     notes = [localize_template_text(n, lang) or n for n in (tt.notes, (tt.country_notes or {}).get(country or "")) if n]
     if notes:
         task["notes"] = "\n\n".join(notes)
+    interval = task_interval(tt, country)
     if tt.schedule is not None:
         schedule = dict(tt.schedule)
         if schedule.get("months"):
             schedule["months"] = list(flip_months(schedule["months"], hemisphere))
         task["schedule"] = schedule
-    elif tt.season_months and has_winter and tt.interval_days:
+    elif tt.season_months and has_winter and interval:
         task["schedule"] = {
             "kind": "interval",
-            "every": tt.interval_days,
+            "every": interval,
             "season_months": list(flip_months(tt.season_months, hemisphere)),
         }
     else:
         task["schedule_type"] = tt.schedule_type
-        if tt.interval_days is not None:
-            task["interval_days"] = tt.interval_days
+        if interval is not None:
+            task["interval_days"] = interval
     return task
 
 

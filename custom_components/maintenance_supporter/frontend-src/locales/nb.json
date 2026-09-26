@@ -864,6 +864,7 @@
   "home_reason_gate": "en port",
   "home_reason_balcony": "en balkong",
   "home_reason_small_home": "få rom på ett plan",
+  "home_reason_ups": "en UPS-enhet",
   "home_climate_label": "Klima",
   "home_climate_value": "Köppen {koppen} · kaldeste måned {cold} °C · varmeste måned {warm} °C",
   "home_climate_unknown": "Ingen hjemplassering er angitt i Home Assistant",

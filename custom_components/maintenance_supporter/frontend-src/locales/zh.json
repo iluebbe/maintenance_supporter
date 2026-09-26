@@ -864,6 +864,7 @@
   "home_reason_gate": "大门",
   "home_reason_balcony": "阳台",
   "home_reason_small_home": "单层且房间较少",
+  "home_reason_ups": "UPS 不间断电源",
   "home_climate_label": "气候",
   "home_climate_value": "柯本 {koppen} · 最冷月 {cold} °C · 最热月 {warm} °C",
   "home_climate_unknown": "Home Assistant 中未设置住宅位置",

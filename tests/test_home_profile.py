@@ -32,6 +32,7 @@ from custom_components.maintenance_supporter.templates import (
     build_template_task,
     get_template_by_id,
     recommend_template,
+    template_tasks,
 )
 from custom_components.maintenance_supporter.websocket.io import ws_get_templates
 from custom_components.maintenance_supporter.websocket.objects import ws_create_from_template
@@ -98,7 +99,8 @@ def test_country_notes_are_added_for_that_country_only() -> None:
     annual = next(tt for t in TEMPLATES if t.id == "home_heating" for tt in t.tasks if tt.name == "Annual Inspection")
     assert "France" in build_template_task(annual, "en", country="FR")["notes"]
     assert "Gas Safe" in build_template_task(annual, "en", country="GB")["notes"]
-    assert "notes" not in build_template_task(annual, "en", country="DE")
+    assert "Feuerstättenbescheid" in build_template_task(annual, "en", country="DE")["notes"]
+    assert "notes" not in build_template_task(annual, "en", country="US")
     assert "notes" not in build_template_task(annual, "en")
     # Appended below a template's own note, and localized.
     sweep = next(tt for t in TEMPLATES if t.id == "home_fireplace" for tt in t.tasks if tt.name == "Chimney Sweep Appointment")
@@ -279,6 +281,40 @@ def test_equipment_waits_for_what_the_home_has() -> None:
     assert with_garage.features == frozenset({"garage"})
 
 
+def test_country_interval_and_winter_only_tasks() -> None:
+    """The MOT is yearly in the UK where most of Europe tests every two
+    years; a pool is not winterized in Brisbane."""
+    car = get_template_by_id("vehicle_car")
+    pool = get_template_by_id("pool_water")
+    assert car and pool
+    test = next(tt for tt in car.tasks if tt.name == "Roadworthiness Test")
+    assert build_template_task(test, "en")["interval_days"] == 730
+    uk = build_template_task(test, "en", country="GB")
+    assert uk["interval_days"] == 365 and "MOT" in uk["notes"]
+    assert build_template_task(test, "en", country="DE")["interval_days"] == 730
+    winter = {tt.name for tt in template_tasks(pool)}
+    tropics = {tt.name for tt in template_tasks(pool, has_winter=False)}
+    assert {"Close Pool for Winter", "Open Pool for the Season"} <= winter
+    assert not {"Close Pool for Winter", "Open Pool for the Season"} & tropics
+    assert "Water Test" in tropics and "Check Pool Safety Barrier or Alarm" in tropics
+
+
+async def test_a_ups_integration_is_equipment_the_gallery_suggests_for(hass: HomeAssistant) -> None:
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    g = make_global_entry(hass)
+    await setup_integration(hass, g)
+    ups = get_template_by_id("tech_ups")
+    assert ups
+    assert "ups" not in (await async_home_profile(hass)).features
+    MockConfigEntry(domain="nut", data={}).add_to_hass(hass)
+    profile = await async_home_profile(hass)
+    assert "ups" in profile.features and "ups" in profile.as_dict()["features"]
+    assert recommend_template(ups, profile)["reasons"] == ["feature_ups"]
+    # A UPS says nothing about house or apartment.
+    assert not any("ups" in r for r in profile.dwelling_reasons)
+
+
 async def test_null_island_is_no_location(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.home_profile import async_climate
 
@@ -300,8 +336,11 @@ def test_every_template_metadata_is_well_formed() -> None:
         assert all(len(c) == 2 and c.isupper() for c in t.countries | t.only_countries), t.id
         for tt in t.tasks:
             assert all(len(c) == 2 and c.isupper() for c in (tt.country_notes or {})), (t.id, tt.name)
-        assert t.requires <= {"garage", "basement", "garden"}, (t.id, t.requires)
+        assert t.requires <= {"garage", "basement", "garden", "ups"}, (t.id, t.requires)
         for tt in t.tasks:
+            assert all(len(c) == 2 and c.isupper() and days > 0 for c, days in (tt.country_intervals or {}).items()), (t.id, tt.name)
+            # Only a dated or seasonal task can be winter-only.
+            assert not tt.winter_only or tt.schedule or tt.season_months, (t.id, tt.name)
             assert all(1 <= m <= 12 for m in tt.season_months), (t.id, tt.name)
             if tt.season_months:
                 assert tt.interval_days, (t.id, tt.name, "a season needs an interval")
@@ -326,6 +365,26 @@ async def test_templates_ws_carries_the_profile_and_recommendations(hass: HomeAs
     by_id = {t["id"]: t for t in result["templates"]}
     assert by_id["household_kitchen"]["recommended"] is True and by_id["household_kitchen"]["reasons"] == ["starter"]
     assert by_id["pool_pump"]["dwelling_mismatch"] is True
+
+
+async def test_templates_ws_lists_what_creating_it_here_makes(hass: HomeAssistant) -> None:
+    """The gallery shows the tasks this home would get: no pool closing in
+    Brisbane, the UK's yearly MOT."""
+    g = make_global_entry(hass)
+    await setup_integration(hass, g)
+
+    async def templates(lat: float, lon: float, country: str) -> dict[str, Any]:
+        hass.config.latitude, hass.config.longitude, hass.config.country = lat, lon, country
+        conn = make_ws_connection()
+        await call_ws_handler(ws_get_templates, hass, conn, {"id": 1, "type": "maintenance_supporter/templates", "language": "en"})
+        return {t["id"]: t for t in assert_ws_success(conn)["templates"]}
+
+    brisbane = await templates(-27.47, 153.03, "AU")
+    assert "Close Pool for Winter" not in [t["name"] for t in brisbane["pool_water"]["tasks"]]
+    london = await templates(51.51, -0.13, "GB")
+    assert "Close Pool for Winter" in [t["name"] for t in london["pool_water"]["tasks"]]
+    mot = next(t for t in london["vehicle_car"]["tasks"] if t["name"] == "Roadworthiness Test")
+    assert mot["interval_days"] == 365
 
 
 async def test_from_template_writes_hemisphere_aware_schedules(hass: HomeAssistant) -> None:

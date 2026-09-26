@@ -864,6 +864,7 @@
   "home_reason_gate": "portti",
   "home_reason_balcony": "parveke",
   "home_reason_small_home": "vähän huoneita yhdessä kerroksessa",
+  "home_reason_ups": "UPS-laite",
   "home_climate_label": "Ilmasto",
   "home_climate_value": "Köppen {koppen} · kylmin kuukausi {cold} °C · lämpimin kuukausi {warm} °C",
   "home_climate_unknown": "Kodin sijaintia ei ole asetettu Home Assistantissa",

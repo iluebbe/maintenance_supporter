@@ -26,7 +26,7 @@ export interface HomeProfile {
   hemisphere: "north" | "south";
   climate: HomeClimate | null;
   traits: string[];
-  /** Equipment the detection saw: garage, basement, garden. */
+  /** Equipment the detection saw: garage, basement, garden, ups. */
   features?: string[];
 }
 
@@ -69,6 +69,12 @@ const DETECTION_KEYS: Record<string, string> = {
   small_home: "home_reason_small_home",
 };
 
+/** Equipment an integration proves (a UPS behind NUT or apcupsd) — a
+ *  recommendation reason only, it says nothing about house or apartment. */
+const EQUIPMENT_KEYS: Record<string, string> = {
+  ups: "home_reason_ups",
+};
+
 export function detectionReasons(codes: readonly string[], lang: string): string {
   const phrases: string[] = [];
   for (const code of codes) {
@@ -87,7 +93,8 @@ export function recommendationReason(code: string, lang: string, country: string
   if (code === "country") return t("home_reason_country", lang).replace("{country}", countryName(country, lang));
   if (code.startsWith("feature_")) {
     // feature_garage → the same phrase the detection uses ("a garage").
-    const key = DETECTION_KEYS[`area_${code.slice("feature_".length)}`];
+    const feature = code.slice("feature_".length);
+    const key = DETECTION_KEYS[`area_${feature}`] ?? EQUIPMENT_KEYS[feature];
     return t("home_reason_feature", lang).replace("{feature}", key ? t(key, lang) : code);
   }
   return t(`home_trait_${code}`, lang);

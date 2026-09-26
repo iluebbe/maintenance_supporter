@@ -864,6 +864,7 @@
   "home_reason_gate": "ворота",
   "home_reason_balcony": "балкон",
   "home_reason_small_home": "мало комнат на одном этаже",
+  "home_reason_ups": "ИБП",
   "home_climate_label": "Климат",
   "home_climate_value": "Кёппен {koppen} · самый холодный месяц {cold} °C · самый тёплый месяц {warm} °C",
   "home_climate_unknown": "В Home Assistant не задано местоположение дома",
