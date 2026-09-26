@@ -43,12 +43,18 @@ TRAIT_TERMITES = "termites"
 TRAIT_WILDFIRE = "wildfire"
 TRAIT_CYCLONE = "cyclone"  # hurricane / typhoon / cyclone basins
 TRAIT_TROPICAL = "tropical"  # no cold season at all
+TRAIT_DAMP = "damp"  # oceanic: mould, moss on roofs, condensation
+TRAIT_MEDITERRANEAN = "mediterranean"  # hot dry summers, flat roof terraces, mosquitoes
+TRAIT_SEVERE_WINTER = "severe_winter"  # roof snow loads, heating cables
 CLIMATE_TRAITS: tuple[str, ...] = (
     TRAIT_FREEZE,
     TRAIT_SNOW,
+    TRAIT_SEVERE_WINTER,
     TRAIT_HOT_SUMMER,
     TRAIT_HOT_HUMID,
     TRAIT_HOT_DRY,
+    TRAIT_DAMP,
+    TRAIT_MEDITERRANEAN,
     TRAIT_TERMITES,
     TRAIT_WILDFIRE,
     TRAIT_CYCLONE,
@@ -58,6 +64,7 @@ CLIMATE_TRAITS: tuple[str, ...] = (
 # Thresholds on the coldest / warmest monthly mean (°C).
 FREEZE_MAX_COLDEST = 7  # Atlanta (7) and London (5) still see hard frosts; Rome (8) rarely
 SNOW_MAX_COLDEST = 0  # Munich, Stockholm, Denver, Toronto
+SEVERE_WINTER_MAX_COLDEST = -5  # Helsinki, Moscow, Minneapolis, Montreal
 HOT_SUMMER_MIN_WARMEST = 24  # Madrid, Rome, Atlanta — not Berlin (19)
 HOT_DRY_MIN_WARMEST = 21  # Denver's swamp coolers, Phoenix, Dubai
 WINTER_MAX_COLDEST = 10  # above this there is no cold season to plan around
@@ -178,6 +185,8 @@ def _traits(lat: float, lon: float, koppen: str | None, coldest: int | None, war
             yield TRAIT_FREEZE
         if coldest <= SNOW_MAX_COLDEST:
             yield TRAIT_SNOW
+        if coldest <= SEVERE_WINTER_MAX_COLDEST:
+            yield TRAIT_SEVERE_WINTER
     if warmest is not None:
         if warmest >= HOT_SUMMER_MIN_WARMEST:
             yield TRAIT_HOT_SUMMER
@@ -187,6 +196,10 @@ def _traits(lat: float, lon: float, koppen: str | None, coldest: int | None, war
         yield TRAIT_HOT_HUMID
     if group == "A":
         yield TRAIT_TROPICAL
+    if koppen in ("Cfb", "Cfc"):
+        yield TRAIT_DAMP
+    if koppen == "Csa":
+        yield TRAIT_MEDITERRANEAN
     if koppen in _TERMITE_CLASSES:
         yield TRAIT_TERMITES
     if koppen in _WILDFIRE_CLASSES:

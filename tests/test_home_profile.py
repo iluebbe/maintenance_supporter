@@ -65,6 +65,48 @@ def test_known_places_are_classified(place: str, lat: float, lon: float, koppen:
     assert not (has_not & info.traits), (place, sorted(info.traits))
 
 
+@pytest.mark.parametrize(
+    ("lat", "lon", "trait", "present"),
+    [
+        (60.17, 24.94, "severe_winter", True),  # Helsinki
+        (48.14, 11.58, "severe_winter", False),  # Munich
+        (51.51, -0.13, "damp", True),  # London
+        (41.90, 12.50, "mediterranean", True),  # Rome
+        (40.42, -3.70, "mediterranean", False),  # Madrid is steppe (BSk)
+    ],
+)
+def test_regional_climate_traits(lat: float, lon: float, trait: str, present: bool) -> None:
+    assert (trait in describe(lat, lon, GRIDS).traits) is present
+
+
+@pytest.mark.parametrize(
+    ("country", "location", "expected"),
+    [
+        ("JP", (35.68, 139.69), True),
+        ("US", (37.77, -122.42), True),  # San Francisco
+        ("US", (61.22, -149.90), True),  # Anchorage
+        ("US", (29.76, -95.37), False),  # Houston
+        ("DE", (48.14, 11.58), False),
+    ],
+)
+def test_earthquake_regions(country: str, location: tuple[float, float], expected: bool) -> None:
+    profile = HomeProfile(DWELLING_HOUSE, DWELLING_HOUSE, (), "auto", country, None, location)
+    assert ("earthquake" in profile.traits) is expected
+
+
+def test_country_notes_are_added_for_that_country_only() -> None:
+    annual = next(tt for t in TEMPLATES if t.id == "home_heating" for tt in t.tasks if tt.name == "Annual Inspection")
+    assert "France" in build_template_task(annual, "en", country="FR")["notes"]
+    assert "Gas Safe" in build_template_task(annual, "en", country="GB")["notes"]
+    assert "notes" not in build_template_task(annual, "en", country="DE")
+    assert "notes" not in build_template_task(annual, "en")
+    # Appended below a template's own note, and localized.
+    sweep = next(tt for t in TEMPLATES if t.id == "home_fireplace" for tt in t.tasks if tt.name == "Chimney Sweep Appointment")
+    notes = build_template_task(sweep, "en", country="PL")["notes"]
+    assert notes.startswith("Legally regulated") and notes.endswith("at least once a year.") and "\n\n" in notes
+    assert "DIN 14676" in build_template_task(_tt("Test Detectors"), "de", country="DE")["notes"]
+
+
 def test_winter_and_hemisphere() -> None:
     assert describe(52.52, 13.40, GRIDS).has_winter is True  # Berlin
     assert describe(25.76, -80.19, GRIDS).has_winter is False  # Miami
@@ -248,12 +290,16 @@ def test_every_template_metadata_is_well_formed() -> None:
     from custom_components.maintenance_supporter.helpers.climate import CLIMATE_TRAITS
     from custom_components.maintenance_supporter.helpers.home_profile import TRAIT_RADON
 
-    allowed_traits = set(CLIMATE_TRAITS) | {TRAIT_RADON}
+    from custom_components.maintenance_supporter.helpers.home_profile import TRAIT_EARTHQUAKE
+
+    allowed_traits = set(CLIMATE_TRAITS) | {TRAIT_RADON, TRAIT_EARTHQUAKE}
     for t in TEMPLATES:
         assert t.dwellings and t.dwellings <= {DWELLING_HOUSE, DWELLING_APARTMENT}, t.id
         assert t.starter <= t.dwellings, t.id
         assert t.traits <= allowed_traits, (t.id, t.traits)
         assert all(len(c) == 2 and c.isupper() for c in t.countries | t.only_countries), t.id
+        for tt in t.tasks:
+            assert all(len(c) == 2 and c.isupper() for c in (tt.country_notes or {})), (t.id, tt.name)
         assert t.requires <= {"garage", "basement", "garden"}, (t.id, t.requires)
         for tt in t.tasks:
             assert all(1 <= m <= 12 for m in tt.season_months), (t.id, tt.name)

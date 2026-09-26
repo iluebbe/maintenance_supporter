@@ -550,13 +550,14 @@ async def ws_create_from_template(
     climate = await async_climate(hass)
     hemisphere = climate.hemisphere if climate else "north"
     has_winter = climate.has_winter if climate else True
+    country = str(hass.config.country).upper() if hass.config.country else None
     new_tasks: dict[str, Any] = {}
     for tt in template.tasks:
         task_id = uuid4().hex
         new_tasks[task_id] = {
             "id": task_id,
             "object_id": object_id,
-            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter),
+            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country),
         }
         new_obj["task_ids"].append(task_id)
 

@@ -31,6 +31,17 @@ TRAIT_RADON = "radon"
 # test is cheap, so the hint is country-wide.
 RADON_COUNTRIES = frozenset({"AT", "CA", "CH", "CZ", "DE", "FI", "FR", "GB", "IE", "NO", "SE", "US"})
 
+TRAIT_EARTHQUAKE = "earthquake"
+# High seismic hazard across most of the country; the US only on the West
+# Coast and in Alaska (checked by location below).
+EARTHQUAKE_COUNTRIES = frozenset(
+    {
+        "AL", "CL", "CO", "CR", "EC", "GR", "GT", "ID", "IR", "IS", "IT", "JP",
+        "MX", "NI", "NP", "NZ", "PE", "PH", "SV", "TR", "TW",
+    }
+)  # fmt: skip
+_US_EARTHQUAKE_BOXES = ((32.0, 49.5, -125.0, -114.0), (51.0, 72.0, -180.0, -130.0))
+
 _GRIDS_KEY = "_climate_grids"
 
 # Detection reasons that prove a feature of the home (template ``requires``).
@@ -194,12 +205,19 @@ class HomeProfile:
     dwelling_source: str  # "setting" | "auto"
     country: str | None
     climate: ClimateInfo | None
+    location: tuple[float, float] | None = None
 
     @property
     def traits(self) -> frozenset[str]:
         traits = set(self.climate.traits) if self.climate else set()
         if self.country in RADON_COUNTRIES:
             traits.add(TRAIT_RADON)
+        if self.country in EARTHQUAKE_COUNTRIES or (
+            self.country == "US"
+            and self.location is not None
+            and any(a <= self.location[0] <= b and c <= self.location[1] <= d for a, b, c, d in _US_EARTHQUAKE_BOXES)
+        ):
+            traits.add(TRAIT_EARTHQUAKE)
         return frozenset(traits)
 
     @property
@@ -244,4 +262,7 @@ async def async_home_profile(hass: HomeAssistant) -> HomeProfile:
         dwelling_source="setting" if setting in (DWELLING_HOUSE, DWELLING_APARTMENT) else "auto",
         country=country,
         climate=await async_climate(hass),
+        location=(float(hass.config.latitude), float(hass.config.longitude))
+        if hass.config.latitude is not None and hass.config.longitude is not None
+        else None,
     )

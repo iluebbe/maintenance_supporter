@@ -294,6 +294,7 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                             create_lang,
                             hemisphere=climate.hemisphere if climate else "north",
                             has_winter=climate.has_winter if climate else True,
+                            country=str(self.hass.config.country).upper() if self.hass.config.country else None,
                         ),
                         "history": [],
                         "created_at": today_iso,

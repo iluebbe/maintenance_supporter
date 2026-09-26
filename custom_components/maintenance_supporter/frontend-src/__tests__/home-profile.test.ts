@@ -114,6 +114,9 @@ describe("panel gallery: recommendations", () => {
     expect(cards.map((c) => c.querySelector(".template-card-name")!.textContent!.trim())).to.deep.equal(["Pool Water", "Pool Pump"]);
     expect(cards[1].classList.contains("not-typical")).to.equal(true);
     expect(cards[1].title).to.equal("Not typical for your home type");
+    // Singular: "1 task", not "1 tasks".
+    const water = cards[0].querySelector(".template-card-count")!.textContent!.trim();
+    expect(water).to.equal("1 task");
   });
 
   it("shows no recommended section without recommendations", async () => {

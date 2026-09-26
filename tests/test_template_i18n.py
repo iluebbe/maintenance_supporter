@@ -75,6 +75,7 @@ def test_every_catalog_string_is_translated_into_all_languages() -> None:
         *[t.name for t in TEMPLATES],
         *[tt.name for t in TEMPLATES for tt in t.tasks],
         *[tt.notes for t in TEMPLATES for tt in t.tasks if tt.notes],
+        *[note for t in TEMPLATES for tt in t.tasks for note in (tt.country_notes or {}).values()],
         *_EXTRA_T_SOURCES,
     ]:
         entry = _T.get(text)

@@ -1974,7 +1974,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         title=${tpl.dwelling_mismatch ? t("templates_not_typical", L) : ""}
         @click=${() => this._createFromTemplate(tpl.id)}>
         <span class="template-card-name">${tpl.name}</span>
-        <span class="template-card-count">${t("templates_task_count", L).replace("{n}", String(tpl.tasks.length))}</span>
+        <span class="template-card-count">${tpl.tasks.length === 1
+          ? t("templates_task_count_one", L)
+          : t("templates_task_count", L).replace("{n}", String(tpl.tasks.length))}</span>
         ${withReasons && tpl.reasons?.length
           ? html`<span class="template-card-reasons">
               ${tpl.reasons.map((r) => html`<span class="template-card-reason">${recommendationReason(r, L, country)}</span>`)}

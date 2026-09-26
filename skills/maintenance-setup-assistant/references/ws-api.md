@@ -213,7 +213,7 @@ borrower and repoints the other links. Parts ride the `objects` payload
                                "schedule_type":"time_based",
                                "interval_days":90,"warning_days":7} ] } ] }
 ```
-**Call this before hand-building anything.** The integration ships **73**
+**Call this before hand-building anything.** The integration ships **87**
 curated object templates (heating, heat pump, frost protection, garden,
 vehicle, health, …), each with its tasks, types and interval defaults already
 chosen and localized. It is the only way to enumerate the `template_id` values
@@ -225,8 +225,9 @@ nearly every time.
 **Home profile (2.93):** `profile` is derived locally — `dwelling` (house /
 apartment / unknown, the `home_type` setting wins over the guess from floors,
 area names and a few devices), `country`, and the climate of the home location
-with `traits` (`freeze`, `snow`, `hot_summer`, `hot_humid`, `hot_dry`,
-`termites`, `wildfire`, `cyclone`, `tropical`, `radon`). Per template,
+with `traits` (`freeze`, `snow`, `severe_winter`, `hot_summer`, `hot_humid`,
+`hot_dry`, `damp`, `mediterranean`, `termites`, `wildfire`, `cyclone`,
+`tropical`, `radon`, `earthquake`). Per template,
 `recommended` + `reasons` (`starter` = basics for the dwelling,
 `feature_garage` / `feature_basement` / `feature_garden` = equipment the
 detection saw in the home, a trait code, or `country`) say what to suggest

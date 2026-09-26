@@ -8,8 +8,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 - **Recommended for your home:** the template gallery now opens with the templates that fit your home — the basics
   for a house or an apartment, plus what your climate and region call for: frost protection where winters freeze,
-  termite checks and storm preparation where they matter, a radon test in countries with radon-prone areas, winter
-  tires in the Alps and the north — and the equipment your home evidently has: the garage door where a garage was
+  termite checks and storm preparation where they matter, damp and moss in maritime climates, flat roofs and
+  mosquitoes around the Mediterranean, snow on the roof in severe winters, earthquake preparedness in seismic regions,
+  a radon test in countries with radon-prone areas, winter tires in the Alps and the north, regional classics (the
+  sauna in Finland, the dacha, tatami, the water storage tank, the inverter battery) — and the equipment your home
+  evidently has: the garage door where a garage was
   found, lawn care with a garden, the sump pump (North America) or the backflow valve (Germany, Austria,
   Switzerland) with a basement. Each recommendation shows its reason. Templates your home type rarely has (a pool in an apartment) move
   to the end of their category; nothing is hidden.
@@ -18,13 +21,18 @@ All notable changes to Maintenance Supporter are documented in this file.
   and lets you set house or apartment yourself. Everything is worked out locally — the dwelling from your floors,
   area names (in all 22 languages) and a few devices, the climate from your home location and an offline climate
   map (Köppen-Geiger 1991–2020 and monthly temperatures, Beck et al. 2023, CC BY 4.0).
-- **26 new templates** (73 in total): heat pump, solar PV system, split air conditioner, evaporative cooler,
-  garage door, standby generator, hot tub, backflow valve & lifting station, septic system, small sewage treatment
-  plant, sump pump, radon protection, frost protection, snow blower, windows & doors, drains & fixtures, wooden deck
-  & facade, emergency supplies, storm & hurricane preparation, termite & pest protection, dehumidifier, humidifier,
-  seasonal tires, heating oil tank, water & heat meters and balcony & terrace — with the legal intervals where they
-  exist (DIN 1986-3 and DIN EN 12056-4, the German oil-tank and meter-calibration rules, the EU F-gas leak checks)
-  named in the notes.
+- **40 new templates** (87 in total), covering every region: heat pump, solar PV system, split air conditioner,
+  evaporative cooler, garage door, standby generator, hot tub, backflow valve & lifting station, septic system, small
+  sewage treatment plant, private well, sump pump, radon protection, frost protection, snow blower, snow & ice on the
+  roof, windows & doors, drains & fixtures, damp & mould prevention, roof moss & algae, wooden deck & facade, flat roof
+  & roof terrace, mosquito prevention, wildfire preparation, emergency supplies, storm & hurricane preparation,
+  earthquake preparedness, termite & pest protection, dehumidifier, humidifier, sauna, holiday home / cabin, tatami &
+  futon care, rainwater tank, water storage tank, inverter battery backup, seasonal tires, heating oil tank, water &
+  heat meters and balcony & terrace — with the legal intervals where they exist (DIN 1986-3 and DIN EN 12056-4, the
+  German oil-tank and meter-calibration rules, the EU F-gas leak checks) named in the notes.
+- **Country-specific notes:** where a duty depends on the country, the task note names it for your country only —
+  the French boiler, heat-pump and chimney-sweeping duties and the SPANC inspection, the UK Gas Safe engineer, the
+  Italian flue-gas check, the Polish and Swedish chimney rules, the German smoke-alarm check (DIN 14676).
 
 ### ✨ Changed
 
@@ -33,6 +41,13 @@ All notable changes to Maintenance Supporter are documented in this file.
   winterizing the irrigation on 15 October, gutters in April and November, the heating service in September. South
   of the equator the months are mirrored; where there is no winter, year-round tasks such as mowing keep their plain
   interval. Existing objects are not changed.
+- **New gallery category *Building & Safety*:** smoke and fire safety, backflow and drainage, radon, frost, storm,
+  wildfire and earthquake preparation, roofs, windows and doors moved out of *Home & HVAC*, which keeps heating,
+  cooling, water and energy — each group now stays scannable.
+
+### 🐛 Fixed
+
+- The template gallery said "1 tasks" for single-task templates.
 
 ## [2.92.0] - 2026-09-26
 

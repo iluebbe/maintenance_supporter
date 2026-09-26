@@ -38,6 +38,9 @@ class TaskTemplate:
     # months, e.g. winterize the irrigation every 15 October. The interval
     # above stays the cycle length shown in the gallery.
     schedule: dict[str, Any] | None = None
+    # Extra note for homes in one country (ISO code → English note), appended
+    # to ``notes`` at creation — the French boiler duty only for France.
+    country_notes: dict[str, str] | None = None
 
 
 @dataclass
@@ -113,6 +116,31 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_hu": "Otthon és HVAC",
         "name_ko": "주택 및 HVAC",
         "name_tr": "Ev ve HVAC",
+    },
+    "building": {
+        "icon": "mdi:shield-home",
+        "name_en": "Building & Safety",
+        "name_de": "Gebäude & Schutz",
+        "name_nl": "Gebouw & veiligheid",
+        "name_fr": "Bâtiment & sécurité",
+        "name_it": "Edificio & sicurezza",
+        "name_es": "Edificio y seguridad",
+        "name_ru": "Здание и безопасность",
+        "name_uk": "Будівля та безпека",
+        "name_zh": "建筑与安全",
+        "name_pt": "Edifício e segurança",
+        "name_pl": "Budynek i bezpieczeństwo",
+        "name_cs": "Budova a bezpečnost",
+        "name_sv": "Byggnad & säkerhet",
+        "name_da": "Bygning & sikkerhed",
+        "name_nb": "Bygning & sikkerhet",
+        "name_fi": "Rakennus ja turvallisuus",
+        "name_ja": "建物・安全",
+        "name_hi": "भवन और सुरक्षा",
+        "name_pt-br": "Construção e segurança",
+        "name_hu": "Épület és biztonság",
+        "name_ko": "건물 및 안전",
+        "name_tr": "Bina ve Güvenlik",
     },
     # v2.27: two extra top-level groups keep the growing catalog scannable —
     # recurring HOUSEHOLD routines split from device-centric "home", and
@@ -386,7 +414,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_water_heater",
         name="Water Heater",
         category="home",
-        countries=frozenset({"US", "CA", "AU", "NZ"}),
+        countries=frozenset({"US", "CA", "AU", "NZ", "IN", "ZA"}),
         tasks=[
             TaskTemplate("Anode Rod Inspection", "inspection", "time_based", 365, 30),
             TaskTemplate("Flush Tank", "cleaning", "time_based", 365, 30),
@@ -409,7 +437,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         traits=frozenset({"freeze"}),
         tasks=[
-            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}),
+            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer.", "IT": "Italy: flue-gas check every 4 years for gas boilers up to 100 kW, every 2 years for oil, wood or pellet boilers."}),
             TaskTemplate("Bleed Radiators", "service", "time_based", 365, 14, schedule={"kind": "day_of_month", "day": 1, "months": [10]}),
             TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
         ],
@@ -456,6 +484,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 365,
                 30,
                 "Legally regulated in many countries — e.g. 1–3 sweeps per year in Germany depending on usage (KÜO), and at least an annual inspection under NFPA 211 in the US.",
+                country_notes={"FR": "France: sweeping twice a year for oil, wood or coal, once for gas (règlement sanitaire départemental); keep the certificate.", "PL": "Poland: a chimney sweep's inspection at least once a year.", "SE": "Sweden: the municipality's sweep does fire-safety inspections every 3–6 years depending on the fireplace."},
             ),
             TaskTemplate("Inspect Door Gasket", "inspection", "time_based", 365, 21),
             TaskTemplate(
@@ -485,6 +514,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_ro_filter",
         name="Drinking Water Filter",
         category="home",
+        countries=frozenset({"CN", "TW", "IN"}),
         tasks=[
             TaskTemplate("Sediment Pre-Filter", "replacement", "time_based", 180, 14),
             TaskTemplate("Carbon Pre-Filter", "replacement", "time_based", 270, 21),
@@ -515,10 +545,10 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_smoke_detectors",
         name="Smoke & CO Detectors",
-        category="home",
+        category="building",
         starter=ANY_DWELLING,
         tasks=[
-            TaskTemplate("Test Detectors", "inspection", "time_based", 30, 7),
+            TaskTemplate("Test Detectors", "inspection", "time_based", 30, 7, country_notes={"DE": "Germany: the state building codes call for a yearly check following DIN 14676."}),
             TaskTemplate("Replace Detector Batteries", "replacement", "time_based", 365, 30),
             TaskTemplate(
                 "Replace Detectors",
@@ -1047,7 +1077,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_fire_safety",
         name="Fire Safety Equipment",
-        category="home",
+        category="building",
         tasks=[
             TaskTemplate(
                 "Inspect Fire Extinguisher",
@@ -1119,7 +1149,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Leaves, snow and plants must not block the outdoor unit — the air has to flow freely.",
                 season_months=(10, 11, 12, 1, 2, 3),
             ),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: heat pumps of 4–70 kW must be serviced every 2 years; above 2 kg of refrigerant a yearly leak check applies."}),
             TaskTemplate(
                 "Refrigerant Leak Check",
                 "inspection",
@@ -1160,7 +1190,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_garage_door",
         name="Garage Door",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         requires=frozenset({"garage"}),
         tasks=[
@@ -1218,7 +1248,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_backflow_lifting",
         name="Backflow Valve & Lifting Station",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         requires=frozenset({"basement"}),
         only_countries=frozenset({"DE", "AT", "CH"}),
@@ -1252,7 +1282,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_septic_tank",
         name="Septic System",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
@@ -1262,6 +1292,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 1095,
                 60,
                 "Every 1–3 years; systems with pumps or float switches every year (US EPA).",
+                country_notes={"FR": "France: the SPANC inspects non-collective sanitation at least every 10 years (often every 4–8)."},
             ),
             TaskTemplate("Pump Out Tank", "service", "time_based", 1095, 60, "Typically every 3–5 years, depending on tank size and household."),
             TaskTemplate("Check Drain Field", "inspection", "time_based", 365, 30),
@@ -1270,7 +1301,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_treatment_plant",
         name="Small Sewage Treatment Plant",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
@@ -1288,13 +1319,14 @@ TEMPLATES: list[ObjectTemplate] = [
                 182,
                 21,
                 "Germany: technical plants twice a year (three times for classes +P/+H), nature-based plants once a year.",
+                country_notes={"FR": "France: the SPANC inspects non-collective sanitation at least every 10 years (often every 4–8)."},
             ),
         ],
     ),
     ObjectTemplate(
         id="home_radon",
         name="Radon Protection",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         traits=frozenset({"radon"}),
         tasks=[
@@ -1312,7 +1344,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_sump_pump",
         name="Sump Pump",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         requires=frozenset({"basement"}),
         only_countries=frozenset({"US", "CA"}),
@@ -1340,7 +1372,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_frost_protection",
         name="Frost Protection",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         traits=frozenset({"freeze"}),
         tasks=[
@@ -1403,7 +1435,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_windows_doors",
         name="Windows & Doors",
-        category="home",
+        category="building",
         starter=ANY_DWELLING,
         tasks=[
             TaskTemplate("Lubricate Hinges and Fittings", "service", "time_based", 365, 30),
@@ -1475,7 +1507,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="household_emergency_kit",
         name="Emergency Supplies",
         category="household",
-        traits=frozenset({"cyclone", "wildfire"}),
+        traits=frozenset({"cyclone", "wildfire", "earthquake"}),
         tasks=[
             TaskTemplate("Rotate Drinking Water", "replacement", "time_based", 182, 14),
             TaskTemplate("Check Food Supplies and Expiry Dates", "inspection", "time_based", 182, 14),
@@ -1486,7 +1518,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_storm_prep",
         name="Storm & Hurricane Preparation",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         traits=frozenset({"cyclone"}),
         tasks=[
@@ -1528,7 +1560,7 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_termite",
         name="Termite & Pest Protection",
-        category="home",
+        category="building",
         dwellings=HOUSE_ONLY,
         traits=frozenset({"termites"}),
         tasks=[
@@ -1679,10 +1711,320 @@ TEMPLATES: list[ObjectTemplate] = [
     ObjectTemplate(
         id="home_balcony",
         name="Balcony & Terrace",
-        category="home",
+        category="building",
         tasks=[
             TaskTemplate("Clear Balcony Drain", "cleaning", "time_based", 182, 14, schedule={"kind": "day_of_month", "day": 1, "months": [4, 11]}),
             TaskTemplate("Check Railings and Sealing", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
+        ],
+    ),
+    # --- v2.93 home profile waves 2–4 (maritime Europe, Nordics, Mediterranean,
+    # Australia, South Asia, Latin America, Japan, seismic regions) ---
+    ObjectTemplate(
+        id="household_damp_mould",
+        name="Damp & Mould Prevention",
+        category="household",
+        traits=frozenset({"damp", "hot_humid"}),
+        tasks=[
+            TaskTemplate(
+                "Check for Mould and Condensation",
+                "inspection",
+                "time_based",
+                30,
+                7,
+                "Look behind furniture, in window reveals and in the corners of outside walls.",
+                season_months=(10, 11, 12, 1, 2, 3, 4),
+            ),
+            TaskTemplate("Clean Extractor Fans and Trickle Vents", "cleaning", "time_based", 180, 14),
+            TaskTemplate(
+                "Check Indoor Humidity",
+                "reading",
+                "time_based",
+                30,
+                7,
+                "Aim for 40–60 % relative humidity; air rooms briefly and fully rather than tilting windows all day.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="garden_roof_moss",
+        name="Roof Moss & Algae",
+        category="garden",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"damp"}),
+        tasks=[
+            TaskTemplate(
+                "Remove Roof Moss",
+                "service",
+                "time_based",
+                730,
+                30,
+                "Brush off or treat moss before it lifts the tiles — don't pressure-wash the roof.",
+            ),
+            TaskTemplate("Clean Paths and Patio", "cleaning", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_sauna",
+        name="Sauna",
+        category="home",
+        countries=frozenset({"FI"}),
+        tasks=[
+            TaskTemplate("Wash Benches and Floor", "cleaning", "time_based", 30, 7),
+            TaskTemplate(
+                "Restack Sauna Stones",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Once a year: restack the stones and replace any that crumble or discolour (heater manufacturers' advice).",
+            ),
+            TaskTemplate("Check Heater, Guard and Thermostat", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_roof_snow",
+        name="Snow & Ice on the Roof",
+        category="building",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"severe_winter"}),
+        tasks=[
+            TaskTemplate("Check Roof Snow Load and Ice Dams", "inspection", "time_based", 14, 3, season_months=(12, 1, 2, 3)),
+            TaskTemplate(
+                "Test Roof and Gutter Heating Cables",
+                "inspection",
+                "time_based",
+                365,
+                21,
+                schedule={"kind": "day_of_month", "day": 1, "months": [11]},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_flat_roof",
+        name="Flat Roof & Roof Terrace",
+        category="building",
+        traits=frozenset({"mediterranean", "hot_dry"}),
+        tasks=[
+            TaskTemplate("Clear Roof Drains", "cleaning", "time_based", 182, 14, schedule={"kind": "day_of_month", "day": 1, "months": [4, 10]}),
+            TaskTemplate(
+                "Check Waterproofing Before the Rainy Season",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                schedule={"kind": "day_of_month", "day": 15, "months": [9]},
+            ),
+            TaskTemplate(
+                "Recoat Waterproofing",
+                "service",
+                "time_based",
+                1642,
+                60,
+                "Elastic roof coatings usually need a fresh coat every 4–5 years.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="garden_mosquito",
+        name="Mosquito Prevention",
+        category="garden",
+        traits=frozenset({"hot_humid", "mediterranean"}),
+        tasks=[
+            TaskTemplate(
+                "Empty Standing Water",
+                "inspection",
+                "time_based",
+                7,
+                1,
+                "Plant saucers, buckets, gutters and rain barrels — a week is enough for larvae to hatch.",
+                season_months=(5, 6, 7, 8, 9, 10),
+            ),
+            TaskTemplate(
+                "Check Window and Door Screens",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                schedule={"kind": "day_of_month", "day": 1, "months": [4]},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_wildfire_prep",
+        name="Wildfire Preparation",
+        category="building",
+        dwellings=HOUSE_ONLY,
+        traits=frozenset({"wildfire"}),
+        tasks=[
+            TaskTemplate(
+                "Clear Defensible Space",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Cut back dry vegetation; keep the first 1.5 m (5 ft) around the house free of anything that burns (CAL FIRE Zone 0).",
+                schedule={"kind": "day_of_month", "day": 1, "months": [5]},
+            ),
+            TaskTemplate(
+                "Clear Leaves from Roof and Gutters",
+                "cleaning",
+                "time_based",
+                182,
+                14,
+                schedule={"kind": "day_of_month", "day": 1, "months": [5, 9]},
+            ),
+            TaskTemplate(
+                "Check Ember-Proof Vent Screens",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Vents covered with 3 mm (⅛ in) metal mesh keep embers out.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="garden_rainwater_tank",
+        name="Rainwater Tank",
+        category="garden",
+        dwellings=HOUSE_ONLY,
+        requires=frozenset({"garden"}),
+        only_countries=frozenset({"AU", "NZ"}),
+        tasks=[
+            TaskTemplate("Clean Leaf Screens and First-Flush Diverter", "cleaning", "time_based", 90, 7),
+            TaskTemplate(
+                "Check Tank for Sediment",
+                "inspection",
+                "time_based",
+                730,
+                60,
+                "Australian health guidance: check for sediment every 2–3 years and clean the tank once the bottom is covered.",
+            ),
+            TaskTemplate("Check Pump and Filter", "inspection", "time_based", 180, 14),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_water_storage_tank",
+        name="Water Storage Tank",
+        category="home",
+        countries=frozenset({"BR", "MX", "IN"}),
+        tasks=[
+            TaskTemplate(
+                "Clean and Disinfect Tank",
+                "cleaning",
+                "time_based",
+                182,
+                14,
+                "Brazil: at least every 6 months (Ministry of Health guidance).",
+            ),
+            TaskTemplate("Check Lid, Overflow and Float Valve", "inspection", "time_based", 90, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="tech_inverter_battery",
+        name="Inverter Battery Backup",
+        category="tech",
+        countries=frozenset({"IN", "ZA", "PK", "BD", "NG"}),
+        tasks=[
+            TaskTemplate(
+                "Top Up Distilled Water",
+                "service",
+                "time_based",
+                90,
+                14,
+                "Every 2–4 months — distilled water only, never tap water.",
+            ),
+            TaskTemplate("Clean Battery Terminals", "cleaning", "time_based", 90, 14),
+            TaskTemplate("Test Backup Runtime", "inspection", "time_based", 30, 7),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_holiday_home",
+        name="Holiday Home / Cabin",
+        category="building",
+        countries=frozenset({"RU", "UA", "BY", "FI", "NO", "SE"}),
+        tasks=[
+            TaskTemplate(
+                "Close for Winter",
+                "service",
+                "time_based",
+                365,
+                21,
+                "Drain pipes, pump and water heater before the frosts — best while the daily mean is still +5 to +10 °C.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [10]},
+            ),
+            TaskTemplate(
+                "Open for the Season",
+                "service",
+                "time_based",
+                365,
+                14,
+                "Flush the water system and check for frost and pest damage.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+            ),
+            TaskTemplate("Check for Storm and Snow Damage", "inspection", "time_based", 30, 7, season_months=(11, 12, 1, 2, 3)),
+        ],
+    ),
+    ObjectTemplate(
+        id="household_tatami",
+        name="Tatami & Futon Care",
+        category="household",
+        countries=frozenset({"JP"}),
+        tasks=[
+            TaskTemplate(
+                "Air Tatami and Futons",
+                "service",
+                "time_based",
+                182,
+                14,
+                "Twice a year on a dry, sunny day.",
+                schedule={"kind": "day_of_month", "day": 1, "months": [5, 10]},
+            ),
+            TaskTemplate("Vacuum Tatami Along the Grain", "cleaning", "time_based", 7, 1),
+            TaskTemplate(
+                "Mould Check in the Rainy Season",
+                "inspection",
+                "time_based",
+                14,
+                3,
+                "During tsuyu keep the humidity below 60 % — a dehumidifier helps in tatami rooms.",
+                season_months=(6, 7),
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_earthquake",
+        name="Earthquake Preparedness",
+        category="building",
+        traits=frozenset({"earthquake"}),
+        tasks=[
+            TaskTemplate("Check Water Heater Straps and Furniture Anchors", "inspection", "time_based", 365, 30),
+            TaskTemplate(
+                "Check Gas Shut-Off Tool and Location",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Know where the valve is and keep the wrench next to it; once shut off, let the gas utility turn it back on.",
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_private_well",
+        name="Private Well",
+        category="home",
+        dwellings=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate(
+                "Test Well Water",
+                "reading",
+                "time_based",
+                365,
+                30,
+                "US EPA: test for bacteria and nitrates every year, a full chemical panel every 3–5 years.",
+            ),
+            TaskTemplate("Check Pump and Pressure Tank", "inspection", "time_based", 365, 30),
+            TaskTemplate("Inspect Wellhead and Cap", "inspection", "time_based", 365, 30),
         ],
     ),
 ]
@@ -1701,11 +2043,19 @@ def get_template_by_id(template_id: str) -> ObjectTemplate | None:
     return None
 
 
-def build_template_task(tt: TaskTemplate, lang: str, *, hemisphere: str = "north", has_winter: bool = True) -> dict[str, Any]:
+def build_template_task(
+    tt: TaskTemplate,
+    lang: str,
+    *,
+    hemisphere: str = "north",
+    has_winter: bool = True,
+    country: str | None = None,
+) -> dict[str, Any]:
     """The task a template task creates (without ids) — shared by the config
     flow and the panel gallery.
 
-    Name and notes are localized. The recurrence is a nested ``schedule``
+    Name and notes are localized; a note for the home's ``country`` is
+    appended (legal duties differ per country). The recurrence is a nested ``schedule``
     when the template carries a fixed calendar or a seasonal window (months
     mirrored south of the equator; the window is dropped where there is no
     cold season, so a Miami lawn is mowed all year), else the flat interval.
@@ -1718,8 +2068,9 @@ def build_template_task(tt: TaskTemplate, lang: str, *, hemisphere: str = "north
         "enabled": True,
         "warning_days": tt.warning_days,
     }
-    if tt.notes:
-        task["notes"] = localize_template_text(tt.notes, lang)
+    notes = [localize_template_text(n, lang) or n for n in (tt.notes, (tt.country_notes or {}).get(country or "")) if n]
+    if notes:
+        task["notes"] = "\n\n".join(notes)
     if tt.schedule is not None:
         schedule = dict(tt.schedule)
         if schedule.get("months"):
