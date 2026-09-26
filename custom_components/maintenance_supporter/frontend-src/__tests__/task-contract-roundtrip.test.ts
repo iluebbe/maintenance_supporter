@@ -103,6 +103,8 @@ const READONLY = new Set([
   "is_done",
   "days_until_due",
   "next_due",
+  // #189: titles of the calendar events behind next_due — computed, read-only.
+  "next_event_titles",
   "trigger_active",
   "trigger_current_value",
   "trigger_entity_state",

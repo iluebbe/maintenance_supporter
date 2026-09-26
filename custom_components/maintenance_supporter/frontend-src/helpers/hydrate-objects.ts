@@ -19,6 +19,8 @@ const TASK_LIST_KEYS = [
   "labels",
   // D#183: external to-do lists the task is mirrored into (empty = off).
   "mirror_todo_entities",
+  // #189: titles of the calendar events behind next_due (empty = none).
+  "next_event_titles",
   "history",
   // #161 phase 2: reading slots (empty = single-value task).
   "readings",

@@ -64,6 +64,7 @@
   ],
   "name": "Contract Fixture Task",
   "next_due": null,
+  "next_event_titles": [],
   "nfc_tag_id": "contract-nfc-1",
   "notes": "Contract notes",
   "notify_enabled": true,
